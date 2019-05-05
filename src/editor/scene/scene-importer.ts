@@ -1,7 +1,6 @@
 import {
     Tags,
     SceneLoader,
-    FilesInput,
     MultiMaterial,
     Tools as BabylonTools,
     FilesInputStore,
@@ -11,6 +10,8 @@ import Editor from '../editor';
 
 import Tools from '../tools/tools';
 import Request from '../tools/request';
+
+import Storage from '../storage/storage';
 
 import Window from '../gui/window';
 import Picker from '../gui/picker';
@@ -43,19 +44,24 @@ export default class SceneImporter {
      * @param editor the editor reference
      * @param path the absolute path of the file
      * @param project the project previously parsed/read, etc.
+     * @param fullLoad sets if the loader should load newly added files in the scene folder
      */
-    public static async LoadProjectFromFile (editor: Editor, path: string, project: ProjectRoot): Promise<boolean> {
+    public static async LoadProjectFromFile (editor: Editor, path: string, project: ProjectRoot, fullLoad: boolean = true): Promise<boolean> {
         // Load files
         const promises: Promise<void>[] = [];
         const files: File[] = [];
         const folder = path.replace(Tools.GetFilename(path), '');
 
-        const filesList = await Request.Get<{ value: { folder: string; name: string }[] }>('/files?path=' + folder);
+        const failedToLoadList: string[] = [];
+        const newlyAddedList: string[] = [];
+
+        const storage = await Storage.GetStorage(editor);
 
         // Manage backward compatibility for file list
         if (!project.filesList) {
+            const filesList = await storage.getFiles(folder);
             project.filesList = [];
-            for (const v of filesList.value) {
+            for (const v of filesList) {
                 if (v.folder)
                     continue;
 
@@ -63,22 +69,45 @@ export default class SceneImporter {
             }
         }
 
+        // Full load, reset files list to load newly added files?
+        if (fullLoad) {
+            const filesList = await storage.getFiles(folder);
+            const scene = filesList.find(v => v.name.toLowerCase() === 'scene');
+
+            if (scene) {
+                const sceneFiles = await storage.getFiles(folder + 'scene');
+                const lastFilesList = project.filesList;
+
+                project.filesList = sceneFiles.filter(v => !v.folder).map(v => {
+                    const path = 'scene/' + v.name;
+                    const existingIndex = lastFilesList.find(f => f.toLowerCase() === path.toLowerCase());
+                    if (!existingIndex)
+                        newlyAddedList.push(path);
+
+                    return path;
+                });
+            }
+        }
+
+        // Add the .editorproject
+        project.filesList.push(Tools.GetFilename(path));
+
         // Load all files
         for (const f of project.filesList) {
             promises.push(new Promise<void>(async (resolve) => {
-                const name = Tools.GetFilename(f);
-                const realFile = filesList.value.find(v => v.name === name || v.name.toLowerCase() === f);
-                const realname = realFile ? realFile.name : name;
-
-                const ext = Tools.GetFileExtension(realname);
-                if (ext === 'babylon') {
+                const ext = Tools.GetFileExtension(f);
+                if (ext === 'babylon' || ext === 'glb' || ext === 'gltf') {
                     FilesInputStore.FilesToLoad = { };
                 }
 
-                const buffer = await Tools.LoadFile<ArrayBuffer>(folder + name, true);
-                const array = new Uint8Array(buffer);
+                const buffer = await Tools.LoadFile<ArrayBuffer>(folder + f, true);
+                if (!buffer) {
+                    failedToLoadList.push(f);
+                    return resolve();
+                }
 
-                files.push(Tools.CreateFile(array, realname));
+                const array = new Uint8Array(buffer);
+                files.push(Tools.CreateFile(array, Tools.GetFilename(f)));
 
                 resolve();
             }));
@@ -97,6 +126,13 @@ export default class SceneImporter {
 
         // Configure exporter
         ProjectExporter.ProjectPath = folder;
+
+        // Notify failed to load?
+        if (failedToLoadList.length > 0) {
+            Window.CreateAlert('<h3>Failed to load files:</h3></br>' + failedToLoadList.join('</br>'));
+        } else if (newlyAddedList.length > 0) {
+            Window.CreateAlert('<h3>Loaded new files:</h3></br>' + newlyAddedList.join('</br>'));
+        }
 
         return true;
     }

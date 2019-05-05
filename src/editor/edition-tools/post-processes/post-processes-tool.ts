@@ -50,6 +50,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             if (!r) {
                 SceneManager.StandardRenderingPipeline.dispose();
                 SceneManager.StandardRenderingPipeline = null;
+                delete this.editor.core.scene.postProcessRenderPipelineManager['_renderPipelines'].Standard;
             }
             else {
                 const pipeline = new StandardRenderingPipeline('Standard', scene, 1.0, null, scene.cameras);
@@ -126,6 +127,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             hdr.add(SceneManager.StandardRenderingPipeline, 'hdrMinimumLuminance').min(0).max(2).name('Minimum Luminance');
             hdr.add(SceneManager.StandardRenderingPipeline, 'hdrDecreaseRate').min(0).max(2).name('Decrease Rate');
             hdr.add(SceneManager.StandardRenderingPipeline, 'hdrIncreaseRate').min(0).max(2).name('Increase Rate');
+            hdr.add(SceneManager.StandardRenderingPipeline, 'hdrAutoExposure').name('Auto Exposure');
 
             const vls = standardPipeline.addFolder('Volumetric Lights');
             vls.open();
@@ -166,6 +168,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             if (!r) {
                 SceneManager.DefaultRenderingPipeline.dispose();
                 SceneManager.DefaultRenderingPipeline = null;
+                delete this.editor.core.scene.postProcessRenderPipelineManager['_renderPipelines'].Default;
             }
             else {
                 SceneManager.DefaultRenderingPipeline = new DefaultRenderingPipeline('Default', true, scene, scene.cameras, true);
@@ -256,6 +259,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             if (!r) {
                 SceneManager.SSAORenderingPipeline.dispose();
                 SceneManager.SSAORenderingPipeline = null;
+                delete this.editor.core.scene.postProcessRenderPipelineManager['_renderPipelines'].SSAO;
             }
             else {
                 const pipeline = new SSAORenderingPipeline('SSAO', scene, { ssaoRatio: 0.5, combineRatio: 1.0 }, scene.cameras);
@@ -288,10 +292,11 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
         ssao2.open();
 
         this._ssao2Enabled = SceneManager.SSAO2RenderingPipeline !== null;
-        ssao2.add(this, '_ssao2Enabled').name('Enable').onChange(async r => {
+        ssao2.add(this, '_ssao2Enabled').name('Enable').onChange(r => {
             if (!r) {
                 SceneManager.SSAO2RenderingPipeline.dispose();
                 SceneManager.SSAO2RenderingPipeline = null;
+                delete this.editor.core.scene.postProcessRenderPipelineManager['_renderPipelines'].SSAO2;
             }
             else {
                 const pipeline = new SSAO2RenderingPipeline('SSAO2', scene, { ssaoRatio: 0.5, blurRatio: 0.5 }, scene.cameras);
@@ -315,8 +320,8 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             ssao2.add(SceneManager.SSAO2RenderingPipeline, 'totalStrength').min(0).step(0.0001).name('Strength');
             ssao2.add(SceneManager.SSAO2RenderingPipeline, 'radius').min(0).step(0.0001).name('Radius');
             ssao2.add(SceneManager.SSAO2RenderingPipeline, 'expensiveBlur').name('Expensive Blur');
-            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'maxZ').min(0).step(0.01).name('Max Z');
-            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'samples').min(0).max(64).step(1).name('Samples');
+            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'maxZ').min(1).step(0.01).name('Max Z');
+            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'samples').min(2).max(64).step(1).name('Samples');
         }
     }
 

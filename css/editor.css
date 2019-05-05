@@ -101,20 +101,37 @@ html, body {
 }
 
 /* W2UI */
-#currentNodeNameGraph, #currentNodeNameCode{
+#currentNodeNameGraph, #currentNodeNameCode {
     float: left;
 }
 
-#currentNodeNameGraph{
+#currentNodeNameGraph {
     margin-left: 35px;
 }
 
-#currentNodeNameCode{
+#currentNodeNameCode {
     margin-left: 100px;
 }
 
 .w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image {
     width: 16px;
+}
+.w2ui-sidebar .w2ui-sidebar-div td.w2ui-node-data .w2ui-node-image.w2ui-icon {
+    margin-top: -3px;
+}
+
+.w2ui-sidebar .w2ui-node {
+    height: 24px;
+}
+.w2ui-sidebar .w2ui-node-caption {
+    top: -4px;
+}
+
+.w2ui-sidebar .w2ui-node-count {
+    top: -3px;
+}
+.w2ui-sidebar .w2ui-node-image {
+    top: -10px;
 }
 
 .w2ui-layout > div {
@@ -164,8 +181,32 @@ hr:after {
 }
 
 /*
+SHORTCUTS
+*/
+kbd {
+    padding: 0.1em 0.6em;
+    border: 1px solid #CCC;
+    font-family: Arial,Helvetica,sans-serif;
+    background-color: #F7F7F7;
+    color: #333;
+    box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2),0 0 0 2px white inset;
+    border-radius: 3px;
+    display: inline-block;
+    margin: 0 0.1em;
+    text-shadow: 0 1px 0 white;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/*
 ICONS
 */
+.w2ui-icon {
+    background-repeat: no-repeat !important;
+    height: 22px;
+    background-position-y: center !important;
+}
+
 .w2ui-icon {
     background-repeat: no-repeat !important;
 }

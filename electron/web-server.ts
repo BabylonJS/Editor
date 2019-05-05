@@ -7,6 +7,8 @@ import * as KoaStatic from 'koa-static';
 import StorageRouter from './routes/storage';
 import ToolsRouter from './routes/tools';
 
+import VSCodeSocket from './vscode/socket';
+
 export default class WebServer {
     // Public members
     public localApplication: Koa;
@@ -19,7 +21,7 @@ export default class WebServer {
      * Constructor
      * @param port: the port
      */
-    constructor (port: number) {
+    constructor () {
         this.localApplication = new Koa();
         this.localApplication.proxy = true;
         
@@ -41,6 +43,7 @@ export default class WebServer {
 
         new StorageRouter(this.localApplication);
         new ToolsRouter(this);
+        new VSCodeSocket(this);
     }
 
     /**

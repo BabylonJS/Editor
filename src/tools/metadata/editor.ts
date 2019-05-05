@@ -48,7 +48,7 @@ export default class MetadataEditor extends EditorPlugin {
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="METADATA-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
-            { type: 'main', content: '<div id="METADATA-EDITOR-EDITOR" style="width: 100%; height: 100%;"></div>' }
+            { type: 'main', content: '<div id="METADATA-EDITOR-EDITOR" style="width: 100%; height: 100%; overflow: hidden;"></div>' }
         ]
         this.layout.build(this.divElement.id);
 
@@ -75,7 +75,7 @@ export default class MetadataEditor extends EditorPlugin {
                 this.toolbar.notifyMessage('');
             } catch (e) {
                 //  Check JSON validation after 1s
-                this._checkTimeout = setTimeout(() => {
+                this._checkTimeout = <any> setTimeout(() => {
                     this.toolbar.notifyMessage(`<h4 style="color: rgb(255, 0, 0);">${e.message}</h4>Error`);
                     this._checkTimeout = -1;
                 }, 1000);
@@ -95,6 +95,9 @@ export default class MetadataEditor extends EditorPlugin {
      * @param node the selected node
      */
     protected objectSelected (node: Node | ParticleSystem): void {
+        if (this.selectedNode === node)
+            return;
+        
         if (!(node instanceof Node) && !(node instanceof ParticleSystem))
             return;
         

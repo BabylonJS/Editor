@@ -19,7 +19,8 @@ import Editor, {
     EditorPlugin,
 
     ProjectRoot,
-    CodeProjectEditorFactory
+    CodeProjectEditorFactory,
+    VSCodeSocket
 } from 'babylonjs-editor';
 import CodeProjectEditor from 'babylonjs-editor-code-editor';
 
@@ -54,7 +55,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     protected onSelectObject = (node) => node && this.selectObject(node);
     protected onSelectAsset = (asset) => asset && this.selectAsset(asset);
-    protected onResize = () => this.layout.element.resize();
 
     protected targetNode: any;
     protected targetNodeAddScript: boolean;
@@ -94,7 +94,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Events
         this.editor.core.onSelectObject.removeCallback(this.onSelectObject);
         this.editor.core.onSelectAsset.removeCallback(this.onSelectAsset);
-        this.editor.core.onResize.removeCallback(this.onResize);
 
         await super.close();
     }
@@ -110,7 +109,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.layout.panels = [
             { type: 'top', content: '<div id="CODE-BEHAVIOR-TOOLBAR"></div>', size: 30, resizable: false },
             { type: 'left', content: '<div id="CODE-BEHAVIOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
-            { type: 'main', content: '<div id="CODE-BEHAVIOR-EDITOR" style="width: 100%; height: 100%;"></div>', resizable: true }
+            { type: 'main', content: '<div id="CODE-BEHAVIOR-EDITOR" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true }
         ];
         this.layout.build(div.attr('id'));
 
@@ -156,7 +155,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Events
         this.editor.core.onSelectAsset.add(this.onSelectAsset);
         this.editor.core.onSelectObject.add(this.onSelectObject);
-        this.editor.core.onResize.add(this.onResize);
 
         // Metadatas
         this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
@@ -186,6 +184,37 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Opened in editor?
         if (BehaviorCodeEditor.CodeProjectEditor || !this.node || !this.asset)
             this.layout.lockPanel('main');
+
+        // Sockets
+        VSCodeSocket.OnUpdateBehaviorCode = async (d: BehaviorCode) => {
+            // Get effective script modified in the vscode editor
+            const scripts = <BehaviorCode[]> this.editor.core.scene.metadata.behaviorScripts;
+            const effective = <BehaviorCode> scripts.find(s => s.id === d.id);
+            const compiledCode = await CodeEditor.TranspileTypeScript(d.code, d.name.replace(/ /, ''), {
+                module: 'cjs',
+                target: 'es5',
+                experimentalDecorators: true,
+            });
+
+            let needsUpdate = true;
+
+            if (!effective) {
+                // Just refresh
+                VSCodeSocket.RefreshBehavior(scripts);
+                return;
+            }
+            else {
+                needsUpdate = effective.code !== d.code;
+                
+                // Just update
+                effective.code = d.code;
+                effective.compiledCode = compiledCode;
+            }
+
+            if (needsUpdate && (this.data && this.data.id === d.id || this.asset && this.asset.id === d.id)) {
+                this.code.setValue(d.code);
+            }
+        };
     }
 
     /**
@@ -211,6 +240,13 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Lock?
         if (BehaviorCodeEditor.CodeProjectEditor)
             this.layout.lockPanel('main');
+    }
+
+    /**
+     * Called on the window, layout etc. is resized.
+     */
+    public onResize (): void {
+        this.layout.element.resize();
     }
 
     /**
@@ -385,11 +421,13 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         const data: BehaviorCode = {
             name: name,
             id: BabylonTools.RandomId(),
-            code: this.template.replace(/{{type}}/g, ctor)
+            code: this.template.replace(/{{name}}/g, (name[0].toUpperCase() + name.substr(1, name.length)).replace(/ /g, ''))
+                               .replace(/{{type}}/g, ctor)
                                .replace(/{{class}}/g, this.node.constructor.name)
         };
 
-        this.editor.core.scene.metadata.behaviorScripts.push(data);
+        const scripts = this.editor.core.scene.metadata.behaviorScripts;
+        scripts.push(data);
 
         if (this.node) {
             // Add metadata to node
@@ -408,6 +446,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this.grid.selectNone();
             this.grid.select([this.datas.metadatas.length - 1]);
             this.selectCode(this.datas.metadatas.length - 1);
+
+            // Update in graph
+            this.editor.graph.configure();
         }
         else {
             this.selectAsset(data);
@@ -438,6 +479,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Update assets
         this.editor.assets.refresh(this.extension.id);
+
+        // Update in graph
+        this.editor.graph.configure();
     }
 
     /**
@@ -474,8 +518,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         code.onChange = value => {
             // Compile typescript
-            clearTimeout(this._timeoutId);
-            this._timeoutId = setTimeout(() => {
+            clearTimeout(<any> this._timeoutId);
+            this._timeoutId = <any> setTimeout(() => {
                 if (!data && !this.data)
                     return;
                 
@@ -501,6 +545,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             }
             else if (this.data) {
                 this.data.code = this.code.getValue();
+                VSCodeSocket.RefreshBehavior(this.data);
             }
         };
 
@@ -601,6 +646,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                 });
 
                 this.editor.assets.refresh(this.extension.id);
+                this.editor.graph.configure();
                 this.selectObject(this.node);
             });
         }

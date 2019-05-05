@@ -1,9 +1,10 @@
-import { LGraph, LiteGraph } from 'litegraph.js';
+import { LiteGraph } from 'litegraph.js';
 
 import { LiteGraphNode } from '../typings';
 
 export class Condition extends LiteGraphNode {
     public static Desc = 'If the condition result is "true", then the Execute output will be triggered';
+    public static Title = 'Condition';
     
     /**
      * Constructor
@@ -33,16 +34,18 @@ export class Condition extends LiteGraphNode {
         const b = this.getInputData(2);
 
         if (a === b)
-            this.triggerSlot(0);
-        else if (a !== b)
-            this.triggerSlot(1);
-        else if (a > b)
-            this.triggerSlot(2);
-        else if (a < b)
-            this.triggerSlot(3);
-        else if (a <= b)
-            this.triggerSlot(4);
-        else if (a >= b)
-            this.triggerSlot(5);
+            this.triggerSlot(0); // ===
+        if (a !== b)
+            this.triggerSlot(1); // !==
+
+        if (a > b)
+            this.triggerSlot(2); // >
+        if (a < b)
+            this.triggerSlot(3); // <
+
+        if (a <= b)
+            this.triggerSlot(4); // <=
+        if (a => b)
+            this.triggerSlot(5); // >=
     }
 }

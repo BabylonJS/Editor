@@ -10,6 +10,7 @@ export interface CreateFiles {
     name: string;
 
     data?: FileType | Promise<FileType>;
+    file?: File;
     folder?: CreateFiles[];
     doNotOverride?: boolean;
 }
@@ -29,6 +30,18 @@ export default abstract class Storage {
     // Protected members
     protected filesCount: number = 0;
     protected _uploadedCount: number = 0;
+
+    /**
+     * Returns the appropriate storage (OneDrive, Electron, etc.)
+     * @param editor the editor reference
+     */
+    public static async GetStorage (editor: Editor): Promise<Storage> {
+        const storage = Tools.IsElectron()
+            ? await Tools.ImportScript<any>('build/src/editor/storage/electron-storage.js')
+            : await Tools.ImportScript<any>('build/src/editor/storage/one-drive-storage.js');
+
+        return new storage.default(editor);
+    }
 
     /**
      * Constructor
@@ -58,8 +71,8 @@ export default abstract class Storage {
         this.picker = new Picker('Export...');
         this.picker.addItems(files);
 
-        return await new Promise<string>((resolve, reject) => {
-            this.picker.open(async (items) => {
+        return await new Promise<string>(async (resolve, reject) => {
+            await this.picker.open(async (items) => {
                 await this.uploadFiles(current.folder, filesToWrite);
                 resolve(current.folder);
             });
@@ -98,20 +111,14 @@ export default abstract class Storage {
         this._uploadedCount = 0;
         this.filesCount = this.recursivelyGetFilesToUploadCount(filesToWrite);
 
-        this.editor.layout.element.sizeTo('bottom', 50);
-        this.editor.layout.lockPanel('bottom', `Uploading... (${this._uploadedCount} / ${this.filesCount})`, true);
+        this.editor.toolbar.notifyRightMessage(`Uploading... (${this._uploadedCount} / ${this.filesCount})`);
 
         this.onCreateFiles && this.onCreateFiles(folder);
 
-        try {
-            await this.recursivelyCreateFiles(folder, filesToWrite);
-        } catch (e) {
-            Window.CreateAlert('Cannot upload: ' + e, 'Uploading Error');
-        }
+        await this.recursivelyCreateFiles(folder, filesToWrite);
 
         // Unlock
-        this.editor.layout.unlockPanel('bottom');
-        this.editor.layout.element.sizeTo('bottom', 0);
+        this.editor.toolbar.notifyRightMessage('');
     }
 
     /**
@@ -132,9 +139,15 @@ export default abstract class Storage {
             else {
                 if (f.doNotOverride && existingFiles.find(ef => ef.name === f.name))
                     continue;
-                
-                promises.push(this.createFiles(folder, [f]).then(() => {
+              
+                promises.push(new Promise<void>(async (resolve) => {
+                    if (f.file)
+                        f.data = await Tools.ReadFileAsArrayBuffer(f.file);
+
+                    await this.createFiles(folder, [f]);
                     this.uploadedCount++;
+
+                    resolve();
                 }));
             }
         }
@@ -185,7 +198,7 @@ export default abstract class Storage {
      */
     protected set uploadedCount (value: number) {
         this._uploadedCount = value;
-        this.editor.layout.lockPanel('bottom', `Uploading... (${this._uploadedCount} / ${this.filesCount})`, true);
+        this.editor.toolbar.notifyRightMessage(`Uploading... (${this._uploadedCount} / ${this.filesCount})`);
     }
 
     /**

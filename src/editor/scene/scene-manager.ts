@@ -1,17 +1,28 @@
 import {
+    Tools as BabylonTools,
     Scene, Material, BaseTexture, RenderTargetTexture,
-    ActionManager,
-    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline,
-    IAnimatable,
-    ParticleSystem,
-    GlowLayer,
-    HighlightLayer,
-    Animatable,
-    EnvironmentHelper
+    ActionManager, StandardRenderingPipeline, SSAORenderingPipeline,
+    SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable,
+    ParticleSystem, GlowLayer, HighlightLayer, Animatable, EnvironmentHelper,
+    SceneSerializer, InstancedMesh, Node, Sound, Mesh, SerializationHelper,
+    AbstractMesh
 } from 'babylonjs';
+import * as BABYLON from 'babylonjs';
 
+import Editor from '../editor';
+import UndoRedo from '../tools/undo-redo';
 import { IStringDictionary } from '../typings/typings';
 import PostProcessesExtension from '../../extensions/post-process/post-processes';
+
+import Picker from '../gui/picker';
+import Window from '../gui/window';
+
+export interface RemovedObject {
+    reference?: Node | Sound;
+    type?: string;
+    name: string;
+    serializationObject: any;
+}
 
 export default class SceneManager {
     // Public members
@@ -27,6 +38,8 @@ export default class SceneManager {
     public static EnvironmentHelper: EnvironmentHelper = null;
 
     public static PostProcessExtension: PostProcessesExtension = null;
+
+    public static RemovedObjects: IStringDictionary<RemovedObject> = { };
 
     /**
      * Clears the scene manager
@@ -45,6 +58,7 @@ export default class SceneManager {
         this.SSAORenderingPipeline = null;
 
         this.EnvironmentHelper = null;
+        this.RemovedObjects = { };
     }
 
     /**
@@ -64,6 +78,39 @@ export default class SceneManager {
     }
 
     /**
+     * Saves the original objects coming from the scene
+     * @param scene the scene containing the original objects
+     */
+    public static SaveOriginalObjects (scene: Scene): void {
+        const set = (orig, obj) => {
+            orig.metadata = orig.metadata || { };
+            orig.metadata.original = obj;
+        };
+        scene.meshes.forEach(m => { 
+            // Instance?
+            if (m instanceof InstancedMesh)
+                return set(m, m.serialize());
+
+            // Mesh
+            const s = SceneSerializer.SerializeMesh(m, false, false);
+            delete s.geometries;
+            delete s.materials;
+            delete s.skeletons;
+            delete s.multiMaterials;
+            set(m, s.meshes[0]);
+        });
+        scene.skeletons.forEach(s => set(s, s.serialize()));
+        scene.materials.forEach(m => set(m, m.serialize()));
+        scene.lights.forEach(l => set(l, l.serialize()));
+        scene.cameras.forEach(c => set(c, c.serialize()));
+        scene.textures.forEach(t => set(t, t.serialize()));
+        scene.transformNodes.forEach(t => set(t, t.serialize()));
+        scene.soundTracks && scene.soundTracks.forEach(st => {
+            st.soundCollection.forEach(s => set(s, s.serialize()));
+        });
+    }
+
+    /**
      * Returns the animatable objects
      * @param scene the scene containing animatables
      */
@@ -75,6 +122,7 @@ export default class SceneManager {
         scene.meshes.forEach(m => animatables.push(m));
         scene.lights.forEach(l => animatables.push(l));
         scene.cameras.forEach(c => animatables.push(c));
+        scene.transformNodes.forEach(t => animatables.push(t));
         scene.particleSystems.forEach(ps => animatables.push(<ParticleSystem> ps));
 
         return animatables;
@@ -190,5 +238,139 @@ export default class SceneManager {
         }
 
         return count;
+    }
+
+    /**
+     * Saves the removed objects references
+     * @param scene the scene containing the objects to remove
+     * @param removedObjects the removed objects references
+     */
+    public static ApplyRemovedObjects (scene: Scene, removedObjects: IStringDictionary<any>): void {
+        // Save
+        this.RemovedObjects = removedObjects;
+
+        // Apply
+        for (const id in this.RemovedObjects) {
+            // Value
+            const value = this.RemovedObjects[id];
+
+            // Node
+            const n = scene.getNodeByID(id);
+            if (n) {
+                value.reference = n;
+                n.dispose(true, false);
+                continue;
+            }
+
+            // Sound
+            let foundReference = false;
+            scene.soundTracks && scene.soundTracks.forEach(st => {
+                const s = st.soundCollection.find(s => s.name === id);
+                if (!s)
+                    return;
+
+                s.stop();
+                value.reference = s;
+                s.dispose();
+
+                foundReference = true;
+            });
+
+            if (!foundReference)
+                delete this.RemovedObjects[id];
+        }
+    }
+
+    /**
+     * Draws a dialog to restore removed objects
+     * @param editor the editor reference
+     */
+    public static RestoreRemovedObjects (editor: Editor): void {
+        const keys = Object.keys(this.RemovedObjects);
+        
+        const picker = new Picker('Restore Removed Objects...');
+        picker.addItems(keys.map(i => ({ name: this.RemovedObjects[i].serializationObject.name })));
+        picker.open(items => {
+            const errors: string[] = [];
+
+            items.forEach(i => {
+                const value = this.RemovedObjects[keys[i.id]];
+                const parent = value.reference instanceof Node ? value.reference.parent : value.reference['_connectedTransformNode'];
+                if (parent && !editor.core.scene.getNodeByID(parent.id))
+                    return errors.push(`Can't restore node "${i.name}": the original parent does not exist in scene ("${parent.name}")`);
+                
+                let result: Node | Sound = null;
+
+                // Instanced mesh
+                if (value.reference instanceof InstancedMesh) {
+                    const source = <Mesh> editor.core.scene.getMeshByID(value.serializationObject.sourceMesh);
+                    if (!source) {
+                        return errors.push(`Can't restore instanced mesh "${i.name}". Source mesh wasn't found.`);
+                    }
+                    
+                    result = source.createInstance(value.serializationObject.name);
+
+                    try {
+                        SerializationHelper.Parse(() => result, value.serializationObject, editor.core.scene, 'file:');
+                    } catch (e) {
+                        return errors.push(e.message);
+                    }
+                }
+                // Other
+                else {
+                    const ctor = BABYLON[value.type];
+                    if (!ctor || !ctor.Parse)
+                        return errors.push(`Can't restore node "${i.name}": object can't be re-created as the .Parse function does not exist`);
+
+                    try {
+                        result = ctor.Parse(value.serializationObject, editor.core.scene, 'file:');
+                    } catch (e) {
+                        return errors.push(`Failed to parse object "${i.name}":\n ${e.message}`);
+                    }
+                }
+
+                if (result instanceof Node) {
+                    if (result instanceof AbstractMesh)
+                        editor.scenePicker.configureMesh(result);
+                    
+                    result.parent = parent;
+                    editor.graph.add({
+                        data: result,
+                        id: result.id,
+                        img: editor.graph.getIcon(result),
+                        text: result.name,
+                    }, result.parent ? result.parent.id : editor.graph.root);
+                }
+                else if (result instanceof Sound) {
+                    // Parent
+                    if (parent)
+                        result.attachToMesh(parent);
+                    
+                    // Add
+                    result['id'] = result['id'] || BabylonTools.RandomId();
+                    editor.graph.add({
+                        data: result,
+                        id: result['id'],
+                        img: editor.graph.getIcon(result),
+                        text: result.name,
+                    }, result.spatialSound && result['_connectedTransformNode'] ? result['_connectedTransformNode'].id : editor.graph.root);
+                }
+
+                // Undoredo
+                UndoRedo.ClearScope(result['id']);
+
+                // Finalize
+                result['metadata'] = result['metadata'] || { };
+                result['metadata'].original = value.serializationObject;
+                delete this.RemovedObjects[keys[i.id]];
+                editor.graph.configure();
+            });
+
+            if (errors.length > 0) {
+                setTimeout(() => {
+                    Window.CreateAlert(errors.join('<br><br>'), 'Errors found');
+                }, 1000);
+            }
+        });
     }
 }

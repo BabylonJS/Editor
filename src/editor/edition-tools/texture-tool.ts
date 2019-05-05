@@ -1,7 +1,6 @@
-import { BaseTexture, Texture, CubeTexture, ProceduralTexture, RenderTargetTexture, MirrorTexture, Plane } from 'babylonjs';
+import { BaseTexture, Texture, CubeTexture, ProceduralTexture, MirrorTexture, SerializationHelper, Tags } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
-import Tools from '../tools/tools';
 
 export default class TextureTool extends AbstractEditionTool<BaseTexture> {
     // Public members
@@ -26,6 +25,11 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
 	*/
     public update(texture: BaseTexture): void {
         super.update(texture);
+
+        // Reset
+        if (texture.metadata && texture.metadata.original) {
+            this.tool.add(this, 'resetToOriginal').name('Reset to original');
+        }
 
         // Common
         const common = this.tool.addFolder('Common');
@@ -100,5 +104,14 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
                 texture['resize'](parseInt(r), texture['_generateMipMaps']);
             });
         }
+    }
+
+    /**
+     * Resets the current light to the original one
+     */
+    protected resetToOriginal (): void {
+        SerializationHelper.Parse(() => this.object, this.object.metadata.original, this.object.getScene(), 'file:');
+        setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
+        this.editor.edition.updateDisplay();
     }
 }

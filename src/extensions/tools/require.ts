@@ -1,4 +1,5 @@
 import * as BABYLON from 'babylonjs';
+import * as POSTPROCESS from 'babylonjs-post-process';
 import * as GUI from 'babylonjs-gui';
 import * as CANNON from 'cannon';
 import * as EARCUT from 'earcut';
@@ -32,6 +33,8 @@ export const editorRequire = (moduleName: string) => {
         case 'babylonjs-loaders':
         case 'babylonjs-materials':
             return BABYLON;
+        case 'babylonjs-post-process':
+            return POSTPROCESS;
         case 'babylonjs-gui':
             return GUI;
         // Physics
@@ -42,19 +45,24 @@ export const editorRequire = (moduleName: string) => {
             return EARCUT;
         // Custom script
         default:
+            // Found in constructors
             let ctor = EDITOR.BehaviorCode.Constructors[moduleName];
             if (ctor)
-                return ctor();
+                return ctor.apply(new Array(ctor.length).map(_ => editorRequire));
 
+            // Remove spaces
             ctor = EDITOR.BehaviorCode.Constructors[moduleName.replace(/ /g, '')];
             if (ctor)
-                return ctor();
+                return ctor.apply(new Array(ctor.length).map(_ => editorRequire));
 
+            // From instances
             const code = CodeExtension.Instance.datas.scripts.find(s => s.name === moduleName);
             if (!code)
                 throw new Error(`Cannot find custom module named "${moduleName}"`);
 
+            // Get on the fly
             ctor = CodeExtension.Instance.getConstructor(code, null);
+            ctor.default = ctor;
             return ctor;
     }
 };

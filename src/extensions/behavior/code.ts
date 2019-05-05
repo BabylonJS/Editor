@@ -7,6 +7,7 @@ import {
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
 import { exportScriptString } from '../tools/tools';
+import { editorRequire } from '../tools/require';
 
 import { IStringDictionary } from '../typings/typings';
 import { IAssetComponent, AssetElement } from '../typings/asset';
@@ -39,7 +40,7 @@ export interface BehaviorMetadata {
 }
 
 const template = `
-EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}, tools, mobile) {
+EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}, tools, mobile, require) {
 var returnValue = null;
 var exports = { };
 
@@ -65,6 +66,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
     public instances: IStringDictionary<any> = { };
     public scriptsConstructors: IStringDictionary<any> = { };
+    public objectsInstances: IStringDictionary<any[]> = { };
 
     // Static members
     public static Instance: CodeExtension = null;
@@ -93,7 +95,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
         const asset = {
             name: name,
             data: <BehaviorCode> {
-                code: code,
+                code: code.replace(/{{name}}/g, (name[0].toUpperCase() + name.substr(1, name.length)).replace(/ /g, '')),
                 id: Tools.RandomId(),
                 name: name
             }
@@ -248,12 +250,21 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                 }
 
                 // Instance
-                const instance = new (ctor.ctor || ctor)(node);
+                const instance = new (ctor.ctor || ctor)(node, this.scene);
                 if (m.params)
                     this.setCustomParams(m, instance);
 
                 // Save instance
                 this.instances[(node instanceof Scene ? 'scene' : node.name) + code.name] = instance;
+
+                // Save object instance
+                const id = node instanceof Scene ? 'Scene' : node.id;
+
+                if (!this.objectsInstances[id]) {
+                    this.objectsInstances[id] = [];
+                }
+
+                this.objectsInstances[id].push(instance);
 
                 // Run
                 const scope = this;
@@ -267,6 +278,12 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                 if (instance.update) {
                     this.scene.registerBeforeRender(function () {
                         instance.update();
+                    });
+                }
+
+                if (instance.dispose && node['onDisposeObservable']) {
+                    node['onDisposeObservable'].add(function () {
+                        instance.dispose();
                     });
                 }
             });
@@ -415,7 +432,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
         const fnName = node ? (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + code.name.replace(/ /g, '') : code.name.replace(/ /g, '');
         const effectiveCode = template.replace(/{{name}}/g, fnName)
-                                      .replace(/{{class}}/g, node.constructor.name)
+                                      .replace(/{{class}}/g, node ? node.constructor.name : '')
                                       .replace(/{{node}}/g, this._getEffectiveConstructorName(node))
                                       .replace(/{{code}}/g, code.compiledCode || code.code);
         // Evaluate?
@@ -426,7 +443,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
             Extension.AddScript(effectiveCode, url);
 
         // Constructor
-        return EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools, Extensions.Mobile);
+        return EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools, Extensions.Mobile, editorRequire);
     }
 
     /**

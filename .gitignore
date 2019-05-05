@@ -131,6 +131,9 @@ build
 declaration
 electron-packages
 dist
+vscode-extension/.build
+vscode-extension/.declaration
+vscode-extension/*.vsix
 
 # Files
 babylonjs-editor-extensions.d.ts

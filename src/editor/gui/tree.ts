@@ -1,4 +1,7 @@
 import 'jstree';
+import ContextMenu from './context-menu';
+
+export type TreeNodeType = 'default' | 'bold' | 'italic' | 'boldItalic' | string;
 
 export interface TreeNode {
     id: string;
@@ -9,13 +12,16 @@ export interface TreeNode {
 
     parent?: string;
     children?: string[];
+    type?: TreeNodeType;
+
+    onExpand?: () => void;
 
     state?: {
 		checked?: boolean;
 	};
 }
 
-export interface ContextMenuItem {
+export interface TreeContextMenuItem {
     id: string;
     text: string;
     multiple?: boolean;
@@ -39,7 +45,7 @@ export default class Tree {
 
     public onRename: <T>(id: string, name: string, data: T) => boolean;
 
-    public onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
+    public onContextMenu: <T>(id: string, data: T) => TreeContextMenuItem[];
     public onMenuClick: <T>(id: string, node: TreeNode) => void;
 
     public onCanDrag: <T>(id: string, data: T) => boolean;
@@ -51,6 +57,7 @@ export default class Tree {
     protected currentSelectedNode: string = '';
     protected moving: boolean = false;
     protected renaming: boolean = false;
+    protected selecting: boolean = false;
     protected isFocused: boolean = false;
 
     // Static members
@@ -116,9 +123,34 @@ export default class Tree {
         if (id !== this.currentSelectedNode) {
             this.currentSelectedNode = id;
 
+            this.selecting = true;
             this.element.jstree().deselect_all(true);
-            this.element.jstree().select_node(id, true);
+            this.element.jstree().select_node(id);
+            this.selecting = false;
         }
+    }
+
+    /**
+     * Sets the given type to the given node
+     * @param id the id of the node to modify its type
+     * @param type the type to set on node
+     */
+    public setType (id: string, type: TreeNodeType = 'default'): void {
+        const node = this.get(id);
+        if (node)
+            this.element.jstree().set_type(node, type);
+    }
+
+    /**
+     * Returns the type of the given node
+     * @param id the id of the node to retrieve its type
+     */
+    public getType (id: string): any {
+        const node = this.get(id);
+        if (node)
+            return this.element.jstree().get_type(node, true).type;
+
+        return null;
     }
 
     /**
@@ -196,6 +228,20 @@ export default class Tree {
     }
 
     /**
+     * Marks the given node
+     * @param id the id of the node to mark
+     * @param marked if the node should be marked or not
+     */
+    public markNode (id: string, marked: boolean): void {
+        const dom = this.element.jstree().get_node(id, true);
+        if (!dom)
+            return;
+        
+        const i = dom.children('.jstree-anchor').children('.jstree-themeicon');
+		i.css('border', marked ? 'dotted' : '');
+    }
+
+    /**
      * Search nodes fitting the given value
      * @param value the value to search
      */
@@ -252,12 +298,30 @@ export default class Tree {
                 show_only_matches: true,
                 show_only_matches_children: true
             },
+            types: {
+                bold: {
+                    a_attr: {
+                        style: 'font-weight: bold !important;'
+                    }
+                },
+                italic: {
+                    a_attr: {
+                        style: 'font-style: italic !important;'
+                    }
+                },
+                boldItalic: {
+                    a_attr: {
+                        style: 'font-weight: bold !important; font-style: italic !important;'
+                    }
+                }
+            },
             contextmenu: {
                 items: () => {
                     if (!this.onContextMenu)
                         return null;
 
                     const lastSelected = this.getSelected(); // Last selected
+                    const allSelected = this.getAllSelected();
 
                     if (!lastSelected)
                         return null;
@@ -266,24 +330,29 @@ export default class Tree {
                     const result = { };
 
                     items.forEach(i => {
-                        result[i.id] = {
-                            label: i.text,
-                            icon: i.img ? ('w2ui-icon ' + i.img) : undefined,
-                            action: async () => {
-                                if (!i.multiple)
-                                    return await i.callback(lastSelected);
+                        if (i.separatorBefore)
+                            result[i.id + 'before'] = '---------';
 
-                                const selected = this.getAllSelected();
-                                for (const n of selected) {
-                                    await i.callback(n);
-                                }
-                            },
-                            separator_before: i.separatorBefore,
-                            separator_after: i.separatorAfter
-                        }
+                        result[i.id] = {
+                            name: i.text,
+                            callback: () => allSelected.forEach(n => i.callback(n))
+                        };
+
+                        if (i.separatorAfter)
+                            result[i.id + 'after'] = '---------';
+
                     });
+
+                    if (items.length > 0) {
+                        const domElement = $('#' + lastSelected.id)[0];
+                        if (!domElement.classList.contains('ctxmenu'))
+                            domElement.classList.add('ctxmenu');
+                        
+                        const box = domElement.getBoundingClientRect();
+                        ContextMenu.Show(<any> { target: domElement, x: box['x'], y: box['y'] + 20 }, result);
+                    }
                     
-                    return result;
+                    return null;
                 }
             }
         });
@@ -291,7 +360,7 @@ export default class Tree {
         // Events
         this.element
             .on('changed.jstree', (e, data) => {
-                if (data.action === 'select_node' && this.onClick)
+                if (data.action === 'select_node' && this.onClick && !this.selecting)
                     this.onClick(data.node.id, data.node.data);
             })
             .on('rename_node.jstree', (e, data) => {
@@ -324,14 +393,27 @@ export default class Tree {
                 // Revert ?
                 if (!success)
                     this.setParent(node.id, data.old_parent);
-            });
-
-            this.element.dblclick(() => {
-                if (this.onDblClick) {
-                    const node = this.getSelected();
-                    this.onDblClick(node.id, node.data);
+            })
+            .on('close_node.jstree', (e, data) => {
+                const node = <TreeNode> data.node;
+                if (node.onExpand) {
+                    node.children.slice().forEach(c => this.remove(c));
+                }
+            })
+            .on('open_node.jstree', (e, data) => {
+                const node = <TreeNode> data.node;
+                if (node.onExpand) {
+                    node.children.slice().forEach(c => this.remove(c));
+                    node.onExpand();
                 }
             });
+
+        this.element.dblclick(() => {
+            if (this.onDblClick) {
+                const node = this.getSelected();
+                node && this.onDblClick(node.id, node.data);
+            }
+        });
 
         this.element.focusin(() => this.isFocused = true);
         this.element.focusout(() => this.isFocused = false);

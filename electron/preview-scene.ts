@@ -10,8 +10,8 @@ interface FileData {
 
 export default class ScenePreview {
     // Public members
-    public server: IO = null;
-    public client: IO = null;
+    public editorSocket: IO = null;
+    public clientSocket: IO = null;
 
     // Protected members
     protected clientConnected: boolean = false;
@@ -22,23 +22,23 @@ export default class ScenePreview {
      * @param server: the Web Server
      */
     constructor (server: WebServer) {
-        this.server = new IO();
-        this.server.attach(server.externApplication);
+        this.editorSocket = new IO();
+        this.editorSocket.attach(server.externApplication);
 
-        this.client = new IO('client');
-        this.client.attach(server.externApplication);
+        this.clientSocket = new IO('client');
+        this.clientSocket.attach(server.externApplication);
 
-        this.server.on('connection', () => this.serverConnected = true);
-        this.client.on('connection', () => {
+        this.editorSocket.on('connection', () => this.serverConnected = true);
+        this.clientSocket.on('connection', () => {
             this.clientConnected = true;
 
             // Send files
-            this.server.broadcast('request-scene');
+            this.editorSocket.broadcast('request-scene');
         });
 
         // Server
-        this.server.on('receive-scene', (data: FileData) => {
-            this.client.broadcast('request-scene', data.data);
+        this.editorSocket.on('receive-scene', (data: FileData) => {
+            this.clientSocket.broadcast('request-scene', data.data);
         });
     }
 }

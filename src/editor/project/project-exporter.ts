@@ -2,15 +2,16 @@ import {
     Tools as BabylonTools,
     SceneSerializer,
     Node, AbstractMesh, Light, Camera,
-    Tags,
+    Tags, ActionManager,
     Vector3,
-    ActionManager,
     ParticleSystem,
-    FilesInputStore
+    FilesInputStore,
+    BaseTexture,
+    InstancedMesh,
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
-import SceneManager from '../scene/scene-manager';
+import SceneManager, { RemovedObject } from '../scene/scene-manager';
 import SceneExporter from '../scene/scene-exporter';
 
 import Window from '../gui/window';
@@ -31,6 +32,9 @@ export default class ProjectExporter {
     // Public members
     public static ProjectPath: string = null;
     public static ProjectExportFormat: 'babylon' | 'glb' | 'gltf' = 'babylon';
+
+    // Private members
+    private static _IsSaving: boolean = false;
 
     /**
      * Uploads all scene templates
@@ -91,21 +95,27 @@ export default class ProjectExporter {
                 }
             }
 
-            Object.keys(FilesInputStore.FilesToLoad).forEach(async k => sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(FilesInputStore.FilesToLoad[k]) }));
+            Object.keys(FilesInputStore.FilesToLoad).forEach(async k => {
+                const file = FilesInputStore.FilesToLoad[k];
+                if (Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport'))
+                    return;
+                
+                sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(file) });
+            });
 
             // Src files
             const srcFiles: CreateFiles[] = [
                 { name: 'game.ts', doNotOverride: true, data: (await Tools.LoadFile<string>('assets/templates/template/src/game.ts')).replace('{{scene_format}}', this.ProjectExportFormat) }
             ];
 
-            const storage = await this.GetStorage(editor);
+            const storage = await Storage.GetStorage(editor);
             storage.openPicker('Create Template...', [
                 { name: 'scene', folder: sceneFiles },
                 { name: 'src', folder: srcFiles },
-                { name: 'README.md', data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
-                { name: 'index.html', data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
-                { name: 'package.json', data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
-                { name: 'tsconfig.json', data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
+                { name: 'README.md', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
+                { name: 'index.html', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
+                { name: 'package.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
+                { name: 'tsconfig.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
             ]);
         };
     }
@@ -114,20 +124,52 @@ export default class ProjectExporter {
      * Exports the editor project into the storage
      * @param editor the editor reference
      */
-    public static async ExportProject (editor: Editor): Promise<void> {
-        // Project
-        const content = JSON.stringify(this.Export(editor));
-        const storage = await this.GetStorage(editor);
-        const files: CreateFiles[] = [{ name: editor.projectFileName, data: content }];
+    public static async ExportProject (editor: Editor, exportAs: boolean = false): Promise<void> {
+        if (this._IsSaving)
+            return;
+        
+        // Saving
+        this._IsSaving = true;
+        editor.layout.lockPanel('bottom', 'Saving...', true);
 
+        // Project
+        const project = this.Export(editor);
+        const content = JSON.stringify(project, null, '\t');
+
+        // Storage
+        const storage = await Storage.GetStorage(editor);
+
+        // Add files
+        const sceneFolder: CreateFiles = { name: 'scene', folder: [] };
+        const root: CreateFiles[] = [
+            { name: editor.projectFileName, data: content },
+            sceneFolder
+        ];
+
+        for (const f in FilesInputStore.FilesToLoad) {
+            const file = FilesInputStore.FilesToLoad[f];
+            if (Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport'))
+                continue;
+            
+            const ext = Tools.GetFileExtension(file.name);
+            if (ext === 'editorproject' || file === editor.projectFile || file === editor.sceneFile)
+                continue;
+            
+            sceneFolder.folder.push({ name: file.name, file: file, doNotOverride: true });
+        }
+
+        // Save
         storage.onCreateFiles = folder => this.ProjectPath = folder;
-        await storage.openPicker('Export Editor Project...', files, this.ProjectPath);
+        await storage.openPicker('Export Editor Project...', root, exportAs ? null : this.ProjectPath);
 
         // Notify
         Tools.SetWindowTitle(editor.projectFileName);
 
         editor.layout.lockPanel('bottom', 'Saved.', false);
         setTimeout(() => editor.layout.unlockPanel('bottom'), 1000);
+
+        // Finish
+        this._IsSaving = false;
     }
 
     /**
@@ -141,7 +183,7 @@ export default class ProjectExporter {
 
         // Save
         if (Tools.IsElectron()) {
-            const storage = await this.GetStorage(editor);
+            const storage = await Storage.GetStorage(editor);
             storage.onCreateFiles = folder => this.ProjectPath = folder;
             
             const result = await storage.openPicker('Export Editor Project...', files, null, true);
@@ -160,18 +202,6 @@ export default class ProjectExporter {
     }
 
     /**
-     * Returns the appropriate storage (OneDrive, Electron, etc.)
-     * @param editor the editor reference
-     */
-    public static async GetStorage (editor: Editor): Promise<Storage> {
-        const storage = Tools.IsElectron()
-            ? await Tools.ImportScript<any>('build/src/editor/storage/electron-storage.js')
-            : await Tools.ImportScript<any>('build/src/editor/storage/one-drive-storage.js');
-
-        return new storage.default(editor);
-    }
-
-    /**
      * Exports the current editor project
      */
     public static Export (editor: Editor): Export.ProjectRoot {
@@ -184,6 +214,7 @@ export default class ProjectExporter {
             globalConfiguration: this._SerializeGlobalConfiguration(editor),
             lensFlares: null,
             materials: this._SerializeMaterials(editor),
+            textures: this._SerializeTextures(editor),
             nodes: this._SerializeNodes(editor),
             particleSystems: this._SerializeParticleSystems(editor),
             physicsEnabled: editor.core.scene.isPhysicsEnabled(),
@@ -195,7 +226,9 @@ export default class ProjectExporter {
             effectLayers: this._SerializeEffectLayers(editor),
             environmentHelper: SceneManager.EnvironmentHelper ? SceneManager.EnvironmentHelper['_options'] : null,
             assets: this._SerializeAssets(editor),
-            filesList: []
+            removedObjects: this._SerializeRemovedObjects(),
+            filesList: [],
+            editionToolsStates: editor.edition.getToolsStates()
         };
 
         // Usable assets for extensions
@@ -216,10 +249,14 @@ export default class ProjectExporter {
         // Setup filesList
         for (const f in FilesInputStore.FilesToLoad) {
             const file = FilesInputStore.FilesToLoad[f];
-            if (file === editor.projectFile || file === editor.sceneFile)
+            if (Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport'))
+                continue;
+            
+            const ext = Tools.GetFileExtension(file.name);
+            if (ext === 'editorproject' || file === editor.projectFile || file === editor.sceneFile)
                 continue;
 
-            project.filesList.push(f);
+            project.filesList.push('scene/' + f);
         }
 
         // Finish
@@ -232,10 +269,23 @@ export default class ProjectExporter {
      * Serializes the global configuration of the project
      */
     private static _SerializeGlobalConfiguration (editor: Editor): Export.GlobalConfiguration {
+        const scene = editor.core.scene;
+        delete editor.camera.metadata;
+
         return {
             serializedCamera: editor.camera.serialize(),
-            environmentTexture: editor.core.scene.environmentTexture ? editor.core.scene.environmentTexture.serialize() : undefined,
-            imageProcessingConfiguration: editor.core.scene.imageProcessingConfiguration ? editor.core.scene.imageProcessingConfiguration.serialize() : undefined
+            environmentTexture: scene.environmentTexture ? scene.environmentTexture.serialize() : undefined,
+            imageProcessingConfiguration: scene.imageProcessingConfiguration ? scene.imageProcessingConfiguration.serialize() : undefined,
+            ambientColor: scene.ambientColor.asArray(),
+            clearColor: scene.clearColor.asArray(),
+            fog: {
+                enabled: scene.fogEnabled,
+                start: scene.fogStart,
+                end: scene.fogEnd,
+                density: scene.fogDensity,
+                mode: scene.fogMode,
+                color: scene.fogColor.asArray()
+            }
         }
     }
 
@@ -246,14 +296,22 @@ export default class ProjectExporter {
         const result: Export.Sound[] = [];
         const scene = editor.core.scene;
 
+        if (!scene.soundTracks)
+            return result;
+
         scene.soundTracks.forEach(st => {
             st.soundCollection.forEach(s => {
-                if (!Tags.HasTags(s) || !Tags.MatchesQuery(s, 'added'))
+                const added = Tags.MatchesQuery(s, 'added');
+                const modified = Tags.MatchesQuery(s, 'modified');
+
+                if (!added && !modified)
                     return;
 
                 result.push({
                     name: s.name,
-                    serializationObject: s.serialize()
+                    serializationObject: added ? s.serialize() : Tools.Assign(this._MergeModifedProperties(s, s.serialize()), {
+                        name: s.name
+                    })
                 });
             });
         });
@@ -352,7 +410,10 @@ export default class ProjectExporter {
         const result: Export.ProjectMaterial[] = [];
 
         scene.materials.forEach(m => {
-            if (!Tags.HasTags(m) || !Tags.MatchesQuery(m, 'added'))
+            const added = Tags.MatchesQuery(m, 'added');
+            const modifed = Tags.MatchesQuery(m, 'modified');
+
+            if (!Tags.HasTags(m) || (!added && !modifed))
                 return;
 
             // Already serialized?
@@ -370,9 +431,35 @@ export default class ProjectExporter {
             result.push({
                 meshesNames: names,
                 newInstance: true,
-                serializedValues: m.serialize()
+                serializedValues: modifed ? this._MergeModifedProperties(m, m.serialize()) : m.serialize()
             });
         });
+
+        return result;
+    }
+
+    /**
+     * Serializes the textures
+     */
+    private static _SerializeTextures (editor: Editor): Export.ProjectTexture[] {
+        const scene = editor.core.scene;
+        const result: Export.ProjectTexture[] = [];
+
+        scene.textures.forEach(t => {
+            const added = Tags.MatchesQuery(t, 'added');
+            const modified = Tags.MatchesQuery(t, 'modified');
+
+            if (!added && !modified)
+                return;
+            
+            const serializedValues = modified ? this._MergeModifedProperties(t, t.serialize()) : this._ClearOriginalMetadata(t.serialize());
+            serializedValues.name = t.name;
+
+            result.push({
+                serializedValues: serializedValues,
+                newInstance: added
+            });
+        })
 
         return result;
     }
@@ -425,6 +512,26 @@ export default class ProjectExporter {
     }
 
     /**
+     * Serializes the removed objects to keep references
+     */
+    public static _SerializeRemovedObjects (): IStringDictionary<RemovedObject> {
+        const result: IStringDictionary<RemovedObject> = { };
+
+        // Set type
+        for (const key in SceneManager.RemovedObjects) {
+            const value = SceneManager.RemovedObjects[key];
+
+            result[key] = {
+                serializationObject: value.serializationObject,
+                type: Tools.GetConstructorName(value.reference),
+                name: value.name
+            };
+        }
+
+        return result;
+    }
+
+    /**
      * Serializes the nodes
      */
     private static _SerializeNodes (editor: Editor): Export.Node[] {
@@ -438,6 +545,11 @@ export default class ProjectExporter {
         const result: Export.Node[] = [];
 
         nodes.forEach((n: Node) => {
+            // Ignore prefabs, already saved in assets
+            const prefab = Tags.MatchesQuery(n, 'prefab') || Tags.MatchesQuery(n, 'prefab-master');
+            if (prefab)
+                return;
+            
             let addNodeToProject = false;
 
             const node: Export.Node = {
@@ -447,7 +559,9 @@ export default class ProjectExporter {
                 name: n.name,
                 serializationObject: null,
                 physics: null,
-                type: n instanceof AbstractMesh ? 'Mesh' :
+                added: Tags.MatchesQuery(n, 'added'),
+                type: n instanceof InstancedMesh ? 'InstancedMesh' :
+                      n instanceof AbstractMesh ? 'Mesh' :
                       n instanceof Light ? 'Light' :
                       n instanceof Camera ? 'Camera' : 'Unknown!'
             };
@@ -455,13 +569,55 @@ export default class ProjectExporter {
             if (Tags.MatchesQuery(n, 'added_particlesystem'))
                 addNodeToProject = true;
             
-            if (Tags.HasTags(n) && Tags.MatchesQuery(n, 'added')) {
-                addNodeToProject = true;
+            const modified = Tags.MatchesQuery(n, 'modified');
 
-                if (n instanceof AbstractMesh)
-                    node.serializationObject = SceneSerializer.SerializeMesh(n, false, false);
-                else
-                    node.serializationObject = (<Camera | Light> n).serialize();
+            if (Tags.HasTags(n) && (node.added || modified) && !prefab) {
+                addNodeToProject = true;
+                if (n instanceof AbstractMesh) {
+                    // Instance
+                    if (n instanceof InstancedMesh) {
+                        if (node.added) {
+                            node.serializationObject = this._ClearOriginalMetadata(n.serialize());
+                            node.serializationObject.sourceMesh = n.sourceMesh.id;
+                        } else {
+                            node.serializationObject = this._MergeModifedProperties(n, n.serialize());
+                        }
+                    }
+                    // Mesh
+                    else {
+                        node.serializationObject = SceneSerializer.SerializeMesh(n, false, false);
+                        if (node.added) {
+                            node.serializationObject.meshes.forEach(m => this._ClearOriginalMetadata(m));
+                        }
+                        else {
+                            // Skeleton
+                            if (node.serializationObject.skeletons && Tags.MatchesQuery(n.skeleton, 'modified')) {
+                                node.skeleton = {
+                                    serializationObject: this._MergeModifedProperties(n.skeleton, n.skeleton.serialize())
+                                };
+                                // Don't save bones
+                                delete node.skeleton.serializationObject.bones;
+                            }
+
+                            // Remove unnecessary informations
+                            delete node.serializationObject.geometries;
+                            delete node.serializationObject.materials;
+                            delete node.serializationObject.skeletons;
+                            delete node.serializationObject.multiMaterials;
+
+                            node.serializationObject.meshes.forEach((m, index) => {
+                                const merge = this._MergeModifedProperties(n, m);
+                                delete merge.instances;
+                                delete merge.subMeshes;
+                                delete merge.materialId;
+                                node.serializationObject.meshes[index] = merge;
+                            });
+                        }
+                    }
+                }
+                else {
+                    node.serializationObject = modified ? this._MergeModifedProperties(n, (<Camera | Light> n).serialize()) : this._ClearOriginalMetadata((<Camera | Light> n).serialize());
+                }
             }
 
             // Animations
@@ -507,5 +663,74 @@ export default class ProjectExporter {
         });
 
         return result;
+    }
+
+    /**
+     * Clears the original metadata
+     */
+    private static _ClearOriginalMetadata (n: any): any {
+        delete n.metadata;
+        return n;
+    }
+
+    /**
+     * Merges the original and current objects to keep only changes 
+     */
+    private static _MergeModifedProperties (source: any, current: any): any {
+        const original = source.metadata && source.metadata.original;
+        if (!original)
+            return current;
+        
+        const result: any = { };
+        for (const key in current) {
+            const value = current[key];
+
+            // Newly created
+            if (original[key] === undefined) {
+                result[key] = value;
+                continue;
+            }
+
+            // Primitive types
+            const type = typeof(value);
+            switch (type.toLowerCase()) {
+                case 'number':
+                case 'boolean':
+                case 'string':
+                    if (current[key] !== original[key])
+                        result[key] = value;
+                    continue;
+                default:
+                    if (Array.isArray(value)) {
+                        const o = original[key];
+                        if (!o)
+                            break;
+                        
+                        const diff = value.find((v, i) => v !== o[i]);
+                        if (diff !== undefined)
+                            result[key] = value;
+                    }
+                    else {
+                        const currentObject = source[key];
+                        const originalValue = original[key];
+
+                        if (currentObject instanceof BaseTexture) {
+                            // Check texture has changed
+                            if (Tags.HasTags(originalValue) && Tags.MatchesQuery(originalValue, 'added') || originalValue.name !== value.name)
+                                result[key] = value;
+                            break;
+                        }
+                        else
+                            // Not supported, just copy
+                            result[key] = value;
+                    }
+                    break;
+            }
+        }
+
+        // Keep id
+        result.id = current.id;
+
+        return this._ClearOriginalMetadata(result);
     }
 }

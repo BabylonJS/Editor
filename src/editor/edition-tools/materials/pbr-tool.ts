@@ -1,11 +1,19 @@
 import { PBRMaterial }  from 'babylonjs';
 
 import MaterialTool from './material-tool';
+import UndoRedo from '../../tools/undo-redo';
 
 export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
     // Public members
     public divId: string = 'PBR-TOOL';
     public tabName: string = 'PBR Material';
+
+    // Private members
+    private _metallic: number = 0.0;
+    private _metallicEnabled: boolean = false;
+
+    private _roughness: number = 0.0;
+    private _roughnessEnabled: boolean = false;
 
     /**
 	* Returns if the object is supported
@@ -29,6 +37,7 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         pbrOptions.add(this.object, 'forceNormalForward').name('Force Normal Forward');
         pbrOptions.add(this.object, 'enableSpecularAntiAliasing').name('Force Specular Anti-Aliasing');
         pbrOptions.add(this.object, 'usePhysicalLightFalloff').name('Use Physical Light Falloff');
+        pbrOptions.add(this.object, 'directIntensity').min(0).step(0.01).name('Direct Intensity');
 
         // Albedo
         const albedo = this.tool.addFolder('Albedo');
@@ -68,19 +77,119 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         micro.add(this.object, 'useMicroSurfaceFromReflectivityMapAlpha').name('Use Micro Surface From Reflectivity Map Alpha');
 
         // Metallic
-        const metallic = this.tool.addFolder('Metallic');
+        const metallic = this.tool.addFolder('Metallic / Roughness');
         metallic.open();
         metallic.add(this.object, 'useMetallnessFromMetallicTextureBlue').name('Metallness From Metallic Texture Blue');
         metallic.add(this.object, 'useRoughnessFromMetallicTextureAlpha').name('Use Roughness From Metallic Texture Alpha');
         metallic.add(this.object, 'useRoughnessFromMetallicTextureGreen').name('Use Roughness From Metallic Texture Green');
-        if (this.object.metallic !== undefined)
-            metallic.add(this.object, 'metallic').step(0.01).name('Metallic');
-        this.tool.addTexture(metallic, this.editor, 'metallicTexture', this.object, false, false, t => {
-            if (this.object.metallic === undefined) {
-                this.object.metallic = 1;
-                this.update(this.object);
-            }
-        }).name('Metallic Texture');
+        this.tool.addTexture(metallic, this.editor, 'metallicTexture', this.object, false, false, t => this.update(this.object)).name('Metallic Texture');
+
+        const metallicWorkflow = metallic.addFolder('Metallic Workflow');
+        metallicWorkflow.open();
+
+        this._metallic = this.object.metallic || this._metallic;
+        this._metallicEnabled = this.object.metallic !== null && this.object.metallic !== undefined;
+        metallicWorkflow.add(this, '_metallicEnabled').name('Metallic Enabled').onFinishChange((r, i) => {
+
+            UndoRedo.Push({
+                undo: () => {
+                    this.object.metallic = r ? null : this._metallic;
+                    this._metallicEnabled = i;
+                },
+                redo: () => {
+                    this.object.metallic = r ? this._metallic : null;
+                    this._metallicEnabled = r;
+                }
+            });
+        });
+        
+        const metallicValue = metallicWorkflow.add(this, '_metallic').min(0).step(0.01).name('Metallic');
+        metallicValue.onChange(r => this._metallicEnabled && (this.object.metallic = r));
+        metallicValue.onFinishChange((r, i) => this._metallicEnabled && UndoRedo.Push({ object: this.object, property: 'metallic', from: i, to: r }));
+
+        const roughnessWorkflow = metallic.addFolder('Roughness Workflow');
+        roughnessWorkflow.open();
+
+        this._roughnessEnabled = this.object.roughness !== null && this.object.roughness !== undefined;
+        this._roughness = this.object.roughness || this._roughness;
+        roughnessWorkflow.add(this, '_roughnessEnabled').name('Roughness Enabled').onFinishChange((r, i) => {
+            UndoRedo.Push({
+                undo: () => {
+                    this.object.roughness = r ? null : this._roughness;
+                    this._roughnessEnabled = i;
+                },
+                redo: () => {
+                    this.object.roughness = r ? this._roughness : null;
+                    this._roughnessEnabled = r;
+                }
+            });
+        });
+        
+        const roughnessValue = roughnessWorkflow.add(this, '_roughness').min(0).step(0.01).name('Roughness');
+        roughnessValue.onChange(r => this._roughnessEnabled && (this.object.roughness = r));
+        roughnessValue.onFinishChange((r, i) => this._roughnessEnabled && UndoRedo.Push({ object: this.object, property: 'roughness', from: i, to: r }));
+
+        // Sub surface
+        const subSurface = this.tool.addFolder('Sub Surface');
+        subSurface.open();
+
+        this.tool.addColor(subSurface, 'Tint Color', this.object.subSurface.tintColor).open();
+        this.tool.addTexture(subSurface.addFolder('Thickness Texture'), this.editor, 'thicknessTexture', this.object.subSurface, false);
+        subSurface.add(this.object.subSurface, 'useMaskFromThicknessTexture').name('Use Mask From Thickness Texture');
+
+        // Sub surface Refraction
+        const subSurfaceRefraction = this.tool.addFolder('Sub Surface (Refraction)');
+        subSurfaceRefraction.open();
+
+        subSurfaceRefraction.add(this.object.subSurface, 'isRefractionEnabled').name('Refraction Enabled');
+        subSurfaceRefraction.add(this.object.subSurface, 'refractionIntensity').name('Refraction Intensity');
+        subSurfaceRefraction.add(this.object.subSurface, 'indexOfRefraction').name('Index Of Refraction');
+        subSurfaceRefraction.add(this.object.subSurface, 'minimumThickness').name('Index Of Refraction');
+        subSurfaceRefraction.add(this.object.subSurface, 'minimumThickness').name('Index Of Refraction');
+
+        // Sub surface Translucency
+        const subSurfaceTranslucency = this.tool.addFolder('Sub Surface (Translucency)');
+        subSurfaceTranslucency.open();
+
+        subSurfaceTranslucency.add(this.object.subSurface, 'isTranslucencyEnabled').name('Translucency Enabled');
+        subSurfaceTranslucency.add(this.object.subSurface, 'translucencyIntensity').name('Translucency Intensity');
+
+        // Clear Coat
+        const clearCoat = this.tool.addFolder('Clear Coat');
+        clearCoat.open();
+
+        clearCoat.add(this.object.clearCoat, 'isEnabled').name('Clear Coat Enabled');
+        clearCoat.add(this.object.clearCoat, 'roughness').min(0).step(0.01).name('Roughness');
+        clearCoat.add(this.object.clearCoat, 'indiceOfRefraction').min(0).step(0.01).name('Indice Of Refraction');
+        this.tool.addTexture(clearCoat.addFolder('Bump Texture'), this.editor, 'bumpTexture', this.object.clearCoat, false, false);
+
+        clearCoat.add(this.object.clearCoat, 'isTintEnabled').name('Tint Enabled');
+        clearCoat.add(this.object.clearCoat, 'tintColorAtDistance').min(0).step(0.01).name('Tint Color At Distance');
+        clearCoat.add(this.object.clearCoat, 'tintThickness').min(0).step(0.01).name('Tint Thickness');
+
+        // Anisotropy
+        const anisotropy = this.tool.addFolder('Anisotropy');
+        anisotropy.open();
+
+        anisotropy.add(this.object.anisotropy, 'isEnabled').name('Anisotropy Enabled');
+        anisotropy.add(this.object.anisotropy, 'intensity').min(0).step(0.01).name('Intensity');        
+        this.tool.addVector(anisotropy, 'Direction', this.object.anisotropy.direction);     
+        this.tool.addTexture(anisotropy.addFolder('Texture'), this.editor, 'texture', this.object.anisotropy, false, false);
+
+        // Sheen
+        const sheen = this.tool.addFolder('Sheen');
+        sheen.open();
+
+        sheen.add(this.object.sheen, 'isEnabled').name('Sheen Enabled');
+        sheen.add(this.object.sheen, 'intensity').min(0).step(0.01).name('Intensity');
+        this.tool.addColor(sheen, 'Color', this.object.sheen.color);
+        this.tool.addTexture(sheen.addFolder('Texture'), this.editor, 'texture', this.object.sheen, false, false);
+
+        // Opacity
+        const opacity = this.tool.addFolder('Opacity');
+        opacity.open();
+        opacity.add(this.object, 'useRadianceOverAlpha').name('Use Radiance Over Alpha');
+        opacity.add(this.object, 'useSpecularOverAlpha').name('Use Specular Over Alpha');
 
         // Emissive
         const emissive = this.tool.addFolder('Emissive');
@@ -103,7 +212,7 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         this.tool.addTexture(lightmap, this.editor, 'lightmapTexture', this.object).name('Lightmap Texture');
 
         // Refraction
-        const refraction = this.tool.addFolder('Refraction');
+        const refraction = this.tool.addFolder('Refraction (backward compatibility)');
         refraction.open();
         refraction.add(this.object, 'indexOfRefraction').step(0.01).name('Index of Refraction');
         refraction.add(this.object, 'invertRefractionY').name('Invert Y');

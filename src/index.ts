@@ -1,6 +1,7 @@
 import Editor from './editor/editor';
 
 import Tools from './editor/tools/tools';
+import Request from './editor/tools/request';
 import UndoRedo from './editor/tools/undo-redo';
 import ThemeSwitcher, { ThemeType } from './editor/tools/theme';
 
@@ -14,9 +15,9 @@ import Window from './editor/gui/window';
 import CodeEditor from './editor/gui/code';
 import Form from './editor/gui/form';
 import Edition from './editor/gui/edition';
-import Tree, { ContextMenuItem, TreeNode } from './editor/gui/tree';
+import Tree, { TreeContextMenuItem, TreeNode } from './editor/gui/tree';
 import Dialog from './editor/gui/dialog';
-import ContextMenu, { ContextMenuOptions } from './editor/gui/context-menu';
+import ContextMenu, { ContextMenuItem } from './editor/gui/context-menu';
 import ResizableLayout, { ComponentConfig, ItemConfigType } from './editor/gui/resizable-layout';
 
 import AbstractEditionTool from './editor/edition-tools/edition-tool';
@@ -29,15 +30,19 @@ import CodeProjectEditorFactory from './editor/project/project-code-editor';
 
 import SceneManager from './editor/scene/scene-manager';
 import SceneFactory from './editor/scene/scene-factory';
+import ScenePreview from './editor/scene/scene-preview';
 
 import PrefabAssetComponent from './editor/prefabs/asset-component';
 import { Prefab, PrefabNodeType } from './editor/prefabs/prefab';
+
+import VSCodeSocket from './editor/vscode/vscode-socket';
 
 export default Editor;
 export {
     Editor,
     
     Tools,
+    Request,
     UndoRedo,
     ThemeSwitcher, ThemeType,
 
@@ -57,9 +62,9 @@ export {
     CodeEditor,
     Form,
     Edition,
-    Tree, ContextMenuItem, TreeNode,
+    Tree, TreeContextMenuItem, TreeNode,
     Dialog,
-    ContextMenu, ContextMenuOptions,
+    ContextMenu, ContextMenuItem,
     ResizableLayout, ComponentConfig, ItemConfigType,
 
     AbstractEditionTool,
@@ -69,7 +74,10 @@ export {
 
     SceneManager,
     SceneFactory,
+    ScenePreview,
 
     PrefabAssetComponent,
-    Prefab, PrefabNodeType
+    Prefab, PrefabNodeType,
+
+    VSCodeSocket
 }

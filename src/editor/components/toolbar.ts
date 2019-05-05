@@ -40,8 +40,8 @@ export default class EditorToolbar {
                     { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
                     { id: 'new-project', img: 'icon-copy', text: 'New Project...' },
                     { type: 'break' },
-                    { id: 'export-project', img: 'icon-files', text: 'Save Project...' },
-                    { id: 'download-project', img: 'icon-files', text: 'Save Project As...' },
+                    { id: 'export-project', img: 'icon-files', text: 'Save Project... <kbd>CTRL + S</kbd>' },
+                    { id: 'export-project-as', img: 'icon-files', text: 'Save Project As... <kbd>ALT + CTRL + S</kbd>' },
                     { type: 'break' },
                     { id: 'export-template', img: 'icon-files-project', text: 'Export Template...' }
                 ]
@@ -57,11 +57,13 @@ export default class EditorToolbar {
             { type: 'break' },
             {
                 type: 'menu', id: 'edit', text: 'Edit', img: 'icon-edit', items: [
-                    { id: 'undo', img: 'icon-undo', text: 'Undo' },
-                    { id: 'redo', img: 'icon-redo', text: 'Redo' },
+                    { id: 'undo', img: 'icon-undo', text: 'Undo <kbd>CTRL + Z</kbd>' },
+                    { id: 'redo', img: 'icon-redo', text: 'Redo <kbd>CTRL + Y</kbd>' },
                     { type: 'break' },
                     { id: 'clean-materials', img: 'icon-recycle', text: 'Clean Unused Materials' },
                     { id: 'clean-textures', img: 'icon-recycle', text: 'Clean Unused Textures' },
+                    { type: 'break' },
+                    { id: 'restore-removed-object', img: 'icon-recycle', text: 'Restore Removed Object...' },
                     { type: 'break' },
                     { id: 'set-theme-light', img: 'icon-helpers', text: 'Light Theme' },
                     { id: 'set-theme-dark', img: 'icon-helpers', text: 'Dark Theme' }
@@ -158,9 +160,9 @@ export default class EditorToolbar {
         switch (target) {
             // Project
             case 'project:import-project':
-                ProjectImporter.ImportProject(this.editor);
-                if (Tools.IsElectron())
-                    await Request.Post('/openedFile', null);
+                const openedProject = await ProjectImporter.ImportProject(this.editor);
+                if (!openedProject && Tools.IsElectron())
+                    await Request.Post('/openedFile', { value: null });
                 break;
 
             case 'project:reload-project':
@@ -170,22 +172,28 @@ export default class EditorToolbar {
                     
                     CodeProjectEditorFactory.CloseAll();
                     this.editor._showReloadDialog = false;
-                    this.editor.filesInput['_processReload']();
+
+                    if (Tools.IsElectron()) {
+                        this.editor.checkOpenedFile();
+                    }
+                    else {
+                        this.editor.filesInput['_processReload']();
+                    }
                 });
                 break
             case 'project:new-project':
                 ProjectExporter.ProjectPath = null;
-                await this.editor.createDefaultScene(true);
+                await this.editor.createDefaultScene(true, true);
                 
                 if (Tools.IsElectron())
-                    await Request.Post('/openedFile', null);
+                    await Request.Post('/openedFile', JSON.stringify({ value: null }));
                 break;
 
-            case 'project:download-project':
-                ProjectExporter.DownloadProjectFile(this.editor);
-                break;
             case 'project:export-project':
                 await ProjectExporter.ExportProject(this.editor);
+                break;
+            case 'project:export-project-as':
+                await ProjectExporter.ExportProject(this.editor, true);
                 break;
 
             case 'project:export-template':
@@ -219,6 +227,11 @@ export default class EditorToolbar {
                 Window.CreateAlert(`Cleared ${SceneManager.CleanUnusedTextures(this.editor.core.scene)} textures`, 'Report');
                 break;
 
+
+            case 'edit:restore-removed-object':
+                SceneManager.RestoreRemovedObjects(this.editor);
+                break;
+            
             case 'edit:set-theme-light':
                 ThemeSwitcher.ThemeName = 'Light';
                 break;

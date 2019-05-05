@@ -108,7 +108,7 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
         this.tool.addVector(collisions, 'Gravity', scene.gravity, () => {
             const physics = scene.getPhysicsEngine();
             if (physics)
-                physics.setGravity(scene.gravity);
+                physics.setGravity(scene.gravity.clone());
         });
 
         // Physics
@@ -117,11 +117,11 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
 
         physics.add(this, '_physicsEnabled').name('Physics Enabled').onFinishChange(async r => {
             if (r) {
-                this.editor.layout.lockPanel('left', 'Enabling...', true);
-                const cannonjs = await Tools.ImportScript('cannon');
-                scene.enablePhysics(new Vector3(0, -0.91, 0), new CannonJSPlugin(true));
+                this.editor.layout.lockPanel('main', 'Enabling Physics...', true);
+                await Tools.ImportScript('cannon');
+                scene.enablePhysics(scene.gravity.clone(), new CannonJSPlugin(true));
                 scene.getPhysicsEngine().setTimeStep(0);
-                this.editor.layout.unlockPanel('left');
+                this.editor.layout.unlockPanel('main');
             }
             else
                 scene.disablePhysicsEngine();

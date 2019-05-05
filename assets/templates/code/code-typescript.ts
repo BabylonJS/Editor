@@ -1,6 +1,6 @@
 import { Color4, {{class}} } from 'babylonjs';
 
-export default class Script implements IScript {
+export default class {{name}} implements IScript {
     // Public members
     public blackColor = new Color4(0, 0, 0, 1);
 
@@ -28,8 +28,15 @@ export default class Script implements IScript {
     public update (): void {
         // Your code...
     }
+
+    /**
+     * Called once the attached object has been disposed
+     */
+    public dispose (): void {
+        // Called once the attached object has been disposed
+    }
 }
 
 // Export the script as an attached script
 // (attached to a node or scene)
-exportScript(Script);
+exportScript({{name}});

@@ -25,6 +25,10 @@ export interface IEditorPlugin {
     close (): Promise<void>;
 
     /**
+     * Called on the window, layout etc. is resized.
+     */
+    onResize? (): Promise<void> | void;
+    /**
      * Called on the user hides the extension (by changing tab, etc.)
      */
     onHide? (): Promise<void>;
@@ -65,6 +69,8 @@ export abstract class EditorPlugin implements IEditorPlugin {
      */
     public name: string;
 
+    private _closed: boolean = false;
+
     /**
      * Constructor
      * @param name: the plugin's name
@@ -83,6 +89,14 @@ export abstract class EditorPlugin implements IEditorPlugin {
      */
     public async close (): Promise<void> {
         $(this.divElement).html('');
+        this._closed = true;
+    }
+
+    /**
+     * Gets wether or not the plugin has been closed
+     */
+    public get closed (): boolean {
+        return this._closed;
     }
 
     /**

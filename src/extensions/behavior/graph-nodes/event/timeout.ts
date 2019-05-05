@@ -3,6 +3,10 @@ import { LiteGraph } from 'litegraph.js';
 import { LiteGraphNode } from '../typings';
 
 export class SetTimeout extends LiteGraphNode {
+    // Static members
+    public static Desc = 'Triggers output once the current time is out of the provided time (in ms)';
+    public static Title = 'Set Timeout';
+
     // Protected members
     protected timeoutId: string = null;
 
@@ -31,6 +35,10 @@ export class SetTimeout extends LiteGraphNode {
 }
 
 export class ClearTimeout extends LiteGraphNode {
+    // Static members
+    public static Desc = 'Clears the given timeout id';
+    public static Title = 'Clear Timeout';
+
     /**
      * Constructor
      */

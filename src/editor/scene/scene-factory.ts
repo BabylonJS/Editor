@@ -72,6 +72,9 @@ export default class SceneFactory {
         const selected = editor.graph.getSelected();
         editor.graph.select(selected ? selected.id : editor.graph.root);
         editor.graph.select(node.id);
+
+        // Refresh graph
+        editor.graph.configure();
     }
 
     /**

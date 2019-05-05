@@ -26,7 +26,6 @@ export default class PrefabEditor extends EditorPlugin {
     protected selectedAsset: Prefab = null;
     protected selectedPrefab: Node = null;
 
-    protected onResize: Observer<any> = null;
     protected onObjectSelected: Observer<any> = null;
     protected onAssetSelected: Observer<any> = null;
 
@@ -37,8 +36,9 @@ export default class PrefabEditor extends EditorPlugin {
      * Constructor
      * @param name: the name of the plugin 
      */
-    constructor(public editor: Editor) {
+    constructor(public editor: Editor, asset: Prefab = null) {
         super('Prefab Editor');
+        this.selectedAsset = asset;
     }
 
     /**
@@ -54,7 +54,6 @@ export default class PrefabEditor extends EditorPlugin {
         this.layout.element.destroy();
 
         // Events
-        this.editor.core.onResize.remove(this.onResize);
         this.editor.core.onSelectObject.remove(this.onObjectSelected);
         this.editor.core.onSelectAsset.remove(this.onAssetSelected);
 
@@ -70,7 +69,7 @@ export default class PrefabEditor extends EditorPlugin {
         this.layout.panels = [
             { type: 'top', resizable: false, size: 30, content: '<div id="PREFAB-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
             { type: 'left', resizable: true, size: '50%', content: '<div id="PREFAB-EDITOR-TREE" style="width: 100%; height: 100%;"></div>' },
-            { type: 'main', resizable: true, size: '50%', content: '<canvas id="PREFAB-EDITOR-PREVIEW" style="width: 100%; height: 100%;"></canvas>' }
+            { type: 'main', resizable: true, size: '50%', content: '<canvas id="PREFAB-EDITOR-PREVIEW" style="width: 100%; height: 100%; position: absolute; top: 0;"></canvas>' }
         ];
         this.layout.build(this.divElement.id);
 
@@ -96,18 +95,17 @@ export default class PrefabEditor extends EditorPlugin {
         this.tree.build('PREFAB-EDITOR-TREE');
 
         // Select
-        this.objectSelected(null);
+        this.assetSelected(this.selectedAsset);
 
         // Events
-        this.onResize = this.editor.core.onResize.add(() => this.resize());
         this.onObjectSelected = this.editor.core.onSelectObject.add(node => this.objectSelected(node));
         this.onAssetSelected = this.editor.core.onSelectAsset.add(asset => this.assetSelected(asset));
     }
 
     /**
-     * On resize the component
+     * Called on the window, layout etc. is resized.
      */
-    public resize (): void {
+    public onResize (): void {
         this.layout.element.resize();
         this.engine.resize();
     }
@@ -131,6 +129,9 @@ export default class PrefabEditor extends EditorPlugin {
      * @param node the selected node
      */
     protected objectSelected (node: Node): void {
+        if (this.selectedPrefab && this.selectedPrefab === node)
+            return;
+        
         if (!node || !Tags.HasTags(node) || !Tags.MatchesQuery(node, 'prefab-master'))
             return this.setNoPrefabSelected();
 

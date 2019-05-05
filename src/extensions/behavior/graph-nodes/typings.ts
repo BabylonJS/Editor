@@ -1,5 +1,5 @@
 import { Node, Scene } from 'babylonjs';
-import { LiteGraph, LGraph } from 'litegraph.js';
+import { LiteGraph, LGraph, LGraphCanvas } from 'litegraph.js';
 
 export abstract class LiteGraphNode {
     // Public members
@@ -95,14 +95,14 @@ export abstract class LiteGraphNode {
      * @param ctx the canvas 2d context reference
      * @param text the text to draw
      */
-    public onDrawBackground (ctx: CanvasRenderingContext2D, text?: string): void {
+    public onDrawBackground (ctx: CanvasRenderingContext2D, graph: LGraphCanvas, canvas: HTMLCanvasElement, text?: string): void {
         if (this.flags.collapsed || !text)
 		    return;
 
-        ctx.font = '12px Arial';
-        ctx.fillStyle = 'black';
+        ctx.font = '14px Arial';
+        ctx.fillStyle = 'grey';
         ctx.textAlign = 'center';
-        ctx.fillText(text, this.size[0] * 0.5, this.size[1] * 0.5);
+        ctx.fillText(text, this.size[0] * 0.5, this.size[1] * 0.5 + 7);
         ctx.textAlign = 'left';
     }
 
@@ -144,10 +144,10 @@ export abstract class LiteGraphNode {
      */
     public static SetColor (node: LiteGraphNode): void {
         switch (node.mode) {
-            case LiteGraph.ALWAYS: node.color = '#FFF'; node.bgColor = '#AAA'; break;
-            case LiteGraph.ON_EVENT: node.color = '#AAF'; node.bgColor = '#44A'; break;
-            case LiteGraph.ON_TRIGGER: node.color = '#AFA'; node.bgColor = '#4A4'; break;
-            case LiteGraph.NEVER: node.color = '#FAA'; node.bgColor = '#A44'; break;
+            case LiteGraph.ALWAYS: node.color = '#333'; node.bgColor = '#AAA'; break;
+            case LiteGraph.ON_EVENT: node.color = '#55A'; node.bgColor = '#44A'; break;
+            case LiteGraph.ON_TRIGGER: node.color = '#5A5'; node.bgColor = '#4A4'; break;
+            case LiteGraph.NEVER: node.color = '#A55'; node.bgColor = '#A44'; break;
             default: break;
         }
     }

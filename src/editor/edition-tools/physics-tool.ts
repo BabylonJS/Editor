@@ -11,6 +11,10 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
     // Private members
     private _currentImpostor: string = '';
 
+    private _lastMass: number = null;
+    private _lastFriction: number = null;
+    private _lastRestitution: number = null;
+
 	/**
 	* Returns if the object is supported
 	* @param object the object selected in the graph
@@ -33,9 +37,6 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
         collisions.add(node, 'checkCollisions').name('Check Collisions');
         collisions.add(node, 'collisionMask').step(0.01).name('Collision Mask');
 
-        if (node instanceof AbstractMesh)
-            collisions.add(node, 'isBlocker').name('Is Blocker');
-
         if (node instanceof Mesh)
             collisions.add(node, 'useOctreeForCollisions').name('Use Octree For Collisions');
         else
@@ -53,22 +54,46 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
                 'PlaneImpostor',
                 'MeshImpostor',
                 'CylinderImpostor',
-                'ParticleImpostor',
                 'HeightmapImpostor'
             ];
 
             const impostor = node.getPhysicsImpostor();
             if (!impostor)
-                this._currentImpostor = impostors[0];
-            else
-                this._currentImpostor = impostors[impostor.type];
+                this._currentImpostor = 'NoImpostor';
+            else {
+                this._currentImpostor = 'NoImpostor';
+                for (const i in PhysicsImpostor) {
+                    if (i.indexOf('Impostor') !== -1 && PhysicsImpostor[i] === impostor.type) {
+                        this._currentImpostor = i;
+                        break;
+                    }
+                }
+            }
 
             physics.add(this, '_currentImpostor', impostors).name('Impostor').onFinishChange(r => {
+                if (r === 'NoImpostor') {
+                    this._lastMass = null;
+                    this._lastFriction = null;
+                    this._lastRestitution = null;
+                } else if (node.physicsImpostor) {
+                    this._lastMass = node.physicsImpostor.mass;
+                    this._lastFriction = node.physicsImpostor.friction;
+                    this._lastRestitution = node.physicsImpostor.restitution;
+                }
+
+                if (node.physicsImpostor)
+                    node.physicsImpostor.dispose();
+                
                 node.physicsImpostor = new PhysicsImpostor(node, PhysicsImpostor[r], { mass: 0 });
+                node.physicsImpostor.mass = this._lastMass || node.physicsImpostor.mass;
+                node.physicsImpostor.friction = this._lastFriction || node.physicsImpostor.friction;
+                node.physicsImpostor.restitution = this._lastRestitution || node.physicsImpostor.restitution;
+
+                this.editor.core.scene.getPhysicsEngine().setTimeStep(0);
                 this.update(node);
             });
 
-            if (impostor) {
+            if (impostor && impostor.type !== PhysicsImpostor.NoImpostor) {
                 physics.add(impostor, 'mass').step(0.01).name('Mass');
                 physics.add(impostor, 'friction').step(0.01).name('Friction');
                 physics.add(impostor, 'restitution').step(0.01).name('Restitution');

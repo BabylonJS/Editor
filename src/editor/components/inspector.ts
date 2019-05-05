@@ -1,7 +1,9 @@
+import { Tags } from 'babylonjs';
+
 /**
  * Edition tools
  */
-import { IEditionTool } from '../edition-tools/edition-tool';
+import { IEditionTool, ToolState } from '../edition-tools/edition-tool';
 import SceneTool from '../edition-tools/scene-tool';
 import NodeTool from '../edition-tools/node-tool';
 import LightTool from '../edition-tools/light-tool';
@@ -52,6 +54,12 @@ import EnvironmentHelperTool from '../edition-tools/environment-helper-tool';
  */
 import Editor from '../editor';
 import UndoRedo from '../tools/undo-redo';
+import { IStringDictionary } from '../typings/typings';
+
+export interface ToolsStates {
+    id: string;
+    state: IStringDictionary<ToolState>;
+}
 
 export default class EditorInspector {
     // Public members
@@ -188,11 +196,13 @@ export default class EditorInspector {
             // Clear tool
             t.clear();
 
+            const container = $('#' + t.divId);
+
             // Check if supported then draw the tool, or hide if
             // not supported
             if (t.isSupported(object)) {
                 // Show
-                $('#' + t.divId).show();
+                container.show();
 
                 this.tabs.show(t.divId);
                 t.update(object);
@@ -203,12 +213,15 @@ export default class EditorInspector {
                 // Manage undo / redo
                 t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
                     UndoRedo.Push({ baseObject: t.object, property: property, to: result, from: initialValue, object: object });
+                    Tags.AddTagsTo(t.object, 'modified');
+                    this.editor.graph.updateObjectMark(t.object);
+                    t.onModified && t.onModified();
                 });
 
                 this.currentTools.push(t);
             } else {
                 // Hide
-                $('#' + t.divId).hide();
+                container.hide();
                 this.tabs.hide(t.divId);
             }
         });
@@ -237,6 +250,27 @@ export default class EditorInspector {
      */
     public updateDisplay (): void {
         this.currentTools.forEach(t => t.tool.updateDisplay());
+    }
+
+    /**
+     * Returns the current tools configurations
+     */
+    public getToolsStates (): ToolsStates[] {
+        return this.tools.map(t => ({ id: t.divId, state: t.state }));
+    }
+
+    /**
+     * Sets the states of each tool
+     * @param states the list of states for each tool
+     */
+    public setToolsStates (states: ToolsStates[]): void {
+        states.forEach(s => {
+            const t = this.tools.find(t => t.divId === s.id);
+            if (!t)
+                return;
+
+            t.state = s.state;
+        });
     }
 
     /**

@@ -68,20 +68,10 @@
             pluginFirst: true
         });
 
-        var promises = [
-            System.import("babylonjs"),
-            System.import("babylonjs-materials"),
-            System.import("babylonjs-gui"),
-            System.import("babylonjs-loaders"),
-            System.import("babylonjs-procedural-textures")
-        ];
-
-        Promise.all(promises).then(function () {
-            System.import("./.build/src/game.js").then(function (e) {                
-                // Run game here
-                var e = new e.default();
-                e.run();
-            });
+        System.import("./.build/src/game.js").then(function (e) {                
+            // Run game here
+            var e = new e.default();
+            e.run();
         });
     </script>
 </body>

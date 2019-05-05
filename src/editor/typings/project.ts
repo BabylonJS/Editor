@@ -51,6 +51,16 @@ export interface GlobalConfiguration {
     serializedCamera?: any;
     environmentTexture?: any;
     imageProcessingConfiguration?: any;
+    ambientColor?: number[];
+    clearColor?: number[];
+    fog?: {
+        enabled: boolean;
+        start: number;
+        end: number;
+        density: number;
+        mode: number;
+        color: number[];
+    }
 }
 
 /**
@@ -65,8 +75,16 @@ export interface ProjectMaterial {
 }
 
 /**
-* Custom physics impostors
-*/
+ * Custom textures (added by the editor or modified)
+ */
+export interface ProjectTexture {
+    serializedValues: any;
+    newInstance: boolean;
+}
+
+/**
+ * Custom physics impostors
+ */
 export interface PhysicsImpostor {
     physicsMass: number;
     physicsFriction: number;
@@ -74,9 +92,13 @@ export interface PhysicsImpostor {
     physicsImpostor: number;
 }
 
+export interface Skeleton {
+    serializationObject: any;
+}
+
 /**
-* Modified nodes in the editor (custom animations, for custom materials, etc.)
-*/
+ * Modified nodes in the editor (custom animations, for custom materials, etc.)
+ */
 export interface Node {
     name: string; // The node name
     id: string; // The node id
@@ -84,7 +106,9 @@ export interface Node {
     animations: Animation[]; // Animations of the node
     actions?: any; // Related actions of the node
     physics?: PhysicsImpostor;
+    skeleton?: Skeleton;
 
+    added?: boolean;
     serializationObject?: any;
 }
 
@@ -134,6 +158,7 @@ export interface EffectLayer {
 export interface ProjectRoot {
     globalConfiguration: GlobalConfiguration;
     materials: ProjectMaterial[];
+    textures: ProjectTexture[];
     particleSystems: ParticleSystem[];
     nodes: Node[];
     shadowGenerators: any[];
@@ -151,5 +176,7 @@ export interface ProjectRoot {
     gui: any[];
     assets: IStringDictionary<AssetElement<any>[]>;
 
+    removedObjects?: IStringDictionary<any>;
     filesList?: string[];
+    editionToolsStates?: { id: string, state: any }[];
 }

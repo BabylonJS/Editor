@@ -1,4 +1,4 @@
-import { Light, DirectionalLight, PointLight, SpotLight, ShadowGenerator } from 'babylonjs';
+import { Light, DirectionalLight, PointLight, SpotLight, ShadowGenerator, SerializationHelper, Tags } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -12,6 +12,7 @@ export default class LightTool extends AbstractEditionTool<Light> {
     private _generatesShadows: boolean = false;
     private _shadowMapSize: string = '512';
     private _darkness: number = 0;
+    private _intensityMode: string = '';
 
 	/**
 	* Returns if the object is supported
@@ -29,6 +30,11 @@ export default class LightTool extends AbstractEditionTool<Light> {
         super.update(light);
         super.setTabName(Tools.GetConstructorName(light).replace('Light', ''));
 
+        // Reset
+        if (light.metadata && light.metadata.original) {
+            this.tool.add(this, 'resetToOriginal').name('Reset to original');
+        }
+
         // Common
         const common = this.tool.addFolder('Common');
         common.open();
@@ -43,6 +49,20 @@ export default class LightTool extends AbstractEditionTool<Light> {
 
         this.tool.addColor(colors, 'Diffuse', light.diffuse).open();
         this.tool.addColor(colors, 'Specular', light.specular).open();
+
+        // Mode
+        const mode = this.tool.addFolder('Mode');
+        mode.open();
+
+        const modes: string[] = ['INTENSITYMODE_AUTOMATIC', 'INTENSITYMODE_LUMINOUSPOWER', 'INTENSITYMODE_LUMINOUSINTENSITY', 'INTENSITYMODE_ILLUMINANCE', 'INTENSITYMODE_LUMINANCE'];
+        for (const m of modes) {
+            if (light.intensityMode === Light[m]) {
+                this._intensityMode = m;
+                break;
+            }
+        }
+        mode.add(this, '_intensityMode', modes).name('Intensity').onChange(r => light.intensityMode = Light[r]);
+
 
         // Spot
         if (light instanceof SpotLight) {
@@ -101,5 +121,17 @@ export default class LightTool extends AbstractEditionTool<Light> {
                 shadows.add(shadowGenerator, 'useBlurCloseExponentialShadowMap').name('Use Blur Close Exponential Shadow Map');
             }
         }
+    }
+
+    /**
+     * Resets the current light to the original one
+     */
+    protected resetToOriginal (): void {
+        SerializationHelper.Parse(() => this.object, this.object.metadata.original, this.object.getScene(), 'file:');
+        setTimeout(() => {
+            Tags.RemoveTagsFrom(this.object, 'modified');
+            this.editor.graph.updateObjectMark(this.object);
+        }, 1);
+        this.editor.edition.updateDisplay();
     }
 }

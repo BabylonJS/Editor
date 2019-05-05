@@ -6,17 +6,19 @@ import {
     Tools as BabylonTools,
     Skeleton,
     Tags,
-    TransformNode
+    TransformNode,
+    InstancedMesh
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
-import Tree, { TreeNode, ContextMenuItem } from '../gui/tree';
+import Tree, { TreeNode, TreeContextMenuItem } from '../gui/tree';
 import UndoRedo from '../tools/undo-redo';
 
 import ScenePicker from '../scene/scene-picker';
+import SceneManager from '../scene/scene-manager';
 
 export default class EditorGraph {
     // Public members
@@ -33,6 +35,7 @@ export default class EditorGraph {
     constructor (protected editor: Editor) {
         this.tree = new Tree('SceneTree');
         this.tree.multipleSelection = true;
+        this.tree.wholerow = true;
         this.tree.build('SCENE-GRAPH');
 
         // Events
@@ -70,28 +73,31 @@ export default class EditorGraph {
         };
 
         this.tree.onContextMenu = (id, data: any) => {
-            if (!data.clone)
+            if (!data.clone || data === this.editor.camera || data === this.editor.core.scene)
                 return [];
             
-            const result: ContextMenuItem[] = [];
+            const result: TreeContextMenuItem[] = [];
+            const selectedCount = this.tree.getAllSelected().length;
 
-            if (data.globalPosition || data.getAbsolutePosition)
-                result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: async () => await this.onMenuClick('focus') });
-            
-            if (data instanceof Mesh)
-                result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', multiple: true, separatorBefore: true, callback: async (node) => await this.onMenuClick('create-prefab', node) });
-            
-            if (data instanceof AbstractMesh)
-                result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: async () => await this.onMenuClick('set-material') });
+            if (selectedCount === 1) {
+                if (data.globalPosition || data.getAbsolutePosition)
+                    result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: async () => await this.onMenuClick('focus') });
+                
+                if (data instanceof Mesh)
+                    result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', multiple: true, separatorBefore: true, callback: async (node) => await this.onMenuClick('create-prefab', node) });
+                
+                if (data instanceof AbstractMesh)
+                    result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: async () => await this.onMenuClick('set-material') });
 
-            if (data instanceof Node || data instanceof Scene || data instanceof ParticleSystem) {
-                result.push({ id: 'attach-script', text: 'Attach Existing Script...', img: 'icon-behavior-editor', callback: async () => await this.onMenuClick('attach-script') });
-                result.push({ id: 'add-script', text: 'Add Script...', img: 'icon-behavior-editor', separatorAfter: true, callback: async () => await this.onMenuClick('add-script') });
+                if (data instanceof Node || data instanceof Scene || data instanceof ParticleSystem) {
+                    result.push({ id: 'attach-script', text: 'Attach Existing Script...', img: 'icon-behavior-editor', callback: async () => await this.onMenuClick('attach-script') });
+                    result.push({ id: 'add-script', text: 'Add Script...', img: 'icon-behavior-editor', separatorAfter: true, callback: async () => await this.onMenuClick('add-script') });
+                }
+
+                if (data.clone)
+                    result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', multiple: true, callback: async (node) => await this.onMenuClick('clone', node) });
             }
-
-            if (data.clone)
-                result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', multiple: true, callback: async (node) => await this.onMenuClick('clone', node) });
-
+            
             result.push.apply(result, [
                 { id: 'delete', text: 'Delete', img: 'icon-error', multiple: true, callback: async (node) => await this.onMenuClick('remove', node) }
             ]);
@@ -101,6 +107,10 @@ export default class EditorGraph {
 
         this.tree.onCanDrag = (id, data) => !(data instanceof Scene);
         this.tree.onDrag = (node: any, parent: any) => {
+            // Add modified tag
+            Tags.AddTagsTo(node, 'modified');
+
+            // Search operation
             if (node instanceof ParticleSystem) {
                 if (!(parent instanceof AbstractMesh))
                     return false;
@@ -161,6 +171,8 @@ export default class EditorGraph {
                 }
             }
 
+            // No action, remove tag and reset
+            Tags.RemoveTagsFrom(node, 'modified');
             return false;
         };
 
@@ -280,6 +292,7 @@ export default class EditorGraph {
             scene.cameras.forEach(c => !c.parent && nodes.push(c));
             scene.lights.forEach(l => !l.parent && nodes.push(l));
             scene.meshes.forEach(m => !m.parent && nodes.push(m));
+            scene.transformNodes.forEach(t => !t.parent && nodes.push(t));
 
             // Fill sounds
             this.fillSounds(scene, scene);
@@ -295,8 +308,13 @@ export default class EditorGraph {
                 return;
             
             // Create a random ID if not defined
-            if (!n.id || this.tree.get(n.id))
+            if (!n.id || this.tree.get(n.id)) {
                 n.id = BabylonTools.RandomId();
+                if (n.metadata && n.metadata.original)
+                    n.metadata.original.id = n.id;
+            }
+
+            n.id = n.id.replace(/ /g, '');
 
             // Instance?
             const parent = root ? root.id : this.root;
@@ -316,9 +334,11 @@ export default class EditorGraph {
                 // Sub meshes
                 if (n.subMeshes && n.subMeshes.length > 1) {
                     n.subMeshes.forEach((sm, index) => {
+                        const smMaterial = sm.getMaterial();
+
                         this.tree.add({
                             id: n.id + 'submesh_' + index,
-                            text: sm.getMaterial().name,
+                            text: smMaterial ? smMaterial.name : sm.getMesh().name + ' (Unnamed submesh)',
                             img: this.getIcon(n),
                             data: sm
                         }, n.id);
@@ -387,8 +407,50 @@ export default class EditorGraph {
         });
 
         // Expand scene as default
-        if (!root)
+        if (!root) {
             this.tree.expand(this.root);
+            this.configure();
+        }
+    }
+
+    /**
+     * Updates the mark of the given object in graph
+     * @param obj the object to mark
+     */
+    public updateObjectMark (obj: any): void {
+        const added = Tags.MatchesQuery(obj, 'added');
+        const modified = Tags.MatchesQuery(obj, 'modified');
+        this.tree.markNode(obj.id, modified && !added);
+    }
+
+    /**
+     * Configures the graph
+     */
+    public configure (): void {
+        const scene = this.editor.core.scene;
+        const configure = n => {
+            // Type
+            let type = 'default';
+
+            if (Tags.HasTags(n) && (Tags.MatchesQuery(n, 'prefab') || Tags.MatchesQuery(n, 'prefab-master')))
+                type = 'italic';
+            
+            if (n.metadata && (
+                n.metadata.behavior && n.metadata.behavior.metadatas.length > 0 ||
+                n.metadata.behaviorGraph && n.metadata.behaviorGraph.metadatas.length > 0
+            )) {
+                type = type === 'italic' ? 'boldItalic' : 'bold';
+            }
+
+            this.tree.setType(n.id, type);
+
+            // Marked
+            this.updateObjectMark(n);
+        };
+
+        scene.meshes.forEach(n => configure(n));
+        scene.cameras.forEach(n => configure(n));
+        scene.lights.forEach(n => configure(n));
     }
 
     /**
@@ -428,24 +490,26 @@ export default class EditorGraph {
      */
     protected fillSounds (scene: Scene, root: Scene | Node): number {
         // Set sounds
-        if (scene.soundTracks.length === 0 || scene.soundTracks[0].soundCollection.length === 0)
+        if (!scene.soundTracks || scene.soundTracks.length === 0)
             return;
 
         let count = 0;
 
         scene.soundTracks.forEach(st => {
             st.soundCollection.forEach(s => {
-                if (root === scene && !s['_connectedMesh']) {
+                s['id'] = s['id'] || BabylonTools.RandomId();
+
+                if (root === scene && !s['_connectedTransformNode']) {
                     this.tree.add({
-                        id: s['id'] || BabylonTools.RandomId(),
+                        id: s['id'],
                         text: s.name,
                         img: this.getIcon(s),
                         data: s
                     }, this.root);
                 }
-                else if (s['_connectedMesh'] === root) {
+                else if (s['_connectedTransformNode'] === root) {
                     this.tree.add({
-                        id: s['id'] || BabylonTools.RandomId(),
+                        id: s['id'],
                         text: s.name,
                         img: this.getIcon(s),
                         data: s
@@ -523,10 +587,11 @@ export default class EditorGraph {
             
             // Clone
             case 'clone':
-                if (!node || !(node.data instanceof Node))
+                if (!node || !(node.data instanceof Node) || !node.data['clone'])
                     return;
                 
-                const clone = node && node.data && node.data['clone'] && node.data['clone']();
+                const clone = node.data['clone']();
+                clone.position && (clone.position.y += 2);
                 clone.name = node.data.name + ' Cloned';
                 clone.id = BabylonTools.RandomId();
 
@@ -542,24 +607,42 @@ export default class EditorGraph {
                 // Setup this
                 this.currentObject = clone;
                 this.editor.core.onSelectObject.notifyObservers(clone);
+
+                // Update graph
+                this.configure();
+
                 break;
 
             // Remove
             case 'remove':
+                // Don't remove editor's camera
+                if (node.data === this.editor.camera || node.data === this.editor.core.scene)
+                    return;
+                
                 // Undo / redo
                 const scene = this.editor.core.scene;
                 const descendants = (!node.data.getDescendants ? [node.data] : [node.data].concat(node.data.getDescendants())).map(n => {
                     const array: any[] = n instanceof AbstractMesh ? scene.meshes : 
-                                          n instanceof Light ? scene.lights :
-                                          n instanceof Camera ? scene.cameras :
-                                          n instanceof TransformNode ? scene.transformNodes :
-                                          n instanceof Sound ? scene.mainSoundTrack.soundCollection :
-                                          [];
+                                         n instanceof Light ? scene.lights :
+                                         n instanceof Camera ? scene.cameras :
+                                         n instanceof TransformNode ? scene.transformNodes :
+                                         n instanceof Sound ? scene.mainSoundTrack.soundCollection :
+                                         n instanceof ParticleSystem ? scene.particleSystems :
+                                         [];
                     const particleSystems = scene.particleSystems.filter(p => p.emitter === n);
+
+                    const sounds: Sound[] = [];
+                    scene.soundTracks.forEach(st => st.soundCollection.forEach(s => s['_connectedTransformNode'] === n && sounds.push(s)));
 
                     return {
                         node: n,
                         array: array,
+                        sounds: sounds.map(s => ({
+                            soundTrackId: s.soundTrackId,
+                            isPlaying: s.isPlaying,
+                            treeNode: this.getByData(s),
+                            sound: s
+                        })),
                         particleSystems: particleSystems.map(p => ({
                             system: p,
                             treeNode: this.getByData(p)
@@ -568,41 +651,115 @@ export default class EditorGraph {
                 });
 
                 UndoRedo.Push({
+                    scope: node.id,
                     undo: () => {
                         // Re-add in tree graph
                         this.tree.add(Object.assign({ }, node, { img: this.getIcon(node.data) }), node.parent);
 
                         // Re-add descendants
                         descendants.forEach(d => {
+                            // Test if doesn't exists
+                            if (scene.getNodeByID(d.node.id))
+                                return Tags.RemoveTagsFrom(d.node, 'removed');
+
+                            for (const st of scene.soundTracks) {
+                                if (st.soundCollection.find(s => s.name === d.node.name))
+                                    return Tags.RemoveTagsFrom(d.node, 'removed');
+                            }
+                            
+                            // Push
                             d.array.push(d.node);
                             d.particleSystems.forEach(p => {
                                 scene.particleSystems.push(p.system);
                                 this.tree.add(Object.assign({ }, p.treeNode, { img: this.getIcon(p.system) }), node.id);
+                                Tags.RemoveTagsFrom(p.system, 'removed');
                             });
+                            d.sounds.forEach(s => {
+                                scene.soundTracks[s.soundTrackId].soundCollection.push(s.sound);
+                                s.isPlaying && s.sound.play();
+                                this.tree.add(Object.assign({ }, s.treeNode, { img: this.getIcon(s.sound) }), node.id);
+                                Tags.RemoveTagsFrom(s.sound, 'removed');
+                            });
+
+                            Tags.RemoveTagsFrom(d.node, 'removed');
+
+                            // Remove reference
+                            if (d.node.metadata && d.node.metadata.original) {
+                                delete SceneManager.RemovedObjects[d.node instanceof Sound ? d.node.name : d.node.id];
+                            }
                         });
 
                         // Fill children
                         if (node.data instanceof Node)
                             this.fill(scene, node.data);
 
-                        // Select node
-                        this.tree.onClick(node.id, node.data);
+                        setTimeout(() => {
+                            // Select node
+                            this.tree.select(node.id);
+                            this.tree.onClick(node.id, node.data);
+                            this.currentObject = node.data;
+
+                            // Update graph
+                            this.configure();
+                        }, 1);
                     },
                     redo: () => {
                         descendants.forEach((d) => {
                             if (d.node instanceof Sound)
                                 d.node.stop();
                             
+                            // Splice
                             d.array.splice(d.array.indexOf(d.node), 1);
                             d.particleSystems.forEach(p => {
                                 scene.particleSystems.splice(scene.particleSystems.indexOf(p.system), 1);
+                                Tags.AddTagsTo(p.system, 'removed');
                             });
+                            d.sounds.forEach(s => {
+                                scene.soundTracks[s.soundTrackId].soundCollection.splice(scene.soundTracks[s.soundTrackId].soundCollection.indexOf(s.sound), 1);
+                                Tags.AddTagsTo(s.sound, 'removed');
+
+                                // Save reference
+                                if (s.sound['metadata'] && s.sound['metadata'].original) {
+                                    const savedRemovedObject = {
+                                        reference: s.sound,
+                                        type: Tools.GetConstructorName(s.sound),
+                                        serializationObject: Tools.Assign<any>({ }, s.sound['metadata'].original),
+                                        name: s.sound.name
+                                    };
+                                    savedRemovedObject.serializationObject.metadata = Tools.Assign({ }, savedRemovedObject.serializationObject.metadata, {
+                                        original: undefined
+                                    });
+                                    SceneManager.RemovedObjects[s.sound.name] = savedRemovedObject;
+                                }
+                            });
+
+                            Tags.AddTagsTo(d.node, 'removed');
+
+                            // Save reference
+                            if (d.node.metadata && d.node.metadata.original) {
+                                const savedRemovedObject = {
+                                    reference: d.node,
+                                    type: Tools.GetConstructorName(d.node),
+                                    serializationObject: Tools.Assign<any>({ }, d.node.metadata.original, {
+                                        sourceMesh: d.node instanceof InstancedMesh ? d.node.sourceMesh.id : undefined
+                                    }),
+                                    name: d.node.name
+                                };
+                                savedRemovedObject.serializationObject.metadata = Tools.Assign({ }, savedRemovedObject.serializationObject.metadata, {
+                                    original: undefined
+                                });
+                                SceneManager.RemovedObjects[d.node instanceof Sound ? d.node.name : d.node.id] = savedRemovedObject;
+                            }
                         });
 
                         this.tree.remove(node.id);
 
                         // Reset gizmo
                         this.editor.scenePicker.setGizmoAttachedMesh(null);
+
+                        // Update graph
+                        this.currentObject = null;
+                        this.configure();
                     }
                 });
 

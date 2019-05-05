@@ -1,10 +1,10 @@
 import {
-    Engine, Scene, SceneLoader,
+    Engine, Scene,
     FreeCamera, Camera,
     Vector3,
-    FilesInput,
-    FilesInputStore,
-    ArcRotateCamera
+    FilesInput, FilesInputStore,
+    ArcRotateCamera,
+    Tags
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
@@ -20,6 +20,7 @@ import ResizableLayout from './gui/resizable-layout';
 import Tree, { TreeNode } from './gui/tree';
 import Window from './gui/window';
 import CodeEditor from './gui/code';
+import ContextMenu from './gui/context-menu';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
@@ -28,15 +29,14 @@ import EditorInspector from './components/inspector';
 import EditorEditPanel from './components/edit-panel';
 import EditorStats from './components/stats';
 import EditorAssets from './components/assets';
+import EditorFiles from './components/files';
 
 import ScenePicker from './scene/scene-picker';
-import SceneManager from './scene/scene-manager';
 import ScenePreview from './scene/scene-preview';
 import SceneIcons from './scene/scene-icons';
-import SceneExporter from './scene/scene-exporter';
 import SceneImporter from './scene/scene-importer';
+import SceneLoader from './scene/scene-loader';
 
-import ProjectImporter from './project/project-importer';
 import ProjectExporter from './project/project-exporter';
 import CodeProjectEditorFactory from './project/project-code-editor';
 
@@ -45,6 +45,8 @@ import DefaultScene from './tools/default-scene';
 import UndoRedo from './tools/undo-redo';
 import Request from './tools/request';
 import ThemeSwitcher, { ThemeType } from './tools/theme';
+
+import VSCodeSocket from './vscode/vscode-socket';
 
 export default class Editor implements IUpdatable {
     // Public members
@@ -62,6 +64,7 @@ export default class Editor implements IUpdatable {
     public editPanel: EditorEditPanel;
     public stats: EditorStats;
     public assets: EditorAssets;
+    public files: EditorFiles;
 
     public plugins: IStringDictionary<IEditorPlugin> = { };
 
@@ -81,7 +84,7 @@ export default class Editor implements IUpdatable {
     private _canvasFocused: boolean = true;
 
     // Static members
-    public static LayoutVersion: string = '2.1.1';
+    public static LayoutVersion: string = '2.2.0';
     public static EditorVersion: string = null;
 
     /**
@@ -135,6 +138,9 @@ export default class Editor implements IUpdatable {
                         { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 20, content: [
                             { type: 'component', componentName: 'Stats', width: 20, isClosable: false, html: `
                                 <div id="STATS" style="width: 100%; height: 100%"></div>`
+                            },
+                            { type: 'component', componentName: 'Files', width: 20, isClosable: false, html: `
+                                <div id="FILES" style="width: 100%; height: 100%"></div>`
                             }
                         ] },
                     ] },
@@ -197,9 +203,10 @@ export default class Editor implements IUpdatable {
                 this.graph.clear();
                 this.graph.fill();
 
-                this._createScenePicker();
+                this.createScenePicker();
                 this.stats.updateStats();
                 this.assets.refresh();
+                this.files.refresh();
             });
 
             // Configure core
@@ -231,6 +238,9 @@ export default class Editor implements IUpdatable {
         // Assets
         this.assets = new EditorAssets(this);
 
+        // Files
+        this.files = new EditorFiles(this);
+
         if (Tools.IsStandalone) {
             // Create editor camera
             this.createEditorCamera();
@@ -243,7 +253,7 @@ export default class Editor implements IUpdatable {
         this.sceneIcons = new SceneIcons(this);
 
         // Create scene picker
-        this._createScenePicker();
+        this.createScenePicker();
 
         // Handle events
         this._handleEvents();
@@ -257,7 +267,10 @@ export default class Editor implements IUpdatable {
             this._checkUpdates();
 
             // Check opened file from OS file explorer
-            this._checkOpenedFile();
+            this.checkOpenedFile();
+
+            // Connect to VSCode extension
+            VSCodeSocket.Create(this);
         }
         else {
             this.createDefaultScene();
@@ -268,6 +281,9 @@ export default class Editor implements IUpdatable {
             const theme = <ThemeType> localStorage.getItem('babylonjs-editor-theme-name');
             ThemeSwitcher.ThemeName = theme || 'Light';
         }
+
+        // Initialize context menu
+        ContextMenu.Init();
     }
 
     /**
@@ -282,7 +298,7 @@ export default class Editor implements IUpdatable {
     /**
     * Resizes elements
     */
-    public resize (): void {
+    public async resize (): Promise<void> {
         // Edition size
         const editionSize = this.resizableLayout.getPanelSize('Inspector');
         this.edition.resize(editionSize.width);
@@ -300,6 +316,19 @@ export default class Editor implements IUpdatable {
 
         // Assets
         this.assets.layout.element.resize();
+
+        // Files
+        this.files.layout.element.resize();
+
+        // Plugins
+        for (const p in this.plugins) {
+            const plugin = this.plugins[p];
+            try {
+                plugin.onResize && await plugin.onResize();
+            } catch (e) {
+                console.info(`Failed to resize plugin "${p}". The extension may be not ready.`);
+            }
+        }
 
         // Notify
         this.core.onResize.notifyObservers(null);
@@ -343,13 +372,27 @@ export default class Editor implements IUpdatable {
         }
 
         if (this.plugins[url]) {
-            if (restart)
-                await this.removePlugin(this.plugins[url]);
+            if (restart) {
+                try {
+                    await this.removePlugin(this.plugins[url]);
+                } catch (e) {
+                    console.error(`Error while removing plugin "${url}"`, e);
+                }
+            }
             else {
-                if (this.plugins[url].onReload)
-                    await this.plugins[url].onReload();
-                
-                await this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
+                if (this.plugins[url].onReload) {
+                    try {
+                        await this.plugins[url].onReload();
+                    } catch (e) {
+                        console.error(`Error while calling .onReload on plugin "${url}"`, e);
+                    }
+                }
+
+                try {
+                    await this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
+                } catch (e) {
+                    console.error(`Error while calling .showPlugin on plugin "${url}"`, e);
+                }
                 return this.plugins[url];
             }
         }
@@ -357,21 +400,26 @@ export default class Editor implements IUpdatable {
         // Lock panel and load plugin
         this.layout.lockPanel('main', `Loading ${name || url} ...`, true);
 
-        const plugin = await this._runPlugin.apply(this, [url].concat(params));
-        this.plugins[url] = plugin;
+        try {
+            const plugin = await this._runPlugin.apply(this, [url].concat(params));
+            this.plugins[url] = plugin;
 
-        // Add tab in edit panel and unlock panel
-        this.editPanel.addPlugin(url);
+            // Add tab in edit panel and unlock panel
+            this.editPanel.addPlugin(url);
+            this.layout.unlockPanel('main');
 
-        this.layout.unlockPanel('main');
+            // Create and store plugin
+            await plugin.create();
 
-        // Create plugin
-        await plugin.create();
+            // Resize and unlock panel
+            this.resize();
 
-        // Resize and unlock panel
-        this.resize();
-
-        return plugin;
+            return plugin;
+        } catch (e) {
+            delete this.plugins[url];
+            console.error(`Error while loading plugin "${url}"`, e);
+            throw e;
+        }
     }
 
     /**
@@ -379,7 +427,11 @@ export default class Editor implements IUpdatable {
      * @param plugin: the plugin to remove
      */
     public async removePlugin (plugin: IEditorPlugin, removePanel: boolean = true): Promise<void> {
-        await plugin.close();
+        try {
+            await plugin.close();
+        } catch (e) {
+            /* Catch silently */
+        }
 
         if (removePanel)
             plugin.divElement.remove();
@@ -423,59 +475,102 @@ export default class Editor implements IUpdatable {
 		this.layout.lockPanel('bottom', message, spinner);
 		if (timeout)
 			setTimeout(() => this.layout.unlockPanel('bottom'), timeout);
-	}
+    }
+    
+    /**
+     * Checks if the user opened a file
+     * @param fullLoad sets if the loader should load newly added files in the scene folder
+     */
+    public async checkOpenedFile (): Promise<void> {
+        const hasOpenedFile = await SceneImporter.CheckOpenedFile(this);
+
+        if (!hasOpenedFile)
+            return await this.createDefaultScene();
+
+        const pluginsToLoad = <string[]> JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
+        pluginsToLoad.forEach(p => this.plugins[p] = null);
+    }
+
+    /**
+     * Returns the project file looking from the files input store
+     */
+    public getProjectFileFromFilesInputStore (): File {
+        for (const f in FilesInputStore.FilesToLoad) {
+            const file = FilesInputStore.FilesToLoad[f];
+            if (Tools.GetFileExtension(file.name) === 'editorproject')
+                return file;
+        }
+
+        return null;
+    }
+
+    /**
+     * Creates the scene picker
+     */
+    public createScenePicker (): void {
+        if (this.scenePicker)
+            this.scenePicker.removeEvents();
+        
+        this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
+        this.scenePicker.onUpdateMesh = (m) => {
+            this.edition.updateDisplay();
+            Tags.AddTagsTo(m, 'modified');
+            this.graph.updateObjectMark(m);
+        };
+        this.scenePicker.onPickedMesh = (m) => {
+            if (!this.core.disableObjectSelection)
+                this.core.onSelectObject.notifyObservers(m);
+        };
+    }
 
     /**
      * Creates the default scene
-     * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
+     * @param showNewSceneDialog if to show a dialog to confirm creating default scene
+     * @param emptyScene sets wether or not the default scene would be empty or not
      */
-    public async createDefaultScene(showNewSceneDialog: boolean = false): Promise<void> {
+    public async createDefaultScene(showNewSceneDialog: boolean = false, emptyScene: boolean = false): Promise<void> {
         const callback = async () => {
             // Create default scene
             this.layout.lockPanel('main', 'Loading Preview Scene...', true);
-            DefaultScene.Create(this).then(() => {
-                this.graph.clear();
-                this.graph.fill();
-                
-                this.layout.unlockPanel('main');
 
-                // Restart plugins
-                this.core.scene.executeWhenReady(async () => {
-                    await this.restartPlugins();
+            await DefaultScene.Create(this);
 
-                    if (!showNewSceneDialog) {
-                        const pluginsToLoad  = JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
-                        await Promise.all(pluginsToLoad.map(p => this.addEditPanelPlugin(p, false)));
-                    }
-                    else {
-                        // Create scene picker
-                        this._createScenePicker();
+            this.graph.clear();
+            this.graph.fill();
+            
+            this.layout.unlockPanel('main');
 
-                        // Update stats
-                        this.stats.updateStats();
+            // Restart plugins
+            this.core.scene.executeWhenReady(async () => {
+                if (showNewSceneDialog) {
+                    // Create scene picker
+                    this.createScenePicker();
 
-                        // Assets
-                        this.assets.refresh();
-                    }
+                    // Update stats
+                    this.stats.updateStats();
 
-                    // Resize
-                    this.resize();
-                });
+                    // Assets and files
+                    this.assets.refresh();
+                    this.files.refresh();
+                }
+
+                // Resize
+                this.resize();
             });
 
             // Fill graph
             this.graph.clear();
             this.graph.fill();
 
-            // List scene preview
-            // if (Tools.IsElectron())
-            //     ScenePreview.Create();
+            // Reload plugins
+            const pluginsToLoad = <string[]> JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
+            pluginsToLoad.forEach(p => this.plugins[p] = null);
         }
 
         if (!showNewSceneDialog)
             return await callback();
 
-        Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', (result) => {
+        Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', async (result) => {
             if (result === 'Yes') {
                 UndoRedo.Clear();
                 CodeProjectEditorFactory.CloseAll();
@@ -496,6 +591,9 @@ export default class Editor implements IUpdatable {
                 // Assets
                 this.assets.clear();
 
+                if (emptyScene)
+                    await DefaultScene.CreateEmpty(this);
+                
                 // Create default scene?
                 if (!showNewSceneDialog)
                     callback();
@@ -504,8 +602,9 @@ export default class Editor implements IUpdatable {
                     this.graph.fill();
 
                     this.assets.refresh();
+                    this.files.refresh();
 
-                    this._createScenePicker();
+                    this.createScenePicker();
                 }
 
                 this.core.onSelectObject.notifyObservers(this.core.scene);
@@ -569,6 +668,9 @@ export default class Editor implements IUpdatable {
         if (this.core.scene.cameras.length > 1)
             this.camera.doNotSerialize = true;
 
+        // Tags
+        Tags.AddTagsTo(this.camera, 'added');
+
         // Update graph node
         if (graphNode)
             graphNode.data = this.camera;
@@ -588,6 +690,7 @@ export default class Editor implements IUpdatable {
             if (e.dataTransfer && e.dataTransfer.files)
                 this.core.onDropFiles.notifyObservers({ target: <HTMLElement> e.target, files: e.dataTransfer.files });
         });
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
 
         // Undo
         UndoRedo.onUndo = (e) => {
@@ -598,6 +701,8 @@ export default class Editor implements IUpdatable {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'z') {
                 UndoRedo.Undo();
                 this.edition.updateDisplay();
+                ev.preventDefault();
+                ev.stopPropagation();
             }
         });
 
@@ -610,6 +715,8 @@ export default class Editor implements IUpdatable {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'y') {
                 UndoRedo.Redo();
                 this.edition.updateDisplay();
+                ev.preventDefault();
+                ev.stopPropagation();
             }
         });
 
@@ -626,9 +733,9 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', ev => ev.key === 'Shift' && (shiftDown = false));
 
         // Shotcuts
-        document.addEventListener('keyup', ev => !CodeEditor.HasOneFocused() && ev.key === 'b' && this.preview.setToolClicked('bounding-box'));
-        document.addEventListener('keyup', ev => !CodeEditor.HasOneFocused() && ev.key === 't' && this.preview.setToolClicked('position'));
-        document.addEventListener('keyup', ev => !CodeEditor.HasOneFocused() && ev.key === 'r' && this.preview.setToolClicked('rotation'));
+        document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 'b' && this.preview.setToolClicked('bounding-box'));
+        document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 't' && this.preview.setToolClicked('position'));
+        document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 'r' && this.preview.setToolClicked('rotation'));
 
         document.addEventListener('keyup', ev => {
             if (this._canvasFocused && ev.key === 'f') {
@@ -642,10 +749,10 @@ export default class Editor implements IUpdatable {
 
         document.addEventListener('keydown', ev => (ev.ctrlKey || ev.metaKey) && ev.key === 's' && ev.preventDefault());
         document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && ProjectExporter.ExportProject(this));
-        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && ProjectExporter.DownloadProjectFile(this));
+        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && ProjectExporter.ExportProject(this, true));
 
         document.addEventListener('keyup', ev => {
-            if (CodeEditor.HasOneFocused() || !(Tree.HasOneFocused() || this._canvasFocused))
+            if (Tools.IsFocusingInputElement() || (!Tree.HasOneFocused() && !this._canvasFocused))
                 return;
 
             switch (ev.keyCode) {
@@ -700,203 +807,23 @@ export default class Editor implements IUpdatable {
         return instance;
     }
 
-    // Checks if the user opened a file
-    private async _checkOpenedFile (): Promise<void> {
-        const hasOpenedFile = await SceneImporter.CheckOpenedFile(this);
-
-        if (!hasOpenedFile)
-            return this.createDefaultScene();
-
-        const pluginsToLoad = <string[]> JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
-        pluginsToLoad.forEach(p => this.plugins[p] = null);
-    }
-
     // Creates the files input class and handlers
     private _createFilesInput (): void {
         // Add files input
         this.filesInput = new FilesInput(this.core.engine, null,
         null,
-        () => {
-
+        (p) => {
+            
         },
         null,
         (remaining: number) => {
             // Loading textures
         },
-        (files: File[]) => {
-            // Check if a scene has been dropped
-            let foundScene: boolean = false;
-            for (const f of files) {
-                const ext = Tools.GetFileExtension(f.name).toLowerCase();
-                foundScene = ext === 'babylon' || ext === 'gltf' || ext === 'glb' || ext === 'obj' || ext === 'stl';
-
-                if (foundScene)
-                    break;
-            }
-
-            if (!foundScene)
-                return;
-
-            // Starting process
-            this.projectFile = null;
-            this.sceneFile = null;
-
-            FilesInputStore.FilesToLoad = { };
-        },
-        (file) => {
-            if (!file)
-                return this.notifyMessage('No scene file found.', false, 3000);
-            
-            // Callback
-            const callback = async (scene: Scene, disposePreviousScene: boolean) => {
-                // Configure editor
-                this.core.removeScene(this.core.scene, disposePreviousScene);
-
-                this.core.uiTextures.forEach(ui => ui.dispose());
-                this.core.uiTextures = [];
-
-                this.core.scene = scene;
-                this.core.scenes.push(scene);
-
-                this.playCamera = scene.activeCamera;
-
-                const existingCamera = scene.getCameraByName('Editor Camera');
-                if (existingCamera)
-                    existingCamera.dispose();
-                
-                this.createEditorCamera();
-
-                // Clear scene manager
-                SceneManager.Clear();
-
-                // Editor project
-                if (disposePreviousScene) {
-                    Extensions.ClearExtensions();
-                    CodeProjectEditorFactory.CloseAll();
-                }
-
-                for (const f in FilesInputStore.FilesToLoad) {
-                    const file = FilesInputStore.FilesToLoad[f];
-                    if (Tools.GetFileExtension(file.name) === 'editorproject') {
-                        this.projectFileName = file.name;
-                        Tools.SetWindowTitle(file.name);
-                        
-                        const content = await Tools.ReadFileAsText(file);
-                        await ProjectImporter.Import(this, JSON.parse(content));
-                        break;
-                    }
-                }
-
-                // Default light
-                if (scene.lights.length === 0)
-                    scene.createDefaultCameraOrLight(false, false, false);
-
-                // Graph
-                this.graph.clear();
-                this.graph.fill();
-
-                // Restart plugins
-                this.restartPlugins();
-
-                // Create scene picker
-                this._createScenePicker();
-
-                // Update stats
-                this.stats.updateStats();
-
-                // Toggle interactions (action manager, etc.)
-                SceneManager.Toggle(this.core.scene);
-
-                // Run scene
-                this.run();
-
-                // Unlock main panel
-                this.layout.unlockPanel('main');
-
-                // Select scene
-                this.core.onSelectObject.notifyObservers(this.core.scene);
-            };
-
-            const dialogCallback = async (doNotAppend: boolean) => {
-                // Clear undo / redo
-                UndoRedo.Clear();
-
-                // Load dependencies
-                const extension = Tools.GetFileExtension(file.name);
-                if (extension !== 'babylon') {
-                    this.layout.lockPanel('main', 'Importing Loaders...', true);
-                    await Tools.ImportScript('babylonjs-loaders');
-                }
-
-                this.layout.lockPanel('main', 'Importing Physics...', true);
-                await Tools.ImportScript('cannon');
-
-                this.layout.lockPanel('main', 'Importing Materials...', true);
-                await Tools.ImportScript('babylonjs-materials');
-
-                this.layout.lockPanel('main', 'Importing Procedural Textures...', true);
-                await Tools.ImportScript('babylonjs-procedural-textures');
-
-                // Import extensions
-                this.layout.lockPanel('main', 'Importing Extensions...', true);
-                await Promise.all([
-                    Tools.ImportScript('behavior-editor'),
-                    Tools.ImportScript('graph-editor'),
-                    Tools.ImportScript('material-editor'),
-                    Tools.ImportScript('post-process-editor'),
-                    Tools.ImportScript('post-processes'),
-                    Tools.ImportScript('path-finder')
-                ]);
-
-                this.layout.unlockPanel('main');
-
-                // Stop render loop
-                this.core.engine.stopRenderLoop();
-
-                // Clear last path
-                SceneExporter.ProjectPath = null;
-                
-                // Load scene
-                if (doNotAppend)
-                    SceneLoader.Load('file:', file.name, this.core.engine, (scene) => callback(scene, true));
-                else
-                    SceneLoader.Append('file:', file.name, this.core.scene, (scene) => callback(scene, false));
-
-                // Lock panel and hide loading UI
-                this.core.engine.hideLoadingUI();
-                this.layout.lockPanel('main', 'Loading Scene...', true);
-
-                // Delete start scene (when starting the editor) and add new scene
-                delete FilesInputStore.FilesToLoad['scene.babylon'];
-                FilesInputStore.FilesToLoad[file.name] = file;
-            };
-
-            if (this._showReloadDialog)
-                Dialog.Create('Load scene', 'Append to existing one?', (result) => dialogCallback(result === 'No'));
-            else
-                dialogCallback(true);
-
-            this._showReloadDialog = true;
-
-        }, (file, scene, message) => {
-            // Error callback
-            Dialog.Create('Error when loading scene', message, null);
-        });
+        (files: File[]) => SceneLoader.OnStartingProcessingFiles(this, files),
+        (sceneFile) => SceneLoader.OnReloadingScene(this, sceneFile),
+        (file, scene, message) => Dialog.Create('Error when loading scene', message, null));
 
         this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvasEditor'));
-    }
-
-    // Creates the scene picker
-    private _createScenePicker (): void {
-        if (this.scenePicker)
-            this.scenePicker.removeEvents();
-        
-        this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
-        this.scenePicker.onUpdateMesh = (m) => this.edition.updateDisplay();
-        this.scenePicker.onPickedMesh = (m) => {
-            if (!this.core.disableObjectSelection && m !== this.core.currentSelectedObject)
-                this.core.onSelectObject.notifyObservers(m);
-        };
     }
 
     // Checks for updates if electron
@@ -924,7 +851,7 @@ export default class Editor implements IUpdatable {
             const path = list[newVersion][platform];
 
             let lastProgress = '';
-            const data = await Tools.LoadFile<ArrayBuffer>(/*'http://editor.babylonjs.com/' + */path, true, data => {
+            const data = await Tools.LoadFile<ArrayBuffer>('http://editor.babylonjs.com/' + path, true, data => {
                 const progress = ((data.loaded * 100) / data.total).toFixed(1);
 
                 if (progress !== lastProgress) {

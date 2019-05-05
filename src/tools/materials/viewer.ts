@@ -42,16 +42,12 @@ export default class MaterialsViewer extends EditorPlugin {
     protected canvas: HTMLCanvasElement = null;
 
     protected engines: Engine[] = [];
-    protected onResizePreview = () => this.resize();
     protected onObjectSelected = (obj) => this.selectedObject(obj);
 
     protected waitingMaterials: Material[] = [];
     protected onAddObject = (material) => this.waitingMaterials.push(material);
 
     protected targetObject: AbstractMesh;
-
-    // Static members
-    public static ContextMenu: ContextMenu = null;
 
     /**
      * Constructor
@@ -72,7 +68,6 @@ export default class MaterialsViewer extends EditorPlugin {
             e.scenes.forEach(s => s.dispose());
             e.dispose();
         });
-        this.editor.core.onResize.removeCallback(this.onResizePreview);
         this.editor.core.onAddObject.removeCallback(this.onAddObject);
         this.editor.core.onSelectObject.removeCallback(this.onObjectSelected);
 
@@ -116,14 +111,6 @@ export default class MaterialsViewer extends EditorPlugin {
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('MATERIAL-VIEWER-TOOLBAR');
 
-        // Context menu
-        MaterialsViewer.ContextMenu = MaterialsViewer.ContextMenu || new ContextMenu('MaterialsViewerContextMenu', {
-            search: false,
-            height: 54,
-            width: 200
-        });
-        MaterialsViewer.ContextMenu.tree.add({ id: 'clone', img: 'icon-clone', text: 'Clone' });
-
         // Add preview
         this.preview = this.createPreview(<HTMLCanvasElement> $('#MATERIAL-VIEWER-CANVAS')[0]);
         this.preview.engine.runRenderLoop(() => this.preview.scene.render());
@@ -144,12 +131,11 @@ export default class MaterialsViewer extends EditorPlugin {
         // Events
         this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.preview.engine.resize());
         
-        this.editor.core.onResize.add(this.onResizePreview);
         this.editor.core.onAddObject.add(this.onAddObject);
         this.editor.core.onSelectObject.add(this.onObjectSelected);
 
         // Selected object?
-        this.selectedObject(this.targetObject)
+        this.selectedObject(this.targetObject);
     }
 
     /**
@@ -157,12 +143,12 @@ export default class MaterialsViewer extends EditorPlugin {
      */
     public async onShow (targetObject?: AbstractMesh): Promise<void> {
         for (const m of this.waitingMaterials)
-            await this.addMaterialPreview(m);
+            await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, m);
 
         this.waitingMaterials = [];
 
         // Resize
-        this.resize();
+        this.onResize();
 
         // Misc.
         this.targetObject = targetObject;
@@ -172,7 +158,7 @@ export default class MaterialsViewer extends EditorPlugin {
     /**
      * Resizes the plugin
      */
-    protected resize (): void {
+    public onResize (): void {
         this.layout.element.resize();
         this.preview.engine.resize();
 
@@ -256,20 +242,20 @@ export default class MaterialsViewer extends EditorPlugin {
             'width': '100px',
             'height': '100px'
         });
-        img.addEventListener('contextmenu', ev => {
-            MaterialsViewer.ContextMenu.show(ev);
-            MaterialsViewer.ContextMenu.tree.onClick = (id) => {
-                // Only clone
+        img.classList.add('ctxmenu');
+        ContextMenu.ConfigureElement(img, {
+            clone: { name: 'Clone', callback: () => {
                 const newMaterial = material.clone(material.name + ' Cloned');
                 newMaterial.id = BabylonTools.RandomId();
                 Tags.AddTagsTo(newMaterial, 'added');
                 
                 this.createPreviewNode(div, canvas, preview, newMaterial);
-
-                // Hide
-                MaterialsViewer.ContextMenu.hide();
-            };
-        });
+            } },
+            remove: { name: 'Remove', callback: () => {
+                material.dispose(true, false, false);
+                parent.remove();
+            } }
+        })
 
         // Add
         parent.appendChild(img);
@@ -345,16 +331,14 @@ export default class MaterialsViewer extends EditorPlugin {
         return new Promise<string>((resolve) => {
             const obj = mat.serialize();
             preview.sphere.material = Material.Parse(obj, preview.scene, 'file:');
+            preview.scene.render();
 
-            preview.engine.runRenderLoop(() => {
+            preview.scene.executeWhenReady(() => {
                 preview.scene.render();
-                
-                if (preview.scene.getWaitingItemsCount() === 0) {
-                    preview.scene.render();
-                    const base64 = canvas.toDataURL('image/png');
-                    preview.engine.stopRenderLoop();
-                    resolve(base64);
-                }
+                preview.scene.onReadyObservable.clear();
+
+                const base64 = canvas.toDataURL('image/png');
+                resolve(base64);
             });
         });
     }
@@ -411,19 +395,7 @@ export default class MaterialsViewer extends EditorPlugin {
             Tags.AddTagsTo(material, 'added');
 
             // Add preview node
-            await this.addMaterialPreview(material);
+            await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, material);
         });
-    }
-
-    /**
-     * Adds a new material preview
-     * @param material: the material to preview
-     */
-    protected async addMaterialPreview (material: Material): Promise<void> {
-        const preview = this.createPreview(this.canvas);
-        await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, preview, material);
-
-        preview.scene.dispose();
-        preview.engine.dispose();
     }
 }

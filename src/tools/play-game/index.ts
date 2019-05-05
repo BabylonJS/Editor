@@ -17,7 +17,6 @@ export default class PlayGame extends EditorPlugin {
 
     // Protected members
     protected changeValueObserver: Observer<any> = null;
-    protected resizeObserver: Observer<any> = null;
     
     /**
      * Constructor
@@ -40,7 +39,6 @@ export default class PlayGame extends EditorPlugin {
 
         // Callbacks
         this.editor.core.onGlobalPropertyChange.remove(this.changeValueObserver);
-        this.editor.core.onResize.remove(this.resizeObserver);
         
         await super.close();
     }
@@ -74,7 +72,6 @@ export default class PlayGame extends EditorPlugin {
 
         // Events
         this.changeValueObserver = this.editor.core.onGlobalPropertyChange.add(data => this.updateValue(data));
-        this.resizeObserver = this.editor.core.onResize.add(() => this.layout.element.resize());
     }
 
     /**
@@ -98,6 +95,13 @@ export default class PlayGame extends EditorPlugin {
      */
     public async onReload (): Promise<void> {
         await this.createIFrame();
+    }
+
+    /**
+     * Called on the window, layout etc. is resized.
+     */
+    public onResize (): void {
+        this.layout.element.resize();
     }
 
     /**

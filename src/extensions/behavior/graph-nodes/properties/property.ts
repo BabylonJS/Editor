@@ -1,7 +1,13 @@
+import { LGraphCanvas } from 'litegraph.js';
 import { LiteGraphNode } from '../typings';
 
 export class GetProperty extends LiteGraphNode {
+    // Static members
     public static Desc = 'Gets the value of the given property';
+    public static Title = 'Get Property';
+
+    // Private members
+    private _propertyValue: string | number | boolean = null;
     
     /**
      * Constructor
@@ -21,8 +27,13 @@ export class GetProperty extends LiteGraphNode {
      * On the background is drawn
      * @param ctx the canvas 2d context reference
      */
-    public onDrawBackground (ctx: CanvasRenderingContext2D): void {
+    public onDrawBackground (ctx: CanvasRenderingContext2D, graph: LGraphCanvas, canvas: HTMLCanvasElement, text?: string): void {
         this.title = 'Get ' + this.properties.propertyPath;
+
+        if (this._propertyValue !== null && this._propertyValue !== undefined) {
+            super.onDrawBackground(ctx, graph, canvas, this._propertyValue.toString());
+            this.graph.setDirtyCanvas(true, true);
+        }
     }
 
     /**
@@ -43,12 +54,18 @@ export class GetProperty extends LiteGraphNode {
         for (let i = 1; i < split.length; i++)
             effectiveProperty = effectiveProperty[split[i]];
 
+        this._propertyValue = effectiveProperty;
         this.setOutputData(0, effectiveProperty);
     }
 }
 
 export class SetProperty extends LiteGraphNode {
+    // Static members
     public static Desc = 'Sets the value of the given property';
+    public static Title = 'Set Property';
+
+    // Private members
+    private _propertyValue: string | number | boolean = '';
     
     /**
      * Constructor

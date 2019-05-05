@@ -1,6 +1,8 @@
 import { Engine, Scene, Observable } from 'babylonjs';
 import { AdvancedDynamicTexture } from 'babylonjs-gui';
 
+import { ProjectRoot } from './typings/project';
+
 export interface IUpdatable {
     /**
      * On before render the scene
@@ -33,6 +35,7 @@ export default class Core {
     public onRemoveObject: Observable<{ }> = new Observable<{ }>();
     public onGlobalPropertyChange = new Observable<{ baseObject?: any; object: any; property: string; value: any; initialValue: any; }>();
     public onDropFiles = new Observable<{ target: HTMLElement; files: FileList }>();
+    public onSceneLoaded = new Observable<{ scene: Scene, file: File, project?: ProjectRoot }>();
 
     public renderScenes: boolean = true;
     

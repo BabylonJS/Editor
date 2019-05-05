@@ -1,4 +1,4 @@
-import { Tools as BabylonTools, FilesInputStore } from 'babylonjs';
+import { Tools as BabylonTools, FilesInputStore, Scene, BaseTexture } from 'babylonjs';
 import { IStringDictionary } from '../typings/typings';
 
 export default class Tools {
@@ -34,6 +34,18 @@ export default class Tools {
                 return true;
             
             element = element.parentElement;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns if the focused element in the DOM is an input
+     */
+    public static IsFocusingInputElement (): boolean {
+        const e = document.activeElement;
+        if (e) {
+            return e.tagName === 'INPUT' || e.tagName === 'TEXTAREA';
         }
 
         return false;
@@ -151,6 +163,20 @@ export default class Tools {
     }
 
     /**
+     * Returns the first texture found wich has the given name
+     * @param scene the scene containing the textures
+     * @param name the name of the texture to find
+     */
+    public static GetTextureByName (scene: Scene, name: string): BaseTexture {
+        for (const t of scene.textures) {
+            if (t.name === name)
+                return t;
+        }
+
+        return null;
+    }
+
+    /**
      * Creates an open file dialog
      * @param callback called once the user selects files
      */
@@ -205,6 +231,8 @@ export default class Tools {
         const options = { type: Tools.GetFileType(this.GetFileExtension(filename)), lastModified: new Date(Date.now()) };
         const blob = new Blob([buffer], options);
         blob['name'] = BabylonTools.GetFilename(filename);
+        blob['lastModified'] = Date.now();
+        blob['lastModifiedDate'] = new Date(Date.now());
         
         return <File> blob;
     }
@@ -273,9 +301,9 @@ export default class Tools {
     }
 
     /**
-    * Converts a string to an UInt8Array
-    $ @param str: the string to convert
-    */
+     * Converts a string to an UInt8Array
+     * @param str: the string to convert
+     */
     public static ConvertStringToUInt8Array (str: string): Uint8Array {
         const len = str.length;
         const array = new Uint8Array(len);
@@ -284,6 +312,21 @@ export default class Tools {
             array[i] = str.charCodeAt(i);
 
         return array;
+    }
+
+    /**
+     * Copy the values of all of the enumerable own properties from one or more source objects to a
+     * target object. Returns the target object.
+     * @param target The target object to copy to.
+     * @param sources One or more source objects from which to copy properties
+     */
+    public static Assign<T> (target: Object, ...sources: Object[]): T {
+        sources.forEach(a => {
+            for (const key in a)
+                target[key] = a[key];
+        });
+
+        return <T> target;
     }
 
     /**

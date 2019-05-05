@@ -35,8 +35,6 @@ export default class PathFinderEditor extends EditorPlugin {
     protected canvas: HTMLCanvasElement = null;
     protected pathCubes: AbstractMesh[] = [];
 
-    protected onResize = () => this.layout.element.resize();
-
     /**
      * On load the extension for the first time
      */
@@ -63,9 +61,6 @@ export default class PathFinderEditor extends EditorPlugin {
         // Scene
         this.pathCubes.forEach(c => c.dispose());
 
-        // Events
-        this.editor.core.onResize.removeCallback(this.onResize);
-
         await super.close();
     }
 
@@ -77,16 +72,18 @@ export default class PathFinderEditor extends EditorPlugin {
 
         // Get data
         scene.metadata = scene.metadata || { };
-
-        scene.metadata['PathFinderExtension'] = scene.metadata['PathFinderExtension'] || [{
-            name: 'New path finder configuration',
-            rayHeight: 10,
-            size: 100,
-            castMeshes: [],
-            rayLength: 100
-        }];
+        scene.metadata['PathFinderExtension'] = scene.metadata['PathFinderExtension'] || [];
 
         this.datas = scene.metadata['PathFinderExtension'];
+        if (this.datas.length === 0) {
+            this.datas.push({
+                name: 'New path finder configuration',
+                rayHeight: 10,
+                size: 100,
+                castMeshes: [],
+                rayLength: 100
+            });
+        }
         this.data = this.datas[0];
 
         // Create layout
@@ -94,7 +91,7 @@ export default class PathFinderEditor extends EditorPlugin {
         this.layout.panels = [
             { type: 'top', content: '<div id="PATH-FINDER-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 30, resizable: false },
             { type: 'left', content: '<div id="PATH-FINDER-MESHES" style="width: 100%; height: 100%;"></div>', size: '50%', resizable: true },
-            { type: 'main', content: '<canvas id="PATH-FINDER-PREVIEW" style="width: 100%; height: 100%;"></canvas>', resizable: true, size: '50%' }
+            { type: 'main', content: '<canvas id="PATH-FINDER-PREVIEW" style="width: 100%; height: 100%; position: absolute; top: 0;"></canvas>', resizable: true, size: '50%' }
         ];
         this.layout.build(this.divElement.id);
 
@@ -129,9 +126,6 @@ export default class PathFinderEditor extends EditorPlugin {
         this.canvas = <HTMLCanvasElement> $('#PATH-FINDER-PREVIEW')[0];
         this.canvas.addEventListener('click', () => this.editor.edition.setObject(this));
 
-        // Events
-        this.editor.core.onResize.add(this.onResize);
-
         // Request extension
         Extensions.RequestExtension(this.editor.core.scene, 'PathFinderExtension');
 
@@ -152,6 +146,13 @@ export default class PathFinderEditor extends EditorPlugin {
      */
     public onHide (): void {
         this.pathCubes.forEach(c => c.isVisible = false);
+    }
+
+    /**
+     * Called on the window, layout etc. is resized.
+     */
+    public onResize (): void {
+        this.layout.element.resize();
     }
 
     /**

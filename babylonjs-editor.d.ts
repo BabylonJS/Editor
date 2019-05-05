@@ -10,6 +10,7 @@
 declare module 'babylonjs-editor' {
     import Editor from 'babylonjs-editor/editor/editor';
     import Tools from 'babylonjs-editor/editor/tools/tools';
+    import Request from 'babylonjs-editor/editor/tools/request';
     import UndoRedo from 'babylonjs-editor/editor/tools/undo-redo';
     import ThemeSwitcher, { ThemeType } from 'babylonjs-editor/editor/tools/theme';
     import Layout from 'babylonjs-editor/editor/gui/layout';
@@ -22,9 +23,9 @@ declare module 'babylonjs-editor' {
     import CodeEditor from 'babylonjs-editor/editor/gui/code';
     import Form from 'babylonjs-editor/editor/gui/form';
     import Edition from 'babylonjs-editor/editor/gui/edition';
-    import Tree, { ContextMenuItem, TreeNode } from 'babylonjs-editor/editor/gui/tree';
+    import Tree, { TreeContextMenuItem, TreeNode } from 'babylonjs-editor/editor/gui/tree';
     import Dialog from 'babylonjs-editor/editor/gui/dialog';
-    import ContextMenu, { ContextMenuOptions } from 'babylonjs-editor/editor/gui/context-menu';
+    import ContextMenu, { ContextMenuItem } from 'babylonjs-editor/editor/gui/context-menu';
     import ResizableLayout, { ComponentConfig, ItemConfigType } from 'babylonjs-editor/editor/gui/resizable-layout';
     import AbstractEditionTool from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
@@ -33,10 +34,12 @@ declare module 'babylonjs-editor' {
     import CodeProjectEditorFactory from 'babylonjs-editor/editor/project/project-code-editor';
     import SceneManager from 'babylonjs-editor/editor/scene/scene-manager';
     import SceneFactory from 'babylonjs-editor/editor/scene/scene-factory';
+    import ScenePreview from 'babylonjs-editor/editor/scene/scene-preview';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
+    import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
     export default Editor;
-    export { Editor, Tools, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, PrefabAssetComponent, Prefab, PrefabNodeType };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -53,6 +56,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import EditorEditPanel from 'babylonjs-editor/editor/components/edit-panel';
     import EditorStats from 'babylonjs-editor/editor/components/stats';
     import EditorAssets from 'babylonjs-editor/editor/components/assets';
+    import EditorFiles from 'babylonjs-editor/editor/components/files';
     import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
     import SceneIcons from 'babylonjs-editor/editor/scene/scene-icons';
     export default class Editor implements IUpdatable {
@@ -68,6 +72,7 @@ declare module 'babylonjs-editor/editor/editor' {
             editPanel: EditorEditPanel;
             stats: EditorStats;
             assets: EditorAssets;
+            files: EditorFiles;
             plugins: IStringDictionary<IEditorPlugin>;
             scenePicker: ScenePicker;
             sceneIcons: SceneIcons;
@@ -91,7 +96,7 @@ declare module 'babylonjs-editor/editor/editor' {
             /**
              * Resizes elements
              */
-            resize(): void;
+            resize(): Promise<void>;
             /**
                 * On after render the scene
                 */
@@ -126,10 +131,24 @@ declare module 'babylonjs-editor/editor/editor' {
                 */
             notifyMessage(message: string, spinner?: boolean, timeout?: number): void;
             /**
-                * Creates the default scene
-                * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
+                * Checks if the user opened a file
+                * @param fullLoad sets if the loader should load newly added files in the scene folder
                 */
-            createDefaultScene(showNewSceneDialog?: boolean): Promise<void>;
+            checkOpenedFile(): Promise<void>;
+            /**
+                * Returns the project file looking from the files input store
+                */
+            getProjectFileFromFilesInputStore(): File;
+            /**
+                * Creates the scene picker
+                */
+            createScenePicker(): void;
+            /**
+                * Creates the default scene
+                * @param showNewSceneDialog if to show a dialog to confirm creating default scene
+                * @param emptyScene sets wether or not the default scene would be empty or not
+                */
+            createDefaultScene(showNewSceneDialog?: boolean, emptyScene?: boolean): Promise<void>;
             /**
                 * Creates the editor camera
                 */
@@ -138,6 +157,7 @@ declare module 'babylonjs-editor/editor/editor' {
 }
 
 declare module 'babylonjs-editor/editor/tools/tools' {
+    import { Scene, BaseTexture } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export default class Tools {
             static PendingFilesToLoad: number;
@@ -154,6 +174,10 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * @param parent the parent to check
                 */
             static IsElementChildOf(element: HTMLElement, parent: HTMLElement): boolean;
+            /**
+                * Returns if the focused element in the DOM is an input
+                */
+            static IsFocusingInputElement(): boolean;
             /**
              * Returns the constructor name of the given object
              * @param obj the object
@@ -197,6 +221,12 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static GetFilename(filename: string): string;
             /**
+                * Returns the first texture found wich has the given name
+                * @param scene the scene containing the textures
+                * @param name the name of the texture to find
+                */
+            static GetTextureByName(scene: Scene, name: string): BaseTexture;
+            /**
                 * Creates an open file dialog
                 * @param callback called once the user selects files
                 */
@@ -234,10 +264,17 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static GetFile(url: string): Promise<File>;
             /**
-             * Converts a string to an UInt8Array
-            $ @param str: the string to convert
-             */
+                * Converts a string to an UInt8Array
+                * @param str: the string to convert
+                */
             static ConvertStringToUInt8Array(str: string): Uint8Array;
+            /**
+                * Copy the values of all of the enumerable own properties from one or more source objects to a
+                * target object. Returns the target object.
+                * @param target The target object to copy to.
+                * @param sources One or more source objects from which to copy properties
+                */
+            static Assign<T>(target: Object, ...sources: Object[]): T;
             /**
                 * Reads the given file
                 * @param file the file to read
@@ -269,6 +306,32 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * is supported
                 */
             static isFileApiSupported(showAlert?: boolean): boolean;
+    }
+}
+
+declare module 'babylonjs-editor/editor/tools/request' {
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export default class Request {
+            /**
+                * Sends a GET request
+                * @param url: url of the request
+                * @param headers: the request headers
+                */
+            static Get<T>(url: string, headers?: IStringDictionary<any>): Promise<T>;
+            /**
+                * Sends a PUT request
+                * @param url the url of the request
+                * @param content the content to put
+                * @param headers the request headers
+                */
+            static Put<T>(url: string, content: any, headers?: IStringDictionary<any>): Promise<T>;
+            /**
+                * Sends a POST request
+                * @param url the url of the request
+                * @param content the content to post
+                * @param headers the request headers
+                */
+            static Post<T>(url: string, content: any, headers?: IStringDictionary<any>): Promise<T>;
     }
 }
 
@@ -424,6 +487,12 @@ declare module 'babylonjs-editor/editor/gui/toolbar' {
                 * @param checked if the item is checked or not
                 */
             setChecked(id: string, checked: boolean): void;
+            /**
+                * Sets an item enabled or disabled
+                * @param id the id of the item
+                * @param enabled if the item is enabled or not
+                */
+            enable(id: string, enabled: boolean): void;
             /**
                 * Updates the given item
                 * @param id the id of the item to update
@@ -626,9 +695,10 @@ declare module 'babylonjs-editor/editor/gui/graph' {
     export interface GraphNode {
             id: string;
             text: string;
+            group?: boolean;
             img?: string;
             data?: any;
-            count?: number;
+            count?: string;
     }
     export interface GraphMenu {
             id: string;
@@ -641,6 +711,7 @@ declare module 'babylonjs-editor/editor/gui/graph' {
             topContent: string;
             bottomContent: string;
             onClick: <T>(id: string, data: T) => void;
+            onDbleClick: <T>(id: string, data: T) => void;
             onMenuClick: <T>(id: string, node: GraphNode) => void;
             /**
                 * Constructor
@@ -664,10 +735,19 @@ declare module 'babylonjs-editor/editor/gui/graph' {
                 */
             addMenu(menu: GraphMenu): void;
             /**
-                * Builds the graph
-                * @param parentId the parent id
+                * Selects the node which has the given id
+                * @param id the id of the node to select
                 */
-            build(parentId: string): void;
+            setSelected(id: string): void;
+            /**
+                * Returns the selected item
+                */
+            getSelected(): GraphNode;
+            /**
+                * Builds the graph
+                * @param parent the parent id
+                */
+            build(parent: HTMLDivElement | string): void;
     }
 }
 
@@ -726,6 +806,11 @@ declare module 'babylonjs-editor/editor/gui/code' {
     export interface TypescriptDisposable extends IDisposable {
             [index: string]: any;
     }
+    export interface Typings {
+            name: string;
+            id: string;
+            content: string;
+    }
     export default class CodeEditor {
             editor: MonacoDisposable;
             onChange: (value: string) => void;
@@ -736,6 +821,7 @@ declare module 'babylonjs-editor/editor/gui/code' {
             }[];
             static CustomLibs: IStringDictionary<MonacoDisposable>;
             static Instances: MonacoDisposable[];
+            static Libs: string[];
             /**
                 * Remove extra lib from the registered callers
                 * @param caller the caller reference (Window)
@@ -776,6 +862,15 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 * @param source the source to transpile
                 */
             transpileTypeScript(source: string, moduleName: string, config?: any): string;
+            /**
+                * Transpiles the given TS source to JS source
+                * @param source the source to transpile
+                */
+            static TranspileTypeScript(source: string, moduleName: string, config?: any): Promise<string>;
+            /**
+                * Gets all the typings and returns its result
+                */
+            static GetTypings(): Promise<Typings[]>;
             /**
                 * Creates a windowed editor
                 * @param options: the editor's configuration
@@ -878,6 +973,12 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 */
             build(parentId: string): void;
             /**
+                * Add a gui controller hexadecimal color
+                * @param target the target object
+                * @param propName the property of the object
+                */
+            addHexColor(target: any, propName: string): dat.GUIController;
+            /**
                 * Adds a color element
                 * @param parent the parent folder
                 * @param name the name of the folder
@@ -906,6 +1007,7 @@ declare module 'babylonjs-editor/editor/gui/edition' {
 
 declare module 'babylonjs-editor/editor/gui/tree' {
     import 'jstree';
+    export type TreeNodeType = 'default' | 'bold' | 'italic' | 'boldItalic' | string;
     export interface TreeNode {
             id: string;
             text: string;
@@ -913,11 +1015,13 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             data?: any;
             parent?: string;
             children?: string[];
+            type?: TreeNodeType;
+            onExpand?: () => void;
             state?: {
                     checked?: boolean;
             };
     }
-    export interface ContextMenuItem {
+    export interface TreeContextMenuItem {
             id: string;
             text: string;
             multiple?: boolean;
@@ -935,7 +1039,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             onClick: <T>(id: string, data: T) => void;
             onDblClick: <T>(id: string, data: T) => void;
             onRename: <T>(id: string, name: string, data: T) => boolean;
-            onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
+            onContextMenu: <T>(id: string, data: T) => TreeContextMenuItem[];
             onMenuClick: <T>(id: string, node: TreeNode) => void;
             onCanDrag: <T>(id: string, data: T) => boolean;
             onDrag: <T, U>(node: T, parent: U) => boolean;
@@ -943,6 +1047,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             protected currentSelectedNode: string;
             protected moving: boolean;
             protected renaming: boolean;
+            protected selecting: boolean;
             protected isFocused: boolean;
             static Instances: Tree[];
             /**
@@ -975,6 +1080,17 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 * @param id the id of the node to select
                 */
             select(id: string): void;
+            /**
+                * Sets the given type to the given node
+                * @param id the id of the node to modify its type
+                * @param type the type to set on node
+                */
+            setType(id: string, type?: TreeNodeType): void;
+            /**
+                * Returns the type of the given node
+                * @param id the id of the node to retrieve its type
+                */
+            getType(id: string): any;
             /**
                 * Returns the selected node
                 */
@@ -1009,6 +1125,12 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 * @param parentId the parent id
                 */
             setParent(id: string, parentId: string): void;
+            /**
+                * Marks the given node
+                * @param id the id of the node to mark
+                * @param marked if the node should be marked or not
+                */
+            markNode(id: string, marked: boolean): void;
             /**
                 * Search nodes fitting the given value
                 * @param value the value to search
@@ -1046,48 +1168,30 @@ declare module 'babylonjs-editor/editor/gui/dialog' {
 }
 
 declare module 'babylonjs-editor/editor/gui/context-menu' {
-    import Layout from 'babylonjs-editor/editor/gui/layout';
-    import Tree from 'babylonjs-editor/editor/gui/tree';
-    export interface ContextMenuOptions {
-            width: number;
-            height: number;
-            search: boolean;
-            borderRadius?: number;
-            opacity?: number;
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export interface ContextMenuItem {
+            name: string;
+            callback?: (itemId?: string) => void;
     }
     export default class ContextMenu {
-            name: string;
-            mainDiv: HTMLDivElement;
-            layout: Layout;
-            search: HTMLInputElement;
-            tree: Tree;
-            options: ContextMenuOptions;
-            protected mouseUpCallback: (ev: MouseEvent) => void;
+            static Items: IStringDictionary<ContextMenuItem>;
+            static OnItemClicked: (itemId?: string) => void;
             /**
-                * Constructor
-                * @param name the name of the context menu
-                * @param options the context menu options (width, height, etc.)
+                * Inits the context menu
                 */
-            constructor(name: string, options: ContextMenuOptions);
+            static Init(): Promise<void>;
             /**
-                * Shows the context menu where the user right clicks
-                * @param event the mouse event
+                * Configures the given element .oncontextmenu event
+                * @param element the element to configure
+                * @param items the items to draw once
                 */
-            show(event: MouseEvent): void;
+            static ConfigureElement(element: HTMLElement, items: IStringDictionary<ContextMenuItem>, callback?: (event: MouseEvent) => void): void;
             /**
-                * Hides the context menu
+                * Shows the context menu
+                * @param mouseEvent the mouse event that fires the context menu
+                * @param items the items to show on the user wants to show the context menu
                 */
-            hide(): void;
-            /**
-                * Removes the context menu elements
-                */
-            remove(): void;
-            /**
-                * Builds the context menu
-                * @param name the name of the context menu
-                * @param options the context menu options (width, height, etc.)
-                */
-            protected build(name: string, options: ContextMenuOptions): void;
+            static Show(mouseEvent: MouseEvent, items?: IStringDictionary<ContextMenuItem>): void;
     }
 }
 
@@ -1159,20 +1263,28 @@ declare module 'babylonjs-editor/editor/gui/resizable-layout' {
 declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
     import Edition from 'babylonjs-editor/editor/gui/edition';
     import Editor from 'babylonjs-editor/editor/editor';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export interface IEditionTool<T> {
             editor?: Editor;
             divId: string;
             tabName: string;
             object: T;
             tool: Edition;
+            state: IStringDictionary<ToolState>;
             update(object: T): void;
             clear(): void;
             isSupported(object: any): boolean;
+            onModified?(): void;
+    }
+    export interface ToolState {
+            closed: boolean;
+            children: IStringDictionary<ToolState>;
     }
     export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
             editor: Editor;
             object: T;
             tool: Edition;
+            state: IStringDictionary<ToolState>;
             abstract divId: string;
             abstract tabName: string;
             /**
@@ -1239,6 +1351,10 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
                 */
             close(): Promise<void>;
             /**
+                * Called on the window, layout etc. is resized.
+                */
+            onResize?(): Promise<void> | void;
+            /**
                 * Called on the user hides the extension (by changing tab, etc.)
                 */
             onHide?(): Promise<void>;
@@ -1289,6 +1405,10 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
                 */
             close(): Promise<void>;
             /**
+                * Gets wether or not the plugin has been closed
+                */
+            readonly closed: boolean;
+            /**
                 * Resizes the current layout giving tabs to draw and hide
                 * @param layout the layout to resize
                 * @param keep the panels to keep
@@ -1311,113 +1431,141 @@ declare module 'babylonjs-editor/editor/typings/project' {
      * Animations
      */
     export interface AnimationEventValue {
-        property?: string;
-        value?: number | boolean | Vector2 | Vector3 | Color3 | Quaternion;
+            property?: string;
+            value?: number | boolean | Vector2 | Vector3 | Color3 | Quaternion;
     }
     export interface AnimationEvent {
-        type: string;
-        target: Node | Scene;
-        value: AnimationEventValue;
+            type: string;
+            target: Node | Scene;
+            value: AnimationEventValue;
     }
     export interface AnimationEventFrame {
-        frame: number;
-        events: AnimationEvent[];
+            frame: number;
+            events: AnimationEvent[];
     }
     export interface Animation {
-        targetName: string;
-        targetType: string;
-        serializationObject: any;
-        events: AnimationEventFrame[];
+            targetName: string;
+            targetType: string;
+            serializationObject: any;
+            events: AnimationEventFrame[];
     }
     export interface GlobalConfiguration {
-        serializedCamera?: any;
-        environmentTexture?: any;
-        imageProcessingConfiguration?: any;
+            serializedCamera?: any;
+            environmentTexture?: any;
+            imageProcessingConfiguration?: any;
+            ambientColor?: number[];
+            clearColor?: number[];
+            fog?: {
+                    enabled: boolean;
+                    start: number;
+                    end: number;
+                    density: number;
+                    mode: number;
+                    color: number[];
+            };
     }
     /**
      * Custom Materials (sky, gradient, water, etc.)
      */
     export interface ProjectMaterial {
-        serializedValues: any;
-        meshesNames?: string[];
-        newInstance?: boolean;
-        _babylonMaterial?: Material;
+            serializedValues: any;
+            meshesNames?: string[];
+            newInstance?: boolean;
+            _babylonMaterial?: Material;
     }
     /**
-     * Custom physics impostors
-     */
+        * Custom textures (added by the editor or modified)
+        */
+    export interface ProjectTexture {
+            serializedValues: any;
+            newInstance: boolean;
+    }
+    /**
+        * Custom physics impostors
+        */
     export interface PhysicsImpostor {
-        physicsMass: number;
-        physicsFriction: number;
-        physicsRestitution: number;
-        physicsImpostor: number;
+            physicsMass: number;
+            physicsFriction: number;
+            physicsRestitution: number;
+            physicsImpostor: number;
+    }
+    export interface Skeleton {
+            serializationObject: any;
     }
     /**
-     * Modified nodes in the editor (custom animations, for custom materials, etc.)
-     */
+        * Modified nodes in the editor (custom animations, for custom materials, etc.)
+        */
     export interface Node {
-        name: string;
-        id: string;
-        type: string;
-        animations: Animation[];
-        actions?: any;
-        physics?: PhysicsImpostor;
-        serializationObject?: any;
+            name: string;
+            id: string;
+            type: string;
+            animations: Animation[];
+            actions?: any;
+            physics?: PhysicsImpostor;
+            skeleton?: Skeleton;
+            added?: boolean;
+            serializationObject?: any;
     }
     /**
      * Custom particle systems
      */
     export interface ParticleSystem {
-        hasEmitter: boolean;
-        serializationObject: any;
-        emitterPosition?: number[];
+            hasEmitter: boolean;
+            serializationObject: any;
+            emitterPosition?: number[];
     }
     /**
      * Lens Flares
      */
     export interface LensFlare {
-        serializationObject: any;
+            serializationObject: any;
     }
     /**
      * Render targets
      */
     export interface RenderTarget {
-        isProbe: boolean;
-        serializationObject: any;
-        waitingTexture?: RenderTargetTexture | ReflectionProbe;
+            isProbe: boolean;
+            serializationObject: any;
+            waitingTexture?: RenderTargetTexture | ReflectionProbe;
     }
     /**
      * Sounds
      */
     export interface Sound {
-        name: string;
-        serializationObject: any;
+            name: string;
+            serializationObject: any;
     }
     export interface EffectLayer {
-        name: string;
-        serializationObject: any;
+            name: string;
+            serializationObject: any;
     }
     /**
      * Root object of project
      */
     export interface ProjectRoot {
-        globalConfiguration: GlobalConfiguration;
-        materials: ProjectMaterial[];
-        particleSystems: ParticleSystem[];
-        nodes: Node[];
-        shadowGenerators: any[];
-        lensFlares: LensFlare[];
-        renderTargets: RenderTarget[];
-        sounds: Sound[];
-        actions: any;
-        physicsEnabled: boolean;
-        effectLayers: EffectLayer[];
-        environmentHelper: any;
-        requestedMaterials?: string[];
-        customMetadatas?: IStringDictionary<any>;
-        gui: any[];
-        assets: IStringDictionary<AssetElement<any>[]>;
-        filesList?: string[];
+            globalConfiguration: GlobalConfiguration;
+            materials: ProjectMaterial[];
+            textures: ProjectTexture[];
+            particleSystems: ParticleSystem[];
+            nodes: Node[];
+            shadowGenerators: any[];
+            lensFlares: LensFlare[];
+            renderTargets: RenderTarget[];
+            sounds: Sound[];
+            actions: any;
+            physicsEnabled: boolean;
+            effectLayers: EffectLayer[];
+            environmentHelper: any;
+            requestedMaterials?: string[];
+            customMetadatas?: IStringDictionary<any>;
+            gui: any[];
+            assets: IStringDictionary<AssetElement<any>[]>;
+            removedObjects?: IStringDictionary<any>;
+            filesList?: string[];
+            editionToolsStates?: {
+                    id: string;
+                    state: any;
+            }[];
     }
 }
 
@@ -1464,9 +1612,16 @@ declare module 'babylonjs-editor/editor/project/project-code-editor' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-manager' {
-    import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable, GlowLayer, HighlightLayer, EnvironmentHelper } from 'babylonjs';
+    import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable, GlowLayer, HighlightLayer, EnvironmentHelper, Node, Sound } from 'babylonjs';
+    import Editor from 'babylonjs-editor/editor/editor';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     import PostProcessesExtension from 'babylonjs-editor/extensions/post-process/post-processes';
+    export interface RemovedObject {
+            reference?: Node | Sound;
+            type?: string;
+            name: string;
+            serializationObject: any;
+    }
     export default class SceneManager {
             static ActionManagers: IStringDictionary<ActionManager>;
             static StandardRenderingPipeline: StandardRenderingPipeline;
@@ -1477,6 +1632,7 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
             static HighLightLayer: HighlightLayer;
             static EnvironmentHelper: EnvironmentHelper;
             static PostProcessExtension: PostProcessesExtension;
+            static RemovedObjects: IStringDictionary<RemovedObject>;
             /**
                 * Clears the scene manager
                 */
@@ -1487,6 +1643,11 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
                 * @param scene the scene to toggle
                 */
             static Toggle(scene: Scene): void;
+            /**
+                * Saves the original objects coming from the scene
+                * @param scene the scene containing the original objects
+                */
+            static SaveOriginalObjects(scene: Scene): void;
             /**
                 * Returns the animatable objects
                 * @param scene the scene containing animatables
@@ -1522,6 +1683,17 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
                 * @param scene the scene containing the textures
                 */
             static CleanUnusedTextures(scene: Scene): number;
+            /**
+                * Saves the removed objects references
+                * @param scene the scene containing the objects to remove
+                * @param removedObjects the removed objects references
+                */
+            static ApplyRemovedObjects(scene: Scene, removedObjects: IStringDictionary<any>): void;
+            /**
+                * Draws a dialog to restore removed objects
+                * @param editor the editor reference
+                */
+            static RestoreRemovedObjects(editor: Editor): void;
     }
 }
 
@@ -1608,6 +1780,22 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
     }
 }
 
+declare module 'babylonjs-editor/editor/scene/scene-preview' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    export default class ScenePreview {
+            static externSocket: SocketIOClient.Socket;
+            static localSocket: SocketIOClient.Socket;
+            /**
+                * Creates a scene preview listener
+                */
+            static Create(editor: Editor): Promise<void>;
+            /**
+                * Creates the files
+                */
+            static CreateFiles(editor: Editor, socket: SocketIOClient.Socket): Promise<void>;
+    }
+}
+
 declare module 'babylonjs-editor/editor/prefabs/asset-component' {
     import { Node, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
@@ -1646,6 +1834,11 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
                 * @param asset the asset to remove
                 */
             onRemoveAsset(asset: AssetElement<Prefab>): void;
+            /**
+                * On the user double clicks on asset
+                * @param asset the asset being double-clicked by the user
+                */
+            onDoubleClickAsset(asset: AssetElement<any>): void;
             /**
                 * On the user drops an asset in the scene
                 * @param targetMesh the mesh under the pointer
@@ -1699,9 +1892,63 @@ declare module 'babylonjs-editor/editor/prefabs/prefab' {
     }
 }
 
+declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    export default class VSCodeSocket {
+            static Socket: SocketIOClient.Socket;
+            static OnUpdateBehaviorCode: (s: any) => void;
+            static OnUpdateMaterialCode: (s: any) => void;
+            static OnUpdatePostProcessCode: (s: any) => void;
+            static OnUpdateBehaviorGraph: (g: any) => void;
+            /**
+                * Creates a scene preview listener
+                */
+            static Create(editor: Editor): Promise<void>;
+            /**
+                * Refreshes the scripts
+                * @param scripts the scripts to send (alone or as an array)
+                */
+            static Refresh(): void;
+            /**
+                * Refreshes the project
+                */
+            static RefreshProject(): Promise<void>;
+            /**
+                * Refrehses the given behavior (single or array)
+                * @param data: the behavior datas to update (single or array)
+                */
+            static RefreshBehavior(data: any | any[]): void;
+            /**
+                * Refrehses the given materials (single or array)
+                * @param data: the materials datas to update (single or array)
+                */
+            static RefreshMaterial(data: any | any[]): void;
+            /**
+                * Refreshes the given post-processes (single or array)
+                * @param data: the post-processes datas to update (single or array)
+                */
+            static RefreshPostProcess(data: any | any[]): void;
+            /**
+                * Refreshes the given graphs (single or array)
+                * @param data: the graphs datas to update (single or array)
+                */
+            static RefreshBehaviorGraph(data: any | any[]): void;
+            /**
+                * Refreshes the scene infos
+                */
+            static RefreshSceneInfos(): void;
+            /**
+                * Refreshes the selected object in the editor
+                * @param object the object being selected in the editor
+                */
+            static RefreshSelectedObject(object: any): void;
+    }
+}
+
 declare module 'babylonjs-editor/editor/core' {
     import { Engine, Scene, Observable } from 'babylonjs';
     import { AdvancedDynamicTexture } from 'babylonjs-gui';
+    import { ProjectRoot } from 'babylonjs-editor/editor/typings/project';
     export interface IUpdatable {
             /**
                 * On before render the scene
@@ -1735,6 +1982,11 @@ declare module 'babylonjs-editor/editor/core' {
             onDropFiles: Observable<{
                     target: HTMLElement;
                     files: FileList;
+            }>;
+            onSceneLoaded: Observable<{
+                    scene: Scene;
+                    file: File;
+                    project?: ProjectRoot;
             }>;
             renderScenes: boolean;
             /**
@@ -1857,6 +2109,15 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 */
             fill(scene?: Scene, root?: Node): void;
             /**
+                * Updates the mark of the given object in graph
+                * @param obj the object to mark
+                */
+            updateObjectMark(obj: any): void;
+            /**
+                * Configures the graph
+                */
+            configure(): void;
+            /**
              * Returns the icon related to the object type
              * @param object
              */
@@ -1915,11 +2176,16 @@ declare module 'babylonjs-editor/editor/components/inspector' {
     /**
         * Edition tools
         */
-    import { IEditionTool } from 'babylonjs-editor/editor/edition-tools/edition-tool';
+    import { IEditionTool, ToolState } from 'babylonjs-editor/editor/edition-tools/edition-tool';
     /**
         * Editor
         */
     import Editor from 'babylonjs-editor/editor/editor';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export interface ToolsStates {
+            id: string;
+            state: IStringDictionary<ToolState>;
+    }
     export default class EditorInspector {
             protected editor: Editor;
             tools: IEditionTool<any>[];
@@ -1956,6 +2222,15 @@ declare module 'babylonjs-editor/editor/components/inspector' {
                 * Updates the display of all visible edition tools
                 */
             updateDisplay(): void;
+            /**
+                * Returns the current tools configurations
+                */
+            getToolsStates(): ToolsStates[];
+            /**
+                * Sets the states of each tool
+                * @param states the list of states for each tool
+                */
+            setToolsStates(states: ToolsStates[]): void;
             /**
                 * When a tab changed
                 * @param target the target tab Id
@@ -2019,11 +2294,12 @@ declare module 'babylonjs-editor/editor/components/stats' {
 
 declare module 'babylonjs-editor/editor/components/assets' {
     import Editor from 'babylonjs-editor/editor/editor';
-    import ContextMenu from 'babylonjs-editor/editor/gui/context-menu';
+    import { ContextMenuItem } from 'babylonjs-editor/editor/gui/context-menu';
     import Layout from 'babylonjs-editor/editor/gui/layout';
     import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export interface AssetPreviewData {
             asset: AssetElement<any>;
             img: HTMLImageElement;
@@ -2036,7 +2312,6 @@ declare module 'babylonjs-editor/editor/components/assets' {
             layout: Layout;
             toolbar: Toolbar;
             components: IAssetComponent[];
-            contextMenu: ContextMenu;
             prefabs: PrefabAssetComponent;
             assetPreviewDatas: AssetPreviewData[];
             protected currentComponent: IAssetComponent;
@@ -2090,12 +2365,59 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 */
             protected toolbarClicked(id: string): Promise<void>;
             /**
+                * Hightlights the given image element
+                * @param img the image element to highlight
+                */
+            protected highlight(img: HTMLImageElement): void;
+            /**
                 * Processes the context menu for the clicked item
                 * @param ev the mouse event object
                 * @param component the component being modified
                 * @param asset the target asset
                 */
-            protected processContextMenu(ev: MouseEvent, component: IAssetComponent, asset: AssetElement<any>): void;
+            protected getContextMenuItems(component: IAssetComponent, asset: AssetElement<any>): IStringDictionary<ContextMenuItem>;
+    }
+}
+
+declare module 'babylonjs-editor/editor/components/files' {
+    import Editor from "babylonjs-editor/editor/editor";
+    import Layout from "babylonjs-editor/editor/gui/layout";
+    import Toolbar from "babylonjs-editor/editor/gui/toolbar";
+    export default class EditorFiles {
+            protected editor: Editor;
+            tabs: W2UI.W2Tabs;
+            layout: Layout;
+            toolbar: Toolbar;
+            protected divContent: HTMLDivElement;
+            /**
+                * Constructor
+                * @param editor the editore reference
+                */
+            constructor(editor: Editor);
+            /**
+                * Shows the tab identified by the given id
+                * @param id the id of the tab to show
+                */
+            showTab(id: string): void;
+            /**
+                * Refreshes the
+                */
+            refresh(): void;
+            /**
+                * Filers the files input store according to the given
+                */
+            protected filter(): File[];
+            /**
+                * Returns the given array filters according to the given extensions
+                * @param files the files to filter
+                * @param extensions the extensions to check
+                */
+            protected getFilteredArray(files: File[], extensions: string[]): File[];
+            /**
+                * Highlights the given item and removes highlihhting in other items
+                * @param parent the item to highlight
+                */
+            protected highlightItem(parent: HTMLDivElement): void;
     }
 }
 
@@ -2135,6 +2457,11 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 */
             constructor(editor: Editor, scene: Scene, canvas: HTMLCanvasElement);
             /**
+                * Configures the given mesh
+                * @param mesh the mesh to configure
+                */
+            configureMesh(mesh: AbstractMesh): void;
+            /**
              * Sets if the scene picker is enabled
              */
             enabled: boolean;
@@ -2165,22 +2492,22 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 * Called when canvas mouse is down
                 * @param ev the mouse event
                 */
-            protected canvasDown(ev: MouseEvent): void;
+            onCanvasDown(ev: MouseEvent): void;
             /**
                 * Called when canvas mouse is up
                 * @param ev the mouse event
                 */
-            protected canvasClick(ev: MouseEvent): void;
+            onCanvasClick(ev: MouseEvent): void;
             /**
                 * Called when mouse moves on canvas
                 * @param ev the mouse event
                 */
-            protected canvasMove(ev: MouseEvent): void;
+            onCanvasMove(ev: MouseEvent): void;
             /**
                 * Called when double click on the canvas
                 * @param ev: the mouse event
                 */
-            protected canvasDblClick(ev: MouseEvent): void;
+            onCanvasDblClick(ev: MouseEvent): void;
             /**
                 * Creates an starts an animation that targets the given "end" position
                 * @param start the start target position
@@ -2199,12 +2526,15 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
             cameraTexture: Texture;
             lightTexture: Texture;
             particleTexture: Texture;
+            soundTexture: Texture;
             camerasPlanes: Mesh[];
             lightsPlanes: Mesh[];
             particleSystemsPlanes: Mesh[];
+            soundsPlanes: Mesh[];
             camerasMaterial: StandardMaterial;
             lightsMaterial: StandardMaterial;
             particleSystemsMaterial: StandardMaterial;
+            soundMaterial: StandardMaterial;
             protected editor: Editor;
             /**
                 * Constructor
@@ -2271,6 +2601,7 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
         onRemoveAsset?(asset: AssetElement<any>): void;
         onAddAsset?(asset: AssetElement<any>): void;
         onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
+        onDoubleClickAsset?(asset: AssetElement<any>): void;
         onContextMenu?(): AssetContextMenu[];
         onSerializeAssets?(): AssetElement<any>[];
         onParseAssets?(data: AssetElement<any>[]): void;

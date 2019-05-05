@@ -1,4 +1,8 @@
-import { Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera, InstancedMesh, SubMesh, Color3, ArcRotateCamera } from 'babylonjs';
+import {
+    Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera,
+    InstancedMesh, SubMesh, Color3, ArcRotateCamera, SerializationHelper, Tags
+} from 'babylonjs';
+import { GUI } from 'dat-gui';
 
 import AbstractEditionTool from './edition-tool';
 import SceneManager from '../scene/scene-manager';
@@ -20,6 +24,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
     private _currentCamera: boolean = false;
 
     private _highlightEnabled: boolean = false;
+    private _currentObject: Mesh | InstancedMesh | Camera = null;
 
     /**
      * Returns if the object is supported
@@ -43,6 +48,12 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         const scene = node.getScene();
         this._enabled = node.isEnabled();
 
+        // Reset
+        if ((object instanceof Mesh || object instanceof InstancedMesh || object instanceof Camera) && object.metadata && object.metadata.original) {
+            this._currentObject = object;
+            this.tool.add(this, 'resetToOriginal').name('Reset to original');
+        }
+
         // Common
         const common = this.tool.addFolder('Common');
         common.open();
@@ -53,6 +64,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             common.add(node, 'isVisible').name('Is Visible');
 
         if (object instanceof Mesh) {
+            // Material
             const materials = ['None'].concat(this.editor.core.scene.materials.map(m => m.name));
             this._currentMaterial = object.material ? object.material.name : 'None';
             common.add(this, '_currentMaterial', materials).name('Material').onFinishChange(r => {
@@ -63,6 +75,9 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                 object.material = material;
             });
         }
+
+        if (node.state !== undefined)
+            common.add(node, 'state').name('State');
 
         // Parenting
         const parenting = this.tool.addFolder('Parenting');
@@ -98,6 +113,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             node.metadata.baseConfiguration = node.metadata.baseConfiguration || { };
             node.metadata.baseConfiguration.isPickable = node.metadata.baseConfiguration.isPickable || false;
             options.add(node.metadata.baseConfiguration, 'isPickable').name('Is Pickable');
+            options.add(node, 'isBlocker').name('Is Blocker');
             
             if (!(node instanceof InstancedMesh)) {
                 // Instances
@@ -171,18 +187,48 @@ export default class NodeTool extends AbstractEditionTool<Node> {
     }
 
     /**
+     * Resets the current light to the original one
+     */
+    protected resetToOriginal (): void {
+        const m = this._currentObject.metadata.original;
+
+        // Parse
+        SerializationHelper.Parse(() => this._currentObject, m, this._currentObject.getScene(), 'file:');
+
+        // Parenting
+        if (m.parentId && (!this._currentObject.parent || this._currentObject.parent.id !== m.parentId)) {
+            this._currentObject.parent = this._currentObject.getScene().getMeshByID(m.parentId);
+            this.editor.graph.setParent(this._currentObject.id, m.parentId);
+        } else if (this._currentObject.parent) {
+            this._currentObject.parent = null;
+            this.editor.graph.setParent(this._currentObject.id, this.editor.graph.root);
+        }
+
+        // Rotation quaternion
+        if (this._currentObject instanceof AbstractMesh && m.rotationQuaternion === undefined)
+            this._currentObject.rotationQuaternion = null;
+
+        setTimeout(() => {
+            Tags.RemoveTagsFrom(this.object, 'modified');
+            this.editor.graph.updateObjectMark(this.object);
+        }, 1);
+        this.editor.edition.updateDisplay();
+    }
+
+    /**
      * Creates a new instance
      */
     protected createInstance (): void {
         const instance = (<Mesh>this.object).createInstance('New instance ' + BabylonTools.RandomId());
         instance.id = BabylonTools.RandomId();
+        Tags.AddTagsTo(instance, 'added');
 
         this.editor.graph.add({
             id: instance.id,
             img: this.editor.graph.getIcon(instance),
             text: instance.name,
             data: instance
-        }, this.object.id);
+        }, this.editor.graph.root);
 
         this.editor.edition.setObject(instance);
         this.editor.graph.select(instance.id);
@@ -214,8 +260,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
      * Adds all the scripts metadatas to configure custom user values
      */
     protected addScriptsConfiguration (node: Node): void {
-        const scripts = this.tool.addFolder('Scripts');
-        scripts.open();
+        let scripts: GUI = null;
 
         const behaviorExtension = Extensions.RequestExtension<CodeExtension>(this.editor.core.scene, 'BehaviorExtension');
         if (behaviorExtension && node.metadata && node.metadata.behavior) {
@@ -232,6 +277,12 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                         return;
                 } catch (e) {
                     return;
+                }
+
+                // Create root folder
+                if (!scripts) {
+                    scripts = this.tool.addFolder('Scripts');
+                    scripts.open();
                 }
                 
                 // Set params

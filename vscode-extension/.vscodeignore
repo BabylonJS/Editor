@@ -1,0 +1,4 @@
+src
+.declaration
+assets/**/*.ts
+scripts

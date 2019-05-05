@@ -67,13 +67,7 @@ export default class ScenePicker {
             c.detachControl(canvas);
             c.attachControl(canvas, true);
         });
-        scene.meshes.forEach(m => {
-            m.metadata = m.metadata || { };
-            m.metadata.baseConfiguration = {
-                isPickable: m.isPickable
-            };
-            m.isPickable = true;
-        });
+        scene.meshes.forEach(m => this.configureMesh(m));
 
         // Gizmos
         this.gizmosLayer = new UtilityLayerRenderer(scene);
@@ -82,6 +76,18 @@ export default class ScenePicker {
 
         // Add events
         this.addEvents();
+    }
+
+    /**
+     * Configures the given mesh
+     * @param mesh the mesh to configure
+     */
+    public configureMesh (mesh: AbstractMesh): void {
+        mesh.metadata = mesh.metadata || { };
+        mesh.metadata.baseConfiguration = {
+            isPickable: mesh.isPickable
+        };
+        mesh.isPickable = true;
     }
 
     /**
@@ -123,8 +129,8 @@ export default class ScenePicker {
         switch (value) {
             case GizmoType.BOUNDING_BOX:
                 this.currentGizmo = this.boundingBoxGizmo = new BoundingBoxGizmo(new Color3(1, 1, 1), this.gizmosLayer);
-                this.boundingBoxGizmo.rotationSphereSize = 0.25;
-                this.boundingBoxGizmo.scaleBoxSize = 0.4;
+                this.boundingBoxGizmo.rotationSphereSize = 1.0;
+                this.boundingBoxGizmo.scaleBoxSize = 1.0;
                 break;
             case GizmoType.POSITION: this.currentGizmo = this.positionGizmo = new PositionGizmo(this.gizmosLayer); break;
             case GizmoType.ROTATION: this.currentGizmo = this.rotationGizmo = new RotationGizmo(this.gizmosLayer); break;
@@ -132,8 +138,9 @@ export default class ScenePicker {
             default: break; // GizmoType.NONE
         }
 
-        // Attach mesh
+        // Attach mesh and configure
         this.setGizmoAttachedMesh(this.editor.core.currentSelectedObject);
+        this.currentGizmo.scaleRatio = 2.5;
 
         // Events
         if (!(this.currentGizmo instanceof BoundingBoxGizmo)) {
@@ -188,10 +195,10 @@ export default class ScenePicker {
     public addEvents (): void {
         this.onCanvasPointer = this.scene.onPointerObservable.add(ev => {
             switch (ev.type) {
-                case PointerEventTypes.POINTERDOWN: this.canvasDown(ev.event); break;
-                case PointerEventTypes.POINTERTAP: this.canvasClick(ev.event); break;
-                case PointerEventTypes.POINTERMOVE: this.canvasMove(ev.event); break;
-                case PointerEventTypes.POINTERDOUBLETAP: this.canvasDblClick(ev.event); break;
+                case PointerEventTypes.POINTERDOWN: this.onCanvasDown(ev.event); break;
+                case PointerEventTypes.POINTERTAP: this.onCanvasClick(ev.event); break;
+                case PointerEventTypes.POINTERMOVE: this.onCanvasMove(ev.event); break;
+                case PointerEventTypes.POINTERDOUBLETAP: this.onCanvasDblClick(ev.event); break;
             }
         });
 
@@ -229,10 +236,21 @@ export default class ScenePicker {
     protected undoRedo (axis: 'x' | 'y' | 'z' | 'boundingbox'): void {
         let vector: Vector3 = null;
         switch (this._gizmoType) {
-            case GizmoType.POSITION: vector = this.positionGizmo.xGizmo.attachedMesh.position; break;
-            case GizmoType.ROTATION: vector = this.rotationGizmo.xGizmo.attachedMesh.rotation; break;
-            case GizmoType.SCALING: vector = this.scalingGizmo.xGizmo.attachedMesh.scaling; break;
-            default: break;
+            case GizmoType.POSITION:
+                if (!this.positionGizmo) return;
+                vector = this.positionGizmo.xGizmo.attachedMesh.position;
+                break;
+            case GizmoType.ROTATION:
+                if (!this.rotationGizmo) return;
+                vector = this.rotationGizmo.xGizmo.attachedMesh.rotation;
+                break;
+            case GizmoType.SCALING:
+                if (!this.scalingGizmo) return;
+                vector = this.scalingGizmo.xGizmo.attachedMesh.scaling;
+                break;
+            default:
+                if (!this.boundingBoxGizmo) return;
+                break;
         }
 
         switch (axis) {
@@ -279,7 +297,7 @@ export default class ScenePicker {
      * Called when canvas mouse is down
      * @param ev the mouse event
      */
-    protected canvasDown(ev: MouseEvent): void {
+    public onCanvasDown(ev: MouseEvent): void {
         this.lastX = ev.offsetX;
         this.lastY = ev.offsetY;
     }
@@ -288,7 +306,7 @@ export default class ScenePicker {
      * Called when canvas mouse is up
      * @param ev the mouse event
      */
-    protected canvasClick (ev: MouseEvent): void {
+    public onCanvasClick (ev: MouseEvent): void {
         if (!this._enabled)
             return;
         
@@ -313,7 +331,7 @@ export default class ScenePicker {
      * Called when mouse moves on canvas
      * @param ev the mouse event
      */
-    protected canvasMove (ev: MouseEvent): void {
+    public onCanvasMove (ev: MouseEvent): void {
         if (!this._enabled)
             return;
         
@@ -334,7 +352,7 @@ export default class ScenePicker {
      * Called when double click on the canvas
      * @param ev: the mouse event
      */
-    protected canvasDblClick (ev: MouseEvent): void {
+    public onCanvasDblClick (ev: MouseEvent): void {
         if (!this._enabled)
             return;
         

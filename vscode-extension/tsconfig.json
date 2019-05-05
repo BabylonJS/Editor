@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "outDir": ".build",
+        "declaration": true,
+        "declarationDir": ".declaration",
+        "downlevelIteration": true,
+        "lib": [
+            "es2015.promise",
+            "es2015",
+            "dom",
+        ],
+        "sourceMap": true,
+        "rootDir": "./",
+        "types": [
+            "node",
+            "vscode",
+            "socket.io-client",
+            "javascript-astar",
+            "w2ui"
+        ],
+    },
+    "exclude": [
+        "./node_modules",
+        "../build",
+        "../declaration",
+    ]
+}

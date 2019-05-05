@@ -47,6 +47,18 @@ export default class Toolbar {
     }
 
     /**
+     * Sets an item enabled or disabled
+     * @param id the id of the item
+     * @param enabled if the item is enabled or not
+     */
+    public enable (id: string, enabled: boolean): void {
+        if (enabled)
+            this.element.enable(id);
+        else
+            this.element.disable(id);
+    }
+
+    /**
      * Updates the given item
      * @param id the id of the item to update
      * @param data the new item

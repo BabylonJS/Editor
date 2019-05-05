@@ -1,7 +1,7 @@
 import {
     Scene, Mesh,
     Texture, StandardMaterial,
-    Color3, Vector3, PickingInfo
+    Color3, Vector3, PickingInfo, Sound
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -13,14 +13,17 @@ export default class SceneIcons {
     public cameraTexture: Texture;
     public lightTexture: Texture;
     public particleTexture: Texture;
+    public soundTexture: Texture;
 
     public camerasPlanes: Mesh[] = [];
     public lightsPlanes: Mesh[] = [];
     public particleSystemsPlanes: Mesh[] = [];
+    public soundsPlanes: Mesh[] = [];
 
     public camerasMaterial: StandardMaterial;
     public lightsMaterial: StandardMaterial;
     public particleSystemsMaterial: StandardMaterial;
+    public soundMaterial: StandardMaterial;
 
     // Protected members
     protected editor: Editor;
@@ -29,6 +32,7 @@ export default class SceneIcons {
     private _lastCamerasCount: number = -1;
     private _lastLightsCount: number = -1;
     private _lastParticleSystemsCount: number = -1;
+    private _lastSoundsCount: number = -1;
 
     /**
      * Constructor
@@ -48,6 +52,7 @@ export default class SceneIcons {
         this.cameraTexture = this.createTexture('css/images/camera.png');
         this.lightTexture = this.createTexture('css/images/light.png');
         this.particleTexture = this.createTexture('css/images/particles.png');
+        this.soundTexture = this.createTexture('css/images/sound.png');
 
         // Create materials
         this.camerasMaterial = new StandardMaterial('CamerasMaterial', this.scene);
@@ -61,6 +66,9 @@ export default class SceneIcons {
 
         this.particleSystemsMaterial = this.camerasMaterial.clone('ParticleSystemsMaterial');
         this.particleSystemsMaterial.diffuseTexture = this.particleTexture;
+
+        this.soundMaterial = this.camerasMaterial.clone('SoundMaterial');
+        this.soundMaterial.diffuseTexture = this.soundTexture;
     }
 
     /**
@@ -85,6 +93,16 @@ export default class SceneIcons {
         if (scene.particleSystems.length !== this._lastParticleSystemsCount) {
             this._lastParticleSystemsCount = scene.particleSystems.length;
             this.createPlanes(this.particleSystemsPlanes, this.particleSystemsMaterial, this._lastParticleSystemsCount);
+        }
+
+        // Sounds
+        const sounds: Sound[] = [];
+        if (scene.soundTracks)
+            scene.soundTracks.forEach(st => st.soundCollection.forEach(s => s.spatialSound && sounds.push(s)));
+
+        if (sounds.length !== this._lastSoundsCount) {
+            this._lastSoundsCount = sounds.length;
+            this.createPlanes(this.soundsPlanes, this.soundMaterial, this._lastSoundsCount);
         }
     }
 
@@ -127,6 +145,18 @@ export default class SceneIcons {
                 this.configurePlane(plane, ps.emitter);
             else if (ps.emitter)
                 this.configurePlane(plane, ps.emitter.getAbsolutePosition());
+        });
+
+        // Sounds
+        const sounds: Sound[] = [];
+        if (scene.soundTracks)
+            scene.soundTracks.forEach(st => st.soundCollection.forEach(s => s.spatialSound && sounds.push(s)));
+
+        sounds.forEach((s, index) => {
+            const plane = this.soundsPlanes[index];
+            plane.metadata.object = s;
+
+            this.configurePlane(plane, s['_position']);
         });
     }
 

@@ -1,5 +1,8 @@
+import { Vector2 } from 'babylonjs';
+
 import Layout from '../gui/layout';
 import Toolbar from '../gui/toolbar';
+import ContextMenu from '../gui/context-menu';
 
 import Editor from '../editor';
 
@@ -19,7 +22,7 @@ export default class EditorPreview {
         this.layout = new Layout('PREVIEW');
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="PREVIEW-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
-            { type: 'main', resizable: false, content: '<canvas id="renderCanvasEditor"></canvas>' }
+            { type: 'main', resizable: false, content: '<canvas id="renderCanvasEditor" class="ctxmenu"></canvas>' }
         ];
         this.layout.build('PREVIEW');
 
@@ -48,6 +51,26 @@ export default class EditorPreview {
             { type: 'button', id: 'bounding-box', text :'', img: 'icon-bounding-box', checked: false }
         ];
         this.toolbar.build('PREVIEW-TOOLBAR');
+
+        // Context menu
+        const canvas = <HTMLCanvasElement> $('#renderCanvasEditor')[0];
+        const lastPosition = Vector2.Zero();
+
+        canvas.addEventListener('pointerdown', (ev) => {
+            lastPosition.set(ev.offsetX, ev.offsetY);
+        });
+        canvas.addEventListener('contextmenu', (ev) => {
+            if (Math.abs(ev.offsetX - lastPosition.x) > 10 || Math.abs(ev.offsetY - lastPosition.y) > 10)
+                return;
+
+            this.editor.scenePicker.onCanvasClick(ev);
+
+            ContextMenu.Show(ev, {
+                focus: { name: 'Focus', callback: () => this.editor.graph.onMenuClick('focus', this.editor.graph.getSelected()) },
+                clone: { name: 'Clone', callback: () => this.editor.graph.onMenuClick('clone', this.editor.graph.getSelected()) },
+                remove: { name: 'Remove', callback: () => this.editor.graph.onMenuClick('remove', this.editor.graph.getSelected()) }
+            });
+        });
     }
 
     /**

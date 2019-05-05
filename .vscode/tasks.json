@@ -4,9 +4,49 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "watch-all",
+            "group": "build",
+            "problemMatcher": [],
+            "dependsOn": ["watch", "watch-vscode-extension", "watch-electron"],
+            "presentation": {
+                "panel": "shared",
+                "group": "build",
+                "showReuseMessage": true,
+                "echo": true
+            }
+        },
+        {
+            "label": "watch",
             "type": "npm",
             "script": "watch",
-            "problemMatcher": []
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "panel": "shared",
+                "group": "build"
+            }
+        },
+        {
+            "label": "watch-electron",
+            "type": "npm",
+            "script": "watch-electron",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "panel": "shared",
+                "group": "build"
+            }
+        },
+        {
+            "label": "watch-vscode-extension",
+            "type": "npm",
+            "script": "watch-vscode-extension",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "panel": "shared",
+                "group": "build"
+            }
         },
         {
             "type": "npm",

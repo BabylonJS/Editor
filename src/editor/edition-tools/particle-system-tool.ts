@@ -1,5 +1,15 @@
-import { ParticleSystem, GPUParticleSystem, Vector3, IParticleSystem, BoxParticleEmitter, SphereParticleEmitter, ConeParticleEmitter, SphereDirectedParticleEmitter } from 'babylonjs';
+import {
+    ParticleSystem, GPUParticleSystem, Vector3, IParticleSystem,
+    BoxParticleEmitter, SphereParticleEmitter, ConeParticleEmitter,
+    SphereDirectedParticleEmitter, ParticleHelper,
+    FilesInputStore,
+    Tools as BabylonTools
+} from 'babylonjs';
+
 import AbstractEditionTool from './edition-tool';
+import Tools from '../tools/tools';
+
+import Dialog from '../gui/dialog';
 
 export default class ParticleSystemTool extends AbstractEditionTool<ParticleSystem | GPUParticleSystem> {
     // Public members
@@ -28,6 +38,13 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
 
         // Misc.
         const scene = this.editor.core.scene;
+
+        // Load / save
+        const presets = this.tool.addFolder('Presets');
+        presets.open();
+
+        presets.add(this, '_saveSet').name('Save...');
+        presets.add(this, '_loadSet').name('Load...');
 
         // Particle System
         if (ps instanceof ParticleSystem) {
@@ -175,18 +192,49 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
 
     // Returns the emiter type as a string
     private _getEmiterTypeString (ps: IParticleSystem): string {
-        if (ps.particleEmitterType instanceof BoxParticleEmitter)
-            return 'Box';
-        
-        if (ps.particleEmitterType instanceof SphereDirectedParticleEmitter)
-            return 'Sphere Directed';
-        
-        if (ps.particleEmitterType instanceof SphereParticleEmitter)
-            return 'Sphere';
-
-        if (ps.particleEmitterType instanceof ConeParticleEmitter)
-            return 'Cone';
-
+        if (ps.particleEmitterType instanceof BoxParticleEmitter) return 'Box';
+        if (ps.particleEmitterType instanceof SphereDirectedParticleEmitter) return 'Sphere Directed';
+        if (ps.particleEmitterType instanceof SphereParticleEmitter) return 'Sphere';
+        if (ps.particleEmitterType instanceof ConeParticleEmitter) return 'Cone';
         return 'None';
+    }
+
+    // Exports the current set
+    private async _saveSet (): Promise<void> {
+        // Export
+        const set = ParticleHelper.ExportSet([this.object]);
+        const serializationObject = set.serialize();
+
+        // Embed?
+        const embed = await Dialog.Create('Embed textures?', 'Do you want to embed textures in the set?');
+        if (embed) {
+            for (const s of serializationObject.systems) {
+                const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
+                if (!file)
+                    continue;
+                s.textureName = await Tools.ReadFileAsBase64(file);
+            }
+        }
+
+        // Save
+        const json = JSON.stringify(serializationObject, null, '\t');
+        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(json), this.object.name + '.json');
+        BabylonTools.Download(file, file.name);
+    }
+
+    // Loads the selected preset from files open dialog
+    private async _loadSet (): Promise<void> {
+        const files = await Tools.OpenFileDialog();
+        const content = JSON.parse(await Tools.ReadFileAsText(files[0]));
+
+        if (!content.systems || content.systems.length === 0)
+            return;
+
+        const savedEmitter = this.object.emitter;
+
+        const rootUrl = content.systems[0].textureName.indexOf('data:') === 0 ? '' : 'file:';
+        ParticleSystem._Parse(content.systems[0], this.object, this.editor.core.scene, rootUrl);
+
+        this.object.emitter = savedEmitter;
     }
 }
