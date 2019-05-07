@@ -1,9 +1,9 @@
-Babylon.js Editor v2.0.0
+Babylon.js Editor v3
 ======
 
 The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
 
-The editor V2 is available online at http://editor.babylonjs.com/
+The editor is available online at http://editor.babylonjs.com/
 
 The Documentation is available here: http://doc.babylonjs.com/resources/
 
@@ -57,6 +57,9 @@ Running the web server
 ```bash
 npm run webserver
 ```
+
+## Using VSCode
+CTRL+SHIT+B then select "watch-all".
 
 That's all!
 
