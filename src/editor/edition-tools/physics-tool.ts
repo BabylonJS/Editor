@@ -89,7 +89,7 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
                 node.physicsImpostor.friction = this._lastFriction || node.physicsImpostor.friction;
                 node.physicsImpostor.restitution = this._lastRestitution || node.physicsImpostor.restitution;
 
-                this.editor.core.scene.getPhysicsEngine().setTimeStep(0);
+                this.editor.core.scene.getPhysicsEngine().setTimeStep(Tools.Epsilon);
                 this.update(node);
             });
 

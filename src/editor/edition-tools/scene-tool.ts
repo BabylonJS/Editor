@@ -120,7 +120,7 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
                 this.editor.layout.lockPanel('main', 'Enabling Physics...', true);
                 await Tools.ImportScript('cannon');
                 scene.enablePhysics(scene.gravity.clone(), new CannonJSPlugin(true));
-                scene.getPhysicsEngine().setTimeStep(0);
+                scene.getPhysicsEngine().setTimeStep(Tools.Epsilon);
                 this.editor.layout.unlockPanel('main');
             }
             else

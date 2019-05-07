@@ -6,6 +6,7 @@ export default class Tools {
     public static PendingFilesToLoad: number = 0;
     public static IsStandalone: boolean = true;
     public static Version: string = '';
+    public static Epsilon: number = 2.220446049250313e-16;
 
     /**
      * Creates a div element

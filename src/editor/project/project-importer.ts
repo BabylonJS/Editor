@@ -61,7 +61,7 @@ export default class ProjectImporter {
         if (!scene.isPhysicsEnabled())
             scene.enablePhysics(scene.gravity, new CannonJSPlugin());
 
-        scene.getPhysicsEngine().setTimeStep(0);
+        scene._physicsEngine.setTimeStep(Tools.Epsilon);
 
         // Nodes
         project.nodes.forEach(n => {
