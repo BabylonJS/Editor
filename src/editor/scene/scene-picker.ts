@@ -194,6 +194,9 @@ export default class ScenePicker {
      */
     public addEvents (): void {
         this.onCanvasPointer = this.scene.onPointerObservable.add(ev => {
+            if (!this.scene.activeCamera)
+                return;
+            
             switch (ev.type) {
                 case PointerEventTypes.POINTERDOWN: this.onCanvasDown(ev.event); break;
                 case PointerEventTypes.POINTERTAP: this.onCanvasClick(ev.event); break;
