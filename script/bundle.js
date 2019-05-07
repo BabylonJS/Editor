@@ -60,9 +60,10 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
     globalDeps: {
       'babylonjs': 'BABYLON',
       'spectorjs': 'SPECTOR',
-      'cannon': 'CANNON'
+      'cannon': 'CANNON',
+      'earcut': 'Earcut'
     },
-    externals: ['babylonjs', 'cannon'],
+    externals: ['babylonjs', 'cannon', 'earcut'],
     minify: true
 });
 
@@ -83,7 +84,8 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
 let externals = [
     'babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-serializers',
     'babylonjs-materials', 'babylonjs-post-process', 'dat-gui', 'extensions/extensions',
-    'jstree', 'golden-layout', 'jquery', 'javascript-astar', 'litegraph.js'
+    'jstree', 'golden-layout', 'jquery', 'javascript-astar', 'litegraph.js',
+    'cannon', 'earcut'
 ];
 
 build('./build/src/', './build/src/index.js', './dist/editor.js', {
@@ -93,30 +95,30 @@ build('./build/src/', './build/src/index.js', './dist/editor.js', {
     minify: true
 });
 
-build('./', './build/src/all.js', './dist/editor-all.js', {
-    globalName: 'Editor',
-    format: 'global',
-    sourceMaps: false,
-    minify: true,
-    runtime: false,
-    normalize: true,
-    externals: [
-        'babylonjs'
-    ],
-    globalDeps: {
-        'babylonjs': 'BABYLON'
-    },
-    config: {
-        map: {
-            css: "./node_modules/systemjs-plugin-css/css.js"
-        },
-        meta: {
-            "*.css": { loader: "css" }
-        },
-        separateCSS: false,
-        buildCSS: true
-    }
-});
+// build('./', './build/src/all.js', './dist/editor-all.js', {
+//     globalName: 'Editor',
+//     format: 'global',
+//     sourceMaps: false,
+//     minify: true,
+//     runtime: false,
+//     normalize: true,
+//     externals: [
+//         'babylonjs'
+//     ],
+//     globalDeps: {
+//         'babylonjs': 'BABYLON'
+//     },
+//     config: {
+//         map: {
+//             css: "./node_modules/systemjs-plugin-css/css.js"
+//         },
+//         meta: {
+//             "*.css": { loader: "css" }
+//         },
+//         separateCSS: false,
+//         buildCSS: true
+//     }
+// });
 
 // Editor
 externals = externals.concat(['babylonjs-editor', 'raphael']);
