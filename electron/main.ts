@@ -109,25 +109,26 @@ export default class EditorApp {
 /**
  * Make single instance
  */
-const shouldQuit = app.makeSingleInstance((argv, wd) => {
-    if (EditorApp.Window) {
-        if (EditorApp.Window.isMinimized())
-            EditorApp.Window.restore();
-
-        EditorApp.Window.focus();
-
-        const filename = argv[1];
-        if (filename !== Settings.OpenedFile) {
-            Settings.OpenedFile = filename;
-            EditorApp.Window.reload();
-        }
-    }
-});
+const firstLoad  = app.requestSingleInstanceLock();
 
 /**
  * Events
  */
-if (!shouldQuit) {
+if (firstLoad) {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        if (EditorApp.Window) {
+            if (EditorApp.Window.isMinimized())
+                EditorApp.Window.restore();
+
+            EditorApp.Window.focus();
+
+            const filename = commandLine[3];
+            if (filename !== Settings.OpenedFile) {
+                Settings.OpenedFile = filename;
+                EditorApp.Window.reload();
+            }
+        }
+    })
     app.on("window-all-closed", async () => {
         if (process.platform !== "darwin")
             app.quit();
@@ -135,4 +136,7 @@ if (!shouldQuit) {
 
     app.on("ready", () => EditorApp.Create());
     app.on("activate", () => EditorApp.Window || EditorApp.Create());
+}
+else {
+    app.quit();
 }

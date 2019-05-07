@@ -296,7 +296,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                     if (p === 'ctor')
                         continue;
                     
-                    m.params[p] = m.params[p] || params[p];
+                    m.params[p] = m.params[p] === undefined ? params[p] : m.params[p];
                     if (typeof m.params[p] !== typeof params[p])
                         m.params[p] = params[p];
 
