@@ -47,7 +47,6 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
 
         // Bump
         const bump = this.tool.addFolder('Bump');
-        bump.open();
         this.tool.addTexture(bump, this.editor, 'bumpTexture', this.object).name('Bump Texture');
         bump.add(this.object, 'invertNormalMapX').name('Invert Normal Map X');
         bump.add(this.object, 'invertNormalMapY').name('Invert Normal Map Y');
@@ -70,7 +69,6 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
 
         // Microsurface
         const micro = this.tool.addFolder('Micro Surface');
-        micro.open();
         this.tool.addTexture(micro, this.editor, 'microSurfaceTexture', this.object, false).name('Micro Surface Texture');
         micro.add(this.object, 'microSurface').min(0).max(1).name('Micro Surface');
         micro.add(this.object, 'useAutoMicroSurfaceFromReflectivityMap').name('Use Auto Micro Surface From Reflectivity Map');
@@ -78,7 +76,6 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
 
         // Metallic
         const metallic = this.tool.addFolder('Metallic / Roughness');
-        metallic.open();
         metallic.add(this.object, 'useMetallnessFromMetallicTextureBlue').name('Metallness From Metallic Texture Blue');
         metallic.add(this.object, 'useRoughnessFromMetallicTextureAlpha').name('Use Roughness From Metallic Texture Alpha');
         metallic.add(this.object, 'useRoughnessFromMetallicTextureGreen').name('Use Roughness From Metallic Texture Green');
@@ -90,7 +87,6 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         this._metallic = this.object.metallic || this._metallic;
         this._metallicEnabled = this.object.metallic !== null && this.object.metallic !== undefined;
         metallicWorkflow.add(this, '_metallicEnabled').name('Metallic Enabled').onFinishChange((r, i) => {
-
             UndoRedo.Push({
                 undo: () => {
                     this.object.metallic = r ? null : this._metallic;
@@ -131,16 +127,12 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
 
         // Sub surface
         const subSurface = this.tool.addFolder('Sub Surface');
-        subSurface.open();
-
         this.tool.addColor(subSurface, 'Tint Color', this.object.subSurface.tintColor).open();
         this.tool.addTexture(subSurface.addFolder('Thickness Texture'), this.editor, 'thicknessTexture', this.object.subSurface, false);
         subSurface.add(this.object.subSurface, 'useMaskFromThicknessTexture').name('Use Mask From Thickness Texture');
 
         // Sub surface Refraction
         const subSurfaceRefraction = this.tool.addFolder('Sub Surface (Refraction)');
-        subSurfaceRefraction.open();
-
         subSurfaceRefraction.add(this.object.subSurface, 'isRefractionEnabled').name('Refraction Enabled');
         subSurfaceRefraction.add(this.object.subSurface, 'refractionIntensity').name('Refraction Intensity');
         subSurfaceRefraction.add(this.object.subSurface, 'indexOfRefraction').name('Index Of Refraction');
@@ -149,15 +141,11 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
 
         // Sub surface Translucency
         const subSurfaceTranslucency = this.tool.addFolder('Sub Surface (Translucency)');
-        subSurfaceTranslucency.open();
-
         subSurfaceTranslucency.add(this.object.subSurface, 'isTranslucencyEnabled').name('Translucency Enabled');
         subSurfaceTranslucency.add(this.object.subSurface, 'translucencyIntensity').name('Translucency Intensity');
 
         // Clear Coat
         const clearCoat = this.tool.addFolder('Clear Coat');
-        clearCoat.open();
-
         clearCoat.add(this.object.clearCoat, 'isEnabled').name('Clear Coat Enabled');
         clearCoat.add(this.object.clearCoat, 'roughness').min(0).step(0.01).name('Roughness');
         clearCoat.add(this.object.clearCoat, 'indiceOfRefraction').min(0).step(0.01).name('Indice Of Refraction');
@@ -169,8 +157,6 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
 
         // Anisotropy
         const anisotropy = this.tool.addFolder('Anisotropy');
-        anisotropy.open();
-
         anisotropy.add(this.object.anisotropy, 'isEnabled').name('Anisotropy Enabled');
         anisotropy.add(this.object.anisotropy, 'intensity').min(0).step(0.01).name('Intensity');        
         this.tool.addVector(anisotropy, 'Direction', this.object.anisotropy.direction);     
@@ -178,8 +164,6 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
 
         // Sheen
         const sheen = this.tool.addFolder('Sheen');
-        sheen.open();
-
         sheen.add(this.object.sheen, 'isEnabled').name('Sheen Enabled');
         sheen.add(this.object.sheen, 'intensity').min(0).step(0.01).name('Intensity');
         this.tool.addColor(sheen, 'Color', this.object.sheen.color);
@@ -187,33 +171,28 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
 
         // Opacity
         const opacity = this.tool.addFolder('Opacity');
-        opacity.open();
         opacity.add(this.object, 'useRadianceOverAlpha').name('Use Radiance Over Alpha');
         opacity.add(this.object, 'useSpecularOverAlpha').name('Use Specular Over Alpha');
 
         // Emissive
         const emissive = this.tool.addFolder('Emissive');
-        emissive.open();
         this.tool.addColor(emissive, 'Emissive', this.object.emissiveColor).open();
         emissive.add(this.object, 'emissiveIntensity').step(0.01).name('Emissive Intensity');
         this.tool.addTexture(emissive, this.editor, 'emissiveTexture', this.object).name('Emissive Texture');
 
         // Ambient
         const ambient = this.tool.addFolder('Ambient');
-        ambient.open();
         this.tool.addColor(ambient, 'Ambient', this.object.ambientColor).open();
         this.tool.addTexture(ambient, this.editor, 'ambientTexture', this.object).name('Ambient Texture');
         ambient.add(this.object, 'ambientTextureStrength').step(0.01).name('Ambient Texture Strength');
 
         // Light map
         const lightmap = this.tool.addFolder('Lightmap');
-        lightmap.open();
         lightmap.add(this.object, 'useLightmapAsShadowmap').name('Use Lightmap As Shadowmap');
         this.tool.addTexture(lightmap, this.editor, 'lightmapTexture', this.object).name('Lightmap Texture');
 
         // Refraction
         const refraction = this.tool.addFolder('Refraction (backward compatibility)');
-        refraction.open();
         refraction.add(this.object, 'indexOfRefraction').step(0.01).name('Index of Refraction');
         refraction.add(this.object, 'invertRefractionY').name('Invert Y');
         refraction.add(this.object, 'linkRefractionWithTransparency').name('Link Refraction With Transparency');

@@ -1,7 +1,6 @@
 import { CellMaterial } from 'babylonjs-materials';
 
 import MaterialTool from './material-tool';
-import Tools from '../../tools/tools';
 
 export default class CellMaterialTool extends MaterialTool<CellMaterial> {
     // Public members

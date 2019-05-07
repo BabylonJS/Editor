@@ -26,7 +26,7 @@ export default class WaterMaterialTool extends MaterialTool<WaterMaterial> {
         super.update(object);
 
         // Diffuse & Specular
-        this.tool.addColor(this.tool.element, 'Diffuse', this.object.diffuseColor).open();
+        this.tool.addColor(this.tool.element, 'Diffuse', this.object.diffuseColor);
 
         const specular = this.tool.addFolder('Specular');
         specular.open();
@@ -59,7 +59,6 @@ export default class WaterMaterialTool extends MaterialTool<WaterMaterial> {
 
         // Colors
         const colors = this.tool.addFolder('Colors');
-        colors.open();
         this.tool.addColor(colors, 'Water Color 1', this.object.waterColor).open();
         colors.add(this.object, 'colorBlendFactor').min(0.0).max(1.0).step(0.01).name('Blend Factor 1');
 
