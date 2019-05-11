@@ -87,7 +87,7 @@ export default class ParticlesCreator extends EditorPlugin {
         this.tree = new Tree('PARTICLES-CREATOR-TREE');
         this.tree.onClick = (<ParticleSystem> (id, data) => {
             this.currentParticleSystem = data;
-            this.editor.edition.setObject(data);
+            this.editor.core.onSelectObject.notifyObservers(data);
         });
         this.tree.onCanDrag = () => false;
         this.tree.onRename = (<ParticleSystem> (id, name, data) => {
@@ -111,7 +111,6 @@ export default class ParticlesCreator extends EditorPlugin {
         // Metadatas
         const metadata = Helpers.GetSceneMetadatas(this.editor.core.scene);
         this.datas = metadata.particleSystems = metadata.particleSystems || [];
-        this.data = this.datas[0];
 
         // Extension
         this.extension = Extensions.RequestExtension(this.editor.core.scene, 'ParticlesCreatorExtension');

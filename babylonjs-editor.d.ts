@@ -277,7 +277,7 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static Assign<T>(target: Object, ...sources: Object[]): T;
             /**
-                * Clones the given object
+                * Deep clones the given object. Take care of cycling objects!
                 * @param data the data of the object to clone
                 */
             static Clone<T>(data: T): T;

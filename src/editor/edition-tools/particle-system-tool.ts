@@ -3,7 +3,8 @@ import {
     BoxParticleEmitter, SphereParticleEmitter, ConeParticleEmitter,
     SphereDirectedParticleEmitter, ParticleHelper,
     FilesInputStore,
-    Tools as BabylonTools
+    Tools as BabylonTools,
+    Texture
 } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
@@ -20,6 +21,8 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
     private _currentEmitter: string = '';
     private _currentBlendMode: string = '';
     private _currentEmiterType: string = '';
+
+    private _isFromScene: boolean = true;
 
     /**
      * Returns if the object is supported
@@ -38,6 +41,7 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
 
         // Misc.
         const scene = this.editor.core.scene;
+        this._isFromScene = scene.getParticleSystemByID(ps.id) !== null;
 
         // Load / save
         const presets = this.tool.addFolder('Presets');
@@ -49,23 +53,25 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
         // Particle System
         if (ps instanceof ParticleSystem) {
             // Emitter
-            const emitter = this.tool.addFolder('Emitter');
-            emitter.open();
+            if (this._isFromScene) {
+                const emitter = this.tool.addFolder('Emitter');
+                emitter.open();
 
-            emitter.add(ps, 'id').name('Id');
-            emitter.add(ps, 'name').name('Name');
+                emitter.add(ps, 'id').name('Id');
+                emitter.add(ps, 'name').name('Name');
 
-            if (ps.emitter instanceof Vector3)
-                this.tool.addVector(emitter, 'Emitter', ps.emitter);
-            else {
-                this._currentEmitter = ps.emitter.name;
-                const nodes = scene.meshes.map(m => m.name);
+                if (ps.emitter instanceof Vector3)
+                    this.tool.addVector(emitter, 'Emitter', ps.emitter);
+                else {
+                    this._currentEmitter = ps.emitter.name;
+                    const nodes = scene.meshes.map(m => m.name);
 
-                emitter.add(this, '_currentEmitter', nodes).name('Emitter').onFinishChange(r => {
-                    const mesh = scene.getMeshByName(r);
-                    if (mesh)
-                        ps.emitter = mesh;
-                });
+                    emitter.add(this, '_currentEmitter', nodes).name('Emitter').onFinishChange(r => {
+                        const mesh = scene.getMeshByName(r);
+                        if (mesh)
+                            ps.emitter = mesh;
+                    });
+                }
             }
 
             // Emitter type
@@ -105,7 +111,19 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             // Texture
             const texture = this.tool.addFolder('Texture');
             texture.open();
-            this.tool.addTexture(texture, this.editor, 'particleTexture', ps, false).name('Particle Texture');
+
+            this.tool.addTexture(texture, this.editor, 'particleTexture', ps, false, false, texture => {
+                debugger;
+                if (this._isFromScene)
+                    return;
+
+                const url = texture['url'];
+                const file = FilesInputStore.FilesToLoad[url];
+                if (!file)
+                    return;
+
+                ps.particleTexture = new Texture('file:' + url, ps.getScene());
+            }).name('Particle Texture');
 
             const blendModes = ['BLENDMODE_ONEONE', 'BLENDMODE_STANDARD'];
             this._currentBlendMode = blendModes[ps.blendMode];
@@ -233,7 +251,7 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
         const savedEmitter = this.object.emitter;
 
         const rootUrl = content.systems[0].textureName.indexOf('data:') === 0 ? '' : 'file:';
-        ParticleSystem._Parse(content.systems[0], this.object, this.editor.core.scene, rootUrl);
+        ParticleSystem._Parse(content.systems[0], this.object, this.object.getScene(), rootUrl);
 
         this.object.emitter = savedEmitter;
     }
