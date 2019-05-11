@@ -1,4 +1,4 @@
-import { Mesh, ParticleSystemSet, Observer, ParticleSystem } from 'babylonjs';
+import { Mesh, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools } from 'babylonjs';
 import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
@@ -24,6 +24,8 @@ export default class ParticlesCreator extends EditorPlugin {
     protected preview: Preview = null;
     protected emitter: Mesh = null;
     protected set: ParticleSystemSet = null;
+
+    protected currentParticleSystem: ParticleSystem = null;
 
     protected onSelectAssetObserver: Observer<any> = null;
 
@@ -83,6 +85,21 @@ export default class ParticlesCreator extends EditorPlugin {
 
         // Create tree
         this.tree = new Tree('PARTICLES-CREATOR-TREE');
+        this.tree.onClick = (<ParticleSystem> (id, data) => {
+            this.currentParticleSystem = data;
+            this.editor.edition.setObject(data);
+        });
+        this.tree.onCanDrag = () => false;
+        this.tree.onRename = (<ParticleSystem> (id, name, data) => {
+            this.currentParticleSystem.name = name;
+            this.saveSet();
+            return true;
+        });
+        this.tree.onContextMenu = (<ParticleSystem> (id, data) => {
+            return [
+                { id: 'remove', text: 'Remove', callback: () => this.removeSystemFromSet(data) }
+            ];
+        });
         this.tree.build('PARTICLES-CREATOR-TREE');
 
         // Create preview
@@ -134,10 +151,10 @@ export default class ParticlesCreator extends EditorPlugin {
         switch (id) {
             // Add a new particle systems set
             case 'add':
-                const name = await Dialog.CreateWithTextInput('Set name');
-                this.datas.push({ name: name, psData: Tools.Clone(ParticlesCreator.DefaultSet) });
-                this.editor.assets.refresh(this.extension.id);
-                this.editor.assets.showTab(this.extension.id);
+                const name = await Dialog.CreateWithTextInput('Particle System name?');
+                const ps = this.addSystemToSet(ParticlesCreator.DefaultSet.systems[0], name);
+                this.saveSet();
+                this.resetSet(true);
                 break;
             // Reset particle systems set
             case 'reset':
@@ -158,19 +175,62 @@ export default class ParticlesCreator extends EditorPlugin {
         this.data = asset;
 
         // Set
-        this.resetSet();
+        this.resetSet(true);
+    }
 
-        // Fill tree
-        this.tree.clear();
-        this.set.systems.forEach(s => {
-            this.tree.add({ id: s.id, text: s.name, data: s, img: 'icon-particles' });
-        });
+    /**
+     * Adds a new particle system to the current set according to the given data
+     * @param particleSystemData the particle system data to parse
+     */
+    protected addSystemToSet (particleSystemData: any, name?: string): ParticleSystem {
+        if (!this.set)
+            return;
+
+        // Replace id
+        particleSystemData.id = BabylonTools.RandomId();
+
+        // Create system
+        const rootUrl = particleSystemData.textureName.indexOf('data:') === 0 ? '' : 'file:';
+
+        const ps = ParticleSystem.Parse(particleSystemData, this.preview.scene, rootUrl, false);
+        ps.emitter = this.emitter;
+        ps.name = name || ps.name;
+
+        // Add to set
+        this.set.systems.push(ps);
+
+        return ps;
+    }
+
+    /**
+     * Removes the given particle system from the current set
+     * @param ps the particle system to remove
+     */
+    protected removeSystemFromSet (ps: ParticleSystem): void {
+        // Remove from set
+        const index = this.set.systems.indexOf(ps);
+        if (index === -1)
+            return;
+
+        this.set.systems.splice(index, 1);
+
+        // Finally dispose
+        ps.dispose();
+
+        // Remove from tree
+        this.tree.remove(ps.id);
+
+        // Save set
+        this.saveSet();
+
+        // Reset
+        this.resetSet(true);
     }
 
     /**
      * Resets the particle systems set
      */
-    protected resetSet (): void {
+    protected resetSet (fillTree: boolean = false): void {
         if (!this.data)
             return;
 
@@ -178,13 +238,32 @@ export default class ParticlesCreator extends EditorPlugin {
         if (this.set)
             this.set.dispose();
 
+        // Clear tree?
+        if (fillTree)
+            this.tree.clear();
+
         // Parse set
         this.set = new ParticleSystemSet();
-        this.data.psData.systems.forEach(ps => {
-            const rootUrl = ps.textureName.indexOf('data:') === 0 ? '' : 'file:';
-            this.set.systems.push(ParticleSystem.Parse(ps, this.preview.scene, rootUrl, false));
+        this.data.psData.systems.forEach(s => {
+            const ps = this.addSystemToSet(s);
+            if (fillTree)
+                this.tree.add({ id: ps.id, text: ps.name, data: ps, img: 'icon-particles' });
         });
 
         this.set.start(this.emitter);
+    }
+
+    /**
+     * Saves the current particle systems set
+     */
+    protected saveSet (): void {
+        if (!this.data)
+            return;
+
+        const index = this.datas.indexOf(this.data);
+        if (index === -1)
+            return;
+
+        this.datas[index].psData = this.set.serialize();
     }
 }
