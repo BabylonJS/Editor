@@ -1,4 +1,4 @@
-import { Mesh, ParticleSystemSet, Observer, ParticleHelper, ParticleSystem } from 'babylonjs';
+import { Mesh, ParticleSystemSet, Observer, ParticleSystem } from 'babylonjs';
 import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
@@ -45,6 +45,9 @@ export default class ParticlesCreator extends EditorPlugin {
         this.layout.element.destroy();
         this.toolbar.element.destroy();
 
+        this.preview.scene.dispose();
+        this.preview.engine.dispose();
+
         this.editor.core.onSelectAsset.remove(this.onSelectAssetObserver);
 
         await super.close();
@@ -72,7 +75,8 @@ export default class ParticlesCreator extends EditorPlugin {
         // Toolbar
         this.toolbar = new Toolbar('PARTICLES-CREATOR-TOOLBAR');
         this.toolbar.items = [
-            { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' }
+            { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
+            { id: 'reset', text: 'Reset', caption: 'Reset', img: 'icon-play-game' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PARTICLES-CREATOR-TOOLBAR');
@@ -135,6 +139,10 @@ export default class ParticlesCreator extends EditorPlugin {
                 this.editor.assets.refresh(this.extension.id);
                 this.editor.assets.showTab(this.extension.id);
                 break;
+            // Reset particle systems set
+            case 'reset':
+                this.resetSet();
+                break;
         }
     }
 
@@ -146,23 +154,37 @@ export default class ParticlesCreator extends EditorPlugin {
         if (!asset || !asset.psData)
             return;
 
-        // Dispose previous set
-        if (this.set)
-            this.set.dispose();
+        // Misc.
+        this.data = asset;
 
-        // Parse set
-        this.set = new ParticleSystemSet();
-        asset.psData.systems.forEach(ps => {
-            const rootUrl = ps.textureName.indexOf('data:') === 0 ? '' : 'file:';
-            this.set.systems.push(ParticleSystem.Parse(ps, this.preview.scene, rootUrl, false));
-        });
-
-        this.set.start(this.emitter);
+        // Set
+        this.resetSet();
 
         // Fill tree
         this.tree.clear();
         this.set.systems.forEach(s => {
             this.tree.add({ id: s.id, text: s.name, data: s, img: 'icon-particles' });
         });
+    }
+
+    /**
+     * Resets the particle systems set
+     */
+    protected resetSet (): void {
+        if (!this.data)
+            return;
+
+        // Dispose previous set
+        if (this.set)
+            this.set.dispose();
+
+        // Parse set
+        this.set = new ParticleSystemSet();
+        this.data.psData.systems.forEach(ps => {
+            const rootUrl = ps.textureName.indexOf('data:') === 0 ? '' : 'file:';
+            this.set.systems.push(ParticleSystem.Parse(ps, this.preview.scene, rootUrl, false));
+        });
+
+        this.set.start(this.emitter);
     }
 }

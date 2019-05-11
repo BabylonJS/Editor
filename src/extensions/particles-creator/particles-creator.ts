@@ -1,4 +1,4 @@
-import { Scene } from 'babylonjs';
+import { Scene, Tools } from 'babylonjs';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -51,6 +51,29 @@ export default class ParticlesCreatorExtension extends Extension<ParticlesCreato
      */
     public onAddAsset (asset: AssetElement<any>): void {
         this.scene.metadata.particleSystems.push(asset.data);
+    }
+
+    /**
+     * Creates a new particle systems set asset
+     */
+    public async onCreateAsset (name: string): Promise<AssetElement<any>> {
+        const set = await new Promise<string>((resolve) => {
+            Tools.LoadFile('./assets/templates/particles-creator/default-set.json', (data) => resolve(<string> data));
+        });
+
+        const asset = {
+            name: name,
+            data: <ParticlesCreatorMetadata> {
+                name: name,
+                psData: JSON.parse(set)
+            }
+        };
+
+        this.scene.metadata = this.scene.metadata || { };
+        this.scene.metadata.particleSystems = this.scene.metadata.particleSystems || [];
+        this.scene.metadata.particleSystems.push(asset.data);
+
+        return asset;
     }
 
     /**
