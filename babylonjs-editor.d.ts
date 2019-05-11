@@ -277,6 +277,11 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static Assign<T>(target: Object, ...sources: Object[]): T;
             /**
+                * Clones the given object
+                * @param data the data of the object to clone
+                */
+            static Clone<T>(data: T): T;
+            /**
                 * Reads the given file
                 * @param file the file to read
                 * @param arrayBuffer if should read as array buffer

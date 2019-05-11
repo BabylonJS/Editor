@@ -1,37 +1,19 @@
-import { Scene, Tools, ParticleSystem, Effect } from 'babylonjs';
+import { Scene } from 'babylonjs';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
 
-import { IStringDictionary } from '../typings/typings';
+import { IAssetComponent, AssetElement } from '../typings/asset';
 
 export interface ParticlesCreatorMetadata {
-    id: string;
-    apply: boolean;
-    code: string;
-    compiledCode?: string;
-    vertex: string;
-    pixel: string;
+    name: string;
+    psData: any;
 }
 
-const template = `
-EDITOR.ParticlesCreator.Constructors['{{name}}'] = function (scene, particleSystem) {
-{{code}}
-}
-`;
-
-// Set EDITOR on Window
-export module EDITOR {
-    export class ParticlesCreator {
-        public static Constructors = { };
-    }
-}
-window['EDITOR'] = window['EDITOR'] || { };
-window['EDITOR'].ParticlesCreator = EDITOR.ParticlesCreator;
-
-export default class ParticlesCreatorExtension extends Extension<ParticlesCreatorMetadata[]> {
+export default class ParticlesCreatorExtension extends Extension<ParticlesCreatorMetadata[]> implements IAssetComponent {
     // Public members
-    public instances: IStringDictionary<any> = { };
+    public id: string = 'particles-systems-editor';
+    public assetsCaption: string = 'Particle Systems';
 
     /**
      * Constructor
@@ -43,52 +25,49 @@ export default class ParticlesCreatorExtension extends Extension<ParticlesCreato
     }
 
     /**
+     * On the user renames the asset
+     * @param asset the asset being renamed
+     * @param name the new name of the asset
+     */
+    public onRenameAsset (asset: AssetElement<ParticlesCreatorMetadata>, name: string): void {
+        asset.data.name = name;
+    }
+
+    /**
+     * On the user wants to remove the asset
+     * @param asset the asset to remove
+     */
+    public onRemoveAsset (asset: AssetElement<any>): void {
+        const metadata = this.scene.metadata.particleSystems;
+        const index = metadata.indexOf(asset.data);
+        if (index !== -1) {
+            metadata.splice(index, 1);
+        }
+    }
+
+    /**
+     * On the user adds an asset
+     * @param asset the asset to add
+     */
+    public onAddAsset (asset: AssetElement<any>): void {
+        this.scene.metadata.particleSystems.push(asset.data);
+    }
+
+    /**
+     * On get all the assets to be drawn in the assets component
+     */
+    public onGetAssets (): AssetElement<any>[] {
+        return this.scene.metadata.particleSystems.map(ps => ({
+            name: ps.name,
+            data: ps
+        }));
+    }
+
+    /**
      * On apply the extension
      */
-    public onApply (data: ParticlesCreatorMetadata[], rootUrl?: string): void {
+    public onApply (data: ParticlesCreatorMetadata[]): void {
         this.datas = data;
-
-        // Add custom code
-        data.forEach(d => {
-            if (!d.apply)
-                return;
-            
-            const id = d.id + Tools.RandomId();
-
-            // Get particle system
-            const ps = <ParticleSystem> this.scene.getParticleSystemByID(d.id);
-            if (!ps)
-                return;
-
-            // Url
-            let url = window.location.href;
-            url = url.replace(Tools.GetFilename(url), '') + 'particle-systems/' + d.id.replace(/ /g, '') + '.js';
-
-            // Add script
-            Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', d.compiledCode || d.code), url);
-
-            // Create code
-            const ctor = new EDITOR.ParticlesCreator.Constructors[id](this.scene, ps);
-            const code = new (ctor.ctor || ctor)();
-
-            // Create effect
-            const uniforms: string[] = [];
-            const samplers: string[] = [];
-            const defines: string[] = [];
-            code.setUniforms(uniforms, samplers);
-            code.setDefines(defines);
-
-            Effect.ShadersStore[id + 'VertexShader'] = d.vertex;
-            Effect.ShadersStore[id + 'PixelShader'] = d.pixel;
-
-            const effect = this.scene.getEngine().createEffectForParticles(id, uniforms, samplers, defines.join('\n'));
-            effect.onBind = effect => code.onBind(effect);
-            
-            ps.customShader = effect;
-
-            // Save instance
-            this.instances[d.id] = code;
-        });
     }
 
     /**
@@ -96,29 +75,22 @@ export default class ParticlesCreatorExtension extends Extension<ParticlesCreato
      */
     public onSerialize (): ParticlesCreatorMetadata[] {
         const datas: ParticlesCreatorMetadata[] = [];
-        this.scene.particleSystems.forEach(ps => {
-            if (ps['metadata'] && ps['metadata'].particlesCreator) {
-                ps['metadata'].particlesCreator.id = ps.id;
-                datas.push(ps['metadata'].particlesCreator);
-            }
-        });
-
+        this.scene.metadata.particleSystems.forEach(ps => datas.push({
+            name: ps.name,
+            psData: ps.psData
+        }));
         return datas;
     }
 
     /**
-     * On load the extension (called by the editor when
-     * loading a scene)
+     * On load the extension (called by the editor when loading a scene)
+     * @param data the data being loaded
      */
     public onLoad (data: ParticlesCreatorMetadata[]): void {
-        data.forEach(d => {
-            const ps = this.scene.getParticleSystemByID(d.id);
-            if (!ps)
-                return;
+        this.datas = data;
 
-            ps['metadata'] = ps['metadata'] || { };
-            ps['metadata'].particlesCreator = d;
-        });
+        this.scene.metadata = this.scene.metadata || { };
+        this.scene.metadata.particleSystems = data;
     }
 }
 

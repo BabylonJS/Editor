@@ -1,43 +1,41 @@
-import { ParticleSystem, Effect, Observer } from 'babylonjs';
+import { Mesh, ParticleSystemSet, Observer, ParticleHelper, ParticleSystem } from 'babylonjs';
 import Editor, {
-    EditorPlugin,
-
-    Layout,
-    CodeEditor,
-    Tools,
-    Toolbar
+    EditorPlugin, Tools,
+    Layout, Toolbar, Tree,
+    Dialog
 } from 'babylonjs-editor';
 
 import '../../extensions/particles-creator/particles-creator';
-import { ParticlesCreatorMetadata } from '../../extensions/particles-creator/particles-creator';
+import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from '../../extensions/particles-creator/particles-creator';
 import Extensions from '../../extensions/extensions';
+import Helpers, { Preview } from '../helpers';
 
 export default class ParticlesCreator extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public toolbar: Toolbar = null;
-
-    public functionsCode: CodeEditor = null;
-    public pixelCode: CodeEditor = null;
-    public vertexCode: CodeEditor = null;
+    public tree: Tree = null;
 
     // Protected members
+    protected extension: ParticlesCreatorExtension = null;
+    protected datas: ParticlesCreatorMetadata[] = [];
     protected data: ParticlesCreatorMetadata = null;
-    protected currentTab: string = 'PARTICLES-CREATOR-FUNCTIONS';
 
-    protected selectedObjectEvent: Observer<any> = null;
+    protected preview: Preview = null;
+    protected emitter: Mesh = null;
+    protected set: ParticleSystemSet = null;
+
+    protected onSelectAssetObserver: Observer<any> = null;
 
     // Static members
-    public static DefaultCode: string = '';
-    public static DefaultVertex: string = '';
-    public static DefaultPixel: string = '';
+    public static DefaultSet: any = null;
 
     /**
      * Constructor
      * @param name: the name of the plugin 
      */
     constructor(public editor: Editor) {
-        super('Particles Creator');
+        super('Particle Systems Creator');
     }
 
     /**
@@ -47,11 +45,7 @@ export default class ParticlesCreator extends EditorPlugin {
         this.layout.element.destroy();
         this.toolbar.element.destroy();
 
-        this.functionsCode.dispose();
-        this.vertexCode.dispose();
-        this.pixelCode.dispose();
-
-        this.editor.core.onSelectObject.remove(this.selectedObjectEvent);
+        this.editor.core.onSelectAsset.remove(this.onSelectAssetObserver);
 
         await super.close();
     }
@@ -60,74 +54,50 @@ export default class ParticlesCreator extends EditorPlugin {
      * Creates the plugin
      */
     public async create(): Promise<void> {
-        // Template
-        !ParticlesCreator.DefaultCode && (ParticlesCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/particles-creator/class.ts'));
-        !ParticlesCreator.DefaultVertex && (ParticlesCreator.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/particles-creator/shader.vertex.fx'));
-        !ParticlesCreator.DefaultPixel && (ParticlesCreator.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/particles-creator/shader.fragment.fx'));
-        
+        // Default
+        if (!ParticlesCreator.DefaultSet) {
+            const set = await Tools.LoadFile<string>('./assets/templates/particles-creator/default-set.json', false);
+            ParticlesCreator.DefaultSet = JSON.parse(set);
+        }
+
         // Layout
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
-            { type: 'top', size: 32, resizable: false, content: `<div id="PARTICLES-CREATOR-TOOLBAR" style="width: 100%; height: 100%"></div>` },
-            {
-                type: 'main',
-                resizable: false,
-                content: `
-                    <div id="PARTICLES-CREATOR-FUNCTIONS" style="width: 100%; height: 100%;"></div>
-                    <div id="PARTICLES-CREATOR-VERTEX" style="width: 100%; height: 100%; display: none;"></div>
-                    <div id="PARTICLES-CREATOR-PIXEL" style="width: 100%; height: 100%; display: none;"></div>
-                `,
-                tabs: <any>[
-                    { id: 'functions', caption: 'Functions' },
-                    { id: 'vertex', caption: 'Vertex Shader' },
-                    { id: 'pixel', caption: 'Pixel Shader' }
-                ]
-            }
+            { type: 'top', size: 30, resizable: false, content: `<div id="PARTICLES-CREATOR-TOOLBAR" style="width: 100%; height: 100%"></div>` },
+            { type: 'left', size: '50%', resizable: false,  content: `<div id="PARTICLES-CREATOR-TREE" style="width: 100%; height: 100%;"></div>` },
+            { type: 'main', size: '50%', resizable: false,  content: `<canvas id="PARTICLES-CREATOR-CANVAS" style="width: 100%; height: 100%;"></canvas>` },
         ];
         this.layout.build(this.divElement.id);
 
         // Toolbar
         this.toolbar = new Toolbar('PARTICLES-CREATOR-TOOLBAR');
         this.toolbar.items = [
-            { type: 'button', id: 'apply', img: 'icon-play-game-windowed', text: 'Apply' },
-            { type: 'break' },
-            { type: 'button', img: 'icon-add', text: 'Import From...' }
+            { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PARTICLES-CREATOR-TOOLBAR');
 
-        // Create editors
-        this.functionsCode = new CodeEditor('typescript', '');
-        await this.functionsCode.build('PARTICLES-CREATOR-FUNCTIONS');
-        this.functionsCode.onChange = value => {
-            if (this.data) {
-                this.data.code = value;
-                this.data.compiledCode = this.functionsCode.transpileTypeScript(value, this.data.id.replace(/ /, ''));
-            }
-        };
+        // Create tree
+        this.tree = new Tree('PARTICLES-CREATOR-TREE');
+        this.tree.build('PARTICLES-CREATOR-TREE');
 
-        this.vertexCode = new CodeEditor('cpp', '');
-        await this.vertexCode.build('PARTICLES-CREATOR-VERTEX');
-        this.vertexCode.onChange = value => this.data && (this.data.vertex = value);
+        // Create preview
+        this.preview = Helpers.CreatePreview(<HTMLCanvasElement> $('#PARTICLES-CREATOR-CANVAS')[0]);
+        this.preview.engine.runRenderLoop(() => this.preview.scene.render());
 
-        this.pixelCode = new CodeEditor('cpp', '');
-        await this.pixelCode.build('PARTICLES-CREATOR-PIXEL');
-        this.pixelCode.onChange = value => this.data && (this.data.pixel = value);
-        
-        // Events
-        this.selectedObjectEvent = this.editor.core.onSelectObject.add(obj => this.selectObject(obj));
-        
-        this.layout.getPanelFromType('main').tabs.on('click', (ev) => {
-            $('#' + this.currentTab).hide();
-            this.currentTab = 'PARTICLES-CREATOR-' + ev.target.toUpperCase();
-            $('#' + this.currentTab).show();
-        });
+        this.emitter = new Mesh('emitter', this.preview.scene);
+
+        // Metadatas
+        const metadata = Helpers.GetSceneMetadatas(this.editor.core.scene);
+        this.datas = metadata.particleSystems = metadata.particleSystems || [];
+        this.data = this.datas[0];
 
         // Extension
-        Extensions.RequestExtension(this.editor.core.scene, 'ParticlesCreatorExtension');
+        this.extension = Extensions.RequestExtension(this.editor.core.scene, 'ParticlesCreatorExtension');
+        this.editor.assets.addTab(this.extension);
 
-        // Finish
-        this.selectObject(this.editor.core.currentSelectedObject);
+        // Events
+        this.onSelectAssetObserver = this.editor.core.onSelectAsset.add((a) => this.selectAsset(a));
     }
 
     /**
@@ -149,56 +119,50 @@ export default class ParticlesCreator extends EditorPlugin {
      */
     public onResize (): void {
         this.layout.element.resize();
+        this.preview.engine.resize();
     }
 
     /**
-     * On the user selects an object
-     * @param object the selected object
-     */
-    public selectObject (object: any): void {
-        if (!(object instanceof ParticleSystem)) {
-            this.data = null;
-            this.functionsCode.setValue('');
-            this.vertexCode.setValue('');
-            this.pixelCode.setValue('');
-            this.layout.lockPanel('main', 'No Particle System Selected...');
-            return;
-        }
-
-        object['metadata'] = object['metadata'] || { };
-        this.data = object['metadata'].particlesCreator || {
-            id: object.id,
-            apply: false,
-            code: ParticlesCreator.DefaultCode,
-            vertex: ParticlesCreator.DefaultVertex,
-            pixel: ParticlesCreator.DefaultPixel
-        };
-        object['metadata'].particlesCreator = this.data;
-
-        // Unlock and fill
-        this.layout.unlockPanel('main');
-        this.functionsCode.setValue(this.data.code);
-        this.vertexCode.setValue(this.data.vertex);
-        this.pixelCode.setValue(this.data.pixel);
-    }
-
-    /**
-     * On the user clicks on the toolbar
+     * Called on the user clicks on an item of the toolbar
      * @param id the id of the clicked item
      */
-    public toolbarClicked (id: string): void {
-        if (!this.data)
-            return;
-        
+    protected async toolbarClicked (id: string): Promise<void> {
         switch (id) {
-            // Apply
-            case 'apply':
-                const checked = this.toolbar.isChecked(id, true);
-                this.data.apply = checked;
-                this.toolbar.setChecked(id, checked);
+            // Add a new particle systems set
+            case 'add':
+                const name = await Dialog.CreateWithTextInput('Set name');
+                this.datas.push({ name: name, psData: Tools.Clone(ParticlesCreator.DefaultSet) });
+                this.editor.assets.refresh(this.extension.id);
+                this.editor.assets.showTab(this.extension.id);
                 break;
-            
-            default: break;
         }
+    }
+
+    /**
+     * Called on the user selects an asset in the assets panel
+     * @param asset the asset being selected
+     */
+    protected async selectAsset (asset: ParticlesCreatorMetadata): Promise<void> {
+        if (!asset || !asset.psData)
+            return;
+
+        // Dispose previous set
+        if (this.set)
+            this.set.dispose();
+
+        // Parse set
+        this.set = new ParticleSystemSet();
+        asset.psData.systems.forEach(ps => {
+            const rootUrl = ps.textureName.indexOf('data:') === 0 ? '' : 'file:';
+            this.set.systems.push(ParticleSystem.Parse(ps, this.preview.scene, rootUrl, false));
+        });
+
+        this.set.start(this.emitter);
+
+        // Fill tree
+        this.tree.clear();
+        this.set.systems.forEach(s => {
+            this.tree.add({ id: s.id, text: s.name, data: s, img: 'icon-particles' });
+        });
     }
 }
