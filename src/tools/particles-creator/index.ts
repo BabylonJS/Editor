@@ -56,6 +56,8 @@ export default class ParticlesCreator extends EditorPlugin {
         this.preview.scene.dispose();
         this.preview.engine.dispose();
 
+        this.timeline.dispose();
+
         this.editor.core.onSelectAsset.remove(this.onSelectAssetObserver);
 
         await super.close();
@@ -94,8 +96,8 @@ export default class ParticlesCreator extends EditorPlugin {
         // Tabs
         this.tabs = this.layout.getPanelFromType('left').tabs;
         this.tabs.on('click', (ev) => this.tabChanged(ev.target));
-        this.tabs.select('tree');
-        this.tabChanged('tree');
+        this.tabs.select('timeline');
+        this.tabChanged('timeline');
 
         // Toolbar
         this.toolbar = new Toolbar('PARTICLES-CREATOR-TOOLBAR');
@@ -111,6 +113,7 @@ export default class ParticlesCreator extends EditorPlugin {
 
         // Create tree
         this.tree = new Tree('PARTICLES-CREATOR-TREE');
+        this.tree.wholerow = true;
         this.tree.onClick = (<ParticleSystem> (id, data) => {
             this.currentParticleSystem = data;
             this.editor.core.onSelectObject.notifyObservers(data);
@@ -128,7 +131,7 @@ export default class ParticlesCreator extends EditorPlugin {
         this.tree.build('PARTICLES-CREATOR-TREE');
 
         // Create timeline
-        this.timeline = new Timeline(<HTMLDivElement> $('#PARTICLES-CREATOR-TIMELINE')[0]);
+        this.timeline = new Timeline(this, <HTMLDivElement> $('#PARTICLES-CREATOR-TIMELINE')[0]);
 
         // Create preview
         this.preview = Helpers.CreatePreview(<HTMLCanvasElement> $('#PARTICLES-CREATOR-CANVAS')[0]);
@@ -168,6 +171,9 @@ export default class ParticlesCreator extends EditorPlugin {
     public onResize (): void {
         this.layout.element.resize();
         this.preview.engine.resize();
+
+        const size = this.layout.getPanelSize('left');
+        this.timeline.resize(size.width, size.height);
     }
 
     /**
@@ -311,6 +317,9 @@ export default class ParticlesCreator extends EditorPlugin {
             this.tree.select(ps.id);
             this.editor.core.onSelectObject.notifyObservers(ps);
         }
+
+        // Refresh timeline
+        this.timeline.setSet(this.set);
     }
 
     /**

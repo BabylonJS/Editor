@@ -210,12 +210,18 @@ export default class EditorInspector {
                 if (t.divId === this.lastTabName)
                     lastTool = t;
 
+                // On change
+                t.tool.onChange(t.tool.element, (property, result, object, initialValue) => {
+                    this.editor.core.onModifyingObject.notifyObservers(this.currentObject);
+                });
+
                 // Manage undo / redo
                 t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
                     UndoRedo.Push({ baseObject: t.object, property: property, to: result, from: initialValue, object: object });
                     Tags.AddTagsTo(t.object, 'modified');
                     this.editor.graph.updateObjectMark(t.object);
                     t.onModified && t.onModified();
+                    this.editor.core.onModifiedObject.notifyObservers(this.currentObject);
                 });
 
                 this.currentTools.push(t);
