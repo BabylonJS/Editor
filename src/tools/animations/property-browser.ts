@@ -3,8 +3,8 @@ import {
     Vector2, Vector3, Vector4,
     Color3, Color4,
     Quaternion,
-    Camera,
-    Material
+    Camera, ParticleSystem,
+    Material,
 } from 'babylonjs';
 import { Window, Graph, GraphNode, Tools } from 'babylonjs-editor';
 
@@ -150,7 +150,7 @@ export default class PropertyBrowser {
                 continue;
             
             const id = `${rootName === '' ? '' : (rootName + '.')}${thing}`;
-            const allowed = this._allowedTypes.indexOf(ctor) !== -1;
+            const allowed = (thing === 'emitter' && root instanceof ParticleSystem) || (this._allowedTypes.indexOf(ctor) !== -1);
             const deep = this._deepTypes.find(dt => value instanceof dt);
 
             if (!allowed && !deep)

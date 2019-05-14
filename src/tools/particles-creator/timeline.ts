@@ -48,27 +48,7 @@ export default class Timeline {
         this.timeMs.hide();
 
         // Events
-        this._modifyingObjectObserver = creator.editor.core.onModifyingObject.add((o: ParticleSystem) => {
-            if (!this._set)
-                return;
-            
-            const index = this._set.systems.indexOf(o);
-            if (index !== -1) {
-                const s = this.systems[index];
-                const t = this.names[index];
-                const diff = (o.startDelay - s.data('sd')) / 1000 * Timeline._Scale;
-                s.transform(`t${diff},0`);
-                t.transform(`t${diff},0`);
-            }
-        });
-        this._modifiedObjectObserver = creator.editor.core.onModifiedObject.add((o: ParticleSystem) => {
-            if (!this._set)
-                return;
-        
-            const index = this._set.systems.indexOf(o);
-            if (index !== -1)
-                this.setSet(this._set);
-        });
+        this._bindEvents();
     }
 
     /**
@@ -256,6 +236,31 @@ export default class Timeline {
         });
 
         s.drag(<any> onMove, <any> onStart, <any> onEnd);
+    }
+
+    // Binds the needed events
+    private _bindEvents (): void {
+        this._modifyingObjectObserver = this.creator.editor.core.onModifyingObject.add((o: ParticleSystem) => {
+            if (!this._set)
+                return;
+            
+            const index = this._set.systems.indexOf(o);
+            if (index !== -1) {
+                const s = this.systems[index];
+                const t = this.names[index];
+                const diff = (o.startDelay - s.data('sd')) / 1000 * Timeline._Scale;
+                s.transform(`t${diff},0`);
+                t.transform(`t${diff},0`);
+            }
+        });
+        this._modifiedObjectObserver = this.creator.editor.core.onModifiedObject.add((o: ParticleSystem) => {
+            if (!this._set)
+                return;
+        
+            const index = this._set.systems.indexOf(o);
+            if (index !== -1)
+                this.setSet(this._set);
+        });
     }
 
     // Returns all movable elements of the paper

@@ -212,6 +212,15 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
 
             // Color Dead
             this.tool.addColor(this.tool.element, 'Color Dead', ps.colorDead).open();
+
+            // Animations
+            const animations = this.tool.addFolder('Animations');
+            animations.open();
+
+            animations.add(ps, 'beginAnimationOnStart').name('Begin Animations On Start');
+            animations.add(ps, 'beginAnimationFrom').min(0).step(1).name('Begin Animation From');
+            animations.add(ps, 'beginAnimationTo').min(0).step(1).name('Begin Animation To');
+            animations.add(ps, 'beginAnimationLoop').name('Begin Animation Loop');
         }
     }
 
