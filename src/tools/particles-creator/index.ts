@@ -1,4 +1,4 @@
-import { Mesh, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools } from 'babylonjs';
+import { Mesh, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools, FilesInputStore } from 'babylonjs';
 import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
@@ -10,11 +10,14 @@ import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from '../../exten
 import Extensions from '../../extensions/extensions';
 import Helpers, { Preview } from '../helpers';
 
+import Timeline from './timeline';
+
 export default class ParticlesCreator extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public toolbar: Toolbar = null;
     public tree: Tree = null;
+    public tabs: W2UI.W2Tabs = null;
 
     // Protected members
     protected extension: ParticlesCreatorExtension = null;
@@ -25,9 +28,12 @@ export default class ParticlesCreator extends EditorPlugin {
     protected emitter: Mesh = null;
     protected set: ParticleSystemSet = null;
 
+    protected timeline: Timeline = null;
     protected currentParticleSystem: ParticleSystem = null;
-
     protected onSelectAssetObserver: Observer<any> = null;
+
+    // Private members
+    private _isSaving: boolean = false;
 
     // Static members
     public static DefaultSet: any = null;
@@ -69,19 +75,39 @@ export default class ParticlesCreator extends EditorPlugin {
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: `<div id="PARTICLES-CREATOR-TOOLBAR" style="width: 100%; height: 100%"></div>` },
-            { type: 'left', size: '50%', resizable: false,  content: `<div id="PARTICLES-CREATOR-TREE" style="width: 100%; height: 100%;"></div>` },
-            { type: 'main', size: '50%', resizable: false,  content: `<canvas id="PARTICLES-CREATOR-CANVAS" style="width: 100%; height: 100%;"></canvas>` },
+            {
+                type: 'left',
+                size: '50%',
+                resizable: false, 
+                content: `
+                    <div id="PARTICLES-CREATOR-TREE" style="width: 100%; height: 100%;"></div>
+                    <div id="PARTICLES-CREATOR-TIMELINE" style="width: 100%; height: 100%; overflow: hidden;"></div>`,
+                tabs: <any> [
+                    { id: 'tree', caption: 'List' },
+                    { id: 'timeline', caption: 'Timeline' }
+                ]
+            },
+            { type: 'main', size: '50%', resizable: false,  content: `<canvas id="PARTICLES-CREATOR-CANVAS" style="width: 100%; height: 100%; position: absolute; top: 0;"></canvas>` },
         ];
         this.layout.build(this.divElement.id);
+
+        // Tabs
+        this.tabs = this.layout.getPanelFromType('left').tabs;
+        this.tabs.on('click', (ev) => this.tabChanged(ev.target));
+        this.tabs.select('tree');
+        this.tabChanged('tree');
 
         // Toolbar
         this.toolbar = new Toolbar('PARTICLES-CREATOR-TOOLBAR');
         this.toolbar.items = [
             { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
-            { id: 'reset', text: 'Reset', caption: 'Reset', img: 'icon-play-game' }
+            { id: 'reset', text: 'Reset', caption: 'Reset', img: 'icon-play-game' },
+            { type: 'break' },
+            { id: 'save', text: 'Save', caption: 'Save', img: 'icon-files' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PARTICLES-CREATOR-TOOLBAR');
+        this.toolbar.items.forEach(i => this.toolbar.enable(i.id, false));
 
         // Create tree
         this.tree = new Tree('PARTICLES-CREATOR-TREE');
@@ -92,7 +118,6 @@ export default class ParticlesCreator extends EditorPlugin {
         this.tree.onCanDrag = () => false;
         this.tree.onRename = (<ParticleSystem> (id, name, data) => {
             this.currentParticleSystem.name = name;
-            this.saveSet();
             return true;
         });
         this.tree.onContextMenu = (<ParticleSystem> (id, data) => {
@@ -101,6 +126,9 @@ export default class ParticlesCreator extends EditorPlugin {
             ];
         });
         this.tree.build('PARTICLES-CREATOR-TREE');
+
+        // Create timeline
+        this.timeline = new Timeline(<HTMLDivElement> $('#PARTICLES-CREATOR-TIMELINE')[0]);
 
         // Create preview
         this.preview = Helpers.CreatePreview(<HTMLCanvasElement> $('#PARTICLES-CREATOR-CANVAS')[0]);
@@ -151,14 +179,35 @@ export default class ParticlesCreator extends EditorPlugin {
             // Add a new particle systems set
             case 'add':
                 const name = await Dialog.CreateWithTextInput('Particle System name?');
-                const ps = this.addSystemToSet(ParticlesCreator.DefaultSet.systems[0], name);
-                this.saveSet();
+                this.addSystemToSet(ParticlesCreator.DefaultSet.systems[0], name);
                 this.resetSet(true);
                 break;
             // Reset particle systems set
             case 'reset':
-                this.resetSet();
+                this.resetSet(true);
                 break;
+
+            // Save
+            case 'save':
+                this.saveSet();
+                break;
+        }
+    }
+
+    /**
+     * Called on the user changes tab
+     * @param id the id of the new tab
+     */
+    protected tabChanged (id: string): void {
+        // Hide all
+        $('#PARTICLES-CREATOR-TREE').hide();
+        $('#PARTICLES-CREATOR-TIMELINE').hide();
+
+        // Select which to show
+        switch (id) {
+            case 'tree': $('#PARTICLES-CREATOR-TREE').show(); break;
+            case 'timeline': $('#PARTICLES-CREATOR-TIMELINE').show(); break;
+            default: break;
         }
     }
 
@@ -167,8 +216,14 @@ export default class ParticlesCreator extends EditorPlugin {
      * @param asset the asset being selected
      */
     protected async selectAsset (asset: ParticlesCreatorMetadata): Promise<void> {
-        if (!asset || !asset.psData)
+        if (!asset || !asset.psData) {
+            // Lock toolbar
+            this.toolbar.items.forEach(i => this.toolbar.enable(i.id, false));
             return;
+        }
+
+        // Unlock toolbar
+        this.toolbar.items.forEach(i => this.toolbar.enable(i.id, true));
 
         // Misc.
         this.data = asset;
@@ -219,9 +274,6 @@ export default class ParticlesCreator extends EditorPlugin {
         // Remove from tree
         this.tree.remove(ps.id);
 
-        // Save set
-        this.saveSet();
-
         // Reset
         this.resetSet(true);
     }
@@ -233,6 +285,9 @@ export default class ParticlesCreator extends EditorPlugin {
         if (!this.data)
             return;
 
+        // Const data
+        const data = this.set ? this.set.serialize() : this.data.psData;
+
         // Dispose previous set
         if (this.set)
             this.set.dispose();
@@ -243,26 +298,52 @@ export default class ParticlesCreator extends EditorPlugin {
 
         // Parse set
         this.set = new ParticleSystemSet();
-        this.data.psData.systems.forEach(s => {
+        data.systems.forEach(s => {
             const ps = this.addSystemToSet(s);
             if (fillTree)
                 this.tree.add({ id: ps.id, text: ps.name, data: ps, img: 'icon-particles' });
         });
 
         this.set.start(this.emitter);
+
+        if (this.currentParticleSystem) {
+            const ps = this.set.systems.find(ps => ps.name === this.currentParticleSystem.name);
+            this.tree.select(ps.id);
+            this.editor.core.onSelectObject.notifyObservers(ps);
+        }
     }
 
     /**
      * Saves the current particle systems set
      */
-    protected saveSet (): void {
-        if (!this.data)
+    protected async saveSet (): Promise<void> {
+        if (!this.data || this._isSaving)
             return;
 
         const index = this.datas.indexOf(this.data);
         if (index === -1)
             return;
 
-        this.datas[index].psData = this.set.serialize();
+        // Saving
+        this._isSaving = true;
+
+        // Embed textures by default
+        const save = this.set.serialize();
+        for (const s of save.systems) {
+            const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
+            if (!file)
+                continue;
+            s.textureName = await Tools.ReadFileAsBase64(file);
+        }
+
+        this.datas[index].psData = save;
+
+        // Notify
+        this.layout.lockPanel('top', 'Saved.', false);
+        setTimeout(() => {
+            this.layout.unlockPanel('top');
+        }, 1000);
+
+        this._isSaving = false;
     }
 }

@@ -28,13 +28,13 @@ export default class LavaMaterialTool extends MaterialTool<LavaMaterial> {
         diffuse.open();
 
         this.tool.addColor(diffuse, 'Color', this.object.diffuseColor).open();
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTexture', this.object, false).name('Texture');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTexture', this.object, false).name('Texture');
         
         // Lava
         const lava = this.tool.addFolder('Lava');
         lava.open();
 
-        this.tool.addTexture(lava, this.editor, 'noiseTexture', this.object, false).name('Noise');
+        this.tool.addTexture(lava, this.editor, this.editor.core.scene, 'noiseTexture', this.object, false).name('Noise');
         lava.add(this.object, 'movingSpeed').min(0).name('Moving Speed');
         lava.add(this.object, 'lowFrequencySpeed').min(0).name('Low Frequency Speed');
 

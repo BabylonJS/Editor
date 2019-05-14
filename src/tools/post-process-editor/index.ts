@@ -128,7 +128,7 @@ export default class PostProcessEditor extends EditorPlugin {
                     <div id="POST-PROCESS-CREATOR-EDITOR-CONFIG" style="width: 100%; height: 100%; overflow: hidden; display: none;"></div>
                 `,
                 resizable: true,
-                tabs: <any>[
+                tabs: <any> [
                     { id: 'code', caption: 'Code' },
                     { id: 'pixel', caption: 'Pixel' },
                     { id: 'config', caption: 'Config' }

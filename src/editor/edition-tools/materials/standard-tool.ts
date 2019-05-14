@@ -28,12 +28,12 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         diffuse.open();
         diffuse.add(this.object, 'linkEmissiveWithDiffuse').name('Link Emissive With Diffuse');
         diffuse.add(this.object, 'useAlphaFromDiffuseTexture').name('Use Alpha From Diffuse Texture');
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTexture', this.object).name('Diffuse Texture');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTexture', this.object).name('Diffuse Texture');
         this.tool.addColor(diffuse, 'Color', this.object.diffuseColor).open();
 
         // Bump
         const bump = this.tool.addFolder('Bump');
-        this.tool.addTexture(bump, this.editor, 'bumpTexture', this.object).name('Bump Texture');
+        this.tool.addTexture(bump, this.editor, this.editor.core.scene, 'bumpTexture', this.object).name('Bump Texture');
         bump.add(this.object, 'invertNormalMapX').name('Invert Normal Map X');
         bump.add(this.object, 'invertNormalMapY').name('Invert Normal Map Y');
         bump.add(this.object, 'useParallax').name('Use Parallax');
@@ -47,38 +47,38 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         specular.add(this.object, 'useGlossinessFromSpecularMapAlpha').name('Use Glossiness From Specular Map Alpha');
         specular.add(this.object, 'useReflectionFresnelFromSpecular').name('Use Reflection Fresnel From Specular');
         specular.add(this.object, 'useSpecularOverAlpha').name('Use Specular Over Alpha');
-        this.tool.addTexture(specular, this.editor, 'specularTexture', this.object).name('Specular Texture');
+        this.tool.addTexture(specular, this.editor, this.editor.core.scene, 'specularTexture', this.object).name('Specular Texture');
         this.tool.addColor(specular, 'Color', this.object.specularColor).open();
 
         // Opacity
         const opacity = this.tool.addFolder('Opacity');
-        this.tool.addTexture(opacity, this.editor, 'opacityTexture', this.object).name('Opacity Texture');
+        this.tool.addTexture(opacity, this.editor, this.editor.core.scene, 'opacityTexture', this.object).name('Opacity Texture');
 
         // Emissive
         const emissive = this.tool.addFolder('Emissive');
         this.tool.addColor(emissive, 'Emissive', this.object.emissiveColor).open();
         emissive.add(this.object, 'useEmissiveAsIllumination').name('Use Emissive As Illumination');
-        this.tool.addTexture(emissive, this.editor, 'emissiveTexture', this.object).name('Emissive Texture');
+        this.tool.addTexture(emissive, this.editor, this.editor.core.scene, 'emissiveTexture', this.object).name('Emissive Texture');
 
         // Ambient
         const ambient = this.tool.addFolder('Ambient');
         this.tool.addColor(ambient, 'Ambient', this.object.ambientColor).open();
-        this.tool.addTexture(ambient, this.editor, 'ambientTexture', this.object).name('Ambient Texture');
+        this.tool.addTexture(ambient, this.editor, this.editor.core.scene, 'ambientTexture', this.object).name('Ambient Texture');
 
         // Light map
         const lightmap = this.tool.addFolder('Lightmap');
         lightmap.add(this.object, 'useLightmapAsShadowmap').name('Use Lightmap As Shadowmap');
-        this.tool.addTexture(lightmap, this.editor, 'lightmapTexture', this.object).name('Lightmap Texture');
+        this.tool.addTexture(lightmap, this.editor, this.editor.core.scene, 'lightmapTexture', this.object).name('Lightmap Texture');
 
         // Reflection
         const reflection = this.tool.addFolder('Reflection');
-        this.tool.addTexture(reflection, this.editor, 'reflectionTexture', this.object, true).name('Reflection Texture');
+        this.tool.addTexture(reflection, this.editor, this.editor.core.scene, 'reflectionTexture', this.object, true).name('Reflection Texture');
 
         // Refraction
         const refraction = this.tool.addFolder('Refraction');
         refraction.add(this.object, 'indexOfRefraction').name('Index of Refraction');
         refraction.add(this.object, 'invertRefractionY').name('Invert Y');
-        this.tool.addTexture(refraction, this.editor, 'refractionTexture', this.object, true).name('Refraction Texture');
+        this.tool.addTexture(refraction, this.editor, this.editor.core.scene, 'refractionTexture', this.object, true).name('Refraction Texture');
 
         // Options
         const options = super.addOptions();

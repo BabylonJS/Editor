@@ -97,7 +97,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
             const lensTexture = bloom.addFolder('Lens Dirt Texture');
             lensTexture.open();
-            this.tool.addTexture(lensTexture, this.editor, 'lensTexture', SceneManager.StandardRenderingPipeline, false, false, texture => {
+            this.tool.addTexture(lensTexture, this.editor, this.editor.core.scene, 'lensTexture', SceneManager.StandardRenderingPipeline, false, false, texture => {
                 SceneManager.StandardRenderingPipeline.lensFlareDirtTexture = <Texture> texture;
             }).name('Texture');
 

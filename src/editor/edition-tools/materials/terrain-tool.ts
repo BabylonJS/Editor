@@ -27,24 +27,24 @@ export default class TerrainMaterialTool extends MaterialTool<TerrainMaterial> {
         const terrain = this.tool.addFolder('Terrain');
         terrain.open();
 
-        this.tool.addTexture(terrain, this.editor, 'mixTexture', this.object, false).name('Mix Texture');
+        this.tool.addTexture(terrain, this.editor, this.editor.core.scene, 'mixTexture', this.object, false).name('Mix Texture');
 
         // Diffuse
         const diffuse = terrain.addFolder('Diffuse');
         diffuse.open();
 
         this.tool.addColor(diffuse, 'Color', this.object.diffuseColor).open();
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTexture1', this.object, false).name('Diffuse Texture R');
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTexture2', this.object, false).name('Diffuse Texture G');
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTexture3', this.object, false).name('Diffuse Texture B');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTexture1', this.object, false).name('Diffuse Texture R');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTexture2', this.object, false).name('Diffuse Texture G');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTexture3', this.object, false).name('Diffuse Texture B');
 
         // Bump
         const bump = terrain.addFolder('Bump');
         bump.open();
 
-        this.tool.addTexture(bump, this.editor, 'bumpTexture1', this.object, false).name('Bump Texture R');
-        this.tool.addTexture(bump, this.editor, 'bumpTexture2', this.object, false).name('Bump Texture G');
-        this.tool.addTexture(bump, this.editor, 'bumpTexture3', this.object, false).name('Bump Texture B');
+        this.tool.addTexture(bump, this.editor, this.editor.core.scene, 'bumpTexture1', this.object, false).name('Bump Texture R');
+        this.tool.addTexture(bump, this.editor, this.editor.core.scene, 'bumpTexture2', this.object, false).name('Bump Texture G');
+        this.tool.addTexture(bump, this.editor, this.editor.core.scene, 'bumpTexture3', this.object, false).name('Bump Texture B');
 
         // Specular
         const specular = terrain.addFolder('Specular');

@@ -27,7 +27,7 @@ export default class CellMaterialTool extends MaterialTool<CellMaterial> {
         diffuse.open();
 
         this.tool.addColor(diffuse, 'Color', this.object.diffuseColor).open();
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTexture', this.object, false).name('Texture');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTexture', this.object, false).name('Texture');
         
         // Cell
         const cell = this.tool.addFolder('Fire');

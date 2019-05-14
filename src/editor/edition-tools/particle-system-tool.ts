@@ -21,6 +21,7 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
     private _currentEmitter: string = '';
     private _currentBlendMode: string = '';
     private _currentEmiterType: string = '';
+    private _currentTexture: string = '';
 
     private _isFromScene: boolean = true;
 
@@ -112,18 +113,23 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             const texture = this.tool.addFolder('Texture');
             texture.open();
 
-            this.tool.addTexture(texture, this.editor, 'particleTexture', ps, false, false, texture => {
-                debugger;
-                if (this._isFromScene)
-                    return;
+            if (this._isFromScene) {
+                this.tool.addTexture(texture, this.editor, this.editor.core.scene, 'particleTexture', ps, false, false).name('Particle Texture');
+            }
+            else {
+                const exts = ['png' ,'jpg', 'jpeg', 'bmp'];
+                const files = ['None'].concat(Object.keys(FilesInputStore.FilesToLoad).filter(k => exts.indexOf(Tools.GetFileExtension(k)) !== -1));
+                this._currentTexture = ps.particleTexture ? files[files.indexOf(ps.particleTexture.name)] || 'None' : 'None';
+                texture.add(this, '_currentTexture', files).name('Particle Texture').onChange(r => {
+                    const file = FilesInputStore.FilesToLoad[r];
+                    if (!file)
+                        return;
 
-                const url = texture['url'];
-                const file = FilesInputStore.FilesToLoad[url];
-                if (!file)
-                    return;
-
-                ps.particleTexture = new Texture('file:' + url, ps.getScene());
-            }).name('Particle Texture');
+                    const texture = new Texture('file:' + r, ps.getScene());
+                    texture.name = texture.url = texture.name.replace('file:', '');
+                    ps.particleTexture = texture;
+                });
+            }
 
             const blendModes = ['BLENDMODE_ONEONE', 'BLENDMODE_STANDARD'];
             this._currentBlendMode = blendModes[ps.blendMode];
@@ -147,6 +153,7 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             const update = this.tool.addFolder('Update');
             update.open();
             update.add(ps, 'updateSpeed').min(0).step(0.01).name('Update Speed');
+            update.add(ps, 'startDelay').min(0).name('Start Delay (ms)');
 
             // Life
             const life = this.tool.addFolder('Life Time');

@@ -926,7 +926,7 @@ declare module 'babylonjs-editor/editor/gui/form' {
 }
 
 declare module 'babylonjs-editor/editor/gui/edition' {
-    import { Color3, Color4, Vector2, Vector3, Vector4, BaseTexture } from 'babylonjs';
+    import { Color3, Color4, Vector2, Vector3, Vector4, BaseTexture, Scene } from 'babylonjs';
     import * as dat from 'dat-gui';
     import Editor from 'babylonjs-editor/editor/editor';
     export default class Edition {
@@ -1007,7 +1007,7 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * @param object the object which has a texture
                 * @param callback: called when changed texture
                 */
-            addTexture(parent: dat.GUI, editor: Editor, property: string, object: any, allowCubes?: boolean, onlyCubes?: boolean, callback?: (texture: BaseTexture) => void): dat.GUIController;
+            addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes?: boolean, onlyCubes?: boolean, callback?: (texture: BaseTexture) => void): dat.GUIController;
     }
 }
 

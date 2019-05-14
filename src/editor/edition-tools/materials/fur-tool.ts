@@ -28,7 +28,7 @@ export default class FurMaterialTool extends MaterialTool<FurMaterial> {
         diffuse.open();
 
         this.tool.addColor(diffuse, 'Color', this.object.diffuseColor, () => this.object.updateFur()).open();
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTexture', this.object, false, false, () => this.object.updateFur()).name('Texture');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTexture', this.object, false, false, () => this.object.updateFur()).name('Texture');
         
         // Fur
         const fur = this.tool.addFolder('Fur');

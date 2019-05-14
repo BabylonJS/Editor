@@ -28,15 +28,15 @@ export default class FireMaterialTool extends MaterialTool<FireMaterial> {
         diffuse.open();
 
         this.tool.addColor(diffuse, 'Color', this.object.diffuseColor).open();
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTexture', this.object, false).name('Texture');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTexture', this.object, false).name('Texture');
         
         // Fire
         const fire = this.tool.addFolder('Fire');
         fire.open();
 
         fire.add(this.object, 'speed').min(0).step(0.01).name('Speed');
-        this.tool.addTexture(fire, this.editor, 'distortionTexture', this.object, false).name('Distortion')
-        this.tool.addTexture(fire, this.editor, 'opacityTexture', this.object, false).name('Opacity');
+        this.tool.addTexture(fire, this.editor, this.editor.core.scene, 'distortionTexture', this.object, false).name('Distortion')
+        this.tool.addTexture(fire, this.editor, this.editor.core.scene, 'opacityTexture', this.object, false).name('Opacity');
         
         // Options
         super.addOptions();
