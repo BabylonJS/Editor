@@ -89,7 +89,12 @@ export default class Timeline {
     public setSet (set: ParticleSystemSet): void {
         if (!set)
             return;
-        
+    
+        // Misc.
+        const shouldPlay = this._set !== set;
+        this._maxX = 0;
+
+        // Save set
         this._set = set;
 
         // Destroy all
@@ -174,10 +179,12 @@ export default class Timeline {
         }
 
         // Play
-        this.playLine.transform('t0,0');
-        this.playLine.attr('x', 0);
-        this.playLine.animate({ transform: `t${this._maxX},0` }, (this._maxX * 1000) / Timeline._Scale);
-        this.playLine.toFront();
+        if (shouldPlay) {
+            this.playLine.transform('t0,0');
+            this.playLine.attr('x', 0);
+            this.playLine.animate({ transform: `t${this._maxX},0` }, (this._maxX * 1000) / Timeline._Scale);
+            this.playLine.toFront();
+        }
 
         // Systems are front
         this.systems.forEach(s => s.toFront());
@@ -187,6 +194,7 @@ export default class Timeline {
 
     // Performs a drag'n'drop animation for the background
     private _onMoveBackground (): void {
+        // Drag'n'drop
         let ox = 0;
         let lx = 0;
         let all: RaphaelElement[] = [];
@@ -197,10 +205,7 @@ export default class Timeline {
 
         const onMove = ((dx: number, dy: number, x: number, y: number, ev: DragEvent) => {
             lx = dx + ox;
-
-            all.forEach(a => {
-                a.attr('x', (a.data('bx') || 0) + lx);
-            });
+            all.forEach(a => a.attr('x', (a.data('bx') || 0) + lx));
         });
 
         const onEnd = ((ev) => {
@@ -208,6 +213,15 @@ export default class Timeline {
         });
 
         this.background.drag(<any> onMove, <any> onStart, <any> onEnd);
+
+        // Wheel
+        this.background.node.addEventListener('wheel', (ev) => {
+            Timeline._Scale -= ev.deltaY * 0.05;
+            if (Timeline._Scale < 30)
+                Timeline._Scale = 30;
+            
+            this.setSet(this._set);
+        });
     }
 
     // Performs a drag'n'drop animation for systems
