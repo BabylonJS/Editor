@@ -1,5 +1,6 @@
 import * as Raphael from 'raphael';
 import { ParticleSystemSet, ParticleSystem, Observer } from 'babylonjs';
+import { ContextMenu } from 'babylonjs-editor';
 
 import ParticlesCreator from './index';
 
@@ -9,11 +10,12 @@ export default class Timeline {
     public background: RaphaelElement;
     public timeBackground: RaphaelElement;
     public timeLines: RaphaelElement[] = [];
-    public timeMs: RaphaelElement;
+    public playLine: RaphaelElement;
 
     public separators: RaphaelElement[] = [];
     public systems: RaphaelElement[] = [];
     public names: RaphaelElement[] = [];
+    public times: RaphaelElement[] = [];
 
     // Private members
     private _maxX: number = 0;
@@ -43,9 +45,10 @@ export default class Timeline {
         this.timeBackground.attr('fill', '#777');
         this.timeBackground.attr('stroke', '#777');
 
-        // Time helper
-        this.timeMs = this.paper.text(0, 0, 'N/A');
-        this.timeMs.hide();
+        // Play line
+        this.playLine = this.paper.rect(0, 0, 1, 1);
+        this.playLine.attr('fill', '#999');
+        this.playLine.attr('stroke', '#999');
 
         // Events
         this._bindEvents();
@@ -74,6 +77,8 @@ export default class Timeline {
 
         this.timeBackground.attr('width', width);
 
+        this.playLine.attr('height', height);
+
         this.setSet(this._set);
     }
 
@@ -97,6 +102,9 @@ export default class Timeline {
         this.names.forEach(n => n.remove());
         this.names = [];
 
+        this.times.forEach(t => t.remove());
+        this.times = [];
+
         this.timeLines.forEach(t => t.remove());
         this.timeLines = [];
 
@@ -112,13 +120,21 @@ export default class Timeline {
             system.data('bx', system.attr('x'));
             this.systems.push(system);
 
-            // Test
-            const text = this.paper.text(0, 0, s.name);
-            text.attr('x', system.attr('x') +  system.attr('width') / 2 - text.attr('width') / 2);
-            text.attr('y', system.attr('y') + system.attr('height') / 2 - text.attr('height') / 2);
-            text.data('bx', text.attr('x'));
-            text.node.style.pointerEvents = 'none';
-            this.names.push(text);
+            // Name
+            const name = this.paper.text(0, 0, s.name);
+            name.attr('x', system.attr('x') +  system.attr('width') / 2 - name.attr('width') / 2);
+            name.attr('y', system.attr('y') + system.attr('height') / 2 - name.attr('height') / 2 - 10);
+            name.data('bx', name.attr('x'));
+            name.node.style.pointerEvents = 'none';
+            this.names.push(name);
+
+            // Time
+            const time = this.paper.text(0, 0, s.startDelay + ' (ms)');
+            time.attr('x', system.attr('x') +  system.attr('width') / 2 - time.attr('width') / 2);
+            time.attr('y', system.attr('y') + system.attr('height') / 2 - time.attr('height') / 2 + 10);
+            time.data('bx', name.attr('x'));
+            time.node.style.pointerEvents = 'none';
+            this.times.push(time);
 
             // Create line
             const separator = this.paper.rect(0, 40 * (index + 1) - 2.5, this.paper.width, 1);
@@ -127,7 +143,8 @@ export default class Timeline {
             this.separators.push(separator);
 
             // Events
-            this._onMoveSystem(<ParticleSystem> s, system, text);
+            this._onMoveSystem(<ParticleSystem> s, system, name, time);
+            this._onShowSystemContextMenu(<ParticleSystem> s, system);
 
             if (system.attr('x') > this._maxX)
                 this._maxX = system.attr('x') + system.attr('width');
@@ -148,7 +165,7 @@ export default class Timeline {
             this.timeLines.push(line);
 
             if (isSecond) {
-                const text = this.paper.text(0, 20, ((i / steps) >> 0).toString());
+                const text = this.paper.text(0, 20, ((i / steps) >> 0) + ' (s)');
                 text.attr('x', i * diff + 5 + text.attr('width'));
                 text.data('bx', text.attr('x'));
                 text.node.style.pointerEvents = 'none';
@@ -156,9 +173,16 @@ export default class Timeline {
             }
         }
 
+        // Play
+        this.playLine.transform('t0,0');
+        this.playLine.attr('x', 0);
+        this.playLine.animate({ transform: `t${this._maxX},0` }, (this._maxX * 1000) / Timeline._Scale);
+        this.playLine.toFront();
+
         // Systems are front
         this.systems.forEach(s => s.toFront());
         this.names.forEach(n => n.toFront());
+        this.times.forEach(t => t.toFront());
     }
 
     // Performs a drag'n'drop animation for the background
@@ -187,14 +211,13 @@ export default class Timeline {
     }
 
     // Performs a drag'n'drop animation for systems
-    private _onMoveSystem (system: ParticleSystem, s: RaphaelElement, t: RaphaelElement): void {
+    private _onMoveSystem (system: ParticleSystem, s: RaphaelElement, n: RaphaelElement, t: RaphaelElement): void {
         const bx = s.attr('x');
         let ox = 0;
         let lx = 0;
 
         const onStart = ((x: number, y: number, ev: DragEvent) => {
             s.attr('opacity', 0.3);
-            this.timeMs.show();
 
             // Stroke width
             this.systems.forEach(s => s.attr('stroke-width', 0));
@@ -213,22 +236,19 @@ export default class Timeline {
             lx = dx + ox;
 
             s.transform(`t${lx},0`);
+            n.transform(`t${lx},0`);
             t.transform(`t${lx},0`);
 
-            this.timeMs.attr('x', s.attr('x') + lx);
-            this.timeMs.attr('y', s.attr('y') - 10);
-            this.timeMs.attr('text', ms);
+            t.attr('text', ms + ' (ms)');
         });
 
         const onEnd = ((ev) => {
             ox = lx;
-
             system.startDelay = ((bx + ox) / Timeline._Scale * 1000) >> 0;
 
+            // Update system
             s.attr('opacity', 1);
             s.data('sd', system.startDelay);
-
-            this.timeMs.hide();
 
             // Update tools
             if (this.creator.editor.edition.currentObject === system)
@@ -236,6 +256,16 @@ export default class Timeline {
         });
 
         s.drag(<any> onMove, <any> onStart, <any> onEnd);
+    }
+
+    // Performs a context menu on the user right-clicks on the system
+    private _onShowSystemContextMenu (system: ParticleSystem, s: RaphaelElement): void {
+        s.node.classList.add('ctxmenu');
+        s.node.addEventListener('contextmenu', (ev: MouseEvent) => {
+            ContextMenu.Show(ev, {
+                remove: { name: 'Remove', callback: () => this.creator.removeSystemFromSet(system) }
+            });
+        });
     }
 
     // Binds the needed events
@@ -247,9 +277,12 @@ export default class Timeline {
             const index = this._set.systems.indexOf(o);
             if (index !== -1) {
                 const s = this.systems[index];
-                const t = this.names[index];
+                const n = this.names[index];
+                const t = this.times[index];
                 const diff = (o.startDelay - s.data('sd')) / 1000 * Timeline._Scale;
+
                 s.transform(`t${diff},0`);
+                n.transform(`t${diff},0`);
                 t.transform(`t${diff},0`);
             }
         });

@@ -2,7 +2,7 @@ import { Mesh, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTool
 import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
-    Dialog
+    Dialog, UndoRedo
 } from 'babylonjs-editor';
 
 import '../../extensions/particles-creator/particles-creator';
@@ -18,6 +18,8 @@ export default class ParticlesCreator extends EditorPlugin {
     public toolbar: Toolbar = null;
     public tree: Tree = null;
     public tabs: W2UI.W2Tabs = null;
+
+    public undoRedoId: string = 'particles-creator';
 
     // Protected members
     protected extension: ParticlesCreatorExtension = null;
@@ -221,7 +223,7 @@ export default class ParticlesCreator extends EditorPlugin {
      * Called on the user selects an asset in the assets panel
      * @param asset the asset being selected
      */
-    protected async selectAsset (asset: ParticlesCreatorMetadata): Promise<void> {
+    protected selectAsset (asset: ParticlesCreatorMetadata): void {
         if (!asset || !asset.psData) {
             // Lock toolbar
             this.toolbar.items.forEach(i => this.toolbar.enable(i.id, false));
@@ -235,7 +237,18 @@ export default class ParticlesCreator extends EditorPlugin {
         this.data = asset;
 
         // Set
+        if (this.set) {
+            this.set.dispose();
+            this.set = null;
+        }
+
         this.resetSet(true);
+
+        // Timeline
+        this.timeline.setSet(this.set);
+
+        // Undo/Redo
+        UndoRedo.ClearScope(this.undoRedoId);
     }
 
     /**
@@ -266,7 +279,7 @@ export default class ParticlesCreator extends EditorPlugin {
      * Removes the given particle system from the current set
      * @param ps the particle system to remove
      */
-    protected removeSystemFromSet (ps: ParticleSystem): void {
+    public removeSystemFromSet (ps: ParticleSystem): void {
         // Remove from set
         const index = this.set.systems.indexOf(ps);
         if (index === -1)
@@ -286,8 +299,9 @@ export default class ParticlesCreator extends EditorPlugin {
 
     /**
      * Resets the particle systems set
+     * @param fillTree wehter or not the list tree should be filled.
      */
-    protected resetSet (fillTree: boolean = false): void {
+    public resetSet (fillTree: boolean = false): void {
         if (!this.data)
             return;
 
@@ -314,8 +328,10 @@ export default class ParticlesCreator extends EditorPlugin {
 
         if (this.currentParticleSystem) {
             const ps = this.set.systems.find(ps => ps.name === this.currentParticleSystem.name);
-            this.tree.select(ps.id);
-            this.editor.core.onSelectObject.notifyObservers(ps);
+            if (ps) {
+                this.tree.select(ps.id);
+                this.editor.core.onSelectObject.notifyObservers(ps);
+            }
         }
 
         // Refresh timeline

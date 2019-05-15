@@ -167,10 +167,14 @@ export default class AnimationEditor extends EditorPlugin {
 
         // No data text
         this.noDataText = this.paper.text(0, 0, 'No Animation Selected');
+        this.noDataText.node.style.pointerEvents = 'none';
+        this.noDataText.node.style.userSelect = 'none';
         this.noDataText.attr('font-size', 64);
 
         // Value text
         this.valueText = this.paper.text(0, 0, '0.0');
+        this.valueText.node.style.pointerEvents = 'none';
+        this.valueText.node.style.userSelect = 'none';
         this.valueText.attr('font-size', 10);
         this.valueText.hide();
 
@@ -615,6 +619,8 @@ export default class AnimationEditor extends EditorPlugin {
 
                 // Text
                 const text = this.paper.text(x, 30, (((x * maxFrame) / this.paper.width)).toFixed(2));
+                text.node.style.pointerEvents = 'none';
+                text.node.style.userSelect = 'none';
                 text.attr('opacity', 0.4);
                 this.timelineTexts.push(text);
             }
@@ -642,6 +648,8 @@ export default class AnimationEditor extends EditorPlugin {
                 if (i > 0) {
                     const text = this.paper.text(30, y, currentValue.toFixed(2));
                     text.attr('opacity', 0.4);
+                    text.node.style.pointerEvents = 'none';
+                    text.node.style.userSelect = 'none';
                     this.timelineTexts.push(text);
                 }
 
@@ -853,6 +861,9 @@ export default class AnimationEditor extends EditorPlugin {
                     this.updateGraph(animation);
                 }
             });
+
+            // Notify
+            this.editor.core.onModifiedObject.notifyObservers(this.animatable);
         };
 
         data.point.drag(<any>onMove, <any>onStart, <any>onEnd);
@@ -915,7 +926,7 @@ export default class AnimationEditor extends EditorPlugin {
      * On click on the timeline
      */
     protected onClickTimeline(maxFrame: number): void {
-        this.timeline.click((ev: MouseEvent) => {
+        this.timeline.mousedown((ev: MouseEvent) => {
             if (this.isPlaying)
                 return;
             
