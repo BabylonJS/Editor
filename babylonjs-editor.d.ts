@@ -37,10 +37,11 @@ declare module 'babylonjs-editor' {
     import ScenePreview from 'babylonjs-editor/editor/scene/scene-preview';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
+    import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from 'babylonjs-editor/editor/particles/asset-component';
     import Storage from 'babylonjs-editor/editor/storage/storage';
     import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, Storage, VSCodeSocket };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -1899,6 +1900,59 @@ declare module 'babylonjs-editor/editor/prefabs/prefab' {
     }
 }
 
+declare module 'babylonjs-editor/editor/particles/asset-component' {
+    import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
+    import Editor from 'babylonjs-editor/editor/editor';
+    export interface ParticlesCreatorMetadata {
+            name: string;
+            psData: any;
+    }
+    export default class ParticlesAssetComponent implements IAssetComponent {
+            editor: Editor;
+            id: string;
+            assetsCaption: string;
+            datas: AssetElement<ParticlesCreatorMetadata>[];
+            /**
+                * Constructor
+                * @param scene: the babylonjs scene
+                */
+            constructor(editor: Editor);
+            /**
+                * On the user renames the asset
+                * @param asset the asset being renamed
+                * @param name the new name of the asset
+                */
+            onRenameAsset(asset: AssetElement<ParticlesCreatorMetadata>, name: string): void;
+            /**
+                * On the user wants to remove the asset
+                * @param asset the asset to remove
+                */
+            onRemoveAsset(asset: AssetElement<any>): void;
+            /**
+                * On the user adds an asset
+                * @param asset the asset to add
+                */
+            onAddAsset(asset: AssetElement<any>): void;
+            /**
+                * Creates a new particle systems set asset
+                */
+            onCreateAsset(name: string): Promise<AssetElement<any>>;
+            /**
+                * On get all the assets to be drawn in the assets component
+                */
+            onGetAssets(): AssetElement<any>[];
+            /**
+                * Called by the editor when serializing the scene
+                */
+            onSerializeAssets(): AssetElement<ParticlesCreatorMetadata>[];
+            /**
+                * On the user loads the editor project
+                * @param data the previously saved data
+                */
+            onParseAssets(data: AssetElement<ParticlesCreatorMetadata>[]): void;
+    }
+}
+
 declare module 'babylonjs-editor/editor/storage/storage' {
     import Editor from 'babylonjs-editor/editor/editor';
     import Picker from 'babylonjs-editor/editor/gui/picker';
@@ -2381,6 +2435,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
     import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
+    import ParticlesAssetComponent from 'babylonjs-editor/editor/particles/asset-component';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export interface AssetPreviewData {
             asset: AssetElement<any>;
@@ -2395,6 +2450,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
             toolbar: Toolbar;
             components: IAssetComponent[];
             prefabs: PrefabAssetComponent;
+            particles: ParticlesAssetComponent;
             assetPreviewDatas: AssetPreviewData[];
             protected currentComponent: IAssetComponent;
             protected emptyTextNode: HTMLHeadElement;

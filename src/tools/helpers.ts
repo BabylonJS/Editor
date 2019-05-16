@@ -5,12 +5,11 @@ import Extensions from '../extensions/extensions';
 
 import CodeExtension, { BehaviorCode } from '../extensions/behavior/code';
 import { GraphData } from '../extensions/behavior/graph';
-import { ParticlesCreatorMetadata } from '../extensions/particles-creator/particles-creator';
 
 export interface SceneMetadata {
     behaviorScripts?: BehaviorCode[];
     behaviorGraphs?: GraphData[];
-    particleSystems?: ParticlesCreatorMetadata[];
+    [index: string]: any;
 }
 
 export interface Preview {

@@ -3,12 +3,10 @@ import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
     Dialog, UndoRedo,
-    Storage
+    Storage,
+    ParticlesCreatorMetadata
 } from 'babylonjs-editor';
 
-import '../../extensions/particles-creator/particles-creator';
-import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from '../../extensions/particles-creator/particles-creator';
-import Extensions from '../../extensions/extensions';
 import Helpers, { Preview } from '../helpers';
 
 import Timeline from './timeline';
@@ -23,8 +21,6 @@ export default class ParticlesCreator extends EditorPlugin {
     public undoRedoId: string = 'particles-creator';
 
     // Protected members
-    protected extension: ParticlesCreatorExtension = null;
-    protected datas: ParticlesCreatorMetadata[] = [];
     protected data: ParticlesCreatorMetadata = null;
 
     protected preview: Preview = null;
@@ -145,14 +141,6 @@ export default class ParticlesCreator extends EditorPlugin {
         this.preview.engine.runRenderLoop(() => this.preview.scene.render());
 
         this.emitter = new Mesh('emitter', this.preview.scene);
-
-        // Metadatas
-        const metadata = Helpers.GetSceneMetadatas(this.editor.core.scene);
-        this.datas = metadata.particleSystems = metadata.particleSystems || [];
-
-        // Extension
-        this.extension = Extensions.RequestExtension(this.editor.core.scene, 'ParticlesCreatorExtension');
-        this.editor.assets.addTab(this.extension);
 
         // Events
         this.onSelectAssetObserver = this.editor.core.onSelectAsset.add((a) => this.selectAsset(a));
@@ -364,12 +352,8 @@ export default class ParticlesCreator extends EditorPlugin {
         if (!this.data)
             return;
 
-        const index = this.datas.indexOf(this.data);
-        if (index === -1)
-            return;
-
         // Save!
-        this.datas[index].psData = this.set.serialize();
+        this.data.psData = this.set.serialize();
     }
 
     /**

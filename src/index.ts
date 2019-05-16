@@ -35,6 +35,8 @@ import ScenePreview from './editor/scene/scene-preview';
 import PrefabAssetComponent from './editor/prefabs/asset-component';
 import { Prefab, PrefabNodeType } from './editor/prefabs/prefab';
 
+import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from './editor/particles/asset-component';
+
 import Storage from './editor/storage/storage';
 
 import VSCodeSocket from './editor/vscode/vscode-socket';
@@ -80,6 +82,9 @@ export {
 
     PrefabAssetComponent,
     Prefab, PrefabNodeType,
+
+    ParticlesCreatorExtension,
+    ParticlesCreatorMetadata,
 
     Storage,
 
