@@ -243,7 +243,7 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
 
         // Embed?
         const embed = await Dialog.Create('Embed textures?', 'Do you want to embed textures in the set?');
-        if (embed) {
+        if (embed === 'Yes') {
             for (const s of serializationObject.systems) {
                 const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
                 if (!file)

@@ -2,7 +2,8 @@ import { Mesh, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTool
 import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
-    Dialog, UndoRedo
+    Dialog, UndoRedo,
+    Storage
 } from 'babylonjs-editor';
 
 import '../../extensions/particles-creator/particles-creator';
@@ -35,7 +36,8 @@ export default class ParticlesCreator extends EditorPlugin {
     protected onSelectAssetObserver: Observer<any> = null;
 
     // Private members
-    private _isSaving: boolean = false;
+    private _modifyingObjectObserver: Observer<any>;
+    private _modifiedObjectObserver: Observer<any>;
 
     // Static members
     public static DefaultSet: any = null;
@@ -61,6 +63,8 @@ export default class ParticlesCreator extends EditorPlugin {
         this.timeline.dispose();
 
         this.editor.core.onSelectAsset.remove(this.onSelectAssetObserver);
+        this.editor.core.onModifyingObject.remove(this._modifyingObjectObserver);
+        this.editor.core.onModifiedObject.remove(this._modifiedObjectObserver);
 
         await super.close();
     }
@@ -107,7 +111,7 @@ export default class ParticlesCreator extends EditorPlugin {
             { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
             { id: 'reset', text: 'Reset', caption: 'Reset', img: 'icon-play-game' },
             { type: 'break' },
-            { id: 'save', text: 'Save', caption: 'Save', img: 'icon-files' }
+            { id: 'export', text: 'Export As...', caption: 'Export As...', img: 'icon-export' },
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PARTICLES-CREATOR-TOOLBAR');
@@ -123,6 +127,7 @@ export default class ParticlesCreator extends EditorPlugin {
         this.tree.onCanDrag = () => false;
         this.tree.onRename = (<ParticleSystem> (id, name, data) => {
             this.currentParticleSystem.name = name;
+            this.resetSet(true);
             return true;
         });
         this.tree.onContextMenu = (<ParticleSystem> (id, data) => {
@@ -151,6 +156,20 @@ export default class ParticlesCreator extends EditorPlugin {
 
         // Events
         this.onSelectAssetObserver = this.editor.core.onSelectAsset.add((a) => this.selectAsset(a));
+        this._modifyingObjectObserver = this.editor.core.onModifyingObject.add((o: ParticleSystem) => {
+            if (!this.data)
+                return;
+            
+            this.timeline.onModifyingSystem(o);
+            this.saveSet();
+        });
+        this._modifiedObjectObserver = this.editor.core.onModifiedObject.add((o: ParticleSystem) => {
+            if (!this.data)
+                return;
+
+            this.timeline.onModifiedSystem(o);
+            this.saveSet();
+        });
     }
 
     /**
@@ -195,9 +214,9 @@ export default class ParticlesCreator extends EditorPlugin {
                 this.resetSet(true);
                 break;
 
-            // Save
-            case 'save':
-                this.saveSet();
+            // Export
+            case 'export':
+                this.exportSet();
                 break;
         }
     }
@@ -341,34 +360,66 @@ export default class ParticlesCreator extends EditorPlugin {
     /**
      * Saves the current particle systems set
      */
-    protected async saveSet (): Promise<void> {
-        if (!this.data || this._isSaving)
+    public saveSet (): void {
+        if (!this.data)
             return;
 
         const index = this.datas.indexOf(this.data);
         if (index === -1)
             return;
 
-        // Saving
-        this._isSaving = true;
+        // Save!
+        this.datas[index].psData = this.set.serialize();
+    }
 
-        // Embed textures by default
-        const save = this.set.serialize();
-        for (const s of save.systems) {
-            const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
-            if (!file)
-                continue;
-            s.textureName = await Tools.ReadFileAsBase64(file);
+    /**
+     * Exports the current set
+     */
+    protected async exportSet (): Promise<void> {
+        if (!this.data)
+            return;
+        
+        // Save
+        this.saveSet();
+
+        // Export
+        const serializationObject = this.set.serialize();
+
+        // Embed?
+        const embed = await Dialog.Create('Embed textures?', 'Do you want to embed textures in the set?');
+        if (embed === 'Yes') {
+            for (const s of serializationObject.systems) {
+                const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
+                if (!file)
+                    continue;
+                s.textureName = await Tools.ReadFileAsBase64(file);
+            }
         }
 
-        this.datas[index].psData = save;
+        // Save data
+        const json = JSON.stringify(serializationObject, null, '\t');
+        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(json), this.data.name + '.json');
 
-        // Notify
-        this.layout.lockPanel('top', 'Saved.', false);
-        setTimeout(() => {
-            this.layout.unlockPanel('top');
-        }, 1000);
+        // Embeded
+        if (embed === 'Yes')
+            return BabylonTools.Download(file, file.name);
 
-        this._isSaving = false;
+        // Not embeded
+        const textureFiles: File[] = [];
+        for (const s of serializationObject.systems) {
+            const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
+            if (!file || textureFiles.indexOf(file) !== -1)
+                continue;
+            textureFiles.push(file);
+        }
+
+        const storage = await Storage.GetStorage(this.editor);
+        await storage.openPicker('Choose destination folder...', [
+            { name: file.name, file: file },
+            { name: 'textures', folder: textureFiles.map(tf => ({
+                name: tf.name,
+                file: tf
+            })) }
+        ]);
     }
 }

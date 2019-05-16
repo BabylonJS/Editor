@@ -20,8 +20,6 @@ export default class Timeline {
     // Private members
     private _maxX: number = 0;
     private _set: ParticleSystemSet = null;
-    private _modifyingObjectObserver: Observer<any>;
-    private _modifiedObjectObserver: Observer<any>;
 
     // Static members
     private static _Scale: number = 100;
@@ -49,18 +47,12 @@ export default class Timeline {
         this.playLine = this.paper.rect(0, 0, 1, 1);
         this.playLine.attr('fill', '#999');
         this.playLine.attr('stroke', '#999');
-
-        // Events
-        this._bindEvents();
     }
 
     /**
      * Disposes the timeline
      */
     public dispose (): void {
-        this.creator.editor.core.onModifyingObject.remove(this._modifyingObjectObserver);
-        this.creator.editor.core.onModifiedObject.remove(this._modifiedObjectObserver);
-
         this.paper.remove();
     }
 
@@ -155,6 +147,10 @@ export default class Timeline {
                 this._maxX = system.attr('x') + system.attr('width');
         });
 
+        // Max z
+        if (this._maxX < 300)
+            this._maxX = 300;
+
         // Add timelines
         const steps = 5;
         const diff = Timeline._Scale / steps;
@@ -190,6 +186,40 @@ export default class Timeline {
         this.systems.forEach(s => s.toFront());
         this.names.forEach(n => n.toFront());
         this.times.forEach(t => t.toFront());
+    }
+
+    /**
+     * Called on the user modifies a system
+     * @param system the system that is being modified
+     */
+    public onModifyingSystem (system: ParticleSystem): void {
+        if (!this._set)
+            return;
+        
+        const index = this._set.systems.indexOf(system);
+        if (index !== -1) {
+            const s = this.systems[index];
+            const n = this.names[index];
+            const t = this.times[index];
+            const diff = (system.startDelay - s.data('sd')) / 1000 * Timeline._Scale;
+
+            s.transform(`t${diff},0`);
+            n.transform(`t${diff},0`);
+            t.transform(`t${diff},0`);
+        }
+    }
+
+    /**
+     * Calld on the user modified a system
+     * @param system the system that has been modified
+     */
+    public onModifiedSystem (system: ParticleSystem): void {
+        if (!this._set)
+            return;
+    
+        const index = this._set.systems.indexOf(system);
+        if (index !== -1)
+            this.setSet(this._set);
     }
 
     // Performs a drag'n'drop animation for the background
@@ -264,6 +294,9 @@ export default class Timeline {
             s.attr('opacity', 1);
             s.data('sd', system.startDelay);
 
+            // Save set
+            this.creator.saveSet();
+
             // Update tools
             if (this.creator.editor.edition.currentObject === system)
                 this.creator.editor.edition.updateDisplay();
@@ -279,34 +312,6 @@ export default class Timeline {
             ContextMenu.Show(ev, {
                 remove: { name: 'Remove', callback: () => this.creator.removeSystemFromSet(system) }
             });
-        });
-    }
-
-    // Binds the needed events
-    private _bindEvents (): void {
-        this._modifyingObjectObserver = this.creator.editor.core.onModifyingObject.add((o: ParticleSystem) => {
-            if (!this._set)
-                return;
-            
-            const index = this._set.systems.indexOf(o);
-            if (index !== -1) {
-                const s = this.systems[index];
-                const n = this.names[index];
-                const t = this.times[index];
-                const diff = (o.startDelay - s.data('sd')) / 1000 * Timeline._Scale;
-
-                s.transform(`t${diff},0`);
-                n.transform(`t${diff},0`);
-                t.transform(`t${diff},0`);
-            }
-        });
-        this._modifiedObjectObserver = this.creator.editor.core.onModifiedObject.add((o: ParticleSystem) => {
-            if (!this._set)
-                return;
-        
-            const index = this._set.systems.indexOf(o);
-            if (index !== -1)
-                this.setSet(this._set);
         });
     }
 

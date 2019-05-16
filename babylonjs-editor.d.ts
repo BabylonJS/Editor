@@ -37,9 +37,10 @@ declare module 'babylonjs-editor' {
     import ScenePreview from 'babylonjs-editor/editor/scene/scene-preview';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
+    import Storage from 'babylonjs-editor/editor/storage/storage';
     import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, VSCodeSocket };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, Storage, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -1895,6 +1896,86 @@ declare module 'babylonjs-editor/editor/prefabs/prefab' {
         sourceNodes?: (Mesh | PrefabNodeType)[];
         sourceNode?: Mesh | PrefabNodeType;
         sourceInstances?: IStringDictionary<PrefabNodeType[]>;
+    }
+}
+
+declare module 'babylonjs-editor/editor/storage/storage' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    import Picker from 'babylonjs-editor/editor/gui/picker';
+    export type FileType = string | Uint8Array | ArrayBuffer;
+    export interface CreateFiles {
+            name: string;
+            data?: FileType | Promise<FileType>;
+            file?: File;
+            folder?: CreateFiles[];
+            doNotOverride?: boolean;
+    }
+    export interface GetFiles {
+            name: string;
+            folder: any;
+    }
+    export default abstract class Storage {
+            editor: Editor;
+            picker: Picker;
+            onCreateFiles: (folder: string) => void;
+            protected filesCount: number;
+            protected _uploadedCount: number;
+            /**
+                * Returns the appropriate storage (OneDrive, Electron, etc.)
+                * @param editor the editor reference
+                */
+            static GetStorage(editor: Editor): Promise<Storage>;
+            /**
+                * Constructor
+                * @param editor: the editor reference
+                */
+            constructor(editor: Editor);
+            /**
+                * Opens the folder picker
+                * @param title the title of the picker
+                * @param filesToWrite the array of files to write on the HDD
+                * @param folder the current working directory to browse
+                * @param overrideFilename if the file browser should override the filename
+                */
+            openPicker(title: string, filesToWrite: CreateFiles[], folder?: string, overrideFilename?: boolean): Promise<any>;
+            /**
+                * Uploads the files
+                * @param folder the target folder
+                * @param filesToWrite the files to upload
+                */
+            protected uploadFiles(folder: string, filesToWrite: CreateFiles[]): Promise<void>;
+            /**
+                * Recursively creates the given files (uncluding folders)
+                * @param folder: the parent folder of the files
+                * @param files files to create
+                */
+            protected recursivelyCreateFiles(folder: any, files: CreateFiles[]): Promise<void>;
+            /**
+                * Returns the number of files to upload
+                * @param files the files to count
+                */
+            protected recursivelyGetFilesToUploadCount(files: CreateFiles[]): number;
+            /**
+             * Returns the number of uploaded files
+             */
+            protected uploadedCount: number;
+            /**
+                * Creates the given folders
+                * @param folder the parent folder
+                * @param names the folders names
+                */
+            abstract createFolders(folder: any, names: string[]): Promise<void>;
+            /**
+                * Creates the given files
+                * @param folder the parent folder
+                * @param files the files to write
+                */
+            abstract createFiles(folder: any, files: CreateFiles[]): Promise<void>;
+            /**
+                * Returns the files available in the given folder
+                * @param folder the parent folder
+                */
+            abstract getFiles(folder?: any): Promise<GetFiles[]>;
     }
 }
 
