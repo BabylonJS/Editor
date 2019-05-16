@@ -19,6 +19,7 @@ export default class Timeline {
 
     // Private members
     private _maxX: number = 0;
+    private _backgroundX: number = 0;
     private _set: ParticleSystemSet = null;
 
     // Static members
@@ -85,6 +86,7 @@ export default class Timeline {
         // Misc.
         const shouldPlay = this._set !== set;
         this._maxX = 0;
+        this._backgroundX = 0;
 
         // Save set
         this._set = set;
@@ -116,6 +118,18 @@ export default class Timeline {
             system.attr('x', (s.startDelay / 1000 * Timeline._Scale));
             system.data('bx', system.attr('x'));
             this.systems.push(system);
+
+            if (shouldPlay) {
+                const scaleFrom = Raphael.animation({ transform: 's1.25,1.25' }, 300);
+                const strokeFrom = Raphael.animation({ 'stroke-width': 5 }, 300);
+                const scaleTo = Raphael.animation({ transform: 's1,1' }, 300);
+                const strokeTo = Raphael.animation({ 'stroke-width': 0 }, 300);
+
+                system.animate(scaleFrom.delay(s.startDelay));
+                system.animate(strokeFrom.delay(s.startDelay));
+                system.animate(scaleTo.delay(s.startDelay + 301));
+                system.animate(strokeTo.delay(s.startDelay + 301));
+            }
 
             // Name
             const name = this.paper.text(0, 0, s.name);
@@ -175,12 +189,12 @@ export default class Timeline {
         }
 
         // Play
-        if (shouldPlay) {
-            this.playLine.transform('t0,0');
-            this.playLine.attr('x', 0);
+        this.playLine.transform('t0,0');
+        this.playLine.attr('x', 0);
+        this.playLine.toFront();
+
+        if (shouldPlay)
             this.playLine.animate({ transform: `t${this._maxX},0` }, (this._maxX * 1000) / Timeline._Scale);
-            this.playLine.toFront();
-        }
 
         // Systems are front
         this.systems.forEach(s => s.toFront());
@@ -225,7 +239,6 @@ export default class Timeline {
     // Performs a drag'n'drop animation for the background
     private _onMoveBackground (): void {
         // Drag'n'drop
-        let ox = 0;
         let lx = 0;
         let all: RaphaelElement[] = [];
 
@@ -234,12 +247,12 @@ export default class Timeline {
         });
 
         const onMove = ((dx: number, dy: number, x: number, y: number, ev: DragEvent) => {
-            lx = dx + ox;
+            lx = dx + this._backgroundX;
             all.forEach(a => a.attr('x', (a.data('bx') || 0) + lx));
         });
 
         const onEnd = ((ev) => {
-            ox = lx;
+            this._backgroundX = lx;
         });
 
         this.background.drag(<any> onMove, <any> onStart, <any> onEnd);
