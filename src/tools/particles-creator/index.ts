@@ -1,4 +1,4 @@
-import { Mesh, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools, FilesInputStore } from 'babylonjs';
+import { Mesh, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools, FilesInputStore, Vector3 } from 'babylonjs';
 import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
@@ -24,7 +24,6 @@ export default class ParticlesCreator extends EditorPlugin {
     protected data: ParticlesCreatorMetadata = null;
 
     protected preview: Preview = null;
-    protected emitter: Mesh = null;
     protected set: ParticleSystemSet = null;
 
     protected timeline: Timeline = null;
@@ -140,8 +139,6 @@ export default class ParticlesCreator extends EditorPlugin {
         // Create preview
         this.preview = Helpers.CreatePreview(<HTMLCanvasElement> $('#PARTICLES-CREATOR-CANVAS')[0]);
         this.preview.engine.runRenderLoop(() => this.preview.scene.render());
-
-        this.emitter = new Mesh('emitter', this.preview.scene);
 
         // Events
         this.onSelectAssetObserver = this.editor.core.onSelectAsset.add((a) => this.selectAsset(a));
@@ -278,7 +275,7 @@ export default class ParticlesCreator extends EditorPlugin {
         const rootUrl = particleSystemData.textureName.indexOf('data:') === 0 ? '' : 'file:';
 
         const ps = ParticleSystem.Parse(particleSystemData, this.preview.scene, rootUrl, false);
-        ps.emitter = this.emitter;
+        ps.emitter = ps.emitter || Vector3.Zero();
         ps.name = name || ps.name;
 
         // Add to set
@@ -336,7 +333,7 @@ export default class ParticlesCreator extends EditorPlugin {
                 this.tree.add({ id: ps.id, text: ps.name, data: ps, img: 'icon-particles' });
         });
 
-        this.set.start(this.emitter);
+        this.set.start();
 
         if (this.currentParticleSystem) {
             const ps = this.set.systems.find(ps => ps.name === this.currentParticleSystem.name);

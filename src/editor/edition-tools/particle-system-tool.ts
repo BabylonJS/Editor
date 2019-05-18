@@ -54,12 +54,13 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
         // Particle System
         if (ps instanceof ParticleSystem) {
             // Emitter
-            if (this._isFromScene) {
-                const emitter = this.tool.addFolder('Emitter');
-                emitter.open();
+            const emitter = this.tool.addFolder('Emitter');
+            emitter.open();
 
+            emitter.add(ps, 'name').name('Name');
+
+            if (this._isFromScene) {
                 emitter.add(ps, 'id').name('Id');
-                emitter.add(ps, 'name').name('Name');
 
                 if (ps.emitter instanceof Vector3)
                     this.tool.addVector(emitter, 'Emitter', ps.emitter);
@@ -73,6 +74,9 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
                             ps.emitter = mesh;
                     });
                 }
+            }
+            else {
+                this.tool.addVector(emitter, 'Emitter', <Vector3> ps.emitter);
             }
 
             // Emitter type
