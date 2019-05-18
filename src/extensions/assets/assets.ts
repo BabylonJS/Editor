@@ -1,4 +1,4 @@
-import { Node, Scene, Mesh, ParticleSystemSet, Vector3 } from 'babylonjs';
+import { Node, Scene, Mesh, ParticleSystemSet, Vector3, ParticleSystem } from 'babylonjs';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -88,7 +88,17 @@ export default class AssetsExtension extends Extension<ProjectAssets> {
             if (ps.name !== name)
                 continue;
 
-            const set = this._particlesInstances[name] || ParticleSystemSet.Parse(ps.data.psData, this.scene, false);
+            let set = this._particlesInstances[name];
+            if (!set) {
+                set = new ParticleSystemSet();
+                ps.data.psData.systems.forEach(s => {
+                    const ps = ParticleSystem.Parse(s, this.scene, Extensions.RoolUrl, true);
+                    set.systems.push(ps);
+                });
+
+                this._particlesInstances[name] = set;
+            }
+
             if (position) {
                 set.systems.forEach(s => s.emitter = position);
             }
