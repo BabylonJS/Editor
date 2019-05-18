@@ -1942,6 +1942,11 @@ declare module 'babylonjs-editor/editor/particles/asset-component' {
                 */
             onGetAssets(): AssetElement<any>[];
             /**
+                * On the user double clicks on asset
+                * @param asset the asset being double-clicked by the user
+                */
+            onDoubleClickAsset(asset: AssetElement<any>): void;
+            /**
                 * Called by the editor when serializing the scene
                 */
             onSerializeAssets(): AssetElement<ParticlesCreatorMetadata>[];

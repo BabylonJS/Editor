@@ -75,6 +75,11 @@ interface BehaviorCodeTools {
      */
     instantiatePrefab<T> (name: string): T;
     /**
+     * Instantiates a particle system set identified by the given name
+     * @param name the name of the particle system set to instantiate
+     */
+    instantiateParticleSystemSet (name: string): BABYLON.ParticleSystemSet;
+    /**
      * Calls the given method with the given parameters on the given object which has scripts providing the given method
      * @param object the object reference where to send the message by calling the given method name
      * @param methodName the method name to call with the given parameters

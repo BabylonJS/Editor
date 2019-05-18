@@ -154,6 +154,7 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             update.open();
             update.add(ps, 'updateSpeed').min(0).step(0.01).name('Update Speed');
             update.add(ps, 'startDelay').min(0).name('Start Delay (ms)');
+            update.add(ps, 'targetStopDuration').min(0).name('Stop Duration (seconds)');
 
             // Life
             const life = this.tool.addFolder('Life Time');

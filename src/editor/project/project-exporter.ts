@@ -234,7 +234,7 @@ export default class ProjectExporter {
         // Usable assets for extensions
         project.customMetadatas['AssetsExtension'] = { };
         
-        const usableAssets = ['prefabs'];
+        const usableAssets = ['prefabs', 'particles'];
         usableAssets.forEach(ua => {
             const assets = project.assets[ua];
             if (!assets)

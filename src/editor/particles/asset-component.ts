@@ -10,7 +10,7 @@ export interface ParticlesCreatorMetadata {
 
 export default class ParticlesAssetComponent implements IAssetComponent {
     // Public members
-    public id: string = 'particles-systems-editor';
+    public id: string = 'particles';
     public assetsCaption: string = 'Particles';
 
     public datas: AssetElement<ParticlesCreatorMetadata>[] = [];
@@ -78,6 +78,14 @@ export default class ParticlesAssetComponent implements IAssetComponent {
      */
     public onGetAssets (): AssetElement<any>[] {
         return this.datas;
+    }
+
+    /**
+     * On the user double clicks on asset
+     * @param asset the asset being double-clicked by the user
+     */
+    public onDoubleClickAsset (asset: AssetElement<any>): void {
+        this.editor.addEditPanelPlugin('particles-creator', false, 'Particles System Creator...', asset.data);
     }
 
     /**

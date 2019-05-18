@@ -42,8 +42,9 @@ export default class ParticlesCreator extends EditorPlugin {
      * Constructor
      * @param name: the name of the plugin 
      */
-    constructor(public editor: Editor) {
+    constructor(public editor: Editor, asset: ParticlesCreatorMetadata = null) {
         super('Particle Systems Creator');
+        this.data = asset;
     }
 
     /**
@@ -158,20 +159,24 @@ export default class ParticlesCreator extends EditorPlugin {
             this.timeline.onModifiedSystem(o);
             this.saveSet();
         });
+
+        // Select asset
+        if (this.data)
+            this.selectAsset(this.data);
     }
 
     /**
      * On hide the plugin (do not render scene)
      */
-    public async onHide (): Promise<void> {
+    public onHide (): void {
 
     }
 
     /**
      * On show the plugin (render scene)
      */
-    public async onShow (): Promise<void> {
-
+    public onShow (asset?: ParticlesCreatorMetadata): void {
+        
     }
 
     /**
@@ -399,11 +404,13 @@ export default class ParticlesCreator extends EditorPlugin {
 
         const storage = await Storage.GetStorage(this.editor);
         await storage.openPicker('Choose destination folder...', [
-            { name: file.name, file: file },
-            { name: 'textures', folder: textureFiles.map(tf => ({
-                name: tf.name,
-                file: tf
-            })) }
+            { name: 'systems', folder: [
+                { name: file.name, file: file },
+                { name: 'textures', folder: textureFiles.map(tf => ({
+                    name: tf.name,
+                    file: tf
+                })) }
+            ] }
         ]);
     }
 }
