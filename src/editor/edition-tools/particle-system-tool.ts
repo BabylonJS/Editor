@@ -136,7 +136,7 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             }
 
             const blendModes = ['BLENDMODE_ONEONE', 'BLENDMODE_STANDARD'];
-            this._currentBlendMode = blendModes[ps.blendMode];
+            this._currentBlendMode = blendModes[ps.blendMode] || 'BLENDMODE_ONEONE';
             texture.add(this, '_currentBlendMode', blendModes).name('Blend Mode').onChange(r => ps.blendMode = ParticleSystem[r]);
 
             // Actions
@@ -223,9 +223,16 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
                 const animations = this.tool.addFolder('Animations');
                 animations.open();
 
+                ps.beginAnimationOnStart = ps.beginAnimationOnStart || false;
                 animations.add(ps, 'beginAnimationOnStart').name('Begin Animations On Start');
+                
+                ps.beginAnimationFrom = ps.beginAnimationFrom || 0;
                 animations.add(ps, 'beginAnimationFrom').min(0).step(1).name('Begin Animation From');
+
+                ps.beginAnimationTo = ps.beginAnimationTo || 60;
                 animations.add(ps, 'beginAnimationTo').min(0).step(1).name('Begin Animation To');
+
+                ps.beginAnimationLoop = ps.beginAnimationLoop || false;
                 animations.add(ps, 'beginAnimationLoop').name('Begin Animation Loop');
             }
         }

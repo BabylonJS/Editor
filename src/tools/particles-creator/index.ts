@@ -1,10 +1,9 @@
-import { Mesh, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools, FilesInputStore, Vector3 } from 'babylonjs';
+import { Engine, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools, FilesInputStore, Vector3, ParticleHelper } from 'babylonjs';
 import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
-    Dialog, UndoRedo,
-    Storage,
-    ParticlesCreatorMetadata
+    Dialog, UndoRedo, GraphicsTools,
+    Storage, ParticlesCreatorMetadata
 } from 'babylonjs-editor';
 
 import Helpers, { Preview } from '../helpers';
@@ -108,6 +107,14 @@ export default class ParticlesCreator extends EditorPlugin {
             { id: 'reset', text: 'Reset', caption: 'Reset', img: 'icon-play-game' },
             { type: 'break' },
             { id: 'export', text: 'Export As...', caption: 'Export As...', img: 'icon-export' },
+            { type: 'break' },
+            { id: 'preset', type: 'menu', text: 'Presets', caption: 'Presets', img: 'icon-particles', items: [
+                { id: 'smoke', text: 'Smoke', caption: 'Smoke' },
+                { id: 'sun', text: 'Sun', caption: 'Sun' },
+                { id: 'rain', text: 'Rain', caption: 'Rain' },
+                { id: 'fire', text: 'Fire', caption: 'Fire' },
+                { id: 'explosion', text: 'Explosion', caption: 'Explosion' }
+            ] }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PARTICLES-CREATOR-TOOLBAR');
@@ -138,6 +145,7 @@ export default class ParticlesCreator extends EditorPlugin {
 
         // Create preview
         this.preview = Helpers.CreatePreview(<HTMLCanvasElement> $('#PARTICLES-CREATOR-CANVAS')[0]);
+        this.preview.camera.wheelPrecision = 100;
         this.preview.engine.runRenderLoop(() => this.preview.scene.render());
 
         // Events
@@ -196,7 +204,7 @@ export default class ParticlesCreator extends EditorPlugin {
             // Add a new particle systems set
             case 'add':
                 const name = await Dialog.CreateWithTextInput('Particle System name?');
-                this.addSystemToSet(ParticlesCreator.DefaultSet.systems[0], name);
+                await this.addSystemToSet(ParticlesCreator.DefaultSet.systems[0], name);
                 this.resetSet(true);
                 break;
             // Reset particle systems set
@@ -208,6 +216,13 @@ export default class ParticlesCreator extends EditorPlugin {
             case 'export':
                 this.exportSet();
                 break;
+
+            // Presets
+            case 'preset:smoke': this.createFromPreset('smoke'); break;
+            case 'preset:sun': this.createFromPreset('sun'); break;
+            case 'preset:rain': this.createFromPreset('rain'); break;
+            case 'preset:fire': this.createFromPreset('fire'); break;
+            case 'preset:explosion': this.createFromPreset('explosion'); break;
         }
     }
 
@@ -264,24 +279,30 @@ export default class ParticlesCreator extends EditorPlugin {
      * Adds a new particle system to the current set according to the given data
      * @param particleSystemData the particle system data to parse
      */
-    protected addSystemToSet (particleSystemData: any, name?: string): ParticleSystem {
+    protected addSystemToSet (particleSystemData: any, name?: string): Promise<ParticleSystem> {
         if (!this.set)
             return;
 
         // Replace id
         particleSystemData.id = BabylonTools.RandomId();
 
-        // Create system
-        const rootUrl = particleSystemData.textureName.indexOf('data:') === 0 ? '' : 'file:';
+        return new Promise<ParticleSystem>((resolve) => {
+            // Create system
+            const rootUrl = particleSystemData.textureName ? (particleSystemData.textureName.indexOf('data:') === 0 ? '' : 'file:') : '';
 
-        const ps = ParticleSystem.Parse(particleSystemData, this.preview.scene, rootUrl, false);
-        ps.emitter = ps.emitter || Vector3.Zero();
-        ps.name = name || ps.name;
+            const ps = ParticleSystem.Parse(particleSystemData, this.preview.scene, rootUrl, false);
+            ps.emitter = ps.emitter || Vector3.Zero();
+            ps.name = name || ps.name;
 
-        // Add to set
-        this.set.systems.push(ps);
+            // Add to set
+            this.set.systems.push(ps);
 
-        return ps;
+            // Resolve
+            if (ps.particleTexture && rootUrl === 'file:')
+                ps.particleTexture.onLoadObservable.add(tex => resolve(ps));
+            else
+                resolve(ps);
+        });
     }
 
     /**
@@ -310,7 +331,7 @@ export default class ParticlesCreator extends EditorPlugin {
      * Resets the particle systems set
      * @param fillTree wehter or not the list tree should be filled.
      */
-    public resetSet (fillTree: boolean = false): void {
+    public async resetSet (fillTree: boolean = false): Promise<void> {
         if (!this.data)
             return;
 
@@ -318,8 +339,10 @@ export default class ParticlesCreator extends EditorPlugin {
         const data = this.set ? this.set.serialize() : this.data.psData;
 
         // Dispose previous set
-        if (this.set)
+        if (this.set) {
             this.set.dispose();
+            this.preview.scene.particleSystems = [];
+        }
 
         // Clear tree?
         if (fillTree)
@@ -327,11 +350,11 @@ export default class ParticlesCreator extends EditorPlugin {
 
         // Parse set
         this.set = new ParticleSystemSet();
-        data.systems.forEach(s => {
-            const ps = this.addSystemToSet(s);
+        for (const s of data.systems) {
+            const ps = await this.addSystemToSet(s);
             if (fillTree)
                 this.tree.add({ id: ps.id, text: ps.name, data: ps, img: 'icon-particles' });
-        });
+        }
 
         this.set.start();
 
@@ -409,5 +432,52 @@ export default class ParticlesCreator extends EditorPlugin {
                 })) }
             ] }
         ]);
+    }
+
+    /**
+     * Creates a new system set from the already know presets form babylonjs.com
+     * @param preset the preset id to create from the babylon.js presets
+     */
+    protected async createFromPreset (preset: string): Promise<void> {
+        // Ask override
+        const override = await Dialog.Create('Override current set?', 'Setting from a preset will override your current set configuration. Are you sure?');
+        if (override === 'No')
+            return;
+
+        // Lock panel
+        this.layout.lockPanel('top', 'Loading...', true);
+
+        // Dispose existing set
+        if (this.set)
+            this.set.dispose();
+        
+        // Create set!
+        this.set = await ParticleHelper.CreateAsync(preset, this.preview.scene);
+
+        // Save textures
+        const promises: Promise<void>[] = [];
+        for (const s of this.set.systems) {
+            promises.push(new Promise<void>((resolve) => {
+                s.particleTexture.onLoadObservable.addOnce(async tex => {
+                    const blob = await GraphicsTools.TextureToFile(tex);
+                    const split = tex.name.split('/');
+                    const name = split[split.length - 1];
+
+                    blob['name'] = tex.name = tex.url = name.toLowerCase();
+                    FilesInputStore.FilesToLoad[name.toLowerCase()] = <File> blob;
+
+                    resolve();
+                });
+            }));
+        }
+
+        await Promise.all(promises);
+
+        // Save and reset
+        this.saveSet();
+        this.resetSet(true);
+
+        // Unlock
+        this.layout.unlockPanel('top');
     }
 }

@@ -1,7 +1,8 @@
-import { Scene, Tools } from 'babylonjs';
-import { IAssetComponent, AssetElement, AssetContextMenu } from '../../extensions/typings/asset';
+import { Tools, AbstractMesh, PickingInfo, Mesh, ParticleSystem, Tags } from 'babylonjs';
+import { IAssetComponent, AssetElement } from '../../extensions/typings/asset';
 
 import Editor from '../editor';
+import SceneFactory from '../scene/scene-factory';
 
 export interface ParticlesCreatorMetadata {
     name: string;
@@ -86,6 +87,33 @@ export default class ParticlesAssetComponent implements IAssetComponent {
      */
     public onDoubleClickAsset (asset: AssetElement<any>): void {
         this.editor.addEditPanelPlugin('particles-creator', false, 'Particles System Creator...', asset.data);
+    }
+
+    /**
+     * On the user drops an asset in the scene
+     * @param targetMesh the mesh under the pointer
+     * @param asset the asset being dropped
+     * @param pickInfo the pick info once the user dropped the asset
+     */
+    public onDragAndDropAsset (targetMesh: AbstractMesh, asset: AssetElement<ParticlesCreatorMetadata>, pickInfo: PickingInfo): void {
+        const m = new Mesh(asset.name, this.editor.core.scene);
+        m.position = pickInfo.pickedPoint.clone();
+        SceneFactory.AddToGraph(this.editor, m);
+
+        asset.data.psData.systems.forEach(s => {
+            const rootUrl = s.textureName ? (s.textureName.indexOf('data:') === 0 ? '' : 'file:') : '';
+            const ps = ParticleSystem.Parse(s, this.editor.core.scene, rootUrl, false);
+            ps.id = Tools.RandomId();
+            ps.emitter = m;
+
+            Tags.AddTagsTo(ps, 'added');
+            this.editor.graph.add({
+                id: ps.id,
+                data: ps,
+                img: 'icon-particles',
+                text: ps.name
+            }, m.id);
+        });
     }
 
     /**

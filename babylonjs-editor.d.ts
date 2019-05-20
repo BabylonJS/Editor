@@ -13,6 +13,7 @@ declare module 'babylonjs-editor' {
     import Request from 'babylonjs-editor/editor/tools/request';
     import UndoRedo from 'babylonjs-editor/editor/tools/undo-redo';
     import ThemeSwitcher, { ThemeType } from 'babylonjs-editor/editor/tools/theme';
+    import GraphicsTools from 'babylonjs-editor/editor/tools/graphics-tools';
     import Layout from 'babylonjs-editor/editor/gui/layout';
     import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import List from 'babylonjs-editor/editor/gui/list';
@@ -41,7 +42,7 @@ declare module 'babylonjs-editor' {
     import Storage from 'babylonjs-editor/editor/storage/storage';
     import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -404,6 +405,22 @@ declare module 'babylonjs-editor/editor/tools/theme' {
                 * @param url the url of the theme
                 */
             static Apply(urls: string[]): Promise<void>;
+    }
+}
+
+declare module 'babylonjs-editor/editor/tools/graphics-tools' {
+    import { BaseTexture } from 'babylonjs';
+    export default class GraphicsTools {
+            /**
+                * Configures the given texture to retrieve its pixels and create a new file (blob)
+                * @param tex the texture to transform to a blob
+                */
+            static TextureToFile(tex: BaseTexture): Promise<Blob>;
+            /**
+                * Converts the given canvas data to blob
+                * @param canvas the canvas to take its data and convert to a blob
+                */
+            static CanvasToBlob(canvas: HTMLCanvasElement): Promise<Blob>;
     }
 }
 
@@ -1901,6 +1918,7 @@ declare module 'babylonjs-editor/editor/prefabs/prefab' {
 }
 
 declare module 'babylonjs-editor/editor/particles/asset-component' {
+    import { AbstractMesh, PickingInfo } from 'babylonjs';
     import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
     import Editor from 'babylonjs-editor/editor/editor';
     export interface ParticlesCreatorMetadata {
@@ -1946,6 +1964,13 @@ declare module 'babylonjs-editor/editor/particles/asset-component' {
                 * @param asset the asset being double-clicked by the user
                 */
             onDoubleClickAsset(asset: AssetElement<any>): void;
+            /**
+                * On the user drops an asset in the scene
+                * @param targetMesh the mesh under the pointer
+                * @param asset the asset being dropped
+                * @param pickInfo the pick info once the user dropped the asset
+                */
+            onDragAndDropAsset(targetMesh: AbstractMesh, asset: AssetElement<ParticlesCreatorMetadata>, pickInfo: PickingInfo): void;
             /**
                 * Called by the editor when serializing the scene
                 */
@@ -2684,10 +2709,6 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
                 * @param editor: the editor instance
                 */
             constructor(editor: Editor);
-            /**
-                * On before render the scene
-                */
-            onPreUpdate(): void;
             /**
                 * On post update the scenes
                 */

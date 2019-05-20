@@ -4,6 +4,7 @@ import Tools from './editor/tools/tools';
 import Request from './editor/tools/request';
 import UndoRedo from './editor/tools/undo-redo';
 import ThemeSwitcher, { ThemeType } from './editor/tools/theme';
+import GraphicsTools from './editor/tools/graphics-tools';
 
 import Layout from './editor/gui/layout';
 import Toolbar from './editor/gui/toolbar';
@@ -49,6 +50,7 @@ export {
     Request,
     UndoRedo,
     ThemeSwitcher, ThemeType,
+    GraphicsTools,
 
     IStringDictionary,
     INumberDictionary,
