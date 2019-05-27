@@ -17,7 +17,7 @@
     "compile": "tsc -p .",
     "compile-electron": "tsc -p ./electron",
     "build-vscode-extension": "cd vscode-extension && npm run package && cd ..",
-    "build": "npm run compile && npm run compile-electron && npm run build-vscode-extension && npm run bundle",
+    "build": "npm run compile && npm run compile-electron && npm run bundle",
     "rebuild": "npm run clean && npm run build",
     "watch": "tsc -p . --watch",
     "watch-electron": "tsc -p ./electron --watch",
