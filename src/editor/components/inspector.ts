@@ -9,7 +9,7 @@ import NodeTool from '../edition-tools/node-tool';
 import LightTool from '../edition-tools/light-tool';
 import PhysicsTool from '../edition-tools/physics-tool';
 import RenderTargetTool from '../edition-tools/render-target-tool';
-import ParticleSystemTool from '../edition-tools/particle-system-tool';
+import ParticleSystemTool from '../edition-tools/particles/particle-system-tool';
 import SoundTool from '../edition-tools/sound-tool';
 
 import AnimationTool from '../edition-tools/animation-tool';

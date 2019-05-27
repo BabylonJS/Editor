@@ -1,4 +1,4 @@
-import { Engine, ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools, FilesInputStore, Vector3, ParticleHelper } from 'babylonjs';
+import { ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools, FilesInputStore, Vector3, ParticleHelper } from 'babylonjs';
 import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
@@ -290,9 +290,17 @@ export default class ParticlesCreator extends EditorPlugin {
             // Create system
             const rootUrl = particleSystemData.textureName ? (particleSystemData.textureName.indexOf('data:') === 0 ? '' : 'file:') : '';
 
-            const ps = ParticleSystem.Parse(particleSystemData, this.preview.scene, rootUrl, false);
+            const ps = ParticleSystem.Parse(particleSystemData, this.preview.scene, rootUrl, true);
             ps.emitter = ps.emitter || Vector3.Zero();
             ps.name = name || ps.name;
+
+            // Fix size gradient bug. TODO: remove these lines in future
+            ps['_sizeGradients'] = [];
+            if (particleSystemData.sizeGradients) {
+                for (var sizeGradient of particleSystemData.sizeGradients) {
+                    ps.addSizeGradient(sizeGradient.gradient, sizeGradient.factor1 !== undefined ? sizeGradient.factor1 : sizeGradient.factor, sizeGradient.factor2);
+                }
+            }
 
             // Add to set
             this.set.systems.push(ps);
