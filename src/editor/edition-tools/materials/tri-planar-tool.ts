@@ -34,17 +34,17 @@ export default class TriPlanarMaterialTool extends MaterialTool<TriPlanarMateria
         diffuse.open();
 
         this.tool.addColor(diffuse, 'Color', this.object.diffuseColor).open();
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTextureX', this.object, false).name('Diffuse Texture X');
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTextureY', this.object, false).name('Diffuse Texture Y');
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTextureZ', this.object, false).name('Diffuse Texture Z');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTextureX', this.object, false).name('Diffuse Texture X');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTextureY', this.object, false).name('Diffuse Texture Y');
+        this.tool.addTexture(diffuse, this.editor, this.editor.core.scene, 'diffuseTextureZ', this.object, false).name('Diffuse Texture Z');
 
         // Bump
         const bump = triplanar.addFolder('Bump');
         bump.open();
 
-        this.tool.addTexture(triplanar, this.editor, 'normalTextureX', this.object, false).name('Normal Texture X');
-        this.tool.addTexture(triplanar, this.editor, 'normalTextureY', this.object, false).name('Normal Texture Y');
-        this.tool.addTexture(triplanar, this.editor, 'normalTextureZ', this.object, false).name('Normal Texture Z');
+        this.tool.addTexture(triplanar, this.editor, this.editor.core.scene, 'normalTextureX', this.object, false).name('Normal Texture X');
+        this.tool.addTexture(triplanar, this.editor, this.editor.core.scene, 'normalTextureY', this.object, false).name('Normal Texture Y');
+        this.tool.addTexture(triplanar, this.editor, this.editor.core.scene, 'normalTextureZ', this.object, false).name('Normal Texture Z');
 
         // Specular
         const specular = triplanar.addFolder('Specular');

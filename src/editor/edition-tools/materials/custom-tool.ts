@@ -66,7 +66,7 @@ export default class CustomMaterialTool extends MaterialTool<CustomEditorMateria
        samplers.open();
        
        config.textures.forEach(t => {
-           this.tool.addTexture(samplers, this.editor, t.name, this.object.userConfig, false, false, () => this.object.markAsDirty(Material.TextureDirtyFlag)).name(t.name);
+           this.tool.addTexture(samplers, this.editor, this.editor.core.scene, t.name, this.object.userConfig, false, false, () => this.object.markAsDirty(Material.TextureDirtyFlag)).name(t.name);
        });
 
         // Options

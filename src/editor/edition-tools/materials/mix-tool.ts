@@ -26,21 +26,21 @@ export default class MixMaterialTool extends MaterialTool<MixMaterial> {
         const mixmap1 = this.tool.addFolder('Mix Map 1');
         mixmap1.open();
 
-        this.tool.addTexture(mixmap1, this.editor, 'mixTexture1', this.object, false).name('Mix Texture 1');
-        this.tool.addTexture(mixmap1, this.editor, 'diffuseTexture1', this.object, false).name('Diffuse Texture 1');
-        this.tool.addTexture(mixmap1, this.editor, 'diffuseTexture2', this.object, false).name('Diffuse Texture 2');
-        this.tool.addTexture(mixmap1, this.editor, 'diffuseTexture3', this.object, false).name('Diffuse Texture 3');
-        this.tool.addTexture(mixmap1, this.editor, 'diffuseTexture4', this.object, false).name('Diffuse Texture 4');
+        this.tool.addTexture(mixmap1, this.editor, this.editor.core.scene, 'mixTexture1', this.object, false).name('Mix Texture 1');
+        this.tool.addTexture(mixmap1, this.editor, this.editor.core.scene, 'diffuseTexture1', this.object, false).name('Diffuse Texture 1');
+        this.tool.addTexture(mixmap1, this.editor, this.editor.core.scene, 'diffuseTexture2', this.object, false).name('Diffuse Texture 2');
+        this.tool.addTexture(mixmap1, this.editor, this.editor.core.scene, 'diffuseTexture3', this.object, false).name('Diffuse Texture 3');
+        this.tool.addTexture(mixmap1, this.editor, this.editor.core.scene, 'diffuseTexture4', this.object, false).name('Diffuse Texture 4');
 
         // Mix map 2
         const mixmap2 = this.tool.addFolder('Mix Map 2');
         mixmap2.open();
 
-        this.tool.addTexture(mixmap2, this.editor, 'mixTexture2', this.object, false).name('Mix Texture 2');
-        this.tool.addTexture(mixmap2, this.editor, 'diffuseTexture5', this.object, false).name('Diffuse Texture 5');
-        this.tool.addTexture(mixmap2, this.editor, 'diffuseTexture6', this.object, false).name('Diffuse Texture 6');
-        this.tool.addTexture(mixmap2, this.editor, 'diffuseTexture7', this.object, false).name('Diffuse Texture 7');
-        this.tool.addTexture(mixmap2, this.editor, 'diffuseTexture8', this.object, false).name('Diffuse Texture 8');
+        this.tool.addTexture(mixmap2, this.editor, this.editor.core.scene, 'mixTexture2', this.object, false).name('Mix Texture 2');
+        this.tool.addTexture(mixmap2, this.editor, this.editor.core.scene, 'diffuseTexture5', this.object, false).name('Diffuse Texture 5');
+        this.tool.addTexture(mixmap2, this.editor, this.editor.core.scene, 'diffuseTexture6', this.object, false).name('Diffuse Texture 6');
+        this.tool.addTexture(mixmap2, this.editor, this.editor.core.scene, 'diffuseTexture7', this.object, false).name('Diffuse Texture 7');
+        this.tool.addTexture(mixmap2, this.editor, this.editor.core.scene, 'diffuseTexture8', this.object, false).name('Diffuse Texture 8');
 
         // Options
         super.addOptions();

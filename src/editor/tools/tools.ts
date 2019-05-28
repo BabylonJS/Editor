@@ -331,6 +331,14 @@ export default class Tools {
     }
 
     /**
+     * Deep clones the given object. Take care of cycling objects!
+     * @param data the data of the object to clone
+     */
+    public static Clone<T> (data: T): T {
+        return JSON.parse(JSON.stringify(data));
+    }
+
+    /**
      * Reads the given file
      * @param file the file to read
      * @param arrayBuffer if should read as array buffer

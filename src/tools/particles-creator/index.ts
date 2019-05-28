@@ -1,43 +1,51 @@
-import { ParticleSystem, Effect, Observer } from 'babylonjs';
+import {
+    ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools,
+    FilesInputStore, Vector3, ParticleHelper, FactorGradient
+} from 'babylonjs';
 import Editor, {
-    EditorPlugin,
-
-    Layout,
-    CodeEditor,
-    Tools,
-    Toolbar
+    EditorPlugin, Tools,
+    Layout, Toolbar, Tree,
+    Dialog, UndoRedo, GraphicsTools,
+    Storage, ParticlesCreatorMetadata, INumberDictionary
 } from 'babylonjs-editor';
 
-import '../../extensions/particles-creator/particles-creator';
-import { ParticlesCreatorMetadata } from '../../extensions/particles-creator/particles-creator';
-import Extensions from '../../extensions/extensions';
+import Helpers, { Preview } from '../helpers';
+
+import Timeline from './timeline';
 
 export default class ParticlesCreator extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public toolbar: Toolbar = null;
+    public tree: Tree = null;
+    public tabs: W2UI.W2Tabs = null;
 
-    public functionsCode: CodeEditor = null;
-    public pixelCode: CodeEditor = null;
-    public vertexCode: CodeEditor = null;
+    public undoRedoId: string = 'particles-creator';
 
     // Protected members
     protected data: ParticlesCreatorMetadata = null;
-    protected currentTab: string = 'PARTICLES-CREATOR-FUNCTIONS';
 
-    protected selectedObjectEvent: Observer<any> = null;
+    protected preview: Preview = null;
+    protected set: ParticleSystemSet = null;
+
+    protected timeline: Timeline = null;
+    protected currentParticleSystem: ParticleSystem = null;
+    protected onSelectAssetObserver: Observer<any> = null;
+
+    // Private members
+    private _modifyingObjectObserver: Observer<any>;
+    private _modifiedObjectObserver: Observer<any>;
 
     // Static members
-    public static DefaultCode: string = '';
-    public static DefaultVertex: string = '';
-    public static DefaultPixel: string = '';
+    public static DefaultSet: any = null;
 
     /**
      * Constructor
      * @param name: the name of the plugin 
      */
-    constructor(public editor: Editor) {
-        super('Particles Creator');
+    constructor(public editor: Editor, asset: ParticlesCreatorMetadata = null) {
+        super('Particle Systems Creator');
+        this.data = asset;
     }
 
     /**
@@ -47,11 +55,14 @@ export default class ParticlesCreator extends EditorPlugin {
         this.layout.element.destroy();
         this.toolbar.element.destroy();
 
-        this.functionsCode.dispose();
-        this.vertexCode.dispose();
-        this.pixelCode.dispose();
+        this.preview.scene.dispose();
+        this.preview.engine.dispose();
 
-        this.editor.core.onSelectObject.remove(this.selectedObjectEvent);
+        this.timeline.dispose();
+
+        this.editor.core.onSelectAsset.remove(this.onSelectAssetObserver);
+        this.editor.core.onModifyingObject.remove(this._modifyingObjectObserver);
+        this.editor.core.onModifiedObject.remove(this._modifiedObjectObserver);
 
         await super.close();
     }
@@ -60,88 +71,120 @@ export default class ParticlesCreator extends EditorPlugin {
      * Creates the plugin
      */
     public async create(): Promise<void> {
-        // Template
-        !ParticlesCreator.DefaultCode && (ParticlesCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/particles-creator/class.ts'));
-        !ParticlesCreator.DefaultVertex && (ParticlesCreator.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/particles-creator/shader.vertex.fx'));
-        !ParticlesCreator.DefaultPixel && (ParticlesCreator.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/particles-creator/shader.fragment.fx'));
-        
+        // Default
+        if (!ParticlesCreator.DefaultSet) {
+            const set = await Tools.LoadFile<string>('./assets/templates/particles-creator/default-set.json', false);
+            ParticlesCreator.DefaultSet = JSON.parse(set);
+        }
+
         // Layout
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
-            { type: 'top', size: 32, resizable: false, content: `<div id="PARTICLES-CREATOR-TOOLBAR" style="width: 100%; height: 100%"></div>` },
+            { type: 'top', size: 30, resizable: false, content: `<div id="PARTICLES-CREATOR-TOOLBAR" style="width: 100%; height: 100%"></div>` },
             {
-                type: 'main',
-                resizable: false,
+                type: 'left',
+                size: '50%',
+                resizable: false, 
                 content: `
-                    <div id="PARTICLES-CREATOR-FUNCTIONS" style="width: 100%; height: 100%;"></div>
-                    <div id="PARTICLES-CREATOR-VERTEX" style="width: 100%; height: 100%; display: none;"></div>
-                    <div id="PARTICLES-CREATOR-PIXEL" style="width: 100%; height: 100%; display: none;"></div>
-                `,
-                tabs: <any>[
-                    { id: 'functions', caption: 'Functions' },
-                    { id: 'vertex', caption: 'Vertex Shader' },
-                    { id: 'pixel', caption: 'Pixel Shader' }
+                    <div id="PARTICLES-CREATOR-TREE" style="width: 100%; height: 100%;"></div>
+                    <div id="PARTICLES-CREATOR-TIMELINE" style="width: 100%; height: 100%; overflow: hidden;"></div>`,
+                tabs: <any> [
+                    { id: 'tree', caption: 'List' },
+                    { id: 'timeline', caption: 'Timeline' }
                 ]
-            }
+            },
+            { type: 'main', size: '50%', resizable: false,  content: `<canvas id="PARTICLES-CREATOR-CANVAS" style="width: 100%; height: 100%; position: absolute; top: 0;"></canvas>` },
         ];
         this.layout.build(this.divElement.id);
+
+        // Tabs
+        this.tabs = this.layout.getPanelFromType('left').tabs;
+        this.tabs.on('click', (ev) => this.tabChanged(ev.target));
+        this.tabs.select('timeline');
+        this.tabChanged('timeline');
 
         // Toolbar
         this.toolbar = new Toolbar('PARTICLES-CREATOR-TOOLBAR');
         this.toolbar.items = [
-            { type: 'button', id: 'apply', img: 'icon-play-game-windowed', text: 'Apply' },
+            { id: 'add', text: 'Add System...', caption: 'Add System...', img: 'icon-add' },
+            { id: 'reset', text: 'Reset', caption: 'Reset', img: 'icon-play-game' },
             { type: 'break' },
-            { type: 'button', img: 'icon-add', text: 'Import From...' }
+            { id: 'export', text: 'Export As...', caption: 'Export As...', img: 'icon-export' },
+            { type: 'break' },
+            { id: 'preset', type: 'menu', text: 'Presets', caption: 'Presets', img: 'icon-particles', items: [
+                { id: 'smoke', text: 'Smoke', caption: 'Smoke' },
+                { id: 'sun', text: 'Sun', caption: 'Sun' },
+                // { id: 'rain', text: 'Rain', caption: 'Rain' },
+                { id: 'fire', text: 'Fire', caption: 'Fire' },
+                { id: 'explosion', text: 'Explosion', caption: 'Explosion' }
+            ] }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PARTICLES-CREATOR-TOOLBAR');
+        this.toolbar.items.forEach(i => this.toolbar.enable(i.id, false));
 
-        // Create editors
-        this.functionsCode = new CodeEditor('typescript', '');
-        await this.functionsCode.build('PARTICLES-CREATOR-FUNCTIONS');
-        this.functionsCode.onChange = value => {
-            if (this.data) {
-                this.data.code = value;
-                this.data.compiledCode = this.functionsCode.transpileTypeScript(value, this.data.id.replace(/ /, ''));
-            }
-        };
+        // Create tree
+        this.tree = new Tree('PARTICLES-CREATOR-TREE');
+        this.tree.wholerow = true;
+        this.tree.onClick = (<ParticleSystem> (id, data) => {
+            this.currentParticleSystem = data;
+            this.editor.core.onSelectObject.notifyObservers(data);
+        });
+        this.tree.onCanDrag = () => false;
+        this.tree.onRename = (<ParticleSystem> (id, name, data) => {
+            this.currentParticleSystem.name = name;
+            this.resetSet(true);
+            return true;
+        });
+        this.tree.onContextMenu = (<ParticleSystem> (id, data) => {
+            return [
+                { id: 'remove', text: 'Remove', callback: () => this.removeSystemFromSet(data) }
+            ];
+        });
+        this.tree.build('PARTICLES-CREATOR-TREE');
 
-        this.vertexCode = new CodeEditor('cpp', '');
-        await this.vertexCode.build('PARTICLES-CREATOR-VERTEX');
-        this.vertexCode.onChange = value => this.data && (this.data.vertex = value);
+        // Create timeline
+        this.timeline = new Timeline(this, <HTMLDivElement> $('#PARTICLES-CREATOR-TIMELINE')[0]);
 
-        this.pixelCode = new CodeEditor('cpp', '');
-        await this.pixelCode.build('PARTICLES-CREATOR-PIXEL');
-        this.pixelCode.onChange = value => this.data && (this.data.pixel = value);
-        
+        // Create preview
+        this.preview = Helpers.CreatePreview(<HTMLCanvasElement> $('#PARTICLES-CREATOR-CANVAS')[0]);
+        this.preview.camera.wheelPrecision = 100;
+        this.preview.engine.runRenderLoop(() => this.preview.scene.render());
+
         // Events
-        this.selectedObjectEvent = this.editor.core.onSelectObject.add(obj => this.selectObject(obj));
-        
-        this.layout.getPanelFromType('main').tabs.on('click', (ev) => {
-            $('#' + this.currentTab).hide();
-            this.currentTab = 'PARTICLES-CREATOR-' + ev.target.toUpperCase();
-            $('#' + this.currentTab).show();
+        this.onSelectAssetObserver = this.editor.core.onSelectAsset.add((a) => this.selectAsset(a));
+        this._modifyingObjectObserver = this.editor.core.onModifyingObject.add((o: ParticleSystem) => {
+            if (!this.data)
+                return;
+            
+            this.timeline.onModifyingSystem(o);
+            this.saveSet();
+        });
+        this._modifiedObjectObserver = this.editor.core.onModifiedObject.add((o: ParticleSystem) => {
+            if (!this.data)
+                return;
+
+            this.timeline.onModifiedSystem(o);
+            this.saveSet();
         });
 
-        // Extension
-        Extensions.RequestExtension(this.editor.core.scene, 'ParticlesCreatorExtension');
-
-        // Finish
-        this.selectObject(this.editor.core.currentSelectedObject);
+        // Select asset
+        if (this.data)
+            this.selectAsset(this.data);
     }
 
     /**
      * On hide the plugin (do not render scene)
      */
-    public async onHide (): Promise<void> {
+    public onHide (): void {
 
     }
 
     /**
      * On show the plugin (render scene)
      */
-    public async onShow (): Promise<void> {
-
+    public onShow (asset?: ParticlesCreatorMetadata): void {
+        
     }
 
     /**
@@ -149,56 +192,328 @@ export default class ParticlesCreator extends EditorPlugin {
      */
     public onResize (): void {
         this.layout.element.resize();
+        this.preview.engine.resize();
+
+        const size = this.layout.getPanelSize('left');
+        this.timeline.resize(size.width, size.height);
     }
 
     /**
-     * On the user selects an object
-     * @param object the selected object
+     * Called on the user clicks on an item of the toolbar
+     * @param id the id of the clicked item
      */
-    public selectObject (object: any): void {
-        if (!(object instanceof ParticleSystem)) {
-            this.data = null;
-            this.functionsCode.setValue('');
-            this.vertexCode.setValue('');
-            this.pixelCode.setValue('');
-            this.layout.lockPanel('main', 'No Particle System Selected...');
+    protected async toolbarClicked (id: string): Promise<void> {
+        switch (id) {
+            // Add a new particle systems set
+            case 'add':
+                const name = await Dialog.CreateWithTextInput('Particle System name?');
+                await this.addSystemToSet(ParticlesCreator.DefaultSet.systems[0], name);
+                this.saveSet();
+                this.resetSet(true);
+                break;
+            // Reset particle systems set
+            case 'reset':
+                this.resetSet(true);
+                break;
+
+            // Export
+            case 'export':
+                this.exportSet();
+                break;
+
+            // Presets
+            case 'preset:smoke': this.createFromPreset('smoke'); break;
+            case 'preset:sun': this.createFromPreset('sun'); break;
+            case 'preset:rain': this.createFromPreset('rain'); break;
+            case 'preset:fire': this.createFromPreset('fire'); break;
+            case 'preset:explosion': this.createFromPreset('explosion'); break;
+        }
+    }
+
+    /**
+     * Called on the user changes tab
+     * @param id the id of the new tab
+     */
+    protected tabChanged (id: string): void {
+        // Hide all
+        $('#PARTICLES-CREATOR-TREE').hide();
+        $('#PARTICLES-CREATOR-TIMELINE').hide();
+
+        // Select which to show
+        switch (id) {
+            case 'tree': $('#PARTICLES-CREATOR-TREE').show(); break;
+            case 'timeline': $('#PARTICLES-CREATOR-TIMELINE').show(); break;
+            default: break;
+        }
+    }
+
+    /**
+     * Called on the user selects an asset in the assets panel
+     * @param asset the asset being selected
+     */
+    protected selectAsset (asset: ParticlesCreatorMetadata): void {
+        if (!asset || !asset.psData) {
+            // Lock toolbar
+            this.toolbar.items.forEach(i => this.toolbar.enable(i.id, false));
             return;
         }
 
-        object['metadata'] = object['metadata'] || { };
-        this.data = object['metadata'].particlesCreator || {
-            id: object.id,
-            apply: false,
-            code: ParticlesCreator.DefaultCode,
-            vertex: ParticlesCreator.DefaultVertex,
-            pixel: ParticlesCreator.DefaultPixel
-        };
-        object['metadata'].particlesCreator = this.data;
+        // Unlock toolbar
+        this.toolbar.items.forEach(i => this.toolbar.enable(i.id, true));
 
-        // Unlock and fill
-        this.layout.unlockPanel('main');
-        this.functionsCode.setValue(this.data.code);
-        this.vertexCode.setValue(this.data.vertex);
-        this.pixelCode.setValue(this.data.pixel);
+        // Misc.
+        this.data = asset;
+
+        // Set
+        if (this.set) {
+            this.set.dispose();
+            this.set = null;
+        }
+
+        this.resetSet(true);
+
+        // Timeline
+        this.timeline.setSet(this.set);
+
+        // Undo/Redo
+        UndoRedo.ClearScope(this.undoRedoId);
     }
 
     /**
-     * On the user clicks on the toolbar
-     * @param id the id of the clicked item
+     * Adds a new particle system to the current set according to the given data
+     * @param particleSystemData the particle system data to parse
      */
-    public toolbarClicked (id: string): void {
+    protected addSystemToSet (particleSystemData: any, name?: string): Promise<ParticleSystem> {
+        if (!this.set)
+            return;
+
+        // Replace id
+        particleSystemData.id = BabylonTools.RandomId();
+
+        return new Promise<ParticleSystem>((resolve) => {
+            // Create system
+            const rootUrl = particleSystemData.textureName ? (particleSystemData.textureName.indexOf('data:') === 0 ? '' : 'file:') : '';
+
+            const ps = ParticleSystem.Parse(particleSystemData, this.preview.scene, rootUrl, true);
+            ps.emitter = ps.emitter || Vector3.Zero();
+            ps.name = name || ps.name;
+
+            this._cleanGradients(ps);
+
+            // Add to set
+            this.set.systems.push(ps);
+
+            // Resolve
+            if (ps.particleTexture && rootUrl === 'file:')
+                ps.particleTexture.onLoadObservable.add(tex => resolve(ps));
+            else
+                resolve(ps);
+        });
+    }
+
+    /**
+     * Removes the given particle system from the current set
+     * @param ps the particle system to remove
+     */
+    public removeSystemFromSet (ps: ParticleSystem): void {
+        // Remove from set
+        const index = this.set.systems.indexOf(ps);
+        if (index === -1)
+            return;
+
+        this.set.systems.splice(index, 1);
+
+        // Finally dispose
+        ps.dispose();
+
+        // Remove from tree
+        this.tree.remove(ps.id);
+
+        // Save & reset
+        this.saveSet();
+        this.resetSet(true);
+    }
+
+    /**
+     * Resets the particle systems set
+     * @param fillTree wehter or not the list tree should be filled.
+     */
+    public async resetSet (fillTree: boolean = false): Promise<void> {
+        if (!this.data)
+            return;
+
+        // Const data
+        const data = this.set ? this.set.serialize() : this.data.psData;
+
+        // Dispose previous set
+        if (this.set) {
+            this.set.dispose();
+            this.preview.scene.particleSystems = [];
+        }
+
+        // Clear tree?
+        if (fillTree)
+            this.tree.clear();
+
+        // Parse set
+        this.set = new ParticleSystemSet();
+        for (const s of data.systems) {
+            const ps = await this.addSystemToSet(s);
+            if (fillTree)
+                this.tree.add({ id: ps.id, text: ps.name, data: ps, img: 'icon-particles' });
+        }
+
+        this.set.start();
+
+        if (this.currentParticleSystem) {
+            const ps = this.set.systems.find(ps => ps.name === this.currentParticleSystem.name);
+            if (ps) {
+                this.tree.select(ps.id);
+                this.editor.core.onSelectObject.notifyObservers(ps);
+            }
+        }
+
+        // Refresh timeline
+        this.timeline.setSet(this.set);
+    }
+
+    /**
+     * Saves the current particle systems set
+     */
+    public saveSet (): void {
+        if (!this.data)
+            return;
+
+        // Save!
+        this.data.psData = this.set.serialize();
+    }
+
+    /**
+     * Exports the current set
+     */
+    protected async exportSet (): Promise<void> {
         if (!this.data)
             return;
         
-        switch (id) {
-            // Apply
-            case 'apply':
-                const checked = this.toolbar.isChecked(id, true);
-                this.data.apply = checked;
-                this.toolbar.setChecked(id, checked);
-                break;
-            
-            default: break;
+        // Save
+        this.saveSet();
+
+        // Export
+        const serializationObject = this.set.serialize();
+
+        // Embed?
+        const embed = await Dialog.Create('Embed textures?', 'Do you want to embed textures in the set?');
+        if (embed === 'Yes') {
+            for (const s of serializationObject.systems) {
+                const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
+                if (!file)
+                    continue;
+                s.textureName = await Tools.ReadFileAsBase64(file);
+            }
         }
+
+        // Save data
+        const json = JSON.stringify(serializationObject, null, '\t');
+        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(json), this.data.name + '.json');
+
+        // Embeded
+        if (embed === 'Yes')
+            return BabylonTools.Download(file, file.name);
+
+        // Not embeded
+        const textureFiles: File[] = [];
+        for (const s of serializationObject.systems) {
+            const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
+            if (!file || textureFiles.indexOf(file) !== -1)
+                continue;
+            textureFiles.push(file);
+        }
+
+        const storage = await Storage.GetStorage(this.editor);
+        await storage.openPicker('Choose destination folder...', [
+            { name: 'systems', folder: [
+                { name: file.name, file: file },
+                { name: 'textures', folder: textureFiles.map(tf => ({
+                    name: tf.name,
+                    file: tf
+                })) }
+            ] }
+        ]);
+    }
+
+    /**
+     * Creates a new system set from the already know presets form babylonjs.com
+     * @param preset the preset id to create from the babylon.js presets
+     */
+    protected async createFromPreset (preset: string): Promise<void> {
+        // Ask override
+        const override = await Dialog.Create('Override current set?', 'Setting from a preset will override your current set configuration. Are you sure?');
+        if (override === 'No')
+            return;
+
+        // Lock panel
+        this.layout.lockPanel('top', 'Loading...', true);
+
+        // Dispose existing set
+        if (this.set)
+            this.set.dispose();
+        
+        // Create set!
+        this.set = await ParticleHelper.CreateAsync(preset, this.preview.scene);
+        this.set.systems.forEach(s => this._cleanGradients(<ParticleSystem> s));
+
+        // Save textures
+        const promises: Promise<void>[] = [];
+        for (const s of this.set.systems) {
+            promises.push(new Promise<void>((resolve) => {
+                s.particleTexture.onLoadObservable.addOnce(async tex => {
+                    const blob = await GraphicsTools.TextureToFile(tex);
+                    const split = tex.name.split('/');
+                    const name = split[split.length - 1];
+
+                    blob['name'] = tex.name = tex.url = name.toLowerCase();
+                    FilesInputStore.FilesToLoad[name.toLowerCase()] = <File> blob;
+
+                    resolve();
+                });
+            }));
+        }
+
+        await Promise.all(promises);
+
+        // Save and reset
+        this.saveSet();
+        this.resetSet(true);
+
+        // Unlock
+        this.layout.unlockPanel('top');
+    }
+
+    /**
+     * Cleans the size gradients
+     * @param system the system to clean
+     * @todo remove this fix in future
+     */
+    private _cleanGradients (system: ParticleSystem): void {
+        const sizeGradients = system['_sizeGradients'];
+        if (!sizeGradients)
+            return;
+        
+        const gradientsDict: INumberDictionary<FactorGradient[]> = { };
+        sizeGradients.forEach(sg => {
+            gradientsDict[sg.gradient] = gradientsDict[sg.gradient] || [];
+            gradientsDict[sg.gradient].push(sg);
+        });
+
+        sizeGradients.splice(0, sizeGradients.length);
+        for (const k in gradientsDict) {
+            const g = gradientsDict[k];
+            while (g.length > 1)
+                g.pop();
+
+            sizeGradients.push(g[0])
+        }
+
+        system['_sizeGradients'] = sizeGradients;
     }
 }

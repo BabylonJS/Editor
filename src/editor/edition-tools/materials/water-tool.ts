@@ -41,7 +41,7 @@ export default class WaterMaterialTool extends MaterialTool<WaterMaterial> {
         // Bump
         const bump = this.tool.addFolder('Bump');
         bump.open();
-        this.tool.addTexture(bump, this.editor, 'bumpTexture', this.object, false);
+        this.tool.addTexture(bump, this.editor, this.editor.core.scene, 'bumpTexture', this.object, false);
         bump.add(this.object, 'bumpHeight').min(0).max(10).step(0.001).name('Bump Height');
 
         // Wind

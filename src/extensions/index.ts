@@ -5,7 +5,6 @@ import AssetsExtension from './assets/assets';
 import CodeExtension from './behavior/code';
 import GraphExtension, { LGraph, LGraphCanvas, LiteGraph, LiteGraphNode, LGraphGroup } from './behavior/graph';
 import PathFinderExtension from './path-finder/index';
-import ParticlesCreatorExtension from './particles-creator/particles-creator';
 import PostProcessEditorExtension from './post-process-editor/post-process-editor';
 import MaterialEditorExtension from './material-editor/material-editor';
 import PostProcessExtension from './post-process/post-processes';
@@ -24,7 +23,6 @@ export {
     MaterialEditorExtension,
     PathFinderExtension,
     PostProcessEditorExtension,
-    ParticlesCreatorExtension,
     CustomMetadatasExtension,
 
     IExtension, ExtensionConstructor

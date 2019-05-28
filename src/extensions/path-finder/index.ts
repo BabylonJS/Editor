@@ -52,8 +52,7 @@ export default class PathFinderExtension extends Extension<PathFinderMetadata[]>
     }
 
     /**
-     * On load the extension (called by the editor when
-     * loading a scene)
+     * On load the extension (called by the editor when loading a scene)
      */
     public onLoad (data: PathFinderMetadata[]): void {
         this.datas = data;

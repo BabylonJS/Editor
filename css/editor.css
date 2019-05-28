@@ -138,6 +138,10 @@ html, body {
     z-index: 0;
 }
 
+.menu {
+    overflow: hidden !important;
+}
+
 /* JSTREE */
 .vakata-context li > a {
     font-size: 12px;

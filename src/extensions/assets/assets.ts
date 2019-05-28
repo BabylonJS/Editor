@@ -1,4 +1,4 @@
-import { Node, Scene, Mesh } from 'babylonjs';
+import { Node, Scene, Mesh, ParticleSystemSet, Vector3, ParticleSystem } from 'babylonjs';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -11,11 +11,16 @@ import { IStringDictionary } from '../typings/typings';
  */
 export interface ProjectAssets {
     prefabs: AssetElement<any>[];
+    particles: AssetElement<any>[];
 }
 
 export default class AssetsExtension extends Extension<ProjectAssets> {
     // Public members
     public prefabs: AssetElement<any>[] = [];
+    public particles: AssetElement<any>[] = [];
+
+    // Private members
+    private _particlesInstances: IStringDictionary<ParticleSystemSet> = { };
 
     /**
      * Constructor
@@ -30,7 +35,8 @@ export default class AssetsExtension extends Extension<ProjectAssets> {
      */
     public onApply (data: ProjectAssets): void {
         // Prefabs
-        data.prefabs.forEach(p => this.prefabs.push(p));
+        data.prefabs && data.prefabs.forEach(p => this.prefabs.push(p));
+        data.particles && data.particles.forEach(p => this.particles.push(p));
     }
 
     /**
@@ -67,6 +73,39 @@ export default class AssetsExtension extends Extension<ProjectAssets> {
             });
 
             return <T> master;
+        }
+
+        return null;
+    }
+
+    /**
+     * Instantiates a particle system set identified by the given name
+     * @param name the name of the particle system set to instantiate
+     * @param position the position where to start systems
+     */
+    public instantiateParticleSystemsSet (name: string, position?: Vector3): ParticleSystemSet {
+        for (const ps of this.particles) {
+            if (ps.name !== name)
+                continue;
+
+            let set = this._particlesInstances[name];
+            if (!set) {
+                set = new ParticleSystemSet();
+                ps.data.psData.systems.forEach(s => {
+                    const ps = ParticleSystem.Parse(s, this.scene, Extensions.RoolUrl, true);
+                    set.systems.push(ps);
+                });
+
+                this._particlesInstances[name] = set;
+            }
+
+            if (position) {
+                set.systems.forEach(s => s.emitter = position);
+            }
+
+            this._particlesInstances[name] = set;
+
+            return set;
         }
 
         return null;

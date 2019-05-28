@@ -54,7 +54,7 @@ export default class GuiImageTool extends AbstractEditionTool<Image> {
         const texture = this.tool.addFolder('Texture');
         texture.open();
 
-        this.tool.addTexture(texture, this.editor, '_texture', this, false, false, (tex) => {
+        this.tool.addTexture(texture, this.editor, this.editor.core.scene, '_texture', this, false, false, (tex) => {
             let blobURL = '';
             try {
                 blobURL = URL.createObjectURL(FilesInputStore.FilesToLoad[tex['url']]);

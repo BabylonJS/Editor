@@ -62,7 +62,7 @@ export default class CustomPostProcessTool extends AbstractEditionTool<PostProce
         samplers.open();
         
         config.textures.forEach(t => {
-            this.tool.addTexture(samplers, this.editor, t, this.object.userConfig, false, false).name(t);
+            this.tool.addTexture(samplers, this.editor, this.editor.core.scene, t, this.object.userConfig, false, false).name(t);
         });
     }
 }

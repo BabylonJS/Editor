@@ -14,9 +14,6 @@ export default class PlayGame extends EditorPlugin {
     public capturer: CCapture = null;
     public isCapturing: boolean = false;
     public captureBlob: Blob = null;
-
-    // Protected members
-    protected changeValueObserver: Observer<any> = null;
     
     /**
      * Constructor
@@ -36,9 +33,6 @@ export default class PlayGame extends EditorPlugin {
         // Capturer
         if (this.capturer)
             this.capturer.stop();
-
-        // Callbacks
-        this.editor.core.onGlobalPropertyChange.remove(this.changeValueObserver);
         
         await super.close();
     }
@@ -69,9 +63,6 @@ export default class PlayGame extends EditorPlugin {
 
         // Create iFrame
         await this.createIFrame();
-
-        // Events
-        this.changeValueObserver = this.editor.core.onGlobalPropertyChange.add(data => this.updateValue(data));
     }
 
     /**
@@ -226,50 +217,5 @@ export default class PlayGame extends EditorPlugin {
      */
     protected showVideo (): void {
 
-    }
-
-    /**
-     * Updates the value in the preview page according to undo/redo
-     * @param data the data to undo-redo
-     */
-    protected updateValue (data: { baseObject?: any; object: any; property: string; value: any; initialValue: any; }): void {
-        if (!data.baseObject)
-            return;
-
-        // Get property
-        let additionalProperty: string = null;
-
-        if (data.baseObject[data.property] === undefined) {
-            for (const thing in data.baseObject) {
-                if (data.baseObject[thing] !== data.object)
-                    continue;
-                
-                additionalProperty = thing;
-                break;
-            }
-
-            if (!additionalProperty)
-                return;
-        }
-
-        const scene = <Scene> this.contentWindow['effectiveScene'];
-
-        const id = data.baseObject.id;
-        const obj = 
-            scene.getMeshByID(id) ||
-            scene.getMaterialByID(id) ||
-            scene.getLightByID(id) ||
-            scene.getCameraByID(id) ||
-            scene.getParticleSystemByID(id) ||
-            scene.getSkeletonById(id) ||
-            scene.getLensFlareSystemByID(id);
-
-        if (!obj)
-            return;
-
-        if (additionalProperty)
-            obj[additionalProperty][data.property] = data.value;
-        else
-            obj[data.property] = data.value;
     }
 }

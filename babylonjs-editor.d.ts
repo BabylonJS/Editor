@@ -13,6 +13,7 @@ declare module 'babylonjs-editor' {
     import Request from 'babylonjs-editor/editor/tools/request';
     import UndoRedo from 'babylonjs-editor/editor/tools/undo-redo';
     import ThemeSwitcher, { ThemeType } from 'babylonjs-editor/editor/tools/theme';
+    import GraphicsTools from 'babylonjs-editor/editor/tools/graphics-tools';
     import Layout from 'babylonjs-editor/editor/gui/layout';
     import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import List from 'babylonjs-editor/editor/gui/list';
@@ -37,9 +38,11 @@ declare module 'babylonjs-editor' {
     import ScenePreview from 'babylonjs-editor/editor/scene/scene-preview';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
+    import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from 'babylonjs-editor/editor/particles/asset-component';
+    import Storage from 'babylonjs-editor/editor/storage/storage';
     import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, VSCodeSocket };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -277,6 +280,11 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static Assign<T>(target: Object, ...sources: Object[]): T;
             /**
+                * Deep clones the given object. Take care of cycling objects!
+                * @param data the data of the object to clone
+                */
+            static Clone<T>(data: T): T;
+            /**
                 * Reads the given file
                 * @param file the file to read
                 * @param arrayBuffer if should read as array buffer
@@ -397,6 +405,22 @@ declare module 'babylonjs-editor/editor/tools/theme' {
                 * @param url the url of the theme
                 */
             static Apply(urls: string[]): Promise<void>;
+    }
+}
+
+declare module 'babylonjs-editor/editor/tools/graphics-tools' {
+    import { BaseTexture } from 'babylonjs';
+    export default class GraphicsTools {
+            /**
+                * Configures the given texture to retrieve its pixels and create a new file (blob)
+                * @param tex the texture to transform to a blob
+                */
+            static TextureToFile(tex: BaseTexture): Promise<Blob>;
+            /**
+                * Converts the given canvas data to blob
+                * @param canvas the canvas to take its data and convert to a blob
+                */
+            static CanvasToBlob(canvas: HTMLCanvasElement): Promise<Blob>;
     }
 }
 
@@ -921,7 +945,7 @@ declare module 'babylonjs-editor/editor/gui/form' {
 }
 
 declare module 'babylonjs-editor/editor/gui/edition' {
-    import { Color3, Color4, Vector2, Vector3, Vector4, BaseTexture } from 'babylonjs';
+    import { Color3, Color4, Vector2, Vector3, Vector4, BaseTexture, Scene } from 'babylonjs';
     import * as dat from 'dat-gui';
     import Editor from 'babylonjs-editor/editor/editor';
     export default class Edition {
@@ -1002,7 +1026,7 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * @param object the object which has a texture
                 * @param callback: called when changed texture
                 */
-            addTexture(parent: dat.GUI, editor: Editor, property: string, object: any, allowCubes?: boolean, onlyCubes?: boolean, callback?: (texture: BaseTexture) => void): dat.GUIController;
+            addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes?: boolean, onlyCubes?: boolean, callback?: (texture: BaseTexture) => void): dat.GUIController;
     }
 }
 
@@ -1893,6 +1917,152 @@ declare module 'babylonjs-editor/editor/prefabs/prefab' {
     }
 }
 
+declare module 'babylonjs-editor/editor/particles/asset-component' {
+    import { AbstractMesh, PickingInfo } from 'babylonjs';
+    import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
+    import Editor from 'babylonjs-editor/editor/editor';
+    export interface ParticlesCreatorMetadata {
+            name: string;
+            psData: any;
+    }
+    export default class ParticlesAssetComponent implements IAssetComponent {
+            editor: Editor;
+            id: string;
+            assetsCaption: string;
+            datas: AssetElement<ParticlesCreatorMetadata>[];
+            /**
+                * Constructor
+                * @param scene: the babylonjs scene
+                */
+            constructor(editor: Editor);
+            /**
+                * On the user renames the asset
+                * @param asset the asset being renamed
+                * @param name the new name of the asset
+                */
+            onRenameAsset(asset: AssetElement<ParticlesCreatorMetadata>, name: string): void;
+            /**
+                * On the user wants to remove the asset
+                * @param asset the asset to remove
+                */
+            onRemoveAsset(asset: AssetElement<any>): void;
+            /**
+                * On the user adds an asset
+                * @param asset the asset to add
+                */
+            onAddAsset(asset: AssetElement<any>): void;
+            /**
+                * Creates a new particle systems set asset
+                */
+            onCreateAsset(name: string): Promise<AssetElement<any>>;
+            /**
+                * On get all the assets to be drawn in the assets component
+                */
+            onGetAssets(): AssetElement<any>[];
+            /**
+                * On the user double clicks on asset
+                * @param asset the asset being double-clicked by the user
+                */
+            onDoubleClickAsset(asset: AssetElement<any>): void;
+            /**
+                * On the user drops an asset in the scene
+                * @param targetMesh the mesh under the pointer
+                * @param asset the asset being dropped
+                * @param pickInfo the pick info once the user dropped the asset
+                */
+            onDragAndDropAsset(targetMesh: AbstractMesh, asset: AssetElement<ParticlesCreatorMetadata>, pickInfo: PickingInfo): void;
+            /**
+                * Called by the editor when serializing the scene
+                */
+            onSerializeAssets(): AssetElement<ParticlesCreatorMetadata>[];
+            /**
+                * On the user loads the editor project
+                * @param data the previously saved data
+                */
+            onParseAssets(data: AssetElement<ParticlesCreatorMetadata>[]): void;
+    }
+}
+
+declare module 'babylonjs-editor/editor/storage/storage' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    import Picker from 'babylonjs-editor/editor/gui/picker';
+    export type FileType = string | Uint8Array | ArrayBuffer;
+    export interface CreateFiles {
+            name: string;
+            data?: FileType | Promise<FileType>;
+            file?: File;
+            folder?: CreateFiles[];
+            doNotOverride?: boolean;
+    }
+    export interface GetFiles {
+            name: string;
+            folder: any;
+    }
+    export default abstract class Storage {
+            editor: Editor;
+            picker: Picker;
+            onCreateFiles: (folder: string) => void;
+            protected filesCount: number;
+            protected _uploadedCount: number;
+            /**
+                * Returns the appropriate storage (OneDrive, Electron, etc.)
+                * @param editor the editor reference
+                */
+            static GetStorage(editor: Editor): Promise<Storage>;
+            /**
+                * Constructor
+                * @param editor: the editor reference
+                */
+            constructor(editor: Editor);
+            /**
+                * Opens the folder picker
+                * @param title the title of the picker
+                * @param filesToWrite the array of files to write on the HDD
+                * @param folder the current working directory to browse
+                * @param overrideFilename if the file browser should override the filename
+                */
+            openPicker(title: string, filesToWrite: CreateFiles[], folder?: string, overrideFilename?: boolean): Promise<any>;
+            /**
+                * Uploads the files
+                * @param folder the target folder
+                * @param filesToWrite the files to upload
+                */
+            protected uploadFiles(folder: string, filesToWrite: CreateFiles[]): Promise<void>;
+            /**
+                * Recursively creates the given files (uncluding folders)
+                * @param folder: the parent folder of the files
+                * @param files files to create
+                */
+            protected recursivelyCreateFiles(folder: any, files: CreateFiles[]): Promise<void>;
+            /**
+                * Returns the number of files to upload
+                * @param files the files to count
+                */
+            protected recursivelyGetFilesToUploadCount(files: CreateFiles[]): number;
+            /**
+             * Returns the number of uploaded files
+             */
+            protected uploadedCount: number;
+            /**
+                * Creates the given folders
+                * @param folder the parent folder
+                * @param names the folders names
+                */
+            abstract createFolders(folder: any, names: string[]): Promise<void>;
+            /**
+                * Creates the given files
+                * @param folder the parent folder
+                * @param files the files to write
+                */
+            abstract createFiles(folder: any, files: CreateFiles[]): Promise<void>;
+            /**
+                * Returns the files available in the given folder
+                * @param folder the parent folder
+                */
+            abstract getFiles(folder?: any): Promise<GetFiles[]>;
+    }
+}
+
 declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
     import Editor from 'babylonjs-editor/editor/editor';
     export default class VSCodeSocket {
@@ -1973,13 +2143,8 @@ declare module 'babylonjs-editor/editor/core' {
             onResize: Observable<{}>;
             onAddObject: Observable<{}>;
             onRemoveObject: Observable<{}>;
-            onGlobalPropertyChange: Observable<{
-                    baseObject?: any;
-                    object: any;
-                    property: string;
-                    value: any;
-                    initialValue: any;
-            }>;
+            onModifyingObject: Observable<{}>;
+            onModifiedObject: Observable<{}>;
             onDropFiles: Observable<{
                     target: HTMLElement;
                     files: FileList;
@@ -2300,6 +2465,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
     import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
+    import ParticlesAssetComponent from 'babylonjs-editor/editor/particles/asset-component';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export interface AssetPreviewData {
             asset: AssetElement<any>;
@@ -2314,6 +2480,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
             toolbar: Toolbar;
             components: IAssetComponent[];
             prefabs: PrefabAssetComponent;
+            particles: ParticlesAssetComponent;
             assetPreviewDatas: AssetPreviewData[];
             protected currentComponent: IAssetComponent;
             protected emptyTextNode: HTMLHeadElement;
@@ -2542,10 +2709,6 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
                 * @param editor: the editor instance
                 */
             constructor(editor: Editor);
-            /**
-                * On before render the scene
-                */
-            onPreUpdate(): void;
             /**
                 * On post update the scenes
                 */

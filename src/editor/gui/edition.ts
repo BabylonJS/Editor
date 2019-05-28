@@ -1,7 +1,8 @@
 import {
     Color3, Color4,
     Vector2, Vector3, Vector4,
-    BaseTexture, CubeTexture
+    BaseTexture, CubeTexture,
+    Scene
 } from 'babylonjs';
 import * as dat from 'dat-gui';
 
@@ -218,9 +219,7 @@ export default class Edition {
      * @param object the object which has a texture
      * @param callback: called when changed texture
      */
-    public addTexture(parent: dat.GUI, editor: Editor, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
-        const scene = editor.core.scene;
-
+    public addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
         const textures = ['None'];
         scene.textures.forEach(t => {
             const isCube = t instanceof CubeTexture;

@@ -4,8 +4,9 @@ import {
     BaseTexture
 } from 'babylonjs';
 
-import Editor from "../editor";
-import Tools from "./tools";
+import Editor from '../editor';
+import Tools from './tools';
+import GraphicsTools from './graphics-tools';
 
 export default class GLTFTools {
     /**
@@ -35,37 +36,10 @@ export default class GLTFTools {
         // Configure now
         tex['url'] = tex.name = tex.name + '.png';
 
-        // Retrieve pixels
-        const dimensions = tex.getBaseSize();
-        const pixels =
-            tex.textureType === Engine.TEXTURETYPE_UNSIGNED_INT ?
-            tex.readPixels() as Uint8Array :
-            tex.readPixels() as Float32Array;
-
-        const canvas = document.createElement('canvas');
-        canvas.width = dimensions.width;
-        canvas.height = dimensions.height;
-
-        const imageData = new ImageData(new Uint8ClampedArray(pixels.buffer), tex.getBaseSize().width, tex.getBaseSize().height);
-
-        const context = canvas.getContext("2d");
-        context.putImageData(imageData, 0, 0);
-
-        if (canvas.toBlob) {
-            const blob = await this._ToBlob(canvas);
-            blob['name'] = tex.name;
-            Tags.AddTagsTo(blob, 'doNotExport');
-            FilesInputStore.FilesToLoad[tex.name.toLowerCase()] = <File> blob;
-        }
-
-        context.restore();
-        canvas.remove();
-    }
-
-    // Converts the canvas data to blob
-    private static async _ToBlob (canvas: HTMLCanvasElement): Promise<Blob> {
-        return new Promise<Blob>((resolve) => {
-            BabylonTools.ToBlob(canvas, b => resolve(b));
-        });
+        // Get blob
+        const blob = await GraphicsTools.TextureToFile(tex);
+        blob['name'] = tex.name;
+        Tags.AddTagsTo(blob, 'doNotExport');
+        FilesInputStore.FilesToLoad[tex.name.toLowerCase()] = <File> blob;
     }
 }

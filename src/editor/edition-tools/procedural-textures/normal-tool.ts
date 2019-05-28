@@ -27,6 +27,6 @@ export default class NormalProceduralTool extends AbstractEditionTool<NormalMapP
         const normal = this.tool.addFolder('Normal');
         normal.open();
 
-        this.tool.addTexture(normal, this.editor, 'baseTexture', object, false, false, () => object.updateShaderUniforms());
+        this.tool.addTexture(normal, this.editor, this.editor.core.scene, 'baseTexture', object, false, false, () => object.updateShaderUniforms());
     }
 }

@@ -12,6 +12,7 @@ import Toolbar from '../gui/toolbar';
 import { IAssetComponent, AssetElement } from '../../extensions/typings/asset';
 
 import PrefabAssetComponent from '../prefabs/asset-component';
+import ParticlesAssetComponent from '../particles/asset-component';
 import { Dialog } from 'babylonjs-editor';
 
 import VSCodeSocket from '../vscode/vscode-socket';
@@ -33,6 +34,8 @@ export default class EditorAssets {
     public components: IAssetComponent[] = [];
 
     public prefabs: PrefabAssetComponent;
+    public particles: ParticlesAssetComponent;
+
     public assetPreviewDatas: AssetPreviewData[] = [];
 
     // Protected members
@@ -84,6 +87,7 @@ export default class EditorAssets {
 
         // Create components
         this.prefabs = new PrefabAssetComponent(editor);
+        this.particles = new ParticlesAssetComponent(editor);
 
         // Add components tabs
         this.addDefaultComponents();
@@ -119,6 +123,7 @@ export default class EditorAssets {
      */
     public addDefaultComponents (): void {
         this.addTab(this.prefabs);
+        this.addTab(this.particles);
     }
 
     /**

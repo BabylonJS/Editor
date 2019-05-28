@@ -693,10 +693,7 @@ export default class Editor implements IUpdatable {
         document.addEventListener('contextmenu', (e) => e.preventDefault());
 
         // Undo
-        UndoRedo.onUndo = (e) => {
-            this.core.onGlobalPropertyChange.notifyObservers({ baseObject: e.baseObject, object: e.object, property: e.property, value: e.to, initialValue: e.from });
-            Tools.SetWindowTitle(this.projectFileName + ' *');
-        };
+        UndoRedo.onUndo = (e) => Tools.SetWindowTitle(this.projectFileName + ' *');
         document.addEventListener('keyup', (ev) => {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'z') {
                 UndoRedo.Undo();
@@ -707,10 +704,7 @@ export default class Editor implements IUpdatable {
         });
 
         // Redo
-        UndoRedo.onRedo = (e) => {
-            this.core.onGlobalPropertyChange.notifyObservers({ baseObject: e.baseObject, object: e.object, property: e.property, value: e.to, initialValue: e.from });
-            Tools.SetWindowTitle(this.projectFileName + ' *');
-        };
+        UndoRedo.onRedo = (e) => Tools.SetWindowTitle(this.projectFileName + ' *');
         document.addEventListener('keyup', (ev) => {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'y') {
                 UndoRedo.Redo();

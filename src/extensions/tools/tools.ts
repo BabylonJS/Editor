@@ -1,4 +1,4 @@
-import { Node, Scene, ParticleSystem, FilesInputStore } from 'babylonjs';
+import { Node, Scene, ParticleSystem, FilesInputStore, ParticleSystemSet, Vector3 } from 'babylonjs';
 import Extensions from '../extensions';
 
 import AssetsExtension from '../assets/assets';
@@ -107,12 +107,22 @@ export default class Tools {
     }
 
     /**
-     * Instantiate a prefab identified by the given name
+     * Instantiates a prefab identified by the given name
      * @param name the name of the prefab to instantiate
      */
     public instantiatePrefab<T extends Node> (name: string): T {
         const ext = <AssetsExtension> Extensions.Instances['AssetsExtension'];
         return ext.instantiatePrefab(name);
+    }
+
+    /**
+     * Instantiates a particle system set identified by the given name
+     * @param name the name of the particle system set to instantiate
+     * @param position the position where to start systems
+     */
+    public instantiateParticleSystemSet (name: string, position?: Vector3): ParticleSystemSet {
+        const ext = <AssetsExtension> Extensions.Instances['AssetsExtension'];
+        return ext.instantiateParticleSystemsSet(name, position);
     }
 
     /**

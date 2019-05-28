@@ -72,9 +72,9 @@ export default class SceneIcons {
     }
 
     /**
-     * On before render the scene
+     * On post update the scenes
      */
-    public onPreUpdate (): void {
+    public onPostUpdate (): void {
         const scene = this.editor.core.scene;
         
         // Cameras
@@ -104,13 +104,6 @@ export default class SceneIcons {
             this._lastSoundsCount = sounds.length;
             this.createPlanes(this.soundsPlanes, this.soundMaterial, this._lastSoundsCount);
         }
-    }
-
-    /**
-     * On post update the scenes
-     */
-    public onPostUpdate (): void {
-        const scene = this.editor.core.scene;
 
         // Render helpers scene
         this.scene.activeCamera = this.editor.core.scene.activeCamera;
@@ -148,10 +141,6 @@ export default class SceneIcons {
         });
 
         // Sounds
-        const sounds: Sound[] = [];
-        if (scene.soundTracks)
-            scene.soundTracks.forEach(st => st.soundCollection.forEach(s => s.spatialSound && sounds.push(s)));
-
         sounds.forEach((s, index) => {
             const plane = this.soundsPlanes[index];
             plane.metadata.object = s;

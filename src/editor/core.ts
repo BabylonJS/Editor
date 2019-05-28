@@ -33,7 +33,8 @@ export default class Core {
     public onResize: Observable<{ }> = new Observable<{ }>();
     public onAddObject: Observable<{ }> = new Observable<{ }>();
     public onRemoveObject: Observable<{ }> = new Observable<{ }>();
-    public onGlobalPropertyChange = new Observable<{ baseObject?: any; object: any; property: string; value: any; initialValue: any; }>();
+    public onModifyingObject: Observable<{ }> = new Observable<{ }>();
+    public onModifiedObject: Observable<{ }> = new Observable<{ }>();
     public onDropFiles = new Observable<{ target: HTMLElement; files: FileList }>();
     public onSceneLoaded = new Observable<{ scene: Scene, file: File, project?: ProjectRoot }>();
 
