@@ -1,9 +1,12 @@
-import { ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools, FilesInputStore, Vector3, ParticleHelper } from 'babylonjs';
+import {
+    ParticleSystemSet, Observer, ParticleSystem, Tools as BabylonTools,
+    FilesInputStore, Vector3, ParticleHelper, FactorGradient
+} from 'babylonjs';
 import Editor, {
     EditorPlugin, Tools,
     Layout, Toolbar, Tree,
     Dialog, UndoRedo, GraphicsTools,
-    Storage, ParticlesCreatorMetadata
+    Storage, ParticlesCreatorMetadata, INumberDictionary
 } from 'babylonjs-editor';
 
 import Helpers, { Preview } from '../helpers';
@@ -294,13 +297,7 @@ export default class ParticlesCreator extends EditorPlugin {
             ps.emitter = ps.emitter || Vector3.Zero();
             ps.name = name || ps.name;
 
-            // Fix size gradient bug. TODO: remove these lines in future
-            ps['_sizeGradients'] = [];
-            if (particleSystemData.sizeGradients) {
-                for (var sizeGradient of particleSystemData.sizeGradients) {
-                    ps.addSizeGradient(sizeGradient.gradient, sizeGradient.factor1 !== undefined ? sizeGradient.factor1 : sizeGradient.factor, sizeGradient.factor2);
-                }
-            }
+            this._cleanGradients(ps);
 
             // Add to set
             this.set.systems.push(ps);
@@ -461,6 +458,7 @@ export default class ParticlesCreator extends EditorPlugin {
         
         // Create set!
         this.set = await ParticleHelper.CreateAsync(preset, this.preview.scene);
+        this.set.systems.forEach(s => this._cleanGradients(<ParticleSystem> s));
 
         // Save textures
         const promises: Promise<void>[] = [];
@@ -487,5 +485,33 @@ export default class ParticlesCreator extends EditorPlugin {
 
         // Unlock
         this.layout.unlockPanel('top');
+    }
+
+    /**
+     * Cleans the size gradients
+     * @param system the system to clean
+     * @todo remove this fix in future
+     */
+    private _cleanGradients (system: ParticleSystem): void {
+        const sizeGradients = system['_sizeGradients'];
+        if (!sizeGradients)
+            return;
+        
+        const gradientsDict: INumberDictionary<FactorGradient[]> = { };
+        sizeGradients.forEach(sg => {
+            gradientsDict[sg.gradient] = gradientsDict[sg.gradient] || [];
+            gradientsDict[sg.gradient].push(sg);
+        });
+
+        sizeGradients.splice(0, sizeGradients.length);
+        for (const k in gradientsDict) {
+            const g = gradientsDict[k];
+            while (g.length > 1)
+                g.pop();
+
+            sizeGradients.push(g[0])
+        }
+
+        system['_sizeGradients'] = sizeGradients;
     }
 }
