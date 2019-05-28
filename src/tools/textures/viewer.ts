@@ -371,6 +371,11 @@ export default class TextureViewer extends EditorPlugin {
                 const texture = new Texture('file:' + file.name, this.editor.core.scene);
                 texture.name = texture.url = texture.name.replace('file:', '');
             }
+
+            // Drag'n'drop
+            const dropListener = this.dragEnd(originalTexture, true);
+            img.addEventListener('dragstart', () => this.editor.core.engine.getRenderingCanvas().addEventListener('drop', dropListener));
+            img.addEventListener('dragend', () => this.editor.core.engine.getRenderingCanvas().removeEventListener('drop', dropListener));
         }
         else {
             const data = await Tools.ReadFileAsBase64(file);
@@ -391,6 +396,11 @@ export default class TextureViewer extends EditorPlugin {
                 const texture = new Texture('file:' + file.name, this.editor.core.scene);
                 texture.name = texture.url = texture.name.replace('file:', '');
             }
+
+            // Drag'n'drop
+            const dropListener = this.dragEnd(originalTexture, false);
+            img.addEventListener('dragstart', () => this.editor.core.engine.getRenderingCanvas().addEventListener('drop', dropListener));
+            img.addEventListener('dragend', () => this.editor.core.engine.getRenderingCanvas().removeEventListener('drop', dropListener));
         }
 
         // Add text
@@ -407,6 +417,40 @@ export default class TextureViewer extends EditorPlugin {
         });
         text.innerText = originalTexture.name;
         parent.appendChild(text);
+    }
+
+    /**
+     * Returns an event called when the user drops a texture on the preview canvas
+     * @param texture: the texture to drop on a mesh/instanced-mesh
+     */
+    protected dragEnd (texture: BaseTexture, isCube: boolean): (ev: DragEvent) => void {
+        return (ev: DragEvent) => {
+            const scene = this.editor.core.scene;
+            const pick = scene.pick(ev.offsetX, ev.offsetY);
+
+            if (!pick.pickedMesh || !pick.pickedMesh.material)
+                return;
+
+            // Apply
+            const material = pick.pickedMesh.material;
+            
+            if (isCube) {
+                UndoRedo.Push({ baseObject: material, object: material, property: 'reflectionTexture', from: material['reflectionTexture'], to: texture });
+                material['reflectionTexture'] = texture;
+            }
+            else {
+                if (material instanceof PBRMaterial) {
+                    UndoRedo.Push({ baseObject: material, object: material, property: 'albedoTexture', from: material.albedoTexture, to: texture });
+                    material.albedoTexture = texture;
+                }
+                else {
+                    UndoRedo.Push({ baseObject: material, object: material, property: 'diffuseTexture', from: material['diffuseTexture'], to: texture });
+                    material['diffuseTexture'] = texture;
+                }
+            }
+
+            this.editor.core.onSelectObject.notifyObservers(pick.pickedMesh);
+        };
     }
 
     /**
