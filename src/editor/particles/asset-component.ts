@@ -102,9 +102,11 @@ export default class ParticlesAssetComponent implements IAssetComponent {
 
         asset.data.psData.systems.forEach(s => {
             const rootUrl = s.textureName ? (s.textureName.indexOf('data:') === 0 ? '' : 'file:') : '';
-            const ps = ParticleSystem.Parse(s, this.editor.core.scene, rootUrl, false);
+            const ps = ParticleSystem.Parse(s, this.editor.core.scene, rootUrl, true);
             ps.id = Tools.RandomId();
             ps.emitter = m;
+            ps.preventAutoStart = false;
+            ps.start();
 
             Tags.AddTagsTo(ps, 'added');
             this.editor.graph.add({

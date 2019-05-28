@@ -106,7 +106,7 @@ export default class ParticlesCreator extends EditorPlugin {
         // Toolbar
         this.toolbar = new Toolbar('PARTICLES-CREATOR-TOOLBAR');
         this.toolbar.items = [
-            { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
+            { id: 'add', text: 'Add System...', caption: 'Add System...', img: 'icon-add' },
             { id: 'reset', text: 'Reset', caption: 'Reset', img: 'icon-play-game' },
             { type: 'break' },
             { id: 'export', text: 'Export As...', caption: 'Export As...', img: 'icon-export' },
@@ -114,7 +114,7 @@ export default class ParticlesCreator extends EditorPlugin {
             { id: 'preset', type: 'menu', text: 'Presets', caption: 'Presets', img: 'icon-particles', items: [
                 { id: 'smoke', text: 'Smoke', caption: 'Smoke' },
                 { id: 'sun', text: 'Sun', caption: 'Sun' },
-                { id: 'rain', text: 'Rain', caption: 'Rain' },
+                // { id: 'rain', text: 'Rain', caption: 'Rain' },
                 { id: 'fire', text: 'Fire', caption: 'Fire' },
                 { id: 'explosion', text: 'Explosion', caption: 'Explosion' }
             ] }
@@ -208,6 +208,7 @@ export default class ParticlesCreator extends EditorPlugin {
             case 'add':
                 const name = await Dialog.CreateWithTextInput('Particle System name?');
                 await this.addSystemToSet(ParticlesCreator.DefaultSet.systems[0], name);
+                this.saveSet();
                 this.resetSet(true);
                 break;
             // Reset particle systems set
@@ -328,7 +329,8 @@ export default class ParticlesCreator extends EditorPlugin {
         // Remove from tree
         this.tree.remove(ps.id);
 
-        // Reset
+        // Save & reset
+        this.saveSet();
         this.resetSet(true);
     }
 
