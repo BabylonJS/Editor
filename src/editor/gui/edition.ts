@@ -7,6 +7,7 @@ import {
 import * as dat from 'dat-gui';
 
 import Editor from '../editor';
+import TexturePicker from '../components/texture-picker';
 
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
@@ -235,7 +236,13 @@ export default class Edition {
 
         const target = {
             texture: object[property] ? object[property].name : 'None',
-            browse: () => editor.addEditPanelPlugin('texture-viewer', false, 'Textures Viewer', object, property, allowCubes)
+            browse: (async () => {
+                const from = object[property];
+                const to = await TexturePicker.Show(scene, object[property]);
+
+                object[property] = to;
+                UndoRedo.Push({ baseObject: object, object: object, property: property, from: from, to: to })
+            })
         };
 
         const controller = parent.add(target, 'texture', textures);
