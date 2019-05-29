@@ -269,6 +269,11 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static GetFile(url: string): Promise<File>;
             /**
+                * Returns the given file path (for electron)
+                * @param file the file to get its path
+                */
+            static GetFilePath(file: File): string;
+            /**
                 * Converts a string to an UInt8Array
                 * @param str: the string to convert
                 */

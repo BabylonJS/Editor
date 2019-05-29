@@ -302,6 +302,14 @@ export default class Tools {
     }
 
     /**
+     * Returns the given file path (for electron)
+     * @param file the file to get its path
+     */
+    public static GetFilePath (file: File): string {
+        return file['path'] || '';
+    }
+
+    /**
      * Converts a string to an UInt8Array
      * @param str: the string to convert
      */

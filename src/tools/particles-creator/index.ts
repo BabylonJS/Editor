@@ -110,6 +110,7 @@ export default class ParticlesCreator extends EditorPlugin {
             { id: 'reset', text: 'Reset', caption: 'Reset', img: 'icon-play-game' },
             { type: 'break' },
             { id: 'export', text: 'Export As...', caption: 'Export As...', img: 'icon-export' },
+            { id: 'import', text: 'Import From...', caption: 'Import From...', img: 'icon-add' },
             { type: 'break' },
             { id: 'preset', type: 'menu', text: 'Presets', caption: 'Presets', img: 'icon-particles', items: [
                 { id: 'smoke', text: 'Smoke', caption: 'Smoke' },
@@ -216,9 +217,12 @@ export default class ParticlesCreator extends EditorPlugin {
                 this.resetSet(true);
                 break;
 
-            // Export
+            // Export / Import
             case 'export':
                 this.exportSet();
+                break;
+            case 'import':
+                this.importSet();
                 break;
 
             // Presets
@@ -408,6 +412,7 @@ export default class ParticlesCreator extends EditorPlugin {
                 const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
                 if (!file)
                     continue;
+                
                 s.textureName = await Tools.ReadFileAsBase64(file);
             }
         }
@@ -439,6 +444,47 @@ export default class ParticlesCreator extends EditorPlugin {
                 })) }
             ] }
         ]);
+    }
+
+    /**
+     * Imports a set
+     */
+    protected async importSet (): Promise<void> {
+        // Lock
+        this.layout.lockPanel('top', 'Importing...');
+
+        // Get files
+        const files = await Tools.OpenFileDialog();
+        for (const f of files) {
+            const ext = Tools.GetFileExtension(f.name);
+            if (ext !== 'json')
+                continue;
+
+            const content = JSON.parse(await Tools.ReadFileAsText(f));
+            if (!content.systems)
+                continue;
+            
+            for (const s of content.systems) {
+                if (s.textureName && s.textureName.indexOf('data:') === -1) {
+                    // Create texture
+                    const path = Tools.GetFilePath(f).replace(f.name, '');
+                    try {
+                        FilesInputStore.FilesToLoad[f.name.toLowerCase()] = await Tools.GetFile(path + 'textures/' + s.textureName);
+                    } catch (e) {
+                        continue;
+                    }
+                }
+                
+                this.addSystemToSet(s);
+            };
+        }
+
+        // Unlock
+        this.layout.unlockPanel('top');
+
+        // Save and reset
+        this.saveSet();
+        this.resetSet(true);
     }
 
     /**
