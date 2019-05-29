@@ -71,7 +71,7 @@ declare module 'babylonjs-editor/editor/editor' {
             toolbar: EditorToolbar;
             graph: EditorGraph;
             preview: EditorPreview;
-            edition: EditorInspector;
+            inspector: EditorInspector;
             editPanel: EditorEditPanel;
             stats: EditorStats;
             assets: EditorAssets;

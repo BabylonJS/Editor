@@ -88,7 +88,7 @@ export default class LightTool extends AbstractEditionTool<Light> {
                     new ShadowGenerator(size, light);
                 }
 
-                this.editor.edition.setObject(light);
+                this.editor.inspector.setObject(light);
             });
             
             shadows.add(light, 'shadowEnabled').name('Enable Shadows');
@@ -132,6 +132,6 @@ export default class LightTool extends AbstractEditionTool<Light> {
             Tags.RemoveTagsFrom(this.object, 'modified');
             this.editor.graph.updateObjectMark(this.object);
         }, 1);
-        this.editor.edition.updateDisplay();
+        this.editor.inspector.updateDisplay();
     }
 }

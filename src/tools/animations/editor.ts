@@ -152,7 +152,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.paper = Raphael($('#ANIMATION-EDITOR-PAPER')[0], 0, 0);
         this.paper.canvas.addEventListener('focus', () => {
             if (this.animation)
-                this.editor.edition.setObject(this.animation);
+                this.editor.inspector.setObject(this.animation);
         });
 
         // Create background

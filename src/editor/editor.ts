@@ -60,7 +60,7 @@ export default class Editor implements IUpdatable {
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
     public preview: EditorPreview;
-    public edition: EditorInspector;
+    public inspector: EditorInspector;
     public editPanel: EditorEditPanel;
     public stats: EditorStats;
     public assets: EditorAssets;
@@ -222,7 +222,7 @@ export default class Editor implements IUpdatable {
         this.toolbar = new EditorToolbar(this);
 
         // Create edition tools
-        this.edition = new EditorInspector(this);
+        this.inspector = new EditorInspector(this);
 
         // Create graph
         this.graph = new EditorGraph(this);
@@ -301,7 +301,7 @@ export default class Editor implements IUpdatable {
     public async resize (): Promise<void> {
         // Edition size
         const editionSize = this.resizableLayout.getPanelSize('Inspector');
-        this.edition.resize(editionSize.width);
+        this.inspector.resize(editionSize.width);
 
         // Stats size
         this.stats.layout.element.resize();
@@ -513,7 +513,7 @@ export default class Editor implements IUpdatable {
         
         this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
         this.scenePicker.onUpdateMesh = (m) => {
-            this.edition.updateDisplay();
+            this.inspector.updateDisplay();
             Tags.AddTagsTo(m, 'modified');
             this.graph.updateObjectMark(m);
         };
@@ -697,7 +697,7 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', (ev) => {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'z') {
                 UndoRedo.Undo();
-                this.edition.updateDisplay();
+                this.inspector.updateDisplay();
                 ev.preventDefault();
                 ev.stopPropagation();
             }
@@ -708,7 +708,7 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', (ev) => {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'y') {
                 UndoRedo.Redo();
-                this.edition.updateDisplay();
+                this.inspector.updateDisplay();
                 ev.preventDefault();
                 ev.stopPropagation();
             }

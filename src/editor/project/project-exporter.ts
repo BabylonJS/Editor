@@ -228,7 +228,7 @@ export default class ProjectExporter {
             assets: this._SerializeAssets(editor),
             removedObjects: this._SerializeRemovedObjects(),
             filesList: [],
-            editionToolsStates: editor.edition.getToolsStates()
+            editionToolsStates: editor.inspector.getToolsStates()
         };
 
         // Usable assets for extensions

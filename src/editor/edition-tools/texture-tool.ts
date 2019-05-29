@@ -112,6 +112,6 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
     protected resetToOriginal (): void {
         SerializationHelper.Parse(() => this.object, this.object.metadata.original, this.object.getScene(), 'file:');
         setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
-        this.editor.edition.updateDisplay();
+        this.editor.inspector.updateDisplay();
     }
 }

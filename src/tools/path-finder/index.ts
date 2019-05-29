@@ -39,7 +39,7 @@ export default class PathFinderEditor extends EditorPlugin {
      * On load the extension for the first time
      */
     public static OnLoaded (editor: Editor): void {
-        editor.edition.addTool(new PathFinderTool());
+        editor.inspector.addTool(new PathFinderTool());
     }
 
     /**
@@ -124,7 +124,7 @@ export default class PathFinderEditor extends EditorPlugin {
 
         // Get canvas
         this.canvas = <HTMLCanvasElement> $('#PATH-FINDER-PREVIEW')[0];
-        this.canvas.addEventListener('click', () => this.editor.edition.setObject(this));
+        this.canvas.addEventListener('click', () => this.editor.inspector.setObject(this));
 
         // Request extension
         Extensions.RequestExtension(this.editor.core.scene, 'PathFinderExtension');

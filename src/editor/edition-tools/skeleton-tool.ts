@@ -65,6 +65,6 @@ export default class SkeletonTool extends AbstractEditionTool<Skeleton> {
             this.editor.graph.updateObjectMark(this._skeleton);
         }, 1);
 
-        this.editor.edition.updateDisplay();
+        this.editor.inspector.updateDisplay();
     }
 }

@@ -113,7 +113,7 @@ export default class SoundTool extends AbstractEditionTool<Sound> {
             this.editor.graph.updateObjectMark(this.object);
         }, 1);
 
-        this.editor.edition.updateDisplay();
+        this.editor.inspector.updateDisplay();
         this.update(this.object);
     }
 

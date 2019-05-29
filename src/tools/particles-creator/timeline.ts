@@ -311,8 +311,8 @@ export default class Timeline {
             this.creator.saveSet();
 
             // Update tools
-            if (this.creator.editor.edition.currentObject === system)
-                this.creator.editor.edition.updateDisplay();
+            if (this.creator.editor.inspector.currentObject === system)
+                this.creator.editor.inspector.updateDisplay();
         });
 
         s.drag(<any> onMove, <any> onStart, <any> onEnd);

@@ -129,6 +129,6 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         });
 
         // Update
-        this.editor.edition.refresh();
+        this.editor.inspector.refresh();
     }
 }

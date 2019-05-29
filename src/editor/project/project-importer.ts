@@ -30,7 +30,7 @@ export default class ProjectImporter {
         this.CleanProject(project);
 
         // Tools states
-        editor.edition.setToolsStates(project.editionToolsStates);
+        editor.inspector.setToolsStates(project.editionToolsStates);
 
         // Global Configuration
         if (project.globalConfiguration.serializedCamera)

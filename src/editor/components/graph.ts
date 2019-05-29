@@ -56,7 +56,7 @@ export default class EditorGraph {
 
             const oldName = data.name;
             data.name = name;
-            this.editor.edition.updateDisplay();
+            this.editor.inspector.updateDisplay();
 
             UndoRedo.Push({
                 object: data,
@@ -65,7 +65,7 @@ export default class EditorGraph {
 				to: name,
                 fn: (type) => {
                     this.tree.rename(data.id, type === 'from' ? oldName : name);
-					this.editor.edition.updateDisplay();
+					this.editor.inspector.updateDisplay();
                 }
             });
 
@@ -281,7 +281,7 @@ export default class EditorGraph {
             });
 
             this.tree.select(this.root);
-            this.editor.edition.setObject(scene);
+            this.editor.inspector.setObject(scene);
 
             // Sort nodes alphabetically
             Tools.SortAlphabetically(scene.cameras, 'name');

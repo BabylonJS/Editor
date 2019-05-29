@@ -736,7 +736,7 @@ export default class TextureViewer extends EditorPlugin {
 
             // Add preview node and update tools
             await this.addPreviewNode(f, texture);
-            this.editor.edition.refresh();
+            this.editor.inspector.refresh();
         };
 
         this.layout.unlockPanel('top');
@@ -751,7 +751,7 @@ export default class TextureViewer extends EditorPlugin {
         this.editor.core.scene.customRenderTargets.push(rt);
 
         this.addRenderTargetTexturePreviewNode(rt);
-        this.editor.edition.refresh();
+        this.editor.inspector.refresh();
 
         // Tags
         Tags.AddTagsTo(rt, 'added');
@@ -766,7 +766,7 @@ export default class TextureViewer extends EditorPlugin {
         this.editor.core.scene.customRenderTargets.push(rt);
         
         this.addRenderTargetTexturePreviewNode(rt);
-        this.editor.edition.refresh();
+        this.editor.inspector.refresh();
 
         // Tags
         Tags.AddTagsTo(rt, 'added');
@@ -779,7 +779,7 @@ export default class TextureViewer extends EditorPlugin {
         const name = await Dialog.CreateWithTextInput('Reflection probe name');
         const rt = new ReflectionProbe(name, 512, this.editor.core.scene, true, true);
         this.addRenderTargetTexturePreviewNode(rt);
-        this.editor.edition.refresh();
+        this.editor.inspector.refresh();
 
         // Tags
         Tags.AddTagsTo(rt, 'added');
@@ -813,7 +813,7 @@ export default class TextureViewer extends EditorPlugin {
                 texture.onGenerated = () => {
                     texture.onGenerated = undefined;
                     this.addProceduralTexturePreviewNode(texture);
-                    this.editor.edition.refresh();
+                    this.editor.inspector.refresh();
                 };
             });
         });

@@ -97,8 +97,8 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
             }
 
             setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
-            this.editor.edition.updateDisplay();
-            this.editor.edition.setObject(this.object);
+            this.editor.inspector.updateDisplay();
+            this.editor.inspector.setObject(this.object);
         }
     }
 

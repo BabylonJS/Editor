@@ -60,7 +60,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * On load the extension for the first time
      */
     public static OnLoaded (editor: Editor): void {
-        editor.edition.addTool(new GraphNodeTool());
+        editor.inspector.addTool(new GraphNodeTool());
         GraphNodeCreator.Init();
     }
 
@@ -91,7 +91,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.editor.core.onSelectObject.remove(this.selectedObjectObserver);
         this.editor.core.onSelectAsset.remove(this.selectedAssetObserver);
 
-        this.node && this.editor.edition.setObject(this.node);
+        this.node && this.editor.inspector.setObject(this.node);
 
         await super.close();
     }
@@ -176,12 +176,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             if (!group)
                 return;
 
-            this.editor.edition.setObject(group);
+            this.editor.inspector.setObject(group);
         });
         
         this.graph.render_canvas_border = false;
         this.graph.render_execution_order = true;
-        this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
+        this.graph.onNodeSelected = (node) => this.editor.inspector.setObject(node);
         this.graph.showSearchBox = () => { };
         this.graph.processContextMenu = ((node, event) => {
             // Add.

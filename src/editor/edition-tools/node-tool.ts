@@ -212,7 +212,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             Tags.RemoveTagsFrom(this.object, 'modified');
             this.editor.graph.updateObjectMark(this.object);
         }, 1);
-        this.editor.edition.updateDisplay();
+        this.editor.inspector.updateDisplay();
     }
 
     /**
@@ -230,7 +230,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             data: instance
         }, this.editor.graph.root);
 
-        this.editor.edition.setObject(instance);
+        this.editor.inspector.setObject(instance);
         this.editor.graph.select(instance.id);
     }
 
