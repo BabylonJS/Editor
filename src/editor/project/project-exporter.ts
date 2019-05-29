@@ -13,6 +13,7 @@ import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
 import SceneManager, { RemovedObject } from '../scene/scene-manager';
 import SceneExporter from '../scene/scene-exporter';
+import SceneLoader from '../scene/scene-loader';
 
 import Window from '../gui/window';
 import Form from '../gui/form';
@@ -97,8 +98,13 @@ export default class ProjectExporter {
 
             Object.keys(FilesInputStore.FilesToLoad).forEach(async k => {
                 const file = FilesInputStore.FilesToLoad[k];
-                if (Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport'))
+                if (
+                    Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport') ||
+                    file === editor.sceneFile || file === editor.projectFile ||
+                    SceneLoader.SceneFiles.indexOf(file) !== -1
+                ) {
                     return;
+                }
                 
                 sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(file) });
             });

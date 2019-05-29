@@ -18,6 +18,9 @@ import GLTFTools from '../tools/gltf-tools';
 import VSCodeSocket from '../vscode/vscode-socket';
 
 export default class SceneLoader {
+    // Public members
+    public static SceneFiles: File[] = [];
+
     // Private members
     private static _CurrentProject: ProjectRoot = null;
     private static _SceneExtensions: string[] = ['babylon', 'obj', 'stl', 'gltf', 'glb'];
@@ -151,11 +154,17 @@ export default class SceneLoader {
      * @param editor the editor ference
      * @param sceneFile the scene file just loaded
      * @param scene the new scene created using the babylonjs scene loader
-     * @param disposePreviousScene if the previous scene should be disposed (typically if the user decided to not append to the current scene)
+     * @param loadingNewScene if the previous scene should be disposed (typically if the user decided to not append to the current scene)
      */
-    private static async _OnSceneLoaded (editor: Editor, sceneFile: File, scene: Scene, disposePreviousScene: boolean): Promise<void> {
+    private static async _OnSceneLoaded (editor: Editor, sceneFile: File, scene: Scene, loadingNewScene: boolean): Promise<void> {
+        // Misc.
+        if (loadingNewScene)
+            this.SceneFiles = [sceneFile];
+        else
+            this.SceneFiles.push(sceneFile);
+        
         // Configure editor
-        editor.core.removeScene(editor.core.scene, disposePreviousScene);
+        editor.core.removeScene(editor.core.scene, loadingNewScene);
 
         editor.core.uiTextures.forEach(ui => ui.dispose());
         editor.core.uiTextures = [];
@@ -175,13 +184,13 @@ export default class SceneLoader {
         SceneManager.Clear();
 
         // Editor project
-        if (disposePreviousScene) {
+        if (loadingNewScene) {
             Extensions.ClearExtensions();
             CodeProjectEditorFactory.CloseAll();
         }
 
         // Project file
-        if (disposePreviousScene) {
+        if (loadingNewScene) {
             // Load other files
             const appendPromises: Promise<Scene>[] = [];
 
@@ -195,6 +204,9 @@ export default class SceneLoader {
                 // Load
                 appendPromises.push(BabylonSceneLoader.AppendAsync('file:', file.name, scene));
                 editor.core.engine.hideLoadingUI();
+
+                // Save
+                this.SceneFiles.push(file);
             }
 
             await Promise.all(appendPromises);
@@ -220,6 +232,9 @@ export default class SceneLoader {
                 } catch (e) {
                     this._OnError('Error while loading project', e.message);
                 }
+
+                // Remove project file
+                delete FilesInputStore.FilesToLoad[projectFile.name.toLowerCase()];
             }
 
             // Default light

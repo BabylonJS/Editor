@@ -36,6 +36,11 @@ export default class Game {
         SceneLoader.Load('./scene/', 'scene.{{scene_format}}', this.engine, (scene: Scene) => {
             this.scene = scene;
 
+            // No camera?
+            if (!this.scene.activeCamera) {
+                this.scene.createDefaultCamera(false, true, true);
+            }
+
             // Attach camera
             this.scene.activeCamera.attachControl(this.canvas, true);
 
