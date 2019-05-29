@@ -43,15 +43,17 @@ export default class EditorToolbar {
                     { id: 'export-project', img: 'icon-files', text: 'Save Project... <kbd>CTRL + S</kbd>' },
                     { id: 'export-project-as', img: 'icon-files', text: 'Save Project As... <kbd>ALT + CTRL + S</kbd>' },
                     { type: 'break' },
-                    { id: 'export-template', img: 'icon-files-project', text: 'Export Template...' }
+                    { id: 'export-template', img: 'icon-files-project', text: 'Export Project Template...' }
                 ]
             },
             {
                 type: 'menu', id: 'scene', text: 'Scene', img: 'icon-scene', items: [
                     { id: 'import-meshes-from', img: 'icon-add', text: 'Import Meshes From...' },
                     { type: 'break' },
-                    { id: 'download-scene', img: 'icon-export', text: 'Download Scene...' },
-                    { id: 'serialize-scene', img: 'icon-export', text: 'Download Scene As...' }
+                    { id: 'download-scene', img: 'icon-export', text: 'Save Scene File...' },
+                    { id: 'serialize-scene', img: 'icon-export', text: 'Save Scene File As...' },
+                    { type: 'break' },
+                    { id: 'export-final-scene', img: 'icon-files-project', text: 'Export Final Scene And Assets...' }
                 ]
             },
             { type: 'break' },
@@ -197,7 +199,7 @@ export default class EditorToolbar {
                 break;
 
             case 'project:export-template':
-                await ProjectExporter.ExportTemplate(this.editor);
+                await ProjectExporter.ExportTemplate(this.editor, false);
                 break;
 
             // Scene
@@ -210,6 +212,10 @@ export default class EditorToolbar {
                 break;
             case 'scene:serialize-scene':
                 new SceneSerializer(this.editor.core.scene);
+                break;
+
+            case 'scene:export-final-scene':
+                await ProjectExporter.ExportTemplate(this.editor, true);
                 break;
 
             // Edit

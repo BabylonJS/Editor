@@ -40,8 +40,9 @@ export default class ProjectExporter {
     /**
      * Uploads all scene templates
      * @param editor the editor reference
+     * @param onlyScene if the template should export only the scene files (with assets)
      */
-    public static async ExportTemplate (editor: Editor): Promise<void> {
+    public static async ExportTemplate (editor: Editor, onlyScene: boolean): Promise<void> {
         // Create format window
         const window = new Window('ExportTemplate');
         window.buttons = ['Ok'];
@@ -115,7 +116,7 @@ export default class ProjectExporter {
             ];
 
             const storage = await Storage.GetStorage(editor);
-            storage.openPicker('Create Template...', [
+            storage.openPicker('Create Template...', onlyScene ? sceneFiles : [
                 { name: 'scene', folder: sceneFiles },
                 { name: 'src', folder: srcFiles },
                 { name: 'README.md', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
