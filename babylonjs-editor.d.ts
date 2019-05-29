@@ -36,13 +36,14 @@ declare module 'babylonjs-editor' {
     import SceneManager from 'babylonjs-editor/editor/scene/scene-manager';
     import SceneFactory from 'babylonjs-editor/editor/scene/scene-factory';
     import ScenePreview from 'babylonjs-editor/editor/scene/scene-preview';
+    import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
     import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from 'babylonjs-editor/editor/particles/asset-component';
     import Storage from 'babylonjs-editor/editor/storage/storage';
     import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, ScenePicker, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -1024,6 +1025,8 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * @param editor the editor reference
                 * @param property the property of the object
                 * @param object the object which has a texture
+                * @param allowCubes if the cube textures should be displayed in the list
+                * @param onlyCubes if only cube textures should be displayed in the list
                 * @param callback: called when changed texture
                 */
             addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes?: boolean, onlyCubes?: boolean, callback?: (texture: BaseTexture) => void): dat.GUIController;
@@ -1821,6 +1824,110 @@ declare module 'babylonjs-editor/editor/scene/scene-preview' {
     }
 }
 
+declare module 'babylonjs-editor/editor/scene/scene-picker' {
+    import { Engine, Scene, AbstractMesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera, BoundingBoxGizmo } from 'babylonjs';
+    import Editor from 'babylonjs-editor/editor/editor';
+    import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
+    export enum GizmoType {
+            NONE = 0,
+            BOUNDING_BOX = 1,
+            POSITION = 2,
+            ROTATION = 3,
+            SCALING = 4
+    }
+    export default class ScenePicker {
+            editor: Editor;
+            scene: Scene;
+            canvas: HTMLCanvasElement;
+            gizmosLayer: UtilityLayerRenderer;
+            onPickedMesh: (mesh: AbstractMesh) => void;
+            onUpdateMesh: (mesh: AbstractMesh) => void;
+            currentMesh: AbstractMesh;
+            protected lastMesh: AbstractMesh;
+            protected lastClickedMesh: AbstractMesh;
+            protected lastX: number;
+            protected lastY: number;
+            protected onCanvasPointer: Observer<PointerInfo>;
+            protected onCanvasBlur: Observer<PointerEvent>;
+            protected onCanvasFocus: Observer<Engine>;
+            protected boundingBoxGizmo: BoundingBoxGizmo;
+            protected positionGizmo: PositionGizmo;
+            protected rotationGizmo: RotationGizmo;
+            protected scalingGizmo: ScaleGizmo;
+            protected currentGizmo: BoundingBoxGizmo | PositionGizmo | RotationGizmo | ScaleGizmo;
+            /**
+                * Constructor
+                * @param editor: the editor reference
+                * @param canvas: the canvas to track
+                */
+            constructor(editor: Editor, scene: Scene, canvas: HTMLCanvasElement);
+            /**
+                * Configures the given mesh
+                * @param mesh the mesh to configure
+                */
+            configureMesh(mesh: AbstractMesh): void;
+            /**
+             * Sets if the scene picker is enabled
+             */
+            enabled: boolean;
+            /**
+                * Sets the gizmo type
+                */
+            gizmoType: GizmoType;
+            /**
+                * Sets the attached mesh for position, rotaiton and scaling gizmos
+                * @param mesh the mesh to attach
+                */
+            setGizmoAttachedMesh(mesh: AbstractMesh): void;
+            /**
+                * Adds the events to the canvas
+                */
+            addEvents(): void;
+            /**
+                * Removes the scene picker events from the canvas
+                */
+            removeEvents(): void;
+            /**
+                * Creates a default gizmos toolbar
+                * @param divId the div id which will contains to toolbar
+                */
+            createGizmosToolbar(divId: string): Toolbar;
+            /**
+                * Adds undo redo
+                * @param delta the delta value (from / to)
+                * @param axis the moved axis
+                */
+            protected undoRedo(axis: 'x' | 'y' | 'z' | 'boundingbox'): void;
+            /**
+                * Called when canvas mouse is down
+                * @param ev the mouse event
+                */
+            onCanvasDown(ev: MouseEvent): void;
+            /**
+                * Called when canvas mouse is up
+                * @param ev the mouse event
+                */
+            onCanvasClick(ev: MouseEvent): void;
+            /**
+                * Called when mouse moves on canvas
+                * @param ev the mouse event
+                */
+            onCanvasMove(ev: MouseEvent): void;
+            /**
+                * Called when double click on the canvas
+                * @param ev: the mouse event
+                */
+            onCanvasDblClick(ev: MouseEvent): void;
+            /**
+                * Creates an starts an animation that targets the given "end" position
+                * @param start the start target position
+                * @param end the end target position
+                * @param camera the camera to animate
+                */
+            static CreateAndPlayFocusAnimation(start: Vector3, end: Vector3, camera: Camera): void;
+    }
+}
+
 declare module 'babylonjs-editor/editor/prefabs/asset-component' {
     import { Node, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
@@ -2590,103 +2697,6 @@ declare module 'babylonjs-editor/editor/components/files' {
                 * @param parent the item to highlight
                 */
             protected highlightItem(parent: HTMLDivElement): void;
-    }
-}
-
-declare module 'babylonjs-editor/editor/scene/scene-picker' {
-    import { Engine, Scene, AbstractMesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera, BoundingBoxGizmo } from 'babylonjs';
-    import Editor from 'babylonjs-editor/editor/editor';
-    export enum GizmoType {
-            NONE = 0,
-            BOUNDING_BOX = 1,
-            POSITION = 2,
-            ROTATION = 3,
-            SCALING = 4
-    }
-    export default class ScenePicker {
-            editor: Editor;
-            scene: Scene;
-            canvas: HTMLCanvasElement;
-            gizmosLayer: UtilityLayerRenderer;
-            onPickedMesh: (mesh: AbstractMesh) => void;
-            onUpdateMesh: (mesh: AbstractMesh) => void;
-            protected lastMesh: AbstractMesh;
-            protected lastClickedMesh: AbstractMesh;
-            protected lastX: number;
-            protected lastY: number;
-            protected onCanvasPointer: Observer<PointerInfo>;
-            protected onCanvasBlur: Observer<PointerEvent>;
-            protected onCanvasFocus: Observer<Engine>;
-            protected boundingBoxGizmo: BoundingBoxGizmo;
-            protected positionGizmo: PositionGizmo;
-            protected rotationGizmo: RotationGizmo;
-            protected scalingGizmo: ScaleGizmo;
-            protected currentGizmo: BoundingBoxGizmo | PositionGizmo | RotationGizmo | ScaleGizmo;
-            /**
-                * Constructor
-                * @param editor: the editor reference
-                * @param canvas: the canvas to track
-                */
-            constructor(editor: Editor, scene: Scene, canvas: HTMLCanvasElement);
-            /**
-                * Configures the given mesh
-                * @param mesh the mesh to configure
-                */
-            configureMesh(mesh: AbstractMesh): void;
-            /**
-             * Sets if the scene picker is enabled
-             */
-            enabled: boolean;
-            /**
-                * Sets the gizmo type
-                */
-            gizmoType: GizmoType;
-            /**
-                * Sets the attached mesh for position, rotaiton and scaling gizmos
-                * @param mesh the mesh to attach
-                */
-            setGizmoAttachedMesh(mesh: AbstractMesh): void;
-            /**
-                * Adds the events to the canvas
-                */
-            addEvents(): void;
-            /**
-                * Removes the scene picker events from the canvas
-                */
-            removeEvents(): void;
-            /**
-                * Adds undo redo
-                * @param delta the delta value (from / to)
-                * @param axis the moved axis
-                */
-            protected undoRedo(axis: 'x' | 'y' | 'z' | 'boundingbox'): void;
-            /**
-                * Called when canvas mouse is down
-                * @param ev the mouse event
-                */
-            onCanvasDown(ev: MouseEvent): void;
-            /**
-                * Called when canvas mouse is up
-                * @param ev the mouse event
-                */
-            onCanvasClick(ev: MouseEvent): void;
-            /**
-                * Called when mouse moves on canvas
-                * @param ev the mouse event
-                */
-            onCanvasMove(ev: MouseEvent): void;
-            /**
-                * Called when double click on the canvas
-                * @param ev: the mouse event
-                */
-            onCanvasDblClick(ev: MouseEvent): void;
-            /**
-                * Creates an starts an animation that targets the given "end" position
-                * @param start the start target position
-                * @param end the end target position
-                * @param camera the camera to animate
-                */
-            static CreateAndPlayFocusAnimation(start: Vector3, end: Vector3, camera: Camera): void;
     }
 }
 

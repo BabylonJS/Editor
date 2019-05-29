@@ -32,6 +32,7 @@ import CodeProjectEditorFactory from './editor/project/project-code-editor';
 import SceneManager from './editor/scene/scene-manager';
 import SceneFactory from './editor/scene/scene-factory';
 import ScenePreview from './editor/scene/scene-preview';
+import ScenePicker from './editor/scene/scene-picker';
 
 import PrefabAssetComponent from './editor/prefabs/asset-component';
 import { Prefab, PrefabNodeType } from './editor/prefabs/prefab';
@@ -81,6 +82,7 @@ export {
     SceneManager,
     SceneFactory,
     ScenePreview,
+    ScenePicker,
 
     PrefabAssetComponent,
     Prefab, PrefabNodeType,

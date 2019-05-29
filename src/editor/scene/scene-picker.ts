@@ -6,7 +6,7 @@ import {
 } from 'babylonjs';
 
 import Editor from '../editor';
-
+import Toolbar from '../gui/toolbar';
 import UndoRedo from '../tools/undo-redo';
 
 export enum GizmoType {
@@ -27,6 +27,8 @@ export default class ScenePicker {
 
     public onPickedMesh: (mesh: AbstractMesh) => void;
     public onUpdateMesh: (mesh: AbstractMesh) => void;
+
+    public currentMesh: AbstractMesh = null;
 
     // Protected members
     protected lastMesh: AbstractMesh = null;
@@ -180,7 +182,7 @@ export default class ScenePicker {
      * @param mesh the mesh to attach
      */
     public setGizmoAttachedMesh (mesh: AbstractMesh): void {
-        if (mesh && !(mesh instanceof AbstractMesh))
+        if (!mesh || !(mesh instanceof AbstractMesh))
             return;
         
         this.boundingBoxGizmo && (this.boundingBoxGizmo.attachedMesh = mesh);
@@ -229,6 +231,56 @@ export default class ScenePicker {
         this.scene.onPointerObservable.remove(this.onCanvasPointer);
         this.scene.getEngine().onCanvasPointerOutObservable.remove(this.onCanvasBlur);
         this.scene.getEngine().onCanvasFocusObservable.remove(this.onCanvasFocus);
+    }
+
+    /**
+     * Creates a default gizmos toolbar
+     * @param divId the div id which will contains to toolbar
+     */
+    public createGizmosToolbar (divId: string): Toolbar {
+        const toolbar = new Toolbar(divId);
+        toolbar.items = [
+            { type: 'button', id: 'position', text: '', img: 'icon-position', checked: false },
+            { type: 'button', id: 'rotation', text: '', img: 'icon-rotation', checked: false },
+            { type: 'button', id: 'scaling', text: '', img: 'icon-scaling', checked: false },
+            { type: 'button', id: 'bounding-box', text :'', img: 'icon-bounding-box', checked: false }
+        ];
+        toolbar.build(divId);
+        toolbar.onClick = (id => {
+            switch (id) {
+                case 'bounding-box':
+            case 'position':
+            case 'rotation':
+            case 'scaling':
+                const active = toolbar.isChecked(id, true);
+
+                toolbar.setChecked('bounding-box', false);
+                toolbar.setChecked('position', false);
+                toolbar.setChecked('rotation', false);
+                toolbar.setChecked('scaling', false);
+                toolbar.setChecked(id, active);
+
+                this.gizmosLayer.shouldRender = active;
+
+                if (!active) {
+                    this.gizmoType = GizmoType.NONE;
+                    break;
+                }
+
+                switch (id) {
+                    case 'bounding-box': this.gizmoType = GizmoType.BOUNDING_BOX; break;
+                    case 'position': this.gizmoType = GizmoType.POSITION; break;
+                    case 'rotation': this.gizmoType = GizmoType.ROTATION; break;
+                    case 'scaling': this.gizmoType = GizmoType.SCALING; break;
+                }
+
+                this.setGizmoAttachedMesh(this.currentMesh);
+
+                break;
+            }
+        });
+
+        return toolbar;
     }
 
     /**
@@ -319,11 +371,15 @@ export default class ScenePicker {
         const pick = this.editor.sceneIcons.pickIcon(ev.offsetX, ev.offsetY) || this.scene.pick(ev.offsetX, ev.offsetY);
 
         if (pick.pickedMesh) {
+            // Save reference
+            this.currentMesh = pick.pickedMesh;
+
+            // Callback
             if (this.onPickedMesh)
                 this.onPickedMesh(pick.pickedMesh);
 
             // Attach mesh
-            this.setGizmoAttachedMesh(<Mesh> pick.pickedMesh);
+            this.setGizmoAttachedMesh(pick.pickedMesh);
 
             // Save last clicked mesh
             this.lastClickedMesh = pick.pickedMesh;

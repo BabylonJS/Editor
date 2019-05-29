@@ -218,6 +218,8 @@ export default class Edition {
      * @param editor the editor reference
      * @param property the property of the object
      * @param object the object which has a texture
+     * @param allowCubes if the cube textures should be displayed in the list
+     * @param onlyCubes if only cube textures should be displayed in the list
      * @param callback: called when changed texture
      */
     public addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
@@ -238,10 +240,16 @@ export default class Edition {
             texture: object[property] ? object[property].name : 'None',
             browse: (async () => {
                 const from = object[property];
-                const to = await TexturePicker.Show(scene, object[property]);
+                const to = await TexturePicker.Show(scene, object[property], allowCubes, onlyCubes);
 
                 object[property] = to;
-                UndoRedo.Push({ baseObject: object, object: object, property: property, from: from, to: to })
+                UndoRedo.Push({ baseObject: object, object: object, property: property, from: from, to: to });
+
+                // Update
+                if (to)
+                    target.texture = to.name;
+
+                editor.inspector.updateDisplay();
             })
         };
 

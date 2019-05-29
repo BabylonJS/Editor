@@ -196,9 +196,9 @@ export default class PrefabAssetComponent implements IAssetComponent {
         Tags.RemoveTagsFrom(parent, 'added');
 
         // Select
-        if (parent instanceof AbstractMesh)
-            this.editor.scenePicker.setGizmoAttachedMesh(parent);
+        this.editor.scenePicker.setGizmoAttachedMesh(<AbstractMesh> parent);
         
+        // Notify
         this.editor.core.onSelectObject.notifyObservers(parent);
     }
 

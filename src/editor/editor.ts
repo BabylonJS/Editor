@@ -720,6 +720,8 @@ export default class Editor implements IUpdatable {
 
         this.core.engine.getRenderingCanvas().addEventListener('focus', () => this._canvasFocused = true);
         this.core.engine.getRenderingCanvas().addEventListener('blur', () => this._canvasFocused = false);
+        this.core.engine.getRenderingCanvas().addEventListener('mousemove', () => this._canvasFocused = true);
+        this.core.engine.getRenderingCanvas().addEventListener('mouseleave', () => this._canvasFocused = false);
 
         // Shift key
         let shiftDown = false;

@@ -134,7 +134,6 @@ export default class EditorPreview {
                     case 'position': this.editor.scenePicker.gizmoType = GizmoType.POSITION; break;
                     case 'rotation': this.editor.scenePicker.gizmoType = GizmoType.ROTATION; break;
                     case 'scaling': this.editor.scenePicker.gizmoType = GizmoType.SCALING; break;
-                    default: break; // Should never happen
                 }
 
                 break;

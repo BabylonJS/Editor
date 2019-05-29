@@ -17,8 +17,10 @@ export default class TexturePicker {
      * Shows the texture picker and returns the selected texture.
      * @param scene the scene containing the textures to pick.
      * @param selectedTexture the texture reference that must be selected by default in the list.
+     * @param allowCubes if the cube textures should be displayed in the list.
+     * @param onlyCubes if only cube textures should be displayed in the list.
      */
-    public static async Show (scene: Scene, selectedTexture: BaseTexture = null): Promise<BaseTexture> {
+    public static async Show (scene: Scene, selectedTexture: BaseTexture = null, allowCubes: boolean = false, onlyCubes: boolean = false): Promise<BaseTexture> {
         // Reset
         this._SelectedTexture = selectedTexture;
         this._Images = [];
@@ -42,7 +44,7 @@ export default class TexturePicker {
         // Return
         return new Promise<BaseTexture>((resolve, reject) => {
             // Fill
-            this._Fill(scene, selectedTexture, (texture) => {
+            this._Fill(scene, selectedTexture, allowCubes, onlyCubes, (texture) => {
                 // The user double-clicked a texture
                 resolve(texture);
                 win.close();
@@ -68,11 +70,19 @@ export default class TexturePicker {
     }
 
     // Fills the available textures.
-    private static _Fill (scene: Scene, selectedTexture: BaseTexture, callback: (texture: BaseTexture) => void): void {
+    private static _Fill (scene: Scene, selectedTexture: BaseTexture, allowCubes: boolean, onlyCubes: boolean, callback: (texture: BaseTexture) => void): void {
         // Add images
         const rootDiv = $('#TEXTURE-PICKER')[0];
 
         scene.textures.forEach(texture => {
+            // Check
+            if (!allowCubes && texture instanceof CubeTexture)
+                return;
+
+            if (onlyCubes && !(texture instanceof CubeTexture))
+                return;
+
+            // Elements
             const parent = Tools.CreateElement<HTMLDivElement>('div', texture.name + texture.uniqueId + 'div', {
                 'position': 'relative',
                 'width': '100px',
