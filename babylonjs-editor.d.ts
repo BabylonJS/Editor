@@ -2331,6 +2331,10 @@ declare module 'babylonjs-editor/editor/components/preview' {
                 */
             setToolClicked(id: string): void;
             /**
+                * Resets the preview panel.
+                */
+            reset(): void;
+            /**
                 * On the user clicks on the toolbar
                 * @param id the id of the clicked item
                 */

@@ -249,6 +249,10 @@ export default class SceneLoader {
         editor.graph.clear();
         editor.graph.fill();
 
+        // Preview
+        if (loadingNewScene)
+            editor.preview.reset();
+
         // Restart plugins
         await editor.restartPlugins();
 

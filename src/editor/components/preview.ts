@@ -30,15 +30,6 @@ export default class EditorPreview {
         this.toolbar = new Toolbar('PREVIEW-TOOLBAR');
         this.toolbar.onClick = id => this.onToolbarClicked(id);
         this.toolbar.items = [
-            { type: 'menu', id: 'show', text: 'Show', img: 'icon-helpers', selected: [], items: [
-                { id: 'bounding-boxes', img: 'icon-bounding-box', text: 'Bounding Box' },
-                { id: 'wireframe', img: 'icon-wireframe', text: 'Wireframe' },
-                { type: 'break' },
-                { id: 'post-processes', img: 'icon-helpers', text: 'Post-Processes' },
-                { type: 'break' },
-                { id: 'textures', img: 'icon-dynamic-texture', text: 'Textures' },
-                { id: 'lights', img: 'icon-light', text: 'Lights' }
-            ]},
             { type: 'break' },
             { type: 'menu', id: 'camera', text: 'Camera', img: 'icon-camera', items: [
                 { id: 'free', text: 'Free Camera', img: 'icon-camera' },
@@ -48,7 +39,15 @@ export default class EditorPreview {
             { type: 'button', id: 'position', text: '', img: 'icon-position', checked: false },
             { type: 'button', id: 'rotation', text: '', img: 'icon-rotation', checked: false },
             { type: 'button', id: 'scaling', text: '', img: 'icon-scaling', checked: false },
-            { type: 'button', id: 'bounding-box', text :'', img: 'icon-bounding-box', checked: false }
+            { type: 'button', id: 'bounding-box', text :'', img: 'icon-bounding-box', checked: false },
+            { type: 'break' },
+            { type: 'button', id: 'bounding-boxes', checked: false, img: 'icon-bounding-box', text: '' },
+            { type: 'button', id: 'wireframe', checked: false, img: 'icon-wireframe', text: '' },
+            { type: 'break' },
+            { type: 'button', id: 'post-processes', checked: true, img: 'icon-helpers', text: '' },
+            { type: 'break' },
+            { type: 'button', id: 'textures', checked: true, img: 'icon-dynamic-texture', text: '' },
+            { type: 'button', id: 'lights', checked: true, img: 'icon-light', text: '' }
         ];
         this.toolbar.build('PREVIEW-TOOLBAR');
 
@@ -90,20 +89,22 @@ export default class EditorPreview {
     }
 
     /**
+     * Resets the preview panel.
+     */
+    public reset (): void {
+        this.toolbar.setChecked('bounding-boxes', false);
+        this.toolbar.setChecked('wireframe', false);
+        this.toolbar.setChecked('post-processes', true);
+        this.toolbar.setChecked('textures', true);
+        this.toolbar.setChecked('lights', true);
+    }
+
+    /**
      * On the user clicks on the toolbar
      * @param id the id of the clicked item
      */
     protected onToolbarClicked (id: string): void {
         switch (id) {
-            // Show
-            case 'show:bounding-boxes': this.editor.core.scene.forceShowBoundingBoxes = !this.editor.core.scene.forceShowBoundingBoxes; break;
-            case 'show:wireframe': this.editor.core.scene.forceWireframe = !this.editor.core.scene.forceWireframe; break;
-
-            case 'show:post-processes': this.editor.core.scene.postProcessesEnabled = !this.editor.core.scene.postProcessesEnabled; break;
-
-            case 'show:textures': this.editor.core.scene.texturesEnabled = !this.editor.core.scene.texturesEnabled; break;
-            case 'show:lights': this.editor.core.scene.lightsEnabled = !this.editor.core.scene.lightsEnabled; break;
-
             // Camera
             case 'camera:free': this.editor.createEditorCamera('free'); break;
             case 'camera:arc': this.editor.createEditorCamera('arc'); break;
@@ -138,6 +139,24 @@ export default class EditorPreview {
 
                 break;
 
+            // Show
+            case 'bounding-boxes':
+            case 'wireframe':
+            case 'post-processes':
+            case 'textures':
+            case 'lights':
+                switch (id) {
+                    case 'bounding-boxes': this.editor.core.scene.forceShowBoundingBoxes = !this.editor.core.scene.forceShowBoundingBoxes; break;
+                    case 'wireframe': this.editor.core.scene.forceWireframe = !this.editor.core.scene.forceWireframe; break;
+                    case 'post-processes': this.editor.core.scene.postProcessesEnabled = !this.editor.core.scene.postProcessesEnabled; break;
+                    case 'textures': this.editor.core.scene.texturesEnabled = !this.editor.core.scene.texturesEnabled; break;
+                    case 'lights': this.editor.core.scene.lightsEnabled = !this.editor.core.scene.lightsEnabled; break;
+                }
+
+                this.toolbar.setChecked(id, !this.toolbar.isChecked(id));
+                break;
+
+            // Default
             default: break;
         }
     }
