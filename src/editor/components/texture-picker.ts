@@ -3,10 +3,15 @@ import { Scene, Texture, CubeTexture, FilesInputStore, BaseTexture } from 'babyl
 import Window from '../gui/window';
 import Tools from '../tools/tools';
 
+interface _TextureImage {
+    element: HTMLImageElement;
+    texture: BaseTexture;
+}
+
 export default class TexturePicker {
     private static _DefaultImageSource: string = null;
     private static _SelectedTexture: BaseTexture = null;
-    private static _Images: HTMLImageElement[] = [];
+    private static _Images: _TextureImage[] = [];
 
     /**
      * Shows the texture picker and returns the selected texture.
@@ -26,7 +31,10 @@ export default class TexturePicker {
 
         // Create window
         const win = new Window('TexturePicker');
-        win.body = '<div id="TEXTURE-PICKER" style="width: 100%; height: 100%;"></div>';
+        win.body = `
+            <input id="TEXTURE-PICKER-SEARCH" placeholder="Search..." style="width: 100%; height: 35px;" />
+            <div id="TEXTURE-PICKER" style="width: 100%; height: calc(100% - 35px);"></div>
+        `;
         win.title = 'Choose Texture...';
         win.buttons = ['Ok', 'Cancel'];
         await win.open();
@@ -90,7 +98,10 @@ export default class TexturePicker {
                 'width': '100px',
                 'height': '100px'
             });
-            this._Images.push(img);
+            this._Images.push({
+                element: img,
+                texture: texture
+            });
 
             // Highlight?
             if (texture === selectedTexture)
@@ -135,15 +146,41 @@ export default class TexturePicker {
             parent.appendChild(title);
             rootDiv.appendChild(parent);
         });
+
+        // Search
+        const search = $('#TEXTURE-PICKER-SEARCH');
+        search.keyup(ev => {
+            const val = (<string> search.val()).toLowerCase();
+
+            // Show / hide
+            this._Images.forEach(img => {
+                if (img.element.id.toLowerCase().indexOf(val) === -1)
+                    $(img.element.parentElement).hide();
+                else
+                    $(img.element.parentElement).show();
+            });
+
+            // Find first
+            const first = this._Images.find(i => !$(i.element).is(':hidden'));
+            if (first) {
+                this._SelectedTexture = first.texture;
+                this._HighLight(first.element);
+            }
+
+            // Pressed enter?
+            if (ev.keyCode === 13)
+                callback(this._SelectedTexture);
+        });
+        setTimeout(() => search.focus(), 1);
     }
 
     // Highlights the given image
     private static _HighLight (image: HTMLImageElement): void {
         // Remove "selected" state
         this._Images.forEach(img => {
-            img.style.backgroundColor = '';
-            img.style.borderRadius = '';
-            img.style.border = '';
+            img.element.style.backgroundColor = '';
+            img.element.style.borderRadius = '';
+            img.element.style.border = '';
         });
 
         // Apply "selected" state
