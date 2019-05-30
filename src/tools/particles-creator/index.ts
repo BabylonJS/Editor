@@ -4,7 +4,7 @@ import {
 } from 'babylonjs';
 import Editor, {
     EditorPlugin, Tools,
-    Layout, Toolbar, Tree,
+    Layout, Toolbar, Tree, Window,
     Dialog, UndoRedo, GraphicsTools,
     Storage, ParticlesCreatorMetadata, INumberDictionary
 } from 'babylonjs-editor';
@@ -105,6 +105,7 @@ export default class ParticlesCreator extends EditorPlugin {
 
         // Toolbar
         this.toolbar = new Toolbar('PARTICLES-CREATOR-TOOLBAR');
+        this.toolbar.helpUrl = 'https://doc.babylonjs.com/resources/using_particlesystemeditor';
         this.toolbar.items = [
             { id: 'add', text: 'Add System...', caption: 'Add System...', img: 'icon-add' },
             { id: 'reset', text: 'Reset', caption: 'Reset', img: 'icon-play-game' },
@@ -284,8 +285,9 @@ export default class ParticlesCreator extends EditorPlugin {
     }
 
     /**
-     * Adds a new particle system to the current set according to the given data
-     * @param particleSystemData the particle system data to parse
+     * Adds a new particle system to the current set according to the given data.
+     * @param particleSystemData the particle system data to parse.
+     * @param name the name to force to the system to add.
      */
     protected addSystemToSet (particleSystemData: any, name?: string): Promise<ParticleSystem> {
         if (!this.set)
@@ -336,6 +338,22 @@ export default class ParticlesCreator extends EditorPlugin {
         // Save & reset
         this.saveSet();
         this.resetSet(true);
+    }
+
+    /**
+     * Clones the given particle system
+     * @param ps the particle system to clone
+     */
+    public async cloneSystem (ps: ParticleSystem): Promise<void> {
+        try {
+            const clone = ps.serialize();
+            await this.addSystemToSet(clone, ps.name + ' Clone');
+
+            this.saveSet();
+            this.resetSet(true);
+        } catch (e) {
+            Window.CreateAlert(`<h2>${e.message}</h2><br/>${e.stack}`, `Can't clone the system`)
+        }
     }
 
     /**
@@ -416,6 +434,11 @@ export default class ParticlesCreator extends EditorPlugin {
                 s.textureName = await Tools.ReadFileAsBase64(file);
             }
         }
+        else {
+            for (const s of serializationObject.systems) {
+                s.textureName = 'textures/' + s.textureName;
+            }
+        }
 
         // Save data
         const json = JSON.stringify(serializationObject, null, '\t');
@@ -428,21 +451,20 @@ export default class ParticlesCreator extends EditorPlugin {
         // Not embeded
         const textureFiles: File[] = [];
         for (const s of serializationObject.systems) {
-            const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
+            const file = FilesInputStore.FilesToLoad[s.textureName.replace('textures/', '').toLowerCase()];
             if (!file || textureFiles.indexOf(file) !== -1)
                 continue;
+            
             textureFiles.push(file);
         }
 
         const storage = await Storage.GetStorage(this.editor);
         await storage.openPicker('Choose destination folder...', [
-            { name: 'systems', folder: [
-                { name: file.name, file: file },
-                { name: 'textures', folder: textureFiles.map(tf => ({
-                    name: tf.name,
-                    file: tf
-                })) }
-            ] }
+            { name: file.name, file: file },
+            { name: 'textures', folder: textureFiles.map(tf => ({
+                name: tf.name,
+                file: tf
+            })) }
         ]);
     }
 
@@ -468,8 +490,11 @@ export default class ParticlesCreator extends EditorPlugin {
                 if (s.textureName && s.textureName.indexOf('data:') === -1) {
                     // Create texture
                     const path = Tools.GetFilePath(f).replace(f.name, '');
+                    const filename = Tools.GetFilename(s.textureName);
+                    
                     try {
-                        FilesInputStore.FilesToLoad[f.name.toLowerCase()] = await Tools.GetFile(path + 'textures/' + s.textureName);
+                        FilesInputStore.FilesToLoad[filename.toLowerCase()] = await Tools.GetFile(path + s.textureName);
+                        s.textureName = filename;
                     } catch (e) {
                         continue;
                     }

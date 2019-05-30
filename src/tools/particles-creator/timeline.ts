@@ -1,5 +1,5 @@
 import * as Raphael from 'raphael';
-import { ParticleSystemSet, ParticleSystem, Observer } from 'babylonjs';
+import { ParticleSystemSet, ParticleSystem, Observer, Vector3 } from 'babylonjs';
 import { ContextMenu } from 'babylonjs-editor';
 
 import ParticlesCreator from './index';
@@ -323,6 +323,8 @@ export default class Timeline {
         s.node.classList.add('ctxmenu');
         s.node.addEventListener('contextmenu', (ev: MouseEvent) => {
             ContextMenu.Show(ev, {
+                clone: { name: 'Clone', callback: () => this.creator.cloneSystem(system) },
+                separator: <any> '---------',
                 remove: { name: 'Remove', callback: () => this.creator.removeSystemFromSet(system) }
             });
         });
