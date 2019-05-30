@@ -1,9 +1,9 @@
-import { Mesh, FreeCamera, PhysicsImpostor, AbstractMesh } from 'babylonjs';
+import { FreeCamera, PhysicsImpostor, AbstractMesh } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
 
-export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> {
+export default class PhysicsTool extends AbstractEditionTool<AbstractMesh | FreeCamera> {
     // Public members
     public divId: string = 'PHYSICS-TOOL';
     public tabName: string = 'Physics';
@@ -20,14 +20,14 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
 	* @param object the object selected in the graph
 	*/
     public isSupported(object: any): boolean {
-        return object instanceof Mesh || object instanceof FreeCamera;
+        return object instanceof AbstractMesh || object instanceof FreeCamera;
     }
 
 	/**
 	* Updates the edition tool
 	* @param object the object selected in the graph
 	*/
-    public update(node: Mesh | FreeCamera): void {
+    public update(node: AbstractMesh | FreeCamera): void {
         super.update(node);
 
         // Collisions
@@ -37,13 +37,13 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
         collisions.add(node, 'checkCollisions').name('Check Collisions');
         collisions.add(node, 'collisionMask').step(0.01).name('Collision Mask');
 
-        if (node instanceof Mesh)
+        if (node instanceof AbstractMesh)
             collisions.add(node, 'useOctreeForCollisions').name('Use Octree For Collisions');
         else
             this.tool.addVector(collisions, 'Ellipsoid', node.ellipsoid).open();
 
         // Physics
-        if (node instanceof Mesh && node.getScene().isPhysicsEnabled()) {
+        if (node instanceof AbstractMesh && node.getScene().isPhysicsEnabled()) {
             const physics = this.tool.addFolder('Physics');
             physics.open();
 
