@@ -1,4 +1,4 @@
-import Effect = BABYLON.Effect;
+import { Scene, Effect, Camera } from 'babylonjs';
 
 class PostProcess {
     // Public members
@@ -8,7 +8,7 @@ class PostProcess {
     /**
      * Constructor
      */
-    constructor () {
+    constructor (public camera: Camera, public scene: Scene) {
 
     }
 
@@ -34,8 +34,7 @@ class PostProcess {
      * @param effect: the effect which will send the uniforms and samplers to the shader
      */
     public onApply (effect: Effect): void {
-        this.time += camera.getScene().getEngine().getDeltaTime() * 0.01;
-    
+        this.time += this.camera.getScene().getEngine().getDeltaTime() * 0.01;
         effect.setFloat('time', this.multiplier * Math.cos(this.time));
     }
     

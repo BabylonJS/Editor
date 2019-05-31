@@ -83,7 +83,7 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
 
         const camera = this.scene.getCameraByName(data.cameraName) || this.scene.activeCamera;
         const ctor = new EDITOR.PostProcessCreator.Constructors[id](camera, Extensions.Tools, Extensions.Mobile);
-        const code = new ctor();
+        const code = new ctor(camera, this.scene);
 
         // Custom config
         let config: CustomPostProcessConfig = null;
