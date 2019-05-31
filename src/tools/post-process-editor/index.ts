@@ -90,30 +90,9 @@ export default class PostProcessEditor extends EditorPlugin {
         this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
         if (!this.editor.core.scene.metadata['PostProcessCreator'])
             this.editor.core.scene.metadata['PostProcessCreator'] = [];
-
-        /*
-        if (this.editor.core.scene.metadata['PostProcessCreator'].length === 0) {
-            this.editor.core.scene.metadata['PostProcessCreator'] = [{
-                name: 'Custom Post-Process',
-                preview: true,
-                cameraName: this.activeCamera ? this.activeCamera.name : null,
-                code: PostProcessCreator.DefaultCode,
-                pixel: PostProcessCreator.DefaultPixel,
-                config: PostProcessCreator.DefaultConfig,
-                userConfig: {
-                    textures: [],
-                    floats: [],
-                    vectors2: [],
-                    vectors3: []
-                }
-            }];
-        }
-        */
         
         this.datas = this.editor.core.scene.metadata['PostProcessCreator'];
         this.data = this.datas[0];
-
-        this.datas.forEach(d => this.createOrUpdatePostProcess(d.name));
 
         // Create layout
         this.layout = new Layout('PostProcessCreatorCode');
@@ -256,10 +235,6 @@ export default class PostProcessEditor extends EditorPlugin {
      * @param id the id of the selected item
      */
     protected deletePostProcess (id: number): void {
-        const p = this.createOrUpdatePostProcess(this.datas[id].name);
-        if (p)
-            p.dispose();
-
         // Remove data
         this.datas.splice(id, 1);
         this.data = this.datas[0];
@@ -315,55 +290,11 @@ export default class PostProcessEditor extends EditorPlugin {
         // Select new post-process to edit
         this.selectPostProcess(this.datas.length - 1);
 
-        // Add and select
-        const p = this.createOrUpdatePostProcess(data.name);
-
-        if (p)
-            this.editor.core.onSelectObject.notifyObservers(p);
-
         // UI
         this.layout.unlockPanel('main');
 
         // Update socket
         VSCodeSocket.RefreshPostProcess(data);
-    }
-
-    /**
-     * Creates or updates the given post-process name
-     * @param name: the name of the post-process
-     */
-    protected createOrUpdatePostProcess (name: string): AbstractPostProcessEditor {
-        if (!this.data.preview)
-            return null;
-        
-        const camera = this.editor.core.scene.activeCamera;
-        for (const p of camera._postProcesses as AbstractPostProcessEditor[]) {
-            if (!p)
-                continue;
-            
-            if (p.name === name) {
-                p.setConfig(JSON.parse(this.data.config));
-                this.editor.core.onSelectObject.notifyObservers(p);
-                return p;
-            }
-        }
-
-        // Update shader store
-        Effect.ShadersStore[name + 'PixelShader'] = this.data.pixel;
-
-        // Create post-process
-        const config = JSON.parse(this.data.config);
-        const p = new AbstractPostProcessEditor(name, name, camera, this.editor.core.engine, config, null);
-        p.setConfig(config);
-
-        // Update graph tool
-        this.editor.graph.clear();
-        this.editor.graph.fill();
-        this.editor.graph.select(p.name);
-
-        this.editor.core.onSelectObject.notifyObservers(p);
-
-        return p;
     }
 
      /**
@@ -465,9 +396,6 @@ export default class PostProcessEditor extends EditorPlugin {
                 return;
             
             this.data.pixel = value;
-            Effect.ShadersStore[this.data.name + 'PixelShader'] = this.data.pixel;
-            this.createOrUpdatePostProcess(this.data.name);
-
             VSCodeSocket.RefreshPostProcess(this.data);
         };
         
@@ -476,12 +404,6 @@ export default class PostProcessEditor extends EditorPlugin {
                 return;
             
             this.data.config = value;
-
-            try {
-                const config = JSON.parse(value);
-                const p = this.createOrUpdatePostProcess(this.data.name);
-            } catch (e) { /* Catch silently */ }
-
             VSCodeSocket.RefreshPostProcess(this.data);
         }
     }

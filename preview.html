@@ -118,6 +118,15 @@
 
                                     if (gotScene) {
                                         gotScene(scene);
+                                    } else {
+                                        // Windowed test
+                                        engine.getRenderingCanvas().addEventListener('blur', function (ev) {
+                                            renderScene = false;
+                                        });
+
+                                        engine.getRenderingCanvas().addEventListener('focus', function (ev) {
+                                            renderScene = true;
+                                        });
                                     }
                                 });
                             });

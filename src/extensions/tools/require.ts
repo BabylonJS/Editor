@@ -47,8 +47,13 @@ export const editorRequire = (moduleName: string) => {
         default:
             // Found in constructors
             let ctor = EDITOR.BehaviorCode.Constructors[moduleName];
-            if (ctor)
-                return ctor.apply(new Array(ctor.length).map(_ => editorRequire));
+            if (ctor) {
+                const args = new Array(ctor.length);
+                for (let i = 0; i < args.length; i++) {
+                    args[i] = editorRequire;
+                }
+                return ctor.apply(ctor, args);
+            }
 
             // Remove spaces
             ctor = EDITOR.BehaviorCode.Constructors[moduleName.replace(/ /g, '')];

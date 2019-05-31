@@ -92,7 +92,7 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
         } catch (e) { /* Silently */ }
 
         // Create post-process
-        let postprocess = new AbstractPostProcessEditor(data.name, id, /*data.preview ? camera : null*/camera, this.scene.getEngine(), config, code);
+        let postprocess = new AbstractPostProcessEditor(data.name, id, data.preview ? camera : null, this.scene.getEngine(), config, code);
 
         // User config
         data.userConfig.textures.forEach(t => postprocess.userConfig[t.name] = Texture.Parse(t.value, this.scene, rootUrl || 'file:'));
