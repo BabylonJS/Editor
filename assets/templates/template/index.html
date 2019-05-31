@@ -48,7 +48,7 @@
                 "litegraph.js": "./node_modules/litegraph.js/build/litegraph.js"
             },
             packages: {
-                "./.build/": {
+                "./build/": {
                     defaultExtension: "js"
                 },
                 "./node_modules/babylonjs-loaders/": {
@@ -68,7 +68,7 @@
             pluginFirst: true
         });
 
-        System.import("./.build/src/game.js").then(function (e) {                
+        System.import("./build/src/game.js").then(function (e) {                
             // Run game here
             var e = new e.default();
             e.run();
