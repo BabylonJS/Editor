@@ -667,6 +667,10 @@ export default class EditorGraph {
                                     return Tags.RemoveTagsFrom(d.node, 'removed');
                             }
                             
+                            // Enabled
+                            if (d.node instanceof Node)
+                                d.node.setEnabled(true);
+                            
                             // Push
                             d.array.push(d.node);
                             d.particleSystems.forEach(p => {
@@ -707,6 +711,10 @@ export default class EditorGraph {
                         descendants.forEach((d) => {
                             if (d.node instanceof Sound)
                                 d.node.stop();
+
+                            // Enabled false
+                            if (d.node instanceof Node)
+                                d.node.setEnabled(false);
                             
                             // Splice
                             d.array.splice(d.array.indexOf(d.node), 1);

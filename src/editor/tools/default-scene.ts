@@ -66,6 +66,10 @@ export default class DefaultScene {
      * @param scene: the editor reference
      */
     public static async Create (editor: Editor): Promise<void> {
+        // Clear previous files
+        editor.sceneFile && delete FilesInputStore.FilesToLoad[editor.sceneFile.name.toLowerCase()];
+        editor.projectFile && delete FilesInputStore.FilesToLoad[editor.projectFile.name.toLowerCase()];
+
         // Project
         const project = JSON.parse(await Tools.LoadFile<string>('assets/defaultScene/scene.editorproject'));
         await SceneImporter.LoadProjectFromFile(editor, 'assets/defaultScene/scene.editorproject', project, false);
@@ -102,6 +106,10 @@ export default class DefaultScene {
      * @param editor the editor reference
      */
     public static async CreateEmpty (editor: Editor): Promise<void> {
+        // Clear previous files
+        editor.sceneFile && delete FilesInputStore.FilesToLoad[editor.sceneFile.name.toLowerCase()];
+        editor.projectFile && delete FilesInputStore.FilesToLoad[editor.projectFile.name.toLowerCase()];
+
         // Clear files
         FilesInputStore.FilesToLoad = { };
 
