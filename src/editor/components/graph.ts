@@ -637,6 +637,7 @@ export default class EditorGraph {
                     return {
                         node: n,
                         array: array,
+                        instancedMeshIndex: n instanceof InstancedMesh ? n.sourceMesh.instances.indexOf(n) : null,
                         sounds: sounds.map(s => ({
                             soundTrackId: s.soundTrackId,
                             isPlaying: s.isPlaying,
@@ -670,6 +671,10 @@ export default class EditorGraph {
                             // Enabled
                             if (d.node instanceof Node)
                                 d.node.setEnabled(true);
+
+                            // Instanced mesh
+                            if (d.instancedMeshIndex !== null)
+                                (<InstancedMesh> d.node).sourceMesh.instances.splice(d.instancedMeshIndex, 0, d.node);
                             
                             // Push
                             d.array.push(d.node);
@@ -715,6 +720,10 @@ export default class EditorGraph {
                             // Enabled false
                             if (d.node instanceof Node)
                                 d.node.setEnabled(false);
+
+                            // Instanced mesh
+                            if (d.instancedMeshIndex !== null)
+                                (<InstancedMesh> d.node).sourceMesh.instances.splice(d.instancedMeshIndex, 1);
                             
                             // Splice
                             d.array.splice(d.array.indexOf(d.node), 1);
