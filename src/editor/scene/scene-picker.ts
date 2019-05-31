@@ -137,7 +137,7 @@ export default class ScenePicker {
             case GizmoType.POSITION: this.currentGizmo = this.positionGizmo = new PositionGizmo(this.gizmosLayer); break;
             case GizmoType.ROTATION: this.currentGizmo = this.rotationGizmo = new RotationGizmo(this.gizmosLayer); break;
             case GizmoType.SCALING: this.currentGizmo = this.scalingGizmo = new ScaleGizmo(this.gizmosLayer); break;
-            default: break; // GizmoType.NONE
+            default: return; // GizmoType.NONE
         }
 
         // Attach mesh and configure
@@ -227,10 +227,12 @@ export default class ScenePicker {
     /**
      * Removes the scene picker events from the canvas
      */
-    public removeEvents (): void {
+    public remove (): void {
         this.scene.onPointerObservable.remove(this.onCanvasPointer);
         this.scene.getEngine().onCanvasPointerOutObservable.remove(this.onCanvasBlur);
         this.scene.getEngine().onCanvasFocusObservable.remove(this.onCanvasFocus);
+
+        this.gizmosLayer.dispose();
     }
 
     /**

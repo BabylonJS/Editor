@@ -509,7 +509,7 @@ export default class Editor implements IUpdatable {
      */
     public createScenePicker (): void {
         if (this.scenePicker)
-            this.scenePicker.removeEvents();
+            this.scenePicker.remove();
         
         this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
         this.scenePicker.onUpdateMesh = (m) => {

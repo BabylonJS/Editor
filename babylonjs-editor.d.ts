@@ -1891,7 +1891,7 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
             /**
                 * Removes the scene picker events from the canvas
                 */
-            removeEvents(): void;
+            remove(): void;
             /**
                 * Creates a default gizmos toolbar
                 * @param divId the div id which will contains to toolbar
