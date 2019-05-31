@@ -230,9 +230,12 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                 ? this.scene
                 : (this.scene.getNodeByID(d.nodeId) || this.scene.getNodeByName(d.node))
 
-            if (!node)
+            if (!node) // ParticleSystem by name
                 this.scene.particleSystems.forEach(ps => ps.name === d.node && (node = ps));
-            
+
+            if (!node) // ParticleSystem by Id
+                node = this.scene.getParticleSystemByID(d.nodeId);
+
             if (!node)
                 return;
 

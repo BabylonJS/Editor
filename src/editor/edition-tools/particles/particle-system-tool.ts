@@ -207,8 +207,8 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             sprite.add(ps, 'endSpriteCellID').min(0).step(1).name('End Sprite Cell ID');
             sprite.add(ps, 'spriteCellWidth').min(0).step(1).name('Sprite Cell Width');
             sprite.add(ps, 'spriteCellHeight').min(0).step(1).name('Sprite Cell Height');
-            // sprite.add(ps, 'spriteCellLoop').name('Sprite Cell Loop').onFinishChange(r => ps.spriteCellLoop = r);
             sprite.add(ps, 'spriteCellChangeSpeed').min(0).step(1).name('Sprite Cell Change Speed');
+            sprite.add(ps, 'spriteRandomStartCell').name('Sprite Random Start Cell');
         }
 
         // Gravity
