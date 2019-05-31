@@ -24,7 +24,7 @@ export default class LightTool extends AbstractEditionTool<Light> {
 
 	/**
 	* Updates the edition tool
-	* @param object the object selected in the graph
+	* @param light the object selected in the graph
 	*/
     public update(light: Light): void {
         super.update(light);
@@ -85,7 +85,8 @@ export default class LightTool extends AbstractEditionTool<Light> {
                     light.getShadowGenerator().dispose();
                 else {
                     const size = parseInt(this._shadowMapSize);
-                    new ShadowGenerator(size, light);
+                    const sg = new ShadowGenerator(size, light);
+                    Tags.AddTagsTo(sg, 'added');
                 }
 
                 this.editor.inspector.setObject(light);
