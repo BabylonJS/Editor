@@ -1,6 +1,7 @@
 import {
     IAnimatable, Animation, Animatable, Scalar,
-    Color3, Tags, Scene, Vector2, Vector3, Mesh
+    Color3, Tags, Scene, Vector2, Vector3, Vector4,
+    Mesh
 } from 'babylonjs';
 import * as Raphael from 'raphael';
 import Editor, {
@@ -80,6 +81,10 @@ export default class AnimationEditor extends EditorPlugin {
 
     // Private members
     private _positionHelperMesh: Mesh = null;
+    private _positionHelperTimeout: number = -1;
+
+    private _viewBox: Vector4 = new Vector4(0, 0, 0, 0); // width height x y
+    private _viewScale: number = 1.0;
 
     // Static members
     public static PaperOffset: number = 30;
@@ -157,6 +162,37 @@ export default class AnimationEditor extends EditorPlugin {
         this.paper.canvas.addEventListener('focus', () => {
             if (this.animation)
                 this.editor.inspector.setObject(this.animation);
+        });
+        this.paper.canvas.addEventListener('wheel', ev => {
+            const delta = ev.deltaY;
+
+            if (delta < 0) {
+                this._viewBox.x *= 0.95;
+                this._viewBox.y *= 0.95;
+            } else {
+                this._viewBox.x *= 1.05;
+                this._viewBox.y *= 1.05;
+            }
+
+            this._viewScale = this.paper.width / this._viewBox.x;
+            if (this._viewScale < 1) {
+                this._viewScale = 1;
+                this._viewBox.set(this.paper.width, this.paper.height, 0, 0);
+                this.paper.setViewBox(0, 0, this.paper.width, this.paper.height, true);
+
+                return;
+            }
+            
+            const moveX = (ev.offsetX - (ev.offsetX * this._viewScale));
+            const moveY = (ev.offsetY - (ev.offsetY * this._viewScale));
+
+            this._viewBox.z = 0 - moveX / this._viewScale;
+            this._viewBox.w = 0 - moveY / this._viewScale;
+
+            this.paper.setViewBox(this._viewBox.z, this._viewBox.w, this._viewBox.x, this._viewBox.y, true);
+
+            // Update points
+            this.points.forEach(p => p.transform(`S${1.0 / this._viewScale}`));
         });
 
         // Create background
@@ -480,6 +516,11 @@ export default class AnimationEditor extends EditorPlugin {
         this.toolbar.element.right = `Selected object: "${(object instanceof Scene ? 'Scene' : object['name'])}"`;
         this.toolbar.element.render();
 
+        // Reset viewbox
+        this._viewScale = 1;
+        this._viewBox.set(this.paper.width, this.paper.height, 0, 0);
+        this.paper.setViewBox(0, 0, this.paper.width, this.paper.height, true);
+
         // Check
         if (!object.animations)
             return;
@@ -523,6 +564,11 @@ export default class AnimationEditor extends EditorPlugin {
         // Clean selected elements
         this.key = null;
         this.data = null;
+
+        // Reset viewbox
+        this._viewScale = 1;
+        this._viewBox.set(this.paper.width, this.paper.height, 0, 0);
+        this.paper.setViewBox(0, 0, this.paper.width, this.paper.height, true);
 
         if (!this.animatable)
             return;
@@ -725,6 +771,7 @@ export default class AnimationEditor extends EditorPlugin {
 
                 const point = this.paper.circle(x, y, 6);
                 point.attr('fill', Raphael.rgb(color.r, color.g, color.b));
+                point.transform(`S${1.0 / this._viewScale}`);
                 point.attr('opacity', 0.3);
                 this.points.push(point);
                 this.onMovePoint({
@@ -812,8 +859,8 @@ export default class AnimationEditor extends EditorPlugin {
         };
 
         const onMove = (dx, dy, x, y, ev) => {
-            lx = dx + ox;
-            ly = dy + oy;
+            lx = (dx + ox) / this._viewScale;
+            ly = (dy + oy) / this._viewScale;
             data.point.transform(`t${lx},${ly}`);
 
             // Update line path
@@ -826,13 +873,13 @@ export default class AnimationEditor extends EditorPlugin {
             data.line.attr('path', path);
 
             // Update current animation key (frame + value)
-            const frame = Scalar.Clamp((ev.offsetX * data.maxFrame) / this.paper.width, 0, data.maxFrame - 1);
+            const frame = Scalar.Clamp(((ev.offsetX + this._viewBox.z * this._viewScale) / this._viewScale * data.maxFrame) / this.paper.width, 0, data.maxFrame - 1);
 
             toValue = 0;
             if (ev.offsetY > this.paper.height / 2)
-                toValue = -((ev.offsetY - this.paper.height / 2) * data.valueInterval) / (this.paper.height / 2) * 2;
+                toValue = -(((ev.offsetY + this._viewBox.w * this._viewScale) / this._viewScale - this.paper.height / 2) * data.valueInterval) / (this.paper.height / 2) * 2;
             else
-                toValue = ((this.paper.height / 2 - ev.offsetY) * data.valueInterval) / (this.paper.height / 2) * 2;
+                toValue = ((this.paper.height / 2 - (ev.offsetY + this._viewBox.w * this._viewScale) / this._viewScale) * data.valueInterval) / (this.paper.height / 2) * 2;
 
             this.key.frame = frame;
             toFrame = frame;
@@ -847,9 +894,15 @@ export default class AnimationEditor extends EditorPlugin {
             this.valueInput.val(data.property === '' ? toValue : this.key.value[data.property]);
 
             // Update value text
-            this.valueText.attr('x', ev.offsetX);
-            this.valueText.attr('y', ev.offsetY - 20);
+            this.valueText.attr('x', (ev.offsetX + this._viewBox.z * this._viewScale) / this._viewScale);
+            this.valueText.attr('y', (ev.offsetY - (20 * this._viewScale) + this._viewBox.w * this._viewScale) / this._viewScale);
             this.valueText.attr('text', toValue.toFixed(4));
+
+            // Update helper
+            clearTimeout(this._positionHelperTimeout);
+            this._positionHelperTimeout = setTimeout(() => {
+                this._positionHelperMesh = Helpers.AddPositionLineMesh(this.editor.core.scene, this.animation);
+            }, 20);
         };
 
         const onEnd = (ev) => {
