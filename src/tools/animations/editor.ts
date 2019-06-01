@@ -1,6 +1,6 @@
 import {
     IAnimatable, Animation, Animatable, Scalar,
-    Color3, Tags, Scene, Vector2, Vector3
+    Color3, Tags, Scene, Vector2, Vector3, Mesh
 } from 'babylonjs';
 import * as Raphael from 'raphael';
 import Editor, {
@@ -17,6 +17,7 @@ import Editor, {
 } from 'babylonjs-editor';
 
 import PropertyBrowser from './property-browser';
+import Helpers from './helpers';
 
 export interface DragData {
     point: RaphaelElement;
@@ -76,6 +77,9 @@ export default class AnimationEditor extends EditorPlugin {
     protected onObjectSelected = (node) => node && this.objectSelected(node);
 
     protected forcedObject: IAnimatable;
+
+    // Private members
+    private _positionHelperMesh: Mesh = null;
 
     // Static members
     public static PaperOffset: number = 30;
@@ -252,6 +256,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.toolbar.element.destroy();
         this.editToolbar.element.destroy();
 
+        Helpers.DisposePositionLineMesh();
         UndoRedo.ClearScope(this.divElement.id);
 
         await super.close();
@@ -272,6 +277,19 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Resize
         this.onResize();
+
+        // Helpers
+        if (this._positionHelperMesh)
+            this._positionHelperMesh.setEnabled(true);
+    }
+
+    /**
+     * Called on the user hides the extension (by changing tab, etc.)
+     */
+    public onHide (): void {
+        // Helpers
+        if (this._positionHelperMesh)
+            this._positionHelperMesh.setEnabled(false);
     }
 
     /**
@@ -453,6 +471,8 @@ export default class AnimationEditor extends EditorPlugin {
         this.frameInput.val('');
         this.valueInput.val('');
 
+        Helpers.DisposePositionLineMesh();
+
         if (!object)
             return;
 
@@ -535,6 +555,9 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Update graph
         this.updateGraph(this.animation);
+
+        // Helpers
+        this._positionHelperMesh = Helpers.AddPositionLineMesh(this.editor.core.scene, this.animation);
     }
 
     /**
@@ -725,6 +748,9 @@ export default class AnimationEditor extends EditorPlugin {
 
             this.lines.push(line);
         });
+
+        // Helpers
+        this._positionHelperMesh = Helpers.AddPositionLineMesh(this.editor.core.scene, this.animation);
     }
 
     /**
@@ -835,7 +861,6 @@ export default class AnimationEditor extends EditorPlugin {
             this.updateGraph(this.animation);
 
             // Undo / redo
-            const keys = this.animation.getKeys();
             const key = this.key;
             const animation = this.animation;
 

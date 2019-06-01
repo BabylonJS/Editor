@@ -306,6 +306,10 @@ export default class EditorGraph {
             // Hide prefabs, keep only masters
             if (Tags.MatchesQuery(n, 'prefab'))
                 return;
+
+            // Should be hidden?
+            if (Tags.MatchesQuery(n, 'graph-hidden'))
+                return;
             
             // Create a random ID if not defined
             if (!n.id || this.tree.get(n.id)) {

@@ -67,6 +67,11 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
             tex.open();
             tex.add(texture, 'vScale').step(0.01).name('V Scale');
             tex.add(texture, 'uScale').step(0.01).name('U Scale');
+
+            const angles = this.tool.addFolder('Angles');
+            angles.add(texture, 'uAng').step(0.01).name('Angle U');
+            angles.add(texture, 'vAng').step(0.01).name('Angle V');
+            angles.add(texture, 'wAng').step(0.01).name('Angle W');
         }
         else if (texture instanceof CubeTexture) {
             // TODO

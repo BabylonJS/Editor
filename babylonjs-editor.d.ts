@@ -1390,7 +1390,7 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
             /**
                 * Called on the user hides the extension (by changing tab, etc.)
                 */
-            onHide?(): Promise<void>;
+            onHide?(): Promise<void> | void;
             /**
                 * Called on the user shows the extension (by focising the tab, etc.)
                 */
