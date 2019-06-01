@@ -604,6 +604,7 @@ export default class ProjectExporter {
                                 };
                                 // Don't save bones
                                 delete node.skeleton.serializationObject.bones;
+                                delete node.skeleton.serializationObject.ranges;
                             }
 
                             // Remove unnecessary informations
@@ -628,19 +629,21 @@ export default class ProjectExporter {
             }
 
             // Animations
-            n.animations.forEach(a => {
-                if (!Tags.HasTags(a) || !Tags.MatchesQuery(a, 'added'))
-                    return;
-                
-                addNodeToProject = true;
+            if (!Tags.MatchesQuery(n, 'added')) {
+                n.animations.forEach(a => {
+                    if (!Tags.HasTags(a) || !Tags.MatchesQuery(a, 'added'))
+                        return;
+                    
+                    addNodeToProject = true;
 
-                node.animations.push({
-                    events: [],
-                    serializationObject: a.serialize(),
-                    targetName: name,
-                    targetType: 'Node'
+                    node.animations.push({
+                        events: [],
+                        serializationObject: a.serialize(),
+                        targetName: name,
+                        targetType: 'Node'
+                    });
                 });
-            });
+            }
 
             // Physics
             if (n instanceof AbstractMesh) {
