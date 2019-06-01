@@ -27,7 +27,7 @@
     "babylonjs-loaders": "4.0.3",
     "babylonjs-materials": "4.0.3",
     "babylonjs-procedural-textures": "4.0.3",
-    "babylonjs-editor": "3.1.0",
+    "babylonjs-editor": "3.1.1",
     "cannon": "~0.6.2",
     "earcut": "~2.1.3"
   }

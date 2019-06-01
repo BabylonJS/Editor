@@ -2,7 +2,7 @@
     "name": "babylonjs-editor",
     "displayName": "Babylon.JS Editor",
     "description": "Babylon.JS Editor extension used to develop scripts using VSCode",
-    "version": "3.1.0",
+    "version": "3.1.1",
     "repository": "https://github.com/BabylonJS/Editor/",
     "publisher": "luaacro",
     "engines": {
