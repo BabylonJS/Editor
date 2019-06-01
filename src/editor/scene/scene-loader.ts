@@ -272,7 +272,8 @@ export default class SceneLoader {
         editor.core.onSelectObject.notifyObservers(editor.core.scene);
 
         // Refresh vscode
-        VSCodeSocket.Refresh();
+        // TODO: uncomment this line
+        // VSCodeSocket.Refresh();
 
         // Clear
         editor.filesInput['_sceneFileToLoad'] = null;
