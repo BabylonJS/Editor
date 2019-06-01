@@ -34,7 +34,7 @@ export default class EditorToolbar {
         this.main = new Toolbar('MainToolBar');
         this.main.items = [
             {
-                type: 'menu', id: 'project', text: 'Project', img: 'icon-folder', items: [
+                type: 'menu', id: 'project', text: 'Project', img: 'icon-project', items: [
                     { id: 'import-project', img: 'icon-export', text: 'Import Project...' },
                     { type: 'break' },
                     { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
@@ -105,7 +105,7 @@ export default class EditorToolbar {
                     { id: 'particle-system', img: 'icon-particles', text: 'Particle System' },
                     { id: 'particle-system-animated', img: 'icon-particles', text: 'Animated Particle System' },
                     { type: 'break;' },
-                    { id: 'sky', img: 'icon-shaders', text: 'Sky Effect' },
+                    { id: 'sky', img: 'icon-sky', text: 'Sky Effect' },
                     { id: 'water', img: 'icon-water', text: 'Water Effect' },
                     { type: 'break' },
                     { id: 'dummy-node', img: 'icon-clone', text: 'Dummy' },
@@ -138,7 +138,7 @@ export default class EditorToolbar {
         // Build toolbar
         this.tools = new Toolbar('ToolsToolBar');
         this.tools.items = [
-            { type: 'button', id: 'test', text: 'Play', img: 'icon-play-game-windowed' },
+            { type: 'button', id: 'test', text: 'Play', img: 'icon-play-game' },
             { type: 'button', id: 'test-debug', text: 'Play And Debug...', img: 'icon-play-game-windowed' }
         ];
         this.tools.onClick = target => this.onToolsClick(target);
