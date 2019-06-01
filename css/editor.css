@@ -151,6 +151,10 @@ html, body {
     background-position: 5px 5px !important;
 }
 
+.jstree-default .jstree-themeicon-custom {
+    background-size: 16px !important;
+}
+
 /* Golden Layout */
 .lm_content {
     background: #fafafa !important;
@@ -209,243 +213,208 @@ ICONS
     background-repeat: no-repeat !important;
     height: 22px;
     background-position-y: center !important;
-}
-
-.w2ui-icon {
     background-repeat: no-repeat !important;
 }
 
 .w2ui-icon.icon-error {
-    background: url("images/error.png");
+    background: url("svg/times.svg");
+}
+
+.w2ui-icon.icon-project {
+    background: url("svg/folder-open.svg");
 }
 
 .w2ui-icon.icon-light {
-    background: url("images/light.png");
+    background: url("svg/lightbulb.svg");
 }
 .w2ui-icon.icon-directional-light {
-    background: url("images/directional_light.png");
+    background: url("svg/lightbulb.svg");
 }
 
 .w2ui-icon.icon-mesh {
-    background: url("images/abstract_mesh.png");
+    background: url("svg/vector-square.svg");
 }
 
 .w2ui-icon.icon-camera {
-    background: url("images/camera.png");
-}
-
-.w2ui-icon.icon-open-file {
-    background: url("images/open.png");
+    background: url("svg/camera.svg");
 }
 
 .w2ui-icon.icon-edit {
-    background: url("images/edit.png");
-}
-
-.w2ui-icon.icon-primitives {
-    background: url("images/primitives.png");
+    background: url("svg/wrench.svg");
 }
 
 .w2ui-icon.icon-add {
-    background: url("images/add.png");
+    background: url("svg/plus.svg");
 }
 
 .w2ui-icon.icon-shaders {
-    background: url("images/shaders.png");
+    background: url("svg/magic.svg");
 }
 
 .w2ui-icon.icon-particles {
-    background: url("images/particles.png");
+    background: url("svg/wind.svg");
 }
 
 .w2ui-icon.icon-effects {
-    background: url("images/effects.png");
-}
-
-.w2ui-icon.icon-mesh {
-    background: url("images/pointcloud.png");
+    background: url("svg/magic.svg");
 }
 
 .w2ui-icon.icon-animated-mesh {
-    background: url("images/animated_mesh.png");
+    background: url("svg/film.svg");
 }
 
 .w2ui-icon.icon-play-game {
-    background: url("images/play_game.png");
+    background: url("svg/play.svg");
 }
 
 .w2ui-icon.icon-position {
-    background: url("images/position.png");
+    background: url("svg/arrows-alt.svg");
 }
 
 .w2ui-icon.icon-rotation {
-    background: url("images/rotation.png");
+    background: url("svg/crosshairs.svg");
 }
 
 .w2ui-icon.icon-scaling {
-    background: url("images/scale.png");
+    background: url("svg/arrows-alt-v.svg");
 }
 
 .w2ui-icon.icon-console {
-    background: url("images/console.png");
+    background: url("svg/terminal.svg");
 }
 
 .w2ui-icon.icon-scene {
-    background: url("images/scene.png");
+    background: url("svg/camera-retro.svg");
 }
 
 .w2ui-icon.icon-export {
-    background: url("images/export.png");
+    background: url("svg/save.svg");
 }
 
 .w2ui-icon.icon-sound {
-    background: url("images/sound.png");
+    background: url("svg/volume-up.svg");
 }
 
 .w2ui-icon.icon-wireframe {
-    background: url("images/wireframe.png");
+    background: url("svg/grip-lines.svg");
 }
 
 .w2ui-icon.icon-focus {
-    background: url("images/focus.png");
+    background: url("svg/compress-arrows-alt.svg");
 }
 
 .w2ui-icon.icon-clone {
-    background: url("images/clone.png");
+    background: url("svg/clone.svg");
 }
 
 .w2ui-icon.icon-bounding-box {
-    background: url("images/bounding_box.png");
+    background: url("svg/columns.svg");
 }
 
 .w2ui-icon.icon-helpers {
-    background: url("images/helpers.png");
-}
-
-.w2ui-icon.icon-one-drive {
-    background: url("images/onedrive.png");
+    background: url("svg/eye.svg");
 }
 
 .w2ui-icon.icon-copy {
-    background: url("images/copy.png");
-}
-
-.w2ui-icon.icon-lens-flare {
-    background: url("images/lens_flare.png");
+    background: url("svg/copy.svg");
 }
 
 .w2ui-icon.icon-box-mesh {
-    background: url("images/cube.png");
-}
-
-.w2ui-icon.icon-billboard-mesh {
-    background: url("images/billboard.png");
+    background: url("svg/cube.svg");
 }
 
 .w2ui-icon.icon-sphere-mesh {
-    background: url("images/sphere.png");
+    background: url("svg/circle.svg");
 }
 
 .w2ui-icon.icon-water {
-    background: url("images/water.png");
+    background: url("svg/water.svg");
+}
+
+.w2ui-icon.icon-sky {
+    background: url("svg/smog.svg");
 }
 
 .w2ui-icon.icon-stop-sound {
-    background: url("images/stop_sound.png");
+    background: url("svg/volume-mute.svg");
 }
 
 .w2ui-icon.icon-play-sound {
-    background: url("images/play_sound.png");
-}
-
-.w2ui-icon.icon-electron {
-    background: url("images/electron_icon.png");
-}
-
-.w2ui-icon.icon-photoshop-connect {
-    background: url("images/photoshop_icon_connect.png");
-}
-
-.w2ui-icon.icon-photoshop-disconnect {
-    background: url("images/photoshop_icon_disconnect.png");
+    background: url("svg/volume-up.svg");
 }
 
 .w2ui-icon.icon-save {
-    background: url("images/save.png");
+    background: url("svg/save.svg");
 }
 
 .w2ui-icon.icon-scenario {
-    background: url("images/scenario.png");
+    background: url("svg/tools.svg");
 }
 
 .w2ui-icon.icon-graph {
-    background: url("images/graph.png");
-}
-
-.w2ui-icon.icon-render {
-    background: url("images/render.png");
+    background: url("svg/project-diagram.svg");
 }
 
 .w2ui-icon.icon-play-game-windowed {
-    background: url("images/play_game_windowed.png");
-}
-
-.w2ui-icon.icon-cylinder {
-    background: url("images/cylinder.png");
+    background: url("svg/play-circle.svg");
 }
 
 .w2ui-icon.icon-ground {
-    background: url("images/ground.png");
-}
-
-.w2ui-icon.icon-plane {
-    background: url("images/plane.png");
-}
-
-.w2ui-icon.icon-soft-body {
-    background: url("images/soft_body.png");
+    background: url("svg/square-full.svg");
 }
 
 .w2ui-icon.icon-reflection {
-    background: url("images/reflection.png");
+    background: url("svg/magic.svg");
 }
 
 .w2ui-icon.icon-dynamic-texture {
-    background: url("images/dynamic_texture.png");
+    background: url("svg/image.svg");
 }
 
 .w2ui-icon.icon-behavior-editor {
-    background: url("images/behavior_editor.png");
+    background: url("svg/file-code.svg");
 }
 
 .w2ui-icon.icon-files {
-    background: url("images/files.png");
+    background: url("svg/save.svg");
 }
 
 .w2ui-icon.icon-files-project {
-    background: url("images/files_project.png");
+    background: url("svg/file-archive.svg");
 }
 
 .w2ui-icon.icon-undo {
-    background: url("images/undo.png");
+    background: url("svg/undo.svg");
 }
 
 .w2ui-icon.icon-redo {
-    background: url("images/redo.png");
+    background: url("svg/redo.svg");
 }
 
 .w2ui-icon.icon-recycle {
-    background: url("images/recycle.png");
+    background: url("svg/recycle.svg");
 }
 
 .w2ui-icon.icon-animators {
-    background: url("images/animators.png");
+    background: url("svg/film.svg");
 }
 
 .w2ui-icon.icon-help {
-    background: url("images/help.png");
+    background: url("svg/jedi.svg");
 }
 
 .w2ui-icon.icon-record {
-    background: url("images/record.png");
+    background: url("svg/film.svg");
+}
+
+.w2ui-icon.w2ui-icon-reload::before {
+    background: url("svg/circle-notch.svg") !important;
+}
+
+.w2ui-icon.w2ui-icon-plus::before {
+    background: url("svg/plus.svg") !important;
+}
+
+.w2ui-icon.w2ui-icon-cross::before {
+    background: url("svg/times.svg") !important;
 }
