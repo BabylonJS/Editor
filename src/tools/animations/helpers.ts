@@ -92,8 +92,8 @@ export default class Helpers {
         const tangents = path.getTangents();
         
         keys.forEach((k, index) => {
-            k.inTangent = amount === 0 ? null : tangents[index].multiplyByFloats(amount, amount, amount);
-            k.outTangent = amount === 0 ? null : tangents[index].multiplyByFloats(amount, amount, amount);
+            k.inTangent = amount === 0 ? undefined : tangents[index].multiplyByFloats(amount, amount, amount);
+            k.outTangent = amount === 0 ? undefined : tangents[index].multiplyByFloats(amount, amount, amount);
         });
     }
 }
