@@ -31,6 +31,7 @@ export default class Helpers {
         const keys = animation.getKeys();
 
         this._PositionLineMesh = Mesh.CreateLines('PositionHelperAnimationEditor', keys.map(k => <Vector3> k.value), scene);
+        this._PositionLineMesh.enableEdgesRendering();
         this._PositionLineMesh.doNotSerialize = true;
         Tags.AddTagsTo(this._PositionLineMesh, 'graph-hidden');
 
