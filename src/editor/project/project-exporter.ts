@@ -7,7 +7,7 @@ import {
     ParticleSystem,
     FilesInputStore,
     BaseTexture,
-    InstancedMesh,
+    InstancedMesh
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
@@ -64,6 +64,9 @@ export default class ProjectExporter {
             // Update scene format
             this.ProjectExportFormat = form.element.record['format'].id;
 
+            // Lock
+            editor.layout.lockPanel('main', 'Exporting to ' + this.ProjectExportFormat + '...', true);
+
             // Clear
             form.element.destroy();
             window.close();
@@ -93,22 +96,30 @@ export default class ProjectExporter {
 
                 for (const f in data.glTFFiles) {
                     const file = data.glTFFiles[f];
-                    sceneFiles.push({ name: f, data: await Tools.ReadFileAsArrayBuffer(<File> file) });
+                    if (file instanceof Blob)
+                        sceneFiles.push({ name: f, file: <File> file });
+                    else
+                        sceneFiles.push({ name: f, data: file });
                 }
             }
 
-            Object.keys(FilesInputStore.FilesToLoad).forEach(async k => {
-                const file = FilesInputStore.FilesToLoad[k];
-                if (
-                    Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport') ||
-                    file === editor.sceneFile || file === editor.projectFile ||
-                    SceneLoader.SceneFiles.indexOf(file) !== -1
-                ) {
-                    return;
+            // Lock
+            editor.layout.lockPanel('main', 'Finalizing...', true);
+
+            if (this.ProjectExportFormat === 'babylon') {
+                for (const k in FilesInputStore.FilesToLoad) {
+                    const file = FilesInputStore.FilesToLoad[k];
+                    if (
+                        Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport') ||
+                        file === editor.sceneFile || file === editor.projectFile ||
+                        SceneLoader.SceneFiles.indexOf(file) !== -1
+                    ) {
+                        continue;
+                    }
+                    
+                    sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(file) });
                 }
-                
-                sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(file) });
-            });
+            }
 
             // Src files
             const srcFiles: CreateFiles[] = [
@@ -124,6 +135,9 @@ export default class ProjectExporter {
                 { name: 'package.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
                 { name: 'tsconfig.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
             ]);
+
+            // Unlock
+            editor.layout.unlockPanel('main');
         };
     }
 
