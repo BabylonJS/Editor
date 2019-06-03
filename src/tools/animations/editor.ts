@@ -416,21 +416,13 @@ export default class AnimationEditor extends EditorPlugin {
             case 'tools:tangents':
                 if (!this.animation)
                     return;
-
-                let property = <any> this.animatable;
-                this.animation.targetPropertyPath.forEach(tpp => property = property[tpp]);
-                if (!(property instanceof Vector3))
+                
+                if (this.animation.dataType !== Animation.ANIMATIONTYPE_VECTOR3)
                     return Window.CreateAlert(`Tangents can be created only on animated 3D vectors.`, 'Informations');
 
-                const keys = this.animation.getKeys();
-                const path = new Path3D(keys.map(k => k.value));
-                const tangents = path.getTangents();
-
                 const weight = parseFloat(await Dialog.CreateWithTextInput('Tangents Weight?')) || 0;
-                keys.forEach((k, index) => {
-                    k.inTangent = tangents[index].multiplyByFloats(weight, weight, weight);
-                    k.outTangent = tangents[index].multiplyByFloats(weight, weight, weight);
-                });
+                Helpers.ComputeTangents(this.animation, weight);
+                this.updateGraph(this.animation);
                 break;
             default: break;
         }
@@ -835,20 +827,15 @@ export default class AnimationEditor extends EditorPlugin {
 
             // For each key
             keys.forEach((k, keyIndex) => {
-                let x = (k.frame * this.paper.width) / maxFrame;
-                let y = middle;
-
                 const value = (p === '') ? k.value : k.value[p];
+                const position = Helpers.ProjectToGraph(k.frame, maxFrame, this.paper.width, middle, value, valueInterval);
 
-                if (value !== 0 && maxFrame !== 0)
-                    y += ((value * middle) / (valueInterval * (value > 0 ? 1 : -1)) * (value > 0 ? -1 : 1)) / 2;
+                if (isNaN(position.x)) position.x = 0;
+                if (isNaN(position.y)) position.y = 0;
+                if (keyIndex === 0) position.x = 6;
+                if (keyIndex === keys.length - 1) position.x -= 6;
 
-                if (isNaN(x)) x = 0;
-                if (isNaN(y)) y = 0;
-                if (keyIndex === 0) x = 6;
-                if (keyIndex === keys.length - 1) x -= 6;
-
-                const point = this.paper.circle(x, y, 6);
+                const point = this.paper.circle(position.x, position.y, 6);
                 point.attr('fill', Raphael.rgb(color.r, color.g, color.b));
                 point.transform(`S${1.0 / this._viewScale}`);
                 point.attr('opacity', 0.3);
@@ -863,9 +850,26 @@ export default class AnimationEditor extends EditorPlugin {
                     valueInterval: valueInterval
                 });
 
-                path.push(keyIndex === 0 ? "M" : "L");
-                path.push(x.toString());
-                path.push(y.toString());
+                // Tangents?
+                const previousKey = keys[keyIndex - 1];
+                if (previousKey && previousKey.outTangent && k.inTangent) {
+                    const frameDiff = k.frame - previousKey.frame;
+                    const v1 = Vector3.Hermite(previousKey.value, Helpers.ScaleValue(previousKey.outTangent, frameDiff), k.value, Helpers.ScaleValue(k.inTangent, frameDiff), 0.33);
+                    const v2 = Vector3.Hermite(previousKey.value, Helpers.ScaleValue(previousKey.outTangent, frameDiff), k.value, Helpers.ScaleValue(k.inTangent, frameDiff), 0.66);
+
+                    const p1 = Helpers.ProjectToGraph(previousKey.frame + frameDiff * 0.33, maxFrame, this.paper.width, middle, v1[p], valueInterval);
+                    const p2 = Helpers.ProjectToGraph(previousKey.frame + frameDiff * 0.66, maxFrame, this.paper.width, middle, v2[p], valueInterval);
+
+                    path.push.apply(path, ['R', p1.x.toString(), p1.y.toString(), p2.x.toString(), p2.y.toString()]);
+                }
+
+                // Begin path?
+                if (keyIndex === 0)
+                    path.push("M");
+                
+                // End point
+                path.push(position.x.toString());
+                path.push(position.y.toString());
             });
 
             // Set line
@@ -903,11 +907,7 @@ export default class AnimationEditor extends EditorPlugin {
         }
 
         // Clone effective value
-        let effectiveValue = <any> this.animatable;
-        for (const tpp of this.animation.targetPropertyPath) {
-            effectiveValue = effectiveValue[tpp];
-        }
-
+        const effectiveValue = Helpers.GetEffectiveProperty<any>(this.animatable, this.animation);
         const ctor = Tools.GetConstructorName(effectiveValue);
 
         switch (ctor) {
