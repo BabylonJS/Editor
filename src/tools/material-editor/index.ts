@@ -89,29 +89,8 @@ export default class MaterialEditor extends EditorPlugin {
 
         // Metadatas
         this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
-        if (!this.editor.core.scene.metadata['MaterialCreator']) {
-            this.datas = this.editor.core.scene.metadata['MaterialCreator'] = [{
-                name: 'Custom material',
-                id: BabylonTools.RandomId(),
-                code: MaterialEditor.DefaultCode,
-                vertex: MaterialEditor.DefaultVertex,
-                pixel: MaterialEditor.DefaultPixel,
-                config: MaterialEditor.DefaultConfig,
-                userConfig: { }
-            }];
-            this.data = this.datas[0];
-
-            const material = this.extension.createMaterial({
-                name: this.data.name,
-                code: null,
-                vertex: this.data.vertex,
-                pixel: this.data.pixel,
-                config: this.data.config,
-                userConfig: { }
-            });
-
-            this.editor.core.onAddObject.notifyObservers(material);
-        }
+        if (!this.editor.core.scene.metadata['MaterialCreator'])
+            this.datas = this.editor.core.scene.metadata['MaterialCreator'] = [];
 
         this.datas = this.editor.core.scene.metadata['MaterialCreator'];
         this.data = this.datas[0];

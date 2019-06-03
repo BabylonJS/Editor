@@ -1,7 +1,7 @@
 import {
     IAnimatable, Animation, Animatable, Scalar,
     Color3, Tags, Scene, Vector2, Vector3, Vector4,
-    Mesh
+    Mesh, Path3D
 } from 'babylonjs';
 import * as Raphael from 'raphael';
 import Editor, {
@@ -14,7 +14,9 @@ import Editor, {
     EditorPlugin,
 
     Layout,
-    Toolbar
+    Toolbar,
+    Dialog,
+    Window
 } from 'babylonjs-editor';
 
 import PropertyBrowser from './property-browser';
@@ -138,9 +140,13 @@ export default class AnimationEditor extends EditorPlugin {
             { type: 'button', id: 'play', text: 'Play', img: 'icon-play-game', checked: false },
             { type: 'break' },
             { type: 'button', id: 'add', text: 'Add', img: 'icon-add', checked: false },
+            { type: 'button', id: 'remove-animation', text: 'Remove Animation', img: 'icon-error' },
             { type: 'break' },
             { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] },
-            { type: 'button', id: 'remove-animation', text: 'Remove Animation', img: 'icon-error' }
+            { type: 'break' },
+            { type: 'menu', id: 'tools', text: 'Tools', img: 'icon-edit', items: [
+                { type: 'button', id: 'tangents', img: 'icon-graph', text: 'Create Tangents...' }
+            ] }
         ];
         this.toolbar.right = 'No object selected';
         this.toolbar.onClick = (id) => this.onToolbarClick(id);
@@ -373,7 +379,7 @@ export default class AnimationEditor extends EditorPlugin {
      * On the user clicked on the toolbar
      * @param id the id of the element
      */
-    protected onToolbarClick(id: string): void {
+    protected async onToolbarClick(id: string): Promise<void> {
         const split = id.split(':');
         if (split.length > 1 && split[0] === 'animations') {
             this.onChangeAnimation(split[1]);
@@ -405,6 +411,26 @@ export default class AnimationEditor extends EditorPlugin {
                     this.animatable.animations.splice(index, 1);
                     this.objectSelected(this.animatable);
                 }
+                break;
+
+            case 'tools:tangents':
+                if (!this.animation)
+                    return;
+
+                let property = <any> this.animatable;
+                this.animation.targetPropertyPath.forEach(tpp => property = property[tpp]);
+                if (!(property instanceof Vector3))
+                    return Window.CreateAlert(`Tangents can be created only on animated 3D vectors.`, 'Informations');
+
+                const keys = this.animation.getKeys();
+                const path = new Path3D(keys.map(k => k.value));
+                const tangents = path.getTangents();
+
+                const weight = parseFloat(await Dialog.CreateWithTextInput('Tangents Weight?')) || 0;
+                keys.forEach((k, index) => {
+                    k.inTangent = tangents[index].multiplyByFloats(weight, weight, weight);
+                    k.outTangent = tangents[index].multiplyByFloats(weight, weight, weight);
+                });
                 break;
             default: break;
         }
@@ -448,12 +474,33 @@ export default class AnimationEditor extends EditorPlugin {
         browser.onSelect = (id) => {
             // Property infos
             const infos = browser.getPropertyInfos(this.animatable, id);
+            let defaultValue = infos.defaultValue;
+
+            // Get effective property
+            const split = id.split('.');
+            let effectiveValue = <any> this.animatable;
+            split.forEach(s => effectiveValue = effectiveValue[s]);
+
+            const ctor = Tools.GetConstructorName(effectiveValue);
+            switch (ctor) {
+                case 'Number': defaultValue = effectiveValue; break;
+                case 'Vector2':
+                case 'Vector3': 
+                case 'Vector4':
+                case 'Color3':
+                case 'Color4':
+                case 'Quaternion':
+                    defaultValue = effectiveValue.clone();
+                    break;
+                default:
+                    break;
+            }
 
             // Create animation
             const anim = new Animation(id, id, 60, infos.type, Animation.ANIMATIONLOOPMODE_CYCLE, false);
             anim.setKeys([
-                { frame: 0, value: infos.defaultValue },
-                { frame: 60, value: infos.defaultValue.clone ? infos.defaultValue.clone() : infos.defaultValue }
+                { frame: 0, value: defaultValue },
+                { frame: 60, value: defaultValue }
             ]);
 
             const length = this.animatable.animations.push(anim);

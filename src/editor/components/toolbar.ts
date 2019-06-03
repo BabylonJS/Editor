@@ -86,7 +86,7 @@ export default class EditorToolbar {
                     { id: 'code-editor', img: 'icon-behavior-editor', text: 'Code Editor...' },
                     { id: 'graph-editor', img: 'icon-graph', text: 'Graph Editor...' },
                     { type: 'break' },
-                    { id: 'material-editor', img: 'icon-shaders', text: 'Material Editor...' },
+                    // { id: 'material-editor', img: 'icon-shaders', text: 'Material Editor...' },
                     { id: 'post-process-editor', img: 'icon-shaders', text: 'Post-Process Editor...' },
                     { id: 'particles-creator', img: 'icon-particles', text: 'Particles Creator' },
                     { type: 'break' },
