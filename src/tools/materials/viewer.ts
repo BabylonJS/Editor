@@ -3,9 +3,9 @@ import {
     Engine, Scene, Mesh, Material, PointLight,
     InstancedMesh, AbstractMesh,
     ArcRotateCamera,
-    Vector3,
-    Tags,
-    ShaderMaterial
+    Vector3, Tags,
+    ShaderMaterial,
+    Observer
 } from 'babylonjs';
 
 import Editor, {
@@ -29,6 +29,12 @@ export interface PreviewScene {
     light: PointLight;
 }
 
+export interface MaterialPreview {
+    material: Material;
+    image: HTMLImageElement;
+    text: HTMLElement;
+}
+
 export default class MaterialsViewer extends EditorPlugin {
     // Public members
     public images: JQuery[] = [];
@@ -38,16 +44,20 @@ export default class MaterialsViewer extends EditorPlugin {
     public preview: PreviewScene = null;
     public tempPreview: PreviewScene = null;
 
+    public selectedMaterial: Material = null;
+    public previewItems: MaterialPreview[] = [];
+
     // Protected members
     protected canvas: HTMLCanvasElement = null;
 
     protected engines: Engine[] = [];
-    protected onObjectSelected = (obj) => this.selectedObject(obj);
-
     protected waitingMaterials: Material[] = [];
-    protected onAddObject = (material) => this.waitingMaterials.push(material);
-
     protected targetObject: AbstractMesh;
+
+    protected onObjectSelected: Observer<any> = null;
+    protected onAddObject: Observer<any> = null;
+    protected onModifiedObject: Observer<any> = null;
+    protected onModifyingObject: Observer<any> = null;
 
     /**
      * Constructor
@@ -68,8 +78,10 @@ export default class MaterialsViewer extends EditorPlugin {
             e.scenes.forEach(s => s.dispose());
             e.dispose();
         });
-        this.editor.core.onAddObject.removeCallback(this.onAddObject);
-        this.editor.core.onSelectObject.removeCallback(this.onObjectSelected);
+        this.editor.core.onAddObject.remove(this.onAddObject);
+        this.editor.core.onSelectObject.remove(this.onObjectSelected);
+        this.editor.core.onModifiedObject.remove(this.onModifiedObject);
+        this.editor.core.onModifyingObject.remove(this.onModifyingObject);
 
         this.canvas.remove();
 
@@ -130,9 +142,7 @@ export default class MaterialsViewer extends EditorPlugin {
 
         // Events
         this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.preview.engine.resize());
-        
-        this.editor.core.onAddObject.add(this.onAddObject);
-        this.editor.core.onSelectObject.add(this.onObjectSelected);
+        this._bindEvents();
 
         // Selected object?
         this.selectedObject(this.targetObject);
@@ -200,6 +210,9 @@ export default class MaterialsViewer extends EditorPlugin {
         while (div[0].children.length > 0)
             div[0].children[0].remove();
 
+        // Clear previews
+        this.previewItems = [];
+
         // For each material
         const scene = this.editor.core.scene;
 
@@ -265,10 +278,12 @@ export default class MaterialsViewer extends EditorPlugin {
         img.src = base64;
 
         img.addEventListener('click', (ev) => {
-            const obj = material.serialize();
+            // Clear
+            this._clearMaterial();
 
-            // Hack for CustomMaterialEdtitor class
-            obj._customCode = null;
+            // Setup
+            const obj = material.serialize();
+            obj._customCode = null; // Hack for CustomMaterialEdtitor class
             
             this.preview.sphere.material = Material.Parse(obj, this.preview.scene, 'file:');
             this.preview.engine.resize();
@@ -276,6 +291,8 @@ export default class MaterialsViewer extends EditorPlugin {
 
             if (this.targetObject)
                 this.targetObject.material = material;
+
+            this.selectedMaterial = material;
         });
 
         // Drag'n'drop
@@ -289,6 +306,9 @@ export default class MaterialsViewer extends EditorPlugin {
         });
 
         div.append(parent);
+
+        // Save preview item
+        this.previewItems.push({ material: material, image: img, text: text });
     }
 
     /**
@@ -326,9 +346,16 @@ export default class MaterialsViewer extends EditorPlugin {
      * Create a material preview
      * @param canvas: the HTML Canvas element
      * @param mat: the material to render
+     * @param preview the preview object containing the scene, engine, etc. used for the preview
+     * @param previewItem the optional preview item that already exists
      */
     protected async createMaterialPreview (canvas: HTMLCanvasElement, preview: PreviewScene, mat: Material): Promise<string> {
         return new Promise<string>((resolve) => {
+            // Clear
+            if (preview.sphere.material)
+                preview.sphere.material.dispose(true, true);
+            
+            // Create
             const obj = mat.serialize();
             preview.sphere.material = Material.Parse(obj, preview.scene, 'file:');
             preview.scene.render();
@@ -396,6 +423,39 @@ export default class MaterialsViewer extends EditorPlugin {
 
             // Add preview node
             await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, material);
+        });
+    }
+
+    // Clears the current material
+    private _clearMaterial (): void {
+        if (this.preview.sphere.material) {
+            this.preview.sphere.material.dispose(true, false);
+            this.preview.sphere.material = null;
+        }
+    }
+
+    // Binds the vents
+    private _bindEvents (): void {
+        this.onAddObject = this.editor.core.onAddObject.add((m: Material) => this.waitingMaterials.push(m));
+        this.onObjectSelected = this.editor.core.onSelectObject.add(obj => this.selectedObject(obj));
+        this.onModifiedObject = this.editor.core.onModifiedObject.add(async (obj: any) => {
+            const previewItem = this.previewItems.find(pi => pi.material === obj || pi.material === obj.material);
+            if (!previewItem)
+                return;
+
+            previewItem.image.src = await this.createMaterialPreview(this.canvas, this.tempPreview, previewItem.material);
+            previewItem.text.innerText = previewItem.material.name;
+        });
+        this.onModifyingObject = this.editor.core.onModifyingObject.add((obj: any) => {
+            const previewItem = this.previewItems.find(pi => pi.material === obj || pi.material === obj.material);
+            if (!previewItem)
+                return;
+            
+            const data = previewItem.material.serialize();
+            data._customCode = null; // Hack for CustomMaterialEdtitor class
+            
+            this._clearMaterial();
+            this.preview.sphere.material = Material.Parse(data, this.preview.scene, 'file:');
         });
     }
 }

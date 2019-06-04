@@ -2514,6 +2514,10 @@ declare module 'babylonjs-editor/editor/components/inspector' {
                 */
             setToolsStates(states: ToolsStates[]): void;
             /**
+                * Notifies that the object is being modified and got notified
+                */
+            notifyObjectChanged(): void;
+            /**
                 * When a tab changed
                 * @param target the target tab Id
                 */

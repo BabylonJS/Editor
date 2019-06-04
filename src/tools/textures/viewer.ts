@@ -378,13 +378,14 @@ export default class TextureViewer extends EditorPlugin {
             img.addEventListener('dragend', () => this.editor.core.engine.getRenderingCanvas().removeEventListener('drop', dropListener));
         }
         else {
-            const data = await Tools.ReadFileAsBase64(file);
+            const url = URL.createObjectURL(file);
             const img = Tools.CreateElement<HTMLImageElement>('img', file.name, {
                 width: '100px',
                 height: '100px'
             });
-            img.src = data;
+            img.src = url;
             img.classList.add('ctxmenu');
+            img.onload = () => URL.revokeObjectURL(url);
             img.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
             ContextMenu.ConfigureElement(img, this.getContextMenuItems(originalTexture));
             parent.appendChild(img);
