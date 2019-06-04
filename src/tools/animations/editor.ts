@@ -1,7 +1,7 @@
 import {
     IAnimatable, Animation, Animatable, Scalar,
     Color3, Tags, Scene, Vector2, Vector3, Vector4,
-    Mesh, Path3D
+    Mesh, IAnimationKey
 } from 'babylonjs';
 import * as Raphael from 'raphael';
 import Editor, {
@@ -30,11 +30,7 @@ export interface DragData {
     properties: string[];
     property: string;
     valueInterval: number;
-}
-
-export interface AnimationKey {
-    frame: number;
-    value: any;
+    middle: number;
 }
 
 export default class AnimationEditor extends EditorPlugin {
@@ -65,7 +61,7 @@ export default class AnimationEditor extends EditorPlugin {
     public animatable: IAnimatable = null;
     public animation: Animation = null;
     public animationManager: Animatable = null;
-    public key: AnimationKey = null;
+    public key: IAnimationKey = null;
     
     public data: DragData = null;
 
@@ -847,7 +843,8 @@ export default class AnimationEditor extends EditorPlugin {
                     property: p,
                     properties: properties,
                     maxFrame: maxFrame,
-                    valueInterval: valueInterval
+                    valueInterval: valueInterval,
+                    middle: middle
                 });
 
                 // Tangents?
@@ -1006,10 +1003,18 @@ export default class AnimationEditor extends EditorPlugin {
 
             // Update line path
             const path: string[][] = data.line.attr('path');
-            const key = path[data.keyIndex];
+            let key = path[data.keyIndex];
 
-            key[1] = data.point.attr('cx') + (this._xLocked ? 0 : lx);
-            key[2] = data.point.attr('cy') + ly;
+            if (key.length === 3) {
+                // Simple path
+                key[1] = data.point.attr('cx') + (this._xLocked ? 0 : lx);
+                key[2] = data.point.attr('cy') + ly;
+            } else {
+                // R path
+                key = path[data.keyIndex * 2];
+                key[5] = data.point.attr('cx') + (this._xLocked ? 0 : lx);
+                key[6] = data.point.attr('cy') + ly;
+            }
 
             data.line.attr('path', path);
 
