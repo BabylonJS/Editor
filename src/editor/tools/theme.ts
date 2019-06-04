@@ -5,7 +5,6 @@ export type ThemeType = 'Light' | 'Dark';
 export default class ThemeSwitcher {
     // Public members
     public static LightThemeUrls: string[] = [
-        'node_modules/w2ui/w2ui.css',
         'node_modules/golden-layout/src/css/goldenlayout-light-theme.css'
     ];
 
