@@ -68,14 +68,15 @@ export default class AnimationEditor extends EditorPlugin {
     public currentFrame: number = 0;
 
     // Protected members
-    protected mouseMoveHandler: (ev: MouseEvent) => void;
     protected addingKeys: boolean = false;
     protected removingKeys: boolean = false;
     protected isPlaying: boolean = false;
-
-    protected onObjectSelected = (node) => node && this.objectSelected(node);
-
     protected forcedObject: IAnimatable;
+
+    protected mouseMoveHandler: (ev: MouseEvent) => void;
+    protected onObjectSelected = (node) => node && this.objectSelected(node);
+    protected onKeyDown: (ev: KeyboardEvent) => void = null;
+    protected onKeyUp: (ev: KeyboardEvent) => void = null;
 
     // Private members
     private _positionHelperMesh: Mesh = null;
@@ -171,10 +172,10 @@ export default class AnimationEditor extends EditorPlugin {
             if (this.animation)
                 this.editor.inspector.setObject(this.animation);
         });
-        this.paper.canvas.addEventListener('keydown', (ev: KeyboardEvent) => {
+        document.addEventListener('keydown', this.onKeyDown = (ev: KeyboardEvent) => {
             this._xLocked = ev.key === 'x';
         });
-        this.paper.canvas.addEventListener('keyup', (ev: KeyboardEvent) => {
+        document.addEventListener('keyup', this.onKeyUp = (ev: KeyboardEvent) => {
             if (ev.key === 'x')
                 this._xLocked = false;
         })
@@ -301,6 +302,8 @@ export default class AnimationEditor extends EditorPlugin {
         super.close();
         
         this.editor.core.onSelectObject.removeCallback(this.onObjectSelected);
+        document.removeEventListener('keydown', this.onKeyDown);
+        document.removeEventListener('keyup', this.onKeyUp);
 
         this.paper.remove();
         this.layout.element.destroy();
