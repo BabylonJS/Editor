@@ -250,6 +250,9 @@ export default class Edition {
                     target.texture = to.name;
 
                 editor.inspector.updateDisplay();
+
+                // Notify
+                editor.inspector.notifyObjectChanged();
             })
         };
 
@@ -269,6 +272,9 @@ export default class Edition {
                 to: texture,
                 property: property
             });
+
+            // Notify
+            editor.inspector.notifyObjectChanged();
         });
 
         parent.add(target, 'browse').name('Browse Texture...');

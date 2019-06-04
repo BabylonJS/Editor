@@ -280,6 +280,17 @@ export default class EditorInspector {
     }
 
     /**
+     * Notifies that the object is being modified and got notified
+     */
+    public notifyObjectChanged (): void {
+        if (!this.currentObject)
+            return;
+        
+        this.editor.core.onModifyingObject.notifyObservers(this.currentObject);
+        this.editor.core.onModifiedObject.notifyObservers(this.currentObject);
+    }
+
+    /**
      * When a tab changed
      * @param target the target tab Id
      */
