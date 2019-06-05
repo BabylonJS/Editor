@@ -68,7 +68,9 @@ export default class EditorToolbar {
                     { id: 'restore-removed-object', img: 'icon-recycle', text: 'Restore Removed Object...' },
                     { type: 'break' },
                     { id: 'set-theme-light', img: 'icon-helpers', text: 'Light Theme' },
-                    { id: 'set-theme-dark', img: 'icon-helpers', text: 'Dark Theme' }
+                    { id: 'set-theme-dark', img: 'icon-helpers', text: 'Dark Theme' },
+                    { type: 'break' },
+                    { id: 'reset-editor-state', img: 'icon-recycle', text: `Reset Editor's state` }
                 ]
             },
             { type: 'break' },
@@ -243,6 +245,10 @@ export default class EditorToolbar {
                 break;
             case 'edit:set-theme-dark':
                 ThemeSwitcher.ThemeName = 'Dark';
+                break;
+
+            case 'edit:reset-editor-state':
+                await this.editor.resetEditorState();
                 break;
 
             // View
