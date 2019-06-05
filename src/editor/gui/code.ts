@@ -4,13 +4,6 @@ import Tools from '../tools/tools';
 import ThemeSwitcher from '../tools/theme';
 
 // TODO: remove this line and find a way to
-// import * as monaco from 'monaco-editor';
-export interface MonacoDisposable extends IDisposable {
-    [index: string]: any;
-}
-declare var monaco: MonacoDisposable;
-
-// TODO: remove this line and find a way to
 // import * as ts from 'typescript';
 export interface TypescriptDisposable extends IDisposable {
     [index: string]: any;
@@ -25,7 +18,7 @@ export interface Typings {
 
 export default class CodeEditor {
     // Public members
-    public editor: MonacoDisposable = null;
+    public editor: monaco.editor.ICodeEditor = null;
     public onChange: (value: string) => void;
 
     // Private members
@@ -34,9 +27,9 @@ export default class CodeEditor {
 
     // Static members
     public static ExternalLibraries: string = null;
-    public static ExtraLibs: { lib: MonacoDisposable, caller: Window; }[] = [];
-    public static CustomLibs: IStringDictionary<MonacoDisposable> = { };
-    public static Instances: MonacoDisposable[] = [];
+    public static ExtraLibs: { lib: monaco.IDisposable, caller: Window; }[] = [];
+    public static CustomLibs: IStringDictionary<monaco.IDisposable> = { };
+    public static Instances: monaco.editor.ICodeEditor[] = [];
 
     public static Libs: string[] = [
         'assets/typings/babylon.module.d.ts',

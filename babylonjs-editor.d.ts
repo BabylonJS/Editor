@@ -157,6 +157,10 @@ declare module 'babylonjs-editor/editor/editor' {
                 * Creates the editor camera
                 */
             createEditorCamera(type?: 'arc' | 'free' | any): Camera;
+            /**
+                * Resets the editor's state
+                */
+            resetEditorState(): Promise<void>;
     }
 }
 

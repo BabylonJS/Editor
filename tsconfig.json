@@ -15,7 +15,8 @@
       "w2ui",
       "jquery",
       "socket.io-client",
-      "jstree"
+      "jstree",
+      "monaco-editor",
     ],
     "lib": [
       "es2015.promise",
