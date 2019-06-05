@@ -119,7 +119,7 @@ export default class PostProcessEditor extends EditorPlugin {
         // Create toolbar
         this.toolbar = new Toolbar('PostProcessCreatorToolbar');
         this.toolbar.items = [
-            { id: 'project', type: 'menu', caption: 'Project', img: 'icon-folder', items: [
+            { id: 'project', type: 'menu', caption: 'Project', img: 'icon-project', items: [
                 { id: 'add', caption: 'Add Existing Project...', img: 'icon-export' },
                 { id: 'download', caption: 'Download Project...', img: 'icon-export' }
             ] },
