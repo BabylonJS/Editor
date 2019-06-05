@@ -196,6 +196,10 @@ hr:after {
   color: white;
 }
 
+.w2ui-toolbar table.w2ui-button.checked {
+  background-color: #888888;
+}
+
 .w2ui-overlay table.w2ui-drop-menu {
   background-color: #555555;
   color: white;
@@ -218,9 +222,17 @@ hr:after {
   border: 1px solid #707070;
 }
 
+.w2ui-grid .w2ui-grid-body {
+  background-color: transparent;
+}
+
 .w2ui-grid .w2ui-grid-body table .w2ui-head {
   color: white;
   background-image: linear-gradient(#444444, #555555);
+}
+
+.w2ui-grid .w2ui-grid-body table {
+  background: grey;
 }
 
 .w2ui-grid .w2ui-grid-footer {
@@ -233,17 +245,17 @@ hr:after {
   background-color: #222222;
 }
 
+.w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr.w2ui-even.w2ui-empty-record:hover {
+  background-color: #555555;
+}
+
 .w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr.w2ui-odd:hover {
   color: white;
   background-color: #444444;
 }
 
 .w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr.w2ui-odd.w2ui-empty-record:hover {
-  background-color: transparent;
-}
-
-.w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr.w2ui-even.w2ui-empty-record:hover {
-  background-color: transparent;
+  background-color: #666666;
 }
 
 .w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr.w2ui-selected, .w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr td.w2ui-selected {
@@ -262,6 +274,18 @@ hr:after {
 .w2ui-grid .w2ui-grid-header {
   color: white;
   background-image: -webkit-linear-gradient(#444444, #555555);
+}
+
+.w2ui-grid .w2ui-grid-body table td.w2ui-grid-data > div {
+  color: white;
+}
+
+.w2ui-grid .w2ui-grid-body .w2ui-grid-columns {
+  box-shadow: 0px 1px 4px #777777;
+}
+
+.w2ui-grid .w2ui-grid-footer {
+  box-shadow: 0px -1px 4px #777777;
 }
 
 .w2ui-icon {
