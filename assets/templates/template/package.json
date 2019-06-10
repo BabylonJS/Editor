@@ -12,15 +12,15 @@
   "license": "(Apache-2.0)",
   "devDependencies": {
     "@types/systemjs": "0.20.6",
-    "@types/javascript-astar": "~0.0.29",
-    "typescript": "~3.0.1",
-    "http-server": "^0.9.0"
+    "@types/javascript-astar": "~0.0.30",
+    "typescript": "~3.5.1",
+    "http-server": "^0.11.1"
   },
   "dependencies": {
-    "systemjs-plugin-css": "~0.1.35",
+    "systemjs-plugin-css": "~0.1.37",
     "systemjs": "~0.20.19",
     "rimraf": "2.6.3",
-    "es6-promise": "4.1.0",
+    "es6-promise": "4.2.8",
     "litegraph.js": "0.7.0",
     "babylonjs": "4.0.3",
     "babylonjs-gui": "4.0.3",
@@ -29,6 +29,6 @@
     "babylonjs-procedural-textures": "4.0.3",
     "babylonjs-editor": "3.1.1",
     "cannon": "~0.6.2",
-    "earcut": "~2.1.3"
+    "earcut": "~2.1.5"
   }
 }
