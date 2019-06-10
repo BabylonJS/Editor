@@ -6,6 +6,18 @@ import {
     CannonJSPlugin
 } from 'babylonjs';
 
+// In case you are using materials from the materials library. Import the library.
+import 'babylonjs-materials';
+
+// In case you are using procedural textures. Import the library.
+import 'babylonjs-procedural-textures';
+
+// In case you have exported your scene in a format different form .babylon. Import the library.
+import 'babylonjs-loaders';
+
+// In case you want to use the BabylonJS GUI. Import the library.
+import 'babylonjs-gui';
+
 import { Extensions } from 'babylonjs-editor';
 
 export default class Game {
