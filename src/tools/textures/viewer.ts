@@ -38,6 +38,11 @@ export interface PreviewScene {
     material: PBRMaterial;
 }
 
+export interface TexturePreview {
+    texture: BaseTexture;
+    text: HTMLElement;
+}
+
 export default class TextureViewer extends EditorPlugin {
     // Public members
     public images: JQuery[] = [];
@@ -52,9 +57,13 @@ export default class TextureViewer extends EditorPlugin {
     public camera: Camera = null;
     public postProcess: PassPostProcess = null;
 
+    public previewItems: TexturePreview[] = [];
+
     // Protected members
     protected tempPreview: PreviewScene = null;
     protected tempPreviewCanvas: HTMLCanvasElement = null;
+
+    protected objectModifiedObserver: Observer<any> = null;
 
     protected object: any;
     protected property: string;
@@ -90,8 +99,9 @@ export default class TextureViewer extends EditorPlugin {
         // Render targets
         this.clearRenderTargetObservers();
 
-        // Drag'n'drop
+        // Events
         this.editor.core.onDropFiles.remove(this._dropFilesObserver);
+        this.editor.core.onModifiedObject.remove(this.objectModifiedObserver);
 
         // Dispose
         this.postProcess.dispose(this.camera);
@@ -167,6 +177,16 @@ export default class TextureViewer extends EditorPlugin {
         this._dropFilesObserver = this.editor.core.onDropFiles.add(d => {
             if (Tools.IsElementChildOf(d.target, div[0]))
                 this.addFromFiles(<any> d.files);
+        });
+
+        // Modified object
+        this.objectModifiedObserver = this.editor.core.onModifiedObject.add(o => {
+            if (!(o instanceof BaseTexture))
+                return;
+
+            const item = this.previewItems.find(pi => pi.texture === o);
+            if (item)
+                item.text.innerText = o['url'] || o.name;
         });
     }
 
@@ -260,7 +280,8 @@ export default class TextureViewer extends EditorPlugin {
             div[0].children[0].remove();
 
         this.clearRenderTargetObservers();
-
+        this.previewItems = [];
+        
         // Misc.
         const scene = this.editor.core.scene;
         const promises: Promise<void>[] = [];
@@ -275,7 +296,7 @@ export default class TextureViewer extends EditorPlugin {
                 continue;
             }
             
-            let url = <string> tex['url'];
+            let url = tex.name;
             if (!url)
                 continue;
 
@@ -416,8 +437,14 @@ export default class TextureViewer extends EditorPlugin {
             'overflow': 'hidden',
             'position': 'relative'
         });
-        text.innerText = originalTexture.name;
+        text.innerText = originalTexture['url'] || originalTexture.name;
         parent.appendChild(text);
+
+        // Save preview item
+        this.previewItems.push({
+            texture: originalTexture,
+            text: text
+        });
     }
 
     /**
@@ -542,6 +569,12 @@ export default class TextureViewer extends EditorPlugin {
         });
         text.innerText = texture.name;
         parent.appendChild(text);
+
+        // Save preview item
+        this.previewItems.push({
+            texture: texture,
+            text: text
+        });
     }
 
     /**
@@ -615,6 +648,12 @@ export default class TextureViewer extends EditorPlugin {
             context.putImageData(imageData, 0, 0);
             context.rotate(Math.PI);
         }));
+
+        // Save preview item
+        this.previewItems.push({
+            texture: texture,
+            text: text
+        });
     }
     
     /**
@@ -830,7 +869,9 @@ export default class TextureViewer extends EditorPlugin {
             clone: { name: 'Clone', callback: () => {
                 const s = texture.serialize();
                 const c = Texture.Parse(s, this.editor.core.scene, 'file:');
-                c.name = c['url'] = texture.name;
+                c.name = texture.name;
+                if (c['url'])
+                    c['url'] = texture.name + BabylonTools.RandomId();
 
                 Tags.AddTagsTo(c, 'added');
                 if (c.metadata)

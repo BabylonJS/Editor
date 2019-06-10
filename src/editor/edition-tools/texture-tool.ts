@@ -35,9 +35,13 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
         const common = this.tool.addFolder('Common');
         common.open();
 
-        if (texture instanceof ProceduralTexture)
+        if (texture instanceof ProceduralTexture) {
             common.add(texture, 'name').name('Name');
-
+        }
+        else if (texture['url']) {
+            common.add(texture, 'url').name('Name');
+        }
+        
         common.add(texture, 'invertZ').name('Invert Z');
         common.add(texture, 'hasAlpha').name('Has Alpha');
         common.add(texture, 'gammaSpace').name('Gamma Space');

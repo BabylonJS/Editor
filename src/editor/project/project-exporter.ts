@@ -476,6 +476,10 @@ export default class ProjectExporter {
             const serializedValues = modified ? this._MergeModifedProperties(t, t.serialize()) : this._ClearOriginalMetadata(t.serialize());
             serializedValues.name = t.name;
 
+            // Save url
+            if (t['url'])
+                serializedValues.url = t['url'];
+
             result.push({
                 serializedValues: serializedValues,
                 newInstance: added

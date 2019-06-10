@@ -253,6 +253,10 @@ export default class ProjectImporter {
             const texture = existing ? SerializationHelper.Parse(() => existing, t.serializedValues, scene, 'file:') : Texture.Parse(t.serializedValues, scene, 'file:');
 
             Tags.AddTagsTo(texture, existing ? 'modified' : 'added');
+
+            // Url
+            if (t.serializedValues.url)
+                texture['url'] = t.serializedValues.url;
         });
 
         // Shadow Generators

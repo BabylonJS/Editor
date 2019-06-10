@@ -835,9 +835,6 @@ declare module 'babylonjs-editor/editor/gui/window' {
 
 declare module 'babylonjs-editor/editor/gui/code' {
     import { IDisposable, IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
-    export interface MonacoDisposable extends IDisposable {
-            [index: string]: any;
-    }
     export interface TypescriptDisposable extends IDisposable {
             [index: string]: any;
     }
@@ -847,15 +844,15 @@ declare module 'babylonjs-editor/editor/gui/code' {
             content: string;
     }
     export default class CodeEditor {
-            editor: MonacoDisposable;
+            editor: monaco.editor.ICodeEditor;
             onChange: (value: string) => void;
             static ExternalLibraries: string;
             static ExtraLibs: {
-                    lib: MonacoDisposable;
+                    lib: monaco.IDisposable;
                     caller: Window;
             }[];
-            static CustomLibs: IStringDictionary<MonacoDisposable>;
-            static Instances: MonacoDisposable[];
+            static CustomLibs: IStringDictionary<monaco.IDisposable>;
+            static Instances: monaco.editor.ICodeEditor[];
             static Libs: string[];
             /**
                 * Remove extra lib from the registered callers
