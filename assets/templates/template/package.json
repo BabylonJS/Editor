@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "description": "Generated Template by BabylonJS Editor v3.0",
   "scripts": {
-    "clean": "rimraf .build && rimraf .declaration",
+    "clean": "rimraf build && rimraf declaration",
     "compile": "tsc -p .",
     "build": "npm run clean && npm run compile",
     "watch": "tsc -p . --watch",
-    "webserver": "http-server -p 1338"
+    "webserver": "http-server -p 1338 -c-1"
   },
   "license": "(Apache-2.0)",
   "devDependencies": {
