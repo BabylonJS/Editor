@@ -36,10 +36,10 @@
   <body>
     <canvas id="renderCanvas"></canvas>
 
-    <script type="text/javascript">
-      window.System.config({
-        paths: {
-          babylonjs: "./node_modules/babylonjs/babylon.max.js",
+    <script type="systemjs-importmap">
+      {
+        "paths": {
+          "babylonjs": "./node_modules/babylonjs/babylon.max.js",
           "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.min.js",
           "babylonjs-materials":
             "./node_modules/babylonjs-materials/babylonjs.materials.js",
@@ -53,33 +53,34 @@
           "babylonjs-editor":
             "./node_modules/babylonjs-editor/dist/editor.extensions.js",
 
-          cannon: "./node_modules/cannon/build/cannon.js",
-          earcut: "./node_modules/earcut/dist/earcut.min.js",
-          oimo: "./node_modules/babylonjs/Oimo.js",
+          "cannon": "./node_modules/cannon/build/cannon.js",
+          "earcut": "./node_modules/earcut/dist/earcut.min.js",
+          "oimo": "./node_modules/babylonjs/Oimo.js",
           "javascript-astar": "./node_modules/javascript-astar/astar.js",
           "litegraph.js": "./node_modules/litegraph.js/build/litegraph.js"
         },
-        packages: {
+        "packages": {
           "./build/": {
-            defaultExtension: "js"
+            "defaultExtension": "js"
           },
           "./node_modules/babylonjs-loaders/": {
-            format: "cjs",
-            main: "babylonjs.loaders.js",
-            format: "global"
+            "format": "cjs",
+            "main": "babylonjs.loaders.js",
+            "format": "global"
           }
         },
-        map: {
-          css: "./node_modules/systemjs-plugin-css/css.js"
+        "map": {
+          "css": "./node_modules/systemjs-plugin-css/css.js"
         },
-        meta: {
-          "*.css": { loader: "css" },
-          cannon: { format: "global" },
-          "javascript-astar": { format: "global" }
+        "meta": {
+          "*.css": { "loader": "css" },
+          "cannon": { "format": "global" },
+          "javascript-astar": { "format": "global" }
         },
-        pluginFirst: true
-      });
-
+        "pluginFirst": true
+      }
+    </script>
+    <script type="text/javascript">
       window.System.import("./build/src/game.js").then(function(e) {
         // Run game here
         var e = new e.default();
