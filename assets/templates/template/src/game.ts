@@ -1,72 +1,60 @@
+import "babylonjs-materials"; //Import this to use the materials library (water, smoke etc)
+import "babylonjs-procedural-textures"; //Import this to use procecural textures
+import "babylonjs-loaders"; //this is for when you export in a format other than .babylon
+import "babylonjs-gui"; //this allows you to use the BabylonJsGui
+
 import {
-    Engine,
-    Scene, SceneLoader,
-    Tools,
-    Vector3,
-    CannonJSPlugin
-} from 'babylonjs';
+  CannonJSPlugin,
+  Engine,
+  Scene,
+  SceneLoader,
+  Tools,
+  Vector3
+} from "babylonjs";
 
-// In case you are using materials from the materials library. Import the library.
-import 'babylonjs-materials';
-
-// In case you are using procedural textures. Import the library.
-import 'babylonjs-procedural-textures';
-
-// In case you have exported your scene in a format different form .babylon. Import the library.
-import 'babylonjs-loaders';
-
-// In case you want to use the BabylonJS GUI. Import the library.
-import 'babylonjs-gui';
-
-import { Extensions } from 'babylonjs-editor';
+import { Extensions } from "babylonjs-editor";
 
 export default class Game {
-    // Public members
-    public engine: Engine;
-    public canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById('renderCanvas');
-    
-    public scene: Scene = null;
+  public engine: Engine;
+  public canvas: HTMLCanvasElement = <HTMLCanvasElement>(
+    document.getElementById("renderCanvas")
+  );
 
-    /**
-     * Constructor
-     */
-    constructor () {
-        // Create engine
-        this.engine = new Engine(this.canvas, true, {
-            // Options
-        });
+  public scene: Scene = null;
+  constructor() {
+    this.engine = new Engine(this.canvas, true, {});
+    window.addEventListener("resize", () => this.engine.resize());
+  }
 
-        // Events
-        window.addEventListener('resize', () => this.engine.resize());
-    }
+  public run(): void {
+    const rainyDay = `./scenes/Rainy-Day/`;
+    //const spaceScene = `./scenes/Space-Scene/`;
+    let currentScene = rainyDay;
 
-    /**
-     * Runs the game
-     */
-    public run (): void {
-        // Load Scene
-        SceneLoader.Load('./scene/', 'scene.{{scene_format}}', this.engine, (scene: Scene) => {
-            this.scene = scene;
+    SceneLoader.Load(
+      `${currentScene}`,
+      "scene.babylon",
+      this.engine,
+      (scene: Scene) => {
+        this.scene = scene;
+        console.log(this.scene);
+        if (!this.scene.activeCamera) {
+          this.scene.createDefaultCamera(false, true, true);
+        }
 
-            // No camera?
-            if (!this.scene.activeCamera) {
-                this.scene.createDefaultCamera(false, true, true);
-            }
+        this.scene.activeCamera.attachControl(this.canvas, true);
 
-            // Attach camera
-            this.scene.activeCamera.attachControl(this.canvas, true);
-
-            // Load extensions
-            Tools.LoadFile('./scene/project.editorproject', (data: string) => {
-                // Apply extensions (such as custom code, custom materials etc.)
-                Extensions.RoolUrl = './scene/';
-                Extensions.ApplyExtensions(this.scene, JSON.parse(data));
-                
-                // Run render loop
-                this.engine.runRenderLoop(() => {
-                    this.scene.render();
-                });
+        Tools.LoadFile(
+          `${currentScene}/project.editorproject`,
+          (data: string) => {
+            Extensions.RoolUrl = currentScene;
+            Extensions.ApplyExtensions(this.scene, JSON.parse(data));
+            this.engine.runRenderLoop(() => {
+              this.scene.render();
             });
-        });
-    }
+          }
+        );
+      }
+    );
+  }
 }
