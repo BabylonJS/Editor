@@ -33,6 +33,7 @@ export default class ProjectExporter {
     // Public members
     public static ProjectPath: string = null;
     public static ProjectExportFormat: 'babylon' | 'glb' | 'gltf' = 'babylon';
+    public static ExportEulerAngles: boolean = false;
 
     // Private members
     private static _IsSaving: boolean = false;
@@ -46,45 +47,68 @@ export default class ProjectExporter {
         // Create format window
         const window = new Window('ExportTemplate');
         window.buttons = ['Ok'];
-        window.width = 400;
-        window.height = 125;
+        window.width = 450;
+        window.height = 170;
         window.body = `<div id="EXPORT-TEMPLATE-FORMAT" style="width: 100%; height: 100%;"></div>`;
         window.open();
 
         // Create form
         const form = new Form('SceneFormatForm');
-        form.fields = [{ name: 'format', type: 'list', required: true, options: { items: ['babylon', 'glb', 'gltf'] } }];
+        form.fields = [
+            { name: 'exportEulerAngles', type: 'checkbox', html: { span: 10, caption: 'Export Euler angles instead of quaternions' } },
+            { name: 'format', type: 'list', required: true, html: { span: 10, caption: 'Format' }, options: { items: ['babylon', 'glb', 'gltf'] } }
+        ];
         form.build('EXPORT-TEMPLATE-FORMAT');
 
         form.element.record['format'] = this.ProjectExportFormat;
+        form.element.record['exportEulerAngles'] = this.ExportEulerAngles;
         form.element.refresh();
 
         // Events
         window.onButtonClick = async () => {
             // Update scene format
-            this.ProjectExportFormat = form.element.record['format'].id;
+            const format = this.ProjectExportFormat = form.element.record['format'].id;
+            const exportAsEulerAngles = this.ExportEulerAngles = form.element.record['exportEulerAngles'];
+            
+            // Rotations
+            if (exportAsEulerAngles) {
+                editor.core.scene.meshes.forEach(m => {
+                    if (m.rotationQuaternion) {
+                        m.rotation = m.rotationQuaternion.toEulerAngles();
+                        m.rotationQuaternion = null;
+                    }
+                });
+            } else {
+                editor.core.scene.meshes.forEach(m => {
+                    if (!m.rotationQuaternion) {
+                        m.rotationQuaternion = m.rotation.toQuaternion();
+                    }
+
+                    m.rotation.set(0, 0, 0);
+                });
+            }
 
             // Lock
-            editor.layout.lockPanel('main', 'Exporting to ' + this.ProjectExportFormat + '...', true);
+            editor.layout.lockPanel('main', 'Exporting to ' + format + '...', true);
 
             // Clear
             form.element.destroy();
             window.close();
 
             // Create scene files
-            SceneExporter.CreateFiles(editor, this.ProjectExportFormat);
+            SceneExporter.CreateFiles(editor, format);
 
             // Create files to upload
             const sceneFiles: CreateFiles[] = [{ name: 'project.editorproject', data: JSON.stringify(this.Export(editor).customMetadatas) }];
 
-            if (this.ProjectExportFormat === 'babylon') {
+            if (format === 'babylon') {
                 sceneFiles.push({ name: 'scene.babylon', data: await Tools.ReadFileAsArrayBuffer(editor.sceneFile) });
             }
             else {
                 let data: GLTFData = null;
 
                 try {
-                    switch (this.ProjectExportFormat) {
+                    switch (format) {
                         case 'glb': data = await GLTF2Export.GLBAsync(editor.core.scene, 'scene', { }); break;
                         case 'gltf': data = await GLTF2Export.GLTFAsync(editor.core.scene, 'scene', { }); break;
                         default: break;
@@ -106,7 +130,7 @@ export default class ProjectExporter {
             // Lock
             editor.layout.lockPanel('main', 'Finalizing...', true);
 
-            if (this.ProjectExportFormat === 'babylon') {
+            if (format === 'babylon') {
                 for (const k in FilesInputStore.FilesToLoad) {
                     const file = FilesInputStore.FilesToLoad[k];
                     if (
@@ -306,7 +330,9 @@ export default class ProjectExporter {
                 density: scene.fogDensity,
                 mode: scene.fogMode,
                 color: scene.fogColor.asArray()
-            }
+            },
+            projectFormat: this.ProjectExportFormat,
+            exportEulerAngles: this.ExportEulerAngles
         }
     }
 

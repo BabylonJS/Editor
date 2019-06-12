@@ -926,6 +926,8 @@ declare module 'babylonjs-editor/editor/gui/form' {
                     items?: string[];
             };
             html?: {
+                    span?: number;
+                    column?: number;
                     caption?: string;
             };
     }
@@ -1497,6 +1499,8 @@ declare module 'babylonjs-editor/editor/typings/project' {
                     mode: number;
                     color: number[];
             };
+            projectFormat?: 'babylon' | 'glb' | 'gltf';
+            exportEulerAngles?: boolean;
     }
     /**
      * Custom Materials (sky, gradient, water, etc.)

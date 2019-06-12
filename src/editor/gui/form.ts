@@ -7,6 +7,8 @@ export interface FormField {
         items?: string[];
     };
     html?: {
+        span?: number;
+        column?: number;
         caption?: string;
     }
 }
