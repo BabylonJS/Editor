@@ -1,10 +1,10 @@
 import {
     Engine, Scene,
     FreeCamera, Camera,
-    Vector3,
+    ParticleSystem,
+    Vector3, Tags,
     FilesInput, FilesInputStore,
-    ArcRotateCamera,
-    Tags
+    ArcRotateCamera
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
@@ -740,7 +740,11 @@ export default class Editor implements IUpdatable {
                 if (!node)
                     return;
                 
-                ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), node.globalPosition || node.getAbsolutePosition(), this.camera);
+                let globalPosition = node.globalPosition || (node.getAbsolutePosition && node.getAbsolutePosition());
+                if (!globalPosition && node instanceof ParticleSystem)
+                    globalPosition = (node.emitter instanceof Vector3 ? node.emitter.clone() : node.emitter.getAbsolutePosition());
+                
+                ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), globalPosition, this.camera);
             }
         });
 
