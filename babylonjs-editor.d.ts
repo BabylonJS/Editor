@@ -236,6 +236,12 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static GetTextureByName(scene: Scene, name: string): BaseTexture;
             /**
+                * Returns the first texture found which as the given unique Id.
+                * @param scene the scene containing the textures.
+                * @param uniqueId the id of the texture to find.
+                */
+            static GetTextureByUniqueId(scene: Scene, uniqueId: number): BaseTexture;
+            /**
                 * Creates an open file dialog
                 * @param callback called once the user selects files
                 */

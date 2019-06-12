@@ -5,7 +5,7 @@ import {
     SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable,
     ParticleSystem, GlowLayer, HighlightLayer, Animatable, EnvironmentHelper,
     SceneSerializer, InstancedMesh, Node, Sound, Mesh, SerializationHelper,
-    AbstractMesh
+    AbstractMesh, MultiMaterial, DynamicTexture
 } from 'babylonjs';
 import * as BABYLON from 'babylonjs';
 
@@ -191,11 +191,19 @@ export default class SceneManager {
         let count = 0;
 
         const used: Material[] = [];
-        scene.meshes.forEach(m => m.material && used.indexOf(m.material) === -1 && used.push(m.material));
+        scene.meshes.forEach(m => {
+            if (!m.material || used.indexOf(m.material) !== -1)
+                return;
+
+            if (m.material instanceof MultiMaterial)
+                m.material.subMaterials.forEach(m => used.indexOf(m) === -1 && used.push(m));
+            
+            used.push(m.material);
+        });
 
         for (let i = 0; i < scene.materials.length; i++) {
             const m = scene.materials[i];
-            if (m.name === 'colorShader')
+            if (m.name === 'colorShader' || m === scene.defaultMaterial)
                 continue;
 
             if (used.indexOf(m) === -1) {
@@ -216,9 +224,14 @@ export default class SceneManager {
         let count = 0;
 
         const used: BaseTexture[] = [];
+        const gBufferTextures = scene._geometryBufferRenderer ? scene._geometryBufferRenderer.getGBuffer().textures : [];
+        const renderPipelines = Object.keys(scene.postProcessRenderPipelineManager['_renderPipelines']).map(k => scene.postProcessRenderPipelineManager['_renderPipelines'][k]);
+
         scene.materials
         .concat(<any> scene.particleSystems)
-        .concat(<any> scene.postProcesses).forEach(m => {
+        .concat(<any> scene.postProcesses)
+        .concat(<any> renderPipelines)
+        .concat(<any> scene).forEach(m => {
             for (const thing in m) {
                 const value = m[thing];
 
@@ -230,11 +243,12 @@ export default class SceneManager {
         for (let i = 0; i < scene.textures.length; i++) {
             const t = scene.textures[i];
 
-            if (!(t instanceof RenderTargetTexture) && used.indexOf(t) === -1) {
-                t.dispose();
-                count++;
-                i--;
-            }
+            if (t instanceof RenderTargetTexture || t instanceof DynamicTexture || t.name === '' || gBufferTextures.indexOf(<any> t) !== -1 || used.indexOf(t) !== -1)
+                continue;
+
+            t.dispose();
+            count++;
+            i--;
         }
 
         return count;
