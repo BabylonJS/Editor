@@ -233,11 +233,11 @@ export default class Edition {
             if (!isCube && onlyCubes)
                 return;
 
-            textures.push(t.name);
+            textures.push(t['url'] || t.name);
         });
 
         const target = {
-            texture: object[property] ? object[property].name : 'None',
+            texture: object[property] ? (object[property].url || object[property].name) : 'None',
             browse: (async () => {
                 const from = object[property];
                 const to = await TexturePicker.Show(scene, object[property], allowCubes, onlyCubes);
@@ -247,7 +247,7 @@ export default class Edition {
 
                 // Update
                 if (to)
-                    target.texture = to.name;
+                    target.texture = (to['url'] || to.name);
 
                 editor.inspector.updateDisplay();
 
@@ -259,7 +259,7 @@ export default class Edition {
         const controller = parent.add(target, 'texture', textures);
         controller.onFinishChange(r => {
             const currentTexture = object[property];
-            const texture = scene.textures.find(t => t.name === r);
+            const texture = scene.textures.find(t => t['url'] === r || t.name === r);
             object[property] = texture;
 
             callback && callback(texture);

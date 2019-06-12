@@ -36,6 +36,7 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
         common.open();
 
         if (texture instanceof ProceduralTexture) {
+            texture.name = texture.name || 'Unnamed';
             common.add(texture, 'name').name('Name');
         }
         else if (texture['url']) {

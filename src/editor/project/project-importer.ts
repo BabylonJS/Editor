@@ -246,15 +246,20 @@ export default class ProjectImporter {
             // In case of a clone
             if (t.newInstance) {
                 // Already created by materials?
-                const existing = Tools.GetTextureByName(scene, t.serializedValues.name);
-                if (existing)
+                const existing = Tools.GetTextureByUniqueId(scene, t.serializedValues.uniqueId);
+                if (existing) {
+                    // Url
+                    if (t.serializedValues.url)
+                        existing['url'] = t.serializedValues.url;
+                    
                     return;
+                }
                 
                 const texture = Texture.Parse(t.serializedValues, scene, 'file:');
                 Tags.AddTagsTo(texture, 'added');
             }
 
-            const existing = Tools.GetTextureByName(scene, t.serializedValues.name);
+            const existing = Tools.GetTextureByUniqueId(scene, t.serializedValues.uniqueId);
             const texture = existing ? SerializationHelper.Parse(() => existing, t.serializedValues, scene, 'file:') : Texture.Parse(t.serializedValues, scene, 'file:');
 
             Tags.AddTagsTo(texture, existing ? 'modified' : 'added');

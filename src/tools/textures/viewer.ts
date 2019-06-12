@@ -870,8 +870,10 @@ export default class TextureViewer extends EditorPlugin {
                 const s = texture.serialize();
                 const c = Texture.Parse(s, this.editor.core.scene, 'file:');
                 c.name = texture.name;
-                if (c['url'])
-                    c['url'] = texture.name + BabylonTools.RandomId();
+                c.uniqueId = texture.getScene().getUniqueId();
+
+                if (texture['url'])
+                    c['url'] = (texture['url'] || texture.name) + BabylonTools.RandomId();
 
                 Tags.AddTagsTo(c, 'added');
                 if (c.metadata)

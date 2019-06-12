@@ -88,7 +88,7 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
             // Parse textures
             for (const key in textures) {
                 const value = textures[key];
-                const original = Tools.GetTextureByName(this.object.getScene(), value.name);
+                const original = Tools.GetTextureByUniqueId(this.object.getScene(), value.uniqueId);
 
                 if (original)
                     this.object[key] = SerializationHelper.Parse(() => original, textures[key], this.object.getScene(), 'file:');

@@ -83,7 +83,7 @@ export default class TexturePicker {
                 return;
 
             // Elements
-            const parent = Tools.CreateElement<HTMLDivElement>('div', texture.name + texture.uniqueId + 'div', {
+            const parent = Tools.CreateElement<HTMLDivElement>('div', (texture['url'] || texture.name) + texture.uniqueId + 'div', {
                 'position': 'relative',
                 'width': '100px',
                 'height': '100px',
@@ -91,7 +91,7 @@ export default class TexturePicker {
                 'margin': '10px'
             });
 
-            const title = Tools.CreateElement<HTMLElement>('small', texture.name + 'text', {
+            const title = Tools.CreateElement<HTMLElement>('small', (texture['url'] || texture.name) + 'text', {
                 'float': 'left',
                 'width': '100px',
                 'left': '50%',
@@ -102,9 +102,9 @@ export default class TexturePicker {
                 'overflow': 'hidden',
                 'position': 'relative'
             });
-            title.innerText = texture.name;
+            title.innerText = texture['url'] || texture.name;
 
-            const img = Tools.CreateElement<HTMLImageElement>('img', texture.name, {
+            const img = Tools.CreateElement<HTMLImageElement>('img', texture['url'] || texture.name, {
                 'width': '100px',
                 'height': '100px'
             });
