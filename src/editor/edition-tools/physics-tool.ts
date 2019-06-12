@@ -1,4 +1,4 @@
-import { FreeCamera, PhysicsImpostor, AbstractMesh } from 'babylonjs';
+import { FreeCamera, PhysicsImpostor, AbstractMesh, Tags } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -88,6 +88,8 @@ export default class PhysicsTool extends AbstractEditionTool<AbstractMesh | Free
                 node.physicsImpostor.mass = this._lastMass || node.physicsImpostor.mass;
                 node.physicsImpostor.friction = this._lastFriction || node.physicsImpostor.friction;
                 node.physicsImpostor.restitution = this._lastRestitution || node.physicsImpostor.restitution;
+
+                Tags.AddTagsTo(node.physicsImpostor, 'added');
 
                 this.editor.core.scene.getPhysicsEngine().setTimeStep(Tools.Epsilon);
                 this.update(node);
