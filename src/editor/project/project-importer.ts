@@ -7,7 +7,7 @@ import {
 
 import Editor from '../editor';
 
-import ProjectExporter from './project-exporter';
+import ProjectSettings from './project-settings';
 
 import Tools from '../tools/tools';
 import Request from '../tools/request';
@@ -59,8 +59,8 @@ export default class ProjectImporter {
             scene.fogMode = project.globalConfiguration.fog.mode;
         }
 
-        ProjectExporter.ProjectExportFormat = project.globalConfiguration.projectFormat || 'babylon';
-        ProjectExporter.ExportEulerAngles = project.globalConfiguration.exportEulerAngles || false;
+        ProjectSettings.ProjectExportFormat = project.globalConfiguration.projectFormat || 'babylon';
+        ProjectSettings.ExportEulerAngles = project.globalConfiguration.exportEulerAngles || false;
 
         // Physics
         if (!scene.isPhysicsEnabled())

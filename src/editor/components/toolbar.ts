@@ -18,6 +18,7 @@ import SceneSerializer from '../scene/scene-serializer';
 
 import ProjectImporter from '../project/project-importer';
 import ProjectExporter from '../project/project-exporter';
+import ProjectSettings from '../project/project-settings';
 import CodeProjectEditorFactory from '../project/project-code-editor';
 
 export default class EditorToolbar {
@@ -42,6 +43,8 @@ export default class EditorToolbar {
                     { type: 'break' },
                     { id: 'export-project', img: 'icon-files', text: 'Save Project... <kbd>CTRL + S</kbd>' },
                     { id: 'export-project-as', img: 'icon-files', text: 'Save Project As... <kbd>ALT + CTRL + S</kbd>' },
+                    { type: 'break' },
+                    { id: 'project-settings', img: 'icon-scenario', text: 'Project Settings...' },
                     { type: 'break' },
                     { id: 'export-template', img: 'icon-files-project', text: 'Export Project Template...' }
                 ]
@@ -198,6 +201,10 @@ export default class EditorToolbar {
                 break;
             case 'project:export-project-as':
                 await ProjectExporter.ExportProject(this.editor, true);
+                break;
+
+            case 'project:project-settings':
+                ProjectSettings.ShowDialog(this.editor);
                 break;
 
             case 'project:export-template':
