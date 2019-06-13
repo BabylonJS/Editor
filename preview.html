@@ -37,6 +37,7 @@
         var renderScene = true;
         var effectiveScene = null;
         var gotScene = null;
+        var captureSpector = null;
 
         var capturer = new CCapture({ format: 'webm', framerate: 60, display: true });
 
@@ -129,6 +130,15 @@
                                         });
                                     }
                                 });
+
+                                // Spectorjs
+                                captureSpector = function (done) {
+                                    const spectorExt = extensions.default.RequestExtension(scene, 'SpectorDebug');
+                                    spectorExt.spector.onCapture.add(function (c) {
+                                        done(c, spectorExt.spector.logger);
+                                    });
+                                    spectorExt.spector.startCapture(engine.getRenderingCanvas(), false);
+                                };
                             });
                         };
 

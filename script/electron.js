@@ -42,6 +42,7 @@ Builder.build({
             'index-debug.html',
             'redirect.html',
             'preview.html',
+            'spectorjs.html',
             'code-editor-debug.html'
         ]
     }

@@ -435,6 +435,10 @@ ICONS
     background: url("svg/film.svg");
 }
 
+.w2ui-icon.icon-babylon {
+    background: url("svg/logo-babylon.svg");
+}
+
 .w2ui-icon.w2ui-icon-reload::before {
     background: url("svg/circle-notch.svg") !important;
 }
