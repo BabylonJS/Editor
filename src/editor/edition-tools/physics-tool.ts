@@ -75,7 +75,7 @@ export default class PhysicsTool extends AbstractEditionTool<AbstractMesh | Free
                     this._lastMass = null;
                     this._lastFriction = null;
                     this._lastRestitution = null;
-                } else if (node.physicsImpostor) {
+                } else if (node.physicsImpostor && node.physicsImpostor.physicsBody) {
                     this._lastMass = node.physicsImpostor.mass;
                     this._lastFriction = node.physicsImpostor.friction;
                     this._lastRestitution = node.physicsImpostor.restitution;
@@ -85,9 +85,11 @@ export default class PhysicsTool extends AbstractEditionTool<AbstractMesh | Free
                     node.physicsImpostor.dispose();
                 
                 node.physicsImpostor = new PhysicsImpostor(node, PhysicsImpostor[r], { mass: 0 });
-                node.physicsImpostor.mass = this._lastMass || node.physicsImpostor.mass;
-                node.physicsImpostor.friction = this._lastFriction || node.physicsImpostor.friction;
-                node.physicsImpostor.restitution = this._lastRestitution || node.physicsImpostor.restitution;
+                if (node.physicsImpostor.physicsBody) {
+                    node.physicsImpostor.mass = this._lastMass || node.physicsImpostor.mass;
+                    node.physicsImpostor.friction = this._lastFriction || node.physicsImpostor.friction;
+                    node.physicsImpostor.restitution = this._lastRestitution || node.physicsImpostor.restitution;
+                }
 
                 Tags.AddTagsTo(node.physicsImpostor, 'added');
 
@@ -96,9 +98,15 @@ export default class PhysicsTool extends AbstractEditionTool<AbstractMesh | Free
             });
 
             if (impostor && impostor.type !== PhysicsImpostor.NoImpostor) {
-                physics.add(impostor, 'mass').step(0.01).name('Mass');
-                physics.add(impostor, 'friction').step(0.01).name('Friction');
-                physics.add(impostor, 'restitution').step(0.01).name('Restitution');
+                if (!impostor.physicsBody) {
+                    // Waits for the parent
+                    physics.addFolder('Wait for the parent to have a physics impostor.');
+                }
+                else {
+                    physics.add(impostor, 'mass').step(0.01).name('Mass');
+                    physics.add(impostor, 'friction').step(0.01).name('Friction');
+                    physics.add(impostor, 'restitution').step(0.01).name('Restitution');
+                }
             }
         }
     }

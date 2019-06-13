@@ -245,6 +245,10 @@ export default class SceneLoader {
         // Gltf or glb?
         await GLTFTools.ConfigureFromScene(editor, sceneFile);
 
+        // Physics
+        if (scene.getPhysicsEngine())
+            scene.getPhysicsEngine().setTimeStep(Tools.Epsilon);
+
         // Graph
         editor.graph.clear();
         editor.graph.fill();

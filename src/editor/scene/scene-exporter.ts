@@ -38,6 +38,7 @@ export default class SceneExporter {
         this._ClearMetadatas(serializedScene.meshes);
         this._ClearMetadatas(serializedScene.lights);
         this._ClearMetadatas(serializedScene.cameras);
+        this._ClearMetadatas(serializedScene.transformNodes);
         this._ClearMetadatas(serializedScene.particleSystems);
         this._ClearMetadatas(serializedScene.materials);
         this._ClearMetadatas(serializedScene.multiMaterials);
