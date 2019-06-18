@@ -5,6 +5,7 @@ export interface FormField {
     required?: boolean;
     options?: {
         items?: string[];
+        [index: string]: any;
     };
     html?: {
         span?: number;

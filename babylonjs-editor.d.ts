@@ -930,6 +930,7 @@ declare module 'babylonjs-editor/editor/gui/form' {
             required?: boolean;
             options?: {
                     items?: string[];
+                    [index: string]: any;
             };
             html?: {
                     span?: number;

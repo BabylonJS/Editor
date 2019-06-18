@@ -11,7 +11,8 @@ import {
     MirrorTexture,
     EnvironmentTextureTools,
     ReflectionProbe,
-    FilesInputStore
+    FilesInputStore,
+    StandardMaterial
 } from 'babylonjs';
 import 'babylonjs-procedural-textures';
 
@@ -30,12 +31,14 @@ import Editor, {
     ContextMenuItem
 } from 'babylonjs-editor';
 
+import AddPureCubeTexture from './add-pure-cube';
+
 export interface PreviewScene {
     engine: Engine;
     scene: Scene;
     camera: ArcRotateCamera;
     sphere: Mesh;
-    material: PBRMaterial;
+    material: StandardMaterial;
 }
 
 export interface TexturePreview {
@@ -53,7 +56,7 @@ export default class TextureViewer extends EditorPlugin {
     public scene: Scene = null;
     public texture: BaseTexture = null;
     public sphere: Mesh = null;
-    public material: PBRMaterial = null;
+    public material: StandardMaterial = null;
     public camera: Camera = null;
     public postProcess: PassPostProcess = null;
 
@@ -138,7 +141,8 @@ export default class TextureViewer extends EditorPlugin {
                 { id: 'procedural', text: 'Add Procedural...', img: 'icon-shaders' },
                 { id: 'render-target', text: 'Add Render Target', img: 'icon-add' },
                 { id: 'mirror', text: 'Add Mirror', img: 'icon-reflection' },
-                { id: 'reflection-probe', text: 'Reflection Probe', img: 'icon-reflection' }
+                { id: 'reflection-probe', text: 'Reflection Probe', img: 'icon-reflection' },
+                // { id: 'pure-cube-texture', text: 'Pure Cube Texture...', img: 'icon-dynamic-texture' }
             ] },
             { type: 'break' },
             { id: 'convert-cube-texture', text: 'Convert .dds to .env...', img: 'icon-export' },
@@ -233,6 +237,9 @@ export default class TextureViewer extends EditorPlugin {
             case 'add:reflection-probe':
                 this.addReflectionProbe();
                 break;
+            case 'add:pure-cube-texture':
+                AddPureCubeTexture.ShowDialog(this.editor);
+                break;
 
             case 'convert-cube-texture':
                 this.convertCubeTexture();
@@ -295,6 +302,11 @@ export default class TextureViewer extends EditorPlugin {
                 this.addProceduralTexturePreviewNode(tex);
                 continue;
             }
+
+            // if (tex instanceof CubeTexture && tex['_files'] && tex['_files'].length === 6) {
+            //     this.addPureCubeTexturePreviewNode(tex);
+            //     continue;
+            // }
             
             let url = tex.name;
             if (!url)
@@ -526,6 +538,82 @@ export default class TextureViewer extends EditorPlugin {
     }
 
     /**
+     * Add a pure cube texture preview
+     * @param texture the pure cube texture to add
+     */
+    protected async addPureCubeTexturePreviewNode (texture: CubeTexture): Promise<void> {
+        const parent = Tools.CreateElement<HTMLDivElement>('div', texture.name + 'div', {
+            'width': '100px',
+            'height': '100px',
+            'float': 'left',
+            'margin': '10px'
+        });
+
+        // Canvas
+        if (!this.tempPreview)
+            this.tempPreview = this.createPreview(this.tempPreviewCanvas);
+        
+        const data = await new Promise<string>(async (resolve) => {
+            // Get all faces
+            const files: string[] = [];
+
+            for (const f of texture['_files']) {
+                const url = f.replace('file:', '');
+                let file = FilesInputStore.FilesToLoad[url];
+                if (!file)
+                    file = FilesInputStore.FilesToLoad[url.toLowerCase()];
+
+                if (file)
+                    files.push(await Tools.ReadFileAsBase64(file));
+            }
+            
+            this.tempPreview.material.reflectionTexture = new CubeTexture(texture.name, this.tempPreview.scene, null, false, texture['_files']);
+            this.tempPreview.scene.render();
+
+            this.tempPreview.scene.executeWhenReady(() => {
+                this.tempPreview.scene.render();
+                this.tempPreview.scene.onReadyObservable.clear();
+
+                const base64 = this.tempPreviewCanvas.toDataURL('image/png');
+                resolve(base64);
+            });
+        });
+
+        const img = Tools.CreateElement<HTMLImageElement>('img', texture.name, {
+            width: '100px',
+            height: '100px'
+        });
+        img.src = data;
+        img.classList.add('ctxmenu');
+        img.addEventListener('click', (ev) => this.setTexture(texture.name, 'pure-cube', texture));
+        ContextMenu.ConfigureElement(img, this.getContextMenuItems(texture));
+        parent.appendChild(img);
+
+        const texturesList = $('#TEXTURE-VIEWER-LIST');
+        texturesList.append(parent);
+
+        // Drag'n'drop
+        const dropListener = this.dragEnd(texture, true);
+        img.addEventListener('dragstart', () => this.editor.core.engine.getRenderingCanvas().addEventListener('drop', dropListener));
+        img.addEventListener('dragend', () => this.editor.core.engine.getRenderingCanvas().removeEventListener('drop', dropListener));
+
+        // Add text
+        const text = Tools.CreateElement<HTMLElement>('small', texture.name + 'text', {
+            'float': 'left',
+            'width': '100px',
+            'left': '50%',
+            'top': '8px',
+            'transform': 'translate(-50%, -50%)',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+            'overflow': 'hidden',
+            'position': 'relative'
+        });
+        text.innerText = texture.name;
+        parent.appendChild(text);
+    }
+
+    /**
      * Add a procedural texture preview
      * @param texture the texture to add
      */
@@ -660,7 +748,7 @@ export default class TextureViewer extends EditorPlugin {
      * Sets the texture in preview canvas
      * @param name: the name of the texture
      */
-    protected setTexture (name: string, extension: string, originalTexture: BaseTexture): void {
+    protected async setTexture (name: string, extension: string, originalTexture: BaseTexture): Promise<void> {
         this.camera.detachPostProcess(this.postProcess);
         this.sphere.setEnabled(false);
 
@@ -697,6 +785,22 @@ export default class TextureViewer extends EditorPlugin {
                     (<DynamicTexture> this.texture).update(false);
                 });
                 break;
+            case 'pure-cube':
+                // Get all faces
+                const files: string[] = [];
+
+                for (const f of originalTexture['_files']) {
+                    const url = f.replace('file:', '');
+                    let file = FilesInputStore.FilesToLoad[url];
+                    if (!file)
+                        file = FilesInputStore.FilesToLoad[url.toLowerCase()];
+
+                    if (file)
+                        files.push(await Tools.ReadFileAsBase64(file));
+                }
+                this.texture = this.material.reflectionTexture = new CubeTexture(originalTexture.name, this.scene, null, false, files, null, null, null, false);
+                this.sphere.setEnabled(true);
+                break;
             default:
                 this.camera.attachPostProcess(this.postProcess);
                 this.texture = new Texture('file:' + name, this.scene);
@@ -729,7 +833,7 @@ export default class TextureViewer extends EditorPlugin {
         camera.attachControl(canvas);
 
         const sphere = Mesh.CreateSphere('TextureCubeSphere', 32, 6, scene);
-        const material = new PBRMaterial('TextureCubeMaterial', scene);
+        const material = new StandardMaterial('TextureCubeMaterial', scene);
 
         if (file)
             material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + file.name, scene);
