@@ -51,8 +51,6 @@ export default class EditorToolbar {
             },
             {
                 type: 'menu', id: 'scene', text: 'Scene', img: 'icon-scene', items: [
-                    { id: 'import-meshes-from', img: 'icon-add', text: 'Import Meshes From...' },
-                    { type: 'break' },
                     { id: 'download-scene', img: 'icon-export', text: 'Save Scene File...' },
                     { id: 'serialize-scene', img: 'icon-export', text: 'Save Scene File As...' },
                     { type: 'break' },
@@ -212,10 +210,6 @@ export default class EditorToolbar {
                 break;
 
             // Scene
-            case 'scene:import-meshes-from':
-                SceneImporter.ImportMeshesFromFile(this.editor);
-                break;
-            
             case 'scene:download-scene':
                 SceneExporter.DownloadBabylonFile(this.editor);
                 break;
