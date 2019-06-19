@@ -56,7 +56,7 @@ export default class PhysicsTool extends AbstractEditionTool<AbstractMesh | Free
         let parent = node.parent;
         while (parent) {
             if (parent instanceof AbstractMesh && (!parent.physicsImpostor || !parent.physicsImpostor.physicsBody)) {
-                physics.addFolder('Waiting for the parent(s) to have a physics impostor.');
+                physics.addTextBox('Waiting for the parent(s) to have a physics impostor.');
                 return;
             }
 
@@ -117,7 +117,7 @@ export default class PhysicsTool extends AbstractEditionTool<AbstractMesh | Free
         if (impostor && impostor.type !== PhysicsImpostor.NoImpostor) {
             if (!impostor.physicsBody) {
                 // Waits for the parent
-                physics.addFolder('Waiting for the parent(s) to have a physics body.');
+                physics.addTextBox('Waiting for the parent(s) to have a physics body.');
             }
             else {
                 physics.add(impostor, 'mass').step(0.01).name('Mass');

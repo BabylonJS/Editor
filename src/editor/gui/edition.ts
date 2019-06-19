@@ -12,6 +12,8 @@ import TexturePicker from '../components/texture-picker';
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
 
+import './gui-extensions/dat-gui';
+
 export default class Edition {
     // Public member
     public element: dat.GUI;
@@ -37,6 +39,14 @@ export default class Edition {
      */
     public add (target: any, propName: string, other?: string[]): dat.GUIController {
         return this.element.add(target, propName, other);
+    }
+
+    /**
+     * Adds a simple text controller to display a message.
+     * @param content the content to draw in the controller
+     */
+    public addTextBox (content: string): dat.GUIController {
+        return this.element.addTextBox(content);
     }
 
     /**
