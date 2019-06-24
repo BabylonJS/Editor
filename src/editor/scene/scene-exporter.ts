@@ -83,19 +83,36 @@ export default class SceneExporter {
         
         // For each object, replace by custom metadata if exists
         objects.forEach(m => {
-            if (m.metadata) {
-                // Clear original saved object
-                delete m.metadata.original;
+            if (!m)
+                return;
+            
+            this._ClearMetadata(m);
 
-                if (m.metadata.baseConfiguration)
-                    m.pickable = m.metadata.baseConfiguration.isPickable;
-                
-                if (m.metadata.customMetadatas)
-                    m.metadata = m.metadata.customMetadatas;
-            }
-            else {
-                delete m.metadata;
+            // Second level (typically for textures)
+            for (const k in m) {
+                const v = m[k];
+                if (!v)
+                    continue;
+
+                this._ClearMetadata(v);
             }
         });
+    }
+
+    // Clears the metadata object
+    private static _ClearMetadata (obj: any): void {
+        if (obj.metadata) {
+            // Clear original saved object
+            delete obj.metadata.original;
+
+            if (obj.metadata.baseConfiguration)
+                obj.pickable = obj.metadata.baseConfiguration.isPickable;
+            
+            if (obj.metadata.customMetadatas)
+                obj.metadata = obj.metadata.customMetadatas;
+        }
+        else {
+            delete obj.metadata;
+        }
     }
 }

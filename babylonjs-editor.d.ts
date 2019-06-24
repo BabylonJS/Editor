@@ -982,6 +982,11 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 */
             add(target: any, propName: string, other?: string[]): dat.GUIController;
             /**
+                * Adds a simple text controller to display a message.
+                * @param content the content to draw in the controller
+                */
+            addTextBox(content: string): dat.GUIController;
+            /**
                 * Removes the dat element
                 */
             remove(): void;

@@ -1,5 +1,9 @@
 import * as dat from 'dat-gui';
 
+export const init = () => {
+    // Inits the module to fake typings.
+};
+
 /**
  * Augmentify
  */

@@ -12,7 +12,7 @@ import TexturePicker from '../components/texture-picker';
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
 
-import './gui-extensions/dat-gui';
+import * as DatGuiExtensions from './gui-extensions/dat-gui';
 
 export default class Edition {
     // Public member
@@ -21,8 +21,9 @@ export default class Edition {
     /**
      * Constructor
      */
-    constructor()
-    { }
+    constructor() {
+        DatGuiExtensions.init();
+    }
 
     /**
      * Adds a folder
