@@ -22,6 +22,8 @@ import { Number, String, Boolean } from './graph-nodes/basic/const';
 import { Color } from './graph-nodes/basic/color';
 import { Time } from './graph-nodes/basic/time';
 
+import { GetDirection, LookAt } from './graph-nodes/functions/mesh';
+
 import { LiteGraphNode } from './graph-nodes/typings';
 
 export { LGraph, LGraphCanvas, LiteGraph, LiteGraphNode, LGraphGroup }
@@ -338,6 +340,9 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
             PointerOver.Register('event/pointerover', PointerOver);
             PointerDown.Register('event/pointerdown', PointerDown);
             PointerOut.Register('event/pointerout', PointerOut);
+
+            GetDirection.Register('node/getdirection', GetDirection);
+            LookAt.Register('node/lookat', LookAt);
         }
 
         KeyboardDown.Register('event/keyboarddown', KeyboardDown);

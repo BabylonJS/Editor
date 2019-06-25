@@ -1,5 +1,5 @@
 import { AbstractMesh, Observer, KeyboardEventTypes } from 'babylonjs';
-import { LiteGraph } from 'litegraph.js';
+import { LiteGraph, LGraphCanvas } from 'litegraph.js';
 
 import { LiteGraphNode } from '../typings';
 
@@ -26,6 +26,16 @@ export class AbstractKeyboard extends LiteGraphNode {
         this._resetState = resetState;
 
         this.addOutput('Execute', LiteGraph.EVENT);
+    }
+
+    /**
+     * On the background is drawn
+     * @param ctx the canvas 2d context reference
+     * @param text the text to draw
+     */
+    public onDrawBackground (ctx: CanvasRenderingContext2D, graph: LGraphCanvas, canvas: HTMLCanvasElement, text?: string): void {
+        super.onDrawBackground(ctx, graph, canvas, <string> this.properties.key);
+        this.graph.setDirtyCanvas(true, true);
     }
 
     /**

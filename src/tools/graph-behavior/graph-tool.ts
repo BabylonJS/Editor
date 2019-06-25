@@ -1,4 +1,4 @@
-import { Material, Scene } from 'babylonjs';
+import { Material, Scene, AbstractMesh } from 'babylonjs';
 import { AbstractEditionTool, Tools } from 'babylonjs-editor';
 import { LGraph, LiteGraph, LGraphGroup } from 'litegraph.js';
 
