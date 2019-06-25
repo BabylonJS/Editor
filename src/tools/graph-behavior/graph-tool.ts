@@ -45,7 +45,7 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
             if (LiteGraph.registered_node_types[key].name === ctor) {
                 const desc = LiteGraph.registered_node_types[key].desc || LiteGraph.registered_node_types[key].Desc;
 
-                this.tool.addFolder(desc);
+                this.tool.addTextBox(desc);
                 break;
             }
         }
