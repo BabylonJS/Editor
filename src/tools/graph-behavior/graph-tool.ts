@@ -106,6 +106,21 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
                 return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
             }
 
+            // Animation name?
+            if (k === 'animationName') {
+                const path = <string> node.properties['nodePath'];
+                const scene = this.editor.core.scene;
+                const target = path === 'self' ? node.graph.scriptObject : path === 'Scene' ? scene : scene.getNodeByName(path);
+
+                if (!target.animations)
+                    return;
+
+                const animations = ['All'].concat(target.animations.map(a => a.name));
+                properties.add(node.properties, 'animationName', animations);
+                
+                return;
+            }
+
             // Swith type of property
             switch (typeof node.properties[k]) {
                 case 'number': properties.add(node.properties, k).step(0.001).name(k); break;

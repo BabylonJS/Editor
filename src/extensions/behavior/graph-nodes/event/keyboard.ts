@@ -41,7 +41,10 @@ export class AbstractKeyboard extends LiteGraphNode {
                 if (p.type !== this._keyboardEventType)
                     return;
 
-                this.isSuccess = p.event.key.toLowerCase() === this.properties.key;
+                const hasControl = p.event.ctrlKey || p.event.metaKey;
+                const isKey = p.event.key.toLowerCase() === this.properties.key;
+
+                this.isSuccess = (isKey && !this.properties.checkControlOrMeta) || (isKey && this.properties.checkControlOrMeta && hasControl);
             });
         }
 
@@ -65,6 +68,7 @@ export class KeyboardDown extends AbstractKeyboard {
     constructor () {
         super('Keyboard Down', KeyboardEventTypes.KEYDOWN, true);
         this.addProperty('key', 'a');
+        this.addProperty('checkControlOrMeta', false);
     }
 }
 
@@ -79,5 +83,6 @@ export class KeyboardUp extends AbstractKeyboard {
     constructor () {
         super('Keyboard Up', KeyboardEventTypes.KEYUP, true);
         this.addProperty('key', 'a');
+        this.addProperty('checkControlOrMeta', false);
     }
 }
