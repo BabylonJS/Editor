@@ -99,6 +99,9 @@
 
             Promise.all(promises).then(function () {
                 // Import scene
+                if (!sceneFile || !BABYLON.FilesInputStore.FilesToLoad[sceneFile.name.toLowerCase()])
+                    return;
+                
                 BABYLON.SceneLoader.Load('file:', sceneFile.name, engine, function (scene) {
                     effectiveScene = scene;
                     

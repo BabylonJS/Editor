@@ -106,6 +106,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             motionBlur.add(SceneManager.StandardRenderingPipeline, 'MotionBlurEnabled').name('Motion Blur Enabled');
             motionBlur.add(SceneManager.StandardRenderingPipeline, 'motionBlurSamples').min(1).max(64).step(1).name('Samples Count');
             motionBlur.add(SceneManager.StandardRenderingPipeline, 'motionStrength').min(0).step(0.01).name('Strength');
+            motionBlur.add(SceneManager.StandardRenderingPipeline, 'objectBasedMotionBlur').name('Object Based Motion Blur');
 
             const lensFlare = standardPipeline.addFolder('Lens Flare');
             lensFlare.open();

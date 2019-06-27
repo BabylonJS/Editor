@@ -148,7 +148,7 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         const clearCoat = this.tool.addFolder('Clear Coat');
         clearCoat.add(this.object.clearCoat, 'isEnabled').name('Clear Coat Enabled');
         clearCoat.add(this.object.clearCoat, 'roughness').min(0).step(0.01).name('Roughness');
-        clearCoat.add(this.object.clearCoat, 'indiceOfRefraction').min(0).step(0.01).name('Indice Of Refraction');
+        clearCoat.add(this.object.clearCoat, 'indexOfRefraction').min(0).step(0.01).name('Index Of Refraction');
         this.tool.addTexture(clearCoat.addFolder('Bump Texture'), this.editor, this.editor.core.scene, 'bumpTexture', this.object.clearCoat, false, false);
 
         clearCoat.add(this.object.clearCoat, 'isTintEnabled').name('Tint Enabled');

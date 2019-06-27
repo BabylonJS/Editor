@@ -89,7 +89,7 @@ export default class ProjectExporter {
             for (const k in FilesInputStore.FilesToLoad) {
                 const file = FilesInputStore.FilesToLoad[k];
                 if (
-                    Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport') ||
+                    (ProjectSettings.ProjectExportFormat !== 'babylon' && Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport')) ||
                     file === editor.sceneFile || file === editor.projectFile ||
                     SceneLoader.SceneFiles.indexOf(file) !== -1
                 ) {
