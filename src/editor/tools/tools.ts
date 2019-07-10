@@ -178,6 +178,20 @@ export default class Tools {
     }
 
     /**
+     * Returns the first texture found which as the given unique Id.
+     * @param scene the scene containing the textures.
+     * @param uniqueId the id of the texture to find.
+     */
+    public static GetTextureByUniqueId (scene: Scene, uniqueId: number): BaseTexture {
+        for (const t of scene.textures) {
+            if (t.uniqueId === uniqueId)
+                return t;
+        }
+
+        return null;
+    }
+
+    /**
      * Creates an open file dialog
      * @param callback called once the user selects files
      */

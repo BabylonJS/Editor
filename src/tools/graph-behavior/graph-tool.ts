@@ -1,4 +1,4 @@
-import { Material, Scene } from 'babylonjs';
+import { Material, Scene, AbstractMesh } from 'babylonjs';
 import { AbstractEditionTool, Tools } from 'babylonjs-editor';
 import { LGraph, LiteGraph, LGraphGroup } from 'litegraph.js';
 
@@ -45,7 +45,7 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
             if (LiteGraph.registered_node_types[key].name === ctor) {
                 const desc = LiteGraph.registered_node_types[key].desc || LiteGraph.registered_node_types[key].Desc;
 
-                this.tool.addFolder(desc);
+                this.tool.addTextBox(desc);
                 break;
             }
         }
@@ -104,6 +104,21 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
                 }
                 
                 return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
+            }
+
+            // Animation name?
+            if (k === 'animationName') {
+                const path = <string> node.properties['nodePath'];
+                const scene = this.editor.core.scene;
+                const target = path === 'self' ? node.graph.scriptObject : path === 'Scene' ? scene : scene.getNodeByName(path);
+
+                if (!target.animations)
+                    return;
+
+                const animations = ['All'].concat(target.animations.map(a => a.name));
+                properties.add(node.properties, 'animationName', animations);
+                
+                return;
             }
 
             // Swith type of property

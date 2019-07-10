@@ -7,9 +7,11 @@ import {
     ParticleSystem,
     FilesInputStore,
     BaseTexture,
-    InstancedMesh,
+    InstancedMesh
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
+
+import ProjectSettings from './project-settings';
 
 import SceneManager, { RemovedObject } from '../scene/scene-manager';
 import SceneExporter from '../scene/scene-exporter';
@@ -32,7 +34,6 @@ import Extensions from '../../extensions/extensions';
 export default class ProjectExporter {
     // Public members
     public static ProjectPath: string = null;
-    public static ProjectExportFormat: 'babylon' | 'glb' | 'gltf' = 'babylon';
 
     // Private members
     private static _IsSaving: boolean = false;
@@ -43,88 +44,79 @@ export default class ProjectExporter {
      * @param onlyScene if the template should export only the scene files (with assets)
      */
     public static async ExportTemplate (editor: Editor, onlyScene: boolean): Promise<void> {
-        // Create format window
-        const window = new Window('ExportTemplate');
-        window.buttons = ['Ok'];
-        window.width = 400;
-        window.height = 125;
-        window.body = `<div id="EXPORT-TEMPLATE-FORMAT" style="width: 100%; height: 100%;"></div>`;
-        window.open();
+        // Shows dialog
+        await ProjectSettings.ShowDialog(editor);
 
-        // Create form
-        const form = new Form('SceneFormatForm');
-        form.fields = [{ name: 'format', type: 'list', required: true, options: { items: ['babylon', 'glb', 'gltf'] } }];
-        form.build('EXPORT-TEMPLATE-FORMAT');
+        // Lock
+        editor.layout.lockPanel('main', 'Exporting to ' + ProjectSettings.ProjectExportFormat + '...', true);
 
-        form.element.record['format'] = this.ProjectExportFormat;
-        form.element.refresh();
+        // Create scene files
+        SceneExporter.CreateFiles(editor, ProjectSettings.ProjectExportFormat);
 
-        // Events
-        window.onButtonClick = async () => {
-            // Update scene format
-            this.ProjectExportFormat = form.element.record['format'].id;
+        // Create files to upload
+        const sceneFiles: CreateFiles[] = [{ name: 'project.editorproject', data: JSON.stringify(this.Export(editor).customMetadatas) }];
 
-            // Clear
-            form.element.destroy();
-            window.close();
+        if (ProjectSettings.ProjectExportFormat === 'babylon') {
+            sceneFiles.push({ name: 'scene.babylon', data: await Tools.ReadFileAsArrayBuffer(editor.sceneFile) });
+        }
+        else {
+            let data: GLTFData = null;
 
-            // Create scene files
-            SceneExporter.CreateFiles(editor, this.ProjectExportFormat);
-
-            // Create files to upload
-            const sceneFiles: CreateFiles[] = [{ name: 'project.editorproject', data: JSON.stringify(this.Export(editor).customMetadatas) }];
-
-            if (this.ProjectExportFormat === 'babylon') {
-                sceneFiles.push({ name: 'scene.babylon', data: await Tools.ReadFileAsArrayBuffer(editor.sceneFile) });
-            }
-            else {
-                let data: GLTFData = null;
-
-                try {
-                    switch (this.ProjectExportFormat) {
-                        case 'glb': data = await GLTF2Export.GLBAsync(editor.core.scene, 'scene', { }); break;
-                        case 'gltf': data = await GLTF2Export.GLTFAsync(editor.core.scene, 'scene', { }); break;
-                        default: break;
-                    }
-                } catch (e) {
-                    Window.CreateAlert(e.message, 'Error when exporting the scene');
-                    return;
+            try {
+                switch (ProjectSettings.ProjectExportFormat) {
+                    case 'glb': data = await GLTF2Export.GLBAsync(editor.core.scene, 'scene', { }); break;
+                    case 'gltf': data = await GLTF2Export.GLTFAsync(editor.core.scene, 'scene', { }); break;
+                    default: break;
                 }
-
-                for (const f in data.glTFFiles) {
-                    const file = data.glTFFiles[f];
-                    sceneFiles.push({ name: f, data: await Tools.ReadFileAsArrayBuffer(<File> file) });
-                }
+            } catch (e) {
+                Window.CreateAlert(e.message, 'Error when exporting the scene');
+                return;
             }
 
-            Object.keys(FilesInputStore.FilesToLoad).forEach(async k => {
+            for (const f in data.glTFFiles) {
+                const file = data.glTFFiles[f];
+                if (file instanceof Blob)
+                    sceneFiles.push({ name: f, file: <File> file });
+                else
+                    sceneFiles.push({ name: f, data: file });
+            }
+        }
+
+        // Lock
+        editor.layout.lockPanel('main', 'Finalizing...', true);
+
+        if (ProjectSettings.ProjectExportFormat === 'babylon') {
+            for (const k in FilesInputStore.FilesToLoad) {
                 const file = FilesInputStore.FilesToLoad[k];
                 if (
-                    Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport') ||
+                    (ProjectSettings.ProjectExportFormat !== 'babylon' && Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport')) ||
                     file === editor.sceneFile || file === editor.projectFile ||
                     SceneLoader.SceneFiles.indexOf(file) !== -1
                 ) {
-                    return;
+                    continue;
                 }
                 
                 sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(file) });
-            });
+            }
+        }
 
-            // Src files
-            const srcFiles: CreateFiles[] = [
-                { name: 'game.ts', doNotOverride: true, data: (await Tools.LoadFile<string>('assets/templates/template/src/game.ts')).replace('{{scene_format}}', this.ProjectExportFormat) }
-            ];
+        // Src files
+        const srcFiles: CreateFiles[] = [
+            { name: 'game.ts', doNotOverride: true, data: (await Tools.LoadFile<string>('assets/templates/template/src/game.ts')).replace('{{scene_format}}', ProjectSettings.ProjectExportFormat) }
+        ];
 
-            const storage = await Storage.GetStorage(editor);
-            storage.openPicker('Create Template...', onlyScene ? sceneFiles : [
-                { name: 'scene', folder: sceneFiles },
-                { name: 'src', folder: srcFiles },
-                { name: 'README.md', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
-                { name: 'index.html', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
-                { name: 'package.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
-                { name: 'tsconfig.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
-            ]);
-        };
+        const storage = await Storage.GetStorage(editor);
+        storage.openPicker('Create Template...', onlyScene ? sceneFiles : [
+            { name: 'scene', folder: sceneFiles },
+            { name: 'src', folder: srcFiles },
+            { name: 'README.md', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
+            { name: 'index.html', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
+            { name: 'package.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
+            { name: 'tsconfig.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
+        ]);
+
+        // Unlock
+        editor.layout.unlockPanel('main');
     }
 
     /**
@@ -292,7 +284,9 @@ export default class ProjectExporter {
                 density: scene.fogDensity,
                 mode: scene.fogMode,
                 color: scene.fogColor.asArray()
-            }
+            },
+            projectFormat: ProjectSettings.ProjectExportFormat,
+            exportEulerAngles: ProjectSettings.ExportEulerAngles
         }
     }
 
@@ -462,6 +456,10 @@ export default class ProjectExporter {
             const serializedValues = modified ? this._MergeModifedProperties(t, t.serialize()) : this._ClearOriginalMetadata(t.serialize());
             serializedValues.name = t.name;
 
+            // Save url
+            if (t['url'])
+                serializedValues.url = t['url'];
+
             result.push({
                 serializedValues: serializedValues,
                 newInstance: added
@@ -604,6 +602,7 @@ export default class ProjectExporter {
                                 };
                                 // Don't save bones
                                 delete node.skeleton.serializationObject.bones;
+                                delete node.skeleton.serializationObject.ranges;
                             }
 
                             // Remove unnecessary informations
@@ -628,19 +627,21 @@ export default class ProjectExporter {
             }
 
             // Animations
-            n.animations.forEach(a => {
-                if (!Tags.HasTags(a) || !Tags.MatchesQuery(a, 'added'))
-                    return;
-                
-                addNodeToProject = true;
+            if (!Tags.MatchesQuery(n, 'added')) {
+                n.animations.forEach(a => {
+                    if (!Tags.HasTags(a) || !Tags.MatchesQuery(a, 'added'))
+                        return;
+                    
+                    addNodeToProject = true;
 
-                node.animations.push({
-                    events: [],
-                    serializationObject: a.serialize(),
-                    targetName: name,
-                    targetType: 'Node'
+                    node.animations.push({
+                        events: [],
+                        serializationObject: a.serialize(),
+                        targetName: name,
+                        targetType: 'Node'
+                    });
                 });
-            });
+            }
 
             // Physics
             if (n instanceof AbstractMesh) {

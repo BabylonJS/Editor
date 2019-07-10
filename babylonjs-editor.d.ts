@@ -157,6 +157,10 @@ declare module 'babylonjs-editor/editor/editor' {
                 * Creates the editor camera
                 */
             createEditorCamera(type?: 'arc' | 'free' | any): Camera;
+            /**
+                * Resets the editor's state
+                */
+            resetEditorState(): Promise<void>;
     }
 }
 
@@ -231,6 +235,12 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * @param name the name of the texture to find
                 */
             static GetTextureByName(scene: Scene, name: string): BaseTexture;
+            /**
+                * Returns the first texture found which as the given unique Id.
+                * @param scene the scene containing the textures.
+                * @param uniqueId the id of the texture to find.
+                */
+            static GetTextureByUniqueId(scene: Scene, uniqueId: number): BaseTexture;
             /**
                 * Creates an open file dialog
                 * @param callback called once the user selects files
@@ -831,9 +841,6 @@ declare module 'babylonjs-editor/editor/gui/window' {
 
 declare module 'babylonjs-editor/editor/gui/code' {
     import { IDisposable, IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
-    export interface MonacoDisposable extends IDisposable {
-            [index: string]: any;
-    }
     export interface TypescriptDisposable extends IDisposable {
             [index: string]: any;
     }
@@ -843,15 +850,15 @@ declare module 'babylonjs-editor/editor/gui/code' {
             content: string;
     }
     export default class CodeEditor {
-            editor: MonacoDisposable;
+            editor: monaco.editor.ICodeEditor;
             onChange: (value: string) => void;
             static ExternalLibraries: string;
             static ExtraLibs: {
-                    lib: MonacoDisposable;
+                    lib: monaco.IDisposable;
                     caller: Window;
             }[];
-            static CustomLibs: IStringDictionary<MonacoDisposable>;
-            static Instances: MonacoDisposable[];
+            static CustomLibs: IStringDictionary<monaco.IDisposable>;
+            static Instances: monaco.editor.ICodeEditor[];
             static Libs: string[];
             /**
                 * Remove extra lib from the registered callers
@@ -923,8 +930,11 @@ declare module 'babylonjs-editor/editor/gui/form' {
             required?: boolean;
             options?: {
                     items?: string[];
+                    [index: string]: any;
             };
             html?: {
+                    span?: number;
+                    column?: number;
                     caption?: string;
             };
     }
@@ -971,6 +981,11 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * @param propName the property of the object
                 */
             add(target: any, propName: string, other?: string[]): dat.GUIController;
+            /**
+                * Adds a simple text controller to display a message.
+                * @param content the content to draw in the controller
+                */
+            addTextBox(content: string): dat.GUIController;
             /**
                 * Removes the dat element
                 */
@@ -1390,7 +1405,7 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
             /**
                 * Called on the user hides the extension (by changing tab, etc.)
                 */
-            onHide?(): Promise<void>;
+            onHide?(): Promise<void> | void;
             /**
                 * Called on the user shows the extension (by focising the tab, etc.)
                 */
@@ -1496,6 +1511,8 @@ declare module 'babylonjs-editor/editor/typings/project' {
                     mode: number;
                     color: number[];
             };
+            projectFormat?: 'babylon' | 'glb' | 'gltf';
+            exportEulerAngles?: boolean;
     }
     /**
      * Custom Materials (sky, gradient, water, etc.)
@@ -2513,6 +2530,10 @@ declare module 'babylonjs-editor/editor/components/inspector' {
                 * @param states the list of states for each tool
                 */
             setToolsStates(states: ToolsStates[]): void;
+            /**
+                * Notifies that the object is being modified and got notified
+                */
+            notifyObjectChanged(): void;
             /**
                 * When a tab changed
                 * @param target the target tab Id

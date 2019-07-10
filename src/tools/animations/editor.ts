@@ -1,6 +1,7 @@
 import {
     IAnimatable, Animation, Animatable, Scalar,
-    Color3, Tags, Scene, Vector2, Vector3
+    Color3, Tags, Scene, Vector2, Vector3, Vector4,
+    Mesh, IAnimationKey
 } from 'babylonjs';
 import * as Raphael from 'raphael';
 import Editor, {
@@ -13,10 +14,13 @@ import Editor, {
     EditorPlugin,
 
     Layout,
-    Toolbar
+    Toolbar,
+    Dialog,
+    Window
 } from 'babylonjs-editor';
 
 import PropertyBrowser from './property-browser';
+import Helpers from './helpers';
 
 export interface DragData {
     point: RaphaelElement;
@@ -26,11 +30,7 @@ export interface DragData {
     properties: string[];
     property: string;
     valueInterval: number;
-}
-
-export interface AnimationKey {
-    frame: number;
-    value: any;
+    middle: number;
 }
 
 export default class AnimationEditor extends EditorPlugin {
@@ -61,21 +61,30 @@ export default class AnimationEditor extends EditorPlugin {
     public animatable: IAnimatable = null;
     public animation: Animation = null;
     public animationManager: Animatable = null;
-    public key: AnimationKey = null;
+    public key: IAnimationKey = null;
     
     public data: DragData = null;
 
     public currentFrame: number = 0;
 
     // Protected members
-    protected mouseMoveHandler: (ev: MouseEvent) => void;
     protected addingKeys: boolean = false;
     protected removingKeys: boolean = false;
     protected isPlaying: boolean = false;
-
-    protected onObjectSelected = (node) => node && this.objectSelected(node);
-
     protected forcedObject: IAnimatable;
+
+    protected mouseMoveHandler: (ev: MouseEvent) => void;
+    protected onObjectSelected = (node) => node && this.objectSelected(node);
+    protected onKeyDown: (ev: KeyboardEvent) => void = null;
+    protected onKeyUp: (ev: KeyboardEvent) => void = null;
+
+    // Private members
+    private _positionHelperMesh: Mesh = null;
+    private _positionHelperTimeout: number = -1;
+
+    private _xLocked: boolean = false;
+    private _viewBox: Vector4 = new Vector4(0, 0, 0, 0); // width height x y
+    private _viewScale: number = 1.0;
 
     // Static members
     public static PaperOffset: number = 30;
@@ -128,11 +137,13 @@ export default class AnimationEditor extends EditorPlugin {
             { type: 'button', id: 'play', text: 'Play', img: 'icon-play-game', checked: false },
             { type: 'break' },
             { type: 'button', id: 'add', text: 'Add', img: 'icon-add', checked: false },
-            { type: 'button', id: 'add-key', text: 'Add Keys', img: 'icon-add', checked: false },
-            { type: 'button', id: 'remove-key', text: 'Remove Keys', img: 'icon-error', checked: false },
+            { type: 'button', id: 'remove-animation', text: 'Remove Animation', img: 'icon-error' },
             { type: 'break' },
             { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] },
-            { type: 'button', id: 'remove-animation', text: 'Remove Animation', img: 'icon-error' }
+            { type: 'break' },
+            { type: 'menu', id: 'tools', text: 'Tools', img: 'icon-edit', items: [
+                { type: 'button', id: 'tangents', img: 'icon-graph', text: 'Create Tangents...' }
+            ] }
         ];
         this.toolbar.right = 'No object selected';
         this.toolbar.onClick = (id) => this.onToolbarClick(id);
@@ -141,11 +152,18 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Create edit toolbar
         this.editToolbar = new Toolbar('AnimationEditorToolbarEdit');
+        this.editToolbar.items = [
+            { type: 'button', id: 'add-key', text: 'Add Keys', img: 'icon-add', checked: false },
+            { type: 'button', id: 'remove-key', text: 'Remove Keys', img: 'icon-error', checked: false },
+            { type: 'break' },
+            { type: 'button', id: 'add-key-current', text: 'Add Current Key', img: 'icon-add' }
+        ];
         this.editToolbar.right = `
             <div style="padding: 3px 10px;">
                 Value: <input size="10" id="ANIMATION-EDITOR-VALUE" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
                 Frame: <input size="10" id="ANIMATION-EDITOR-FRAME" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
             </div>`;
+        this.editToolbar.onClick = (id) => this.onEditorToolbarClick(id);
         this.editToolbar.build('ANIMATION-EDITOR-TOOLBAR-EDIT');
 
         // Create paper
@@ -153,6 +171,44 @@ export default class AnimationEditor extends EditorPlugin {
         this.paper.canvas.addEventListener('focus', () => {
             if (this.animation)
                 this.editor.inspector.setObject(this.animation);
+        });
+        document.addEventListener('keydown', this.onKeyDown = (ev: KeyboardEvent) => {
+            this._xLocked = ev.key === 'x';
+        });
+        document.addEventListener('keyup', this.onKeyUp = (ev: KeyboardEvent) => {
+            if (ev.key === 'x')
+                this._xLocked = false;
+        })
+        this.paper.canvas.addEventListener('wheel', (ev: WheelEvent) => {
+            const delta = ev.deltaY;
+
+            if (delta < 0) {
+                this._viewBox.x *= 0.95;
+                this._viewBox.y *= 0.95;
+            } else {
+                this._viewBox.x *= 1.05;
+                this._viewBox.y *= 1.05;
+            }
+
+            this._viewScale = this.paper.width / this._viewBox.x;
+            if (this._viewScale < 1) {
+                this._viewScale = 1;
+                this._viewBox.set(this.paper.width, this.paper.height, 0, 0);
+                this.paper.setViewBox(0, 0, this.paper.width, this.paper.height, true);
+
+                return;
+            }
+            
+            const moveX = (ev.offsetX - (ev.offsetX * this._viewScale));
+            const moveY = (ev.offsetY - (ev.offsetY * this._viewScale));
+
+            this._viewBox.z = 0 - moveX / this._viewScale;
+            this._viewBox.w = 0 - moveY / this._viewScale;
+
+            this.paper.setViewBox(this._viewBox.z, this._viewBox.w, this._viewBox.x, this._viewBox.y, true);
+
+            // Update points
+            this.points.forEach(p => p.transform(`S${1.0 / this._viewScale}`));
         });
 
         // Create background
@@ -246,12 +302,15 @@ export default class AnimationEditor extends EditorPlugin {
         super.close();
         
         this.editor.core.onSelectObject.removeCallback(this.onObjectSelected);
+        document.removeEventListener('keydown', this.onKeyDown);
+        document.removeEventListener('keyup', this.onKeyUp);
 
         this.paper.remove();
         this.layout.element.destroy();
         this.toolbar.element.destroy();
         this.editToolbar.element.destroy();
 
+        Helpers.DisposePositionLineMesh();
         UndoRedo.ClearScope(this.divElement.id);
 
         await super.close();
@@ -272,6 +331,19 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Resize
         this.onResize();
+
+        // Helpers
+        if (this._positionHelperMesh)
+            this._positionHelperMesh.setEnabled(true);
+    }
+
+    /**
+     * Called on the user hides the extension (by changing tab, etc.)
+     */
+    public onHide (): void {
+        // Helpers
+        if (this._positionHelperMesh)
+            this._positionHelperMesh.setEnabled(false);
     }
 
     /**
@@ -306,7 +378,7 @@ export default class AnimationEditor extends EditorPlugin {
      * On the user clicked on the toolbar
      * @param id the id of the element
      */
-    protected onToolbarClick(id: string): void {
+    protected async onToolbarClick(id: string): Promise<void> {
         const split = id.split(':');
         if (split.length > 1 && split[0] === 'animations') {
             this.onChangeAnimation(split[1]);
@@ -317,19 +389,6 @@ export default class AnimationEditor extends EditorPlugin {
         switch (id) {
             case 'play': this.playAnimation(); break;
             case 'add': this.addAnimation(); break;
-
-            case 'add-key':
-            case 'remove-key':
-                const active = this.toolbar.isChecked(id, true);
-                this.toolbar.setChecked('add-key', false);
-                this.toolbar.setChecked('remove-key', false);
-
-                this.toolbar.setChecked(id, active);
-
-                this.addingKeys = active && id === 'add-key';
-                this.removingKeys = active && id === 'remove-key';
-                break;
-
             case 'remove-animation':
                 if (this.animation) {
                     const index = this.animatable.animations.indexOf(this.animation);
@@ -352,6 +411,45 @@ export default class AnimationEditor extends EditorPlugin {
                     this.objectSelected(this.animatable);
                 }
                 break;
+
+            case 'tools:tangents':
+                if (!this.animation)
+                    return;
+                
+                if (this.animation.dataType !== Animation.ANIMATIONTYPE_VECTOR3)
+                    return Window.CreateAlert(`Tangents can be created only on animated 3D vectors.`, 'Informations');
+
+                const weight = parseFloat(await Dialog.CreateWithTextInput('Tangents Weight?')) || 0;
+                Helpers.ComputeTangents(this.animation, weight);
+                this.updateGraph(this.animation);
+                break;
+            default: break;
+        }
+    }
+
+    /**
+     * On the user clicked on the edit toolbar
+     * @param id the id of the element
+     */
+    protected onEditorToolbarClick (id: string): void {
+        // Switch id
+        switch (id) {
+            case 'add-key':
+            case 'remove-key':
+                const active = this.editToolbar.isChecked(id, true);
+                this.editToolbar.setChecked('add-key', false);
+                this.editToolbar.setChecked('remove-key', false);
+
+                this.editToolbar.setChecked(id, active);
+
+                this.addingKeys = active && id === 'add-key';
+                this.removingKeys = active && id === 'remove-key';
+                break;
+
+            case 'add-key-current':
+                this.addCurrentValueToCurrentFrame();
+                break;
+            
             default: break;
         }
     }
@@ -367,12 +465,33 @@ export default class AnimationEditor extends EditorPlugin {
         browser.onSelect = (id) => {
             // Property infos
             const infos = browser.getPropertyInfos(this.animatable, id);
+            let defaultValue = infos.defaultValue;
+
+            // Get effective property
+            const split = id.split('.');
+            let effectiveValue = <any> this.animatable;
+            split.forEach(s => effectiveValue = effectiveValue[s]);
+
+            const ctor = Tools.GetConstructorName(effectiveValue);
+            switch (ctor) {
+                case 'Number': defaultValue = effectiveValue; break;
+                case 'Vector2':
+                case 'Vector3': 
+                case 'Vector4':
+                case 'Color3':
+                case 'Color4':
+                case 'Quaternion':
+                    defaultValue = effectiveValue.clone();
+                    break;
+                default:
+                    break;
+            }
 
             // Create animation
             const anim = new Animation(id, id, 60, infos.type, Animation.ANIMATIONLOOPMODE_CYCLE, false);
             anim.setKeys([
-                { frame: 0, value: infos.defaultValue },
-                { frame: 60, value: infos.defaultValue.clone ? infos.defaultValue.clone() : infos.defaultValue }
+                { frame: 0, value: defaultValue },
+                { frame: 60, value: defaultValue }
             ]);
 
             const length = this.animatable.animations.push(anim);
@@ -453,12 +572,19 @@ export default class AnimationEditor extends EditorPlugin {
         this.frameInput.val('');
         this.valueInput.val('');
 
+        Helpers.DisposePositionLineMesh();
+
         if (!object)
             return;
 
         // Refresh right text
         this.toolbar.element.right = `Selected object: "${(object instanceof Scene ? 'Scene' : object['name'])}"`;
         this.toolbar.element.render();
+
+        // Reset viewbox
+        this._viewScale = 1;
+        this._viewBox.set(this.paper.width, this.paper.height, 0, 0);
+        this.paper.setViewBox(0, 0, this.paper.width, this.paper.height, true);
 
         // Check
         if (!object.animations)
@@ -504,6 +630,11 @@ export default class AnimationEditor extends EditorPlugin {
         this.key = null;
         this.data = null;
 
+        // Reset viewbox
+        this._viewScale = 1;
+        this._viewBox.set(this.paper.width, this.paper.height, 0, 0);
+        this.paper.setViewBox(0, 0, this.paper.width, this.paper.height, true);
+
         if (!this.animatable)
             return;
 
@@ -535,6 +666,9 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Update graph
         this.updateGraph(this.animation);
+
+        // Helpers
+        this._positionHelperMesh = Helpers.AddPositionLineMesh(this.editor.core.scene, this.animation);
     }
 
     /**
@@ -566,8 +700,13 @@ export default class AnimationEditor extends EditorPlugin {
         this.currentFrame = 0;
 
         // Return if no anim
-        if (!anim)
+        if (!anim) {
+            // Reset viewbox
+            this._viewScale = 1;
+            this._viewBox.set(this.paper.width, this.paper.height, 0, 0);
+            this.paper.setViewBox(0, 0, this.paper.width, this.paper.height, true);
             return;
+        }
 
         // Keys
         const keys = anim.getKeys();
@@ -687,21 +826,17 @@ export default class AnimationEditor extends EditorPlugin {
 
             // For each key
             keys.forEach((k, keyIndex) => {
-                let x = (k.frame * this.paper.width) / maxFrame;
-                let y = middle;
-
                 const value = (p === '') ? k.value : k.value[p];
+                const position = Helpers.ProjectToGraph(k.frame, maxFrame, this.paper.width, middle, value, valueInterval);
 
-                if (value !== 0 && maxFrame !== 0)
-                    y += ((value * middle) / (valueInterval * (value > 0 ? 1 : -1)) * (value > 0 ? -1 : 1)) / 2;
+                if (isNaN(position.x)) position.x = 0;
+                if (isNaN(position.y)) position.y = 0;
+                if (keyIndex === 0) position.x = 6;
+                if (keyIndex === keys.length - 1) position.x -= 6;
 
-                if (isNaN(x)) x = 0;
-                if (isNaN(y)) y = 0;
-                if (keyIndex === 0) x = 6;
-                if (keyIndex === keys.length - 1) x -= 6;
-
-                const point = this.paper.circle(x, y, 6);
+                const point = this.paper.circle(position.x, position.y, 6);
                 point.attr('fill', Raphael.rgb(color.r, color.g, color.b));
+                point.transform(`S${1.0 / this._viewScale}`);
                 point.attr('opacity', 0.3);
                 this.points.push(point);
                 this.onMovePoint({
@@ -711,12 +846,30 @@ export default class AnimationEditor extends EditorPlugin {
                     property: p,
                     properties: properties,
                     maxFrame: maxFrame,
-                    valueInterval: valueInterval
+                    valueInterval: valueInterval,
+                    middle: middle
                 });
 
-                path.push(keyIndex === 0 ? "M" : "L");
-                path.push(x.toString());
-                path.push(y.toString());
+                // Tangents?
+                const previousKey = keys[keyIndex - 1];
+                if (previousKey && previousKey.outTangent && k.inTangent) {
+                    const frameDiff = k.frame - previousKey.frame;
+                    const v1 = Vector3.Hermite(previousKey.value, Helpers.ScaleValue(previousKey.outTangent, frameDiff), k.value, Helpers.ScaleValue(k.inTangent, frameDiff), 0.33);
+                    const v2 = Vector3.Hermite(previousKey.value, Helpers.ScaleValue(previousKey.outTangent, frameDiff), k.value, Helpers.ScaleValue(k.inTangent, frameDiff), 0.66);
+
+                    const p1 = Helpers.ProjectToGraph(previousKey.frame + frameDiff * 0.33, maxFrame, this.paper.width, middle, v1[p], valueInterval);
+                    const p2 = Helpers.ProjectToGraph(previousKey.frame + frameDiff * 0.66, maxFrame, this.paper.width, middle, v2[p], valueInterval);
+
+                    path.push.apply(path, ['R', p1.x.toString(), p1.y.toString(), p2.x.toString(), p2.y.toString()]);
+                }
+
+                // Begin path?
+                if (keyIndex === 0)
+                    path.push("M");
+                
+                // End point
+                path.push(position.x.toString());
+                path.push(position.y.toString());
             });
 
             // Set line
@@ -725,6 +878,67 @@ export default class AnimationEditor extends EditorPlugin {
 
             this.lines.push(line);
         });
+
+        // Helpers
+        this._positionHelperMesh = Helpers.AddPositionLineMesh(this.editor.core.scene, this.animation);
+    }
+
+    /**
+     * Adds the current value to the current frame
+     */
+    protected addCurrentValueToCurrentFrame (): void {
+        // Keys
+        const keys = this.animation.getKeys();
+
+        // Key
+        let keyIndex = 0;
+        let key = {
+            frame: this.currentFrame,
+            value: null
+        };
+
+        // Add key
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i].frame > this.currentFrame) {
+                keyIndex = i;
+                keys.splice(i, 0, key);
+                break;
+            }
+        }
+
+        // Clone effective value
+        const effectiveValue = Helpers.GetEffectiveProperty<any>(this.animatable, this.animation);
+        const ctor = Tools.GetConstructorName(effectiveValue);
+
+        switch (ctor) {
+            case 'Number': key.value = effectiveValue; break;
+            case 'Vector2':
+            case 'Vector3': 
+            case 'Vector4':
+            case 'Color3':
+            case 'Color4':
+            case 'Quaternion':
+                key.value = effectiveValue.clone();
+                break;
+            default: return;
+        }
+
+        // Undo redo
+        const animation = this.animation;
+
+        UndoRedo.Push({
+            scope: this.divElement.id,
+            fn: type => {
+                if (type === 'from')
+                    animation.getKeys().splice(keyIndex, 1);
+                else
+                    animation.getKeys().splice(keyIndex, 0, key);
+
+                this.updateGraph(animation);
+            }
+        });
+
+        this.updateGraph(this.animation);
     }
 
     /**
@@ -786,29 +1000,39 @@ export default class AnimationEditor extends EditorPlugin {
         };
 
         const onMove = (dx, dy, x, y, ev) => {
-            lx = dx + ox;
-            ly = dy + oy;
-            data.point.transform(`t${lx},${ly}`);
+            lx = (dx + ox) / this._viewScale;
+            ly = (dy + oy) / this._viewScale;
+            data.point.transform(`t${this._xLocked ? 0 : lx},${ly}`);
 
             // Update line path
             const path: string[][] = data.line.attr('path');
-            const key = path[data.keyIndex];
+            let key = path[data.keyIndex];
 
-            key[1] = data.point.attr('cx') + lx;
-            key[2] = data.point.attr('cy') + ly;
+            if (key.length === 3) {
+                // Simple path
+                key[1] = data.point.attr('cx') + (this._xLocked ? 0 : lx);
+                key[2] = data.point.attr('cy') + ly;
+            } else {
+                // R path
+                key = path[data.keyIndex * 2];
+                key[5] = data.point.attr('cx') + (this._xLocked ? 0 : lx);
+                key[6] = data.point.attr('cy') + ly;
+            }
 
             data.line.attr('path', path);
 
             // Update current animation key (frame + value)
-            const frame = Scalar.Clamp((ev.offsetX * data.maxFrame) / this.paper.width, 0, data.maxFrame - 1);
+            const frame = Scalar.Clamp(((ev.offsetX + this._viewBox.z * this._viewScale) / this._viewScale * data.maxFrame) / this.paper.width, 0, data.maxFrame - 1);
 
             toValue = 0;
             if (ev.offsetY > this.paper.height / 2)
-                toValue = -((ev.offsetY - this.paper.height / 2) * data.valueInterval) / (this.paper.height / 2) * 2;
+                toValue = -(((ev.offsetY + this._viewBox.w * this._viewScale) / this._viewScale - this.paper.height / 2) * data.valueInterval) / (this.paper.height / 2) * 2;
             else
-                toValue = ((this.paper.height / 2 - ev.offsetY) * data.valueInterval) / (this.paper.height / 2) * 2;
+                toValue = ((this.paper.height / 2 - (ev.offsetY + this._viewBox.w * this._viewScale) / this._viewScale) * data.valueInterval) / (this.paper.height / 2) * 2;
 
-            this.key.frame = frame;
+            if (!this._xLocked)
+                this.key.frame = frame;
+            
             toFrame = frame;
 
             if (data.property === '')
@@ -821,9 +1045,15 @@ export default class AnimationEditor extends EditorPlugin {
             this.valueInput.val(data.property === '' ? toValue : this.key.value[data.property]);
 
             // Update value text
-            this.valueText.attr('x', ev.offsetX);
-            this.valueText.attr('y', ev.offsetY - 20);
+            this.valueText.attr('x', (ev.offsetX + this._viewBox.z * this._viewScale) / this._viewScale);
+            this.valueText.attr('y', (ev.offsetY - (20 * this._viewScale) + this._viewBox.w * this._viewScale) / this._viewScale);
             this.valueText.attr('text', toValue.toFixed(4));
+
+            // Update helper
+            clearTimeout(this._positionHelperTimeout);
+            this._positionHelperTimeout = setTimeout(() => {
+                this._positionHelperMesh = Helpers.AddPositionLineMesh(this.editor.core.scene, this.animation);
+            }, 5);
         };
 
         const onEnd = (ev) => {
@@ -835,21 +1065,22 @@ export default class AnimationEditor extends EditorPlugin {
             this.updateGraph(this.animation);
 
             // Undo / redo
-            const keys = this.animation.getKeys();
             const key = this.key;
             const animation = this.animation;
 
-            UndoRedo.Push({ // Frame
-                scope: this.divElement.id,
-                object: key,
-                property: 'frame',
-                from: fromFrame,
-                to: toFrame,
-                fn: (type) => {
-                    this.updateGraph(animation);
-                    this.frameInput.val(type === 'from' ? fromFrame : toFrame);
-                }
-            });
+            if (!this._xLocked) {
+                UndoRedo.Push({ // Frame
+                    scope: this.divElement.id,
+                    object: key,
+                    property: 'frame',
+                    from: fromFrame,
+                    to: toFrame,
+                    fn: (type) => {
+                        this.updateGraph(animation);
+                        this.frameInput.val(type === 'from' ? fromFrame : toFrame);
+                    }
+                });
+            }
 
             UndoRedo.Push({ // Value
                 scope: this.divElement.id,
@@ -878,18 +1109,30 @@ export default class AnimationEditor extends EditorPlugin {
         let ox = 0;
         let lx = 0;
 
-        const doAnimatables = (animatables: IAnimatable[], frame: number) => {
+        const doAnimatables = (animatables: (IAnimatable & { getAnimatables?: () => IAnimatable[] })[], frame: number) => {
             animatables.forEach(a => {
                 if (!a || a === this.animatable)
                     return;
                 
-                let animatable = this.editor.core.scene.getAnimatableByTarget(a);
-                if (!animatable)
-                    animatable = new Animatable(this.editor.core.scene, a, frame, maxFrame, false, 1.0);
-                
-                animatable.appendAnimations(a, a.animations);
-                animatable.stop();
-                animatable.goToFrame(frame);
+                if (a.animations) {
+                    let animatable = this.editor.core.scene.getAnimatableByTarget(a);
+                    if (!animatable)
+                        animatable = new Animatable(this.editor.core.scene, a, frame, maxFrame, false, 1.0);
+
+                    animatable.appendAnimations(a, a.animations);
+                    animatable.stop();
+                    animatable.goToFrame(frame);
+                } else if (a.getAnimatables) {
+                    a.getAnimatables().forEach(a => {
+                        let animatable = this.editor.core.scene.getAnimatableByTarget(a);
+                        if (!animatable)
+                            animatable = new Animatable(this.editor.core.scene, a, frame, maxFrame, false, 1.0);
+
+                        animatable.appendAnimations(a, a.animations);
+                        animatable.stop();
+                        animatable.goToFrame(frame);
+                    });
+                }
             });
         };
 
@@ -902,16 +1145,17 @@ export default class AnimationEditor extends EditorPlugin {
             this.cursorRect.transform(`t${lx},0`);
             this.cursorLine.transform(`t${lx},0`);
 
-            const frame = Scalar.Clamp(((lx + baseX) * maxFrame) / this.paper.width, 0, maxFrame - 1);
+            this.currentFrame = Scalar.Clamp(((lx + baseX) * maxFrame) / this.paper.width, 0, maxFrame - 1);
 
             this.animationManager.stop();
-            this.animationManager.goToFrame(frame);
+            this.animationManager.goToFrame(this.currentFrame);
 
-            doAnimatables(this.editor.core.scene.meshes, frame);
-            doAnimatables(this.editor.core.scene.cameras, frame);
-            doAnimatables(this.editor.core.scene.lights, frame);
-            doAnimatables(<any> this.editor.core.scene.particleSystems, frame);
-            doAnimatables([SceneManager.StandardRenderingPipeline], frame);
+            doAnimatables(this.editor.core.scene.meshes, this.currentFrame);
+            doAnimatables(this.editor.core.scene.meshes.map(m => m.skeleton), this.currentFrame);
+            doAnimatables(this.editor.core.scene.cameras, this.currentFrame);
+            doAnimatables(this.editor.core.scene.lights, this.currentFrame);
+            doAnimatables(<any> this.editor.core.scene.particleSystems, this.currentFrame);
+            doAnimatables([SceneManager.StandardRenderingPipeline], this.currentFrame);
         };
 
         const onEnd = (ev: MouseEvent) => {
@@ -1032,7 +1276,7 @@ export default class AnimationEditor extends EditorPlugin {
 
                         this.updateGraph(animation);
                     }
-                })
+                });
 
                 this.updateGraph(this.animation);
             });

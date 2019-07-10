@@ -38,8 +38,10 @@ export default class SceneExporter {
         this._ClearMetadatas(serializedScene.meshes);
         this._ClearMetadatas(serializedScene.lights);
         this._ClearMetadatas(serializedScene.cameras);
+        this._ClearMetadatas(serializedScene.transformNodes);
         this._ClearMetadatas(serializedScene.particleSystems);
         this._ClearMetadatas(serializedScene.materials);
+        this._ClearMetadatas(serializedScene.multiMaterials);
         this._ClearMetadatas(serializedScene.skeletons);
         this._ClearMetadatas(serializedScene.sounds);
         this._ClearMetadatas([serializedScene]);
@@ -81,19 +83,36 @@ export default class SceneExporter {
         
         // For each object, replace by custom metadata if exists
         objects.forEach(m => {
-            if (m.metadata) {
-                // Clear original saved object
-                delete m.metadata.original;
+            if (!m)
+                return;
+            
+            this._ClearMetadata(m);
 
-                if (m.metadata.baseConfiguration)
-                    m.pickable = m.metadata.baseConfiguration.isPickable;
-                
-                if (m.metadata.customMetadatas)
-                    m.metadata = m.metadata.customMetadatas;
-            }
-            else {
-                delete m.metadata;
+            // Second level (typically for textures)
+            for (const k in m) {
+                const v = m[k];
+                if (!v)
+                    continue;
+
+                this._ClearMetadata(v);
             }
         });
+    }
+
+    // Clears the metadata object
+    private static _ClearMetadata (obj: any): void {
+        if (obj.metadata) {
+            // Clear original saved object
+            delete obj.metadata.original;
+
+            if (obj.metadata.baseConfiguration)
+                obj.pickable = obj.metadata.baseConfiguration.isPickable;
+            
+            if (obj.metadata.customMetadatas)
+                obj.metadata = obj.metadata.customMetadatas;
+        }
+        else {
+            delete obj.metadata;
+        }
     }
 }

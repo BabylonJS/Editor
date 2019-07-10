@@ -1,10 +1,10 @@
 import {
     Engine, Scene,
     FreeCamera, Camera,
-    Vector3,
+    ParticleSystem,
+    Vector3, Tags,
     FilesInput, FilesInputStore,
-    ArcRotateCamera,
-    Tags
+    ArcRotateCamera
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
@@ -82,6 +82,7 @@ export default class Editor implements IUpdatable {
     // Private members
     private _lastWaitingItems: number = 0;
     private _canvasFocused: boolean = true;
+    private _resettingState: boolean = false;
 
     // Static members
     public static LayoutVersion: string = '2.2.0';
@@ -739,7 +740,11 @@ export default class Editor implements IUpdatable {
                 if (!node)
                     return;
                 
-                ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), node.globalPosition || node.getAbsolutePosition(), this.camera);
+                let globalPosition = node.globalPosition || (node.getAbsolutePosition && node.getAbsolutePosition());
+                if (!globalPosition && node instanceof ParticleSystem)
+                    globalPosition = (node.emitter instanceof Vector3 ? node.emitter.clone() : node.emitter.getAbsolutePosition());
+                
+                ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), globalPosition, this.camera);
             }
         });
 
@@ -769,7 +774,7 @@ export default class Editor implements IUpdatable {
         window.addEventListener('beforeunload', () => {
             CodeProjectEditorFactory.CloseAll();
 
-            if (Tools.IsStandalone) {
+            if (Tools.IsStandalone && !this._resettingState) {
                 const state = JSON.stringify(this.resizableLayout.element.toConfig());
                 localStorage.setItem('babylonjs-editor-layout-state', state);
 
@@ -778,6 +783,23 @@ export default class Editor implements IUpdatable {
                 localStorage.setItem('babylonjs-editor-layout-version', Editor.LayoutVersion);
             }
         });
+    }
+
+    /**
+     * Resets the editor's state
+     */
+    public async resetEditorState (): Promise<void> {
+        const reset = await Dialog.Create(`Reset the Editor's state`, `<h3>Resetting the Editor's state requires to reload.<br/>Please save your work before.</h3>Are you sure to reset?`);
+        if (reset !== 'Yes')
+            return;
+
+        localStorage.removeItem('babylonjs-editor-layout-state');
+        localStorage.removeItem('babylonjs-editor-plugins');
+        localStorage.removeItem('babylonjs-editor-theme-name');
+        localStorage.removeItem('babylonjs-editor-layout-version');
+
+        this._resettingState = true;
+        window.location.reload();
     }
 
     // Runs the given plugin URL

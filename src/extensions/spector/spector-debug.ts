@@ -26,7 +26,8 @@ export default class SpectorDebugExtension extends Extension<{ }> {
      * On apply the extension
      */
     public onApply (): void {
-        this.spector.displayUI();
+        if (parent !== opener)
+            this.spector.displayUI();
     }
 
     /**

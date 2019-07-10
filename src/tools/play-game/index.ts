@@ -1,5 +1,5 @@
-import { Scene, Observer, Tools as BabylonTools } from 'babylonjs';
-import Editor, { EditorPlugin, Toolbar, Layout } from 'babylonjs-editor';
+import { Scene, Tools as BabylonTools } from 'babylonjs';
+import Editor, { EditorPlugin, Toolbar, Layout, Tools } from 'babylonjs-editor';
 
 import { CCapture } from 'ccapture.js';
 
@@ -45,7 +45,7 @@ export default class PlayGame extends EditorPlugin {
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="PLAY-GAME-TOOLBAR" style="width: 100%; height: 100%"></div>' },
-            { type: 'main', resizable: false, content: '<iframe id="PLAY-GAME-IFRAME" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%;"></iframe>' },
+            { type: 'main', resizable: false, content: '<iframe id="PLAY-GAME-IFRAME" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%; position: absolute; top: 0;"></iframe>' },
             { type: 'left', resizable: false, size: 0, content: `<video id="PLAY-GAME-VIDEO" controls></video>` }
         ];
         this.layout.build(this.divElement.id);
@@ -56,7 +56,8 @@ export default class PlayGame extends EditorPlugin {
             { type: 'button', id: 'reload', img: 'w2ui-icon-reload', text: 'Reload' },
             { type: 'break' },
             { type: 'button', id: 'record', img: 'icon-record', text: 'Record' },
-            { type: 'button', id: 'download-record', img: 'icon-export', text: 'Save Record' }
+            { type: 'button', id: 'download-record', img: 'icon-export', text: 'Save Record' },
+            { type: 'button', id: 'spectorjs', img: 'icon-camera', text: 'Capture Frame...' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PLAY-GAME-TOOLBAR');
@@ -116,6 +117,29 @@ export default class PlayGame extends EditorPlugin {
                 break;
             case 'download-record':
                 BabylonTools.Download(this.captureBlob, 'capture.webm');
+                break;
+
+            // Spectorjs
+            case 'spectorjs':
+                // Lock
+                this.layout.lockPanel('main', 'Capturing...', true);
+
+                // Capture
+                setTimeout(() => {
+                    this.iframe[0].contentWindow['captureSpector']((capture, logger) => {
+                        // Create popup
+                        const popup = Tools.OpenPopup('./spectorjs.html', 'SpectorJS', 1280, 800);
+                        popup.addEventListener('load', () => {
+                            popup['displayView'](capture, logger);
+                        });
+
+                        // Unlock
+                        this.layout.unlockPanel('main');
+                    });
+
+                    // Re-focus to activate spector capture
+                    this.iframe.focus();
+                }, 500);
                 break;
             default: break;
         }

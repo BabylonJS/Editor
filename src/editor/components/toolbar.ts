@@ -18,6 +18,7 @@ import SceneSerializer from '../scene/scene-serializer';
 
 import ProjectImporter from '../project/project-importer';
 import ProjectExporter from '../project/project-exporter';
+import ProjectSettings from '../project/project-settings';
 import CodeProjectEditorFactory from '../project/project-code-editor';
 
 export default class EditorToolbar {
@@ -34,7 +35,7 @@ export default class EditorToolbar {
         this.main = new Toolbar('MainToolBar');
         this.main.items = [
             {
-                type: 'menu', id: 'project', text: 'Project', img: 'icon-folder', items: [
+                type: 'menu', id: 'project', text: 'Project', img: 'icon-project', items: [
                     { id: 'import-project', img: 'icon-export', text: 'Import Project...' },
                     { type: 'break' },
                     { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
@@ -43,13 +44,13 @@ export default class EditorToolbar {
                     { id: 'export-project', img: 'icon-files', text: 'Save Project... <kbd>CTRL + S</kbd>' },
                     { id: 'export-project-as', img: 'icon-files', text: 'Save Project As... <kbd>ALT + CTRL + S</kbd>' },
                     { type: 'break' },
+                    { id: 'project-settings', img: 'icon-scenario', text: 'Project Settings...' },
+                    { type: 'break' },
                     { id: 'export-template', img: 'icon-files-project', text: 'Export Project Template...' }
                 ]
             },
             {
                 type: 'menu', id: 'scene', text: 'Scene', img: 'icon-scene', items: [
-                    { id: 'import-meshes-from', img: 'icon-add', text: 'Import Meshes From...' },
-                    { type: 'break' },
                     { id: 'download-scene', img: 'icon-export', text: 'Save Scene File...' },
                     { id: 'serialize-scene', img: 'icon-export', text: 'Save Scene File As...' },
                     { type: 'break' },
@@ -68,7 +69,9 @@ export default class EditorToolbar {
                     { id: 'restore-removed-object', img: 'icon-recycle', text: 'Restore Removed Object...' },
                     { type: 'break' },
                     { id: 'set-theme-light', img: 'icon-helpers', text: 'Light Theme' },
-                    { id: 'set-theme-dark', img: 'icon-helpers', text: 'Dark Theme' }
+                    { id: 'set-theme-dark', img: 'icon-helpers', text: 'Dark Theme' },
+                    { type: 'break' },
+                    { id: 'reset-editor-state', img: 'icon-recycle', text: `Reset Editor's state` }
                 ]
             },
             { type: 'break' },
@@ -86,7 +89,7 @@ export default class EditorToolbar {
                     { id: 'code-editor', img: 'icon-behavior-editor', text: 'Code Editor...' },
                     { id: 'graph-editor', img: 'icon-graph', text: 'Graph Editor...' },
                     { type: 'break' },
-                    { id: 'material-editor', img: 'icon-shaders', text: 'Material Editor...' },
+                    // { id: 'material-editor', img: 'icon-shaders', text: 'Material Editor...' },
                     { id: 'post-process-editor', img: 'icon-shaders', text: 'Post-Process Editor...' },
                     { id: 'particles-creator', img: 'icon-particles', text: 'Particles Creator' },
                     { type: 'break' },
@@ -105,7 +108,7 @@ export default class EditorToolbar {
                     { id: 'particle-system', img: 'icon-particles', text: 'Particle System' },
                     { id: 'particle-system-animated', img: 'icon-particles', text: 'Animated Particle System' },
                     { type: 'break;' },
-                    { id: 'sky', img: 'icon-shaders', text: 'Sky Effect' },
+                    { id: 'sky', img: 'icon-sky', text: 'Sky Effect' },
                     { id: 'water', img: 'icon-water', text: 'Water Effect' },
                     { type: 'break' },
                     { id: 'dummy-node', img: 'icon-clone', text: 'Dummy' },
@@ -138,7 +141,7 @@ export default class EditorToolbar {
         // Build toolbar
         this.tools = new Toolbar('ToolsToolBar');
         this.tools.items = [
-            { type: 'button', id: 'test', text: 'Play', img: 'icon-play-game-windowed' },
+            { type: 'button', id: 'test', text: 'Play', img: 'icon-play-game' },
             { type: 'button', id: 'test-debug', text: 'Play And Debug...', img: 'icon-play-game-windowed' }
         ];
         this.tools.onClick = target => this.onToolsClick(target);
@@ -198,15 +201,15 @@ export default class EditorToolbar {
                 await ProjectExporter.ExportProject(this.editor, true);
                 break;
 
+            case 'project:project-settings':
+                ProjectSettings.ShowDialog(this.editor);
+                break;
+
             case 'project:export-template':
                 await ProjectExporter.ExportTemplate(this.editor, false);
                 break;
 
             // Scene
-            case 'scene:import-meshes-from':
-                SceneImporter.ImportMeshesFromFile(this.editor);
-                break;
-            
             case 'scene:download-scene':
                 SceneExporter.DownloadBabylonFile(this.editor);
                 break;
@@ -243,6 +246,10 @@ export default class EditorToolbar {
                 break;
             case 'edit:set-theme-dark':
                 ThemeSwitcher.ThemeName = 'Dark';
+                break;
+
+            case 'edit:reset-editor-state':
+                await this.editor.resetEditorState();
                 break;
 
             // View

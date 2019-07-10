@@ -43,7 +43,8 @@ export default class EditorEditPanel {
                     await this.showPlugin(this.editor.plugins[first]);
                 else {
                     const tabsCount = this.editor.resizableLayout.getTabsCount('edit-panel');
-                    this.editor.resizableLayout.setPanelSize('edit-panel', tabsCount === 0 ? 0 : 15);
+                    if (!tabsCount)
+                        this.editor.resizableLayout.setPanelSize('edit-panel', 0);
                 }
             },
             onClick: () => {

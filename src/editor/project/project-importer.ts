@@ -7,6 +7,8 @@ import {
 
 import Editor from '../editor';
 
+import ProjectSettings from './project-settings';
+
 import Tools from '../tools/tools';
 import Request from '../tools/request';
 import { ProjectRoot } from '../typings/project';
@@ -56,6 +58,9 @@ export default class ProjectImporter {
             scene.fogColor = Color3.FromArray(project.globalConfiguration.fog.color);
             scene.fogMode = project.globalConfiguration.fog.mode;
         }
+
+        ProjectSettings.ProjectExportFormat = project.globalConfiguration.projectFormat || 'babylon';
+        ProjectSettings.ExportEulerAngles = project.globalConfiguration.exportEulerAngles || false;
 
         // Physics
         if (!scene.isPhysicsEnabled())
@@ -241,18 +246,27 @@ export default class ProjectImporter {
             // In case of a clone
             if (t.newInstance) {
                 // Already created by materials?
-                const existing = Tools.GetTextureByName(scene, t.serializedValues.name);
-                if (existing)
+                const existing = Tools.GetTextureByUniqueId(scene, t.serializedValues.uniqueId);
+                if (existing) {
+                    // Url
+                    if (t.serializedValues.url)
+                        existing['url'] = t.serializedValues.url;
+                    
                     return;
+                }
                 
                 const texture = Texture.Parse(t.serializedValues, scene, 'file:');
                 Tags.AddTagsTo(texture, 'added');
             }
 
-            const existing = Tools.GetTextureByName(scene, t.serializedValues.name);
+            const existing = Tools.GetTextureByUniqueId(scene, t.serializedValues.uniqueId);
             const texture = existing ? SerializationHelper.Parse(() => existing, t.serializedValues, scene, 'file:') : Texture.Parse(t.serializedValues, scene, 'file:');
 
             Tags.AddTagsTo(texture, existing ? 'modified' : 'added');
+
+            // Url
+            if (t.serializedValues.url)
+                texture['url'] = t.serializedValues.url;
         });
 
         // Shadow Generators

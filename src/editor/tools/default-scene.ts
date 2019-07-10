@@ -81,7 +81,7 @@ export default class DefaultScene {
         // Event
         editor.core.onSceneLoaded.addOnce(d => {
             // GUI
-            const gui = AdvancedDynamicTexture.CreateFullscreenUI('ui');
+            const gui = AdvancedDynamicTexture.CreateFullscreenUI('ui', true, editor.core.scene);
             gui.layer.layerMask = 2;
             editor.core.uiTextures.push(gui);
 

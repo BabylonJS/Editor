@@ -292,7 +292,8 @@ export default class EditorAssets {
 
         // Update VSCode extension as it is designed to edit
         // assets from the editor project
-        VSCodeSocket.Refresh();
+        // TODO: uncomment
+        // VSCodeSocket.Refresh();
     }
 
     /**

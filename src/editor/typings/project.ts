@@ -60,7 +60,9 @@ export interface GlobalConfiguration {
         density: number;
         mode: number;
         color: number[];
-    }
+    },
+    projectFormat?: 'babylon' | 'glb' | 'gltf';
+    exportEulerAngles?: boolean;
 }
 
 /**

@@ -14,6 +14,9 @@ export class AbstractPointer extends LiteGraphNode {
 
     /**
      * Constructor
+     * @param title the title of the node.
+     * @param pointerEventType the pointer event type to check in in node pointer observable.
+     * @param resetState if the state should be reset.
      */
     constructor (title: string, pointerEventType: number, resetState: boolean) {
         super();
@@ -73,7 +76,7 @@ export class PointerOver extends AbstractPointer {
 
 export class PointerDown extends AbstractPointer {
     // Static members
-    public static Desc = 'Triggers and action on the pointer is down on the mesh (only meshes are supported)';
+    public static Desc = 'Triggers an action on the pointer is down on the mesh (only meshes are supported)';
     public static Title = 'On Pointer Down';
 
     /**
@@ -86,7 +89,7 @@ export class PointerDown extends AbstractPointer {
 
 export class PointerOut extends AbstractPointer {
     // Static members
-    public static Desc = 'Triggers and action on the pointer is out on the mesh (only meshes are supported)';
+    public static Desc = 'Triggers an action on the pointer is out on the mesh (only meshes are supported)';
     public static Title = 'On Pointer Out';
 
     // Private members

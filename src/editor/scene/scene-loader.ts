@@ -15,6 +15,8 @@ import CodeProjectEditorFactory from '../project/project-code-editor';
 import { ProjectRoot } from '../typings/project';
 import ProjectImporter from '../project/project-importer';
 import GLTFTools from '../tools/gltf-tools';
+import ObjTools from '../tools/obj-tools';
+
 import VSCodeSocket from '../vscode/vscode-socket';
 
 export default class SceneLoader {
@@ -244,6 +246,12 @@ export default class SceneLoader {
 
         // Gltf or glb?
         await GLTFTools.ConfigureFromScene(editor, sceneFile);
+        // Obj?
+        ObjTools.ConfigureFromScene(editor, sceneFile);
+
+        // Physics
+        if (scene.getPhysicsEngine())
+            scene.getPhysicsEngine().setTimeStep(Tools.Epsilon);
 
         // Graph
         editor.graph.clear();
@@ -272,7 +280,8 @@ export default class SceneLoader {
         editor.core.onSelectObject.notifyObservers(editor.core.scene);
 
         // Refresh vscode
-        VSCodeSocket.Refresh();
+        // TODO: uncomment this line
+        // VSCodeSocket.Refresh();
 
         // Clear
         editor.filesInput['_sceneFileToLoad'] = null;

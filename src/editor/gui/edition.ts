@@ -12,6 +12,8 @@ import TexturePicker from '../components/texture-picker';
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
 
+import * as DatGuiExtensions from './gui-extensions/dat-gui';
+
 export default class Edition {
     // Public member
     public element: dat.GUI;
@@ -19,8 +21,9 @@ export default class Edition {
     /**
      * Constructor
      */
-    constructor()
-    { }
+    constructor() {
+        DatGuiExtensions.init();
+    }
 
     /**
      * Adds a folder
@@ -37,6 +40,14 @@ export default class Edition {
      */
     public add (target: any, propName: string, other?: string[]): dat.GUIController {
         return this.element.add(target, propName, other);
+    }
+
+    /**
+     * Adds a simple text controller to display a message.
+     * @param content the content to draw in the controller
+     */
+    public addTextBox (content: string): dat.GUIController {
+        return this.element.addTextBox(content);
     }
 
     /**
@@ -233,11 +244,11 @@ export default class Edition {
             if (!isCube && onlyCubes)
                 return;
 
-            textures.push(t.name);
+            textures.push(t['url'] || t.name);
         });
 
         const target = {
-            texture: object[property] ? object[property].name : 'None',
+            texture: object[property] ? (object[property].url || object[property].name) : 'None',
             browse: (async () => {
                 const from = object[property];
                 const to = await TexturePicker.Show(scene, object[property], allowCubes, onlyCubes);
@@ -247,16 +258,19 @@ export default class Edition {
 
                 // Update
                 if (to)
-                    target.texture = to.name;
+                    target.texture = (to['url'] || to.name);
 
                 editor.inspector.updateDisplay();
+
+                // Notify
+                editor.inspector.notifyObjectChanged();
             })
         };
 
         const controller = parent.add(target, 'texture', textures);
         controller.onFinishChange(r => {
             const currentTexture = object[property];
-            const texture = scene.textures.find(t => t.name === r);
+            const texture = scene.textures.find(t => t['url'] === r || t.name === r);
             object[property] = texture;
 
             callback && callback(texture);
@@ -269,6 +283,9 @@ export default class Edition {
                 to: texture,
                 property: property
             });
+
+            // Notify
+            editor.inspector.notifyObjectChanged();
         });
 
         parent.add(target, 'browse').name('Browse Texture...');

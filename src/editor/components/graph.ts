@@ -306,6 +306,10 @@ export default class EditorGraph {
             // Hide prefabs, keep only masters
             if (Tags.MatchesQuery(n, 'prefab'))
                 return;
+
+            // Should be hidden?
+            if (Tags.MatchesQuery(n, 'graph-hidden'))
+                return;
             
             // Create a random ID if not defined
             if (!n.id || this.tree.get(n.id)) {
@@ -638,6 +642,7 @@ export default class EditorGraph {
                         node: n,
                         array: array,
                         instancedMeshIndex: n instanceof InstancedMesh ? n.sourceMesh.instances.indexOf(n) : null,
+                        environmentHelper: SceneManager.EnvironmentHelper && [<Node> SceneManager.EnvironmentHelper.rootMesh].concat(SceneManager.EnvironmentHelper.rootMesh.getDescendants()).find(d => d === n) && SceneManager.EnvironmentHelper,
                         sounds: sounds.map(s => ({
                             soundTrackId: s.soundTrackId,
                             isPlaying: s.isPlaying,
@@ -675,6 +680,10 @@ export default class EditorGraph {
                             // Instanced mesh
                             if (d.instancedMeshIndex !== null)
                                 (<InstancedMesh> d.node).sourceMesh.instances.splice(d.instancedMeshIndex, 0, d.node);
+
+                            // Environment helper
+                            if (d.environmentHelper)
+                                SceneManager.EnvironmentHelper = d.environmentHelper;
                             
                             // Push
                             d.array.push(d.node);
@@ -724,7 +733,11 @@ export default class EditorGraph {
                             // Instanced mesh
                             if (d.instancedMeshIndex !== null)
                                 (<InstancedMesh> d.node).sourceMesh.instances.splice(d.instancedMeshIndex, 1);
-                            
+
+                            // Environment helper
+                            if (d.environmentHelper)
+                                SceneManager.EnvironmentHelper = null;
+
                             // Splice
                             d.array.splice(d.array.indexOf(d.node), 1);
                             d.particleSystems.forEach(p => {

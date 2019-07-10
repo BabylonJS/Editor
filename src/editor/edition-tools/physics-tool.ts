@@ -1,4 +1,4 @@
-import { FreeCamera, PhysicsImpostor, AbstractMesh } from 'babylonjs';
+import { FreeCamera, PhysicsImpostor, AbstractMesh, Tags } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -43,57 +43,83 @@ export default class PhysicsTool extends AbstractEditionTool<AbstractMesh | Free
             this.tool.addVector(collisions, 'Ellipsoid', node.ellipsoid).open();
 
         // Physics
-        if (node instanceof AbstractMesh && node.getScene().isPhysicsEnabled()) {
-            const physics = this.tool.addFolder('Physics');
-            physics.open();
+        if (node instanceof AbstractMesh && node.getScene().isPhysicsEnabled())
+            this._addPhysicsOptions(node);
+    }
 
-            const impostors: string[] = [
-                'NoImpostor',
-                'SphereImpostor',
-                'BoxImpostor',
-                'PlaneImpostor',
-                'MeshImpostor',
-                'CylinderImpostor',
-                'HeightmapImpostor'
-            ];
+    // Adds the physics options
+    private _addPhysicsOptions (node: AbstractMesh): void {
+        const physics = this.tool.addFolder('Physics');
+        physics.open();
 
-            const impostor = node.getPhysicsImpostor();
-            if (!impostor)
-                this._currentImpostor = 'NoImpostor';
-            else {
-                this._currentImpostor = 'NoImpostor';
-                for (const i in PhysicsImpostor) {
-                    if (i.indexOf('Impostor') !== -1 && PhysicsImpostor[i] === impostor.type) {
-                        this._currentImpostor = i;
-                        break;
-                    }
-                }
+        // Check parent
+        let parent = node.parent;
+        while (parent) {
+            if (parent instanceof AbstractMesh && (!parent.physicsImpostor || !parent.physicsImpostor.physicsBody)) {
+                physics.addTextBox('Waiting for the parent(s) to have a physics impostor.');
+                return;
             }
 
-            physics.add(this, '_currentImpostor', impostors).name('Impostor').onFinishChange(r => {
-                if (r === 'NoImpostor') {
-                    this._lastMass = null;
-                    this._lastFriction = null;
-                    this._lastRestitution = null;
-                } else if (node.physicsImpostor) {
-                    this._lastMass = node.physicsImpostor.mass;
-                    this._lastFriction = node.physicsImpostor.friction;
-                    this._lastRestitution = node.physicsImpostor.restitution;
-                }
+            parent = parent.parent;
+        }
 
-                if (node.physicsImpostor)
-                    node.physicsImpostor.dispose();
-                
-                node.physicsImpostor = new PhysicsImpostor(node, PhysicsImpostor[r], { mass: 0 });
+        // Impostor
+        const impostors: string[] = [
+            'NoImpostor',
+            'SphereImpostor',
+            'BoxImpostor',
+            'PlaneImpostor',
+            'MeshImpostor',
+            'CylinderImpostor',
+            'HeightmapImpostor'
+        ];
+
+        const impostor = node.getPhysicsImpostor();
+        if (!impostor)
+            this._currentImpostor = 'NoImpostor';
+        else {
+            this._currentImpostor = 'NoImpostor';
+            for (const i in PhysicsImpostor) {
+                if (i.indexOf('Impostor') !== -1 && PhysicsImpostor[i] === impostor.type) {
+                    this._currentImpostor = i;
+                    break;
+                }
+            }
+        }
+
+        physics.add(this, '_currentImpostor', impostors).name('Impostor').onFinishChange(r => {
+            if (r === 'NoImpostor') {
+                this._lastMass = null;
+                this._lastFriction = null;
+                this._lastRestitution = null;
+            } else if (node.physicsImpostor && node.physicsImpostor.physicsBody) {
+                this._lastMass = node.physicsImpostor.mass;
+                this._lastFriction = node.physicsImpostor.friction;
+                this._lastRestitution = node.physicsImpostor.restitution;
+            }
+
+            if (node.physicsImpostor)
+                node.physicsImpostor.dispose();
+            
+            node.physicsImpostor = new PhysicsImpostor(node, PhysicsImpostor[r], { mass: 0 });
+            if (node.physicsImpostor.physicsBody) {
                 node.physicsImpostor.mass = this._lastMass || node.physicsImpostor.mass;
                 node.physicsImpostor.friction = this._lastFriction || node.physicsImpostor.friction;
                 node.physicsImpostor.restitution = this._lastRestitution || node.physicsImpostor.restitution;
+            }
 
-                this.editor.core.scene.getPhysicsEngine().setTimeStep(Tools.Epsilon);
-                this.update(node);
-            });
+            Tags.AddTagsTo(node.physicsImpostor, 'added');
 
-            if (impostor && impostor.type !== PhysicsImpostor.NoImpostor) {
+            this.editor.core.scene.getPhysicsEngine().setTimeStep(Tools.Epsilon);
+            this.update(node);
+        });
+
+        if (impostor && impostor.type !== PhysicsImpostor.NoImpostor) {
+            if (!impostor.physicsBody) {
+                // Waits for the parent
+                physics.addTextBox('Waiting for the parent(s) to have a physics body.');
+            }
+            else {
                 physics.add(impostor, 'mass').step(0.01).name('Mass');
                 physics.add(impostor, 'friction').step(0.01).name('Friction');
                 physics.add(impostor, 'restitution').step(0.01).name('Restitution');

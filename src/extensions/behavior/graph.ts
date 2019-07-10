@@ -15,11 +15,14 @@ import { RenderLoop, RenderStart } from './graph-nodes/render/engine';
 import { GetProperty, SetProperty } from './graph-nodes/properties/property';
 import { Condition } from './graph-nodes/logic/condition';
 import { PointerOver, PointerDown, PointerOut } from './graph-nodes/event/pointer';
+import { KeyboardDown, KeyboardUp } from './graph-nodes/event/keyboard';
 import { SetTimeout, ClearTimeout } from './graph-nodes/event/timeout';
 import { PlayAnimations, StopAnimations } from './graph-nodes/action/animation';
 import { Number, String, Boolean } from './graph-nodes/basic/const';
 import { Color } from './graph-nodes/basic/color';
 import { Time } from './graph-nodes/basic/time';
+
+import { GetDirection, LookAt } from './graph-nodes/functions/mesh';
 
 import { LiteGraphNode } from './graph-nodes/typings';
 
@@ -337,7 +340,13 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
             PointerOver.Register('event/pointerover', PointerOver);
             PointerDown.Register('event/pointerdown', PointerDown);
             PointerOut.Register('event/pointerout', PointerOut);
+
+            GetDirection.Register('node/getdirection', GetDirection);
+            LookAt.Register('node/lookat', LookAt);
         }
+
+        KeyboardDown.Register('event/keyboarddown', KeyboardDown);
+        KeyboardUp.Register('event/keyboardup', KeyboardUp);
 
         SetTimeout.Register('event/settimeout', SetTimeout);
         ClearTimeout.Register('event/cleartimeout', ClearTimeout);

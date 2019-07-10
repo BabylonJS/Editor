@@ -37,6 +37,7 @@
         var renderScene = true;
         var effectiveScene = null;
         var gotScene = null;
+        var captureSpector = null;
 
         var capturer = new CCapture({ format: 'webm', framerate: 60, display: true });
 
@@ -55,6 +56,7 @@
                 "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.min.js",
                 "babylonjs-procedural-textures": "./node_modules/babylonjs-procedural-textures/babylonjs.proceduralTextures.js",
                 "babylonjs-post-process": "./node_modules/babylonjs-post-process/babylonjs.postProcess.js",
+                "babylonjs-loaders": "./node_modules/babylonjs-loaders/babylonjs.loaders.js",
                 "cannon": "./node_modules/cannon/build/cannon.min.js",
                 "spectorjs": "./node_modules/spectorjs/dist/spector.bundle.js",
                 "earcut": "./node_modules/earcut/dist/earcut.min.js",
@@ -98,6 +100,9 @@
 
             Promise.all(promises).then(function () {
                 // Import scene
+                if (!sceneFile || !BABYLON.FilesInputStore.FilesToLoad[sceneFile.name.toLowerCase()])
+                    return;
+                
                 BABYLON.SceneLoader.Load('file:', sceneFile.name, engine, function (scene) {
                     effectiveScene = scene;
                     
@@ -129,6 +134,15 @@
                                         });
                                     }
                                 });
+
+                                // Spectorjs
+                                captureSpector = function (done) {
+                                    const spectorExt = extensions.default.RequestExtension(scene, 'SpectorDebug');
+                                    spectorExt.spector.onCapture.add(function (c) {
+                                        done(c, spectorExt.spector.logger);
+                                    });
+                                    spectorExt.spector.startCapture(engine.getRenderingCanvas(), false);
+                                };
                             });
                         };
 
@@ -184,6 +198,8 @@
             return System.import("babylonjs-materials");
         }).then(function () {
             return System.import("babylonjs-post-process");
+        }).then(function () {
+            return System.import("babylonjs-loaders");
         }).then(function () {
             return System.import('./build/src/editor/tools/tools.js').then(function (t) {
                 tools = t.default;
