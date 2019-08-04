@@ -21,8 +21,7 @@ import Extensions from '../../extensions/extensions';
 import GraphExtension, { GraphNodeMetadata, NodeGraph, GraphData, BehaviorGraphMetadata } from '../../extensions/behavior/graph';
 
 import '../../extensions/behavior/graph';
-import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
-import { RenderStart, RenderLoop } from '../../extensions/behavior/graph-nodes/render/engine';
+import { IGraphNode } from '../../extensions/behavior/nodes/types';
 
 export interface GraphGrid extends GridRow {
     name: string;
@@ -150,11 +149,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.graphData = new LGraph();
         this.graphData.onStopEvent = () => {
-            this.graphData._nodes.forEach(n => n instanceof RenderStart && (n.started = false));
+            // this.graphData._nodes.forEach(n => n instanceof RenderStart && (n.started = false));
+            // Empty for now. TODO.
         };
-        this.graphData.onNodeAdded = (node: LiteGraphNode) => {
+        this.graphData.onNodeAdded = (node: IGraphNode) => {
             node.shape = 'round';
-            LiteGraphNode.SetColor(node);
+            // LiteGraphNode.SetColor(node); TOOD.
         };
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
@@ -200,7 +200,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 }
                 
                 GraphNodeCreator.OnConfirmSelection = (id) => {
-                    const node = <LiteGraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
+                    const node = <IGraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
                     if (!node)
                         return;
                     
@@ -218,7 +218,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             // Node
             ContextMenu.Show(event, {
                 clone: { name: 'Clone', callback: () => {
-                    const clone = <LiteGraphNode> LiteGraph.createNode(node.type);
+                    const clone = <IGraphNode> LiteGraph.createNode(node.type);
                     clone.pos = [node.pos[0] + 10, node.pos[1] + 10];
 
                     Object.assign(clone.properties, node.properties);
@@ -273,9 +273,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 const scale = this.graph.scale;
                 const offset = this.graph.offset.slice();
 
-                LiteGraphNode.Loaded = false;
+                IGraphNode.Loaded = false;
                 this.graphData.configure(this.data.graph);
-                LiteGraphNode.Loaded = true;
+                IGraphNode.Loaded = true;
 
                 this.graph.offset = offset;
                 this.graph.scale = scale;
@@ -501,9 +501,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.graphData.clear();
 
-        LiteGraphNode.Loaded = false;
+        IGraphNode.Loaded = false;
         this.graphData.configure(JSON.parse(JSON.stringify(this.data.graph)));
-        LiteGraphNode.Loaded = true;
+        IGraphNode.Loaded = true;
 
         // Refresh right text
         this._updateToolbarText();
@@ -671,13 +671,14 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             });
 
             // Start
-            const nodes = <LiteGraphNode[]> this.graphData._nodes;
+            const nodes = <IGraphNode[]> this.graphData._nodes;
             nodes.forEach(n => {
-                if (n instanceof RenderStart)
-                    return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+                // if (n instanceof RenderStart)
+                //     return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
 
-                if (n instanceof RenderLoop)
-                    return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+                // if (n instanceof RenderLoop)
+                //     return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+                // TODO.
             });
 
             this.graphData.start();

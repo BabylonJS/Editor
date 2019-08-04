@@ -9,6 +9,7 @@
     "typeRoots": [
       "node_modules/@types"
     ],
+    "downlevelIteration": true,
     "experimentalDecorators": true,
     "types": [
       "es6-promise",
