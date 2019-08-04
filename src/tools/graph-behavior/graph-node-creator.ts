@@ -218,11 +218,10 @@ export default class GraphNodeCreator {
             value.forEach(v => {
                 const id = s + '/' + v;
                 const ctor = LiteGraph.registered_node_types[id];
-                const title = ctor.Title || ctor.title || v;
                 const desc = <string> (ctor.desc || ctor.Desc);
                 const description = desc ? (desc.length > 30 ? desc.substr(0, 30) + '...' : desc) : '';
 
-                this._Graph.add({ id: id, text: title, data: v, img: 'icon-help', count: description });
+                this._Graph.add({ id: id, text: v, data: v, img: 'icon-help', count: description });
             });
         }
     }

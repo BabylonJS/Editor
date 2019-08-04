@@ -1,4 +1,4 @@
-import { Scene, AbstractMesh, Light, Camera, Vector3, Tools } from 'babylonjs';
+import { Scene, AbstractMesh, Light, Camera, Tools } from 'babylonjs';
 import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup } from 'litegraph.js';
 
 import Extensions from '../extensions';
@@ -6,27 +6,10 @@ import Extension from '../extension';
 
 import { AssetElement } from '../typings/asset';
 
-import { GetPosition, SetPosition } from './graph-nodes/node/position';
-import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
-import { GetScale, SetScale } from './graph-nodes/node/scale';
-import { GetAmbientColor, SetAmbientColor } from './graph-nodes/scene/ambient-color';
-import { GetClearColor, SetClearColor } from './graph-nodes/scene/clear-color';
-import { RenderLoop, RenderStart } from './graph-nodes/render/engine';
-import { GetProperty, SetProperty } from './graph-nodes/properties/property';
-import { Condition } from './graph-nodes/logic/condition';
-import { PointerOver, PointerDown, PointerOut } from './graph-nodes/event/pointer';
-import { KeyboardDown, KeyboardUp } from './graph-nodes/event/keyboard';
-import { SetTimeout, ClearTimeout } from './graph-nodes/event/timeout';
-import { PlayAnimations, StopAnimations } from './graph-nodes/action/animation';
-import { Number, String, Boolean } from './graph-nodes/basic/const';
-import { Color } from './graph-nodes/basic/color';
-import { Time } from './graph-nodes/basic/time';
+import { GraphNode } from './nodes/graph-node';
+import { registerAllNodes } from './nodes/nodes-list';
 
-import { GetDirection, LookAt } from './graph-nodes/functions/mesh';
-
-import { LiteGraphNode } from './graph-nodes/typings';
-
-export { LGraph, LGraphCanvas, LiteGraph, LiteGraphNode, LGraphGroup }
+export { LGraph, LGraphCanvas, LiteGraph, LGraphGroup, GraphNode }
 
 // Interfaces
 export interface GraphData {
@@ -181,9 +164,9 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                 graph.scriptObject = node;
                 graph.scriptScene = this.scene;
 
-                LiteGraphNode.Loaded = false;
+                GraphNode.Loaded = false;
                 graph.configure(this.datas.graphs.find(s => s.id === m.graphId).graph);
-                LiteGraphNode.Loaded = true;
+                GraphNode.Loaded = true;
 
                 // On ready
                 this.scene.onReadyObservable.addOnce(() => {
@@ -191,15 +174,16 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                 });
                 
                 // Render loop
-                const nodes = <LiteGraphNode[]> graph._nodes;
-                nodes.forEach(n => {
-                    if (n instanceof RenderLoop) {
-                        this.scene.onAfterRenderObservable.add(() => n.onExecute());
-                    }
-                    else if (n instanceof RenderStart) {
-                        this.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
-                    }
-                });
+                // TODO:
+                // const nodes = <GraphNode[]> graph._nodes;
+                // nodes.forEach(n => {
+                //     if (n instanceof RenderLoop) {
+                //         this.scene.onAfterRenderObservable.add(() => n.onExecute());
+                //     }
+                //     else if (n instanceof RenderStart) {
+                //         this.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+                //     }
+                // });
             });
         });
     }
@@ -295,18 +279,8 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
      * Clears all the additional nodes available for Babylon.js
      */
     public static ClearNodes (): void {
-        const available = [
-            'node', 'scene', 'core', 'logic',
-            'basic/script', 'basic/const',
-            'math/compare', 'math/condition', 'math/formula', 'math/converter', 'math/range'
-        ];
-        const keys = Object.keys(LiteGraph.registered_node_types);
-
-        keys.forEach(k => {
-            const split = k.split('/');
-            if (available.indexOf(split[0]) !== -1 || available.indexOf(k) !== -1)
-                delete LiteGraph.registered_node_types[k];
-        });
+        // Clear default nodes
+        LiteGraph.registered_node_types = { };
     }
 
     /**
@@ -314,71 +288,11 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
      * @param object the object which is attached
      */
     public static RegisterNodes (object?: any): void {
-        // Unregister all except:
-        const available = ['node', 'scene', 'math', 'math3d', 'basic', 'logic'];
-        const keys = Object.keys(LiteGraph.registered_node_types);
+        // Clear default nodes
+        LiteGraph.registered_node_types = { };
 
-        keys.forEach(k => {
-            const split = k.split('/');
-            if (available.indexOf(split[0]) === -1 && available.indexOf(k) === -1)
-                delete LiteGraph.registered_node_types[k];
-        });
-
-        // Register custom
-        Number.Register('basic/number', Number);
-        String.Register('basic/string', String);
-        Boolean.Register('basic/boolean', Boolean);
-        Color.Register('basic/color', Color);
-        Time.Register('basic/time', Time);
-
-        RenderStart.Register('render/renderstarts', RenderStart);
-        RenderLoop.Register('render/renderloop', RenderLoop);
-
-        Condition.Register('logic/condition', Condition);
-
-        if (!object || object instanceof AbstractMesh) {
-            PointerOver.Register('event/pointerover', PointerOver);
-            PointerDown.Register('event/pointerdown', PointerDown);
-            PointerOut.Register('event/pointerout', PointerOut);
-
-            GetDirection.Register('node/getdirection', GetDirection);
-            LookAt.Register('node/lookat', LookAt);
-        }
-
-        KeyboardDown.Register('event/keyboarddown', KeyboardDown);
-        KeyboardUp.Register('event/keyboardup', KeyboardUp);
-
-        SetTimeout.Register('event/settimeout', SetTimeout);
-        ClearTimeout.Register('event/cleartimeout', ClearTimeout);
-
-        PlayAnimations.Register('action/playanimations', PlayAnimations);
-        StopAnimations.Register('action/stopanimations', StopAnimations);
-
-        GetProperty.Register('property/get', GetProperty);
-        SetProperty.Register('property/set', SetProperty);
-
-        if (!object || object instanceof Scene) {
-            GetClearColor.Register('scene/getclearcolor', GetClearColor);
-            SetClearColor.Register('scene/setclearcolor', SetClearColor);
-
-            GetAmbientColor.Register('scene/getambientcolor', GetAmbientColor);
-            SetAmbientColor.Register('scene/setambientcolor', SetAmbientColor);
-        }
-
-        if (!object || object.position && object.position instanceof Vector3) {
-            GetPosition.Register('node/getposition', GetPosition);
-            SetPosition.Register('node/setposition', SetPosition);
-        }
-
-        if (!object || object.rotation && object.rotation instanceof Vector3) {
-            GetRotation.Register('node/getrotation', GetRotation);
-            SetRotation.Register('node/setrotation', SetRotation);
-        }
-
-        if (!object || object.scaling && object.scaling instanceof Vector3) {
-            GetScale.Register('node/getscale', GetScale);
-            SetScale.Register('node/setscale', SetScale);
-        }
+        // Register all nodes!
+        registerAllNodes();
     }
 }
 
