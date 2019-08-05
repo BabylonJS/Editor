@@ -1,6 +1,19 @@
 import { LGraph, LiteGraph } from 'litegraph.js';
+import { Vector2, Vector3, Vector4 } from 'babylonjs';
 
-export type InputOutputType = 'number' | 'string' | 'vec3' | string;
+/**
+ * Defines all possible inputs and outputs types.
+ */
+export type InputOutputType = 'number' | 'string' | 'vec2' | 'vec3' | 'vec4' | string;
+/**
+ * Defines all possibile types for nodes.
+ */
+export type SupportedTypes = number | string | Vector2 | Vector3 | Vector4;
+
+/**
+ * Defines the type of the function to call on a GraphNode.
+ */
+export type GraphMethodCallType = (...args: any[]) => any;
 
 export interface IGraphNodeDescriptor {
     /**
@@ -46,12 +59,21 @@ export interface IGraphNodeDescriptor {
          * The type of output. Means the output value type.
          */
         type: InputOutputType;
+        /**
+         * If outputs a property of the object, defines its path.
+         */
+        propertyPath?: string;
+        /**
+         * Defines the name of the property to output
+         * @see .properties in IGraphNodeDescriptor
+         */
+        propertyName?: string;
     }[];
     /**
      * The name of the function to call on the current object being used.
      * @see myGraphNode.graph.scriptObject;
      */
-    functionName: string;
+    functionName?: string;
     /**
      * All available parameters while calling the function on the current object being used.
      */
@@ -78,10 +100,22 @@ export interface IGraphNodeDescriptor {
      */
     properties?: {
         /**
+         * The name of the property.
+         */
+        name: string;
+        /**
+         * Defines the type of the property.
+         */
+        type: InputOutputType;
+        /**
          * Defines all the possible enums for the current parameters.
          * @example "Space.WORLD"
          */
         enums?: string[];
+        /**
+         * Defines the defualt value of the property.
+         */
+        defaultValue: SupportedTypes;
     }[];
 }
 

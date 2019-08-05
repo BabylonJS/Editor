@@ -1,9 +1,9 @@
-import { Material, Scene, AbstractMesh } from 'babylonjs';
 import { AbstractEditionTool, Tools } from 'babylonjs-editor';
-import { LGraph, LiteGraph, LGraphGroup } from 'litegraph.js';
+import { LGraphGroup } from 'litegraph.js';
 
 import { IGraphNode } from '../../extensions/behavior/nodes/types';
-import { GraphTypeNode } from '../../extensions/behavior/nodes/graph-node';
+import { GraphTypeNode } from '../../extensions/behavior/nodes/graph-type-node';
+import { GraphNode } from '../../extensions/behavior/nodes/graph-node';
 
 export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
     // Public members
@@ -47,11 +47,51 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
         // Node type
         if (node instanceof GraphTypeNode) {
             this._setupNodeType(node);
+        } else if (node instanceof GraphNode) {
+            this._setupNode(node);
         } else {
-            // TODO.
+            // TOOD.
+            debugger;
         }
     }
 
+    /**
+     * setups a classic node.
+     */
+    private _setupNode (node: GraphNode): void {
+        for (const p in node.properties) {
+            const value = node.properties[p];
+            const ctor = Tools.GetConstructorName(value).toLowerCase();
+
+            switch (ctor) {
+                // Primitives
+                case 'number':
+                case 'string':
+                    this.tool.add(node.properties, p).name(p);
+                    break;
+
+                // Vectors
+                case 'array':
+                    switch (value.length) {
+                        case 2:
+                        case 3:
+                        case 4:
+                            const names = ['x', 'y', 'z', 'w'];
+                            value.forEach((v, index) => {
+                                const o = { v: v };
+                                this.tool.add(o, 'v').name(names[index]).onChange(r => node.properties.value[index] = r);
+                            });
+                            break;
+                    }
+                    break;
+        }
+
+        }
+    }
+
+    /**
+     * Setups a type node to just edit its value.
+     */
     private _setupNodeType (node: GraphTypeNode): void {
         const value = node.properties.value;
         const ctor = Tools.GetConstructorName(value).toLowerCase();
