@@ -78,6 +78,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                 // Primitives
                 case 'number':
                 case 'string':
+                case 'boolean':
                     this.tool.add(node.properties, property.name).name(property.name);
                     break;
 
@@ -110,6 +111,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
             // Primitives
             case 'number':
             case 'string':
+            case 'boolean':
                 this.tool.add(node.properties, 'value').name('Value');
                 break;
 

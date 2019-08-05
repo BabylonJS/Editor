@@ -56,6 +56,7 @@ export class GraphNode extends IGraphNode {
             switch (i.type) {
                 case 'number':
                 case 'string':
+                case 'boolean':
                     this._propertiesOrder.push(GraphNode.commonToCommon);
                     this.addProperty(i.name, i.defaultValue);
                     break;
@@ -68,9 +69,9 @@ export class GraphNode extends IGraphNode {
                     this.addProperty(i.name, [0, 0, 0]);
                     break;
                 case 'vec4':
-                        this._propertiesOrder.push(GraphNode.vec4ToVector4);
-                        this.addProperty(i.name, [0, 0, 0, 0]);
-                        break;
+                    this._propertiesOrder.push(GraphNode.vec4ToVector4);
+                    this.addProperty(i.name, [0, 0, 0, 0]);
+                    break;
                 default: debugger; break; // Should never happen
             }
         });
@@ -191,12 +192,6 @@ export class GraphNode extends IGraphNode {
                     continue;
                 }
 
-                // Trigger
-                if (output.type === LiteGraph.EVENT) {
-                    this.triggerSlot(index);
-                    continue;
-                }
-
                 // Other types of outputs coming...
             }
         }
@@ -255,6 +250,8 @@ export class GraphNode extends IGraphNode {
             case 'vector3':
             case 'vector4':
                 return value.asArray();
+            case 'undefined':
+                return undefined;
             default: debugger; return null; // Should not happen
         }
     }
