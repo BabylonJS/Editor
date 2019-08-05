@@ -46,6 +46,10 @@ export class GraphTypeNode extends IGraphNode {
                 type = 'vec3';
                 this.addProperty('value', GraphNode.vector3ToVec3(value));
                 break;
+            case 'vector4':
+                type = 'vec4';
+                this.addProperty('value', GraphNode.vector4ToVec4(value));
+                break;
             default: debugger; break; // Should never happen
         }
 

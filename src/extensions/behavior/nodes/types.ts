@@ -8,7 +8,7 @@ export type InputOutputType = 'number' | 'string' | 'vec2' | 'vec3' | 'vec4' | s
 /**
  * Defines all possibile types for nodes.
  */
-export type SupportedTypes = number | string | Vector2 | Vector3 | Vector4;
+export type SupportedTypes = number | string | boolean | Vector2 | Vector3 | Vector4;
 
 /**
  * Defines the type of the function to call on a GraphNode.
