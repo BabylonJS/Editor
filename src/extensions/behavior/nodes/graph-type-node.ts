@@ -10,6 +10,8 @@ import { IGraphNode } from './types';
  */
 export function registerTypeNode (path: string, name: string, description: string, getDefaultValue: () => any): void {
     GraphNode.RegisterNode(path, (class extends GraphTypeNode {
+        static Title = name;
+        static Desc = description;
         title = name;
         desc = description;
         constructor () {

@@ -68,12 +68,16 @@ export interface IGraphNodeDescriptor {
          * @see .properties in IGraphNodeDescriptor
          */
         propertyName?: string;
+        /**
+         * Defines the input name where to retrieve the data to output.
+         */
+        inputName?: string;
     }[];
     /**
      * The name of the function to call on the current object being used.
      * @see myGraphNode.graph.scriptObject;
      */
-    functionName?: string;
+    functionRef?: string | ((node: IGraphNode, target: any) => any);
     /**
      * All available parameters while calling the function on the current object being used.
      */
@@ -148,6 +152,11 @@ export abstract class IGraphNode {
      */
     setOutputData? (index: number, data: any): void;
     /**
+     * Triggers the given slot to activate the connected node(s).
+     * @param index the index of the slot to trigger in the current node.
+     */
+    triggerSlot? (index: number): void;
+    /**
      * Adds a new property to the .properties dictionary for the current node.
      * @param name the name of the property to store in the dictionary.
      * @param value the value of the property to store in the dictionary.
@@ -173,6 +182,66 @@ export abstract class IGraphNode {
      * Defines the current description of the node to be drawn in the node edition tool.
      */
     desc?: string;
+    /**
+     * Defines the current mode of the node. Can be:
+     * - LiteGraph.NEVER: never executed.
+     * - LiteGraph.ON_TRIGGER: only when an input is triggered.
+     * - LiteGraph.ALWAYS: will always be executed.
+     */
+    mode?: number;
+    /**
+     * Defines the current color of the node in hexadecimal string. (titlebar)
+     */
+    color?: string;
+    /**
+     * Defines the current background color of the node in hexadecimal string. (background)
+     */
+    bgColor?: string;
+
+    /**
+     * Defines the store used to keep some temporary variables.
+     */
+    store: { [index: string]: any } = { };
+
+    /**
+     * On connections changed for this node, change its mode according to the new connections.
+     * @param type input (1) or output (2).
+     * @param slot the slot which has been modified.
+     * @param added if the connection is newly added.
+     * @param link the link object informations.
+     * @param input the input object to check its type etc.
+     */
+    public onConnectionsChange (type: number, slot: number, added: boolean, link: any, input: any): void {
+        if (!IGraphNode.Loaded)
+            return;
+        
+        if (this.mode === LiteGraph.NEVER)
+            return;
+        
+        if (type === LiteGraph.INPUT && slot === 0) {
+            if (added && input.type === LiteGraph.EVENT)
+                this.mode = LiteGraph.ON_TRIGGER;
+            else
+                this.mode = LiteGraph.ALWAYS;
+        }
+
+        IGraphNode.SetColor(this);
+    }
+
+    /**
+     * Sets the node's color according to its mode.
+     * @param node the node to configure its color according to its current mode.
+     * @see .mode
+     */
+    public static SetColor (node: IGraphNode): void {
+        switch (node.mode) {
+            case LiteGraph.ALWAYS: node.color = '#333'; node.bgColor = '#AAA'; break;
+            case LiteGraph.ON_EVENT: node.color = '#55A'; node.bgColor = '#44A'; break;
+            case LiteGraph.ON_TRIGGER: node.color = '#5A5'; node.bgColor = '#4A4'; break;
+            case LiteGraph.NEVER: node.color = '#A55'; node.bgColor = '#A44'; break;
+            default: break;
+        }
+    }
 
     /**
      * Gets or sets wether of not if the node has been loaded and ready.

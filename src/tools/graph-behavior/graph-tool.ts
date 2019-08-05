@@ -59,15 +59,26 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
      * setups a classic node.
      */
     private _setupNode (node: GraphNode): void {
-        for (const p in node.properties) {
-            const value = node.properties[p];
+        if (!node.description.properties)
+            return;
+        
+        for (const property of node.description.properties) {
+            const value = node.properties[property.name];
+
+            // Enum
+            if (property.enums) {
+                this.tool.add(node.properties, property.name, property.enums).name(property.name);
+                continue;
+            }
+
+            // Other
             const ctor = Tools.GetConstructorName(value).toLowerCase();
 
             switch (ctor) {
                 // Primitives
                 case 'number':
                 case 'string':
-                    this.tool.add(node.properties, p).name(p);
+                    this.tool.add(node.properties, property.name).name(property.name);
                     break;
 
                 // Vectors
@@ -84,8 +95,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                             break;
                     }
                     break;
-        }
-
+            }
         }
     }
 
