@@ -122,7 +122,7 @@ export default class GraphNodeCreator {
                 if (!ctor)
                     return false;
                 
-                const title = ctor.title || ctor.Title || v;
+                const title = ctor.Title;
                 return title.toLowerCase().indexOf(effectiveSearch.toLowerCase()) !== -1;
             });
             visible.length === 0 ? this._Graph.element.hide(s) : this._Graph.element.show(s);
@@ -218,10 +218,10 @@ export default class GraphNodeCreator {
             value.forEach(v => {
                 const id = s + '/' + v;
                 const ctor = LiteGraph.registered_node_types[id];
-                const desc = <string> (ctor.desc || ctor.Desc);
+                const desc = <string> ctor.Desc;
                 const description = desc ? (desc.length > 30 ? desc.substr(0, 30) + '...' : desc) : '';
 
-                this._Graph.add({ id: id, text: v, data: v, img: 'icon-help', count: description });
+                this._Graph.add({ id: id, text: ctor.Title, data: v, img: 'icon-help', count: description });
             });
         }
     }

@@ -1,4 +1,5 @@
 import { Vector3, Vector2, Vector4 } from 'babylonjs';
+import { LiteGraph } from 'litegraph.js';
 
 import { IGraphNode, IGraphNodeDescriptor, GraphMethodCallType } from './types';
 
@@ -13,6 +14,8 @@ export function registerNode (description: IGraphNodeDescriptor, object: any): v
     
     // Register
     GraphNode.RegisterNode(description.path, class extends GraphNode {
+        static Title = description.name;
+        static Desc = description.description;
         title = description.name;
         desc = description.description;
         constructor () {
@@ -80,7 +83,7 @@ export class GraphNode extends IGraphNode {
                 case 'vec2': this._inputsOrder.push(GraphNode.vec2ToVector2); break;
                 case 'vec3': this._inputsOrder.push(GraphNode.vec3ToVector3); break;
                 case 'vec4': this._inputsOrder.push(GraphNode.vec4ToVector4); break;
-                default: debugger; break; // Should never happen
+                default: this._inputsOrder.push(GraphNode.inputToNode); break;
             }
 
             this.addInput(i.name, i.type);
@@ -106,8 +109,7 @@ export class GraphNode extends IGraphNode {
                 case 'vec2': this._outputsOrder.push(GraphNode.vector2ToVec2); break;
                 case 'vec3': this._outputsOrder.push(GraphNode.vector3ToVec3); break;
                 case 'vec4': this._outputsOrder.push(GraphNode.vector4ToVec4); break;
-                case 'any': this._outputsOrder.push(null /* TODO. push function that returns appropriate output type */); break;
-                default: debugger; break; // Should never happen.
+                default: this._outputsOrder.push(GraphNode.inputToNode); break;
             }
 
             this.addOutput(o.name, o.type);
@@ -119,7 +121,10 @@ export class GraphNode extends IGraphNode {
      */
     public onExecute (): void {
         const target = this.graph.scriptObject;
-        const functionRef = <(...args: any[]) => any> (this.description.functionName ? GraphNode.GetEffectiveProperty(target, this.description.functionName) : null);
+        const functionRef = <(...args: any[]) => any> (this.description.functionRef ?
+                                typeof(this.description.functionRef) === 'string' ? GraphNode.GetProperty(target, this.description.functionRef) :
+                                this.description.functionRef
+                            : null);
         
         const inputs: ExecuteInput[] = [];
         const parameters: any[] = [];
@@ -129,8 +134,6 @@ export class GraphNode extends IGraphNode {
             for (const [index, input] of this.description.inputs.entries()) {
                 const data = this.getInputData(index);
                 inputs.push({ name: input.name, data });
-                if (!data)
-                    return console.warn(`Warning: calling "${this.description.functionName}", input "${input.name}" is mandatory`);
             }
         }
 
@@ -139,48 +142,58 @@ export class GraphNode extends IGraphNode {
                 if (parameter.inputName) {
                     const input = inputs.find(i => i.name === parameter.inputName);
                     if (!input && !parameter.optional)
-                        return console.warn(`Warning: calling "${this.description.functionName}", input "${input.name}" is mandatory`);
+                        return console.warn(`Warning: calling "${this.description.functionRef}", input "${input.name}" is mandatory`);
                     parameters.push(this._parametersOrder[index](input.data));
                 }
             }
         }
        
         // Call function!
-        const result = functionRef ? functionRef.apply(target, parameters) : null;
+        const result = functionRef ?
+                            typeof(this.description.functionRef) === 'string' ? functionRef.apply(target, parameters) :
+                            functionRef(this, target)
+                        : null;
 
         // Ouputs
         if (this.description.outputs) {
             for (const [index, output] of this.description.outputs.entries()) {
                 // First output is always the function's output.
-                if (this.description.functionName && index === 0) {
+                if (this.description.functionRef && index === 0) {
                     this.setOutputData(index, this._outputsOrder[index](result));
                     continue;
                 }
 
                 // Properties
                 if (output.propertyPath) {
+                    // From a property
                     if (output.propertyName) {
-                        const property = GraphNode.GetEffectiveProperty<any>(target, this.properties[output.propertyName]);
-                        const ctor = GraphNode.GetConstructorName(property).toLowerCase();
-                        // TODO. move this function.
-                        switch (ctor) {
-                            case 'number':
-                            case 'string':
-                                this.setOutputData(index, GraphNode.commonToCommon(property));
-                                break;
-                            case 'vector3':
-                                this.setOutputData(index, GraphNode.vector3ToVec3(property));
-                                break;
-                        }
+                        const property = GraphNode.GetProperty<any>(target, this.properties[output.propertyName]);
+                        this.setOutputData(index, this._outputsOrder[index](property));
                     }
+                    // From the fixed property path
                     else {
-                        const property = GraphNode.GetEffectiveProperty(target, output.propertyPath);
+                        const property = GraphNode.GetProperty(target, output.propertyPath);
                         this.setOutputData(index, this._outputsOrder[index](property));
                     }
                     continue;
                 }
-                else if (output.propertyName) {
+
+                // Return the property name
+                if (output.propertyName) {
                     this.setOutputData(index, this.properties[output.propertyName]);
+                    continue;
+                }
+                
+                // From the input name
+                if (output.inputName) {
+                    const input = inputs.find(i => i.name === output.inputName);
+                    this.setOutputData(index, input.data);
+                    continue;
+                }
+
+                // Trigger
+                if (output.type === LiteGraph.EVENT) {
+                    this.triggerSlot(index);
                     continue;
                 }
 
@@ -194,9 +207,22 @@ export class GraphNode extends IGraphNode {
      * @param object the object reference containing the property to get.
      * @param path the path of the property to get its reference/copy.
      */
-    public static GetEffectiveProperty<T> (object: any, path: string): T {
+    public static GetProperty<T> (object: any, path: string): T {
         const split = path.split('.');
         for (let i = 0; i < split.length; i++)
+            object = object[split[i]];
+
+        return object;
+    }
+
+    /**
+     * Returns the effective property.
+     * @param object the object reference containing the property to get.
+     * @param path the path of the property to get its reference/copy.
+     */
+    public static GetEffectiveProperty<T> (object: any, path: string): T {
+        const split = path.split('.');
+        for (let i = 0; i < split.length - 1; i++)
             object = object[split[i]];
 
         return object;
@@ -213,6 +239,45 @@ export class GraphNode extends IGraphNode {
             ctrName = typeof obj;
 
         return ctrName;
+    }
+
+    /**
+     * Returns the value as expected for be used in the node.
+     * @param value the value to convert to an understandable value for the node.
+     */
+    public static inputToNode (value: any): number | string | number[] {
+        const ctor = GraphNode.GetConstructorName(value).toLowerCase();
+        switch (ctor) {
+            case 'number':
+            case 'string':
+                return value;
+            case 'vector2':
+            case 'vector3':
+            case 'vector4':
+                return value.asArray();
+            default: debugger; return null; // Should not happen
+        }
+    }
+
+    /**
+     * Returns the value as expected for be used in the next node.
+     * @param value the value to convert to an understandable value for the next node.
+     */
+    public static nodeToOutput<T extends number | string | Vector2 | Vector3 | Vector4> (value: any): T {
+        const ctor = GraphNode.GetConstructorName(value).toLowerCase();
+        switch (ctor) {
+            case 'number':
+            case 'string':
+                return value;
+            case 'array':
+                switch (value.length) {
+                    case 2: return <T> Vector2.FromArray(value);
+                    case 3: return <T> Vector3.FromArray(value);
+                    case 4: return <T> Vector4.FromArray(value);
+                    default: debugger; break; // Should not happen
+                }
+            default: debugger; return null; // Should not happen
+        }
     }
 
     /**
