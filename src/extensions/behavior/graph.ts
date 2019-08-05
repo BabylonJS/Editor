@@ -292,7 +292,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
         LiteGraph.registered_node_types = { };
 
         // Register all nodes!
-        registerAllNodes();
+        registerAllNodes(object);
     }
 }
 

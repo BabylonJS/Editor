@@ -1,17 +1,16 @@
-import { Vector3, Vector2 } from 'babylonjs';
+import { Vector3, Vector2, Vector4 } from 'babylonjs';
 
-import { IGraphNode, IGraphNodeDescriptor } from './types';
-
-/**
- * Defines the type of the function to call on a GraphNode.
- */
-export type GraphMethodCallType = (...args: any[]) => any;
+import { IGraphNode, IGraphNodeDescriptor, GraphMethodCallType } from './types';
 
 /**
  * Registers the given node in order to be used.
  * @param description the description object of the node to add in the collection.
+ * @param object defines the object being customized using the graph editor.
  */
-export function registerNode (description: IGraphNodeDescriptor): void {
+export function registerNode (description: IGraphNodeDescriptor, object: any): void {
+    // if (!(object instanceof description.ctor))
+    //     return;
+    
     // Register
     GraphNode.RegisterNode(description.path, class extends GraphNode {
         title = description.name;
@@ -20,23 +19,6 @@ export function registerNode (description: IGraphNodeDescriptor): void {
             super(description);
         }
     });
-}
-
-/**
- * Registers the given node in order to be used as a type node.
- * @param path the path of the node in the context menu.
- * @param name the name of the node.
- * @param description description of the node to draw in node edition tool.
- * @param getDefaultValue the function that returns the default value of the type to work as a constant.
- */
-export function registerTypeNode (path: string, name: string, description: string, getDefaultValue: () => any): void {
-    GraphNode.RegisterNode(path, (class extends GraphTypeNode {
-        title = name;
-        desc = description;
-        constructor () {
-            super(getDefaultValue);
-        }
-    }));
 }
 
 /**
@@ -54,6 +36,7 @@ export type ExecuteInput = {
 }
 
 export class GraphNode extends IGraphNode {
+    private _propertiesOrder: GraphMethodCallType[] = [];
     private _inputsOrder: GraphMethodCallType[] = [];
     private _parametersOrder: GraphMethodCallType[] = [];
     private _outputsOrder: GraphMethodCallType[] = [];
@@ -65,6 +48,30 @@ export class GraphNode extends IGraphNode {
     constructor (public description: IGraphNodeDescriptor) {
         super();
 
+        // Properties
+        description.properties && description.properties.forEach(i => {
+            switch (i.type) {
+                case 'number':
+                case 'string':
+                    this._propertiesOrder.push(GraphNode.commonToCommon);
+                    this.addProperty(i.name, i.defaultValue);
+                    break;
+                case 'vec2':
+                    this._propertiesOrder.push(GraphNode.vec2ToVector2);
+                    this.addProperty(i.name, [0, 0]);
+                    break;
+                case 'vec3':
+                    this._propertiesOrder.push(GraphNode.vec3ToVector3);
+                    this.addProperty(i.name, [0, 0, 0]);
+                    break;
+                case 'vec4':
+                        this._propertiesOrder.push(GraphNode.vec4ToVector4);
+                        this.addProperty(i.name, [0, 0, 0, 0]);
+                        break;
+                default: debugger; break; // Should never happen
+            }
+        });
+
         // Inputs
         description.inputs && description.inputs.forEach(i => {
             switch (i.type) {
@@ -72,7 +79,8 @@ export class GraphNode extends IGraphNode {
                 case 'string': this._inputsOrder.push(GraphNode.commonToCommon); break;
                 case 'vec2': this._inputsOrder.push(GraphNode.vec2ToVector2); break;
                 case 'vec3': this._inputsOrder.push(GraphNode.vec3ToVector3); break;
-                default: debugger; break; // Should never happen.
+                case 'vec4': this._inputsOrder.push(GraphNode.vec4ToVector4); break;
+                default: debugger; break; // Should never happen
             }
 
             this.addInput(i.name, i.type);
@@ -85,7 +93,8 @@ export class GraphNode extends IGraphNode {
                 case 'string': this._parametersOrder.push(GraphNode.commonToCommon); break;
                 case 'vec2': this._parametersOrder.push(GraphNode.vec2ToVector2); break;
                 case 'vec3': this._parametersOrder.push(GraphNode.vec3ToVector3); break;
-                default: debugger; break; // Should never happen.
+                case 'vec4': this._parametersOrder.push(GraphNode.vec4ToVector4); break;
+                default: debugger; break; // Should never happen
             }
         });
 
@@ -96,6 +105,8 @@ export class GraphNode extends IGraphNode {
                 case 'string': this._outputsOrder.push(GraphNode.commonToCommon); break;
                 case 'vec2': this._outputsOrder.push(GraphNode.vector2ToVec2); break;
                 case 'vec3': this._outputsOrder.push(GraphNode.vector3ToVec3); break;
+                case 'vec4': this._outputsOrder.push(GraphNode.vector4ToVec4); break;
+                case 'any': this._outputsOrder.push(null /* TODO. push function that returns appropriate output type */); break;
                 default: debugger; break; // Should never happen.
             }
 
@@ -108,7 +119,7 @@ export class GraphNode extends IGraphNode {
      */
     public onExecute (): void {
         const target = this.graph.scriptObject;
-        const functionRef = <(...args: any[]) => any> GraphNode.GetEffectiveProperty(target, this.description.functionName);
+        const functionRef = <(...args: any[]) => any> (this.description.functionName ? GraphNode.GetEffectiveProperty(target, this.description.functionName) : null);
         
         const inputs: ExecuteInput[] = [];
         const parameters: any[] = [];
@@ -135,18 +146,45 @@ export class GraphNode extends IGraphNode {
         }
        
         // Call function!
-        const result = functionRef.apply(target, parameters);
+        const result = functionRef ? functionRef.apply(target, parameters) : null;
 
         // Ouputs
         if (this.description.outputs) {
             for (const [index, output] of this.description.outputs.entries()) {
                 // First output is always the function's output.
-                if (index === 0) {
+                if (this.description.functionName && index === 0) {
                     this.setOutputData(index, this._outputsOrder[index](result));
+                    continue;
                 }
-                else {
-                    // TODO.
+
+                // Properties
+                if (output.propertyPath) {
+                    if (output.propertyName) {
+                        const property = GraphNode.GetEffectiveProperty<any>(target, this.properties[output.propertyName]);
+                        const ctor = GraphNode.GetConstructorName(property).toLowerCase();
+                        // TODO. move this function.
+                        switch (ctor) {
+                            case 'number':
+                            case 'string':
+                                this.setOutputData(index, GraphNode.commonToCommon(property));
+                                break;
+                            case 'vector3':
+                                this.setOutputData(index, GraphNode.vector3ToVec3(property));
+                                break;
+                        }
+                    }
+                    else {
+                        const property = GraphNode.GetEffectiveProperty(target, output.propertyPath);
+                        this.setOutputData(index, this._outputsOrder[index](property));
+                    }
+                    continue;
                 }
+                else if (output.propertyName) {
+                    this.setOutputData(index, this.properties[output.propertyName]);
+                    continue;
+                }
+
+                // Other types of outputs coming...
             }
         }
     }
@@ -214,45 +252,19 @@ export class GraphNode extends IGraphNode {
     public static vector3ToVec3 (vector3: Vector3): number[] {
         return vector3.asArray();
     }
-}
 
-export class GraphTypeNode extends IGraphNode {
     /**
-     * Constructor.
-     * @param getDefaultValue the function that returns the effective value to store as a node type.
+     * Returns a new Vector4 from.
+     * @param vec4 the vec4 input as number[].
      */
-    constructor (getDefaultValue: () => any) {
-        super();
-
-        // Get value (newly created or parsed?)
-        const value = getDefaultValue();
-
-        // Get transform method
-        let type = GraphNode.GetConstructorName(value).toLowerCase();
-        switch (type) {
-            case 'number':
-            case 'string':
-                this.addProperty('value', value);
-                break;
-            case 'vector2':
-                type = 'vec3';
-                this.addProperty('value', GraphNode.vector3ToVec3(value));
-                break;
-            case 'vector3':
-                type = 'vec3';
-                this.addProperty('value', GraphNode.vector3ToVec3(value));
-                break;
-            default: debugger; break; // Should never happen
-        }
-
-        // Output
-        this.addOutput('value', type);
+    public static vec4ToVector4 (vec4: number[]): Vector4 {
+        return Vector4.FromArray(vec4);
     }
-
     /**
-     * Called on the node is being executed.
+     * Returns the given vector 4d as number array.
+     * @param vector4 the vector to transform as array
      */
-    public onExecute (): void {
-        this.setOutputData(0, this.properties.value);
+    public static vector4ToVec4 (vector4: Vector4): number[] {
+        return vector4.asArray();
     }
 }
