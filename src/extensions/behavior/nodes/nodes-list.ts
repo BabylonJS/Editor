@@ -1,4 +1,4 @@
-import { Node, AbstractMesh, Vector4, Vector3, Vector2, Light, PointerEventTypes, PointerInfo, KeyboardEventTypes, KeyboardInfo } from 'babylonjs';
+import { Node, AbstractMesh, Vector4, Vector3, Vector2, Light, PointerEventTypes, PointerInfo, KeyboardEventTypes, KeyboardInfo, Space } from 'babylonjs';
 import { LiteGraph } from 'litegraph.js';
 
 import { GraphNode, registerNode } from './graph-node';
@@ -167,6 +167,14 @@ export function registerAllNodes (object?: any): void {
         { name: 'Out', type: 'number' }
     ] }, object);
 
+    registerNode({ name: 'Tangent', description: 'Performs a tangent operation', path: 'math/tan', ctor: Object, functionRef: (node) => {
+        return Math.tan(node.getInputData<number>(0));
+    }, inputs: [
+        { name: 'In', type: 'number' }
+    ], outputs: [
+        { name: 'Out', type: 'number' }
+    ] }, object);
+
     /*****************************************************************************************************************************************
      * Properties
      *****************************************************************************************************************************************/
@@ -325,6 +333,17 @@ export function registerAllNodes (object?: any): void {
         { name: 'localAxis', type: 'vec3' }
     ], parameters: [
         { inputName: 'localAxis', type: 'vec3' }
+    ] }, object);
+
+    registerNode({ name: 'Translate', description: 'Translates the current node in the given axis, distance and space', path: 'node/translate', ctor: AbstractMesh, functionRef: 'translate', inputs: [
+        { name: 'Axis', type: 'vec3' },
+        { name: 'Distance', type: 'number' }
+    ], properties: [
+        { name: 'Space', type: 'number', defaultValue: Space.LOCAL, enums: ['BONE', 'LOCAL', 'WORLD'], enumsTarget: Space }
+    ], parameters: [
+        { inputName: 'Axis', type: 'vec3' },
+        { inputName: 'Distance', type: 'number' },
+        { propertyName: 'Space', type: 'number' }
     ] }, object);
 
     /*****************************************************************************************************************************************

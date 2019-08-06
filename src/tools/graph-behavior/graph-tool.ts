@@ -67,7 +67,10 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
             // Enum
             if (property.enums) {
-                this.tool.add(node.properties, property.name, property.enums).name(property.name);
+                this.tool.add(node.properties, property.name, property.enums).name(property.name).onChange(r => {
+                    if (property.enumsTarget)
+                        node.properties[property.name] = property.enumsTarget[r];
+                });
                 continue;
             }
 
