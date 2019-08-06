@@ -117,6 +117,11 @@ export interface IGraphNodeDescriptor {
          */
         enums?: string[];
         /**
+         * Defines the target where to take the appropriate value of the enum.
+         * If not, provided, enums will work as string only.
+         */
+        enumsTarget?: any;
+        /**
          * Defines the defualt value of the property.
          */
         defaultValue: SupportedTypes;

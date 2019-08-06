@@ -250,9 +250,7 @@ export class GraphNode extends IGraphNode {
             case 'vector3':
             case 'vector4':
                 return value.asArray();
-            case 'undefined':
-                return undefined;
-            default: debugger; return null; // Should not happen
+            default: return value; // Raw data, null, undefined, etc.
         }
     }
 
