@@ -12,8 +12,20 @@ import { registerAllNodes } from './nodes/nodes-list';
 export { LGraph, LGraphCanvas, LiteGraph, LGraphGroup, GraphNode }
 
 // Interfaces
+export interface Variable {
+    /**
+     * The name of the variable.
+     */
+    name: string;
+    /**
+     * The value of the variable.
+     */
+    value: string | boolean | number | number[];
+}
+
 export interface GraphData {
     graph: any;
+    variables?: Variable[];
     name: string;
     id: string;
 }
@@ -165,7 +177,9 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                 graph.scriptScene = this.scene;
 
                 GraphNode.Loaded = false;
-                graph.configure(this.datas.graphs.find(s => s.id === m.graphId).graph);
+                const effectiveData = this.datas.graphs.find(s => s.id === m.graphId);
+                graph.configure(effectiveData.graph);
+                graph.variables = effectiveData.variables;
                 GraphNode.Loaded = true;
 
                 // On ready

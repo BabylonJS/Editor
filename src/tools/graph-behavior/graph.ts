@@ -14,7 +14,8 @@ import Editor, {
     VSCodeSocket
 } from 'babylonjs-editor';
 
-import GraphNodeTool from './graph-tool';
+import GraphTool from './graph-tool';
+import GraphNodeTool from './graph-node-tool';
 import GraphNodeCreator from './graph-node-creator';
 
 import Extensions from '../../extensions/extensions';
@@ -60,6 +61,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      */
     public static OnLoaded (editor: Editor): void {
         editor.inspector.addTool(new GraphNodeTool());
+        editor.inspector.addTool(new GraphTool());
         GraphNodeCreator.Init();
     }
 
@@ -173,10 +175,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 return;
             
             const group = this.graphData.getGroupOnPos(canvasPos[0], canvasPos[1]);
-            if (!group)
-                return;
-
-            this.editor.inspector.setObject(group);
+            return this.editor.inspector.setObject(group || this.graph);
         });
         
         this.graph.render_canvas_border = false;
