@@ -16,6 +16,7 @@ export interface IEditionTool<T> {
 
     update (object: T): void;
     clear (): void;
+    resize (width: number, height: number): void;
     isSupported (object: any): boolean;
     onModified? (): void;
 }
@@ -74,6 +75,14 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
      * the scene of the graph
      */
     public clear (): void
+    { }
+
+    /**
+     * Called once the editor has been resized.
+     * @param width the width in pixels of the panel.
+     * @param height the height in pixels of the panel.
+     */
+    public resize (width: number, height: number): void
     { }
 
     /**

@@ -135,6 +135,12 @@ export class GraphNode extends IGraphNode {
             for (const [index, input] of this.description.inputs.entries()) {
                 const data = this.getInputData(index);
                 inputs.push({ name: input.name, data });
+
+                if (data && input.propertyPath) {
+                    const split = input.propertyPath.split('.');
+                    const property = GraphNode.GetEffectiveProperty(target, input.propertyPath);
+                    property[split[split.length - 1]] = GraphNode.nodeToOutput(data);
+                }
             }
         }
 

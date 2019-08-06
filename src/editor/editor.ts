@@ -302,7 +302,7 @@ export default class Editor implements IUpdatable {
     public async resize (): Promise<void> {
         // Edition size
         const editionSize = this.resizableLayout.getPanelSize('Inspector');
-        this.inspector.resize(editionSize.width);
+        this.inspector.resize(editionSize.width, editionSize.height);
 
         // Stats size
         this.stats.layout.element.resize();

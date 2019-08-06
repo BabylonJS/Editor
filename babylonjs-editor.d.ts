@@ -28,7 +28,7 @@ declare module 'babylonjs-editor' {
     import Dialog from 'babylonjs-editor/editor/gui/dialog';
     import ContextMenu, { ContextMenuItem } from 'babylonjs-editor/editor/gui/context-menu';
     import ResizableLayout, { ComponentConfig, ItemConfigType } from 'babylonjs-editor/editor/gui/resizable-layout';
-    import AbstractEditionTool from 'babylonjs-editor/editor/edition-tools/edition-tool';
+    import AbstractEditionTool, { IEditionTool } from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     import { ProjectRoot } from 'babylonjs-editor/editor/typings/project';
@@ -43,7 +43,7 @@ declare module 'babylonjs-editor' {
     import Storage from 'babylonjs-editor/editor/storage/storage';
     import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, ScenePicker, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, IEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, ScenePicker, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -1321,6 +1321,7 @@ declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
             state: IStringDictionary<ToolState>;
             update(object: T): void;
             clear(): void;
+            resize(width: number, height: number): void;
             isSupported(object: any): boolean;
             onModified?(): void;
     }
@@ -1349,6 +1350,12 @@ declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
                 * the scene of the graph
                 */
             clear(): void;
+            /**
+                * Called once the editor has been resized.
+                * @param width the width in pixels of the panel.
+                * @param height the height in pixels of the panel.
+                */
+            resize(width: number, height: number): void;
             /**
                 * Sets the name of the tool's tab
                 * @param name the new name of the tab
@@ -2500,9 +2507,10 @@ declare module 'babylonjs-editor/editor/components/inspector' {
             constructor(editor: Editor, rootDiv?: string);
             /**
                 * Resizes the edition tools
-                * @param width the width of the panel
+                * @param width the width of the panel in pixels.
+                * @param height the height of the panel in pixels.
                 */
-            resize(width: number): void;
+            resize(width: number, height: number): void;
             /**
                 * Add the given tool (IEditionTool)
                 * @param tool the tool to add

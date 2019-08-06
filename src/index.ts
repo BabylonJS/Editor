@@ -21,7 +21,7 @@ import Dialog from './editor/gui/dialog';
 import ContextMenu, { ContextMenuItem } from './editor/gui/context-menu';
 import ResizableLayout, { ComponentConfig, ItemConfigType } from './editor/gui/resizable-layout';
 
-import AbstractEditionTool from './editor/edition-tools/edition-tool';
+import AbstractEditionTool, { IEditionTool } from './editor/edition-tools/edition-tool';
 
 import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
 import { EditorPlugin } from './editor/typings/plugin';
@@ -74,7 +74,7 @@ export {
     ContextMenu, ContextMenuItem,
     ResizableLayout, ComponentConfig, ItemConfigType,
 
-    AbstractEditionTool,
+    AbstractEditionTool, IEditionTool,
 
     ProjectRoot,
     CodeProjectEditorFactory,

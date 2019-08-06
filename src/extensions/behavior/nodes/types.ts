@@ -46,6 +46,10 @@ export interface IGraphNodeDescriptor {
          * The type of input. Means the input value type.
          */
         type: InputOutputType;
+        /**
+         * Optional property path used to set the given property.
+         */
+        propertyPath?: string;
     }[];
     /**
      * Defines all the outputs avaiable for the node.

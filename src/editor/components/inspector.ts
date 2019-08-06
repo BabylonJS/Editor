@@ -143,13 +143,16 @@ export default class EditorInspector {
 
     /**
      * Resizes the edition tools
-     * @param width the width of the panel
+     * @param width the width of the panel in pixels.
+     * @param height the height of the panel in pixels.
      */
-    public resize(width: number): void {
+    public resize(width: number, height: number): void {
         this.tools.forEach(t => {
             if (t.tool && t.tool.element) {
                 t.tool.element.width = width;
             }
+            if (t.resize)
+                t.resize(width, height);
         });
     }
 
@@ -211,12 +214,12 @@ export default class EditorInspector {
                     lastTool = t;
 
                 // On change
-                t.tool.onChange(t.tool.element, (property, result, object, initialValue) => {
+                t.tool && t.tool.onChange(t.tool.element, (property, result, object, initialValue) => {
                     this.editor.core.onModifyingObject.notifyObservers(this.currentObject);
                 });
 
                 // Manage undo / redo
-                t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
+                t.tool && t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
                     UndoRedo.Push({ baseObject: t.object, property: property, to: result, from: initialValue, object: object });
                     Tags.AddTagsTo(t.object, 'modified');
                     this.editor.graph.updateObjectMark(t.object);
@@ -255,7 +258,7 @@ export default class EditorInspector {
      * Updates the display of all visible edition tools
      */
     public updateDisplay (): void {
-        this.currentTools.forEach(t => t.tool.updateDisplay());
+        this.currentTools.forEach(t => t.tool && t.tool.updateDisplay());
     }
 
     /**
@@ -302,7 +305,7 @@ export default class EditorInspector {
                 container.show();
                 this.lastTabName = target;
 
-                t.tool.element.open();
+                t.tool && t.tool.element.open();
             }
             else
                 container.hide();
