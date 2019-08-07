@@ -21,9 +21,10 @@ export function registerAllUtilsNodes (object?: any): void {
     ] }, object);
 
     registerNode({ name: 'Log', description: 'Logs the given message', path: 'utils/log', ctor: Object, functionRef: (node) => {
-        console[node.properties['Level'].toLowerCase()](node.properties['Message']);
+        console[node.properties['Level'].toLowerCase()](node.properties['Message'], node.getInputData(1));
     } , inputs: [
-        { name: 'Execute', type: LiteGraph.EVENT }
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Message', type: 'string' }
     ], properties: [
         { name: 'Message', type: 'string', defaultValue: 'My Message' },
         { name: 'Level', type: 'string', defaultValue: 'Info', enums: ['Info', 'Warn', 'Error'] }

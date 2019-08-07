@@ -255,7 +255,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                     const id = Tools.RandomId();
                     
                     // Add graph asset
-                    data.graphs.push({ name: m.name, id: id, graph: m.graph });   
+                    data.graphs.push({ name: m.name, id: id, graph: m.graph, variables: m.variables || [] });
                     
                     // Add node metadata
                     node.metadatas.push({

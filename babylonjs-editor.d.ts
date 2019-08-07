@@ -1208,10 +1208,11 @@ declare module 'babylonjs-editor/editor/gui/dialog' {
                 */
             static Create(title: string, body: string, callback?: (result: string) => void, yes?: () => void, no?: () => void): Promise<string>;
             /**
-                * Creates a GUI dialog with a text input
-                * @param title the title of the dialog
+                * Creates a GUI dialog with a text input.
+                * @param title the title of the dialog.
+                * @param value optional value to automatically set in the text input.
                 */
-            static CreateWithTextInput(title: string): Promise<string>;
+            static CreateWithTextInput(title: string, value?: string): Promise<string>;
     }
 }
 

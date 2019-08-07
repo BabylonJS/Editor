@@ -1,4 +1,4 @@
-import { AbstractEditionTool, Grid, GridRow, Window, Form, Tools } from 'babylonjs-editor';
+import { AbstractEditionTool, Grid, GridRow, Window, Form, Tools, Dialog } from 'babylonjs-editor';
 import { LGraphCanvas } from 'litegraph.js';
 
 interface GraphVariablesGrid extends GridRow {
@@ -58,6 +58,7 @@ export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
 
         // Build grid
         this._grid = new Grid<GraphVariablesGrid>('BEHAVIOR-GRAPH-TOOL', {
+            header: 'Variables',
             toolbarReload: false,
             toolbarSearch: false,
             toolbarEdit: true
@@ -81,6 +82,9 @@ export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
         this.object.graph.variables.forEach((v, index) => {
             this._grid.addRow({ name: v.name, type: this._getType(v.value), value: v.value.toString(), recid: index });
         });
+
+        if (this.object.graph.variables.length > 0)
+            this._grid.select([0]);
     }
 
     /**
@@ -98,7 +102,7 @@ export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
         // Create form
         const form = new Form('GRAPH-TOOL-ADD-VARIABLE');
         form.fields = [
-            { name: 'name', type: 'string', html: { span: 10, caption: 'The name of the variable.' } },
+            { name: 'name', type: 'text', required: true, html: { span: 10, caption: 'The name of the variable.' } },
             { name: 'type', type: 'list', required: true, html: { span: 10, caption: 'Format' }, options: {
                 items: ['String', 'Boolean', 'Number', 'Vector 2D', 'Vector 3D', 'Vector 4D'] 
             } }
@@ -129,16 +133,101 @@ export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
      * Removes all the selected variables from the context.
      */
     private _removeVariables (ids: number[]): void {
-        debugger;
-        // TOOD.
+        let offset = 0;
+        ids.forEach(id => {
+            this.object.graph.variables.splice(id - offset, 1);
+            offset++
+        });
+
+        this._fillAllVariables();
     }
 
     /**
      * Asks to edit the given variable.
      */
-    private _editVariable (id: number): void {
-        debugger;
-        // TODO.
+    private async _editVariable (id: number): Promise<void> {
+        const v = this.object.graph.variables[id];
+
+        // Create window
+        const window = new Window('GraphToolAddVariable');
+        window.buttons = ['Ok', 'Cancel'];
+        window.width = 450;
+        window.height = 170;
+        window.body = `<div id="GRAPH-TOOL-EDIT-VARIABLE" style="width: 100%; height: 100%;"></div>`;
+        window.open();
+
+        // Create form
+        const form = new Form('GRAPH-TOOL-EDIT-VARIABLE');
+        form.fields = [
+            { name: 'name', type: 'text', required: true, html: { span: 10, caption: 'The name of the variable.' } }
+        ];
+        switch (this._getType(v.value)) {
+            case 'String':
+                form.fields.push({ name: 'value', type: 'text', required: true, html: { span: 10, caption: 'Value' } });
+                break;
+            case 'Number':
+                form.fields.push({ name: 'value', type: 'float', required: true, html: { span: 10, caption: 'Value' } });
+                break;
+            case 'Boolean':
+                form.fields.push({ name: 'value', type: 'checkbox', required: true, html: { span: 10, caption: 'Value' } });
+                break;
+            case 'Vector 2D':
+                form.fields.push({ name: 'x', type: 'float', required: true, html: { span: 10, caption: 'X' } });
+                form.fields.push({ name: 'y', type: 'float', required: true, html: { span: 10, caption: 'Y' } });
+                break;
+            case 'Vector 3D':
+                form.fields.push({ name: 'x', type: 'float', required: true, html: { span: 10, caption: 'X' } });
+                form.fields.push({ name: 'y', type: 'float', required: true, html: { span: 10, caption: 'Y' } });
+                form.fields.push({ name: 'z', type: 'float', required: true, html: { span: 10, caption: 'z' } });
+                break;
+            case 'Vector 4D':
+                form.fields.push({ name: 'x', type: 'float', required: true, html: { span: 10, caption: 'X' } });
+                form.fields.push({ name: 'y', type: 'float', required: true, html: { span: 10, caption: 'Y' } });
+                form.fields.push({ name: 'z', type: 'float', required: true, html: { span: 10, caption: 'z' } });
+                form.fields.push({ name: 'w', type: 'float', required: true, html: { span: 10, caption: 'w' } });
+                break;
+        }
+        form.build('GRAPH-TOOL-EDIT-VARIABLE');
+        form.element.record['name'] = v.name;
+        form.element.record['value'] = (typeof(v.value)).toLowerCase() === 'string' ? v.value :
+                                       (typeof(v.value)).toLowerCase() === 'boolean' ? v.value :
+                                       JSON.stringify(v.value);
+        form.element.record['x'] = v.value[0];
+        form.element.record['y'] = v.value[1];
+        form.element.record['z'] = v.value[2];
+        form.element.record['w'] = v.value[3];
+        form.element.refresh();
+
+        // Events
+        window.onButtonClick = (id => {
+            if (id === 'Cancel')
+                return window.close();
+            
+            v.name = form.element.record['name'];
+            switch (this._getType(v.value)) {
+                case 'String':
+                    v.value = form.element.record['value'];
+                    break;
+                case 'Number':
+                case 'Boolean':
+                    v.value = JSON.parse(form.element.record['value']);
+                    break;
+                case 'Vector 2D':
+                    v.value = [parseFloat(form.element.record['x']), parseFloat(form.element.record['y'])];
+                    break;
+                case 'Vector 3D':
+                    v.value = [parseFloat(form.element.record['x']), parseFloat(form.element.record['y']), parseFloat(form.element.record['z'])];
+                    break;
+                case 'Vector 4D':
+                    v.value = [parseFloat(form.element.record['x']), parseFloat(form.element.record['y']), parseFloat(form.element.record['z']), parseFloat(form.element.record['w'])];
+                    break;
+            }
+
+            window.close();
+            this._fillAllVariables();
+        });
+
+        window.onClose = (() => form.element.destroy());
     }
 
     /**

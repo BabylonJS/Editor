@@ -166,6 +166,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 return;
  
             this.data.graph = JSON.parse(JSON.stringify(this.graphData.serialize()));
+            this.data.variables = this.graphData.variables;
             VSCodeSocket.RefreshBehaviorGraph(this.data);
         });
         this.graph.canvas.addEventListener('click', () => {
@@ -274,6 +275,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
                 IGraphNode.Loaded = false;
                 this.graphData.configure(this.data.graph);
+                this.graphData.variables = this.data.variables || [];
                 IGraphNode.Loaded = true;
 
                 this.graph.offset = offset;
@@ -502,6 +504,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         IGraphNode.Loaded = false;
         this.graphData.configure(JSON.parse(JSON.stringify(this.data.graph)));
+        this.graphData.variables = this.data.variables || [];
         IGraphNode.Loaded = true;
 
         // Refresh right text
@@ -521,7 +524,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         const data: GraphData = {
             name: name,
             id: BabylonTools.RandomId(),
-            graph: JSON.parse(JSON.stringify(new LGraph().serialize()))
+            graph: JSON.parse(JSON.stringify(new LGraph().serialize())),
+            variables: []
         };
 
         this.editor.core.scene.metadata.behaviorGraphs.push(data);
