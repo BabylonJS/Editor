@@ -1,32 +1,34 @@
-import { LiteGraph } from 'litegraph.js';
-import { GraphNode, registerNode } from '../graph-node';
+import { Space, AbstractMesh } from 'babylonjs';
+
+import { registerNode } from '../graph-node';
 
 /**
  * Registers all the available AbstractMesh nodes.
  * @param object the object reference being customized using the graph editor.
  */
 export function registerAllAbstractMeshNodes (object?: any): void {
-    registerNode({ name: 'Get Property', description: 'Gets the property of the current node and returns its value.', path: 'utils/getproperty', ctor: Node, properties: [
-        { name: 'Property Path', type: 'string', defaultValue: 'name' }
-    ],
-    outputs: [
-        { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
-    ] }, object);
+    registerNode({ name: 'Get Mesh Direction', description: 'Returns the current direction of the node.', path: 'node/getdirection', ctor: AbstractMesh, functionRef: 'getDirection', inputs: [	
+        { name: 'localAxis', type: 'vec3' }	
+    ], outputs: [	
+        { name: 'vec3', type: 'vec3' }	
+    ], parameters: [	
+        { inputName: 'localAxis', type: 'vec3' }	
+    ] }, object);	
 
-    registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'utils/setproperty', ctor: Node, functionRef: (node, target) => {
-        const split = node.properties['Property Path'].split('.');
-        const input = GraphNode.nodeToOutput(node.getInputData(1));
-        const property = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
-        if (GraphNode.GetConstructorName(input) !== GraphNode.GetConstructorName(property[split[split.length - 1]]))
-            return node.getInputData(1);
+     registerNode({ name: 'Set Mesh Direction', description: 'Sets the current direction of the node.', path: 'node/setdirection', ctor: AbstractMesh, functionRef: 'setDirection', inputs: [	
+        { name: 'localAxis', type: 'vec3' }	
+    ], parameters: [	
+        { inputName: 'localAxis', type: 'vec3' }	
+    ] }, object);	
 
-        return (property[split[split.length - 1]] = input);
-    }, inputs: [
-        { name: 'Execute', type: LiteGraph.EVENT },
-        { name: 'In', type: undefined }
-    ], properties: [
-        { name: 'Property Path', type: 'string', defaultValue: 'name' }
-    ], outputs: [
-        { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
+     registerNode({ name: 'Translate', description: 'Translates the current node in the given axis, distance and space', path: 'node/translate', ctor: AbstractMesh, functionRef: 'translate', inputs: [	
+        { name: 'Axis', type: 'vec3' },	
+        { name: 'Distance', type: 'number' }	
+    ], properties: [	
+        { name: 'Space', type: 'number', defaultValue: Space.LOCAL, enums: ['BONE', 'LOCAL', 'WORLD'], enumsTarget: Space }	
+    ], parameters: [	
+        { inputName: 'Axis', type: 'vec3' },	
+        { inputName: 'Distance', type: 'number' },	
+        { propertyName: 'Space', type: 'number' }	
     ] }, object);
 }
