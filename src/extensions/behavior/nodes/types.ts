@@ -143,12 +143,22 @@ export abstract class IGraphNode {
      * @param type the type of the input.
      */
     addInput? (name: string, type: string): void;
+    /**
+     * Removes an input from the node at the given index.
+     * @param index the index of the input to remove.
+     */
+    removeInput? (index: number): void;
      /**
      * Adds a new output to the node.
      * @param name the name of the output.
      * @param type the type of the output.
      */
     addOutput? (name: string, type: string): void;
+    /**
+     * Removes an output from the node at the given index.
+     * @param index the index of the output to remove.
+     */
+    removeOutput? (index: number): void;
     /**
      * Returns the data of the given input index.
      * @param index the index of the input in inputs list.

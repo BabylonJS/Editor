@@ -39,7 +39,7 @@ export class GraphTypeNode extends IGraphNode {
                 this.addProperty('value', value);
                 break;
             case 'vector2':
-                type = 'vec3';
+                type = 'vec2';
                 this.addProperty('value', GraphNode.vector3ToVec3(value));
                 break;
             case 'vector3':

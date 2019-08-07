@@ -74,6 +74,13 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                 continue;
             }
 
+            // Variable
+            if (property.name === 'Variable') {
+                const variables = node.graph.variables.map(v => v.name);
+                this.tool.add(node.properties, property.name, variables).name(property.name);
+                continue;
+            }
+
             // Other
             const ctor = Tools.GetConstructorName(value).toLowerCase();
 

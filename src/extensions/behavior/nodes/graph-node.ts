@@ -277,7 +277,7 @@ export class GraphNode extends IGraphNode {
                     case 4: return <T> Vector4.FromArray(value);
                     default: debugger; break; // Should not happen
                 }
-            default: debugger; return null; // Should not happen
+            default: return value; // Raw data, null, undefined, etc.
         }
     }
 
