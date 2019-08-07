@@ -29,4 +29,25 @@ export function registerAllPropertiesNodes (object?: any): void {
     ], outputs: [
         { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
     ] }, object);
+
+    registerNode({ name: 'Variable', description: 'Sets a variable node taken from the avaialable node variables.', path: 'utils/variable', ctor: Object, functionRef: (node) => {
+        node.graph.variables = node.graph.variables || [];
+        const v = node.graph.variables.find(v => v.name === node.properties['Variable']);
+        if (!v) {
+            console.warn(`No variable found for name "${node.properties['Variable']}"`)
+            return undefined;
+        }
+
+        const i = node.getInputData<any>(0);
+        if (i !== null && i !== undefined)
+            v.value = i;
+
+        return GraphNode.nodeToOutput(v.value);
+    }, inputs: [
+        { name: 'Set Value', type: undefined }
+    ], outputs: [
+        { name: 'Get Value', type: undefined }
+    ], properties: [
+        { name: 'Variable', type: 'string', defaultValue: '' }
+    ] }, object);
 }

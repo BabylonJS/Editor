@@ -33,10 +33,11 @@ export default class Dialog {
     }
 
     /**
-     * Creates a GUI dialog with a text input
-     * @param title the title of the dialog
+     * Creates a GUI dialog with a text input.
+     * @param title the title of the dialog.
+     * @param value optional value to automatically set in the text input.
      */
-    public static CreateWithTextInput (title: string): Promise<string> {
+    public static CreateWithTextInput (title: string, value?: string): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
             // Window
             const popin = new Window('AskName');
@@ -54,6 +55,11 @@ export default class Dialog {
             form.fields.push({ name: 'Name', required: true, type: 'text', options: {  } });
             form.onChange = () => popin.onButtonClick('Ok');
             form.build('ASK-NAME-CREATE-DIALOG');
+
+            if (value !== undefined) {
+                form.element.record['Name'] = value;
+                form.element.refresh();
+            }
 
             // Events
             popin.onClose = () => {
