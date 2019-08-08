@@ -18,8 +18,7 @@ export function registerAllKeyboardNodes (object?: any): void {
         return (isKey && !node.properties['Check Control']) || (isKey && node.properties['Check Control'] && hasControl);
     });
 
-    registerNode({ name: 'Keyboard Down', description: 'Triggers on a keyboard key is down', path: 'events/keyboarddown', ctor: Node, functionRef: (node, target: Node) => {
-        const scene = target.getScene();
+    registerNode({ name: 'Keyboard Down', description: 'Triggers on a keyboard key is down', path: 'events/keyboarddown', ctor: Node, functionRef: (node, target: Node, scene) => {
         node.store.wasDown = node.store.wasDown || false;
         node.store.observer = node.store.observer || scene.onKeyboardObservable.add(ev => {
             node.store.wasDown = checkKeyboardEvent(node, target, ev, KeyboardEventTypes.KEYDOWN);
@@ -33,8 +32,7 @@ export function registerAllKeyboardNodes (object?: any): void {
         { name: 'Check Control', type: 'boolean', defaultValue: false }
     ] }, object);
 
-    registerNode({ name: 'Keyboard Up', description: 'Triggers on a keyboard key is up', path: 'events/keyboardup', ctor: Node, functionRef: (node, target: Node) => {
-        const scene = target.getScene();
+    registerNode({ name: 'Keyboard Up', description: 'Triggers on a keyboard key is up', path: 'events/keyboardup', ctor: Node, functionRef: (node, target: Node, scene) => {
         node.store.observer = node.store.observer || scene.onKeyboardObservable.add(ev => {
             checkKeyboardEvent(node, target, ev, KeyboardEventTypes.KEYUP) && node.triggerSlot(0);
         });

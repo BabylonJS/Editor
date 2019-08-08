@@ -178,7 +178,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
 
                 GraphNode.Loaded = false;
                 const effectiveData = this.datas.graphs.find(s => s.id === m.graphId);
-                graph.configure(effectiveData.graph);
+                graph.configure(JSON.parse(JSON.stringify(effectiveData.graph)));
                 graph.variables = effectiveData.variables;
                 GraphNode.Loaded = true;
 
