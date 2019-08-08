@@ -1,4 +1,4 @@
-import { Vector2, Vector3, Vector4 } from 'babylonjs';
+import { Scene, Vector2, Vector3, Vector4 } from 'babylonjs';
 import { LGraph, LiteGraph } from 'litegraph.js';
 
 import { GraphNode } from './graph-node';
@@ -83,7 +83,7 @@ export interface IGraphNodeDescriptor {
      * The name of the function to call on the current object being used.
      * @see myGraphNode.graph.scriptObject;
      */
-    functionRef?: string | ((node: GraphNode, target: any) => any);
+    functionRef?: string | ((node: GraphNode, target: any, scene: Scene) => any);
     /**
      * All available parameters while calling the function on the current object being used.
      */

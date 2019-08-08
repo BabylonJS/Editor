@@ -1,4 +1,4 @@
-import { Vector3, Vector2, Vector4, Color3, Color4 } from 'babylonjs';
+import { Scene, Node, Vector3, Vector2, Vector4, Color3, Color4 } from 'babylonjs';
 import { IGraphNode, IGraphNodeDescriptor, GraphMethodCallType } from './types';
 
 /**
@@ -162,11 +162,14 @@ export class GraphNode extends IGraphNode {
         // Call function!
         const result = functionRef ?
                             typeof(this.description.functionRef) === 'string' ? functionRef.apply(target, parameters) :
-                            functionRef(this, target)
+                            functionRef(this, target, this.graph.scriptScene)
                         : null;
 
         // Ouputs
         if (this.description.outputs) {
+            const targetPath = this.properties['Target Path'];
+            const finalTarget = targetPath ? GraphNode.GetTargetPath(targetPath, this.graph.scriptScene) : target;
+
             for (const [index, output] of this.description.outputs.entries()) {
                 // First output is always the function's output.
                 if (this.description.functionRef && index === 0) {
@@ -178,12 +181,12 @@ export class GraphNode extends IGraphNode {
                 if (output.propertyPath) {
                     // From a property
                     if (output.propertyName) {
-                        const property = GraphNode.GetProperty<any>(target, this.properties[output.propertyName]);
+                        const property = GraphNode.GetProperty<any>(finalTarget, this.properties[output.propertyName]);
                         this.setOutputData(index, this._outputsOrder[index](property));
                     }
                     // From the fixed property path
                     else {
-                        const property = GraphNode.GetProperty(target, output.propertyPath);
+                        const property = GraphNode.GetProperty(finalTarget, output.propertyPath);
                         this.setOutputData(index, this._outputsOrder[index](property));
                     }
                     continue;
@@ -244,6 +247,17 @@ export class GraphNode extends IGraphNode {
             ctrName = typeof obj;
 
         return ctrName;
+    }
+
+    /**
+     * Returns the target (scene or not) according to the given path ('Scene' or node name).
+     * @param path the path/name of the node/scene to get.
+     * @param scene the scene reference.
+     */
+    public static GetTargetPath (path: string, scene: Scene): Scene | Node {
+        if (path === 'Scene') return scene;
+        const node = scene.getNodeByName(path);
+        return node;
     }
 
     /**

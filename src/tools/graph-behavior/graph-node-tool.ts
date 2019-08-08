@@ -1,4 +1,4 @@
-import { Material, Color3, Color4 } from 'babylonjs';
+import { Scene, Material, Color3, Color4 } from 'babylonjs';
 import { AbstractEditionTool, Tools, Window, Tree } from 'babylonjs-editor';
 import { LGraphGroup } from 'litegraph.js';
 
@@ -86,6 +86,11 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
             // Property path
             if (property.name === 'Property Path') {
                 this._setupPropertyPath(property.name);
+                continue;
+            }
+
+            if (property.name === 'Target Path') {
+                this._setupTargetPath(property.name);
                 continue;
             }
 
@@ -182,17 +187,34 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
     }
 
     /**
+     * Setups the target path.
+     */
+    private _setupTargetPath (property: string): void {
+        const nodes = ['Scene'].concat(this.editor.core.scene.meshes.map(m => m.name))
+                               .concat(this.editor.core.scene.lights.map(l => l.name))
+                               .concat(this.editor.core.scene.cameras.map(c => c.name));
+        this.tool.add(this.object.properties, property, nodes).name('Target');
+    }
+
+    /**
      * Browses the property path.
      */
     private async _browsePropertyPath (): Promise<void> {
+        // Misc.
         const deepTypes: Function[] = [
             Material
         ];
 
+        // Target
+        const targetPath = this.object.properties['Target Path'];
+        const target = targetPath ? GraphNode.GetTargetPath(targetPath, this.editor.core.scene) : this.object.graph.scriptObject;
+
         // Create window
         const window = new Window('PropertyBrowser');
-        window.body = '<div id="NODE-TOOL-PROPERTY-BORWSER" style="width: 100%; height: 100%; overflow: auto;"></div>';
-        window.title = 'Select Property...';
+        window.body = `
+            <input id="NODE-TOOL-GRAPH-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
+            <div id="NODE-TOOL-PROPERTY-BORWSER" style="width: 100%; height: calc(100% - 40px); overflow: auto;"></div>`;
+        window.title = 'Select Property of ' + (target instanceof Scene ? 'Scene' : target.name);
         window.buttons = ['Select', 'Cancel'];
         await window.open();
 
@@ -204,9 +226,8 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                         return;
 
                      // Check usable
-                    const target = this.object.graph.scriptObject;
-                    const effectiveProperty = GraphNode.GetProperty(target, selected.data);
-                    const ctor = GraphNode.GetConstructorName(effectiveProperty).toLowerCase();
+                    const property = GraphNode.GetProperty(target, selected.data);
+                    const ctor = GraphNode.GetConstructorName(property).toLowerCase();
 
                     if (this._allowedTypes.indexOf(ctor) === -1)
                         return;
@@ -252,6 +273,14 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                     fill(value, id);
             }
         });
-        fill(this.object.graph.scriptObject, '');
+
+        fill(target, '');
+
+        // Search
+        const search = $('#NODE-TOOL-GRAPH-SEARCH');
+        search.keyup(() => {
+            tree.search(<string> search.val());
+        });
+        setTimeout(() => search.focus(), 1);
     }
 }
