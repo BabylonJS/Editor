@@ -1,10 +1,12 @@
-import { LGraph, LiteGraph } from 'litegraph.js';
 import { Vector2, Vector3, Vector4 } from 'babylonjs';
+import { LGraph, LiteGraph } from 'litegraph.js';
+
+import { GraphNode } from './graph-node';
 
 /**
  * Defines all possible inputs and outputs types.
  */
-export type InputOutputType = 'number' | 'string' | 'vec2' | 'vec3' | 'vec4' | string;
+export type InputOutputType = 'number' | 'string' | 'vec2' | 'vec3' | 'vec4' | 'col3' | 'col4' | string;
 /**
  * Defines all possibile types for nodes.
  */
@@ -81,7 +83,7 @@ export interface IGraphNodeDescriptor {
      * The name of the function to call on the current object being used.
      * @see myGraphNode.graph.scriptObject;
      */
-    functionRef?: string | ((node: IGraphNode, target: any) => any);
+    functionRef?: string | ((node: GraphNode, target: any) => any);
     /**
      * All available parameters while calling the function on the current object being used.
      */

@@ -1,5 +1,6 @@
 import { LiteGraph } from 'litegraph.js';
 import { GraphNode, registerNode } from '../graph-node';
+import { Color3, Color4 } from 'babylonjs';
 
 /**
  * Registers all the available properties nodes.
@@ -15,12 +16,13 @@ export function registerAllPropertiesNodes (object?: any): void {
 
     registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'properties/setproperty', ctor: Node, functionRef: (node, target) => {
         const split = node.properties['Property Path'].split('.');
-        const input = GraphNode.nodeToOutput(node.getInputData(1));
-        const property = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
-        if (GraphNode.GetConstructorName(input) !== GraphNode.GetConstructorName(property[split[split.length - 1]]))
+        const effectiveProperty = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
+        const property = effectiveProperty[split[split.length - 1]];
+        const input = GraphNode.nodeToOutput(node.getInputData(1), property instanceof Color3 || property instanceof Color4);
+        if (GraphNode.GetConstructorName(input) !== GraphNode.GetConstructorName(property))
             return node.getInputData(1);
 
-        return (property[split[split.length - 1]] = input);
+        return (effectiveProperty[split[split.length - 1]] = input);
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'In', type: undefined }

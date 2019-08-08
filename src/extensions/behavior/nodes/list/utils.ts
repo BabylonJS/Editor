@@ -1,4 +1,4 @@
-import { Vector3, Vector4, Vector2 } from 'babylonjs';
+import { Vector3, Vector4, Vector2, Color3, Color4 } from 'babylonjs';
 import { LiteGraph } from 'litegraph.js';
 
 import { registerNode, GraphNode } from '../graph-node';
@@ -26,13 +26,10 @@ export function registerAllUtilsNodes (object?: any): void {
         console[node.properties['Level'].toLowerCase()](node.properties['Message'], node.getInputData(1));
     } , inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
-        { name: 'Message', type: 'string' }
+        { name: 'Message', type: undefined }
     ], properties: [
         { name: 'Message', type: 'string', defaultValue: 'My Message' },
         { name: 'Level', type: 'string', defaultValue: 'Info', enums: ['Info', 'Warn', 'Error'] }
-    ], parameters: [
-        { propertyName: 'Level', type: 'string' },
-        { propertyName: 'Message', type: 'string' }
     ] }, object);
 
     /**
@@ -80,5 +77,40 @@ export function registerAllUtilsNodes (object?: any): void {
         { name: 'y', type: 'number' },
         { name: 'z', type: 'number' },
         { name: 'w', type: 'number' }
+    ] }, object);
+
+    /**
+     * Colors to RGB(A)
+     */
+    registerNode({ name: 'Color 3 to RGB', description: 'Takes a color as parameter and ouputs its r, g and b', path: 'utils/col3torgb', ctor: Object, functionRef: (node) => {
+        const c = GraphNode.nodeToOutput<Color3>(node.getInputData(0), true);
+        if (c) {
+            node.setOutputData(1, c.g);
+            node.setOutputData(2, c.b);
+        }
+        return c.r;
+    }, inputs: [
+        { name: 'In Color', type: 'col3' }
+    ], outputs: [
+        { name: 'r', type: 'number' },
+        { name: 'g', type: 'number' },
+        { name: 'b', type: 'number' }
+    ] }, object);
+
+    registerNode({ name: 'Color 4 to RGBA', description: 'Takes a color as parameter and ouputs its r, g, b and a', path: 'utils/col4torgba', ctor: Object, functionRef: (node) => {
+        const c = GraphNode.nodeToOutput<Color4>(node.getInputData(0), true);
+        if (c) {
+            node.setOutputData(1, c.g);
+            node.setOutputData(2, c.b);
+            node.setOutputData(3, c.a);
+        }
+        return c.r;
+    }, inputs: [
+        { name: 'In Color', type: 'col4' }
+    ], outputs: [
+        { name: 'r', type: 'number' },
+        { name: 'g', type: 'number' },
+        { name: 'b', type: 'number' },
+        { name: 'a', type: 'number' }
     ] }, object);
 }

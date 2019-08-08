@@ -153,11 +153,12 @@ hr:after {
 /* Context Menu */
 
 .context-menu-list {
-  background: #dddddd;
+  background: #888888;
 }
 
 .context-menu-item {
-  background: #dddddd;
+  background: #888888;
+  color: white;
 }
 
 .context-menu-separator {
@@ -344,4 +345,29 @@ hr:after {
 
 button.w2ui-btn {
   box-shadow: 0px 1px 0px black;
+}
+
+.w2ui-sidebar .w2ui-sidebar-div {
+  background-color: #444444;
+}
+
+.w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-caption, .w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image, .w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image > span, .w2ui-sidebar .w2ui-sidebar-div .w2ui-node td.w2ui-node-dots {
+  color: white;
+}
+
+.w2ui-sidebar .w2ui-sidebar-div .w2ui-node {
+  background-color: #555555;
+}
+
+.w2ui-sidebar .w2ui-sidebar-div .w2ui-node:hover {
+  background-color: #888888;
+}
+
+.w2ui-sidebar .w2ui-sidebar-div .w2ui-node-group {
+  color: white;
+  background-color: #444444;
+}
+
+.w2ui-sidebar .w2ui-sidebar-div .w2ui-selected, .w2ui-sidebar .w2ui-sidebar-div .w2ui-selected:hover {
+  background-image: linear-gradient(#555555, #333333);
 }
