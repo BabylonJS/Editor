@@ -19,7 +19,7 @@ export function registerAllAbstractMeshNodes (object?: any): void {
         { name: 'localAxis', type: 'vec3' }	
     ], parameters: [	
         { inputName: 'localAxis', type: 'vec3' }	
-    ] }, object);	
+    ] }, object);
 
      registerNode({ name: 'Translate', description: 'Translates the current node in the given axis, distance and space', path: 'node/translate', ctor: AbstractMesh, functionRef: 'translate', inputs: [	
         { name: 'Axis', type: 'vec3' },	

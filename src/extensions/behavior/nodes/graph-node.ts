@@ -1,6 +1,4 @@
-import { Vector3, Vector2, Vector4 } from 'babylonjs';
-import { LiteGraph } from 'litegraph.js';
-
+import { Vector3, Vector2, Vector4, Color3, Color4 } from 'babylonjs';
 import { IGraphNode, IGraphNodeDescriptor, GraphMethodCallType } from './types';
 
 /**
@@ -84,6 +82,8 @@ export class GraphNode extends IGraphNode {
                 case 'vec2': this._inputsOrder.push(GraphNode.vec2ToVector2); break;
                 case 'vec3': this._inputsOrder.push(GraphNode.vec3ToVector3); break;
                 case 'vec4': this._inputsOrder.push(GraphNode.vec4ToVector4); break;
+                case 'col3': this._inputsOrder.push(GraphNode.col3ToColor3); break;
+                case 'col4': this._inputsOrder.push(GraphNode.col4ToColor4); break;
                 default: this._inputsOrder.push(GraphNode.inputToNode); break;
             }
 
@@ -98,6 +98,8 @@ export class GraphNode extends IGraphNode {
                 case 'vec2': this._parametersOrder.push(GraphNode.vec2ToVector2); break;
                 case 'vec3': this._parametersOrder.push(GraphNode.vec3ToVector3); break;
                 case 'vec4': this._parametersOrder.push(GraphNode.vec4ToVector4); break;
+                case 'col3': this._parametersOrder.push(GraphNode.col3ToColor3); break;
+                case 'col4': this._parametersOrder.push(GraphNode.col4ToColor4); break;
                 default: debugger; break; // Should never happen
             }
         });
@@ -110,6 +112,8 @@ export class GraphNode extends IGraphNode {
                 case 'vec2': this._outputsOrder.push(GraphNode.vector2ToVec2); break;
                 case 'vec3': this._outputsOrder.push(GraphNode.vector3ToVec3); break;
                 case 'vec4': this._outputsOrder.push(GraphNode.vector4ToVec4); break;
+                case 'col3': this._outputsOrder.push(GraphNode.color3ToCol3); break;
+                case 'col4': this._outputsOrder.push(GraphNode.color4ToCol4); break;
                 default: this._outputsOrder.push(GraphNode.inputToNode); break;
             }
 
@@ -139,7 +143,7 @@ export class GraphNode extends IGraphNode {
                 if (data && input.propertyPath) {
                     const split = input.propertyPath.split('.');
                     const property = GraphNode.GetEffectiveProperty(target, input.propertyPath);
-                    property[split[split.length - 1]] = GraphNode.nodeToOutput(data);
+                    property[split[split.length - 1]] = GraphNode.nodeToOutput(data, input.type === 'col3' || input.type === 'col4');
                 }
             }
         }
@@ -256,6 +260,9 @@ export class GraphNode extends IGraphNode {
             case 'vector3':
             case 'vector4':
                 return value.asArray();
+            case 'color3':
+            case 'color4':
+                return value.asArray();
             default: return value; // Raw data, null, undefined, etc.
         }
     }
@@ -264,7 +271,7 @@ export class GraphNode extends IGraphNode {
      * Returns the value as expected for be used in the next node.
      * @param value the value to convert to an understandable value for the next node.
      */
-    public static nodeToOutput<T extends number | string | Vector2 | Vector3 | Vector4> (value: any): T {
+    public static nodeToOutput<T extends number | string | Vector2 | Vector3 | Vector4 | Color3 | Color4> (value: any, asColor?: boolean): T {
         const ctor = GraphNode.GetConstructorName(value).toLowerCase();
         switch (ctor) {
             case 'number':
@@ -273,8 +280,8 @@ export class GraphNode extends IGraphNode {
             case 'array':
                 switch (value.length) {
                     case 2: return <T> Vector2.FromArray(value);
-                    case 3: return <T> Vector3.FromArray(value);
-                    case 4: return <T> Vector4.FromArray(value);
+                    case 3: return <T> (asColor ? Color3.FromArray(value) : Vector3.FromArray(value));
+                    case 4: return <T> (asColor ? Color4.FromArray(value) : Vector4.FromArray(value));
                     default: debugger; break; // Should not happen
                 }
             default: return value; // Raw data, null, undefined, etc.
@@ -290,7 +297,7 @@ export class GraphNode extends IGraphNode {
     }
 
     /**
-     * Returns a new Vector3 from.
+     * Returns a new Vector3 from the given array.
      * @param vec2 the vec3 input as number[].
      */
     public static vec2ToVector2 (vec2: number[]): Vector2 {
@@ -298,14 +305,14 @@ export class GraphNode extends IGraphNode {
     }
     /**
      * Returns the given vector 2d as number array.
-     * @param vector2 the vector to transform as array
+     * @param vector2 the vector to transform as array.
      */
     public static vector2ToVec2 (vector2: Vector2): number[] {
         return vector2.asArray();
     }
 
     /**
-     * Returns a new Vector3 from.
+     * Returns a new Vector3 from the given array.
      * @param vec3 the vec3 input as number[].
      */
     public static vec3ToVector3 (vec3: number[]): Vector3 {
@@ -313,14 +320,14 @@ export class GraphNode extends IGraphNode {
     }
     /**
      * Returns the given vector 3d as number array.
-     * @param vector3 the vector to transform as array
+     * @param vector3 the vector to transform as array.
      */
     public static vector3ToVec3 (vector3: Vector3): number[] {
         return vector3.asArray();
     }
 
     /**
-     * Returns a new Vector4 from.
+     * Returns a new Vector4 from the given array.
      * @param vec4 the vec4 input as number[].
      */
     public static vec4ToVector4 (vec4: number[]): Vector4 {
@@ -328,9 +335,39 @@ export class GraphNode extends IGraphNode {
     }
     /**
      * Returns the given vector 4d as number array.
-     * @param vector4 the vector to transform as array
+     * @param vector4 the vector to transform as array.
      */
     public static vector4ToVec4 (vector4: Vector4): number[] {
         return vector4.asArray();
+    }
+
+    /**
+     * Returns a new Color 3 from the given array.
+     * @param col3 the col3 input as number[].
+     */
+    public static col3ToColor3 (col3: number[]): Color3 {
+        return Color3.FromArray(col3);
+    }
+    /**
+     * Returns the given color 3 as number array.
+     * @param color3 the color to transform as array.
+     */
+    public static color3ToCol3 (color3: Color3): number[] {
+        return color3.asArray();
+    }
+
+    /**
+     * Returns a new Color 4 from the given array.
+     * @param col4 the col4 input as number[].
+     */
+    public static col4ToColor4 (col4: number[]): Color4 {
+        return Color4.FromArray(col4);
+    }
+    /**
+     * Returns the given color 4 as number array.
+     * @param color3 the color to transform as array.
+     */
+    public static color4ToCol4 (color4: Color4): number[] {
+        return color4.asArray();
     }
 }
