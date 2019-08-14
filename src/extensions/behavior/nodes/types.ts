@@ -1,5 +1,5 @@
 import { Scene, Vector2, Vector3, Vector4 } from 'babylonjs';
-import { LGraph, LiteGraph } from 'litegraph.js';
+import { LGraph, LiteGraph, LGraphCanvas } from 'litegraph.js';
 
 import { GraphNode } from './graph-node';
 
@@ -84,6 +84,10 @@ export interface IGraphNodeDescriptor {
      * @see myGraphNode.graph.scriptObject;
      */
     functionRef?: string | ((node: GraphNode, target: any, scene: Scene) => any);
+    /**
+     * Custom function that can be used to draw a text helper for the background.
+     */
+    drawBackground?: (node: GraphNode, targetName: string) => string;
     /**
      * All available parameters while calling the function on the current object being used.
      */
@@ -218,6 +222,10 @@ export abstract class IGraphNode {
      * Defines the current background color of the node in hexadecimal string. (background)
      */
     bgColor?: string;
+    /**
+     * Flags set to the node
+     */
+    flags?: any;
 
     /**
      * Defines the store used to keep some temporary variables.
@@ -262,6 +270,29 @@ export abstract class IGraphNode {
             case LiteGraph.NEVER: node.color = '#A55'; node.bgColor = '#A44'; break;
             default: break;
         }
+    }
+
+    /**
+     * On the background is drawn, draw custom text.
+     * @param ctx the canvas 2d context reference.
+     * @param graph the graph canvas reference.
+     * @param canvas the canvas reference where to draw the text.
+     * @param text the text to draw.
+     */
+    public onDrawBackground (ctx: CanvasRenderingContext2D, graph: LGraphCanvas, canvas: HTMLCanvasElement, text?: string): void {
+        if (this.flags.collapsed || !text)
+		    return;
+
+        ctx.font = '14px Arial';
+        ctx.fillStyle = 'grey';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 2;
+
+        const measure = ctx.measureText(text);
+        if (this.size[0] <= measure.width) this.size[0] = measure.width + 100;
+
+        ctx.fillText(text, this.size[0] * 0.5, this.size[1] * 0.5 + 25);
     }
 
     /**

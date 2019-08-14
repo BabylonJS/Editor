@@ -30,7 +30,7 @@ export function registerAllKeyboardNodes (object?: any): void {
     ], properties: [
         { name: 'Key', type: 'string', defaultValue: 'a' },
         { name: 'Check Control', type: 'boolean', defaultValue: false }
-    ] }, object);
+    ], drawBackground: (node) => node.properties['Key'] }, object);
 
     registerNode({ name: 'Keyboard Up', description: 'Triggers on a keyboard key is up', path: 'events/keyboardup', ctor: Node, functionRef: (node, target: Node, scene) => {
         node.store.observer = node.store.observer || scene.onKeyboardObservable.add(ev => {

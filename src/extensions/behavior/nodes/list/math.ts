@@ -22,7 +22,7 @@ export function registerAllMathNodes (object?: any): void {
     ], outputs: [
         { name: 'Scaled number', type: 'number' },
         { name: 'Scaled vector', type: 'vec2,vec3,vec4' }
-    ] }, object);
+    ], drawBackground: (node) => node.properties['Amount'].toString() }, object);
 
     registerNode({ name: 'Operation', description: 'Performs an operation (+, -, *, /)', path: 'math/operation', ctor: Object, functionRef: (node) => {
         const a = node.getInputData<number>(0);
@@ -41,7 +41,7 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'b', type: 'number' }
     ], outputs: [
         { name: 'Result', type: 'number' }
-    ] }, object);
+    ], drawBackground: (node) => node.properties['Operator'] }, object);
 
     registerNode({ name: 'Vector Operation', description: 'Performs a vector operation (+, -, *, /)', path: 'math/vectoroperation', ctor: Object, functionRef: (node) => {
         const a = GraphNode.nodeToOutput<any>(node.getInputData(0));
@@ -60,7 +60,7 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'Result', type: 'vec2,vec3,vec4' }
     ], properties: [
         { name: 'Operator', type: 'string', defaultValue: '+', enums: ['+', '-', '*', '/'] }
-    ] }, object);
+    ], drawBackground: (node) => node.properties['Operator'] }, object);
 
     registerNode({ name: 'Fract', description: 'Computes the fractional part of the input vector.', path: 'math/fract', ctor: Object, functionRef: (node) => {
         return (GraphNode.nodeToOutput<Vector2 | Vector3 | Vector4>(node.getInputData(0)).fract());
@@ -88,8 +88,8 @@ export function registerAllMathNodes (object?: any): void {
     ] }, object);
 
     registerNode({ name: 'Condition', description: 'Check the inputs and compares to trigger the appropriate slot.', path: 'math/condition', ctor: Object, functionRef: (node) => {
-        const a = node.getInputData(0);
-        const b = node.getInputData(1);
+        const a = node.getInputData(1);
+        const b = node.getInputData(2);
         if (a === b) node.triggerSlot(0);
         if (a !== b) node.triggerSlot(1);
         if (a >= b) node.triggerSlot(2);
@@ -97,8 +97,9 @@ export function registerAllMathNodes (object?: any): void {
         if (a > b) node.triggerSlot(4);
         if (a < b) node.triggerSlot(5);
     }, inputs: [
-        { name: 'a', type: 'number,boolean' },
-        { name: 'b', type: 'number,boolean' }
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'a', type: 'number,boolean,string' },
+        { name: 'b', type: 'number,boolean,string' }
     ], outputs: [
         { name: 'a == b', type: LiteGraph.EVENT },
         { name: 'a != b', type: LiteGraph.EVENT },

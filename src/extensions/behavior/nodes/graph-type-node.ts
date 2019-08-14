@@ -1,3 +1,5 @@
+import { LGraphCanvas } from 'litegraph.js';
+
 import { GraphNode } from './graph-node';
 import { IGraphNode } from './types';
 
@@ -85,5 +87,26 @@ export class GraphTypeNode extends IGraphNode {
 
         GraphTypeNode._VectorOuputs.forEach((v, index) => this.defaultValue[v] !== undefined && this.setOutputData(index + 1, this.properties['Value'][index]));
         GraphTypeNode._ColorOutputs.forEach((v, index) => this.defaultValue[v] !== undefined && this.setOutputData(index + 1, this.properties['Value'][index]));
+    }
+
+    /**
+     * On the background is drawn, draw custom text.
+     * @param ctx the canvas 2d context reference.
+     * @param graph the graph canvas reference.
+     * @param canvas the canvas reference where to draw the text.
+     */
+    public onDrawBackground (ctx: CanvasRenderingContext2D): void {
+        if (this.flags.collapsed)
+		    return;
+
+        ctx.font = '14px Arial';
+        ctx.fillStyle = 'grey';
+        ctx.textAlign = 'center';
+
+        const text = this.properties['Value'].toString();
+        const measure = ctx.measureText(text);
+        if (this.size[0] <= measure.width) this.size[0] = measure.width + 100;
+
+        ctx.fillText(text, this.size[0] * 0.5, this.size[1] * 0.5 + 7);
     }
 }
