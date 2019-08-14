@@ -290,6 +290,9 @@ export default class EditorGraph {
 
             // Set nodes
             scene.cameras.forEach(c => !c.parent && nodes.push(c));
+            if (scene.cameras.indexOf(this.editor.camera) === -1)
+                nodes.push(this.editor.camera);
+            
             scene.lights.forEach(l => !l.parent && nodes.push(l));
             scene.meshes.forEach(m => !m.parent && nodes.push(m));
             scene.transformNodes.forEach(t => !t.parent && nodes.push(t));

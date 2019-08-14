@@ -142,7 +142,7 @@ export default class TextureViewer extends EditorPlugin {
                 { id: 'render-target', text: 'Add Render Target', img: 'icon-add' },
                 { id: 'mirror', text: 'Add Mirror', img: 'icon-reflection' },
                 { id: 'reflection-probe', text: 'Reflection Probe', img: 'icon-reflection' },
-                // { id: 'pure-cube-texture', text: 'Pure Cube Texture...', img: 'icon-dynamic-texture' }
+                { id: 'pure-cube-texture', text: 'Pure Cube Texture...', img: 'icon-dynamic-texture' }
             ] },
             { type: 'break' },
             { id: 'convert-cube-texture', text: 'Convert .dds to .env...', img: 'icon-export' },
@@ -303,10 +303,10 @@ export default class TextureViewer extends EditorPlugin {
                 continue;
             }
 
-            // if (tex instanceof CubeTexture && tex['_files'] && tex['_files'].length === 6) {
-            //     this.addPureCubeTexturePreviewNode(tex);
-            //     continue;
-            // }
+            if (tex instanceof CubeTexture && tex['_files'] && tex['_files'].length === 6) {
+                this.addPureCubeTexturePreviewNode(tex);
+                continue;
+            }
             
             let url = tex.name;
             if (!url)
