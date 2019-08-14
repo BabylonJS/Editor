@@ -661,6 +661,7 @@ export default class Editor implements IUpdatable {
         }
         else {
             this.camera = <FreeCamera | ArcRotateCamera> Camera.Parse(type, this.core.scene);
+            this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
         }
 
         // Configure
