@@ -13,11 +13,11 @@ export function registerAllPropertiesNodes (object?: any): void {
     ],
     outputs: [
         { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
-    ] }, object);
+    ], drawBackground: (node, target) => `${target}'s\n${node.properties['Property Path']}` }, object);
 
     registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'properties/setproperty', ctor: Node, functionRef: (node, target, scene) => {
         const split = node.properties['Property Path'].split('.');
-        const effectiveProperty = GraphNode.GetEffectiveProperty(GraphNode.GetTargetPath(node.properties['Target Path'], scene), node.properties['Property Path']);
+        const effectiveProperty = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
         const property = effectiveProperty[split[split.length - 1]];
         const input = GraphNode.nodeToOutput(node.getInputData(1), property instanceof Color3 || property instanceof Color4);
         if (GraphNode.GetConstructorName(input) !== GraphNode.GetConstructorName(property))
@@ -32,7 +32,7 @@ export function registerAllPropertiesNodes (object?: any): void {
         { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' }
     ], outputs: [
         { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
-    ] }, object);
+    ], drawBackground: (node, target) => `${target}'s\n${node.properties['Property Path']}` }, object);
 
     registerNode({ name: 'Variable', description: 'Sets a variable node taken from the avaialable node variables.', path: 'properties/variable', ctor: Object, functionRef: (node) => {
         node.graph.variables = node.graph.variables || [];
@@ -53,5 +53,5 @@ export function registerAllPropertiesNodes (object?: any): void {
         { name: 'Get Value', type: undefined }
     ], properties: [
         { name: 'Variable', type: 'string', defaultValue: '' }
-    ] }, object);
+    ], drawBackground: (node) => node.properties['Variable'] }, object);
 }

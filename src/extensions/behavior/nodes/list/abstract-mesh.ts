@@ -17,7 +17,7 @@ export function registerAllAbstractMeshNodes (object?: any): void {
 
      registerNode({ name: 'Set Mesh Direction', description: 'Sets the current direction of the node.', path: 'node/setdirection', ctor: AbstractMesh, functionRef: 'setDirection', inputs: [	
         { name: 'localAxis', type: 'vec3' }	
-    ], parameters: [	
+    ], parameters: [
         { inputName: 'localAxis', type: 'vec3' }	
     ] }, object);
 
@@ -25,6 +25,7 @@ export function registerAllAbstractMeshNodes (object?: any): void {
         { name: 'Axis', type: 'vec3' },	
         { name: 'Distance', type: 'number' }	
     ], properties: [	
+        { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' },
         { name: 'Space', type: 'number', defaultValue: Space.LOCAL, enums: ['BONE', 'LOCAL', 'WORLD'], enumsTarget: Space }	
     ], parameters: [	
         { inputName: 'Axis', type: 'vec3' },	

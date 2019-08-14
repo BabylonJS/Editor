@@ -190,7 +190,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
      * Setups the target path.
      */
     private _setupTargetPath (property: string): void {
-        const nodes = ['Scene'].concat(this.editor.core.scene.meshes.map(m => m.name))
+        const nodes = ['Self', 'Scene'].concat(this.editor.core.scene.meshes.map(m => m.name))
                                .concat(this.editor.core.scene.lights.map(l => l.name))
                                .concat(this.editor.core.scene.cameras.map(c => c.name));
         this.tool.add(this.object.properties, property, nodes).name('Target');
@@ -207,7 +207,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
         // Target
         const targetPath = this.object.properties['Target Path'];
-        const target = targetPath ? GraphNode.GetTargetPath(targetPath, this.editor.core.scene) : this.object.graph.scriptObject;
+        const target = targetPath ? GraphNode.GetTargetPath(targetPath, this.object.graph.scriptObject, this.editor.core.scene) : this.object.graph.scriptObject;
 
         // Create window
         const window = new Window('PropertyBrowser');

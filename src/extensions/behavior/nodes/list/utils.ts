@@ -20,7 +20,7 @@ export function registerAllUtilsNodes (object?: any): void {
     }, outputs: [
         { name: 'ms', type: 'number' },
         { name: 'sec', type: 'number' },
-    ] }, object);
+    ], drawBackground: (node) => (node.graph.globaltime * 1000).toString() }, object);
 
     registerNode({ name: 'Log', description: 'Logs the given message', path: 'utils/log', ctor: Object, functionRef: (node) => {
         console[node.properties['Level'].toLowerCase()](node.properties['Message'], node.getInputData(1));
@@ -30,7 +30,7 @@ export function registerAllUtilsNodes (object?: any): void {
     ], properties: [
         { name: 'Message', type: 'string', defaultValue: 'My Message' },
         { name: 'Level', type: 'string', defaultValue: 'Info', enums: ['Info', 'Warn', 'Error'] }
-    ] }, object);
+    ], drawBackground: (node) => node.properties['Level'] }, object);
 
     /**
      * Vectors to XY(Z)(W)

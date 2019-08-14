@@ -1,4 +1,6 @@
 import { Scene, Node, Vector3, Vector2, Vector4, Color3, Color4 } from 'babylonjs';
+import { LGraphCanvas } from 'litegraph.js';
+
 import { IGraphNode, IGraphNodeDescriptor, GraphMethodCallType } from './types';
 
 /**
@@ -125,7 +127,8 @@ export class GraphNode extends IGraphNode {
      * Called on the node is being executed.
      */
     public onExecute (): void {
-        const target = this.graph.scriptObject;
+        const targetPath = this.properties['Target Path'];
+        const target = targetPath ? GraphNode.GetTargetPath(targetPath, this.graph.scriptObject, this.graph.scriptScene) : this.graph.scriptObject;
         const functionRef = <(...args: any[]) => any> (this.description.functionRef ?
                                 typeof(this.description.functionRef) === 'string' ? GraphNode.GetProperty(target, this.description.functionRef) :
                                 this.description.functionRef
@@ -167,9 +170,6 @@ export class GraphNode extends IGraphNode {
 
         // Ouputs
         if (this.description.outputs) {
-            const targetPath = this.properties['Target Path'];
-            const finalTarget = targetPath ? GraphNode.GetTargetPath(targetPath, this.graph.scriptScene) : target;
-
             for (const [index, output] of this.description.outputs.entries()) {
                 // First output is always the function's output.
                 if (this.description.functionRef && index === 0) {
@@ -181,12 +181,12 @@ export class GraphNode extends IGraphNode {
                 if (output.propertyPath) {
                     // From a property
                     if (output.propertyName) {
-                        const property = GraphNode.GetProperty<any>(finalTarget, this.properties[output.propertyName]);
+                        const property = GraphNode.GetProperty<any>(target, this.properties[output.propertyName]);
                         this.setOutputData(index, this._outputsOrder[index](property));
                     }
                     // From the fixed property path
                     else {
-                        const property = GraphNode.GetProperty(finalTarget, output.propertyPath);
+                        const property = GraphNode.GetProperty(target, output.propertyPath);
                         this.setOutputData(index, this._outputsOrder[index](property));
                     }
                     continue;
@@ -208,6 +208,18 @@ export class GraphNode extends IGraphNode {
                 // Other types of outputs coming...
             }
         }
+    }
+
+    /**
+     * On the background is drawn, draw custom text.
+     * @param ctx the canvas 2d context reference.
+     * @param graph the graph canvas reference.
+     * @param canvas the canvas reference where to draw the text.
+     * @param text the text to draw.
+     */
+    public onDrawBackground (ctx: CanvasRenderingContext2D, graph: LGraphCanvas, canvas: HTMLCanvasElement, text?: string): void {
+        if (this.description.drawBackground)
+            super.onDrawBackground(ctx, graph, canvas, this.description.drawBackground(this, this.properties['Target Path']));
     }
 
     /**
@@ -254,7 +266,8 @@ export class GraphNode extends IGraphNode {
      * @param path the path/name of the node/scene to get.
      * @param scene the scene reference.
      */
-    public static GetTargetPath (path: string, scene: Scene): Scene | Node {
+    public static GetTargetPath (path: string, target: any, scene: Scene): Scene | Node {
+        if (path === 'Self') return target;
         if (path === 'Scene') return scene;
         const node = scene.getNodeByName(path);
         return node;

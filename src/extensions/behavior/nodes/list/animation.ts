@@ -9,19 +9,26 @@ import { registerNode, GraphNode } from '../graph-node';
  */
 export function registerAllAnimationNodes (object?: any): void {
     registerNode({ name: 'Play Animations', description: 'Plays the animations of the current node.', path: 'animation/play', ctor: Node, functionRef: (node, target: Node, scene) => {
+        if (node.store.playing) return;
+        node.store.playing = true;
+
         scene.beginAnimation(
             target,
             node.properties['From'],
             node.properties['To'],
             node.properties['Loop'],
             node.properties['Speed'],
-            () => node.triggerSlot(0),
+            () => {
+                node.triggerSlot(0);
+                node.store.playing = false;
+            },
             null, null, null,
             () => node.triggerSlot(1)
         );
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT }
     ], properties: [
+        { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' },
         { name: 'From', type: 'number', defaultValue: 0 },
         { name: 'To', type: 'number', defaultValue: 60 },
         { name: 'Speed', type: 'number', defaultValue: 1 },
@@ -29,13 +36,15 @@ export function registerAllAnimationNodes (object?: any): void {
     ], outputs: [
         { name: 'On End', type: LiteGraph.EVENT },
         { name: 'On Loop', type: LiteGraph.EVENT }
-    ] }, object);
+    ], drawBackground: (node, target) => target }, object);
 
     registerNode({ name: 'Stop Animations', description: 'Stops the currently playing animations of the current node.', path: 'animation/stop', ctor: Node, functionRef: (node, target: Node, scene) => {
         scene.stopAnimation(target);
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT }
-    ] }, object);
+    ], properties: [
+        { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' }
+    ], drawBackground: (node, target) => target }, object);
 
     registerNode({ name: 'Interpolate Value', description: 'Interpolates the ', path: 'animation/interpolatevalue', ctor: Node, functionRef: (node, target: Node, scene) => {
         if (node.store.playing) return;
@@ -64,10 +73,11 @@ export function registerAllAnimationNodes (object?: any): void {
         { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Target Value', type: 'number,vec2,vec3,vec4,col3,col4' }
     ], properties: [
+        { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' },
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
         { name: 'Speed', type: 'number', defaultValue: 1 },
         { name: 'Duration (seconds)', type: 'number', defaultValue: 1 }
     ], outputs: [
         { name: 'Current Value', type: 'number,vec2,vec3,vec4,col3,col4' }
-    ] }, object);
+    ], drawBackground: (node, target) => `${target}'s ${node.properties['Property Path']}` }, object);
 }
