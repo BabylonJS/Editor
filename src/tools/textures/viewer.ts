@@ -238,7 +238,7 @@ export default class TextureViewer extends EditorPlugin {
                 this.addReflectionProbe();
                 break;
             case 'add:pure-cube-texture':
-                AddPureCubeTexture.ShowDialog(this.editor);
+                AddPureCubeTexture.ShowDialog(this.editor, this);
                 break;
 
             case 'convert-cube-texture':
@@ -304,7 +304,7 @@ export default class TextureViewer extends EditorPlugin {
             }
 
             if (tex instanceof CubeTexture && tex['_files'] && tex['_files'].length === 6) {
-                this.addPureCubeTexturePreviewNode(tex);
+                await this.addPureCubeTexturePreviewNode(tex);
                 continue;
             }
             
@@ -342,6 +342,10 @@ export default class TextureViewer extends EditorPlugin {
         } catch (e) {
             console.log(e);
         }
+
+        // Clear temp preview
+        if (this.tempPreview)
+            this.tempPreview.engine.stopRenderLoop();
         
         this._refreshing = false;
         this.toolbar.enable('refresh', true);
@@ -541,7 +545,7 @@ export default class TextureViewer extends EditorPlugin {
      * Add a pure cube texture preview
      * @param texture the pure cube texture to add
      */
-    protected async addPureCubeTexturePreviewNode (texture: CubeTexture): Promise<void> {
+    public async addPureCubeTexturePreviewNode (texture: CubeTexture): Promise<void> {
         const parent = Tools.CreateElement<HTMLDivElement>('div', texture.name + 'div', {
             'width': '100px',
             'height': '100px',
@@ -839,6 +843,8 @@ export default class TextureViewer extends EditorPlugin {
             material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + file.name, scene);
         
         sphere.material = material;
+
+        engine.runRenderLoop(() => scene.render());
 
         return {
             engine: engine,
