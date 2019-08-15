@@ -449,6 +449,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
         instance.position = Vector3.FromArray(data.position || data._position);
         instance.scaling = Vector3.FromArray(data.scaling || data._scaling);
         instance.checkCollisions = instance.sourceMesh.checkCollisions;
+        instance._waitingParentId = data.parentId;
 
         if (data.rotationQuaternion || data._rotationQuaternion) {
             instance.rotationQuaternion = Quaternion.FromArray(data.rotationQuaternion || data._rotationQuaternion);
