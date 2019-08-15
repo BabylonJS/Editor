@@ -7,7 +7,7 @@
             "label": "watch-all",
             "group": "build",
             "problemMatcher": [],
-            "dependsOn": ["watch", "watch-vscode-extension", "watch-electron"],
+            "dependsOn": ["watch", "watch-vscode-extension", "watch-electron", "watch-photoshop-extension"],
             "presentation": {
                 "panel": "shared",
                 "group": "build",
@@ -41,6 +41,17 @@
             "label": "watch-vscode-extension",
             "type": "npm",
             "script": "watch-vscode-extension",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "panel": "shared",
+                "group": "build"
+            }
+        },
+        {
+            "label": "watch-photoshop-extension",
+            "type": "npm",
+            "script": "watch-photoshop-extension",
             "group": "build",
             "problemMatcher": [],
             "presentation": {

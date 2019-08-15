@@ -19,7 +19,10 @@
         "vscode-extension/node_modules": true,
         "vscode-extension/.build": true,
         "vscode-extension/.declaration": true,
-        "vscode-extension/*.vsix": true
+        "vscode-extension/*.vsix": true,
+        "photoshop-extension/.build": true,
+        "photoshop-extension/.declaration": true,
+        "photoshop-extension/node_modules": true
     },
 
     "editor.quickSuggestionsDelay": 0,

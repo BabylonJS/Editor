@@ -22,6 +22,7 @@
     "watch": "tsc -p . --watch",
     "watch-electron": "tsc -p ./electron --watch",
     "watch-vscode-extension": "tsc -p ./vscode-extension --watch",
+    "watch-photoshop-extension": "tsc -p ./photoshop-extension --watch",
     "webserver": "http-server -p 1338",
     "bundle": "node ./script/dts.js && node ./script/css.js && node ./script/bundle.js && node ./script/electron.js",
     "bundle-js": "node ./script/css.js && node ./script/bundle.js",
@@ -48,7 +49,8 @@
     "electron": "5.0.1",
     "electron-builder": "20.39.0",
     "http-server": "0.11.1",
-    "socket.io": "2.2.0"
+    "socket.io": "2.2.0",
+    "generator-core": "3.11.5"
   },
   "dependencies": {
     "babylonjs": "4.1.0-alpha.15",
