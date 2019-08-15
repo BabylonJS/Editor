@@ -28,7 +28,7 @@ export function registerAllAnimationNodes (object?: any): void {
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT }
     ], properties: [
-        { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' },
+        { name: 'Target Path', type: 'string', defaultValue: 'Self' },
         { name: 'From', type: 'number', defaultValue: 0 },
         { name: 'To', type: 'number', defaultValue: 60 },
         { name: 'Speed', type: 'number', defaultValue: 1 },
@@ -43,7 +43,7 @@ export function registerAllAnimationNodes (object?: any): void {
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT }
     ], properties: [
-        { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' }
+        { name: 'Target Path', type: 'string', defaultValue: 'Self' }
     ], drawBackground: (node, target) => target }, object);
 
     registerNode({ name: 'Interpolate Value', description: 'Interpolates the ', path: 'animation/interpolatevalue', ctor: Node, functionRef: (node, target: Node, scene) => {
@@ -73,7 +73,7 @@ export function registerAllAnimationNodes (object?: any): void {
         { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Target Value', type: 'number,vec2,vec3,vec4,col3,col4' }
     ], properties: [
-        { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' },
+        { name: 'Target Path', type: 'string', defaultValue: 'Self' },
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
         { name: 'Speed', type: 'number', defaultValue: 1 },
         { name: 'Duration (seconds)', type: 'number', defaultValue: 1 }

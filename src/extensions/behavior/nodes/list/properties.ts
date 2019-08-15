@@ -29,7 +29,7 @@ export function registerAllPropertiesNodes (object?: any): void {
         { name: 'In', type: undefined }
     ], properties: [
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
-        { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' }
+        { name: 'Target Path', type: 'string', defaultValue: 'Self' }
     ], outputs: [
         { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
     ], drawBackground: (node, target) => `${target}'s\n${node.properties['Property Path']}` }, object);

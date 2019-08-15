@@ -25,7 +25,7 @@ export function registerAllAbstractMeshNodes (object?: any): void {
         { name: 'Axis', type: 'vec3' },	
         { name: 'Distance', type: 'number' }	
     ], properties: [	
-        { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' },
+        { name: 'Target Path', type: 'string', defaultValue: 'Self' },
         { name: 'Space', type: 'number', defaultValue: Space.LOCAL, enums: ['BONE', 'LOCAL', 'WORLD'], enumsTarget: Space }	
     ], parameters: [	
         { inputName: 'Axis', type: 'vec3' },	

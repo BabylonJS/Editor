@@ -132,4 +132,12 @@ export function registerAllMathNodes (object?: any): void {
     ], outputs: [
         { name: 'Out', type: 'number' }
     ] }, object);
+
+    registerNode({ name: 'Abs', description: 'Returns the absolute position of the input number', path: 'math/abs', ctor: Object, functionRef: (node) => {
+        return (Math.abs(node.getInputData(0)) || 0);
+    }, inputs: [
+        { name: 'In', type: 'number' }
+    ], outputs: [
+        { name: 'Out', type: 'number' }
+    ] }, object);
 }
