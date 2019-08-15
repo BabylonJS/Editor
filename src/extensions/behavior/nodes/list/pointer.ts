@@ -38,7 +38,7 @@ export function registerAllPointerNodes (object?: any): void {
             checkPointerEvent(node, target, scene, ev, PointerEventTypes.POINTERUP) && node.triggerSlot(0);
         });
     }, outputs: [
-        { name: 'Moved', type: LiteGraph.EVENT }
+        { name: 'Up', type: LiteGraph.EVENT }
     ] }, object);
 
     registerNode({ name: 'Pointer Over', description: 'Triggers on the pointer is over the node.', path: 'events/pointerover', ctor: AbstractMesh, functionRef: (node, target: AbstractMesh, scene) => {

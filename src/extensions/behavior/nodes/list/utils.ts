@@ -2,6 +2,7 @@ import { Vector3, Vector4, Vector2, Color3, Color4 } from 'babylonjs';
 import { LiteGraph } from 'litegraph.js';
 
 import { registerNode, GraphNode } from '../graph-node';
+import Extensions from '../../../extensions';
 
 /**
  * Registers all the available utils nodes.
@@ -30,7 +31,7 @@ export function registerAllUtilsNodes (object?: any): void {
     ], properties: [
         { name: 'Message', type: 'string', defaultValue: 'My Message' },
         { name: 'Level', type: 'string', defaultValue: 'Info', enums: ['Info', 'Warn', 'Error'] }
-    ], drawBackground: (node) => node.properties['Level'] }, object);
+    ], drawBackground: (node) => `${node.properties['Level']}: ${node.properties['Message']}, ${(node.getInputData(1) || '').toString()}` }, object);
 
     /**
      * Vectors to XY(Z)(W)
@@ -112,5 +113,21 @@ export function registerAllUtilsNodes (object?: any): void {
         { name: 'g', type: 'number' },
         { name: 'b', type: 'number' },
         { name: 'a', type: 'number' }
+    ] }, object);
+
+    /**
+     * Extensions
+     */
+    registerNode({ name: 'Send Script Message', description: 'Sends a message to the given target by giving the method name and a parameter', path: 'utils/sendmessage', ctor: Object, functionRef: (node, target) => {
+        const input = node.getInputData(1);
+        Extensions.Tools.sendMessage(target, node.properties['Method Name'], input);
+    }, inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Value', type: undefined }
+    ], outputs: [
+
+    ], properties: [
+        { name: 'Target Path', type: 'string', defaultValue: 'Self' },
+        { name: 'Method Name', type: 'string', defaultValue: '' }
     ] }, object);
 }
