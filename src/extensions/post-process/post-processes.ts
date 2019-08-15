@@ -72,12 +72,10 @@ export default class PostProcessesExtension extends Extension<PostProcessMetadat
 
         if (data.standard) {
             this.standard = StandardRenderingPipeline.Parse(data.standard, this.scene, rootUrl);
-            this.standard._attachCameras(this.scene.cameras, true);
         }
 
         if (data.default) {
             this.default = DefaultRenderingPipeline.Parse(data.default, this.scene, rootUrl);
-            this.default._attachCameras(this.scene.cameras, true);
         }
     }
 }

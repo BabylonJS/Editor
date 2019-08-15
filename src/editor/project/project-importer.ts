@@ -206,6 +206,17 @@ export default class ProjectImporter {
             }
         });
 
+        // Assets
+        editor.assets.clear();
+
+        for (const a in project.assets) {
+            const component = editor.assets.components.find(c => c.id === a);
+            if (!component)
+                continue;
+
+            component.onParseAssets && component.onParseAssets(project.assets[a]);
+        }
+
         // Particle systems
         project.particleSystems.forEach(ps => {
             const system = ParticleSystem.Parse(ps.serializationObject, scene, 'file:');
@@ -334,17 +345,6 @@ export default class ProjectImporter {
                 skyboxColor: new Color3().copyFrom(project.environmentHelper.skyboxColor),
                 enableGroundMirror: project.environmentHelper.enableGroundMirror
             });
-        }
-
-        // Assets
-        editor.assets.clear();
-
-        for (const a in project.assets) {
-            const component = editor.assets.components.find(c => c.id === a);
-            if (!component)
-                continue;
-
-            component.onParseAssets && component.onParseAssets(project.assets[a]);
         }
 
         // Metadatas

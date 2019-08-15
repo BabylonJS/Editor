@@ -67,7 +67,7 @@ export default class RenderTargetTool extends AbstractEditionTool<Light | Render
             const scene = this._renderTarget.getScene();
 
             this._renderTarget.renderList = [];
-            selected.forEach(s => this._renderTarget.renderList.push(scene.getMeshByName(s.name)));
+            selected.forEach(s => this._renderTarget.renderList.push(scene.meshes[s.id]));
         });
     }
 
