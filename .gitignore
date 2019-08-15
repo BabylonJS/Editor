@@ -134,6 +134,8 @@ dist
 vscode-extension/.build
 vscode-extension/.declaration
 vscode-extension/*.vsix
+photoshop-extension/.build
+photoshop-extension/.declaration
 
 # Files
 babylonjs-editor-extensions.d.ts

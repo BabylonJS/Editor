@@ -47,6 +47,7 @@ import Request from './tools/request';
 import ThemeSwitcher, { ThemeType } from './tools/theme';
 
 import VSCodeSocket from './vscode/vscode-socket';
+import PhotoshopSocket from './vscode/photoshop-socket';
 
 export default class Editor implements IUpdatable {
     // Public members
@@ -272,6 +273,8 @@ export default class Editor implements IUpdatable {
 
             // Connect to VSCode extension
             VSCodeSocket.Create(this);
+            // Connect to photoshop extension
+            PhotoshopSocket.Create(this);
         }
         else {
             this.createDefaultScene();

@@ -35,6 +35,7 @@
     "electron",
     "electron-packages",
     "vscode-extension",
+    "photoshop-extension",
     "assets"
   ]
 }

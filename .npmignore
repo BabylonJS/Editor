@@ -18,4 +18,5 @@ web.config
 web.Debug.config
 web.Release.config
 vscode-extension
+photoshop-extension
 favicon.ico
