@@ -274,7 +274,7 @@ export default class Editor implements IUpdatable {
             // Connect to VSCode extension
             VSCodeSocket.Create(this);
             // Connect to photoshop extension
-            PhotoshopSocket.Create(this);
+            PhotoshopSocket.Connect(this);
         }
         else {
             this.createDefaultScene();

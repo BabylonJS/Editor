@@ -6,6 +6,7 @@ import * as KoaStatic from 'koa-static';
 
 import StorageRouter from './routes/storage';
 import ToolsRouter from './routes/tools';
+import PhotoshopRouter from './routes/photoshop';
 
 import VSCodeSocket from './vscode/socket';
 
@@ -44,6 +45,7 @@ export default class WebServer {
         new StorageRouter(this.localApplication);
         new ToolsRouter(this);
         new VSCodeSocket(this);
+        new PhotoshopRouter(this);
     }
 
     /**
