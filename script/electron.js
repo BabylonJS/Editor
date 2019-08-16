@@ -22,8 +22,11 @@ Builder.build({
         nsis: {
             oneClick: false
         },
-        asar: false,
+        asar: true,
         compression: 'store',
+        extraFiles: [
+            'photoshop-extension/**'
+        ],
         files: [
             'src/**',
             'electron/**',
