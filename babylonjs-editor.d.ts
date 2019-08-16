@@ -41,7 +41,7 @@ declare module 'babylonjs-editor' {
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
     import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from 'babylonjs-editor/editor/particles/asset-component';
     import Storage from 'babylonjs-editor/editor/storage/storage';
-    import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
+    import VSCodeSocket from 'babylonjs-editor/editor/extensions/vscode-socket';
     export default Editor;
     export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, IEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, ScenePicker, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
 }
@@ -2200,7 +2200,7 @@ declare module 'babylonjs-editor/editor/storage/storage' {
     }
 }
 
-declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
+declare module 'babylonjs-editor/editor/extensions/vscode-socket' {
     import Editor from 'babylonjs-editor/editor/editor';
     export default class VSCodeSocket {
             static Socket: SocketIOClient.Socket;

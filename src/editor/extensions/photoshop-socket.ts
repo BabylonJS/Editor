@@ -14,7 +14,7 @@ export default class PhotoshopSocket {
      * @param editor the editor reference.
      */
     public static Create (editor: Editor): void {
-        this.Socket = SocketIO(`http://localhost:1336`);
+        this.Socket = SocketIO('http://localhost:1336');
         this.Socket.on('connect', () => {
             // debugger;
         });
@@ -42,6 +42,9 @@ export default class PhotoshopSocket {
 
             // Force render scene
             editor.core.renderScenes = true;
+
+            // Notify
+            editor.core.onModifiedObject.notifyObservers(texture);
         });
     }
 }

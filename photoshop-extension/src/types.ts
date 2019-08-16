@@ -1,3 +1,6 @@
+/**
+ * Augmentation of generator-core.
+ */
 export interface IGenerator {
     onPhotoshopEvent (eventName: string, callback: () => void): void,
     evaluateJSXString<T> (id: string): Promise<T>,

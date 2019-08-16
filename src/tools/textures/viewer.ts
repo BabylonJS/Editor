@@ -14,6 +14,7 @@ import {
     FilesInputStore,
     StandardMaterial
 } from 'babylonjs';
+import { AdvancedDynamicTexture } from 'babylonjs-gui';
 import 'babylonjs-procedural-textures';
 
 import Editor, {
@@ -188,9 +189,14 @@ export default class TextureViewer extends EditorPlugin {
             if (!(o instanceof BaseTexture))
                 return;
 
+            // Name
             const item = this.previewItems.find(pi => pi.texture === o);
             if (item)
                 item.text.innerText = o['url'] || o.name;
+            
+            // Dynamic texture
+            if (this.texture && o instanceof DynamicTexture && this.texture.name === o.name)
+                this.setTexture(o.name, 'dynamic-texture', o);
         });
     }
 
@@ -295,7 +301,7 @@ export default class TextureViewer extends EditorPlugin {
 
         // Add HTML nodes for textures
         for (const tex of scene.textures) {
-            if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes)
+            if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes || tex instanceof AdvancedDynamicTexture)
                 continue;
 
             if (tex instanceof ProceduralTexture) {
@@ -305,6 +311,11 @@ export default class TextureViewer extends EditorPlugin {
 
             if (tex instanceof CubeTexture && tex['_files'] && tex['_files'].length === 6) {
                 await this.addPureCubeTexturePreviewNode(tex);
+                continue;
+            }
+
+            if (tex instanceof DynamicTexture) {
+                promises.push(this.addPreviewNode(null, tex));
                 continue;
             }
             
@@ -359,13 +370,12 @@ export default class TextureViewer extends EditorPlugin {
      */
     protected async addPreviewNode (file: File, originalTexture: BaseTexture): Promise<void> {
         const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds', 'env'];
-        const ext = Tools.GetFileExtension(file.name).toLowerCase();
+        const ext = file ? Tools.GetFileExtension(file.name).toLowerCase() : originalTexture.name;
 
-        const texturesList = $('#TEXTURE-VIEWER-LIST');
-
-        if (availableExtensions.indexOf(ext) === -1)
+        if (file &&availableExtensions.indexOf(ext) === -1)
             return;
 
+        const texturesList = $('#TEXTURE-VIEWER-LIST');
         const parent = Tools.CreateElement<HTMLDivElement>('div', originalTexture.name + 'div', {
             'width': '100px',
             'height': '100px',
@@ -415,23 +425,25 @@ export default class TextureViewer extends EditorPlugin {
             img.addEventListener('dragend', () => this.editor.core.engine.getRenderingCanvas().removeEventListener('drop', dropListener));
         }
         else {
-            const url = URL.createObjectURL(file);
-            const img = Tools.CreateElement<HTMLImageElement>('img', file.name, {
+            const url = originalTexture instanceof DynamicTexture ? originalTexture.serialize().base64String : URL.createObjectURL(file);
+            const filename = file ? file.name : originalTexture.name;
+
+            const img = Tools.CreateElement<HTMLImageElement>('img', filename, {
                 width: '100px',
                 height: '100px'
             });
             img.src = url;
             img.classList.add('ctxmenu');
             img.onload = () => URL.revokeObjectURL(url);
-            img.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
+            img.addEventListener('click', (ev) => this.setTexture(filename, originalTexture instanceof DynamicTexture ? 'dynamic-texture' : ext, originalTexture));
             ContextMenu.ConfigureElement(img, this.getContextMenuItems(originalTexture));
             parent.appendChild(img);
 
             texturesList.append(parent);
 
             // Create texture in editor scene
-            if (!this.editor.core.scene.textures.find(t => t.name === file.name)) {
-                const texture = new Texture('file:' + file.name, this.editor.core.scene);
+            if (!(originalTexture instanceof DynamicTexture) && !this.editor.core.scene.textures.find(t => t.name === filename)) {
+                const texture = new Texture('file:' + filename, this.editor.core.scene);
                 texture.name = texture.url = texture.name.replace('file:', '');
             }
 
@@ -762,6 +774,12 @@ export default class TextureViewer extends EditorPlugin {
             this._lastRenderTargetObserver = null;
         }
 
+        // Remove current texture
+        if (this.texture) {
+            this.texture.dispose();
+            this.texture = null;
+        }
+
         // Switch extension and draw result in the right canvas
         switch (extension) {
             case 'dds':
@@ -804,6 +822,10 @@ export default class TextureViewer extends EditorPlugin {
                 }
                 this.texture = this.material.reflectionTexture = new CubeTexture(originalTexture.name, this.scene, null, false, files, null, null, null, false);
                 this.sphere.setEnabled(true);
+                break;
+            case 'dynamic-texture':
+                this.camera.attachPostProcess(this.postProcess);
+                this.texture = DynamicTexture.Parse(originalTexture.serialize(), this.scene, '');
                 break;
             default:
                 this.camera.attachPostProcess(this.postProcess);

@@ -46,8 +46,8 @@ import UndoRedo from './tools/undo-redo';
 import Request from './tools/request';
 import ThemeSwitcher, { ThemeType } from './tools/theme';
 
-import VSCodeSocket from './vscode/vscode-socket';
-import PhotoshopSocket from './vscode/photoshop-socket';
+import VSCodeSocket from './extensions/vscode-socket';
+import PhotoshopSocket from './extensions/photoshop-socket';
 
 export default class Editor implements IUpdatable {
     // Public members

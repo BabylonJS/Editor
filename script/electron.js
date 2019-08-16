@@ -22,6 +22,7 @@ Builder.build({
         nsis: {
             oneClick: false
         },
+        asar: false,
         compression: 'store',
         files: [
             'src/**',
@@ -43,7 +44,9 @@ Builder.build({
             'redirect.html',
             'preview.html',
             'spectorjs.html',
-            'code-editor-debug.html'
+            'code-editor-debug.html',
+
+            'photoshop-extension/**'
         ]
     }
 });
