@@ -17,7 +17,7 @@ import ProjectImporter from '../project/project-importer';
 import GLTFTools from '../tools/gltf-tools';
 import ObjTools from '../tools/obj-tools';
 
-import VSCodeSocket from '../vscode/vscode-socket';
+import VSCodeSocket from '../extensions/vscode-socket';
 
 export default class SceneLoader {
     // Public members

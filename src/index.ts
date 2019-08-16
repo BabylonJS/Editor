@@ -41,7 +41,7 @@ import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from './editor/pa
 
 import Storage from './editor/storage/storage';
 
-import VSCodeSocket from './editor/vscode/vscode-socket';
+import VSCodeSocket from './editor/extensions/vscode-socket';
 
 export default Editor;
 export {

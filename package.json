@@ -49,8 +49,7 @@
     "electron": "5.0.1",
     "electron-builder": "20.39.0",
     "http-server": "0.11.1",
-    "socket.io": "2.2.0",
-    "generator-core": "3.11.5"
+    "socket.io": "2.2.0"
   },
   "dependencies": {
     "babylonjs": "4.1.0-alpha.15",
@@ -90,6 +89,7 @@
     "systemjs-plugin-css": "~0.1.35",
     "typescript": "~3.0.1",
     "w2ui": "~1.4.3",
-    "yargs": "10.0.3"
+    "yargs": "10.0.3",
+    "generator-core": "3.11.5"
   }
 }

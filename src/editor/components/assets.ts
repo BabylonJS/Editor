@@ -15,7 +15,7 @@ import PrefabAssetComponent from '../prefabs/asset-component';
 import ParticlesAssetComponent from '../particles/asset-component';
 import { Dialog } from 'babylonjs-editor';
 
-import VSCodeSocket from '../vscode/vscode-socket';
+import VSCodeSocket from '../extensions/vscode-socket';
 import { IStringDictionary } from '../typings/typings';
 
 export interface AssetPreviewData {
