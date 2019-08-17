@@ -1,3 +1,6 @@
+import { app } from 'electron';
+import { join } from 'path';
+
 export default class Settings {
     /**
      * The opened file path using the OS file explorer
@@ -6,5 +9,5 @@ export default class Settings {
     /**
      * Defines the process directory.
      */
-    public static readonly ProcessDirectory: string = process.cwd();
+    public static readonly ProcessDirectory: string = (process.env.DEBUG ? app.getAppPath() : join(app.getAppPath(), '..', '..'));
 }
