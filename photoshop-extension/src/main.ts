@@ -8,6 +8,7 @@ import Document from './document';
 export async function init (generator: IGenerator): Promise<void> {
     // Connect server
     await Socket.Connect();
+    Socket.OnClientConnected = () => Document.Init(generator);
 
     // Bind events
     generator.onPhotoshopEvent("imageChanged", () => Document.OnDocumentChanged(generator));

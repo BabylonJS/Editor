@@ -6,6 +6,15 @@ export default class Document {
     private static _PendingModifications: number[] = [];
 
     /**
+     * Inits all documents to send the existing/opened documents.
+     * @param generator the generator reference.
+     */
+    public static async Init (generator: IGenerator): Promise<void> {
+        const ids = await generator.getOpenDocumentIDs();
+        ids.forEach(id => this._SendPixMap(generator, id));
+    }
+
+    /**
      * Called on a photoshop document changed.
      * @param generator the generator reference.
      */

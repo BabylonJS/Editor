@@ -36,10 +36,6 @@ export default class PhotoshopSocket {
 
         // Socket
         this.Socket = SocketIO('http://localhost:1336');
-        this.Socket.on('connect', () => {
-            // debugger;
-        });
-
         this.Socket.on("document", (image) => {
             let texture = <DynamicTexture> editor.core.scene.textures.find(t => t.name === image.name && t instanceof DynamicTexture);
 
