@@ -25,14 +25,16 @@ export default class PhotoshopSocket {
      * @param editor the editor reference.
      */
     public static async Connect (editor: Editor): Promise<PhotoshopExtensionStatus> {
+        if (this.Connected)
+            return;
+        
         // Process
         const hasProcess = await Request.Get<boolean>('/photoshop/hasProcess');
-        if (hasProcess)
-            return PhotoshopExtensionStatus.OPENED;
-        
-        const success = await Request.Get<boolean>('/photoshop/createProcess');
-        if (!success)
-            return PhotoshopExtensionStatus.ERROR;
+        if (!hasProcess) {
+            const success = await Request.Get<boolean>('/photoshop/createProcess');
+            if (!success)
+                return PhotoshopExtensionStatus.ERROR;
+        }
 
         // Socket
         this.Socket = SocketIO('http://localhost:1336');
@@ -51,6 +53,7 @@ export default class PhotoshopSocket {
             // Don't exists or removed, create it
             if (!texture) {
                 texture = new DynamicTexture(image.name, { width: image.width, height: image.height }, editor.core.scene, false);
+                setTimeout(() => editor.core.onAddObject.notifyObservers(texture), 0);
             }
 
             const ctx = texture.getContext();

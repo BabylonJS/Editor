@@ -68,6 +68,7 @@ export default class TextureViewer extends EditorPlugin {
     protected tempPreviewCanvas: HTMLCanvasElement = null;
 
     protected objectModifiedObserver: Observer<any> = null;
+    protected objectAddedObserver: Observer<any> = null;
 
     protected object: any;
     protected property: string;
@@ -106,6 +107,7 @@ export default class TextureViewer extends EditorPlugin {
         // Events
         this.editor.core.onDropFiles.remove(this._dropFilesObserver);
         this.editor.core.onModifiedObject.remove(this.objectModifiedObserver);
+        this.editor.core.onAddObject.remove(this.objectAddedObserver);
 
         // Dispose
         this.postProcess.dispose(this.camera);
@@ -197,6 +199,14 @@ export default class TextureViewer extends EditorPlugin {
             // Dynamic texture
             if (this.texture && o instanceof DynamicTexture && this.texture.name === o.name)
                 this.setTexture(o.name, 'dynamic-texture', o);
+        });
+
+        // Added object
+        this.objectAddedObserver = this.editor.core.onAddObject.add(o => {
+            if (!(o instanceof BaseTexture))
+                return;
+
+            this.addTextureToList(o);
         });
     }
 
@@ -301,38 +311,7 @@ export default class TextureViewer extends EditorPlugin {
 
         // Add HTML nodes for textures
         for (const tex of scene.textures) {
-            if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes || tex instanceof AdvancedDynamicTexture)
-                continue;
-
-            if (tex instanceof ProceduralTexture) {
-                this.addProceduralTexturePreviewNode(tex);
-                continue;
-            }
-
-            if (tex instanceof CubeTexture && tex['_files'] && tex['_files'].length === 6) {
-                await this.addPureCubeTexturePreviewNode(tex);
-                continue;
-            }
-
-            if (tex instanceof DynamicTexture) {
-                promises.push(this.addPreviewNode(null, tex));
-                continue;
-            }
-            
-            let url = tex.name;
-            if (!url)
-                continue;
-
-            if (url.indexOf('file:') === 0)
-                url = url.replace('file:', '').toLowerCase();
-            
-            let file = FilesInputStore.FilesToLoad[url];
-
-            if (!file)
-                file = FilesInputStore.FilesToLoad[url.toLowerCase()];
-            
-            if (file)
-                promises.push(this.addPreviewNode(file, tex));
+            promises.push(this.addTextureToList(tex));
         }
 
         // Add render targets
@@ -360,6 +339,44 @@ export default class TextureViewer extends EditorPlugin {
         
         this._refreshing = false;
         this.toolbar.enable('refresh', true);
+    }
+
+    /**
+     * Adds the given texture to the textures list.
+     * @param tex the texture reference to add to the textures list.
+     */
+    protected async addTextureToList (tex: BaseTexture): Promise<void> {
+        if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes || tex instanceof AdvancedDynamicTexture)
+            return;
+
+        if (tex instanceof ProceduralTexture) {
+            this.addProceduralTexturePreviewNode(tex);
+            return;
+        }
+
+        if (tex instanceof CubeTexture && tex['_files'] && tex['_files'].length === 6) {
+            await this.addPureCubeTexturePreviewNode(tex);
+            return;
+        }
+
+        if (tex instanceof DynamicTexture) {
+            return this.addPreviewNode(null, tex);
+        }
+        
+        let url = tex.name;
+        if (!url)
+            return;
+
+        if (url.indexOf('file:') === 0)
+            url = url.replace('file:', '').toLowerCase();
+        
+        let file = FilesInputStore.FilesToLoad[url];
+
+        if (!file)
+            file = FilesInputStore.FilesToLoad[url.toLowerCase()];
+        
+        if (file)
+            return this.addPreviewNode(file, tex);
     }
 
     /**
