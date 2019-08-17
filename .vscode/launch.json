@@ -78,18 +78,6 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension"
             ]
-        },
-        {
-            "name": "Photoshop Extension",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceRoot}/node_modules/generator-core/app.js",
-            "console": "internalConsole",
-            "args": [
-                "-v",
-                "-f",
-                "${workspaceRoot}/photoshop-extension"
-            ]
         }
     ],
     "compounds": [
@@ -100,10 +88,6 @@
         {
             "name": "Electron & VSCode Extension",
             "configurations": ["Electron With Devtools", "VSCode Extension"]
-        },
-        {
-            "name": "Electron & Photoshop Extension",
-            "configurations": ["Electron With Devtools", "Photoshop Extension"]
         },
         {
             "name": "All",

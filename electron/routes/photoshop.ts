@@ -1,4 +1,5 @@
 import * as KoaRouter from 'koa-router';
+import * as path from 'path';
 
 import Settings from '../settings/settings';
 import WebServer from '../web-server';
@@ -47,7 +48,14 @@ export default class PhotoshopRouter {
             if (!this._generatorProcess)
                 return (ctx.body = false);
 
+            // Close plugin
+            const plugin = this._generatorProcess.getPlugin('babylonjs-editor-photoshop-extension');
+            await plugin.close();
+
+            // Close process
             this._generatorProcess.shutdown();
+            this._generatorProcess = null;
+
             ctx.body = true;
         });
     }
@@ -69,15 +77,21 @@ export default class PhotoshopRouter {
             });
 
             // Start
+            const extensionPath = path.join(Settings.ProcessDirectory, 'photoshop-extension');
+
             try {
                 await this._generatorProcess.start({
                     config: GeneratorConfig.getConfig()
                 });
 
-                this._generatorProcess.loadPlugin(`${Settings.ProcessDirectory}/photoshop-extension`);
+                this._generatorProcess.loadPlugin(extensionPath);
 
                 ctx.body = true;
             } catch (e) {
+                // Close process
+                this._generatorProcess.shutdown();
+                this._generatorProcess = null;
+                
                 ctx.body = false;
             }
         });

@@ -12,3 +12,10 @@ export async function init (generator: IGenerator): Promise<void> {
     // Bind events
     generator.onPhotoshopEvent("imageChanged", () => Document.OnDocumentChanged(generator));
 }
+
+/**
+ * Closes the plugin.
+ */
+export async function close (generator: IGenerator): Promise<void> {
+    await Socket.Close();
+}

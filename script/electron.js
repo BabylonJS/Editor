@@ -25,7 +25,8 @@ Builder.build({
         asar: true,
         compression: 'store',
         extraFiles: [
-            'photoshop-extension/**'
+            'photoshop-extension/**',
+            'photoshop-extension/node_modules/**'
         ],
         files: [
             'src/**',
