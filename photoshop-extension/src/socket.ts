@@ -1,4 +1,5 @@
 import * as io from 'socket.io';
+import './types';
 
 export default class Socket {
     /**
@@ -9,20 +10,21 @@ export default class Socket {
      * Gets wether or not the socket is connected.
      */
     public static Connected: boolean = false;
+    /**
+     * Called on a client is connected.
+     */
+    public static OnClientConnected: () => void = null;
 
     /**
      * Creates the server and connects.
      */
     public static Connect (): Promise<void> {
         this.Server = io(1336);
-        this.Server.on('error', () => {
-            debugger;
-        });
+        this.Server.on('error', () => { debugger; });
 
         return new Promise<void>((resolve) => {
-            this.Server.on('connection', () => {
-                resolve();
-            });
+            this.Server.on('connection', () => setTimeout(() =>this.OnClientConnected && this.OnClientConnected(), 0));
+            this.Server.once('connection', () => resolve());
         });
     }
 
