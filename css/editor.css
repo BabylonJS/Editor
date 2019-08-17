@@ -443,6 +443,16 @@ ICONS
     background: url("svg/logo-babylon.svg");
 }
 
+.w2ui-icon.icon-photoshop-off {
+    background: url("svg/photoshop.svg");
+    filter: grayscale(1);
+}
+
+.w2ui-icon.icon-photoshop-on {
+    background: url("svg/photoshop.svg");
+    filter: none;
+}
+
 .w2ui-icon.w2ui-icon-reload::before {
     background: url("svg/circle-notch.svg") !important;
 }

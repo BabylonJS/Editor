@@ -4,25 +4,35 @@ import * as SocketIO from 'socket.io-client';
 import Editor from "../editor";
 import Request from '../tools/request';
 
+export enum PhotoshopExtensionStatus {
+    OPENED = 0,
+    CLOSED = 1,
+    ERROR = 2
+}
+
 export default class PhotoshopSocket {
     /**
      * The socket client reference.
      */
     public static Socket: SocketIOClient.Socket = null;
+    /**
+     * Gets wether or not the photoshop extension is connected.
+     */
+    public static Connected: boolean = false;
 
     /**
      * Creates the photoshop socket used to get live texturing.
      * @param editor the editor reference.
      */
-    public static async Connect (editor: Editor): Promise<void> {
+    public static async Connect (editor: Editor): Promise<PhotoshopExtensionStatus> {
         // Process
         const hasProcess = await Request.Get<boolean>('/photoshop/hasProcess');
         if (hasProcess)
-            return;
+            return PhotoshopExtensionStatus.OPENED;
         
         const success = await Request.Get<boolean>('/photoshop/createProcess');
         if (!success)
-            return;
+            return PhotoshopExtensionStatus.ERROR;
 
         // Socket
         this.Socket = SocketIO('http://localhost:1336');
@@ -57,12 +67,18 @@ export default class PhotoshopSocket {
             // Notify
             editor.core.onModifiedObject.notifyObservers(texture);
         });
+
+        this.Connected = true;
+        return PhotoshopExtensionStatus.OPENED;
     }
 
     /**
      * Closes the photoshop process.
      */
-    public static async Disconnect (): Promise<void> {
+    public static async Disconnect (): Promise<PhotoshopExtensionStatus> {
         await Request.Get<boolean>('/photoshop/closeProcess');
+        this.Socket.close();
+        this.Connected = false;
+        return PhotoshopExtensionStatus.CLOSED;
     }
 }

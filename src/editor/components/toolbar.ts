@@ -21,6 +21,8 @@ import ProjectExporter from '../project/project-exporter';
 import ProjectSettings from '../project/project-settings';
 import CodeProjectEditorFactory from '../project/project-code-editor';
 
+import PhotoshopSocket, { PhotoshopExtensionStatus } from '../extensions/photoshop-socket';
+
 export default class EditorToolbar {
     // Public members
     public main: Toolbar;
@@ -131,6 +133,9 @@ export default class EditorToolbar {
                     { id: 'plane', img: 'icon-mesh', text: 'Plane Mesh' },
                 ]
             },
+            { type: 'break' },
+            { id: 'connect-photoshop', img: 'icon-photoshop-off', text: 'Connect To Photoshop CC...' }
+
             // TODO: wait for parse and serialize for GUI
             // { type: 'break' },
             // {
@@ -362,6 +367,32 @@ export default class EditorToolbar {
                 break;
             case 'gui:add-image':
                 SceneFactory.AddGuiImage(this.editor);
+                break;
+
+            // Photoshop
+            case 'connect-photoshop':
+                const isChecked = this.main.isChecked('connect-photoshop', true);
+                this.editor.notifyMessage(isChecked ? 'Connecting to Photoshop CC' : 'Disconnecting from Photoshop CC', true);
+
+                this.main.enable('connect-photoshop', false);
+                const status = (isChecked ? (await PhotoshopSocket.Connect(this.editor)) : (await PhotoshopSocket.Disconnect()));
+                this.main.enable('connect-photoshop', true);
+
+                switch (status) {
+                    case PhotoshopExtensionStatus.OPENED:
+                        this.editor.notifyMessage('Connected to Photoshop CC', false, 2000);
+                        this.main.updateItem('connect-photoshop', { text: 'Disconnect From Photoshop CC', img: 'icon-photoshop-on' });
+                        this.main.setChecked('connect-photoshop', isChecked);
+                        break;
+                    case PhotoshopExtensionStatus.CLOSED:
+                        this.editor.notifyMessage('Disconnected from Photoshop CC', false, 2000);
+                        this.main.updateItem('connect-photoshop', { text: 'Connect To Photoshop CC', img: 'icon-photoshop-off' });
+                        this.main.setChecked('connect-photoshop', isChecked);
+                        break;
+                    case PhotoshopExtensionStatus.ERROR:
+                        this.editor.notifyMessage('Failed to connect to Photoshop CC. Ensure that Photoshop CC is opened.', false, 1000);
+                        break;
+                }
                 break;
 
             default: break;

@@ -25,4 +25,11 @@ export default class Socket {
             });
         });
     }
+
+    /**
+     * Closes the server.
+     */
+    public static Close (): Promise<void> {
+        return new Promise<void>((resolve) => this.Server.close(() => resolve()));
+    }
 }

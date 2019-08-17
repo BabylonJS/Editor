@@ -11,6 +11,8 @@
     "license": "Public Domain",
     "readmeFilename": "README.md",
     "scripts": {},
-    "dependencies": {},
+    "dependencies": {
+        "socket.io": "2.2.0"
+    },
     "devDependencies": {}
 }
