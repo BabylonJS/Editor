@@ -227,7 +227,12 @@ export default class SceneLoader {
 
                 try {
                     // Apply project
-                    await ProjectImporter.Import(editor, this._CurrentProject);
+                    const importSuccess = await ProjectImporter.Import(editor, this._CurrentProject);
+                    if (importSuccess.length > 0) {
+                        Window.CreateAlert('Failed to load project: ' + importSuccess.join('\n'), 'Error');
+                        ProjectExporter.ProjectPath = null;
+                        return editor.createDefaultScene(true, true);
+                    }
 
                     // Removed objects
                     SceneManager.ApplyRemovedObjects(scene, this._CurrentProject.removedObjects);

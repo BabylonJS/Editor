@@ -97,7 +97,8 @@ export default class SceneManager {
             delete s.materials;
             delete s.skeletons;
             delete s.multiMaterials;
-            set(m, s.meshes[0]);
+            if (s.meshes)
+                s.meshes.forEach(m2 => set(m, m2));
         });
         scene.skeletons.forEach(s => set(s, s.serialize()));
         scene.materials.forEach(m => set(m, m.serialize()));
