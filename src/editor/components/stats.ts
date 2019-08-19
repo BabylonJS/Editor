@@ -72,7 +72,7 @@ export default class Stats {
                 return;
             
             this.averageFPS.text('Average FPS: ' + engine.performanceMonitor.averageFPS.toFixed(0));
-            this.instantaneousFPS.text('Instantanous FPS: ' + engine.performanceMonitor.instantaneousFPS.toFixed(0));
+            this.instantaneousFPS.text('Instantaneous FPS: ' + engine.performanceMonitor.instantaneousFPS.toFixed(0));
             this.averageFrameTime.text('Average Frame Time: ' + engine.performanceMonitor.averageFrameTime.toFixed(0));
 
             this.texturesCount.text('Textures Count: ' + scene.textures.length);
