@@ -1,4 +1,4 @@
-import { DynamicTexture } from 'babylonjs';
+import { DynamicTexture, Tags } from 'babylonjs';
 import * as SocketIO from 'socket.io-client';
 
 import Editor from "../editor";
@@ -53,6 +53,7 @@ export default class PhotoshopSocket {
             // Don't exists or removed, create it
             if (!texture) {
                 texture = new DynamicTexture(image.name, { width: image.width, height: image.height }, editor.core.scene, false);
+                Tags.AddTagsTo(texture, 'photoshop');
                 setTimeout(() => editor.core.onAddObject.notifyObservers(texture), 0);
             }
 

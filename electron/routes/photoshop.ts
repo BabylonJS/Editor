@@ -70,18 +70,19 @@ export default class PhotoshopRouter {
 
             // Generator
             this._generatorProcess = GeneratorCore.createGenerator(loggerManager);
-            this._generatorProcess.on("close", function () {
-                setTimeout(() => {
-                    this._generatorProcess = null;
-                }, 1000);
-            });
 
             // Start
             const extensionPath = path.join(Settings.ProcessDirectory, 'photoshop-extension');
-
             try {
-                await this._generatorProcess.start({
-                    config: GeneratorConfig.getConfig()
+                await new Promise<void>(async (resolve, reject) => {
+                    // Reject
+                    this._generatorProcess.on("close", () => reject());
+
+                    // Resolve
+                    await this._generatorProcess.start({
+                        config: GeneratorConfig.getConfig()
+                    });
+                    resolve();
                 });
 
                 this._generatorProcess.loadPlugin(extensionPath);
