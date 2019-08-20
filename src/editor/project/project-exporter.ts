@@ -447,6 +447,10 @@ export default class ProjectExporter {
         const result: Export.ProjectTexture[] = [];
 
         scene.textures.forEach(t => {
+            // Ignore photoshop dynamic textures.
+            if (Tags.MatchesQuery(t, 'photoshop'))
+                return;
+            
             const added = Tags.MatchesQuery(t, 'added');
             const modified = Tags.MatchesQuery(t, 'modified');
 
