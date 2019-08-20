@@ -10,8 +10,7 @@ import Editor, {
     Layout, Toolbar, Grid, GridRow,
     Dialog, EditorPlugin, Tools,
     Picker, ProjectRoot,
-    ContextMenu,
-    VSCodeSocket
+    ContextMenu
 } from 'babylonjs-editor';
 
 import GraphTool from './graph-tool';
@@ -167,7 +166,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
  
             this.data.graph = JSON.parse(JSON.stringify(this.graphData.serialize()));
             this.data.variables = this.graphData.variables;
-            VSCodeSocket.RefreshBehaviorGraph(this.data);
         });
         this.graph.canvas.addEventListener('click', () => {
             const canvasPos = this.graph.convertEventToCanvas(event);
@@ -253,38 +251,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Request extension
         this.extension = Extensions.RequestExtension(this.editor.core.scene, 'BehaviorGraphExtension');
         this.editor.assets.addTab(this.extension);
-
-        // Sockets
-        VSCodeSocket.OnUpdateBehaviorGraph = async (d: GraphData) => {
-            const graphs = <GraphData[]> this.editor.core.scene.metadata.behaviorGraphs;
-            const effective = graphs.find(g => g.id === d.id);
-
-            if (!effective) {
-                // Just refresh
-                VSCodeSocket.RefreshBehaviorGraph(graphs);
-                return;
-            }
-            else {
-                // Just update
-                effective.graph = d.graph;
-            }
-
-            if (this.data && this.data.id === d.id) {
-                const scale = this.graph.scale;
-                const offset = this.graph.offset.slice();
-
-                IGraphNode.Loaded = false;
-                this.graphData.configure(this.data.graph);
-                this.graphData.variables = this.data.variables || [];
-                IGraphNode.Loaded = true;
-
-                this.graph.offset = offset;
-                this.graph.scale = scale;
-
-                this.graph.dirty_canvas = true;
-                this.graph.dirty_bgcanvas = true;
-            }
-        };
     }
 
     /**
