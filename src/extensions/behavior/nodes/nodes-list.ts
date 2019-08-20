@@ -7,6 +7,7 @@ import { registerAllPointerNodes } from './list/pointer';
 import { registerAllKeyboardNodes } from './list/keyboard';
 import { registerAllAbstractMeshNodes } from './list/abstract-mesh';
 import { registerAllAnimationNodes } from './list/animation';
+import { registerAllSoundNodes } from './list/sound';
 
 /**
  * Registers all the available nodes.
@@ -22,4 +23,5 @@ export function registerAllNodes (object?: any): void {
     registerAllKeyboardNodes(object);
     registerAllAbstractMeshNodes(object);
     registerAllAnimationNodes(object);
+    registerAllSoundNodes(object);
 }
