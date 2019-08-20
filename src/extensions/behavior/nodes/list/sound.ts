@@ -22,7 +22,7 @@ export function registerAllSoundNodes (object?: any): void {
         { name: 'Sound Name', type: 'string' }
     ], properties: [
         { name: 'Sound Name', type: 'string', defaultValue: 'None' }
-    ] }, object);
+    ], drawBackground: (node) => node.properties['Sound Name'] }, object);
 
     registerNode({ name: 'Pause Sound', description: 'Pauses the given sound', path: 'sound/pause', ctor: Object, functionRef: (node, target, scene) => {
         const sound = getSound(node, scene);
@@ -33,7 +33,7 @@ export function registerAllSoundNodes (object?: any): void {
         { name: 'Sound Name', type: 'string' }
     ], properties: [
         { name: 'Sound Name', type: 'string', defaultValue: 'None' }
-    ] }, object);
+    ], drawBackground: (node) => node.properties['Sound Name'] }, object);
 
     registerNode({ name: 'Stop Sound', description: 'Stops the given sound', path: 'sound/stop', ctor: Object, functionRef: (node, target, scene) => {
         const sound = getSound(node, scene);
@@ -44,5 +44,5 @@ export function registerAllSoundNodes (object?: any): void {
         { name: 'Sound Name', type: 'string' }
     ], properties: [
         { name: 'Sound Name', type: 'string', defaultValue: 'None' }
-    ] }, object);
+    ], drawBackground: (node) => node.properties['Sound Name'] }, object);
 }
