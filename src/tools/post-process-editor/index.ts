@@ -174,12 +174,19 @@ export default class PostProcessEditor extends EditorPlugin {
                 experimentalDecorators: true,
             }) : null;
 
+            let needsUpdate = true;
+
             if (!effective) {
                 // Just refresh
                 VSCodeSocket.RefreshPostProcess(this.datas);
                 return;
             }
             else {
+                debugger;
+                needsUpdate = (effective.code && effective.code !== d.code) ||
+                              (effective.pixel && effective.pixel !== d.pixel) ||
+                              (effective.config && effective.config !== d.config);
+
                 // Just update
                 d.code && (effective.code = d.code);
                 d.pixel && (effective.pixel = d.pixel);
@@ -187,7 +194,7 @@ export default class PostProcessEditor extends EditorPlugin {
                 compiledCode && (effective.compiledCode = compiledCode);
             }
 
-            if (this.data && this.data.id === d.id) {
+            if (needsUpdate && this.data && this.data.id === d.id) {
                 this.selectPostProcess(this.datas.indexOf(this.data));
             }
         };
@@ -339,7 +346,7 @@ export default class PostProcessEditor extends EditorPlugin {
         }
 
         // Update socket
-        VSCodeSocket.RefreshMaterial(this.datas);
+        VSCodeSocket.RefreshPostProcess(this.datas);
     }
 
     /**

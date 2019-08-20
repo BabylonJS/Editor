@@ -17,7 +17,6 @@ export default class TempFileSystem {
         Sockets.OnDisconnect = () => this.clear();
         Sockets.OnGotProject = p => this._onGotProject(p);
         Sockets.OnGotBehaviorCodes = s => this._onGotBehaviorScripts(s);
-        Sockets.OnGotMaterialCodes = m => this._onGotMaterials(m);
         Sockets.OnGotPostProcessCodes = p => this._onGotPostProcesses(p);
     }
 
@@ -28,7 +27,6 @@ export default class TempFileSystem {
         // Structure
         await this._createDirectory('');
         await this._createDirectory('behaviors');
-        await this._createDirectory('materials');
         await this._createDirectory('post-processes');
     }
 
@@ -37,7 +35,6 @@ export default class TempFileSystem {
      */
     public async clear (): Promise<void> {
         await this._removeDirectory('behaviors');
-        await this._removeDirectory('materials');
         await this._removeDirectory('post-processes');
     }
 
@@ -129,64 +126,6 @@ export default class TempFileSystem {
         // Write libs
         const libs = Object.keys(this._libs).map(k => this._libs[k]).join('\n');
         await fs.writeFile(join(Utils.TempFolder, 'typings', 'behaviors.d.ts'), Buffer.from(libs));
-    }
-
-    /**
-     * On got materials
-     */
-    private async _onGotMaterials (materials: any | any[]): Promise<void> {
-        // Clear
-        Array.isArray(materials) && await this._clearDirectory('materials');
-        // Transform to array
-        materials = Array.isArray(materials) ? materials : [materials];
-
-        // Write scripts
-        materials.forEach(async s => {
-            // Create directory
-            const root = join(Utils.TempFolder, 'materials');
-            const matRoot = join(root, s.name);
-            await this._createDirectory('materials/' + s.name);
-
-            // Code
-            const code = join(matRoot, s.name + '.ts');
-            await Watcher.WriteAndWatchFile(code, Buffer.from(s.code), async () => {
-                Sockets.UpdateMaterialCode({
-                    id: s.id,
-                    name: s.name,
-                    code: await fs.readFile(code, { encoding: 'utf-8' })
-                });
-            });
-
-            // Pixel
-            const pixel = join(matRoot, s.name + '.fragment.fx');
-            await Watcher.WriteAndWatchFile(pixel, Buffer.from(s.pixel), async () => {
-                Sockets.UpdateMaterialCode({
-                    id: s.id,
-                    name: s.name,
-                    pixel: await fs.readFile(pixel, { encoding: 'utf-8' })
-                });
-            });
-
-            // Vertex
-            const vertex = join(matRoot, s.name + '.vertex.fx');
-            await Watcher.WriteAndWatchFile(vertex, Buffer.from(s.vertex), async () => {
-                Sockets.UpdateMaterialCode({
-                    id: s.id,
-                    name: s.name,
-                    vertex: await fs.readFile(vertex, { encoding: 'utf-8' })
-                });
-            });
-
-            // Config
-            const config = join(matRoot, s.name + '.config.json');
-            await Watcher.WriteAndWatchFile(config, Buffer.from(s.config), async () => {
-                Sockets.UpdateMaterialCode({
-                    id: s.id,
-                    name: s.name,
-                    config: await fs.readFile(config, { encoding: 'utf-8' })
-                });
-            });
-        });
     }
 
     /**

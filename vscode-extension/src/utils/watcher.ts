@@ -1,10 +1,9 @@
-import { writeFile } from 'fs-extra';
+import { writeFile, watch, FSWatcher } from 'fs-extra';
 import * as path from 'path';
-import * as watchr from 'watchr';
 
 export default class Watcher {
     // Public members
-    public static WatchedFiles: { [name: string]: any } = { };
+    public static WatchedFiles: { [name: string]: FSWatcher } = { };
 
     /**
      * Watches the given file
@@ -17,10 +16,22 @@ export default class Watcher {
         if (this.WatchedFiles[filename])
             this.WatchedFiles[filename].close();
         
-        const watcher = this.WatchedFiles[filename] = watchr.create(filename);
-        watcher.setConfig({ persistent: true });
-        watcher.on('change', (path, stats) => callback());
-        watcher.watch((err) => { err ? console.log('Error for ', filename, 'with error ', err) : void 0 });
+        const watcher = this.WatchedFiles[filename] = watch(filename, {
+            persistent: true,
+            encoding: 'utf8'
+        });
+
+        // Watch!
+        let timeoutId = null;
+        watcher.on('change', () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            timeoutId = setTimeout(() => {
+                callback();
+            }, 500);
+        });
     }
 
     /**

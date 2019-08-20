@@ -1,5 +1,4 @@
 import * as SocketIO from 'socket.io-client';
-import { SceneSerializer, Node, Scene } from 'babylonjs';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
@@ -8,7 +7,6 @@ export default class VSCodeSocket {
     // Public members
     public static Socket: SocketIOClient.Socket = null;
     public static OnUpdateBehaviorCode: (s: any) => void;
-    public static OnUpdateMaterialCode: (s: any) => void;
     public static OnUpdatePostProcessCode: (s: any) => void;
 
     // Private members
@@ -32,7 +30,6 @@ export default class VSCodeSocket {
             return;
         
         this.Socket = SocketIO(`http://localhost:1337/vscode`);
-        // this.Socket.on('connect', () => this.RefreshProject());
         this.Socket.on('connection', () => this.RefreshProject());
 
         // Common
@@ -41,7 +38,6 @@ export default class VSCodeSocket {
             this.Refresh();
         });
         this.Socket.on('update-behavior-code', d => this.OnUpdateBehaviorCode && this.OnUpdateBehaviorCode(d));
-        this.Socket.on('update-material-code', d => this.OnUpdateMaterialCode && this.OnUpdateMaterialCode(d));
         this.Socket.on('update-post-process-code', d => this.OnUpdatePostProcessCode && this.OnUpdatePostProcessCode(d));
     }
 
@@ -58,7 +54,6 @@ export default class VSCodeSocket {
             return;
         
         this.Socket.emit('behavior-codes', metadatas.behaviorScripts || []);
-        this.Socket.emit('material-codes', metadatas.MaterialCreator || []);
         this.Socket.emit('post-process-codes', metadatas.PostProcessCreator || []);
     }
 
@@ -83,14 +78,6 @@ export default class VSCodeSocket {
      */
     public static RefreshBehavior (data: any | any[]): void {
         this.Socket && this.Socket.emit('behavior-codes', data);
-    }
-
-    /**
-     * Refrehses the given materials (single or array)
-     * @param data: the materials datas to update (single or array)
-     */
-    public static RefreshMaterial (data: any | any[]): void {
-        this.Socket && this.Socket.emit('material-codes', data);
     }
 
     /**

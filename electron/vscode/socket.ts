@@ -59,16 +59,7 @@ export default class VSCodeSocket {
         this.editorSocket.on('behavior-codes', (c) => this.vsCodeSocket.broadcast('behavior-codes', c.data));
         this.vsCodeSocket.on('update-behavior-code', (s) => this.editorSocket.broadcast('update-behavior-code', s.data));
 
-        this.editorSocket.on('material-codes', (c) => this.vsCodeSocket.broadcast('material-codes', c.data));
-        this.vsCodeSocket.on('update-material-code', (c) => this.editorSocket.broadcast('update-material-code', c.data));
-
         this.editorSocket.on('post-process-codes', (c) => this.vsCodeSocket.broadcast('post-process-codes', c.data));
         this.vsCodeSocket.on('update-post-process-code', (c) => this.editorSocket.broadcast('update-post-process-code', c.data));
-
-        this.editorSocket.on('behavior-graphs', (c) => this.vsCodeSocket.broadcast('behavior-graphs', c.data));
-        this.vsCodeSocket.on('update-behavior-graph', (c) => this.editorSocket.broadcast('update-behavior-graph', c.data));
-        
-        this.editorSocket.on('scene-infos', (i) => this.vsCodeSocket.broadcast('scene-infos', i.data));
-        this.editorSocket.on('set-selected-object', (i) => this.vsCodeSocket.broadcast('set-selected-object', i.data));
     }
 }
