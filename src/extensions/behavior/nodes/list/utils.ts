@@ -152,5 +152,5 @@ export function registerAllUtilsNodes (object?: any): void {
     ], properties: [
         { name: 'Target Path', type: 'string', defaultValue: 'Self' },
         { name: 'Method Name', type: 'string', defaultValue: '' }
-    ] }, object);
+    ], drawBackground: (node) => `${node.properties['Target Path']}.${node.properties['Method Name']}` }, object);
 }

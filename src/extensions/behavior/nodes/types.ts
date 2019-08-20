@@ -266,7 +266,7 @@ export abstract class IGraphNode {
         switch (node.mode) {
             case LiteGraph.ALWAYS: node.color = '#333'; node.bgColor = '#AAA'; break;
             case LiteGraph.ON_EVENT: node.color = '#55A'; node.bgColor = '#44A'; break;
-            case LiteGraph.ON_TRIGGER: node.color = '#5A5'; node.bgColor = '#4A4'; break;
+            case LiteGraph.ON_TRIGGER: node.color = '#151'; node.bgColor = '#4A4'; break;
             case LiteGraph.NEVER: node.color = '#A55'; node.bgColor = '#A44'; break;
             default: break;
         }
