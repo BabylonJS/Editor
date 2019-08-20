@@ -94,6 +94,11 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                 continue;
             }
 
+            if (property.name === 'Sound Name') {
+                this._setupSoundName(property.name);
+                continue;
+            }
+
             // Variable
             if (property.name === 'Variable') {
                 const variables = node.graph.variables.map(v => v.name);
@@ -168,6 +173,14 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
     private _setupGroup (node: any): void {
         this.tool.add(node, 'title').name('Title').onChange(_ => node.graph.setDirtyCanvas(true, true));
         this.tool.addHexColor(node, 'color').onChange(_ => node.graph.setDirtyCanvas(true, true));
+    }
+
+    /**
+     * Setups the sound name
+     */
+    private _setupSoundName (property: string): void {
+        const sounds: string[] = ['None'].concat(this.editor.core.scene.mainSoundTrack.soundCollection.map(s => s.name));
+        this.tool.add(this.object.properties, property, sounds).name('Sound Name');
     }
 
     /**
