@@ -4,7 +4,7 @@ import {
     ParticleSystem,
     Vector3, Tags,
     FilesInput, FilesInputStore,
-    ArcRotateCamera
+    ArcRotateCamera, Sound
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
@@ -750,8 +750,11 @@ export default class Editor implements IUpdatable {
                 let globalPosition = node.globalPosition || (node.getAbsolutePosition && node.getAbsolutePosition());
                 if (!globalPosition && node instanceof ParticleSystem)
                     globalPosition = (node.emitter instanceof Vector3 ? node.emitter.clone() : node.emitter.getAbsolutePosition());
+                if (!globalPosition && node instanceof Sound)
+                    globalPosition = node['_position'];
                 
-                ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), globalPosition, this.camera);
+                if (globalPosition && globalPosition instanceof Vector3)
+                    ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), globalPosition, this.camera);
             }
         });
 
