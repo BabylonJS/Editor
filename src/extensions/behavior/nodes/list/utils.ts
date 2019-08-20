@@ -9,6 +9,9 @@ import Extensions from '../../../extensions';
  * @param object the object reference being customized using the graph editor.
  */
 export function registerAllUtilsNodes (object?: any): void {
+    /**
+     * Utils
+     */
     registerNode({ name: 'Bypass Type', description: 'Removes the type of the input', path: 'utils/bypass', ctor: Object, inputs: [
         { name: 'In', type: undefined }
     ], outputs: [
@@ -32,6 +35,26 @@ export function registerAllUtilsNodes (object?: any): void {
         { name: 'Message', type: 'string', defaultValue: 'My Message' },
         { name: 'Level', type: 'string', defaultValue: 'Info', enums: ['Info', 'Warn', 'Error'] }
     ], drawBackground: (node) => `${node.properties['Level']}: ${node.properties['Message']}, ${(node.getInputData(1) || '').toString()}` }, object);
+
+    registerNode({ name: 'Set Timeout', description: 'Triggers the next node(s) after x milliseconds', path: 'utils/settimeout', ctor: Object, functionRef: (node) => {
+        const ms = node.getInputData<number>(1) || node.properties['Time (ms)'];
+        node.setOutputData(1, setTimeout(() => node.triggerSlot(0), ms));
+    }, inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Time (ms)', type: 'number' }
+    ], properties: [
+        { name: 'Time (ms)', type: 'number', defaultValue: 1000 }
+    ], outputs: [
+        { name: 'Time out', type: LiteGraph.EVENT },
+        { name: 'Id', type: 'number' }
+    ] }, object);
+
+    registerNode({ name: 'Clear Timeout', description: 'Clears the given timeout Id', path: 'utils/cleartimeout', ctor: Object, functionRef: (node) => {
+        clearTimeout(node.getInputData<number>(1));
+    }, inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Id', type: 'number' }  
+    ] }, object);
 
     /**
      * Vectors to XY(Z)(W)
