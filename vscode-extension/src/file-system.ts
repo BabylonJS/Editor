@@ -69,14 +69,12 @@ export default class CustomFileSystem implements FileSystemProvider {
     constructor () {
         // Create folders
         this.createDirectory(Uri.parse('babylonjs-editor:/behaviors'));
-        this.createDirectory(Uri.parse('babylonjs-editor:/materials'));
         this.createDirectory(Uri.parse('babylonjs-editor:/post-processes'));
         this.createDirectory(Uri.parse('babylonjs-editor:/typings'));
 
         // Register events
         Sockets.OnDisconnect = (() => {
             this._clearDirectory('behaviors');
-            this._clearDirectory('materials');
             this._clearDirectory('post-processes');
             this._clearDirectory('typings');
         });
@@ -113,25 +111,6 @@ export default class CustomFileSystem implements FileSystemProvider {
             const libs = Object.keys(this._libs).map(k => this._libs[k]).join('\n');
             const libsUri = Uri.parse('babylonjs-editor:/behaviors.d.ts');
             this.writeFile(libsUri, Buffer.from(libs), { create: true, overwrite: true }, uuid());
-        });
-
-        Sockets.OnGotMaterialCodes = (scripts => {
-            // Clear
-            Array.isArray(scripts) && this._clearDirectory('materials');
-            // Transform to array
-            scripts = Array.isArray(scripts) ? scripts : [scripts];
-
-            // Write scripts
-            scripts.forEach(s => {
-                const root = 'babylonjs-editor:/materials/';
-                // Create folder
-                this.createDirectory(Uri.parse(root + s.name));
-
-                this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.ts`), Buffer.from(s.code), { create: true, overwrite: true }, s.id);
-                this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.fragment.fx`), Buffer.from(s.pixel), { create: true, overwrite: true }, s.id);
-                this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.vertex.fx`), Buffer.from(s.vertex), { create: true, overwrite: true }, s.id);
-                this.writeFile(Uri.parse(`${root}${s.name}/config.json`), Buffer.from(s.config), { create: true, overwrite: true }, s.id);
-            });
         });
 
         Sockets.OnGotPostProcessCodes = (scripts => {
@@ -227,7 +206,6 @@ export default class CustomFileSystem implements FileSystemProvider {
             };
             switch (root.name || parent.name) {
                 case 'behaviors': Sockets.UpdateBehaviorCode(result); break;
-                case 'materials': Sockets.UpdateMaterialCode(result); break;
                 case 'post-processes': Sockets.UpdatePostProcessCode(result); break;
                 default: throw FileSystemError.FileNotFound(uri);
             }
