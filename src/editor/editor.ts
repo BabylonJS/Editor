@@ -717,8 +717,14 @@ export default class Editor implements IUpdatable {
         });
 
         // Focus / Blur
-        window.addEventListener('blur', () => this.core.renderScenes = false);
-        window.addEventListener('focus', () => this.core.renderScenes = true);
+        window.addEventListener('blur', () => {
+            this.core.renderScenes = false;
+            this.core.scene.mainSoundTrack.setVolume(0);
+        });
+        window.addEventListener('focus', () => {
+            this.core.renderScenes = true;
+            this.core.scene.mainSoundTrack.setVolume(1);
+        });
 
         this.core.engine.getRenderingCanvas().addEventListener('focus', () => this._canvasFocused = true);
         this.core.engine.getRenderingCanvas().addEventListener('blur', () => this._canvasFocused = false);
