@@ -2218,7 +2218,6 @@ declare module 'babylonjs-editor/editor/extensions/vscode-socket' {
             static OnUpdateBehaviorCode: (s: any) => void;
             static OnUpdateMaterialCode: (s: any) => void;
             static OnUpdatePostProcessCode: (s: any) => void;
-            static OnUpdateBehaviorGraph: (g: any) => void;
             /**
                 * Creates a scene preview listener
                 */
@@ -2247,20 +2246,6 @@ declare module 'babylonjs-editor/editor/extensions/vscode-socket' {
                 * @param data: the post-processes datas to update (single or array)
                 */
             static RefreshPostProcess(data: any | any[]): void;
-            /**
-                * Refreshes the given graphs (single or array)
-                * @param data: the graphs datas to update (single or array)
-                */
-            static RefreshBehaviorGraph(data: any | any[]): void;
-            /**
-                * Refreshes the scene infos
-                */
-            static RefreshSceneInfos(): void;
-            /**
-                * Refreshes the selected object in the editor
-                * @param object the object being selected in the editor
-                */
-            static RefreshSelectedObject(object: any): void;
     }
 }
 

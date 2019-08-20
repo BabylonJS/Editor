@@ -14,7 +14,7 @@
     "activationEvents": [
         "*"
     ],
-    "main": "./.build/src/extension.js",
+    "main": "./dist/extension.js",
     "icon": "assets/logo.png",
     "contributes": {
         "viewsContainers": {
@@ -38,8 +38,8 @@
     "scripts": {
         "postinstall": "node ./node_modules/vscode/bin/install",
         "compile": "tsc -p .",
-        "watch": "tsc -watch -p .",
-        "build": "npm run compile && node ./scripts/bundle.js",
+        "watch": "webpack --mode development --watch",
+        "build": "webpack --mode development",
         "vscode:prepublish": "npm run build",
         "package": "vsce package"
     },
@@ -65,12 +65,15 @@
         "watchr": "4.1.0"
     },
     "devDependencies": {
+        "@types/javascript-astar": "0.0.29",
         "@types/node": "^8.10.25",
         "@types/socket.io": "2.1.2",
-        "@types/javascript-astar": "0.0.29",
         "@types/w2ui": "~1.4.32",
+        "ts-loader": "6.0.4",
         "typescript": "~3.0.1",
+        "vsce": "1.66.0",
         "vscode": "1.1.33",
-        "vsce": "1.66.0"
+        "webpack": "4.39.2",
+        "webpack-cli": "^3.3.7"
     }
 }

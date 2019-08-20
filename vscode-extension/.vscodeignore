@@ -1,4 +1,6 @@
 src
+.build
 .declaration
 assets/**/*.ts
 scripts
+node_modules

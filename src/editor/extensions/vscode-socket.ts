@@ -11,8 +11,6 @@ export default class VSCodeSocket {
     public static OnUpdateMaterialCode: (s: any) => void;
     public static OnUpdatePostProcessCode: (s: any) => void;
 
-    public static OnUpdateBehaviorGraph: (g: any) => void;
-
     // Private members
     private static _Editor: Editor = null;
     
@@ -45,12 +43,6 @@ export default class VSCodeSocket {
         this.Socket.on('update-behavior-code', d => this.OnUpdateBehaviorCode && this.OnUpdateBehaviorCode(d));
         this.Socket.on('update-material-code', d => this.OnUpdateMaterialCode && this.OnUpdateMaterialCode(d));
         this.Socket.on('update-post-process-code', d => this.OnUpdatePostProcessCode && this.OnUpdatePostProcessCode(d));
-        this.Socket.on('update-behavior-graph', d => this.OnUpdateBehaviorGraph && this.OnUpdateBehaviorGraph(d));
-
-        // Events
-        editor.core.onSelectObject.add(o => this.RefreshSelectedObject(o));
-        editor.core.onAddObject.add(o => this.RefreshSceneInfos());
-        editor.core.onRemoveObject.add(o => this.RefreshSceneInfos());
     }
 
     /**
@@ -68,10 +60,6 @@ export default class VSCodeSocket {
         this.Socket.emit('behavior-codes', metadatas.behaviorScripts || []);
         this.Socket.emit('material-codes', metadatas.MaterialCreator || []);
         this.Socket.emit('post-process-codes', metadatas.PostProcessCreator || []);
-        this.Socket.emit('behavior-graphs', metadatas.behaviorGraphs || []);
-        
-        this.RefreshSceneInfos();
-        this.RefreshSelectedObject(this._Editor.core.currentSelectedObject);
     }
 
     /**
@@ -111,41 +99,5 @@ export default class VSCodeSocket {
      */
     public static RefreshPostProcess (data: any | any[]): void {
         this.Socket && this.Socket.emit('post-process-codes', data);
-    }
-
-    /**
-     * Refreshes the given graphs (single or array)
-     * @param data: the graphs datas to update (single or array)
-     */
-    public static RefreshBehaviorGraph (data: any | any[]): void {
-        this.Socket && this.Socket.emit('behavior-graphs', data);
-    }
-
-    /**
-     * Refreshes the scene infos
-     */
-    public static RefreshSceneInfos (): void {
-        if (!this.Socket)
-            return;
-        
-        const scene = SceneSerializer.Serialize(this._Editor.core.scene);
-        this.Socket.emit('scene-infos', scene);
-    }
-
-    /**
-     * Refreshes the selected object in the editor
-     * @param object the object being selected in the editor
-     */
-    public static RefreshSelectedObject (object: any): void {
-        if (!this.Socket)
-            return;
-        
-        if (object instanceof Scene) {
-            this.Socket.emit('set-selected-object', 'Scene');
-            return;
-        }
-
-        if (object instanceof Node)
-            this.Socket.emit('set-selected-object', object.name);
     }
 }
