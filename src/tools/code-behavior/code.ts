@@ -1,7 +1,7 @@
 import {
     Node, GroundMesh, InstancedMesh,
     DirectionalLight, HemisphericLight,
-    Scene,
+    Scene, Observer,
     Tools as BabylonTools,
     IParticleSystem
 } from 'babylonjs';
@@ -28,7 +28,9 @@ import Extensions from '../../extensions/extensions';
 import CodeExtension, { BehaviorMetadata, BehaviorCode, BehaviorNodeMetadata } from '../../extensions/behavior/code';
 
 import '../../extensions/behavior/code';
+
 import Helpers from '../helpers';
+import BehaviorVSCode from './vscode';
 
 export interface CodeGrid extends GridRow {
     name: string;
@@ -62,6 +64,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     // Private members
     private _timeoutId: number = -1;
+    private _vscodeConnectionObserver: Observer<any> = null;
 
     // Static members
     public static CodeProjectEditor: CodeProjectEditor = null;
@@ -94,6 +97,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Events
         this.editor.core.onSelectObject.removeCallback(this.onSelectObject);
         this.editor.core.onSelectAsset.removeCallback(this.onSelectAsset);
+
+        // VSCode
+        BehaviorVSCode.OnUpdate = null;
+        VSCodeSocket.OnConnectionObserver.remove(this._vscodeConnectionObserver);
 
         await super.close();
     }
@@ -182,39 +189,20 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this._importFrom([this._getSerializedMetadatasFile()]);
 
         // Opened in editor?
-        if (BehaviorCodeEditor.CodeProjectEditor || !this.node || !this.asset)
-            this.layout.lockPanel('main');
+        if (BehaviorCodeEditor.CodeProjectEditor || VSCodeSocket.IsConnected || !this.node || !this.asset)
+            this.layout.lockPanel('main', VSCodeSocket.IsConnected ? Helpers.VSCodeMessage : '');
 
         // Sockets
-        VSCodeSocket.OnUpdateBehaviorCode = async (d: BehaviorCode) => {
-            // Get effective script modified in the vscode editor
-            const scripts = <BehaviorCode[]> this.editor.core.scene.metadata.behaviorScripts;
-            const effective = <BehaviorCode> scripts.find(s => s.id === d.id);
-            const compiledCode = await CodeEditor.TranspileTypeScript(d.code, d.name.replace(/ /, ''), {
-                module: 'cjs',
-                target: 'es5',
-                experimentalDecorators: true,
-            });
-
-            let needsUpdate = true;
-
-            if (!effective) {
-                // Just refresh
-                VSCodeSocket.RefreshBehavior(scripts);
+        BehaviorVSCode.OnUpdate = ((d, needsUpdate) => {
+            if (!this.data && !this.asset)
                 return;
-            }
-            else {
-                needsUpdate = effective.code !== d.code;
-                
-                // Just update
-                effective.code = d.code;
-                effective.compiledCode = compiledCode;
-            }
-
-            if (needsUpdate && (this.data && this.data.id === d.id || this.asset && this.asset.id === d.id)) {
+            
+            if (needsUpdate && (this.data && this.data.id === d.id || this.asset && this.asset.id === d.id))
                 this.code.setValue(d.code);
-            }
-        };
+        });
+        this._vscodeConnectionObserver = VSCodeSocket.OnConnectionObserver.add((connected: boolean) => {
+            connected ? this.layout.lockPanel('main', Helpers.VSCodeMessage) : this.layout.unlockPanel('main');
+        });
     }
 
     /**
@@ -238,8 +226,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this._importFrom([this._getSerializedMetadatasFile()]);
 
         // Lock?
-        if (BehaviorCodeEditor.CodeProjectEditor)
-            this.layout.lockPanel('main');
+        if (BehaviorCodeEditor.CodeProjectEditor || VSCodeSocket.IsConnected)
+            this.layout.lockPanel('main', VSCodeSocket.IsConnected ? Helpers.VSCodeMessage : '');
     }
 
     /**
@@ -303,7 +291,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
             this.layout.unlockPanel('left');
 
-            if (!BehaviorCodeEditor.CodeProjectEditor)
+            if (!BehaviorCodeEditor.CodeProjectEditor && !VSCodeSocket.IsConnected)
                 this.layout.unlockPanel('main');
         }
     }
@@ -315,7 +303,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected selectObject (node: Node | Scene | IParticleSystem): void {
         if (!node) {
             this.layout.lockPanel('left', 'No object selected');
-            this.layout.lockPanel('main');
+            this.layout.lockPanel('main', VSCodeSocket.IsConnected ? Helpers.VSCodeMessage : '');
             return;
         }
         
@@ -374,8 +362,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.layout.unlockPanel('left');
 
         if (this.datas.metadatas.length === 0) {
-            this.layout.lockPanel('main');
-        } else if (!BehaviorCodeEditor.CodeProjectEditor) {
+            this.layout.lockPanel('main', VSCodeSocket.IsConnected ? Helpers.VSCodeMessage : '');
+        } else if (!BehaviorCodeEditor.CodeProjectEditor && !VSCodeSocket.IsConnected) {
             this.layout.unlockPanel('main');
         }
     }
@@ -458,7 +446,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.code.focus();
 
         // Unlock
-        if (!BehaviorCodeEditor.CodeProjectEditor)
+        if (!BehaviorCodeEditor.CodeProjectEditor && !VSCodeSocket.IsConnected)
             this.layout.unlockPanel('main');
 
         // Update assets
@@ -566,12 +554,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             name: 'Code Editor - Behaviors',
             scripts: this.editor.core.scene.metadata.behaviorScripts,
             onOpened: () => {
-                this.layout.lockPanel('main');
+                this.layout.lockPanel('main', VSCodeSocket.IsConnected ? Helpers.VSCodeMessage : '');
             },
             onClose: () => {
                 BehaviorCodeEditor.CodeProjectEditor = null;
 
-                if (this.node || this.asset)
+                if ((this.node || this.asset) && !VSCodeSocket.IsConnected)
                     this.layout.unlockPanel('main');
             }
         });

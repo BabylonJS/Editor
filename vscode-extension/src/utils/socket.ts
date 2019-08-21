@@ -56,26 +56,10 @@ export default class Sockets {
     }
 
     /**
-     * Updates the given material code
-     * @param s the script to update
-     */
-    public static UpdateMaterialCode (s: any): void {
-        this.Socket.emit('update-material-code', s);
-    }
-
-    /**
      * Updates the given post-process code
      * @param s the script to update
      */
     public static UpdatePostProcessCode (s: any): void {
         this.Socket.emit('update-post-process-code', s);
-    }
-
-    /**
-     * Updates the given behavior graph
-     * @param g the graph to update
-     */
-    public static UpdateBehaviorGraph (g: any): void {
-        this.Socket.emit('update-behavior-graph', g);
     }
 }

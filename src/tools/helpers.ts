@@ -20,6 +20,11 @@ export interface Preview {
 
 export default class Helpers {
     /**
+     * Defines the message to draw when connected to VSCode.
+     */
+    public static VSCodeMessage: string = 'Connected to VSCode.<br/>Deactivate the VSCode extension to edit.';
+
+    /**
      * Updates the typings for monaco basing on custom behavior scripts (not attached scripts)
      * @param editor the editor reference
      * @param editedData the data being updated to avoid typings duplication
