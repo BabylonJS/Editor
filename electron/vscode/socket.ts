@@ -10,8 +10,7 @@ export default class VSCodeSocket {
     public vsCodeSocket: IO = null;
 
     // Private members
-    private _editorConnected: boolean = false;
-    private _vsCodeConnected: boolean = false;
+    private _vscodeConnected: boolean = false;
 
     /**
      * Constructor
@@ -40,11 +39,17 @@ export default class VSCodeSocket {
         this.listen();
         
         // Manage state
-        this.editorSocket.on('disconnect', () => this._editorConnected = false);
-        this.editorSocket.on('connection', () => this._editorConnected = true);
+        this.editorSocket.on('disconnect', () => this._vscodeConnected && this.editorSocket.broadcast('vscode-disconnected', false));
+        this.editorSocket.on('connection', () => this.vsCodeSocket && this.editorSocket.broadcast('vscode-connected', true));
 
-        this.vsCodeSocket.on('disconnect', () => this._vsCodeConnected = false);
-        this.vsCodeSocket.on('connection', () => this._vsCodeConnected = true);
+        this.vsCodeSocket.on('disconnect', () => {
+            this._vscodeConnected = false;
+            this.editorSocket.broadcast('vscode-disconnected', false);
+        });
+        this.vsCodeSocket.on('connection', () => {
+            this._vscodeConnected = true;
+            this.editorSocket.broadcast('vscode-connected', true);
+        });
     }
 
     /**

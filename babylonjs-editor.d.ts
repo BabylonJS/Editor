@@ -2212,11 +2212,12 @@ declare module 'babylonjs-editor/editor/storage/storage' {
 }
 
 declare module 'babylonjs-editor/editor/extensions/vscode-socket' {
+    import { Observable } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
     export default class VSCodeSocket {
             static Socket: SocketIOClient.Socket;
-            static OnUpdateBehaviorCode: (s: any) => void;
-            static OnUpdatePostProcessCode: (s: any) => void;
+            static OnConnectionObserver: Observable<any>;
+            static IsConnected: boolean;
             /**
                 * Creates a scene preview listener
                 */

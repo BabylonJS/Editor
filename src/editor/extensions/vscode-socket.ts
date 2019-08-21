@@ -1,3 +1,4 @@
+import { Observable } from 'babylonjs';
 import * as SocketIO from 'socket.io-client';
 
 import Editor from '../editor';
@@ -6,8 +7,8 @@ import Tools from '../tools/tools';
 export default class VSCodeSocket {
     // Public members
     public static Socket: SocketIOClient.Socket = null;
-    public static OnUpdateBehaviorCode: (s: any) => void;
-    public static OnUpdatePostProcessCode: (s: any) => void;
+    public static OnConnectionObserver: Observable<any> = new Observable<any>();
+    public static IsConnected: boolean = false;
 
     // Private members
     private static _Editor: Editor = null;
@@ -31,14 +32,26 @@ export default class VSCodeSocket {
         
         this.Socket = SocketIO(`http://localhost:1337/vscode`);
         this.Socket.on('connection', () => this.RefreshProject());
+        this.Socket.on('vscode-connected', () => {
+            this.IsConnected = true;
+            this.OnConnectionObserver.notifyObservers(true);
+        });
+        this.Socket.on('vscode-disconnected', () => {
+            this.IsConnected = false;
+            this.OnConnectionObserver.notifyObservers(false);
+        });
+
+        // Get plugins
+        const behaviorCodes = await Tools.ImportScript<{ default: any; }>('./build/src/tools/code-behavior/vscode.js');
+        const postProcesses = await Tools.ImportScript<{ default: any; }>('./build/src/tools/post-process-editor/vscode.js');
 
         // Common
         this.Socket.on('refresh', () => {
             this.RefreshProject();
             this.Refresh();
         });
-        this.Socket.on('update-behavior-code', d => this.OnUpdateBehaviorCode && this.OnUpdateBehaviorCode(d));
-        this.Socket.on('update-post-process-code', d => this.OnUpdatePostProcessCode && this.OnUpdatePostProcessCode(d));
+        this.Socket.on('update-behavior-code', d => behaviorCodes.default.Update(d, editor));
+        this.Socket.on('update-post-process-code', d => postProcesses.default.Update(d, editor));
     }
 
     /**
