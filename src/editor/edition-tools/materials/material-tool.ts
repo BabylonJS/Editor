@@ -115,6 +115,10 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
         options.add(this.object, "checkReadyOnlyOnce").name("Check Ready Only Once");
         options.add(this.object, "disableDepthWrite").name("Disable Depth Write");
         options.add(this.object, 'needDepthPrePass').name('Need Depth Pre Pass');
+
+        if (this.object['disableLighting'] !== undefined) {
+            options.add(this.object, 'disableLighting').name('Disable Lighting');
+        }
         
         this.object['useLogarithmicDepth'] = this.object['useLogarithmicDepth'] || false;
         options.add(this.object, "useLogarithmicDepth").name("Use Logarithmic Depth");
