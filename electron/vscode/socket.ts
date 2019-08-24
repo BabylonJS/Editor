@@ -40,7 +40,7 @@ export default class VSCodeSocket {
         
         // Manage state
         this.editorSocket.on('disconnect', () => this._vscodeConnected && this.editorSocket.broadcast('vscode-disconnected', false));
-        this.editorSocket.on('connection', () => this.vsCodeSocket && this.editorSocket.broadcast('vscode-connected', true));
+        this.editorSocket.on('connection', () => this._vscodeConnected && this.editorSocket.broadcast('vscode-connected', true));
 
         this.vsCodeSocket.on('disconnect', () => {
             this._vscodeConnected = false;

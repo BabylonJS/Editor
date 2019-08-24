@@ -2,7 +2,7 @@ import { ExtensionContext, workspace, Uri, window } from 'vscode';
 
 import Sockets from './utils/socket';
 import Watcher from './utils/watcher';
-import CustomFileSystem from './file-system';
+// import CustomFileSystem from './file-system';
 import TempFileSystem from './temp-file-system';
 
 import Utils from './utils/utils';
