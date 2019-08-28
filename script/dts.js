@@ -1,4 +1,18 @@
 const Bundler = require('dts-bundle');
+const fs = require('fs-extra');
+
+console.log(`
+-------------------------------------------------------------
+TYPINGS
+-------------------------------------------------------------
+`);
+
+fs.copySync('./node_modules/babylonjs/babylon.module.d.ts', './assets/typings/babylon.module.d.ts');
+fs.copySync('./node_modules/babylonjs-gui/babylon.gui.module.d.ts', './assets/typings/babylon.gui.module.d.ts');
+fs.copySync('./node_modules/babylonjs-materials/babylonjs.materials.module.d.ts', './assets/typings/babylonjs.materials.module.d.ts');
+fs.copySync('./node_modules/babylonjs-post-process/babylonjs.postProcess.module.d.ts', './assets/typings/babylonjs.postProcess.module.d.ts');
+fs.copySync('./node_modules/babylonjs-procedural-textures/babylonjs.proceduralTextures.module.d.ts', './assets/typings/babylonjs.proceduralTextures.module.d.ts');
+console.log('Copied dependencies');
 
 // Editor
 Bundler.bundle({

@@ -3,6 +3,11 @@ const Builder = require('electron-builder');
 const yargs = require('yargs');
 const args = yargs.argv;
 
+console.log(`
+-------------------------------------------------------------
+ELECTRON BUILD
+-------------------------------------------------------------
+`);
 console.log('\nBuilding Electron...');
 
 // Build

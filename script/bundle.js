@@ -1,5 +1,11 @@
 const Builder = require('systemjs-builder');
 
+console.log(`
+-------------------------------------------------------------
+BUNDLES
+-------------------------------------------------------------
+`);
+
 const build = function (baseUrl, inFile, outFile, options) {
     options.mangle = false;
 
