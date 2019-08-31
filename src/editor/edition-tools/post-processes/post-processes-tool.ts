@@ -10,7 +10,6 @@ import Tools from '../../tools/tools';
 import SceneManager from '../../scene/scene-manager';
 
 import Picker from '../../gui/picker';
-import SceneFactory from '../../scene/scene-factory';
 
 import PostProcessesExtension from '../../../extensions/post-process/post-processes';
 import Extensions from '../../../extensions/extensions';
@@ -95,6 +94,8 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'strength').name('Reflection Strength');
                 reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'threshold').name('Reflection Threshold');
                 reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'reflectionSpecularFalloffExponent').name('Specular Fall Off Exponent');
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'enableSmoothReflections').name('Enable Smoothing Reflections');
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'reflectionSamples').min(1).max(512).step(1).name('Reflection Samples');
                 reflections.add(SceneManager.StandardRenderingPipeline, 'screenSpaceReflectionBlurWidth').min(0).max(512).name('Reflection Blur Width');
             }
 
