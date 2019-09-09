@@ -72,6 +72,7 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
 
         // Reflection
         const reflection = this.tool.addFolder('Reflection');
+        reflection.add(this.object, 'roughness').min(0).step(0.01).name('Roughness');
         this.tool.addTexture(reflection, this.editor, this.editor.core.scene, 'reflectionTexture', this.object, true).name('Reflection Texture');
 
         // Refraction
