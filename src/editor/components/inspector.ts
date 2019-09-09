@@ -30,6 +30,7 @@ import TerrainMaterialTool from '../edition-tools/materials/terrain-tool';
 import LavaMaterialTool from '../edition-tools/materials/lava-tool';
 import FurMaterialTool from '../edition-tools/materials/fur-tool';
 import MixMaterialTool from '../edition-tools/materials/mix-tool';
+import NodeMaterialTool from '../edition-tools/materials/node-material-tool';
 
 import PostProcessesTool from '../edition-tools/post-processes/post-processes-tool';
 import PostProcessTool from '../edition-tools/post-processes/custom-tool';
@@ -117,6 +118,7 @@ export default class EditorInspector {
         this.addTool(new LavaMaterialTool());
         this.addTool(new FurMaterialTool());
         this.addTool(new MixMaterialTool());
+        this.addTool(new NodeMaterialTool());
 
         this.addTool(new PostProcessesTool());
         this.addTool(new PostProcessTool());
