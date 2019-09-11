@@ -17,7 +17,8 @@
       "jquery",
       "socket.io-client",
       "jstree",
-      "monaco-editor"
+      "monaco-editor",
+      "typescript"
     ],
     "lib": [
       "es2015.promise",

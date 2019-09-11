@@ -3,12 +3,8 @@ import { IDisposable, IStringDictionary } from '../typings/typings';
 import Tools from '../tools/tools';
 import ThemeSwitcher from '../tools/theme';
 
-// TODO: remove this line and find a way to
-// import * as ts from 'typescript';
-export interface TypescriptDisposable extends IDisposable {
-    [index: string]: any;
-}
-declare var ts: TypescriptDisposable;
+import * as typescript from 'typescript';
+import { editor } from 'monaco-editor';
 
 export interface Typings {
     name: string;
@@ -18,7 +14,7 @@ export interface Typings {
 
 export default class CodeEditor {
     // Public members
-    public editor: monaco.editor.ICodeEditor = null;
+    public editor: editor.ICodeEditor = null;
     public onChange: (value: string) => void;
 
     // Private members
@@ -26,10 +22,11 @@ export default class CodeEditor {
     private _defaultValue: string;
 
     // Static members
+    public static Typescript: typeof typescript;
     public static ExternalLibraries: string = null;
-    public static ExtraLibs: { lib: monaco.IDisposable, caller: Window; }[] = [];
-    public static CustomLibs: IStringDictionary<monaco.IDisposable> = { };
-    public static Instances: monaco.editor.ICodeEditor[] = [];
+    public static ExtraLibs: { lib: IDisposable, caller: Window; }[] = [];
+    public static CustomLibs: IStringDictionary<IDisposable> = { };
+    public static Instances: editor.ICodeEditor[] = [];
 
     public static Libs: string[] = [
         'assets/typings/babylon.module.d.ts',
@@ -61,7 +58,7 @@ export default class CodeEditor {
      */
     public static HasOneFocused (): boolean {
         for (const i of this.Instances) {
-            if (i.isFocused())
+            if (i.hasTextFocus())
                 return true;
         }
 
@@ -145,7 +142,7 @@ export default class CodeEditor {
         }
 
         // Import typescript
-        await Tools.ImportScript('typescript');
+        CodeEditor.Typescript = await Tools.ImportScript<any>('typescript');
         
         // Create editor
         this.editor = caller['monaco'].editor.create($(<any>parentId)[0], {
@@ -179,7 +176,7 @@ export default class CodeEditor {
      * @param source the source to transpile
      */
     public transpileTypeScript (source: string, moduleName: string, config?: any): string {
-        return ts.transpile(source, config || {
+        return CodeEditor.Typescript.transpile(source, config || {
             module: 'none',
             target: 'es5',
             experimentalDecorators: true,
@@ -193,9 +190,9 @@ export default class CodeEditor {
      * @param source the source to transpile
      */
     public static async TranspileTypeScript (source: string, moduleName: string, config?: any): Promise<string> {
-        await Tools.ImportScript('typescript');
+        this.Typescript = await Tools.ImportScript<any>('typescript');
 
-        return ts.transpile(source, config || {
+        return this.Typescript.transpile(source, config || {
             module: 'none',
             target: 'es5',
             experimentalDecorators: true,
