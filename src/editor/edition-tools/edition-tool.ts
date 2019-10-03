@@ -27,15 +27,36 @@ export interface ToolState {
 }
 
 export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
-    // Public members
+    /**
+     * The editor reference. Set by the inspector component.
+     */
     public editor: Editor = null;
 
+    /**
+     * The object being edited.
+     */
     public object: T = null;
+    /**
+     * The dat-gui tool reference.
+     */
     public tool: Edition = null;
 
+    /**
+     * The current state of the dat-gui tool.
+     */
     public state: IStringDictionary<ToolState> = null;
+    /**
+     * The search element used to filter folders/inputs.
+     */
+    public search: HTMLInputElement = null;
 
+    /**
+     * The div id of the tool. Must be provided by the tool.
+     */
     public abstract divId: string;
+    /**
+     * The name of the tab to display. Must be provided by the tool.
+     */
     public abstract tabName: string;
 
     /**
@@ -50,6 +71,17 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
      */
     public update (object: T): void {
         this.object = object;
+
+        // Add search
+        if (this.search)
+            this.search.remove();
+
+        this.search = document.createElement('input');
+        this.search.style.width = '100%';
+        this.search.style.height = '25px';
+        this.search.placeholder = 'Search...';
+        $('#' + this.divId).prepend(this.search);
+        this.search.addEventListener('keyup', (ev) => this.tool.filter(this.search.value));
 
         // Reset edition element
         let lastScroll = 0;
