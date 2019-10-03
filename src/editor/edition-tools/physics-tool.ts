@@ -39,8 +39,11 @@ export default class PhysicsTool extends AbstractEditionTool<AbstractMesh | Free
 
         if (node instanceof AbstractMesh)
             collisions.add(node, 'useOctreeForCollisions').name('Use Octree For Collisions');
-        else
+
+        if (node instanceof FreeCamera) {
+            collisions.add(node, 'applyGravity').name('Apply Gravity');
             this.tool.addVector(collisions, 'Ellipsoid', node.ellipsoid).open();
+        }
 
         // Physics
         if (node instanceof AbstractMesh && node.getScene().isPhysicsEnabled())
