@@ -119,6 +119,63 @@ export default class Edition {
     }
 
     /**
+     * Filters the existing folders using the given search string.
+     * @param search the search string to filter folders.
+     * @param root the folder to start filter. Default is the root gui element.
+     */
+    public filter (search: string, root: dat.GUI = this.element): void {
+        for (const f in root.__folders) {
+            const folder = root.__folders[f];
+            let fullFolder = false;
+
+            if (folder.name.toLowerCase().indexOf(search.toLowerCase()) === -1) {
+                folder.domElement.style.display = 'none';
+            } else {
+                folder.domElement.style.display = '';
+                
+                // Found, re-show parents
+                let parent = folder.parent;
+                while (parent && parent.name) {
+                    parent.domElement.style.display = '';
+                    parent = parent.parent;
+                }
+
+                fullFolder = true;
+            }
+
+            // Controllers
+            folder.__controllers.forEach(c => {
+                // Get li element
+                const li = c['__li'];
+                if (!li)
+                    return;
+
+                // Full folder? show controllers of the current folder
+                if (fullFolder) {
+                    li.style.display = '';
+                    return;
+                }
+
+                // Filter li element
+                if (li.innerText.toLowerCase().indexOf(search.toLowerCase()) === -1) {
+                    li.style.display = 'none';
+                } else {
+                    li.style.display = '';
+
+                    // Found, re-show parents
+                    let parent = c['__gui'];
+                    while (parent && parent.name) {
+                        parent.domElement.style.display = '';
+                        parent = parent.parent;
+                    }
+                }
+            });
+
+            this.filter(search, folder);
+        }
+    }
+
+    /**
      * Returns a controller identified by its property name
      * @param property the property used by the controller
      * @param parent the parent folder
