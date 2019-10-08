@@ -1,4 +1,4 @@
-import { NodeMaterial, InputBlock } from 'babylonjs';
+import { NodeMaterial, InputBlock, Observer } from 'babylonjs';
 
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';
@@ -7,9 +7,16 @@ import Window from '../../gui/window';
 import CodeEditor from '../../gui/code';
 
 export default class NodeMaterialTool extends MaterialTool<NodeMaterial> {
-    // Public members
+    /**
+     * The div id of the tool. Must be provided by the tool.
+     */
     public divId: string = 'NODE-MATERIAL-TOOL';
+    /**
+     * The name of the tab to display. Must be provided by the tool.
+     */
     public tabName: string = 'Node Material';
+
+    private _buildObserver: Observer<NodeMaterial> = null;
 
     /**
 	* Returns if the object is supported
@@ -17,6 +24,22 @@ export default class NodeMaterialTool extends MaterialTool<NodeMaterial> {
 	*/
     public isSupported(object: any): boolean {
         return super.isSupported(object) && this.object instanceof NodeMaterial;
+    }
+
+    /**
+     * Called once the user selects a new object in
+     * the scene of the graph
+     */
+    public clear (): void {
+        if (!this.object)
+            return;
+        
+        if (this._buildObserver) {
+            this.object.onBuildObservable.remove(this._buildObserver);
+            this._buildObserver = null;
+        }
+
+        super.clear();
     }
 
 	/**
@@ -72,6 +95,10 @@ export default class NodeMaterialTool extends MaterialTool<NodeMaterial> {
 
         // Edit material
         await this.object.edit();
+        this._buildObserver = this.object.onBuildObservable.add(() => {
+            this.editor.core.renderScenes = true;
+            this.update(this.object);
+        });
     }
 
     // Generates the material code

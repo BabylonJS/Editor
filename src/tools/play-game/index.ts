@@ -222,7 +222,7 @@ export default class PlayGame extends EditorPlugin {
         // Scene
         this.contentWindow['gotScene'] = (scene: Scene) => {
             const engine = scene.getEngine();
-            this.contentWindow['BABYLON'].Tools.QueueNewFrame(engine._renderLoop.bind(engine));
+            this.contentWindow.requestAnimationFrame(engine._renderLoop.bind(engine));
 
             // Capture
             const start = Date.now();

@@ -59,7 +59,7 @@ export default class Core {
             this.scenes.splice(index, 1);
             return true;
         }
-        
+
         return false;
     }
 
