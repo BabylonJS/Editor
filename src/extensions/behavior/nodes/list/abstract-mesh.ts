@@ -1,4 +1,5 @@
 import { Space, AbstractMesh } from 'babylonjs';
+import { LiteGraph } from 'litegraph.js';
 
 import { registerNode } from '../graph-node';
 
@@ -15,15 +16,17 @@ export function registerAllAbstractMeshNodes (object?: any): void {
         { inputName: 'localAxis', type: 'vec3' }	
     ] }, object);	
 
-     registerNode({ name: 'Set Mesh Direction', description: 'Sets the current direction of the node.', path: 'node/setdirection', ctor: AbstractMesh, functionRef: 'setDirection', inputs: [	
+     registerNode({ name: 'Set Mesh Direction', description: 'Sets the current direction of the node.', path: 'node/setdirection', ctor: AbstractMesh, functionRef: 'setDirection', inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'localAxis', type: 'vec3' }	
     ], parameters: [
         { inputName: 'localAxis', type: 'vec3' }	
     ] }, object);
 
-     registerNode({ name: 'Translate', description: 'Translates the current node in the given axis, distance and space', path: 'node/translate', ctor: AbstractMesh, functionRef: 'translate', inputs: [	
+     registerNode({ name: 'Translate', description: 'Translates the current node in the given axis, distance and space', path: 'node/translate', ctor: AbstractMesh, functionRef: 'translate', inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Axis', type: 'vec3' },	
-        { name: 'Distance', type: 'number' }	
+        { name: 'Distance', type: 'number' }
     ], properties: [	
         { name: 'Target Path', type: 'string', defaultValue: 'Self' },
         { name: 'Space', type: 'number', defaultValue: Space.LOCAL, enums: ['BONE', 'LOCAL', 'WORLD'], enumsTarget: Space }	
@@ -31,5 +34,7 @@ export function registerAllAbstractMeshNodes (object?: any): void {
         { inputName: 'Axis', type: 'vec3' },	
         { inputName: 'Distance', type: 'number' },	
         { propertyName: 'Space', type: 'number' }	
+    ], outputs: [
+        { name: 'New position', type: 'vec3', propertyName: 'position' }
     ] }, object);
 }

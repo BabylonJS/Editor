@@ -85,6 +85,10 @@ export interface IGraphNodeDescriptor {
      */
     functionRef?: string | ((node: GraphNode, target: any, scene: Scene) => any);
     /**
+     * Called once the graph editor stopped execution. Typically used only in the graph editor when testing graphs.
+     */
+    onStop?: (node: GraphNode, target: any, scene: Scene) => void;
+    /**
      * Custom function that can be used to draw a text helper for the background.
      */
     drawBackground?: (node: GraphNode, targetName: string) => string;
