@@ -223,6 +223,17 @@ export class GraphNode extends IGraphNode {
     }
 
     /**
+     * Called on the user releases a keyboard key.
+     * @param ev the source keyboard event reference.
+     * @todo support undo/redo
+     */
+    public onKeyUp(ev: KeyboardEvent): void {
+        if (ev.keyCode === 46) {
+            this.graph.remove(this);
+        }
+    }
+
+    /**
      * Returns the effective property.
      * @param object the object reference containing the property to get.
      * @param path the path of the property to get its reference/copy.

@@ -37,8 +37,13 @@ export function registerAllUtilsNodes (object?: any): void {
     ], drawBackground: (node) => `${node.properties['Level']}: ${node.properties['Message']}, ${(node.getInputData(1) || '').toString()}` }, object);
 
     registerNode({ name: 'Set Timeout', description: 'Triggers the next node(s) after x milliseconds', path: 'utils/settimeout', ctor: Object, functionRef: (node) => {
+        node.store.ids = node.store.ids || [];
+
         const ms = node.getInputData<number>(1) || node.properties['Time (ms)'];
-        node.setOutputData(1, setTimeout(() => node.triggerSlot(0), ms));
+        const id = setTimeout(() => node.triggerSlot(0), ms);
+
+        node.store.ids.push(id);
+        node.setOutputData(1, id);
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Time (ms)', type: 'number' }
@@ -47,7 +52,9 @@ export function registerAllUtilsNodes (object?: any): void {
     ], outputs: [
         { name: 'Time out', type: LiteGraph.EVENT },
         { name: 'Id', type: 'number' }
-    ] }, object);
+    ], onStop: (node) => {
+        node.store.ids && node.store.ids.forEach(id => clearTimeout(id));
+    } }, object);
 
     registerNode({ name: 'Clear Timeout', description: 'Clears the given timeout Id', path: 'utils/cleartimeout', ctor: Object, functionRef: (node) => {
         clearTimeout(node.getInputData<number>(1));

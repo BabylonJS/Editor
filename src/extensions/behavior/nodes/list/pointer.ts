@@ -23,7 +23,9 @@ export function registerAllPointerNodes (object?: any): void {
         });
     }, outputs: [
         { name: 'Clicked', type: LiteGraph.EVENT }
-    ] }, object);
+    ], onStop: (node, target, scene) => {
+        node.store.observer && scene.onPointerObservable.remove(node.store.observer);
+    } }, object);
 
     registerNode({ name: 'Pointer Move', description: 'Triggers on the pointer moves on the node.', path: 'events/pointermove', ctor: AbstractMesh, functionRef: (node, target: AbstractMesh, scene) => {
         node.store.observer = node.store.observer || scene.onPointerObservable.add(ev => {
@@ -31,7 +33,9 @@ export function registerAllPointerNodes (object?: any): void {
         });
     }, outputs: [
         { name: 'Moved', type: LiteGraph.EVENT }
-    ] }, object);
+    ], onStop: (node, target, scene) => {
+        node.store.observer && scene.onPointerObservable.remove(node.store.observer);
+    } }, object);
 
     registerNode({ name: 'Pointer Up', description: 'Triggers on the pointer is up on the node.', path: 'events/pointerup', ctor: AbstractMesh, functionRef: (node, target: AbstractMesh, scene) => {
         node.store.observer = node.store.observer || scene.onPointerObservable.add(ev => {
@@ -39,7 +43,9 @@ export function registerAllPointerNodes (object?: any): void {
         });
     }, outputs: [
         { name: 'Up', type: LiteGraph.EVENT }
-    ] }, object);
+    ], onStop: (node, target, scene) => {
+        node.store.observer && scene.onPointerObservable.remove(node.store.observer);
+    } }, object);
 
     registerNode({ name: 'Pointer Over', description: 'Triggers on the pointer is over the node.', path: 'events/pointerover', ctor: AbstractMesh, functionRef: (node, target: AbstractMesh, scene) => {
         node.store.wasOver = node.store.wasOver || false;
@@ -50,7 +56,9 @@ export function registerAllPointerNodes (object?: any): void {
             node.triggerSlot(0);
     }, outputs: [
         { name: 'Over', type: LiteGraph.EVENT }
-    ] }, object);
+    ], onStop: (node, target, scene) => {
+        node.store.observer && scene.onPointerObservable.remove(node.store.observer);
+    } }, object);
 
     registerNode({ name: 'Pointer Out', description: 'Triggers on the pointer is out of the node.', path: 'events/pointerout', ctor: AbstractMesh, functionRef: (node, target: AbstractMesh, scene) => {
         node.store.wasOver = node.store.wasOver || false;
@@ -62,5 +70,7 @@ export function registerAllPointerNodes (object?: any): void {
         });
     }, outputs: [
         { name: 'Out', type: LiteGraph.EVENT }
-    ] }, object);
+    ], onStop: (node, target, scene) => {
+        node.store.observer && scene.onPointerObservable.remove(node.store.observer);
+    } }, object);
 }

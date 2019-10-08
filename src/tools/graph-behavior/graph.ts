@@ -150,8 +150,14 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.graphData = new LGraph();
         this.graphData.onStopEvent = () => {
-            // this.graphData._nodes.forEach(n => n instanceof RenderStart && (n.started = false));
-            // Empty for now. TODO.
+            this.graphData._nodes.forEach(n => {
+                n.description && n.description.onStop && n.description.onStop(
+                    n,
+                    this.graphData.scriptObject,
+                    this.graphData.scriptScene
+                );
+                n.store = { };
+            });
         };
         this.graphData.onNodeAdded = (node: IGraphNode) => {
             node.shape = 'round';
