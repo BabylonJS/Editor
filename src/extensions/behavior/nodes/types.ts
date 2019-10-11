@@ -89,6 +89,14 @@ export interface IGraphNodeDescriptor {
      */
     onStop?: (node: GraphNode, target: any, scene: Scene) => void;
     /**
+     * Can be implemented by the node, defines the list of available inputs not added by default to add on the fly.
+     */
+    onGetInputs?: () => [string, (string | number)][];
+    /**
+     * Can be implemented by the node, defines the list of available outputs not added by default to add on the fly.
+     */
+    onGetOutputs?: () => [string, (string | number)][];
+    /**
      * Custom function that can be used to draw a text helper for the background.
      */
     drawBackground?: (node: GraphNode, targetName: string) => string;
@@ -148,6 +156,14 @@ export abstract class IGraphNode {
      */
     graph?: LGraph;
     /**
+     * The type of the node (automatically set).
+     */
+    type?: string;
+    /**
+     * Sets or gets wether or not the node is removable (automatically set).
+     */
+    removable?: boolean;
+    /**
      * Adds a new input to the node.
      * @param name the name of the input.
      * @param type the type of the input.
@@ -191,6 +207,14 @@ export abstract class IGraphNode {
      * @param value the value of the property to store in the dictionary.
      */
     addProperty? (name: string, value: any): void;
+    /**
+     * Can be implemented by the node, defines the list of available inputs not added by default to add on the fly.
+     */
+    onGetInputs? (): [string, (string | number)][];
+    /**
+     * Can be implemented by the node, defines the list of available outputs not added by default to add on the fly.
+     */
+    onGetOutputs? (): [string, (string | number)][];
     /**
      * Store of all available properties for the current node.
      */

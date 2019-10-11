@@ -411,7 +411,7 @@ export default class Tools {
 
     /**
      * According to the navigator, returns if the file API
-     * is supported
+     * is fully supported
      */
     public static isFileApiSupported (showAlert?: boolean): boolean {
         try {

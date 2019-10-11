@@ -330,7 +330,7 @@ declare module 'babylonjs-editor/editor/tools/tools' {
             static ImportScript<T>(url: string): Promise<T>;
             /**
                 * According to the navigator, returns if the file API
-                * is supported
+                * is fully supported
                 */
             static isFileApiSupported(showAlert?: boolean): boolean;
     }
@@ -1229,6 +1229,8 @@ declare module 'babylonjs-editor/editor/gui/context-menu' {
     export interface ContextMenuItem {
             name: string;
             callback?: (itemId?: string) => void;
+            icon?: () => string;
+            items?: IStringDictionary<ContextMenuItem>;
     }
     export default class ContextMenu {
             static Items: IStringDictionary<ContextMenuItem>;

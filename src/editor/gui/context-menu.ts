@@ -3,6 +3,8 @@ import { IStringDictionary } from '../typings/typings';
 export interface ContextMenuItem {
     name: string;
     callback?: (itemId?: string) => void;
+    icon?: () => string;
+    items?: IStringDictionary<ContextMenuItem>;
 }
 
 export default class ContextMenu {

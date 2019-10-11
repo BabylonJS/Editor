@@ -124,6 +124,26 @@ export class GraphNode extends IGraphNode {
     }
 
     /**
+     * Can be implemented by the node, defines the list of available inputs not added by default to add on the fly.
+     */
+    public onGetInputs (): [string, (string | number)][] {
+        if (this.description && this.description.onGetInputs().length > 0)
+            return this.description.onGetInputs();
+
+        return [];
+    }
+
+    /**
+     * Can be implemented by the node, defines the list of available outputs not added by default to add on the fly.
+     */
+    public onGetOutputs (): [string, (string | number)][] {
+        if (this.description && this.description.onGetOutputs().length > 0)
+            return this.description.onGetOutputs();
+
+        return [];
+    }
+
+    /**
      * Called on the node is being executed.
      */
     public onExecute (): void {
