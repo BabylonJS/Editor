@@ -59,7 +59,7 @@ npm run webserver
 ```
 
 ## Using VSCode
-CTRL+SHIT+B then select "watch-all".
+CTRL+SHIFT+B then select "watch-all".
 
 That's all!
 
