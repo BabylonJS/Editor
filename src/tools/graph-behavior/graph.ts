@@ -187,7 +187,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.graph.render_execution_order = true;
         this.graph.onNodeSelected = (node) => this.editor.inspector.setObject(node);
         this.graph.showSearchBox = () => { };
-        this.graph.processContextMenu = ((node, event) => {
+        this.graph.processContextMenu = ((node: IGraphNode, event) => {
             // Add.
             if (!node) {
                 // Group?
@@ -224,8 +224,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 clone: { name: 'Clone', callback: () => {
                     const clone = <IGraphNode> LiteGraph.createNode(node.type);
                     clone.pos = [node.pos[0] + 10, node.pos[1] + 10];
-
-                    Object.assign(clone.properties, node.properties);
+                    clone.properties = Tools.Clone(node.properties);
                     this.graphData.add(clone);
                 } },
                 remove: { name: 'Remove', callback: () => {

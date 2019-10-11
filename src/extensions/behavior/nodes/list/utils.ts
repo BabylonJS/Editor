@@ -126,7 +126,7 @@ export function registerAllUtilsNodes (object?: any): void {
         { name: 'r', type: 'number' },
         { name: 'g', type: 'number' },
         { name: 'b', type: 'number' }
-    ] }, object);
+    ], onGetInputs: () => [["pos", "vec3"]] }, object);
 
     registerNode({ name: 'Color 4 to RGBA', description: 'Takes a color as parameter and ouputs its r, g, b and a', path: 'utils/col4torgba', ctor: Object, functionRef: (node) => {
         const c = GraphNode.nodeToOutput<Color4>(node.getInputData(0), true);
