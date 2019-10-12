@@ -1,9 +1,9 @@
 import {
     Scene,
     VertexBuffer,
-    MaterialDefines, PushMaterial, MaterialHelper, EffectFallbacks, EffectCreationOptions,
-    serialize, serializeAsColor3, serializeAsTexture, expandToProperty, serializeAsColor4,
-    Nullable, Tools,
+    MaterialDefines, PushMaterial, MaterialHelper, EffectFallbacks,
+    serialize, serializeAsColor3, expandToProperty,
+    Nullable, IEffectCreationOptions,
     BaseTexture, Texture,
     Color3, Matrix, Vector2, Vector3,
     AbstractMesh, SubMesh, Mesh, IAnimatable,
@@ -264,7 +264,7 @@ export default class CustomEditorMaterial extends PushMaterial {
             if (this.customCode && !this.customCode.isReadyForSubMesh(mesh, subMesh, defines))
                 return false;
 
-            MaterialHelper.PrepareUniformsAndSamplersList(<EffectCreationOptions>{
+            MaterialHelper.PrepareUniformsAndSamplersList(<IEffectCreationOptions> {
                 uniformsNames: uniforms,
                 uniformBuffersNames: uniformBuffers,
                 samplers: samplers,
@@ -272,7 +272,7 @@ export default class CustomEditorMaterial extends PushMaterial {
                 maxSimultaneousLights: this.maxSimultaneousLights
             });
             subMesh.setEffect(scene.getEngine().createEffect(shaderName,
-                <EffectCreationOptions>{
+                <IEffectCreationOptions>{
                     attributes: attribs,
                     uniformsNames: uniforms,
                     uniformBuffersNames: uniformBuffers,

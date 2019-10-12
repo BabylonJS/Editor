@@ -68,7 +68,7 @@ export default class EditorAssets {
         ];
         this.toolbar.right = `
             <div style="padding: 3px 10px;">
-                <input placeholder=Search size="25" id="ASSETS-SEARCH" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="" />
+                <input placeholder="Search..." size="25" id="ASSETS-SEARCH" class="editorSearch" style="height: 20px; padding: 3px; border: 1px solid silver; border-radius: 45px;" value="" />
             </div>`;
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('ASSETS-TOOLBAR');
