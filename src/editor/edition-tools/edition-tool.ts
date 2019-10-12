@@ -78,7 +78,9 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
 
         this.search = document.createElement('input');
         this.search.style.width = '100%';
-        this.search.style.height = '25px';
+        this.search.style.height = '20px';
+        this.search.style.borderRadius = '45px';
+        this.search.classList.add('editorSearch');
         this.search.placeholder = 'Search...';
         $('#' + this.divId).prepend(this.search);
         this.search.addEventListener('keyup', (ev) => this.tool.filter(this.search.value));

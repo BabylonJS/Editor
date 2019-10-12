@@ -109,8 +109,22 @@ html, body {
     -ms-touch-action: none;
 }
 
-/* W2UI */
+/* Search */
+.editorSearch {
+    background-image: url("svg/search.svg");
+    background-repeat: no-repeat;
+    background-position: 0 50%;
+    opacity: 0.3;
+    text-indent: 20px;
+}
 
+.editorSearch:focus {
+    background-image: none;
+    text-indent: 0px;
+    opacity: 1;
+}
+
+/* W2UI */
 #currentNodeNameGraph, #currentNodeNameCode {
     float: left;
 }

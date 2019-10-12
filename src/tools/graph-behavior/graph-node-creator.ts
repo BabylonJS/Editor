@@ -29,7 +29,7 @@ export default class GraphNodeCreator {
     });
     private static _Search: HTMLInputElement = Tools.CreateElement('input', 'GRAPH-CANVAS-NODE-CREATOR-SEARCH', {
         'width': '100%',
-        'height': '25px',
+        'height': '20px',
         'position': 'relative',
         'top': '-40px'
     });
@@ -156,6 +156,7 @@ export default class GraphNodeCreator {
         // Search
         this._Root.appendChild(this._Search);
         this._Search.setAttribute('placeHolder', 'Search...');
+        this._Search.classList.add('editorSearch');
         this._Search.addEventListener('keyup', () => {
             if (this._SearchTimeout)
                 clearTimeout(this._SearchTimeout);
