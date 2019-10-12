@@ -90,7 +90,7 @@
     "systemjs": "~0.20.19",
     "systemjs-builder": "~0.16.12",
     "systemjs-plugin-css": "~0.1.35",
-    "typescript": "~3.0.1",
+    "typescript": "3.6.4",
     "w2ui": "~1.4.3",
     "yargs": "10.0.3",
     "generator-core": "3.11.5"
