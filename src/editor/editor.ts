@@ -694,10 +694,20 @@ export default class Editor implements IUpdatable {
         });
         document.addEventListener('contextmenu', (e) => e.preventDefault());
 
+        // Shift key
+        let shiftDown = false;
+        document.addEventListener('keydown', ev => !shiftDown && (shiftDown = ev.key === 'Shift'));
+        document.addEventListener('keyup', ev => ev.key === 'Shift' && (shiftDown = false));
+
+        // Meta key
+        let ctrlDown = false;
+        document.addEventListener('keydown', ev => !ctrlDown && (ctrlDown = (ev.key === 'Meta' || ev.key === 'Control')));
+        document.addEventListener('keyup', ev => (ev.key === 'Meta' || ev.key === 'Control') && (ctrlDown = false));
+
         // Undo
         UndoRedo.onUndo = (e) => Tools.SetWindowTitle(this.projectFileName + ' *');
-        document.addEventListener('keyup', (ev) => {
-            if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'z') {
+        document.addEventListener('keydown', (ev) => {
+            if (!CodeEditor.HasOneFocused() && ctrlDown && ev.key === 'z') {
                 UndoRedo.Undo();
                 this.inspector.updateDisplay();
                 ev.preventDefault();
@@ -707,8 +717,8 @@ export default class Editor implements IUpdatable {
 
         // Redo
         UndoRedo.onRedo = (e) => Tools.SetWindowTitle(this.projectFileName + ' *');
-        document.addEventListener('keyup', (ev) => {
-            if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'y') {
+        document.addEventListener('keydown', (ev) => {
+            if (!CodeEditor.HasOneFocused() && (ctrlDown && ev.key === 'y' || ctrlDown && shiftDown && ev.key === 'Z')) {
                 UndoRedo.Redo();
                 this.inspector.updateDisplay();
                 ev.preventDefault();
@@ -730,11 +740,6 @@ export default class Editor implements IUpdatable {
         this.core.engine.getRenderingCanvas().addEventListener('blur', () => this._canvasFocused = false);
         this.core.engine.getRenderingCanvas().addEventListener('mousemove', () => this._canvasFocused = true);
         this.core.engine.getRenderingCanvas().addEventListener('mouseleave', () => this._canvasFocused = false);
-
-        // Shift key
-        let shiftDown = false;
-        document.addEventListener('keydown', ev => !shiftDown && (shiftDown = ev.key === 'Shift'));
-        document.addEventListener('keyup', ev => ev.key === 'Shift' && (shiftDown = false));
 
         // Shotcuts
         document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 'b' && this.preview.setToolClicked('bounding-box'));
@@ -758,9 +763,9 @@ export default class Editor implements IUpdatable {
             }
         });
 
-        document.addEventListener('keydown', ev => (ev.ctrlKey || ev.metaKey) && ev.key === 's' && ev.preventDefault());
-        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && ProjectExporter.ExportProject(this));
-        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && ProjectExporter.ExportProject(this, true));
+        document.addEventListener('keydown', ev => ctrlDown && ev.key === 's' && ev.preventDefault());
+        document.addEventListener('keydown', ev => ctrlDown && !shiftDown && ev.key === 's' && ProjectExporter.ExportProject(this));
+        document.addEventListener('keydown', ev => ctrlDown && shiftDown && ev.key === 'S' && ProjectExporter.ExportProject(this, true));
 
         document.addEventListener('keyup', ev => {
             if (Tools.IsFocusingInputElement() || (!Tree.HasOneFocused() && !this._canvasFocused))
