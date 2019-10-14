@@ -87,18 +87,22 @@ export default class SceneManager {
             orig.metadata.original = obj;
         };
         scene.meshes.forEach(m => { 
-            // Instance?
-            if (m instanceof InstancedMesh)
-                return set(m, m.serialize());
+            try {
+                // Instance?
+                if (m instanceof InstancedMesh)
+                    return set(m, m.serialize());
 
-            // Mesh
-            const s = SceneSerializer.SerializeMesh(m, false, false);
-            delete s.geometries;
-            delete s.materials;
-            delete s.skeletons;
-            delete s.multiMaterials;
-            if (s.meshes)
-                s.meshes.forEach(m2 => set(m, m2));
+                // Mesh
+                const s = SceneSerializer.SerializeMesh(m, false, false);
+                delete s.geometries;
+                delete s.materials;
+                delete s.skeletons;
+                delete s.multiMaterials;
+                if (s.meshes)
+                    s.meshes.forEach(m2 => set(m, m2));
+            } catch (e) {
+                console.error("Failed to serialize mesh: " + m.name);
+            }
         });
         scene.skeletons.forEach(s => set(s, s.serialize()));
         scene.materials.forEach(m => set(m, m.serialize()));
