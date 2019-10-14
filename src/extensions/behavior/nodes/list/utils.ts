@@ -146,6 +146,34 @@ export function registerAllUtilsNodes (object?: any): void {
     ] }, object);
 
     /**
+     * Vector merger: XY(Z)(W) to 2d, 3d or 4d vectors
+     */
+    registerNode({ name: 'Vector Merger', description: 'Exposes the XYZW properties to merge into 2d, 3d or 4d vectors.', path: 'utils/vectormerger', ctor: Object, functionRef: (node) => {
+        node.store.vector2 = node.store.vector2 || new Vector2(0, 0);
+        node.store.vector3 = node.store.vector3 || new Vector3(0, 0, 0);
+        node.store.vector4 = node.store.vector4 || new Vector4(0, 0, 0, 0);
+
+        node.store.vector2.x = node.store.vector3.x = node.store.vector4.x = node.getInputData(0);
+        node.store.vector2.y = node.store.vector3.y = node.store.vector4.y = node.getInputData(1);
+        node.store.vector3.z = node.store.vector4.z = node.getInputData(2);
+        node.store.vector4.w = node.getInputData(3);
+
+        node.setOutputData(1, node.store.vector3.asArray());
+        node.setOutputData(2, node.store.vector4.asArray());
+
+        return node.store.vector2;
+    }, inputs: [
+        { name: 'x', type: 'number' },
+        { name: 'y', type: 'number' },
+        { name: 'z', type: 'number' },
+        { name: 'w', type: 'number' }
+    ], outputs: [
+        { name: 'Vector 2', type: 'vec2' },
+        { name: 'Vector 3', type: 'vec3' },
+        { name: 'Vector 4', type: 'vec4' }
+    ] }, object);
+
+    /**
      * Extensions
      */
     registerNode({ name: 'Send Script Message', description: 'Sends a message to the given target by giving the method name and a parameter', path: 'utils/sendmessage', ctor: Object, functionRef: (node, target) => {

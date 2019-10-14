@@ -82,7 +82,9 @@
 
         // Loads the Babylon.js Scenes
         var loadScene = function (sceneFile) {
-            var engine = new BABYLON.Engine(document.getElementById('renderCanvas'));
+            var engine = new BABYLON.Engine(document.getElementById('renderCanvas'), true, {
+                audioEngine: true
+            });
             window.addEventListener("resize", function () {
                 engine.resize();
             });
@@ -102,9 +104,6 @@
                 // Import scene
                 if (!sceneFile || !BABYLON.FilesInputStore.FilesToLoad[sceneFile.name.toLowerCase()])
                     return;
-
-                // TODO: remove this fix even in an iFrame?
-                BABYLON.Engine.audioEngine = BABYLON.Engine.AudioEngineFactory(engine.getRenderingCanvas());
                 
                 BABYLON.SceneLoader.Load('file:', sceneFile.name, engine, function (scene) {
                     effectiveScene = scene;
