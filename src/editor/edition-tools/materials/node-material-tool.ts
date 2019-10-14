@@ -1,10 +1,11 @@
-import { NodeMaterial, InputBlock, Observer } from 'babylonjs';
+import { NodeMaterial, InputBlock, Observer, TextureBlock, ReflectionTextureBlock } from 'babylonjs';
 
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';
 
 import Window from '../../gui/window';
 import CodeEditor from '../../gui/code';
+import { bumpVertex } from 'babylonjs/Shaders/ShadersInclude/bumpVertex';
 
 export default class NodeMaterialTool extends MaterialTool<NodeMaterial> {
     /**
@@ -62,6 +63,13 @@ export default class NodeMaterialTool extends MaterialTool<NodeMaterial> {
             this._addInputBlocks(inputs, inputsFolder);
         }
 
+        const textures = this.object.getTextureBlocks();
+        if (textures.length > 0) {
+            const texturesFolder = this.tool.addFolder('Textures');
+            texturesFolder.open();
+            this._addTextureBlocks(textures, texturesFolder);
+        }
+
         // Options
         super.addOptions();
     }
@@ -84,6 +92,14 @@ export default class NodeMaterialTool extends MaterialTool<NodeMaterial> {
                     this.tool.addColor(folder, i.name, i.value).open();
                     break;
             }
+        });
+    }
+
+    // Adds the textures folders
+    private _addTextureBlocks (blocks: (TextureBlock | ReflectionTextureBlock)[], folder: dat.GUI): void {
+        blocks.forEach(b => {
+            const isReflectionTexture = b instanceof ReflectionTextureBlock;
+            this.tool.addTexture(folder, this.editor, this.editor.core.scene, 'texture', b, isReflectionTexture, isReflectionTexture);
         });
     }
 
