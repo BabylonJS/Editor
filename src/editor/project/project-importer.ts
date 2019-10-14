@@ -2,7 +2,7 @@ import {
     Scene, Tags, Animation, ActionManager, Material, Texture, ShadowGenerator,
     Geometry, Node, Camera, Light, Mesh, ParticleSystem, AbstractMesh, InstancedMesh,
     CannonJSPlugin, PhysicsImpostor, Vector3, EffectLayer, Sound, RenderTargetTexture, ReflectionProbe,
-    Color3, Color4, SerializationHelper
+    Color3, Color4, SerializationHelper, NodeMaterial
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -279,7 +279,8 @@ export default class ProjectImporter {
         project.materials.forEach(m => {
             try {
                 const existing = scene.getMaterialByID(m.serializedValues.id);
-                const material = existing ? SerializationHelper.Parse(() => existing, m.serializedValues, scene, 'file:') : Material.Parse(m.serializedValues, scene, 'file:');
+                const baseUrl = existing ? (existing instanceof NodeMaterial ? '' : 'file:') : (m.serializedValues.customType === 'BABYLON.NodeMaterial' ? '' : 'file:');
+                const material = existing ? SerializationHelper.Parse(() => existing, m.serializedValues, scene, baseUrl) : Material.Parse(m.serializedValues, scene, baseUrl);
 
                 m.meshesNames.forEach(mn => {
                     const mesh = scene.getMeshByName(mn);

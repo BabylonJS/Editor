@@ -287,7 +287,7 @@ export default class MaterialsViewer extends EditorPlugin {
             const obj = material.serialize();
             obj._customCode = null; // Hack for CustomMaterialEdtitor class
             
-            this.preview.sphere.material = Material.Parse(obj, this.preview.scene, 'file:');
+            this.preview.sphere.material = Material.Parse(obj, this.preview.scene, material instanceof NodeMaterial ? '' : 'file:');
             if (this.preview.sphere.material instanceof NodeMaterial)
                 this.preview.sphere.material.build();
             
@@ -334,7 +334,7 @@ export default class MaterialsViewer extends EditorPlugin {
 
         if (material) {
             const obj = material.serialize();
-            sphere.material = Material.Parse(obj, scene, 'file:');
+            sphere.material = Material.Parse(obj, scene, material instanceof NodeMaterial ? '' : 'file:');
 
             if (sphere.material instanceof NodeMaterial)
                 sphere.material.build();
@@ -365,7 +365,8 @@ export default class MaterialsViewer extends EditorPlugin {
             
             // Create
             const obj = mat.serialize();
-            preview.sphere.material = Material.Parse(obj, preview.scene, 'file:');
+            preview.sphere.material = Material.Parse(obj, preview.scene, mat instanceof NodeMaterial ? '' : 'file:');
+            preview.sphere.material.onError = () => resolve('./assets/textures/waitlogo.png');
 
             if (preview.sphere.material instanceof NodeMaterial)
                 preview.sphere.material.build();
@@ -483,7 +484,7 @@ export default class MaterialsViewer extends EditorPlugin {
             data._customCode = null; // Hack for CustomMaterialEdtitor class
             
             this._clearMaterial();
-            this.preview.sphere.material = Material.Parse(data, this.preview.scene, 'file:');
+            this.preview.sphere.material = Material.Parse(data, this.preview.scene, previewItem.material instanceof NodeMaterial ? '' : 'file:');
         });
     }
 }

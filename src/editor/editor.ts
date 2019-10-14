@@ -868,8 +868,11 @@ export default class Editor implements IUpdatable {
         Tools.SetWindowTitle('Untitled');
 
         const packageJson = await Tools.LoadFile<string>('http://editor.babylonjs.com/package.json?' + Date.now());
-        const newVersion = JSON.parse(packageJson).version;
+        if (!packageJson) // No internet connection?
+            return;
 
+        const newVersion = JSON.parse(packageJson).version;
+        
         if (Editor.EditorVersion < newVersion) {
             const answer = await Dialog.Create('Update available!', `An update is available! (v${newVersion}). Would you like to download it?`);
             if (answer === 'No')
