@@ -182,7 +182,8 @@ export default class Editor implements IUpdatable {
             
             this.core.engine = new Engine(canvas, true, {
                 antialias: true,
-                premultipliedAlpha: false
+                premultipliedAlpha: false,
+                powerPreference: "high-performance"
             });
             this.core.scene = new Scene(this.core.engine);
             this.core.scenes.push(this.core.scene);
