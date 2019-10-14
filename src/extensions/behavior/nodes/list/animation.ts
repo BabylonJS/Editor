@@ -62,7 +62,14 @@ export function registerAllAnimationNodes (object?: any): void {
             return;
         }
 
-        const animation = new Animation(propertyPath, propertyPath, 60, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT, false);
+        let animationType = Animation.ANIMATIONTYPE_FLOAT;
+        switch (ctor1) {
+            case 'vector2': animationType = Animation.ANIMATIONTYPE_VECTOR2; break;
+            case 'vector3': animationType = Animation.ANIMATIONTYPE_VECTOR3; break;
+            case 'color3': animationType = Animation.ANIMATIONTYPE_COLOR3; break;
+        }
+
+        const animation = new Animation(propertyPath, propertyPath, 60, animationType, Animation.ANIMATIONLOOPMODE_CONSTANT, false);
         animation.setKeys([
             { frame: 0, value: property.clone ? property.clone() : property },
             { frame: 60 * node.properties['Duration (seconds)'], value: targetValue }
@@ -71,7 +78,7 @@ export function registerAllAnimationNodes (object?: any): void {
         scene.beginDirectAnimation(target, [animation], 0, 60, false, node.properties['Speed'], () => node.store.playing = false);
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
-        { name: 'Target Value', type: 'number,vec2,vec3,vec4,col3,col4' }
+        { name: 'Target Value', type: 'number,vec2,vec3,col3' }
     ], properties: [
         { name: 'Target Path', type: 'string', defaultValue: 'Self' },
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
