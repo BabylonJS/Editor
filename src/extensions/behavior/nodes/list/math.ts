@@ -41,7 +41,15 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'b', type: 'number' }
     ], outputs: [
         { name: 'Result', type: 'number' }
-    ], drawBackground: (node) => node.properties['Operator'] }, object);
+    ], drawBackground: (node) => {
+        switch (node.properties['Operator']) {
+            case '+': return 'Add';
+            case '-': return 'Subtract';
+            case '*': return 'Multiply';
+            case '/': return 'Divide';
+            default: return ''; // Should not happen
+        }
+     } }, object);
 
     registerNode({ name: 'Vector Operation', description: 'Performs a vector operation (+, -, *, /)', path: 'math/vectoroperation', ctor: Object, functionRef: (node) => {
         const a = GraphNode.nodeToOutput<any>(node.getInputData(0));
