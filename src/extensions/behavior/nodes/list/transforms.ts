@@ -1,4 +1,4 @@
-import { AbstractMesh, Light, Vector3 } from 'babylonjs';
+import { AbstractMesh, Node, Vector3 } from 'babylonjs';
 import { LiteGraph } from 'litegraph.js';
 
 import { GraphNode, registerNode } from '../graph-node';
@@ -8,6 +8,9 @@ import { GraphNode, registerNode } from '../graph-node';
  * @param object the object reference being customized using the graph editor.
  */
 export function registerAllTransformsNodes (object?: any): void {
+    /**
+     * Transform
+     */
     registerNode({ name: 'Transform', description: 'Gets the current transformation of the node', path: 'node/transform', ctor: AbstractMesh, functionRef: (node, target: AbstractMesh) => {
         const position = GraphNode.nodeToOutput<Vector3>(node.getInputData(1), false);
         const rotation = GraphNode.nodeToOutput<Vector3>(node.getInputData(2), false);
@@ -35,4 +38,18 @@ export function registerAllTransformsNodes (object?: any): void {
         { name: 'Scaling', type: 'vec3' }
     ],
     drawBackground: (node, target) => target }, object);
+
+    /**
+     * Set Parent
+     */
+    registerNode({ name: 'Set Parent', description: 'Sets the new parent of the node', path: 'node/setparent', ctor: Node, functionRef: (node, target, scene) => {
+        const parent = node.getInputData<AbstractMesh>(1) || target;
+        if (parent !== node.graph.scriptObject)
+            node.graph.scriptObject.parent = parent;
+    }, inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Parent', type: 'mesh' }
+    ], properties: [
+        { name: 'Target Path', type: 'string', defaultValue: 'Self' }
+    ] }, object);
 }

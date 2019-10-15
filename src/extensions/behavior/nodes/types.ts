@@ -42,7 +42,12 @@ export interface IWidget {
          * Values used when widget is a combo.
          */
         values?: string[];
-    }
+
+        /**
+         * Used only by editor, used to configure widget once node is instanciated
+         */
+        onInstanciate?: (node: GraphNode, widget: IWidget) => any;
+    };
 }
 
 export interface IGraphNodeDescriptor {

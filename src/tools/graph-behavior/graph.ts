@@ -22,6 +22,7 @@ import GraphExtension, { GraphNodeMetadata, NodeGraph, GraphData, BehaviorGraphM
 
 import '../../extensions/behavior/graph';
 import { IGraphNode } from '../../extensions/behavior/nodes/types';
+import { GraphNode } from '../../extensions/behavior/nodes/graph-node';
 
 export interface GraphGrid extends GridRow {
     name: string;
@@ -159,7 +160,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 n.store = { };
             });
         };
-        this.graphData.onNodeAdded = (node: IGraphNode) => {
+        this.graphData.onNodeAdded = (node: GraphNode) => {
             node.shape = 'round';
             // LiteGraphNode.SetColor(node); TOOD.
         };
@@ -187,7 +188,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.graph.render_execution_order = true;
         this.graph.onNodeSelected = (node) => this.editor.inspector.setObject(node);
         this.graph.showSearchBox = () => { };
-        this.graph.processContextMenu = ((node: IGraphNode, event) => {
+        this.graph.processContextMenu = ((node: GraphNode, event) => {
             // Add.
             if (!node) {
                 // Group?
@@ -204,7 +205,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 }
                 
                 GraphNodeCreator.OnConfirmSelection = (id) => {
-                    const node = <IGraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
+                    const node = <GraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
                     if (!node)
                         return;
                     
@@ -224,9 +225,14 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             // Node
             ContextMenu.Show(event, {
                 clone: { name: 'Clone', callback: () => {
-                    const clone = <IGraphNode> LiteGraph.createNode(node.type);
+                    debugger;
+                    const clone = <GraphNode> LiteGraph.createNode(node.type);
                     clone.pos = [node.pos[0] + 10, node.pos[1] + 10];
                     clone.properties = Tools.Clone(node.properties);
+                    if (clone.widgets) {
+                        clone.size[1] += 25 * node.widgets.length;
+                        clone.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(node, w));
+                    }
                     this.graphData.add(clone);
                 } },
                 remove: { name: 'Remove', callback: () => {
@@ -478,6 +484,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         IGraphNode.Loaded = false;
         this.graphData.configure(JSON.parse(JSON.stringify(this.data.graph)));
         this.graphData.variables = this.data.variables || [];
+        this.graphData._nodes.forEach(n => {
+            if (!n.widgets)
+                return;
+
+            n.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(n, w));
+        });
         IGraphNode.Loaded = true;
 
         // Refresh right text
@@ -647,7 +659,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             });
 
             // Start
-            const nodes = <IGraphNode[]> this.graphData._nodes;
+            const nodes = <GraphNode[]> this.graphData._nodes;
             nodes.forEach(n => {
                 // if (n instanceof RenderStart)
                 //     return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());

@@ -265,10 +265,8 @@ export default class MaterialsViewer extends EditorPlugin {
                 parent.remove();
             } },
             edit: material instanceof NodeMaterial ? { name: 'Edit...', callback: async () => {
-                if (material instanceof NodeMaterial) {
-                    await Tools.ImportScript<any>('babylonjs-node-editor');
-                    material.edit();
-                }
+                await Tools.ImportScript<any>('babylonjs-node-editor');
+                material.edit();
             } } : undefined
         });
 
@@ -287,7 +285,7 @@ export default class MaterialsViewer extends EditorPlugin {
             const obj = material.serialize();
             obj._customCode = null; // Hack for CustomMaterialEdtitor class
             
-            this.preview.sphere.material = Material.Parse(obj, this.preview.scene, material instanceof NodeMaterial ? '' : 'file:');
+            this.preview.sphere.material = Material.Parse(obj, this.preview.scene, 'file:');
             if (this.preview.sphere.material instanceof NodeMaterial)
                 this.preview.sphere.material.build();
             
@@ -334,7 +332,7 @@ export default class MaterialsViewer extends EditorPlugin {
 
         if (material) {
             const obj = material.serialize();
-            sphere.material = Material.Parse(obj, scene, material instanceof NodeMaterial ? '' : 'file:');
+            sphere.material = Material.Parse(obj, scene, 'file:');
 
             if (sphere.material instanceof NodeMaterial)
                 sphere.material.build();
@@ -365,7 +363,7 @@ export default class MaterialsViewer extends EditorPlugin {
             
             // Create
             const obj = mat.serialize();
-            preview.sphere.material = Material.Parse(obj, preview.scene, mat instanceof NodeMaterial ? '' : 'file:');
+            preview.sphere.material = Material.Parse(obj, preview.scene, 'file:');
             preview.sphere.material.onError = () => resolve('./assets/textures/waitlogo.png');
 
             if (preview.sphere.material instanceof NodeMaterial)
@@ -484,7 +482,7 @@ export default class MaterialsViewer extends EditorPlugin {
             data._customCode = null; // Hack for CustomMaterialEdtitor class
             
             this._clearMaterial();
-            this.preview.sphere.material = Material.Parse(data, this.preview.scene, previewItem.material instanceof NodeMaterial ? '' : 'file:');
+            this.preview.sphere.material = Material.Parse(data, this.preview.scene, 'file:');
         });
     }
 }
