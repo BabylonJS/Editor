@@ -17,6 +17,34 @@ export type SupportedTypes = number | string | boolean | Vector2 | Vector3 | Vec
  */
 export type GraphMethodCallType = (...args: any[]) => any;
 
+export interface IWidget {
+    /**
+     * The widge type.
+     */
+    type: 'allow' | 'button' | 'combo' | 'text' | string;
+    /**
+     * The name of the widget.
+     */
+    name: string;
+    /**
+     * The value of the widget.
+     */
+    value: any;
+    /**
+     * Called on the widget changed.
+     */
+    callback: (v: any, graph: LGraphCanvas, node: GraphNode) => void;
+    /**
+     * Options for the widget.
+     */
+    options?: {
+        /**
+         * Values used when widget is a combo.
+         */
+        values?: string[];
+    }
+}
+
 export interface IGraphNodeDescriptor {
     /**
      * The name of the node.
@@ -148,6 +176,10 @@ export interface IGraphNodeDescriptor {
          */
         defaultValue: SupportedTypes;
     }[];
+    /**
+     * The collection of widgets for the node.
+     */
+    widgets?: IWidget[];
 }
 
 export abstract class IGraphNode {
@@ -216,6 +248,10 @@ export abstract class IGraphNode {
      */
     onGetOutputs? (): [string, (string | number)][];
     /**
+     * Adds the given widget to the node.
+     */
+    addWidget? (type: string, name: string, value: any, callback: (value: any, graph: LGraphCanvas, node: GraphNode) => void, options: any): void;
+    /**
      * Store of all available properties for the current node.
      */
     properties?: { [index: string]: any };
@@ -254,6 +290,10 @@ export abstract class IGraphNode {
      * Flags set to the node
      */
     flags?: any;
+    /**
+     * Widgets available for the node.
+     */
+    widgets?: IWidget[];
 
     /**
      * Defines the store used to keep some temporary variables.
@@ -320,7 +360,7 @@ export abstract class IGraphNode {
         const measure = ctx.measureText(text);
         if (this.size[0] <= measure.width) this.size[0] = measure.width + 100;
 
-        ctx.fillText(text, this.size[0] * 0.5, this.size[1] * 0.5 + 25);
+        ctx.fillText(text, this.size[0] * 0.5, this.size[1] + 15);
     }
 
     /**

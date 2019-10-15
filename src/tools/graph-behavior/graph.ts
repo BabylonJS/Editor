@@ -211,6 +211,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     node.pos = this.graph.convertEventToCanvas(event);
                     if (node.size[0] < 100)
                         node.size[0] = 100;
+                    if (node.widgets)
+                        node.size[1] += 25 * node.widgets.length;
         
                     this.graphData.add(node);
                     GraphNodeCreator.Hide();

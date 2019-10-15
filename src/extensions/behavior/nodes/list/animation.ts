@@ -36,6 +36,11 @@ export function registerAllAnimationNodes (object?: any): void {
     ], outputs: [
         { name: 'On End', type: LiteGraph.EVENT },
         { name: 'On Loop', type: LiteGraph.EVENT }
+    ], widgets: [
+        { type: 'number', name: 'From', value: 0, callback: (v, g, n) => n.properties['From'] = v },
+        { type: 'number', name: 'To', value: 60, callback: (v, g, n) => n.properties['To'] = v },
+        { type: 'number', name: 'Speed', value: 0, callback: (v, g, n) => n.properties['Speed'] = v },
+        { type: 'toggle', name: 'Loop', value: false, callback: (v, g, n) => n.properties['Loop'] = v }
     ], drawBackground: (node, target) => target }, object);
 
     registerNode({ name: 'Stop Animations', description: 'Stops the currently playing animations of the current node.', path: 'animation/stop', ctor: Node, functionRef: (node, target: Node, scene) => {
@@ -86,5 +91,8 @@ export function registerAllAnimationNodes (object?: any): void {
         { name: 'Duration (seconds)', type: 'number', defaultValue: 1 }
     ], outputs: [
         { name: 'Current Value', type: 'number,vec2,vec3,vec4,col3,col4' }
+    ], widgets: [
+        { type: 'number', name: 'Speed', value: 1, callback: (v, g, n) => n.properties['Speed'] = v },
+        { type: 'number', name: 'Duration (seconds)', value: 1, callback: (v, g, n) => n.properties['Duration (seconds)'] = v }
     ], drawBackground: (node, target) => `${target}'s ${node.properties['Property Path']}` }, object);
 }

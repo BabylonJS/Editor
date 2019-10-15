@@ -106,9 +106,12 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                 continue;
             }
 
+            // Check exists in widgets
+            if (node.widgets && node.widgets.find(w => w.name === property.name))
+                continue;
+
             // Other
             const ctor = Tools.GetConstructorName(value).toLowerCase();
-
             switch (ctor) {
                 // Primitives
                 case 'number':

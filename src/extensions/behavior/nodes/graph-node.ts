@@ -121,6 +121,11 @@ export class GraphNode extends IGraphNode {
 
             this.addOutput(o.name, o.type);
         });
+
+        // Widgets
+        description.widgets && description.widgets.forEach(w => {
+            this.addWidget(w.type, w.name, w.value, w.callback, w.options);
+        });
     }
 
     /**
