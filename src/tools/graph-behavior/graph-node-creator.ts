@@ -123,7 +123,7 @@ export default class GraphNodeCreator {
                     return false;
                 
                 const title = ctor.Title;
-                return title.toLowerCase().indexOf(effectiveSearch.toLowerCase()) !== -1;
+                return title.replace(/ /g, '').toLowerCase().indexOf(effectiveSearch.toLowerCase()) !== -1;
             });
             visible.length === 0 ? this._Graph.element.hide(s) : this._Graph.element.show(s);
             visible.forEach(v => toShow.push(s + '/' + v));

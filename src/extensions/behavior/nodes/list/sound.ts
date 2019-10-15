@@ -26,7 +26,9 @@ export function registerAllSoundNodes (object?: any): void {
         { name: 'Sound Name', type: 'string', defaultValue: 'None' },
         { name: 'Loop', type: 'boolean', defaultValue: false }
     ], widgets: [
-        { type: 'toggle', name: 'Loop', value: false, callback: (v, g, n) => n.properties['Loop'] = v }
+        { type: 'toggle', name: 'Loop', value: false, callback: (v, g, n) => n.properties['Loop'] = v, options: {
+            onInstanciate: (n, w) => { w.value = n.properties['Loop'] }
+        } }
     ], drawBackground: (node) => node.properties['Sound Name'] }, object);
 
     registerNode({ name: 'Pause Sound', description: 'Pauses the given sound', path: 'sound/pause', ctor: Object, functionRef: (node, target, scene) => {
