@@ -9,6 +9,7 @@ export default class PlayGame extends EditorPlugin {
     public toolbar: Toolbar = null;
 
     public iframe: JQuery<HTMLIFrameElement> = null;
+    public emptyGameNode: HTMLHeadElement = null;
     public contentWindow: Window = null;
 
     public capturer: CCapture = null;
@@ -45,7 +46,7 @@ export default class PlayGame extends EditorPlugin {
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="PLAY-GAME-TOOLBAR" style="width: 100%; height: 100%"></div>' },
-            { type: 'main', resizable: false, content: '<iframe id="PLAY-GAME-IFRAME" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%; position: absolute; top: 0;"></iframe>' },
+            { type: 'main', resizable: false, content: '<iframe id="PLAY-GAME-IFRAME" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%; position: absolute; top: 0; border: 0px;"></iframe>' },
             { type: 'left', resizable: false, size: 0, content: `<video id="PLAY-GAME-VIDEO" controls></video>` }
         ];
         this.layout.build(this.divElement.id);
@@ -57,7 +58,9 @@ export default class PlayGame extends EditorPlugin {
             { type: 'break' },
             { type: 'button', id: 'record', img: 'icon-record', text: 'Record' },
             { type: 'button', id: 'download-record', img: 'icon-export', text: 'Save Record' },
-            { type: 'button', id: 'spectorjs', img: 'icon-camera', text: 'Capture Frame...' }
+            { type: 'button', id: 'spectorjs', img: 'icon-camera', text: 'Capture Frame...' },
+            { type: 'break' },
+            { type: 'button', id: 'stop', img: 'icon-stop', text: 'Stop' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PLAY-GAME-TOOLBAR');
@@ -141,6 +144,23 @@ export default class PlayGame extends EditorPlugin {
                     this.iframe.focus();
                 }, 500);
                 break;
+
+            // Stop
+            case 'stop':
+                this.iframe[0].src = 'blank';
+                this.emptyGameNode = Tools.CreateElement<HTMLHeadElement>('h1', BabylonTools.RandomId(), {
+                    'float': 'left',
+                    'left': '50%',
+                    'top': '50%',
+                    'transform': 'translate(-50%, -50%)',
+                    'overflow': 'hidden',
+                    'position': 'relative',
+                    'font-family': 'Roboto,sans-serif !important',
+                    'opacity': '0.5'
+                });
+                this.emptyGameNode.textContent = 'Test has been stopped.';
+    
+                $('#PLAY-GAME-IFRAME').parent().append(this.emptyGameNode);
             default: break;
         }
     }
@@ -151,6 +171,12 @@ export default class PlayGame extends EditorPlugin {
     protected async createIFrame (): Promise<void> {
         // Misc.
         this.capturer = null;
+
+        // Empty game node
+        if (this.emptyGameNode) {
+            this.emptyGameNode.remove();
+            this.emptyGameNode = null;
+        }
 
         // Setup layout panels
         this.layout.setPanelSize('left', 0);

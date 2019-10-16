@@ -40,7 +40,7 @@ export function registerAllAbstractMeshNodes (object?: any): void {
         { name: 'Target Path', type: 'string', defaultValue: 'Self' },
         { name: 'Space', type: 'number', defaultValue: Space.LOCAL, enums: ['BONE', 'LOCAL', 'WORLD'], enumsTarget: Space }
     ], parameters: [	
-        { inputName: 'Axis', type: 'vec3' },	
+        { inputName: 'Axis', type: 'vec3' },
         { inputName: 'Distance', type: 'number' },	
         { propertyName: 'Space', type: 'number' }
     ], outputs: [
@@ -59,6 +59,9 @@ export function registerAllAbstractMeshNodes (object?: any): void {
         } }
     ] }, object);
 
+    /**
+     * Move with collisions
+     */
     registerNode({ name: 'Move With Collisions', description: 'Moves the mesh according to the given displacement by taking care of collisions', path: 'node/movewithcollisions', ctor: AbstractMesh, functionRef: 'moveWithCollisions', inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Displacement', type: 'vec3' }
