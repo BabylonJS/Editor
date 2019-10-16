@@ -6,7 +6,7 @@ interface IScript {
 }
 
 declare type ScriptConstructor = new (...args: any[]) => IScript;
-declare type CustomizableParams = number | string |
+declare type CustomizableParams = boolean | number | string |
                                   BABYLON.Vector3 | BABYLON.Vector2 | BABYLON.Vector4 |
                                   BABYLON.Color3 | BABYLON.Color4;
 
