@@ -449,6 +449,10 @@ ICONS
     background: url("svg/film.svg");
 }
 
+.w2ui-icon.icon-stop {
+    background: url("svg/stop.svg");
+}
+
 .w2ui-icon.icon-babylon {
     background: url("svg/logo-babylon.svg");
 }
