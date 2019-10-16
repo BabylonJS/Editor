@@ -124,7 +124,19 @@ export class GraphNode extends IGraphNode {
 
         // Widgets
         description.widgets && description.widgets.forEach(w => {
-            this.addWidget(w.type, w.name, w.value, w.callback, w.options);
+            const widget = this.addWidget(w.type, w.name, w.value, w.callback, w.options);
+
+            if (w.type === 'combo') {
+                // Bypass a missing callback call in litegraph.js. Set "value" as getter/setter to call ourself the callback
+                widget._value = w.value;
+                Object.defineProperty(widget, 'value', {
+                    get: () => widget._value,
+                    set: (v) => {
+                        widget._value = v;
+                        w.callback && w.callback(v, this.graph, this);
+                    }
+                });
+            }
         });
     }
 

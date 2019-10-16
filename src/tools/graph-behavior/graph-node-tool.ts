@@ -79,6 +79,8 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                 this.tool.add(node.properties, property.name, property.enums).name(property.name).onChange(r => {
                     if (property.enumsTarget)
                         node.properties[property.name] = property.enumsTarget[r];
+
+                    this._updateWidgets(property.name, r);
                 });
                 continue;
             }
@@ -106,10 +108,6 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                 continue;
             }
 
-            // Check exists in widgets
-            if (node.widgets && node.widgets.find(w => w.name === property.name))
-                continue;
-
             // Other
             const ctor = Tools.GetConstructorName(value).toLowerCase();
             switch (ctor) {
@@ -117,7 +115,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                 case 'number':
                 case 'string':
                 case 'boolean':
-                    this.tool.add(node.properties, property.name).name(property.name);
+                    this.tool.add(node.properties, property.name).name(property.name).onChange(r => this._updateWidgets(property.name, r));
                     break;
 
                 // Vectors
@@ -210,6 +208,15 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                                .concat(this.editor.core.scene.lights.map(l => l.name))
                                .concat(this.editor.core.scene.cameras.map(c => c.name));
         this.tool.add(this.object.properties, property, nodes).name('Target');
+    }
+
+    // Updates the widgets when the edition tool changed values.
+    private _updateWidgets (name: string, value: any): void {
+        const widget = this.object.widgets && this.object.widgets.find(w => w.name === name);
+        if (widget) {
+            widget.value = value;
+            this.object.setDirtyCanvas(true, true);
+        }
     }
 
     /**

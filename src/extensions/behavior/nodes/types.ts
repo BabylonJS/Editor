@@ -21,7 +21,7 @@ export interface IWidget {
     /**
      * The widge type.
      */
-    type: 'allow' | 'button' | 'combo' | 'text' | string;
+    type: 'allow' | 'button' | 'combo' | 'text' | 'slider' | string;
     /**
      * The name of the widget.
      */
@@ -42,6 +42,26 @@ export interface IWidget {
          * Values used when widget is a combo.
          */
         values?: string[];
+        /**
+         * String used for toggle widgets, text to draw when value is "true"
+         */
+        on?: string;
+        /**
+         * String used for toggle widgets, text to draw when value is "false"
+         */
+        off?: string;
+        /**
+         * Numbers used for number widgets, used to set precision when sliding the value.
+         */
+        precision?: number;
+        /**
+         * Number used for slider widgets, used to set minimum value.
+         */
+        min?: number;
+        /**
+         * Number used for slider widgets, used to set maximum value.
+         */
+        max?: number;
 
         /**
          * Used only by editor, used to configure widget once node is instanciated
@@ -255,7 +275,11 @@ export abstract class IGraphNode {
     /**
      * Adds the given widget to the node.
      */
-    addWidget? (type: string, name: string, value: any, callback: (value: any, graph: LGraphCanvas, node: GraphNode) => void, options: any): void;
+    addWidget? (type: string, name: string, value: any, callback: (value: any, graph: LGraphCanvas, node: GraphNode) => void, options: any): any;
+    /**
+     * Sets if the canvas used to render to node should be set as dirty to force re-render.
+     */
+    setDirtyCanvas? (foreground: boolean, background: boolean): void;
     /**
      * Store of all available properties for the current node.
      */
