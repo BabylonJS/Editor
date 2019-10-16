@@ -309,6 +309,9 @@ export default class NodeTool extends AbstractEditionTool<Node> {
 
                     // Types
                     switch (Tools.GetConstructorName(params[p])) {
+                        case 'Boolean':
+                            script.add(m.params, p);
+                            break;
                         case 'Number':
                             script.add(m.params, p);
                             break;
