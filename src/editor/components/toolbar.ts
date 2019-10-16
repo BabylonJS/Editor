@@ -1,3 +1,5 @@
+import { FilesInputStore } from 'babylonjs';
+
 import Editor from '../editor';
 import { IEditorPlugin } from '../typings/plugin';
 
@@ -411,7 +413,19 @@ export default class EditorToolbar {
                 break;
             case 'test-debug':
                 SceneExporter.CreateFiles(this.editor);
-                Tools.OpenPopup('./preview.html', 'Preview', 1280, 800);
+                Tools.OpenPopup('./preview.html', 'Preview', 1280, 800).addEventListener('beforeunload', (ev) => {
+                    if (ev.srcElement['baseURI'].indexOf('preview.html') === -1)
+                        return;
+                    
+                    if (this.editor.projectFile) {
+                        delete FilesInputStore.FilesToLoad[this.editor.projectFile.name];
+                        this.editor.projectFile = null;
+                    }
+                    if (this.editor.sceneFile) {
+                        delete FilesInputStore.FilesToLoad[this.editor.sceneFile.name];
+                        this.editor.sceneFile = null;
+                    }
+                });
                 break;
             default: break;
         }

@@ -1,4 +1,4 @@
-import { Scene, Tools as BabylonTools } from 'babylonjs';
+import { Scene, Tools as BabylonTools, FilesInputStore } from 'babylonjs';
 import Editor, { EditorPlugin, Toolbar, Layout, Tools } from 'babylonjs-editor';
 
 import { CCapture } from 'ccapture.js';
@@ -34,6 +34,9 @@ export default class PlayGame extends EditorPlugin {
         // Capturer
         if (this.capturer)
             this.capturer.stop();
+
+        // Files
+        this._clearFiles();
         
         await super.close();
     }
@@ -148,6 +151,8 @@ export default class PlayGame extends EditorPlugin {
             // Stop
             case 'stop':
                 this.iframe[0].src = 'blank';
+                this._clearFiles();
+
                 this.emptyGameNode = Tools.CreateElement<HTMLHeadElement>('h1', BabylonTools.RandomId(), {
                     'float': 'left',
                     'left': '50%',
@@ -159,7 +164,6 @@ export default class PlayGame extends EditorPlugin {
                     'opacity': '0.5'
                 });
                 this.emptyGameNode.textContent = 'Test has been stopped.';
-    
                 $('#PLAY-GAME-IFRAME').parent().append(this.emptyGameNode);
             default: break;
         }
@@ -188,7 +192,7 @@ export default class PlayGame extends EditorPlugin {
         // Setup toolbar
         this.toolbar.updateItem('download-record', {
             hidden: true
-        })
+        });
 
         // Iframe
         this.iframe = <JQuery<HTMLIFrameElement>> $('#PLAY-GAME-IFRAME');
@@ -267,5 +271,17 @@ export default class PlayGame extends EditorPlugin {
      */
     protected showVideo (): void {
 
+    }
+
+    // Clears all the files
+    private _clearFiles (): void {
+        if (this.editor.projectFile) {
+            delete FilesInputStore.FilesToLoad[this.editor.projectFile.name];
+            this.editor.projectFile = null;
+        }
+        if (this.editor.sceneFile) {
+            delete FilesInputStore.FilesToLoad[this.editor.sceneFile.name];
+            this.editor.sceneFile = null;
+        }
     }
 }
