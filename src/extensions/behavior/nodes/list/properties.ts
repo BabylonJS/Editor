@@ -42,16 +42,22 @@ export function registerAllPropertiesNodes (object?: any): void {
             return undefined;
         }
 
-        const i = node.getInputData<any>(0);
+        const i = node.getInputData<any>(1);
         if (i !== null && i !== undefined)
             v.value = i;
 
         return GraphNode.nodeToOutput(v.value);
     }, inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Set Value', type: undefined }
     ], outputs: [
         { name: 'Get Value', type: undefined }
     ], properties: [
         { name: 'Variable', type: 'string', defaultValue: '' }
+    ], widgets: [
+        { name: 'Variable', type: 'combo', value: 'None', callback: (v, g, n) => n.properties['Variable'] = v, options: {
+            onInstanciate: (n, w) => w.value = n.properties['Variable'],
+            values: (w, n) => n.graph.variables.map(v => v.name)
+        } }
     ], drawBackground: (node) => node.properties['Variable'] }, object);
 }

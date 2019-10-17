@@ -184,7 +184,9 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
 
                 // On ready
                 this.scene.onReadyObservable.addOnce(() => {
-                    graph.start();
+                    this.scene.onBeforeRenderObservable.add(() => {
+                        graph.runStep(1, true);
+                    });
                 });
                 
                 // Render loop

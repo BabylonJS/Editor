@@ -41,7 +41,7 @@ export interface IWidget {
         /**
          * Values used when widget is a combo.
          */
-        values?: string[];
+        values?: string[] | ((widget: IWidget, node: GraphNode) => void);
         /**
          * String used for toggle widgets, text to draw when value is "true"
          */
@@ -361,7 +361,7 @@ export abstract class IGraphNode {
      */
     public static SetColor (node: IGraphNode): void {
         switch (node.mode) {
-            case LiteGraph.ALWAYS: node.color = '#333'; node.bgColor = '#AAA'; break;
+            case LiteGraph.ALWAYS: node.color = '#555'; node.bgColor = '#AAA'; break;
             case LiteGraph.ON_EVENT: node.color = '#55A'; node.bgColor = '#44A'; break;
             case LiteGraph.ON_TRIGGER: node.color = '#151'; node.bgColor = '#4A4'; break;
             case LiteGraph.NEVER: node.color = '#A55'; node.bgColor = '#A44'; break;
