@@ -214,6 +214,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                         node.size[0] = 100;
                     if (node.widgets)
                         node.size[1] += 25 * node.widgets.length;
+                    
+                    node.color = '#555';
+                    node.bgColor = '#AAA';
         
                     this.graphData.add(node);
                     GraphNodeCreator.Hide();
@@ -225,14 +228,16 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             // Node
             ContextMenu.Show(event, {
                 clone: { name: 'Clone', callback: () => {
-                    debugger;
                     const clone = <GraphNode> LiteGraph.createNode(node.type);
                     clone.pos = [node.pos[0] + 10, node.pos[1] + 10];
                     clone.properties = Tools.Clone(node.properties);
+                    clone.color = '#555';
+                    clone.bgColor = '#AAA';
                     if (clone.widgets) {
                         clone.size[1] += 25 * node.widgets.length;
                         clone.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(node, w));
                     }
+
                     this.graphData.add(clone);
                 } },
                 remove: { name: 'Remove', callback: () => {

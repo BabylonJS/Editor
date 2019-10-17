@@ -107,6 +107,6 @@ export class GraphTypeNode extends IGraphNode {
         const measure = ctx.measureText(text);
         if (this.size[0] <= measure.width) this.size[0] = measure.width + 100;
 
-        ctx.fillText(text, this.size[0] * 0.5, this.size[1] * 0.5 + 7);
+        ctx.fillText(text, this.size[0] * 0.5, this.size[1] + 15);
     }
 }
