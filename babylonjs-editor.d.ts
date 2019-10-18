@@ -16,6 +16,7 @@ declare module 'babylonjs-editor' {
     import UndoRedo from 'babylonjs-editor/editor/tools/undo-redo';
     import ThemeSwitcher, { ThemeType } from 'babylonjs-editor/editor/tools/theme';
     import GraphicsTools from 'babylonjs-editor/editor/tools/graphics-tools';
+    import { ConsoleLevel } from 'babylonjs-editor/editor/components/console';
     import Layout from 'babylonjs-editor/editor/gui/layout';
     import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import List from 'babylonjs-editor/editor/gui/list';
@@ -45,7 +46,7 @@ declare module 'babylonjs-editor' {
     import Storage from 'babylonjs-editor/editor/storage/storage';
     import VSCodeSocket from 'babylonjs-editor/editor/extensions/vscode-socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, TranspilationOutput, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, IEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, ScenePicker, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, ConsoleLevel, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, TranspilationOutput, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, IEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, ScenePicker, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -63,6 +64,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import EditorStats from 'babylonjs-editor/editor/components/stats';
     import EditorAssets from 'babylonjs-editor/editor/components/assets';
     import EditorFiles from 'babylonjs-editor/editor/components/files';
+    import EditorConsole from 'babylonjs-editor/editor/components/console';
     import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
     import SceneIcons from 'babylonjs-editor/editor/scene/scene-icons';
     export default class Editor implements IUpdatable {
@@ -79,6 +81,7 @@ declare module 'babylonjs-editor/editor/editor' {
             stats: EditorStats;
             assets: EditorAssets;
             files: EditorFiles;
+            console: EditorConsole;
             plugins: IStringDictionary<IEditorPlugin>;
             scenePicker: ScenePicker;
             sceneIcons: SceneIcons;
@@ -439,6 +442,61 @@ declare module 'babylonjs-editor/editor/tools/graphics-tools' {
                 * @param canvas the canvas to take its data and convert to a blob
                 */
             static CanvasToBlob(canvas: HTMLCanvasElement): Promise<Blob>;
+    }
+}
+
+declare module 'babylonjs-editor/editor/components/console' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    import CodeEditor from 'babylonjs-editor/editor/gui/code';
+    import Layout from 'babylonjs-editor/editor/gui/layout';
+    import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
+    export enum ConsoleLevel {
+            /**
+                * Just log an info.
+                */
+            INFO = 0,
+            /**
+                * Just log a warning.
+                */
+            WARN = 1,
+            /**
+                * Just log an error.
+                */
+            ERROR = 2
+    }
+    export default class EditorConsole {
+            protected editor: Editor;
+            /**
+                * The layout used to draw toolbar etc.
+                */
+            layout: Layout;
+            /**
+                * The toolbar reference.
+                */
+            toolbar: Toolbar;
+            /**
+                * The code editor reference used to draw the logs.
+                */
+            code: CodeEditor;
+            /**
+                * Defines the maximum number of logs available in the console.
+                */
+            static MaxLogsCount: number;
+            /**
+                * Constructor.
+                * @param editor the editor reference.
+                */
+            constructor(editor: Editor);
+            /**
+                * Logs a new message in the console.
+                * @param message the message to log.
+                * @param level the level of the given logged message.
+                */
+            log(message: string, level: ConsoleLevel): void;
+            /**
+                * Clears the console.
+                */
+            clear(): void;
     }
 }
 
@@ -861,6 +919,7 @@ declare module 'babylonjs-editor/editor/gui/code' {
     export default class CodeEditor {
             editor: editor.ICodeEditor;
             onChange: (value: string) => void;
+            theme: string;
             static Typescript: typeof typescript;
             static ExternalLibraries: string;
             static ExtraLibs: {
@@ -880,7 +939,10 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 */
             static HasOneFocused(): boolean;
             /**
-                * Constructor
+                * Constructor.
+                * @param language the language of the code editor.
+                * @param value the default value to draw in the code editor.
+                * @param theme the theme to use for the code editor.
                 */
             constructor(language?: string, value?: string);
             /**

@@ -6,6 +6,8 @@ import UndoRedo from './editor/tools/undo-redo';
 import ThemeSwitcher, { ThemeType } from './editor/tools/theme';
 import GraphicsTools from './editor/tools/graphics-tools';
 
+import { ConsoleLevel } from './editor/components/console';
+
 import Layout from './editor/gui/layout';
 import Toolbar from './editor/gui/toolbar';
 import List from './editor/gui/list';
@@ -52,6 +54,8 @@ export {
     UndoRedo,
     ThemeSwitcher, ThemeType,
     GraphicsTools,
+
+    ConsoleLevel,
 
     IStringDictionary,
     INumberDictionary,
