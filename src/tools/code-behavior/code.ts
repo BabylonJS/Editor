@@ -7,6 +7,8 @@ import {
 } from 'babylonjs';
 
 import Editor, {
+    ConsoleLevel,
+    
     Tools,
 
     Layout,
@@ -520,6 +522,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                 else if (this.data) {
                     output = await this.code.transpileTypeScript();
                     this.data.compiledCode = output.compiledCode;
+                }
+
+                if (output.errors.length > 0) {
+                    this.editor.console.log(output.errors.map(e => e.message).join('\n'), ConsoleLevel.ERROR);
+                } else {
+                    this.editor.console.log('Transpilation successful for ' + (data || this.data).name, ConsoleLevel.INFO);
                 }
             }, 500);
 

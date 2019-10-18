@@ -1,13 +1,11 @@
-import { FilesInput, FilesInputStore } from "babylonjs";
+import { FilesInputStore } from "babylonjs";
 
 import Editor from "../editor";
 
 import Layout from "../gui/layout";
 import Toolbar from "../gui/toolbar";
-import ContextMenu from "../gui/context-menu";
 
 import Tools from "../tools/tools";
-import UndoRedo from "../tools/undo-redo";
 
 export default class EditorFiles {
     // Public members

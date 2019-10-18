@@ -26,6 +26,8 @@ export default class CodeEditor {
     public editor: editor.ICodeEditor = null;
     public onChange: (value: string) => void;
 
+    public theme: string = null;
+
     // Private members
     private _language: string;
     private _defaultValue: string;
@@ -77,7 +79,10 @@ export default class CodeEditor {
     }
     
     /**
-     * Constructor
+     * Constructor.
+     * @param language the language of the code editor.
+     * @param value the default value to draw in the code editor.
+     * @param theme the theme to use for the code editor.
      */
     constructor (language: string = 'javascript', value: string = '// Some Code') {
         this._language = language;
@@ -160,7 +165,7 @@ export default class CodeEditor {
             language: this._language,
             automaticLayout: true,
             selectionHighlight: true,
-            theme: caller !== window || ThemeSwitcher.ThemeName === 'Dark' ? 'vs-dark' : undefined
+            theme: this.theme ? this.theme : (caller !== window || ThemeSwitcher.ThemeName === 'Dark' ? 'vs-dark' : undefined)
         });
 
         if (!CodeEditor.ExtraLibs.find(el => el.caller === caller)) {
