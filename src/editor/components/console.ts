@@ -43,6 +43,8 @@ export default class EditorConsole {
     public code: CodeEditor;
 
     private _messages: LogMessage[] = [];
+    private _autoScroll: boolean = true;
+    private _addingLog: boolean = false;
 
     /**
      * Defines the maximum number of logs available in the console.
@@ -99,15 +101,13 @@ export default class EditorConsole {
         });
 
         // Code Editor
-        this.code = new CodeEditor('consoleLanguage', '');
-        this.code.theme = 'consoleTheme';
-        this.code.build('CONSOLE-EDITOR');
+        this._createEditor();
 
         // Events
-        BabylonTools.Log = (m) => {
+        BabylonTools.Log = ((m) => {
             console.log(m);
             this.log(m, ConsoleLevel.INFO);
-        };
+        });
     }
 
     /**
@@ -135,7 +135,11 @@ export default class EditorConsole {
         if (this._messages.length > EditorConsole.MaxLogsCount)
             this._messages.shift();
 
+        this._addingLog = true;
         this.code.setValue(this._messages.map(m => m.message).join('\n'));
+        if (this._autoScroll)
+            this.code.editor.revealLine(this.code.editor.getModel().getLineCount());
+        this._addingLog = false;
     }
 
     /**
@@ -144,6 +148,22 @@ export default class EditorConsole {
     public clear (): void {
         this.code.setValue('');
         this._messages = [];
+    }
+
+    // Creates the code editor.
+    private async _createEditor (): Promise<void> {
+        this.code = new CodeEditor('consoleLanguage', '');
+        this.code.theme = 'consoleTheme';
+        await this.code.build('CONSOLE-EDITOR');
+
+        // Events
+        this.code.editor.onDidScrollChange((e) => {
+            const topForLastLine = this.code.editor.getTopForLineNumber(this._messages.length);
+            if (e.scrollTop >= topForLastLine)
+                this._autoScroll = true;
+            else if (e.scrollTopChanged && !this._addingLog)
+                this._autoScroll = false;
+        });
     }
 
     // On the user clicks on the toolbar.
