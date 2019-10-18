@@ -23,7 +23,7 @@ declare module 'babylonjs-editor' {
     import Picker from 'babylonjs-editor/editor/gui/picker';
     import Graph, { GraphNode } from 'babylonjs-editor/editor/gui/graph';
     import Window from 'babylonjs-editor/editor/gui/window';
-    import CodeEditor from 'babylonjs-editor/editor/gui/code';
+    import CodeEditor, { TranspilationOutput } from 'babylonjs-editor/editor/gui/code';
     import Form from 'babylonjs-editor/editor/gui/form';
     import Edition from 'babylonjs-editor/editor/gui/edition';
     import Tree, { TreeContextMenuItem, TreeNode } from 'babylonjs-editor/editor/gui/tree';
@@ -45,7 +45,7 @@ declare module 'babylonjs-editor' {
     import Storage from 'babylonjs-editor/editor/storage/storage';
     import VSCodeSocket from 'babylonjs-editor/editor/extensions/vscode-socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, IEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, ScenePicker, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, GraphicsTools, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, TranspilationOutput, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, IEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, ScenePicker, PrefabAssetComponent, Prefab, PrefabNodeType, ParticlesCreatorExtension, ParticlesCreatorMetadata, Storage, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -850,6 +850,14 @@ declare module 'babylonjs-editor/editor/gui/code' {
             id: string;
             content: string;
     }
+    export interface TranspilationOutput {
+            compiledCode: string;
+            errors: {
+                    line: number;
+                    column: number;
+                    message: string;
+            }[];
+    }
     export default class CodeEditor {
             editor: editor.ICodeEditor;
             onChange: (value: string) => void;
@@ -898,10 +906,9 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 */
             build(parentId: string | HTMLElement, caller?: Window): Promise<void>;
             /**
-                * Transpiles the given TS source to JS source
-                * @param source the source to transpile
+                * Transpiles the current TS source to JS source.
                 */
-            transpileTypeScript(source: string, moduleName: string, config?: any): string;
+            transpileTypeScript(): Promise<TranspilationOutput>;
             /**
                 * Transpiles the given TS source to JS source
                 * @param source the source to transpile

@@ -13,7 +13,7 @@ import Grid, { GridRow } from './editor/gui/grid';
 import Picker from './editor/gui/picker';
 import Graph, { GraphNode } from './editor/gui/graph';
 import Window from './editor/gui/window';
-import CodeEditor from './editor/gui/code';
+import CodeEditor, { TranspilationOutput } from './editor/gui/code';
 import Form from './editor/gui/form';
 import Edition from './editor/gui/edition';
 import Tree, { TreeContextMenuItem, TreeNode } from './editor/gui/tree';
@@ -66,7 +66,7 @@ export {
     Picker,
     Graph, GraphNode,
     Window,
-    CodeEditor,
+    CodeEditor, TranspilationOutput,
     Form,
     Edition,
     Tree, TreeContextMenuItem, TreeNode,

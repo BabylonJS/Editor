@@ -12,7 +12,7 @@ import Editor, {
     Layout,
     Toolbar,
     Grid, GridRow,
-    CodeEditor,
+    CodeEditor, TranspilationOutput,
     Dialog,
     Picker,
 
@@ -504,24 +504,23 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         const code = new CodeEditor('typescript', '');
         await code.build(parent || 'CODE-BEHAVIOR-EDITOR', caller);
 
-        code.onChange = value => {
+        code.onChange = () => {
             // Compile typescript
             clearTimeout(<any> this._timeoutId);
-            this._timeoutId = <any> setTimeout(() => {
+            this._timeoutId = <any> setTimeout(async () => {
                 if (!data && !this.data)
                     return;
                 
-                const config = {
-                    module: 'cjs',
-                    target: 'es5',
-                    experimentalDecorators: true,
-                };
-                
                 // Store compiled code
-                if (data)
-                    data.compiledCode = code.transpileTypeScript(data.code, this.data.name.replace(/ /, ''), config);
-                else if (this.data)
-                    this.data.compiledCode = this.code.transpileTypeScript(this.data.code, this.data.name.replace(/ /, ''), config);
+                let output: TranspilationOutput;
+                if (data) {
+                    output = await code.transpileTypeScript();
+                    data.compiledCode = output.compiledCode;
+                }
+                else if (this.data) {
+                    output = await this.code.transpileTypeScript();
+                    this.data.compiledCode = output.compiledCode;
+                }
             }, 500);
 
             // Update metadata

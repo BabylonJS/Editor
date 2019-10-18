@@ -311,10 +311,10 @@ export default class MaterialEditor extends EditorPlugin {
             $('#' + this.currentTab).show();
         });
 
-        this.code.onChange = (value) => {
+        this.code.onChange = async (value) => {
             if (this.data) {
                 this.data.code = value;
-                this.data.compiledCode = this.code.transpileTypeScript(value, this.data.name.replace(/ /, ''));
+                this.data.compiledCode = (await this.code.transpileTypeScript()).compiledCode;
             }
         };
 
