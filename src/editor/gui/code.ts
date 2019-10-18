@@ -12,13 +12,15 @@ export interface Typings {
     content: string;
 }
 
+export interface TranspilationErrorOutput {
+    line: number;
+    column: number;
+    message: string;
+}
+
 export interface TranspilationOutput {
     compiledCode: string;
-    errors: {
-        line: number;
-        column: number;
-        message: string;
-    }[];
+    errors: TranspilationErrorOutput[];
 }
 
 export default class CodeEditor {
@@ -215,6 +217,14 @@ export default class CodeEditor {
                 return { line: p.lineNumber, column: p.column, message: d[0].messageText };
             })
         };
+    }
+
+    /**
+     * Formats the transpilations errors to output an understandable output.
+     * @param errors the errors coming from the typescript transpilation function. @see .transpileTypeScript
+     */
+    public formatTranspilationOutputErrors (errors: TranspilationErrorOutput[]): string {
+        return errors.map(e => `\n\t(${e.line},${e.column}): ${e.message}`).join('\n');
     }
 
     /**

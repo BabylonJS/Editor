@@ -2,6 +2,7 @@ import { Camera, Tools as BabylonTools, Observer } from 'babylonjs';
 
 import Editor, {
     Tools,
+    ConsoleLevel,
     Layout, Toolbar,
     Grid, GridRow,
     CodeEditor,
@@ -372,7 +373,15 @@ export default class PostProcessEditor extends EditorPlugin {
         this.code.onChange = async (value) => {
             if (this.data) {
                 this.data.code = value;
-                this.data.compiledCode = (await this.code.transpileTypeScript()).compiledCode;
+
+                const output = await this.code.transpileTypeScript();
+                this.data.compiledCode = output.compiledCode;
+
+                if (output.errors.length > 0) {
+                    this.editor.console.log(`Transpil. ${this.data.name}` + this.code.formatTranspilationOutputErrors(output.errors), ConsoleLevel.ERROR);
+                } else {
+                    this.editor.console.log('Transpil. success for ' + this.data.name, ConsoleLevel.INFO);
+                }
 
                 VSCodeSocket.RefreshPostProcess(this.data);
             }
