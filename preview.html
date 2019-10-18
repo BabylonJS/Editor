@@ -54,6 +54,8 @@
         console.warn = (m) => opener.editor.console.log(m, 1);
         console.error = (m) => opener.editor.console.log(m, 2);
 
+        console.log('Loading...');
+
         // Configure systemjs
         System.config({
             paths: {
@@ -111,7 +113,9 @@
                 if (!sceneFile || !BABYLON.FilesInputStore.FilesToLoad[sceneFile.name.toLowerCase()])
                     return;
                 
+                console.log('Loading scene...');
                 BABYLON.SceneLoader.Load('file:', sceneFile.name, engine, function (scene) {
+                    console.log('Loading extensions...');
                     effectiveScene = scene;
                     
                     System.import('./build/src/extensions/extensions.js').then(function (extensions) {
@@ -122,7 +126,9 @@
                                 extensions.default.ApplyExtensions(scene, JSON.parse(data).customMetadatas);
 
                                 // Run scene
+                                console.log('Finalizing...');
                                 scene.executeWhenReady(function () {
+                                    console.log('Run test!');
                                     scene.activeCamera.attachControl(engine.getRenderingCanvas());
                                     engine.runRenderLoop(function () {
                                         if (renderScene)
