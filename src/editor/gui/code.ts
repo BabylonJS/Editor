@@ -12,6 +12,15 @@ export interface Typings {
     content: string;
 }
 
+export interface TranspilationOutput {
+    compiledCode: string;
+    errors: {
+        line: number;
+        column: number;
+        message: string;
+    }[];
+}
+
 export default class CodeEditor {
     // Public members
     public editor: editor.ICodeEditor = null;
@@ -20,6 +29,8 @@ export default class CodeEditor {
     // Private members
     private _language: string;
     private _defaultValue: string;
+
+    private _caller: Window = null;
 
     // Static members
     public static Typescript: typeof typescript;
@@ -111,6 +122,8 @@ export default class CodeEditor {
      * @param parentId the parent id of the editor
      */
     public async build (parentId: string | HTMLElement, caller: Window = window): Promise<void> {
+        this._caller = caller;
+
         if (typeof parentId === 'string')
             parentId = '#' + parentId;
         
@@ -140,9 +153,6 @@ export default class CodeEditor {
 
             CodeEditor.ExternalLibraries = content;
         }
-
-        // Import typescript
-        CodeEditor.Typescript = await Tools.ImportScript<any>('typescript');
         
         // Create editor
         this.editor = caller['monaco'].editor.create($(<any>parentId)[0], {
@@ -154,7 +164,14 @@ export default class CodeEditor {
         });
 
         if (!CodeEditor.ExtraLibs.find(el => el.caller === caller)) {
-            caller['monaco'].languages.typescript.typescriptDefaults.setCompilerOptions({ experimentalDecorators: true, target: 5, allowNonTsExtensions: true });
+            caller['monaco'].languages.typescript.typescriptDefaults.setCompilerOptions({
+                module: caller['monaco'].languages.typescript.ModuleKind.CommonJS,
+                target: caller['monaco'].languages.typescript.ScriptTarget.ES5,
+                noResolve: true,
+                suppressOutputPathCheck: true,
+                allowNonTsExtensions: true,
+                experimentalDecorators: true
+            });
             
             CodeEditor.ExtraLibs.push({
                 lib: caller['monaco'].languages.typescript.typescriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor'),
@@ -172,17 +189,27 @@ export default class CodeEditor {
     }
 
     /**
-     * Transpiles the given TS source to JS source
-     * @param source the source to transpile
+     * Transpiles the current TS source to JS source.
      */
-    public transpileTypeScript (source: string, moduleName: string, config?: any): string {
-        return CodeEditor.Typescript.transpile(source, config || {
-            module: 'none',
-            target: 'es5',
-            experimentalDecorators: true,
-            // sourceMap: true,
-            // inlineSourceMap: true
-        }, moduleName + '.ts', undefined, moduleName + '.ts');
+    public async transpileTypeScript (): Promise<TranspilationOutput> {
+        const model = this.editor.getModel();
+        const uri = model.uri;
+
+        const worker = await this._caller['monaco'].languages.typescript.getTypeScriptWorker();
+        const languageService = await worker(uri);
+
+        const uriStr = uri.toString();
+        const result = await languageService.getEmitOutput(uriStr);
+
+        const diagnostics = await Promise.all([languageService.getSyntacticDiagnostics(uriStr), languageService.getSemanticDiagnostics(uriStr)]);
+
+        return {
+            compiledCode: result.outputFiles[0].text,
+            errors: diagnostics.filter(d => d.length).map(d => {
+                const p = model.getPositionAt(d[0].start);
+                return { line: p.lineNumber, column: p.column, message: d[0].messageText };
+            })
+        };
     }
 
     /**

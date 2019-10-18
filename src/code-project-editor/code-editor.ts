@@ -48,15 +48,9 @@ export default class CodeEdit {
             // finished typings his code
             clearTimeout(<any> compileTimeoutId);
 
-            compileTimeoutId = setTimeout(() => {
-                const config = {
-                    module: 'cjs',
-                    target: 'es5',
-                    experimentalDecorators: true,
-                };
-    
+            compileTimeoutId = setTimeout(async () => {    
                 code.code = value;
-                code.compiledCode = this.code.transpileTypeScript(code.code, code.name.replace(/ /, ''), config);
+                code.compiledCode = (await this.code.transpileTypeScript()).compiledCode;
     
                 if (this.onChange)
                     this.onChange();
