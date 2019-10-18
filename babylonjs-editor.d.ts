@@ -908,13 +908,14 @@ declare module 'babylonjs-editor/editor/gui/code' {
             id: string;
             content: string;
     }
+    export interface TranspilationErrorOutput {
+            line: number;
+            column: number;
+            message: string;
+    }
     export interface TranspilationOutput {
             compiledCode: string;
-            errors: {
-                    line: number;
-                    column: number;
-                    message: string;
-            }[];
+            errors: TranspilationErrorOutput[];
     }
     export default class CodeEditor {
             editor: editor.ICodeEditor;
@@ -971,6 +972,11 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 * Transpiles the current TS source to JS source.
                 */
             transpileTypeScript(): Promise<TranspilationOutput>;
+            /**
+                * Formats the transpilations errors to output an understandable output.
+                * @param errors the errors coming from the typescript transpilation function. @see .transpileTypeScript
+                */
+            formatTranspilationOutputErrors(errors: TranspilationErrorOutput[]): string;
             /**
                 * Transpiles the given TS source to JS source
                 * @param source the source to transpile

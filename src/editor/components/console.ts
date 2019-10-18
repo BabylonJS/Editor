@@ -1,3 +1,5 @@
+import { Tools as BabylonTools } from 'babylonjs';
+
 import Editor from '../editor';
 
 import ThemeSwitcher from '../tools/theme';
@@ -100,6 +102,12 @@ export default class EditorConsole {
         this.code = new CodeEditor('consoleLanguage', '');
         this.code.theme = 'consoleTheme';
         this.code.build('CONSOLE-EDITOR');
+
+        // Events
+        BabylonTools.Log = (m) => {
+            console.log(m);
+            this.log(m, ConsoleLevel.INFO);
+        };
     }
 
     /**

@@ -512,22 +512,17 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this._timeoutId = <any> setTimeout(async () => {
                 if (!data && !this.data)
                     return;
-                
-                // Store compiled code
-                let output: TranspilationOutput;
-                if (data) {
-                    output = await code.transpileTypeScript();
-                    data.compiledCode = output.compiledCode;
-                }
-                else if (this.data) {
-                    output = await this.code.transpileTypeScript();
-                    this.data.compiledCode = output.compiledCode;
-                }
+
+                const d = data || this.data;
+                const c = code || this.code;
+
+                const output = await c.transpileTypeScript();
+                d.compiledCode = output.compiledCode;
 
                 if (output.errors.length > 0) {
-                    this.editor.console.log(output.errors.map(e => e.message).join('\n'), ConsoleLevel.ERROR);
+                    this.editor.console.log(`Transpil. ${(data || this.data).name}` + this.code.formatTranspilationOutputErrors(output.errors), ConsoleLevel.ERROR);
                 } else {
-                    this.editor.console.log('Transpilation successful for ' + (data || this.data).name, ConsoleLevel.INFO);
+                    this.editor.console.log('Transpil. success for ' + (data || this.data).name, ConsoleLevel.INFO);
                 }
             }, 500);
 
