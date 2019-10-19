@@ -46,7 +46,7 @@ export default class ProjectSettings {
 
                 window.close();
 
-                this._ApplySettings(editor);
+                this.ApplySettings(editor);
                 resolve();
             });
 
@@ -58,7 +58,7 @@ export default class ProjectSettings {
      * Applies the settings once the user closes the dialog by clicking on "Ok".
      * @param editor the editor reference.
      */
-    private static _ApplySettings (editor: Editor): void {
+    public static ApplySettings (editor: Editor): void {
         // Rotations
         if (ProjectSettings.ExportEulerAngles) {
             editor.core.scene.meshes.forEach(m => {
