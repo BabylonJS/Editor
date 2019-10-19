@@ -2,6 +2,8 @@ import { DynamicTexture, Tags } from 'babylonjs';
 import * as SocketIO from 'socket.io-client';
 
 import Editor from "../editor";
+import { ConsoleLevel } from '../components/console';
+
 import Request from '../tools/request';
 
 export enum PhotoshopExtensionStatus {
@@ -66,6 +68,7 @@ export default class PhotoshopSocket {
 
             // Notify
             editor.core.onModifiedObject.notifyObservers(texture);
+            editor.console.log(`Photoshop: updated texture "${image.name}"`, ConsoleLevel.INFO);
         });
 
         this.Connected = true;
