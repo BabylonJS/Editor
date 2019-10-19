@@ -473,6 +473,9 @@ export default class ProjectImporter {
             }
         });
 
+        // Apply project settings
+        ProjectSettings.ApplySettings(editor);
+
         return errors;
     }
 
