@@ -150,6 +150,7 @@ export default class EditorConsole {
     // Creates the code editor.
     private async _createEditor (): Promise<void> {
         this.code = new CodeEditor('log', '');
+        this.code.readonly = true;
         await this.code.build('CONSOLE-EDITOR');
 
         // Events

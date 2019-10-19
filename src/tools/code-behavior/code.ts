@@ -72,10 +72,11 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     public static CodeProjectEditor: CodeProjectEditor = null;
 
     /**
-     * Constructor
-     * @param name: the name of the plugin 
-     * @param targetNode: the node being edited
-     * @param targetNodeAddScript: if the code editor should prompt a string request
+     * Constructor.
+     * @param editor: the editor reference.
+     * @param targetNode: the node being edited.
+     * @param targetNodeAddScript: if the code editor should prompt a string request.
+     * @param targetNodeSetScript: if the code editor should set a script a script to the current node.
      */
     constructor(public editor: Editor, targetNode: any, targetNodeAddScript: boolean, targetNodeSetScript: boolean) {
         super('Code Editor');
@@ -516,7 +517,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                 const d = data || this.data;
                 const c = code || this.code;
 
+                this.editor.toolbar.notifyRightMessage('Transpiling...');
                 const output = await c.transpileTypeScript();
+                this.editor.toolbar.notifyRightMessage('');
+
                 d.compiledCode = output.compiledCode;
 
                 if (output.errors.length > 0) {
