@@ -29,6 +29,7 @@ export default class CodeEditor {
     public onChange: (value: string) => void;
 
     public theme: string = null;
+    public readonly: boolean = false;
 
     // Private members
     private _language: string;
@@ -167,7 +168,8 @@ export default class CodeEditor {
             language: this._language,
             automaticLayout: true,
             selectionHighlight: true,
-            theme: this.theme ? this.theme : (caller !== window || ThemeSwitcher.ThemeName === 'Dark' ? 'vs-dark' : undefined)
+            theme: this.theme ? this.theme : (caller !== window || ThemeSwitcher.ThemeName === 'Dark' ? 'vs-dark' : undefined),
+            readOnly: this.readonly
         });
 
         if (!CodeEditor.ExtraLibs.find(el => el.caller === caller)) {
@@ -210,12 +212,30 @@ export default class CodeEditor {
 
         const diagnostics = await Promise.all([languageService.getSyntacticDiagnostics(uriStr), languageService.getSemanticDiagnostics(uriStr)]);
 
+        const errors: TranspilationErrorOutput[] = [];
+        diagnostics.filter(d => d.length).map(d => {
+            d.forEach(e => {
+                const p = model.getPositionAt(e.start);
+                let m = '';
+
+                if (typeof(e.messageText) === 'string')
+                    m = e.messageText;
+                else {
+                    m = e.messageText.messageText;
+                    let mt = e.messageText;
+                    while (mt.next) {
+                        mt = mt.next;
+                        m += '\n\t\t' + mt.messageText;
+                    }
+                }
+
+                errors.push({ line: p.lineNumber, column: p.column, message: m });
+            });
+        });
+
         return {
             compiledCode: result.outputFiles[0].text,
-            errors: diagnostics.filter(d => d.length).map(d => {
-                const p = model.getPositionAt(d[0].start);
-                return { line: p.lineNumber, column: p.column, message: d[0].messageText };
-            })
+            errors: errors
         };
     }
 

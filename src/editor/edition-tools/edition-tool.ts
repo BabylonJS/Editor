@@ -80,6 +80,8 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
         this.search.style.width = '100%';
         this.search.style.height = '20px';
         this.search.style.borderRadius = '45px';
+        this.search.style.marginTop = '10px';
+        this.search.style.marginBottom = '10px';
         this.search.classList.add('editorSearch');
         this.search.placeholder = 'Search...';
         $('#' + this.divId).prepend(this.search);

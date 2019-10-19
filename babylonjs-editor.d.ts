@@ -921,6 +921,7 @@ declare module 'babylonjs-editor/editor/gui/code' {
             editor: editor.ICodeEditor;
             onChange: (value: string) => void;
             theme: string;
+            readonly: boolean;
             static Typescript: typeof typescript;
             static ExternalLibraries: string;
             static ExtraLibs: {
