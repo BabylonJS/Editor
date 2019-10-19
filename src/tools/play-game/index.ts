@@ -165,6 +165,7 @@ export default class PlayGame extends EditorPlugin {
                 });
                 this.emptyGameNode.textContent = 'Test has been stopped.';
                 $('#PLAY-GAME-IFRAME').parent().append(this.emptyGameNode);
+                this.toolbar.enable('stop', false);
             default: break;
         }
     }
@@ -181,6 +182,8 @@ export default class PlayGame extends EditorPlugin {
             this.emptyGameNode.remove();
             this.emptyGameNode = null;
         }
+
+        this.toolbar.enable('stop', true);
 
         // Setup layout panels
         this.layout.setPanelSize('left', 0);
