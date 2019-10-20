@@ -361,6 +361,15 @@ export default class Tools {
     }
 
     /**
+     * Calls the garbage collector manually.
+     * Take care of performances while using this method.
+     */
+    public static GarbageCollect (): void {
+        if (window['gc'])
+            window['gc']();
+    }
+
+    /**
      * Reads the given file
      * @param file the file to read
      * @param arrayBuffer if should read as array buffer
