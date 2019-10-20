@@ -306,6 +306,11 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static Clone<T>(data: T): T;
             /**
+                * Calls the garbage collector manually.
+                * Take care of performances while using this method.
+                */
+            static GarbageCollect(): void;
+            /**
                 * Reads the given file
                 * @param file the file to read
                 * @param arrayBuffer if should read as array buffer

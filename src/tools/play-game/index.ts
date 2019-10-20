@@ -286,5 +286,7 @@ export default class PlayGame extends EditorPlugin {
             delete FilesInputStore.FilesToLoad[this.editor.sceneFile.name];
             this.editor.sceneFile = null;
         }
+
+        Tools.GarbageCollect();
     }
 }

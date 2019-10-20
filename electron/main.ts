@@ -107,6 +107,11 @@ export default class EditorApp {
 }
 
 /**
+ * App
+ */
+app.commandLine.appendSwitch('js-flags', '--expose_gc');
+
+/**
  * Make single instance
  */
 const firstLoad  = app.requestSingleInstanceLock();

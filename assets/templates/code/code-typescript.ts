@@ -1,4 +1,4 @@
-import { Color4, {{class}} } from 'babylonjs';
+import { Scene, Color4, {{class}} } from 'babylonjs';
 
 export default class {{name}} implements IScript {
     // Public members
@@ -7,7 +7,7 @@ export default class {{name}} implements IScript {
     /**
      * Constructor
      */
-    constructor (public {{type}}: {{class}}) {
+    constructor (public {{type}}: {{class}}, public scene: Scene) {
 
     }
 
@@ -16,7 +16,7 @@ export default class {{name}} implements IScript {
      */
     public start (): void {
         // You can access the scene everywhere
-        scene.clearColor = this.blackColor;
+        this.scene.clearColor = this.blackColor;
 
         // You can access the attached object everywhere
         console.log(this.{{type}});
