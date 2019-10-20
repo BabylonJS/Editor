@@ -127,7 +127,7 @@ if (firstLoad) {
 
             EditorApp.Window.focus();
 
-            const filename = commandLine[3];
+            const filename = commandLine[4];
             if (filename !== Settings.OpenedFile) {
                 Settings.OpenedFile = filename;
                 EditorApp.Window.reload();
