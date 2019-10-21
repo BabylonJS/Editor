@@ -1,4 +1,5 @@
 import { registerAllTypeNodes } from './list/types';
+import { registerAllFunctionNodes } from './list/functions';
 import { registerAllUtilsNodes } from './list/utils';
 import { registerAllMathNodes } from './list/math';
 import { registerAllPropertiesNodes } from './list/properties';
@@ -16,6 +17,7 @@ import { registerAllSceneNodes } from './list/scene';
  */
 export function registerAllNodes (object?: any): void {
     registerAllTypeNodes(object);
+    registerAllFunctionNodes(object);
     registerAllUtilsNodes(object);
     registerAllMathNodes(object);
     registerAllPropertiesNodes(object);
