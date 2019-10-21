@@ -281,6 +281,10 @@ export abstract class IGraphNode {
      */
     setDirtyCanvas? (foreground: boolean, background: boolean): void;
     /**
+     * Computes the size of the node according to the existing inputs, outputs and title.
+     */
+    computeSize? (): void;
+    /**
      * Store of all available properties for the current node.
      */
     properties?: { [index: string]: any };
@@ -315,6 +319,10 @@ export abstract class IGraphNode {
      * Defines the current background color of the node in hexadecimal string. (background)
      */
     bgColor?: string;
+    /**
+     * Defines the current box color of the node in hexadecimal string. (box)
+     */
+    boxcolor?: string;
     /**
      * Flags set to the node
      */
@@ -390,6 +398,16 @@ export abstract class IGraphNode {
         if (this.size[0] <= measure.width) this.size[0] = measure.width + 100;
 
         ctx.fillText(text, this.size[0] * 0.5, this.size[1] + 15);
+    }
+
+    /**
+     * Sets the node as warning.
+     */
+    public setNodeState (warning: boolean): void {
+        if (warning)
+            this.boxcolor = '#ffff00';
+        else
+            delete this.boxcolor;
     }
 
     /**

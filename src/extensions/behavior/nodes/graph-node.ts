@@ -9,8 +9,8 @@ import { IGraphNode, IGraphNodeDescriptor, GraphMethodCallType } from './types';
  * @param object defines the object being customized using the graph editor.
  */
 export function registerNode (description: IGraphNodeDescriptor, object: any): void {
-    // if (!(object instanceof description.ctor))
-    //     return;
+    if (object && !(object instanceof description.ctor))
+        return;
     
     // Register
     GraphNode.RegisterNode(description.path, class extends GraphNode {

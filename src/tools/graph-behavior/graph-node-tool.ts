@@ -4,6 +4,7 @@ import { LGraphGroup } from 'litegraph.js';
 
 import { IGraphNode } from '../../extensions/behavior/nodes/types';
 import { GraphTypeNode } from '../../extensions/behavior/nodes/graph-type-node';
+import { GraphFunctionNode } from '../../extensions/behavior/nodes/graph-function-node';
 import { GraphNode } from '../../extensions/behavior/nodes/graph-node';
 
 export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
@@ -56,6 +57,8 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
         // Node type
         if (node instanceof GraphTypeNode) {
             this._setupNodeType(node);
+        } else if (node instanceof GraphFunctionNode) {
+            this._setupNodeFunction(node);
         } else if (node instanceof GraphNode) {
             this._setupNode(node);
         } else {
@@ -166,6 +169,13 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                 }
                 break;
         }
+    }
+
+    /**
+     * Setups the function node to edit the function arguments.
+     */
+    private _setupNodeFunction (node: GraphFunctionNode): void {
+        // TODO.
     }
 
     /**
