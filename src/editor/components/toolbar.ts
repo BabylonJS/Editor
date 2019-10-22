@@ -104,6 +104,7 @@ export default class EditorToolbar {
             {
                 type: 'menu', id: 'add', text: 'Add', img: 'icon-add', items: [
                     { id: 'default-environment', img: 'icon-add', text: 'Default Environment' },
+                    { id: 'camera', img: 'camera', text: 'Camera' },
                     { type: 'break' },
                     { id: 'particle-system', img: 'icon-particles', text: 'Particle System' },
                     { id: 'particle-system-animated', img: 'icon-particles', text: 'Animated Particle System' },
@@ -295,6 +296,10 @@ export default class EditorToolbar {
             // Add
             case 'add:default-environment':
                 SceneFactory.CreateDefaultEnvironment(this.editor);
+                break;
+                
+            case 'add:default-environment':
+                SceneFactory.CreateCamera(this.editor);
                 break;
             
             case 'add:particle-system':
