@@ -96,11 +96,10 @@ export default class SceneFactory {
     }
 	
 	public static CreateCamera (editor: Editor): Camera {
-        /*const camera =  new BABYLON.FreeCamera('New Camera', new BABYLON.Vector3(0, 0, 0), editor.core.scene, true);
+        const camera =  new BABYLON.FreeCamera('New Camera', new BABYLON.Vector3(0, 0, 0), editor.core.scene, true);
         this.AddToGraph(editor, camera);
 
-        return camera;*/
-		return null;
+        return camera;
     }
 
     /**
