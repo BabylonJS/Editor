@@ -2,7 +2,7 @@ import {
     Scene,
     Vector3, Color4,
     Texture,
-    Node,
+    Node, Camera,
     Mesh, ParticleSystem,
     GroundMesh,
     Tags, Tools as BabylonTools,
@@ -93,6 +93,14 @@ export default class SceneFactory {
         this.AddToGraph(editor, SceneManager.EnvironmentHelper);
 
         return SceneManager.EnvironmentHelper;
+    }
+	
+	public static CreateCamera (editor: Editor): Camera {
+        /*const camera =  new BABYLON.FreeCamera('New Camera', new BABYLON.Vector3(0, 0, 0), editor.core.scene, true);
+        this.AddToGraph(editor, camera);
+
+        return camera;*/
+		return null;
     }
 
     /**
@@ -240,6 +248,13 @@ export default class SceneFactory {
      */
     public static CreateSphere (editor: Editor): Mesh {
         const mesh = Mesh.CreateSphere('New Sphere', 32, 5, editor.core.scene);
+        this.AddToGraph(editor, mesh);
+
+        return mesh;
+    }
+	
+	public static CreateCylinder (editor: Editor): Mesh {
+        const mesh = Mesh.CreateCylinder('New Cylinder', 1, 1, 1, 16, editor.core.scene);
         this.AddToGraph(editor, mesh);
 
         return mesh;
