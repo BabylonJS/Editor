@@ -144,6 +144,7 @@ export default class SceneFactory {
 
         const picker = new Picker('Choose Emitter');
         picker.addItems(scene.meshes);
+        picker.showClose = false;
         picker.open(items => {
             let emitter = items.length > 0 ? scene.getNodeByName(items[0].name) : null;
             if (!emitter) {

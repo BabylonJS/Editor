@@ -18,7 +18,7 @@ export function registerAllUtilsNodes (object?: any): void {
         { name: 'Out', type: undefined, inputName: 'In' }
     ] }, object);
 
-    registerNode({ name: 'Time', description: 'Returns the current time in milliseconds or seconds', path: 'utils/time', ctor: Node, functionRef: (node, target: Node) => {
+    registerNode({ name: 'Time', description: 'Returns the current time in milliseconds or seconds', path: 'utils/time', ctor: Object, functionRef: (node, target: Node) => {
         node.setOutputData(1, node.graph.globaltime);
         return node.graph.globaltime * 1000;
     }, outputs: [
