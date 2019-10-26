@@ -22,6 +22,7 @@ export default class Picker {
 
     public title: string;
     public search: boolean = false;
+    public showClose: boolean = true;
 
     /**
      * Constructor
@@ -69,7 +70,7 @@ export default class Picker {
      */
     public async open (callback: (items: { id: number, name: string }[], selected?: number[]) => void): Promise<void> {
         this.window = new Window('Picker');
-        this.window.buttons = ['Ok', 'Close'];
+        this.window.buttons = this.showClose ? ['Ok', 'Close'] : ['Ok'];
         this.window.title = this.title;
         this.window.body = '<div id="PICKER-CONTAINER" style="width: 100%; height: 100%;"></div>';
         this.window.onClose = () => this.close();

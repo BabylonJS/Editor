@@ -29,7 +29,7 @@ Some more articles/tutorials are available here: https://medium.com/babylon-js/
 Installing dependencies
 
 ```bash
-npm i
+node ./script/install.js
 ```
 
 ## Building
@@ -60,6 +60,8 @@ npm run webserver
 
 ## Using VSCode
 CTRL+SHIFT+B then select "watch-all".
+
+Now you can launch and debug the native app using F5 and selecting "Electron With Devtools" in the debug sidebar in VSCode.
 
 That's all!
 
