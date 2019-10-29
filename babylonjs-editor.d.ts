@@ -1748,7 +1748,7 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-factory' {
-    import { Mesh, ParticleSystem, GroundMesh, Light, EnvironmentHelper } from 'babylonjs';
+    import { FreeCamera, Mesh, ParticleSystem, GroundMesh, Light, EnvironmentHelper } from 'babylonjs';
     import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
     import { WaterMaterial } from 'babylonjs-materials';
     import Editor from 'babylonjs-editor/editor/editor';
@@ -1764,6 +1764,12 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
                 * @param editor the editor reference
                 */
             static CreateDefaultEnvironment(editor: Editor): EnvironmentHelper;
+            /**
+                * Creates a new camera.
+                * Defaults of FreeCamera
+                * @param editor the editor reference
+                */
+            static CreateCamera(editor: Editor): FreeCamera;
             /**
                 * Creates a new default particle system
                 * @param editor: the editor reference
@@ -1801,6 +1807,11 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
                 * @param editor: the editor reference
                 */
             static CreateSphere(editor: Editor): Mesh;
+            /**
+                * Creates a new Cylinder Mesh
+                * @param editor the editor reference
+                */
+            static CreateCylinder(editor: Editor): Mesh;
             /**
                 * Creates a new plane mesh
                 * @param editor: the editor reference
