@@ -497,34 +497,32 @@ export default class EditorGraph {
      */
     protected fillSounds (scene: Scene, root: Scene | Node): number {
         // Set sounds
-        if (!scene.soundTracks || scene.soundTracks.length === 0)
+        if (!scene.mainSoundTrack || scene.mainSoundTrack.soundCollection.length === 0)
             return;
 
         let count = 0;
 
-        scene.soundTracks.forEach(st => {
-            st.soundCollection.forEach(s => {
-                s['id'] = s['id'] || BabylonTools.RandomId();
+        scene.mainSoundTrack.soundCollection.forEach(s => {
+            s['id'] = s['id'] || BabylonTools.RandomId();
 
-                if (root === scene && !s['_connectedTransformNode']) {
-                    this.tree.add({
-                        id: s['id'],
-                        text: s.name,
-                        img: this.getIcon(s),
-                        data: s
-                    }, this.root);
-                }
-                else if (s['_connectedTransformNode'] === root) {
-                    this.tree.add({
-                        id: s['id'],
-                        text: s.name,
-                        img: this.getIcon(s),
-                        data: s
-                    }, (<Node> root).id);
+            if (root === scene && !s['_connectedTransformNode']) {
+                this.tree.add({
+                    id: s['id'],
+                    text: s.name,
+                    img: this.getIcon(s),
+                    data: s
+                }, this.root);
+            }
+            else if (s['_connectedTransformNode'] === root) {
+                this.tree.add({
+                    id: s['id'],
+                    text: s.name,
+                    img: this.getIcon(s),
+                    data: s
+                }, (<Node> root).id);
 
-                    count++;
-                }
-            });
+                count++;
+            }
         });
 
         return count;
