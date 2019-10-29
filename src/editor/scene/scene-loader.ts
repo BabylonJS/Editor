@@ -254,6 +254,10 @@ export default class SceneLoader {
         // Obj?
         ObjTools.ConfigureFromScene(editor, sceneFile);
 
+        // Soundtrack
+        if (scene.soundTracks && scene.soundTracks.length === 0)
+            scene.soundTracks.push(scene.mainSoundTrack);
+
         // Physics
         if (scene.getPhysicsEngine())
             scene.getPhysicsEngine().setTimeStep(Tools.Epsilon);
