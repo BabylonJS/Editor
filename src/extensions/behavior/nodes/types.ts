@@ -17,6 +17,9 @@ export type SupportedTypes = number | string | boolean | Vector2 | Vector3 | Vec
  */
 export type GraphMethodCallType = (...args: any[]) => any;
 
+/**
+ * Defines all possible options for widgets.
+ */
 export interface IWidget {
     /**
      * The widge type.
@@ -70,6 +73,9 @@ export interface IWidget {
     };
 }
 
+/**
+ * Defines all possible options for a node.
+ */
 export interface IGraphNodeDescriptor {
     /**
      * The name of the node.
