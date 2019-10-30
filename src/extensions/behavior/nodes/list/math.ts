@@ -148,4 +148,30 @@ export function registerAllMathNodes (object?: any): void {
     ], outputs: [
         { name: 'Out', type: 'number' }
     ] }, object);
+
+    registerNode({ name: 'Random', description: 'Returns a random number in the given range', path: 'math/random', ctor: Object, functionRef: (node) => {
+        const random = Math.random();
+        node.setOutputData(0, random * (node.properties['Max'] - node.properties['Min']) + node.properties['Min']);
+    }, outputs: [
+        { name: 'Value', type: 'number' }
+    ], properties: [
+        { name: 'Min', defaultValue: 0, type: 'number' },
+        { name: 'Max', defaultValue: 1, type: 'number' }
+    ] }, object);
+
+    registerNode({ name: 'Floor', description: 'Floors the given number of vector', path: 'math/floor', ctor: Object, functionRef: (node) => {
+        // Number
+        node.setOutputData(0, Math.floor(node.getInputData<number>(0) || 0));
+
+        // Vector
+        const vec = GraphNode.nodeToOutput<Vector2 | Vector3 | Vector4>(node.getInputData(1));
+        if (vec)
+            node.setOutputData(1, vec.floor());
+    }, inputs: [
+        { name: 'Input Number', type: 'number' },
+        { name: 'Input Vector', type: 'vec2,vec3,vec4' }
+    ], outputs: [
+        { name: 'Number Result', type: 'number' },
+        { name: 'Vector Result', type: 'vec2,vec3,vec4' }
+    ] }, object);
 }
