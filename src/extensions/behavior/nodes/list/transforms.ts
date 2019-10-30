@@ -48,7 +48,7 @@ export function registerAllTransformsNodes (object?: any): void {
             node.graph.scriptObject.parent = parent;
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
-        { name: 'Parent', type: 'mesh' }
+        { name: 'Parent', type: 'node' }
     ], properties: [
         { name: 'Target Path', type: 'string', defaultValue: 'Self' }
     ] }, object);
