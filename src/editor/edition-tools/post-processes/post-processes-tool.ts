@@ -10,7 +10,6 @@ import Tools from '../../tools/tools';
 import SceneManager from '../../scene/scene-manager';
 
 import Picker from '../../gui/picker';
-import SceneFactory from '../../scene/scene-factory';
 
 import PostProcessesExtension from '../../../extensions/post-process/post-processes';
 import Extensions from '../../../extensions/extensions';
@@ -86,6 +85,19 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             antialiasing.open();
             antialiasing.add(SceneManager.StandardRenderingPipeline, 'fxaaEnabled').name('Enable FXAA');
             antialiasing.add(SceneManager.StandardRenderingPipeline, 'samples').min(1).max(32).name('Multisample Anti-Aliasing');
+			
+			const reflections = standardPipeline.addFolder('Screen Space Reflection');
+            reflections.open();
+            reflections.add(SceneManager.StandardRenderingPipeline, 'screenSpaceReflectionsEnabled').name('Enabled').onChange(r => this.update(scene));
+            if (SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess) {
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'strength').name('Reflection Strength');
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'threshold').name('Reflection Threshold');
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'step').step(0.001).name('Step');
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'reflectionSpecularFalloffExponent').name('Specular Fall Off Exponent');
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'reflectionSamples').min(1).max(512).step(1).name('Reflection Samples');
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'enableSmoothReflections').name('Enable Smoothing Reflections');
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'smoothSteps').min(1).max(32).name('Smooth steps');
+            }
 
             const bloom = standardPipeline.addFolder('Bloom');
             bloom.open();

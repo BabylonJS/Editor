@@ -248,6 +248,10 @@ export default class SceneLoader {
         await GLTFTools.ConfigureFromScene(editor, sceneFile);
         // Obj?
         ObjTools.ConfigureFromScene(editor, sceneFile);
+		
+		 // Soundtrack
+        if (scene.soundTracks && scene.soundTracks.length === 0)
+            scene.soundTracks.push(scene.mainSoundTrack);
 
         // Physics
         if (scene.getPhysicsEngine())
