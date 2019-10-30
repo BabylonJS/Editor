@@ -7,7 +7,7 @@ import { Color3, Color4 } from 'babylonjs';
  * @param object the object reference being customized using the graph editor.
  */
 export function registerAllPropertiesNodes (object?: any): void {
-    registerNode({ name: 'Get Property', description: 'Gets the property of the current node and returns its value.', path: 'properties/getproperty', ctor: Node, properties: [
+    registerNode({ name: 'Get Property', description: 'Gets the property of the current node and returns its value.', path: 'properties/getproperty', ctor: Object, properties: [
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
         { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' }
     ],
@@ -15,7 +15,7 @@ export function registerAllPropertiesNodes (object?: any): void {
         { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
     ], drawBackground: (node, target) => `${target}'s\n${node.properties['Property Path']}` }, object);
 
-    registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'properties/setproperty', ctor: Node, functionRef: (node, target, scene) => {
+    registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'properties/setproperty', ctor: Object, functionRef: (node, target, scene) => {
         const split = node.properties['Property Path'].split('.');
         const effectiveProperty = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
         const property = effectiveProperty[split[split.length - 1]];
