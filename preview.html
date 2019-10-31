@@ -50,11 +50,17 @@
         }
 
         // Override console
-        console.log = console.info = (m) => opener.editor.console.log(m, 0);
-        console.warn = (m) => opener.editor.console.log(m, 1);
-        console.error = (m) => opener.editor.console.log(m, 2);
+        var argumentsToString = function (args) {
+            var arr = [];
+            for (var i = 0; i < args.length; i++) { arr.push(args[i].toString()); }
+            if (arr.length > 1) { arr[0] = '\n\t' + arr[0]; }
+            return arr.join('\n\t');
+        };
 
-        console.log('Loading...');
+        console.log = function (m) { opener.editor.console.log(argumentsToString(arguments), 0); };
+        console.info = function () { opener.editor.console.log(argumentsToString(arguments), 0); };
+        console.warn = function () { opener.editor.console.log(argumentsToString(arguments), 1); };
+        console.error = function () { opener.editor.console.log(argumentsToString(arguments), 2); };
 
         // Configure systemjs
         System.config({
@@ -202,6 +208,8 @@
         // Load Babylon.js
         // Get scene file
         // Run sockets
+        console.log('Loading...');
+        
         var promises = [];
         promises.push(System.import("babylonjs"));
         promises.push(System.import("babylonjs-gui"));
