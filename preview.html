@@ -50,7 +50,7 @@
         }
 
         // Override console
-        console.log = (m) => opener.editor.console.log(m, 0);
+        console.log = console.info = (m) => opener.editor.console.log(m, 0);
         console.warn = (m) => opener.editor.console.log(m, 1);
         console.error = (m) => opener.editor.console.log(m, 2);
 
