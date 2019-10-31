@@ -226,6 +226,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
         if (widget) {
             widget.value = value;
             this.object.setDirtyCanvas(true, true);
+            this.object.computeSize();
         }
     }
 

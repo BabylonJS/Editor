@@ -117,6 +117,38 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'a < b', type: LiteGraph.EVENT }
     ] }, object);
 
+    registerNode({ name: 'For Loop', description: 'Performs a "for loop" that will trigger the next nodes Nth times', path: 'math/forloop', ctor: Object, functionRef: (node) => {
+        let i = node.getInputData<number>(1);
+        if (!node.isInputValid(i)) i = node.properties['Begin'];
+
+        let end = node.getInputData<number>(2);
+        if (!node.isInputValid(end)) end = node.properties['End'];
+
+        let increment = node.getInputData<number>(3);
+        if (!node.isInputValid(increment)) increment = node.properties['Increment'];
+
+        for (; i <= end; i+= increment) {
+            node.setOutputData(1, i);
+            node.triggerSlot(0);
+        }
+    }, inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Begin', type: 'number' },
+        { name: 'End', type: 'number' },
+        { name: 'Increment', type: 'number' }
+    ], outputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Indice', type: 'number' }
+    ], properties: [
+        { name: 'Begin', defaultValue: 0, type: 'number' },
+        { name: 'End', defaultValue: 32, type: 'number' },
+        { name: 'Increment', defaultValue: 1, type: 'number' },
+    ], widgets: [
+        { type: 'number', name: 'Begin', value: 0, callback: (v, g, n) => n.properties['Begin'] = v },
+        { type: 'number', name: 'End', value: 32, callback: (v, g, n) => n.properties['End'] = v },
+        { type: 'number', name: 'Increment', value: 1, callback: (v, g, n) => n.properties['Increment'] = v },
+    ] }, object);
+
     registerNode({ name: 'Cosinus', description: 'Performs a cosinus operation', path: 'math/cos', ctor: Object, functionRef: (node) => {
         return Math.cos(node.getInputData<number>(0));
     }, inputs: [
