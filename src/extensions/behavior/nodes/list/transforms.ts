@@ -46,6 +46,8 @@ export function registerAllTransformsNodes (object?: any): void {
         const parent = node.getInputData<AbstractMesh>(1) || target;
         if (parent !== node.graph.scriptObject)
             node.graph.scriptObject.parent = parent;
+        else
+            node.graph.scriptObject.parent = null;
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Parent', type: 'node' }

@@ -151,7 +151,7 @@ export function registerAllMathNodes (object?: any): void {
 
     registerNode({ name: 'Random', description: 'Returns a random number in the given range', path: 'math/random', ctor: Object, functionRef: (node) => {
         const random = Math.random();
-        node.setOutputData(0, random * (node.properties['Max'] - node.properties['Min']) + node.properties['Min']);
+        return random * (node.properties['Max'] - node.properties['Min']) + node.properties['Min'];
     }, outputs: [
         { name: 'Value', type: 'number' }
     ], properties: [
@@ -160,13 +160,12 @@ export function registerAllMathNodes (object?: any): void {
     ] }, object);
 
     registerNode({ name: 'Floor', description: 'Floors the given number of vector', path: 'math/floor', ctor: Object, functionRef: (node) => {
-        // Number
-        node.setOutputData(0, Math.floor(node.getInputData<number>(0) || 0));
-
         // Vector
         const vec = GraphNode.nodeToOutput<Vector2 | Vector3 | Vector4>(node.getInputData(1));
         if (vec)
-            node.setOutputData(1, vec.floor());
+            node.setOutputData(1, GraphNode.inputToNode(vec.floor()));
+
+        return Math.floor(node.getInputData<number>(0) || 0);
     }, inputs: [
         { name: 'Input Number', type: 'number' },
         { name: 'Input Vector', type: 'vec2,vec3,vec4' }
@@ -178,9 +177,9 @@ export function registerAllMathNodes (object?: any): void {
     registerNode({ name: 'Exp', description: 'Returns e (the base of natural logarithms) raised to the given power', path: 'math/exp', ctor: Object, functionRef: (node) => {
         const i = node.getInputData<number>(0);
         if (i === null || i === undefined)
-            node.setOutputData(0, Math.exp(node.properties['Power']));
-        else
-            node.setOutputData(0, Math.exp(i));
+            return Math.exp(node.properties['Power']);
+        
+        return Math.exp(i);
     }, inputs: [
         { name: 'Power', type: 'number' }
     ], outputs: [
@@ -190,16 +189,23 @@ export function registerAllMathNodes (object?: any): void {
     ] }, object);
 
     registerNode({ name: 'Clamp', description: 'Clamps the given value in the given interval [min, max]', path: 'math/clamp', ctor: Object, functionRef: (node) => {
-        const val = node.getInputData<number>(0);
-        if (val === null || val === undefined)
-            return;
+        const val = GraphNode.nodeToOutput<number | Vector2 | Vector3>(node.getInputData(0));
+        if (!node.isInputValid(val)) return;
+        
+        const min = GraphNode.nodeToOutput<any>(node.getInputData(1));
+        if (!node.isInputValid(min)) return;
+        const max = GraphNode.nodeToOutput<any>(node.getInputData(2));
+        if (!node.isInputValid(max)) return;
 
-        node.setOutputData(0, Scalar.Clamp(val, node.properties['Min'], node.properties['Max']));
+        if (val instanceof Vector2) return Vector2.Clamp(val, min, max);
+        if (val instanceof Vector3) return Vector3.Clamp(val, min, max);
+
+        return Scalar.Clamp(val, min, max);
     }, inputs: [
-        { name: 'Value', type: 'number' },
-        { name: 'Min', type: 'number' },
-        { name: 'Max', type: 'number' }
+        { name: 'Value', type: 'number,vec2,vec3' },
+        { name: 'Min', type: 'number,vec2,vec3' },
+        { name: 'Max', type: 'number,vec2,vec3' }
     ], outputs: [
-        { name: 'Result', type: 'number' }
+        { name: 'Result', type: 'number,vec2,vec3' }
     ] }, object);
 }
