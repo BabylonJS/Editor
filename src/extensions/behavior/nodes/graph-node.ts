@@ -271,6 +271,14 @@ export class GraphNode extends IGraphNode {
     }
 
     /**
+     * Returns wether or not the given value is valid.
+     * @param value the value to check.
+     */
+    public isInputValid (value: any): boolean {
+        return value !== null && value !== undefined;
+    }
+
+    /**
      * Returns the effective property.
      * @param object the object reference containing the property to get.
      * @param path the path of the property to get its reference/copy.

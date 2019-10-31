@@ -125,12 +125,19 @@ export default class GraphNodeCreator {
                 const title = ctor.Title;
                 return title.replace(/ /g, '').toLowerCase().indexOf(effectiveSearch.toLowerCase()) !== -1;
             });
-            visible.length === 0 ? this._Graph.element.hide(s) : this._Graph.element.show(s);
+            if (visible.length === 0) {
+                this._Graph.element.set(s, { group: false });
+                this._Graph.element.hide(s);
+             }
+             else {
+                this._Graph.element.set(s, { group: true });
+                this._Graph.element.show(s);
+             }
+
             visible.forEach(v => toShow.push(s + '/' + v));
         }
 
         toShow.forEach(ts => this._Graph.element.show(ts));
-        this._Graph.element.refresh();
         
        setTimeout(() => {
             this._Graph.element.refresh();
@@ -138,6 +145,7 @@ export default class GraphNodeCreator {
             // Select first
             if (toShow.length > 0) {
                 this._Graph.setSelected(toShow[0]);
+                this._Graph.element.scrollIntoView(toShow[0]);
                 this._Empty.style.visibility = 'hidden';
             }
 
