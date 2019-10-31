@@ -1,4 +1,4 @@
-import { Vector2, Vector3, Vector4 } from 'babylonjs';
+import { Vector2, Vector3, Vector4, Scalar } from 'babylonjs';
 import { LiteGraph } from 'litegraph.js';
 
 import { GraphNode, registerNode } from '../graph-node';
@@ -173,5 +173,33 @@ export function registerAllMathNodes (object?: any): void {
     ], outputs: [
         { name: 'Number Result', type: 'number' },
         { name: 'Vector Result', type: 'vec2,vec3,vec4' }
+    ] }, object);
+
+    registerNode({ name: 'Exp', description: 'Returns e (the base of natural logarithms) raised to the given power', path: 'math/exp', ctor: Object, functionRef: (node) => {
+        const i = node.getInputData<number>(0);
+        if (i === null || i === undefined)
+            node.setOutputData(0, Math.exp(node.properties['Power']));
+        else
+            node.setOutputData(0, Math.exp(i));
+    }, inputs: [
+        { name: 'Power', type: 'number' }
+    ], outputs: [
+        { name: 'Result', type: 'number' }
+    ], properties: [
+        { name: 'Power', defaultValue: 1, type: 'number' }
+    ] }, object);
+
+    registerNode({ name: 'Clamp', description: 'Clamps the given value in the given interval [min, max]', path: 'math/clamp', ctor: Object, functionRef: (node) => {
+        const val = node.getInputData<number>(0);
+        if (val === null || val === undefined)
+            return;
+
+        node.setOutputData(0, Scalar.Clamp(val, node.properties['Min'], node.properties['Max']));
+    }, inputs: [
+        { name: 'Value', type: 'number' },
+        { name: 'Min', type: 'number' },
+        { name: 'Max', type: 'number' }
+    ], outputs: [
+        { name: 'Result', type: 'number' }
     ] }, object);
 }
