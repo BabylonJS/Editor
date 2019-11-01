@@ -8,6 +8,7 @@ import {
 import Editor from '../editor';
 
 import ProjectSettings from './project-settings';
+import ProjectHelpers from './project-helpers';
 
 import Tools from '../tools/tools';
 import Request from '../tools/request';
@@ -279,7 +280,7 @@ export default class ProjectImporter {
         project.materials.forEach(m => {
             try {
                 const existing = scene.getMaterialByID(m.serializedValues.id);
-                const material = existing ? SerializationHelper.Parse(() => existing, m.serializedValues, scene, 'file:') : Material.Parse(m.serializedValues, scene, 'file:');
+                const material = existing ? ProjectHelpers.ParseExistingMaterial(existing, m.serializedValues, scene, 'file:') : Material.Parse(m.serializedValues, scene, 'file:');
 
                 m.meshesNames.forEach(mn => {
                     const mesh = scene.getMeshByName(mn);

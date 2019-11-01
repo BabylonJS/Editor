@@ -5,7 +5,7 @@ import {
     SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable,
     ParticleSystem, GlowLayer, HighlightLayer, Animatable, EnvironmentHelper,
     SceneSerializer, InstancedMesh, Node, Sound, Mesh, SerializationHelper,
-    AbstractMesh, MultiMaterial, DynamicTexture
+    AbstractMesh, MultiMaterial, DynamicTexture, Texture
 } from 'babylonjs';
 import * as BABYLON from 'babylonjs';
 
@@ -59,6 +59,8 @@ export default class SceneManager {
 
         this.EnvironmentHelper = null;
         this.RemovedObjects = { };
+
+        Texture.SerializeBuffers = false;
     }
 
     /**
@@ -85,7 +87,11 @@ export default class SceneManager {
         const set = (orig, obj) => {
             orig.metadata = orig.metadata || { };
             orig.metadata.original = obj;
+
+            if (orig.metadata && orig.metadata.original)
+                delete orig.metadata.original.metadata;
         };
+
         scene.meshes.forEach(m => { 
             try {
                 // Instance?

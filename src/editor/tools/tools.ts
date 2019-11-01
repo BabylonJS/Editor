@@ -94,6 +94,19 @@ export default class Tools {
     }
 
     /**
+     * Returns the extension attached to the given mime type.
+     */
+    public static GetExtensionFromMimeType (mimeType: string): string {
+        switch (mimeType.toLowerCase()) {
+            case 'image/png': return '.png';
+            case 'image/jpg': return '.jpg';
+            case 'image/jpeg': return '.jpeg';
+            case 'image/bmp': return '.bmp';
+            default: return '.png';
+        }
+    }
+
+    /**
      * Creates a window popup
      * @param url the URL of the popup
      * @param name: the name of the popup

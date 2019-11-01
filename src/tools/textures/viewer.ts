@@ -377,6 +377,13 @@ export default class TextureViewer extends EditorPlugin {
         
         if (file)
             return this.addPreviewNode(file, tex);
+
+        // Mostly GLTF?
+        const buffer = tex['_buffer'];
+        if (buffer && buffer instanceof Uint8Array) {
+            file = Tools.CreateFile(buffer, tex.name + Tools.GetExtensionFromMimeType(tex['_mimeType']));
+            return this.addPreviewNode(file, tex);
+        }
     }
 
     /**
