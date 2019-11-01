@@ -8,6 +8,9 @@ export default class GraphicsTools {
     public static async TextureToFile (tex: BaseTexture): Promise<Blob> {
         // Retrieve pixels
         const dimensions = tex.getBaseSize();
+        if (!dimensions.width || !dimensions.height)
+            return null;
+
         const pixels =
             tex.textureType === Engine.TEXTURETYPE_UNSIGNED_INT ?
             tex.readPixels() as Uint8Array :

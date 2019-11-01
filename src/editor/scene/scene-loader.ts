@@ -214,6 +214,7 @@ export default class SceneLoader {
             await Promise.all(appendPromises);
 
             // Save original values
+            editor.layout.lockPanel('main', 'Configuring...', true);
             SceneManager.SaveOriginalObjects(editor.core.scene);
 
             // Load project

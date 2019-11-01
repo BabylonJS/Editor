@@ -206,6 +206,10 @@ declare module 'babylonjs-editor/editor/tools/tools' {
              */
             static GetFileType(extension: string): string;
             /**
+                * Returns the extension attached to the given mime type.
+                */
+            static GetExtensionFromMimeType(mimeType: string): string;
+            /**
                 * Creates a window popup
                 * @param url the URL of the popup
                 * @param name: the name of the popup

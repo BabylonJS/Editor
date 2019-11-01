@@ -1,8 +1,4 @@
-import {
-    Engine, FilesInputStore, Tags,
-    Tools as BabylonTools,
-    BaseTexture
-} from 'babylonjs';
+import { FilesInputStore, Tags, BaseTexture } from 'babylonjs';
 
 import Editor from '../editor';
 import Tools from './tools';
@@ -33,13 +29,13 @@ export default class GLTFTools {
         if (!tex.metadata || !tex.metadata.gltf)
             return;
 
-        // Configure now
-        tex['url'] = tex.name = tex.name + '.png';
-
         // Get blob
         const blob = await GraphicsTools.TextureToFile(tex);
-        blob['name'] = tex.name;
+        if (!blob)
+            return;
+        
+        blob['name'] = tex.name + Tools.GetExtensionFromMimeType(tex['_mimeType']);
         Tags.AddTagsTo(blob, 'doNotExport');
-        FilesInputStore.FilesToLoad[tex.name.toLowerCase()] = <File> blob;
+        FilesInputStore.FilesToLoad[blob['name'].toLowerCase()] = <File> blob;
     }
 }

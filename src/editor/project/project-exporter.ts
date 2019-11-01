@@ -18,7 +18,6 @@ import SceneExporter from '../scene/scene-exporter';
 import SceneLoader from '../scene/scene-loader';
 
 import Window from '../gui/window';
-import Form from '../gui/form';
 
 import Tools from '../tools/tools';
 import Editor from '../editor';
@@ -725,6 +724,8 @@ export default class ProjectExporter {
                     else {
                         const currentObject = source[key];
                         const originalValue = original[key];
+                        if (!originalValue)
+                            break;
 
                         if (currentObject instanceof BaseTexture) {
                             // Check texture has changed
