@@ -7,6 +7,7 @@
     "outDir": "./build/src",
     "declarationDir": "./declaration/src",
     "typeRoots" : ["node_modules/@types"],
+    "skipLibCheck": true,
     "lib": [
       "es2015.promise", "es2015", "dom"
     ]

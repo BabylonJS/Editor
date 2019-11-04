@@ -53,6 +53,11 @@ export default class Game {
           this.scene.createDefaultCamera(false, true, true);
         }
 
+        // No light?
+        if (!this.scene.lights.length) {
+          this.scene.createDefaultLight();
+        }
+
         // Attach camera
         this.scene.activeCamera.attachControl(this.canvas, true);
 
