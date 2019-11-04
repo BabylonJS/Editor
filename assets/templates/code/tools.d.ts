@@ -1,6 +1,6 @@
 interface IScript {
     start?: () => void;
-    update?: () => void;
+    update?: (deltaTimeMs?: number) => void;
     dispose?: () => void;
     [index: string]: any;
 }

@@ -279,8 +279,8 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                 }
 
                 if (instance.update) {
-                    this.scene.registerBeforeRender(function () {
-                        instance.update();
+                    this.scene.registerBeforeRender(() => {
+                        instance.update(this.scene.getEngine().getDeltaTime());
                     });
                 }
 
