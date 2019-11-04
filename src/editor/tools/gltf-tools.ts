@@ -35,6 +35,7 @@ export default class GLTFTools {
             return;
         
         blob['name'] = tex.name + Tools.GetExtensionFromMimeType(tex['_mimeType']);
+        tex.name = blob['name'];
         Tags.AddTagsTo(blob, 'doNotExport');
         FilesInputStore.FilesToLoad[blob['name'].toLowerCase()] = <File> blob;
     }

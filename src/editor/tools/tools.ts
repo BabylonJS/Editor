@@ -191,6 +191,31 @@ export default class Tools {
     }
 
     /**
+     * Returns the first texture found which has the given url.
+     * @param scene the scene containing the textures.
+     * @param url the url of the texture to find.
+     */
+    public static GetTextureByUrl (scene: Scene, url: string): BaseTexture {
+        for (const t of scene.textures) {
+            if (t['url'] === url)
+                return t;
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the first texture found according to the given serialized values (search by uniqueId, name and Url).
+     * @param scene the scene containing the textures.
+     * @param serializedValues the serialized values containing the uniqueId, name and url.
+     */
+    public static GetTextureFromSerializedValues (scene: Scene, serializedValues: any): BaseTexture {
+        return this.GetTextureByUniqueId(scene, serializedValues.uniqueId) ||
+               this.GetTextureByName(scene, serializedValues.name) ||
+               this.GetTextureByUrl(scene, serializedValues.url);
+    }
+
+    /**
      * Returns the first texture found which as the given unique Id.
      * @param scene the scene containing the textures.
      * @param uniqueId the id of the texture to find.
