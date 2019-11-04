@@ -25,7 +25,7 @@ export default class {{name}} implements IScript {
     /**
      * Called on each frame
      */
-    public update (): void {
+    public update (deltaTimeMs: number): void {
         // Your code...
     }
 
