@@ -213,6 +213,11 @@ export default class SceneLoader {
 
             await Promise.all(appendPromises);
 
+            // Gltf or glb?
+            await GLTFTools.ConfigureFromScene(editor, sceneFile);
+            // Obj?
+            ObjTools.ConfigureFromScene(editor, sceneFile);
+
             // Save original values
             editor.layout.lockPanel('main', 'Configuring...', true);
             SceneManager.SaveOriginalObjects(editor.core.scene);
@@ -249,11 +254,6 @@ export default class SceneLoader {
             if (scene.lights.length === 0)
                 scene.createDefaultCameraOrLight(false, false, false);
         }
-
-        // Gltf or glb?
-        await GLTFTools.ConfigureFromScene(editor, sceneFile);
-        // Obj?
-        ObjTools.ConfigureFromScene(editor, sceneFile);
 
         // Soundtrack
         if (scene.soundTracks && scene.soundTracks.length === 0)
