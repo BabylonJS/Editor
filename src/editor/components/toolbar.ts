@@ -363,6 +363,8 @@ export default class EditorToolbar {
                 const isChecked = this.main.isChecked('connect-photoshop', true);
                 this.editor.notifyMessage(isChecked ? 'Connecting to Photoshop CC' : 'Disconnecting from Photoshop CC', true);
 
+                PhotoshopSocket.Password = await Dialog.CreateWithTextInput('Generator Password', PhotoshopSocket.Password, true);
+
                 this.main.enable('connect-photoshop', false);
                 const status = (isChecked ? (await PhotoshopSocket.Connect(this.editor)) : (await PhotoshopSocket.Disconnect()));
                 this.main.enable('connect-photoshop', true);

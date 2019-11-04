@@ -21,6 +21,10 @@ export default class PhotoshopSocket {
      * Gets wether or not the photoshop extension is connected.
      */
     public static Connected: boolean = false;
+    /**
+     * The password used to connect to the photoshop server.
+     */
+    public static Password: string = null;
 
     /**
      * Creates the photoshop socket used to get live texturing.
@@ -33,7 +37,7 @@ export default class PhotoshopSocket {
         // Process
         const hasProcess = await Request.Get<boolean>('/photoshop/hasProcess');
         if (!hasProcess) {
-            const success = await Request.Get<boolean>('/photoshop/createProcess');
+            const success = await Request.Get<boolean>('/photoshop/createProcess?password=' + this.Password);
             if (!success)
                 return PhotoshopExtensionStatus.ERROR;
         }

@@ -36,8 +36,9 @@ export default class Dialog {
      * Creates a GUI dialog with a text input.
      * @param title the title of the dialog.
      * @param value optional value to automatically set in the text input.
+     * @param password if the input is a password.
      */
-    public static CreateWithTextInput (title: string, value?: string): Promise<string> {
+    public static CreateWithTextInput (title: string, value?: string, password?: boolean): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
             // Window
             const popin = new Window('AskName');
@@ -52,7 +53,7 @@ export default class Dialog {
 
             // Form
             const form = new Form('ASK-NAME-CREATE-DIALOG');
-            form.fields.push({ name: 'Name', required: true, type: 'text', options: {  } });
+            form.fields.push({ name: 'Name', required: true, type: password ? 'password' : 'text', options: {  } });
             form.onChange = () => popin.onButtonClick('Ok');
             form.build('ASK-NAME-CREATE-DIALOG');
 

@@ -80,6 +80,7 @@ export default class PhotoshopRouter {
 
                     // Resolve
                     await this._generatorProcess.start({
+                        password: ctx.query.password,
                         config: GeneratorConfig.getConfig()
                     });
                     resolve();
