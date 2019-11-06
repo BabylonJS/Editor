@@ -51,6 +51,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
     // Private members
     private _savedState: any = { };
+    private _variablesValues: any[] = [];
     private _mouseMoveEvent: (ev: MouseEvent) => void = null;
 
     // Static members
@@ -612,10 +613,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
                 for (const obj in this._savedState)
                     this.node[obj] = this._savedState[obj];
+
+                this._variablesValues.forEach((v, index) => this.graphData.variables[index].value = v);
             }
 
             // Clear
             this._savedState = { };
+            this._variablesValues = [];
             this.graphData.stop();
 
             this.toolbar.updateItem('play-stop', {
@@ -633,6 +637,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.node.rotationQuaternion && (this._savedState.rotationQuaternion = this.node.rotationQuaternion.clone());
             // this.node.material && (this.node.material = this.node.material.clone(this.node.material.name)) && (this._savedState.material = this.node.material);
             this.node.material && (this._savedState.material = this.node.material.serialize());
+            this._savedState.parent = this.node.parent;
 
             const keys = Object.keys(this.node);
             keys.forEach(k => {
@@ -662,6 +667,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     return;
                 }
             });
+
+            // Variables
+            this.graphData.variables.forEach(v => this._variablesValues.push(v.value));
 
             // Start
             const nodes = <GraphNode[]> this.graphData._nodes;

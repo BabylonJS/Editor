@@ -49,7 +49,7 @@ Builder.build({
             'babylonjs-editor.d.ts',
             'babylonjs-editor-extensions.d.ts',
 
-            'index-debug.html',
+            'index-local.html',
             'redirect.html',
             'preview.html',
             'spectorjs.html',
