@@ -47,7 +47,7 @@ export default class EditorApp {
                 }
             });
 
-            this.Window.loadURL('file://' + __dirname + '/../../index-debug.html');
+            this.Window.loadURL('file://' + __dirname + '/../../index-local.html');
 
             if (process.env.DEBUG)
                 this.Window.webContents.openDevTools();

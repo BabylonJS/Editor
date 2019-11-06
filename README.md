@@ -41,7 +41,7 @@ npm run build
 
 ## Developing
 To develop the editor, or for the editor, just watch your TypeScript files and run a local webserver.
-Then, access to http://localhost:1338/index-debug.html
+Then, access to http://localhost:1338/index-local.html
 
 Watching TypeScript (front)
 ```bash
