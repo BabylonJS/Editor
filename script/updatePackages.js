@@ -13,6 +13,11 @@ const updatePackageJson = function (path) {
     json.version = version;
     // Update packages versions
     for (const k in json.dependencies) {
+        if (k === 'babylonjs-editor') {
+            json.dependencies[k] = version;
+            continue;
+        }
+
         if (!mainPackageJson.dependencies[k])
             continue;
 

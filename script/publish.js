@@ -1,9 +1,23 @@
 const { exec } = require('child_process');
 const fs = require('fs');
 
+// Contents
+const content = fs.readFileSync('./babylonjs-editor-extensions.d.ts', { encoding: 'utf-8' });
+
+const packageContent = fs.readFileSync('./package.json', { encoding: 'utf-8' });
+const packageJson = JSON.parse(packageContent);
+packageJson.devDependencies = { };
+packageJson.dependencies = { };
+fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
+
+const publish = function (done) {
+    exec('npm publish', function (err, stdout, stderr) {
+        done(err, stdout, stderr);
+    });
+};
+
 const toES6 = function (done) {
     // Dts
-    const content = fs.readFileSync('./babylonjs-editor-extensions.d.ts', { encoding: 'utf-8' });
     fs.writeFileSync(
         './babylonjs-editor-extensions.d.ts',
         content
@@ -24,29 +38,30 @@ const toES6 = function (done) {
 
             .replace(/'babylonjs-procedural-textures'/g, '@babylonjs/procedural-textures')
             .replace(/"babylonjs-procedural-textures"/g, '@babylonjs/procedural-textures')
+
+            .replace(/babylonjs-editor/g, 'babylonjs-editor-es6')
     );
-    
-    // Package.json
-    const jsonContent = fs.readFileSync('./package.json', { encoding: 'utf-8' });
-    const json = JSON.parse(jsonContent);
-    json.name = 'babylonjs-editor-es6';
-    fs.writeFileSync('./package.json', JSON.stringify(json, null, '\t'));
+
+    packageJson.name = 'babylonjs-editor-es6';
+    fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
 
     exec('npm publish', function (err, stdout, stderr) {
-        fs.writeFileSync('./babylonjs-editor-extensions.d.ts', content);
-        fs.writeFileSync('./package.json', jsonContent);
         done(err, stdout, stderr);
-    })
-}
+    });
+};
 
 const tasks = [
-    function (done) { exec('npm publish', function (err, stdout, stderr) { done(err, stdout, stderr); }) },
-    function (done) { toES6(done) },
+    function (done) { publish(done); },
+    function (done) { toES6(done); },
 ];
 
 const execute = function (index) {
-    if (index === tasks.length)
+    if (index === tasks.length) {
+        // Restore contents
+        fs.writeFileSync('./babylonjs-editor-extensions.d.ts', content);
+        fs.writeFileSync('./package.json', packageContent);
         return;
+    }
     
     tasks[index](function (err, stdout, stderr) {
         if (!err) {
@@ -56,7 +71,7 @@ const execute = function (index) {
 
         console.log(stderr);
     });
-}
+};
 
 // Execute!
 execute(0);
