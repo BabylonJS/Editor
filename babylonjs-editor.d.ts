@@ -1317,8 +1317,9 @@ declare module 'babylonjs-editor/editor/gui/dialog' {
                 * Creates a GUI dialog with a text input.
                 * @param title the title of the dialog.
                 * @param value optional value to automatically set in the text input.
+                * @param password if the input is a password.
                 */
-            static CreateWithTextInput(title: string, value?: string): Promise<string>;
+            static CreateWithTextInput(title: string, value?: string, password?: boolean): Promise<string>;
     }
 }
 
