@@ -1,6 +1,6 @@
 {
   "name": "babylonjs-editor",
-  "version": "3.2.0-beta.2",
+  "version": "3.2.0-beta.3",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
   "main": "build/electron/main.js",
   "productName": "Babylon.js Editor",
@@ -50,7 +50,9 @@
     "@types/offscreencanvas": "2019.6.0",
     "electron": "5.0.1",
     "electron-builder": "20.39.0",
-    "http-server": "0.11.1",
+    "http-server": "0.11.1"
+  },
+  "dependencies": {
     "socket.io": "2.2.0",
     "babylonjs": "4.1.0-beta.1",
     "babylonjs-gui": "4.1.0-beta.1",
@@ -92,6 +94,5 @@
     "w2ui": "~1.4.3",
     "yargs": "10.0.3",
     "generator-core": "3.11.5"
-  },
-  "dependencies": {}
+  }
 }
