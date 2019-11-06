@@ -1,6 +1,12 @@
 const { exec } = require('child_process');
 const fs = require('fs');
 
+console.log(`
+-------------------------------------------------------------
+PUBLISH
+-------------------------------------------------------------
+`);
+
 // Contents
 const content = fs.readFileSync('./babylonjs-editor-extensions.d.ts', { encoding: 'utf-8' });
 
@@ -11,7 +17,7 @@ packageJson.dependencies = { };
 fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
 
 const publish = function (done) {
-    exec('npm pack', function (err, stdout, stderr) {
+    exec('npm publish', function (err, stdout, stderr) {
         done(err, stdout, stderr);
     });
 };
@@ -58,7 +64,7 @@ const toES6 = function (done) {
     packageJson.name = 'babylonjs-editor-es6';
     fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
 
-    exec('npm pack', function (err, stdout, stderr) {
+    exec('npm publish', function (err, stdout, stderr) {
         done(err, stdout, stderr);
     });
 };
