@@ -11,7 +11,7 @@ packageJson.dependencies = { };
 fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
 
 const publish = function (done) {
-    exec('npm publish', function (err, stdout, stderr) {
+    exec('npm pack', function (err, stdout, stderr) {
         done(err, stdout, stderr);
     });
 };
@@ -23,29 +23,42 @@ const toES6 = function (done) {
         content
             .replace(/'babylonjs'/g, "'@babylonjs/core'")
             .replace(/"babylonjs"/g, "'@babylonjs/core'")
-
-            .replace(/'babylonjs-loaders'/g, "'@babylonjs/loaders'")
-            .replace(/"babylonjs-loaders"/g, "'@babylonjs/loaders'")
-
             .replace(/'babylonjs-gui'/g, "'@babylonjs/gui'")
             .replace(/"babylonjs-gui"/g, "'@babylonjs/gui'")
-
-            .replace(/'babylonjs-materials'/g, '@babylonjs/materials')
-            .replace(/"babylonjs-materials"/g, '@babylonjs/materials')
-
-            .replace(/'babylonjs-post-process'/g, '@babylonjs/post-processes')
-            .replace(/"babylonjs-post-process"/g, '@babylonjs/post-processes')
-
-            .replace(/'babylonjs-procedural-textures'/g, '@babylonjs/procedural-textures')
-            .replace(/"babylonjs-procedural-textures"/g, '@babylonjs/procedural-textures')
-
+            .replace(/'babylonjs-loaders'/g, "'@babylonjs/loaders'")
+            .replace(/"babylonjs-loaders"/g, "'@babylonjs/loaders'")
+            .replace(/'babylonjs-materials'/g, "'@babylonjs/materials'")
+            .replace(/"babylonjs-materials"/g, "'@babylonjs/materials'")
+            .replace(/'babylonjs-post-process'/g, "'@babylonjs/post-processes'")
+            .replace(/"babylonjs-post-process"/g, "'@babylonjs/post-processes'")
+            .replace(/'babylonjs-procedural-textures'/g, "'@babylonjs/procedural-textures'")
+            .replace(/"babylonjs-procedural-textures"/g, "'@babylonjs/procedural-textures'")
             .replace(/babylonjs-editor/g, 'babylonjs-editor-es6')
+    );
+
+    // Js
+    const jsContent = fs.readFileSync('./dist/editor.extensions.js', { encoding: 'utf-8' });
+    fs.writeFileSync(
+        './dist/editor.extensions.js',
+        jsContent
+            .replace(/require\('babylonjs'/g, "require('@babylonjs/core'")
+            .replace(/require\("babylonjs"/g, "require('@babylonjs/core'")
+            .replace(/require\('babylonjs-gui'/g, "require('@babylonjs/gui'")
+            .replace(/require\("babylonjs-gui"/g, "require('@babylonjs/gui'")
+            .replace(/require\('babylonjs-loaders'/g, "require('@babylonjs/loaders'")
+            .replace(/require\("babylonjs-loaders"/g, "require('@babylonjs/loaders'")
+            .replace(/require\('babylonjs-materials'/g, "require('@babylonjs/materials'")
+            .replace(/require\("babylonjs-materials"/g, "require('@babylonjs/materials'")
+            .replace(/require\('babylonjs-post-process'/g, "require('@babylonjs/post-processes'")
+            .replace(/require\("babylonjs-post-process"/g, "require('@babylonjs/post-processes'")
+            .replace(/require\('babylonjs-procedural-textures'/g, "require('@babylonjs/procedural-textures'")
+            .replace(/require\("babylonjs-procedural-textures"/g, "require('@babylonjs/procedural-textures'")
     );
 
     packageJson.name = 'babylonjs-editor-es6';
     fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
 
-    exec('npm publish', function (err, stdout, stderr) {
+    exec('npm pack', function (err, stdout, stderr) {
         done(err, stdout, stderr);
     });
 };
