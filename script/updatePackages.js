@@ -18,6 +18,11 @@ const updatePackageJson = function (path) {
             continue;
         }
 
+        if (k === 'babylonjs-editor-es6') {
+            json.dependencies[k] = version;
+            continue;
+        }
+
         if (!mainPackageJson.dependencies[k])
             continue;
 
@@ -34,4 +39,5 @@ const updatePackageJson = function (path) {
 updatePackageJson('./photoshop-extension/package.json');
 updatePackageJson('./vscode-extension/package.json');
 updatePackageJson('./assets/templates/template/package.json');
+updatePackageJson('./assets/templates/template/package-es6.json');
 updatePackageJson('./package.json');
