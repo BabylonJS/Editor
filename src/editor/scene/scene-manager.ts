@@ -59,8 +59,6 @@ export default class SceneManager {
 
         this.EnvironmentHelper = null;
         this.RemovedObjects = { };
-
-        Texture.SerializeBuffers = false;
     }
 
     /**
@@ -92,6 +90,7 @@ export default class SceneManager {
                 delete orig.metadata.original.metadata;
         };
 
+        Texture.SerializeBuffers = false;
         scene.meshes.forEach(m => { 
             try {
                 // Instance?
@@ -119,6 +118,7 @@ export default class SceneManager {
         scene.soundTracks && scene.soundTracks.forEach(st => {
             st.soundCollection.forEach(s => set(s, s.serialize()));
         });
+        Texture.SerializeBuffers = true;
     }
 
     /**

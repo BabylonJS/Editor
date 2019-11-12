@@ -214,9 +214,9 @@ export default class SceneLoader {
             await Promise.all(appendPromises);
 
             // Gltf or glb?
-            await GLTFTools.ConfigureFromScene(editor, sceneFile);
+            await GLTFTools.ConfigureFromScene(editor);
             // Obj?
-            ObjTools.ConfigureFromScene(editor, sceneFile);
+            ObjTools.ConfigureFromScene(editor);
 
             // Save original values
             editor.layout.lockPanel('main', 'Configuring...', true);
