@@ -14,6 +14,7 @@ const packageContent = fs.readFileSync('./package.json', { encoding: 'utf-8' });
 const packageJson = JSON.parse(packageContent);
 packageJson.devDependencies = { };
 packageJson.dependencies = { };
+packageJson.main = 'dist/editor.extensions.js';
 fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
 
 const publish = function (done) {

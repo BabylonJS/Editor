@@ -461,5 +461,3 @@ export default class CustomEditorMaterial extends PushMaterial {
         return material;
     }
 }
-
-BABYLON['CustomEditorMaterial'] = CustomEditorMaterial;
