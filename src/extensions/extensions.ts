@@ -12,10 +12,32 @@ export default class Extensions {
     public static Instances: IStringDictionary<IExtension<any>> = { };
     public static OrderedExtensions: string[] = [];
 
+    /**
+     * Reference to tools used by extensions.
+     */
     public static Tools: Tools = new Tools();
+    /**
+     * Reference to all mobile tools (vibrate, etc.).
+     */
     public static Mobile: Mobile = new Mobile();
 
-    public static RoolUrl: string = null;
+    /**
+     * Sets or gets the current Root Url used while loading assets and extensions.
+     */
+    public static RootUrl: string = null;
+
+    /**
+     * @deprecated please use RootUrl instead.
+     */
+    public static get RoolUrl(): string {
+        return this.RootUrl;
+    }
+    /**
+     * @deprecated please use RootUrl instead.
+     */
+    public static set RoolUrl (url: string) {
+        this.RootUrl = url;
+    }
 
     /**
      * Registers an extension
