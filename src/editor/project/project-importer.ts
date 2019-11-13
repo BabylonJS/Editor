@@ -69,6 +69,7 @@ export default class ProjectImporter {
 
         ProjectSettings.ProjectExportFormat = project.globalConfiguration.projectFormat || 'babylon';
         ProjectSettings.ExportEulerAngles = project.globalConfiguration.exportEulerAngles || false;
+        ProjectSettings.ExportWithES6Support = project.globalConfiguration.exportWithES6Support || false;
 
         // Physics
         if (!scene.isPhysicsEnabled())

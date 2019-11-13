@@ -63,6 +63,7 @@ export interface GlobalConfiguration {
     },
     projectFormat?: 'babylon' | 'glb' | 'gltf';
     exportEulerAngles?: boolean;
+    exportWithES6Support?: boolean;
 }
 
 /**

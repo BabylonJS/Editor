@@ -7,6 +7,7 @@ export default class ProjectSettings {
     // Public members
     public static ProjectExportFormat: 'babylon' | 'glb' | 'gltf' = 'babylon';
     public static ExportEulerAngles: boolean = false;
+    public static ExportWithES6Support: boolean = false;
 
     /**
      * Shows the scene settings dialog to modify properties.
@@ -17,7 +18,7 @@ export default class ProjectSettings {
         const window = new Window('ExportTemplate');
         window.buttons = ['Ok', 'Cancel'];
         window.width = 450;
-        window.height = 170;
+        window.height = 200;
         window.body = `<div id="EXPORT-TEMPLATE-FORMAT" style="width: 100%; height: 100%;"></div>`;
         window.open();
 
@@ -25,12 +26,14 @@ export default class ProjectSettings {
         const form = new Form('SceneFormatForm');
         form.fields = [
             { name: 'exportEulerAngles', type: 'checkbox', html: { span: 10, caption: 'Export Euler angles instead of quaternions' } },
+            { name: 'exportWithES6Support', type: 'checkbox', html: { span: 10, caption: 'Export with support of ES6 modules' } },
             { name: 'format', type: 'list', required: true, html: { span: 10, caption: 'Format' }, options: { items: ['babylon', 'glb', 'gltf'] } }
         ];
         form.build('EXPORT-TEMPLATE-FORMAT');
 
         form.element.record['format'] = this.ProjectExportFormat;
         form.element.record['exportEulerAngles'] = this.ExportEulerAngles;
+        form.element.record['exportWithES6Support'] = this.ExportWithES6Support;
         form.element.refresh();
 
         return new Promise<void>((resolve, reject) => {
@@ -43,6 +46,7 @@ export default class ProjectSettings {
                 
                 this.ProjectExportFormat = form.element.record['format'].id;
                 this.ExportEulerAngles = form.element.record['exportEulerAngles'];
+                this.ExportWithES6Support = form.element.record['exportWithES6Support'];
 
                 window.close();
 
