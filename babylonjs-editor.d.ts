@@ -1652,6 +1652,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
             };
             projectFormat?: 'babylon' | 'glb' | 'gltf';
             exportEulerAngles?: boolean;
+            exportWithES6Support?: boolean;
     }
     /**
      * Custom Materials (sky, gradient, water, etc.)

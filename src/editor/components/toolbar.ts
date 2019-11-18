@@ -106,7 +106,7 @@ export default class EditorToolbar {
             },
             { type: 'break' },
             {
-                type: 'menu', id: 'addnm', text: 'Add Non-Mesh', img: 'icon-add', items: [
+                type: 'menu', id: 'addnm', text: 'Add', img: 'icon-add', items: [
                     { id: 'default-environment', img: 'icon-add', text: 'Default Environment' },
 					{ id: 'camera', img: 'icon-camera', text: 'Camera' },
                     { type: 'break' },
