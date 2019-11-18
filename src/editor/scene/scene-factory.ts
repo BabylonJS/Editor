@@ -1,8 +1,8 @@
 import {
-    Scene,
+    Scene, 
     Vector3, Color4,
     Texture,
-    Node,
+    Node, FreeCamera,
     Mesh, ParticleSystem,
     GroundMesh,
     Tags, Tools as BabylonTools,
@@ -93,6 +93,18 @@ export default class SceneFactory {
         this.AddToGraph(editor, SceneManager.EnvironmentHelper);
 
         return SceneManager.EnvironmentHelper;
+    }
+	
+	/**
+     * Creates a new camera.
+	 * Defaults of FreeCamera
+     * @param editor the editor reference
+     */
+	public static CreateCamera (editor: Editor): FreeCamera {
+        const camera =  new FreeCamera('New Camera', new Vector3(0, 0, 0), editor.core.scene, true);
+        this.AddToGraph(editor, camera);
+
+        return camera;
     }
 
     /**
@@ -240,6 +252,17 @@ export default class SceneFactory {
      */
     public static CreateSphere (editor: Editor): Mesh {
         const mesh = Mesh.CreateSphere('New Sphere', 32, 5, editor.core.scene);
+        this.AddToGraph(editor, mesh);
+
+        return mesh;
+    }
+	
+	/**
+     * Creates a new Cylinder Mesh
+     * @param editor the editor reference
+     */
+	public static CreateCylinder (editor: Editor): Mesh {
+        const mesh = Mesh.CreateCylinder('New Cylinder', 5, 5, 5, 16, editor.core.scene);
         this.AddToGraph(editor, mesh);
 
         return mesh;

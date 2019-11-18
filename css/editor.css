@@ -355,6 +355,10 @@ ICONS
     background: url("svg/circle.svg");
 }
 
+.w2ui-icon.icon-cylinder-mesh {
+    background: url("svg/cylinder.svg");
+}
+
 .w2ui-icon.icon-water {
     background: url("svg/water.svg");
 }

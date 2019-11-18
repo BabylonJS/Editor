@@ -102,8 +102,9 @@ export default class EditorToolbar {
             },
             { type: 'break' },
             {
-                type: 'menu', id: 'add', text: 'Add', img: 'icon-add', items: [
+                type: 'menu', id: 'addnm', text: 'Add Non-Mesh', img: 'icon-add', items: [
                     { id: 'default-environment', img: 'icon-add', text: 'Default Environment' },
+					{ id: 'camera', img: 'icon-camera', text: 'Camera' },
                     { type: 'break' },
                     { id: 'particle-system', img: 'icon-particles', text: 'Particle System' },
                     { id: 'particle-system-animated', img: 'icon-particles', text: 'Animated Particle System' },
@@ -111,18 +112,23 @@ export default class EditorToolbar {
                     { id: 'sky', img: 'icon-sky', text: 'Sky Effect' },
                     { id: 'water', img: 'icon-water', text: 'Water Effect' },
                     { type: 'break' },
-                    { id: 'dummy-node', img: 'icon-clone', text: 'Dummy' },
-                    { id: 'ground', img: 'icon-mesh', text: 'Ground Mesh' },
-                    { id: 'cube', img: 'icon-box-mesh', text: 'Cube Mesh' },
-                    { id: 'sphere', img: 'icon-sphere-mesh', text: 'Sphere Mesh' },
-                    { id: 'plane', img: 'icon-mesh', text: 'Plane Mesh' },
-                    { type: 'break' },
                     { id: 'point-light', img: 'icon-light', text: 'Point Light' },
                     { id: 'directional-light', img: 'icon-directional-light', text: 'Directional Light' },
                     { id: 'spot-light', img: 'icon-directional-light', text: 'Spot Light' },
                     { id: 'hemispheric-light', img: 'icon-light', text: 'Hemispheric Light' },
                     { type: 'break' },
                     { id: 'sound', img: 'icon-sound', text: 'Sound' }
+                ]
+            },
+			{ type: 'break' },
+            {
+                type: 'menu', id: 'addm', text: 'Add Mesh', img: 'icon-add', items: [
+                    { id: 'dummy-node', img: 'icon-clone', text: 'Dummy' },
+                    { id: 'ground', img: 'icon-mesh', text: 'Ground Mesh' },
+                    { id: 'cube', img: 'icon-box-mesh', text: 'Cube Mesh' },
+                    { id: 'sphere', img: 'icon-sphere-mesh', text: 'Sphere Mesh' },
+					{ id: 'cylinder', img: 'icon-cylinder-mesh', text: 'Cylinder Mesh' },
+                    { id: 'plane', img: 'icon-mesh', text: 'Plane Mesh' },
                 ]
             },
             // TODO: wait for parse and serialize for GUI
@@ -293,44 +299,51 @@ export default class EditorToolbar {
                 break;
 
             // Add
-            case 'add:default-environment':
+            case 'addnm:default-environment':
                 SceneFactory.CreateDefaultEnvironment(this.editor);
                 break;
+				
+	    case 'addnm:camera':
+                SceneFactory.CreateCamera(this.editor);
+                break;
             
-            case 'add:particle-system':
+            case 'addnm:particle-system':
                 SceneFactory.CreateDefaultParticleSystem(this.editor, false);
                 break;
-            case 'add:particle-system-animated':
+            case 'addnm:particle-system-animated':
                 SceneFactory.CreateDefaultParticleSystem(this.editor, true);
                 break;
-            case 'add:sky':
+            case 'addnm:sky':
                 SceneFactory.CreateSkyEffect(this.editor);
                 break;
-            case 'add:water':
+            case 'addnm:water':
                 SceneFactory.CreateWaterEffect(this.editor);
                 break;
             
-            case 'add:dummy-node':
+            case 'addm:dummy-node':
                 SceneFactory.CreateDummyNode(this.editor);
                 break;
-            case 'add:ground':
+            case 'addm:ground':
                 SceneFactory.CreateGroundMesh(this.editor);
                 break;
-            case 'add:cube':
+            case 'addm:cube':
                 SceneFactory.CreateCube(this.editor);
                 break;
-            case 'add:sphere':
+            case 'addm:sphere':
                 SceneFactory.CreateSphere(this.editor);
                 break;
-            case 'add:plane':
+			case 'addm:plane':
                 SceneFactory.CreatePlane(this.editor);
                 break;
+            case 'addm:cylinder':
+                SceneFactory.CreateCylinder(this.editor);
+                break;
 
 
-            case 'add:point-light':
+            case 'addnm:point-light':
                 SceneFactory.CreateLight(this.editor, 'point');
                 break;
-            case 'add:directional-light':
+            case 'addnm:directional-light':
                 SceneFactory.CreateLight(this.editor, 'directional');
                 break;
             case 'add:spot-light':
@@ -340,7 +353,7 @@ export default class EditorToolbar {
                 SceneFactory.CreateLight(this.editor, 'hemispheric');
                 break;
             
-            case 'add:sound':
+            case 'addnm:sound':
                 SceneFactory.AddSound(this.editor);
                 break;
 
