@@ -14,6 +14,7 @@ import {
     FilesInputStore,
     StandardMaterial
 } from 'babylonjs';
+import { AdvancedDynamicTexture } from 'babylonjs-gui';
 import 'babylonjs-procedural-textures';
 
 import Editor, {
@@ -67,6 +68,7 @@ export default class TextureViewer extends EditorPlugin {
     protected tempPreviewCanvas: HTMLCanvasElement = null;
 
     protected objectModifiedObserver: Observer<any> = null;
+    protected objectAddedObserver: Observer<any> = null;
 
     protected object: any;
     protected property: string;
@@ -105,6 +107,7 @@ export default class TextureViewer extends EditorPlugin {
         // Events
         this.editor.core.onDropFiles.remove(this._dropFilesObserver);
         this.editor.core.onModifiedObject.remove(this.objectModifiedObserver);
+        this.editor.core.onAddObject.remove(this.objectAddedObserver);
 
         // Dispose
         this.postProcess.dispose(this.camera);
@@ -142,7 +145,7 @@ export default class TextureViewer extends EditorPlugin {
                 { id: 'render-target', text: 'Add Render Target', img: 'icon-add' },
                 { id: 'mirror', text: 'Add Mirror', img: 'icon-reflection' },
                 { id: 'reflection-probe', text: 'Reflection Probe', img: 'icon-reflection' },
-                // { id: 'pure-cube-texture', text: 'Pure Cube Texture...', img: 'icon-dynamic-texture' }
+                { id: 'pure-cube-texture', text: 'Pure Cube Texture...', img: 'icon-dynamic-texture' }
             ] },
             { type: 'break' },
             { id: 'convert-cube-texture', text: 'Convert .dds to .env...', img: 'icon-export' },
@@ -188,9 +191,22 @@ export default class TextureViewer extends EditorPlugin {
             if (!(o instanceof BaseTexture))
                 return;
 
+            // Name
             const item = this.previewItems.find(pi => pi.texture === o);
             if (item)
                 item.text.innerText = o['url'] || o.name;
+            
+            // Dynamic texture
+            if (this.texture && o instanceof DynamicTexture && this.texture.name === o.name)
+                this.setTexture(o.name, 'dynamic-texture', o);
+        });
+
+        // Added object
+        this.objectAddedObserver = this.editor.core.onAddObject.add(o => {
+            if (!(o instanceof BaseTexture))
+                return;
+
+            this.addTextureToList(o);
         });
     }
 
@@ -238,7 +254,7 @@ export default class TextureViewer extends EditorPlugin {
                 this.addReflectionProbe();
                 break;
             case 'add:pure-cube-texture':
-                AddPureCubeTexture.ShowDialog(this.editor);
+                AddPureCubeTexture.ShowDialog(this.editor, this);
                 break;
 
             case 'convert-cube-texture':
@@ -295,33 +311,7 @@ export default class TextureViewer extends EditorPlugin {
 
         // Add HTML nodes for textures
         for (const tex of scene.textures) {
-            if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes)
-                continue;
-
-            if (tex instanceof ProceduralTexture) {
-                this.addProceduralTexturePreviewNode(tex);
-                continue;
-            }
-
-            // if (tex instanceof CubeTexture && tex['_files'] && tex['_files'].length === 6) {
-            //     this.addPureCubeTexturePreviewNode(tex);
-            //     continue;
-            // }
-            
-            let url = tex.name;
-            if (!url)
-                continue;
-
-            if (url.indexOf('file:') === 0)
-                url = url.replace('file:', '').toLowerCase();
-            
-            let file = FilesInputStore.FilesToLoad[url];
-
-            if (!file)
-                file = FilesInputStore.FilesToLoad[url.toLowerCase()];
-            
-            if (file)
-                promises.push(this.addPreviewNode(file, tex));
+            promises.push(this.addTextureToList(tex));
         }
 
         // Add render targets
@@ -342,9 +332,58 @@ export default class TextureViewer extends EditorPlugin {
         } catch (e) {
             console.log(e);
         }
+
+        // Clear temp preview
+        if (this.tempPreview)
+            this.tempPreview.engine.stopRenderLoop();
         
         this._refreshing = false;
         this.toolbar.enable('refresh', true);
+    }
+
+    /**
+     * Adds the given texture to the textures list.
+     * @param tex the texture reference to add to the textures list.
+     */
+    protected async addTextureToList (tex: BaseTexture): Promise<void> {
+        if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes || tex instanceof AdvancedDynamicTexture)
+            return;
+
+        if (tex instanceof ProceduralTexture) {
+            this.addProceduralTexturePreviewNode(tex);
+            return;
+        }
+
+        if (tex instanceof CubeTexture && tex['_files'] && tex['_files'].length === 6) {
+            await this.addPureCubeTexturePreviewNode(tex);
+            return;
+        }
+
+        if (tex instanceof DynamicTexture) {
+            return this.addPreviewNode(null, tex);
+        }
+        
+        let url = tex.name;
+        if (!url)
+            return;
+
+        if (url.indexOf('file:') === 0)
+            url = url.replace('file:', '').toLowerCase();
+        
+        let file = FilesInputStore.FilesToLoad[url];
+
+        if (!file)
+            file = FilesInputStore.FilesToLoad[url.toLowerCase()];
+        
+        if (file)
+            return this.addPreviewNode(file, tex);
+
+        // Mostly GLTF?
+        const buffer = tex['_buffer'];
+        if (buffer && buffer instanceof Uint8Array) {
+            file = Tools.CreateFile(buffer, tex.name + Tools.GetExtensionFromMimeType(tex['_mimeType']));
+            return this.addPreviewNode(file, tex);
+        }
     }
 
     /**
@@ -355,13 +394,12 @@ export default class TextureViewer extends EditorPlugin {
      */
     protected async addPreviewNode (file: File, originalTexture: BaseTexture): Promise<void> {
         const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds', 'env'];
-        const ext = Tools.GetFileExtension(file.name).toLowerCase();
+        const ext = file ? Tools.GetFileExtension(file.name).toLowerCase() : originalTexture.name;
 
-        const texturesList = $('#TEXTURE-VIEWER-LIST');
-
-        if (availableExtensions.indexOf(ext) === -1)
+        if (file &&availableExtensions.indexOf(ext) === -1)
             return;
 
+        const texturesList = $('#TEXTURE-VIEWER-LIST');
         const parent = Tools.CreateElement<HTMLDivElement>('div', originalTexture.name + 'div', {
             'width': '100px',
             'height': '100px',
@@ -411,23 +449,25 @@ export default class TextureViewer extends EditorPlugin {
             img.addEventListener('dragend', () => this.editor.core.engine.getRenderingCanvas().removeEventListener('drop', dropListener));
         }
         else {
-            const url = URL.createObjectURL(file);
-            const img = Tools.CreateElement<HTMLImageElement>('img', file.name, {
+            const url = originalTexture instanceof DynamicTexture ? originalTexture.serialize().base64String : URL.createObjectURL(file);
+            const filename = file ? file.name : originalTexture.name;
+
+            const img = Tools.CreateElement<HTMLImageElement>('img', filename, {
                 width: '100px',
                 height: '100px'
             });
             img.src = url;
             img.classList.add('ctxmenu');
             img.onload = () => URL.revokeObjectURL(url);
-            img.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
+            img.addEventListener('click', (ev) => this.setTexture(filename, originalTexture instanceof DynamicTexture ? 'dynamic-texture' : ext, originalTexture));
             ContextMenu.ConfigureElement(img, this.getContextMenuItems(originalTexture));
             parent.appendChild(img);
 
             texturesList.append(parent);
 
             // Create texture in editor scene
-            if (!this.editor.core.scene.textures.find(t => t.name === file.name)) {
-                const texture = new Texture('file:' + file.name, this.editor.core.scene);
+            if (!(originalTexture instanceof DynamicTexture) && !this.editor.core.scene.textures.find(t => t.name === filename)) {
+                const texture = new Texture('file:' + filename, this.editor.core.scene);
                 texture.name = texture.url = texture.name.replace('file:', '');
             }
 
@@ -541,7 +581,7 @@ export default class TextureViewer extends EditorPlugin {
      * Add a pure cube texture preview
      * @param texture the pure cube texture to add
      */
-    protected async addPureCubeTexturePreviewNode (texture: CubeTexture): Promise<void> {
+    public async addPureCubeTexturePreviewNode (texture: CubeTexture): Promise<void> {
         const parent = Tools.CreateElement<HTMLDivElement>('div', texture.name + 'div', {
             'width': '100px',
             'height': '100px',
@@ -758,6 +798,12 @@ export default class TextureViewer extends EditorPlugin {
             this._lastRenderTargetObserver = null;
         }
 
+        // Remove current texture
+        if (this.texture) {
+            this.texture.dispose();
+            this.texture = null;
+        }
+
         // Switch extension and draw result in the right canvas
         switch (extension) {
             case 'dds':
@@ -801,6 +847,10 @@ export default class TextureViewer extends EditorPlugin {
                 this.texture = this.material.reflectionTexture = new CubeTexture(originalTexture.name, this.scene, null, false, files, null, null, null, false);
                 this.sphere.setEnabled(true);
                 break;
+            case 'dynamic-texture':
+                this.camera.attachPostProcess(this.postProcess);
+                this.texture = DynamicTexture.Parse(originalTexture.serialize(), this.scene, '');
+                break;
             default:
                 this.camera.attachPostProcess(this.postProcess);
                 this.texture = new Texture('file:' + name, this.scene);
@@ -839,6 +889,8 @@ export default class TextureViewer extends EditorPlugin {
             material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + file.name, scene);
         
         sphere.material = material;
+
+        engine.runRenderLoop(() => scene.render());
 
         return {
             engine: engine,

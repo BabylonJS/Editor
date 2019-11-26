@@ -1,4 +1,4 @@
-import { Scene, Tools as BabylonTools } from 'babylonjs';
+import { Scene, Tools as BabylonTools, FilesInputStore } from 'babylonjs';
 import Editor, { EditorPlugin, Toolbar, Layout, Tools } from 'babylonjs-editor';
 
 import { CCapture } from 'ccapture.js';
@@ -9,6 +9,7 @@ export default class PlayGame extends EditorPlugin {
     public toolbar: Toolbar = null;
 
     public iframe: JQuery<HTMLIFrameElement> = null;
+    public emptyGameNode: HTMLHeadElement = null;
     public contentWindow: Window = null;
 
     public capturer: CCapture = null;
@@ -33,6 +34,9 @@ export default class PlayGame extends EditorPlugin {
         // Capturer
         if (this.capturer)
             this.capturer.stop();
+
+        // Files
+        this._clearFiles();
         
         await super.close();
     }
@@ -45,7 +49,7 @@ export default class PlayGame extends EditorPlugin {
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="PLAY-GAME-TOOLBAR" style="width: 100%; height: 100%"></div>' },
-            { type: 'main', resizable: false, content: '<iframe id="PLAY-GAME-IFRAME" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%; position: absolute; top: 0;"></iframe>' },
+            { type: 'main', resizable: false, content: '<iframe id="PLAY-GAME-IFRAME" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%; position: absolute; top: 0; border: 0px;"></iframe>' },
             { type: 'left', resizable: false, size: 0, content: `<video id="PLAY-GAME-VIDEO" controls></video>` }
         ];
         this.layout.build(this.divElement.id);
@@ -57,7 +61,9 @@ export default class PlayGame extends EditorPlugin {
             { type: 'break' },
             { type: 'button', id: 'record', img: 'icon-record', text: 'Record' },
             { type: 'button', id: 'download-record', img: 'icon-export', text: 'Save Record' },
-            { type: 'button', id: 'spectorjs', img: 'icon-camera', text: 'Capture Frame...' }
+            { type: 'button', id: 'spectorjs', img: 'icon-camera', text: 'Capture Frame...' },
+            { type: 'break' },
+            { type: 'button', id: 'stop', img: 'icon-stop', text: 'Stop' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PLAY-GAME-TOOLBAR');
@@ -141,6 +147,25 @@ export default class PlayGame extends EditorPlugin {
                     this.iframe.focus();
                 }, 500);
                 break;
+
+            // Stop
+            case 'stop':
+                this.iframe[0].src = 'blank';
+                this._clearFiles();
+
+                this.emptyGameNode = Tools.CreateElement<HTMLHeadElement>('h1', BabylonTools.RandomId(), {
+                    'float': 'left',
+                    'left': '50%',
+                    'top': '50%',
+                    'transform': 'translate(-50%, -50%)',
+                    'overflow': 'hidden',
+                    'position': 'relative',
+                    'font-family': 'Roboto,sans-serif !important',
+                    'opacity': '0.5'
+                });
+                this.emptyGameNode.textContent = 'Test has been stopped.';
+                $('#PLAY-GAME-IFRAME').parent().append(this.emptyGameNode);
+                this.toolbar.enable('stop', false);
             default: break;
         }
     }
@@ -152,6 +177,14 @@ export default class PlayGame extends EditorPlugin {
         // Misc.
         this.capturer = null;
 
+        // Empty game node
+        if (this.emptyGameNode) {
+            this.emptyGameNode.remove();
+            this.emptyGameNode = null;
+        }
+
+        this.toolbar.enable('stop', true);
+
         // Setup layout panels
         this.layout.setPanelSize('left', 0);
         this.layout.hidePanel('left');
@@ -162,7 +195,7 @@ export default class PlayGame extends EditorPlugin {
         // Setup toolbar
         this.toolbar.updateItem('download-record', {
             hidden: true
-        })
+        });
 
         // Iframe
         this.iframe = <JQuery<HTMLIFrameElement>> $('#PLAY-GAME-IFRAME');
@@ -222,7 +255,7 @@ export default class PlayGame extends EditorPlugin {
         // Scene
         this.contentWindow['gotScene'] = (scene: Scene) => {
             const engine = scene.getEngine();
-            this.contentWindow['BABYLON'].Tools.QueueNewFrame(engine._renderLoop.bind(engine));
+            this.contentWindow.requestAnimationFrame(engine._renderLoop.bind(engine));
 
             // Capture
             const start = Date.now();
@@ -241,5 +274,19 @@ export default class PlayGame extends EditorPlugin {
      */
     protected showVideo (): void {
 
+    }
+
+    // Clears all the files
+    private _clearFiles (): void {
+        if (this.editor.projectFile) {
+            delete FilesInputStore.FilesToLoad[this.editor.projectFile.name];
+            this.editor.projectFile = null;
+        }
+        if (this.editor.sceneFile) {
+            delete FilesInputStore.FilesToLoad[this.editor.sceneFile.name];
+            this.editor.sceneFile = null;
+        }
+
+        Tools.GarbageCollect();
     }
 }

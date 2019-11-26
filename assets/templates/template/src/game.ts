@@ -4,12 +4,10 @@ import "babylonjs-loaders"; //this is for when you export in a format other than
 import "babylonjs-gui"; //this allows you to use the BabylonJsGui
 
 import {
-  CannonJSPlugin,
   Engine,
   Scene,
   SceneLoader,
-  Tools,
-  Vector3
+  Tools
 } from "babylonjs";
 
 import { Extensions } from "babylonjs-editor";
@@ -51,6 +49,11 @@ export default class Game {
         // No camera?
         if (!this.scene.activeCamera) {
           this.scene.createDefaultCamera(false, true, true);
+        }
+
+        // No light?
+        if (!this.scene.lights.length) {
+          this.scene.createDefaultLight();
         }
 
         // Attach camera

@@ -1,5 +1,6 @@
 import Editor from '../editor';
 import { IEditorPlugin } from '../typings/plugin';
+import Tools from '../tools/tools';
 
 export default class EditorEditPanel {
     // Static members
@@ -46,6 +47,9 @@ export default class EditorEditPanel {
                     if (!tabsCount)
                         this.editor.resizableLayout.setPanelSize('edit-panel', 0);
                 }
+
+                // Free memory
+                Tools.GarbageCollect();
             },
             onClick: () => {
                 const plugin = this.editor.plugins[pluginUrl];

@@ -115,6 +115,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             lensFlare.add(SceneManager.StandardRenderingPipeline, 'lensFlareHaloWidth').min(0).max(2).step(0.01).name('Halo Width');
             lensFlare.add(SceneManager.StandardRenderingPipeline, 'lensFlareGhostDispersal').min(0).max(10).step(0.1).name('Ghost Dispersal');
             lensFlare.add(SceneManager.StandardRenderingPipeline, 'lensFlareDistortionStrength').min(0).max(500).step(0.1).name('Distortion Strength');
+            lensFlare.add(SceneManager.StandardRenderingPipeline, 'lensFlareBlurWidth').min(0).max(512).name('Blur Width');
 
             const dof = standardPipeline.addFolder('Depth-Of-Field');
             dof.open();

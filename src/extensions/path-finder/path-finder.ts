@@ -196,7 +196,7 @@ export default class PathFinder {
 
                 // Ray cast
                 const r = new Ray(s.add(new Vector3(rx, rayHeight || (b.maximum.y + 10), ry)), new Vector3(0, -1, 0), rayLength || 100);
-                const p = r.intersectsMeshes(castMeshes, false);
+                const p = r.intersectsMeshes(<any> castMeshes, false);
 
                 const hit = p.find(p => p.hit);
 

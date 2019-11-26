@@ -3,12 +3,8 @@ import { IDisposable, IStringDictionary } from '../typings/typings';
 import Tools from '../tools/tools';
 import ThemeSwitcher from '../tools/theme';
 
-// TODO: remove this line and find a way to
-// import * as ts from 'typescript';
-export interface TypescriptDisposable extends IDisposable {
-    [index: string]: any;
-}
-declare var ts: TypescriptDisposable;
+import * as typescript from 'typescript';
+import { editor } from 'monaco-editor';
 
 export interface Typings {
     name: string;
@@ -16,20 +12,37 @@ export interface Typings {
     content: string;
 }
 
+export interface TranspilationErrorOutput {
+    line: number;
+    column: number;
+    message: string;
+}
+
+export interface TranspilationOutput {
+    compiledCode: string;
+    errors: TranspilationErrorOutput[];
+}
+
 export default class CodeEditor {
     // Public members
-    public editor: monaco.editor.ICodeEditor = null;
+    public editor: editor.ICodeEditor = null;
     public onChange: (value: string) => void;
+
+    public theme: string = null;
+    public readonly: boolean = false;
 
     // Private members
     private _language: string;
     private _defaultValue: string;
 
+    private _caller: Window = null;
+
     // Static members
+    public static Typescript: typeof typescript;
     public static ExternalLibraries: string = null;
-    public static ExtraLibs: { lib: monaco.IDisposable, caller: Window; }[] = [];
-    public static CustomLibs: IStringDictionary<monaco.IDisposable> = { };
-    public static Instances: monaco.editor.ICodeEditor[] = [];
+    public static ExtraLibs: { lib: IDisposable, caller: Window; }[] = [];
+    public static CustomLibs: IStringDictionary<IDisposable> = { };
+    public static Instances: editor.ICodeEditor[] = [];
 
     public static Libs: string[] = [
         'assets/typings/babylon.module.d.ts',
@@ -61,7 +74,7 @@ export default class CodeEditor {
      */
     public static HasOneFocused (): boolean {
         for (const i of this.Instances) {
-            if (i.isFocused())
+            if (i.hasTextFocus())
                 return true;
         }
 
@@ -69,7 +82,10 @@ export default class CodeEditor {
     }
     
     /**
-     * Constructor
+     * Constructor.
+     * @param language the language of the code editor.
+     * @param value the default value to draw in the code editor.
+     * @param theme the theme to use for the code editor.
      */
     constructor (language: string = 'javascript', value: string = '// Some Code') {
         this._language = language;
@@ -114,6 +130,8 @@ export default class CodeEditor {
      * @param parentId the parent id of the editor
      */
     public async build (parentId: string | HTMLElement, caller: Window = window): Promise<void> {
+        this._caller = caller;
+
         if (typeof parentId === 'string')
             parentId = '#' + parentId;
         
@@ -143,9 +161,6 @@ export default class CodeEditor {
 
             CodeEditor.ExternalLibraries = content;
         }
-
-        // Import typescript
-        await Tools.ImportScript('typescript');
         
         // Create editor
         this.editor = caller['monaco'].editor.create($(<any>parentId)[0], {
@@ -153,11 +168,19 @@ export default class CodeEditor {
             language: this._language,
             automaticLayout: true,
             selectionHighlight: true,
-            theme: caller !== window || ThemeSwitcher.ThemeName === 'Dark' ? 'vs-dark' : undefined
+            theme: this.theme ? this.theme : (caller !== window || ThemeSwitcher.ThemeName === 'Dark' ? 'vs-dark' : undefined),
+            readOnly: this.readonly
         });
 
         if (!CodeEditor.ExtraLibs.find(el => el.caller === caller)) {
-            caller['monaco'].languages.typescript.typescriptDefaults.setCompilerOptions({ experimentalDecorators: true, target: 5, allowNonTsExtensions: true });
+            caller['monaco'].languages.typescript.typescriptDefaults.setCompilerOptions({
+                module: caller['monaco'].languages.typescript.ModuleKind.CommonJS,
+                target: caller['monaco'].languages.typescript.ScriptTarget.ES5,
+                noResolve: true,
+                suppressOutputPathCheck: true,
+                allowNonTsExtensions: true,
+                experimentalDecorators: true
+            });
             
             CodeEditor.ExtraLibs.push({
                 lib: caller['monaco'].languages.typescript.typescriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor'),
@@ -175,17 +198,53 @@ export default class CodeEditor {
     }
 
     /**
-     * Transpiles the given TS source to JS source
-     * @param source the source to transpile
+     * Transpiles the current TS source to JS source.
      */
-    public transpileTypeScript (source: string, moduleName: string, config?: any): string {
-        return ts.transpile(source, config || {
-            module: 'none',
-            target: 'es5',
-            experimentalDecorators: true,
-            // sourceMap: true,
-            // inlineSourceMap: true
-        }, moduleName + '.ts', undefined, moduleName + '.ts');
+    public async transpileTypeScript (): Promise<TranspilationOutput> {
+        const model = this.editor.getModel();
+        const uri = model.uri;
+
+        const worker = await this._caller['monaco'].languages.typescript.getTypeScriptWorker();
+        const languageService = await worker(uri);
+
+        const uriStr = uri.toString();
+        const result = await languageService.getEmitOutput(uriStr);
+
+        const diagnostics = await Promise.all([languageService.getSyntacticDiagnostics(uriStr), languageService.getSemanticDiagnostics(uriStr)]);
+
+        const errors: TranspilationErrorOutput[] = [];
+        diagnostics.filter(d => d.length).map(d => {
+            d.forEach(e => {
+                const p = model.getPositionAt(e.start);
+                let m = '';
+
+                if (typeof(e.messageText) === 'string')
+                    m = e.messageText;
+                else {
+                    m = e.messageText.messageText;
+                    let mt = e.messageText;
+                    while (mt.next) {
+                        mt = mt.next;
+                        m += '\n\t\t' + mt.messageText;
+                    }
+                }
+
+                errors.push({ line: p.lineNumber, column: p.column, message: m });
+            });
+        });
+
+        return {
+            compiledCode: result.outputFiles[0].text,
+            errors: errors
+        };
+    }
+
+    /**
+     * Formats the transpilations errors to output an understandable output.
+     * @param errors the errors coming from the typescript transpilation function. @see .transpileTypeScript
+     */
+    public formatTranspilationOutputErrors (errors: TranspilationErrorOutput[]): string {
+        return errors.map(e => `\n\t(${e.line},${e.column}): ${e.message}`).join('\n');
     }
 
     /**
@@ -193,9 +252,9 @@ export default class CodeEditor {
      * @param source the source to transpile
      */
     public static async TranspileTypeScript (source: string, moduleName: string, config?: any): Promise<string> {
-        await Tools.ImportScript('typescript');
+        this.Typescript = await Tools.ImportScript<any>('typescript');
 
-        return ts.transpile(source, config || {
+        return this.Typescript.transpile(source, config || {
             module: 'none',
             target: 'es5',
             experimentalDecorators: true,

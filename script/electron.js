@@ -3,6 +3,11 @@ const Builder = require('electron-builder');
 const yargs = require('yargs');
 const args = yargs.argv;
 
+console.log(`
+-------------------------------------------------------------
+ELECTRON BUILD
+-------------------------------------------------------------
+`);
 console.log('\nBuilding Electron...');
 
 // Build
@@ -22,7 +27,12 @@ Builder.build({
         nsis: {
             oneClick: false
         },
+        asar: true,
         compression: 'store',
+        extraFiles: [
+            'photoshop-extension/**',
+            'photoshop-extension/node_modules/**'
+        ],
         files: [
             'src/**',
             'electron/**',
@@ -39,11 +49,13 @@ Builder.build({
             'babylonjs-editor.d.ts',
             'babylonjs-editor-extensions.d.ts',
 
-            'index-debug.html',
+            'index-local.html',
             'redirect.html',
             'preview.html',
             'spectorjs.html',
-            'code-editor-debug.html'
+            'code-editor-debug.html',
+
+            'photoshop-extension/**'
         ]
     }
 });

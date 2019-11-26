@@ -4,7 +4,7 @@ import {
     ParticleSystem,
     Vector3, Tags,
     FilesInput, FilesInputStore,
-    ArcRotateCamera
+    ArcRotateCamera, Sound
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
@@ -30,6 +30,7 @@ import EditorEditPanel from './components/edit-panel';
 import EditorStats from './components/stats';
 import EditorAssets from './components/assets';
 import EditorFiles from './components/files';
+import EditorConsole from './components/console';
 
 import ScenePicker from './scene/scene-picker';
 import ScenePreview from './scene/scene-preview';
@@ -46,7 +47,7 @@ import UndoRedo from './tools/undo-redo';
 import Request from './tools/request';
 import ThemeSwitcher, { ThemeType } from './tools/theme';
 
-import VSCodeSocket from './vscode/vscode-socket';
+import VSCodeSocket from './extensions/vscode-socket';
 
 export default class Editor implements IUpdatable {
     // Public members
@@ -65,6 +66,7 @@ export default class Editor implements IUpdatable {
     public stats: EditorStats;
     public assets: EditorAssets;
     public files: EditorFiles;
+    public console: EditorConsole;
 
     public plugins: IStringDictionary<IEditorPlugin> = { };
 
@@ -85,7 +87,7 @@ export default class Editor implements IUpdatable {
     private _resettingState: boolean = false;
 
     // Static members
-    public static LayoutVersion: string = '2.2.0';
+    public static LayoutVersion: string = '3.0.0';
     public static EditorVersion: string = null;
 
     /**
@@ -142,6 +144,9 @@ export default class Editor implements IUpdatable {
                             },
                             { type: 'component', componentName: 'Files', width: 20, isClosable: false, html: `
                                 <div id="FILES" style="width: 100%; height: 100%"></div>`
+                            },
+                            { type: 'component', componentName: 'Console', width: 20, isClosable: false, html: `
+                                <div id="CONSOLE" style="width: 100%; height: 100%;"></div>`
                             }
                         ] },
                     ] },
@@ -149,7 +154,7 @@ export default class Editor implements IUpdatable {
                         <div id="ASSETS" style="width: 100%; height: 100%;"></div>`
                     },
                     { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: `
-                        <input id="SCENE-GRAPH-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
+                        <input id="SCENE-GRAPH-SEARCH" type="text" size="25" class="editorSearch" placeHolder="Search..." style="width: 100%; height: 20px; border-radius: 45px;" />
                         <div id="SCENE-GRAPH" style="width: 100%; height: calc(100% - 40px); overflow: auto;"></div>`
                     }
                 ]
@@ -182,7 +187,9 @@ export default class Editor implements IUpdatable {
             
             this.core.engine = new Engine(canvas, true, {
                 antialias: true,
-                premultipliedAlpha: false
+                premultipliedAlpha: false,
+                powerPreference: "high-performance",
+                audioEngine: true
             });
             this.core.scene = new Scene(this.core.engine);
             this.core.scenes.push(this.core.scene);
@@ -219,6 +226,12 @@ export default class Editor implements IUpdatable {
             this.camera = <any> scene.activeCamera;
         }
 
+        // Apply theme
+        if (Tools.IsStandalone) {
+            const theme = <ThemeType> localStorage.getItem('babylonjs-editor-theme-name');
+            ThemeSwitcher.ThemeName = theme || 'Light';
+        }
+        
         // Create toolbar
         this.toolbar = new EditorToolbar(this);
 
@@ -241,6 +254,9 @@ export default class Editor implements IUpdatable {
 
         // Files
         this.files = new EditorFiles(this);
+
+        // Console
+        this.console = new EditorConsole(this);
 
         if (Tools.IsStandalone) {
             // Create editor camera
@@ -277,12 +293,6 @@ export default class Editor implements IUpdatable {
             this.createDefaultScene();
         }
 
-        // Apply theme
-        if (Tools.IsStandalone) {
-            const theme = <ThemeType> localStorage.getItem('babylonjs-editor-theme-name');
-            ThemeSwitcher.ThemeName = theme || 'Light';
-        }
-
         // Initialize context menu
         ContextMenu.Init();
     }
@@ -302,7 +312,7 @@ export default class Editor implements IUpdatable {
     public async resize (): Promise<void> {
         // Edition size
         const editionSize = this.resizableLayout.getPanelSize('Inspector');
-        this.inspector.resize(editionSize.width);
+        this.inspector.resize(editionSize.width, editionSize.height);
 
         // Stats size
         this.stats.layout.element.resize();
@@ -320,6 +330,9 @@ export default class Editor implements IUpdatable {
 
         // Files
         this.files.layout.element.resize();
+
+        // Console
+        this.console.layout.element.resize();
 
         // Plugins
         for (const p in this.plugins) {
@@ -661,6 +674,7 @@ export default class Editor implements IUpdatable {
         }
         else {
             this.camera = <FreeCamera | ArcRotateCamera> Camera.Parse(type, this.core.scene);
+            this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
         }
 
         // Configure
@@ -693,10 +707,20 @@ export default class Editor implements IUpdatable {
         });
         document.addEventListener('contextmenu', (e) => e.preventDefault());
 
+        // Shift key
+        let shiftDown = false;
+        document.addEventListener('keydown', ev => !shiftDown && (shiftDown = ev.key === 'Shift'));
+        document.addEventListener('keyup', ev => ev.key === 'Shift' && (shiftDown = false));
+
+        // Meta key
+        let ctrlDown = false;
+        document.addEventListener('keydown', ev => !ctrlDown && (ctrlDown = (ev.key === 'Meta' || ev.key === 'Control')));
+        document.addEventListener('keyup', ev => (ev.key === 'Meta' || ev.key === 'Control') && (ctrlDown = false));
+
         // Undo
         UndoRedo.onUndo = (e) => Tools.SetWindowTitle(this.projectFileName + ' *');
-        document.addEventListener('keyup', (ev) => {
-            if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'z') {
+        document.addEventListener('keydown', (ev) => {
+            if (!CodeEditor.HasOneFocused() && ctrlDown && ev.key === 'z') {
                 UndoRedo.Undo();
                 this.inspector.updateDisplay();
                 ev.preventDefault();
@@ -706,8 +730,8 @@ export default class Editor implements IUpdatable {
 
         // Redo
         UndoRedo.onRedo = (e) => Tools.SetWindowTitle(this.projectFileName + ' *');
-        document.addEventListener('keyup', (ev) => {
-            if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'y') {
+        document.addEventListener('keydown', (ev) => {
+            if (!CodeEditor.HasOneFocused() && (ctrlDown && ev.key === 'y' || ctrlDown && shiftDown && ev.key === 'Z')) {
                 UndoRedo.Redo();
                 this.inspector.updateDisplay();
                 ev.preventDefault();
@@ -716,18 +740,19 @@ export default class Editor implements IUpdatable {
         });
 
         // Focus / Blur
-        window.addEventListener('blur', () => this.core.renderScenes = false);
-        window.addEventListener('focus', () => this.core.renderScenes = true);
+        window.addEventListener('blur', () => {
+            this.core.renderScenes = false;
+            this.preview.toolbar.isChecked('sounds') && this.core.scene.mainSoundTrack.setVolume(0);
+        });
+        window.addEventListener('focus', () => {
+            this.core.renderScenes = true;
+            this.preview.toolbar.isChecked('sounds') && this.core.scene.mainSoundTrack.setVolume(1);
+        });
 
         this.core.engine.getRenderingCanvas().addEventListener('focus', () => this._canvasFocused = true);
         this.core.engine.getRenderingCanvas().addEventListener('blur', () => this._canvasFocused = false);
         this.core.engine.getRenderingCanvas().addEventListener('mousemove', () => this._canvasFocused = true);
         this.core.engine.getRenderingCanvas().addEventListener('mouseleave', () => this._canvasFocused = false);
-
-        // Shift key
-        let shiftDown = false;
-        document.addEventListener('keydown', ev => !shiftDown && (shiftDown = ev.key === 'Shift'));
-        document.addEventListener('keyup', ev => ev.key === 'Shift' && (shiftDown = false));
 
         // Shotcuts
         document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 'b' && this.preview.setToolClicked('bounding-box'));
@@ -743,14 +768,17 @@ export default class Editor implements IUpdatable {
                 let globalPosition = node.globalPosition || (node.getAbsolutePosition && node.getAbsolutePosition());
                 if (!globalPosition && node instanceof ParticleSystem)
                     globalPosition = (node.emitter instanceof Vector3 ? node.emitter.clone() : node.emitter.getAbsolutePosition());
+                if (!globalPosition && node instanceof Sound)
+                    globalPosition = node['_position'];
                 
-                ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), globalPosition, this.camera);
+                if (globalPosition && globalPosition instanceof Vector3)
+                    ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), globalPosition, this.camera);
             }
         });
 
-        document.addEventListener('keydown', ev => (ev.ctrlKey || ev.metaKey) && ev.key === 's' && ev.preventDefault());
-        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && ProjectExporter.ExportProject(this));
-        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && ProjectExporter.ExportProject(this, true));
+        document.addEventListener('keydown', ev => ctrlDown && ev.key === 's' && ev.preventDefault());
+        document.addEventListener('keydown', ev => ctrlDown && !shiftDown && ev.key === 's' && ProjectExporter.ExportProject(this));
+        document.addEventListener('keydown', ev => ctrlDown && shiftDown && ev.key === 'S' && ProjectExporter.ExportProject(this, true));
 
         document.addEventListener('keyup', ev => {
             if (Tools.IsFocusingInputElement() || (!Tree.HasOneFocused() && !this._canvasFocused))
@@ -853,8 +881,11 @@ export default class Editor implements IUpdatable {
         Tools.SetWindowTitle('Untitled');
 
         const packageJson = await Tools.LoadFile<string>('http://editor.babylonjs.com/package.json?' + Date.now());
-        const newVersion = JSON.parse(packageJson).version;
+        if (!packageJson) // No internet connection?
+            return;
 
+        const newVersion = JSON.parse(packageJson).version;
+        
         if (Editor.EditorVersion < newVersion) {
             const answer = await Dialog.Create('Update available!', `An update is available! (v${newVersion}). Would you like to download it?`);
             if (answer === 'No')

@@ -18,7 +18,6 @@ import SceneExporter from '../scene/scene-exporter';
 import SceneLoader from '../scene/scene-loader';
 
 import Window from '../gui/window';
-import Form from '../gui/form';
 
 import Tools from '../tools/tools';
 import Editor from '../editor';
@@ -101,8 +100,9 @@ export default class ProjectExporter {
         }
 
         // Src files
+        const gameSrc = ProjectSettings.ExportWithES6Support ? 'game-es6.ts' : 'game.ts';
         const srcFiles: CreateFiles[] = [
-            { name: 'game.ts', doNotOverride: true, data: (await Tools.LoadFile<string>('assets/templates/template/src/game.ts')).replace('{{scene_format}}', ProjectSettings.ProjectExportFormat) }
+            { name: 'game.ts', doNotOverride: true, data: (await Tools.LoadFile<string>('assets/templates/template/src/' + gameSrc)).replace('{{scene_format}}', ProjectSettings.ProjectExportFormat) }
         ];
 
         const storage = await Storage.GetStorage(editor);
@@ -110,10 +110,12 @@ export default class ProjectExporter {
             { name: 'scene', folder: sceneFiles },
             { name: 'src', folder: srcFiles },
             { name: 'README.md', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
-            { name: 'index.html', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
-            { name: 'package.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
+            { name: 'index.html', doNotOverride: true, data: await Tools.LoadFile<string>(`assets/templates/template/${ProjectSettings.ExportWithES6Support ? 'index-es6' : 'index'}.html`) },
+            { name: 'package.json', doNotOverride: true, data: await Tools.LoadFile<string>(`assets/templates/template/${ProjectSettings.ExportWithES6Support ? 'package-es6' : 'package'}.json`) },
             { name: 'tsconfig.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
-        ]);
+        ].concat(ProjectSettings.ExportWithES6Support ? [
+            { name: 'webpack.config.js', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/webpack.config.js') }
+        ]: []));
 
         // Unlock
         editor.layout.unlockPanel('main');
@@ -286,7 +288,8 @@ export default class ProjectExporter {
                 color: scene.fogColor.asArray()
             },
             projectFormat: ProjectSettings.ProjectExportFormat,
-            exportEulerAngles: ProjectSettings.ExportEulerAngles
+            exportEulerAngles: ProjectSettings.ExportEulerAngles,
+            exportWithES6Support: ProjectSettings.ExportWithES6Support
         }
     }
 
@@ -447,6 +450,10 @@ export default class ProjectExporter {
         const result: Export.ProjectTexture[] = [];
 
         scene.textures.forEach(t => {
+            // Ignore photoshop dynamic textures.
+            if (Tags.MatchesQuery(t, 'photoshop'))
+                return;
+            
             const added = Tags.MatchesQuery(t, 'added');
             const modified = Tags.MatchesQuery(t, 'modified');
 
@@ -721,6 +728,8 @@ export default class ProjectExporter {
                     else {
                         const currentObject = source[key];
                         const originalValue = original[key];
+                        if (!originalValue)
+                            break;
 
                         if (currentObject instanceof BaseTexture) {
                             // Check texture has changed

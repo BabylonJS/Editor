@@ -1,5 +1,11 @@
 const Builder = require('systemjs-builder');
 
+console.log(`
+-------------------------------------------------------------
+BUNDLES
+-------------------------------------------------------------
+`);
+
 const build = function (baseUrl, inFile, outFile, options) {
     options.mangle = false;
 
@@ -59,11 +65,16 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
     format: 'global',
     globalDeps: {
       'babylonjs': 'BABYLON',
+      'babylonjs-gui': 'BABYLON.GUI',
+      'babylonjs-materials': 'BABYLON',
+      'babylonjs-post-process': 'BABYLON',
+      'babylonjs-loaders': 'BABYLON',
+      'babylonjs-procedural-textures': 'BABYLON',
       'spectorjs': 'SPECTOR',
       'cannon': 'CANNON',
       'earcut': 'Earcut'
     },
-    externals: ['babylonjs', 'cannon', 'earcut'],
+    externals: ['babylonjs', 'babylonjs-gui', 'babylonjs-post-process', 'babylonjs-materials', 'babylonjs-loaders', 'babylonjs-procedural-textures', 'cannon', 'earcut'],
     minify: true
 });
 
@@ -76,7 +87,7 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
       'cannon': 'CANNON',
       'earcut': 'Earcut'
     },
-    externals: ['babylonjs', 'cannon', 'earcut'],
+    externals: ['babylonjs', 'babylonjs-gui', 'babylonjs-post-process', 'babylonjs-materials', 'babylonjs-loaders', 'babylonjs-procedural-textures', 'cannon', 'earcut'],
     minify: true
 });
 

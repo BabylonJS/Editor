@@ -1,11 +1,7 @@
 import {
-    Tools as BabylonTools,
-    Engine, Scene, Mesh, Material, PointLight,
-    InstancedMesh, AbstractMesh,
-    ArcRotateCamera,
-    Vector3, Tags,
-    ShaderMaterial,
-    Observer
+    Tools as BabylonTools, Engine, Scene, Mesh, Material, PointLight,
+    InstancedMesh, AbstractMesh, ArcRotateCamera, Vector3, Tags,
+    ShaderMaterial, Observer, NodeMaterial
 } from 'babylonjs';
 
 import Editor, {
@@ -267,8 +263,12 @@ export default class MaterialsViewer extends EditorPlugin {
             remove: { name: 'Remove', callback: () => {
                 material.dispose(true, false, false);
                 parent.remove();
-            } }
-        })
+            } },
+            edit: material instanceof NodeMaterial ? { name: 'Edit...', callback: async () => {
+                await Tools.ImportScript<any>('babylonjs-node-editor');
+                material.edit();
+            } } : undefined
+        });
 
         // Add
         parent.appendChild(img);
@@ -286,6 +286,9 @@ export default class MaterialsViewer extends EditorPlugin {
             obj._customCode = null; // Hack for CustomMaterialEdtitor class
             
             this.preview.sphere.material = Material.Parse(obj, this.preview.scene, 'file:');
+            if (this.preview.sphere.material instanceof NodeMaterial)
+                this.preview.sphere.material.build();
+            
             this.preview.engine.resize();
             this.editor.core.onSelectObject.notifyObservers(material);
 
@@ -330,6 +333,9 @@ export default class MaterialsViewer extends EditorPlugin {
         if (material) {
             const obj = material.serialize();
             sphere.material = Material.Parse(obj, scene, 'file:');
+
+            if (sphere.material instanceof NodeMaterial)
+                sphere.material.build();
         }
 
         return {
@@ -358,6 +364,11 @@ export default class MaterialsViewer extends EditorPlugin {
             // Create
             const obj = mat.serialize();
             preview.sphere.material = Material.Parse(obj, preview.scene, 'file:');
+            preview.sphere.material.onError = () => resolve('./assets/textures/waitlogo.png');
+
+            if (preview.sphere.material instanceof NodeMaterial)
+                preview.sphere.material.build();
+
             preview.scene.render();
 
             preview.scene.executeWhenReady(() => {
@@ -404,6 +415,7 @@ export default class MaterialsViewer extends EditorPlugin {
             'PBRMaterial',
             'PBRMetallicRoughnessMaterial',
             'PBRSpecularGlossinessMaterial',
+            'NodeMaterial',
             'FireMaterial',
             'CellMaterial',
             'GridMaterial',
@@ -417,13 +429,28 @@ export default class MaterialsViewer extends EditorPlugin {
         picker.addItems(materials.map(m => { return { name: m } }));
         picker.open(async items => {
             const ctor = BabylonTools.Instantiate('BABYLON.' + items[0].name);
-            const material = new ctor(items[0].name + BabylonTools.RandomId().substr(0, 5), this.editor.core.scene);
+            let material: Material;
+            if (items[0].name === 'NodeMaterial') {
+                await Tools.ImportScript<any>('babylonjs-node-editor');
+                material = this._createNodeMaterial(items[0].name + BabylonTools.RandomId().substr(0, 5));
+            } else {
+                material = new ctor(items[0].name + BabylonTools.RandomId().substr(0, 5), this.editor.core.scene);
+            }
 
             Tags.AddTagsTo(material, 'added');
 
             // Add preview node
             await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, material);
         });
+    }
+
+    // Adds a new node material.
+    private _createNodeMaterial (name: string): NodeMaterial {
+        const m = new NodeMaterial(name, this.editor.core.scene, { emitComments: true });
+        m.setToDefault();
+        m.build();
+
+        return m;
     }
 
     // Clears the current material

@@ -5,7 +5,7 @@
             "name": "Chrome Launch (source maps)",
             "type": "chrome",
             "request": "launch",
-            "url": "http://localhost:1338/index-debug.html",
+            "url": "http://localhost:1338/index-local.html",
             "webRoot": "${workspaceRoot}/",
             "sourceMaps": true,
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
@@ -14,7 +14,7 @@
             "name": "Chrome Launch (without source maps)",
             "type": "chrome",
             "request": "launch",
-            "url": "http://localhost:1338/index-debug.html",
+            "url": "http://localhost:1338/index-local.html",
             "webRoot": "${workspaceRoot}/",
             "sourceMaps": false,
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
@@ -91,7 +91,7 @@
         },
         {
             "name": "All",
-            "configurations": ["Electron", "Attach Electron Renderer", "VSCode Extension"]
+            "configurations": ["Electron", "Attach Electron Renderer", "VSCode Extension", "Photoshop Extension"]
         }
     ]
 }

@@ -1,6 +1,8 @@
 import { Engine, Scene, ArcRotateCamera, Mesh, StandardMaterial, CubeTexture, Color3, Vector3, FilesInputStore } from 'babylonjs';
 import Editor, { Window, Layout, Form, Tools, Dialog } from 'babylonjs-editor';
 
+import TextureViewer from './viewer';
+
 export interface Face {
     name: string;
     data: string;
@@ -26,7 +28,7 @@ export default class AddPureCubeTexture {
      * Shows the dialog to configure the pure cube texture being created.
      * @param editor the editor reference
      */
-    public static async ShowDialog (editor: Editor): Promise<void> {
+    public static async ShowDialog (editor: Editor, plugin: TextureViewer): Promise<void> {
         // Create window
         this.Window = new Window('AddPureCubeTexture');
         this.Window.body = '<div id="ADD-PURE-CUBE-TEXTURE-LAYOUT" style="width: 100%; height: 100%;"></div>';
@@ -80,7 +82,7 @@ export default class AddPureCubeTexture {
         this.Engine.runRenderLoop(() => this.Scene.render());
 
         // Bind events
-        this._BindEvents(editor);
+        this._BindEvents(editor, plugin);
 
         // Update skybox
         this._UpdateSkybox();
@@ -128,7 +130,7 @@ export default class AddPureCubeTexture {
      * Binds all the events
      * @param editor the editor reference
      */
-    private static _BindEvents (editor: Editor): void {
+    private static _BindEvents (editor: Editor, plugin: TextureViewer): void {
         // On close
         this.Window.onClose = () => {
             this.Form.element.destroy();
@@ -160,6 +162,7 @@ export default class AddPureCubeTexture {
             finalTexture.name = await Dialog.CreateWithTextInput('Texture Name?');
 
             editor.core.onAddObject.notifyObservers(finalTexture);
+            plugin.addPureCubeTexturePreviewNode(finalTexture);
 
             // Close
             this.Window.close();

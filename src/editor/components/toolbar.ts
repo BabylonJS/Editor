@@ -1,3 +1,5 @@
+import { FilesInputStore } from 'babylonjs';
+
 import Editor from '../editor';
 import { IEditorPlugin } from '../typings/plugin';
 
@@ -20,6 +22,8 @@ import ProjectImporter from '../project/project-importer';
 import ProjectExporter from '../project/project-exporter';
 import ProjectSettings from '../project/project-settings';
 import CodeProjectEditorFactory from '../project/project-code-editor';
+
+import PhotoshopSocket, { PhotoshopExtensionStatus } from '../extensions/photoshop-socket';
 
 export default class EditorToolbar {
     // Public members
@@ -102,7 +106,7 @@ export default class EditorToolbar {
             },
             { type: 'break' },
             {
-                type: 'menu', id: 'addnm', text: 'Add Non-Mesh', img: 'icon-add', items: [
+                type: 'menu', id: 'addnm', text: 'Add', img: 'icon-add', items: [
                     { id: 'default-environment', img: 'icon-add', text: 'Default Environment' },
 					{ id: 'camera', img: 'icon-camera', text: 'Camera' },
                     { type: 'break' },
@@ -131,6 +135,9 @@ export default class EditorToolbar {
                     { id: 'plane', img: 'icon-mesh', text: 'Plane Mesh' },
                 ]
             },
+            { type: 'break' },
+            { id: 'connect-photoshop', img: 'icon-photoshop-off', text: 'Connect To Photoshop CC...' }
+
             // TODO: wait for parse and serialize for GUI
             // { type: 'break' },
             // {
@@ -364,6 +371,34 @@ export default class EditorToolbar {
                 SceneFactory.AddGuiImage(this.editor);
                 break;
 
+            // Photoshop
+            case 'connect-photoshop':
+                const isChecked = this.main.isChecked('connect-photoshop', true);
+                this.editor.notifyMessage(isChecked ? 'Connecting to Photoshop CC' : 'Disconnecting from Photoshop CC', true);
+
+                PhotoshopSocket.Password = await Dialog.CreateWithTextInput('Generator Password', PhotoshopSocket.Password, true);
+
+                this.main.enable('connect-photoshop', false);
+                const status = (isChecked ? (await PhotoshopSocket.Connect(this.editor)) : (await PhotoshopSocket.Disconnect()));
+                this.main.enable('connect-photoshop', true);
+
+                switch (status) {
+                    case PhotoshopExtensionStatus.OPENED:
+                        this.editor.notifyMessage('Connected to Photoshop CC', false, 2000);
+                        this.main.updateItem('connect-photoshop', { text: 'Disconnect From Photoshop CC', img: 'icon-photoshop-on' });
+                        this.main.setChecked('connect-photoshop', isChecked);
+                        break;
+                    case PhotoshopExtensionStatus.CLOSED:
+                        this.editor.notifyMessage('Disconnected from Photoshop CC', false, 2000);
+                        this.main.updateItem('connect-photoshop', { text: 'Connect To Photoshop CC', img: 'icon-photoshop-off' });
+                        this.main.setChecked('connect-photoshop', isChecked);
+                        break;
+                    case PhotoshopExtensionStatus.ERROR:
+                        this.editor.notifyMessage('Failed to connect to Photoshop CC. Ensure that Photoshop CC is opened.', false, 1000);
+                        break;
+                }
+                break;
+
             default: break;
         }
     }
@@ -380,7 +415,19 @@ export default class EditorToolbar {
                 break;
             case 'test-debug':
                 SceneExporter.CreateFiles(this.editor);
-                Tools.OpenPopup('./preview.html', 'Preview', 1280, 800);
+                Tools.OpenPopup('./preview.html', 'Preview', 1280, 800).addEventListener('beforeunload', (ev) => {
+                    if (ev.srcElement['baseURI'].indexOf('preview.html') === -1)
+                        return;
+                    
+                    if (this.editor.projectFile) {
+                        delete FilesInputStore.FilesToLoad[this.editor.projectFile.name];
+                        this.editor.projectFile = null;
+                    }
+                    if (this.editor.sceneFile) {
+                        delete FilesInputStore.FilesToLoad[this.editor.sceneFile.name];
+                        this.editor.sceneFile = null;
+                    }
+                });
                 break;
             default: break;
         }

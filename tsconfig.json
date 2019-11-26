@@ -9,7 +9,9 @@
     "typeRoots": [
       "node_modules/@types"
     ],
+    "downlevelIteration": true,
     "experimentalDecorators": true,
+    "skipLibCheck": true,
     "types": [
       "es6-promise",
       "w2ui",
@@ -17,6 +19,7 @@
       "socket.io-client",
       "jstree",
       "monaco-editor",
+      "typescript"
     ],
     "lib": [
       "es2015.promise",
@@ -34,6 +37,7 @@
     "electron",
     "electron-packages",
     "vscode-extension",
+    "photoshop-extension",
     "assets"
   ]
 }

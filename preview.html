@@ -39,7 +39,7 @@
         var gotScene = null;
         var captureSpector = null;
 
-        var capturer = new CCapture({ format: 'webm', framerate: 60, display: true });
+        var capturer = new CCapture({ format: 'webm', framerate: 60, display: true, verbose: true });
 
         var tools = null;
         var requests = null;
@@ -48,7 +48,26 @@
         if (!opener && parent !== window) {
             opener = parent;
         }
-        
+
+        // Override console
+        var argumentsToString = function (args) {
+            var arr = [];
+            for (var i = 0; i < args.length; i++) { arr.push(args[i].toString()); }
+            if (arr.length > 1) { arr[0] = '\n\t' + arr[0]; }
+            return arr.join('\n\t');
+        };
+
+        const log = console.log;
+        const info = console.info;
+        const warn = console.warn;
+        const error = console.error;
+
+        console.log = function (m) { log.apply(console, arguments); opener.editor.console.log(argumentsToString(arguments), 0); };
+        console.info = function () { info.apply(console, arguments); opener.editor.console.log(argumentsToString(arguments), 0); };
+        console.warn = function () { warn.apply(console, arguments); opener.editor.console.log(argumentsToString(arguments), 1); };
+        console.error = function () { error.apply(console, arguments); opener.editor.console.log(argumentsToString(arguments), 2); };
+
+        // Configure systemjs
         System.config({
             paths: {
                 "babylonjs": "./node_modules/babylonjs/babylon.max.js",
@@ -82,7 +101,9 @@
 
         // Loads the Babylon.js Scenes
         var loadScene = function (sceneFile) {
-            var engine = new BABYLON.Engine(document.getElementById('renderCanvas'));
+            var engine = new BABYLON.Engine(document.getElementById('renderCanvas'), true, {
+                audioEngine: true
+            });
             window.addEventListener("resize", function () {
                 engine.resize();
             });
@@ -103,7 +124,9 @@
                 if (!sceneFile || !BABYLON.FilesInputStore.FilesToLoad[sceneFile.name.toLowerCase()])
                     return;
                 
+                console.log('Loading scene...');
                 BABYLON.SceneLoader.Load('file:', sceneFile.name, engine, function (scene) {
+                    console.log('Loading extensions...');
                     effectiveScene = scene;
                     
                     System.import('./build/src/extensions/extensions.js').then(function (extensions) {
@@ -114,7 +137,9 @@
                                 extensions.default.ApplyExtensions(scene, JSON.parse(data).customMetadatas);
 
                                 // Run scene
+                                console.log('Finalizing...');
                                 scene.executeWhenReady(function () {
+                                    console.log('Run test!');
                                     scene.activeCamera.attachControl(engine.getRenderingCanvas());
                                     engine.runRenderLoop(function () {
                                         if (renderScene)
@@ -188,6 +213,8 @@
         // Load Babylon.js
         // Get scene file
         // Run sockets
+        console.log('Loading...');
+        
         var promises = [];
         promises.push(System.import("babylonjs"));
         promises.push(System.import("babylonjs-gui"));

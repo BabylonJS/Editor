@@ -16,6 +16,7 @@ export interface IEditionTool<T> {
 
     update (object: T): void;
     clear (): void;
+    resize (width: number, height: number): void;
     isSupported (object: any): boolean;
     onModified? (): void;
 }
@@ -26,15 +27,36 @@ export interface ToolState {
 }
 
 export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
-    // Public members
+    /**
+     * The editor reference. Set by the inspector component.
+     */
     public editor: Editor = null;
 
+    /**
+     * The object being edited.
+     */
     public object: T = null;
+    /**
+     * The dat-gui tool reference.
+     */
     public tool: Edition = null;
 
+    /**
+     * The current state of the dat-gui tool.
+     */
     public state: IStringDictionary<ToolState> = null;
+    /**
+     * The search element used to filter folders/inputs.
+     */
+    public search: HTMLInputElement = null;
 
+    /**
+     * The div id of the tool. Must be provided by the tool.
+     */
     public abstract divId: string;
+    /**
+     * The name of the tab to display. Must be provided by the tool.
+     */
     public abstract tabName: string;
 
     /**
@@ -49,6 +71,21 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
      */
     public update (object: T): void {
         this.object = object;
+
+        // Add search
+        if (this.search)
+            this.search.remove();
+
+        this.search = document.createElement('input');
+        this.search.style.width = '100%';
+        this.search.style.height = '20px';
+        this.search.style.borderRadius = '45px';
+        this.search.style.marginTop = '10px';
+        this.search.style.marginBottom = '10px';
+        this.search.classList.add('editorSearch');
+        this.search.placeholder = 'Search...';
+        $('#' + this.divId).prepend(this.search);
+        this.search.addEventListener('keyup', (ev) => this.tool.filter(this.search.value));
 
         // Reset edition element
         let lastScroll = 0;
@@ -74,6 +111,14 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
      * the scene of the graph
      */
     public clear (): void
+    { }
+
+    /**
+     * Called once the editor has been resized.
+     * @param width the width in pixels of the panel.
+     * @param height the height in pixels of the panel.
+     */
+    public resize (width: number, height: number): void
     { }
 
     /**

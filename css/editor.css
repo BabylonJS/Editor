@@ -109,8 +109,22 @@ html, body {
     -ms-touch-action: none;
 }
 
-/* W2UI */
+/* Search */
+.editorSearch {
+    background-image: url("svg/search.svg");
+    background-repeat: no-repeat;
+    background-position: 0 50%;
+    opacity: 0.3;
+    text-indent: 20px;
+}
 
+.editorSearch:focus {
+    background-image: none;
+    text-indent: 0px;
+    opacity: 1;
+}
+
+/* W2UI */
 #currentNodeNameGraph, #currentNodeNameCode {
     float: left;
 }
@@ -439,8 +453,22 @@ ICONS
     background: url("svg/film.svg");
 }
 
+.w2ui-icon.icon-stop {
+    background: url("svg/stop.svg");
+}
+
 .w2ui-icon.icon-babylon {
     background: url("svg/logo-babylon.svg");
+}
+
+.w2ui-icon.icon-photoshop-off {
+    background: url("svg/photoshop.svg");
+    filter: grayscale(1);
+}
+
+.w2ui-icon.icon-photoshop-on {
+    background: url("svg/photoshop.svg");
+    filter: none;
 }
 
 .w2ui-icon.w2ui-icon-reload::before {

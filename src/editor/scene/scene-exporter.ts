@@ -28,7 +28,11 @@ export default class SceneExporter {
 
         // Serialize
         editor.assets.prefabs.setSerializable(true);
+        if (editor.core.scene.soundTracks && editor.core.scene.soundTracks.length === 0)
+            editor.core.scene.soundTracks.push(editor.core.scene.mainSoundTrack);
         const serializedScene = SceneSerializer.Serialize(editor.core.scene);
+        if (editor.core.scene.soundTracks && editor.core.scene.soundTracks.length === 1)
+            editor.core.scene.soundTracks.pop();
         editor.assets.prefabs.setSerializable(false);
 
         if (editor.playCamera)

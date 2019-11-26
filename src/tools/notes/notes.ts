@@ -1,6 +1,6 @@
 import Editor, { Tools, EditorPlugin } from 'babylonjs-editor';
 
-export default class PlayGame extends EditorPlugin {
+export default class Notes extends EditorPlugin {
     // Public members
     public textArea: HTMLTextAreaElement = null;
 

@@ -1,7 +1,8 @@
-import { Camera, Effect, Tools as BabylonTools } from 'babylonjs';
+import { Camera, Tools as BabylonTools, Observer } from 'babylonjs';
 
 import Editor, {
     Tools,
+    ConsoleLevel,
     Layout, Toolbar,
     Grid, GridRow,
     CodeEditor,
@@ -20,6 +21,7 @@ import '../../extensions/post-process-editor/post-process-editor';
 import AbstractPostProcessEditor from '../../extensions/post-process-editor/post-process';
 
 import Helpers from '../helpers';
+import PostProcessVSCode from './vscode';
 
 export interface PostProcessGrid extends GridRow {
     name: string;
@@ -43,6 +45,9 @@ export default class PostProcessEditor extends EditorPlugin {
     protected data: PostProcessCreatorMetadata = null;
 
     protected activeCamera: Camera = this.editor.playCamera;
+
+    // Private members
+    private _vscodeConnectionObserver: Observer<any> = null;
 
     // Static members
     public static DefaultCode: string = '';
@@ -70,6 +75,10 @@ export default class PostProcessEditor extends EditorPlugin {
         this.code.dispose();
         this.pixel.dispose();
         this.config.dispose();
+
+        // VSCode
+        PostProcessVSCode.OnUpdate = null;
+        VSCodeSocket.OnConnectionObserver.remove(this._vscodeConnectionObserver);
 
         await super.close();
     }
@@ -155,42 +164,20 @@ export default class PostProcessEditor extends EditorPlugin {
         await this.createEditors();
 
         // UI
-        if (!this.data)
-            this.layout.lockPanel('main');
+        if (!this.data || PostProcessEditor.CodeProjectEditor || VSCodeSocket.IsConnected)
+            this.layout.lockPanel('main', VSCodeSocket.IsConnected ? Helpers.VSCodeMessage : '');
         else
             setTimeout(() => this.selectPostProcess(0), 500);
 
-        // Opened in editor?
-        if (PostProcessEditor.CodeProjectEditor)
-            this.layout.lockPanel('main');
-
         // Sockets
-        VSCodeSocket.OnUpdatePostProcessCode = async (d: PostProcessCreatorMetadata) => {
-            // Get effective script modified in the vscode editor
-            const effective = this.datas.find(s => s.id === d.id);
-            const compiledCode = d.code ? await CodeEditor.TranspileTypeScript(d.code, d.name.replace(/ /, ''), {
-                module: 'cjs',
-                target: 'es5',
-                experimentalDecorators: true,
-            }) : null;
-
-            if (!effective) {
-                // Just refresh
-                VSCodeSocket.RefreshPostProcess(this.datas);
-                return;
-            }
-            else {
-                // Just update
-                d.code && (effective.code = d.code);
-                d.pixel && (effective.pixel = d.pixel);
-                d.config && (effective.config = d.config);
-                compiledCode && (effective.compiledCode = compiledCode);
-            }
-
-            if (this.data && this.data.id === d.id) {
+        PostProcessVSCode.OnUpdate = ((d, needsUpdate) => {
+            if (needsUpdate && this.data && this.data.id === d.id) {
                 this.selectPostProcess(this.datas.indexOf(this.data));
             }
-        };
+        });
+        this._vscodeConnectionObserver = VSCodeSocket.OnConnectionObserver.add((connected: boolean) => {
+            connected ? this.layout.lockPanel('main', Helpers.VSCodeMessage) : this.layout.unlockPanel('main');
+        });
     }
 
     /**
@@ -246,7 +233,7 @@ export default class PostProcessEditor extends EditorPlugin {
             this.pixel.setValue('');
             this.config.setValue('');
 
-            this.layout.lockPanel('main');
+            this.layout.lockPanel('main', VSCodeSocket.IsConnected ? Helpers.VSCodeMessage : '');
         }
 
         // Update socket
@@ -291,7 +278,8 @@ export default class PostProcessEditor extends EditorPlugin {
         this.selectPostProcess(this.datas.length - 1);
 
         // UI
-        this.layout.unlockPanel('main');
+        if (!PostProcessEditor.CodeProjectEditor && !VSCodeSocket.IsConnected)
+            this.layout.unlockPanel('main');
 
         // Update socket
         VSCodeSocket.RefreshPostProcess(data);
@@ -339,7 +327,7 @@ export default class PostProcessEditor extends EditorPlugin {
         }
 
         // Update socket
-        VSCodeSocket.RefreshMaterial(this.datas);
+        VSCodeSocket.RefreshPostProcess(this.datas);
     }
 
     /**
@@ -357,8 +345,8 @@ export default class PostProcessEditor extends EditorPlugin {
         Helpers.UpdateMonacoTypings(this.editor, this.data);
 
         // Finish
-        if (PostProcessEditor.CodeProjectEditor)
-            this.layout.lockPanel('main');
+        if (PostProcessEditor.CodeProjectEditor || VSCodeSocket.IsConnected)
+            this.layout.lockPanel('main', VSCodeSocket.IsConnected ? Helpers.VSCodeMessage : '');
     }
 
     /**
@@ -382,13 +370,21 @@ export default class PostProcessEditor extends EditorPlugin {
             $('#' + this.currentTab).show();
         });
 
-        this.code.onChange = (value) => {
+        this.code.onChange = async (value) => {
             if (this.data) {
                 this.data.code = value;
-                this.data.compiledCode = this.code.transpileTypeScript(value, this.data.name.replace(/ /, ''));
+
+                const output = await this.code.transpileTypeScript();
+                this.data.compiledCode = output.compiledCode;
+
+                if (output.errors.length > 0) {
+                    this.editor.console.log(`Transpil. ${this.data.name}` + this.code.formatTranspilationOutputErrors(output.errors), ConsoleLevel.ERROR);
+                } else {
+                    this.editor.console.log('Transpil. success for ' + this.data.name, ConsoleLevel.INFO);
+                }
 
                 VSCodeSocket.RefreshPostProcess(this.data);
-            }  
+            }
         };
 
         this.pixel.onChange = (value) => {
@@ -422,12 +418,12 @@ export default class PostProcessEditor extends EditorPlugin {
             name: 'Code Editor - Post-Processes',
             scripts: this.editor.core.scene.metadata['PostProcessCreator'],
             onOpened: () => {
-                this.layout.lockPanel('main');
+                this.layout.lockPanel('main', VSCodeSocket.IsConnected ? Helpers.VSCodeMessage : '');
             },
             onClose: () => {
                 PostProcessEditor.CodeProjectEditor = null;
 
-                if (this.data)
+                if (this.data && !VSCodeSocket.IsConnected)
                     this.layout.unlockPanel('main');
             }
         });
@@ -461,7 +457,7 @@ export default class PostProcessEditor extends EditorPlugin {
                 });
             });
 
-            if (selected.length > 0 && !PostProcessEditor.CodeProjectEditor) {
+            if (selected.length > 0 && !PostProcessEditor.CodeProjectEditor && !VSCodeSocket.IsConnected) {
                 this.layout.unlockPanel('main');
 
                 this.data = this.datas[this.datas.length - 1];

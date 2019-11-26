@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "outDir": ".build",
+        "declaration": true,
+        "declarationDir": ".declaration",
+        "downlevelIteration": true,
+        "strict": false,
+        "lib": [
+            "es2015.promise",
+            "es2015"
+        ],
+        "sourceMap": true,
+        "rootDir": "./",
+        "types": [
+            "node"
+        ],
+        "skipLibCheck": true
+    },
+    "exclude": [
+        "./node_modules",
+        "../build",
+        "../declaration",
+    ]
+}

@@ -29,7 +29,7 @@ export default class GraphNodeCreator {
     });
     private static _Search: HTMLInputElement = Tools.CreateElement('input', 'GRAPH-CANVAS-NODE-CREATOR-SEARCH', {
         'width': '100%',
-        'height': '25px',
+        'height': '20px',
         'position': 'relative',
         'top': '-40px'
     });
@@ -122,15 +122,22 @@ export default class GraphNodeCreator {
                 if (!ctor)
                     return false;
                 
-                const title = ctor.title || ctor.Title || v;
-                return title.toLowerCase().indexOf(effectiveSearch.toLowerCase()) !== -1;
+                const title = ctor.Title;
+                return title.replace(/ /g, '').toLowerCase().indexOf(effectiveSearch.toLowerCase()) !== -1;
             });
-            visible.length === 0 ? this._Graph.element.hide(s) : this._Graph.element.show(s);
+            if (visible.length === 0) {
+                this._Graph.element.set(s, { group: false });
+                this._Graph.element.hide(s);
+             }
+             else {
+                this._Graph.element.set(s, { group: true });
+                this._Graph.element.show(s);
+             }
+
             visible.forEach(v => toShow.push(s + '/' + v));
         }
 
         toShow.forEach(ts => this._Graph.element.show(ts));
-        this._Graph.element.refresh();
         
        setTimeout(() => {
             this._Graph.element.refresh();
@@ -138,6 +145,7 @@ export default class GraphNodeCreator {
             // Select first
             if (toShow.length > 0) {
                 this._Graph.setSelected(toShow[0]);
+                this._Graph.element.scrollIntoView(toShow[0]);
                 this._Empty.style.visibility = 'hidden';
             }
 
@@ -156,6 +164,7 @@ export default class GraphNodeCreator {
         // Search
         this._Root.appendChild(this._Search);
         this._Search.setAttribute('placeHolder', 'Search...');
+        this._Search.classList.add('editorSearch');
         this._Search.addEventListener('keyup', () => {
             if (this._SearchTimeout)
                 clearTimeout(this._SearchTimeout);
@@ -218,11 +227,10 @@ export default class GraphNodeCreator {
             value.forEach(v => {
                 const id = s + '/' + v;
                 const ctor = LiteGraph.registered_node_types[id];
-                const title = ctor.Title || ctor.title || v;
-                const desc = <string> (ctor.desc || ctor.Desc);
+                const desc = <string> ctor.Desc;
                 const description = desc ? (desc.length > 30 ? desc.substr(0, 30) + '...' : desc) : '';
 
-                this._Graph.add({ id: id, text: title, data: v, img: 'icon-help', count: description });
+                this._Graph.add({ id: id, text: ctor.Title, data: v, img: 'icon-help', count: description });
             });
         }
     }

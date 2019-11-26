@@ -47,7 +47,8 @@ export default class EditorPreview {
             { type: 'button', id: 'post-processes', checked: true, img: 'icon-helpers', text: '' },
             { type: 'break' },
             { type: 'button', id: 'textures', checked: true, img: 'icon-dynamic-texture', text: '' },
-            { type: 'button', id: 'lights', checked: true, img: 'icon-light', text: '' }
+            { type: 'button', id: 'lights', checked: true, img: 'icon-light', text: '' },
+            { type: 'button', id: 'sounds', checked: true, img: 'icon-sound' }
         ];
         this.toolbar.build('PREVIEW-TOOLBAR');
 
@@ -144,12 +145,14 @@ export default class EditorPreview {
             case 'post-processes':
             case 'textures':
             case 'lights':
+            case 'sounds':
                 switch (id) {
                     case 'bounding-boxes': this.editor.core.scene.forceShowBoundingBoxes = !this.editor.core.scene.forceShowBoundingBoxes; break;
                     case 'wireframe': this.editor.core.scene.forceWireframe = !this.editor.core.scene.forceWireframe; break;
                     case 'post-processes': this.editor.core.scene.postProcessesEnabled = !this.editor.core.scene.postProcessesEnabled; break;
                     case 'textures': this.editor.core.scene.texturesEnabled = !this.editor.core.scene.texturesEnabled; break;
                     case 'lights': this.editor.core.scene.lightsEnabled = !this.editor.core.scene.lightsEnabled; break;
+                    case 'sounds': this.editor.core.scene.mainSoundTrack.setVolume(this.toolbar.isChecked(id, true) ? 1 : 0);
                 }
 
                 this.toolbar.setChecked(id, !this.toolbar.isChecked(id));

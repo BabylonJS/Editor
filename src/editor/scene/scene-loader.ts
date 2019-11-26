@@ -17,7 +17,7 @@ import ProjectImporter from '../project/project-importer';
 import GLTFTools from '../tools/gltf-tools';
 import ObjTools from '../tools/obj-tools';
 
-import VSCodeSocket from '../vscode/vscode-socket';
+import VSCodeSocket from '../extensions/vscode-socket';
 
 export default class SceneLoader {
     // Public members
@@ -213,7 +213,13 @@ export default class SceneLoader {
 
             await Promise.all(appendPromises);
 
+            // Gltf or glb?
+            await GLTFTools.ConfigureFromScene(editor);
+            // Obj?
+            ObjTools.ConfigureFromScene(editor);
+
             // Save original values
+            editor.layout.lockPanel('main', 'Configuring...', true);
             SceneManager.SaveOriginalObjects(editor.core.scene);
 
             // Load project
@@ -227,7 +233,12 @@ export default class SceneLoader {
 
                 try {
                     // Apply project
-                    await ProjectImporter.Import(editor, this._CurrentProject);
+                    const importSuccess = await ProjectImporter.Import(editor, this._CurrentProject);
+                    if (importSuccess.length > 0) {
+                        Window.CreateAlert('Failed to load project: ' + importSuccess.join('\n'), 'Error');
+                        ProjectExporter.ProjectPath = null;
+                        return editor.createDefaultScene(true, true);
+                    }
 
                     // Removed objects
                     SceneManager.ApplyRemovedObjects(scene, this._CurrentProject.removedObjects);
@@ -244,10 +255,9 @@ export default class SceneLoader {
                 scene.createDefaultCameraOrLight(false, false, false);
         }
 
-        // Gltf or glb?
-        await GLTFTools.ConfigureFromScene(editor, sceneFile);
-        // Obj?
-        ObjTools.ConfigureFromScene(editor, sceneFile);
+        // Soundtrack
+        if (scene.soundTracks && scene.soundTracks.length === 0)
+            scene.soundTracks.push(scene.mainSoundTrack);
 
         // Physics
         if (scene.getPhysicsEngine())
@@ -280,8 +290,7 @@ export default class SceneLoader {
         editor.core.onSelectObject.notifyObservers(editor.core.scene);
 
         // Refresh vscode
-        // TODO: uncomment this line
-        // VSCodeSocket.Refresh();
+        VSCodeSocket.Refresh();
 
         // Clear
         editor.filesInput['_sceneFileToLoad'] = null;

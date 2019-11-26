@@ -6,6 +6,8 @@ import UndoRedo from './editor/tools/undo-redo';
 import ThemeSwitcher, { ThemeType } from './editor/tools/theme';
 import GraphicsTools from './editor/tools/graphics-tools';
 
+import { ConsoleLevel } from './editor/components/console';
+
 import Layout from './editor/gui/layout';
 import Toolbar from './editor/gui/toolbar';
 import List from './editor/gui/list';
@@ -13,7 +15,7 @@ import Grid, { GridRow } from './editor/gui/grid';
 import Picker from './editor/gui/picker';
 import Graph, { GraphNode } from './editor/gui/graph';
 import Window from './editor/gui/window';
-import CodeEditor from './editor/gui/code';
+import CodeEditor, { TranspilationOutput } from './editor/gui/code';
 import Form from './editor/gui/form';
 import Edition from './editor/gui/edition';
 import Tree, { TreeContextMenuItem, TreeNode } from './editor/gui/tree';
@@ -21,7 +23,7 @@ import Dialog from './editor/gui/dialog';
 import ContextMenu, { ContextMenuItem } from './editor/gui/context-menu';
 import ResizableLayout, { ComponentConfig, ItemConfigType } from './editor/gui/resizable-layout';
 
-import AbstractEditionTool from './editor/edition-tools/edition-tool';
+import AbstractEditionTool, { IEditionTool } from './editor/edition-tools/edition-tool';
 
 import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
 import { EditorPlugin } from './editor/typings/plugin';
@@ -41,7 +43,7 @@ import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from './editor/pa
 
 import Storage from './editor/storage/storage';
 
-import VSCodeSocket from './editor/vscode/vscode-socket';
+import VSCodeSocket from './editor/extensions/vscode-socket';
 
 export default Editor;
 export {
@@ -52,6 +54,8 @@ export {
     UndoRedo,
     ThemeSwitcher, ThemeType,
     GraphicsTools,
+
+    ConsoleLevel,
 
     IStringDictionary,
     INumberDictionary,
@@ -66,7 +70,7 @@ export {
     Picker,
     Graph, GraphNode,
     Window,
-    CodeEditor,
+    CodeEditor, TranspilationOutput,
     Form,
     Edition,
     Tree, TreeContextMenuItem, TreeNode,
@@ -74,7 +78,7 @@ export {
     ContextMenu, ContextMenuItem,
     ResizableLayout, ComponentConfig, ItemConfigType,
 
-    AbstractEditionTool,
+    AbstractEditionTool, IEditionTool,
 
     ProjectRoot,
     CodeProjectEditorFactory,

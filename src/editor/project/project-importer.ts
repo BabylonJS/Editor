@@ -8,6 +8,7 @@ import {
 import Editor from '../editor';
 
 import ProjectSettings from './project-settings';
+import ProjectHelpers from './project-helpers';
 
 import Tools from '../tools/tools';
 import Request from '../tools/request';
@@ -25,8 +26,9 @@ export default class ProjectImporter {
      * @param editor: the editor reference
      * @param project: the editor project
      */
-    public static async Import (editor: Editor, project: ProjectRoot): Promise<void> {
+    public static async Import (editor: Editor, project: ProjectRoot): Promise<string[]> {
         const scene = editor.core.scene;
+        const errors: string[] = [];
         
         // Clean project (compatibility)
         this.CleanProject(project);
@@ -41,8 +43,14 @@ export default class ProjectImporter {
         if (project.globalConfiguration.environmentTexture)
             scene.environmentTexture = Texture.Parse(project.globalConfiguration.environmentTexture, scene, 'file:');
 
-        if (project.globalConfiguration.imageProcessingConfiguration)
-            SerializationHelper.Parse(() => scene.imageProcessingConfiguration, project.globalConfiguration.imageProcessingConfiguration, scene, 'file:');
+        if (project.globalConfiguration.imageProcessingConfiguration) {
+            try {
+                SerializationHelper.Parse(() => scene.imageProcessingConfiguration, project.globalConfiguration.imageProcessingConfiguration, scene, 'file:');
+            } catch (e) {
+                errors.push(`Failed to parse image processing configuration: ${e.message}`);
+                return errors;
+            }
+        }
 
         if (project.globalConfiguration.ambientColor)
             scene.ambientColor = Color3.FromArray(project.globalConfiguration.ambientColor);
@@ -61,6 +69,7 @@ export default class ProjectImporter {
 
         ProjectSettings.ProjectExportFormat = project.globalConfiguration.projectFormat || 'babylon';
         ProjectSettings.ExportEulerAngles = project.globalConfiguration.exportEulerAngles || false;
+        ProjectSettings.ExportWithES6Support = project.globalConfiguration.exportWithES6Support || false;
 
         // Physics
         if (!scene.isPhysicsEnabled())
@@ -78,84 +87,104 @@ export default class ProjectImporter {
             else if (n.serializationObject) {
                 switch (n.type) {
                     case 'Light':
-                        const existingLight = scene.getLightByID(n.serializationObject.id);
-                        if (existingLight) {
-                            delete n.serializationObject.metadata;
-                            node = SerializationHelper.Parse(() => existingLight, n.serializationObject, scene, 'file:');
-                            Tags.AddTagsTo(node, 'modified');
-                        }
-                        else if (n.added === undefined || n.added) {
-                            node = Light.Parse(n.serializationObject, scene);
-                            Tags.AddTagsTo(node, 'added');
-                        }
-                        break;
-                    case 'InstancedMesh':
-                        const existing = scene.getMeshByID(n.serializationObject.id);
-                        if (existing) {
-                            node = SerializationHelper.Parse(() => existing, n.serializationObject, scene, 'file:');
-                            Tags.AddTagsTo(existing, 'modified');
-                        }
-                        else if (n.added === undefined || n.added) {
-                            const source = <Mesh> scene.getMeshByID(n.serializationObject.sourceMesh);
-                            if (!source)
-                                break;
-                            
-                            node = source.createInstance(n.serializationObject.name);
-                            SerializationHelper.Parse(() => node, n.serializationObject, scene, 'file:');
-                            Tags.AddTagsTo(node, 'added');
-                        }
-                        break;
-                    case 'Mesh':
-                        // Geometries
-                        if (n.serializationObject.geometries) {
-                            n.serializationObject.geometries.vertexData.forEach(v => {
-                                Geometry.Parse(v, scene, 'file:');
-                            });
-                        }
-                        // Skeleton
-                        if (n.skeleton) {
-                            const existing = scene.getSkeletonById(n.skeleton.serializationObject.id);
-                            if (existing) {
-                                Tools.Assign(existing, n.skeleton.serializationObject);
-                                Tags.AddTagsTo(existing, 'modified');
-                            }
-                        }
-
-                        // Mesh
-                        n.serializationObject.meshes.forEach(m => {
-                            const existingMesh = scene.getMeshByID(m.id);
-                            if (existingMesh) {
-                                delete m.metadata;
-                                node = SerializationHelper.Parse(() => existingMesh, m, scene, 'file:');
+                        try {
+                            const existingLight = scene.getLightByID(n.serializationObject.id);
+                            if (existingLight) {
+                                delete n.serializationObject.metadata;
+                                node = SerializationHelper.Parse(() => existingLight, n.serializationObject, scene, 'file:');
                                 Tags.AddTagsTo(node, 'modified');
                             }
                             else if (n.added === undefined || n.added) {
-                                node = Mesh.Parse(m, scene, 'file:');
+                                node = Light.Parse(n.serializationObject, scene);
                                 Tags.AddTagsTo(node, 'added');
                             }
+                        } catch (e) {
+                            errors.push(`Failed to parse light ${n.name}: ${e.message}`);
+                            return errors;
+                        }
+                        break;
+                    case 'InstancedMesh':
+                        try {
+                            const existing = scene.getMeshByID(n.serializationObject.id);
+                            if (existing) {
+                                node = SerializationHelper.Parse(() => existing, n.serializationObject, scene, 'file:');
+                                Tags.AddTagsTo(existing, 'modified');
+                            }
+                            else if (n.added === undefined || n.added) {
+                                const source = <Mesh> scene.getMeshByID(n.serializationObject.sourceMesh);
+                                if (!source)
+                                    break;
+                                
+                                node = source.createInstance(n.serializationObject.name);
+                                SerializationHelper.Parse(() => node, n.serializationObject, scene, 'file:');
+                                Tags.AddTagsTo(node, 'added');
+                            }
+                        } catch (e) {
+                            errors.push(`Failed to parse instanced mesh ${n.name}: ${e.message}`);
+                            return errors;
+                        }
+                        break;
+                    case 'Mesh':
+                        try {
+                            // Geometries
+                            if (n.serializationObject.geometries) {
+                                n.serializationObject.geometries.vertexData.forEach(v => {
+                                    Geometry.Parse(v, scene, 'file:');
+                                });
+                            }
+                            // Skeleton
+                            if (n.skeleton) {
+                                const existing = scene.getSkeletonById(n.skeleton.serializationObject.id);
+                                if (existing) {
+                                    Tools.Assign(existing, n.skeleton.serializationObject);
+                                    Tags.AddTagsTo(existing, 'modified');
+                                }
+                            }
 
-                            // Parent id
-                            if (m.parentId)
-                                node['_waitingParentId'] = m.parentId;
-                        });
+                            // Mesh
+                            n.serializationObject.meshes.forEach(m => {
+                                const existingMesh = scene.getMeshByID(m.id);
+                                if (existingMesh) {
+                                    delete m.metadata;
+                                    node = SerializationHelper.Parse(() => existingMesh, m, scene, 'file:');
+                                    Tags.AddTagsTo(node, 'modified');
+                                }
+                                else if (n.added === undefined || n.added) {
+                                    node = Mesh.Parse(m, scene, 'file:');
+                                    Tags.AddTagsTo(node, 'added');
+                                }
+
+                                // Parent id
+                                if (m.parentId)
+                                    node['_waitingParentId'] = m.parentId;
+                            });
+                        } catch (e) {
+                            errors.push(`Failed to parse mesh ${n.name}: ${e.message}`);
+                            return errors;
+                        }
                         break;
                     case 'Camera':
-                        const existingCamera = scene.getCameraByID(n.serializationObject.id);
-                        if (existingCamera) {
-                            delete n.serializationObject.metadata;
-                            node = SerializationHelper.Parse(() => existingCamera, n.serializationObject, scene, 'file:');
-                            Tags.AddTagsTo(node, 'modified');
-                        }
-                        else if (n.added === undefined || n.added) {
-                            node = Camera.Parse(n.serializationObject, scene);
-                            Tags.AddTagsTo(node, 'added');
+                        try {
+                            const existingCamera = scene.getCameraByID(n.serializationObject.id);
+                            if (existingCamera) {
+                                delete n.serializationObject.metadata;
+                                node = SerializationHelper.Parse(() => existingCamera, n.serializationObject, scene, 'file:');
+                                Tags.AddTagsTo(node, 'modified');
+                            }
+                            else if (n.added === undefined || n.added) {
+                                node = Camera.Parse(n.serializationObject, scene);
+                                Tags.AddTagsTo(node, 'added');
+                            }
+                        } catch (e) {
+                            errors.push(`Failed to parse camera ${n.name}: ${e.message}`);
+                            return errors;
                         }
                         break;
                     default: throw new Error('Cannot parse node named: ' + n.name);
                 }
             }
             else {
-                node = scene.getNodeByName(n.name);
+                node = scene.getNodeByID(n.id);
             }
 
             // Check particle systems
@@ -174,11 +203,12 @@ export default class ProjectImporter {
                 return;
 
             // Parent id
-            if (n.serializationObject.parentId)
+            if (n.serializationObject && n.serializationObject.parentId)
                 node['_waitingParentId'] = n.serializationObject.parentId;
 
             // Node animations
             if (n.animations) {
+                node.animations = node.animations || [];
                 n.animations.forEach(a => {
                     const anim = Animation.Parse(a.serializationObject);
                     Tags.AddTagsTo(anim, 'added');
@@ -206,103 +236,144 @@ export default class ProjectImporter {
             }
         });
 
+        // Assets
+        editor.assets.clear();
+
+        for (const a in project.assets) {
+            const component = editor.assets.components.find(c => c.id === a);
+            if (!component)
+                continue;
+
+            try {
+                component.onParseAssets && component.onParseAssets(project.assets[a]);
+            } catch (e) {
+                errors.push(`Failed to parse assets ${component.id}: ${e.message}`);
+                return errors;
+            }
+        }
+
         // Particle systems
         project.particleSystems.forEach(ps => {
-            const system = ParticleSystem.Parse(ps.serializationObject, scene, 'file:');
+            try {
+                const system = ParticleSystem.Parse(ps.serializationObject, scene, 'file:');
 
-            if (ps.hasEmitter)
-                system.emitter = <any> scene.getNodeByID(ps.serializationObject.emitterId);
+                if (ps.hasEmitter)
+                    system.emitter = <any> scene.getNodeByID(ps.serializationObject.emitterId);
 
-            if (!ps.hasEmitter && system.emitter && ps.emitterPosition)
-                (<AbstractMesh> system.emitter).position = Vector3.FromArray(ps.emitterPosition);
+                if (!ps.hasEmitter && system.emitter && ps.emitterPosition)
+                    (<AbstractMesh> system.emitter).position = Vector3.FromArray(ps.emitterPosition);
 
-            // Legacy
-            if (ps.serializationObject.base64Texture) {
-                system.particleTexture = Texture.CreateFromBase64String(ps.serializationObject.base64Texture, ps.serializationObject.base64TextureName, scene);
-                system.particleTexture.name = system.particleTexture.name.replace('data:', '');
+                // Legacy
+                if (ps.serializationObject.base64Texture) {
+                    system.particleTexture = Texture.CreateFromBase64String(ps.serializationObject.base64Texture, ps.serializationObject.base64TextureName, scene);
+                    system.particleTexture.name = system.particleTexture.name.replace('data:', '');
+                }
+
+                // Add tags to particles system
+                Tags.AddTagsTo(system, 'added');
+            } catch (e) {
+                errors.push(`Failed to parse particle system: ${e.message}`);
+                return errors;
             }
-
-            // Add tags to particles system
-            Tags.AddTagsTo(system, 'added');
         });
 
         // Materials
         project.materials.forEach(m => {
-            const existing = scene.getMaterialByID(m.serializedValues.id);
-            const material = existing ? SerializationHelper.Parse(() => existing, m.serializedValues, scene, 'file:') : Material.Parse(m.serializedValues, scene, 'file:');
+            try {
+                const existing = scene.getMaterialByID(m.serializedValues.id);
+                const material = existing ? ProjectHelpers.ParseExistingMaterial(existing, m.serializedValues, scene, 'file:') : Material.Parse(m.serializedValues, scene, 'file:');
 
-            m.meshesNames.forEach(mn => {
-                const mesh = scene.getMeshByName(mn);
-                if (mesh && !(mesh instanceof InstancedMesh))
-                    mesh.material = material;
-            });
+                m.meshesNames.forEach(mn => {
+                    const mesh = scene.getMeshByName(mn);
+                    if (mesh && !(mesh instanceof InstancedMesh))
+                        mesh.material = material;
+                });
 
-            // Material has been added
-            Tags.AddTagsTo(material, existing ? 'modified' : 'added');
+                // Material has been added
+                Tags.AddTagsTo(material, existing ? 'modified' : 'added');
+            } catch (e) {
+                errors.push(`Failed to parse material: ${e.message}`);
+                return errors;
+            }
         });
 
         // Textures
         project.textures.forEach(t => {
-            // In case of a clone
-            if (t.newInstance) {
-                // Already created by materials?
-                const existing = Tools.GetTextureByUniqueId(scene, t.serializedValues.uniqueId);
-                if (existing) {
-                    // Url
-                    if (t.serializedValues.url)
-                        existing['url'] = t.serializedValues.url;
+            try {
+                // In case of a clone
+                if (t.newInstance) {
+                    // Already created by materials?
+                    const existing = Tools.GetTextureFromSerializedValues(scene, t.serializedValues);
+                    if (existing) {
+                        // Url
+                        if (t.serializedValues.url)
+                            existing['url'] = t.serializedValues.url;
+                        
+                        return;
+                    }
                     
-                    return;
+                    const texture = Texture.Parse(t.serializedValues, scene, 'file:');
+                    Tags.AddTagsTo(texture, 'added');
                 }
-                
-                const texture = Texture.Parse(t.serializedValues, scene, 'file:');
-                Tags.AddTagsTo(texture, 'added');
+
+                const existing = Tools.GetTextureFromSerializedValues(scene, t.serializedValues);
+                const texture = existing ? SerializationHelper.Parse(() => existing, t.serializedValues, scene, 'file:') : Texture.Parse(t.serializedValues, scene, 'file:');
+
+                Tags.AddTagsTo(texture, existing ? 'modified' : 'added');
+
+                // Url
+                if (t.serializedValues.url)
+                    texture['url'] = t.serializedValues.url;
+            } catch (e) {
+                errors.push(`Failed to parse texture: ${e.message}`);
+                return errors;
             }
-
-            const existing = Tools.GetTextureByUniqueId(scene, t.serializedValues.uniqueId);
-            const texture = existing ? SerializationHelper.Parse(() => existing, t.serializedValues, scene, 'file:') : Texture.Parse(t.serializedValues, scene, 'file:');
-
-            Tags.AddTagsTo(texture, existing ? 'modified' : 'added');
-
-            // Url
-            if (t.serializedValues.url)
-                texture['url'] = t.serializedValues.url;
         });
 
         // Shadow Generators
         project.shadowGenerators.forEach(sg => {
-            const generator = ShadowGenerator.Parse(sg, scene);
+            try {
+                const generator = ShadowGenerator.Parse(sg, scene);
 
-            Tags.EnableFor(generator);
-            Tags.AddTagsTo(generator, 'added');
+                Tags.EnableFor(generator);
+                Tags.AddTagsTo(generator, 'added');
+            } catch (e) {
+                errors.push(`Failed to parse shadow generator: ${e.message}`);
+                return errors;
+            }
         });
 
         // Sounds
         project.sounds.forEach(s => {
-            const existing = scene.getSoundByName(s.serializationObject.name);
-            if (existing) {
-                // Common
-                s.serializationObject.loop !== undefined && (existing.loop = s.serializationObject.loop);
-                s.serializationObject.volume !== undefined && existing.setVolume(s.serializationObject.volume);
-                s.serializationObject.rolloffFactor !== undefined && (existing.rolloffFactor = s.serializationObject.rolloffFactor);
-                s.serializationObject.playbackRate !== undefined && existing.setPlaybackRate(s.serializationObject.playbackRate);
+            try {
+                const existing = scene.getSoundByName(s.serializationObject.name);
+                if (existing) {
+                    // Common
+                    s.serializationObject.loop !== undefined && (existing.loop = s.serializationObject.loop);
+                    s.serializationObject.volume !== undefined && existing.setVolume(s.serializationObject.volume);
+                    s.serializationObject.rolloffFactor !== undefined && (existing.rolloffFactor = s.serializationObject.rolloffFactor);
+                    s.serializationObject.playbackRate !== undefined && existing.setPlaybackRate(s.serializationObject.playbackRate);
 
-                // Spatial
-                if (!s.serializationObject.connectedMeshId) {
-                    existing.detachFromMesh();
-                    existing.setPosition(Vector3.Zero());
-                } else {
-                    const mesh = editor.core.scene.getMeshByID(s.serializationObject.connectedMeshId);
-                    if (mesh) {
-                        existing.attachToMesh(mesh);
-                        s.serializationObject.position !== undefined && existing.setPosition(Vector3.FromArray(s.serializationObject.position));
+                    // Spatial
+                    if (!s.serializationObject.connectedMeshId) {
+                        existing.detachFromMesh();
+                        existing.setPosition(Vector3.Zero());
+                    } else {
+                        const mesh = editor.core.scene.getMeshByID(s.serializationObject.connectedMeshId);
+                        if (mesh) {
+                            existing.attachToMesh(mesh);
+                            s.serializationObject.position !== undefined && existing.setPosition(Vector3.FromArray(s.serializationObject.position));
+                        }
                     }
-                }
 
-                Tags.AddTagsTo(existing, 'modified');
-            } else {
-                const sound = Sound.Parse(s.serializationObject, scene, 'file:');
-                Tags.AddTagsTo(sound, 'added');
+                    Tags.AddTagsTo(existing, 'modified');
+                } else {
+                    const sound = Sound.Parse(s.serializationObject, scene, 'file:');
+                    Tags.AddTagsTo(sound, 'added');
+                }
+            } catch (e) {
+                errors.push(`Failed to parse sound ${s.name}: ${e.message}`);
+                return errors;
             }
         });
 
@@ -313,17 +384,27 @@ export default class ProjectImporter {
         }
 
         // Effect Layers
-        project.effectLayers.forEach(el => SceneManager[el.name] = EffectLayer.Parse(el.serializationObject, scene, 'file:'));
+        try {
+            project.effectLayers.forEach(el => SceneManager[el.name] = EffectLayer.Parse(el.serializationObject, scene, 'file:'));
+        } catch (e) {
+            errors.push(`Failed to parse effect layer: ${e.message}`);
+            return errors;
+        }
 
         // Render targets
         project.renderTargets.forEach(rt => {
-            if (rt.isProbe) {
-                const probe = ReflectionProbe.Parse(rt.serializationObject, scene, 'file:');
-                Tags.AddTagsTo(probe, 'added');
-            }
-            else {
-                const texture = <RenderTargetTexture> Texture.Parse(rt.serializationObject, scene, 'file:');
-                scene.customRenderTargets.push(texture);
+            try {
+                if (rt.isProbe) {
+                    const probe = ReflectionProbe.Parse(rt.serializationObject, scene, 'file:');
+                    Tags.AddTagsTo(probe, 'added');
+                }
+                else {
+                    const texture = <RenderTargetTexture> Texture.Parse(rt.serializationObject, scene, 'file:');
+                    scene.customRenderTargets.push(texture);
+                }
+            } catch (e) {
+                errors.push(`Failed to parse render target: ${e.message}`);
+                return errors;
             }
         });
 
@@ -336,28 +417,22 @@ export default class ProjectImporter {
             });
         }
 
-        // Assets
-        editor.assets.clear();
-
-        for (const a in project.assets) {
-            const component = editor.assets.components.find(c => c.id === a);
-            if (!component)
-                continue;
-
-            component.onParseAssets && component.onParseAssets(project.assets[a]);
-        }
-
         // Metadatas
         Extensions.ClearExtensions();
 
         for (const m in project.customMetadatas) {
-            const extension = Extensions.RequestExtension(scene, m);
+            try {
+                const extension = Extensions.RequestExtension(scene, m);
 
-            if (extension) {
-                extension.onLoad(project.customMetadatas[m]);
+                if (extension) {
+                    extension.onLoad(project.customMetadatas[m]);
 
-                if (extension.onGetAssets)
-                    editor.assets.addTab(extension);
+                    if (extension.onGetAssets)
+                        editor.assets.addTab(extension);
+                }
+            } catch (e) {
+                errors.push(`Failed to load extension ${m}: ${e.message}`);
+                return errors;
             }
         }
 
@@ -399,6 +474,11 @@ export default class ProjectImporter {
                 c._waitingParentId = undefined;
             }
         });
+
+        // Apply project settings
+        ProjectSettings.ApplySettings(editor);
+
+        return errors;
     }
 
     /**

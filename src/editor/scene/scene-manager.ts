@@ -5,7 +5,7 @@ import {
     SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable,
     ParticleSystem, GlowLayer, HighlightLayer, Animatable, EnvironmentHelper,
     SceneSerializer, InstancedMesh, Node, Sound, Mesh, SerializationHelper,
-    AbstractMesh, MultiMaterial, DynamicTexture
+    AbstractMesh, MultiMaterial, DynamicTexture, Texture
 } from 'babylonjs';
 import * as BABYLON from 'babylonjs';
 
@@ -85,19 +85,29 @@ export default class SceneManager {
         const set = (orig, obj) => {
             orig.metadata = orig.metadata || { };
             orig.metadata.original = obj;
-        };
-        scene.meshes.forEach(m => { 
-            // Instance?
-            if (m instanceof InstancedMesh)
-                return set(m, m.serialize());
 
-            // Mesh
-            const s = SceneSerializer.SerializeMesh(m, false, false);
-            delete s.geometries;
-            delete s.materials;
-            delete s.skeletons;
-            delete s.multiMaterials;
-            set(m, s.meshes[0]);
+            if (orig.metadata && orig.metadata.original)
+                delete orig.metadata.original.metadata;
+        };
+
+        Texture.SerializeBuffers = false;
+        scene.meshes.forEach(m => { 
+            try {
+                // Instance?
+                if (m instanceof InstancedMesh)
+                    return set(m, m.serialize());
+
+                // Mesh
+                const s = SceneSerializer.SerializeMesh(m, false, false);
+                delete s.geometries;
+                delete s.materials;
+                delete s.skeletons;
+                delete s.multiMaterials;
+                if (s.meshes)
+                    s.meshes.forEach(m2 => set(m, m2));
+            } catch (e) {
+                console.error("Failed to serialize mesh: " + m.name);
+            }
         });
         scene.skeletons.forEach(s => set(s, s.serialize()));
         scene.materials.forEach(m => set(m, m.serialize()));
@@ -108,6 +118,7 @@ export default class SceneManager {
         scene.soundTracks && scene.soundTracks.forEach(st => {
             st.soundCollection.forEach(s => set(s, s.serialize()));
         });
+        Texture.SerializeBuffers = true;
     }
 
     /**

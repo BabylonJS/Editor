@@ -10,19 +10,19 @@ import Editor, {
     Layout, Toolbar, Grid, GridRow,
     Dialog, EditorPlugin, Tools,
     Picker, ProjectRoot,
-    ContextMenu,
-    VSCodeSocket
+    ContextMenu
 } from 'babylonjs-editor';
 
-import GraphNodeTool from './graph-tool';
+import GraphTool from './graph-tool';
+import GraphNodeTool from './graph-node-tool';
 import GraphNodeCreator from './graph-node-creator';
 
 import Extensions from '../../extensions/extensions';
 import GraphExtension, { GraphNodeMetadata, NodeGraph, GraphData, BehaviorGraphMetadata } from '../../extensions/behavior/graph';
 
 import '../../extensions/behavior/graph';
-import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
-import { RenderStart, RenderLoop } from '../../extensions/behavior/graph-nodes/render/engine';
+import { IGraphNode } from '../../extensions/behavior/nodes/types';
+import { GraphNode } from '../../extensions/behavior/nodes/graph-node';
 
 export interface GraphGrid extends GridRow {
     name: string;
@@ -51,6 +51,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
     // Private members
     private _savedState: any = { };
+    private _variablesValues: any[] = [];
     private _mouseMoveEvent: (ev: MouseEvent) => void = null;
 
     // Static members
@@ -61,6 +62,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      */
     public static OnLoaded (editor: Editor): void {
         editor.inspector.addTool(new GraphNodeTool());
+        editor.inspector.addTool(new GraphTool());
         GraphNodeCreator.Init();
     }
 
@@ -122,6 +124,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.right = 'No object selected';
+        this.toolbar.helpUrl = 'https://doc.babylonjs.com/resources/using_grapheditor';
         this.toolbar.build('GRAPH-EDITOR-TOOLBAR');
 
         // Add grid
@@ -150,11 +153,18 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.graphData = new LGraph();
         this.graphData.onStopEvent = () => {
-            this.graphData._nodes.forEach(n => n instanceof RenderStart && (n.started = false));
+            this.graphData._nodes.forEach(n => {
+                n.description && n.description.onStop && n.description.onStop(
+                    n,
+                    this.graphData.scriptObject,
+                    this.graphData.scriptScene
+                );
+                n.store = { };
+            });
         };
-        this.graphData.onNodeAdded = (node: LiteGraphNode) => {
+        this.graphData.onNodeAdded = (node: GraphNode) => {
             node.shape = 'round';
-            LiteGraphNode.SetColor(node);
+            // LiteGraphNode.SetColor(node); TOOD.
         };
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
@@ -164,7 +174,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 return;
  
             this.data.graph = JSON.parse(JSON.stringify(this.graphData.serialize()));
-            VSCodeSocket.RefreshBehaviorGraph(this.data);
+            this.data.variables = this.graphData.variables;
         });
         this.graph.canvas.addEventListener('click', () => {
             const canvasPos = this.graph.convertEventToCanvas(event);
@@ -173,17 +183,14 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 return;
             
             const group = this.graphData.getGroupOnPos(canvasPos[0], canvasPos[1]);
-            if (!group)
-                return;
-
-            this.editor.inspector.setObject(group);
+            return this.editor.inspector.setObject(group || this.graph);
         });
         
         this.graph.render_canvas_border = false;
         this.graph.render_execution_order = true;
         this.graph.onNodeSelected = (node) => this.editor.inspector.setObject(node);
         this.graph.showSearchBox = () => { };
-        this.graph.processContextMenu = ((node, event) => {
+        this.graph.processContextMenu = ((node: GraphNode, event) => {
             // Add.
             if (!node) {
                 // Group?
@@ -200,13 +207,18 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 }
                 
                 GraphNodeCreator.OnConfirmSelection = (id) => {
-                    const node = <LiteGraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
+                    const node = <GraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
                     if (!node)
                         return;
                     
                     node.pos = this.graph.convertEventToCanvas(event);
                     if (node.size[0] < 100)
                         node.size[0] = 100;
+                    if (node.widgets)
+                        node.size[1] += 25 * node.widgets.length;
+                    
+                    node.color = '#555';
+                    node.bgColor = '#AAA';
         
                     this.graphData.add(node);
                     GraphNodeCreator.Hide();
@@ -218,10 +230,16 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             // Node
             ContextMenu.Show(event, {
                 clone: { name: 'Clone', callback: () => {
-                    const clone = <LiteGraphNode> LiteGraph.createNode(node.type);
+                    const clone = <GraphNode> LiteGraph.createNode(node.type);
                     clone.pos = [node.pos[0] + 10, node.pos[1] + 10];
+                    clone.properties = Tools.Clone(node.properties);
+                    clone.color = '#555';
+                    clone.bgColor = '#AAA';
+                    if (clone.widgets) {
+                        clone.size[1] += 25 * node.widgets.length;
+                        clone.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(node, w));
+                    }
 
-                    Object.assign(clone.properties, node.properties);
                     this.graphData.add(clone);
                 } },
                 remove: { name: 'Remove', callback: () => {
@@ -253,37 +271,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Request extension
         this.extension = Extensions.RequestExtension(this.editor.core.scene, 'BehaviorGraphExtension');
         this.editor.assets.addTab(this.extension);
-
-        // Sockets
-        VSCodeSocket.OnUpdateBehaviorGraph = async (d: GraphData) => {
-            const graphs = <GraphData[]> this.editor.core.scene.metadata.behaviorGraphs;
-            const effective = graphs.find(g => g.id === d.id);
-
-            if (!effective) {
-                // Just refresh
-                VSCodeSocket.RefreshBehaviorGraph(graphs);
-                return;
-            }
-            else {
-                // Just update
-                effective.graph = d.graph;
-            }
-
-            if (this.data && this.data.id === d.id) {
-                const scale = this.graph.scale;
-                const offset = this.graph.offset.slice();
-
-                LiteGraphNode.Loaded = false;
-                this.graphData.configure(this.data.graph);
-                LiteGraphNode.Loaded = true;
-
-                this.graph.offset = offset;
-                this.graph.scale = scale;
-
-                this.graph.dirty_canvas = true;
-                this.graph.dirty_bgcanvas = true;
-            }
-        };
     }
 
     /**
@@ -501,9 +488,16 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.graphData.clear();
 
-        LiteGraphNode.Loaded = false;
+        IGraphNode.Loaded = false;
         this.graphData.configure(JSON.parse(JSON.stringify(this.data.graph)));
-        LiteGraphNode.Loaded = true;
+        this.graphData.variables = this.data.variables || [];
+        this.graphData._nodes.forEach(n => {
+            if (!n.widgets)
+                return;
+
+            n.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(n, w));
+        });
+        IGraphNode.Loaded = true;
 
         // Refresh right text
         this._updateToolbarText();
@@ -522,7 +516,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         const data: GraphData = {
             name: name,
             id: BabylonTools.RandomId(),
-            graph: JSON.parse(JSON.stringify(new LGraph().serialize()))
+            graph: JSON.parse(JSON.stringify(new LGraph().serialize())),
+            variables: []
         };
 
         this.editor.core.scene.metadata.behaviorGraphs.push(data);
@@ -619,10 +614,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
                 for (const obj in this._savedState)
                     this.node[obj] = this._savedState[obj];
+
+                this._variablesValues.forEach((v, index) => this.graphData.variables[index].value = v);
             }
 
             // Clear
             this._savedState = { };
+            this._variablesValues = [];
             this.graphData.stop();
 
             this.toolbar.updateItem('play-stop', {
@@ -640,6 +638,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.node.rotationQuaternion && (this._savedState.rotationQuaternion = this.node.rotationQuaternion.clone());
             // this.node.material && (this.node.material = this.node.material.clone(this.node.material.name)) && (this._savedState.material = this.node.material);
             this.node.material && (this._savedState.material = this.node.material.serialize());
+            this._savedState.parent = this.node.parent;
 
             const keys = Object.keys(this.node);
             keys.forEach(k => {
@@ -670,14 +669,18 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 }
             });
 
-            // Start
-            const nodes = <LiteGraphNode[]> this.graphData._nodes;
-            nodes.forEach(n => {
-                if (n instanceof RenderStart)
-                    return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+            // Variables
+            this.graphData.variables.forEach(v => this._variablesValues.push(v.value));
 
-                if (n instanceof RenderLoop)
-                    return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+            // Start
+            const nodes = <GraphNode[]> this.graphData._nodes;
+            nodes.forEach(n => {
+                // if (n instanceof RenderStart)
+                //     return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+
+                // if (n instanceof RenderLoop)
+                //     return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+                // TODO.
             });
 
             this.graphData.start();

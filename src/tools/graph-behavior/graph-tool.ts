@@ -1,194 +1,267 @@
-import { Material, Scene, AbstractMesh } from 'babylonjs';
-import { AbstractEditionTool, Tools } from 'babylonjs-editor';
-import { LGraph, LiteGraph, LGraphGroup } from 'litegraph.js';
+import { AbstractEditionTool, Grid, GridRow, Window, Form, Tools, Dialog } from 'babylonjs-editor';
+import { LGraphCanvas } from 'litegraph.js';
 
-import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
+interface GraphVariablesGrid extends GridRow {
+    name: string;
+    type: string;
+    value: string;
+}
 
-export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
+export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
     // Public members
-    public divId: string = 'BEHAVIOR-GRAPH-NODE-TOOL';
-    public tabName: string = 'Graph Node';
+    public divId: string = 'BEHAVIOR-GRAPH-TOOL';
+    public tabName: string = 'Graph';
 
     // Private members
-    private _mode: string = '';
-
-    /**
-     * Constructor
-     * @param editor the path finder editor
-     */
-    constructor () {
-        super();
-    }
+    private _grid: Grid<GraphVariablesGrid> = null;
 
     /**
      * Returns if the object is supported
      * @param object the object selected in the graph
      */
     public isSupported(object: any): boolean {
-        return object instanceof LiteGraphNode || (object.graph && object.graph instanceof LGraph);
+        return object instanceof LGraphCanvas;
+    }
+
+    /**
+     * Called once the editor has been resized.
+     * @param width the width in pixels of the panel.
+     * @param height the height in pixels of the panel.
+     */
+    public resize (width: number, height: number): void {
+        this._grid && this._grid.element.resize();
     }
 
     /**
      * Updates the edition tool
      * @param object the object selected in the graph
      */
-    public update(node: LiteGraphNode): void {
-        super.update(node);
+    public update(node: LGraphCanvas): void {
+        this.object = node;
+        this.object.graph.variables = this.object.graph.variables || [];
 
-        // Group?
-        if (node instanceof LGraphGroup)
-            return this._setupGroup(node);
+        this._buildGrid();
+        this._fillAllVariables();
+    }
 
-        // Description
-        const ctor = Tools.GetConstructorName(node);
-        for (const key in LiteGraph.registered_node_types) {
-            if (LiteGraph.registered_node_types[key].name === ctor) {
-                const desc = LiteGraph.registered_node_types[key].desc || LiteGraph.registered_node_types[key].Desc;
-
-                this.tool.addTextBox(desc);
-                break;
-            }
-        }
-
-        // Common
-        const common = this.tool.addFolder('Common');
-        common.open();
-
-        common.add(node, 'title').name('Title');
-
-        const modes: string[] = ['ALWAYS', 'ON_EVENT', 'NEVER', 'ON_TRIGGER'];
-        this._mode = modes[node.mode];
-        common.add(this, '_mode', modes).name('Mode').onChange(r => {
-            node.mode = LiteGraph[r];
-            LiteGraphNode.SetColor(node);
-        });
-
-        // Properties
-        if (Object.keys(node.properties).length === 0) {
-            this.tool.addFolder('No properties');
+    /**
+     * Builds the grid.
+     */
+    private _buildGrid (): void {
+        if (this._grid)
             return;
-        }
+        
+        // Configure div
+        const div = $('#' + this.divId);
+        div.css('width', '100%');
+        div.css('height', '100%');
 
-        const properties = this.tool.addFolder('Properties');
-        properties.open();
-
-        const keys = Object.keys(node.properties);
-
-        keys.forEach(k => {
-            // Node path?
-            if (k === 'nodePath') {
-                const scene = <Scene> node.graph.scriptScene;
-
-                const result: string[] = ['self'];
-                scene.meshes.forEach(m => result.push(m.name));
-                scene.lights.forEach(l => result.push(l.name));
-                scene.cameras.forEach(c => result.push(c.name));
-
-                Tools.SortAlphabetically(result);
-
-                return properties.add(node.properties, k, result).name('Target Node').onChange(() => this.update(node));
-            }
-
-            // Property path?
-            if (k === 'propertyPath') {
-                if (node.hasProperty('nodePath')) {
-                    const path = <string> node.properties['nodePath'];
-
-                    if (path === 'self')
-                        return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
-
-                    const scene = this.editor.core.scene;
-                    const target = path === 'Scene' ? scene : scene.getNodeByName(path);
-
-                    return properties.add(node.properties, k, this._getPropertiesPaths(node, '', target)).name(k);
-                }
-                
-                return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
-            }
-
-            // Animation name?
-            if (k === 'animationName') {
-                const path = <string> node.properties['nodePath'];
-                const scene = this.editor.core.scene;
-                const target = path === 'self' ? node.graph.scriptObject : path === 'Scene' ? scene : scene.getNodeByName(path);
-
-                if (!target.animations)
-                    return;
-
-                const animations = ['All'].concat(target.animations.map(a => a.name));
-                properties.add(node.properties, 'animationName', animations);
-                
-                return;
-            }
-
-            // Swith type of property
-            switch (typeof node.properties[k]) {
-                case 'number': properties.add(node.properties, k).step(0.001).name(k); break;
-                case 'string': properties.add(node.properties, k).name(k); break;
-                case 'boolean': properties.add(node.properties, k).name(k); break;
-                default: break;
-            }
+        // Build grid
+        this._grid = new Grid<GraphVariablesGrid>('BEHAVIOR-GRAPH-TOOL', {
+            header: 'Variables',
+            toolbarReload: false,
+            toolbarSearch: false,
+            toolbarEdit: true
         });
+        this._grid.columns = [
+            { field: 'name', caption: 'Name', size: '60%', editable: { type: 'string' } },
+            { field: 'type', caption: 'Type', size: '20%', editable: { type: 'string' } },
+            { field: 'value', caption: 'Value', size: '20%', editable: { type: 'string' } }
+        ];
+        this._grid.onAdd = () => this._addVariable();
+        this._grid.onDelete = (ids) => this._removeVariables(ids);
+        this._grid.onEdit = (id) => this._editVariable(id);
+        this._grid.build('BEHAVIOR-GRAPH-TOOL');
     }
 
-    // Returns all the available properties
-    private _getPropertiesPaths (node: LiteGraphNode, path: string = '', root?: any, rootProperties?: string[]): string[] {
-        const result = rootProperties || ['Scene'];
-        const object = root || node.graph.scriptObject;
+    /**
+     * Fills all the available variables
+     */
+    private _fillAllVariables (): void {
+        this._grid.element.clear();
+        this.object.graph.variables.forEach((v, index) => {
+            this._grid.addRow({ name: v.name, type: this._getType(v.value), value: v.value.toString(), recid: index });
+        });
 
-        for (const k in object) {
-            const key = path === '' ? k : `${path}.${k}`;
+        if (this.object.graph.variables.length > 0)
+            this._grid.select([0]);
+    }
 
-            // Bypass _
-            if (k[0] === '_')
-                continue;
+    /**
+     * Asks to add a new variable to the context.
+     */
+    private _addVariable (): void {
+        // Create window
+        const window = new Window('GraphToolAddVariable');
+        window.buttons = ['Ok', 'Cancel'];
+        window.width = 450;
+        window.height = 170;
+        window.body = `<div id="GRAPH-TOOL-ADD-VARIABLE" style="width: 100%; height: 100%;"></div>`;
+        window.open();
 
-            // Material?
-            if (object[k] instanceof Material) {
-                this._getPropertiesPaths(node, key, object[k], result);
-                continue;
-            }
+        // Create form
+        const form = new Form('GRAPH-TOOL-ADD-VARIABLE');
+        form.fields = [
+            { name: 'name', type: 'text', required: true, html: { span: 10, caption: 'The name of the variable.' } },
+            { name: 'type', type: 'list', required: true, html: { span: 10, caption: 'Format' }, options: {
+                items: ['String', 'Boolean', 'Number', 'Vector 2D', 'Vector 3D', 'Vector 4D'] 
+            } }
+        ];
+        form.build('GRAPH-TOOL-ADD-VARIABLE');
+        form.element.record['name'] = 'My Variable';
+        form.element.record['type'] = 'Number';
+        form.element.refresh();
 
-            // Constructor name
-            const ctor = Tools.GetConstructorName(object[k]).toLowerCase();
-            switch (ctor) {
-                case 'boolean':
-                case 'string':
-                case 'number': result.push(key); break;
-                
-                case 'vector2':
-                    result.push(key + '.x');
-                    result.push(key + '.y');
-                    break;
-                case 'vector3':
-                    result.push(key + '.x');
-                    result.push(key + '.y');
-                    result.push(key + '.z');
-                    break;
+        // Events
+        window.onButtonClick = (id => {
+            if (id === 'Cancel')
+                return window.close();
+            
+            this.object.graph.variables.push({
+                name: form.element.record['name'],
+                value: this._getValue(form.element.record['type'].id)
+            });
 
-                case 'color3':
-                    result.push(key + '.r');
-                    result.push(key + '.g');
-                    result.push(key + '.b');
-                    break;
-                case 'color4':
-                    result.push(key + '.r');
-                    result.push(key + '.g');
-                    result.push(key + '.b');
-                    result.push(key + '.a');
-                    break;
+            window.close();
+            this._fillAllVariables();
+        });
 
-                default: break;
-            }
+        window.onClose = (() => form.element.destroy());
+    }
+
+    /**
+     * Removes all the selected variables from the context.
+     */
+    private _removeVariables (ids: number[]): void {
+        let offset = 0;
+        ids.forEach(id => {
+            this.object.graph.variables.splice(id - offset, 1);
+            offset++
+        });
+
+        this._fillAllVariables();
+    }
+
+    /**
+     * Asks to edit the given variable.
+     */
+    private async _editVariable (id: number): Promise<void> {
+        const v = this.object.graph.variables[id];
+
+        // Create window
+        const window = new Window('GraphToolAddVariable');
+        window.buttons = ['Ok', 'Cancel'];
+        window.width = 450;
+        window.height = 170;
+        window.body = `<div id="GRAPH-TOOL-EDIT-VARIABLE" style="width: 100%; height: 100%;"></div>`;
+        window.open();
+
+        // Create form
+        const form = new Form('GRAPH-TOOL-EDIT-VARIABLE');
+        form.fields = [
+            { name: 'name', type: 'text', required: true, html: { span: 10, caption: 'The name of the variable.' } }
+        ];
+        switch (this._getType(v.value)) {
+            case 'String':
+                form.fields.push({ name: 'value', type: 'text', required: true, html: { span: 10, caption: 'Value' } });
+                break;
+            case 'Number':
+                form.fields.push({ name: 'value', type: 'float', required: true, html: { span: 10, caption: 'Value' } });
+                break;
+            case 'Boolean':
+                form.fields.push({ name: 'value', type: 'checkbox', required: true, html: { span: 10, caption: 'Value' } });
+                break;
+            case 'Vector 2D':
+                form.fields.push({ name: 'x', type: 'float', required: true, html: { span: 10, caption: 'X' } });
+                form.fields.push({ name: 'y', type: 'float', required: true, html: { span: 10, caption: 'Y' } });
+                break;
+            case 'Vector 3D':
+                form.fields.push({ name: 'x', type: 'float', required: true, html: { span: 10, caption: 'X' } });
+                form.fields.push({ name: 'y', type: 'float', required: true, html: { span: 10, caption: 'Y' } });
+                form.fields.push({ name: 'z', type: 'float', required: true, html: { span: 10, caption: 'z' } });
+                break;
+            case 'Vector 4D':
+                form.fields.push({ name: 'x', type: 'float', required: true, html: { span: 10, caption: 'X' } });
+                form.fields.push({ name: 'y', type: 'float', required: true, html: { span: 10, caption: 'Y' } });
+                form.fields.push({ name: 'z', type: 'float', required: true, html: { span: 10, caption: 'z' } });
+                form.fields.push({ name: 'w', type: 'float', required: true, html: { span: 10, caption: 'w' } });
+                break;
         }
+        form.build('GRAPH-TOOL-EDIT-VARIABLE');
+        form.element.record['name'] = v.name;
+        form.element.record['value'] = (typeof(v.value)).toLowerCase() === 'string' ? v.value :
+                                       (typeof(v.value)).toLowerCase() === 'boolean' ? v.value :
+                                       JSON.stringify(v.value);
+        form.element.record['x'] = v.value[0];
+        form.element.record['y'] = v.value[1];
+        form.element.record['z'] = v.value[2];
+        form.element.record['w'] = v.value[3];
+        form.element.refresh();
 
-        Tools.SortAlphabetically(result);
-        return result;
+        // Events
+        window.onButtonClick = (id => {
+            if (id === 'Cancel')
+                return window.close();
+            
+            v.name = form.element.record['name'];
+            switch (this._getType(v.value)) {
+                case 'String':
+                    v.value = form.element.record['value'];
+                    break;
+                case 'Number':
+                case 'Boolean':
+                    v.value = JSON.parse(form.element.record['value']);
+                    break;
+                case 'Vector 2D':
+                    v.value = [parseFloat(form.element.record['x']), parseFloat(form.element.record['y'])];
+                    break;
+                case 'Vector 3D':
+                    v.value = [parseFloat(form.element.record['x']), parseFloat(form.element.record['y']), parseFloat(form.element.record['z'])];
+                    break;
+                case 'Vector 4D':
+                    v.value = [parseFloat(form.element.record['x']), parseFloat(form.element.record['y']), parseFloat(form.element.record['z']), parseFloat(form.element.record['w'])];
+                    break;
+            }
+
+            window.close();
+            this._fillAllVariables();
+        });
+
+        window.onClose = (() => form.element.destroy());
     }
 
-    // Setups the group node
-    private _setupGroup (node: any): void {
-        this.tool.add(node, 'title').name('Title').onChange(_ => node.graph.setDirtyCanvas(true, true));
-        this.tool.addHexColor(node, 'color').onChange(_ => node.graph.setDirtyCanvas(true, true));
+    /**
+     * Returns the appropriate value according to the given type.
+     */
+    private _getValue (type: string): string | boolean | number | number[] {
+        switch (type) {
+            case 'String': return 'My Value';
+            case 'Number': return 0;
+            case 'Boolean': return false;
+            case 'Vector 2D': return [0, 0];
+            case 'Vector 3D': return [0, 0, 0];
+            case 'Vector 4D': return [0, 0, 0, 0];
+            default: debugger; break;
+        }
+    }
+
+    /**
+     * Returns the type of the given value.
+     */
+    private _getType (value: any): string {
+        const ctor = Tools.GetConstructorName(value).toLowerCase();
+        switch (ctor) {
+            case 'string': return 'String';
+            case 'number': return 'Number';
+            case 'boolean': return 'Boolean';
+            case 'array':
+                switch (value.length) {
+                    case 2: return 'Vector 2D';
+                    case 3: return 'Vector 3D';
+                    case 4: return 'Vector 4D';
+                    default: debugger; return null;
+                }
+            default: debugger; return null;
+        }
     }
 }

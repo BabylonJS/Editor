@@ -47,7 +47,7 @@ export default class EditorApp {
                 }
             });
 
-            this.Window.loadURL('file://' + __dirname + '/../../index-debug.html');
+            this.Window.loadURL('file://' + __dirname + '/../../index-local.html');
 
             if (process.env.DEBUG)
                 this.Window.webContents.openDevTools();
@@ -107,6 +107,11 @@ export default class EditorApp {
 }
 
 /**
+ * App
+ */
+app.commandLine.appendSwitch('js-flags', '--expose_gc');
+
+/**
  * Make single instance
  */
 const firstLoad  = app.requestSingleInstanceLock();
@@ -122,7 +127,7 @@ if (firstLoad) {
 
             EditorApp.Window.focus();
 
-            const filename = commandLine[3];
+            const filename = commandLine[4];
             if (filename !== Settings.OpenedFile) {
                 Settings.OpenedFile = filename;
                 EditorApp.Window.reload();

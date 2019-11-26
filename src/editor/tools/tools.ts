@@ -94,6 +94,19 @@ export default class Tools {
     }
 
     /**
+     * Returns the extension attached to the given mime type.
+     */
+    public static GetExtensionFromMimeType (mimeType: string): string {
+        switch (mimeType.toLowerCase()) {
+            case 'image/png': return '.png';
+            case 'image/jpg': return '.jpg';
+            case 'image/jpeg': return '.jpeg';
+            case 'image/bmp': return '.bmp';
+            default: return '.png';
+        }
+    }
+
+    /**
      * Creates a window popup
      * @param url the URL of the popup
      * @param name: the name of the popup
@@ -175,6 +188,31 @@ export default class Tools {
         }
 
         return null;
+    }
+
+    /**
+     * Returns the first texture found which has the given url.
+     * @param scene the scene containing the textures.
+     * @param url the url of the texture to find.
+     */
+    public static GetTextureByUrl (scene: Scene, url: string): BaseTexture {
+        for (const t of scene.textures) {
+            if (t['url'] === url)
+                return t;
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the first texture found according to the given serialized values (search by uniqueId, name and Url).
+     * @param scene the scene containing the textures.
+     * @param serializedValues the serialized values containing the uniqueId, name and url.
+     */
+    public static GetTextureFromSerializedValues (scene: Scene, serializedValues: any): BaseTexture {
+        return this.GetTextureByUniqueId(scene, serializedValues.uniqueId) ||
+               this.GetTextureByName(scene, serializedValues.name) ||
+               this.GetTextureByUrl(scene, serializedValues.url);
     }
 
     /**
@@ -361,6 +399,15 @@ export default class Tools {
     }
 
     /**
+     * Calls the garbage collector manually.
+     * Take care of performances while using this method.
+     */
+    public static GarbageCollect (): void {
+        if (window['gc'])
+            window['gc']();
+    }
+
+    /**
      * Reads the given file
      * @param file the file to read
      * @param arrayBuffer if should read as array buffer
@@ -411,7 +458,7 @@ export default class Tools {
 
     /**
      * According to the navigator, returns if the file API
-     * is supported
+     * is fully supported
      */
     public static isFileApiSupported (showAlert?: boolean): boolean {
         try {

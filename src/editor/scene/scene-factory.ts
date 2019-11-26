@@ -101,7 +101,7 @@ export default class SceneFactory {
      * @param editor the editor reference
      */
 	public static CreateCamera (editor: Editor): FreeCamera {
-        const camera =  new FreeCamera('New Camera', new Vector3(0, 0, 0), editor.core.scene, true);
+        const camera = new FreeCamera('New Camera', new Vector3(0, 0, 0), editor.core.scene, true);
         this.AddToGraph(editor, camera);
 
         return camera;
@@ -156,6 +156,7 @@ export default class SceneFactory {
 
         const picker = new Picker('Choose Emitter');
         picker.addItems(scene.meshes);
+        picker.showClose = false;
         picker.open(items => {
             let emitter = items.length > 0 ? scene.getNodeByName(items[0].name) : null;
             if (!emitter) {
@@ -240,7 +241,7 @@ export default class SceneFactory {
      * @param editor: the editor reference
      */
     public static CreateCube (editor: Editor): Mesh {
-        const mesh = Mesh.CreateBox('New Cube', 5, editor.core.scene);
+        const mesh = Mesh.CreateBox('New Cube', 1, editor.core.scene);
         this.AddToGraph(editor, mesh);
 
         return mesh;
@@ -251,7 +252,7 @@ export default class SceneFactory {
      * @param editor: the editor reference
      */
     public static CreateSphere (editor: Editor): Mesh {
-        const mesh = Mesh.CreateSphere('New Sphere', 32, 5, editor.core.scene);
+        const mesh = Mesh.CreateSphere('New Sphere', 32, 1, editor.core.scene);
         this.AddToGraph(editor, mesh);
 
         return mesh;
