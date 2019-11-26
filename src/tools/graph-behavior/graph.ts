@@ -124,6 +124,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.right = 'No object selected';
+        this.toolbar.helpUrl = 'https://doc.babylonjs.com/resources/using_grapheditor';
         this.toolbar.build('GRAPH-EDITOR-TOOLBAR');
 
         // Add grid
