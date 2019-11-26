@@ -57,10 +57,15 @@
             return arr.join('\n\t');
         };
 
-        console.log = function (m) { opener.editor.console.log(argumentsToString(arguments), 0); };
-        console.info = function () { opener.editor.console.log(argumentsToString(arguments), 0); };
-        console.warn = function () { opener.editor.console.log(argumentsToString(arguments), 1); };
-        console.error = function () { opener.editor.console.log(argumentsToString(arguments), 2); };
+        const log = console.log;
+        const info = console.info;
+        const warn = console.warn;
+        const error = console.error;
+
+        console.log = function (m) { log.apply(console, arguments); opener.editor.console.log(argumentsToString(arguments), 0); };
+        console.info = function () { info.apply(console, arguments); opener.editor.console.log(argumentsToString(arguments), 0); };
+        console.warn = function () { warn.apply(console, arguments); opener.editor.console.log(argumentsToString(arguments), 1); };
+        console.error = function () { error.apply(console, arguments); opener.editor.console.log(argumentsToString(arguments), 2); };
 
         // Configure systemjs
         System.config({

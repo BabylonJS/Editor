@@ -50,6 +50,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     protected code: CodeEditor = null;
     protected template: string = '// Some code';
+    protected templateScene: string = '// Some code';
 
     protected node: Node | Scene | IParticleSystem = null;
     protected asset: BehaviorCode = null;
@@ -160,6 +161,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.layout.lockPanel('main');
         this.code = await this.createEditor();
         this.template = await Tools.LoadFile<string>('./assets/templates/code/code-typescript.ts', false);
+        this.templateScene = await Tools.LoadFile<string>('./assets/templates/code/code-scene-typescript.ts', false);
         this.layout.unlockPanel('main');
         
         // Events
@@ -412,7 +414,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         const data: BehaviorCode = {
             name: name,
             id: BabylonTools.RandomId(),
-            code: this.template.replace(/{{name}}/g, (name[0].toUpperCase() + name.substr(1, name.length)).replace(/ /g, ''))
+            code: (this.node instanceof Scene ? this.templateScene : this.template).replace(/{{name}}/g, (name[0].toUpperCase() + name.substr(1, name.length)).replace(/ /g, ''))
                                .replace(/{{type}}/g, ctor)
                                .replace(/{{class}}/g, this.node.constructor.name)
         };
