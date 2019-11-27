@@ -27,6 +27,20 @@ export function registerAllUtilsNodes (object?: any): void {
         { name: 'Length', type: 'number' }
     ] }, object);
 
+    registerNode({ name: 'Array At', description: 'Returns the element of the input array at the given position', path: 'utils/arrayat', ctor: Object, functionRef: (node, target) => {
+        debugger;
+        const arr = node.getInputData<any[]>(0) || [];
+        const pos = node.getInputData<number>(1);
+        return arr[node.isInputValid(pos) ? pos : node.properties['Position']];
+    }, inputs: [
+        { name: 'Array', type: 'any[]' },
+        { name: 'Position', type: 'number' }
+    ], properties: [
+        { name: 'Position', type: 'number', defaultValue: 0 }
+    ], outputs: [
+        { name: 'Value', type: 'any' }
+    ] }, object);
+
     registerNode({ name: 'Time', description: 'Returns the current time in milliseconds or seconds', path: 'utils/time', ctor: Object, functionRef: (node, target: Node) => {
         node.setOutputData(1, node.graph.globaltime);
         return node.graph.globaltime * 1000;
