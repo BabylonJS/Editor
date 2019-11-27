@@ -40,9 +40,6 @@ export type ExecuteInput = {
 
 export class GraphNode extends IGraphNode {
     private _propertiesOrder: GraphMethodCallType[] = [];
-    private _inputsOrder: GraphMethodCallType[] = [];
-    private _parametersOrder: GraphMethodCallType[] = [];
-    private _outputsOrder: GraphMethodCallType[] = [];
 
     /**
      * Constructor.
@@ -77,50 +74,10 @@ export class GraphNode extends IGraphNode {
         });
 
         // Inputs
-        description.inputs && description.inputs.forEach(i => {
-            switch (i.type) {
-                case 'number':
-                case 'string': this._inputsOrder.push(GraphNode.commonToCommon); break;
-                case 'vec2': this._inputsOrder.push(GraphNode.vec2ToVector2); break;
-                case 'vec3': this._inputsOrder.push(GraphNode.vec3ToVector3); break;
-                case 'vec4': this._inputsOrder.push(GraphNode.vec4ToVector4); break;
-                case 'col3': this._inputsOrder.push(GraphNode.col3ToColor3); break;
-                case 'col4': this._inputsOrder.push(GraphNode.col4ToColor4); break;
-                default: this._inputsOrder.push(GraphNode.inputToNode); break;
-            }
-
-            this.addInput(i.name, i.type);
-        });
-
-        // Parameters
-        description.parameters && description.parameters.forEach(p => {
-            switch (p.type) {
-                case 'number':
-                case 'string': this._parametersOrder.push(GraphNode.commonToCommon); break;
-                case 'vec2': this._parametersOrder.push(GraphNode.vec2ToVector2); break;
-                case 'vec3': this._parametersOrder.push(GraphNode.vec3ToVector3); break;
-                case 'vec4': this._parametersOrder.push(GraphNode.vec4ToVector4); break;
-                case 'col3': this._parametersOrder.push(GraphNode.col3ToColor3); break;
-                case 'col4': this._parametersOrder.push(GraphNode.col4ToColor4); break;
-                default: debugger; break; // Should never happen
-            }
-        });
+        description.inputs && description.inputs.forEach(i => this.addInput(i.name, i.type));
 
         // Outputs
-        description.outputs && description.outputs.forEach(o => {
-            switch (o.type) {
-                case 'number':
-                case 'string': this._outputsOrder.push(GraphNode.commonToCommon); break;
-                case 'vec2': this._outputsOrder.push(GraphNode.vector2ToVec2); break;
-                case 'vec3': this._outputsOrder.push(GraphNode.vector3ToVec3); break;
-                case 'vec4': this._outputsOrder.push(GraphNode.vector4ToVec4); break;
-                case 'col3': this._outputsOrder.push(GraphNode.color3ToCol3); break;
-                case 'col4': this._outputsOrder.push(GraphNode.color4ToCol4); break;
-                default: this._outputsOrder.push(GraphNode.inputToNode); break;
-            }
-
-            this.addOutput(o.name, o.type);
-        });
+        description.outputs && description.outputs.forEach(o => this.addOutput(o.name, o.type));
 
         // Widgets
         description.widgets && description.widgets.forEach(w => {
@@ -183,7 +140,7 @@ export class GraphNode extends IGraphNode {
                 if (data && input.propertyPath) {
                     const split = input.propertyPath.split('.');
                     const property = GraphNode.GetEffectiveProperty(target, input.propertyPath);
-                    property[split[split.length - 1]] = GraphNode.nodeToOutput(data, input.type === 'col3' || input.type === 'col4');
+                    property[split[split.length - 1]] = data;
                 }
             }
         }
@@ -194,7 +151,7 @@ export class GraphNode extends IGraphNode {
                     const input = inputs.find(i => i.name === parameter.inputName);
                     if (!input && !parameter.optional)
                         return console.warn(`Warning: calling "${this.description.functionRef}", input "${input.name}" is mandatory`);
-                    parameters.push(this._parametersOrder[index](input.data));
+                    parameters.push(input.data);
                 }
             }
         }
@@ -210,7 +167,7 @@ export class GraphNode extends IGraphNode {
             for (const [index, output] of this.description.outputs.entries()) {
                 // First output is always the function's output.
                 if (this.description.functionRef && index === 0) {
-                    this.setOutputData(index, this._outputsOrder[index](result));
+                    this.setOutputData(index, result);
                     continue;
                 }
 
@@ -219,12 +176,12 @@ export class GraphNode extends IGraphNode {
                     // From a property
                     if (output.propertyName) {
                         const property = GraphNode.GetProperty<any>(target, this.properties[output.propertyName]);
-                        this.setOutputData(index, this._outputsOrder[index](property));
+                        this.setOutputData(index, property);
                     }
                     // From the fixed property path
                     else {
                         const property = GraphNode.GetProperty(target, output.propertyPath);
-                        this.setOutputData(index, this._outputsOrder[index](property));
+                        this.setOutputData(index, property);
                     }
                     continue;
                 }
@@ -330,48 +287,6 @@ export class GraphNode extends IGraphNode {
     }
 
     /**
-     * Returns the value as expected for be used in the node.
-     * @param value the value to convert to an understandable value for the node.
-     */
-    public static inputToNode (value: any): number | string | number[] {
-        const ctor = GraphNode.GetConstructorName(value).toLowerCase();
-        switch (ctor) {
-            case 'number':
-            case 'string':
-                return value;
-            case 'vector2':
-            case 'vector3':
-            case 'vector4':
-                return value.asArray();
-            case 'color3':
-            case 'color4':
-                return value.asArray();
-            default: return value; // Raw data, null, undefined, etc.
-        }
-    }
-
-    /**
-     * Returns the value as expected for be used in the next node.
-     * @param value the value to convert to an understandable value for the next node.
-     */
-    public static nodeToOutput<T extends number | string | Vector2 | Vector3 | Vector4 | Color3 | Color4> (value: any, asColor?: boolean): T {
-        const ctor = GraphNode.GetConstructorName(value).toLowerCase();
-        switch (ctor) {
-            case 'number':
-            case 'string':
-                return value;
-            case 'array':
-                switch (value.length) {
-                    case 2: return <T> Vector2.FromArray(value);
-                    case 3: return <T> (asColor ? Color3.FromArray(value) : Vector3.FromArray(value));
-                    case 4: return <T> (asColor ? Color4.FromArray(value) : Vector4.FromArray(value));
-                    default: debugger; break; // Should not happen
-                }
-            default: return value; // Raw data, null, undefined, etc.
-        }
-    }
-
-    /**
      * Works as a bypass to just return value.
      * @param value the value to return.
      */
@@ -386,13 +301,6 @@ export class GraphNode extends IGraphNode {
     public static vec2ToVector2 (vec2: number[]): Vector2 {
         return Vector2.FromArray(vec2);
     }
-    /**
-     * Returns the given vector 2d as number array.
-     * @param vector2 the vector to transform as array.
-     */
-    public static vector2ToVec2 (vector2: Vector2): number[] {
-        return vector2.asArray();
-    }
 
     /**
      * Returns a new Vector3 from the given array.
@@ -400,13 +308,6 @@ export class GraphNode extends IGraphNode {
      */
     public static vec3ToVector3 (vec3: number[]): Vector3 {
         return Vector3.FromArray(vec3);
-    }
-    /**
-     * Returns the given vector 3d as number array.
-     * @param vector3 the vector to transform as array.
-     */
-    public static vector3ToVec3 (vector3: Vector3): number[] {
-        return vector3.asArray();
     }
 
     /**
@@ -416,13 +317,6 @@ export class GraphNode extends IGraphNode {
     public static vec4ToVector4 (vec4: number[]): Vector4 {
         return Vector4.FromArray(vec4);
     }
-    /**
-     * Returns the given vector 4d as number array.
-     * @param vector4 the vector to transform as array.
-     */
-    public static vector4ToVec4 (vector4: Vector4): number[] {
-        return vector4.asArray();
-    }
 
     /**
      * Returns a new Color 3 from the given array.
@@ -431,13 +325,6 @@ export class GraphNode extends IGraphNode {
     public static col3ToColor3 (col3: number[]): Color3 {
         return Color3.FromArray(col3);
     }
-    /**
-     * Returns the given color 3 as number array.
-     * @param color3 the color to transform as array.
-     */
-    public static color3ToCol3 (color3: Color3): number[] {
-        return color3.asArray();
-    }
 
     /**
      * Returns a new Color 4 from the given array.
@@ -445,12 +332,5 @@ export class GraphNode extends IGraphNode {
      */
     public static col4ToColor4 (col4: number[]): Color4 {
         return Color4.FromArray(col4);
-    }
-    /**
-     * Returns the given color 4 as number array.
-     * @param color3 the color to transform as array.
-     */
-    public static color4ToCol4 (color4: Color4): number[] {
-        return color4.asArray();
     }
 }

@@ -10,8 +10,8 @@ import { GraphNode, registerNode } from '../graph-node';
 export function registerAllMathNodes (object?: any): void {
     registerNode({ name: 'Scale', description: 'Scales', path: 'math/scale', ctor: Object, functionRef: (node) => {
         // Vector
-        const vec = GraphNode.nodeToOutput<Vector2 | Vector3 | Vector4>(node.getInputData<number>(1));
-        vec && node.setOutputData(1, GraphNode.inputToNode(vec.scale(node.properties['Amount'])));
+        const vec = node.getInputData<Vector2 | Vector3 | Vector4>(1);
+        vec && node.setOutputData(1, vec.scale(node.properties['Amount']));
         // Number
         return node.getInputData<number>(0) * node.properties['Amount'];
     }, properties: [
@@ -52,8 +52,8 @@ export function registerAllMathNodes (object?: any): void {
      } }, object);
 
     registerNode({ name: 'Vector Operation', description: 'Performs a vector operation (+, -, *, /)', path: 'math/vectoroperation', ctor: Object, functionRef: (node) => {
-        const a = GraphNode.nodeToOutput<any>(node.getInputData(0));
-        const b = GraphNode.nodeToOutput<any>(node.getInputData(1));
+        const a = node.getInputData(0);
+        const b = node.getInputData(1);
         switch (node.properties['Operator']) {
             case '+': return a.add(b);
             case '-': return a.subtract(b);
@@ -71,7 +71,7 @@ export function registerAllMathNodes (object?: any): void {
     ], drawBackground: (node) => node.properties['Operator'] }, object);
 
     registerNode({ name: 'Fract', description: 'Computes the fractional part of the input vector.', path: 'math/fract', ctor: Object, functionRef: (node) => {
-        return (GraphNode.nodeToOutput<Vector2 | Vector3 | Vector4>(node.getInputData(0)).fract());
+        return node.getInputData<Vector2 | Vector3 | Vector4>(0).fract();
     } , inputs: [
         { name: 'Vector', type: 'vec2,vec3,vec4' }
     ], outputs: [
@@ -79,7 +79,7 @@ export function registerAllMathNodes (object?: any): void {
     ] }, object);
 
     registerNode({ name: 'Negate', description: 'Computes the negation of the input value.', path: 'math/negate', ctor: Object, functionRef: (node) => {
-        const v = GraphNode.nodeToOutput<any>(node.getInputData(0));
+        const v = node.getInputData(0)
         const ctor = GraphNode.GetConstructorName(v).toLowerCase();
         switch (ctor) {
             case 'number': return -v;
@@ -149,6 +149,24 @@ export function registerAllMathNodes (object?: any): void {
         { type: 'number', name: 'Increment', value: 1, callback: (v, g, n) => n.properties['Increment'] = v },
     ] }, object);
 
+    registerNode({ name: 'For Each', description: 'Performs a for loop on the input array and outputs its value', path: 'math/foreach', ctor: Object, functionRef: (node) => {
+        const arr = node.getInputData<any[]>(1) || [];
+        const len = arr.length;
+
+        for (let i = 0; i < len; i++) {
+            node.setOutputData(1, arr[i]);
+            node.setOutputData(2, i);
+            node.triggerSlot(0);
+        }
+    }, inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Array', type: 'any[]' }
+    ], outputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Value', type: 'any' },
+        { name: 'Indice', type: 'number' }
+    ] }, object);
+
     registerNode({ name: 'Cosinus', description: 'Performs a cosinus operation', path: 'math/cos', ctor: Object, functionRef: (node) => {
         return Math.cos(node.getInputData<number>(0));
     }, inputs: [
@@ -193,9 +211,9 @@ export function registerAllMathNodes (object?: any): void {
 
     registerNode({ name: 'Floor', description: 'Floors the given number of vector', path: 'math/floor', ctor: Object, functionRef: (node) => {
         // Vector
-        const vec = GraphNode.nodeToOutput<Vector2 | Vector3 | Vector4>(node.getInputData(1));
+        const vec = node.getInputData<Vector2 | Vector3 | Vector4>(1);
         if (vec)
-            node.setOutputData(1, GraphNode.inputToNode(vec.floor()));
+            node.setOutputData(1, vec.floor());
 
         return Math.floor(node.getInputData<number>(0) || 0);
     }, inputs: [
@@ -221,12 +239,12 @@ export function registerAllMathNodes (object?: any): void {
     ] }, object);
 
     registerNode({ name: 'Clamp', description: 'Clamps the given value in the given interval [min, max]', path: 'math/clamp', ctor: Object, functionRef: (node) => {
-        const val = GraphNode.nodeToOutput<number | Vector2 | Vector3>(node.getInputData(0));
+        const val = node.getInputData<number | Vector2 | Vector3>(0);
         if (!node.isInputValid(val)) return;
         
-        const min = GraphNode.nodeToOutput<any>(node.getInputData(1));
+        const min = node.getInputData(1);
         if (!node.isInputValid(min)) return;
-        const max = GraphNode.nodeToOutput<any>(node.getInputData(2));
+        const max = node.getInputData(2);
         if (!node.isInputValid(max)) return;
 
         if (val instanceof Vector2) return Vector2.Clamp(val, min, max);

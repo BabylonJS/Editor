@@ -1,6 +1,12 @@
 const { exec } = require('child_process');
 
 const execute = async function (command) {
+    console.log(`
+-------------------------------------------------------------
+${command}
+-------------------------------------------------------------
+`);
+
     exec(command, (err, out) => {
         if (err)
             return console.log(err.message);

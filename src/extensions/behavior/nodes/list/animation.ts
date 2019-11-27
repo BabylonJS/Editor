@@ -55,7 +55,7 @@ export function registerAllAnimationNodes (object?: any): void {
         if (node.store.playing) return;
         node.store.playing = true;
 
-        const targetValue = GraphNode.nodeToOutput(node.getInputData(1));
+        const targetValue = node.getInputData(1);
         if (targetValue === undefined) return;
 
         const propertyPath = node.properties['Property Path'];
@@ -72,6 +72,7 @@ export function registerAllAnimationNodes (object?: any): void {
             case 'vector2': animationType = Animation.ANIMATIONTYPE_VECTOR2; break;
             case 'vector3': animationType = Animation.ANIMATIONTYPE_VECTOR3; break;
             case 'color3': animationType = Animation.ANIMATIONTYPE_COLOR3; break;
+            case 'color4': animationType = Animation.ANIMATIONTYPE_COLOR4; break;
         }
 
         const animation = new Animation(propertyPath, propertyPath, 60, animationType, Animation.ANIMATIONLOOPMODE_CONSTANT, false);

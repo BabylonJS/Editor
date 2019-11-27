@@ -94,7 +94,7 @@ export class GraphFunctionNode extends IGraphNode {
                 return;
             }
             
-            return GraphNode.nodeToOutput(i);
+            return i;
         });
 
         this.setNodeState(!this._isValid);

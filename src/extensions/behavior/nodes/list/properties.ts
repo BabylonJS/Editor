@@ -19,7 +19,7 @@ export function registerAllPropertiesNodes (object?: any): void {
         const split = node.properties['Property Path'].split('.');
         const effectiveProperty = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
         const property = effectiveProperty[split[split.length - 1]];
-        const input = GraphNode.nodeToOutput(node.getInputData(1), property instanceof Color3 || property instanceof Color4);
+        const input = node.getInputData(1);
         if (GraphNode.GetConstructorName(input) !== GraphNode.GetConstructorName(property))
             return node.getInputData(1);
 
@@ -46,7 +46,7 @@ export function registerAllPropertiesNodes (object?: any): void {
         if (i !== null && i !== undefined)
             v.value = i;
 
-        return GraphNode.nodeToOutput(v.value);
+        return v.value;
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Set Value', type: undefined }

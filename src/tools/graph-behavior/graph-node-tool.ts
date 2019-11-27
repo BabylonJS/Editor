@@ -95,7 +95,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
             }
 
             if (property.name === 'Target Path') {
-                this._setupTargetPath(property.name);
+                this._setupTargetPath(property.name, property.filter);
                 continue;
             }
 
@@ -213,10 +213,12 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
     /**
      * Setups the target path.
      */
-    private _setupTargetPath (property: string): void {
-        const nodes = ['Self', 'Scene'].concat(this.editor.core.scene.meshes.map(m => m.name))
-                               .concat(this.editor.core.scene.lights.map(l => l.name))
-                               .concat(this.editor.core.scene.cameras.map(c => c.name));
+    private _setupTargetPath (property: string, filter: string[] = ['scene', 'self', 'mesh', 'light', 'camera']): void {
+        const nodes = [].concat(filter.indexOf('scene') !== -1 ? ['Scene'] : [])
+                        .concat(filter.indexOf('self') !== -1 ? ['Self'] : [])
+                        .concat(filter.indexOf('mesh') !== -1 ? this.editor.core.scene.meshes.map(m => m.name) : [])
+                        .concat(filter.indexOf('light') !== -1 ? this.editor.core.scene.lights.map(l => l.name) : [])
+                        .concat(filter.indexOf('camera') !== -1 ? this.editor.core.scene.cameras.map(c => c.name) : []);
         this.tool.add(this.object.properties, property, nodes).name('Target');
     }
 

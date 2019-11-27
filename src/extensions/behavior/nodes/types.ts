@@ -203,6 +203,10 @@ export interface IGraphNodeDescriptor {
          */
         enumsTarget?: any;
         /**
+         * Defines filters used by the editor.
+         */
+        filter?: string[];
+        /**
          * Defines the defualt value of the property.
          */
         defaultValue: SupportedTypes;

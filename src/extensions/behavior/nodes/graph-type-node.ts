@@ -1,3 +1,4 @@
+import { Vector2, Vector3, Vector4, Color3, Color4 } from 'babylonjs';
 import { LGraphCanvas } from 'litegraph.js';
 
 import { GraphNode } from './graph-node';
@@ -31,6 +32,8 @@ export class GraphTypeNode extends IGraphNode {
      */
     public defaultValue: any;
 
+    private _type: string;
+
     /**
      * Constructor.
      * @param getDefaultValue the function that returns the effective value to store as a node type.
@@ -42,37 +45,37 @@ export class GraphTypeNode extends IGraphNode {
         this.defaultValue = getDefaultValue();
 
         // Get transform method
-        let type = GraphNode.GetConstructorName(this.defaultValue).toLowerCase();
-        switch (type) {
+        this._type = GraphNode.GetConstructorName(this.defaultValue).toLowerCase();
+        switch (this._type) {
             case 'number':
             case 'string':
                 this.addProperty('Value', this.defaultValue);
                 break;
             case 'vector2':
-                type = 'vec2';
-                this.addProperty('Value', GraphNode.vector3ToVec3(this.defaultValue));
+                this._type = 'vec2';
+                this.addProperty('Value', [this.defaultValue.x, this.defaultValue.y]);
                 break;
             case 'vector3':
-                type = 'vec3';
-                this.addProperty('Value', GraphNode.vector3ToVec3(this.defaultValue));
+                this._type = 'vec3';
+                this.addProperty('Value', [this.defaultValue.x, this.defaultValue.y, this.defaultValue.z]);
                 break;
             case 'vector4':
-                type = 'vec4';
-                this.addProperty('Value', GraphNode.vector4ToVec4(this.defaultValue));
+                this._type = 'vec4';
+                this.addProperty('Value', [this.defaultValue.x, this.defaultValue.y, this.defaultValue.z, this.defaultValue.w]);
                 break;
             case 'color3':
-                type = 'col3';
-                this.addProperty('Value', GraphNode.color3ToCol3(this.defaultValue));
+                this._type = 'col3';
+                this.addProperty('Value', [this.defaultValue.r, this.defaultValue.g, this.defaultValue.b]);
                 break;
             case 'color4':
-                type = 'col4';
-                this.addProperty('Value', GraphNode.color4ToCol4(this.defaultValue));
+                this._type = 'col4';
+                this.addProperty('Value', [this.defaultValue.r, this.defaultValue.g, this.defaultValue.b, this.defaultValue.a]);
                 break;
             default: debugger; break; // Should never happen
         }
 
         // Output
-        this.addOutput('Value', type);
+        this.addOutput('Value', this._type);
 
         // Outputs
         GraphTypeNode._VectorOuputs.forEach(v => this.defaultValue[v] !== undefined && this.addOutput(v, 'number'));
@@ -83,7 +86,29 @@ export class GraphTypeNode extends IGraphNode {
      * Called on the node is being executed.
      */
     public onExecute (): void {
-        this.setOutputData(0, this.properties['Value']);
+        const value = this.properties['Value'];
+        switch (this._type) {
+            case 'number':
+            case 'string':
+                this.setOutputData(0, value);
+                break;
+            case 'vec2':
+                this.setOutputData(0, new Vector2(value[0], value[1]));
+                break;
+            case 'vec3':
+                this.setOutputData(0, new Vector3(value[0], value[1], value[2]));
+                break;
+            case 'vec4':
+                this.setOutputData(0, new Vector4(value[0], value[1], value[2], value[3]));
+                break;
+            case 'col3':
+                this.setOutputData(0, new Color3(value[0], value[1], value[2]));
+                break;
+            case 'col4':
+                this.setOutputData(0, new Color4(value[0], value[1], value[2], value[3]));
+                break;
+            default: debugger; break; // Should never happen
+        }
 
         GraphTypeNode._VectorOuputs.forEach((v, index) => this.defaultValue[v] !== undefined && this.setOutputData(index + 1, this.properties['Value'][index]));
         GraphTypeNode._ColorOutputs.forEach((v, index) => this.defaultValue[v] !== undefined && this.setOutputData(index + 1, this.properties['Value'][index]));
