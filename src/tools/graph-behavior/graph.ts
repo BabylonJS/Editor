@@ -1,7 +1,8 @@
 import {
     Observer, SerializationHelper,
-    Scene, Node,
-    Tools as BabylonTools
+    Scene, Node, AbstractMesh,
+    Tools as BabylonTools,
+    Material
 } from 'babylonjs';
 
 import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup } from 'litegraph.js';
@@ -608,7 +609,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 this.editor.core.scene.stopAnimation(this.node);
 
                 if (this._savedState.material) {
-                    SerializationHelper.Parse(() => this.node.material, this._savedState.material, this.editor.core.scene, 'file:');
+                    // TODO: material's metadatas.
+                    const mesh = <AbstractMesh> this.node;
+                    if (mesh.material)
+                        mesh.material.dispose(true, true);
+                    
+                    mesh.material = Material.Parse(this._savedState.material, this.editor.core.scene, 'file:');
                     delete this._savedState.material;
                 }
 
