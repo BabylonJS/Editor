@@ -49,6 +49,7 @@ export class GraphTypeNode extends IGraphNode {
         switch (this._type) {
             case 'number':
             case 'string':
+            case 'boolean':
                 this.addProperty('Value', this.defaultValue);
                 break;
             case 'vector2':
@@ -90,6 +91,7 @@ export class GraphTypeNode extends IGraphNode {
         switch (this._type) {
             case 'number':
             case 'string':
+            case 'boolean':
                 this.setOutputData(0, value);
                 break;
             case 'vec2':

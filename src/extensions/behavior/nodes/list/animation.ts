@@ -54,7 +54,7 @@ export function registerAllAnimationNodes (object?: any): void {
     registerNode({ name: 'Interpolate Value', description: 'Interpolates the ', path: 'animation/interpolatevalue', ctor: Node, functionRef: (node, target: Node, scene) => {
         if (node.store.playing) return;
         node.store.playing = true;
-
+        
         const targetValue = node.getInputData(1);
         if (targetValue === undefined) return;
 
@@ -80,7 +80,7 @@ export function registerAllAnimationNodes (object?: any): void {
             { frame: 0, value: property.clone ? property.clone() : property },
             { frame: 60 * node.properties['Duration (seconds)'], value: targetValue }
         ]);
-        scene.stopAnimation(target);
+        scene.stopAnimation(target, propertyPath, n => n === target);
         scene.beginDirectAnimation(target, [animation], 0, 60, false, node.properties['Speed'], () => node.store.playing = false);
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
