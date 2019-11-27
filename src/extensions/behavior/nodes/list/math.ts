@@ -8,6 +8,14 @@ import { GraphNode, registerNode } from '../graph-node';
  * @param object the object reference being customized using the graph editor.
  */
 export function registerAllMathNodes (object?: any): void {
+    registerNode({ name: 'Not', description: 'Performs a not operator', path: 'math/not', ctor: Object, functionRef: (node) => {
+        return !(node.getInputData<any>(0));
+    }, inputs: [
+        { name: 'Value', type: 'number,boolean' }
+    ], outputs: [
+        { name: 'Result', type: 'number,boolean' }
+    ] }, object);
+
     registerNode({ name: 'Scale', description: 'Scales', path: 'math/scale', ctor: Object, functionRef: (node) => {
         // Vector
         const vec = node.getInputData<Vector2 | Vector3 | Vector4>(1);
