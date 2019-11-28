@@ -615,6 +615,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                         mesh.material.dispose(true, true);
                     
                     mesh.material = Material.Parse(this._savedState.material, this.editor.core.scene, 'file:');
+                    mesh.material.metadata = this._savedState.material.metadata;
                     delete this._savedState.material;
                 }
 
@@ -642,8 +643,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.node.rotation && (this._savedState.rotation = this.node.rotation.clone());
             this.node.scaling && (this._savedState.scaling = this.node.scaling.clone());
             this.node.rotationQuaternion && (this._savedState.rotationQuaternion = this.node.rotationQuaternion.clone());
-            // this.node.material && (this.node.material = this.node.material.clone(this.node.material.name)) && (this._savedState.material = this.node.material);
-            this.node.material && (this._savedState.material = this.node.material.serialize());
+            if (this.node.material) {
+                this._savedState.material = this.node.material.serialize();
+                this._savedState.material.metadata = this.node.material.metadata;
+            }
             this._savedState.parent = this.node.parent;
 
             const keys = Object.keys(this.node);
