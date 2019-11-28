@@ -81,7 +81,10 @@ export function registerAllAnimationNodes (object?: any): void {
             { frame: 60 * node.properties['Duration (seconds)'], value: targetValue }
         ]);
         scene.stopAnimation(target, propertyPath, n => n === target);
-        scene.beginDirectAnimation(target, [animation], 0, 60, false, node.properties['Speed'], () => node.store.playing = false);
+        scene.beginDirectAnimation(target, [animation], 0, 60, false, node.properties['Speed'], () => {
+            node.store.playing = false;
+            node.triggerSlot(0);
+        });
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Target Value', type: 'number,vec2,vec3,col3' }
@@ -91,7 +94,7 @@ export function registerAllAnimationNodes (object?: any): void {
         { name: 'Speed', type: 'number', defaultValue: 1 },
         { name: 'Duration (seconds)', type: 'number', defaultValue: 1 }
     ], outputs: [
-        { name: 'Current Value', type: 'number,vec2,vec3,vec4,col3,col4' }
+        { name: 'On End', type: LiteGraph.EVENT }
     ], widgets: [
         { type: 'number', name: 'Speed', value: 1, callback: (v, g, n) => n.properties['Speed'] = v },
         { type: 'number', name: 'Duration (seconds)', value: 1, callback: (v, g, n) => n.properties['Duration (seconds)'] = v }
