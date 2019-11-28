@@ -236,6 +236,19 @@ export class GraphNode extends IGraphNode {
     }
 
     /**
+     * Returns the generated code.
+     */
+    public generateCode (): string {
+        const targetPath = this.properties['Target Path'];
+        const target = targetPath ? GraphNode.GetTargetPath(targetPath, this.graph.scriptObject, this.graph.scriptScene) : this.graph.scriptObject;
+
+        if (this.description.getCodeRef)
+            return this.description.getCodeRef(this, target, this.graph.scriptScene);
+
+        return 'todo';
+    }
+
+    /**
      * Returns the effective property.
      * @param object the object reference containing the property to get.
      * @param path the path of the property to get its reference/copy.

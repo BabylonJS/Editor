@@ -215,6 +215,11 @@ export interface IGraphNodeDescriptor {
      * The collection of widgets for the node.
      */
     widgets?: IWidget[];
+    /**
+     * The name of the function to call on the current object being used.
+     * @see myGraphNode.graph.scriptObject;
+     */
+    getCodeRef?: ((node: GraphNode, target: any, scene: Scene) => any);
 }
 
 export abstract class IGraphNode {
@@ -419,6 +424,11 @@ export abstract class IGraphNode {
         else
             delete this.boxcolor;
     }
+
+    /**
+     * Returns the generated code.
+     */
+    public abstract generateCode (): string;
 
     /**
      * Gets or sets wether of not if the node has been loaded and ready.

@@ -117,6 +117,13 @@ export class GraphTypeNode extends IGraphNode {
     }
 
     /**
+     * Returns the generated code.
+     */
+    public generateCode (): string {
+        return this.defaultValue.toString();
+    }
+
+    /**
      * On the background is drawn, draw custom text.
      * @param ctx the canvas 2d context reference.
      * @param graph the graph canvas reference.

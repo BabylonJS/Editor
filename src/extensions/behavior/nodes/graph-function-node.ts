@@ -103,6 +103,13 @@ export class GraphFunctionNode extends IGraphNode {
     }
 
     /**
+     * Returns the generated code.
+     */
+    public generateCode (): string {
+        return this._methodName;
+    }
+
+    /**
      * On the background is drawn, draw custom text.
      * @param ctx the canvas 2d context reference.
      * @param graph the graph canvas reference.
