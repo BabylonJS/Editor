@@ -484,6 +484,14 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param index the index of the selected graph
      */
     protected selectGraph (index: number): void {
+        // Close all subgraphs
+        if (this.graph._graph_stack) {
+            while (this.graph._graph_stack.length) {
+                this.graph.closeSubgraph();
+            }
+        }
+        
+        // Find graph
         const graphs = this.editor.core.scene.metadata.behaviorGraphs;
         this.data = graphs.find(s => s.id === this.datas.metadatas[index].graphId);
 
@@ -699,6 +707,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 // TODO.
             });
 
+            this._setScriptObjectAndScene(this.graphData);
             this.graphData.start();
 
             // Update toolbar
@@ -709,6 +718,19 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
             this.editor.core.disableObjectSelection = true;
         }
+    }
+
+    // Recursively sets the script object and scene.
+    private _setScriptObjectAndScene (root: LGraph): void {
+        root.scriptObject = this.node;
+        root.scriptScene = this.editor.core.scene;
+
+        root._nodes.forEach(n => {
+            if (!(n instanceof LiteGraph.Nodes.Subgraph))
+                return;
+
+            this._setScriptObjectAndScene(n.subgraph);
+        });
     }
 
     // Updates the toolbar text (attached object + edited objec)

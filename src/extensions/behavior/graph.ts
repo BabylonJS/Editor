@@ -9,8 +9,6 @@ import { AssetElement } from '../typings/asset';
 import { GraphNode } from './nodes/graph-node';
 import { registerAllNodes } from './nodes/nodes-list';
 
-export { LGraph, LGraphCanvas, LiteGraph, LGraphGroup, GraphNode }
-
 // Interfaces
 export interface Variable {
     /**
@@ -173,8 +171,6 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                     return;
 
                 const graph = new LGraph();
-                graph.scriptObject = node;
-                graph.scriptScene = this.scene;
 
                 GraphNode.Loaded = false;
                 const effectiveData = this.datas.graphs.find(s => s.id === m.graphId);
@@ -183,6 +179,8 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                 GraphNode.Loaded = true;
 
                 // On ready
+                this._setScriptObjectAndScene(node, graph);
+
                 this.scene.onReadyObservable.addOnce(() => {
                     this.scene.onBeforeRenderObservable.add(() => {
                         graph.runStep(1, true);
@@ -288,6 +286,19 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
 
             node.metadata = node.metadata || { };
             node.metadata.behaviorGraph = d;
+        });
+    }
+
+    // Recursively sets the script object and scene.
+    private _setScriptObjectAndScene (node: any, root: LGraph): void {
+        root.scriptObject = node;
+        root.scriptScene = this.scene;
+
+        root._nodes.forEach(n => {
+            if (!(n instanceof LiteGraph.Nodes.Subgraph))
+                return;
+
+            this._setScriptObjectAndScene(node, n.subgraph);
         });
     }
 

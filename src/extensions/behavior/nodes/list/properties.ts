@@ -79,7 +79,7 @@ export function registerAllPropertiesNodes (object?: any): void {
                  object instanceof Camera ? 'camera' :
                  null;
 
-    registerNode({ name: 'This', description: '', path: 'properties/this', ctor: Object, functionRef: () => object, outputs: [
+    registerNode({ name: 'This', description: '', path: 'properties/this', ctor: Object, functionRef: (node, target) => target, outputs: [
         { name: name, type: type }
     ] }, object);
 }

@@ -1,7 +1,7 @@
 import { LiteGraph } from 'litegraph.js';
 
 import { IGraphNode, InputOutputType } from './types';
-import { GraphNode } from '../graph';
+import { GraphNode } from './graph-node';
 
 /**
  * Registers the given node in order to be used as a function call.
