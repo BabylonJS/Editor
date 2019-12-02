@@ -217,6 +217,38 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'Max', defaultValue: 1, type: 'number' }
     ] }, object);
 
+    registerNode({ name: 'Max', description: 'Returns the max value of the given two numbers', path: 'math/max', ctor: Object, functionRef: (node) => {
+        const a = node.getInputData<number>(0);
+        const b = node.getInputData<number>(1);
+        if (!node.isInputValid(a) || !node.isInputValid(b)) {
+            node.setNodeState(true);
+            return 0;
+        }
+        
+        return Math.max(a, b);
+    }, inputs: [
+        { name: 'a', type: 'number' },
+        { name: 'b', type: 'number' }
+    ], outputs: [
+        { name: 'Max', type: 'number' }
+    ] }, object);
+
+    registerNode({ name: 'Min', description: 'Returns the min value of the given two numbers', path: 'math/min', ctor: Object, functionRef: (node) => {
+        const a = node.getInputData<number>(0);
+        const b = node.getInputData<number>(1);
+        if (!node.isInputValid(a) || !node.isInputValid(b)) {
+            node.setNodeState(true);
+            return 0;
+        }
+        
+        return Math.min(a, b);
+    }, inputs: [
+        { name: 'a', type: 'number' },
+        { name: 'b', type: 'number' }
+    ], outputs: [
+        { name: 'Min', type: 'number' }
+    ] }, object);
+
     registerNode({ name: 'Floor', description: 'Floors the given number of vector', path: 'math/floor', ctor: Object, functionRef: (node) => {
         // Vector
         const vec = node.getInputData<Vector2 | Vector3 | Vector4>(1);
