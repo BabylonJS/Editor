@@ -1,6 +1,6 @@
 import { Scene, Material, Color3, Color4 } from 'babylonjs';
 import { AbstractEditionTool, Tools, Window, Tree } from 'babylonjs-editor';
-import { LGraphGroup } from 'litegraph.js';
+import { LiteGraph, LGraphGroup } from 'litegraph.js';
 
 import { IGraphNode } from '../../extensions/behavior/nodes/types';
 import { GraphTypeNode } from '../../extensions/behavior/nodes/graph-type-node';
@@ -36,7 +36,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
      * @param object the object selected in the graph
      */
     public isSupported(object: any): boolean {
-        return object instanceof IGraphNode || object instanceof LGraphGroup;
+        return object instanceof IGraphNode || object instanceof LGraphGroup || object instanceof LiteGraph.Nodes.Subgraph;
     }
 
     /**
@@ -61,10 +61,19 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
             this._setupNodeFunction(node);
         } else if (node instanceof GraphNode) {
             this._setupNode(node);
+        } else if (node instanceof LiteGraph.Nodes.Subgraph) {
+            this._setupSubGraph(node);
         } else {
             // TOOD.
             debugger;
         }
+    }
+
+    /**
+     * Setups a sub graph node.
+     */
+    private _setupSubGraph (node: IGraphNode): void {
+        this.tool.add(node, 'title').name('Title');
     }
 
     /**

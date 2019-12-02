@@ -304,8 +304,14 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
      * @param object the object which is attached
      */
     public static RegisterNodes (object?: any): void {
+        // Configure subgraph
+        LiteGraph.Nodes.Subgraph.Title = 'Sub-Graph';
+        LiteGraph.Nodes.Subgraph.Desc = 'Sub-Graph';
+
         // Clear default nodes
-        LiteGraph.registered_node_types = { };
+        LiteGraph.registered_node_types = {
+            'graph/subgraph': LiteGraph.Nodes.Subgraph
+        };
 
         // Register all nodes!
         registerAllNodes(object);

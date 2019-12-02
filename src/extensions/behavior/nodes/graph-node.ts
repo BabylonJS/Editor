@@ -95,6 +95,10 @@ export class GraphNode extends IGraphNode {
                 });
             }
         });
+
+        // On added
+        if (description.onAdded)
+            description.onAdded(this);
     }
 
     /**

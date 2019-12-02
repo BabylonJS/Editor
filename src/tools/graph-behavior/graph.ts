@@ -202,12 +202,18 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                             if (group.removable === false)
                                 return;
                             
-                            this.graphData.remove(group);
+                            this.graph.graph.remove(group);
                         } }
                     });
                 }
                 
                 GraphNodeCreator.OnConfirmSelection = (id) => {
+                    // Close subgraph?
+                    if (id === 'editor_close_graph') {
+                        this.graph.closeSubgraph();
+                        return GraphNodeCreator.Hide();
+                    }
+
                     const node = <GraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
                     if (!node)
                         return;
@@ -221,11 +227,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     node.color = '#555';
                     node.bgColor = '#AAA';
         
-                    this.graphData.add(node);
+                    this.graph.graph.add(node);
+
                     GraphNodeCreator.Hide();
                 };
 
-                return GraphNodeCreator.Show();
+                return GraphNodeCreator.Show(this.graph);
             }
 
             // Node
@@ -241,13 +248,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                         clone.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(node, w));
                     }
 
-                    this.graphData.add(clone);
+                    this.graph.graph.add(clone);
                 } },
                 remove: { name: 'Remove', callback: () => {
                     if (node.removable === false)
                         return;
                     
-                    this.graphData.remove(node);
+                    this.graph.graph.remove(node);
                 } },
             });
         });

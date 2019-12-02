@@ -144,6 +144,10 @@ export interface IGraphNodeDescriptor {
      */
     functionRef?: string | ((node: GraphNode, target: any, scene: Scene) => any);
     /**
+     * Called once the graph editor adds the given node
+     */
+    onAdded?: (node: GraphNode) => void;
+    /**
      * Called once the graph editor stopped execution. Typically used only in the graph editor when testing graphs.
      */
     onStop?: (node: GraphNode, target: any, scene: Scene) => void;
@@ -346,12 +350,22 @@ export abstract class IGraphNode {
      * Widgets available for the node.
      */
     widgets?: IWidget[];
+    /**
+     * Defines the subgraph reference.
+     */
+    subgraph?: LGraph;
 
     /**
      * Defines the store used to keep some temporary variables.
      */
     store: { [index: string]: any } = { };
 
+    onSubgraphNewGlobalInput?: any;
+    onSubgraphRenamedGlobalInput?: any;
+    onSubgraphTypeChangeGlobalInput?: any;
+    onSubgraphNewGlobalOutput?: any;
+    onSubgraphRenamedGlobalOutput?: any;
+    onSubgraphTypeChangeGlobalOutput?: any;
     /**
      * On connections changed for this node, change its mode according to the new connections.
      * @param type input (1) or output (2).

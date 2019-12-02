@@ -1,4 +1,4 @@
-import { LiteGraph } from 'litegraph.js';
+import { LiteGraph, LGraphCanvas } from 'litegraph.js';
 import { Tools, IStringDictionary, Graph } from 'babylonjs-editor';
 
 export default class GraphNodeCreator {
@@ -59,7 +59,7 @@ export default class GraphNodeCreator {
     /**
      * Shows the node creator widget
      */
-    public static Show (): void {
+    public static Show (graph: LGraphCanvas): void {
         // Focus search
         this._Search.value = '';
         this._SearchStr = '';
@@ -67,7 +67,7 @@ export default class GraphNodeCreator {
 
         // First, hide and reset
         this.Hide();
-        this.Reset();
+        this.Reset(graph);
 
         // Configure
         this._Root.style.width = this.Width + 'px';
@@ -104,11 +104,17 @@ export default class GraphNodeCreator {
     /**
      * Resets the node creator widget
      */
-    public static Reset (): void {
+    public static Reset (graph?: LGraphCanvas): void {
         // Hide all
         const nodes = LiteGraph.registered_node_types;
         for (const n in nodes)
             this._Graph.element.hide(n);
+
+        // Close subgraph?
+        if (graph && graph._graph_stack && graph._graph_stack.length > 0)
+            this._Graph.element.show('editor_close_graph');
+        else
+            this._Graph.element.hide('editor_close_graph');
         
         // Add
         const toShow: string[] = [];
@@ -215,6 +221,9 @@ export default class GraphNodeCreator {
 
         // Add group
         this._Graph.add({ id: 'group', text: 'Group', img: 'icon-folder' });
+
+        // Close graph
+        this._Graph.add({ id: 'editor_close_graph', text: 'Close Graph', img: 'icon-undo' });
 
         // All all
         for (const s in this._Sorted) {

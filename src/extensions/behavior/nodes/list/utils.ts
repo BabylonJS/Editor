@@ -1,5 +1,5 @@
 import { Vector3, Vector4, Vector2, Color3, Color4 } from 'babylonjs';
-import { LiteGraph } from 'litegraph.js';
+import { LiteGraph, LGraph } from 'litegraph.js';
 
 import { registerNode, GraphNode } from '../graph-node';
 import Extensions from '../../../extensions';
