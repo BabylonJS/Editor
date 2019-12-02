@@ -114,8 +114,8 @@ export function registerAllMathNodes (object?: any): void {
         if (a < b) node.triggerSlot(5);
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
-        { name: 'a', type: 'number,boolean,string' },
-        { name: 'b', type: 'number,boolean,string' }
+        { name: 'a', type: null },
+        { name: 'b', type: null }
     ], outputs: [
         { name: 'a == b', type: LiteGraph.EVENT },
         { name: 'a != b', type: LiteGraph.EVENT },
@@ -297,5 +297,14 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'Max', type: 'number,vec2,vec3' }
     ], outputs: [
         { name: 'Result', type: 'number,vec2,vec3' }
+    ] }, object);
+
+    registerNode({ name: 'Vector Length', description: 'Returns the length of the input vector2D, 3D or 4D', path: 'math/vectorlength', ctor: Object, functionRef: (node) => {
+        const v = node.getInputData<Vector2 | Vector3 | Vector4>(0);
+        return v.length();
+    }, inputs: [
+        { name: 'Vector', type: 'vec2,vec3,vec4' }
+    ], outputs: [
+        { name: 'Length', type: 'number' }
     ] }, object);
 }

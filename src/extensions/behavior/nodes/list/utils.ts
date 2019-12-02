@@ -28,7 +28,6 @@ export function registerAllUtilsNodes (object?: any): void {
     ] }, object);
 
     registerNode({ name: 'Array At', description: 'Returns the element of the input array at the given position', path: 'utils/arrayat', ctor: Object, functionRef: (node, target) => {
-        debugger;
         const arr = node.getInputData<any[]>(0) || [];
         const pos = node.getInputData<number>(1);
         return arr[node.isInputValid(pos) ? pos : node.properties['Position']];

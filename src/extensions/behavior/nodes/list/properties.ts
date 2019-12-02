@@ -1,12 +1,17 @@
+import { Node, AbstractMesh, Light, Camera } from 'babylonjs';
 import { LiteGraph } from 'litegraph.js';
+
 import { GraphNode, registerNode } from '../graph-node';
-import { Color3, Color4 } from 'babylonjs';
 
 /**
  * Registers all the available properties nodes.
  * @param object the object reference being customized using the graph editor.
  */
 export function registerAllPropertiesNodes (object?: any): void {
+    /**
+     * Properties
+     */
+    
     registerNode({ name: 'Get Property', description: 'Gets the property of the current node and returns its value.', path: 'properties/getproperty', ctor: Object, properties: [
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
         { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' }
@@ -34,6 +39,10 @@ export function registerAllPropertiesNodes (object?: any): void {
         { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
     ], drawBackground: (node, target) => `${target}'s\n${node.properties['Property Path']}` }, object);
 
+    /**
+     * Variable
+     */
+
     registerNode({ name: 'Variable', description: 'Sets a variable node taken from the avaialable node variables.', path: 'properties/variable', ctor: Object, functionRef: (node) => {
         node.graph.variables = node.graph.variables || [];
         const v = node.graph.variables.find(v => v.name === node.properties['Variable']);
@@ -60,4 +69,17 @@ export function registerAllPropertiesNodes (object?: any): void {
             values: (w, n) => n.graph.variables.map(v => v.name)
         } }
     ], drawBackground: (node) => node.properties['Variable'] }, object);
+
+    /**
+     * This
+     */
+    const name = object instanceof Node ? object.getClassName() : 'This';
+    const type = object instanceof AbstractMesh ? 'mesh' :
+                 object instanceof Light ? 'light' :
+                 object instanceof Camera ? 'camera' :
+                 null;
+
+    registerNode({ name: 'This', description: '', path: 'properties/this', ctor: Object, functionRef: () => object, outputs: [
+        { name: name, type: type }
+    ] }, object);
 }
