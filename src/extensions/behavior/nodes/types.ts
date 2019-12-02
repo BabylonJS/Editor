@@ -354,6 +354,14 @@ export abstract class IGraphNode {
      * Defines the subgraph reference.
      */
     subgraph?: LGraph;
+    /**
+     * Defines the current available inputs of the node.
+     */
+    inputs: any[];
+    /**
+     * Defines the current available outputs of the node.
+     */
+    outputs: any[];
 
     /**
      * Defines the store used to keep some temporary variables.

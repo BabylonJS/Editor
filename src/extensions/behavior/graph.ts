@@ -1,5 +1,5 @@
 import { Scene, AbstractMesh, Light, Camera, Tools } from 'babylonjs';
-import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup } from 'litegraph.js';
+import { LGraph, LiteGraph } from 'litegraph.js';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -215,9 +215,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
             objects.forEach(o => {
                 if (o.metadata && o.metadata.behaviorGraph) {
                     const behavior = <GraphNodeMetadata> o.metadata.behaviorGraph;
-                    behavior.node = o instanceof Scene ? 'Scene' :
-                                    o instanceof Node ? o.name :
-                                    o.id;
+                    behavior.node = o instanceof Scene ? 'Scene' : o.name || o.id;
                     behavior.nodeId = o instanceof Scene ? 'Scene' : o.id;
 
                     result.nodes.push(behavior);
@@ -298,7 +296,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
             if (!(n instanceof LiteGraph.Nodes.Subgraph))
                 return;
 
-            this._setScriptObjectAndScene(node, n.subgraph);
+            this._setScriptObjectAndScene(node, n['subgraph']);
         });
     }
 
@@ -319,9 +317,17 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
         LiteGraph.Nodes.Subgraph.Title = 'Sub-Graph';
         LiteGraph.Nodes.Subgraph.Desc = 'Sub-Graph';
 
+        LiteGraph.Nodes.GraphInput.Title = 'Sub-Graph Input';
+        LiteGraph.Nodes.GraphInput.Desc = 'Sub-Graph Input';
+
+        LiteGraph.Nodes.GraphOutput.Title = 'Sub-Graph Output';
+        LiteGraph.Nodes.GraphOutput.Desc = 'Sub-Graph Output';
+
         // Clear default nodes
         LiteGraph.registered_node_types = {
-            'graph/subgraph': LiteGraph.Nodes.Subgraph
+            'graph/subgraph': LiteGraph.Nodes.Subgraph,
+            'graph/input': LiteGraph.Nodes.GraphInput,
+            'graph/output': LiteGraph.Nodes.GraphOutput
         };
 
         // Register all nodes!

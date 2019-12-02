@@ -87,7 +87,7 @@
     "koa-router": "~7.3.0",
     "koa-socket": "~4.4.0",
     "koa-static": "~5.0.0",
-    "litegraph.js": "0.7.0",
+    "litegraph.js": "0.7.2",
     "monaco-editor": "0.18.x",
     "raphael": "~2.2.7",
     "rimraf": "~2.6.2",

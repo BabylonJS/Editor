@@ -14,4 +14,5 @@ export function registerAllTypeNodes (object?: any): void {
     registerTypeNode('types/vector4', 'Vector4', 'Represents a Vector4D', () => Vector4.Zero());
     registerTypeNode('types/color3', 'Color3', 'Represents a Color3', () => Color3.Black());
     registerTypeNode('types/color4', 'Color4', 'Represents a Color4', () => new Color4(0, 0, 0, 1));
+    registerTypeNode('types/null', 'Null', 'Represents a null value', () => null);
 }

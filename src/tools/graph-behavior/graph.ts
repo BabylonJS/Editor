@@ -177,13 +177,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.data.graph = JSON.parse(JSON.stringify(this.graphData.serialize()));
             this.data.variables = this.graphData.variables;
         });
-        this.graph.canvas.addEventListener('click', () => {
-            const canvasPos = this.graph.convertEventToCanvas(event);
-            const node = this.graphData.getNodeOnPos(canvasPos[0], canvasPos[1]);
+        this.graph.canvas.addEventListener('click', (event: MouseEvent) => {
+            const canvasPos = this.graph.convertEventToCanvasOffset(event);
+            const node = this.graph.graph.getNodeOnPos(canvasPos[0], canvasPos[1]);
             if (node)
                 return;
             
-            const group = this.graphData.getGroupOnPos(canvasPos[0], canvasPos[1]);
+            const group = this.graph.graph.getGroupOnPos(canvasPos[0], canvasPos[1]);
             return this.editor.inspector.setObject(group || this.graph);
         });
         
@@ -191,6 +191,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.graph.render_execution_order = true;
         this.graph.onNodeSelected = (node) => this.editor.inspector.setObject(node);
         this.graph.showSearchBox = () => { };
+        this.graph.showLinkMenu = ((link, event: MouseEvent) => {
+            ContextMenu.Show(event, {
+                remove: { name: 'Remove', callback: () => {
+                    this.graph.graph.removeLink(link.id);
+                } }
+            });
+        });
         this.graph.processContextMenu = ((node: GraphNode, event) => {
             // Add.
             if (!node) {
@@ -218,12 +225,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     if (!node)
                         return;
                     
-                    node.pos = this.graph.convertEventToCanvas(event);
-                    if (node.size[0] < 100)
-                        node.size[0] = 100;
-                    if (node.widgets)
-                        node.size[1] += 25 * node.widgets.length;
-                    
+                    node.computeSize();
+                    node.pos = this.graph.convertEventToCanvasOffset(event);                    
                     node.color = '#555';
                     node.bgColor = '#AAA';
         
@@ -243,8 +246,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     clone.properties = Tools.Clone(node.properties);
                     clone.color = '#555';
                     clone.bgColor = '#AAA';
+                    clone.computeSize();
                     if (clone.widgets) {
-                        clone.size[1] += 25 * node.widgets.length;
                         clone.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(node, w));
                     }
 

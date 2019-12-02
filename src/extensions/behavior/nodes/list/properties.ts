@@ -25,7 +25,7 @@ export function registerAllPropertiesNodes (object?: any): void {
         const effectiveProperty = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
         const property = effectiveProperty[split[split.length - 1]];
         const input = node.getInputData(1);
-        if (GraphNode.GetConstructorName(input) !== GraphNode.GetConstructorName(property))
+        if (GraphNode.GetConstructorName(input) !== GraphNode.GetConstructorName(property) && input !== null)
             return node.getInputData(1);
 
         return (effectiveProperty[split[split.length - 1]] = input);

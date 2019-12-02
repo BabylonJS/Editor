@@ -18,8 +18,9 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
     private _allowedTypes: string[] = [
         'vector2', 'vector3', 'vector4',
         'color3', 'color4',
-        // 'quaternion',
-        'number', 'string', 'boolean'
+        'quaternion',
+        'number', 'string', 'boolean',
+        'null'
     ];
     private _onPropertySelected: (path: string) => void;
 
@@ -36,7 +37,11 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
      * @param object the object selected in the graph
      */
     public isSupported(object: any): boolean {
-        return object instanceof IGraphNode || object instanceof LGraphGroup || object instanceof LiteGraph.Nodes.Subgraph;
+        return object instanceof IGraphNode ||
+               object instanceof LGraphGroup ||
+               object instanceof LiteGraph.Nodes.Subgraph ||
+               object instanceof LiteGraph.Nodes.GraphInput ||
+               object instanceof LiteGraph.Nodes.GraphOutput;
     }
 
     /**
@@ -63,6 +68,8 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
             this._setupNode(node);
         } else if (node instanceof LiteGraph.Nodes.Subgraph) {
             this._setupSubGraph(node);
+        } else if (node instanceof LiteGraph.Nodes.GraphInput || node instanceof LiteGraph.Nodes.GraphOutput) {
+            this._setupSubGraphInputOutput(node);
         } else {
             // TOOD.
             debugger;
@@ -74,6 +81,19 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
      */
     private _setupSubGraph (node: IGraphNode): void {
         this.tool.add(node, 'title').name('Title');
+    }
+
+    /**
+     * Setups a sub graph input or output.
+     */
+    private _setupSubGraphInputOutput (node: IGraphNode): void {
+        this.tool.add(node.properties, 'name').name('Name');
+        this.tool.add(node.properties, 'type', [
+            'number', 'string', 'boolean',
+            'vec2', 'vec3', 'vec4',
+            'col3', 'col4',
+            'mesh', 'light', 'camera'
+        ]).name('Type');
     }
 
     /**
@@ -115,7 +135,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
             // Variable
             if (property.name === 'Variable') {
-                const variables = node.graph.variables.map(v => v.name);
+                const variables = node.graph['variables'].map(v => v.name);
                 this.tool.add(node.properties, property.name, variables).name(property.name);
                 continue;
             }
@@ -272,7 +292,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
                      // Check usable
                     const property = GraphNode.GetProperty(target, selected.data);
-                    const ctor = GraphNode.GetConstructorName(property).toLowerCase();
+                    const ctor = (property === null) ? 'null' : GraphNode.GetConstructorName(property).toLowerCase();
 
                     if (this._allowedTypes.indexOf(ctor) === -1)
                         return;
@@ -297,7 +317,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                     continue;
 
                 const value = root[key];
-                const ctor = Tools.GetConstructorName(value).toLowerCase();
+                const ctor = value === null ? 'null' : Tools.GetConstructorName(value).toLowerCase();
 
                 const allowed = this._allowedTypes.indexOf(ctor) !== -1;
                 const deep = deepTypes.find(dt => value instanceof dt);
@@ -307,7 +327,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
                 const id = `${propertyName === '' ? '' : (propertyName + '.')}${key}`;
                 tree.add({
-                    text: key,
+                    text: key + (value === null ? ' (null)' : ''),
                     id: id,
                     img: 'icon-edit',
                     data: id

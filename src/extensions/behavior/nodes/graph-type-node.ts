@@ -72,6 +72,12 @@ export class GraphTypeNode extends IGraphNode {
                 this._type = 'col4';
                 this.addProperty('Value', [this.defaultValue.r, this.defaultValue.g, this.defaultValue.b, this.defaultValue.a]);
                 break;
+            case 'object':
+                if (this.defaultValue === null)
+                    this._type = undefined;
+                else
+                    debugger;
+                break;
             default: debugger; break; // Should never happen
         }
 
@@ -79,14 +85,21 @@ export class GraphTypeNode extends IGraphNode {
         this.addOutput('Value', this._type);
 
         // Outputs
-        GraphTypeNode._VectorOuputs.forEach(v => this.defaultValue[v] !== undefined && this.addOutput(v, 'number'));
-        GraphTypeNode._ColorOutputs.forEach(v => this.defaultValue[v] !== undefined && this.addOutput(v, 'number'));
+        if (this.defaultValue !== null) {
+            GraphTypeNode._VectorOuputs.forEach(v => this.defaultValue[v] !== undefined && this.addOutput(v, 'number'));
+            GraphTypeNode._ColorOutputs.forEach(v => this.defaultValue[v] !== undefined && this.addOutput(v, 'number'));
+        }
     }
 
     /**
      * Called on the node is being executed.
      */
     public onExecute (): void {
+        // Null?
+        if (this.defaultValue === null)
+            return this.setOutputData(0, null);
+        
+        // Value
         const value = this.properties['Value'];
         switch (this._type) {
             case 'number':
@@ -112,15 +125,17 @@ export class GraphTypeNode extends IGraphNode {
             default: debugger; break; // Should never happen
         }
 
-        GraphTypeNode._VectorOuputs.forEach((v, index) => this.defaultValue[v] !== undefined && this.setOutputData(index + 1, this.properties['Value'][index]));
-        GraphTypeNode._ColorOutputs.forEach((v, index) => this.defaultValue[v] !== undefined && this.setOutputData(index + 1, this.properties['Value'][index]));
+        if (this.defaultValue !== null) {
+            GraphTypeNode._VectorOuputs.forEach((v, index) => this.defaultValue[v] !== undefined && this.setOutputData(index + 1, this.properties['Value'][index]));
+            GraphTypeNode._ColorOutputs.forEach((v, index) => this.defaultValue[v] !== undefined && this.setOutputData(index + 1, this.properties['Value'][index]));
+        }
     }
 
     /**
      * Returns the generated code.
      */
     public generateCode (): string {
-        return this.defaultValue.toString();
+        return this.defaultValue === null ? 'null' : this.defaultValue.toString();
     }
 
     /**
@@ -130,7 +145,7 @@ export class GraphTypeNode extends IGraphNode {
      * @param canvas the canvas reference where to draw the text.
      */
     public onDrawBackground (ctx: CanvasRenderingContext2D): void {
-        if (this.flags.collapsed)
+        if (this.flags.collapsed || this.defaultValue === null)
 		    return;
 
         ctx.font = '14px Arial';

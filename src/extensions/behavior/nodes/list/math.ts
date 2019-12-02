@@ -1,4 +1,4 @@
-import { Vector2, Vector3, Vector4, Scalar } from 'babylonjs';
+import { Vector2, Vector3, Vector4, Scalar, Quaternion } from 'babylonjs';
 import { LiteGraph } from 'litegraph.js';
 
 import { GraphNode, registerNode } from '../graph-node';
@@ -278,6 +278,10 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'Power', defaultValue: 1, type: 'number' }
     ] }, object);
 
+    registerNode({ name: 'Pi', description: 'Returns the PI value', path: 'math/pi', ctor: Object, functionRef: () => Math.PI, outputs: [
+        { name: 'Pi', type: 'number' }
+    ] }, object);
+
     registerNode({ name: 'Clamp', description: 'Clamps the given value in the given interval [min, max]', path: 'math/clamp', ctor: Object, functionRef: (node) => {
         const val = node.getInputData<number | Vector2 | Vector3>(0);
         if (!node.isInputValid(val)) return;
@@ -306,5 +310,17 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'Vector', type: 'vec2,vec3,vec4' }
     ], outputs: [
         { name: 'Length', type: 'number' }
+    ] }, object);
+
+    registerNode({ name: 'Quaternion To Euler Angles', description: 'Converts the input quaternion to euler angles', path: 'math/quaterniontoeulerangles', ctor: Object, functionRef: (node) => {
+        const q = node.getInputData<Quaternion>(0);
+        if (!node.isInputValid(q))
+            return Vector3.Zero();
+        
+        return q.toEulerAngles();
+    }, inputs: [
+        { name: 'Quaternion', type: 'quaternion' },
+    ], outputs: [
+        { name: 'Vector3', type: 'vec3' }
     ] }, object);
 }
