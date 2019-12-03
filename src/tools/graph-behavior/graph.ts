@@ -190,7 +190,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             return this.editor.inspector.setObject(group || this.graph);
         });
         document.addEventListener('keydown', this._keyUpEvent = (event: KeyboardEvent) => {
-            this.graph.processKey(event);
+            // Copy/paste
+            if (event.key === 'c' && event.ctrlKey) {
+                this.graph.copyToClipboard();
+            } else if (event.key === 'v' && event.ctrlKey) {
+                this.graph.pasteFromClipboard();
+            }
         });
         
         this.graph.render_canvas_border = false;
