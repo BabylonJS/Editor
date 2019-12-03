@@ -8,6 +8,7 @@ import { AssetElement } from '../typings/asset';
 
 import { GraphNode } from './nodes/graph-node';
 import { registerAllNodes } from './nodes/nodes-list';
+import { GraphInput, GraphOutput, SubGraph } from './nodes/sub-graph';
 
 // Interfaces
 export interface Variable {
@@ -175,11 +176,10 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                 GraphNode.Loaded = false;
                 const effectiveData = this.datas.graphs.find(s => s.id === m.graphId);
                 graph.configure(JSON.parse(JSON.stringify(effectiveData.graph)));
-                graph['variables'] = effectiveData.variables;
                 GraphNode.Loaded = true;
 
                 // On ready
-                this._setScriptObjectAndScene(node, graph);
+                this._setScriptObjectAndScene(node, graph, effectiveData);
 
                 this.scene.onReadyObservable.addOnce(() => {
                     this.scene.onBeforeRenderObservable.add(() => {
@@ -288,15 +288,16 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
     }
 
     // Recursively sets the script object and scene.
-    private _setScriptObjectAndScene (node: any, root: LGraph): void {
+    private _setScriptObjectAndScene (node: any, root: LGraph, data: GraphData): void {
         root['scriptObject'] = node;
         root['scriptScene'] = this.scene;
+        root['variables'] = data.variables;
 
         root['_nodes'].forEach(n => {
-            if (!(n instanceof LiteGraph.Nodes.Subgraph))
+            if (!(n instanceof SubGraph))
                 return;
 
-            this._setScriptObjectAndScene(node, n['subgraph']);
+            this._setScriptObjectAndScene(node, n['subgraph'], data);
         });
     }
 
@@ -313,21 +314,11 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
      * @param object the object which is attached
      */
     public static RegisterNodes (object?: any): void {
-        // Configure subgraph
-        (<any> LiteGraph.Nodes.Subgraph).Title = 'Sub-Graph';
-        (<any> LiteGraph.Nodes.Subgraph).Desc = 'Sub-Graph';
-
-        (<any> LiteGraph.Nodes.GraphInput).Title = 'Sub-Graph Input';
-        (<any> LiteGraph.Nodes.GraphInput).Desc = 'Sub-Graph Input';
-
-        (<any> LiteGraph.Nodes.GraphOutput).Title = 'Sub-Graph Output';
-        (<any> LiteGraph.Nodes.GraphOutput).Desc = 'Sub-Graph Output';
-
         // Clear default nodes
         LiteGraph.registered_node_types = {
-            'graph/subgraph': LiteGraph.Nodes.Subgraph,
-            'graph/input': LiteGraph.Nodes.GraphInput,
-            'graph/output': LiteGraph.Nodes.GraphOutput
+            'graph/subgraph': SubGraph,
+            'graph/input': GraphInput,
+            'graph/output': GraphOutput
         };
 
         // Register all nodes!

@@ -56,6 +56,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     private _mouseMoveEvent: (ev: MouseEvent) => void = null;
     private _keyUpEvent: (ev: KeyboardEvent) => void = null;
 
+    private _canvasFocused: boolean = false;
+
     // Static members
     private static _CopiedGraph: NodeGraph = null;
 
@@ -156,16 +158,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         System.import('./node_modules/litegraph.js/css/litegraph.css');
 
         this.graphData = new LGraph();
-        this.graphData.onStopEvent = () => {
-            this.graphData._nodes.forEach(n => {
-                n.description && n.description.onStop && n.description.onStop(
-                    n,
-                    this.graphData.scriptObject,
-                    this.graphData.scriptScene
-                );
-                n.store = { };
-            });
-        };
+        this.graphData.onStopEvent = () => this._stopAllGraphs(this.graphData);
         this.graphData.onNodeAdded = (node: GraphNode) => {
             node.shape = 'round';
             // LiteGraphNode.SetColor(node); TOOD.
@@ -173,13 +166,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
         this.graph.canvas.classList.add('ctxmenu');
-        document.addEventListener('mousemove', this._mouseMoveEvent = (ev) => {
-            if (!this.data)
-                return;
- 
-            this.data.graph = JSON.parse(JSON.stringify(this.graphData.serialize()));
-            this.data.variables = this.graphData.variables;
-        });
         this.graph.canvas.addEventListener('click', (event: MouseEvent) => {
             const canvasPos = this.graph.convertEventToCanvasOffset(event);
             const node = this.graph.graph.getNodeOnPos(canvasPos[0], canvasPos[1]);
@@ -189,13 +175,30 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             const group = this.graph.graph.getGroupOnPos(canvasPos[0], canvasPos[1]);
             return this.editor.inspector.setObject(group || this.graph);
         });
+        this.graph.canvas.addEventListener('mouseover', () => this._canvasFocused = true);
+        this.graph.canvas.addEventListener('mouseout', () => this._canvasFocused = false);
+
+        document.addEventListener('mousemove', this._mouseMoveEvent = (ev) => {
+            if (!this.data)
+                return;
+ 
+            this.data.graph = JSON.parse(JSON.stringify(this.graphData.serialize()));
+            this.data.variables = this.graphData.variables;
+        });
         document.addEventListener('keydown', this._keyUpEvent = (event: KeyboardEvent) => {
+            if (!this._canvasFocused)
+                return;
+            
             // Copy/paste
-            if (event.key === 'c' && event.ctrlKey) {
-                this.graph.copyToClipboard();
-            } else if (event.key === 'v' && event.ctrlKey) {
-                this.graph.pasteFromClipboard();
-            }
+            if (event.key === 'c' && event.ctrlKey)
+                return this.graph.copyToClipboard();
+            
+            if (event.key === 'v' && event.ctrlKey)
+                return this.graph.pasteFromClipboard();
+
+            // Escape
+            if (event.keyCode === 27)
+                return this.graph.closeSubgraph();
         });
         
         this.graph.render_canvas_border = false;
@@ -209,11 +212,15 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 } }
             });
         };
-        (<any> this.graph).processContextMenu = ((node: GraphNode, event) => {
+        this.graph['onClear'] = () => this.graph.ds.reset();
+        this.graph.processContextMenu = ((_: any, event: any) => {
+            const canvasPos = this.graph.convertEventToCanvasOffset(event);
+            const node = <GraphNode> <any> this.graph.graph.getNodeOnPos(canvasPos[0], canvasPos[1]);
+
             // Add.
             if (!node) {
                 // Group?
-                const group = this.graphData.getGroupOnPos(event.canvasX, event.canvasY);
+                const group = <any> this.graph.graph.getGroupOnPos(event.canvasX, event.canvasY);
                 if (group) {
                     return ContextMenu.Show(event, {
                         remove: { name: 'Remove', callback: () => {
@@ -741,12 +748,28 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     private _setScriptObjectAndScene (root: any): void {
         root.scriptObject = this.node;
         root.scriptScene = this.editor.core.scene;
+        root.variables = this.data.variables;
 
         root._nodes.forEach(n => {
             if (!(n instanceof LiteGraph.Nodes.Subgraph))
                 return;
 
             this._setScriptObjectAndScene(n['subgraph']);
+        });
+    }
+
+    // Recursively stops all the graphs.
+    private _stopAllGraphs (root: any): void {
+        root._nodes.forEach(n => {
+            n.description && n.description.onStop && n.description.onStop(
+                n,
+                this.graphData.scriptObject,
+                this.graphData.scriptScene
+            );
+            n.store = { };
+
+            if (n instanceof LiteGraph.Nodes.Subgraph)
+                this._stopAllGraphs(n['subgraph']);
         });
     }
 
