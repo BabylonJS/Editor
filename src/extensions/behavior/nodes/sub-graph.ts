@@ -1,8 +1,8 @@
 import { LiteGraph } from 'litegraph.js';
 
 export class SubGraph extends LiteGraph.Nodes.Subgraph {
-    public static Desc: string = 'Defines a SubGraph input';
-    public static Title: string = 'SubGraph Input';
+    public static Desc: string = 'Defines a SubGraph that can contains nodes in it';
+    public static Title: string = 'SubGraph';
 
     /**
      * Constructor.

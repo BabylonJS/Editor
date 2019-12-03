@@ -78,7 +78,7 @@ export function registerAllAnimationNodes (object?: any): void {
         const animation = new Animation(propertyPath, propertyPath, 60, animationType, Animation.ANIMATIONLOOPMODE_CONSTANT, false);
         animation.setKeys([
             { frame: 0, value: property.clone ? property.clone() : property },
-            { frame: 60 * node.properties['Duration (seconds)'], value: targetValue }
+            { frame: 60 * node.properties['Duration (secs)'], value: targetValue }
         ]);
         scene.stopAnimation(target, propertyPath, n => n === target);
         scene.beginDirectAnimation(target, [animation], 0, 60, false, node.properties['Speed'], () => {
@@ -92,11 +92,11 @@ export function registerAllAnimationNodes (object?: any): void {
         { name: 'Target Path', type: 'string', defaultValue: 'Self' },
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
         { name: 'Speed', type: 'number', defaultValue: 1 },
-        { name: 'Duration (seconds)', type: 'number', defaultValue: 1 }
+        { name: 'Duration (secs)', type: 'number', defaultValue: 1 }
     ], outputs: [
         { name: 'On End', type: LiteGraph.EVENT }
     ], widgets: [
         { type: 'number', name: 'Speed', value: 1, callback: (v, g, n) => n.properties['Speed'] = v },
-        { type: 'number', name: 'Duration (seconds)', value: 1, callback: (v, g, n) => n.properties['Duration (seconds)'] = v }
+        { type: 'number', name: 'Duration (secs)', value: 1, callback: (v, g, n) => n.properties['Duration (secs)'] = v }
     ], drawBackground: (node, target) => `${target}'s ${node.properties['Property Path']}` }, object);
 }

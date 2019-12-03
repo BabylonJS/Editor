@@ -165,6 +165,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         };
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
+        this.graph['masterGraph'] = this.graphData;
         this.graph.canvas.classList.add('ctxmenu');
         this.graph.canvas.addEventListener('click', (event: MouseEvent) => {
             const canvasPos = this.graph.convertEventToCanvasOffset(event);
@@ -460,8 +461,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Graph data
         this.graphData.clear();
-        this.graphData.scriptObject = node;
-        this.graphData.scriptScene = this.editor.core.scene;
+        this._setScriptObjectAndScene(this.graphData);
 
         // Add rows
         const graphs = this.editor.core.scene.metadata.behaviorGraphs;
@@ -530,13 +530,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         IGraphNode.Loaded = false;
         this.graphData.configure(JSON.parse(JSON.stringify(this.data.graph)));
-        this.graphData.variables = this.data.variables || [];
-        this.graphData._nodes.forEach(n => {
-            if (!n.widgets)
-                return;
-
-            n.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(n, w));
-        });
+        this._setScriptObjectAndScene(this.graphData);
+        this._instantiateWidgets(this.graphData);
         IGraphNode.Loaded = true;
 
         // Refresh right text
@@ -721,16 +716,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.graphData.variables.forEach(v => this._variablesValues.push(v.value));
 
             // Start
-            const nodes = <GraphNode[]> this.graphData._nodes;
-            nodes.forEach(n => {
-                // if (n instanceof RenderStart)
-                //     return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
-
-                // if (n instanceof RenderLoop)
-                //     return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
-                // TODO.
-            });
-
             this._setScriptObjectAndScene(this.graphData);
             this.graphData.start();
 
@@ -748,13 +733,26 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     private _setScriptObjectAndScene (root: any): void {
         root.scriptObject = this.node;
         root.scriptScene = this.editor.core.scene;
-        root.variables = this.data.variables;
+
+        if (this.data)
+            root.variables = this.data.variables;
 
         root._nodes.forEach(n => {
             if (!(n instanceof LiteGraph.Nodes.Subgraph))
                 return;
 
             this._setScriptObjectAndScene(n['subgraph']);
+        });
+    }
+
+    // Recursively instantiates the widgets of all nodes.
+    private _instantiateWidgets (root: any): void {
+        root._nodes.forEach(n => {
+            if (n.widgets)
+                n.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(n, w));
+
+            if (n instanceof LiteGraph.Nodes.Subgraph)
+                this._instantiateWidgets(n['subgraph']);
         });
     }
 
