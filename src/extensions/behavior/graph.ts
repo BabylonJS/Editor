@@ -175,7 +175,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                 GraphNode.Loaded = false;
                 const effectiveData = this.datas.graphs.find(s => s.id === m.graphId);
                 graph.configure(JSON.parse(JSON.stringify(effectiveData.graph)));
-                graph.variables = effectiveData.variables;
+                graph['variables'] = effectiveData.variables;
                 GraphNode.Loaded = true;
 
                 // On ready
@@ -289,10 +289,10 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
 
     // Recursively sets the script object and scene.
     private _setScriptObjectAndScene (node: any, root: LGraph): void {
-        root.scriptObject = node;
-        root.scriptScene = this.scene;
+        root['scriptObject'] = node;
+        root['scriptScene'] = this.scene;
 
-        root._nodes.forEach(n => {
+        root['_nodes'].forEach(n => {
             if (!(n instanceof LiteGraph.Nodes.Subgraph))
                 return;
 
@@ -314,14 +314,14 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
      */
     public static RegisterNodes (object?: any): void {
         // Configure subgraph
-        LiteGraph.Nodes.Subgraph.Title = 'Sub-Graph';
-        LiteGraph.Nodes.Subgraph.Desc = 'Sub-Graph';
+        (<any> LiteGraph.Nodes.Subgraph).Title = 'Sub-Graph';
+        (<any> LiteGraph.Nodes.Subgraph).Desc = 'Sub-Graph';
 
-        LiteGraph.Nodes.GraphInput.Title = 'Sub-Graph Input';
-        LiteGraph.Nodes.GraphInput.Desc = 'Sub-Graph Input';
+        (<any> LiteGraph.Nodes.GraphInput).Title = 'Sub-Graph Input';
+        (<any> LiteGraph.Nodes.GraphInput).Desc = 'Sub-Graph Input';
 
-        LiteGraph.Nodes.GraphOutput.Title = 'Sub-Graph Output';
-        LiteGraph.Nodes.GraphOutput.Desc = 'Sub-Graph Output';
+        (<any> LiteGraph.Nodes.GraphOutput).Title = 'Sub-Graph Output';
+        (<any> LiteGraph.Nodes.GraphOutput).Desc = 'Sub-Graph Output';
 
         // Clear default nodes
         LiteGraph.registered_node_types = {

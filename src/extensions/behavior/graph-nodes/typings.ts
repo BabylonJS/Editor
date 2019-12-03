@@ -17,7 +17,7 @@ export abstract class LiteGraphNode {
     public shape: string = 'round';
     public flags: any;
 
-    public graph: LGraph;
+    public graph: any;
 
     // Private members
     protected _data: any;
@@ -82,7 +82,7 @@ export abstract class LiteGraphNode {
      */
     public triggerSlot? (slot: number, data?: any): void;
 
-    public addInput? (type: string, name: string): void;
+    public addInput? (type: string, name: number | string): void;
     public addOutput? (name: string, type: string): void;
 
     public getInputData? (slot: number, forceUpdate?: boolean): any;
@@ -131,11 +131,11 @@ export abstract class LiteGraphNode {
     public static Register (location: string, ctor: new (addExecute?: boolean) => LiteGraphNode): void {
         if (!this.LastCtor) {
             this.LastCtor = ctor;
-            LiteGraph.registerNodeType(location, ctor);
+            LiteGraph.registerNodeType(location, <any> ctor);
             return;
         }
 
-        LiteGraph.registered_node_types[location] = this.LastCtor;
+        LiteGraph.registered_node_types[location] = <any> this.LastCtor;
     }
 
     /**

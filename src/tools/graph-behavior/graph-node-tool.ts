@@ -272,7 +272,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
         // Target
         const targetPath = this.object.properties['Target Path'];
-        const target = targetPath ? GraphNode.GetTargetPath(targetPath, this.object.graph.scriptObject, this.editor.core.scene) : this.object.graph.scriptObject;
+        const target = targetPath ? GraphNode.GetTargetPath(targetPath, this.object.graph['scriptObject'], this.editor.core.scene) : this.object.graph['scriptObject'];
 
         // Create window
         const window = new Window('PropertyBrowser');

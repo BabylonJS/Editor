@@ -1,4 +1,4 @@
-import { AbstractEditionTool, Grid, GridRow, Window, Form, Tools, Dialog } from 'babylonjs-editor';
+import { AbstractEditionTool, Grid, GridRow, Window, Form, Tools } from 'babylonjs-editor';
 import { LGraphCanvas } from 'litegraph.js';
 
 interface GraphVariablesGrid extends GridRow {
@@ -38,7 +38,7 @@ export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
      */
     public update(node: LGraphCanvas): void {
         this.object = node;
-        this.object.graph.variables = this.object.graph.variables || [];
+        this.object.graph['variables'] = this.object.graph['variables'] || [];
 
         this._buildGrid();
         this._fillAllVariables();
@@ -79,11 +79,11 @@ export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
      */
     private _fillAllVariables (): void {
         this._grid.element.clear();
-        this.object.graph.variables.forEach((v, index) => {
+        this.object.graph['variables'].forEach((v, index) => {
             this._grid.addRow({ name: v.name, type: this._getType(v.value), value: v.value.toString(), recid: index });
         });
 
-        if (this.object.graph.variables.length > 0)
+        if (this.object.graph['variables'].length > 0)
             this._grid.select([0]);
     }
 
@@ -117,7 +117,7 @@ export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
             if (id === 'Cancel')
                 return window.close();
             
-            this.object.graph.variables.push({
+            this.object.graph['variables'].push({
                 name: form.element.record['name'],
                 value: this._getValue(form.element.record['type'].id)
             });
@@ -135,7 +135,7 @@ export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
     private _removeVariables (ids: number[]): void {
         let offset = 0;
         ids.forEach(id => {
-            this.object.graph.variables.splice(id - offset, 1);
+            this.object.graph['variables'].splice(id - offset, 1);
             offset++
         });
 
@@ -146,7 +146,7 @@ export default class GraphTool extends AbstractEditionTool<LGraphCanvas> {
      * Asks to edit the given variable.
      */
     private async _editVariable (id: number): Promise<void> {
-        const v = this.object.graph.variables[id];
+        const v = this.object.graph['variables'][id];
 
         // Create window
         const window = new Window('GraphToolAddVariable');

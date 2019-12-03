@@ -1,11 +1,11 @@
 import {
-    Observer, SerializationHelper,
+    Observer,
     Scene, Node, AbstractMesh,
     Tools as BabylonTools,
     Material
 } from 'babylonjs';
 
-import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup } from 'litegraph.js';
+import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup, LLink } from 'litegraph.js';
 
 import Editor, {
     Layout, Toolbar, Grid, GridRow,
@@ -36,7 +36,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public toolbar: Toolbar = null;
     public grid: Grid<GraphGrid> = null;
 
-    public graphData: LGraph = null;
+    public graphData: any = null;
     public graph: LGraphCanvas = null;
 
     public extension: GraphExtension = null;
@@ -54,6 +54,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     private _savedState: any = { };
     private _variablesValues: any[] = [];
     private _mouseMoveEvent: (ev: MouseEvent) => void = null;
+    private _keyUpEvent: (ev: KeyboardEvent) => void = null;
 
     // Static members
     private static _CopiedGraph: NodeGraph = null;
@@ -81,6 +82,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public async close (): Promise<void> {
         // Remove document event
         document.removeEventListener('mousemove', this._mouseMoveEvent);
+        document.removeEventListener('keyup', this._keyUpEvent);
+        this.graph.unbindEvents();
 
         // Stop
         this.playStop(true);
@@ -186,19 +189,22 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             const group = this.graph.graph.getGroupOnPos(canvasPos[0], canvasPos[1]);
             return this.editor.inspector.setObject(group || this.graph);
         });
+        document.addEventListener('keydown', this._keyUpEvent = (event: KeyboardEvent) => {
+            this.graph.processKey(event);
+        });
         
         this.graph.render_canvas_border = false;
         this.graph.render_execution_order = true;
-        this.graph.onNodeSelected = (node) => this.editor.inspector.setObject(node);
+        this.graph['onNodeSelected'] = (node) => this.editor.inspector.setObject(node);
         this.graph.showSearchBox = () => { };
-        this.graph.showLinkMenu = ((link, event: MouseEvent) => {
+        (<any> this.graph).showLinkMenu = (link: LLink, event: MouseEvent) => {
             ContextMenu.Show(event, {
                 remove: { name: 'Remove', callback: () => {
                     this.graph.graph.removeLink(link.id);
                 } }
             });
-        });
-        this.graph.processContextMenu = ((node: GraphNode, event) => {
+        };
+        (<any> this.graph).processContextMenu = ((node: GraphNode, event) => {
             // Add.
             if (!node) {
                 // Group?
@@ -221,7 +227,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                         return GraphNodeCreator.Hide();
                     }
 
-                    const node = <GraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
+                    const node = <GraphNode> <any> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
                     if (!node)
                         return;
                     
@@ -230,7 +236,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     node.color = '#555';
                     node.bgColor = '#AAA';
         
-                    this.graph.graph.add(node);
+                    this.graph.graph.add(<any> node);
 
                     GraphNodeCreator.Hide();
                 };
@@ -241,7 +247,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             // Node
             ContextMenu.Show(event, {
                 clone: { name: 'Clone', callback: () => {
-                    const clone = <GraphNode> LiteGraph.createNode(node.type);
+                    const clone = <GraphNode> <any> LiteGraph.createNode(node.type);
                     clone.pos = [node.pos[0] + 10, node.pos[1] + 10];
                     clone.properties = Tools.Clone(node.properties);
                     clone.color = '#555';
@@ -251,13 +257,16 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                         clone.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(node, w));
                     }
 
-                    this.graph.graph.add(clone);
+                    this.graph.graph.add(<any> clone);
                 } },
                 remove: { name: 'Remove', callback: () => {
-                    if (node.removable === false)
-                        return;
-                    
-                    this.graph.graph.remove(node);
+                    for (const index in this.graph.selected_nodes) {
+                        const n = <GraphNode> <any> this.graph.selected_nodes[index];
+                        if (n.removable === false)
+                            return;
+                        
+                        this.graph.graph.remove(<any> n);
+                    }
                 } },
             });
         });
@@ -488,8 +497,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      */
     protected selectGraph (index: number): void {
         // Close all subgraphs
-        if (this.graph._graph_stack) {
-            while (this.graph._graph_stack.length) {
+        if (this.graph['_graph_stack']) {
+            while (this.graph['_graph_stack'].length) {
                 this.graph.closeSubgraph();
             }
         }
@@ -724,7 +733,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     }
 
     // Recursively sets the script object and scene.
-    private _setScriptObjectAndScene (root: LGraph): void {
+    private _setScriptObjectAndScene (root: any): void {
         root.scriptObject = this.node;
         root.scriptScene = this.editor.core.scene;
 
@@ -732,7 +741,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             if (!(n instanceof LiteGraph.Nodes.Subgraph))
                 return;
 
-            this._setScriptObjectAndScene(n.subgraph);
+            this._setScriptObjectAndScene(n['subgraph']);
         });
     }
 

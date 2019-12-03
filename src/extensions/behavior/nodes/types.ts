@@ -6,7 +6,7 @@ import { GraphNode } from './graph-node';
 /**
  * Defines all possible inputs and outputs types.
  */
-export type InputOutputType = 'number' | 'string' | 'vec2' | 'vec3' | 'vec4' | 'col3' | 'col4' | string;
+export type InputOutputType = 'number' | 'string' | 'vec2' | 'vec3' | 'vec4' | 'col3' | 'col4' | string | number;
 /**
  * Defines all possibile types for nodes.
  */
@@ -230,7 +230,7 @@ export abstract class IGraphNode {
     /**
      * The graph reference used to retrieve object etc.
      */
-    graph?: LGraph;
+    graph?: any;
     /**
      * The type of the node (automatically set).
      */
@@ -244,7 +244,7 @@ export abstract class IGraphNode {
      * @param name the name of the input.
      * @param type the type of the input.
      */
-    addInput? (name: string, type: string): void;
+    addInput? (name: string, type: number | string): void;
     /**
      * Removes an input from the node at the given index.
      * @param index the index of the input to remove.
@@ -255,7 +255,7 @@ export abstract class IGraphNode {
      * @param name the name of the output.
      * @param type the type of the output.
      */
-    addOutput? (name: string, type: string): void;
+    addOutput? (name: string, type: number | string): void;
     /**
      * Removes an output from the node at the given index.
      * @param index the index of the output to remove.
@@ -466,6 +466,6 @@ export abstract class IGraphNode {
         if (LiteGraph.registered_node_types[path])
             return;
         
-        LiteGraph.registerNodeType(path, ctor);
+        LiteGraph.registerNodeType(path, <any> ctor);
     }
 }

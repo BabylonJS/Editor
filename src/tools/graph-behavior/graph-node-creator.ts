@@ -111,7 +111,7 @@ export default class GraphNodeCreator {
             this._Graph.element.hide(n);
 
         // Close subgraph?
-        if (graph && graph._graph_stack && graph._graph_stack.length > 0)
+        if (graph && graph['_graph_stack'] && graph['_graph_stack'].length > 0)
             this._Graph.element.show('editor_close_graph');
         else
             this._Graph.element.hide('editor_close_graph');
@@ -128,7 +128,7 @@ export default class GraphNodeCreator {
                 if (!ctor)
                     return false;
                 
-                const title = ctor.Title;
+                const title = (<any> ctor).Title;
                 return title.replace(/ /g, '').toLowerCase().indexOf(effectiveSearch.toLowerCase()) !== -1;
             });
             if (visible.length === 0) {
@@ -235,7 +235,7 @@ export default class GraphNodeCreator {
             // Add children
             value.forEach(v => {
                 const id = s + '/' + v;
-                const ctor = LiteGraph.registered_node_types[id];
+                const ctor = <any> LiteGraph.registered_node_types[id];
                 const desc = <string> ctor.Desc;
                 const description = desc ? (desc.length > 30 ? desc.substr(0, 30) + '...' : desc) : '';
 
