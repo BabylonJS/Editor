@@ -312,6 +312,30 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'Length', type: 'number' }
     ] }, object);
 
+    registerNode({ name: 'Vector Distance', description: 'Returns the distance between the two vectors inputs', path: 'math/vectordistance', ctor: Object, functionRef: (node) => {
+        const v1 = node.getInputData(0);
+        const v2 = node.getInputData(1);
+
+        if (!node.isInputValid(v1) || !node.isInputValid(v2))
+            return 0;
+
+        const ctor1 = GraphNode.GetConstructorName(v1);
+        const ctor2 = GraphNode.GetConstructorName(v2);
+        if (ctor1 !== ctor2)
+            return 0;
+
+        switch (ctor1.toLowerCase()) {
+            case 'vector2': return Vector2.Distance(v1, v2);
+            case 'vector3': return Vector3.Distance(v1, v2);
+            case 'vector4': return Vector4.Distance(v1, v2);
+        }
+    }, inputs: [
+        { name: 'Vector 1', type: 'vec2,vec3,vec4' },
+        { name: 'Vector 2', type: 'vec2,vec3,vec4' }
+    ], outputs: [
+        { name: 'Distance', type: 'number' }
+    ] }, object);
+
     registerNode({ name: 'Quaternion To Euler Angles', description: 'Converts the input quaternion to euler angles', path: 'math/quaterniontoeulerangles', ctor: Object, functionRef: (node) => {
         const q = node.getInputData<Quaternion>(0);
         if (!node.isInputValid(q))
