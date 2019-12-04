@@ -21,6 +21,10 @@ export function registerAllPropertiesNodes (object?: any): void {
     ], drawBackground: (node, target) => `${target}'s\n${node.properties['Property Path']}` }, object);
 
     registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'properties/setproperty', ctor: Object, functionRef: (node, target, scene) => {
+        const inputTarget = node.getInputData(2);
+        if (node.isInputValid(inputTarget))
+            target = inputTarget;
+        
         const split = node.properties['Property Path'].split('.');
         const effectiveProperty = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
         const property = effectiveProperty[split[split.length - 1]];
@@ -31,7 +35,8 @@ export function registerAllPropertiesNodes (object?: any): void {
         return (effectiveProperty[split[split.length - 1]] = input);
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
-        { name: 'In', type: undefined }
+        { name: 'Value', type: undefined },
+        { name: 'Target', type: undefined }
     ], properties: [
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
         { name: 'Target Path', type: 'string', defaultValue: 'Self' }
