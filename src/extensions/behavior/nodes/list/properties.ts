@@ -11,16 +11,27 @@ export function registerAllPropertiesNodes (object?: any): void {
     /**
      * Properties
      */
-    
-    registerNode({ name: 'Get Property', description: 'Gets the property of the current node and returns its value.', path: 'properties/getproperty', ctor: Object, properties: [
+
+    registerNode({ name: 'Get Property', description: 'Gets the property of the current node and returns its value.', path: 'properties/getproperty', ctor: Object, functionRef: (node, target) => {
+        const inputTarget = node.getInputData(1);
+        if (node.isInputValid(inputTarget))
+            target = inputTarget;
+        
+        const split = node.properties['Property Path'].split('.');
+        const effectiveProperty = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
+
+        return effectiveProperty[split[split.length - 1]];
+    }, properties: [
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
         { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' }
-    ],
-    outputs: [
+    ], inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Target', type: undefined }
+    ], outputs: [
         { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
     ], drawBackground: (node, target) => `${target}'s\n${node.properties['Property Path']}` }, object);
 
-    registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'properties/setproperty', ctor: Object, functionRef: (node, target, scene) => {
+    registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'properties/setproperty', ctor: Object, functionRef: (node, target) => {
         const inputTarget = node.getInputData(2);
         if (node.isInputValid(inputTarget))
             target = inputTarget;

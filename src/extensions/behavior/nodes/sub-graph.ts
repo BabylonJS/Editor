@@ -39,7 +39,8 @@ export class GraphInput extends LiteGraph.Nodes.GraphInput {
                 'vec2', 'vec3', 'vec4',
                 'quaternion',
                 'col3', 'col4',
-                'mesh', 'camera', 'light'
+                'mesh', 'camera', 'light',
+                'EVENT'
             ]
         });
     }

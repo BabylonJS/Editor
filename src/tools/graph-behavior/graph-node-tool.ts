@@ -92,8 +92,14 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
             'number', 'string', 'boolean',
             'vec2', 'vec3', 'vec4',
             'col3', 'col4',
-            'mesh', 'light', 'camera'
-        ]).name('Type');
+            'mesh', 'light', 'camera',
+            'EVENT'
+        ]).name('Type').onChange(r => {
+            if (r === 'EVENT')
+                return (node.properties.type = LiteGraph.EVENT);
+
+            node.properties.type = r;
+        });
     }
 
     /**
