@@ -1,3 +1,5 @@
+import { LiteGraph } from 'litegraph.js';
+
 import { registerNode } from '../graph-node';
 
 /**
@@ -12,7 +14,8 @@ export function registerAllSceneNodes (object?: any): void {
         node.store.node = node.store.node || scene.getNodeByName(node.getInputData<string>(0) || node.properties['Target Path']);
         return node.store.node;
     }, inputs: [
-        { name: 'Name', type: 'string' }
+        { name: 'Name', type: 'string' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], properties: [
         { name: 'Target Path', type: 'string', defaultValue: 'Self', filter: ['mesh', 'light', 'camera'] },
     ], outputs: [
@@ -24,7 +27,8 @@ export function registerAllSceneNodes (object?: any): void {
         node.store.mesh = node.store.mesh || scene.getMeshByName(node.getInputData<string>(0) || node.properties['Target Path']);
         return node.store.mesh;
     }, inputs: [
-        { name: 'Name', type: 'string' }
+        { name: 'Name', type: 'string' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], properties: [
         { name: 'Target Path', type: 'string', defaultValue: 'Self', filter: ['mesh'] },
     ], outputs: [
@@ -36,7 +40,8 @@ export function registerAllSceneNodes (object?: any): void {
         node.store.light = node.store.light || scene.getLightByName(node.getInputData<string>(0) || node.properties['Target Path']);
         return node.store.light;
     }, inputs: [
-        { name: 'Name', type: 'string' }
+        { name: 'Name', type: 'string' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], properties: [
         { name: 'Target Path', type: 'string', defaultValue: 'Self', filter: ['light'] },
     ], outputs: [
@@ -48,7 +53,8 @@ export function registerAllSceneNodes (object?: any): void {
         node.store.camera = node.store.camera || scene.getCameraByName(node.getInputData<string>(0) || node.properties['Target Path']);
         return node.store.camera;
     }, inputs: [
-        { name: 'Name', type: 'string' }
+        { name: 'Name', type: 'string' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], properties: [
         { name: 'Target Path', type: 'string', defaultValue: 'Self', filter: ['camera'] },
     ], outputs: [

@@ -22,7 +22,8 @@ export function registerAllUtilsNodes (object?: any): void {
         const arr = node.getInputData<any[]>(0);
         return arr ? arr.length : -1;
     }, inputs: [
-        { name: 'Array', type: 'any[]' }
+        { name: 'Array', type: 'any[]' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Length', type: 'number' }
     ] }, object);
@@ -33,7 +34,8 @@ export function registerAllUtilsNodes (object?: any): void {
         return arr[node.isInputValid(pos) ? pos : node.properties['Position']];
     }, inputs: [
         { name: 'Array', type: 'any[]' },
-        { name: 'Position', type: 'number' }
+        { name: 'Position', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], properties: [
         { name: 'Position', type: 'number', defaultValue: 0 }
     ], outputs: [
@@ -94,7 +96,8 @@ export function registerAllUtilsNodes (object?: any): void {
             node.setOutputData(1, v.y);
         return v.x;
     }, inputs: [
-        { name: 'In Vector', type: 'vec2' }
+        { name: 'In Vector', type: 'vec2' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'x', type: 'number' },
         { name: 'y', type: 'number' }
@@ -108,7 +111,8 @@ export function registerAllUtilsNodes (object?: any): void {
         }
         return v.x;
     }, inputs: [
-        { name: 'In Vector', type: 'vec3' }
+        { name: 'In Vector', type: 'vec3' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'x', type: 'number' },
         { name: 'y', type: 'number' },
@@ -124,7 +128,8 @@ export function registerAllUtilsNodes (object?: any): void {
         }
         return v.x;
     }, inputs: [
-        { name: 'In Vector', type: 'vec4' }
+        { name: 'In Vector', type: 'vec4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'x', type: 'number' },
         { name: 'y', type: 'number' },
@@ -143,7 +148,8 @@ export function registerAllUtilsNodes (object?: any): void {
         }
         return c.r;
     }, inputs: [
-        { name: 'In Color', type: 'col3' }
+        { name: 'In Color', type: 'col3' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'r', type: 'number' },
         { name: 'g', type: 'number' },
@@ -159,7 +165,8 @@ export function registerAllUtilsNodes (object?: any): void {
         }
         return c.r;
     }, inputs: [
-        { name: 'In Color', type: 'col4' }
+        { name: 'In Color', type: 'col4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'r', type: 'number' },
         { name: 'g', type: 'number' },
@@ -188,7 +195,8 @@ export function registerAllUtilsNodes (object?: any): void {
         { name: 'x', type: 'number' },
         { name: 'y', type: 'number' },
         { name: 'z', type: 'number' },
-        { name: 'w', type: 'number' }
+        { name: 'w', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Vector 2', type: 'vec2' },
         { name: 'Vector 3', type: 'vec3' },

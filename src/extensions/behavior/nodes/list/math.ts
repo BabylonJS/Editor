@@ -11,7 +11,8 @@ export function registerAllMathNodes (object?: any): void {
     registerNode({ name: 'Not', description: 'Performs a not operator', path: 'math/not', ctor: Object, functionRef: (node) => {
         return !(node.getInputData<any>(0));
     }, inputs: [
-        { name: 'Value', type: 'number,boolean' }
+        { name: 'Value', type: 'number,boolean' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Result', type: 'number,boolean' }
     ] }, object);
@@ -26,7 +27,8 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'Amount', type: 'number', defaultValue: 1 }
     ], inputs: [
         { name: 'Number', type: 'number' },
-        { name: 'Vector', type: 'vec2,vec3,vec4' }
+        { name: 'Vector', type: 'vec2,vec3,vec4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Scaled number', type: 'number' },
         { name: 'Scaled vector', type: 'vec2,vec3,vec4' }
@@ -46,7 +48,8 @@ export function registerAllMathNodes (object?: any): void {
         { name: 'Operator', type: 'string', defaultValue: '+', enums: ['+', '-', '*', '/'] }
     ], inputs: [
         { name: 'a', type: 'number' },
-        { name: 'b', type: 'number' }
+        { name: 'b', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Result', type: 'number' }
     ], drawBackground: (node) => {
@@ -71,7 +74,8 @@ export function registerAllMathNodes (object?: any): void {
         }
     }, inputs: [
         { name: 'vec1', type: 'vec2,vec3,vec4' },
-        { name: 'vec2', type: 'vec2,vec3,vec4' }
+        { name: 'vec2', type: 'vec2,vec3,vec4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Result', type: 'vec2,vec3,vec4' }
     ], properties: [
@@ -81,7 +85,8 @@ export function registerAllMathNodes (object?: any): void {
     registerNode({ name: 'Fract', description: 'Computes the fractional part of the input vector.', path: 'math/fract', ctor: Object, functionRef: (node) => {
         return node.getInputData<Vector2 | Vector3 | Vector4>(0).fract();
     } , inputs: [
-        { name: 'Vector', type: 'vec2,vec3,vec4' }
+        { name: 'Vector', type: 'vec2,vec3,vec4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Result', type: 'vec2,vec3,vec4' }
     ] }, object);
@@ -98,7 +103,8 @@ export function registerAllMathNodes (object?: any): void {
             default: debugger; break; // Should not happen
         }
     } , inputs: [
-        { name: 'Input', type: 'number,vec2,vec3,vec4' }
+        { name: 'Input', type: 'number,vec2,vec3,vec4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Result', type: 'number,vec2,vec3,vec4' }
     ] }, object);
@@ -178,7 +184,8 @@ export function registerAllMathNodes (object?: any): void {
     registerNode({ name: 'Cosinus', description: 'Performs a cosinus operation', path: 'math/cos', ctor: Object, functionRef: (node) => {
         return Math.cos(node.getInputData<number>(0));
     }, inputs: [
-        { name: 'In', type: 'number' }
+        { name: 'In', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Out', type: 'number' }
     ] }, object);
@@ -186,7 +193,8 @@ export function registerAllMathNodes (object?: any): void {
     registerNode({ name: 'Sinus', description: 'Performs a sinus operation', path: 'math/sin', ctor: Object, functionRef: (node) => {
         return Math.sin(node.getInputData<number>(0));
     }, inputs: [
-        { name: 'In', type: 'number' }
+        { name: 'In', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Out', type: 'number' }
     ] }, object);
@@ -194,7 +202,8 @@ export function registerAllMathNodes (object?: any): void {
     registerNode({ name: 'Tangent', description: 'Performs a tangent operation', path: 'math/tan', ctor: Object, functionRef: (node) => {
         return Math.tan(node.getInputData<number>(0));
     }, inputs: [
-        { name: 'In', type: 'number' }
+        { name: 'In', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Out', type: 'number' }
     ] }, object);
@@ -202,7 +211,8 @@ export function registerAllMathNodes (object?: any): void {
     registerNode({ name: 'Abs', description: 'Returns the absolute position of the input number', path: 'math/abs', ctor: Object, functionRef: (node) => {
         return (Math.abs(node.getInputData(0)) || 0);
     }, inputs: [
-        { name: 'In', type: 'number' }
+        { name: 'In', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Out', type: 'number' }
     ] }, object);
@@ -211,7 +221,8 @@ export function registerAllMathNodes (object?: any): void {
         const random = Math.random();
         return random * (node.properties['Max'] - node.properties['Min']) + node.properties['Min'];
     }, outputs: [
-        { name: 'Value', type: 'number' }
+        { name: 'Value', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], properties: [
         { name: 'Min', defaultValue: 0, type: 'number' },
         { name: 'Max', defaultValue: 1, type: 'number' }
@@ -228,7 +239,8 @@ export function registerAllMathNodes (object?: any): void {
         return Math.max(a, b);
     }, inputs: [
         { name: 'a', type: 'number' },
-        { name: 'b', type: 'number' }
+        { name: 'b', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Max', type: 'number' }
     ] }, object);
@@ -244,7 +256,8 @@ export function registerAllMathNodes (object?: any): void {
         return Math.min(a, b);
     }, inputs: [
         { name: 'a', type: 'number' },
-        { name: 'b', type: 'number' }
+        { name: 'b', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Min', type: 'number' }
     ] }, object);
@@ -258,7 +271,8 @@ export function registerAllMathNodes (object?: any): void {
         return Math.floor(node.getInputData<number>(0) || 0);
     }, inputs: [
         { name: 'Input Number', type: 'number' },
-        { name: 'Input Vector', type: 'vec2,vec3,vec4' }
+        { name: 'Input Vector', type: 'vec2,vec3,vec4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Number Result', type: 'number' },
         { name: 'Vector Result', type: 'vec2,vec3,vec4' }
@@ -271,7 +285,8 @@ export function registerAllMathNodes (object?: any): void {
         
         return Math.exp(i);
     }, inputs: [
-        { name: 'Power', type: 'number' }
+        { name: 'Power', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Result', type: 'number' }
     ], properties: [
@@ -298,7 +313,8 @@ export function registerAllMathNodes (object?: any): void {
     }, inputs: [
         { name: 'Value', type: 'number,vec2,vec3' },
         { name: 'Min', type: 'number,vec2,vec3' },
-        { name: 'Max', type: 'number,vec2,vec3' }
+        { name: 'Max', type: 'number,vec2,vec3' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Result', type: 'number,vec2,vec3' }
     ] }, object);
@@ -307,7 +323,8 @@ export function registerAllMathNodes (object?: any): void {
         const v = node.getInputData<Vector2 | Vector3 | Vector4>(0);
         return v.length();
     }, inputs: [
-        { name: 'Vector', type: 'vec2,vec3,vec4' }
+        { name: 'Vector', type: 'vec2,vec3,vec4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Length', type: 'number' }
     ] }, object);
@@ -331,7 +348,8 @@ export function registerAllMathNodes (object?: any): void {
         }
     }, inputs: [
         { name: 'Vector 1', type: 'vec2,vec3,vec4' },
-        { name: 'Vector 2', type: 'vec2,vec3,vec4' }
+        { name: 'Vector 2', type: 'vec2,vec3,vec4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Distance', type: 'number' }
     ] }, object);
@@ -344,6 +362,7 @@ export function registerAllMathNodes (object?: any): void {
         return q.toEulerAngles();
     }, inputs: [
         { name: 'Quaternion', type: 'quaternion' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Vector3', type: 'vec3' }
     ] }, object);

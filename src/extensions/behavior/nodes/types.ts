@@ -389,7 +389,7 @@ export abstract class IGraphNode {
         if (this.mode === LiteGraph.NEVER)
             return;
         
-        if (type === LiteGraph.INPUT && slot === 0) {
+        if (type === LiteGraph.INPUT && input.type === LiteGraph.EVENT) {
             if (added && input.type === LiteGraph.EVENT)
                 this.mode = LiteGraph.ON_TRIGGER;
             else

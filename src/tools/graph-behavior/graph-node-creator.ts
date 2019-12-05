@@ -3,8 +3,8 @@ import { Tools, IStringDictionary, Graph } from 'babylonjs-editor';
 
 export default class GraphNodeCreator {
     // Public members
-    public static Width: number = 400;
-    public static Height: number = 400;
+    public static Width: number = 800;
+    public static Height: number = 600;
 
     public static OnConfirmSelection: (id: string) => void;
 
@@ -20,9 +20,9 @@ export default class GraphNodeCreator {
     });
     private static _Title: HTMLTitleElement = Tools.CreateElement('h3', 'GRAPH-CANVAS-NODE-CREATOR-TITLE', {
         'width': '100%',
-        'height': '25px',
+        'height': '35px',
         'position': 'relative',
-        'top': '-18px',
+        'top': '-20px',
         'background-color': 'rgb(16, 16, 16)',
         'text-align': 'center',
         'color': 'grey'
