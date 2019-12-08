@@ -176,11 +176,16 @@ export default class SceneLoader {
 
         editor.playCamera = scene.activeCamera;
 
-        const existingCamera = scene.getCameraByName('Editor Camera');
-        if (existingCamera)
-            existingCamera.dispose();
-        
-        editor.createEditorCamera();
+        if (loadingNewScene) {
+            const existingCamera = scene.getCameraByName('Editor Camera');
+            if (existingCamera)
+                existingCamera.dispose();
+            
+            editor.createEditorCamera();
+        }
+        else {
+            scene.activeCamera = editor.camera;
+        }
 
         // Clear scene manager
         SceneManager.Clear();
