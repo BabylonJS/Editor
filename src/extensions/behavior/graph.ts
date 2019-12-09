@@ -1,5 +1,5 @@
 import { Scene, AbstractMesh, Light, Camera, Tools } from 'babylonjs';
-import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup } from 'litegraph.js';
+import { LGraph, LiteGraph } from 'litegraph.js';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -8,8 +8,7 @@ import { AssetElement } from '../typings/asset';
 
 import { GraphNode } from './nodes/graph-node';
 import { registerAllNodes } from './nodes/nodes-list';
-
-export { LGraph, LGraphCanvas, LiteGraph, LGraphGroup, GraphNode }
+import { GraphInput, GraphOutput, SubGraph } from './nodes/sub-graph';
 
 // Interfaces
 export interface Variable {
@@ -173,16 +172,15 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                     return;
 
                 const graph = new LGraph();
-                graph.scriptObject = node;
-                graph.scriptScene = this.scene;
 
                 GraphNode.Loaded = false;
                 const effectiveData = this.datas.graphs.find(s => s.id === m.graphId);
                 graph.configure(JSON.parse(JSON.stringify(effectiveData.graph)));
-                graph.variables = effectiveData.variables;
                 GraphNode.Loaded = true;
 
                 // On ready
+                this._setScriptObjectAndScene(node, graph, effectiveData);
+
                 this.scene.onReadyObservable.addOnce(() => {
                     this.scene.onBeforeRenderObservable.add(() => {
                         graph.runStep(1, true);
@@ -217,9 +215,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
             objects.forEach(o => {
                 if (o.metadata && o.metadata.behaviorGraph) {
                     const behavior = <GraphNodeMetadata> o.metadata.behaviorGraph;
-                    behavior.node = o instanceof Scene ? 'Scene' :
-                                    o instanceof Node ? o.name :
-                                    o.id;
+                    behavior.node = o instanceof Scene ? 'Scene' : o.name || o.id;
                     behavior.nodeId = o instanceof Scene ? 'Scene' : o.id;
 
                     result.nodes.push(behavior);
@@ -291,6 +287,20 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
         });
     }
 
+    // Recursively sets the script object and scene.
+    private _setScriptObjectAndScene (node: any, root: LGraph, data: GraphData): void {
+        root['scriptObject'] = node;
+        root['scriptScene'] = this.scene;
+        root['variables'] = data.variables;
+
+        root['_nodes'].forEach(n => {
+            if (!(n instanceof SubGraph))
+                return;
+
+            this._setScriptObjectAndScene(node, n['subgraph'], data);
+        });
+    }
+
     /**
      * Clears all the additional nodes available for Babylon.js
      */
@@ -305,7 +315,11 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
      */
     public static RegisterNodes (object?: any): void {
         // Clear default nodes
-        LiteGraph.registered_node_types = { };
+        LiteGraph.registered_node_types = {
+            'graph/subgraph': SubGraph,
+            'graph/input': GraphInput,
+            'graph/output': GraphOutput
+        };
 
         // Register all nodes!
         registerAllNodes(object);

@@ -6,7 +6,7 @@ import { GraphNode } from './graph-node';
 /**
  * Defines all possible inputs and outputs types.
  */
-export type InputOutputType = 'number' | 'string' | 'vec2' | 'vec3' | 'vec4' | 'col3' | 'col4' | string;
+export type InputOutputType = 'number' | 'string' | 'vec2' | 'vec3' | 'vec4' | 'col3' | 'col4' | string | number;
 /**
  * Defines all possibile types for nodes.
  */
@@ -144,6 +144,10 @@ export interface IGraphNodeDescriptor {
      */
     functionRef?: string | ((node: GraphNode, target: any, scene: Scene) => any);
     /**
+     * Called once the graph editor adds the given node
+     */
+    onAdded?: (node: GraphNode) => void;
+    /**
      * Called once the graph editor stopped execution. Typically used only in the graph editor when testing graphs.
      */
     onStop?: (node: GraphNode, target: any, scene: Scene) => void;
@@ -203,6 +207,10 @@ export interface IGraphNodeDescriptor {
          */
         enumsTarget?: any;
         /**
+         * Defines filters used by the editor.
+         */
+        filter?: string[];
+        /**
          * Defines the defualt value of the property.
          */
         defaultValue: SupportedTypes;
@@ -211,13 +219,18 @@ export interface IGraphNodeDescriptor {
      * The collection of widgets for the node.
      */
     widgets?: IWidget[];
+    /**
+     * The name of the function to call on the current object being used.
+     * @see myGraphNode.graph.scriptObject;
+     */
+    getCodeRef?: ((node: GraphNode, target: any, scene: Scene) => any);
 }
 
 export abstract class IGraphNode {
     /**
      * The graph reference used to retrieve object etc.
      */
-    graph?: LGraph;
+    graph?: any;
     /**
      * The type of the node (automatically set).
      */
@@ -231,7 +244,7 @@ export abstract class IGraphNode {
      * @param name the name of the input.
      * @param type the type of the input.
      */
-    addInput? (name: string, type: string): void;
+    addInput? (name: string, type: number | string): void;
     /**
      * Removes an input from the node at the given index.
      * @param index the index of the input to remove.
@@ -242,7 +255,7 @@ export abstract class IGraphNode {
      * @param name the name of the output.
      * @param type the type of the output.
      */
-    addOutput? (name: string, type: string): void;
+    addOutput? (name: string, type: number | string): void;
     /**
      * Removes an output from the node at the given index.
      * @param index the index of the output to remove.
@@ -337,12 +350,30 @@ export abstract class IGraphNode {
      * Widgets available for the node.
      */
     widgets?: IWidget[];
+    /**
+     * Defines the subgraph reference.
+     */
+    subgraph?: LGraph;
+    /**
+     * Defines the current available inputs of the node.
+     */
+    inputs: any[];
+    /**
+     * Defines the current available outputs of the node.
+     */
+    outputs: any[];
 
     /**
      * Defines the store used to keep some temporary variables.
      */
     store: { [index: string]: any } = { };
 
+    onSubgraphNewGlobalInput?: any;
+    onSubgraphRenamedGlobalInput?: any;
+    onSubgraphTypeChangeGlobalInput?: any;
+    onSubgraphNewGlobalOutput?: any;
+    onSubgraphRenamedGlobalOutput?: any;
+    onSubgraphTypeChangeGlobalOutput?: any;
     /**
      * On connections changed for this node, change its mode according to the new connections.
      * @param type input (1) or output (2).
@@ -358,7 +389,7 @@ export abstract class IGraphNode {
         if (this.mode === LiteGraph.NEVER)
             return;
         
-        if (type === LiteGraph.INPUT && slot === 0) {
+        if (type === LiteGraph.INPUT && input.type === LiteGraph.EVENT) {
             if (added && input.type === LiteGraph.EVENT)
                 this.mode = LiteGraph.ON_TRIGGER;
             else
@@ -417,6 +448,11 @@ export abstract class IGraphNode {
     }
 
     /**
+     * Returns the generated code.
+     */
+    public abstract generateCode (): string;
+
+    /**
      * Gets or sets wether of not if the node has been loaded and ready.
      */
     public static Loaded: boolean;
@@ -430,6 +466,6 @@ export abstract class IGraphNode {
         if (LiteGraph.registered_node_types[path])
             return;
         
-        LiteGraph.registerNodeType(path, ctor);
+        LiteGraph.registerNodeType(path, <any> ctor);
     }
 }

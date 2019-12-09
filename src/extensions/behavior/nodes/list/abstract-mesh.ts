@@ -16,7 +16,7 @@ export function registerAllAbstractMeshNodes (object?: any): void {
     ], outputs: [	
         { name: 'vec3', type: 'vec3' }	
     ], parameters: [	
-        { inputName: 'localAxis', type: 'vec3' }	
+        { inputName: 'localAxis', type: 'vec3' }
     ] }, object);	
 
     /**

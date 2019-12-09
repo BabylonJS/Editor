@@ -12,9 +12,9 @@ export function registerAllTransformsNodes (object?: any): void {
      * Transform
      */
     registerNode({ name: 'Transform', description: 'Gets the current transformation of the node', path: 'node/transform', ctor: AbstractMesh, functionRef: (node, target: AbstractMesh) => {
-        const position = GraphNode.nodeToOutput<Vector3>(node.getInputData(1), false);
-        const rotation = GraphNode.nodeToOutput<Vector3>(node.getInputData(2), false);
-        const scaling = GraphNode.nodeToOutput<Vector3>(node.getInputData(3), false);
+        const position = node.getInputData<Vector3>(1);
+        const rotation = node.getInputData<Vector3>(2);
+        const scaling = node.getInputData<Vector3>(3);
 
         if (position && target.position)
             target.position.copyFrom(position);

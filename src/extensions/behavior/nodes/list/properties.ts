@@ -1,38 +1,63 @@
+import { Node, AbstractMesh, Light, Camera } from 'babylonjs';
 import { LiteGraph } from 'litegraph.js';
+
 import { GraphNode, registerNode } from '../graph-node';
-import { Color3, Color4 } from 'babylonjs';
 
 /**
  * Registers all the available properties nodes.
  * @param object the object reference being customized using the graph editor.
  */
 export function registerAllPropertiesNodes (object?: any): void {
-    registerNode({ name: 'Get Property', description: 'Gets the property of the current node and returns its value.', path: 'properties/getproperty', ctor: Object, properties: [
+    /**
+     * Properties
+     */
+
+    registerNode({ name: 'Get Property', description: 'Gets the property of the current node and returns its value.', path: 'properties/getproperty', ctor: Object, functionRef: (node, target) => {
+        const inputTarget = node.getInputData(1);
+        if (node.isInputValid(inputTarget))
+            target = inputTarget;
+        
+        const split = node.properties['Property Path'].split('.');
+        const effectiveProperty = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
+
+        return effectiveProperty[split[split.length - 1]];
+    }, properties: [
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
         { name: 'Target Path', type: 'string', defaultValue: (object && object.name) ? object.name : 'Scene' }
-    ],
-    outputs: [
+    ], inputs: [
+        { name: 'Execute', type: LiteGraph.EVENT },
+        { name: 'Target', type: undefined }
+    ], outputs: [
         { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
     ], drawBackground: (node, target) => `${target}'s\n${node.properties['Property Path']}` }, object);
 
-    registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'properties/setproperty', ctor: Object, functionRef: (node, target, scene) => {
+    registerNode({ name: 'Set Property', description: 'Sets the property of the current node to the input value.', path: 'properties/setproperty', ctor: Object, functionRef: (node, target) => {
+        const inputTarget = node.getInputData(2);
+        if (node.isInputValid(inputTarget))
+            target = inputTarget;
+        
         const split = node.properties['Property Path'].split('.');
         const effectiveProperty = GraphNode.GetEffectiveProperty(target, node.properties['Property Path']);
         const property = effectiveProperty[split[split.length - 1]];
-        const input = GraphNode.nodeToOutput(node.getInputData(1), property instanceof Color3 || property instanceof Color4);
-        if (GraphNode.GetConstructorName(input) !== GraphNode.GetConstructorName(property))
+        const input = node.getInputData(1);
+        if (GraphNode.GetConstructorName(input) !== GraphNode.GetConstructorName(property) && input !== null)
             return node.getInputData(1);
 
         return (effectiveProperty[split[split.length - 1]] = input);
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
-        { name: 'In', type: undefined }
+        { name: 'Value', type: undefined },
+        { name: 'Target', type: undefined }
     ], properties: [
         { name: 'Property Path', type: 'string', defaultValue: 'name' },
         { name: 'Target Path', type: 'string', defaultValue: 'Self' }
     ], outputs: [
         { type: undefined, name: 'Value', propertyPath: 'propertyPath', propertyName: 'Property Path' }
     ], drawBackground: (node, target) => `${target}'s\n${node.properties['Property Path']}` }, object);
+
+    /**
+     * Variable
+     */
 
     registerNode({ name: 'Variable', description: 'Sets a variable node taken from the avaialable node variables.', path: 'properties/variable', ctor: Object, functionRef: (node) => {
         node.graph.variables = node.graph.variables || [];
@@ -46,7 +71,7 @@ export function registerAllPropertiesNodes (object?: any): void {
         if (i !== null && i !== undefined)
             v.value = i;
 
-        return GraphNode.nodeToOutput(v.value);
+        return v.value;
     }, inputs: [
         { name: 'Execute', type: LiteGraph.EVENT },
         { name: 'Set Value', type: undefined }
@@ -60,4 +85,17 @@ export function registerAllPropertiesNodes (object?: any): void {
             values: (w, n) => n.graph.variables.map(v => v.name)
         } }
     ], drawBackground: (node) => node.properties['Variable'] }, object);
+
+    /**
+     * This
+     */
+    const name = object instanceof Node ? object.getClassName() : 'This';
+    const type = object instanceof AbstractMesh ? 'mesh' :
+                 object instanceof Light ? 'light' :
+                 object instanceof Camera ? 'camera' :
+                 null;
+
+    registerNode({ name: 'This', description: '', path: 'properties/this', ctor: Object, functionRef: (node, target) => target, outputs: [
+        { name: name, type: type }
+    ] }, object);
 }

@@ -1,5 +1,5 @@
 import { Vector3, Vector4, Vector2, Color3, Color4 } from 'babylonjs';
-import { LiteGraph } from 'litegraph.js';
+import { LiteGraph, LGraph } from 'litegraph.js';
 
 import { registerNode, GraphNode } from '../graph-node';
 import Extensions from '../../../extensions';
@@ -16,6 +16,30 @@ export function registerAllUtilsNodes (object?: any): void {
         { name: 'In', type: undefined }
     ], outputs: [
         { name: 'Out', type: undefined, inputName: 'In' }
+    ] }, object);
+
+    registerNode({ name: 'Array Length', description: 'Returns the length of the input array', path: 'utils/arraylength', ctor: Object, functionRef: (node, target) => {
+        const arr = node.getInputData<any[]>(0);
+        return arr ? arr.length : -1;
+    }, inputs: [
+        { name: 'Array', type: 'any[]' },
+        { name: 'Execute', type: LiteGraph.EVENT }
+    ], outputs: [
+        { name: 'Length', type: 'number' }
+    ] }, object);
+
+    registerNode({ name: 'Array At', description: 'Returns the element of the input array at the given position', path: 'utils/arrayat', ctor: Object, functionRef: (node, target) => {
+        const arr = node.getInputData<any[]>(0) || [];
+        const pos = node.getInputData<number>(1);
+        return arr[node.isInputValid(pos) ? pos : node.properties['Position']];
+    }, inputs: [
+        { name: 'Array', type: 'any[]' },
+        { name: 'Position', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
+    ], properties: [
+        { name: 'Position', type: 'number', defaultValue: 0 }
+    ], outputs: [
+        { name: 'Value', type: 'any' }
     ] }, object);
 
     registerNode({ name: 'Time', description: 'Returns the current time in milliseconds or seconds', path: 'utils/time', ctor: Object, functionRef: (node, target: Node) => {
@@ -67,26 +91,28 @@ export function registerAllUtilsNodes (object?: any): void {
      * Vectors to XY(Z)(W)
      */
     registerNode({ name: 'Vector 2D to XY', description: 'Takes a vector as parameter and ouputs its x and y', path: 'utils/vec2toxy', ctor: Object, functionRef: (node) => {
-        const v = GraphNode.nodeToOutput<Vector2>(node.getInputData(0));
+        const v = node.getInputData<Vector2>(0);
         if (v)
             node.setOutputData(1, v.y);
         return v.x;
     }, inputs: [
-        { name: 'In Vector', type: 'vec2' }
+        { name: 'In Vector', type: 'vec2' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'x', type: 'number' },
         { name: 'y', type: 'number' }
     ] }, object);
 
     registerNode({ name: 'Vector 3D to XYZ', description: 'Takes a vector as parameter and ouputs its x, y and z', path: 'utils/vec3toxyz', ctor: Object, functionRef: (node) => {
-        const v = GraphNode.nodeToOutput<Vector3>(node.getInputData(0));
+        const v = node.getInputData<Vector3>(0);
         if (v) {
             node.setOutputData(1, v.y);
             node.setOutputData(2, v.z);
         }
         return v.x;
     }, inputs: [
-        { name: 'In Vector', type: 'vec3' }
+        { name: 'In Vector', type: 'vec3' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'x', type: 'number' },
         { name: 'y', type: 'number' },
@@ -94,7 +120,7 @@ export function registerAllUtilsNodes (object?: any): void {
     ] }, object);
 
     registerNode({ name: 'Vector 4D to XYZW', description: 'Takes a vector as parameter and ouputs its x, y, z and w', path: 'utils/vec4toxyzw', ctor: Object, functionRef: (node) => {
-        const v = GraphNode.nodeToOutput<Vector4>(node.getInputData(0));
+        const v = node.getInputData<Vector4>(0);
         if (v) {
             node.setOutputData(1, v.y);
             node.setOutputData(2, v.z);
@@ -102,7 +128,8 @@ export function registerAllUtilsNodes (object?: any): void {
         }
         return v.x;
     }, inputs: [
-        { name: 'In Vector', type: 'vec4' }
+        { name: 'In Vector', type: 'vec4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'x', type: 'number' },
         { name: 'y', type: 'number' },
@@ -114,14 +141,15 @@ export function registerAllUtilsNodes (object?: any): void {
      * Colors to RGB(A)
      */
     registerNode({ name: 'Color 3 to RGB', description: 'Takes a color as parameter and ouputs its r, g and b', path: 'utils/col3torgb', ctor: Object, functionRef: (node) => {
-        const c = GraphNode.nodeToOutput<Color3>(node.getInputData(0), true);
+        const c = node.getInputData<Color3>(0);
         if (c) {
             node.setOutputData(1, c.g);
             node.setOutputData(2, c.b);
         }
         return c.r;
     }, inputs: [
-        { name: 'In Color', type: 'col3' }
+        { name: 'In Color', type: 'col3' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'r', type: 'number' },
         { name: 'g', type: 'number' },
@@ -129,7 +157,7 @@ export function registerAllUtilsNodes (object?: any): void {
     ], onGetInputs: () => [["pos", "vec3"]] }, object);
 
     registerNode({ name: 'Color 4 to RGBA', description: 'Takes a color as parameter and ouputs its r, g, b and a', path: 'utils/col4torgba', ctor: Object, functionRef: (node) => {
-        const c = GraphNode.nodeToOutput<Color4>(node.getInputData(0), true);
+        const c = node.getInputData<Color4>(0);
         if (c) {
             node.setOutputData(1, c.g);
             node.setOutputData(2, c.b);
@@ -137,7 +165,8 @@ export function registerAllUtilsNodes (object?: any): void {
         }
         return c.r;
     }, inputs: [
-        { name: 'In Color', type: 'col4' }
+        { name: 'In Color', type: 'col4' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'r', type: 'number' },
         { name: 'g', type: 'number' },
@@ -158,15 +187,16 @@ export function registerAllUtilsNodes (object?: any): void {
         node.store.vector3.z = node.store.vector4.z = node.getInputData(2);
         node.store.vector4.w = node.getInputData(3);
 
-        node.setOutputData(1, node.store.vector3.asArray());
-        node.setOutputData(2, node.store.vector4.asArray());
+        node.setOutputData(1, node.store.vector3);
+        node.setOutputData(2, node.store.vector4);
 
         return node.store.vector2;
     }, inputs: [
         { name: 'x', type: 'number' },
         { name: 'y', type: 'number' },
         { name: 'z', type: 'number' },
-        { name: 'w', type: 'number' }
+        { name: 'w', type: 'number' },
+        { name: 'Execute', type: LiteGraph.EVENT }
     ], outputs: [
         { name: 'Vector 2', type: 'vec2' },
         { name: 'Vector 3', type: 'vec3' },

@@ -1,7 +1,7 @@
 import { LiteGraph } from 'litegraph.js';
 
 import { IGraphNode, InputOutputType } from './types';
-import { GraphNode } from '../graph';
+import { GraphNode } from './graph-node';
 
 /**
  * Registers the given node in order to be used as a function call.
@@ -94,12 +94,19 @@ export class GraphFunctionNode extends IGraphNode {
                 return;
             }
             
-            return GraphNode.nodeToOutput(i);
+            return i;
         });
 
         this.setNodeState(!this._isValid);
         if (this._isValid)
             method.apply(target, args);
+    }
+
+    /**
+     * Returns the generated code.
+     */
+    public generateCode (): string {
+        return this._methodName;
     }
 
     /**

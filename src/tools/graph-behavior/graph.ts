@@ -1,10 +1,11 @@
 import {
-    Observer, SerializationHelper,
-    Scene, Node,
-    Tools as BabylonTools
+    Observer,
+    Scene, Node, AbstractMesh,
+    Tools as BabylonTools,
+    Material
 } from 'babylonjs';
 
-import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup } from 'litegraph.js';
+import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup, LLink } from 'litegraph.js';
 
 import Editor, {
     Layout, Toolbar, Grid, GridRow,
@@ -35,7 +36,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public toolbar: Toolbar = null;
     public grid: Grid<GraphGrid> = null;
 
-    public graphData: LGraph = null;
+    public graphData: any = null;
     public graph: LGraphCanvas = null;
 
     public extension: GraphExtension = null;
@@ -53,6 +54,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     private _savedState: any = { };
     private _variablesValues: any[] = [];
     private _mouseMoveEvent: (ev: MouseEvent) => void = null;
+    private _keyUpEvent: (ev: KeyboardEvent) => void = null;
+
+    private _canvasFocused: boolean = false;
 
     // Static members
     private static _CopiedGraph: NodeGraph = null;
@@ -80,6 +84,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public async close (): Promise<void> {
         // Remove document event
         document.removeEventListener('mousemove', this._mouseMoveEvent);
+        document.removeEventListener('keyup', this._keyUpEvent);
+        this.graph.unbindEvents();
 
         // Stop
         this.playStop(true);
@@ -152,23 +158,27 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         System.import('./node_modules/litegraph.js/css/litegraph.css');
 
         this.graphData = new LGraph();
-        this.graphData.onStopEvent = () => {
-            this.graphData._nodes.forEach(n => {
-                n.description && n.description.onStop && n.description.onStop(
-                    n,
-                    this.graphData.scriptObject,
-                    this.graphData.scriptScene
-                );
-                n.store = { };
-            });
-        };
+        this.graphData.onStopEvent = () => this._stopAllGraphs(this.graphData);
         this.graphData.onNodeAdded = (node: GraphNode) => {
             node.shape = 'round';
             // LiteGraphNode.SetColor(node); TOOD.
         };
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
+        this.graph['masterGraph'] = this.graphData;
         this.graph.canvas.classList.add('ctxmenu');
+        this.graph.canvas.addEventListener('click', (event: MouseEvent) => {
+            const canvasPos = this.graph.convertEventToCanvasOffset(event);
+            const node = this.graph.graph.getNodeOnPos(canvasPos[0], canvasPos[1]);
+            if (node)
+                return;
+            
+            const group = this.graph.graph.getGroupOnPos(canvasPos[0], canvasPos[1]);
+            return this.editor.inspector.setObject(group || this.graph);
+        });
+        this.graph.canvas.addEventListener('mouseover', () => this._canvasFocused = true);
+        this.graph.canvas.addEventListener('mouseout', () => this._canvasFocused = false);
+
         document.addEventListener('mousemove', this._mouseMoveEvent = (ev) => {
             if (!this.data)
                 return;
@@ -176,77 +186,100 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.data.graph = JSON.parse(JSON.stringify(this.graphData.serialize()));
             this.data.variables = this.graphData.variables;
         });
-        this.graph.canvas.addEventListener('click', () => {
-            const canvasPos = this.graph.convertEventToCanvas(event);
-            const node = this.graphData.getNodeOnPos(canvasPos[0], canvasPos[1]);
-            if (node)
+        document.addEventListener('keydown', this._keyUpEvent = (event: KeyboardEvent) => {
+            if (!this._canvasFocused)
                 return;
             
-            const group = this.graphData.getGroupOnPos(canvasPos[0], canvasPos[1]);
-            return this.editor.inspector.setObject(group || this.graph);
+            // Copy/paste
+            if (event.key === 'c' && event.ctrlKey)
+                return this.graph.copyToClipboard();
+            
+            if (event.key === 'v' && event.ctrlKey)
+                return this.graph.pasteFromClipboard();
+
+            // Escape
+            if (event.keyCode === 27)
+                return this.graph.closeSubgraph();
         });
         
         this.graph.render_canvas_border = false;
         this.graph.render_execution_order = true;
-        this.graph.onNodeSelected = (node) => this.editor.inspector.setObject(node);
+        this.graph['onNodeSelected'] = (node) => this.editor.inspector.setObject(node);
         this.graph.showSearchBox = () => { };
-        this.graph.processContextMenu = ((node: GraphNode, event) => {
+        (<any> this.graph).showLinkMenu = (link: LLink, event: MouseEvent) => {
+            ContextMenu.Show(event, {
+                remove: { name: 'Remove', callback: () => {
+                    this.graph.graph.removeLink(link.id);
+                } }
+            });
+        };
+        this.graph['onClear'] = () => this.graph.ds.reset();
+        this.graph.processContextMenu = ((_: any, event: any) => {
+            const canvasPos = this.graph.convertEventToCanvasOffset(event);
+            const node = <GraphNode> <any> this.graph.graph.getNodeOnPos(canvasPos[0], canvasPos[1]);
+
             // Add.
             if (!node) {
                 // Group?
-                const group = this.graphData.getGroupOnPos(event.canvasX, event.canvasY);
+                const group = <any> this.graph.graph.getGroupOnPos(event.canvasX, event.canvasY);
                 if (group) {
                     return ContextMenu.Show(event, {
                         remove: { name: 'Remove', callback: () => {
                             if (group.removable === false)
                                 return;
                             
-                            this.graphData.remove(group);
+                            this.graph.graph.remove(group);
                         } }
                     });
                 }
                 
                 GraphNodeCreator.OnConfirmSelection = (id) => {
-                    const node = <GraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
+                    // Close subgraph?
+                    if (id === 'editor_close_graph') {
+                        this.graph.closeSubgraph();
+                        return GraphNodeCreator.Hide();
+                    }
+
+                    const node = <GraphNode> <any> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
                     if (!node)
                         return;
                     
-                    node.pos = this.graph.convertEventToCanvas(event);
-                    if (node.size[0] < 100)
-                        node.size[0] = 100;
-                    if (node.widgets)
-                        node.size[1] += 25 * node.widgets.length;
-                    
+                    node.computeSize();
+                    node.pos = this.graph.convertEventToCanvasOffset(event);                    
                     node.color = '#555';
                     node.bgColor = '#AAA';
         
-                    this.graphData.add(node);
+                    this.graph.graph.add(<any> node);
+
                     GraphNodeCreator.Hide();
                 };
 
-                return GraphNodeCreator.Show();
+                return GraphNodeCreator.Show(this.graph);
             }
 
             // Node
             ContextMenu.Show(event, {
                 clone: { name: 'Clone', callback: () => {
-                    const clone = <GraphNode> LiteGraph.createNode(node.type);
+                    const clone = <GraphNode> <any> LiteGraph.createNode(node.type);
                     clone.pos = [node.pos[0] + 10, node.pos[1] + 10];
                     clone.properties = Tools.Clone(node.properties);
                     clone.color = '#555';
                     clone.bgColor = '#AAA';
+                    clone.computeSize();
                     if (clone.widgets) {
-                        clone.size[1] += 25 * node.widgets.length;
                         clone.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(node, w));
                     }
 
-                    this.graphData.add(clone);
+                    this.graph.graph.add(<any> clone);
                 } },
                 remove: { name: 'Remove', callback: () => {
-                    if (node.removable === false)
-                        return;
-                    
-                    this.graphData.remove(node);
+                    for (const index in this.graph.selected_nodes) {
+                        const n = <GraphNode> <any> this.graph.selected_nodes[index];
+                        if (n.removable === false)
+                            return;
+                        
+                        this.graph.graph.remove(<any> n);
+                    }
                 } },
             });
         });
@@ -428,8 +461,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Graph data
         this.graphData.clear();
-        this.graphData.scriptObject = node;
-        this.graphData.scriptScene = this.editor.core.scene;
+        this._setScriptObjectAndScene(this.graphData);
 
         // Add rows
         const graphs = this.editor.core.scene.metadata.behaviorGraphs;
@@ -476,6 +508,14 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param index the index of the selected graph
      */
     protected selectGraph (index: number): void {
+        // Close all subgraphs
+        if (this.graph['_graph_stack']) {
+            while (this.graph['_graph_stack'].length) {
+                this.graph.closeSubgraph();
+            }
+        }
+        
+        // Find graph
         const graphs = this.editor.core.scene.metadata.behaviorGraphs;
         this.data = graphs.find(s => s.id === this.datas.metadatas[index].graphId);
 
@@ -490,13 +530,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         IGraphNode.Loaded = false;
         this.graphData.configure(JSON.parse(JSON.stringify(this.data.graph)));
-        this.graphData.variables = this.data.variables || [];
-        this.graphData._nodes.forEach(n => {
-            if (!n.widgets)
-                return;
-
-            n.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(n, w));
-        });
+        this._setScriptObjectAndScene(this.graphData);
+        this._instantiateWidgets(this.graphData);
         IGraphNode.Loaded = true;
 
         // Refresh right text
@@ -608,7 +643,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 this.editor.core.scene.stopAnimation(this.node);
 
                 if (this._savedState.material) {
-                    SerializationHelper.Parse(() => this.node.material, this._savedState.material, this.editor.core.scene, 'file:');
+                    // TODO: material's metadatas.
+                    const mesh = <AbstractMesh> this.node;
+                    if (mesh.material)
+                        mesh.material.dispose(true, true);
+                    
+                    mesh.material = Material.Parse(this._savedState.material, this.editor.core.scene, 'file:');
+                    mesh.material.metadata = this._savedState.material.metadata;
                     delete this._savedState.material;
                 }
 
@@ -636,8 +677,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.node.rotation && (this._savedState.rotation = this.node.rotation.clone());
             this.node.scaling && (this._savedState.scaling = this.node.scaling.clone());
             this.node.rotationQuaternion && (this._savedState.rotationQuaternion = this.node.rotationQuaternion.clone());
-            // this.node.material && (this.node.material = this.node.material.clone(this.node.material.name)) && (this._savedState.material = this.node.material);
-            this.node.material && (this._savedState.material = this.node.material.serialize());
+            if (this.node.material) {
+                this._savedState.material = this.node.material.serialize();
+                this._savedState.material.metadata = this.node.material.metadata;
+            }
             this._savedState.parent = this.node.parent;
 
             const keys = Object.keys(this.node);
@@ -673,16 +716,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.graphData.variables.forEach(v => this._variablesValues.push(v.value));
 
             // Start
-            const nodes = <GraphNode[]> this.graphData._nodes;
-            nodes.forEach(n => {
-                // if (n instanceof RenderStart)
-                //     return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
-
-                // if (n instanceof RenderLoop)
-                //     return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
-                // TODO.
-            });
-
+            this._setScriptObjectAndScene(this.graphData);
             this.graphData.start();
 
             // Update toolbar
@@ -693,6 +727,48 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
             this.editor.core.disableObjectSelection = true;
         }
+    }
+
+    // Recursively sets the script object and scene.
+    private _setScriptObjectAndScene (root: any): void {
+        root.scriptObject = this.node;
+        root.scriptScene = this.editor.core.scene;
+
+        if (this.data)
+            root.variables = this.data.variables;
+
+        root._nodes.forEach(n => {
+            if (!(n instanceof LiteGraph.Nodes.Subgraph))
+                return;
+
+            this._setScriptObjectAndScene(n['subgraph']);
+        });
+    }
+
+    // Recursively instantiates the widgets of all nodes.
+    private _instantiateWidgets (root: any): void {
+        root._nodes.forEach(n => {
+            if (n.widgets)
+                n.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(n, w));
+
+            if (n instanceof LiteGraph.Nodes.Subgraph)
+                this._instantiateWidgets(n['subgraph']);
+        });
+    }
+
+    // Recursively stops all the graphs.
+    private _stopAllGraphs (root: any): void {
+        root._nodes.forEach(n => {
+            n.description && n.description.onStop && n.description.onStop(
+                n,
+                this.graphData.scriptObject,
+                this.graphData.scriptScene
+            );
+            n.store = { };
+
+            if (n instanceof LiteGraph.Nodes.Subgraph)
+                this._stopAllGraphs(n['subgraph']);
+        });
     }
 
     // Updates the toolbar text (attached object + edited objec)
