@@ -189,16 +189,9 @@ export default class EditorToolbar {
                         return;
                     
                     CodeProjectEditorFactory.CloseAll();
-                    this.editor._showReloadDialog = false;
-
-                    if (Tools.IsElectron()) {
-                        this.editor.checkOpenedFile();
-                    }
-                    else {
-                        this.editor.filesInput['_processReload']();
-                    }
+                    window.location.reload();
                 });
-                break
+                break;
             case 'project:new-project':
                 ProjectExporter.ProjectPath = null;
                 await this.editor.createDefaultScene(true, true);
