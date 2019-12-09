@@ -3,9 +3,10 @@ import { Scene, Effect, Tools, Vector2, Vector3, Texture } from 'babylonjs';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
-import { exportScriptString } from '../tools/tools';
+import { EDITOR, template } from './export';
 
 import { IStringDictionary } from '../typings/typings';
+import { IAssetFile, IAssetComponent, AssetElement, IAssetExportConfiguration } from '../typings/asset';
 
 import AbstractPostProcessEditor, { CustomPostProcessConfig } from './post-process';
 
@@ -28,30 +29,24 @@ export interface PostProcessCreatorMetadata {
     id: string;
 }
 
-const template = `
-EDITOR.PostProcessCreator.Constructors['{{name}}'] = function (camera, tools, mobile) {
-var returnValue = null;
-var exports = { };
-
-{{code}}
-${exportScriptString}
-}
-`;
-
-// Set EDITOR on Window
-export module EDITOR {
-    export class PostProcessCreator {
-        public static Constructors = { };
-    }
-}
-window['EDITOR'] = window['EDITOR'] || { };
-window['EDITOR'].PostProcessCreator = EDITOR.PostProcessCreator;
-
-export default class PostProcessEditorExtension extends Extension<PostProcessCreatorMetadata[]> {
-    // Public members
+export default class PostProcessEditorExtension extends Extension<PostProcessCreatorMetadata[]> implements IAssetComponent {
+    /**
+     * Defines all available post-processes instances available.
+     */
     public instances: IStringDictionary<any> = { };
 
-    // Static members
+    /**
+     * The id of the extension.
+     */
+    public id: string = 'post-processes-editor';
+    /**
+     * Caption to draw in assets panel.
+     */
+    public assetsCaption: string = 'Post-Processes';
+
+    /**
+     * Defines the instance of the post-process editor extension.
+     */
     public static Instance: PostProcessEditorExtension = null;
 
     /**
@@ -67,6 +62,18 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
     }
 
     /**
+     * On get all the assets to be drawn in the assets component
+     */
+    public onGetAssets (): AssetElement<any>[] {
+        const data = this.onSerialize();
+        const result: AssetElement<PostProcessCreatorMetadata>[] = [];
+
+        data.forEach(s => result.push({ name: s.name, data: s }));
+
+        return result;
+    }
+
+    /**
      * Creates a new post-process
      * @param data: the data containing code, pixel, etc.
      */
@@ -76,14 +83,10 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
         // Add custom code
         Effect.ShadersStore[id + 'PixelShader'] = data.pixel;
 
-        let url = window.location.href;
-        url = url.replace(Tools.GetFilename(url), '') + 'post-processes/' + data.name.replace(/ /g, '') + '.js';
-
-        Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.compiledCode || data.code), url);
-
+        // Get constructor.
         const camera = this.scene.getCameraByName(data.cameraName) || this.scene.activeCamera;
-        const ctor = new EDITOR.PostProcessCreator.Constructors[id](camera, Extensions.Tools, Extensions.Mobile);
-        const code = new ctor(camera, this.scene);
+        const ctor = this._getConstructor(id, data);
+        const code = new (ctor.ctor || ctor)(camera, this.scene);
 
         // Custom config
         let config: CustomPostProcessConfig = null;
@@ -108,6 +111,20 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
 
         // Return post-process
         return postprocess;
+    }
+
+    private _getConstructor (id: string, data: PostProcessCreatorMetadata): any {
+        if (window['GeneratedPostProcesses']) {
+            return window['GeneratedPostProcesses'].Scripts.find(s => s.id === data.id);
+        }
+
+        let url = window.location.href;
+        url = url.replace(Tools.GetFilename(url), '') + 'post-processes/' + data.name.replace(/ /g, '') + '.js';
+
+        Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.compiledCode || data.code), url);
+
+        const camera = this.scene.getCameraByName(data.cameraName) || this.scene.activeCamera;
+        return new EDITOR.PostProcessCreator.Constructors[id](camera, Extensions.Tools, Extensions.Mobile);
     }
 
     /**
@@ -166,6 +183,57 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
             d.id = d.id || Tools.RandomId();
             this.scene.metadata['PostProcessCreator'].push(d);
         });
+    }
+
+    /**
+     * Called by the editor when serializing the scene.
+     */
+    public async onSerializeFinalFiles (configuration: IAssetExportConfiguration): Promise<IAssetFile[]> {
+        if (!configuration.es6)
+            return [];
+        
+        const exportScript = await new Promise<string>((resolve) => {
+            Tools.LoadFile('assets/templates/post-process-creator/export.ts', (data) => resolve(<string> data));
+        });
+
+        let root = await new Promise<string>((resolve) => {
+            Tools.LoadFile('assets/templates/post-process-creator/embed.ts', (data) => resolve(<string> data));
+        }) + '\n';
+
+        const data = this.onSerialize();
+        const files = data.map(s => {
+            const id = 'script' + s.id.replace(/-/g, '');
+            const name = s.name.toLowerCase();
+
+            root += `import ${id} from "./${name}";\n`;
+            root += `GeneratedPostProcesses.Scripts.push({ ctor: ${id}, id: '${s.id}' });\n\n`;
+
+            return {
+                name: name + '.ts',
+                content: `import { IScript, exportScript, tools } from './export';\n${s.code}\n`
+            };
+        }).concat([
+            { name: 'all.ts', content: root },
+            { name: 'export.ts', content: exportScript }
+        ]);
+
+        files.forEach(f => {
+            f.content = (<string> f.content)
+                .replace(/'babylonjs'/g, "'@babylonjs/core'")
+                .replace(/"babylonjs"/g, "'@babylonjs/core'")
+                .replace(/'babylonjs-gui'/g, "'@babylonjs/gui'")
+                .replace(/"babylonjs-gui"/g, "'@babylonjs/gui'")
+                .replace(/'babylonjs-loaders'/g, "'@babylonjs/loaders'")
+                .replace(/"babylonjs-loaders"/g, "'@babylonjs/loaders'")
+                .replace(/'babylonjs-materials'/g, "'@babylonjs/materials'")
+                .replace(/"babylonjs-materials"/g, "'@babylonjs/materials'")
+                .replace(/'babylonjs-post-process'/g, "'@babylonjs/post-processes'")
+                .replace(/"babylonjs-post-process"/g, "'@babylonjs/post-processes'")
+                .replace(/'babylonjs-procedural-textures'/g, "'@babylonjs/procedural-textures'")
+                .replace(/"babylonjs-procedural-textures"/g, "'@babylonjs/procedural-textures'");
+        });
+
+        return files;
     }
 }
 

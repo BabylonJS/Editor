@@ -14,6 +14,21 @@ export interface AssetContextMenu {
     callback?: (asset?: AssetElement<any>) => void;
 }
 
+export interface IAssetFile {
+    /**
+     * The name of the file to write, including folder.
+     */
+    name: string;
+    /**
+     * The content of the file to write.
+     */
+    content: string | ArrayBuffer;
+}
+
+export interface IAssetExportConfiguration {
+    es6: boolean;
+}
+
 export interface IAssetComponent {
     id?: string;
     assetsCaption?: string;
@@ -33,4 +48,9 @@ export interface IAssetComponent {
 
     onSerializeAssets? (): AssetElement<any>[];
     onParseAssets? (data: AssetElement<any>[]): void;
+
+    /**
+     * Called by the editor when serializing final assets.
+     */
+    onSerializeFinalFiles? (configuration: IAssetExportConfiguration): IAssetFile[] | Promise<IAssetFile[]>;
 }

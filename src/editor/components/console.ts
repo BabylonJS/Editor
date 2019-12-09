@@ -89,13 +89,53 @@ export default class EditorConsole {
         this.toolbar.build('CONSOLE-TOOLBAR');
 
         // Code Editor
-        this._createEditor();
+        this._createEditor().then(() => this._overrideConsole());
 
         // Events
         BabylonTools.Log = ((m) => {
             console.log(m);
             this.log(m, ConsoleLevel.INFO);
         });
+        BabylonTools.Warn = ((m) => {
+            console.warn(m);
+            this.log(m, ConsoleLevel.WARN);
+        });
+        BabylonTools.Error = ((m) => {
+            console.error(m);
+            this.log(m, ConsoleLevel.ERROR);
+        });
+    }
+
+    // Overrides the console log,warn and error to show up messages in the console component of the editor.
+    private _overrideConsole (): void {
+        const scope = this;
+
+        const argumentsToString = function (args: IArguments) {
+            var arr = [];
+            try {
+                for (var i = 0; i < args.length; i++) {
+                    if (args[i] === undefined) { arr.push('undefined'); }
+                    else if (args[i] === null) { arr.push('null'); }
+                    else { arr.push(args[i].toString()); }
+                }
+                if (arr.length > 1) { arr[0] = '\n\t' + arr[0]; }
+            } catch (e) {
+                // Catch silently
+                debugger;
+            }
+            return arr.join('\n\t');
+        };
+
+        const log = console.log;
+        const info = console.info;
+        const warn = console.warn;
+        const error = console.error;
+
+        console.log = function (m) { log.apply(console, arguments); scope.log(argumentsToString(arguments), 0); };
+        console.info = function () { info.apply(console, arguments); scope.log(argumentsToString(arguments), 0); };
+        console.warn = function () { warn.apply(console, arguments); scope.log(argumentsToString(arguments), 1); };
+        console.error = function () { error.apply(console, arguments); scope.log(argumentsToString(arguments), 2); };
+
     }
 
     /**

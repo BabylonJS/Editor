@@ -2,7 +2,7 @@ import { Node, Scene, ParticleSystem, FilesInputStore, ParticleSystemSet, Vector
 import Extensions from '../extensions';
 
 import AssetsExtension from '../assets/assets';
-import CodeExtension from '../behavior/code';
+import CodeExtension from '../behavior-code/code';
 import PostProcessEditorExtension from '../post-process-editor/post-process-editor';
 import MaterialEditorExtension from '../material-editor/material-editor';
 import PathFinderExtension from '../path-finder';
@@ -169,6 +169,7 @@ if (exports) {return exports;}
 `.replace(/\n/g, '').replace(/\t/g, '').replace(/  /g, '');
 
 export const exportScriptString = `
+var returnValue;
 function exportScript (value, params) {${exportScriptBodyString}};
 ${exportScriptReturnString}
 `;

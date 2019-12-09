@@ -27,7 +27,7 @@ import Editor, {
 import CodeProjectEditor from 'babylonjs-editor-code-editor';
 
 import Extensions from '../../extensions/extensions';
-import CodeExtension, { BehaviorMetadata, BehaviorCode, BehaviorNodeMetadata } from '../../extensions/behavior/code';
+import CodeExtension, { BehaviorMetadata, BehaviorCode, BehaviorNodeMetadata } from '../../extensions/behavior-code/code';
 
 import '../../extensions/behavior/code';
 

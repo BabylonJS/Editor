@@ -9,7 +9,7 @@ import SceneManager from '../scene/scene-manager';
 import Tools from '../tools/tools';
 
 import Extensions from '../../extensions/extensions';
-import CodeExtension, { BehaviorNodeMetadata } from '../../extensions/behavior/code';
+import CodeExtension, { BehaviorNodeMetadata } from '../../extensions/behavior-code/code';
 
 export default class NodeTool extends AbstractEditionTool<Node> {
     // Public members

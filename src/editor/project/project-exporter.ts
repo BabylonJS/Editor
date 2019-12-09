@@ -29,6 +29,7 @@ import { IStringDictionary } from '../typings/typings';
 
 import Extension from '../../extensions/extension';
 import Extensions from '../../extensions/extensions';
+import { IAssetExportConfiguration } from '../../extensions/typings/asset';
 
 export default class ProjectExporter {
     // Public members
@@ -104,6 +105,27 @@ export default class ProjectExporter {
         const srcFiles: CreateFiles[] = [
             { name: 'game.ts', doNotOverride: true, data: (await Tools.LoadFile<string>('assets/templates/template/src/' + gameSrc)).replace('{{scene_format}}', ProjectSettings.ProjectExportFormat) }
         ];
+
+        // Assets files
+        const configuration = <IAssetExportConfiguration> {
+            es6: ProjectSettings.ExportWithES6Support
+        };
+
+        for (const extensionKey in Extensions.Instances) {
+            const extension = Extensions.Instances[extensionKey];
+            if (!extension.onSerializeFinalFiles)
+                continue;
+            
+            const files = await extension.onSerializeFinalFiles(configuration);
+            if (!files.length)
+                continue;
+
+                srcFiles.push({
+                name: extension.assetsCaption.toLowerCase(),
+                doNotOverride: false,
+                folder: files.map(f => ({ name: f.name, doNotOverride: false, data: f.content }))
+            });
+        }
 
         const storage = await Storage.GetStorage(editor);
         storage.openPicker('Create Template...', onlyScene ? sceneFiles : [

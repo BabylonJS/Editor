@@ -189,16 +189,9 @@ export default class EditorToolbar {
                         return;
                     
                     CodeProjectEditorFactory.CloseAll();
-                    this.editor._showReloadDialog = false;
-
-                    if (Tools.IsElectron()) {
-                        this.editor.checkOpenedFile();
-                    }
-                    else {
-                        this.editor.filesInput['_processReload']();
-                    }
+                    window.location.reload();
                 });
-                break
+                break;
             case 'project:new-project':
                 ProjectExporter.ProjectPath = null;
                 await this.editor.createDefaultScene(true, true);
@@ -310,10 +303,10 @@ export default class EditorToolbar {
                 SceneFactory.CreateDefaultEnvironment(this.editor);
                 break;
 				
-	    case 'addnm:camera':
+            case 'addnm:camera':
                 SceneFactory.CreateCamera(this.editor);
                 break;
-            
+                
             case 'addnm:particle-system':
                 SceneFactory.CreateDefaultParticleSystem(this.editor, false);
                 break;
@@ -326,7 +319,22 @@ export default class EditorToolbar {
             case 'addnm:water':
                 SceneFactory.CreateWaterEffect(this.editor);
                 break;
-            
+            case 'addnm:point-light':
+                SceneFactory.CreateLight(this.editor, 'point');
+                break;
+            case 'addnm:directional-light':
+                SceneFactory.CreateLight(this.editor, 'directional');
+                break;
+            case 'addnm:spot-light':
+                SceneFactory.CreateLight(this.editor, 'spot');
+                break;
+            case 'addnm:hemispheric-light':
+                SceneFactory.CreateLight(this.editor, 'hemispheric');
+                break;
+            case 'addnm:sound':
+                SceneFactory.AddSound(this.editor);
+                break;
+
             case 'addm:dummy-node':
                 SceneFactory.CreateDummyNode(this.editor);
                 break;
@@ -339,29 +347,11 @@ export default class EditorToolbar {
             case 'addm:sphere':
                 SceneFactory.CreateSphere(this.editor);
                 break;
-			case 'addm:plane':
+            case 'addm:plane':
                 SceneFactory.CreatePlane(this.editor);
                 break;
             case 'addm:cylinder':
                 SceneFactory.CreateCylinder(this.editor);
-                break;
-
-
-            case 'addnm:point-light':
-                SceneFactory.CreateLight(this.editor, 'point');
-                break;
-            case 'addnm:directional-light':
-                SceneFactory.CreateLight(this.editor, 'directional');
-                break;
-            case 'add:spot-light':
-                SceneFactory.CreateLight(this.editor, 'spot');
-                break;
-            case 'add:hemispheric-light':
-                SceneFactory.CreateLight(this.editor, 'hemispheric');
-                break;
-            
-            case 'addnm:sound':
-                SceneFactory.AddSound(this.editor);
                 break;
 
             case 'gui:add-advanced-texture':

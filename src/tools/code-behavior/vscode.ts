@@ -1,5 +1,5 @@
 import Editor, { CodeEditor, VSCodeSocket } from 'babylonjs-editor';
-import { BehaviorCode } from '../../extensions/behavior/code';
+import { BehaviorCode } from '../../extensions/behavior-code/code';
 
 export default class BehaviorVSCode {
     /**

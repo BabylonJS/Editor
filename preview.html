@@ -52,7 +52,11 @@
         // Override console
         var argumentsToString = function (args) {
             var arr = [];
-            for (var i = 0; i < args.length; i++) { arr.push(args[i].toString()); }
+            for (var i = 0; i < args.length; i++) {
+                if (args[i] === undefined) { arr.push('undefined'); }
+                else if (args[i] === null) { arr.push('null'); }
+                else { arr.push(args[i].toString()); }
+            }
             if (arr.length > 1) { arr[0] = '\n\t' + arr[0]; }
             return arr.join('\n\t');
         };
@@ -95,7 +99,8 @@
             },
             meta: {
                 "cannon": { format: "global" },
-                "javascript-astar": { format: "global" }
+                "javascript-astar": { format: "global" },
+                "litegraph.js": { format: "global" }
             }
         });
 

@@ -1,11 +1,11 @@
 import { Scene, Material, Color3, Color4 } from 'babylonjs';
 import { AbstractEditionTool, Tools, Window, Tree } from 'babylonjs-editor';
-import { LGraphGroup } from 'litegraph.js';
+import { LiteGraph, LGraphGroup } from 'litegraph.js';
 
-import { IGraphNode } from '../../extensions/behavior/nodes/types';
-import { GraphTypeNode } from '../../extensions/behavior/nodes/graph-type-node';
-import { GraphFunctionNode } from '../../extensions/behavior/nodes/graph-function-node';
-import { GraphNode } from '../../extensions/behavior/nodes/graph-node';
+import { IGraphNode } from '../../extensions/behavior-graph/nodes/types';
+import { GraphTypeNode } from '../../extensions/behavior-graph/nodes/graph-type-node';
+import { GraphFunctionNode } from '../../extensions/behavior-graph/nodes/graph-function-node';
+import { GraphNode } from '../../extensions/behavior-graph/nodes/graph-node';
 
 export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
     // Public members
@@ -18,8 +18,9 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
     private _allowedTypes: string[] = [
         'vector2', 'vector3', 'vector4',
         'color3', 'color4',
-        // 'quaternion',
-        'number', 'string', 'boolean'
+        'quaternion',
+        'number', 'string', 'boolean',
+        'null'
     ];
     private _onPropertySelected: (path: string) => void;
 
@@ -36,7 +37,11 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
      * @param object the object selected in the graph
      */
     public isSupported(object: any): boolean {
-        return object instanceof IGraphNode || object instanceof LGraphGroup;
+        return object instanceof IGraphNode ||
+               object instanceof LGraphGroup ||
+               object instanceof LiteGraph.Nodes.Subgraph ||
+               object instanceof LiteGraph.Nodes.GraphInput ||
+               object instanceof LiteGraph.Nodes.GraphOutput;
     }
 
     /**
@@ -61,10 +66,40 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
             this._setupNodeFunction(node);
         } else if (node instanceof GraphNode) {
             this._setupNode(node);
+        } else if (node instanceof LiteGraph.Nodes.Subgraph) {
+            this._setupSubGraph(node);
+        } else if (node instanceof LiteGraph.Nodes.GraphInput || node instanceof LiteGraph.Nodes.GraphOutput) {
+            this._setupSubGraphInputOutput(node);
         } else {
             // TOOD.
             debugger;
         }
+    }
+
+    /**
+     * Setups a sub graph node.
+     */
+    private _setupSubGraph (node: IGraphNode): void {
+        this.tool.add(node, 'title').name('Title');
+    }
+
+    /**
+     * Setups a sub graph input or output.
+     */
+    private _setupSubGraphInputOutput (node: IGraphNode): void {
+        this.tool.add(node.properties, 'name').name('Name');
+        this.tool.add(node.properties, 'type', [
+            'number', 'string', 'boolean',
+            'vec2', 'vec3', 'vec4',
+            'col3', 'col4',
+            'mesh', 'light', 'camera',
+            'EVENT'
+        ]).name('Type').onChange(r => {
+            if (r === 'EVENT')
+                return (node.properties.type = LiteGraph.EVENT);
+
+            node.properties.type = r;
+        });
     }
 
     /**
@@ -95,7 +130,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
             }
 
             if (property.name === 'Target Path') {
-                this._setupTargetPath(property.name);
+                this._setupTargetPath(property.name, property.filter);
                 continue;
             }
 
@@ -106,7 +141,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
             // Variable
             if (property.name === 'Variable') {
-                const variables = node.graph.variables.map(v => v.name);
+                const variables = node.graph['variables'].map(v => v.name);
                 this.tool.add(node.properties, property.name, variables).name(property.name);
                 continue;
             }
@@ -213,10 +248,12 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
     /**
      * Setups the target path.
      */
-    private _setupTargetPath (property: string): void {
-        const nodes = ['Self', 'Scene'].concat(this.editor.core.scene.meshes.map(m => m.name))
-                               .concat(this.editor.core.scene.lights.map(l => l.name))
-                               .concat(this.editor.core.scene.cameras.map(c => c.name));
+    private _setupTargetPath (property: string, filter: string[] = ['scene', 'self', 'mesh', 'light', 'camera']): void {
+        const nodes = [].concat(filter.indexOf('scene') !== -1 ? ['Scene'] : [])
+                        .concat(filter.indexOf('self') !== -1 ? ['Self'] : [])
+                        .concat(filter.indexOf('mesh') !== -1 ? this.editor.core.scene.meshes.map(m => m.name) : [])
+                        .concat(filter.indexOf('light') !== -1 ? this.editor.core.scene.lights.map(l => l.name) : [])
+                        .concat(filter.indexOf('camera') !== -1 ? this.editor.core.scene.cameras.map(c => c.name) : []);
         this.tool.add(this.object.properties, property, nodes).name('Target');
     }
 
@@ -241,7 +278,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
         // Target
         const targetPath = this.object.properties['Target Path'];
-        const target = targetPath ? GraphNode.GetTargetPath(targetPath, this.object.graph.scriptObject, this.editor.core.scene) : this.object.graph.scriptObject;
+        const target = targetPath ? GraphNode.GetTargetPath(targetPath, this.object.graph['scriptObject'], this.editor.core.scene) : this.object.graph['scriptObject'];
 
         // Create window
         const window = new Window('PropertyBrowser');
@@ -261,7 +298,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
                      // Check usable
                     const property = GraphNode.GetProperty(target, selected.data);
-                    const ctor = GraphNode.GetConstructorName(property).toLowerCase();
+                    const ctor = (property === null) ? 'null' : GraphNode.GetConstructorName(property).toLowerCase();
 
                     if (this._allowedTypes.indexOf(ctor) === -1)
                         return;
@@ -286,7 +323,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
                     continue;
 
                 const value = root[key];
-                const ctor = Tools.GetConstructorName(value).toLowerCase();
+                const ctor = value === null ? 'null' : Tools.GetConstructorName(value).toLowerCase();
 
                 const allowed = this._allowedTypes.indexOf(ctor) !== -1;
                 const deep = deepTypes.find(dt => value instanceof dt);
@@ -296,7 +333,7 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
 
                 const id = `${propertyName === '' ? '' : (propertyName + '.')}${key}`;
                 tree.add({
-                    text: key,
+                    text: key + (value === null ? ' (null)' : ''),
                     id: id,
                     img: 'icon-edit',
                     data: id

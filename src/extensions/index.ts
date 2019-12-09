@@ -1,9 +1,10 @@
 import Extensions from './extensions';
 import Extension from './extension';
+import Tools from './tools/tools';
 
 import AssetsExtension from './assets/assets';
-import CodeExtension from './behavior/code';
-import GraphExtension, { LGraph, LGraphCanvas, LiteGraph, GraphNode, LGraphGroup } from './behavior/graph';
+import CodeExtension from './behavior-code/code';
+import GraphExtension from './behavior-graph/graph';
 import PathFinderExtension from './path-finder/index';
 import PostProcessEditorExtension from './post-process-editor/post-process-editor';
 import MaterialEditorExtension from './material-editor/material-editor';
@@ -15,10 +16,11 @@ import { IExtension, ExtensionConstructor } from './typings/extension';
 export {
     Extensions,
     Extension,
+    Tools,
 
     AssetsExtension,
     CodeExtension,
-    GraphExtension, LGraph, LGraphCanvas, LiteGraph, GraphNode, LGraphGroup,
+    GraphExtension,
     PostProcessExtension,
     MaterialEditorExtension,
     PathFinderExtension,

@@ -3,8 +3,8 @@ import { Editor, CodeEditor } from 'babylonjs-editor';
 
 import Extensions from '../extensions/extensions';
 
-import CodeExtension, { BehaviorCode } from '../extensions/behavior/code';
-import { GraphData } from '../extensions/behavior/graph';
+import CodeExtension, { BehaviorCode } from '../extensions/behavior-code/code';
+import { GraphData } from '../extensions/behavior-graph/graph';
 
 export interface SceneMetadata {
     behaviorScripts?: BehaviorCode[];

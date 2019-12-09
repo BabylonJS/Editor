@@ -1,13 +1,7 @@
-import * as BABYLON from 'babylonjs';
-import * as POSTPROCESS from 'babylonjs-post-process';
-import * as MATERIALS from 'babylonjs-materials';
-import * as LOADERS from 'babylonjs-loaders';
-import * as PROCEDURALTEXTURES from 'babylonjs-procedural-textures';
-import * as GUI from 'babylonjs-gui';
 import * as CANNON from 'cannon';
 import * as EARCUT from 'earcut';
 
-import CodeExtension from '../behavior/code';
+import CodeExtension from '../behavior-code/code';
 
 declare module EDITOR {
     class BehaviorCode {
@@ -34,15 +28,15 @@ export const editorRequire = (moduleName: string) => {
         case 'babylonjs':
             return BABYLON;
         case 'babylonjs-procedural-textures':
-            return PROCEDURALTEXTURES;
+            return BABYLON;
         case 'babylonjs-loaders':
-            return LOADERS;
+            return BABYLON;
         case 'babylonjs-materials':
-            return MATERIALS;
+            return BABYLON;
         case 'babylonjs-post-process':
-            return POSTPROCESS;
+            return BABYLON;
         case 'babylonjs-gui':
-            return GUI;
+            return BABYLON.GUI;
         // Physics
         case 'cannon':
             return CANNON;
