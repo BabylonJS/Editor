@@ -229,9 +229,9 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                 const ctor = this.getConstructor(code, node);
 
                 // Warn?
-                if (!ctor.ctor && typeof(ctor) !== 'function') {
+                if (!ctor || !ctor.ctor && typeof(ctor) !== 'function') {
                     const nodeName = node instanceof Scene ? 'Scene' : node.name;
-                    return Tools.Warn(`Script named "${code.name}" has been ignored on object "${nodeName}" as there is no exported script. Please use "exportScript(ctor);"`);
+                    return Tools.Warn(`Script named "${code.name}" has been ignored on object "${nodeName}" as there is no exported script. Please use "exportScript(ctor);" or export the script as default class for ES6 support."`);
                 }
 
                 // Instance

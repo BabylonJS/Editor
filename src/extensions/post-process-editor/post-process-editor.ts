@@ -86,6 +86,13 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
         // Get constructor.
         const camera = this.scene.getCameraByName(data.cameraName) || this.scene.activeCamera;
         const ctor = this._getConstructor(id, data);
+
+        // Warn?
+        if (!ctor || !ctor.ctor && typeof(ctor) !== 'function') {
+            Tools.Warn(`Post-Process Script named "${data.name}" has been ignored as there is no exported script. Please use "exportScript(ctor);" or export the script as default class for ES6 support."`);
+            return null;
+        }
+
         const code = new (ctor.ctor || ctor)(camera, this.scene);
 
         // Custom config
