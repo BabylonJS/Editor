@@ -94,6 +94,19 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
     minify: true
 });
 
+build('./build/src/', './build/src/extensions/index-es6.js', './dist/editor.extensions.es6.js', {
+    globalName: 'EditorExtensions',
+    format: 'cjs',
+    globalDeps: {
+      'babylonjs': 'BABYLON',
+      'spectorjs': 'SPECTOR',
+      'cannon': 'CANNON',
+      'earcut': 'Earcut'
+    },
+    externals: ['babylonjs', 'babylonjs-gui', 'babylonjs-post-process', 'babylonjs-materials', 'babylonjs-loaders', 'babylonjs-procedural-textures', 'cannon', 'earcut'],
+    minify: false
+});
+
 build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensions.max.js', {
     globalName: 'EditorExtensions',
     format: 'cjs',

@@ -3,7 +3,7 @@ import { Scene, Effect, Tools, Vector2, Vector3, Texture } from 'babylonjs';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
-import { EDITOR, template } from './export';
+import { EDITOR, template, IEmbededPostProcess } from './export';
 
 import { IStringDictionary } from '../typings/typings';
 import { IAssetFile, IAssetComponent, AssetElement, IAssetExportConfiguration } from '../typings/asset';
@@ -48,6 +48,10 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
      * Defines the instance of the post-process editor extension.
      */
     public static Instance: PostProcessEditorExtension = null;
+    /**
+     * Defines all scripts registered in a case of es6 export.
+     */
+    public static GeneratedScripts: IEmbededPostProcess[] = [];
 
     /**
      * Constructor
@@ -121,8 +125,8 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
     }
 
     private _getConstructor (id: string, data: PostProcessCreatorMetadata): any {
-        if (window['GeneratedPostProcesses']) {
-            return window['GeneratedPostProcesses'].Scripts.find(s => s.id === data.id);
+        if (PostProcessEditorExtension.GeneratedScripts.length) {
+            return PostProcessEditorExtension.GeneratedScripts.find(s => s.id === data.id);
         }
 
         let url = window.location.href;
@@ -198,10 +202,6 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
     public async onSerializeFinalFiles (configuration: IAssetExportConfiguration): Promise<IAssetFile[]> {
         if (!configuration.es6)
             return [];
-        
-        const exportScript = await new Promise<string>((resolve) => {
-            Tools.LoadFile('assets/templates/post-process-creator/export.ts', (data) => resolve(<string> data));
-        });
 
         let root = await new Promise<string>((resolve) => {
             Tools.LoadFile('assets/templates/post-process-creator/embed.ts', (data) => resolve(<string> data));
@@ -213,15 +213,14 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
             const name = s.name.toLowerCase();
 
             root += `import ${id} from "./${name}";\n`;
-            root += `GeneratedPostProcesses.Scripts.push({ ctor: ${id}, id: '${s.id}' });\n\n`;
+            root += `PostProcessEditorExtension.GeneratedScripts.push({ ctor: ${id}, id: '${s.id}' });\n\n`;
 
             return {
                 name: name + '.ts',
-                content: `import { IScript, exportScript, tools } from './export';\n${s.code}\n`
+                content: `import { IScript, exportScript, tools } from 'babylonjs-editor-es6';\n${s.code}\n`
             };
         }).concat([
-            { name: 'all.ts', content: root },
-            { name: 'export.ts', content: exportScript }
+            { name: 'index.ts', content: root }
         ]);
 
         files.forEach(f => {

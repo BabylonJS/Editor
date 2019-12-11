@@ -14,7 +14,7 @@ import { IAssetComponent, AssetElement, IAssetFile, IAssetExportConfiguration } 
 import Extensions from '../extensions';
 import Extension from '../extension';
 
-import { EDITOR, template } from './export';
+import { EDITOR, template, IEmbededScript } from './export';
 
 export interface BehaviorCode {
     code: string;
@@ -53,6 +53,8 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
     // Static members
     public static Instance: CodeExtension = null;
     public static CurrentDatas: BehaviorMetadata = null;
+
+    public static GeneratedScripts: IEmbededScript[] = [];
     
     /**
      * Constructor
@@ -315,10 +317,6 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
             return [];
 
         // Handle ES6 export.
-        const exportScript = await new Promise<string>((resolve) => {
-            Tools.LoadFile('assets/templates/code/export.ts', (data) => resolve(<string> data));
-        });
-
         let root = await new Promise<string>((resolve) => {
             Tools.LoadFile('assets/templates/code/embed.ts', (data) => resolve(<string> data));
         }) + '\n';
@@ -332,15 +330,14 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                 return;
 
             root += `import ${id} from "./${name}";\n`;
-            root += `GeneratedScripts.Scripts.push({ ctor: ${id}, id: '${s.id}' });\n\n`;
+            root += `CodeExtension.GeneratedScripts.push({ ctor: ${id}, id: '${s.id}' });\n\n`;
 
             return {
                 name: name + '.ts',
-                content: `import { IScript, exportScript, tools } from './export';\n${s.code}\n`
+                content: `import { IScript, exportScript, tools } from 'babylonjs-editor-es6';\n${s.code}\n`
             };
         }).concat([
-            { name: 'all.ts', content: root },
-            { name: 'export.ts', content: exportScript }
+            { name: 'index.ts', content: root }
         ]);
 
         // Check configuration
@@ -466,8 +463,8 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
      */
     public getConstructor (code: BehaviorCode, node: any, evaluate?: boolean): any {
         // ES6 modules?
-        if (window['GeneratedScripts']) {
-            return window['GeneratedScripts'].Scripts.find(s => s.id === code.id);
+        if (CodeExtension.GeneratedScripts.length) {
+            return CodeExtension.GeneratedScripts.find(s => s.id === code.id);
         }
 
         // Legacy

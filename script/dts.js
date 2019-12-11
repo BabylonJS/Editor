@@ -32,6 +32,14 @@ Bundler.bundle({
 
 console.log('Declaration complete for: babylonjs-editor-extensions.d.ts');
 
+Bundler.bundle({
+	name: 'babylonjs-editor',
+    main: './declaration/src/extensions/index-es6.d.ts',
+    out: '../../../babylonjs-editor-extensions-es6.d.ts'
+});
+
+console.log('Declaration complete for: babylonjs-editor-extensions-es6.d.ts');
+
 // Code project editor
 Bundler.bundle({
 	name: 'babylonjs-editor-code-editor',

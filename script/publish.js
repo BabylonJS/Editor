@@ -9,6 +9,7 @@ PUBLISH
 
 // Contents
 const content = fs.readFileSync('./babylonjs-editor-extensions.d.ts', { encoding: 'utf-8' });
+const contentEs6 = fs.readFileSync('./babylonjs-editor-extensions-es6.d.ts', { encoding: 'utf-8' });
 
 const packageContent = fs.readFileSync('./package.json', { encoding: 'utf-8' });
 const packageJson = JSON.parse(packageContent);
@@ -27,7 +28,7 @@ const toES6 = function (done) {
     // Dts
     fs.writeFileSync(
         './babylonjs-editor-extensions.d.ts',
-        content
+        contentEs6
             .replace(/'babylonjs'/g, "'@babylonjs/core'")
             .replace(/"babylonjs"/g, "'@babylonjs/core'")
             .replace(/'babylonjs-gui'/g, "'@babylonjs/gui'")
@@ -44,29 +45,23 @@ const toES6 = function (done) {
     );
 
     // Js
-    const jsContent = fs.readFileSync('./dist/editor.extensions.js', { encoding: 'utf-8' });
-    const jsContentMax = fs.readFileSync('./dist/editor.extensions.max.js', { encoding: 'utf-8' });
-    [
-        { content: jsContent, path: './dist/editor.extensions.js' },
-        { content: jsContentMax, path: './dist/editor.extensions.max.js' }
-    ].forEach(function (data) {
-        fs.writeFileSync(
-            data.path,
-            data.content
-                .replace(/require\('babylonjs'/g, "require('@babylonjs/core'")
-                .replace(/require\("babylonjs"/g, "require('@babylonjs/core'")
-                .replace(/require\('babylonjs-gui'/g, "require('@babylonjs/gui'")
-                .replace(/require\("babylonjs-gui"/g, "require('@babylonjs/gui'")
-                .replace(/require\('babylonjs-loaders'/g, "require('@babylonjs/loaders'")
-                .replace(/require\("babylonjs-loaders"/g, "require('@babylonjs/loaders'")
-                .replace(/require\('babylonjs-materials'/g, "require('@babylonjs/materials'")
-                .replace(/require\("babylonjs-materials"/g, "require('@babylonjs/materials'")
-                .replace(/require\('babylonjs-post-process'/g, "require('@babylonjs/post-processes'")
-                .replace(/require\("babylonjs-post-process"/g, "require('@babylonjs/post-processes'")
-                .replace(/require\('babylonjs-procedural-textures'/g, "require('@babylonjs/procedural-textures'")
-                .replace(/require\("babylonjs-procedural-textures"/g, "require('@babylonjs/procedural-textures'")
-        );
-    });
+    const jsContentEs6 = fs.readFileSync('./dist/editor.extensions.es6.js', { encoding: 'utf-8' });
+    fs.writeFileSync(
+        './dist/editor.extensions.max.js',
+        jsContentEs6
+            .replace(/require\('babylonjs'/g, "require('@babylonjs/core'")
+            .replace(/require\("babylonjs"/g, "require('@babylonjs/core'")
+            .replace(/require\('babylonjs-gui'/g, "require('@babylonjs/gui'")
+            .replace(/require\("babylonjs-gui"/g, "require('@babylonjs/gui'")
+            .replace(/require\('babylonjs-loaders'/g, "require('@babylonjs/loaders'")
+            .replace(/require\("babylonjs-loaders"/g, "require('@babylonjs/loaders'")
+            .replace(/require\('babylonjs-materials'/g, "require('@babylonjs/materials'")
+            .replace(/require\("babylonjs-materials"/g, "require('@babylonjs/materials'")
+            .replace(/require\('babylonjs-post-process'/g, "require('@babylonjs/post-processes'")
+            .replace(/require\("babylonjs-post-process"/g, "require('@babylonjs/post-processes'")
+            .replace(/require\('babylonjs-procedural-textures'/g, "require('@babylonjs/procedural-textures'")
+            .replace(/require\("babylonjs-procedural-textures"/g, "require('@babylonjs/procedural-textures'")
+    );
 
     packageJson.name = 'babylonjs-editor-es6';
     fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));

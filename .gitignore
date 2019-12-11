@@ -139,4 +139,5 @@ photoshop-extension/.declaration
 
 # Files
 babylonjs-editor-extensions.d.ts
+babylonjs-editor-extensions-es6.d.ts
 css/editor.bundle.css

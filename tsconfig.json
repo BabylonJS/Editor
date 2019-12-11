@@ -34,6 +34,7 @@
     "./declaration",
     "./index.d.ts",
     "./babylonjs-editor-extensions.d.ts",
+    "./babylonjs-editor-extensions-es6.d.ts",
     "electron",
     "electron-packages",
     "vscode-extension",

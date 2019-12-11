@@ -11,6 +11,7 @@ script
 src
 .gitignore
 babylonjs-editor-code-editor.d.ts
+babylonjs-editor-extensions-es6.d.ts
 babylonjs-editor.d.ts
 *.html
 tsconfig.json

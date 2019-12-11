@@ -18,3 +18,17 @@ export module EDITOR {
 }
 window['EDITOR'] = window['EDITOR'] || { };
 window['EDITOR'].PostProcessCreator = EDITOR.PostProcessCreator;
+
+/**
+ * Generated interface defining an attached script
+ */
+export interface IEmbededPostProcess {
+    /**
+     * The constructor reference of the script.
+     */
+    ctor: (new (...args: any[]) => any);
+    /**
+     * The id of the script.
+     */
+    id: string;
+}
