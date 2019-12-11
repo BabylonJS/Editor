@@ -98,6 +98,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'reflectionSamples').min(1).max(512).step(1).name('Reflection Samples');
                 reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'enableSmoothReflections').name('Enable Smoothing Reflections');
                 reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'smoothSteps').min(1).max(32).name('Smooth steps');
+                reflections.add(SceneManager.StandardRenderingPipeline.screenSpaceReflectionPostProcess, 'roughnessFactor').min(0).max(10).name('Roughness Factor');
             }
 
             const bloom = standardPipeline.addFolder('Bloom');
