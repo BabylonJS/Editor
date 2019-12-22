@@ -47,7 +47,7 @@ const toES6 = function (done) {
     // Js
     const jsContentEs6 = fs.readFileSync('./dist/editor.extensions.es6.js', { encoding: 'utf-8' });
     fs.writeFileSync(
-        './dist/editor.extensions.max.js',
+        './dist/editor.extensions.es6.js',
         jsContentEs6
             .replace(/require\('babylonjs'/g, "require('@babylonjs/core'")
             .replace(/require\("babylonjs"/g, "require('@babylonjs/core'")
@@ -64,6 +64,7 @@ const toES6 = function (done) {
     );
 
     packageJson.name = 'babylonjs-editor-es6';
+    packageJson.main = 'dist/editor.extensions.es6.js';
     fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
 
     exec('npm publish', function (err, stdout, stderr) {

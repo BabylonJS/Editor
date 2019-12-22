@@ -463,7 +463,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
      */
     public getConstructor (code: BehaviorCode, node: any, evaluate?: boolean): any {
         // ES6 modules?
-        if (CodeExtension.GeneratedScripts.length) {
+        if (CodeExtension.GeneratedScripts) {
             return CodeExtension.GeneratedScripts.find(s => s.id === code.id);
         }
 

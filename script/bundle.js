@@ -103,7 +103,10 @@ build('./build/src/', './build/src/extensions/index-es6.js', './dist/editor.exte
       'cannon': 'CANNON',
       'earcut': 'Earcut'
     },
-    externals: ['babylonjs', 'babylonjs-gui', 'babylonjs-post-process', 'babylonjs-materials', 'babylonjs-loaders', 'babylonjs-procedural-textures', 'cannon', 'earcut'],
+    externals: [
+        'babylonjs', 'babylonjs-gui', 'babylonjs-post-process', 'babylonjs-materials', 'babylonjs-loaders', 'babylonjs-procedural-textures', 'cannon', 'earcut',
+        'litegraph.js', 'javascript-astar'
+    ],
     minify: false
 });
 

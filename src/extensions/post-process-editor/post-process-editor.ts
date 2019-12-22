@@ -125,7 +125,7 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
     }
 
     private _getConstructor (id: string, data: PostProcessCreatorMetadata): any {
-        if (PostProcessEditorExtension.GeneratedScripts.length) {
+        if (PostProcessEditorExtension.GeneratedScripts) {
             return PostProcessEditorExtension.GeneratedScripts.find(s => s.id === data.id);
         }
 
