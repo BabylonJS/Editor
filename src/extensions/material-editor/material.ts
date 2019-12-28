@@ -128,7 +128,7 @@ export default class CustomEditorMaterial extends PushMaterial {
             return false;
         
         if (this.isFrozen) {
-            if (this._wasPreviouslyReady && subMesh.effect) {
+            if (subMesh.effect) {
                 return true;
             }
         }
@@ -290,7 +290,6 @@ export default class CustomEditorMaterial extends PushMaterial {
         }
 
         this._renderId = scene.getRenderId();
-        this._wasPreviouslyReady = true;
 
         return true;
     }
