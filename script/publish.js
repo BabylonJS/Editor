@@ -7,6 +7,9 @@ PUBLISH
 -------------------------------------------------------------
 `);
 
+// Commands
+const command = 'npm publish';
+
 // Contents
 const content = fs.readFileSync('./babylonjs-editor-extensions.d.ts', { encoding: 'utf-8' });
 const contentEs6 = fs.readFileSync('./babylonjs-editor-extensions-es6.d.ts', { encoding: 'utf-8' });
@@ -19,7 +22,7 @@ packageJson.main = 'dist/editor.extensions.max.js';
 fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
 
 const publish = function (done) {
-    exec('npm publish', function (err, stdout, stderr) {
+    exec(command, function (err, stdout, stderr) {
         done(err, stdout, stderr);
     });
 };
@@ -67,7 +70,7 @@ const toES6 = function (done) {
     packageJson.main = 'dist/editor.extensions.es6.js';
     fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, '\t'));
 
-    exec('npm publish', function (err, stdout, stderr) {
+    exec(command, function (err, stdout, stderr) {
         done(err, stdout, stderr);
     });
 };

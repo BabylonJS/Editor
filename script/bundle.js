@@ -62,6 +62,13 @@ const build = function (baseUrl, inFile, outFile, options) {
     });
 };
 
+let externals = [
+    'babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-serializers',
+    'babylonjs-materials', 'babylonjs-post-process', 'dat-gui', 'extensions/extensions',
+    'jstree', 'golden-layout', 'jquery', 'javascript-astar', 'litegraph.js',
+    'cannon', 'earcut'
+];
+
 // Extensions
 build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensions.standalone.js', {
     globalName: 'EditorExtensions',
@@ -104,8 +111,10 @@ build('./build/src/', './build/src/extensions/index-es6.js', './dist/editor.exte
       'earcut': 'Earcut'
     },
     externals: [
-        'babylonjs', 'babylonjs-gui', 'babylonjs-post-process', 'babylonjs-materials', 'babylonjs-loaders', 'babylonjs-procedural-textures', 'cannon', 'earcut',
-        'litegraph.js', 'javascript-astar'
+        'babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-serializers',
+        'babylonjs-materials', 'babylonjs-post-process', 'dat-gui',
+        'jstree', 'golden-layout', 'jquery', 'javascript-astar', 'litegraph.js',
+        'cannon', 'earcut'
     ],
     minify: false
 });
@@ -124,13 +133,6 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
 });
 
 // Editor
-let externals = [
-    'babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-serializers',
-    'babylonjs-materials', 'babylonjs-post-process', 'dat-gui', 'extensions/extensions',
-    'jstree', 'golden-layout', 'jquery', 'javascript-astar', 'litegraph.js',
-    'cannon', 'earcut'
-];
-
 build('./build/src/', './build/src/index.js', './dist/editor.js', {
     globalName: 'Editor',
     format: 'cjs',

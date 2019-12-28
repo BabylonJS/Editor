@@ -6,7 +6,7 @@ import Extension from '../extension';
 import { EDITOR, template, IEmbededPostProcess } from './export';
 
 import { IStringDictionary } from '../typings/typings';
-import { IAssetFile, IAssetComponent, AssetElement, IAssetExportConfiguration } from '../typings/asset';
+import { IAssetFile, IAssetExportConfiguration } from '../typings/asset';
 
 import AbstractPostProcessEditor, { CustomPostProcessConfig } from './post-process';
 
@@ -29,7 +29,7 @@ export interface PostProcessCreatorMetadata {
     id: string;
 }
 
-export default class PostProcessEditorExtension extends Extension<PostProcessCreatorMetadata[]> implements IAssetComponent {
+export default class PostProcessEditorExtension extends Extension<PostProcessCreatorMetadata[]> {
     /**
      * Defines all available post-processes instances available.
      */
@@ -63,18 +63,6 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
 
         // Instance
         PostProcessEditorExtension.Instance = this;
-    }
-
-    /**
-     * On get all the assets to be drawn in the assets component
-     */
-    public onGetAssets (): AssetElement<any>[] {
-        const data = this.onSerialize();
-        const result: AssetElement<PostProcessCreatorMetadata>[] = [];
-
-        data.forEach(s => result.push({ name: s.name, data: s }));
-
-        return result;
     }
 
     /**
