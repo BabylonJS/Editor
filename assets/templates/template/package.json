@@ -1,6 +1,6 @@
 {
   "name": "babylonjs-editor-generated-template",
-  "version": "3.2.1-beta.2",
+  "version": "3.2.1-beta.3",
   "description": "Generated Template by BabylonJS Editor v3.0",
   "scripts": {
     "clean": "rimraf build && rimraf declaration",
@@ -28,7 +28,7 @@
     "babylonjs-materials": "4.1.0-beta.18",
     "babylonjs-procedural-textures": "4.1.0-beta.18",
     "babylonjs-post-process": "4.1.0-beta.18",
-    "babylonjs-editor": "3.2.1-beta.2",
+    "babylonjs-editor": "3.2.1-beta.3",
     "cannon": "~0.6.2",
     "earcut": "~2.1.3"
   }

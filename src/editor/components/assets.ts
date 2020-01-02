@@ -8,12 +8,13 @@ import UndoRedo from '../tools/undo-redo';
 import ContextMenu, { ContextMenuItem } from '../gui/context-menu';
 import Layout from '../gui/layout';
 import Toolbar from '../gui/toolbar';
+import Dialog from '../gui/dialog';
 
 import { IAssetComponent, AssetElement } from '../../extensions/typings/asset';
 
 import PrefabAssetComponent from '../prefabs/asset-component';
 import ParticlesAssetComponent from '../particles/asset-component';
-import { Dialog } from 'babylonjs-editor';
+import MeshesLibrary from "../libraries/meshes";
 
 import VSCodeSocket from '../extensions/vscode-socket';
 import { IStringDictionary } from '../typings/typings';
@@ -35,6 +36,7 @@ export default class EditorAssets {
 
     public prefabs: PrefabAssetComponent;
     public particles: ParticlesAssetComponent;
+    public meshes: MeshesLibrary;
 
     public assetPreviewDatas: AssetPreviewData[] = [];
 
@@ -88,6 +90,7 @@ export default class EditorAssets {
         // Create components
         this.prefabs = new PrefabAssetComponent(editor);
         this.particles = new ParticlesAssetComponent(editor);
+        this.meshes = new MeshesLibrary(editor);
 
         // Add components tabs
         this.addDefaultComponents();
@@ -104,6 +107,11 @@ export default class EditorAssets {
         this.components.forEach(c => {
             $('#' + c.id).remove();
             this.tabs.remove(c.id);
+
+            if (c._onDragAndDropFilesObserver) {
+                this.editor.core.onDropFiles.remove(c._onDragAndDropFilesObserver);
+                c._onDragAndDropFilesObserver = null;
+            }
         });
 
         this.components = [];
@@ -124,6 +132,7 @@ export default class EditorAssets {
     public addDefaultComponents (): void {
         this.addTab(this.prefabs);
         this.addTab(this.particles);
+        this.addTab(this.meshes);
     }
 
     /**
@@ -162,10 +171,27 @@ export default class EditorAssets {
         }
 
         // Refresh each component
-        this.components.forEach(async c => {
+        this.components.forEach(async (c) => {
             if (id && c.id !== id)
                 return;
-            
+
+            // Drag'n'drop?
+            if (c._onDragAndDropFilesObserver) {
+                this.editor.core.onDropFiles.remove(c._onDragAndDropFilesObserver);
+                c._onDragAndDropFilesObserver = null;
+            }
+
+            if (c.onDragAndDropFiles) {
+                c._onDragAndDropFilesObserver = this.editor.core.onDropFiles.add(async (files) => {
+                    if (files.target !== $("#" + c.id)[0])
+                        return;
+                    
+                    await c.onDragAndDropFiles(files.files);
+                    this.refresh(c.id);
+                });
+            }
+
+            // Get assets to draw in component.
             const assets = 
                 (await c.onGetAssets())
                 .filter(a => a.name && a.name.toLowerCase().indexOf(this._search.toLowerCase()) !== -1 || a.separator);

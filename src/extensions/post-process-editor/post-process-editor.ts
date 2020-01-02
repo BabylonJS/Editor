@@ -113,7 +113,7 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
     }
 
     private _getConstructor (id: string, data: PostProcessCreatorMetadata): any {
-        if (PostProcessEditorExtension.GeneratedScripts) {
+        if (PostProcessEditorExtension.GeneratedScripts.length) {
             return PostProcessEditorExtension.GeneratedScripts.find(s => s.id === data.id);
         }
 
@@ -205,14 +205,14 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
 
             return {
                 name: name + '.ts',
-                content: `import { IScript, exportScript, tools } from 'babylonjs-editor-es6';\n${s.code}\n`
+                data: `import { IScript, exportScript, tools } from 'babylonjs-editor-es6';\n${s.code}\n`
             };
         }).concat([
-            { name: 'index.ts', content: root }
+            { name: 'index.ts', data: root }
         ]);
 
         files.forEach(f => {
-            f.content = (<string> f.content)
+            f.data = (<string> f.data)
                 .replace(/'babylonjs'/g, "'@babylonjs/core'")
                 .replace(/"babylonjs"/g, "'@babylonjs/core'")
                 .replace(/'babylonjs-gui'/g, "'@babylonjs/gui'")

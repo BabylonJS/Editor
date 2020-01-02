@@ -1,4 +1,4 @@
-import { AbstractMesh, PickingInfo } from 'babylonjs';
+import { AbstractMesh, PickingInfo, Observer } from 'babylonjs';
 
 export interface AssetElement<T> {
     img?: string;
@@ -20,9 +20,13 @@ export interface IAssetFile {
      */
     name: string;
     /**
-     * The content of the file to write.
+     * The file reference to write.
      */
-    content: string | ArrayBuffer;
+    file?: File;
+    /**
+     * The data to write in file.
+     */
+    data?: string | ArrayBuffer | Uint8Array;
 }
 
 export interface IAssetExportConfiguration {
@@ -47,8 +51,22 @@ export interface IAssetComponent {
     onContextMenu? (): AssetContextMenu[];
 
     onSerializeAssets? (): AssetElement<any>[];
-    onParseAssets? (data: AssetElement<any>[]): void;
+    onParseAssets? (data: AssetElement<any>[]): Promise<void> | void;
 
+    /**
+     * Called on the user drag'n'drops files in the assets component.
+     */
+    onDragAndDropFiles? (files: FileList): Promise<void> | void;
+    /**
+     * Reference to the drag'n'drop files observer.
+     * @hidden
+     */
+    _onDragAndDropFilesObserver?: Observer<any>;
+
+    /**
+     * Called by the editor when serializing the project (used when saving project).
+     */
+    onSerializeFiles? (): IAssetFile[] | Promise<IAssetFile[]>;
     /**
      * Called by the editor when serializing final assets.
      */

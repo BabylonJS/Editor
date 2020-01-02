@@ -123,7 +123,7 @@ export default class ProjectExporter {
                 srcFiles.push({
                 name: extension.assetsCaption.toLowerCase(),
                 doNotOverride: false,
-                folder: files.map(f => ({ name: f.name, doNotOverride: false, data: f.content }))
+                folder: files.map(f => ({ name: f.name, doNotOverride: false, data: f.data, file: f.file }))
             });
         }
 
@@ -181,6 +181,18 @@ export default class ProjectExporter {
             sceneFolder.folder.push({ name: file.name, file: file, doNotOverride: true });
         }
 
+        // Asset components
+        for (const c of editor.assets.components) {
+            if (!c.onSerializeFiles)
+                continue;
+
+            const files = await c.onSerializeFiles();
+            if (!files.length)
+                continue;
+            
+            root.push({ name: c.id, folder: files });
+        }
+
         // Save
         storage.onCreateFiles = folder => this.ProjectPath = folder;
         await storage.openPicker('Export Editor Project...', root, exportAs ? null : this.ProjectPath);
@@ -206,6 +218,7 @@ export default class ProjectExporter {
 
         // Save
         if (Tools.IsElectron()) {
+            debugger;
             const storage = await Storage.GetStorage(editor);
             storage.onCreateFiles = folder => this.ProjectPath = folder;
             

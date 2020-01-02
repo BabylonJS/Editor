@@ -2735,6 +2735,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
     import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     import ParticlesAssetComponent from 'babylonjs-editor/editor/particles/asset-component';
+    import MeshesLibrary from "babylonjs-editor/editor/libraries/meshes";
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export interface AssetPreviewData {
             asset: AssetElement<any>;
@@ -2750,6 +2751,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
             components: IAssetComponent[];
             prefabs: PrefabAssetComponent;
             particles: ParticlesAssetComponent;
+            meshes: MeshesLibrary;
             assetPreviewDatas: AssetPreviewData[];
             protected currentComponent: IAssetComponent;
             protected emptyTextNode: HTMLHeadElement;
@@ -2914,7 +2916,7 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
 }
 
 declare module 'babylonjs-editor/extensions/typings/asset' {
-    import { AbstractMesh, PickingInfo } from 'babylonjs';
+    import { AbstractMesh, PickingInfo, Observer } from 'babylonjs';
     export interface AssetElement<T> {
             img?: string;
             name?: string;
@@ -2933,9 +2935,13 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
                 */
             name: string;
             /**
-                * The content of the file to write.
+                * The file reference to write.
                 */
-            content: string | ArrayBuffer;
+            file?: File;
+            /**
+                * The data to write in file.
+                */
+            data?: string | ArrayBuffer | Uint8Array;
     }
     export interface IAssetExportConfiguration {
             es6: boolean;
@@ -2953,7 +2959,20 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
             onDoubleClickAsset?(asset: AssetElement<any>): void;
             onContextMenu?(): AssetContextMenu[];
             onSerializeAssets?(): AssetElement<any>[];
-            onParseAssets?(data: AssetElement<any>[]): void;
+            onParseAssets?(data: AssetElement<any>[]): Promise<void> | void;
+            /**
+                * Called on the user drag'n'drops files in the assets component.
+                */
+            onDragAndDropFiles?(files: FileList): Promise<void> | void;
+            /**
+                * Reference to the drag'n'drop files observer.
+                * @hidden
+                */
+            _onDragAndDropFilesObserver?: Observer<any>;
+            /**
+                * Called by the editor when serializing the project (used when saving project).
+                */
+            onSerializeFiles?(): IAssetFile[] | Promise<IAssetFile[]>;
             /**
                 * Called by the editor when serializing final assets.
                 */
@@ -2991,6 +3010,69 @@ declare module 'babylonjs-editor/extensions/post-process/post-processes' {
                 * loading a scene)
                 */
             onLoad(data: PostProcessMetadata): void;
+    }
+}
+
+declare module 'babylonjs-editor/editor/libraries/meshes' {
+    import { AbstractMesh, PickingInfo } from 'babylonjs';
+    import { IAssetComponent, AssetElement, IAssetFile } from 'babylonjs-editor/extensions/typings/asset';
+    import Editor from 'babylonjs-editor/editor/editor';
+    export default class MeshesLibrary implements IAssetComponent {
+            editor: Editor;
+            /**
+                * The id of the component.
+                */
+            id: string;
+            /**
+                * The caption to draw in the assets component.
+                */
+            assetsCaption: string;
+            /**
+                * The size of the asset elements in the component.
+                */
+            size: number;
+            /**
+                * The files list in formats .babylon, .gltf and .glb
+                */
+            files: File[];
+            /**
+                * Constructor.
+                */
+            constructor(editor: Editor);
+            /**
+                * On the assets panel requires the assets stored in this
+                * asset component
+                */
+            onGetAssets(): AssetElement<any>[];
+            /**
+                * Called on the user drag'n'drops files in the assets component.
+                */
+            onDragAndDropFiles(files: FileList): void;
+            /**
+                * On the user removes a prefab from his library
+                * @param asset the asset to remove
+                */
+            onRemoveAsset(asset: AssetElement<File>): void;
+            /**
+                * On the user saves the editor project
+                */
+            onSerializeAssets(): AssetElement<string>[];
+            /**
+                * On the user loads the editor project
+                * @param data the previously saved data
+                */
+            onParseAssets(data: AssetElement<string>[]): Promise<void>;
+            /**
+                * On the user drops an asset in the scene
+                * @param targetMesh the mesh under the pointer
+                * @param asset the asset being dropped
+                * @param pickInfo the pick info once the user dropped the asset
+                */
+            onDragAndDropAsset(targetMesh: AbstractMesh, asset: AssetElement<File>, pickInfo: PickingInfo): Promise<void>;
+            /**
+                * Called by the editor when serializing the project (used when saving project).
+                */
+            onSerializeFiles(): IAssetFile[];
     }
 }
 

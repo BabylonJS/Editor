@@ -245,7 +245,8 @@ export default class ProjectImporter {
                 continue;
 
             try {
-                component.onParseAssets && component.onParseAssets(project.assets[a]);
+                if (component.onParseAssets)
+                    await component.onParseAssets(project.assets[a]);
             } catch (e) {
                 errors.push(`Failed to parse assets ${component.id}: ${e.message}`);
                 return errors;

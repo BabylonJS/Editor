@@ -334,16 +334,16 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
             return {
                 name: name + '.ts',
-                content: `import { IScript, exportScript, tools } from 'babylonjs-editor-es6';\n${s.code}\n`
+                data: `import { IScript, exportScript, tools } from 'babylonjs-editor-es6';\n${s.code}\n`
             };
         }).concat([
-            { name: 'index.ts', content: root }
+            { name: 'index.ts', data: root }
         ]);
 
         // Check configuration
         if (configuration.es6) {
             files.forEach(f => {
-                f.content = (<string> f.content)
+                f.data = (<string> f.data)
                     .replace(/'babylonjs'/g, "'@babylonjs/core'")
                     .replace(/"babylonjs"/g, "'@babylonjs/core'")
                     .replace(/'babylonjs-gui'/g, "'@babylonjs/gui'")
@@ -463,7 +463,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
      */
     public getConstructor (code: BehaviorCode, node: any, evaluate?: boolean): any {
         // ES6 modules?
-        if (CodeExtension.GeneratedScripts) {
+        if (CodeExtension.GeneratedScripts.length) {
             return CodeExtension.GeneratedScripts.find(s => s.id === code.id);
         }
 
