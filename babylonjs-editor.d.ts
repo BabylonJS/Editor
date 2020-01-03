@@ -2044,6 +2044,10 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
              */
             enabled: boolean;
             /**
+                * Sets the gizmos steps.
+                */
+            gizmoStep: number;
+            /**
                 * Sets the gizmo type
                 */
             gizmoType: GizmoType;
@@ -3034,7 +3038,7 @@ declare module 'babylonjs-editor/editor/libraries/meshes' {
             /**
                 * The files list in formats .babylon, .gltf and .glb
                 */
-            files: File[];
+            datas: AssetElement<File>[];
             /**
                 * Constructor.
                 */

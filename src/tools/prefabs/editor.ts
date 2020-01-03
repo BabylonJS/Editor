@@ -45,6 +45,10 @@ export default class PrefabEditor extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
+        // Events
+        this.editor.core.onSelectObject.remove(this.onObjectSelected);
+        this.editor.core.onSelectAsset.remove(this.onAssetSelected);
+
         // Engine
         this.scene.dispose();
         this.engine.dispose();
@@ -52,10 +56,6 @@ export default class PrefabEditor extends EditorPlugin {
         // UI
         this.toolbar.element.destroy();
         this.layout.element.destroy();
-
-        // Events
-        this.editor.core.onSelectObject.remove(this.onObjectSelected);
-        this.editor.core.onSelectAsset.remove(this.onAssetSelected);
 
         await super.close();
     }

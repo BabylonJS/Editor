@@ -1,6 +1,10 @@
-import { AbstractMesh, PickingInfo, FilesInputStore, SceneLoader, Tags, Tools as BabylonTools } from 'babylonjs';
+import {
+    Engine, AbstractMesh, PickingInfo, FilesInputStore,
+    SceneLoader, Tags, Tools as BabylonTools
+} from 'babylonjs';
 
 import { IAssetComponent, AssetElement, IAssetFile } from '../../extensions/typings/asset';
+import LibrariesHelpers from './helpers';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
@@ -24,7 +28,10 @@ export default class MeshesLibrary implements IAssetComponent {
     /**
      * The files list in formats .babylon, .gltf and .glb
      */
-    public files: File[] = [];
+    public datas: AssetElement<File>[] = [];
+
+    private _previewCanvas: HTMLCanvasElement = null;
+    private _previewEngine: Engine = null;
 
     /**
      * Constructor.
@@ -38,11 +45,43 @@ export default class MeshesLibrary implements IAssetComponent {
      * asset component
      */
     public onGetAssets (): AssetElement<any>[] {
-        return this.files.map(f => ({
-            img: null,
-            name: f.name,
-            data: f
-        }));
+        // Create engine
+        if (!this._previewCanvas) {
+            this._previewCanvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'PrefabAssetComponentCanvas', {
+                'width': '100px',
+                'height': '100px',
+                'visibility': 'hidden'
+            });
+            document.body.appendChild(this._previewCanvas);
+        }
+
+        if (!this._previewEngine)
+            this._previewEngine = new Engine(this._previewCanvas);
+
+        // Previews
+        for (const d of this.datas) {
+            setTimeout(() => this._createPreview(d), 0);
+        }
+
+        // Return assets
+        return this.datas;
+    }
+
+    // Creates a preview data.
+    private async _createPreview (asset: AssetElement<File>): Promise<void> {
+        const adp = this.editor.assets.getAssetPreviewData(asset);
+        if (adp) {
+            adp.img.src = '';
+            w2utils.lock(adp.parent, '', true);
+        }
+
+        const b64 = await LibrariesHelpers.CreateFilePreview(asset, this._previewEngine);
+        asset.img = b64;
+
+        if (adp) {
+            adp.img.src = b64;
+            w2utils.unlock(adp.parent);
+        }
     }
 
     /**
@@ -55,7 +94,7 @@ export default class MeshesLibrary implements IAssetComponent {
             const file = files.item(i);
             const ext = Tools.GetFileExtension(file.name);
             if (availableFormats.indexOf(ext.toLowerCase()) !== -1)
-                this.files.push(files.item(i));
+                this.datas.push({ name: file.name, data: file });
             else
                 FilesInputStore.FilesToLoad[file.name.toLowerCase()] = file;
         }
@@ -66,18 +105,19 @@ export default class MeshesLibrary implements IAssetComponent {
      * @param asset the asset to remove
      */
     public onRemoveAsset (asset: AssetElement<File>): void {
-        const index = this.files.indexOf(asset.data);
+        const index = this.datas.indexOf(asset);
         if (index !== -1)
-            this.files.splice(index, 1);
+            this.datas.splice(index, 1);
     }
 
     /**
      * On the user saves the editor project
      */
     public onSerializeAssets (): AssetElement<string>[] {
-        return this.files.map(f => ({
-            name: f.name,
-            data: f.name
+        return this.datas.map(d => ({
+            name: d.name,
+            data: d.name,
+            img: d.img
         }));
     }
 
@@ -94,7 +134,7 @@ export default class MeshesLibrary implements IAssetComponent {
                 continue;
             
             const f = Tools.CreateFile(new Uint8Array(b), d.data);
-            this.files.push(f);
+            this.datas.push({ name: d.data, data: f, img: d.img });
         }
     }
 
@@ -137,6 +177,6 @@ export default class MeshesLibrary implements IAssetComponent {
      * Called by the editor when serializing the project (used when saving project).
      */
     public onSerializeFiles (): IAssetFile[] {
-        return this.files.map(f => ({ name: f.name, file: f }));
+        return this.datas.map(f => ({ name: f.name, file: f.data }));
     }
 }

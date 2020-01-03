@@ -130,9 +130,9 @@ export default class EditorAssets {
      * Adds the default components
      */
     public addDefaultComponents (): void {
+        this.addTab(this.meshes);
         this.addTab(this.prefabs);
         this.addTab(this.particles);
-        this.addTab(this.meshes);
     }
 
     /**

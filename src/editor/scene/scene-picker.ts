@@ -55,6 +55,8 @@ export default class ScenePicker {
     private _gizmoPositionDelta: Vector3 = null;
     private _gizmoRotationDelta: Quaternion = null;
 
+    private _gizmoStep: number = 0;
+
     /**
      * Constructor
      * @param editor: the editor reference
@@ -114,6 +116,14 @@ export default class ScenePicker {
     }
 
     /**
+     * Sets the gizmos steps (snap distance).
+     */
+    public set gizmoStep (value: number) {
+        this._gizmoStep = value;
+        this._updateGizmosStep();
+    }
+
+    /**
      * Sets the gizmo type
      */
     public set gizmoType (value: GizmoType) {
@@ -142,6 +152,7 @@ export default class ScenePicker {
 
         // Attach mesh and configure
         this.setGizmoAttachedMesh(this.editor.core.currentSelectedObject);
+        this._updateGizmosStep();
         this.currentGizmo.scaleRatio = 2.5;
 
         // Events
@@ -175,6 +186,13 @@ export default class ScenePicker {
             this.currentGizmo.onScaleBoxDragEndObservable.add(_ => this.undoRedo('boundingbox'));
             this.currentGizmo.onRotationSphereDragEndObservable.add(_ => this.undoRedo('boundingbox'));
         }
+    }
+
+    // Updates the gizmos steps
+    private _updateGizmosStep (): void {
+        this.positionGizmo && (this.positionGizmo.snapDistance = this._gizmoStep);
+        this.rotationGizmo && (this.rotationGizmo.snapDistance = this._gizmoStep);
+        this.scalingGizmo && (this.scalingGizmo.snapDistance = this._gizmoStep);
     }
 
     /**
