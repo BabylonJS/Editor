@@ -157,18 +157,52 @@ export default class ProjectExporter {
 
         // Project
         const project = this.Export(editor);
-        const content = JSON.stringify(project, null, '\t');
 
         // Storage
         const storage = await Storage.GetStorage(editor);
 
-        // Add files
+        // Create scene files
         const sceneFolder: CreateFiles = { name: 'scene', folder: [] };
-        const root: CreateFiles[] = [
-            { name: editor.projectFileName, data: content },
-            sceneFolder
-        ];
+        const nodesFolder: CreateFiles = { name: 'nodes', folder: [] };
+        const materialsFolder: CreateFiles = { name: 'materials', folder: [] };
+        const texturesFolder: CreateFiles = { name: 'textures', folder: [] };
 
+        const filenameRegexp = new RegExp('[\\/:*?""<>|]', 'g');
+
+        project.nodes.forEach((n, index) => {
+            let name = n.name;
+            const matches = filenameRegexp.exec(n.name);
+            if (matches)
+                name = n.name.replace(filenameRegexp, '') + n.id;
+            
+            name = `${name}.json`;
+            nodesFolder.folder.push({ name: name, data: JSON.stringify(n) });
+            project.nodes[index] = <any> name;
+        });
+
+        project.materials.forEach((m, index) => {
+            let name = m.serializedValues.name;
+            const matches = filenameRegexp.exec(m.serializedValues.name);
+            if (matches)
+                name = m.serializedValues.name.replace(filenameRegexp, '') + m.serializedValues.id;
+            
+            name = `${name}.json`;
+            materialsFolder.folder.push({ name: name, data: JSON.stringify(m) });
+            project.materials[index] = <any> name;
+        });
+
+        project.textures.forEach((t, index) => {
+            let name = t.serializedValues.name;
+            const matches = filenameRegexp.exec(t.serializedValues.name);
+            if (matches)
+                name = t.serializedValues.name.replace(filenameRegexp, '') + t.serializedValues.id;
+            
+            name = `${name}.json`;
+            texturesFolder.folder.push({ name: name, data: JSON.stringify(t) });
+            project.textures[index] = <any> name;
+        });
+
+        // Scene files
         for (const f in FilesInputStore.FilesToLoad) {
             const file = FilesInputStore.FilesToLoad[f];
             if (Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport'))
@@ -180,6 +214,15 @@ export default class ProjectExporter {
             
             sceneFolder.folder.push({ name: file.name, file: file, doNotOverride: true });
         }
+
+        // Create root files
+        const root: CreateFiles[] = [
+            { name: editor.projectFileName, data: JSON.stringify(project, null, '\t') },
+            sceneFolder,
+            nodesFolder,
+            materialsFolder,
+            texturesFolder
+        ];
 
         // Asset components
         for (const c of editor.assets.components) {

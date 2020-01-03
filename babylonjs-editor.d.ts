@@ -2044,7 +2044,7 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
              */
             enabled: boolean;
             /**
-                * Sets the gizmos steps.
+                * Sets the gizmos steps (snap distance).
                 */
             gizmoStep: number;
             /**

@@ -7,6 +7,7 @@ import {
 
 import Editor from '../editor';
 
+import ProjectExporter from './project-exporter';
 import ProjectSettings from './project-settings';
 import ProjectHelpers from './project-helpers';
 
@@ -32,6 +33,36 @@ export default class ProjectImporter {
         
         // Clean project (compatibility)
         this.CleanProject(project);
+
+        // Retrieve nodes
+        for (let i = 0; i < project.nodes.length; i++) {
+            const node = project.nodes[i];
+            if (typeof(node) !== 'string') // Backward compatibility
+                continue;
+            
+            const nodeData = await Tools.LoadFile<string>(`${ProjectExporter.ProjectPath}nodes/${project.nodes[i]}`);
+            project.nodes[i] = JSON.parse(nodeData);
+        }
+
+         // Retrieve materials
+         for (let i = 0; i < project.materials.length; i++) {
+            const material = project.materials[i];
+            if (typeof(material) !== 'string') // Backward compatibility
+                continue;
+            
+            const materialData = await Tools.LoadFile<string>(`${ProjectExporter.ProjectPath}materials/${project.materials[i]}`);
+            project.materials[i] = JSON.parse(materialData);
+        }
+
+        // Retrieve textures
+        for (let i = 0; i < project.textures.length; i++) {
+            const texture = project.textures[i];
+            if (typeof(texture) !== 'string') // Backward compatibility
+                continue;
+            
+            const textureData = await Tools.LoadFile<string>(`${ProjectExporter.ProjectPath}textures/${project.textures[i]}`);
+            project.textures[i] = JSON.parse(textureData);
+        }
 
         // Tools states
         editor.inspector.setToolsStates(project.editionToolsStates);
