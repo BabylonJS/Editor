@@ -112,11 +112,15 @@ export default class MeshesLibrary implements IAssetComponent {
             Tags.AddTagsTo(m, 'added');
             m.id = BabylonTools.RandomId();
             SceneFactory.AddToGraph(this.editor, m);
+            this.editor.scenePicker.configureMesh(m);
 
             if (m.material) {
                 Tags.AddTagsTo(m.material, 'added');
                 m.material.id = BabylonTools.RandomId();
             }
+
+            if (!m.parent)
+                m.position.copyFrom(pickInfo.pickedPoint.add(m.position));
         });
         result.skeletons.forEach(s => {
             s.id = BabylonTools.RandomId();
