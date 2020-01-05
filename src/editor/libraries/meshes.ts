@@ -1,6 +1,6 @@
 import {
     Engine, AbstractMesh, PickingInfo, FilesInputStore,
-    SceneLoader, Tags, Tools as BabylonTools
+    SceneLoader, Tags, Tools as BabylonTools, Mesh
 } from 'babylonjs';
 
 import { IAssetComponent, AssetElement, IAssetFile } from '../../extensions/typings/asset';
@@ -8,8 +8,14 @@ import LibrariesHelpers from './helpers';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
+import Dialog from '../gui/dialog';
 import SceneFactory from '../scene/scene-factory';
 import ProjectExporter from '../project/project-exporter';
+
+interface ImportedMeshMetadata {
+    sourceFile: string;
+    originalName: string;
+}
 
 export default class MeshesLibrary implements IAssetComponent {
     /**
@@ -87,16 +93,35 @@ export default class MeshesLibrary implements IAssetComponent {
     /**
      * Called on the user drag'n'drops files in the assets component.
      */
-    public onDragAndDropFiles (files: FileList): void {
+    public async onDragAndDropFiles (files: FileList): Promise<void> {
         const availableFormats = ['babylon', 'gltf', 'glb'];
 
         for (let i = 0; i < files.length; i++) {
             const file = files.item(i);
             const ext = Tools.GetFileExtension(file.name);
-            if (availableFormats.indexOf(ext.toLowerCase()) !== -1)
+            if (availableFormats.indexOf(ext.toLowerCase()) !== -1) {
+                // Search for existing meshes
+                const existingMeshes = <Mesh[]> this.editor.core.scene.meshes.filter((m) => m.metadata && m.metadata.sourceFile && m.metadata.sourceFile.sourceFile === file.name);
+                if (existingMeshes.length) {
+                    const update = await Dialog.Create('Update existing?', 'File already imported. Do you want to update the existing geometry?');
+                    if (update === 'Yes')
+                        await this._updateGeometries(existingMeshes, file);
+                }
+
+                // Get existing file
+                const existing = this.datas.find((d) => d.data.name === file.name);
+                if (existing) {
+                    const index = this.datas.indexOf(existing);
+                    this.datas[index] = existing;
+                    continue;
+                }
+
+                // Just add.
                 this.datas.push({ name: file.name, data: file });
-            else
+            }
+            else {
                 FilesInputStore.FilesToLoad[file.name.toLowerCase()] = file;
+            }
         }
     }
 
@@ -150,9 +175,7 @@ export default class MeshesLibrary implements IAssetComponent {
 
         result.meshes.forEach(m => {
             Tags.AddTagsTo(m, 'added');
-            m.id = BabylonTools.RandomId();
-            SceneFactory.AddToGraph(this.editor, m);
-            this.editor.scenePicker.configureMesh(m);
+            this._configureMesh(m);
 
             if (m.material) {
                 Tags.AddTagsTo(m.material, 'added');
@@ -161,6 +184,13 @@ export default class MeshesLibrary implements IAssetComponent {
 
             if (!m.parent)
                 m.position.copyFrom(pickInfo.pickedPoint.add(m.position));
+
+            // Write mesh's metadatas
+            m.metadata = m.metadata || { };
+            m.metadata.sourceFile = <ImportedMeshMetadata> {
+                sourceFile: asset.data.name,
+                originalName: m.name
+            };
         });
         result.skeletons.forEach(s => {
             s.id = BabylonTools.RandomId();
@@ -178,5 +208,47 @@ export default class MeshesLibrary implements IAssetComponent {
      */
     public onSerializeFiles (): IAssetFile[] {
         return this.datas.map(f => ({ name: f.name, file: f.data }));
+    }
+
+    // Returns the mesh's metadatas.
+    private _getMeshMetadata (m: AbstractMesh): ImportedMeshMetadata {
+        return m.metadata.sourceFile;
+    }
+
+    // Configures the mesh and adds to the scene's tree.
+    private _configureMesh (m: AbstractMesh): void {
+        m.id = BabylonTools.RandomId();
+        SceneFactory.AddToGraph(this.editor, m);
+        this.editor.scenePicker.configureMesh(m);
+    }
+
+    // Updates the geometries of the existing meshes.
+    private async _updateGeometries (meshes: Mesh[], file: File): Promise<void> {
+        const scene = await SceneLoader.LoadAsync('file:', file, this.editor.core.engine);
+
+        scene.meshes.forEach((m) => {
+            const base = meshes.find((em) => {
+                const metadata = this._getMeshMetadata(em);
+                return metadata.originalName === m.name;
+            });
+
+            if (!base) {
+                this.editor.core.scene.addMesh(m, true);
+                this._configureMesh(m);
+            }
+
+            if (!(m instanceof Mesh) || !(base instanceof Mesh))
+                return;
+            
+            if (!m.geometry)
+                return;
+
+            if (base.geometry)
+                base.geometry.dispose();
+            
+            m.geometry.applyToMesh(base);
+        });
+
+        scene.dispose();
     }
 }

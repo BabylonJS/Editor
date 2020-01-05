@@ -762,7 +762,9 @@ export default class ProjectExporter {
      * Clears the original metadata
      */
     private static _ClearOriginalMetadata (n: any): any {
-        delete n.metadata;
+        if (n.metadata)
+            delete n.metadata.original;
+        
         return n;
     }
 

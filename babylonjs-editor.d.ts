@@ -3051,7 +3051,7 @@ declare module 'babylonjs-editor/editor/libraries/meshes' {
             /**
                 * Called on the user drag'n'drops files in the assets component.
                 */
-            onDragAndDropFiles(files: FileList): void;
+            onDragAndDropFiles(files: FileList): Promise<void>;
             /**
                 * On the user removes a prefab from his library
                 * @param asset the asset to remove
