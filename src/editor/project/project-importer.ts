@@ -230,7 +230,7 @@ export default class ProjectImporter {
             });
 
             // Node not found
-            if (!node)
+            if (!node || n.added)
                 return;
 
             // Parent id
@@ -315,11 +315,20 @@ export default class ProjectImporter {
                 const existing = scene.getMaterialByID(m.serializedValues.id);
                 const material = existing ? ProjectHelpers.ParseExistingMaterial(existing, m.serializedValues, scene, 'file:') : Material.Parse(m.serializedValues, scene, 'file:');
 
-                m.meshesNames.forEach(mn => {
-                    const mesh = scene.getMeshByName(mn);
-                    if (mesh && !(mesh instanceof InstancedMesh))
-                        mesh.material = material;
-                });
+                if (m.meshesIds) {
+                    m.meshesIds.forEach(mi => {
+                        const mesh = scene.getMeshByID(mi);
+                        if (mesh && !(mesh instanceof InstancedMesh))
+                            mesh.material = material;
+                    });
+                }
+                else {
+                    m.meshesNames.forEach(mn => {
+                        const mesh = scene.getMeshByName(mn);
+                        if (mesh && !(mesh instanceof InstancedMesh))
+                            mesh.material = material;
+                    });
+                }
 
                 // Material has been added
                 Tags.AddTagsTo(material, existing ? 'modified' : 'added');

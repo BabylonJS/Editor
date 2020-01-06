@@ -173,9 +173,9 @@ export default class ProjectExporter {
             let name = n.name;
             const matches = filenameRegexp.exec(n.name);
             if (matches)
-                name = n.name.replace(filenameRegexp, '') + n.id;
+                name = n.name.replace(filenameRegexp, '');
             
-            name = `${name}.json`;
+            name = `${name}-${n.id}.json`;
             nodesFolder.folder.push({ name: name, data: JSON.stringify(n) });
             project.nodes[index] = <any> name;
         });
@@ -186,7 +186,7 @@ export default class ProjectExporter {
             if (matches)
                 name = m.serializedValues.name.replace(filenameRegexp, '') + m.serializedValues.id;
             
-            name = `${name}.json`;
+            name = `${name}-${m.serializedValues.id}.json`;
             materialsFolder.folder.push({ name: name, data: JSON.stringify(m) });
             project.materials[index] = <any> name;
         });
@@ -197,7 +197,7 @@ export default class ProjectExporter {
             if (matches)
                 name = t.serializedValues.name.replace(filenameRegexp, '') + t.serializedValues.id;
             
-            name = `${name}.json`;
+            name = `${name}-${t.serializedValues.id}.json`;
             texturesFolder.folder.push({ name: name, data: JSON.stringify(t) });
             project.textures[index] = <any> name;
         });
@@ -499,19 +499,23 @@ export default class ProjectExporter {
                 return;
 
             // Already serialized?
-            const material = result.find(mat => mat.serializedValues.name === m.name);
+            const material = result.find(mat => mat.serializedValues.id === m.id);
             if (material)
                 return;
 
             // Add new material
             const names: string[] = [];
-            scene.meshes.map(mesh => {
-                if (mesh.material === m)
+            const ids: string[] = [];
+            scene.meshes.forEach(mesh => {
+                if (mesh.material === m) {
                     names.push(mesh.name);
+                    ids.push(mesh.id);
+                }
             });
 
             result.push({
                 meshesNames: names,
+                meshesIds: ids,
                 newInstance: true,
                 serializedValues: modifed ? this._MergeModifedProperties(m, m.serialize()) : m.serialize()
             });
