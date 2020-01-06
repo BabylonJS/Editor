@@ -326,11 +326,11 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
             const id = 'script' + s.id.replace(/-/g, '');
             const name = s.name.toLowerCase();
             const nodes = data.nodes.filter(n => n.metadatas.find(m => m.codeId === s.id));
-            if (!nodes.length)
-                return;
 
-            root += `import ${id} from "./${name}";\n`;
-            root += `CodeExtension.GeneratedScripts.push({ ctor: ${id}, id: '${s.id}' });\n\n`;
+            if (nodes.length) {
+                root += `import ${id} from "./${name}";\n`;
+                root += `CodeExtension.GeneratedScripts.push({ ctor: ${id}, id: '${s.id}' });\n\n`;
+            }
 
             return {
                 name: name + '.ts',
