@@ -1660,6 +1660,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
     export interface ProjectMaterial {
             serializedValues: any;
             meshesNames?: string[];
+            meshesIds?: string[];
             newInstance?: boolean;
             _babylonMaterial?: Material;
     }
@@ -2959,7 +2960,7 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
             onGetAssets?(): AssetElement<any>[] | Promise<AssetElement<any>[]>;
             onRemoveAsset?(asset: AssetElement<any>): void;
             onAddAsset?(asset: AssetElement<any>): void;
-            onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
+            onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): Promise<void> | void;
             onDoubleClickAsset?(asset: AssetElement<any>): void;
             onContextMenu?(): AssetContextMenu[];
             onSerializeAssets?(): AssetElement<any>[];

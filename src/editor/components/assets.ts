@@ -1,4 +1,4 @@
-import { Tools as BabylonTools } from 'babylonjs';
+import { Tools as BabylonTools, Vector3 } from 'babylonjs';
 
 import Editor from '../editor';
 
@@ -404,14 +404,14 @@ export default class EditorAssets {
      * @param asset the dropped asset
      */
     protected dragEnd (component: IAssetComponent, asset: AssetElement<any>): (ev: DragEvent) => void {
-        return (ev: DragEvent) => {
+        return async (ev: DragEvent) => {
             const scene = this.editor.core.scene;
             const pick = scene.pick(ev.offsetX, ev.offsetY);
 
             if (!pick.pickedMesh)
-                return;
+                pick.pickedPoint = Vector3.Zero();
 
-            component.onDragAndDropAsset(pick.pickedMesh, asset, pick);
+            await component.onDragAndDropAsset(pick.pickedMesh, asset, pick);
             this.editor.core.onSelectObject.notifyObservers(pick.pickedMesh);
             this.editor.graph.configure();
             this.refresh(component.id);

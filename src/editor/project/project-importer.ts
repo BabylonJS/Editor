@@ -181,8 +181,13 @@ export default class ProjectImporter {
                                     Tags.AddTagsTo(node, 'modified');
                                 }
                                 else if (n.added === undefined || n.added) {
-                                    node = Mesh.Parse(m, scene, 'file:');
+                                    const mesh = node = Mesh.Parse(m, scene, 'file:');
                                     Tags.AddTagsTo(node, 'added');
+
+                                    // Physics
+                                    const impostor = scene.getPhysicsEngine().getImpostorForPhysicsObject(mesh);
+                                    if (impostor)
+                                        mesh.physicsImpostor = impostor;
                                 }
 
                                 // Parent id
@@ -229,7 +234,7 @@ export default class ProjectImporter {
                 }
             });
 
-            // Node not found
+            // Node not found or added by the editor.
             if (!node || n.added)
                 return;
 

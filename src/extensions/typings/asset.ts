@@ -46,7 +46,7 @@ export interface IAssetComponent {
     onRemoveAsset? (asset: AssetElement<any>): void;
     onAddAsset? (asset: AssetElement<any>): void;
     
-    onDragAndDropAsset? (targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
+    onDragAndDropAsset? (targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): Promise<void> | void;
     onDoubleClickAsset? (asset: AssetElement<any>): void;
     onContextMenu? (): AssetContextMenu[];
 
