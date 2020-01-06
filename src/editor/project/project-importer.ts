@@ -2,7 +2,7 @@ import {
     Scene, Tags, Animation, ActionManager, Material, Texture, ShadowGenerator,
     Geometry, Node, Camera, Light, Mesh, ParticleSystem, AbstractMesh, InstancedMesh,
     CannonJSPlugin, PhysicsImpostor, Vector3, EffectLayer, Sound, RenderTargetTexture, ReflectionProbe,
-    Color3, Color4, SerializationHelper
+    Color3, Color4, SerializationHelper, Skeleton
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -163,7 +163,12 @@ export default class ProjectImporter {
                                     Geometry.Parse(v, scene, 'file:');
                                 });
                             }
+                            
                             // Skeleton
+                            if (n.serializationObject.skeletons) {
+                                n.serializationObject.skeletons.forEach(s => Skeleton.Parse(s, scene));
+                            }
+
                             if (n.skeleton) {
                                 const existing = scene.getSkeletonById(n.skeleton.serializationObject.id);
                                 if (existing) {
@@ -183,6 +188,13 @@ export default class ProjectImporter {
                                 else if (n.added === undefined || n.added) {
                                     const mesh = node = Mesh.Parse(m, scene, 'file:');
                                     Tags.AddTagsTo(node, 'added');
+
+                                    if (m.skeletonId) {
+                                        mesh.skeleton = scene.getLastSkeletonByID(m.skeletonId);
+                                        if (m.numBoneInfluencers) {
+                                            mesh.numBoneInfluencers = m.numBoneInfluencers;
+                                        }
+                                    }
 
                                     // Physics
                                     const impostor = scene.getPhysicsEngine().getImpostorForPhysicsObject(mesh);

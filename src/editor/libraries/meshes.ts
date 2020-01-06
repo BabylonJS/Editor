@@ -193,7 +193,12 @@ export default class MeshesLibrary implements IAssetComponent {
             };
         });
         result.skeletons.forEach(s => {
-            s.id = BabylonTools.RandomId();
+            let id = 0;
+            while (this.editor.core.scene.getSkeletonById(<any> id)) {
+                id++;
+            }
+
+            s.id = <any> id;
             Tags.AddTagsTo(s, 'added');
         });
         result.particleSystems.forEach(ps => {
