@@ -38,6 +38,11 @@ export interface IAssetComponent {
     assetsCaption?: string;
     size?: number;
 
+    /**
+     * Called on the assets panel is being cleared.
+     */
+    onClear? (): void;
+
     onCreateAsset? (name: string): AssetElement<any> | Promise<AssetElement<any>>;
     onRenameAsset? (asset: AssetElement<any>, name: string): void;
 

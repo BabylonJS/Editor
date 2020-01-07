@@ -306,105 +306,8 @@ export default class EditorGraph {
 
         // Add nodes
         nodes.forEach(n => {
-            // Hide prefabs, keep only masters
-            if (Tags.MatchesQuery(n, 'prefab'))
-                return;
-
-            // Should be hidden?
-            if (Tags.MatchesQuery(n, 'graph-hidden'))
-                return;
-            
-            // Create a random ID if not defined
-            if (!n.id || this.tree.get(n.id)) {
-                n.id = BabylonTools.RandomId();
-                if (n.metadata && n.metadata.original)
-                    n.metadata.original.id = n.id;
-            }
-
-            n.id = n.id.replace(/ /g, '');
-
-            // Instance?
-            const parent = root ? root.id : this.root;
-            const parentNode = this.tree.add({
-                id: n.id,
-                text: n.name,
-                img: this.getIcon(n),
-                data: n
-            }, parent);
-
-            // Cannot add
-            if (!parentNode)
-                return;
-
-            // Mesh
-            if (n instanceof AbstractMesh) {
-                // Sub meshes
-                if (n.subMeshes && n.subMeshes.length > 1) {
-                    n.subMeshes.forEach((sm, index) => {
-                        const smMaterial = sm.getMaterial();
-
-                        this.tree.add({
-                            id: n.id + 'submesh_' + index,
-                            text: smMaterial ? smMaterial.name : sm.getMesh().name + ' (Unnamed submesh)',
-                            img: this.getIcon(n),
-                            data: sm
-                        }, n.id);
-                    });
-                }
-
-                // Skeleton
-                if (n.skeleton) {
-                    this.tree.add({
-                        id: n.skeleton.id || BabylonTools.RandomId(),
-                        text: n.skeleton.name,
-                        img: this.getIcon(n.skeleton),
-                        data: n.skeleton
-                    }, n.id);
-                }
-            }
-
-            // Check particle systems
-            scene.particleSystems.forEach(ps => {
-                if (ps.emitter === n) {
-                    this.tree.add({
-                        id: ps.id,
-                        text: ps.name,
-                        img: this.getIcon(ps),
-                        data: ps
-                    }, n.id);
-                }
-            });
-
-            // Check lens flares
-            scene.lensFlareSystems && scene.lensFlareSystems.forEach(lf => {
-                if (lf.getEmitter() === n) {
-                    this.tree.add({
-                        id: lf.id,
-                        text: lf.name,
-                        img: this.getIcon(lf),
-                        data: lf
-                    }, n.id);
-                }
-            });
-
-            // Camera? Add post-processes
-            if (n instanceof Camera) {
-                scene.postProcesses.forEach(p => {
-                    const camera = p.getCamera();
-                    if (camera !== n)
-                        return;
-                
-                    this.tree.add({
-                        id: p.name + BabylonTools.RandomId(),
-                        text: p.name,
-                        img: this.getIcon(p),
-                        data: p
-                    }, n.id);
-                });
-            }
-
-            // Sounds
-            this.fillSounds(scene, n);
+            // Add the node.
+            this.addNode(scene, n, root);
 
             // TODO: wait for parse and serialize for GUI
             // parentNode.count += this.fillGuiTextures(n);
@@ -418,6 +321,123 @@ export default class EditorGraph {
             this.tree.expand(this.root);
             this.configure();
         }
+    }
+
+    /**
+     * adds the given node with its descendants in the scene graph.
+     * @param scene the scene containing the node.
+     * @param node the node to add in the scene graph with its descendants.
+     */
+    public addNodeRecursively (scene: Scene, node: Node): void {
+        this.addNode(scene, node);
+        this.fill(scene, node);
+    }
+
+    /**
+     * Adds the given node to the graph.
+     * @param scene the scene containing the node.
+     * @param node the node to add.
+     */
+    public addNode (scene: Scene, node: Node, root: Node = node.parent): void {
+        // Hide prefabs, keep only masters
+        if (Tags.MatchesQuery(node, 'prefab'))
+            return;
+
+        // Should be hidden?
+        if (Tags.MatchesQuery(node, 'graph-hidden'))
+            return;
+        
+        // Create a random ID if not defined
+        if (!node.id || this.tree.get(node.id)) {
+            node.id = BabylonTools.RandomId();
+            if (node.metadata && node.metadata.original)
+                node.metadata.original.id = node.id;
+        }
+
+        node.id = node.id.replace(/ /g, '');
+
+        // Instance?
+        const parent = root ? root.id : this.root;
+        const parentNode = this.tree.add({
+            id: node.id,
+            text: node.name,
+            img: this.getIcon(node),
+            data: node
+        }, parent);
+
+        // Cannot add
+        if (!parentNode)
+            return;
+
+        // Mesh
+        if (node instanceof AbstractMesh) {
+            // Sub meshes
+            if (node.subMeshes && node.subMeshes.length > 1) {
+                node.subMeshes.forEach((sm, index) => {
+                    const smMaterial = sm.getMaterial();
+
+                    this.tree.add({
+                        id: node.id + 'submesh_' + index,
+                        text: smMaterial ? smMaterial.name : sm.getMesh().name + ' (Unnamed submesh)',
+                        img: this.getIcon(node),
+                        data: sm
+                    }, node.id);
+                });
+            }
+
+            // Skeleton
+            if (node.skeleton) {
+                this.tree.add({
+                    id: node.skeleton.id || BabylonTools.RandomId(),
+                    text: node.skeleton.name,
+                    img: this.getIcon(node.skeleton),
+                    data: node.skeleton
+                }, node.id);
+            }
+        }
+
+        // Check particle systems
+        scene.particleSystems.forEach(ps => {
+            if (ps.emitter === node) {
+                this.tree.add({
+                    id: ps.id,
+                    text: ps.name,
+                    img: this.getIcon(ps),
+                    data: ps
+                }, node.id);
+            }
+        });
+
+        // Check lens flares
+        scene.lensFlareSystems && scene.lensFlareSystems.forEach(lf => {
+            if (lf.getEmitter() === node) {
+                this.tree.add({
+                    id: lf.id,
+                    text: lf.name,
+                    img: this.getIcon(lf),
+                    data: lf
+                }, node.id);
+            }
+        });
+
+        // Camera? Add post-processes
+        if (node instanceof Camera) {
+            scene.postProcesses.forEach(p => {
+                const camera = p.getCamera();
+                if (camera !== node)
+                    return;
+            
+                this.tree.add({
+                    id: p.name + BabylonTools.RandomId(),
+                    text: p.name,
+                    img: this.getIcon(p),
+                    data: p
+                }, node.id);
+            });
+        }
+
+        // Sounds
+        this.fillSounds(scene, node);
     }
 
     /**

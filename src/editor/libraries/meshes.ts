@@ -47,6 +47,13 @@ export default class MeshesLibrary implements IAssetComponent {
     }
 
     /**
+     * Called on the assets panel is being cleared.
+     */
+    public onClear (): void {
+        this.datas = [];
+    }
+
+    /**
      * On the assets panel requires the assets stored in this
      * asset component
      */
@@ -192,6 +199,7 @@ export default class MeshesLibrary implements IAssetComponent {
                 originalName: m.name
             };
         });
+
         result.skeletons.forEach(s => {
             let id = 0;
             while (this.editor.core.scene.getSkeletonById(<any> id)) {
@@ -201,6 +209,7 @@ export default class MeshesLibrary implements IAssetComponent {
             s.id = <any> id;
             Tags.AddTagsTo(s, 'added');
         });
+
         result.particleSystems.forEach(ps => {
             Tags.AddTagsTo(ps, 'added');
             ps.id = BabylonTools.RandomId();
@@ -223,8 +232,10 @@ export default class MeshesLibrary implements IAssetComponent {
     // Configures the mesh and adds to the scene's tree.
     private _configureMesh (m: AbstractMesh): void {
         m.id = BabylonTools.RandomId();
-        SceneFactory.AddToGraph(this.editor, m);
         this.editor.scenePicker.configureMesh(m);
+
+        if (!m.parent)
+            this.editor.graph.addNodeRecursively(this.editor.core.scene, m);
     }
 
     // Updates the geometries of the existing meshes.

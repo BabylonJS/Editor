@@ -108,6 +108,9 @@ export default class EditorAssets {
             $('#' + c.id).remove();
             this.tabs.remove(c.id);
 
+            if (c.onClear)
+                c.onClear();
+            
             if (c._onDragAndDropFilesObserver) {
                 this.editor.core.onDropFiles.remove(c._onDragAndDropFilesObserver);
                 c._onDragAndDropFilesObserver = null;

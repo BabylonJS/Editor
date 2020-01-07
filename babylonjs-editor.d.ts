@@ -2540,6 +2540,18 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 */
             fill(scene?: Scene, root?: Node): void;
             /**
+                * adds the given node with its descendants in the scene graph.
+                * @param scene the scene containing the node.
+                * @param node the node to add in the scene graph with its descendants.
+                */
+            addNodeRecursively(scene: Scene, node: Node): void;
+            /**
+                * Adds the given node to the graph.
+                * @param scene the scene containing the node.
+                * @param node the node to add.
+                */
+            addNode(scene: Scene, node: Node, root?: Node): void;
+            /**
                 * Updates the mark of the given object in graph
                 * @param obj the object to mark
                 */
@@ -2955,6 +2967,10 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
             id?: string;
             assetsCaption?: string;
             size?: number;
+            /**
+                * Called on the assets panel is being cleared.
+                */
+            onClear?(): void;
             onCreateAsset?(name: string): AssetElement<any> | Promise<AssetElement<any>>;
             onRenameAsset?(asset: AssetElement<any>, name: string): void;
             onGetAssets?(): AssetElement<any>[] | Promise<AssetElement<any>[]>;
@@ -3044,6 +3060,10 @@ declare module 'babylonjs-editor/editor/libraries/meshes' {
                 * Constructor.
                 */
             constructor(editor: Editor);
+            /**
+                * Called on the assets panel is being cleared.
+                */
+            onClear(): void;
             /**
                 * On the assets panel requires the assets stored in this
                 * asset component
