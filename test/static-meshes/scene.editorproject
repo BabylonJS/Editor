@@ -1,0 +1,540 @@
+{
+	"actions": null,
+	"customMetadatas": {
+		"BehaviorExtension": {
+			"scripts": [],
+			"nodes": []
+		},
+		"AssetsExtension": {
+			"prefabs": [],
+			"particles": []
+		}
+	},
+	"globalConfiguration": {
+		"serializedCamera": {
+			"tags": "added",
+			"ellipsoid": [
+				0.5,
+				1,
+				0.5
+			],
+			"ellipsoidOffset": [
+				0,
+				0,
+				0
+			],
+			"checkCollisions": false,
+			"applyGravity": false,
+			"rotation": [
+				0.2152122768619184,
+				-5.497824535451761,
+				0
+			],
+			"speed": 0.5,
+			"position": [
+				-23.33170482033053,
+				11.932283015369759,
+				-23.279903713152148
+			],
+			"upVector": [
+				0,
+				1,
+				0
+			],
+			"fov": 0.8,
+			"minZ": 1,
+			"maxZ": 10000,
+			"inertia": 0.9,
+			"mode": 0,
+			"layerMask": 268435455,
+			"fovMode": 0,
+			"cameraRigMode": 0,
+			"name": "Editor Camera",
+			"id": "EditorCamera",
+			"uniqueId": 0,
+			"state": "",
+			"type": "UniversalCamera",
+			"inputsmgr": {
+				"FreeCameraKeyboardMoveInput": {
+					"tags": null,
+					"keysUp": [
+						38,
+						87,
+						90
+					],
+					"keysDown": [
+						40,
+						83
+					],
+					"keysLeft": [
+						37,
+						65,
+						81
+					],
+					"keysRight": [
+						39,
+						68
+					]
+				},
+				"FreeCameraMouseInput": {
+					"tags": null,
+					"buttons": [
+						0,
+						1,
+						2
+					],
+					"angularSensibility": 3000
+				}
+			},
+			"animations": [],
+			"ranges": []
+		},
+		"imageProcessingConfiguration": {
+			"tags": null,
+			"colorCurves": {
+				"tags": null,
+				"_globalHue": 30,
+				"_globalDensity": 0,
+				"_globalSaturation": 0,
+				"_globalExposure": 0,
+				"_highlightsHue": 30,
+				"_highlightsDensity": 0,
+				"_highlightsSaturation": 0,
+				"_highlightsExposure": 0,
+				"_midtonesHue": 30,
+				"_midtonesDensity": 0,
+				"_midtonesSaturation": 0,
+				"_midtonesExposure": 0
+			},
+			"_colorCurvesEnabled": false,
+			"_colorGradingEnabled": false,
+			"_colorGradingWithGreenDepth": true,
+			"_colorGradingBGR": true,
+			"_exposure": 0.6,
+			"_toneMappingEnabled": true,
+			"_toneMappingType": 0,
+			"_contrast": 1.6,
+			"vignetteStretch": 0,
+			"vignetteCentreX": 0,
+			"vignetteCentreY": 0,
+			"vignetteWeight": 1.5,
+			"vignetteColor": [
+				0,
+				0,
+				0,
+				0
+			],
+			"vignetteCameraFov": 0.5,
+			"_vignetteBlendMode": 0,
+			"_vignetteEnabled": false,
+			"_applyByPostProcess": false,
+			"_isEnabled": true
+		},
+		"ambientColor": [
+			0,
+			0,
+			0
+		],
+		"clearColor": [
+			0,
+			0,
+			0,
+			1
+		],
+		"fog": {
+			"enabled": true,
+			"start": 0,
+			"end": 1000,
+			"density": 0.1,
+			"mode": 0,
+			"color": [
+				0.2,
+				0.2,
+				0.3
+			]
+		},
+		"projectFormat": "babylon",
+		"exportEulerAngles": false,
+		"exportWithES6Support": false
+	},
+	"lensFlares": null,
+	"materials": [
+		"sapinou-b5e19045-44f3-4435-90cd-821e331fc33d.json"
+	],
+	"textures": [],
+	"nodes": [
+		"ground-58c5e613-7987-4fb5-b62d-3034d656cf83.json",
+		"fir-d9ac5ca5-1ad8-4f07-9569-6f7d5a9fa123.json",
+		"light-defaultlight.json"
+	],
+	"particleSystems": [],
+	"physicsEnabled": true,
+	"renderTargets": [],
+	"requestedMaterials": null,
+	"shadowGenerators": [],
+	"sounds": [],
+	"gui": [],
+	"effectLayers": [],
+	"environmentHelper": null,
+	"assets": {
+		"meshes-library": [
+			{
+				"name": "Sapinou.babylon",
+				"data": "Sapinou.babylon",
+				"img": "data:image/png;base64,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"
+			}
+		],
+		"prefabs": [],
+		"particles": []
+	},
+	"removedObjects": {},
+	"filesList": [
+		"scene/scene.babylon",
+		"scene/sapinou.jpg"
+	],
+	"editionToolsStates": [
+		{
+			"id": "ENVIRONMENT-HELPER-TOOL",
+			"state": null
+		},
+		{
+			"id": "SCENE-TOOL",
+			"state": {
+				"Colors": {
+					"closed": false,
+					"children": {
+						"Ambient": {
+							"closed": false,
+							"children": {}
+						},
+						"Clear": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Image Processing": {
+					"closed": false,
+					"children": {}
+				},
+				"Glow Layer": {
+					"closed": false,
+					"children": {}
+				},
+				"HighLight": {
+					"closed": false,
+					"children": {}
+				},
+				"Environment Texture": {
+					"closed": false,
+					"children": {}
+				},
+				"Collisions": {
+					"closed": false,
+					"children": {
+						"Gravity": {
+							"closed": true,
+							"children": {}
+						}
+					}
+				},
+				"Physics": {
+					"closed": false,
+					"children": {}
+				},
+				"Audio": {
+					"closed": false,
+					"children": {}
+				},
+				"Fog": {
+					"closed": false,
+					"children": {
+						"Color": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				}
+			}
+		},
+		{
+			"id": "NODE-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Parenting": {
+					"closed": false,
+					"children": {}
+				},
+				"Transfroms": {
+					"closed": false,
+					"children": {
+						"Direction": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				}
+			}
+		},
+		{
+			"id": "PHYSICS-TOOL",
+			"state": {
+				"Collisions": {
+					"closed": false,
+					"children": {}
+				},
+				"Physics": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "LIGHT-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Colors": {
+					"closed": false,
+					"children": {
+						"Diffuse": {
+							"closed": false,
+							"children": {}
+						},
+						"Specular": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Mode": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "RENDER-TARGET-TOOL",
+			"state": null
+		},
+		{
+			"id": "PARTICLE-SYSTEM-TOOL",
+			"state": null
+		},
+		{
+			"id": "SOUND-TOOL",
+			"state": null
+		},
+		{
+			"id": "ANIMATION-TOOL",
+			"state": null
+		},
+		{
+			"id": "SKELETON-TOOL",
+			"state": null
+		},
+		{
+			"id": "STANDARD-MATERIAL-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Diffuse": {
+					"closed": false,
+					"children": {
+						"Color": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Bump": {
+					"closed": true,
+					"children": {}
+				},
+				"Specular": {
+					"closed": false,
+					"children": {
+						"Color": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Opacity": {
+					"closed": true,
+					"children": {}
+				},
+				"Emissive": {
+					"closed": true,
+					"children": {
+						"Emissive": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Ambient": {
+					"closed": true,
+					"children": {
+						"Ambient": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Lightmap": {
+					"closed": true,
+					"children": {}
+				},
+				"Reflection": {
+					"closed": true,
+					"children": {}
+				},
+				"Refraction": {
+					"closed": true,
+					"children": {}
+				},
+				"Options": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "PBR-TOOL",
+			"state": null
+		},
+		{
+			"id": "PBR-METALLIC-ROUGHNESS-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "PBR-SPECULAR-GLOSSINESS-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "WATER-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "CUSTOM-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "SKY-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "FIRE-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "CELL-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "GRID-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "TRI-PLANAR-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "TERRAIN-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "LAVA-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "FUR-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "MIX-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "NODE-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "POST-PROCESSES-TOOL",
+			"state": {
+				"Standard": {
+					"closed": false,
+					"children": {}
+				},
+				"Default": {
+					"closed": false,
+					"children": {}
+				},
+				"SSAO": {
+					"closed": false,
+					"children": {}
+				},
+				"SSAO 2": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "CUSTOM-POST-PROCESS-TOOL",
+			"state": null
+		},
+		{
+			"id": "TEXTURE-TOOL",
+			"state": null
+		},
+		{
+			"id": "BRICK-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "CLOUD-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "FIRE-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "GRASS-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "MARBLE-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "NORMAL-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "PERLIN-NOISE-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "ROAD-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "WOOD-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "GROUND-TOOL",
+			"state": {}
+		}
+	]
+}

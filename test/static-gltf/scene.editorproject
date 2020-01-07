@@ -1,0 +1,578 @@
+{
+	"actions": null,
+	"customMetadatas": {
+		"BehaviorExtension": {
+			"scripts": [],
+			"nodes": []
+		},
+		"AssetsExtension": {
+			"prefabs": [],
+			"particles": []
+		}
+	},
+	"globalConfiguration": {
+		"serializedCamera": {
+			"tags": "added",
+			"alpha": 5.0069812686748145,
+			"beta": 1.384806130414694,
+			"radius": 3.732810026205195,
+			"target": [
+				0,
+				0,
+				0
+			],
+			"upVector": [
+				0,
+				1,
+				0
+			],
+			"inertialAlphaOffset": 0,
+			"inertialBetaOffset": 0,
+			"inertialRadiusOffset": 0,
+			"lowerBetaLimit": 0.01,
+			"upperBetaLimit": 3.1315926535897933,
+			"inertialPanningX": 0,
+			"inertialPanningY": 0,
+			"pinchToPanMaxDistance": 20,
+			"panningOriginTarget": [
+				0,
+				0,
+				0
+			],
+			"panningInertia": 0.9,
+			"zoomOnFactor": 1,
+			"targetScreenOffset": {
+				"x": 0,
+				"y": 0
+			},
+			"allowUpsideDown": true,
+			"useInputToRestoreState": true,
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"speed": 2,
+			"position": [
+				1.0651283984056021,
+				0.6902702711152506,
+				-3.510398715169322
+			],
+			"fov": 0.8,
+			"minZ": 1,
+			"maxZ": 10000,
+			"inertia": 0.9,
+			"mode": 0,
+			"layerMask": 268435455,
+			"fovMode": 0,
+			"cameraRigMode": 0,
+			"name": "Editor Camera",
+			"id": "Editor Camera",
+			"uniqueId": 400,
+			"state": "",
+			"type": "ArcRotateCamera",
+			"inputsmgr": {
+				"ArcRotateCameraKeyboardMoveInput": {
+					"tags": null,
+					"keysUp": [
+						38
+					],
+					"keysDown": [
+						40
+					],
+					"keysLeft": [
+						37
+					],
+					"keysRight": [
+						39
+					],
+					"keysReset": [
+						220
+					],
+					"panningSensibility": 50,
+					"zoomingSensibility": 25,
+					"useAltToZoom": true,
+					"angularSpeed": 0.01
+				},
+				"ArcRotateCameraMouseWheelInput": {
+					"tags": null,
+					"wheelPrecision": 3,
+					"wheelDeltaPercentage": 0
+				},
+				"ArcRotateCameraPointersInput": {
+					"tags": null,
+					"buttons": [
+						0,
+						1,
+						2
+					],
+					"angularSensibilityX": 1000,
+					"angularSensibilityY": 1000,
+					"pinchPrecision": 12,
+					"pinchDeltaPercentage": 0,
+					"panningSensibility": 500,
+					"multiTouchPanning": true,
+					"multiTouchPanAndZoom": true
+				}
+			},
+			"animations": [],
+			"ranges": []
+		},
+		"imageProcessingConfiguration": {
+			"tags": null,
+			"colorCurves": {
+				"tags": null,
+				"_globalHue": 30,
+				"_globalDensity": 0,
+				"_globalSaturation": 0,
+				"_globalExposure": 0,
+				"_highlightsHue": 30,
+				"_highlightsDensity": 0,
+				"_highlightsSaturation": 0,
+				"_highlightsExposure": 0,
+				"_midtonesHue": 30,
+				"_midtonesDensity": 0,
+				"_midtonesSaturation": 0,
+				"_midtonesExposure": 0
+			},
+			"_colorCurvesEnabled": false,
+			"_colorGradingEnabled": false,
+			"_colorGradingWithGreenDepth": true,
+			"_colorGradingBGR": true,
+			"_exposure": 0.6,
+			"_toneMappingEnabled": true,
+			"_toneMappingType": 0,
+			"_contrast": 1.6,
+			"vignetteStretch": 0,
+			"vignetteCentreX": 0,
+			"vignetteCentreY": 0,
+			"vignetteWeight": 1.5,
+			"vignetteColor": [
+				0,
+				0,
+				0,
+				0
+			],
+			"vignetteCameraFov": 0.5,
+			"_vignetteBlendMode": 0,
+			"_vignetteEnabled": false,
+			"_applyByPostProcess": false,
+			"_isEnabled": true
+		},
+		"ambientColor": [
+			0,
+			0,
+			0
+		],
+		"clearColor": [
+			0,
+			0,
+			0,
+			1
+		],
+		"fog": {
+			"enabled": true,
+			"start": 0,
+			"end": 1000,
+			"density": 0.1,
+			"mode": 0,
+			"color": [
+				0.2,
+				0.2,
+				0.3
+			]
+		},
+		"projectFormat": "babylon",
+		"exportEulerAngles": false,
+		"exportWithES6Support": false
+	},
+	"lensFlares": null,
+	"materials": [
+		"glTF Material-fe0cad58-62ed-4b04-9587-081d66a09bc1.json"
+	],
+	"textures": [],
+	"nodes": [
+		"__root__-ab134ae3-e0cf-41eb-b795-a74e0d925d38.json",
+		"node_damagedHelmet_-6514-0aceb4d1-fabd-4654-9813-678fa2679baf.json"
+	],
+	"particleSystems": [],
+	"physicsEnabled": true,
+	"renderTargets": [],
+	"requestedMaterials": null,
+	"shadowGenerators": [],
+	"sounds": [],
+	"gui": [],
+	"effectLayers": [],
+	"environmentHelper": null,
+	"assets": {
+		"meshes-library": [
+			{
+				"name": "DamagedHelmet.gltf",
+				"data": "DamagedHelmet.gltf",
+				"img": "data:image/png;base64,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"
+			}
+		],
+		"prefabs": [],
+		"particles": []
+	},
+	"removedObjects": {},
+	"filesList": [
+		"scene/scene.babylon",
+		"scene/default_albedo.jpg",
+		"scene/default_ao.jpg",
+		"scene/default_emissive.jpg",
+		"scene/default_metalroughness.jpg",
+		"scene/default_normal.jpg",
+		"scene/damagedhelmet.bin"
+	],
+	"editionToolsStates": [
+		{
+			"id": "ENVIRONMENT-HELPER-TOOL",
+			"state": null
+		},
+		{
+			"id": "SCENE-TOOL",
+			"state": {
+				"Colors": {
+					"closed": false,
+					"children": {
+						"Ambient": {
+							"closed": false,
+							"children": {}
+						},
+						"Clear": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Image Processing": {
+					"closed": false,
+					"children": {}
+				},
+				"Glow Layer": {
+					"closed": false,
+					"children": {}
+				},
+				"HighLight": {
+					"closed": false,
+					"children": {}
+				},
+				"Environment Texture": {
+					"closed": false,
+					"children": {}
+				},
+				"Collisions": {
+					"closed": false,
+					"children": {
+						"Gravity": {
+							"closed": true,
+							"children": {}
+						}
+					}
+				},
+				"Physics": {
+					"closed": false,
+					"children": {}
+				},
+				"Audio": {
+					"closed": false,
+					"children": {}
+				},
+				"Fog": {
+					"closed": false,
+					"children": {
+						"Color": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				}
+			}
+		},
+		{
+			"id": "NODE-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Parenting": {
+					"closed": false,
+					"children": {}
+				},
+				"Transfroms": {
+					"closed": false,
+					"children": {
+						"Direction": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				}
+			}
+		},
+		{
+			"id": "PHYSICS-TOOL",
+			"state": {
+				"Collisions": {
+					"closed": false,
+					"children": {}
+				},
+				"Physics": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "LIGHT-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Colors": {
+					"closed": false,
+					"children": {
+						"Diffuse": {
+							"closed": false,
+							"children": {}
+						},
+						"Specular": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Mode": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "RENDER-TARGET-TOOL",
+			"state": null
+		},
+		{
+			"id": "PARTICLE-SYSTEM-TOOL",
+			"state": null
+		},
+		{
+			"id": "SOUND-TOOL",
+			"state": null
+		},
+		{
+			"id": "ANIMATION-TOOL",
+			"state": null
+		},
+		{
+			"id": "SKELETON-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "STANDARD-MATERIAL-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Diffuse": {
+					"closed": false,
+					"children": {
+						"Color": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Bump": {
+					"closed": true,
+					"children": {}
+				},
+				"Specular": {
+					"closed": false,
+					"children": {
+						"Color": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Opacity": {
+					"closed": true,
+					"children": {}
+				},
+				"Emissive": {
+					"closed": true,
+					"children": {
+						"Emissive": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Ambient": {
+					"closed": true,
+					"children": {
+						"Ambient": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Lightmap": {
+					"closed": true,
+					"children": {}
+				},
+				"Reflection": {
+					"closed": true,
+					"children": {}
+				},
+				"Refraction": {
+					"closed": true,
+					"children": {}
+				},
+				"Options": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "PBR-TOOL",
+			"state": null
+		},
+		{
+			"id": "PBR-METALLIC-ROUGHNESS-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "PBR-SPECULAR-GLOSSINESS-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "WATER-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "CUSTOM-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "SKY-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "FIRE-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "CELL-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "GRID-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "TRI-PLANAR-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "TERRAIN-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "LAVA-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "FUR-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "MIX-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "NODE-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "POST-PROCESSES-TOOL",
+			"state": {
+				"Standard": {
+					"closed": false,
+					"children": {}
+				},
+				"Default": {
+					"closed": false,
+					"children": {}
+				},
+				"SSAO": {
+					"closed": false,
+					"children": {}
+				},
+				"SSAO 2": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "CUSTOM-POST-PROCESS-TOOL",
+			"state": null
+		},
+		{
+			"id": "TEXTURE-TOOL",
+			"state": null
+		},
+		{
+			"id": "BRICK-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "CLOUD-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "FIRE-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "GRASS-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "MARBLE-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "NORMAL-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "PERLIN-NOISE-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "ROAD-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "WOOD-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "GROUND-TOOL",
+			"state": {}
+		}
+	]
+}
