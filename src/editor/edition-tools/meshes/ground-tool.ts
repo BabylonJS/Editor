@@ -1,6 +1,7 @@
-import { GroundMesh, VertexData, Texture, Color3 } from 'babylonjs';
+import { GroundMesh, VertexData, Texture, Color3, Vector2 } from 'babylonjs';
 
 import AbstractEditionTool from '../edition-tool';
+import TexturePicker from '../../components/texture-picker';
 import { IStringDictionary } from '../../typings/typings';
 
 interface HeightMapOptions {
@@ -8,6 +9,11 @@ interface HeightMapOptions {
     minHeight: number;
     maxHeight: number;
     colorFilter: Color3;
+}
+
+interface DisplacementOptions {
+    texture: Texture;
+    uvScale: Vector2;
 }
 
 export default class GroundTool extends AbstractEditionTool<GroundMesh> {
@@ -21,6 +27,8 @@ export default class GroundTool extends AbstractEditionTool<GroundMesh> {
     private _heightMapOptions: IStringDictionary<HeightMapOptions> = { };
     private _minHeight: number = 0;
     private _maxHeight: number = 1;
+
+    private _displacementOptions: IStringDictionary<DisplacementOptions> = { };
 
 	/**
 	* Returns if the object is supported
@@ -42,49 +50,99 @@ export default class GroundTool extends AbstractEditionTool<GroundMesh> {
         this.tool.element.add(this.object, '_width').min(0.1).step(0.1).name('Width').onChange(() => this._propertyChanged());
         this.tool.element.add(this.object, '_height').min(0.1).step(0.1).name('Height').onChange(() => this._propertyChanged());
         this.tool.element.add(this, '_subdivisions').min(1).max(1000).step(1).name('Subdivisions').onChange(() => this._propertyChanged());
-        this.tool.element.add(this, '_createFromHeightMap').name('Create From Height Map...');
 
         // Height map
+        const heightmap = this.tool.element.addFolder('Height Map');
+        heightmap.open();
+        heightmap.add(this, '_createFromHeightMap').name('Create From Height Map...');
+        
         const heightMapOptions = this._heightMapOptions[this.object.id];
         if (heightMapOptions) {
-            const heightmap = this.tool.element.addFolder('Height Map');
-            heightmap.open();
             heightmap.add(heightMapOptions, 'minHeight').step(0.01).name('Min Height').onChange(() => this._heightMapTexture = heightMapOptions.texture);
             heightmap.add(heightMapOptions, 'maxHeight').step(0.01).name('Max Height').onChange(() => this._heightMapTexture = heightMapOptions.texture);
             this.tool.addColor(heightmap, 'Color Filter', heightMapOptions.colorFilter, () => this._heightMapTexture = heightMapOptions.texture).open();
-            heightmap.add(this, '_removeHeightMap').name('Remove Height Map');
         }
+
+        // Displacement
+        const displacement = this.tool.addFolder('Displacement');
+        displacement.open();
+        displacement.add(this, '_createFromDisplacement').name('Create From Displacement Map...');
+
+        const displacementOptions = this._displacementOptions[this.object.id];
+        if (displacementOptions) {
+            displacement.add(displacementOptions.uvScale, 'x').step(0.01).name('U Scale').onChange(() => this._displacementTexture = displacementOptions.texture);
+            displacement.add(displacementOptions.uvScale, 'y').step(0.01).name('V Scale').onChange(() => this._displacementTexture = displacementOptions.texture);
+        }
+
+        // Restore
+        const restore = this.tool.addFolder('Restore');
+        restore.open();
+        restore.add(this, '_restoreGroundGeometry').name('Restore geometry');
     }
 
     // Property changed
     private _propertyChanged(): void {
-        const options = this._heightMapOptions[this.object.id];
-        if (options)
-            this._heightMapTexture = options.texture;
-        else {
-            this.object.geometry.setAllVerticesData(VertexData.CreateGround({
-                width: this.object._width,
-                height: this.object._height,
-                subdivisions: this._subdivisions
-            }));
-        }
+        const heightMapOptions = this._heightMapOptions[this.object.id];
+        if (heightMapOptions)
+            this._heightMapTexture = heightMapOptions.texture;
+
+        const displacementOptions = this._displacementOptions[this.object.id];
+        if (displacementOptions)
+            this._displacementTexture = displacementOptions.texture;
 
         this.object._subdivisionsX = this.object._subdivisionsY = this._subdivisions;
     }
 
-    // Create ground from height map
-    private _createFromHeightMap (): void {
-        this.editor.addEditPanelPlugin('texture-viewer', true, 'Texture Viewer', this, '_heightMapTexture', false);
+    // Create ground from height map.
+    private async _createFromHeightMap (): Promise<void> {
+        const heightmap = await TexturePicker.Show(this.editor.core.scene, null, false, false);
+        this._heightMapTexture = <Texture> heightmap;
     }
 
-    // Remove height map texture from ground
-    private _removeHeightMap (): void {
+    // Create ground with displacement height map.
+    private async _createFromDisplacement (): Promise<void> {
+        const displacement = await TexturePicker.Show(this.editor.core.scene, null, false, false);
+        this._displacementTexture = <Texture> displacement;
+    }
+
+    // Restores the ground geometry.
+    private _restoreGroundGeometry (): void {
+        this.object.geometry.setAllVerticesData(VertexData.CreateGround({
+            width: this.object._width,
+            height: this.object._height,
+            subdivisions: this._subdivisions
+        }));
+
         delete this._heightMapOptions[this.object.id];
+        delete this._displacementOptions[this.object.id];
         this._propertyChanged();
         this.update(this.object);
     }
 
-    // Sets the height map texture
+    // Sets the displacement map texture.
+    private set _displacementTexture (texture: Texture) {
+        let options = this._displacementOptions[this.object.id];
+        let update = false;
+
+        if (!options) {
+            update = true;
+            options = {
+                texture: texture,
+                uvScale: new Vector2(1, 1)
+            };
+
+            this._displacementOptions[this.object.id] = options;
+        }
+
+        const bufferView = texture.readPixels();
+        this.object.applyDisplacementMapFromBuffer(new Uint8Array(bufferView.buffer), texture.getBaseSize().width, texture.getBaseSize().height, 0, 1, Vector2.Zero(), options.uvScale, true);
+
+        // Update tool
+        if (update)
+            this.update(this.object);
+    }
+
+    // Sets the height map texture.
     private set _heightMapTexture (texture: Texture) {
         const bufferWidth = texture.getSize().width;
         const bufferHeight = texture.getSize().height;
