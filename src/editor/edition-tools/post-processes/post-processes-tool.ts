@@ -138,7 +138,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 if (!r)
                     return;
                 
-                const lights: Light[] = [];
+                const lights: (SpotLight | DirectionalLight)[] = [];
                 scene.lights.forEach(l => (l instanceof SpotLight || l instanceof DirectionalLight) && lights.push(l));
 
                 const picker = new Picker('Select Light Emitter');
@@ -149,7 +149,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
                 picker.open((items) => {
                     if (items.length > 0)
-                        SceneManager.StandardRenderingPipeline.sourceLight = <SpotLight | DirectionalLight> scene.getLightByName(items[0].name);
+                        SceneManager.StandardRenderingPipeline.sourceLight = <SpotLight | DirectionalLight> lights[items[0].id];
                     
                     this.update(scene);
                 });

@@ -118,6 +118,6 @@ export default class Picker {
 
     // Returns the picker item name to draw.
     private _getItemName (item: PickerItem): string {
-        return `${item.name || item.id} -- ${item.id || ''}`;
+        return `${item.name || item.id} ${item.name ? '--' : ''} ${item.id || ''}`;
     }
 }

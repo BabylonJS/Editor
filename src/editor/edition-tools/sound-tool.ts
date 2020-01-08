@@ -147,7 +147,7 @@ export default class SoundTool extends AbstractEditionTool<Sound> {
                 this.editor.graph.setParent(this.object['id'], this.editor.graph.root);
             }
             else {
-                const mesh = this.editor.core.scene.getMeshByName(items[0].name);
+                const mesh = this.editor.core.scene.meshes[items[0].id];
 
                 if (mesh) {
                     this.object.attachToMesh(mesh);

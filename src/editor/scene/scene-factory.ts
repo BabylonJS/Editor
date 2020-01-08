@@ -158,7 +158,7 @@ export default class SceneFactory {
         picker.addItems(scene.meshes);
         picker.showClose = false;
         picker.open(items => {
-            let emitter = items.length > 0 ? scene.getNodeByName(items[0].name) : null;
+            let emitter = items.length > 0 ? scene.meshes[items[0].id] : null;
             if (!emitter) {
                 emitter = new Mesh('New Particle System Emitter', scene);
                 emitter.id = BabylonTools.RandomId();

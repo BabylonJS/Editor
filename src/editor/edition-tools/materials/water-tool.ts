@@ -88,7 +88,7 @@ export default class WaterMaterialTool extends MaterialTool<WaterMaterial> {
             this.object['_refractionRTT'].renderList = [];
 
             items.forEach(i => {
-                const mesh = this.editor.core.scene.getMeshByID(i.name);
+                const mesh = this.editor.core.scene.meshes[i.id];
                 if (mesh)
                     this.object.addToRenderList(mesh);
             });

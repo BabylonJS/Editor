@@ -83,7 +83,7 @@ export default class RenderTargetTool extends AbstractEditionTool<Light | Render
         
         picker.open((selected) => {
             const scene = this._renderTarget.getScene();
-            (<ReflectionProbe> this.object).attachToMesh(scene.getMeshByName(selected[0].name));
+            (<ReflectionProbe> this.object).attachToMesh(scene.meshes[selected[0].id]);
         });
     }
 }
