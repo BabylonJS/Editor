@@ -57,7 +57,8 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 pipeline.depthOfFieldDistance = 0.05;
                 
                 const lensflaredirt = await Tools.GetFile('assets/textures/lensflaredirt.png');
-                pipeline.lensTexture = pipeline.lensFlareDirtTexture = Texture.CreateFromBase64String(await Tools.ReadFileAsBase64(lensflaredirt), 'lensflaredirt.png', scene);
+                pipeline.lensTexture = Texture.CreateFromBase64String(await Tools.ReadFileAsBase64(lensflaredirt), 'lensflaredirt.png', scene);
+                pipeline.lensFlareDirtTexture = pipeline.lensTexture.clone();
 
                 const lensstar = await Tools.GetFile('assets/textures/lensstar.png');
                 pipeline.lensStarTexture = Texture.CreateFromBase64String(await Tools.ReadFileAsBase64(lensstar), 'lensstar.png', scene);
