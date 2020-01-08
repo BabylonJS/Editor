@@ -197,7 +197,7 @@ export default class ProjectExporter {
             if (matches)
                 name = t.serializedValues.name.replace(filenameRegexp, '') + t.serializedValues.id;
             
-            name = `${name}-${t.serializedValues.id}.json`;
+            name = `${name}-${t.serializedValues.uniqueId}.json`;
             texturesFolder.folder.push({ name: name, data: JSON.stringify(t) });
             project.textures[index] = <any> name;
         });
@@ -497,6 +497,10 @@ export default class ProjectExporter {
 
             if (!Tags.HasTags(m) || (!added && !modifed))
                 return;
+
+            // Id
+            if (!m.id)
+                m.id = BabylonTools.RandomId();
 
             // Already serialized?
             const material = result.find(mat => mat.serializedValues.id === m.id);
