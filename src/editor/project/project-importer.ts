@@ -2,7 +2,7 @@ import {
     Scene, Tags, Animation, ActionManager, Material, Texture, ShadowGenerator,
     Geometry, Node, Camera, Light, Mesh, ParticleSystem, AbstractMesh, InstancedMesh,
     CannonJSPlugin, PhysicsImpostor, Vector3, EffectLayer, Sound, RenderTargetTexture, ReflectionProbe,
-    Color3, Color4, SerializationHelper, Skeleton
+    Color3, Color4, SerializationHelper, Skeleton, MultiMaterial
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -330,7 +330,15 @@ export default class ProjectImporter {
         project.materials.forEach(m => {
             try {
                 const existing = scene.getMaterialByID(m.serializedValues.id);
-                const material = existing ? ProjectHelpers.ParseExistingMaterial(existing, m.serializedValues, scene, 'file:') : Material.Parse(m.serializedValues, scene, 'file:');
+                const material = existing ? ProjectHelpers.ParseExistingMaterial(existing, m.serializedValues, scene, 'file:') :
+                                            m.isMultiMaterial ? new MultiMaterial(m.serializedValues.name, scene) :
+                                            Material.Parse(m.serializedValues, scene, 'file:');
+
+                // Finish configure multi-material
+                if (material instanceof MultiMaterial) {
+                    material.id = m.serializedValues.id;
+                    m.serializedValues.materials.forEach((mid) => material.subMaterials.push(scene.getMaterialByID(mid)));
+                }
 
                 if (m.meshesIds) {
                     m.meshesIds.forEach(mi => {

@@ -7,7 +7,8 @@ import {
     ParticleSystem,
     FilesInputStore,
     BaseTexture,
-    InstancedMesh
+    InstancedMesh,
+    MultiMaterial
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
@@ -491,7 +492,7 @@ export default class ProjectExporter {
         const scene = editor.core.scene;
         const result: Export.ProjectMaterial[] = [];
 
-        scene.materials.forEach(m => {
+        (scene.materials.concat(scene.multiMaterials)).forEach(m => {
             const added = Tags.MatchesQuery(m, 'added');
             const modifed = Tags.MatchesQuery(m, 'modified');
 
@@ -521,7 +522,8 @@ export default class ProjectExporter {
                 meshesNames: names,
                 meshesIds: ids,
                 newInstance: true,
-                serializedValues: modifed ? this._MergeModifedProperties(m, m.serialize()) : m.serialize()
+                serializedValues: modifed ? this._MergeModifedProperties(m, m.serialize()) : m.serialize(),
+                isMultiMaterial: m instanceof MultiMaterial
             });
         });
 

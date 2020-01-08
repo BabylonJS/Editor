@@ -1,6 +1,6 @@
 import {
     Engine, AbstractMesh, PickingInfo, FilesInputStore,
-    SceneLoader, Tags, Tools as BabylonTools, Mesh
+    SceneLoader, Tags, Tools as BabylonTools, Mesh, MultiMaterial
 } from 'babylonjs';
 
 import { IAssetComponent, AssetElement, IAssetFile } from '../../extensions/typings/asset';
@@ -187,6 +187,13 @@ export default class MeshesLibrary implements IAssetComponent {
             if (m.material) {
                 Tags.AddTagsTo(m.material, 'added');
                 m.material.id = BabylonTools.RandomId();
+            }
+            
+            if (m.material instanceof MultiMaterial) {
+                m.material.subMaterials.forEach((sm) => {
+                    Tags.AddTagsTo(sm, 'added');
+                    sm.id = BabylonTools.RandomId();
+                });
             }
 
             if (!m.parent)

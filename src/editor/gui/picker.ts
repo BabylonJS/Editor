@@ -36,7 +36,7 @@ export default class Picker {
      * @param items: items to add
      */
     public addItems (items: PickerItem[]): void {
-        items.forEach(i => !Tags.MatchesQuery(i, 'temp') && this.items.push(i.name || i.id));
+        items.forEach(i => !Tags.MatchesQuery(i, 'temp') && this.items.push(this._getItemName(i)));
     }
 
     /**
@@ -54,7 +54,7 @@ export default class Picker {
      * @param items: items to add
      */
     public addSelected (items: PickerItem[]): void {
-        items.forEach(i => this.selected.push(i.name || i.id));
+        items.forEach(i => this.selected.push(this._getItemName(i)));
     }
 
     /**
@@ -114,5 +114,10 @@ export default class Picker {
         this.items.forEach((i, index) => this.grid.addRecord({ name: i, recid: index }));
         this.grid.select(this.selected.map(s => this.items.indexOf(s)));
         this.grid.element.refresh();
+    }
+
+    // Returns the picker item name to draw.
+    private _getItemName (item: PickerItem): string {
+        return `${item.name || item.id} -- ${item.id || ''}`;
     }
 }

@@ -74,6 +74,7 @@ export interface ProjectMaterial {
     meshesNames?: string[]; // Array of meshes names that share this material
     meshesIds?: string[]; // Array of meshes ids that share this material
     newInstance?: boolean;
+    isMultiMaterial?: boolean; // Wether or not the material is a multi-material
 
     _babylonMaterial?: Material; // Internally used
 }
