@@ -64,17 +64,17 @@ export default class PostProcessesExtension extends Extension<PostProcessMetadat
 
     // Applies the post-processes on the scene
     private _applyPostProcesses (data: PostProcessMetadata, rootUrl?: string): void {
-        if (data.ssao2) {
-            this.ssao2 = SSAO2RenderingPipeline.Parse(data.ssao2, this.scene, rootUrl);
-            this.ssao2._attachCameras(this.scene.cameras, true);
-        }
-
         if (data.standard) {
             this.standard = StandardRenderingPipeline.Parse(data.standard, this.scene, rootUrl);
         }
 
         if (data.default) {
             this.default = DefaultRenderingPipeline.Parse(data.default, this.scene, rootUrl);
+        }
+
+        if (data.ssao2) {
+            this.ssao2 = SSAO2RenderingPipeline.Parse(data.ssao2, this.scene, rootUrl);
+            this.ssao2._attachCameras(this.scene.cameras, true);
         }
     }
 }

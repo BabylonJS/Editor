@@ -1,6 +1,6 @@
 import {
     Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera,
-    InstancedMesh, SubMesh, Color3, ArcRotateCamera, SerializationHelper, Tags
+    InstancedMesh, SubMesh, Color3, ArcRotateCamera, SerializationHelper, Tags, Vector3
 } from 'babylonjs';
 import { GUI } from 'dat-gui';
 
@@ -22,6 +22,8 @@ export default class NodeTool extends AbstractEditionTool<Node> {
     private _currentMaterial: string = '';
 
     private _currentCamera: boolean = false;
+
+    private _meshPivot: Vector3 = Vector3.Zero();
 
     private _highlightEnabled: boolean = false;
     private _currentObject: Mesh | InstancedMesh | Camera = null;
@@ -109,6 +111,13 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         }).open();
         if (node['scaling']) this.tool.addVector(transforms, 'Scaling', node['scaling']).open();
         if (node['direction']) this.tool.addVector(transforms, 'Direction', node['direction']).open();
+        
+        if (node instanceof AbstractMesh && node.getPivotPoint()) {
+            this._meshPivot.copyFrom(node.getPivotPoint());
+            this.tool.addVector(transforms, 'Pivot', this._meshPivot, () => {
+                node.setPivotPoint(this._meshPivot);
+            });
+        }
 
         // Abstract mesh
         if (node instanceof AbstractMesh) {

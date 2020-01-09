@@ -46,7 +46,8 @@ export default class RenderTargetTool extends AbstractEditionTool<Light | Render
 
         renderList.add(this._renderTarget, 'renderParticles').name('Render Particles');
         renderList.add(this._renderTarget, 'renderSprites').name('Render Sprites');
-        renderList.add(this, '_setRenderList').name('Configure Render List...');
+        renderList.add(this, '_addToRenderList').name('Add to Render List...');
+        renderList.add(this, '_removeFromRenderList').name('Remove from Render List...');
 
         // Reflection probe
         if (node instanceof ReflectionProbe) {
@@ -58,16 +59,26 @@ export default class RenderTargetTool extends AbstractEditionTool<Light | Render
         }
     }
 
-    // Sets the render list of the render target
-    private _setRenderList (): void {
-        const picker = new Picker('Render List');
-        picker.addItems(this.object.getScene().meshes);
-        picker.addSelected(this._renderTarget.renderList);
+    // Adds meshes to the render list
+    private _addToRenderList (): void {
+        const toAdd = this.object.getScene().meshes.filter((m) => this._renderTarget.renderList.indexOf(m) === -1);
+        const picker = new Picker('Add To Render List');
+        picker.addItems(toAdd);
         picker.open((selected) => {
-            const scene = this._renderTarget.getScene();
+            selected.forEach(s => this._renderTarget.renderList.push(toAdd[s.id]));
+        });
+    }
 
-            this._renderTarget.renderList = [];
-            selected.forEach(s => this._renderTarget.renderList.push(scene.meshes[s.id]));
+    // Removes meshes from the render list.
+    private _removeFromRenderList (): void {
+        const toRemove = [].concat(this._renderTarget.renderList);
+        const picker = new Picker('Remove From Render List');
+        picker.addItems(this._renderTarget.renderList);
+        picker.open((selected) => {
+            selected.forEach(s => {
+                const index = this._renderTarget.renderList.indexOf(toRemove[s.id]);
+                this._renderTarget.renderList.splice(index, 1);
+            });
         });
     }
 
