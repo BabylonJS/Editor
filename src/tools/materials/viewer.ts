@@ -428,13 +428,14 @@ export default class MaterialsViewer extends EditorPlugin {
         const picker = new Picker('Select Material...');
         picker.addItems(materials.map(m => { return { name: m } }));
         picker.open(async items => {
-            const ctor = BabylonTools.Instantiate('BABYLON.' + items[0].name);
+            const name = materials[items[0].id];
+            const ctor = BabylonTools.Instantiate('BABYLON.' + name);
             let material: Material;
-            if (items[0].name === 'NodeMaterial') {
+            if (name === 'NodeMaterial') {
                 await Tools.ImportScript<any>('babylonjs-node-editor');
-                material = this._createNodeMaterial(items[0].name + BabylonTools.RandomId().substr(0, 5));
+                material = this._createNodeMaterial(name + BabylonTools.RandomId().substr(0, 5));
             } else {
-                material = new ctor(items[0].name + BabylonTools.RandomId().substr(0, 5), this.editor.core.scene);
+                material = new ctor(name + BabylonTools.RandomId().substr(0, 5), this.editor.core.scene);
             }
 
             Tags.AddTagsTo(material, 'added');
