@@ -1,15 +1,11 @@
 import {
-    Scene, 
     Vector3, Color4,
-    Texture,
+    Texture, MultiMaterial,
     Node, FreeCamera,
-    Mesh, ParticleSystem,
-    GroundMesh,
-    Tags, Tools as BabylonTools,
-    Sound,
+    AbstractMesh, Mesh, ParticleSystem, GroundMesh,
+    Tags, Tools as BabylonTools, EnvironmentHelper,
+    Sound, FilesInputStore,
     Light, PointLight, DirectionalLight, SpotLight, HemisphericLight,
-    EnvironmentHelper,
-    FilesInputStore
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Control, Image } from 'babylonjs-gui';
 import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
@@ -22,6 +18,8 @@ import Tools from '../tools/tools';
 import Window from '../gui/window';
 import Picker from '../gui/picker';
 import { GraphNode } from '../gui/graph';
+import { IStringDictionary } from '../typings/typings';
+import Dialog from '../gui/dialog';
 
 export default class SceneFactory {
     /**
@@ -348,5 +346,59 @@ export default class SceneFactory {
         this.AddToGraph(editor, img);
 
         return img;
+    }
+
+    /**
+     * Merges the given mesh with its hierarchy.
+     * @param editor: the editor reference.
+     * @param mesh the mesh to merge with its hierarchy.
+     */
+    public static async MergeMeshHierarchy (editor: Editor, mesh: Mesh): Promise<void> {
+        // Configure
+        const filteredByMaterial: IStringDictionary<Mesh[]> = { };
+        const descendants = (mesh.geometry ? [mesh] : []).concat(<Mesh[]> mesh.getChildMeshes(false, (n) => {
+            return n instanceof Mesh && n.geometry && !(n.material instanceof MultiMaterial);
+        }));
+        const noMaterialId = BabylonTools.RandomId();
+
+        descendants.forEach((d) => {
+            const materialId = d.material ? d.material.id : noMaterialId;
+            if (!filteredByMaterial[materialId])
+                filteredByMaterial[materialId] = [];
+
+            filteredByMaterial[materialId].push(d);
+        });
+
+        // Ask user
+        const mergeCount = Object.keys(filteredByMaterial).length;
+        const materialNames = Object.keys(filteredByMaterial).map((k) => {
+            const m = editor.core.scene.getMaterialByID(k);
+            return m ? m.name : 'No Material';
+        });
+
+        const confirm = await Dialog.CreateConfirm('Report', `${mergeCount} meshes will be created with materials:<br />${materialNames.join('<br />')}`);
+        if (!confirm)
+            return;
+
+        // Merge!
+        const errors: string[] = [];
+        for (const key in filteredByMaterial) {
+            const arr = filteredByMaterial[key];
+
+            try {
+                const resultMesh = Mesh.MergeMeshes(arr, false, true);
+
+                resultMesh.name = `${mesh.name} - merged`;
+                resultMesh.id = BabylonTools.RandomId();
+                resultMesh.parent = mesh.parent;
+                editor.graph.addNodeRecursively(editor.core.scene, resultMesh);
+                Tags.AddTagsTo(resultMesh, 'added');
+            } catch (e) {
+                errors.push(`Failed to merge meshes with material id "${key}": ${e.message}`);
+            }
+        }
+
+        if (errors.length > 0)
+            Window.CreateAlert(errors.join('<br />'), 'Errors occured');
     }
 }

@@ -19,6 +19,7 @@ import UndoRedo from '../tools/undo-redo';
 
 import ScenePicker from '../scene/scene-picker';
 import SceneManager from '../scene/scene-manager';
+import SceneFactory from '../scene/scene-factory';
 
 export default class EditorGraph {
     // Public members
@@ -83,9 +84,11 @@ export default class EditorGraph {
                 if (data.globalPosition || data.getAbsolutePosition)
                     result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: async () => await this.onMenuClick('focus') });
                 
-                if (data instanceof Mesh)
+                if (data instanceof Mesh) {
                     result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', multiple: true, separatorBefore: true, callback: async (node) => await this.onMenuClick('create-prefab', node) });
-                
+                    result.push({ id: 'merge-meshe-hierarchy', text: 'Merge Mesh Hierarchy', img: 'icon-add', multiple: true, callback: async (node) => await this.onMenuClick('merge-meshe-hierarchy', node) });
+                }
+
                 if (data instanceof AbstractMesh)
                     result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: async () => await this.onMenuClick('set-material') });
 
@@ -596,6 +599,11 @@ export default class EditorGraph {
             case 'create-prefab':
                 await this.editor.assets.prefabs.createPrefab(node.data);
                 break;
+            // Merge mesh hierarchy
+            case 'merge-meshe-hierarchy':
+                await SceneFactory.MergeMeshHierarchy(this.editor, node.data);
+                break;
+
             // Add Material
             case 'set-material':
                 await this.editor.addEditPanelPlugin('material-viewer', false, 'Materials Viewer', node.data, true);

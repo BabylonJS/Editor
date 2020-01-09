@@ -20,6 +20,7 @@ export default class Dialog {
      * @param callback the dialog's callback
      * @param yes callback when user clicks "yes"
      * @param no callback when the user clicks "no"
+     * @deprecated
      */
     public static Create (title: string, body: string, callback?: (result: string) => void, yes?: () => void, no?: () => void): Promise<string> {
         return new Promise<string>((resolve) => {
@@ -29,6 +30,19 @@ export default class Dialog {
             })
             .yes(() => yes && yes())
             .no(() => no && no());
+        });
+    }
+
+    /**
+     * Creates a GUI confirm window (yes, no).
+     * @param title the title of the dialog window.
+     * @param body the body of the dialog window (HTML).
+     */
+    public static async CreateConfirm (title: string, body: string): Promise<boolean> {
+        return new Promise<boolean>((resolve) => {
+            w2confirm(body, title, null)
+                .yes(() => resolve(true))
+                .no(() => resolve(false));
         });
     }
 
