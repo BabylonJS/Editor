@@ -144,8 +144,12 @@ export default class ScenePicker {
                 this.boundingBoxGizmo.rotationSphereSize = 1.0;
                 this.boundingBoxGizmo.scaleBoxSize = 1.0;
                 break;
-            case GizmoType.POSITION: this.currentGizmo = this.positionGizmo = new PositionGizmo(this.gizmosLayer); break;
-            case GizmoType.ROTATION: this.currentGizmo = this.rotationGizmo = new RotationGizmo(this.gizmosLayer); break;
+            case GizmoType.POSITION:
+                this.currentGizmo = this.positionGizmo = new PositionGizmo(this.gizmosLayer);
+                this.positionGizmo.planarGizmoEnabled = true;
+                this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+                break;
+            case GizmoType.ROTATION: this.currentGizmo = this.rotationGizmo = new RotationGizmo(this.gizmosLayer, null, true); break;
             case GizmoType.SCALING: this.currentGizmo = this.scalingGizmo = new ScaleGizmo(this.gizmosLayer); break;
             default: return; // GizmoType.NONE
         }
@@ -157,9 +161,19 @@ export default class ScenePicker {
 
         // Events
         if (!(this.currentGizmo instanceof BoundingBoxGizmo)) {
+            // Updated mesh
             this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
             this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
             this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
+
+            if (this.currentGizmo instanceof PositionGizmo) {
+                this.currentGizmo.xPlaneGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
+                this.currentGizmo.yPlaneGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
+                this.currentGizmo.zPlaneGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
+            }
+
+            if (this.currentGizmo instanceof ScaleGizmo)
+                this.currentGizmo.uniformScaleGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
 
             // Undo redo
             this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.x);
@@ -226,19 +240,27 @@ export default class ScenePicker {
         });
 
         this.onCanvasBlur = this.scene.getEngine().onCanvasPointerOutObservable.add(ev => {
-            if (this.lastMesh)
+            if (this.lastMesh) {
                 this.lastMesh.showBoundingBox = false;
+                this.lastMesh.renderOutline = false;
+            }
 
-            if (this.lastClickedMesh)
+            if (this.lastClickedMesh) {
                 this.lastClickedMesh.showBoundingBox = true;
+                this.lastClickedMesh.renderOutline = true;
+            }
         });
 
         this.onCanvasFocus = this.scene.getEngine().onCanvasBlurObservable.add(ev => {
-            if (this.lastClickedMesh)
+            if (this.lastClickedMesh) {
                 this.lastClickedMesh.showBoundingBox = false;
-            
-            if (this.lastMesh)
+                this.lastClickedMesh.renderOutline = false;
+            }
+
+            if (this.lastMesh) {
                 this.lastMesh.showBoundingBox = true;
+                this.lastMesh.renderOutline = true;
+            }
         });
     }
 
@@ -414,16 +436,21 @@ export default class ScenePicker {
         if (!this._enabled)
             return;
         
-        if (this.lastMesh)
+        if (this.lastMesh) {
             this.lastMesh.showBoundingBox = false;
+            this.lastMesh.renderOutline = false;
+        }
 
-        if (this.lastClickedMesh)
+        if (this.lastClickedMesh) {
             this.lastClickedMesh.showBoundingBox = false;
+            this.lastClickedMesh.renderOutline = false;
+        }
 
         const pick = this.editor.sceneIcons.pickIcon(ev.offsetX, ev.offsetY, false) || this.scene.pick(ev.offsetX, ev.offsetY);
         if (pick.pickedMesh) {
             this.lastMesh = pick.pickedMesh;
             pick.pickedMesh.showBoundingBox = true;
+            pick.pickedMesh.renderOutline = true;
         }
     }
 
