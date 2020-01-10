@@ -358,10 +358,8 @@ export default class PrefabAssetComponent implements IAssetComponent {
             if (!source)
                 return;
 
-            if (!d.data.sourceNode) {
-                d.data.sourceNode = source;
-                d.data.sourceNodes.push(source);
-            }
+            d.data.sourceNode = source;
+            d.data.sourceNodes.push(source);
 
             // Create master instances
             const parents = (d.data.instances[source.name] || d.data.instances[source.id]);
@@ -465,6 +463,13 @@ export default class PrefabAssetComponent implements IAssetComponent {
         instance.scaling = Vector3.FromArray(data.scaling || data._scaling);
         instance.checkCollisions = instance.sourceMesh.checkCollisions;
         instance._waitingParentId = data.parentId;
+        instance.metadata = data.metadata;
+
+        // According to painting tools
+        if (instance.metadata && instance.metadata.painting) {
+            instance.isPickable = false;
+            Tags.AddTagsTo(instance, 'graph-hidden');
+        }
 
         if (data.rotationQuaternion || data._rotationQuaternion) {
             instance.rotationQuaternion = Quaternion.FromArray(data.rotationQuaternion || data._rotationQuaternion);

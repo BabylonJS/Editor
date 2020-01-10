@@ -38,8 +38,8 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
     private _heightOffset: number = 0;
     private _paintedMeshes: AbstractMesh[] = [];
 
-    private _assets: AssetElement<Prefab>[] = [];
-    private _targets: AbstractMesh[] = [];
+    private _sourceAssets: AssetElement<Prefab>[] = [];
+    private _targetSurfaces: AbstractMesh[] = [];
 
     /**
      * Constructor.
@@ -98,7 +98,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         sources.open();
         
         sources.add(this, '_addPrefabSource').name('Add Prefab Source...');
-        this._assets.forEach((a) => {
+        this._sourceAssets.forEach((a) => {
             const o = { fn: () => this._removePrefabSource(a) };
             sources.add(o, 'fn').name(`Remove "${a.name}"`);
         });
@@ -108,7 +108,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         targets.open();
         
         targets.add(this, '_addTargetSurface').name('Add Target Surface...');
-        this._targets.forEach((t) => {
+        this._targetSurfaces.forEach((t) => {
             const o = { fn: () => this._removeTargetSurface(t) };
             targets.add(o, 'fn').name(`Remove "${t.name}"`);
         })
@@ -174,13 +174,17 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
             return;
         }
 
+        // Test if possible first.
+        if (!this._sourceAssets.length || !this._targetSurfaces.length)
+            return;
+
         // Pick!
         const pick = this.editor.core.scene.pick(
             this.editor.core.scene.pointerX,
             this.editor.core.scene.pointerY
         );
 
-        if (!pick.pickedMesh || this._targets.indexOf(pick.pickedMesh) === -1)
+        if (!pick.pickedMesh || this._targetSurfaces.indexOf(pick.pickedMesh) === -1)
             return;
 
         this._sphere.position.copyFrom(pick.pickedPoint);
@@ -214,19 +218,24 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
             if (!m.metadata || !m.metadata.painting)
                 return null;
 
-            const found = this._assets.find((a) => a.name === m.metadata.painting.sourceName);
-            return found ? m : null;
+            const found = this._sourceAssets.find((a) => a.name === m.metadata.painting.sourceName);
+            if (found) {
+                m.isPickable = false;
+                return found;
+            }
+
+            return null;
         });
     }
 
     // On the user wants to add a prefab source.
     private async _addPrefabSource (): Promise<void> {
         const asset = await AssetPicker.Show<Prefab>(this.editor, this.editor.assets.prefabs);
-        const index = this._assets.indexOf(asset);
+        const index = this._sourceAssets.indexOf(asset);
         if (index !== -1)
             return;
         
-        this._assets.push(asset);
+        this._sourceAssets.push(asset);
 
         this._refreshPaintedMeshes();
         this.update(this);
@@ -234,21 +243,21 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
 
     // On the user wants to add a target surface.
     private async _addTargetSurface (): Promise<void> {
-        const meshes = this.editor.core.scene.meshes.filter((m) =>m !== this._sphere && this._targets.indexOf(m) === -1);
+        const meshes = this.editor.core.scene.meshes.filter((m) => m !== this._sphere && this._targetSurfaces.indexOf(m) === -1);
 
         const picker = new Picker('Add Target Surface');
         picker.addItems(meshes);
         picker.open((items) => {
-            items.forEach((i) => this._targets.push(meshes[i.id]));
+            items.forEach((i) => this._targetSurfaces.push(meshes[i.id]));
             this.update(this);
         });
     }
 
     // On the user wants to remove a prefab source.
     private _removePrefabSource (source: AssetElement<Prefab>): void {
-        const index = this._assets.indexOf(source);
+        const index = this._sourceAssets.indexOf(source);
         if (index !== -1)
-            this._assets.splice(index, 1);
+            this._sourceAssets.splice(index, 1);
 
         this._refreshPaintedMeshes();
         this.update(this);
@@ -256,9 +265,9 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
 
     // On the user wants to remove a target.
     private _removeTargetSurface (target: AbstractMesh): void {
-        const index = this._targets.indexOf(target);
+        const index = this._targetSurfaces.indexOf(target);
         if (index !== -1)
-            this._targets.splice(index, 1);
+            this._targetSurfaces.splice(index, 1);
 
         this.update(this);
     }
@@ -271,7 +280,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
 
     // Paint sources!
     private _paint (info: PointerInfo, pickInfo: PickingInfo): void {
-        const asset = this._assets[(Math.random() * this._assets.length) >> 0];
+        const asset = this._sourceAssets[(Math.random() * this._sourceAssets.length) >> 0];
         const nearMesh = this._paintedMeshes.find((m) => Vector3.Distance(m.absolutePosition, pickInfo.pickedPoint) < this._paintDistance);
         if (nearMesh)
             return;
@@ -287,11 +296,11 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
             pickInfo.pickedPoint.y + this._heightOffset,
             pickInfo.pickedPoint.z + this._getRandom(this._sphere.scaling.x)
         );
-        // prefab.rotation.addInPlace(new Vector3(
-        //     2 * Math.PI * Math.random() * this._rotationRandomizer.x,
-        //     2 * Math.PI * Math.random() * this._rotationRandomizer.y,
-        //     2 * Math.PI * Math.random() * this._rotationRandomizer.z,
-        // ));
+        prefab.rotation.addInPlace(new Vector3(
+            2 * Math.PI * Math.random() * this._rotationRandomizer.x,
+            2 * Math.PI * Math.random() * this._rotationRandomizer.y,
+            2 * Math.PI * Math.random() * this._rotationRandomizer.z,
+        ));
 
         this._paintedMeshes.push(prefab);
     }

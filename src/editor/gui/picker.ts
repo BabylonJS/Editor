@@ -14,8 +14,9 @@ export interface Row extends GridRow {
 
 export default class Picker {
     // Public members
-    public items: string[] = [];
-    public selected: string[] = [];
+    public items: PickerItem[] = [];
+    public selected: PickerItem[] = [];
+    public effectiveItems: PickerItem[] = [];
 
     public window: Window = null;
     public grid: Grid<Row> = null;
@@ -36,7 +37,7 @@ export default class Picker {
      * @param items: items to add
      */
     public addItems (items: PickerItem[]): void {
-        items.forEach(i => !Tags.MatchesQuery(i, 'temp') && this.items.push(this._getItemName(i)));
+        items.forEach(i => !Tags.MatchesQuery(i, 'temp') && this.items.push(i));
     }
 
     /**
@@ -54,7 +55,7 @@ export default class Picker {
      * @param items: items to add
      */
     public addSelected (items: PickerItem[]): void {
-        items.forEach(i => this.selected.push(this._getItemName(i)));
+        items.forEach(i => this.selected.push(i));
     }
 
     /**
@@ -80,8 +81,8 @@ export default class Picker {
                 const selected = this.grid.getSelected();
                 callback(selected.map(s => {
                     return {
-                        id: s,
-                        name: this.items[s]
+                        id: this.items.indexOf(this.effectiveItems[s]),
+                        name: this.items[s].name
                     }
                 }), selected);
             }
@@ -111,7 +112,13 @@ export default class Picker {
      * Adds current items to the grid
      */
     public refreshGrid (): void {
-        this.items.forEach((i, index) => this.grid.addRecord({ name: i, recid: index }));
+        this.effectiveItems = [];
+        this.items.forEach((i, index) => {
+            if (!Tags.MatchesQuery(i, 'graph-hidden')) {
+                this.grid.addRecord({ name: this._getItemName(i), recid: index });
+                this.effectiveItems.push(i);
+            }
+        });
         this.grid.select(this.selected.map(s => this.items.indexOf(s)));
         this.grid.element.refresh();
     }
