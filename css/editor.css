@@ -471,6 +471,10 @@ ICONS
     filter: none;
 }
 
+.w2ui-icon.icon-paint {
+    background: url("svg/paint-brush.svg");
+}
+
 .w2ui-icon.w2ui-icon-reload::before {
     background: url("svg/circle-notch.svg") !important;
 }

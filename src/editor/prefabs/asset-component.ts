@@ -162,6 +162,26 @@ export default class PrefabAssetComponent implements IAssetComponent {
      */
     public onDragAndDropAsset (targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void {
         // Parent
+        const parent = this.instantiatePrefab(asset, pickInfo);
+
+        // Configure.
+        SceneFactory.AddToGraph(this.editor, parent);
+        Tags.RemoveTagsFrom(parent, 'added');
+
+        // Select
+        this.editor.scenePicker.setGizmoAttachedMesh(<AbstractMesh> parent);
+        
+        // Notify
+        this.editor.core.onSelectObject.notifyObservers(parent);
+    }
+
+    /**
+     * Instantiates a new prefab.
+     * @param asset the asset containing the prefab's data.
+     * @param pickInfo the pick info once the user dropped the asset
+     */
+    public instantiatePrefab (asset: AssetElement<Prefab>, pickInfo: PickingInfo): PrefabNodeType {
+        // Parent
         const parent = asset.data.sourceNode instanceof Mesh ? asset.data.sourceNode.createInstance(asset.data.sourceNode.name + ' (Prefab)') : this._cloneNode(asset.data.sourceNode);
         parent['isPickable'] = true;
         parent.id = BabylonTools.RandomId();
@@ -192,14 +212,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
             });
         }
 
-        SceneFactory.AddToGraph(this.editor, parent);
-        Tags.RemoveTagsFrom(parent, 'added');
-
-        // Select
-        this.editor.scenePicker.setGizmoAttachedMesh(<AbstractMesh> parent);
-        
-        // Notify
-        this.editor.core.onSelectObject.notifyObservers(parent);
+        return parent;
     }
 
     /**
@@ -345,8 +358,10 @@ export default class PrefabAssetComponent implements IAssetComponent {
             if (!source)
                 return;
 
-            d.data.sourceNode = source;
-            d.data.sourceNodes.push(source);
+            if (!d.data.sourceNode) {
+                d.data.sourceNode = source;
+                d.data.sourceNodes.push(source);
+            }
 
             // Create master instances
             const parents = (d.data.instances[source.name] || d.data.instances[source.id]);

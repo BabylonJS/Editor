@@ -38,6 +38,8 @@ import SceneIcons from './scene/scene-icons';
 import SceneImporter from './scene/scene-importer';
 import SceneLoader from './scene/scene-loader';
 
+import PaintingTools from './painting/painting-tools';
+
 import ProjectExporter from './project/project-exporter';
 import CodeProjectEditorFactory from './project/project-code-editor';
 
@@ -72,6 +74,8 @@ export default class Editor implements IUpdatable {
 
     public scenePicker: ScenePicker;
     public sceneIcons: SceneIcons;
+
+    public paintingTools: PaintingTools;
 
     public filesInput: FilesInput;
     public sceneFile: File = null;
@@ -271,6 +275,9 @@ export default class Editor implements IUpdatable {
 
         // Create scene picker
         this.createScenePicker();
+
+        // Painting tools
+        this.paintingTools = new PaintingTools(this);
 
         // Handle events
         this._handleEvents();

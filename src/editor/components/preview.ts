@@ -12,6 +12,7 @@ export default class EditorPreview {
     // Public members
     public layout: Layout;
     public toolbar: Toolbar;
+    public toolsToolbar: Toolbar;
 
     /**
      * Constructor
@@ -22,7 +23,8 @@ export default class EditorPreview {
         this.layout = new Layout('PREVIEW');
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="PREVIEW-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
-            { type: 'main', resizable: false, content: '<canvas id="renderCanvasEditor" class="ctxmenu"></canvas>' }
+            { type: 'main', resizable: false, content: '<canvas id="renderCanvasEditor" class="ctxmenu"></canvas>' },
+            { type: 'bottom', resizable: false, size: 30, content: '<div id="RENDER-CANVAS-CONTAINER" style="width: 100%; height: 100%;"></div>' }
         ];
         this.layout.build('PREVIEW');
 
@@ -30,7 +32,6 @@ export default class EditorPreview {
         this.toolbar = new Toolbar('PREVIEW-TOOLBAR');
         this.toolbar.onClick = id => this.onToolbarClicked(id);
         this.toolbar.items = [
-            { type: 'break' },
             { type: 'menu', id: 'camera', text: 'Camera', img: 'icon-camera', items: [
                 { id: 'free', text: 'Free Camera', img: 'icon-camera' },
                 { id: 'arc', text: 'Arc Rotate Camera', img: 'icon-camera' }
@@ -55,6 +56,14 @@ export default class EditorPreview {
             { type: 'button', id: 'sounds', checked: true, img: 'icon-sound' }
         ];
         this.toolbar.build('PREVIEW-TOOLBAR');
+
+        // Tools toolbar
+        this.toolsToolbar = new Toolbar('RENDER-CANVAS-CONTAINER');
+        this.toolsToolbar.onClick = id => this.onToolsToolbarClicked(id);
+        this.toolsToolbar.items = [
+            { type: 'button', id: 'mesh-painter', text: 'Mesh Painter', img: 'icon-paint', checked: false },
+        ];
+        this.toolsToolbar.build('RENDER-CANVAS-CONTAINER');
 
         // Context menu
         const canvas = <HTMLCanvasElement> $('#renderCanvasEditor')[0];
@@ -102,6 +111,31 @@ export default class EditorPreview {
         this.toolbar.setChecked('post-processes', true);
         this.toolbar.setChecked('textures', true);
         this.toolbar.setChecked('lights', true);
+    }
+
+    /**
+     * Enables the given tool.
+     * @param id the id of the tool to enable.
+     */
+    public enableToolMode (id: string): void {
+        this.toolsToolbar.setChecked(id, true);
+    }
+
+    /**
+     * Disables the given tool.
+     * @param id the id of the tool to disable.
+     */
+    public disableToolMode (id: string): void {
+        this.toolsToolbar.setChecked(id, false);
+    }
+
+    /**
+     * Toggles the given tool.
+     * @param id the id of the tool to toggle (enabled/disabled)
+     */
+    public toogleToolMode (id: string): void {
+        const isChecked = this.toolsToolbar.isChecked(id);
+        isChecked ? this.disableToolMode(id) : this.enableToolMode(id);
     }
 
     /**
@@ -172,6 +206,22 @@ export default class EditorPreview {
 
             // Default
             default: break;
+        }
+    }
+
+    /**
+     * On the user clicks on the tools toolbar
+     * @param id the id of the clicked item
+     */
+    protected onToolsToolbarClicked (id: string): void {
+        switch (id) {
+            case 'mesh-painter':
+                const isChecked = this.toolsToolbar.isChecked(id, true);
+                isChecked ? this.enableToolMode(id) : this.disableToolMode(id);
+
+                const tool = this.editor.paintingTools.getTool('MeshPainter');
+                tool.setEnabled(isChecked);
+                break;
         }
     }
 }
