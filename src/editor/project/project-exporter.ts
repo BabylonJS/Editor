@@ -176,7 +176,7 @@ export default class ProjectExporter {
             if (matches)
                 name = n.name.replace(filenameRegexp, '');
             
-            name = `${name}-${n.id}.json`;
+            name = `${name}-${n.id}.json`.toLowerCase();
             nodesFolder.folder.push({ name: name, data: JSON.stringify(n) });
             project.nodes[index] = <any> name;
         });
@@ -187,7 +187,7 @@ export default class ProjectExporter {
             if (matches)
             name = m.serializedValues.name.replace(filenameRegexp, '') + m.serializedValues.id;
             
-            name = `${name}-${m.serializedValues.id}.json`;
+            name = `${name}-${m.serializedValues.id}.json`.toLowerCase();
             materialsFolder.folder.push({ name: name, data: JSON.stringify(m) });
             project.materials[index] = <any> name;
         });
@@ -198,7 +198,7 @@ export default class ProjectExporter {
             if (matches)
             name = t.serializedValues.name.replace(filenameRegexp, '') + t.serializedValues.id;
             
-            name = `${name}-${t.serializedValues.uniqueId}.json`;
+            name = `${name}-${t.serializedValues.uniqueId}.json`.toLowerCase();
             texturesFolder.folder.push({ name: name, data: JSON.stringify(t) });
             project.textures[index] = <any> name;
         });
