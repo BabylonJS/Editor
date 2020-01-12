@@ -15,10 +15,10 @@
 							"grass"
 						],
 						"nodeIds": [
-							"a3e30ef2-e0cb-4e33-a808-43803ff993d3"
+							"31fec0a9-59f4-4243-8899-5c1f24b51711"
 						],
 						"instances": {
-							"a3e30ef2-e0cb-4e33-a808-43803ff993d3": []
+							"31fec0a9-59f4-4243-8899-5c1f24b51711": []
 						}
 					}
 				}
@@ -29,12 +29,12 @@
 	"globalConfiguration": {
 		"serializedCamera": {
 			"tags": "added",
-			"alpha": 2.568800412987109,
-			"beta": 0.9937690118622067,
-			"radius": 267.12591620586477,
+			"alpha": 3.8883340130347332,
+			"beta": 1.1325660413977434,
+			"radius": 339.3105752088948,
 			"target": [
 				0,
-				0,
+				18.907955169677734,
 				0
 			],
 			"upVector": [
@@ -70,9 +70,9 @@
 			],
 			"speed": 2,
 			"position": [
-				-188.1425486325402,
-				145.72653109377063,
-				121.33595772997893
+				-225.49054723385083,
+				162.89020614537648,
+				-208.69784608553203
 			],
 			"fov": 0.8,
 			"minZ": 1,
@@ -204,12 +204,13 @@
 	},
 	"lensFlares": null,
 	"materials": [
-		"01 - default-4e360754-a66d-4615-8c97-e328bfa3467f.json"
+		"01 - default-4e360754-a66d-4615-8c97-e328bfa3467f.json",
+		"01 - default-00f7c23e-7831-4357-ab72-4718c56bb624.json"
 	],
 	"textures": [],
 	"nodes": [
-		"grass-a3e30ef2-e0cb-4e33-a808-43803ff993d3.json",
-		"ground-ddb5670b-6bb2-4115-886a-1d6cc3e83614.json"
+		"ground-ddb5670b-6bb2-4115-886a-1d6cc3e83614.json",
+		"grass-31fec0a9-59f4-4243-8899-5c1f24b51711.json"
 	],
 	"particleSystems": [],
 	"physicsEnabled": true,
@@ -231,17 +232,17 @@
 		"prefabs": [
 			{
 				"name": "grass",
-				"img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABzklEQVR4Xu3dO0oEQQAG4V7UQMHEDTyB+LiE4J5bwUv4wBMYaCJooKLoBSZa9nOsSTuYomp+OpzFGONr9DAGFgVhWvyCFMTqURCsR0EKohnAeLpDCoIZwHBaSEEwAxhOCykIZgDDaSEFwQxgOC2kIJgBDKeFFAQzgOG0kIJgBjCcFlIQzACG00IKghnAcFpIQTADGE4LKQhmAMNpIQXBDGA4LaQgmAEMp4UUBDOA4bSQgmAGMJwWUhDMAIbTQgqCGcBwWkhBMAMYTgspCGYAw2khBcEMYDgtpCCYAQynhRQEM4DhtJCCYAYwnBZSEMwAhtNCCoIZwHBaSEEwAxhOCykIZgDDaSEFwQxgOC2kIJgBDKeFFGT9BrZ2FuPz/W/+p2ZWCzm9WI7bq6f1F1/jG2YVZMrTyWo57i7tYP8myNlqOW7wGD8f1L8Jcnx+MO6vn6dGtPHz2Qc5PNobjw+vY3d/e7y9fGxc+BTA7INMCdDOC4IVKUhBMAMYTgspCGYAw2khBcEMYDgtpCCYAQynhRQEM4DhtJCCYAYwnBZSEMwAhtNCCoIZwHBaSEEwAxhOCykIZgDDaSEFwQxgOC2kIJgBDKeFFAQzgOG0ECzIN+cDeQF5f2PuAAAAAElFTkSuQmCC",
+				"img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAACSUlEQVR4Xu2cPUpDYRREbyqJARUUjIXExixA978EXYCgGCzEP1CLiKCJmMoyDEzefM+TOjPvcg6T12VQVcviE0NggJAYF6tDEJLlAyFhPhCCkDQCYffwDkFIGIGwc1gIQsIIhJ3DQhASRiDsHBaCkDACYeewEISEEQg7h4UgJIxA2DksBCFhBMLOYSEICSMQdg4LQUgYgbBzWAhCwgiEncNCEBJGIOwcFoKQMAJh57AQhIQRCDuHhSAkjEDYOSwEIWEEws5hIQgJIxB2DgtBSBiBsHNYCELCCISdw0IQEkYg7BwWghAPgcnZTs0u3z3lG2xtdiF7R1v1ev+5QnVyvlu3F28bxOZ7VLNCfEi6bf4XQvYnw3qZfXRLes2n917I4XS7Hq7ma+Lo/mu9FjKejurpZl7fX+38aV5vhYxPR7VYLOvxup11/O6zt0IOjof1fNfGe+PvD2VvhXT/NtAuQIjGzZZCiA2tVowQjZsthRAbWq0YIRo3WwohNrRaMUI0brYUQmxotWKEaNxsKYTY0GrFCNG42VIIsaHVihGicbOlEGJDqxUjRONmSyHEhlYrRojGzZZCiA2tVowQjZsthRAbWq0YIRo3WwohNrRaMUI0brYUQmxotWKEaNxsKYTY0GrFCNG42VIIsaHVihGicbOlEGJDqxUjRONmSyHEhlYrRojGzZZCiA2tVowQjZsthRAbWq0YIRo3WwohNrRaMUI0brYUQmxotWKEaNxsKYTY0GrFCNG42VIIsaHVihGicbOlEGJDqxX/AClkggG4yPoiAAAAAElFTkSuQmCC",
 				"data": {
 					"isPrefab": true,
 					"nodes": [
 						"grass"
 					],
 					"nodeIds": [
-						"a3e30ef2-e0cb-4e33-a808-43803ff993d3"
+						"31fec0a9-59f4-4243-8899-5c1f24b51711"
 					],
 					"instances": {
-						"a3e30ef2-e0cb-4e33-a808-43803ff993d3": []
+						"31fec0a9-59f4-4243-8899-5c1f24b51711": []
 					}
 				}
 			}
@@ -250,6 +251,7 @@
 	},
 	"removedObjects": {},
 	"filesList": [
+		"scene/waitlogo.png",
 		"scene/scene.babylon",
 		"scene/foliage_grass01_diffusemask.png"
 	],
@@ -607,6 +609,10 @@
 					"children": {}
 				}
 			}
+		},
+		{
+			"id": "MESH-PAINTER-TOOL",
+			"state": null
 		}
 	]
 }

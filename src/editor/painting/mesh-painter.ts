@@ -1,6 +1,6 @@
 import {
     Mesh, Tags, Observer, PointerInfo, StandardMaterial, PointerEventTypes,
-    Vector3, Scalar, PickingInfo, AbstractMesh
+    Vector3, Scalar, PickingInfo, AbstractMesh, KeyboardEventTypes
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -35,7 +35,6 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
     private _removing: boolean = false;
     private _paintDistance: number = 10;
     private _rotationRandomizer: Vector3 = new Vector3(0, 1, 0);
-    private _heightOffset: number = 0;
     private _paintedMeshes: AbstractMesh[] = [];
 
     private _sourceAssets: AssetElement<Prefab>[] = [];
@@ -62,6 +61,14 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         this._material.disableLighting = true;
         this._material.alpha = 0.3;
         this._sphere.material = this._material;
+
+        // Observers
+        editor.core.scene.onKeyboardObservable.add((info) => {
+            if (info.type === KeyboardEventTypes.KEYUP && info.event.keyCode === 27) {
+                this.setEnabled(false);
+                editor.preview.disableToolMode('mesh-painter');
+            }
+        });
     }
 
     /**
@@ -86,7 +93,6 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
 
         // Options
         this.tool.add(this, '_paintDistance').step(0.1).name('Painting Distance');
-        this.tool.add(this, '_heightOffset').step(0.01).name('Height Offset');
         this.tool.addVector(this.tool.element, 'Rotation Randomizer', this._rotationRandomizer, () => {
             this._rotationRandomizer.x = Scalar.Clamp(this._rotationRandomizer.x, 0, 1);
             this._rotationRandomizer.y = Scalar.Clamp(this._rotationRandomizer.y, 0, 1);
@@ -293,7 +299,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         };
         prefab.position.set(
             pickInfo.pickedPoint.x + this._getRandom(this._sphere.scaling.x),
-            pickInfo.pickedPoint.y + this._heightOffset,
+            pickInfo.pickedPoint.y,
             pickInfo.pickedPoint.z + this._getRandom(this._sphere.scaling.x)
         );
         prefab.rotation.addInPlace(new Vector3(
