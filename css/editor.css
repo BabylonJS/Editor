@@ -190,23 +190,23 @@ html, body {
 }
 
 /* SCROLLBARS */
-
-::-webkit-scrollbar {
-    width: 15px !important;
+div::-webkit-scrollbar {	
+    /* background: transparent none; */
+    width: 5px !important;
 }
 
-::-webkit-scrollbar-track {
+div::-webkit-scrollbar-track {
     background: white !important;
 }
 
-::-webkit-scrollbar-thumb {
+div::-webkit-scrollbar-thumb {
     background: #ddd !important;
     border-radius: 0px !important;
 }
 
-::-webkit-scrollbar-thumb:hover {
+/* body ::-webkit-scrollbar-thumb:hover {
     background: #999 !important;
-}
+} */
 
 /* ASSETS */
 

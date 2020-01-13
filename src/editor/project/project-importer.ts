@@ -2,7 +2,7 @@ import {
     Scene, Tags, Animation, ActionManager, Material, Texture, ShadowGenerator,
     Geometry, Node, Camera, Light, Mesh, ParticleSystem, AbstractMesh, InstancedMesh,
     CannonJSPlugin, PhysicsImpostor, Vector3, EffectLayer, Sound, RenderTargetTexture, ReflectionProbe,
-    Color3, Color4, SerializationHelper, Skeleton, MultiMaterial
+    Color3, Color4, SerializationHelper, Skeleton, MultiMaterial, CascadedShadowGenerator
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -399,7 +399,7 @@ export default class ProjectImporter {
         // Shadow Generators
         project.shadowGenerators.forEach(sg => {
             try {
-                const generator = ShadowGenerator.Parse(sg, scene);
+                const generator = sg.cascadeBlendPercentage !== undefined ? CascadedShadowGenerator.Parse(sg, scene) : ShadowGenerator.Parse(sg, scene);
 
                 Tags.EnableFor(generator);
                 Tags.AddTagsTo(generator, 'added');

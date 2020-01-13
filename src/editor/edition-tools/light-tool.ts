@@ -140,6 +140,7 @@ export default class LightTool extends AbstractEditionTool<Light> {
                     shadows.add(shadowGenerator, 'bias').min(0).max(1).step(0.0000001).name('Bias');
                     shadows.add(shadowGenerator, 'normalBias').min(0).max(1).step(0.0000001).name('Normal Bias');
                     shadows.add(shadowGenerator, 'frustumEdgeFalloff').step(0.0000001).name('Frustum Edge Falloff');
+                    shadows.add(shadowGenerator, 'stabilizeCascades').name('Stabilize Cascades');
                     
                     shadows.add(shadowGenerator, 'usePercentageCloserFiltering').name('Use Percentage Closer Filtering');
                     switch (shadowGenerator.filter) {
@@ -163,6 +164,8 @@ export default class LightTool extends AbstractEditionTool<Light> {
                     // shadows.add(shadowGenerator, 'numCascades', ["4", "5", "6", "7", "8"]).name('Cascades Count').onChange((r) => shadowGenerator.numCascades = parseInt(r));
                     shadows.add(shadowGenerator, 'forceBackFacesOnly').name('Force Back Faces Only');
                     shadows.add(shadowGenerator, 'lambda').min(0).max(1).step(0.01).name('Lambda');
+                    shadows.add(shadowGenerator, 'penumbraDarkness').min(0).max(1).step(0.01).name('Penumbra Darkness');
+                    shadows.add(shadowGenerator, 'cascadeBlendPercentage').min(0).max(1).step(0.01).name('Cascade Blend Percentage');
                     shadows.add(shadowGenerator, 'depthClamp').name('Depth Clamp');
 
                     shadows.add(shadowGenerator, 'debug').name('debug');
