@@ -181,7 +181,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         }
 
         // Test if possible first.
-        if (!this._sourceAssets.length || !this._targetSurfaces.length)
+        if (!this._sourceAssets.length)
             return;
 
         // Pick!
@@ -190,7 +190,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
             this.editor.core.scene.pointerY
         );
 
-        if (!pick.pickedMesh || this._targetSurfaces.indexOf(pick.pickedMesh) === -1)
+        if (!pick.pickedMesh || (this._targetSurfaces.length && this._targetSurfaces.indexOf(pick.pickedMesh) === -1))
             return;
 
         this._sphere.position.copyFrom(pick.pickedPoint);

@@ -7,6 +7,7 @@ import ContextMenu from '../gui/context-menu';
 import Editor from '../editor';
 
 import { GizmoType } from '../scene/scene-picker';
+import { AvailablePaintingTools } from '../painting/painting-tools';
 
 export default class EditorPreview {
     // Public members
@@ -62,6 +63,7 @@ export default class EditorPreview {
         this.toolsToolbar.onClick = id => this.onToolsToolbarClicked(id);
         this.toolsToolbar.items = [
             { type: 'button', id: 'mesh-painter', text: 'Mesh Painter', img: 'icon-paint', checked: false },
+            { type: 'button', id: 'terrain-painter', text: 'Terrain Painter', img: 'icon-paint', checked: false }
         ];
         this.toolsToolbar.build('RENDER-CANVAS-CONTAINER');
 
@@ -216,11 +218,18 @@ export default class EditorPreview {
     protected onToolsToolbarClicked (id: string): void {
         switch (id) {
             case 'mesh-painter':
-                const isChecked = this.toolsToolbar.isChecked(id, true);
-                isChecked ? this.enableToolMode(id) : this.disableToolMode(id);
+            case 'terrain-painter':
+                const active = this.toolsToolbar.isChecked(id, true);
 
-                const tool = this.editor.paintingTools.getTool('MeshPainter');
-                tool.setEnabled(isChecked);
+                this.toolsToolbar.setChecked('mesh-painter', false);
+                this.toolsToolbar.setChecked('terrain-painter', false);
+
+                this.toolsToolbar.setChecked(id, active);
+
+                switch (id) {
+                    case 'mesh-painter': this.editor.paintingTools.enableTool(AvailablePaintingTools.MeshPainter); break;
+                    case 'terrain-painter': this.editor.paintingTools.enableTool(AvailablePaintingTools.TerrainPainter); break;
+                }
                 break;
         }
     }

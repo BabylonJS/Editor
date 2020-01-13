@@ -2,6 +2,7 @@ import Editor from '../editor';
 import { IStringDictionary } from '../typings/typings';
 
 import MeshPainter from './mesh-painter';
+import TerrainPainter from './terrain-painter';
 
 export interface IPaintingTool {
     /**
@@ -27,7 +28,8 @@ export interface PaintingToolStore {
 }
 
 export enum AvailablePaintingTools {
-    MeshPainter = "MeshPainter"
+    MeshPainter = "MeshPainter",
+    TerrainPainter = "TerrainPainter"
 }
 
 export default class PaintingTools {
@@ -37,11 +39,17 @@ export default class PaintingTools {
     public static Constructors: IStringDictionary<PaintingToolStore> = { };
 
     /**
+     * The reference of the last tool used.
+     */
+    public lastTool: IPaintingTool = null;
+
+    /**
      * Constructor.
      * @param editor the editor reference.
      */
     constructor (public editor: Editor) {
-        this.addTool('MeshPainter', MeshPainter);
+        this.addTool(AvailablePaintingTools.MeshPainter, MeshPainter);
+        this.addTool(AvailablePaintingTools.TerrainPainter, TerrainPainter);
     }
 
     /**
@@ -72,5 +80,19 @@ export default class PaintingTools {
             store.instance = new store.ctor(this.editor);
 
         return store.instance;
+    }
+
+    /**
+     * Enables the given tool.
+     * @param name the name of the tool to enable.
+     */
+    public enableTool (name: string): IPaintingTool {
+        if (this.lastTool && this.lastTool !== PaintingTools.Constructors[name].instance)
+            this.lastTool.setEnabled(false);
+        
+        const tool = this.lastTool = this.getTool(name);
+        tool.setEnabled(!tool.enabled);
+
+        return tool;
     }
 }
