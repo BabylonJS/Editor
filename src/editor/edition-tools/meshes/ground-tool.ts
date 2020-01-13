@@ -90,6 +90,14 @@ export default class GroundTool extends AbstractEditionTool<GroundMesh> {
         if (displacementOptions)
             this._displacementTexture = displacementOptions.texture;
 
+        if (!heightMapOptions && !displacementOptions) {
+            this.object.geometry.setAllVerticesData(VertexData.CreateGround({
+                width: this.object._width,
+                height: this.object._height,
+                subdivisions: this._subdivisions
+            }), true);
+        }
+
         this.object._subdivisionsX = this.object._subdivisionsY = this._subdivisions;
     }
 
@@ -111,7 +119,7 @@ export default class GroundTool extends AbstractEditionTool<GroundMesh> {
             width: this.object._width,
             height: this.object._height,
             subdivisions: this._subdivisions
-        }));
+        }), true);
 
         delete this._heightMapOptions[this.object.id];
         delete this._displacementOptions[this.object.id];
@@ -172,7 +180,7 @@ export default class GroundTool extends AbstractEditionTool<GroundMesh> {
             bufferWidth: bufferWidth,
             bufferHeight: bufferHeight,
             alphaFilter: 0
-        }));
+        }), true);
 
         // Update height map and options
         options.texture = texture;

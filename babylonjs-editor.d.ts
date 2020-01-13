@@ -67,6 +67,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import EditorConsole from 'babylonjs-editor/editor/components/console';
     import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
     import SceneIcons from 'babylonjs-editor/editor/scene/scene-icons';
+    import PaintingTools from 'babylonjs-editor/editor/painting/painting-tools';
     export default class Editor implements IUpdatable {
             core: Core;
             camera: FreeCamera | ArcRotateCamera;
@@ -85,6 +86,7 @@ declare module 'babylonjs-editor/editor/editor' {
             plugins: IStringDictionary<IEditorPlugin>;
             scenePicker: ScenePicker;
             sceneIcons: SceneIcons;
+            paintingTools: PaintingTools;
             filesInput: FilesInput;
             sceneFile: File;
             guiFiles: File[];
@@ -770,8 +772,9 @@ declare module 'babylonjs-editor/editor/gui/picker' {
             name: string;
     }
     export default class Picker {
-            items: string[];
-            selected: string[];
+            items: PickerItem[];
+            selected: PickerItem[];
+            effectiveItems: PickerItem[];
             window: Window;
             grid: Grid<Row>;
             title: string;
@@ -1311,8 +1314,15 @@ declare module 'babylonjs-editor/editor/gui/dialog' {
                 * @param callback the dialog's callback
                 * @param yes callback when user clicks "yes"
                 * @param no callback when the user clicks "no"
+                * @deprecated
                 */
             static Create(title: string, body: string, callback?: (result: string) => void, yes?: () => void, no?: () => void): Promise<string>;
+            /**
+                * Creates a GUI confirm window (yes, no).
+                * @param title the title of the dialog window.
+                * @param body the body of the dialog window (HTML).
+                */
+            static CreateConfirm(title: string, body: string): Promise<boolean>;
             /**
                 * Creates a GUI dialog with a text input.
                 * @param title the title of the dialog.
@@ -1662,6 +1672,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
             meshesNames?: string[];
             meshesIds?: string[];
             newInstance?: boolean;
+            isMultiMaterial?: boolean;
             _babylonMaterial?: Material;
     }
     /**
@@ -1889,7 +1900,7 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-factory' {
-    import { FreeCamera, Mesh, ParticleSystem, GroundMesh, Light, EnvironmentHelper } from 'babylonjs';
+    import { FreeCamera, Mesh, ParticleSystem, GroundMesh, EnvironmentHelper, Light } from 'babylonjs';
     import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
     import { WaterMaterial } from 'babylonjs-materials';
     import Editor from 'babylonjs-editor/editor/editor';
@@ -1979,6 +1990,12 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
                 * @param editor: the editor reference
                 */
             static AddGuiImage(editor: Editor): Image;
+            /**
+                * Merges the given mesh with its hierarchy.
+                * @param editor: the editor reference.
+                * @param mesh the mesh to merge with its hierarchy.
+                */
+            static MergeMeshHierarchy(editor: Editor, mesh: Mesh): Promise<void>;
     }
 }
 
@@ -2156,6 +2173,12 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
                 * @param pickInfo the pick info once the user dropped the asset
                 */
             onDragAndDropAsset(targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void;
+            /**
+                * Instantiates a new prefab.
+                * @param asset the asset containing the prefab's data.
+                * @param pickInfo the pick info once the user dropped the asset
+                */
+            instantiatePrefab(asset: AssetElement<Prefab>, pickInfo: PickingInfo): PrefabNodeType;
             /**
                 * On the user saves the editor project
                 */
@@ -2593,6 +2616,7 @@ declare module 'babylonjs-editor/editor/components/preview' {
             protected editor: Editor;
             layout: Layout;
             toolbar: Toolbar;
+            toolsToolbar: Toolbar;
             /**
                 * Constructor
                 * @param editor: the editor reference
@@ -2612,10 +2636,30 @@ declare module 'babylonjs-editor/editor/components/preview' {
                 */
             reset(): void;
             /**
+                * Enables the given tool.
+                * @param id the id of the tool to enable.
+                */
+            enableToolMode(id: string): void;
+            /**
+                * Disables the given tool.
+                * @param id the id of the tool to disable.
+                */
+            disableToolMode(id: string): void;
+            /**
+                * Toggles the given tool.
+                * @param id the id of the tool to toggle (enabled/disabled)
+                */
+            toogleToolMode(id: string): void;
+            /**
                 * On the user clicks on the toolbar
                 * @param id the id of the clicked item
                 */
             protected onToolbarClicked(id: string): void;
+            /**
+                * On the user clicks on the tools toolbar
+                * @param id the id of the clicked item
+                */
+            protected onToolsToolbarClicked(id: string): void;
     }
 }
 
@@ -2929,6 +2973,68 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
                 * @param url: the url of the texture
                 */
             protected createTexture(url: string): Texture;
+    }
+}
+
+declare module 'babylonjs-editor/editor/painting/painting-tools' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export interface IPaintingTool {
+            /**
+                * Gets wether or not the tool is enabled.
+                */
+            enabled: boolean;
+            /**
+                * Sets wether or not the tool is enabled.
+                * @param enabled wether or not the tool is enabled.
+                */
+            setEnabled(enabled: boolean): void;
+    }
+    export interface PaintingToolStore {
+            /**
+                * The constructor refernce of the tool.
+                */
+            ctor: (new (editor: Editor) => IPaintingTool);
+            /**
+                * The instanceo of the tool.
+                */
+            instance: IPaintingTool;
+    }
+    export enum AvailablePaintingTools {
+            MeshPainter = "MeshPainter",
+            TerrainPainter = "TerrainPainter"
+    }
+    export default class PaintingTools {
+            editor: Editor;
+            /**
+                * Defines all the available tools.
+                */
+            static Constructors: IStringDictionary<PaintingToolStore>;
+            /**
+                * The reference of the last tool used.
+                */
+            lastTool: IPaintingTool;
+            /**
+                * Constructor.
+                * @param editor the editor reference.
+                */
+            constructor(editor: Editor);
+            /**
+                * Adds a new available tool on the fly by giving its name and its constructor.
+                * @param name the name of the tool to add.
+                * @param ctor the constructor reference of the tool.
+                */
+            addTool(name: string, ctor: new (editor: Editor) => IPaintingTool): void;
+            /**
+                * Returns the given tool reference.
+                * @param name the name of the tool to get.
+                */
+            getTool(name: string): IPaintingTool;
+            /**
+                * Enables the given tool.
+                * @param name the name of the tool to enable.
+                */
+            enableTool(name: string): IPaintingTool;
     }
 }
 

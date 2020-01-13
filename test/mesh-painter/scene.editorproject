@@ -29,9 +29,9 @@
 	"globalConfiguration": {
 		"serializedCamera": {
 			"tags": "added",
-			"alpha": 3.8883340130347332,
-			"beta": 1.1325660413977434,
-			"radius": 339.3105752088948,
+			"alpha": 5.359949690606954,
+			"beta": 1.2440887106049086,
+			"radius": 219.3098248784872,
 			"target": [
 				0,
 				18.907955169677734,
@@ -70,9 +70,9 @@
 			],
 			"speed": 2,
 			"position": [
-				-225.49054723385083,
-				162.89020614537648,
-				-208.69784608553203
+				125.29908359820828,
+				89.29029916843812,
+				-165.66008750125087
 			],
 			"fov": 0.8,
 			"minZ": 1,
@@ -204,13 +204,14 @@
 	},
 	"lensFlares": null,
 	"materials": [
-		"01 - default-4e360754-a66d-4615-8c97-e328bfa3467f.json",
-		"01 - default-00f7c23e-7831-4357-ab72-4718c56bb624.json"
+		"grass-00f7c23e-7831-4357-ab72-4718c56bb624.json"
 	],
-	"textures": [],
+	"textures": [
+		"foliage_grass01_diffusemask.png-97.json"
+	],
 	"nodes": [
-		"ground-ddb5670b-6bb2-4115-886a-1d6cc3e83614.json",
-		"grass-31fec0a9-59f4-4243-8899-5c1f24b51711.json"
+		"grass-31fec0a9-59f4-4243-8899-5c1f24b51711.json",
+		"ground-ddb5670b-6bb2-4115-886a-1d6cc3e83614.json"
 	],
 	"particleSystems": [],
 	"physicsEnabled": true,
@@ -251,8 +252,8 @@
 	},
 	"removedObjects": {},
 	"filesList": [
-		"scene/waitlogo.png",
 		"scene/scene.babylon",
+		"scene/waitlogo.png",
 		"scene/foliage_grass01_diffusemask.png"
 	],
 	"editionToolsStates": [
@@ -555,7 +556,20 @@
 		},
 		{
 			"id": "TEXTURE-TOOL",
-			"state": null
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Texture": {
+					"closed": false,
+					"children": {}
+				},
+				"Angles": {
+					"closed": true,
+					"children": {}
+				}
+			}
 		},
 		{
 			"id": "BRICK-PROCEDURAL-TOOL",
@@ -609,10 +623,6 @@
 					"children": {}
 				}
 			}
-		},
-		{
-			"id": "MESH-PAINTER-TOOL",
-			"state": null
 		}
 	]
 }

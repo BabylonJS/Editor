@@ -69,6 +69,10 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
                 editor.preview.disableToolMode('mesh-painter');
             }
         });
+        editor.core.onSelectObject.add((_) => {
+            this.setEnabled(false);
+            editor.preview.disableToolMode('mesh-painter');
+        });
     }
 
     /**

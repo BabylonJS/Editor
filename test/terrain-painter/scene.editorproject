@@ -1,0 +1,612 @@
+{
+	"actions": null,
+	"customMetadatas": {
+		"BehaviorExtension": {
+			"scripts": [],
+			"nodes": []
+		},
+		"AssetsExtension": {
+			"prefabs": [],
+			"particles": []
+		}
+	},
+	"globalConfiguration": {
+		"serializedCamera": {
+			"tags": "added",
+			"alpha": 2.450552629624788,
+			"beta": 1.2869445153828676,
+			"radius": 167.71999521373843,
+			"target": [
+				0,
+				0,
+				0
+			],
+			"upVector": [
+				0,
+				1,
+				0
+			],
+			"inertialAlphaOffset": 0,
+			"inertialBetaOffset": 0,
+			"inertialRadiusOffset": 0,
+			"lowerBetaLimit": 0.01,
+			"upperBetaLimit": 3.1315926535897933,
+			"inertialPanningX": 0,
+			"inertialPanningY": 0,
+			"pinchToPanMaxDistance": 20,
+			"panningOriginTarget": [
+				0,
+				0,
+				0
+			],
+			"panningInertia": 0.9,
+			"zoomOnFactor": 1,
+			"targetScreenOffset": {
+				"x": 0,
+				"y": 0
+			},
+			"allowUpsideDown": true,
+			"useInputToRestoreState": true,
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"speed": 2,
+			"position": [
+				-124.07049570837194,
+				46.97088928245668,
+				102.61697934158119
+			],
+			"fov": 0.8,
+			"minZ": 1,
+			"maxZ": 10000,
+			"inertia": 0.9,
+			"mode": 0,
+			"layerMask": 268435455,
+			"fovMode": 0,
+			"cameraRigMode": 0,
+			"name": "Editor Camera",
+			"id": "EditorCamera",
+			"uniqueId": 85,
+			"state": "",
+			"type": "ArcRotateCamera",
+			"inputsmgr": {
+				"ArcRotateCameraKeyboardMoveInput": {
+					"tags": null,
+					"keysUp": [
+						38
+					],
+					"keysDown": [
+						40
+					],
+					"keysLeft": [
+						37
+					],
+					"keysRight": [
+						39
+					],
+					"keysReset": [
+						220
+					],
+					"panningSensibility": 50,
+					"zoomingSensibility": 25,
+					"useAltToZoom": true,
+					"angularSpeed": 0.01
+				},
+				"ArcRotateCameraMouseWheelInput": {
+					"tags": null,
+					"wheelPrecision": 3,
+					"wheelDeltaPercentage": 0
+				},
+				"ArcRotateCameraPointersInput": {
+					"tags": null,
+					"buttons": [
+						0,
+						1,
+						2
+					],
+					"angularSensibilityX": 1000,
+					"angularSensibilityY": 1000,
+					"pinchPrecision": 12,
+					"pinchDeltaPercentage": 0,
+					"panningSensibility": 500,
+					"multiTouchPanning": true,
+					"multiTouchPanAndZoom": true
+				}
+			},
+			"animations": [],
+			"ranges": []
+		},
+		"imageProcessingConfiguration": {
+			"tags": null,
+			"colorCurves": {
+				"tags": null,
+				"_globalHue": 30,
+				"_globalDensity": 0,
+				"_globalSaturation": 0,
+				"_globalExposure": 0,
+				"_highlightsHue": 30,
+				"_highlightsDensity": 0,
+				"_highlightsSaturation": 0,
+				"_highlightsExposure": 0,
+				"_midtonesHue": 30,
+				"_midtonesDensity": 0,
+				"_midtonesSaturation": 0,
+				"_midtonesExposure": 0
+			},
+			"_colorCurvesEnabled": false,
+			"_colorGradingEnabled": false,
+			"_colorGradingWithGreenDepth": true,
+			"_colorGradingBGR": true,
+			"_exposure": 0.6,
+			"_toneMappingEnabled": true,
+			"_toneMappingType": 0,
+			"_contrast": 1.6,
+			"vignetteStretch": 0,
+			"vignetteCentreX": 0,
+			"vignetteCentreY": 0,
+			"vignetteWeight": 1.5,
+			"vignetteColor": [
+				0,
+				0,
+				0,
+				0
+			],
+			"vignetteCameraFov": 0.5,
+			"_vignetteBlendMode": 0,
+			"_vignetteEnabled": false,
+			"_applyByPostProcess": false,
+			"_isEnabled": true
+		},
+		"ambientColor": [
+			0,
+			0,
+			0
+		],
+		"clearColor": [
+			0,
+			0,
+			0,
+			1
+		],
+		"fog": {
+			"enabled": true,
+			"start": 0,
+			"end": 1000,
+			"density": 0.1,
+			"mode": 0,
+			"color": [
+				0.2,
+				0.2,
+				0.3
+			]
+		},
+		"projectFormat": "babylon",
+		"exportEulerAngles": false,
+		"exportWithES6Support": false
+	},
+	"lensFlares": null,
+	"materials": [
+		"ground-standardmaterial8b151.json"
+	],
+	"textures": [
+		"bricks.png-28.json",
+		"bricks_height.png-29.json"
+	],
+	"nodes": [
+		"ground-d469b1b6-c672-47ca-8631-56affa823e3d.json",
+		"light-1962fd40-b509-4d61-b847-8a84603a53d3.json"
+	],
+	"particleSystems": [],
+	"physicsEnabled": true,
+	"renderTargets": [],
+	"requestedMaterials": null,
+	"shadowGenerators": [],
+	"sounds": [],
+	"gui": [],
+	"effectLayers": [],
+	"environmentHelper": null,
+	"assets": {
+		"meshes-library": [],
+		"prefabs": [],
+		"particles": []
+	},
+	"removedObjects": {},
+	"filesList": [
+		"scene/scene.babylon",
+		"scene/bricks.png",
+		"scene/bricks_height.png"
+	],
+	"editionToolsStates": [
+		{
+			"id": "ENVIRONMENT-HELPER-TOOL",
+			"state": null
+		},
+		{
+			"id": "SCENE-TOOL",
+			"state": {
+				"Colors": {
+					"closed": false,
+					"children": {
+						"Ambient": {
+							"closed": false,
+							"children": {}
+						},
+						"Clear": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Image Processing": {
+					"closed": false,
+					"children": {}
+				},
+				"Glow Layer": {
+					"closed": false,
+					"children": {}
+				},
+				"HighLight": {
+					"closed": false,
+					"children": {}
+				},
+				"Environment Texture": {
+					"closed": false,
+					"children": {}
+				},
+				"Collisions": {
+					"closed": false,
+					"children": {
+						"Gravity": {
+							"closed": true,
+							"children": {}
+						}
+					}
+				},
+				"Physics": {
+					"closed": false,
+					"children": {}
+				},
+				"Audio": {
+					"closed": false,
+					"children": {}
+				},
+				"Fog": {
+					"closed": false,
+					"children": {
+						"Color": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				}
+			}
+		},
+		{
+			"id": "NODE-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Parenting": {
+					"closed": false,
+					"children": {}
+				},
+				"Transfroms": {
+					"closed": false,
+					"children": {
+						"Position": {
+							"closed": false,
+							"children": {}
+						},
+						"Rotation": {
+							"closed": false,
+							"children": {}
+						},
+						"Scaling": {
+							"closed": false,
+							"children": {}
+						},
+						"Pivot": {
+							"closed": true,
+							"children": {}
+						}
+					}
+				},
+				"Options": {
+					"closed": false,
+					"children": {}
+				},
+				"Instances": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "PHYSICS-TOOL",
+			"state": {
+				"Collisions": {
+					"closed": false,
+					"children": {}
+				},
+				"Physics": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "LIGHT-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Colors": {
+					"closed": false,
+					"children": {
+						"Diffuse": {
+							"closed": false,
+							"children": {}
+						},
+						"Specular": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Mode": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "RENDER-TARGET-TOOL",
+			"state": null
+		},
+		{
+			"id": "PARTICLE-SYSTEM-TOOL",
+			"state": null
+		},
+		{
+			"id": "SOUND-TOOL",
+			"state": null
+		},
+		{
+			"id": "ANIMATION-TOOL",
+			"state": null
+		},
+		{
+			"id": "SKELETON-TOOL",
+			"state": null
+		},
+		{
+			"id": "STANDARD-MATERIAL-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Diffuse": {
+					"closed": false,
+					"children": {
+						"Color": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Bump": {
+					"closed": false,
+					"children": {}
+				},
+				"Specular": {
+					"closed": false,
+					"children": {
+						"Color": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Opacity": {
+					"closed": true,
+					"children": {}
+				},
+				"Emissive": {
+					"closed": true,
+					"children": {
+						"Emissive": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Ambient": {
+					"closed": true,
+					"children": {
+						"Ambient": {
+							"closed": false,
+							"children": {}
+						}
+					}
+				},
+				"Lightmap": {
+					"closed": true,
+					"children": {}
+				},
+				"Reflection": {
+					"closed": true,
+					"children": {}
+				},
+				"Refraction": {
+					"closed": true,
+					"children": {}
+				},
+				"Options": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "PBR-TOOL",
+			"state": null
+		},
+		{
+			"id": "PBR-METALLIC-ROUGHNESS-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "PBR-SPECULAR-GLOSSINESS-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "WATER-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "CUSTOM-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "SKY-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "FIRE-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "CELL-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "GRID-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "TRI-PLANAR-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "TERRAIN-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "LAVA-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "FUR-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "MIX-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "NODE-MATERIAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "POST-PROCESSES-TOOL",
+			"state": {
+				"Standard": {
+					"closed": false,
+					"children": {}
+				},
+				"Default": {
+					"closed": false,
+					"children": {}
+				},
+				"SSAO": {
+					"closed": false,
+					"children": {}
+				},
+				"SSAO 2": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "CUSTOM-POST-PROCESS-TOOL",
+			"state": null
+		},
+		{
+			"id": "TEXTURE-TOOL",
+			"state": {
+				"Common": {
+					"closed": false,
+					"children": {}
+				},
+				"Texture": {
+					"closed": false,
+					"children": {}
+				},
+				"Angles": {
+					"closed": true,
+					"children": {}
+				}
+			}
+		},
+		{
+			"id": "BRICK-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "CLOUD-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "FIRE-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "GRASS-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "MARBLE-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "NORMAL-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "PERLIN-NOISE-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "ROAD-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "WOOD-PROCEDURAL-TOOL",
+			"state": null
+		},
+		{
+			"id": "GROUND-TOOL",
+			"state": {
+				"Height Map": {
+					"closed": false,
+					"children": {}
+				},
+				"Displacement": {
+					"closed": false,
+					"children": {}
+				},
+				"Restore": {
+					"closed": false,
+					"children": {}
+				}
+			}
+		}
+	]
+}
