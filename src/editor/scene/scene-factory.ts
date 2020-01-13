@@ -381,6 +381,9 @@ export default class SceneFactory {
             return;
 
         // Merge!
+        const originalPosition = mesh.position.clone();
+        mesh.position.set(0, 0, 0);
+
         const errors: string[] = [];
         for (const key in filteredByMaterial) {
             const arr = filteredByMaterial[key];
@@ -400,5 +403,8 @@ export default class SceneFactory {
 
         if (errors.length > 0)
             Window.CreateAlert(errors.join('<br />'), 'Errors occured');
+
+        // Restore position
+        mesh.position.copyFrom(originalPosition);
     }
 }
