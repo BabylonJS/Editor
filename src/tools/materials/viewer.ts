@@ -1,7 +1,7 @@
 import {
     Tools as BabylonTools, Engine, Scene, Mesh, Material, PointLight,
     InstancedMesh, AbstractMesh, ArcRotateCamera, Vector3, Tags,
-    ShaderMaterial, Observer, NodeMaterial
+    ShaderMaterial, Observer, NodeMaterial, MultiMaterial
 } from 'babylonjs';
 
 import Editor, {
@@ -254,11 +254,16 @@ export default class MaterialsViewer extends EditorPlugin {
         img.classList.add('ctxmenu');
         ContextMenu.ConfigureElement(img, {
             clone: { name: 'Clone', callback: () => {
-                const newMaterial = material.clone(material.name + ' Cloned');
-                newMaterial.id = BabylonTools.RandomId();
-                Tags.AddTagsTo(newMaterial, 'added');
+                let clonedMaterial = material.clone(material.name + ' Cloned');
+                if (!clonedMaterial && material instanceof NodeMaterial) {
+                    const serializationObject = material.serialize();
+                    clonedMaterial = NodeMaterial.Parse(serializationObject, material.getScene(), 'file:');
+                }
+
+                clonedMaterial.id = BabylonTools.RandomId();
+                Tags.AddTagsTo(clonedMaterial, 'added');
                 
-                this.createPreviewNode(div, canvas, preview, newMaterial);
+                this.createPreviewNode(div, canvas, preview, clonedMaterial);
             } },
             remove: { name: 'Remove', callback: () => {
                 material.dispose(true, false, false);
@@ -393,16 +398,30 @@ export default class MaterialsViewer extends EditorPlugin {
             if (!pick.pickedMesh)
                 return;
 
+            let pickedMesh: Mesh = null;
             if (pick.pickedMesh instanceof InstancedMesh) {
-                pick.pickedMesh.sourceMesh.material = material;
-                UndoRedo.Push({ object: pick.pickedMesh.sourceMesh, property: 'material', from: pick.pickedMesh.sourceMesh.material, to: material });
+                pickedMesh = pick.pickedMesh.sourceMesh;
             }
             else if (pick.pickedMesh instanceof Mesh) {
-                UndoRedo.Push({ object: pick.pickedMesh, property: 'material', from: pick.pickedMesh.material, to: material });
-                pick.pickedMesh.material = material;
+                pickedMesh = pick.pickedMesh;
             }
 
-            this.editor.core.onSelectObject.notifyObservers(pick.pickedMesh);
+            if (!pickedMesh)
+                return;
+
+            if (!pickedMesh.material || !(pickedMesh.material instanceof MultiMaterial)) {
+                UndoRedo.Push({ object: pickedMesh, property: 'material', from: pickedMesh.material, to: material });
+                pickedMesh.material = material;
+            }
+            else if (pickedMesh.material instanceof MultiMaterial) {
+                const multiMaterial = pickedMesh.material;
+                const lastMaterial = pickedMesh.material.subMaterials[pick.subMeshId];
+                UndoRedo.Push({
+                    undo: () => multiMaterial.subMaterials[pick.subMeshId] = lastMaterial,
+                    redo: () => multiMaterial.subMaterials[pick.subMeshId] = material
+                });
+                pickedMesh.material.subMaterials[pick.subMeshId] = material;
+            }
         };
     }
 
