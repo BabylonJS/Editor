@@ -291,7 +291,8 @@ export default class Edition {
      * @param callback: called when changed texture
      */
     public addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
-        const textures = ['None'];
+        const getName = (name: string) => (name.length > 50) ? name.substr(0, 50) : name;
+        const textures = { None: 'None' };
         scene.textures.forEach(t => {
             const isCube = t instanceof CubeTexture;
 
@@ -301,7 +302,7 @@ export default class Edition {
             if (!isCube && onlyCubes)
                 return;
 
-            textures.push(t['url'] || t.name);
+            textures[getName(t['url'] || t.name)] = t['url'] || t.name;
         });
 
         const target = {
