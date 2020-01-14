@@ -7,6 +7,7 @@ import {
 import Editor, {
     Tools,
 
+    Window,
     Layout,
     Toolbar,
     Picker,
@@ -54,6 +55,9 @@ export default class MaterialsViewer extends EditorPlugin {
     protected onAddObject: Observer<any> = null;
     protected onModifiedObject: Observer<any> = null;
     protected onModifyingObject: Observer<any> = null;
+
+    // Private members
+    private _materialRenderRountines: (() => Promise<void>)[] = [];
 
     /**
      * Constructor
@@ -149,7 +153,7 @@ export default class MaterialsViewer extends EditorPlugin {
      */
     public async onShow (targetObject?: AbstractMesh): Promise<void> {
         for (const m of this.waitingMaterials)
-            await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, m);
+            this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, m);
 
         this.waitingMaterials = [];
 
@@ -209,11 +213,20 @@ export default class MaterialsViewer extends EditorPlugin {
         // Clear previews
         this.previewItems = [];
 
+        // Clear routines
+        this._materialRenderRountines = [];
+
         // For each material
         const scene = this.editor.core.scene;
 
         for (const mat of scene.materials)
-            await this.createPreviewNode(div, this.canvas, this.tempPreview, mat);
+            this.createPreviewNode(div, this.canvas, this.tempPreview, mat);
+
+        // Run preview routines!
+        for (const routine of this._materialRenderRountines)
+            await routine();
+
+        this._materialRenderRountines = [];
     }
 
     /**
@@ -223,7 +236,7 @@ export default class MaterialsViewer extends EditorPlugin {
      * @param preview the preview structure
      * @param material the material being viewed
      */
-    protected async createPreviewNode (div: JQuery, canvas: HTMLCanvasElement, preview: PreviewScene, material: Material): Promise<void> {
+    protected createPreviewNode (div: JQuery, canvas: HTMLCanvasElement, preview: PreviewScene, material: Material): void {
         if (material instanceof ShaderMaterial)
             return;
         
@@ -260,10 +273,15 @@ export default class MaterialsViewer extends EditorPlugin {
                     clonedMaterial = NodeMaterial.Parse(serializationObject, material.getScene(), 'file:');
                 }
 
+                if (!material)
+                    return Window.CreateAlert('Failed to clone material.', 'Error');
+
                 clonedMaterial.id = BabylonTools.RandomId();
                 Tags.AddTagsTo(clonedMaterial, 'added');
                 
                 this.createPreviewNode(div, canvas, preview, clonedMaterial);
+                if (this._materialRenderRountines.length === 1)
+                    this._materialRenderRountines.pop()();
             } },
             remove: { name: 'Remove', callback: () => {
                 material.dispose(true, false, false);
@@ -279,9 +297,12 @@ export default class MaterialsViewer extends EditorPlugin {
         parent.appendChild(img);
         parent.appendChild(text);
 
-        const base64 = await this.createMaterialPreview(canvas, preview, material);
-        img.src = base64;
+        this._materialRenderRountines.push(async () => {
+            const base64 = await this.createMaterialPreview(canvas, preview, material);
+            img.src = base64;
+        });
 
+        img.src = 'assets/textures/waitlogo.png';
         img.addEventListener('click', (ev) => {
             // Clear
             this._clearMaterial();
@@ -420,7 +441,6 @@ export default class MaterialsViewer extends EditorPlugin {
                     undo: () => multiMaterial.subMaterials[pick.subMeshId] = lastMaterial,
                     redo: () => multiMaterial.subMaterials[pick.subMeshId] = material
                 });
-                pickedMesh.material.subMaterials[pick.subMeshId] = material;
             }
         };
     }
@@ -457,10 +477,13 @@ export default class MaterialsViewer extends EditorPlugin {
                 material = new ctor(name + BabylonTools.RandomId().substr(0, 5), this.editor.core.scene);
             }
 
+            material.id = BabylonTools.RandomId();
             Tags.AddTagsTo(material, 'added');
 
             // Add preview node
-            await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, material);
+            this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, material);
+            if (this._materialRenderRountines.length === 1)
+                this._materialRenderRountines.pop()();
         });
     }
 
