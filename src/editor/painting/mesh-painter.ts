@@ -61,6 +61,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         this._material.disableLighting = true;
         this._material.alpha = 0.3;
         this._sphere.material = this._material;
+        editor.core.scene.materials.pop();
 
         // Observers
         editor.core.scene.onKeyboardObservable.add((info) => {

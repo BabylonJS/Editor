@@ -75,7 +75,7 @@ export default class EditorPreview {
             lastPosition.set(ev.offsetX, ev.offsetY);
         });
         canvas.addEventListener('contextmenu', (ev) => {
-            if (Math.abs(ev.offsetX - lastPosition.x) > 10 || Math.abs(ev.offsetY - lastPosition.y) > 10)
+            if (Math.abs(ev.offsetX - lastPosition.x) > 10 || Math.abs(ev.offsetY - lastPosition.y) > 10 || !this.editor.scenePicker.enabled)
                 return;
 
             this.editor.scenePicker.onCanvasClick(ev);
@@ -85,6 +85,16 @@ export default class EditorPreview {
                 clone: { name: 'Clone', callback: () => this.editor.graph.onMenuClick('clone', this.editor.graph.getSelected()) },
                 remove: { name: 'Remove', callback: () => this.editor.graph.onMenuClick('remove', this.editor.graph.getSelected()) }
             });
+        });
+
+        // Users drag'n'drops files.
+        this.editor.core.onDropFiles.add(async (event) => {
+            if (event.target !== this.editor.core.engine.getRenderingCanvas())
+                return;
+
+            await this.editor.assets.meshes.onDragAndDropFiles(event.files);
+            this.editor.assets.refresh();
+            this.editor.assets.showTab(this.editor.assets.meshes.id);
         });
     }
 

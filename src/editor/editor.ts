@@ -875,8 +875,6 @@ export default class Editor implements IUpdatable {
         (files: File[]) => SceneLoader.OnStartingProcessingFiles(this, files),
         (sceneFile) => SceneLoader.OnReloadingScene(this, sceneFile),
         (file, scene, message) => Dialog.Create('Error when loading scene', message, null));
-
-        this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvasEditor'));
     }
 
     // Checks for updates if electron

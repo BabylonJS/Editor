@@ -1059,7 +1059,12 @@ export default class TextureViewer extends EditorPlugin {
                 });
 
                 texture.dispose();
-                await this.createList();
+
+                const item = this.previewItems.find((pi) => pi.texture === texture);
+                if (!item)
+                    return this.createList();
+
+                item.text.parentElement.remove();
             } }
         }
     }

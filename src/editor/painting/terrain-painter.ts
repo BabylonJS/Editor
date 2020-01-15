@@ -46,6 +46,8 @@ export default class TerrainPainter extends AbstractEditionTool<TerrainPainter> 
     private _selectedVertices: number[] = [];
 
     private _speed: number = 0.01;
+    private _minHeight: number = -1000;
+    private _maxHeight: number = 1000;
 
     /**
      * Constructor.
@@ -68,6 +70,7 @@ export default class TerrainPainter extends AbstractEditionTool<TerrainPainter> 
         this._material.disableLighting = true;
         this._material.alpha = 0.3;
         this._sphere.material = this._material;
+        editor.core.scene.materials.pop();
 
         // Observers
         editor.core.scene.onKeyboardObservable.add((info) => {
@@ -104,6 +107,8 @@ export default class TerrainPainter extends AbstractEditionTool<TerrainPainter> 
 
         // Options
         this.tool.add(this, '_speed').min(0.01).step(0.01).name('Speed');
+        this.tool.add(this, '_minHeight').min(0.01).step(0.01).name('Min Height');
+        this.tool.add(this, '_maxHeight').min(0.01).step(0.01).name('Max Height');
     }
 
     /**
@@ -225,6 +230,11 @@ export default class TerrainPainter extends AbstractEditionTool<TerrainPainter> 
             } else {
                 position.y += fullHeight * (1.0 - (distance - this._sphere.scaling.x * 0.5 * 0.3) / (this._sphere.scaling.x * 0.5 * 0.7));
             }
+
+            if (position.y < this._minHeight)
+                position.y = this._minHeight;
+            if (position.y > this._maxHeight)
+                position.y = this._maxHeight;
 
             this._positionsData[selectedVertice * 3 + 1] = position.y;
             this._updateSubdivisions(selectedVertice);
