@@ -1,6 +1,6 @@
 import {
     Mesh, Tags, Observer, PointerInfo, StandardMaterial, PointerEventTypes,
-    Vector3, Scalar, PickingInfo, AbstractMesh, KeyboardEventTypes
+    Vector3, Scalar, PickingInfo, AbstractMesh, KeyboardEventTypes, Space
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -39,6 +39,11 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
 
     private _sourceAssets: AssetElement<Prefab>[] = [];
     private _targetSurfaces: AbstractMesh[] = [];
+
+    private _applyOrientation: boolean = false;
+    private _yawCor: number = 0;
+    private _pitchCor: number = 0;
+    private _rollCor: number = 0;
 
     /**
      * Constructor.
@@ -103,6 +108,14 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
             this._rotationRandomizer.y = Scalar.Clamp(this._rotationRandomizer.y, 0, 1);
             this._rotationRandomizer.z = Scalar.Clamp(this._rotationRandomizer.z, 0, 1);
         }).open();
+
+        const orientation = this.tool.addFolder('Orientation');
+        orientation.open();
+
+        orientation.add(this, '_applyOrientation').name('Apply Orientation');
+        orientation.add(this, '_yawCor').step(0.01).name('Yaw Cor');
+        orientation.add(this, '_pitchCor').step(0.01).name('Pitch Cor');
+        orientation.add(this, '_rollCor').step(0.01).name('Roll Cor');
         
         // Sources
         const sources = this.tool.addFolder('Sources');
@@ -111,6 +124,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         sources.add(this, '_addPrefabSource').name('Add Prefab Source...');
         this._sourceAssets.forEach((a) => {
             const o = { fn: () => this._removePrefabSource(a) };
+            sources.addImage(a.img);
             sources.add(o, 'fn').name(`Remove "${a.name}"`);
         });
         
@@ -307,6 +321,10 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
             pickInfo.pickedPoint.y,
             pickInfo.pickedPoint.z + this._getRandom(this._sphere.scaling.x)
         );
+        
+        if (this._applyOrientation)
+            prefab.lookAt(pickInfo.getNormal(true, true), this._yawCor, this._pitchCor, this._rollCor, Space.LOCAL);
+        
         prefab.rotation.addInPlace(new Vector3(
             2 * Math.PI * Math.random() * this._rotationRandomizer.x,
             2 * Math.PI * Math.random() * this._rotationRandomizer.y,

@@ -1,8 +1,7 @@
 import {
-    Color3, Color4,
+    Scene, Color3, Color4,
     Vector2, Vector3, Vector4,
-    BaseTexture, CubeTexture,
-    Scene
+    BaseTexture, CubeTexture, Texture, FilesInputStore
 } from 'babylonjs';
 import * as dat from 'dat-gui';
 
@@ -13,6 +12,7 @@ import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
 
 import * as DatGuiExtensions from './gui-extensions/dat-gui';
+import { TextBoxController, ImageBoxController } from './gui-extensions/dat-gui';
 
 export default class Edition {
     // Public member
@@ -46,8 +46,16 @@ export default class Edition {
      * Adds a simple text controller to display a message.
      * @param content the content to draw in the controller
      */
-    public addTextBox (content: string): dat.GUIController {
+    public addTextBox (content: string): TextBoxController {
         return this.element.addTextBox(content);
+    }
+
+    /**
+     * Adds a simple image controller to display the image from the given Url.
+     * @param url the url of the image to show.
+     */
+    public addImage (url: string): ImageBoxController {
+        return this.element.addImage(url);
     }
 
     /**
@@ -293,6 +301,9 @@ export default class Edition {
     public addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
         const getName = (name: string) => (name.length > 50) ? name.substr(0, 50) : name;
         const textures = { None: 'None' };
+        let imageController: ImageBoxController = null;
+
+        // Fill textures
         scene.textures.forEach(t => {
             const isCube = t instanceof CubeTexture;
 
@@ -304,6 +315,16 @@ export default class Edition {
 
             textures[getName(t['url'] || t.name)] = t['url'] || t.name;
         });
+
+        const getImageFile = (url: string): File => {
+            let file = FilesInputStore.FilesToLoad[url.toLowerCase()];
+            if (!file)
+                file = FilesInputStore.FilesToLoad[url.replace('file:', '').toLowerCase()];
+            if (!file)
+                return null;
+
+            return file;
+        };
 
         const target = {
             texture: object[property] ? (object[property].url || object[property].name) : 'None',
@@ -325,13 +346,31 @@ export default class Edition {
             })
         };
 
-        const controller = parent.add(target, 'texture', textures);
+        const updateImagePreview = (url: string): void => {
+            const file = getImageFile(url);
+            if (!file)
+                return;
+            
+            const fileUrl = URL.createObjectURL(file);
+            imageController.setUrl(fileUrl);
+            imageController.onLoaded = () => URL.revokeObjectURL(fileUrl);
+            imageController.onError = () => URL.revokeObjectURL(fileUrl);
+        };
+
+        const folder = parent.addFolder(property);
+        folder.open();
+
+        const controller = folder.add(target, 'texture', textures);
         controller.onFinishChange(r => {
             const currentTexture = object[property];
             const texture = scene.textures.find(t => t['url'] === r || t.name === r);
             object[property] = texture;
 
             callback && callback(texture);
+
+            // Update preview?
+            if (imageController) 
+                updateImagePreview(r);
 
             // Undo/redo
             UndoRedo.Pop();
@@ -345,8 +384,18 @@ export default class Edition {
             // Notify
             editor.inspector.notifyObjectChanged();
         });
+        folder.add(target, 'browse').name('Browse Texture...');
 
-        parent.add(target, 'browse').name('Browse Texture...');
+        // Preview
+        if (allowCubes || onlyCubes)
+            return controller;
+        
+        imageController = folder.addImage('');
+        const existingTexture = <Texture> object[property];
+        if (existingTexture) {
+            const url = existingTexture.url;
+            updateImagePreview(url);
+        }
 
         return controller;
     }
