@@ -271,8 +271,10 @@ export default class TerrainPainter extends AbstractEditionTool<TerrainPainter> 
     private _filterVertices (mesh: GroundMesh, pickInfo: PickingInfo): void {
         this._selectedVertices = [];
 
-        var sphereCenter = pickInfo.pickedPoint.clone();
-        sphereCenter.y = 0;
+        const sphereCenter = pickInfo.pickedPoint.clone();
+        sphereCenter.y = mesh.position.y;
+
+        const localPosition = pickInfo.pickedPoint.subtract(mesh.getAbsolutePosition());
 
         for (let subIndex = 0; subIndex < mesh.subMeshes.length; subIndex++) {
             const subMesh = mesh.subMeshes[subIndex];
@@ -282,9 +284,9 @@ export default class TerrainPainter extends AbstractEditionTool<TerrainPainter> 
 
             for (let i = subMesh.verticesStart; i < subMesh.verticesStart + subMesh.verticesCount; i++) {
                 const position = this._positions[i];
-                sphereCenter.y = position.y;
+                localPosition.y = position.y;
 
-                var distance = Vector3.Distance(position, sphereCenter);
+                const distance = Vector3.Distance(position, localPosition);
 
                 if (distance < this._sphere.scaling.x * 0.5) {
                     this._selectedVertices[i] = distance;
