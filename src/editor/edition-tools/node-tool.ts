@@ -227,7 +227,10 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         levels.forEach((level, index) => {
             const f = lod.addFolder(`${level.mesh.name} (${level.mesh.id})`);
             f.open();
-            f.add(level, 'distance').name('Distance');
+            f.add(level, 'distance').name('Distance').onChange((r) => {
+                mesh['_sortLODLevels']();
+                metadata.levels[index].distance = r;
+            });
 
             const o = { remove: () => {
                 mesh.removeLODLevel(level.mesh);

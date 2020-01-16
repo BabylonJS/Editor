@@ -70,23 +70,22 @@ export default class LODExtension extends Extension<LODMetadata[]> {
     }
 
     // Applies all the lods
-    private _applyLODs (): void {
-        for (const d of this.datas) {
-            const sourceMesh = <Mesh> this.scene.getMeshByID(d.meshId);
+    private async _applyLODs (): Promise<void> {
+        for (const data of this.datas) {
+            const sourceMesh = <Mesh> this.scene.getMeshByID(data.meshId);
             if (!sourceMesh)
                 continue;
             
-            d.levels.forEach((level) => {
+            for (const level of data.levels) {
                 const blob = new Blob([JSON.stringify(level.meshSerializationObject)]);
-                const url = URL.createObjectURL(blob);
+                blob['name'] = data.meshId + '.babylon';
 
-                SceneLoader.ImportMesh('', '', url, this.scene, (meshes) => {
-                    const mesh = <Mesh> meshes[0];
-                    mesh.material = sourceMesh.material;
-                    mesh.skeleton = sourceMesh.skeleton;
-                    sourceMesh.addLODLevel(level.distance, mesh);
-                });
-            });
+                const result = await SceneLoader.ImportMeshAsync('', 'file:', <File> blob, this.scene);
+                const mesh = <Mesh> result.meshes[0];
+                mesh.material = sourceMesh.material;
+                mesh.skeleton = sourceMesh.skeleton;
+                sourceMesh.addLODLevel(level.distance, mesh);
+            };
         }
     }
 }

@@ -123,9 +123,12 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         
         sources.add(this, '_addPrefabSource').name('Add Prefab Source...');
         this._sourceAssets.forEach((a) => {
+            const f = sources.addFolder(`${a.name}`);
+            f.open();
+
             const o = { fn: () => this._removePrefabSource(a) };
-            sources.addImage(a.img);
-            sources.add(o, 'fn').name(`Remove "${a.name}"`);
+            f.add(o, 'fn').name(`Remove "${a.name}"`);
+            f.addImage(a.img);
         });
         
         // Targets

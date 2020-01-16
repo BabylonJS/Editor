@@ -335,6 +335,8 @@ export default class Edition {
                 object[property] = to;
                 UndoRedo.Push({ baseObject: object, object: object, property: property, from: from, to: to });
 
+                updateImagePreview(to['url']);
+
                 // Update
                 if (to)
                     target.texture = (to['url'] || to.name);
@@ -349,7 +351,7 @@ export default class Edition {
         const updateImagePreview = (url: string): void => {
             const file = getImageFile(url);
             if (!file)
-                return;
+                return imageController.setUrl('');
             
             const fileUrl = URL.createObjectURL(file);
             imageController.setUrl(fileUrl);
