@@ -1,7 +1,10 @@
-import { StandardMaterial, PBRMaterial, MultiMaterial, Tags } from 'babylonjs';
+import { StandardMaterial, PBRMaterial, MultiMaterial, Tags, Texture } from 'babylonjs';
 
 import MaterialTool from './material-tool';
-import Tools from '../../tools/tools';
+
+import Window from '../../gui/window';
+import GraphicsTools from '../../tools/graphics-tools';
+import TexturePicker from '../../components/texture-picker';
 
 export default class StandardMaterialTool extends MaterialTool<StandardMaterial> {
     // Public members
@@ -36,9 +39,20 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         this.tool.addTexture(bump, this.editor, this.editor.core.scene, 'bumpTexture', this.object).name('Bump Texture');
         bump.add(this.object, 'invertNormalMapX').name('Invert Normal Map X');
         bump.add(this.object, 'invertNormalMapY').name('Invert Normal Map Y');
-        bump.add(this.object, 'useParallax').name('Use Parallax');
-        bump.add(this.object, 'useParallaxOcclusion').name('Use Parallax Occlusion');
-        bump.add(this.object, 'parallaxScaleBias').step(0.001).name('Parallax Scale Bias');
+
+        const parallax = bump.addFolder('Parallax Mapping');
+        parallax.open();
+
+        parallax.add(this.object, 'useParallax').name('Use Parallax').onChange((r) => {
+            this.object.useParallax = r;
+            this.object.useParallaxOcclusion = this.object.useParallaxOcclusion;
+        });
+        parallax.add(this.object, 'useParallaxOcclusion').name('Use Parallax Occlusion').onChange((r) => {
+            this.object.useParallax = this.object.useParallax;
+            this.object.useParallaxOcclusion = r;
+        });
+        parallax.add(this.object, 'parallaxScaleBias').step(0.001).name('Parallax Scale Bias');
+        parallax.add(this, '_mergeBumpWithDisplacement').name('Create Map From Displacement');
 
         // Specular
         const specular = this.tool.addFolder('Specular');
@@ -84,6 +98,24 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         // Options
         const options = super.addOptions();
         options.add(this, '_convertToPbr').name('Convert to PBR...');
+    }
+
+    // Merges the current bump texture with a displacement texture;
+    private async _mergeBumpWithDisplacement (): Promise<void> {
+        if (!this.object.bumpTexture)
+            return Window.CreateAlert('The material must have a Bump Texture applied on.');
+
+        const displacement = await TexturePicker.Show(this.editor.core.scene, null, false, false);
+        if (!displacement)
+            return;
+        
+        w2utils.lock($('#' + this.divId)[0], 'Processing...', true);
+        try {
+            await GraphicsTools.MergeBumpWithDisplacement(<Texture> this.object.bumpTexture, <Texture> displacement);
+        } catch (e) {
+            // Catch silently.
+        }
+        w2utils.unlock($('#' + this.divId)[0]);
     }
 
     // Convert standard material to PBR material

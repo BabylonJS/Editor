@@ -3,7 +3,7 @@
 //   ../../babylonjs
 //   ../../typescript
 //   ../../monaco-editor
-//   ../../dat-gui
+//   editor/gui/gui-extensions/dat-gui.d.ts
 //   ../../golden-layout
 //   ../../babylonjs-editor-code-editor
 //   ../../babylonjs-gui
@@ -453,7 +453,7 @@ declare module 'babylonjs-editor/editor/tools/theme' {
 }
 
 declare module 'babylonjs-editor/editor/tools/graphics-tools' {
-    import { BaseTexture } from 'babylonjs';
+    import { BaseTexture, Texture } from 'babylonjs';
     export default class GraphicsTools {
             /**
                 * Configures the given texture to retrieve its pixels and create a new file (blob)
@@ -465,6 +465,12 @@ declare module 'babylonjs-editor/editor/tools/graphics-tools' {
                 * @param canvas the canvas to take its data and convert to a blob
                 */
             static CanvasToBlob(canvas: HTMLCanvasElement): Promise<Blob>;
+            /**
+                * Merges the given bump texture and displacement texture to create a parallax texture.
+                * @param bumpTexture the original bump texture.
+                * @param displacementTexture the selected displacement texture to merge with the normal map.
+                */
+            static MergeBumpWithDisplacement(bumpTexture: Texture, displacementTexture: Texture): Promise<void>;
     }
 }
 
@@ -1064,9 +1070,10 @@ declare module 'babylonjs-editor/editor/gui/form' {
 }
 
 declare module 'babylonjs-editor/editor/gui/edition' {
-    import { Color3, Color4, Vector2, Vector3, Vector4, BaseTexture, Scene } from 'babylonjs';
+    import { Scene, Color3, Color4, Vector2, Vector3, Vector4, BaseTexture } from 'babylonjs';
     import * as dat from 'dat-gui';
     import Editor from 'babylonjs-editor/editor/editor';
+    import { TextBoxController, ImageBoxController } from 'babylonjs-editor/editor/gui/gui-extensions/dat-gui';
     export default class Edition {
             element: dat.GUI;
             /**
@@ -1088,7 +1095,12 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * Adds a simple text controller to display a message.
                 * @param content the content to draw in the controller
                 */
-            addTextBox(content: string): dat.GUIController;
+            addTextBox(content: string): TextBoxController;
+            /**
+                * Adds a simple image controller to display the image from the given Url.
+                * @param url the url of the image to show.
+                */
+            addImage(url: string): ImageBoxController;
             /**
                 * Removes the dat element
                 */
@@ -1745,23 +1757,23 @@ declare module 'babylonjs-editor/editor/typings/project' {
      * Root object of project
      */
     export interface ProjectRoot {
-            globalConfiguration: GlobalConfiguration;
-            materials: ProjectMaterial[];
-            textures: ProjectTexture[];
-            particleSystems: ParticleSystem[];
-            nodes: Node[];
-            shadowGenerators: any[];
-            lensFlares: LensFlare[];
-            renderTargets: RenderTarget[];
-            sounds: Sound[];
-            actions: any;
-            physicsEnabled: boolean;
-            effectLayers: EffectLayer[];
-            environmentHelper: any;
+            globalConfiguration?: GlobalConfiguration;
+            materials?: ProjectMaterial[];
+            textures?: ProjectTexture[];
+            particleSystems?: ParticleSystem[];
+            nodes?: Node[];
+            shadowGenerators?: any[];
+            lensFlares?: LensFlare[];
+            renderTargets?: RenderTarget[];
+            sounds?: Sound[];
+            actions?: any;
+            physicsEnabled?: boolean;
+            effectLayers?: EffectLayer[];
+            environmentHelper?: any;
             requestedMaterials?: string[];
             customMetadatas?: IStringDictionary<any>;
-            gui: any[];
-            assets: IStringDictionary<AssetElement<any>[]>;
+            gui?: any[];
+            assets?: IStringDictionary<AssetElement<any>[]>;
             removedObjects?: IStringDictionary<any>;
             filesList?: string[];
             editionToolsStates?: {
@@ -3035,6 +3047,87 @@ declare module 'babylonjs-editor/editor/painting/painting-tools' {
                 * @param name the name of the tool to enable.
                 */
             enableTool(name: string): IPaintingTool;
+    }
+}
+
+declare module 'babylonjs-editor/editor/gui/gui-extensions/dat-gui' {
+    import * as dat from 'dat-gui';
+    export const init: () => void;
+    /**
+        * Augmentify
+        */
+    declare module 'babylonjs-editor/index//dat-gui' {
+            /**
+                * Controllers namespace
+                */
+            namespace controllers {
+                    /**
+                        * The base controller class that custom controllers must extend.
+                        */
+                    class Controller {
+                            /**
+                                * The HTML DOM element.
+                                */
+                            domElement: HTMLElement;
+                            /**
+                                * Constructor.
+                                * @param object the object to spy.
+                                * @param property the property in "object" being spied.
+                                */
+                            constructor(object: any, property: string);
+                            __li: HTMLLIElement;
+                            __gui: dat.GUI;
+                    }
+            }
+            /**
+                * Dom namespace
+                */
+            namespace dom {
+                    /**
+                        * Static dom reference.
+                        */
+                    const dom: any;
+            }
+            interface GUI {
+                    /**
+                        * Adds a new text box.
+                        * @param content the content of the textbox.
+                        */
+                    addTextBox(content: string): TextBoxController;
+                    /**
+                        * Adds a new image preview.
+                        * @param url the url of the image to show
+                        */
+                    addImage(url: string): ImageBoxController;
+            }
+    }
+    /**
+        * Textbox
+        */
+    export class TextBoxController extends dat.controllers.Controller {
+            /**
+                * Constructor.
+                * @param content the text content to draw.
+                */
+            constructor(content: string);
+    }
+    /**
+        * Image
+        */
+    export class ImageBoxController extends dat.controllers.Controller {
+            img: HTMLImageElement;
+            onLoaded: (img: HTMLImageElement) => void;
+            onError: (img: HTMLImageElement) => void;
+            /**
+                * Constructor.
+                * @param url the url of the image.
+                */
+            constructor(url: string);
+            /**
+                * Sets the Url of the image.
+                * @param url the url of the image to laod.
+                */
+            setUrl(url: string): void;
     }
 }
 
