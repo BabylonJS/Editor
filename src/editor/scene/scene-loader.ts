@@ -107,6 +107,7 @@ export default class SceneLoader {
             Tools.ImportScript('material-editor'),
             Tools.ImportScript('post-process-editor'),
             Tools.ImportScript('post-processes'),
+            Tools.ImportScript('lod-extension'),
             Tools.ImportScript('path-finder'),
             Tools.ImportScript('particles-creator')
         ]);

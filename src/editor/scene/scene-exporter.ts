@@ -16,7 +16,7 @@ export default class SceneExporter {
      * Creates a new file
      * @param editor: the editor instance
      */
-    public static CreateFiles (editor: Editor, format: 'babylon' | 'glb' | 'gltf' = 'babylon'): void {
+    public static CreateFiles (editor: Editor, format: 'babylon' | 'glb' | 'gltf' = 'babylon', onlyExtensions: boolean = false): void {
         // Delete old files
         editor.sceneFile && delete FilesInputStore.FilesToLoad[editor.sceneFile.name];
         editor.projectFile && delete FilesInputStore.FilesToLoad[editor.projectFile.name];
@@ -65,7 +65,7 @@ export default class SceneExporter {
 
         // Project
         const name = 'scene' + this._LastRandomId + '.editorproject';
-        const project = ProjectExporter.Export(editor);
+        const project = ProjectExporter.Export(editor, onlyExtensions);
         editor.projectFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
         FilesInputStore.FilesToLoad[editor.projectFile.name] = editor.projectFile;
     }

@@ -400,11 +400,11 @@ export default class EditorToolbar {
     protected onToolsClick (target: string): void {
         switch (target) {
             case 'test':
-                SceneExporter.CreateFiles(this.editor);
+                SceneExporter.CreateFiles(this.editor, 'babylon', true);
                 this.editor.addEditPanelPlugin('play-game', false, 'Game');
                 break;
             case 'test-debug':
-                SceneExporter.CreateFiles(this.editor);
+                SceneExporter.CreateFiles(this.editor, 'babylon', true);
                 Tools.OpenPopup('./preview.html', 'Preview', 1280, 800).addEventListener('beforeunload', (ev) => {
                     if (ev.srcElement['baseURI'].indexOf('preview.html') === -1)
                         return;

@@ -161,25 +161,25 @@ export interface EffectLayer {
 * Root object of project
 */
 export interface ProjectRoot {
-    globalConfiguration: GlobalConfiguration;
-    materials: ProjectMaterial[];
-    textures: ProjectTexture[];
-    particleSystems: ParticleSystem[];
-    nodes: Node[];
-    shadowGenerators: any[];
-    lensFlares: LensFlare[];
-    renderTargets: RenderTarget[];
-    sounds: Sound[];
-    actions: any;
-    physicsEnabled: boolean;
-    effectLayers: EffectLayer[];
-    environmentHelper: any;
+    globalConfiguration?: GlobalConfiguration;
+    materials?: ProjectMaterial[];
+    textures?: ProjectTexture[];
+    particleSystems?: ParticleSystem[];
+    nodes?: Node[];
+    shadowGenerators?: any[];
+    lensFlares?: LensFlare[];
+    renderTargets?: RenderTarget[];
+    sounds?: Sound[];
+    actions?: any;
+    physicsEnabled?: boolean;
+    effectLayers?: EffectLayer[];
+    environmentHelper?: any;
 
     requestedMaterials?: string[];
     customMetadatas?: IStringDictionary<any>;
 
-    gui: any[];
-    assets: IStringDictionary<AssetElement<any>[]>;
+    gui?: any[];
+    assets?: IStringDictionary<AssetElement<any>[]>;
 
     removedObjects?: IStringDictionary<any>;
     filesList?: string[];

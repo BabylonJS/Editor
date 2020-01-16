@@ -1,8 +1,11 @@
 import {
     Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera,
-    InstancedMesh, SubMesh, Color3, ArcRotateCamera, SerializationHelper, Tags, Vector3
+    InstancedMesh, SubMesh, Color3, ArcRotateCamera, SerializationHelper, Tags, Vector3, SceneLoader, Scene
 } from 'babylonjs';
 import { GUI } from 'dat-gui';
+
+import AssetPicker from '../components/asset-picker';
+import Picker from '../gui/picker';
 
 import AbstractEditionTool from './edition-tool';
 import SceneManager from '../scene/scene-manager';
@@ -10,6 +13,7 @@ import Tools from '../tools/tools';
 
 import Extensions from '../../extensions/extensions';
 import CodeExtension, { BehaviorNodeMetadata } from '../../extensions/behavior-code/code';
+import LODExtension from '../../extensions/lod/index';
 
 export default class NodeTool extends AbstractEditionTool<Node> {
     // Public members
@@ -191,6 +195,10 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             camera.add(node, 'fov').step(0.01).name('Fov');
         }
 
+        // LOD
+        if (node instanceof Mesh)
+            this._addLodLevelOptions();
+
         // Animations
         if (node.animations && node.animations.length > 0 || (node instanceof Mesh && node.skeleton)) {
             const animations = this.tool.addFolder('Animations');
@@ -200,6 +208,110 @@ export default class NodeTool extends AbstractEditionTool<Node> {
 
         // Scripts
         this.addScriptsConfiguration(node);
+    }
+
+    private async _addLodLevelOptions (): Promise<void> {
+        // Cast as mesh
+        const mesh = <Mesh> this.object;
+
+        // Get extension
+        await Tools.ImportScript('./build/src/extensions/lod/index.js');
+        const ext = Extensions.RequestExtension<LODExtension>(this.editor.core.scene, 'LODExtension');
+        const metadata = ext.getMetadataFromMeshId(this.object.id);
+        
+        const lod = this.tool.addFolder('Level Of Details (LOD)');
+        lod.open();
+        lod.add(this, '_addLodLevel').name('Add Level Of Detail...');
+
+        const levels = mesh.getLODLevels();
+        levels.forEach((level, index) => {
+            const f = lod.addFolder(`${level.mesh.name} (${level.mesh.id})`);
+            f.open();
+            f.add(level, 'distance').name('Distance');
+
+            const o = { remove: () => {
+                mesh.removeLODLevel(level.mesh);
+                level.mesh.dispose(true, false);
+                metadata.levels.splice(index, 1);
+                this.update(mesh);
+            } };
+            f.add(o, 'remove').name('Remove Level');
+        });
+    }
+
+    // Adds a new LOD level to the mesh.
+    private async _addLodLevel (): Promise<void> {
+        // Load LOD extension.
+        await Tools.ImportScript('./build/src/extensions/lod/index.js');
+        const ext = Extensions.RequestExtension<LODExtension>(this.editor.core.scene, 'LODExtension');
+
+        // Choose mesh asset.
+        const asset = await AssetPicker.Show<File>(this.editor, this.editor.assets.meshes);
+        if (!asset)
+            return;
+
+        // Load the scene.
+        const currentMesh = <Mesh> this.object;
+        
+        const result = await SceneLoader.ImportMeshAsync('', "file:", asset.data, this.editor.core.scene);
+        result.particleSystems.forEach((ps) => ps.dispose(true));
+        result.skeletons.forEach((s) => s.dispose());
+        result.meshes.forEach((m) => m.id = BabylonTools.RandomId());
+        
+        const meshes = result.meshes.filter((m) => m instanceof Mesh);
+        if (!meshes.length)
+            return;
+
+        let mesh = <Mesh> meshes[0];
+
+        if (meshes.length > 1) {
+            await new Promise<void>((resolve) => {
+                const picker = new Picker('Multiple meshes, choose the LOD mesh');
+                picker.addItems(meshes);
+                picker.open((items) => {
+                    if (!items[0])
+                        return resolve();
+                    
+                    mesh = <Mesh> meshes[items[0].id];
+                    resolve();
+                });
+            });
+        }
+
+        if (!mesh) {
+            result.meshes.forEach((m) => m.dispose(false, true));
+            return;
+        }
+
+        // Setup metadata.
+        mesh.material = null;
+
+        const metadata = ext.getMetadataFromMeshId(this.object.id);
+        if (!metadata) {
+            ext.datas.push({ meshId: this.object.id, levels: [
+                { distance: 50, meshSerializationObject: ext.serializeMesh(mesh) }
+            ] });
+        } else {
+            metadata.levels.push({ distance: 50, meshSerializationObject: ext.serializeMesh(mesh) });
+        }
+
+        mesh.doNotSerialize = true;
+        mesh.id = BabylonTools.RandomId();
+        mesh.material = currentMesh.material;
+        mesh.skeleton = currentMesh.skeleton;
+        currentMesh.addLODLevel(50, mesh);
+
+        // Clear
+        result.meshes.forEach((m) => {
+            if (m.material && m.material !== currentMesh.material)
+                m.material.dispose(true, true);
+            
+            if (m !== mesh)
+                m.dispose(true, true);
+        });
+
+        // Refresh tool.
+        this.update(this.object);
     }
 
     /**

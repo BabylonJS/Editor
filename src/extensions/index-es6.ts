@@ -10,6 +10,7 @@ import PostProcessEditorExtension from './post-process-editor/post-process-edito
 import MaterialEditorExtension from './material-editor/material-editor';
 import PostProcessExtension from './post-process/post-processes';
 import CustomMetadatasExtension from './metadata/metadatas';
+import LODExtension from './lod/index';
 
 import { IExtension, ExtensionConstructor } from './typings/extension';
 
@@ -26,6 +27,7 @@ export {
     PathFinderExtension,
     PostProcessEditorExtension,
     CustomMetadatasExtension,
+    LODExtension,
 
     IExtension, ExtensionConstructor
 }

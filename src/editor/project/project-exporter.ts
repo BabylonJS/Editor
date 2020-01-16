@@ -287,12 +287,18 @@ export default class ProjectExporter {
 
     /**
      * Exports the current editor project
+     * @param editor the editor reference.
+     * @param onlyExtensions if the project should export only the extensions datas.
      */
-    public static Export (editor: Editor): Export.ProjectRoot {
+    public static Export (editor: Editor, onlyExtensions: boolean = false): Export.ProjectRoot {
         // Toggle scene manager
         SceneManager.Toggle(editor.core.scene);
 
-        const project: Export.ProjectRoot = {
+        const project: Export.ProjectRoot = onlyExtensions ? { 
+            customMetadatas: this._SerializeCustomMetadatas(editor),
+            assets: this._SerializeAssets(editor),
+            filesList: []
+        } : {
             actions: null,
             customMetadatas: this._SerializeCustomMetadatas(editor),
             globalConfiguration: this._SerializeGlobalConfiguration(editor),
