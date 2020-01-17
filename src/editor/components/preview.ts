@@ -43,9 +43,11 @@ export default class EditorPreview {
             { type: 'button', id: 'scaling', text: '', img: 'icon-scaling', checked: false },
             { type: 'button', id: 'bounding-box', text :'', img: 'icon-bounding-box', checked: false },
             { type: 'break' },
-            { type: 'menu', id: 'steps', text: 'Steps', img: 'icon-position', items: ['0', '1', '2', '3', '4', '5'].map((n, index) => ({
+            { type: 'menu', id: 'steps', text: 'Steps', items: ['0', '1', '2', '3', '4', '5'].map((n, index) => ({
                 type: 'radio', text: n, id: n, group: '1', selected: index === 0
             })) },
+            { type: 'button', id: 'fit-rotation', text: 'Fit', checked: true },
+            { type: 'button', id: 'use-euler', text: 'Euler', checked: false },
             { type: 'break' },
             { type: 'button', id: 'bounding-boxes', checked: false, img: 'icon-bounding-box', text: '' },
             { type: 'button', id: 'wireframe', checked: false, img: 'icon-wireframe', text: '' },
@@ -196,6 +198,19 @@ export default class EditorPreview {
             case 'steps:3': this.editor.scenePicker.gizmoStep = 3; break;
             case 'steps:4': this.editor.scenePicker.gizmoStep = 4; break;
             case 'steps:5': this.editor.scenePicker.gizmoStep = 5; break;
+
+            // Fit
+            case 'fit-rotation':
+                const fit = this.toolbar.isChecked(id, true);
+                this.editor.scenePicker.updateGizmoRotationToMatchAttachedMesh = fit;
+                this.toolbar.setChecked(id, fit);
+                break;
+            // Euler
+            case 'use-euler':
+                const useEuler = this.toolbar.isChecked(id, true);
+                this.editor.scenePicker.useEulerRotation = useEuler;
+                this.toolbar.setChecked(id, useEuler);
+                break;
 
             // Show
             case 'bounding-boxes':

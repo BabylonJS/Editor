@@ -56,6 +56,8 @@ export default class ScenePicker {
     private _gizmoRotationDelta: Quaternion = null;
 
     private _gizmoStep: number = 0;
+    private _updateGizmoRotationToMatchAttachedMesh: boolean = true;
+    private _useEulerRotation: boolean = false;
 
     /**
      * Constructor
@@ -124,6 +126,22 @@ export default class ScenePicker {
     }
 
     /**
+     * Sets the gizmos if they should fit the mesh's rotation.
+     */
+    public set updateGizmoRotationToMatchAttachedMesh (value: boolean) {
+        this._updateGizmoRotationToMatchAttachedMesh = value;
+        this._updateGizmoFitRotation();
+    }
+
+    /**
+     * Sets the gizmos if they should use euler rotation.
+     */
+    public set useEulerRotation (value: boolean) {
+        this._useEulerRotation = value;
+        this.gizmoType = this._gizmoType;
+    }
+
+    /**
      * Sets the gizmo type
      */
     public set gizmoType (value: GizmoType) {
@@ -147,9 +165,20 @@ export default class ScenePicker {
             case GizmoType.POSITION:
                 this.currentGizmo = this.positionGizmo = new PositionGizmo(this.gizmosLayer);
                 this.positionGizmo.planarGizmoEnabled = true;
-                this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+                
+                this.positionGizmo.xPlaneGizmo['_coloredMaterial'].alpha = 0.5;
+                this.positionGizmo.yPlaneGizmo['_coloredMaterial'].alpha = 0.5;
+                this.positionGizmo.zPlaneGizmo['_coloredMaterial'].alpha = 0.5;
+
+                this.positionGizmo.xPlaneGizmo['_plane'].position.set(0, 0.022, 0.022);
+                this.positionGizmo.yPlaneGizmo['_plane'].position.set(-0.022, 0, 0.022);
+                this.positionGizmo.zPlaneGizmo['_plane'].position.set(-0.022, 0.022, 0);
+
+                this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = this._updateGizmoRotationToMatchAttachedMesh;
                 break;
-            case GizmoType.ROTATION: this.currentGizmo = this.rotationGizmo = new RotationGizmo(this.gizmosLayer, null, true); break;
+            case GizmoType.ROTATION:
+                this.currentGizmo = this.rotationGizmo = new RotationGizmo(this.gizmosLayer, null, this._useEulerRotation);
+                break;
             case GizmoType.SCALING: this.currentGizmo = this.scalingGizmo = new ScaleGizmo(this.gizmosLayer); break;
             default: return; // GizmoType.NONE
         }
@@ -157,6 +186,7 @@ export default class ScenePicker {
         // Attach mesh and configure
         this.setGizmoAttachedMesh(this.editor.core.currentSelectedObject);
         this._updateGizmosStep();
+        this._updateGizmoFitRotation();
         this.currentGizmo.scaleRatio = 2.5;
 
         // Events
@@ -207,6 +237,13 @@ export default class ScenePicker {
         this.positionGizmo && (this.positionGizmo.snapDistance = this._gizmoStep);
         this.rotationGizmo && (this.rotationGizmo.snapDistance = this._gizmoStep);
         this.scalingGizmo && (this.scalingGizmo.snapDistance = this._gizmoStep);
+    }
+
+    // Updates the gizmos to fit or not the steps.
+    private _updateGizmoFitRotation (): void {
+        this.positionGizmo && (this.positionGizmo.updateGizmoRotationToMatchAttachedMesh = this._updateGizmoRotationToMatchAttachedMesh);
+        this.rotationGizmo && (this.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = this._updateGizmoRotationToMatchAttachedMesh);
+        this.scalingGizmo && (this.scalingGizmo.updateGizmoRotationToMatchAttachedMesh = this._updateGizmoRotationToMatchAttachedMesh);
     }
 
     /**

@@ -765,6 +765,8 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 'b' && this.preview.setToolClicked('bounding-box'));
         document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 't' && this.preview.setToolClicked('position'));
         document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 'r' && this.preview.setToolClicked('rotation'));
+        document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 'e' && this.preview.setToolClicked('use-euler'));
+        document.addEventListener('keyup', ev => this._canvasFocused && !CodeEditor.HasOneFocused() && ev.key === 'g' && this.preview.setToolClicked('fit-rotation'));
 
         document.addEventListener('keyup', ev => {
             if (this._canvasFocused && ev.key === 'f') {
