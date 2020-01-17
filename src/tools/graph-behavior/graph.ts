@@ -738,7 +738,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             root.variables = this.data.variables;
 
         root._nodes.forEach(n => {
-            if (!(n instanceof LiteGraph.Nodes.Subgraph))
+            if (!(n instanceof <any> LiteGraph.Nodes.Subgraph))
                 return;
 
             this._setScriptObjectAndScene(n['subgraph']);
@@ -751,7 +751,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             if (n.widgets)
                 n.widgets.forEach(w => w.options && w.options.onInstanciate && w.options.onInstanciate(n, w));
 
-            if (n instanceof LiteGraph.Nodes.Subgraph)
+            if (n instanceof <any> LiteGraph.Nodes.Subgraph)
                 this._instantiateWidgets(n['subgraph']);
         });
     }
@@ -766,7 +766,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             );
             n.store = { };
 
-            if (n instanceof LiteGraph.Nodes.Subgraph)
+            if (n instanceof <any> LiteGraph.Nodes.Subgraph)
                 this._stopAllGraphs(n['subgraph']);
         });
     }

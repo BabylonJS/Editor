@@ -315,7 +315,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
      */
     public static RegisterNodes (object?: any): void {
         // Clear default nodes
-        LiteGraph.registered_node_types = {
+        LiteGraph.registered_node_types = <any> {
             'graph/subgraph': SubGraph,
             'graph/input': GraphInput,
             'graph/output': GraphOutput
