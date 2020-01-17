@@ -39,9 +39,9 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
     public isSupported(object: any): boolean {
         return object instanceof IGraphNode ||
                object instanceof LGraphGroup ||
-               object instanceof LiteGraph.Nodes.Subgraph ||
-               object instanceof LiteGraph.Nodes.GraphInput ||
-               object instanceof LiteGraph.Nodes.GraphOutput;
+               object instanceof (LiteGraph.Nodes.Subgraph as any) ||
+               object instanceof (LiteGraph.Nodes.GraphInput as any) ||
+               object instanceof (LiteGraph.Nodes.GraphOutput as any);
     }
 
     /**
@@ -66,9 +66,9 @@ export default class GraphNodeTool extends AbstractEditionTool<IGraphNode> {
             this._setupNodeFunction(node);
         } else if (node instanceof GraphNode) {
             this._setupNode(node);
-        } else if (node instanceof LiteGraph.Nodes.Subgraph) {
+        } else if (node instanceof (LiteGraph.Nodes.Subgraph as any)) {
             this._setupSubGraph(node);
-        } else if (node instanceof LiteGraph.Nodes.GraphInput || node instanceof LiteGraph.Nodes.GraphOutput) {
+        } else if (node instanceof (LiteGraph.Nodes.GraphInput as any) || node instanceof (LiteGraph.Nodes.GraphOutput as any)) {
             this._setupSubGraphInputOutput(node);
         } else {
             // TOOD.

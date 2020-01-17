@@ -319,7 +319,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
             'graph/subgraph': SubGraph,
             'graph/input': GraphInput,
             'graph/output': GraphOutput
-        };
+        } as any;
 
         // Register all nodes!
         registerAllNodes(object);

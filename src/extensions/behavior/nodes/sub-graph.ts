@@ -1,6 +1,6 @@
 import { LiteGraph } from 'litegraph.js';
 
-export class SubGraph extends LiteGraph.Nodes.Subgraph {
+export class SubGraph extends (LiteGraph.Nodes.Subgraph as any) {
     public static Desc: string = 'Defines a SubGraph that can contains nodes in it';
     public static Title: string = 'SubGraph';
 
@@ -12,7 +12,7 @@ export class SubGraph extends LiteGraph.Nodes.Subgraph {
     }
 }
 
-export class GraphInput extends LiteGraph.Nodes.GraphInput {
+export class GraphInput extends (LiteGraph.Nodes.GraphInput as any) {
     public static Desc: string = 'Defines a SubGraph input';
     public static Title: string = 'SubGraph Input';
 
@@ -46,7 +46,7 @@ export class GraphInput extends LiteGraph.Nodes.GraphInput {
     }
 }
 
-export class GraphOutput extends LiteGraph.Nodes.GraphOutput {
+export class GraphOutput extends (LiteGraph.Nodes.GraphOutput as any) {
     public static Desc: string = 'Defines a SubGraph output';
     public static Title: string = 'SubGraph Output';
 
