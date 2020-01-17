@@ -84,6 +84,7 @@ export default class LODExtension extends Extension<LODMetadata[]> {
                 const mesh = <Mesh> result.meshes[0];
                 mesh.material = sourceMesh.material;
                 mesh.skeleton = sourceMesh.skeleton;
+                mesh.doNotSerialize = true;
                 sourceMesh.addLODLevel(level.distance, mesh);
             };
         }
