@@ -1,4 +1,4 @@
-import { Vector2 } from 'babylonjs';
+import { Vector2, Light, Tools as BabylonTools, Camera, Mesh, Tags, ParticleSystem, InstancedMesh } from 'babylonjs';
 
 import Layout from '../gui/layout';
 import Toolbar from '../gui/toolbar';
@@ -10,10 +10,20 @@ import { GizmoType } from '../scene/scene-picker';
 import { AvailablePaintingTools } from '../painting/painting-tools';
 
 export default class EditorPreview {
-    // Public members
+    /**
+     * The layout used to draw canvas and toolbars.
+     */
     public layout: Layout;
+    /**
+     * The main preview toolbar.
+     */
     public toolbar: Toolbar;
+    /**
+     * The tools toolbar (painting tools, etc.).
+     */
     public toolsToolbar: Toolbar;
+
+    private _nodeToCopy: any = null;
 
     /**
      * Constructor
@@ -150,6 +160,56 @@ export default class EditorPreview {
     public toogleToolMode (id: string): void {
         const isChecked = this.toolsToolbar.isChecked(id);
         isChecked ? this.disableToolMode(id) : this.enableToolMode(id);
+    }
+
+    /**
+     * Copies the currently selected node to clipboard.
+     */
+    public copyToClipBoard (): void {
+        this._nodeToCopy = this.editor.core.currentSelectedObject;
+    }
+
+    public pasteFromClipBoard (): void {
+        if (!this._nodeToCopy)
+            return;
+
+        let newNode = null;
+        if (this._nodeToCopy instanceof Light) {
+            newNode = this._nodeToCopy.clone(this._nodeToCopy.name);
+        }
+        else if (this._nodeToCopy instanceof Camera) {
+            newNode = this._nodeToCopy.clone(this._nodeToCopy.name);
+        }
+        else if (this._nodeToCopy instanceof Mesh) {
+            newNode = this._nodeToCopy.createInstance(this._nodeToCopy.name);
+            newNode.position.copyFrom(this._nodeToCopy.position);
+            newNode.rotation.copyFrom(this._nodeToCopy.rotation);
+            newNode.scaling.copyFrom(this._nodeToCopy.scaling);
+        }
+        else if (this._nodeToCopy instanceof InstancedMesh) {
+            newNode = this._nodeToCopy.sourceMesh.createInstance(this._nodeToCopy.name);
+            newNode.position.copyFrom(this._nodeToCopy.position);
+            newNode.rotation.copyFrom(this._nodeToCopy.rotation);
+            newNode.scaling.copyFrom(this._nodeToCopy.scaling);
+        }
+        else if (this._nodeToCopy instanceof ParticleSystem) {
+            newNode = this._nodeToCopy.clone(this._nodeToCopy.name, this._nodeToCopy.emitter);
+        }
+
+        if (!newNode)
+            return;
+
+        Tags.AddTagsTo(newNode, 'added');
+        newNode.parent = this._nodeToCopy.parent;
+        newNode.id = BabylonTools.RandomId();
+
+        this.editor.graph.addNode(this.editor.core.scene, newNode);
+        setTimeout(() => {
+            this.editor.core.onSelectObject.notifyObservers(newNode);
+            this.editor.scenePicker.configureMesh(newNode);
+            this.editor.scenePicker.setGizmoAttachedMesh(newNode);
+            this.editor.notifyMessage(`Pasted "${newNode.name}"`, false, 1000);
+        }, 0);
     }
 
     /**

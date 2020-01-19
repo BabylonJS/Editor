@@ -2078,6 +2078,14 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 */
             gizmoStep: number;
             /**
+                * Sets the gizmos if they should fit the mesh's rotation.
+                */
+            updateGizmoRotationToMatchAttachedMesh: boolean;
+            /**
+                * Sets the gizmos if they should use euler rotation.
+                */
+            useEulerRotation: boolean;
+            /**
                 * Sets the gizmo type
                 */
             gizmoType: GizmoType;
@@ -2626,8 +2634,17 @@ declare module 'babylonjs-editor/editor/components/preview' {
     import Editor from 'babylonjs-editor/editor/editor';
     export default class EditorPreview {
             protected editor: Editor;
+            /**
+                * The layout used to draw canvas and toolbars.
+                */
             layout: Layout;
+            /**
+                * The main preview toolbar.
+                */
             toolbar: Toolbar;
+            /**
+                * The tools toolbar (painting tools, etc.).
+                */
             toolsToolbar: Toolbar;
             /**
                 * Constructor
@@ -2662,6 +2679,11 @@ declare module 'babylonjs-editor/editor/components/preview' {
                 * @param id the id of the tool to toggle (enabled/disabled)
                 */
             toogleToolMode(id: string): void;
+            /**
+                * Copies the currently selected node to clipboard.
+                */
+            copyToClipBoard(): void;
+            pasteFromClipBoard(): void;
             /**
                 * On the user clicks on the toolbar
                 * @param id the id of the clicked item

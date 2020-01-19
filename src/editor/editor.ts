@@ -724,25 +724,42 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keydown', ev => !ctrlDown && (ctrlDown = (ev.key === 'Meta' || ev.key === 'Control')));
         document.addEventListener('keyup', ev => (ev.key === 'Meta' || ev.key === 'Control') && (ctrlDown = false));
 
-        // Undo
+        // Undo / Redo
         UndoRedo.onUndo = (e) => Tools.SetWindowTitle(this.projectFileName + ' *');
+        UndoRedo.onRedo = (e) => Tools.SetWindowTitle(this.projectFileName + ' *');
+
+        // Shortcuts
         document.addEventListener('keydown', (ev) => {
-            if (!CodeEditor.HasOneFocused() && ctrlDown && ev.key === 'z') {
+            if (CodeEditor.HasOneFocused())
+                return;
+            
+            // Undo
+            if (ctrlDown && ev.key === 'z') {
                 UndoRedo.Undo();
                 this.inspector.updateDisplay();
                 ev.preventDefault();
                 ev.stopPropagation();
             }
+            // Copy preview
+            else if (this._canvasFocused && ctrlDown && ev.key === 'c') {
+                this.preview.copyToClipBoard();
+            }
         });
 
-        // Redo
-        UndoRedo.onRedo = (e) => Tools.SetWindowTitle(this.projectFileName + ' *');
         document.addEventListener('keydown', (ev) => {
-            if (!CodeEditor.HasOneFocused() && (ctrlDown && ev.key === 'y' || ctrlDown && shiftDown && ev.key === 'Z')) {
+            if (CodeEditor.HasOneFocused())
+                return;
+            
+            // Redo
+            if (ctrlDown && ev.key === 'y' || ctrlDown && shiftDown && ev.key === 'Z') {
                 UndoRedo.Redo();
                 this.inspector.updateDisplay();
                 ev.preventDefault();
                 ev.stopPropagation();
+            }
+            // Paste preview
+            else if (this._canvasFocused && ctrlDown && ev.key === 'v') {
+                this.preview.pasteFromClipBoard();
             }
         });
 
