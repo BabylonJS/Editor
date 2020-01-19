@@ -512,6 +512,7 @@ export default class ProjectImporter {
         // Post-processes
         const ppExtension = <PostProcessesExtension> Extensions.Instances['PostProcess'];
         if (ppExtension) {
+            SceneManager.DefaultRenderingPipeline = ppExtension.default;
             SceneManager.StandardRenderingPipeline = ppExtension.standard;
             SceneManager.SSAO2RenderingPipeline = ppExtension.ssao2;
         }
