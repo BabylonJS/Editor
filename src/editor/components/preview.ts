@@ -1,4 +1,4 @@
-import { Vector2, Light, Tools as BabylonTools, Camera, Mesh, Tags, ParticleSystem, InstancedMesh } from 'babylonjs';
+import { Vector2, Light, Tools as BabylonTools, Camera, Mesh, Tags, ParticleSystem, InstancedMesh, MeshLODLevel } from 'babylonjs';
 
 import Layout from '../gui/layout';
 import Toolbar from '../gui/toolbar';
@@ -8,6 +8,11 @@ import Editor from '../editor';
 
 import { GizmoType } from '../scene/scene-picker';
 import { AvailablePaintingTools } from '../painting/painting-tools';
+
+interface ComputedLODMesh {
+    mesh: Mesh;
+    levels: MeshLODLevel[];
+}
 
 export default class EditorPreview {
     /**
@@ -24,6 +29,9 @@ export default class EditorPreview {
     public toolsToolbar: Toolbar;
 
     private _nodeToCopy: any = null;
+
+    private _lodQuality: number = -1;
+    private _lodComputedMeshes: ComputedLODMesh[] = [];
 
     /**
      * Constructor
@@ -66,7 +74,11 @@ export default class EditorPreview {
             { type: 'break' },
             { type: 'button', id: 'textures', checked: true, img: 'icon-dynamic-texture', text: '' },
             { type: 'button', id: 'lights', checked: true, img: 'icon-light', text: '' },
-            { type: 'button', id: 'sounds', checked: true, img: 'icon-sound' }
+            { type: 'button', id: 'sounds', checked: true, img: 'icon-sound' },
+            { type: 'break' },
+            { type: 'menu', id: 'lod-quality', text: 'LOD Quality', items: ['Auto', 'High', 'Medium', 'Low'].map((n, index) => ({
+                type: 'radio', tex: n, id: n.toLowerCase(), group: '1', selected: index === 0
+            })) }
         ];
         this.toolbar.build('PREVIEW-TOOLBAR');
 
@@ -291,6 +303,12 @@ export default class EditorPreview {
                 this.toolbar.setChecked(id, !this.toolbar.isChecked(id));
                 break;
 
+            // LOD Quality
+            case 'lod-quality:auto': this._updateLodQuality(-1); break;
+            case 'lod-quality:low': this._updateLodQuality(2); break;
+            case 'lod-quality:medium': this._updateLodQuality(1); break;
+            case 'lod-quality:high': this._updateLodQuality(0); break;
+
             // Default
             default: break;
         }
@@ -317,5 +335,56 @@ export default class EditorPreview {
                 }
                 break;
         }
+    }
+
+    // Updates the forced LOD quality.
+    private _updateLodQuality (lodQuality: number): void {
+        if (this._lodQuality === lodQuality)
+            return;
+        
+        this._lodQuality = lodQuality;
+
+        this.editor.core.scene.meshes.forEach((m) => {
+            if (!(m instanceof Mesh) || !m.hasLODLevels)
+                return;
+            
+            // Get current levels
+            let levels = m.getLODLevels().sort((a, b) => a.distance - b.distance);
+
+            // Restore saved levels or register.
+            let cm = this._lodComputedMeshes.find((cm) => cm.mesh === m);
+            if (!cm) {
+                this._lodComputedMeshes.push(cm = { mesh: m, levels: levels.map((l) => new MeshLODLevel(l.distance, l.mesh)) });
+            }
+
+            cm.levels.forEach((l) => m.removeLODLevel(l.mesh));
+            cm.levels.forEach((l) => m.addLODLevel(l.distance, l.mesh));
+            levels = m.getLODLevels();
+
+            switch (lodQuality) {
+                case -1: // Auto
+                    // Do nothing, automatic.
+                    break;
+                case 0: // High
+                    levels.forEach((l) => l.distance = Infinity);
+                    break;
+                case 1: // Medium
+                    const index = (levels.length - 1) - (((levels.length - 1) * 0.5) >> 0);
+                    const middleLevel = levels[index];
+                    for (let i = 0; i < index; i++)
+                        levels[i].distance = Infinity;
+                    middleLevel.distance = 0;
+                    for (let i = index + 1; i < levels.length; i++)
+                        levels[i].distance = Infinity;
+                    break;
+                case 2: // Low
+                    levels[0].distance = 0;
+                    for (let i = 1; i < levels.length; i++)
+                        levels[i].distance = Infinity;
+                    break;
+            }
+
+            m['_sortLODLevels']();
+        });
     }
 }
