@@ -1,6 +1,6 @@
 import {
     Mesh, Tags, Observer, PointerInfo, StandardMaterial, PointerEventTypes,
-    Vector3, Scalar, PickingInfo, AbstractMesh, KeyboardEventTypes, Space
+    Vector3, Scalar, PickingInfo, AbstractMesh, KeyboardEventTypes, Space, Quaternion
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -35,6 +35,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
     private _removing: boolean = false;
     private _paintDistance: number = 10;
     private _rotationRandomizer: Vector3 = new Vector3(0, 1, 0);
+    private _scalingRandomizer: number = 1.0;
     private _paintedMeshes: AbstractMesh[] = [];
 
     private _sourceAssets: AssetElement<Prefab>[] = [];
@@ -97,7 +98,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         super.update(_);
 
         // Scale
-        this.tool.add(this._sphere.scaling, 'x').name('Scale').onChange((r) => {
+        this.tool.add(this._sphere.scaling, 'x').name('Scale').min(0).onChange((r) => {
             this._sphere.scaling.y = this._sphere.scaling.z = r;
         });
 
@@ -108,6 +109,7 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
             this._rotationRandomizer.y = Scalar.Clamp(this._rotationRandomizer.y, 0, 1);
             this._rotationRandomizer.z = Scalar.Clamp(this._rotationRandomizer.z, 0, 1);
         }).open();
+        this.tool.add(this, '_scalingRandomizer').name('Scaling Randomizer');
 
         const orientation = this.tool.addFolder('Orientation');
         orientation.open();
@@ -319,19 +321,34 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
         prefab.metadata.painting = {
             sourceName: asset.name
         };
+        
+        if (this._applyOrientation)
+            prefab.lookAt(pickInfo.getNormal(true, true), this._yawCor, this._pitchCor, this._rollCor, Space.LOCAL);
+        
         prefab.position.set(
             pickInfo.pickedPoint.x + this._getRandom(this._sphere.scaling.x),
             pickInfo.pickedPoint.y,
             pickInfo.pickedPoint.z + this._getRandom(this._sphere.scaling.x)
         );
         
-        if (this._applyOrientation)
-            prefab.lookAt(pickInfo.getNormal(true, true), this._yawCor, this._pitchCor, this._rollCor, Space.LOCAL);
-        
-        prefab.rotation.addInPlace(new Vector3(
-            2 * Math.PI * Math.random() * this._rotationRandomizer.x,
-            2 * Math.PI * Math.random() * this._rotationRandomizer.y,
-            2 * Math.PI * Math.random() * this._rotationRandomizer.z,
+        if (prefab.rotationQuaternion) {
+            prefab.rotationQuaternion.multiplyInPlace(Quaternion.FromEulerAngles(
+                2 * Math.PI * Math.random() * this._rotationRandomizer.x,
+                2 * Math.PI * Math.random() * this._rotationRandomizer.y,
+                2 * Math.PI * Math.random() * this._rotationRandomizer.z,
+            ));
+        } else {
+            prefab.rotation.addInPlace(new Vector3(
+                2 * Math.PI * Math.random() * this._rotationRandomizer.x,
+                2 * Math.PI * Math.random() * this._rotationRandomizer.y,
+                2 * Math.PI * Math.random() * this._rotationRandomizer.z,
+            ));
+        }
+
+        prefab.scaling.addInPlace(new Vector3(
+            Math.random() * this._scalingRandomizer,
+            Math.random() * this._scalingRandomizer,
+            Math.random() * this._scalingRandomizer,
         ));
 
         this._paintedMeshes.push(prefab);
