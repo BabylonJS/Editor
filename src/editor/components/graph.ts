@@ -14,6 +14,8 @@ import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
+import Layout from '../gui/layout';
+import Toolbar from '../gui/toolbar';
 import Tree, { TreeNode, TreeContextMenuItem } from '../gui/tree';
 import UndoRedo from '../tools/undo-redo';
 
@@ -22,24 +24,99 @@ import SceneManager from '../scene/scene-manager';
 import SceneFactory from '../scene/scene-factory';
 
 export default class EditorGraph {
-    // Public members
+    /**
+     * The layout used in the editor graph section.
+     */
+    public layout: Layout;
+    /**
+     * The toolbar used to control the scene graph.
+     */
+    public toolbar: Toolbar;
+    /**
+     * The tree used to render the scene graph.
+     */
     public tree: Tree;
+    /**
+     * The id of the root element of the scene graph tree.
+     */
     public root: string = 'ROOT';
+    /**
+     * The id of the root element of the gui graph tree.
+     */
     public gui: string = 'GUI';
 
+    /**
+     * The current object reference that is currently selected.
+     */
     public currentObject: any = this.editor.core.scene;
+
+    private _showCameras: boolean = true;
+    private _showLights: boolean = true;
+    private _showPrefabs: boolean = true;
 
     /**
      * Constructor
      * @param editor the editor reference
      */
     constructor (protected editor: Editor) {
-        this.tree = new Tree('SceneTree');
+        // Create layout
+        this.layout = new Layout('EditorSceneGraphLayout');
+        this.layout.panels = [
+            { type: 'top', resizable: false, size: 30, content: '<div id="PANEL-SCENE-GRAPH-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
+            { type: 'main', resizable: false, content: '<div id="PANEL-SCENE-GRAPH" style="width: 100%; height: 100%;"></div>' }
+        ]
+        this.layout.build('SCENE-GRAPH');
+
+        // Create toolbar
+        this.toolbar = new Toolbar('EditorSceneGraphToolbar');
+        this.toolbar.items = [
+            { id: 'refresh', text: '', img: 'icon-recycle' },
+            { type: 'break' },
+            { id: 'cameras', text: 'Cameras', checked: true },
+            { id: 'lights', text: 'Lights', checked: true },
+            { id: 'prefabs', text: 'Prefabs', checked: true }
+        ];
+        this.toolbar.build('PANEL-SCENE-GRAPH-TOOLBAR');
+
+        // Create tree
+        this.tree = new Tree('EditorSceneGraphTree');
         this.tree.multipleSelection = true;
         this.tree.wholerow = true;
-        this.tree.build('SCENE-GRAPH');
+        this.tree.build('PANEL-SCENE-GRAPH');
 
         // Events
+        this.toolbar.onClick = (id) => {
+            switch (id) {
+                case 'refresh':
+                    this.clear();
+                    this.fill();
+                    break;
+                
+                case 'cameras':
+                case 'lights':
+                case 'prefabs':
+                    const isChecked = this.toolbar.isChecked(id, true);
+                    this.toolbar.setChecked(id, isChecked);
+
+                    switch (id) {
+                        case 'cameras': this._showCameras = isChecked; break;
+                        case 'lights': this._showLights = isChecked; break;
+                        case 'prefabs': this._showPrefabs = isChecked; break;
+                    }
+
+                    this.editor.core.scene.cameras.forEach((c) => this.tree.setNodeVisible(c.id, this._showCameras));
+                    this.editor.core.scene.lights.forEach((l) => this.tree.setNodeVisible(l.id, this._showLights));
+                    this.editor.core.scene.meshes.forEach((m) => {
+                        if (Tags.HasTags(m) && (Tags.MatchesQuery(m, 'prefab') || Tags.MatchesQuery(m, 'prefab-master'))) {
+                            this.tree.setNodeVisible(m.id, this._showPrefabs);
+                        }
+                    });
+                    break;
+            }
+
+            this.currentObject && this.currentObject.id && this.select(this.currentObject.id);
+        };
+
         this.tree.onClick = (id, data: any) => {
             this.currentObject = data;
             this.editor.scenePicker.setGizmoAttachedMesh(data);

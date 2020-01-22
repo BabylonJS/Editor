@@ -181,6 +181,9 @@ export default class EditorPreview {
         this._nodeToCopy = this.editor.core.currentSelectedObject;
     }
 
+    /**
+     * Pastes the currently copied node from the clipboard and adds to the scene.
+     */
     public pasteFromClipBoard (): void {
         if (!this._nodeToCopy)
             return;
@@ -193,16 +196,20 @@ export default class EditorPreview {
             newNode = this._nodeToCopy.clone(this._nodeToCopy.name);
         }
         else if (this._nodeToCopy instanceof Mesh) {
-            newNode = this._nodeToCopy.createInstance(this._nodeToCopy.name);
+            newNode = this._nodeToCopy.createInstance(this._nodeToCopy.name + ' (Mesh Instance)');
             newNode.position.copyFrom(this._nodeToCopy.position);
             newNode.rotation.copyFrom(this._nodeToCopy.rotation);
             newNode.scaling.copyFrom(this._nodeToCopy.scaling);
+            if (this._nodeToCopy.rotationQuaternion)
+                newNode.rotationQuaternion.copyFrom(this._nodeToCopy.rotationQuaternion);
         }
         else if (this._nodeToCopy instanceof InstancedMesh) {
-            newNode = this._nodeToCopy.sourceMesh.createInstance(this._nodeToCopy.name);
+            newNode = this._nodeToCopy.sourceMesh.createInstance(this._nodeToCopy.name + (this._nodeToCopy.name.indexOf('Mesh Instance') === -1 ? ' (Mesh Instance)' : ''));
             newNode.position.copyFrom(this._nodeToCopy.position);
             newNode.rotation.copyFrom(this._nodeToCopy.rotation);
             newNode.scaling.copyFrom(this._nodeToCopy.scaling);
+            if (this._nodeToCopy.rotationQuaternion)
+                newNode.rotationQuaternion.copyFrom(this._nodeToCopy.rotationQuaternion);
         }
         else if (this._nodeToCopy instanceof ParticleSystem) {
             newNode = this._nodeToCopy.clone(this._nodeToCopy.name, this._nodeToCopy.emitter);

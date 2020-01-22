@@ -298,7 +298,10 @@ export default class Edition {
      * @param onlyCubes if only cube textures should be displayed in the list
      * @param callback: called when changed texture
      */
-    public addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
+    public addTexture(
+        parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false,
+        callback?: (texture: BaseTexture) => void, overridePropertyName?: string
+    ): dat.GUIController {
         const getName = (name: string) => (name.length > 50) ? name.substr(0, 50) : name;
         const textures = { None: 'None' };
         let imageController: ImageBoxController = null;
@@ -359,7 +362,7 @@ export default class Edition {
             imageController.onError = () => URL.revokeObjectURL(fileUrl);
         };
 
-        const folder = parent.addFolder(property);
+        const folder = parent.addFolder(overridePropertyName || property);
         folder.open();
 
         const controller = folder.add(target, 'texture', textures);

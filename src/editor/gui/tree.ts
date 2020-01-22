@@ -250,6 +250,18 @@ export default class Tree {
     }
 
     /**
+     * Sets the given node visible or unvisible.
+     * @param id the id of the node to set visible or unvisible.
+     * @param visible wether or not the node should be visible.
+     */
+    public setNodeVisible (id: string, visible: boolean): void {
+        if (!visible)
+            this.element.jstree().hide_node(id, false);
+        else
+            this.element.jstree().show_node(id, false);
+    }
+
+    /**
      * Destroys the tree
      */
     public destroy (): void {

@@ -1,4 +1,4 @@
-import { NodeMaterial, InputBlock, Observer, TextureBlock, ReflectionTextureBlock } from 'babylonjs';
+import { NodeMaterial, InputBlock, Observer, TextureBlock, ReflectionTextureBlock, Tools as BabylonTools } from 'babylonjs';
 
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';
@@ -99,7 +99,7 @@ export default class NodeMaterialTool extends MaterialTool<NodeMaterial> {
     private _addTextureBlocks (blocks: (TextureBlock | ReflectionTextureBlock)[], folder: dat.GUI): void {
         blocks.forEach(b => {
             const isReflectionTexture = b instanceof ReflectionTextureBlock;
-            this.tool.addTexture(folder, this.editor, this.editor.core.scene, 'texture', b, isReflectionTexture, isReflectionTexture);
+            this.tool.addTexture(folder, this.editor, this.editor.core.scene, 'texture', b, isReflectionTexture, isReflectionTexture, null, (b.name || 'texture') + ` (${BabylonTools.RandomId()})`);
         });
     }
 
