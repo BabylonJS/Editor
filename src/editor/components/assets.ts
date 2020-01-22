@@ -336,7 +336,7 @@ export default class EditorAssets {
             return;
         
         // Add tab's div
-        $('#ASSETS-CONTENT').append('<div id="' + component.id + '" style="width: 100%; height: 100%; overflow: auto;"></div>');
+        $('#ASSETS-CONTENT').append('<div id="' + component.id + '" style="width: 100%; height: calc(100% - 30px); overflow: auto;"></div>');
 
         // Add tab
         this.tabs.add({
@@ -415,6 +415,7 @@ export default class EditorAssets {
                 pick.pickedPoint = Vector3.Zero();
 
             await component.onDragAndDropAsset(pick.pickedMesh, asset, pick);
+
             this.editor.core.onSelectObject.notifyObservers(pick.pickedMesh);
             this.editor.graph.configure();
             this.refresh(component.id);

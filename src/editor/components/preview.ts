@@ -116,9 +116,13 @@ export default class EditorPreview {
             if (event.target !== this.editor.core.engine.getRenderingCanvas())
                 return;
 
+            const lastMeshesLength = this.editor.assets.meshes.datas.length;
             await this.editor.assets.meshes.onDragAndDropFiles(event.files);
-            this.editor.assets.refresh();
-            this.editor.assets.showTab(this.editor.assets.meshes.id);
+            
+            if (this.editor.assets.meshes.datas.length !== lastMeshesLength) {
+                this.editor.assets.refresh();
+                this.editor.assets.showTab(this.editor.assets.meshes.id);
+            }
         });
     }
 

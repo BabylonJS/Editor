@@ -10,6 +10,8 @@ import SceneFactory from '../scene/scene-factory';
 import { IAssetComponent, AssetElement, AssetContextMenu } from '../../extensions/typings/asset';
 import { IStringDictionary } from '../typings/typings';
 import Tools from '../tools/tools';
+
+import Window from '../gui/window';
 import Dialog from '../gui/dialog';
 
 import { Prefab, PrefabNodeType } from './prefab';
@@ -38,6 +40,21 @@ export default class PrefabAssetComponent implements IAssetComponent {
      * @param sourceMesh the source mesh for the new prefab asset. Can be a single mesh or a root mesh
      */
     public async createPrefab (sourceNode: Node): Promise<AssetElement<Prefab>> {
+        // Check existing source node
+        const existingSourceNode = this.datas.find((d) => d.data.sourceNode === sourceNode);
+        if (existingSourceNode) {
+            Window.CreateAlert(`A prefab with the source node "${sourceNode.name}" already exists.`, 'Informations');
+            return existingSourceNode;
+        }
+
+        // Check existing name
+        const name = await Dialog.CreateWithTextInput('Prefab name?');
+        const existingName = this.datas.find((d) => d.name.toLowerCase() === name);
+        if (existingName) {
+            Window.CreateAlert(`A prefab named "${name}" already exists.`, 'Informations');
+            return existingName;
+        }
+        
         const descendants = <Mesh[]> sourceNode.getDescendants(false, n => n instanceof Node);
         const sourceNodes: (Node | ParticleSystem)[] = (descendants.length > 1 || descendants[0] !== sourceNode) ? [sourceNode].concat(descendants) : [sourceNode];
 
@@ -52,7 +69,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
 
         // Default asset
         const asset = <AssetElement<Prefab>> {
-            name: await Dialog.CreateWithTextInput('Prefab name?'),
+            name: name,
             data: {
                 isPrefab: true,
                 nodes: sourceNodes.map(m => m.name),
