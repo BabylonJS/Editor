@@ -167,6 +167,7 @@ export default class ProjectExporter {
         const nodesFolder: CreateFiles = { name: 'nodes', folder: [] };
         const materialsFolder: CreateFiles = { name: 'materials', folder: [] };
         const texturesFolder: CreateFiles = { name: 'textures', folder: [] };
+        const extensionsFolder: CreateFiles = { name: 'extensions', folder: [] };
 
         const filenameRegexp = new RegExp('[\\/:*?""<>|]', 'g');
 
@@ -207,6 +208,14 @@ export default class ProjectExporter {
         project.materials = this._RemoveDoublenessElements(<any> project.materials);
         project.textures = this._RemoveDoublenessElements(<any> project.textures);
 
+        // Extensions
+        const customMetadatasKeys = Object.keys(project.customMetadatas);
+        customMetadatasKeys.forEach((k) => {
+            const name = `${k.toLowerCase()}.json`;
+            extensionsFolder.folder.push({ name: name, data: JSON.stringify(project.customMetadatas[k]) });
+            project.customMetadatas[k] = name;
+        });
+
         // Scene files
         for (const f in FilesInputStore.FilesToLoad) {
             const file = FilesInputStore.FilesToLoad[f];
@@ -226,7 +235,8 @@ export default class ProjectExporter {
             sceneFolder,
             nodesFolder,
             materialsFolder,
-            texturesFolder
+            texturesFolder,
+            extensionsFolder
         ];
 
         // Asset components

@@ -64,6 +64,16 @@ export default class ProjectImporter {
             project.textures[i] = JSON.parse(textureData);
         }
 
+        // Retrieve extensions
+        const customMetadatasKeys = Object.keys(project.customMetadatas);
+        for (const k of customMetadatasKeys) {
+            if (typeof(project.customMetadatas[k]) !== 'string')
+                continue;
+
+            const extensionData = await Tools.LoadFile<string>(`${ProjectExporter.ProjectPath}extensions/${project.customMetadatas[k]}`);
+            project.customMetadatas[k] = JSON.parse(extensionData);
+        };
+
         // Tools states
         editor.inspector.setToolsStates(project.editionToolsStates);
 
