@@ -91,7 +91,7 @@ export default class Editor implements IUpdatable {
     private _resettingState: boolean = false;
 
     // Static members
-    public static LayoutVersion: string = '3.0.0';
+    public static LayoutVersion: string = '3.0.1';
     public static EditorVersion: string = null;
 
     /**
@@ -158,7 +158,7 @@ export default class Editor implements IUpdatable {
                         <div id="ASSETS" style="width: 100%; height: 100%;"></div>`
                     },
                     { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: `
-                        <input id="SCENE-GRAPH-SEARCH" type="text" size="25" class="editorSearch" placeHolder="Search..." style="width: 100%; height: 20px; border-radius: 45px;" />
+                        <input id="SCENE-GRAPH-SEARCH" type="text" size="25" class="editorSearch" placeHolder="Search..." style="width: 96% !important; height: 20px !important; border-radius: 45px;" />
                         <div id="SCENE-GRAPH" style="width: 100%; height: calc(100% - 40px); overflow: auto;"></div>`
                     }
                 ]

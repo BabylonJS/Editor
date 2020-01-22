@@ -1170,7 +1170,7 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * @param onlyCubes if only cube textures should be displayed in the list
                 * @param callback: called when changed texture
                 */
-            addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes?: boolean, onlyCubes?: boolean, callback?: (texture: BaseTexture) => void): dat.GUIController;
+            addTexture(parent: dat.GUI, editor: Editor, scene: Scene, property: string, object: any, allowCubes?: boolean, onlyCubes?: boolean, callback?: (texture: BaseTexture) => void, overridePropertyName?: string): dat.GUIController;
     }
 }
 
@@ -1305,6 +1305,12 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 * @param value the value to search
                 */
             search(value: string): void;
+            /**
+                * Sets the given node visible or unvisible.
+                * @param id the id of the node to set visible or unvisible.
+                * @param visible wether or not the node should be visible.
+                */
+            setNodeVisible(id: string, visible: boolean): void;
             /**
                 * Destroys the tree
                 */
@@ -2524,12 +2530,34 @@ declare module 'babylonjs-editor/editor/components/toolbar' {
 declare module 'babylonjs-editor/editor/components/graph' {
     import { Scene, Node } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
+    import Layout from 'babylonjs-editor/editor/gui/layout';
+    import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import Tree, { TreeNode } from 'babylonjs-editor/editor/gui/tree';
     export default class EditorGraph {
             protected editor: Editor;
+            /**
+                * The layout used in the editor graph section.
+                */
+            layout: Layout;
+            /**
+                * The toolbar used to control the scene graph.
+                */
+            toolbar: Toolbar;
+            /**
+                * The tree used to render the scene graph.
+                */
             tree: Tree;
+            /**
+                * The id of the root element of the scene graph tree.
+                */
             root: string;
+            /**
+                * The id of the root element of the gui graph tree.
+                */
             gui: string;
+            /**
+                * The current object reference that is currently selected.
+                */
             currentObject: any;
             /**
                 * Constructor
@@ -2683,6 +2711,9 @@ declare module 'babylonjs-editor/editor/components/preview' {
                 * Copies the currently selected node to clipboard.
                 */
             copyToClipBoard(): void;
+            /**
+                * Pastes the currently copied node from the clipboard and adds to the scene.
+                */
             pasteFromClipBoard(): void;
             /**
                 * On the user clicks on the toolbar
