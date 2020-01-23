@@ -63,6 +63,7 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         specular.add(this.object, 'useSpecularOverAlpha').name('Use Specular Over Alpha');
         this.tool.addTexture(specular, this.editor, this.editor.core.scene, 'specularTexture', this.object).name('Specular Texture');
         this.tool.addColor(specular, 'Color', this.object.specularColor).open();
+        specular.add(this, '_mergeSpecularWithRoughness').name('Create Map From Roughness');
 
         // Opacity
         const opacity = this.tool.addFolder('Opacity');
@@ -112,6 +113,24 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         w2utils.lock($('#' + this.divId)[0], 'Processing...', true);
         try {
             await GraphicsTools.MergeBumpWithDisplacement(<Texture> this.object.bumpTexture, <Texture> displacement);
+        } catch (e) {
+            // Catch silently.
+        }
+        w2utils.unlock($('#' + this.divId)[0]);
+    }
+
+    // Merges the current specular texture with a roughness texture.
+    private async _mergeSpecularWithRoughness (): Promise<void> {
+        if (!this.object.specularTexture)
+            return Window.CreateAlert('The material must have a Specular Texture applied on.');
+
+        const roughness = await TexturePicker.Show(this.editor.core.scene, null, false, false);
+        if (!roughness)
+            return;
+        
+        w2utils.lock($('#' + this.divId)[0], 'Processing...', true);
+        try {
+            await GraphicsTools.MergeSpecularWithRoughness(<Texture> this.object.specularTexture, <Texture> roughness);
         } catch (e) {
             // Catch silently.
         }

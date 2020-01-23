@@ -55,31 +55,51 @@ export default class GraphicsTools {
         for (let i = 0; i < bumpPixels.length; i += 4)
             bumpPixels[i + 3] *= (displacementPixels[i] / 255);
 
+        await this._DrawPixelsToCanvas(bumpTexture, bumpPixels);
+    }
+
+    /**
+     * Merges the given specular texture and roughness texture to create a specular texture with roughness on alpha.
+     * @param specularTexture the original specular texture.
+     * @param roughnessTexture the selected roughness texture to merge with the specular map.
+     */
+    public static async MergeSpecularWithRoughness (specularTexture: Texture, roughnessTexture: Texture): Promise<void> {
+        const specularPixels = new Uint8ClampedArray(specularTexture.readPixels().buffer);
+        const roughnessPixels = new Uint8ClampedArray(roughnessTexture.readPixels().buffer);
+
+        for (let i = 0; i < specularPixels.length; i += 4)
+            specularPixels[i + 3] -= roughnessPixels[i];
+
+        await this._DrawPixelsToCanvas(specularTexture, specularPixels);
+    }
+
+    // Draws the given pixels to the given 
+    private static async _DrawPixelsToCanvas (texture: Texture, pixels: Uint8ClampedArray): Promise<void> {
         // Base canvas
         const canvas = document.createElement('canvas');
-        canvas.width = bumpTexture.getBaseSize().width;
-        canvas.height = bumpTexture.getBaseSize().height;
+        canvas.width = texture.getBaseSize().width;
+        canvas.height = texture.getBaseSize().height;
 
-        const imageData = new ImageData(bumpPixels, canvas.width, canvas.height);
+        const imageData = new ImageData(pixels, canvas.width, canvas.height);
 
         const context = canvas.getContext('2d');
         context.putImageData(imageData, 0, 0);
 
         // Final canvas
         const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = bumpTexture.getBaseSize().width;
-        finalCanvas.height = bumpTexture.getBaseSize().height;
+        finalCanvas.width = texture.getBaseSize().width;
+        finalCanvas.height = texture.getBaseSize().height;
 
         const finalContext = finalCanvas.getContext('2d');
         finalContext.transform(1, 0, 0, -1, 0, canvas.height);
         finalContext.drawImage(canvas, 0, 0);
 
-        const name = bumpTexture.name + BabylonTools.RandomId() + '.png';
+        const name = texture.name + BabylonTools.RandomId() + '.png';
         const file = await this.CanvasToBlob(finalCanvas);
         file['name'] = name.toLowerCase();
         FilesInputStore.FilesToLoad[name.toLowerCase()] = <File> file;
 
-        const newTexture = new Texture('file:' + name.toLowerCase(), bumpTexture.getScene());
+        const newTexture = new Texture('file:' + name.toLowerCase(), texture.getScene());
         newTexture._invertY = true;
         newTexture.name = name.toLowerCase();
         newTexture.url = name.toLowerCase();
