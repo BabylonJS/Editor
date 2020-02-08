@@ -1,6 +1,6 @@
 {
   "name": "babylonjs-editor-generated-template",
-  "version": "3.2.1-beta.3",
+  "version": "3.2.1-beta.4",
   "description": "Generated Template by BabylonJS Editor v3.0",
   "scripts": {
     "clean": "rimraf build && rimraf declaration",
@@ -22,13 +22,13 @@
     "rimraf": "~2.6.2",
     "es6-promise": "~4.1.0",
     "litegraph.js": "0.7.2",
-    "babylonjs": "4.1.0-beta.22",
-    "babylonjs-gui": "4.1.0-beta.22",
-    "babylonjs-loaders": "4.1.0-beta.22",
-    "babylonjs-materials": "4.1.0-beta.22",
-    "babylonjs-procedural-textures": "4.1.0-beta.22",
-    "babylonjs-post-process": "4.1.0-beta.22",
-    "babylonjs-editor": "3.2.1-beta.3",
+    "babylonjs": "4.1.0-beta.24",
+    "babylonjs-gui": "4.1.0-beta.24",
+    "babylonjs-loaders": "4.1.0-beta.24",
+    "babylonjs-materials": "4.1.0-beta.24",
+    "babylonjs-procedural-textures": "4.1.0-beta.24",
+    "babylonjs-post-process": "4.1.0-beta.24",
+    "babylonjs-editor": "3.2.1-beta.4",
     "cannon": "~0.6.2",
     "earcut": "~2.1.3"
   }

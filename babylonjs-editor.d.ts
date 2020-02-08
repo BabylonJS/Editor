@@ -471,6 +471,12 @@ declare module 'babylonjs-editor/editor/tools/graphics-tools' {
                 * @param displacementTexture the selected displacement texture to merge with the normal map.
                 */
             static MergeBumpWithDisplacement(bumpTexture: Texture, displacementTexture: Texture): Promise<void>;
+            /**
+                * Merges the given specular texture and roughness texture to create a specular texture with roughness on alpha.
+                * @param specularTexture the original specular texture.
+                * @param roughnessTexture the selected roughness texture to merge with the specular map.
+                */
+            static MergeSpecularWithRoughness(specularTexture: Texture, roughnessTexture: Texture): Promise<void>;
     }
 }
 

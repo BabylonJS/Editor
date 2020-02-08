@@ -43,7 +43,7 @@ export default class EditorPreview {
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="PREVIEW-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
             { type: 'main', resizable: false, content: '<canvas id="renderCanvasEditor" class="ctxmenu"></canvas>' },
-            { type: 'bottom', resizable: false, size: 30, content: '<div id="RENDER-CANVAS-CONTAINER" style="width: 100%; height: 100%;"></div>' }
+            // { type: 'bottom', resizable: false, size: 30, content: '<div id="RENDER-CANVAS-CONTAINER" style="width: 100%; height: 100%;"></div>' }
         ];
         this.layout.build('PREVIEW');
 
@@ -83,13 +83,13 @@ export default class EditorPreview {
         this.toolbar.build('PREVIEW-TOOLBAR');
 
         // Tools toolbar
-        this.toolsToolbar = new Toolbar('RENDER-CANVAS-CONTAINER');
-        this.toolsToolbar.onClick = id => this.onToolsToolbarClicked(id);
-        this.toolsToolbar.items = [
-            { type: 'button', id: 'mesh-painter', text: 'Mesh Painter', img: 'icon-paint', checked: false },
-            { type: 'button', id: 'terrain-painter', text: 'Terrain Painter', img: 'icon-paint', checked: false }
-        ];
-        this.toolsToolbar.build('RENDER-CANVAS-CONTAINER');
+        // this.toolsToolbar = new Toolbar('RENDER-CANVAS-CONTAINER');
+        // this.toolsToolbar.onClick = id => this.onToolsToolbarClicked(id);
+        // this.toolsToolbar.items = [
+        //     { type: 'button', id: 'mesh-painter', text: 'Mesh Painter', img: 'icon-paint', checked: false },
+        //     { type: 'button', id: 'terrain-painter', text: 'Terrain Painter', img: 'icon-paint', checked: false }
+        // ];
+        // this.toolsToolbar.build('RENDER-CANVAS-CONTAINER');
 
         // Context menu
         const canvas = <HTMLCanvasElement> $('#renderCanvasEditor')[0];
