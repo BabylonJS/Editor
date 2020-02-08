@@ -9,6 +9,7 @@ electron-packages
 node_modules
 script
 src
+test
 .gitignore
 babylonjs-editor-code-editor.d.ts
 babylonjs-editor-extensions-es6.d.ts
