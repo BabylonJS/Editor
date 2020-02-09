@@ -305,7 +305,13 @@ export default class MeshPainter extends AbstractEditionTool<MeshPainter> implem
     // Remove sources!
     private _remove (info: PointerInfo, pickInfo: PickingInfo): void {
         const toRemove = this._paintedMeshes.filter((pm) => Vector3.Distance(pm.position, this._sphere.position) <= this._sphere.scaling.x * 0.5);
-        toRemove.forEach((tr) => tr.dispose(false));
+        toRemove.forEach((tr) => {
+            const index = this._paintedMeshes.indexOf(tr);
+            if (index !== -1)
+                this._paintedMeshes.splice(index, 1);
+            
+            tr.dispose(false);
+        });
     }
 
     // Paint sources!

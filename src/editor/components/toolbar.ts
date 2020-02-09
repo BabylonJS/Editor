@@ -40,9 +40,9 @@ export default class EditorToolbar {
         this.main.items = [
             {
                 type: 'menu', id: 'project', text: 'Project', img: 'icon-project', items: [
-                    { id: 'import-project', img: 'icon-export', text: 'Import Project...' },
+                    { id: 'import-project', img: 'icon-export', text: 'Open Project...' },
                     { type: 'break' },
-                    { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
+                    { id: 'reload-project', img: 'icon-copy', text: 'Reload Project...' },
                     { id: 'new-project', img: 'icon-copy', text: 'New Project...' },
                     { type: 'break' },
                     { id: 'export-project', img: 'icon-files', text: 'Save Project... <kbd>CTRL + S</kbd>' },
