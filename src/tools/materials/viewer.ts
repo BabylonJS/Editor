@@ -506,7 +506,7 @@ export default class MaterialsViewer extends EditorPlugin {
 
     // Binds the vents
     private _bindEvents (): void {
-        this.onAddObject = this.editor.core.onAddObject.add((m: Material) => this.waitingMaterials.push(m));
+        this.onAddObject = this.editor.core.onAddObject.add((m: Material) => m instanceof Material && this.waitingMaterials.push(m));
         this.onObjectSelected = this.editor.core.onSelectObject.add(obj => this.selectedObject(obj));
         this.onModifiedObject = this.editor.core.onModifiedObject.add(async (obj: any) => {
             const previewItem = this.previewItems.find(pi => pi.material === obj || pi.material === obj.material);

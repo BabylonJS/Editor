@@ -73,6 +73,9 @@ export default class SceneFactory {
 
         // Refresh graph
         editor.graph.configure();
+
+        // Notify
+        editor.core.onAddObject.notifyObservers(node);
     }
 
     /**

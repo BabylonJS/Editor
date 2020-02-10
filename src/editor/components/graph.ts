@@ -147,6 +147,9 @@ export default class EditorGraph {
                 }
             });
 
+            // Notify
+            this.editor.core.onModifiedObject.notifyObservers(data);
+
             return true;
         };
 

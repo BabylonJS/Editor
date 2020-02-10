@@ -83,6 +83,8 @@ export default class EditorToolbar {
                 type: 'menu', id: 'view', text: 'View', img: 'icon-helpers', items: [
                     { id: 'textures', img: 'icon-dynamic-texture', text: 'Textures Viewer...' },
                     { id: 'materials', img: 'icon-effects', text: 'Materials Viewer...' },
+                    { type: 'break' },
+                    { id: 'screenshot', img: 'icon-camera', text: 'Screenshot...' }
                 ]
             },
             { type: 'break' },
@@ -264,6 +266,10 @@ export default class EditorToolbar {
                 break;
             case 'view:materials':
                 await this.loadTool('material-viewer', 'Materials Viewer');
+                break;
+
+            case 'view:screenshot':
+                await this.editor.preview.createScreenShot();
                 break;
 
             // Tools

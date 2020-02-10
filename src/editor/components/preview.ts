@@ -6,6 +6,8 @@ import ContextMenu from '../gui/context-menu';
 
 import Editor from '../editor';
 
+import Window from "../gui/window";
+
 import { GizmoType } from '../scene/scene-picker';
 import { AvailablePaintingTools } from '../painting/painting-tools';
 
@@ -43,7 +45,7 @@ export default class EditorPreview {
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="PREVIEW-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
             { type: 'main', resizable: false, content: '<canvas id="renderCanvasEditor" class="ctxmenu"></canvas>' },
-            // { type: 'bottom', resizable: false, size: 30, content: '<div id="RENDER-CANVAS-CONTAINER" style="width: 100%; height: 100%;"></div>' }
+            { type: 'bottom', resizable: false, size: 30, content: '<div id="RENDER-CANVAS-CONTAINER" style="width: 100%; height: 100%;"></div>' }
         ];
         this.layout.build('PREVIEW');
 
@@ -83,13 +85,13 @@ export default class EditorPreview {
         this.toolbar.build('PREVIEW-TOOLBAR');
 
         // Tools toolbar
-        // this.toolsToolbar = new Toolbar('RENDER-CANVAS-CONTAINER');
-        // this.toolsToolbar.onClick = id => this.onToolsToolbarClicked(id);
-        // this.toolsToolbar.items = [
-        //     { type: 'button', id: 'mesh-painter', text: 'Mesh Painter', img: 'icon-paint', checked: false },
-        //     { type: 'button', id: 'terrain-painter', text: 'Terrain Painter', img: 'icon-paint', checked: false }
-        // ];
-        // this.toolsToolbar.build('RENDER-CANVAS-CONTAINER');
+        this.toolsToolbar = new Toolbar('RENDER-CANVAS-CONTAINER');
+        this.toolsToolbar.onClick = id => this.onToolsToolbarClicked(id);
+        this.toolsToolbar.items = [
+            { type: 'button', id: 'mesh-painter', text: 'Mesh Painter', img: 'icon-paint', checked: false },
+            { type: 'button', id: 'terrain-painter', text: 'Terrain Painter', img: 'icon-paint', checked: false }
+        ];
+        this.toolsToolbar.build('RENDER-CANVAS-CONTAINER');
 
         // Context menu
         const canvas = <HTMLCanvasElement> $('#renderCanvasEditor')[0];
@@ -236,15 +238,46 @@ export default class EditorPreview {
     }
 
     /**
+     * Creates a new screenshot.
+     */
+    public async createScreenShot(): Promise<void> {
+        this.editor.core.scene.render();
+        const screenshot = await BabylonTools.CreateScreenshotAsync(this.editor.core.engine, this.editor.core.scene.activeCamera, {
+            width: 3840,
+            height: 2160
+        });
+
+        const win = new Window("PreviewScreenshot");
+        win.title = "Screenshot";
+        win.width = win.height = 512;
+        win.body = `<img src="${screenshot}" style="width: 100%; height: 100%; object-fit: contain;"></img>`;
+        win.buttons = ["Ok", "Save"];
+        win.open();
+
+        win.onButtonClick = (id) => {
+            if (id === "Save") {
+                const buffer = BabylonTools.DecodeBase64(screenshot);
+                const blob = new Blob([buffer]);
+                BabylonTools.Download(blob, 'screenshot.png');
+            }
+
+            win.close();
+        };
+    }
+
+    /**
      * On the user clicks on the toolbar
      * @param id the id of the clicked item
      */
     protected onToolbarClicked (id: string): void {
-        switch (id) {
-            // Camera
-            case 'camera:free': this.editor.createEditorCamera('free'); break;
-            case 'camera:arc': this.editor.createEditorCamera('arc'); break;
+        const split = id.split(":");
+        if (split.length === 1 && split[0] === "camera")
+            this._updateCamerasMenu();
 
+        if (split.length > 1 && split[0] === "camera")
+            return this.onToolbarCameraClocked(split[1]);
+
+        switch (id) {
             // Gizmos
             case 'bounding-box':
             case 'position':
@@ -326,6 +359,33 @@ export default class EditorPreview {
     }
 
     /**
+     * On the user clicks on a camera in the menu camera.
+     * @param id the id of the camera menu item.
+     */
+    protected onToolbarCameraClocked (id: string): void {
+        const pipelines = this.editor.core.scene.postProcessRenderPipelineManager;
+        pipelines.supportedPipelines.forEach((p) => pipelines.detachCamerasFromRenderPipeline(p.name, this.editor.core.scene.activeCamera));
+
+        let camera: Camera;
+        switch (id) {
+            // Common
+            case 'free': camera = this.editor.createEditorCamera('free'); break;
+            case 'arc': camera = this.editor.createEditorCamera('arc'); break;
+
+            // Custom
+            default:
+                camera = this.editor.core.scene.activeCamera = this.editor.core.scene.getCameraByID(id);
+                camera.attachControl(this.editor.core.engine.getRenderingCanvas(), false);
+                break;
+        }
+
+        if (!camera)
+            return;
+
+        pipelines.supportedPipelines.forEach((p) => pipelines.attachCamerasToRenderPipeline(p.name, [camera]));
+    }
+
+    /**
      * On the user clicks on the tools toolbar
      * @param id the id of the clicked item
      */
@@ -397,5 +457,23 @@ export default class EditorPreview {
 
             m['_sortLODLevels']();
         });
+    }
+
+    // Updates the cameras menu.
+    private _updateCamerasMenu(): void {
+        const cameras = this.editor.core.scene.cameras.filter((c) => c !== this.editor.camera);
+        const menu = this.toolbar.element.items[0];
+
+        menu.items =  <W2UI.W2Item[]> ([
+            { id: 'free', text: 'Free Camera', img: 'icon-camera' },
+            { id: 'arc', text: 'Arc Rotate Camera', img: 'icon-camera' }
+        ].concat(cameras.map((c) => ({
+            id: c.id,
+            type: 'button',
+            text: c.name,
+            img: 'icon-camera'
+        }))));
+
+        this.toolbar.element.refresh();
     }
 }
