@@ -249,25 +249,10 @@
         }).then(function () {
             tools.isFileApiSupported(true);
 
-            if (opener) {
-                BABYLON.FilesInputStore.FilesToLoad = opener.BABYLON.FilesInputStore.FilesToLoad;
+            BABYLON.FilesInputStore.FilesToLoad = opener.BABYLON.FilesInputStore.FilesToLoad;
 
-                var sceneFile = getFileByExtension(BABYLON.FilesInputStore.FilesToLoad, 'babylon');
-                loadScene(sceneFile);
-            }
-            else {
-                var socket = io('/client');
-                socket.on('request-scene', (files) => {
-                    // Import Editor tools
-                    for (var thing in files) {
-                        var file = tools.CreateFile(files[thing], thing);
-                        BABYLON.FilesInputStore.FilesToLoad[thing] = file;
-                    }
-
-                    var sceneFile = getFileByExtension(files, 'babylon');
-                    loadScene(sceneFile);
-                });
-            }
+            var sceneFile = getFileByExtension(BABYLON.FilesInputStore.FilesToLoad, 'babylon');
+            loadScene(sceneFile);
         });
     </script>
 </body>

@@ -2722,10 +2722,19 @@ declare module 'babylonjs-editor/editor/components/preview' {
                 */
             pasteFromClipBoard(): void;
             /**
+                * Creates a new screenshot.
+                */
+            createScreenShot(): Promise<void>;
+            /**
                 * On the user clicks on the toolbar
                 * @param id the id of the clicked item
                 */
             protected onToolbarClicked(id: string): void;
+            /**
+                * On the user clicks on a camera in the menu camera.
+                * @param id the id of the camera menu item.
+                */
+            protected onToolbarCameraClocked(id: string): void;
             /**
                 * On the user clicks on the tools toolbar
                 * @param id the id of the clicked item

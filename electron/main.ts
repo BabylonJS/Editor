@@ -1,13 +1,11 @@
 import { app, BrowserWindow, globalShortcut, Menu } from 'electron';
 import WebServer from './web-server';
-import ScenePreview from './preview-scene';
 import Settings from './settings/settings';
 
 export default class EditorApp {
     // Static members
     public static Window: BrowserWindow = null;
     public static Server: WebServer = null;
-    public static ScenePreview: ScenePreview = null;
 
     /**
      * Creates a new Electron window
@@ -18,9 +16,6 @@ export default class EditorApp {
 
         // Create web server
         this.Server = new WebServer();
-
-        // Create Scene Preview
-        this.ScenePreview = new ScenePreview(this.Server);
 
         // Create short cuts
         this.CreateShortcutsAndMenu();

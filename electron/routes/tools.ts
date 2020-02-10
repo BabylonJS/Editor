@@ -30,7 +30,6 @@ export default class ToolsRouter {
         this.setOpenedFile();
         
         webServer.localApplication.use(this.router.routes());
-        webServer.externApplication.use(this.router.routes());
     }
 
     /**
@@ -87,7 +86,7 @@ export default class ToolsRouter {
     protected getOpenedFile (): void {
         this.router.get('/openedFile', async (ctx, next) => {
             ctx.body = Settings.OpenedFile;
-        })
+        });
     }
 
     /**

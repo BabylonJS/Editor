@@ -13,7 +13,6 @@ import VSCodeSocket from './vscode/socket';
 export default class WebServer {
     // Public members
     public localApplication: Koa;
-    public externApplication: Koa;
 
     // Static members
     public address: string = 'localhost';
@@ -25,9 +24,6 @@ export default class WebServer {
     constructor () {
         this.localApplication = new Koa();
         this.localApplication.proxy = true;
-        
-        this.externApplication = new Koa();
-        this.externApplication.proxy = true;
 
         // Body parser
         const koaBodyParser = KoaBodyParser({
@@ -35,12 +31,10 @@ export default class WebServer {
             jsonLimit: '200mb'
         });
         this.localApplication.use(koaBodyParser);
-        this.externApplication.use(koaBodyParser);
 
         // Static
         const koaStatic = KoaStatic('.');
         this.localApplication.use(koaStatic);
-        this.externApplication.use(koaStatic);
 
         new StorageRouter(this.localApplication);
         new ToolsRouter(this);
@@ -55,28 +49,5 @@ export default class WebServer {
     public listen (port: number): void {
         // Local
         this.localApplication.listen(port, 'localhost');
-
-        // Extern
-        const interfaces = networkInterfaces();
-
-        if (interfaces['Wi-Fi']) { // Wi-fi?
-            for (const j of interfaces['Wi-Fi']) {
-                if (!j.internal && j.family === 'IPv4') {
-                    this.address = j.address;
-                    this.externApplication.listen(port, j.address);
-                    return;
-                }
-            }
-        }
-
-        for (const i in interfaces) { // Other?
-            for (const j of interfaces[i]) {
-                if (!j.internal && j.family === 'IPv4') {
-                    this.address = j.address;
-                    this.externApplication.listen(port, j.address);
-                    return;
-                }
-            }
-        }
     }
 }
