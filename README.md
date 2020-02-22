@@ -10,30 +10,17 @@ The Documentation is available here: http://doc.babylonjs.com/resources/
 Some more articles/tutorials are available here: https://medium.com/babylon-js/
 
 ## Features
-* Create and edit particle systems
-* Create and edit animations
-* Create and edit lens flares systems
-* Create and edit physics states on meshes
-* Create and edit materials (including materials library)
-* Add and edit sounds
-* Add and edit textures (including render target textures & procedural textures)
-* Save projects on OneDrive / local with Electron
-* Deploy project template on OneDrive / local with Electron
-* Scene graph view
-* Create and edit custom post-process
-* Create and edit custom materials
-* Attach custom scripts (JavaScript and TypeScript) to your objects
-* Test your scenes with debug support
+* TODO
 
 ## Installing
 Installing dependencies
 
 ```bash
-node ./script/install.js
+npm install
 ```
 
 ## Building
-Building Editor (front + electron)
+Building Editor)
 
 ```bash
 npm run build
@@ -47,23 +34,6 @@ Watching TypeScript (front)
 ```bash
 npm run watch
 ```
-
-Watching TypeScript (Electron)
-```bash
-npm run watch-electron
-```
-
-Running the web server
-```bash
-npm run webserver
-```
-
-## Using VSCode
-CTRL+SHIFT+B then select "watch-all".
-
-Now you can launch and debug the native app using F5 and selecting "Electron With Devtools" in the debug sidebar in VSCode.
-
-That's all!
 
 Licence
 ======

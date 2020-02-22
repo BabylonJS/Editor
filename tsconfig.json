@@ -1,11 +1,18 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "module": "commonjs",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "sourceMap": true,
     "declaration": true,
     "outDir": "./build/src",
     "declarationDir": "./declaration/src",
+    "jsx": "react",
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "typeRoots": [
       "node_modules/@types"
     ],
@@ -13,11 +20,7 @@
     "experimentalDecorators": true,
     "skipLibCheck": true,
     "types": [
-      "es6-promise",
-      "w2ui",
       "jquery",
-      "socket.io-client",
-      "jstree",
       "monaco-editor",
       "typescript"
     ],
@@ -33,12 +36,8 @@
     "./build",
     "./declaration",
     "./index.d.ts",
-    "./babylonjs-editor-extensions.d.ts",
-    "./babylonjs-editor-extensions-es6.d.ts",
-    "electron",
     "electron-packages",
-    "vscode-extension",
-    "photoshop-extension",
-    "assets"
+    "assets",
+    "test"
   ]
 }

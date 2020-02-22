@@ -1,9 +1,0 @@
-{
-    "textures": [
-        { "name": "diffuseSampler", "isCube": false },
-        { "name": "otherSampler", "isCube": false }
-    ],
-    "floats": [],
-    "vectors2": [],
-    "vectors3": []
-}

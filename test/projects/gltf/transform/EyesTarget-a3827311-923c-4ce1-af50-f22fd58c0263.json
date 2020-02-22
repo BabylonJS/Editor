@@ -1,0 +1,62 @@
+{
+	"tags": null,
+	"position": [
+		0.0026676747066203513,
+		0.04479163902837859,
+		-0.2804942429065706
+	],
+	"rotation": [
+		0,
+		0,
+		0
+	],
+	"rotationQuaternion": [
+		0,
+		0,
+		0,
+		1
+	],
+	"scaling": [
+		1,
+		1,
+		1
+	],
+	"billboardMode": 0,
+	"scalingDeterminant": 1,
+	"infiniteDistance": false,
+	"ignoreNonUniformScaling": false,
+	"reIntegrateRotationIntoRotationQuaternion": false,
+	"name": "EyesTarget",
+	"id": "a3827311-923c-4ce1-af50-f22fd58c0263",
+	"uniqueId": 49,
+	"state": "",
+	"metadata": {
+		"gltf": {
+			"pointers": [
+				"/nodes/11"
+			],
+			"editorDone": true
+		}
+	},
+	"type": "TransformNode",
+	"parentId": "0083eaa7-d2f2-49a6-af1f-fade1d7b7b2a",
+	"localMatrix": {
+		"0": 1,
+		"1": 0,
+		"2": 0,
+		"3": 0,
+		"4": 0,
+		"5": 1,
+		"6": 0,
+		"7": 0,
+		"8": 0,
+		"9": 0,
+		"10": 1,
+		"11": 0,
+		"12": 0,
+		"13": 0,
+		"14": 0,
+		"15": 1
+	},
+	"isEnabled": true
+}

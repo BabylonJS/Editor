@@ -2,24 +2,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Chrome Launch (source maps)",
-            "type": "chrome",
-            "request": "launch",
-            "url": "http://localhost:1338/index-local.html",
-            "webRoot": "${workspaceRoot}/",
-            "sourceMaps": true,
-            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
-        },
-        {
-            "name": "Chrome Launch (without source maps)",
-            "type": "chrome",
-            "request": "launch",
-            "url": "http://localhost:1338/index-local.html",
-            "webRoot": "${workspaceRoot}/",
-            "sourceMaps": false,
-            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
-        },
-        {
             "name": "Electron With Devtools",
             "type": "node",
             "request": "launch",
@@ -69,29 +51,12 @@
                 "build/**/*.js"
             ],
             "sourceMaps": true
-        },
-        {
-            "name": "VSCode Extension",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension"
-            ]
         }
     ],
     "compounds": [
         {
             "name": "Editor",
             "configurations": ["Electron", "Attach Electron Renderer"],
-        },
-        {
-            "name": "Electron & VSCode Extension",
-            "configurations": ["Electron With Devtools", "VSCode Extension"]
-        },
-        {
-            "name": "All",
-            "configurations": ["Electron", "Attach Electron Renderer", "VSCode Extension", "Photoshop Extension"]
         }
     ]
 }

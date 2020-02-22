@@ -1,0 +1,62 @@
+{
+	"tags": null,
+	"position": [
+		0,
+		0.193738,
+		-0.08454558
+	],
+	"rotation": [
+		0,
+		0,
+		0
+	],
+	"rotationQuaternion": [
+		-0.029031712917327993,
+		-0.041954994465214425,
+		-0.08074715633972446,
+		0.9954279656647977
+	],
+	"scaling": [
+		1,
+		1,
+		1
+	],
+	"billboardMode": 0,
+	"scalingDeterminant": 1,
+	"infiniteDistance": false,
+	"ignoreNonUniformScaling": false,
+	"reIntegrateRotationIntoRotationQuaternion": false,
+	"name": "SkullBase",
+	"id": "03ad0d46-1240-47c1-8617-75f2710713c1",
+	"uniqueId": 45,
+	"state": "",
+	"metadata": {
+		"gltf": {
+			"pointers": [
+				"/nodes/14"
+			],
+			"editorDone": true
+		}
+	},
+	"type": "TransformNode",
+	"parentId": "1e35cc2c-cfd4-400a-b8fc-03ec39037b1b",
+	"localMatrix": {
+		"0": 1,
+		"1": 0,
+		"2": 0,
+		"3": 0,
+		"4": 0,
+		"5": 1,
+		"6": 0,
+		"7": 0,
+		"8": 0,
+		"9": 0,
+		"10": 1,
+		"11": 0,
+		"12": 0,
+		"13": 0,
+		"14": 0,
+		"15": 1
+	},
+	"isEnabled": true
+}
