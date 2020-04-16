@@ -89,6 +89,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Create ScreenShot..." icon={<Icon src="eye.svg" />} onClick={() => this._menuItemClicked("view:create-screenshot")} />
                 <MenuDivider />
                 <MenuItem text="Console" icon={<Icon src="terminal.svg" />} onClick={() => this._menuItemClicked("view:console")} />
+                <MenuItem text="Terminal" icon={<Icon src="terminal.svg" />} onClick={() => this._menuItemClicked("view:terminal")} />
             </Menu>;
         const add =
             <Menu>
@@ -190,6 +191,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 case "create-screenshot": this._handleCreateScreenshot(); break;
 
                 case "console": this._editor.revealPanel("console"); break;
+                case "terminal": this._editor.addPlugin("terminal");
                 default: break;
             }
 

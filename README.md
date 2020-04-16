@@ -13,8 +13,9 @@ Some more articles/tutorials are available here: https://medium.com/babylon-js/
 * TODO
 
 ## Installing
-Installing dependencies
+Follow this tutorial to install the window build tools (required by node-pty): https://github.com/felixrieseberg/windows-build-tools
 
+Then, just install the dependencies:
 ```bash
 npm install
 ```
