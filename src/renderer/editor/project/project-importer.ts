@@ -81,6 +81,7 @@ export class ProjectImporter {
 
         // Configure scene
         ProjectHelpers.ImportSceneSettings(editor.scene!, project.scene, rootUrl);
+        const physicsEngine = editor.scene!.getPhysicsEngine();
 
         // Configure camera
         SceneSettings.ConfigureFromJson(project.project.camera, editor);
@@ -91,7 +92,28 @@ export class ProjectImporter {
         for (const m of project.meshes) {
             try {
                 const json = await readJSON(join(Project.DirPath, "meshes", m));
-                await this.ImportMesh(editor, m, json, Project.DirPath, join("meshes", m));
+                const result = await this.ImportMesh(editor, m, json, Project.DirPath, join("meshes", m));
+
+                if (physicsEngine) {
+                    result.meshes.forEach((m) => {
+                        try {
+                            m.physicsImpostor = physicsEngine.getImpostorForPhysicsObject(m);
+                            m.physicsImpostor?.sleep();
+                            editor.console.logInfo(`Parsed physics impostor for mesh "${m.name}"`);
+
+                            // Retrieve physics impostors for instances as well
+                            if (m instanceof Mesh) {
+                                m.instances.forEach((i) => {
+                                    i.physicsImpostor = physicsEngine.getImpostorForPhysicsObject(i);
+                                    i.physicsImpostor?.sleep();
+                                    editor.console.logInfo(`Parsed physics impostor for instance "${i.name}" of mesh "${m.name}"`);
+                                });
+                            }
+                        } catch (e) {
+                            editor.console.logError(`Failed to set physics impostor for mesh "${m.name}"`);
+                        }
+                    });
+                }
             } catch (e) {
                 editor.console.logError(`Failed to load mesh "${m}"`);
             }
@@ -106,23 +128,12 @@ export class ProjectImporter {
             try {
                 const json = await readJSON(join(Project.DirPath, "transform", t));
                 const transform = TransformNode.Parse(json, editor.scene!, rootUrl);
-                transform._waitingParentId = json.parentId;
+
+                transform.metadata = transform.metadata ?? { };
+                transform.metadata._waitingParentId = json.parentId;
             } catch (e) {
                 editor.console.logError(`Failed to load transform node "${t}"`);
             }
-        }
-
-        // Retrieve physics impostors for meshes
-        const physicsEngine = editor.scene!.getPhysicsEngine();
-        if (physicsEngine) {
-            editor.scene!.meshes.forEach((m) => {
-                try {
-                    m.physicsImpostor = physicsEngine.getImpostorForPhysicsObject(m);
-                    editor.console.logInfo(`Parsed physics impostor for mesh "${m.name}"`);
-                } catch (e) {
-                    editor.console.logError(`Failed to set physics impostor for mesh "${m.name}"`);
-                }
-            });
         }
 
         // Load all materials
@@ -173,7 +184,11 @@ export class ProjectImporter {
         for (const l of project.lights) {
             try {
                 const json = await readJSON(join(Project.DirPath, "lights", l.json));
-                Light.Parse(json, editor.scene!);
+                const light = Light.Parse(json, editor.scene!)!;
+
+                light.metadata = light.metadata ?? { };
+                light.metadata._waitingParentId = json.parentId;
+
                 editor.console.logInfo(`Parsed light "${l.json}"`);
 
                 if (l.shadowGenerator) {
@@ -199,7 +214,11 @@ export class ProjectImporter {
         for (const c of project.cameras) {
             try {
                 const json = await readJSON(join(Project.DirPath, "cameras", c));
-                Camera.Parse(json, editor.scene!);
+                const camera = Camera.Parse(json, editor.scene!);
+
+                camera.metadata = camera.metadata ?? { };
+                camera.metadata._waitingParentId = json.parentId;
+
                 editor.console.logInfo(`Parsed camera "${c}"`);
             } catch (e) {
                 editor.console.logError(`Failed to parse camera "${c}"`);
@@ -250,11 +269,7 @@ export class ProjectImporter {
      */
     public static async ImportMesh(editor: Editor, name: string, json: any, rootUrl: string, filename: string): Promise<ReturnType<typeof SceneLoader.ImportMeshAsync>> {
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, filename, editor.scene, null, ".babylon");
-
         editor.console.logInfo(`Parsed mesh "${name}"`);
-        result.meshes.forEach((m, index) => {
-            m._waitingParentId = json.meshes[index].parentId;
-        });
 
         // Lods
         for (const lod of json.lods) {
@@ -275,6 +290,12 @@ export class ProjectImporter {
             }
         }
 
+        // Parent
+        result.meshes.forEach((m, index) => {
+            m.metadata = m.metadata ?? { };
+            m.metadata._waitingParentId = json.meshes[index].parentId;
+        });
+
         return result as any;
     }
 
@@ -282,9 +303,11 @@ export class ProjectImporter {
      * Sets the parent of the given node waiting for it.
      */
     private static _SetWaitingParent(n: Node): void {
-        if (!n._waitingParentId) { return; }
+        if (!n.metadata?._waitingParentId) { return; }
 
-        n.parent = n.getScene().getNodeByID(n._waitingParentId) ?? n.getScene().getTransformNodeByID(n._waitingParentId);
+        n.parent = n.getScene().getNodeByID(n.metadata._waitingParentId) ?? n.getScene().getTransformNodeByID(n.metadata._waitingParentId);
+
+        delete n.metadata._waitingParentId;
         delete n._waitingParentId;
     }
 

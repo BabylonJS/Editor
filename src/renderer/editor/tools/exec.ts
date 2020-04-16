@@ -20,7 +20,7 @@ export class ExecTools {
      * @param command the command to execute.
      * @param cwd the working directory while executing the command.
      */
-    public static async Exec(editor: Editor, command: string, cwd: string): Promise<void> {
+    public static async Exec(editor: Editor, command: string, cwd?: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const program = exec(command, { cwd }, (error) => {
                 if (error) { return reject(); }
@@ -39,7 +39,7 @@ export class ExecTools {
      * @param command the command to execute.
      * @param cwd the working directory while executing the command.
      */
-    public static ExecAndGetProgram(editor: Editor, command: string, cwd: string): IExecProcess {
+    public static ExecAndGetProgram(editor: Editor, command: string, cwd?: string): IExecProcess {
         const program = exec(command, { cwd });
 
         program.stdout?.on("data", (d) => editor.console.logInfo(d.toString()));

@@ -10,3 +10,10 @@ export interface IObjectModified<T> {
      */
     path: string;
 }
+
+export interface IEditorPreferences {
+    /**
+     * Defines the path of the terminal to execute when opening the terminal in the editor.
+     */
+    terminalPath?: string;
+}

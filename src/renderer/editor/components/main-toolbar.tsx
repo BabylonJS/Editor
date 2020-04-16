@@ -23,8 +23,9 @@ import { SceneFactory } from "../scene/factory";
 import { WorkSpace } from "../project/workspace";
 import { Project } from "../project/project";
 import { ProjectExporter } from "../project/project-exporter";
-import { WelcomeDialog } from "../project/welcome";
-import { NewProjectWizard } from "../project/new-project";
+import { WelcomeDialog } from "../project/welcome/welcome";
+import { NewProjectWizard } from "../project/welcome/new-project";
+import { ExecTools } from "../tools/exec";
 
 export interface IToolbarProps {
     /**
@@ -88,7 +89,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Create ScreenShot..." icon={<Icon src="eye.svg" />} onClick={() => this._menuItemClicked("view:create-screenshot")} />
                 <MenuDivider />
-                <MenuItem text="Console" icon={<Icon src="terminal.svg" />} onClick={() => this._menuItemClicked("view:console")} />
+                <MenuItem text="Console" icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:console")} />
                 <MenuItem text="Terminal" icon={<Icon src="terminal.svg" />} onClick={() => this._menuItemClicked("view:terminal")} />
             </Menu>;
         const add =
@@ -118,6 +119,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Projects" icon="more">
                     {WorkSpace.AvailableProjects.map((p) => <MenuItem key={p} text={p} onClick={() => this._handleChangeProject(p)} />)}
                 </MenuItem>
+                <MenuDivider />
+                <MenuItem text="Open Visual Studio Code..." icon={<Icon src="vscode.svg" style={{ filter: "none" }} />} onClick={() => this._handleOpenVSCode()} />
             </Menu>;
 
         return (
@@ -169,7 +172,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "project:save": ProjectExporter.Save(this._editor); break;
             case "project:save-as": ProjectExporter.SaveAs(this._editor); break;
             case "project:open-workspace": WorkSpace.Browse(); break;
-            case "project:wizard": WelcomeDialog.Show(); break;
+            case "project:wizard": WelcomeDialog.Show(true); break;
 
             // Edit
             case "edit:refresh-assets": this._editor.assets.forceRefresh(); break;
@@ -266,6 +269,14 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         if (!popupId) { return; }
 
         IPCTools.SendWindowMessage(popupId, "workspace-path", { path: WorkSpace.Path! });
+    }
+
+    /**
+     * Called on the user wants to open VSCode.
+     */
+    private _handleOpenVSCode(): void {
+        const vscode = ExecTools.ExecAndGetProgram(this._editor, `code "${WorkSpace.DirPath!}"`);
+        vscode.process.unref();
     }
 
     /**

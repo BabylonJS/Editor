@@ -89,7 +89,7 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
             if (data.id !== "init") { return; }
 
             const extension = extname(data.path).toLowerCase();
-            const isCube = extension === ".dds";
+            const isCube = extension === ".dds" || extension === ".env";
 
             this.setState({ path: data.path, isCube });
         });

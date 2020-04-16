@@ -1,4 +1,6 @@
 import { ipcRenderer, shell } from "electron";
+import { join } from "path";
+import { pathExists } from "fs-extra";
 
 import { IPCRequests } from "../../shared/ipc";
 import { IStringDictionary, Nullable, Undefinable } from "../../shared/types";
@@ -16,7 +18,7 @@ import { ActivityIndicator } from "./gui/acitivity-indicator";
 
 import { Tools } from "./tools/tools";
 import { IPCTools } from "./tools/ipc";
-import { IObjectModified } from "./tools/types";
+import { IObjectModified, IEditorPreferences } from "./tools/types";
 import { undoRedo } from "./tools/undo-redo";
 import { AbstractEditorPlugin } from "./tools/plugin";
 
@@ -25,7 +27,7 @@ import { WorkSpace } from "./project/workspace";
 import { Project } from "./project/project";
 import { ProjectImporter } from "./project/project-importer";
 import { ProjectExporter } from "./project/project-exporter";
-import { WelcomeDialog } from "./project/welcome";
+import { WelcomeDialog } from "./project/welcome/welcome";
 
 import { SceneSettings } from "./scene/settings";
 import { GizmoType } from "./scene/gizmo";
@@ -177,10 +179,13 @@ export class Editor {
     public _packageJson: any = { };
 
     private _components: IStringDictionary<any> = { };
+    private _stacks: IStringDictionary<any> = { };
+
     private _resetting: boolean = false;
     private _taskFeedbacks: IStringDictionary<{
         message: string;
         amount: number;
+        timeout: number;
     }> = { };
 
     private _toaster: Nullable<Toaster> = null;
@@ -190,6 +195,7 @@ export class Editor {
         getActivityIndicator: (ref: ActivityIndicator) => (this._activityIndicator = ref),
     };
 
+    private _isInitialized: boolean = false;
     private _pluginWindows: number[] = [];
 
     /**
@@ -235,7 +241,7 @@ export class Editor {
         const layoutStateItem = (layoutVersion === Editor.LayoutVersion) ? localStorage.getItem('babylonjs-editor-layout-state') : null;
         const layoutState = layoutStateItem ? JSON.parse(layoutStateItem) : null;
 
-        if (layoutState) { this._configureLayourContent(layoutState.content); }
+        if (layoutState) { this._configureLayoutContent(layoutState.content); }
 
         this.layout = new GoldenLayout(layoutState ?? {
             settings: {
@@ -284,6 +290,11 @@ export class Editor {
             this._components[c.config.component] = c;
             c.container.on("resize", () => this.resize());
         });
+        this.layout.on("stackCreated", (s) => {
+            if (s.config?.componentName) {
+                this._stacks[s.config.componentName] = s;
+            }
+        });
 
         // Register components
         this.layout.registerComponent("inspector", Inspector);
@@ -311,7 +322,10 @@ export class Editor {
         // Don't forget to listen closing plugins
         for (const key in Editor._loadedPlugins) {
             const item = this.layout.root.getItemsById(key)[0];
-            if (item) { item["container"].on("destroy", () => delete Editor._loadedPlugins[key]); }
+            if (!item) { continue; }
+
+            const plugin = require(`../tools/${Editor._loadedPlugins[key].name}`);
+            this._bindPluginEvents(item["container"], plugin);
         }
 
         // Init!
@@ -325,7 +339,20 @@ export class Editor {
         this.engine!.resize();
         this.inspector.resize();
         this.assets.resize();
+        
+        for (const p in this.plugins) {
+            const panel = this.getPanelSize(p);
+            this.plugins[p].resize(panel.width, panel.height);
+        }
+
         this.resizeObservable.notifyObservers();
+    }
+
+    /**
+     * Returns wether or not the editor has been initialized.
+     */
+    public get isInitialized(): boolean {
+        return this._isInitialized;
     }
 
     /**
@@ -346,12 +373,12 @@ export class Editor {
      * @param amount the amount of progress for the task in interval [0; 100].
      * @param message the message to show.
      */
-    public addTaskFeedback(amount: number, message: string): string {
-        const key = this._toaster?.show(this._renderTaskFeedback(amount, message));
+    public addTaskFeedback(amount: number, message: string, timeout: number = 10000): string {
+        const key = this._toaster?.show(this._renderTaskFeedback(amount, message, timeout));
         if (!key) { throw "Can't create a new task feedback" }
 
         this._activityIndicator?.setState({ enabled: true });
-        this._taskFeedbacks[key] = { amount, message };
+        this._taskFeedbacks[key] = { amount, message, timeout };
         return key;
     }
 
@@ -366,7 +393,7 @@ export class Editor {
         if (task === undefined) { throw "Can't update an unexisting feedback."; }
 
         task.message = message ?? task.message;
-        this._toaster?.show(this._renderTaskFeedback(amount ?? task.amount, task.message), key);
+        this._toaster?.show(this._renderTaskFeedback(amount ?? task.amount, task.message, task.timeout), key);
     }
 
     /**
@@ -401,8 +428,30 @@ export class Editor {
      */
     public addPlugin(name: string): void {
         const plugin = require(`../tools/${name}`);
-
         this._addPlugin(plugin, name);
+    }
+
+    /**
+     * Closes the plugin identified by the given name.
+     * @param pluginName the name of the plugin to close.
+     */
+    public closePlugin(pluginName: string): void {
+        const container = this._components[pluginName]?.container;
+        if (!container) { return; }
+
+        // Close plugin
+        container.emit("destroy");
+
+        // Close container
+        container.off("show");
+        container.off("resize");
+        container.off("destroy");
+
+        try {
+            container.close();
+        } catch (e) {
+            // Catch silently.
+        }
     }
 
     /**
@@ -480,7 +529,7 @@ export class Editor {
         this.closeTaskFeedback(task, 500);
 
         if (integratedBrowser) {
-            window.open(`http://localhost:${WorkSpace.Workspace!.serverPort}`);
+            this.addWindowedPlugin("play", undefined, WorkSpace.Workspace);
         } else {
             shell.openExternal(`http://localhost:${WorkSpace.Workspace!.serverPort}`);
         }
@@ -501,6 +550,14 @@ export class Editor {
     }
 
     /**
+     * Returns the current settings of the editor.
+     */
+    public getPreferences(): IEditorPreferences {
+        const settings = JSON.parse(localStorage.getItem("babylonjs-editor-preferences") ?? "{ }") as IEditorPreferences;
+        return settings;
+    }
+
+    /**
      * Adds the given plugin into the layout.
      */
     private _addPlugin(plugin: any, name: string): void {
@@ -516,7 +573,7 @@ export class Editor {
             return this.revealPanel(plugin.title);
         }
 
-        const stack = this.layout.root.getItemsByType("stack").find((s) => s.config.id === "edit-panel" || s.config.id?.indexOf("edit-panel") !== -1);
+        const stack = this._stacks["edit-panel"] ?? this.layout.root.getItemsByType("stack").find((s) => s.config.id === "edit-panel" || s.config.id?.indexOf("edit-panel") !== -1);
         stack?.addChild({
             type: "react-component",
             id: plugin.title,
@@ -529,9 +586,23 @@ export class Editor {
             },
         });
 
+        // Register plugin
         Editor._loadedPlugins[plugin.title] = { name };
-        stack?.getActiveContentItem()["container"].on("destroy", () => {
-            delete Editor._loadedPlugins[plugin.title];
+
+        // Listen to events
+        const container = stack?.getActiveContentItem()["container"];
+        this._bindPluginEvents(container, plugin);
+    }
+
+    /**
+     * Binds the plugin's events. 
+     */
+    private _bindPluginEvents(container: any, plugin: any): void {
+        container?.on("destroy", () => delete Editor._loadedPlugins[plugin.title]);
+        container?.on("show", () => {
+            const pluginSize = this.getPanelSize(plugin.title);
+            if (!pluginSize) { return; }
+            this.plugins[plugin.title]?.resize(pluginSize.width, pluginSize.height);
         });
     }
 
@@ -586,25 +657,31 @@ export class Editor {
             await ProjectImporter.ImportProject(this, projectPath);
         } else {
             this.graph.refresh();
-            WelcomeDialog.Show();
+            WelcomeDialog.Show(false);
         }
 
         // Refresh
         this.mainToolbar.setState({ hasWorkspace: workspacePath !== null });
         this.toolsToolbar.setState({ hasWorkspace: WorkSpace.HasWorkspace() });
 
+        // Now initialized!
+        this._isInitialized = true;
+        
         // Notify!
         this.editorInitializedObservable.notifyObservers();
         this.selectedSceneObservable.notifyObservers(this.scene!);
 
-        // First load? If yes, install dependencies and build.
-        if (WorkSpace.HasWorkspace()) {
-            if (WorkSpace.Workspace!.firstLoad) {
+        // If has workspace, od workspace stuffs.
+        const workspace = WorkSpace.Workspace;
+        if (workspace) {
+            // First load?
+            const hasNodeModules = await pathExists(join(WorkSpace.DirPath!, "node_modules"));
+            if (!hasNodeModules) {
                 await ProjectExporter.ExportFinalScene(this);
                 await WorkSpace.InstallAndBuild(this);
             }
 
-            if (WorkSpace.Workspace!.watchProject) {
+            if (workspace.watchProject) {
                 WorkSpace.WatchProject(this);
             }
         }
@@ -613,10 +690,10 @@ export class Editor {
     /**
      * Renders a task with the given amount (progress bar) and message.
      */
-    private _renderTaskFeedback(amount: number, message: string): IToastProps {
+    private _renderTaskFeedback(amount: number, message: string, timeout: number): IToastProps {
         return {
             icon: "cloud-upload",
-            timeout: 10000,
+            timeout,
             className: Classes.DARK,
             message: (
                 <>
@@ -740,7 +817,6 @@ export class Editor {
             this._pluginWindows.forEach((id) => IPCTools.Send(IPCRequests.CloseWindow, id));
 
             // Processes
-            this.console.killCurrentProgram();
             if (WorkSpace.HasWorkspace()) { WorkSpace.KillAllProcesses(); }
 
             // Save state
@@ -771,11 +847,11 @@ export class Editor {
     /**
      * Configures the contents of the serialized layout.
      */
-    private _configureLayourContent(content: Nullable<any[]>): void {
+    private _configureLayoutContent(content: Nullable<any[]>): void {
         if (!content) { return; }
         content.forEach((c) => {
             if (c.props) { c.props = { editor: this, id: c.id }; }
-            this._configureLayourContent(c.content);
+            this._configureLayoutContent(c.content);
         });
     }
 
@@ -797,5 +873,14 @@ export class Editor {
      */
     public async _refreshWorkSpace(): Promise<void> {
         await WorkSpace.ReadWorkSpaceFile(WorkSpace.Path!);
+
+        const workspace = WorkSpace.Workspace;
+        if (!workspace) { return; }
+
+        if (workspace.watchProject && !WorkSpace.IsWatching) {
+            WorkSpace.WatchProject(this);
+        } else if (!workspace.watchProject && WorkSpace.IsWatching) {
+            WorkSpace.StopWatching();
+        }
     }
 }

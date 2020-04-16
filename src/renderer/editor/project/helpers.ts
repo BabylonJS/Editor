@@ -1,4 +1,10 @@
-import { Scene, SerializationHelper, SceneLoader, Color4, Color3, Vector3, Texture } from "babylonjs";
+import { Nullable } from "../../../shared/types";
+
+import {
+    Scene, SerializationHelper, SceneLoader,
+    Color4, Color3, Vector3, Texture,
+    CannonJSPlugin, OimoJSPlugin, AmmoJSPlugin, BabylonFileLoaderConfiguration, IPhysicsEnginePlugin,
+} from "babylonjs";
 
 export class ProjectHelpers {
     /**
@@ -102,7 +108,27 @@ export class ProjectHelpers {
             scene.fogDensity = parsedData.fogDensity;
         }
 
-        //Physics: TODO.
+        if (parsedData.physicsEnabled) {
+            if (!scene.getPhysicsEngine()) {
+                let physicsPlugin: Nullable<IPhysicsEnginePlugin> = null;
+                if (parsedData.physicsEngine === "cannon") {
+                    physicsPlugin = new CannonJSPlugin(undefined, undefined, BabylonFileLoaderConfiguration.LoaderInjectedPhysicsEngine);
+                } else if (parsedData.physicsEngine === "oimo") {
+                    physicsPlugin = new OimoJSPlugin(undefined, BabylonFileLoaderConfiguration.LoaderInjectedPhysicsEngine);
+                } else if (parsedData.physicsEngine === "ammo") {
+                    physicsPlugin = new AmmoJSPlugin(undefined, BabylonFileLoaderConfiguration.LoaderInjectedPhysicsEngine, undefined);
+                }
+
+                if (physicsPlugin) {
+                    scene.enablePhysics(Vector3.Zero(), physicsPlugin);
+                }
+            }
+
+            const physicsEngine = scene.getPhysicsEngine();
+            if (physicsEngine) {
+                physicsEngine.setGravity(Vector3.FromArray(parsedData.physicsGravity));
+            }
+        }
 
         // Image processing
         SerializationHelper.Parse(() => scene.imageProcessingConfiguration, parsedData.imageProcessingConfiguration, scene, null);

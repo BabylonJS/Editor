@@ -149,7 +149,7 @@ export class WorkSpace {
     public static async InstallAndBuild(editor: Editor): Promise<void> {
         if (!this.Workspace) { return; }
         
-        const task = editor.addTaskFeedback(0, "Installing dependencies");
+        const task = editor.addTaskFeedback(0, "Installing dependencies", 0);
         try {
             await ExecTools.Exec(editor, "npm install", WorkSpace.DirPath!);
 
@@ -192,12 +192,27 @@ export class WorkSpace {
     }
 
     /**
+     * Returns wether or not the project is being watched using webpack.
+     */
+    public static get IsWatching(): boolean {
+        return this._WatchProgram !== null;
+    }
+
+    /**
+     * Stops watching the project using webpack.
+     */
+    public static StopWatching(): void {
+        if (this._WatchProgram) {
+            this._WatchProgram.process.kill("SIGINT");
+        }
+
+        this._WatchProgram = null;
+    }
+
+    /**
      * Kills all the existing programs.
      */
     public static KillAllProcesses(): void {
-        if (this._WatchProgram) {
-            this._WatchProgram.process.unref();
-            this._WatchProgram.process.kill("SIGKILL");
-        }
+        this.StopWatching();
     }
 }

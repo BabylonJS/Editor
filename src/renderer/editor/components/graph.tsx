@@ -304,7 +304,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         const ctor = Tools.GetConstructorName(node);
         const name = node.name ?? ctor;
 
-        const style: React.CSSProperties = { marginLeft: "5px" };
+        const style: React.CSSProperties = { marginLeft: "5px", textOverflow: "ellipsis", whiteSpace: "nowrap" };
         if (node.metadata.doNotExport) {
             style.color = "grey";
             style.textDecoration = "line-through";

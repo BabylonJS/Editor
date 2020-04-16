@@ -165,13 +165,15 @@ export class Tools {
     }
 
     /**
-     * Loads a file from a url
-     * @param url the file url to load
-     * @param useArrayBuffer defines a boolean indicating that date must be returned as ArrayBuffer
+     * Loads a file from a url.
+     * @param url the file url to load.
+     * @param useArrayBuffer defines a boolean indicating that date must be returned as ArrayBuffer.
+     * @param onProgress callback called while file is loading (if the server supports this mode).
      */
-    public static async LoadFile<T = string | ArrayBuffer>(url: string, useArrayBuffer: boolean): Promise<T> {
-        const data = await BabylonTools.LoadFileAsync(url, useArrayBuffer);
-        return data as unknown as T;
+    public static async LoadFile<T = string | ArrayBuffer>(url: string, useArrayBuffer: boolean, onProgress?: (data: any) => void): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            BabylonTools.LoadFile(url, (d) => resolve(d as unknown as T), onProgress, undefined, useArrayBuffer, (_, e) => reject(e));
+        });
     }
 
     /**

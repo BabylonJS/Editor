@@ -129,6 +129,7 @@ export class MeshInspector extends NodeInspector {
             this.selectedObject.physicsImpostor = new PhysicsImpostor(this.selectedObject, PhysicsImpostor[this._physicsImpostor], {
                 mass: 1,
             });
+            this.selectedObject.physicsImpostor.sleep();
 
             while (this._physicsFolder!.__controllers.length) {
                 this._physicsFolder!.remove(this._physicsFolder!.__controllers[0]);
@@ -137,10 +138,10 @@ export class MeshInspector extends NodeInspector {
         });
 
         // Impostor properties
-        if (this.selectedObject.physicsImpostor) {
-            this._physicsFolder.add(this.selectedObject.physicsImpostor, "mass").min(0).step(0.1).name("Mass");
-            this._physicsFolder.add(this.selectedObject.physicsImpostor, "restitution").min(0).step(0.1).name("Restitution");
-            this._physicsFolder.add(this.selectedObject.physicsImpostor, "friction").min(0).step(0.1).name("Friction");
+        if (this.selectedObject.physicsImpostor && this.selectedObject.physicsImpostor.type !== PhysicsImpostor.NoImpostor) {
+            this._physicsFolder.add(this.selectedObject.physicsImpostor, "mass").min(0).step(0.1).name("Mass").onChange(() => this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false);
+            this._physicsFolder.add(this.selectedObject.physicsImpostor, "restitution").min(0).step(0.1).name("Restitution").onChange(() => this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false);
+            this._physicsFolder.add(this.selectedObject.physicsImpostor, "friction").min(0).step(0.1).name("Friction").onChange(() => this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false);
         }
     }
 

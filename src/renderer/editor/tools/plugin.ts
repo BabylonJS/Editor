@@ -49,6 +49,16 @@ export abstract class AbstractEditorPlugin<T> extends React.Component<IEditorPlu
     }
 
     /**
+     * Called on the panel has been resized.
+     * @param width the new with of the plugin's panel.
+     * @param height the new height of the plugin's panel.
+     */
+    // @ts-ignore
+    public resize(width: number, height: number): void {
+        // To be implemented.
+    }
+
+    /**
      * Called on the plugin is ready.
      */
     public abstract onReady(): void;

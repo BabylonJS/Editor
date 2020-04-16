@@ -1,10 +1,11 @@
+import * as os from "os";
+
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
 import { Classes } from "@blueprintjs/core";
 
-debugger;
-import Pty from "node-pty";
+import { spawn, IPty } from "node-pty";
 import { Terminal } from "xterm";
 import { FitAddon } from 'xterm-addon-fit';
 
@@ -22,7 +23,7 @@ export default class TerminalPlugin extends AbstractEditorPlugin<{ }> {
     };
 
     private _terminal: Nullable<Terminal> = null;
-    private _process: Nullable<Pty> = null;
+    private _process: Nullable<IPty> = null;
 
     private _fitAddon: FitAddon = new FitAddon();
 
@@ -37,43 +38,96 @@ export default class TerminalPlugin extends AbstractEditorPlugin<{ }> {
      * Called on the plugin is ready.
      */
     public onReady(): void {
-        // Create process.
-        // this._process = exec("cmd.exe", {
-        //     cwd: WorkSpace.DirPath! ?? Project.DirPath!,
-        // });
-        debugger;
-        this._process = Pty.spawn("COMSPEC", [], {
-            name: 'xterm-color',
-            cols: 80,
-            rows: 30,
-            cwd: WorkSpace.DirPath! ?? Project.DirPath!,
-            env: process.env,
-        });
+        if (this.editor.isInitialized) {
+            return this._createTerminal();
+        }
 
-        // this._process.stdout?.on("data", (d) => this._terminal?.write(d));
+        this.editor.editorInitializedObservable.addOnce(() => this._createTerminal());
+    }
 
-        // Create terminal
-        this._terminal = new Terminal({
-            fontSize: 12,
-        });
-
-        this._terminal.loadAddon(this._fitAddon);
-        this._terminal.open(this._terminalDiv);
-
-        this._fitAddon.fit();
-
-        this._terminal.onData((d) => this._process?.stdin?.write(d));
-        this._terminal.onResize((r) => this._process.resize(r.cols, r.rows));
+    /**
+     * Called on the panel has been resized.
+     */
+    public resize(): void {
+        setTimeout(() => {
+            this._resizeTerminal();
+            this._resizeProcess();
+        }, 0);
     }
 
     /**
      * Called on the plugin is closed.
      */
     public onClose(): void {
-        // Empty for now...
-        if (this._process) {
-            this._process.unref();
-            this._process.kill();
+        if (this._terminal) { this._terminal.dispose(); }
+        if (this._process) { this._process.kill(); }
+    }
+
+    /**
+     * Creats the terminal.
+     */
+    private _createTerminal(): void {
+        // Create process.
+        const shell = this.editor.getPreferences().terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"];
+        if (!shell) { return; }
+
+        this._process = spawn(shell, [], {
+            name: 'xterm-color',
+            cols: 80,
+            rows: 30,
+            cwd: WorkSpace.DirPath! ?? Project.DirPath!,
+        });
+
+        // Create terminal
+        this._terminal = new Terminal({
+            fontFamily: "Consolas, 'Courier New', monospace",
+            fontSize: 12,
+            fontWeight: "normal",
+            cursorStyle: "block",
+            cursorWidth: 1,
+            drawBoldTextInBrightColors: true,
+            fontWeightBold: "bold",
+            letterSpacing: -4,
+            cols: 80,
+            lineHeight: 1,
+            rendererType: "canvas",
+        });
+
+        this._terminal.loadAddon(this._fitAddon);
+        this._terminal.open(this._terminalDiv);
+
+        this._resizeTerminal();
+        this._resizeProcess();
+
+        // Events
+        this._terminal.onData((d) => this._process?.write(d));
+        this._terminal.onResize((r) => this._process?.resize(r.cols, r.rows));
+
+        this._process.onData((e) => this._terminal?.write(e));
+        this._process.onExit(() => this.editor.closePlugin(title));
+    }
+
+    /**
+     * Resizes the terminal.
+     */
+    private _resizeTerminal(): void {
+        try {
+            this._fitAddon.fit();
+        } catch (e) {
+            // Catch silently.
+        }
+    }
+
+    /**
+     * Resizes the process (conpty)
+     */
+    private _resizeProcess(): void {
+        if (!this._terminal || !this._process) { return; }
+
+        try {
+            this._process.resize(this._terminal.cols, this._terminal.rows);
+        } catch (e) {
+            // Catch silently
         }
     }
 }

@@ -4,14 +4,15 @@ import { readJSON, writeJSON } from "fs-extra";
 import { IPCRequests } from "../../../shared/ipc";
 
 import * as React from "react";
-import { FormGroup, InputGroup, ButtonGroup, Button, Switch, Divider, Callout } from "@blueprintjs/core";
+import { FormGroup, InputGroup, ButtonGroup, Button, Switch, Divider, Callout, FileInput } from "@blueprintjs/core";
 
 import { IWorkSpace } from "../../editor/project/typings";
 import { IPCTools } from "../../editor/tools/ipc";
+import { IEditorPreferences } from "../../editor/tools/types";
 
 export const title = "Workspace Settings";
 
-export interface IWorkspaceSettingsState extends IWorkSpace {
+export interface IWorkspaceSettingsState extends IWorkSpace, IEditorPreferences {
     /**
      * Defines the path to the workspace file.
      */
@@ -33,7 +34,9 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
             generateSceneOnSave: false,
             firstLoad: true,
             watchProject: false,
+            ...this._getPreferences(),
         };
+
         this._bindEvents();
     }
 
@@ -53,7 +56,15 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
                     <Callout title="Project" icon="new-object">
                         <FormGroup helperText="Options when saving the project" label="Project save" labelInfo="Optional">
                             <Switch label="Generate scene when saving project" checked={this.state.generateSceneOnSave} onChange={(e) => this.setState({ generateSceneOnSave: e.currentTarget.checked })} />
-                            <Switch label="Watch project" checked={this.state.watchProject} onChange={(e) => this.setState({ watchProject: e.currentTarget.checked })} />
+                        </FormGroup>
+                        <FormGroup helperText="Defines all options for developers" label="Developer Options" labelInfo="Optional">
+                            <Switch label="Watch project automatically" checked={this.state.watchProject} onChange={(e) => this.setState({ watchProject: e.currentTarget.checked })} />
+                        </FormGroup>
+                    </Callout>
+                    <Divider />
+                    <Callout title="Common" icon="cloud">
+                        <FormGroup label="Terminal path">
+                            <FileInput text={this.state.terminalPath ?? "Default"} fill={true} buttonText="Browse" onInputChange={(e) => this._handleTerminalPathChanged(e)} />
                         </FormGroup>
                     </Callout>
                 </div>
@@ -71,6 +82,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
      * Called on the user saves the changes.
      */
     private async _handleApply(): Promise<void> {
+        // Workspace
         await writeJSON(this.state.workspacePath, {
             lastOpenedScene: this.state.lastOpenedScene,
             serverPort: this.state.serverPort,
@@ -83,6 +95,13 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
 
         await IPCTools.ExecuteEditorFunction("_refreshWorkSpace");
 
+        // Editor preferences
+        const preferences = this._getPreferences();
+        preferences.terminalPath = this.state.terminalPath;
+
+        localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(preferences));
+
+        // Close
         window.close();
     }
 
@@ -99,5 +118,25 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
     private async _setWorkspace(path: string): Promise<void> {
         const json = await readJSON(path, { encoding: "utf-8" });
         this.setState({ workspacePath: path, ...json });
+    }
+
+    /**
+     * Returns the current preferences of the editor.
+     */
+    private _getPreferences(): IEditorPreferences {
+        const settings = JSON.parse(localStorage.getItem("babylonjs-editor-preferences") ?? "{ }") as IEditorPreferences;
+        return settings;
+    }
+
+    /**
+     * Called on the user changed the terminal path.
+     */
+    private _handleTerminalPathChanged(e: React.FormEvent<HTMLInputElement>): void {
+        const files = (e.target as HTMLInputElement).files;
+
+        if (!files) { return; }
+        if (!files?.length) { return; }
+
+        this.setState({ terminalPath: files.item(0)!.path });
     }
 }

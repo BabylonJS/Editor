@@ -19,6 +19,7 @@ export class SceneInspector extends AbstractInspector<Scene> {
         this.addEnvironment();
         this.addFog();
         this.addCollisions();
+        this.addPhysics();
     }
 
     /**
@@ -87,6 +88,19 @@ export class SceneInspector extends AbstractInspector<Scene> {
 
         collisions.add(this.selectedObject, "collisionsEnabled").name("Enabled");
         this.addVector(collisions, "Gravity", this.selectedObject, "gravity").open();
+    }
+
+    /**
+     * Adds all the physics editable properties.
+     */
+    protected addPhysics(): void {
+        const physicsEngine = this.selectedObject.getPhysicsEngine();
+        if (!physicsEngine) { return; }
+
+        const physics = this.tool!.addFolder("Physics");
+        physics.open();
+
+        this.addVector(physics, "Gravity", physicsEngine, "gravity");
     }
 }
 

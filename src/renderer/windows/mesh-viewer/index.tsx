@@ -2,7 +2,8 @@ import { ipcRenderer } from "electron";
 
 import { IPCRequests } from "../../../shared/ipc";
 
-import { Engine, Scene, ArcRotateCamera, Vector3, SceneLoader, PointLight } from "babylonjs";
+import { Engine, Scene, ArcRotateCamera, Vector3, SceneLoader, PointLight, Mesh, Texture, PBRMaterial, CubeTexture, Color3 } from "babylonjs";
+import { GridMaterial } from "babylonjs-materials";
 import "babylonjs-loaders";
 
 import * as React from "react";
@@ -62,6 +63,7 @@ export default class MeshViewerWindow extends React.Component {
      * Loads the mesh located at the given path.
      */
     private async _loadMesh(rootUrl: string, name: string): Promise<void> {
+        // Load mesh
         await SceneLoader.AppendAsync(rootUrl, name, this._scene);
 
         // Place camera
@@ -90,8 +92,62 @@ export default class MeshViewerWindow extends React.Component {
             if (!this._scene.lights.length) {
                 new PointLight("light", this._camera.position.clone(), this._scene);
             }
+
+            // Create skybox
+            this._createEnvironment(minimum, distance * 10);
+
+            // Open bjs inspector
+            this._scene.debugLayer.show({
+                globalRoot: document.body,
+                handleResize: false,
+                enablePopup: false,
+                enableClose: false,
+                embedMode: true,
+                inspectorURL: "./node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
+            });
         });
 
         this._scene._checkIsReady();
+    }
+
+    /**
+     * Creates the environment.
+     */
+    private _createEnvironment(minimum: Vector3, distance: number): void {
+        // Configure camera
+        this._camera.maxZ = distance * 10;
+        
+        // Environment texture
+        const texture = CubeTexture.CreateFromPrefilteredData("./assets/textures/forest.env", this._scene);
+        this._scene.environmentTexture = texture;
+
+        const materialTexture = texture.clone();
+        materialTexture.coordinatesMode = Texture.SKYBOX_MODE;
+
+        // Create material
+        const material = new PBRMaterial("material", this._scene);
+        material.reflectionTexture = materialTexture;
+
+        // Create skybox
+        const skybox = Mesh.CreateBox("skybox", distance * 10, this._scene, false, Mesh.BACKSIDE);
+        skybox.infiniteDistance = true;
+        skybox.material = material;
+
+        // Create grid material
+        const gridMaterial = new GridMaterial("grid", this._scene);
+        gridMaterial.majorUnitFrequency = 10;
+        gridMaterial.minorUnitVisibility = 0.3;
+        gridMaterial.gridRatio = 0.01;
+        gridMaterial.backFaceCulling = false;
+        gridMaterial.mainColor = new Color3(1, 1, 1);
+        gridMaterial.lineColor = new Color3(1, 1, 1);
+        gridMaterial.opacity = 0.8;
+        gridMaterial.zOffset = 1;
+        gridMaterial.opacityTexture = new Texture("./assets/textures/grid_background.png", this._scene);
+
+        // Create grid
+        const grid = Mesh.CreateGround("grid", distance, distance, 2, this._scene);
+        grid.position.set(0, minimum.y, 0);
+        grid.material = gridMaterial;
     }
 }

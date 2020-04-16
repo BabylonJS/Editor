@@ -1,12 +1,7 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button } from "@blueprintjs/core";
 import { editor } from "monaco-editor";
-
-import { EditableText } from "../gui/editable-text";
-import { ExecTools, IExecProcess } from "../tools/exec";
-import { WorkSpace } from "../project/workspace";
 
 import Editor from "../index";
 
@@ -59,14 +54,6 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     private _messages: IConsoleLog[] = [];
     private _autoScroll: boolean = true;
     private _addingLog: boolean = false;
-    private _executingCommand: boolean = false;
-
-    private _editableText: EditableText;
-    private _refHandler = {
-        getEditableText: (ref: EditableText) => this._editableText = ref,
-    };
-
-    private _process: Nullable<IExecProcess> = null;
 
     /**
      * Constructor.
@@ -85,11 +72,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     public render(): React.ReactNode {
         return (
             <>
-                <div id="babylon-editor-console" style={{ width: "100%", height: "calc(100% - 25px)" }}></div>
-                <EditableText ref={this._refHandler.getEditableText} value="" multiline={true} confirmOnEnterKey={true} placeholder="Enter your command here..." onConfirm={(v) => this._handleCommand(v)} />
-                <ButtonGroup style={{ position: "absolute", bottom: "0px", right: "0px" }}>
-                    <Button disabled={!this.state.hasProcessRunning} small={true} icon="stop" text="Stop" onClick={() => this.killCurrentProgram()} />
-                </ButtonGroup>
+                <div id="babylon-editor-console" style={{ width: "100%", height: "100%" }}></div>
             </>
         );
     }
@@ -128,17 +111,6 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      */
     public componentWillUnmount(): void {
         if (this._editor) { this._editor.dispose(); }
-    }
-
-    /**
-     * Kills the currently running process.
-     */
-    public killCurrentProgram(): void {
-        if (!this._process) { return; }
-
-        this._process.process.unref();
-        this._process.process.kill();
-        this._process = null;
     }
 
     /**
@@ -201,33 +173,5 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
 
         if (this._autoScroll) { this._editor.revealLine(model.getLineCount()); }
         this._addingLog = false;
-    }
-
-    /**
-     * Executes the given command.
-     */ 
-    private async _handleCommand(command: string): Promise<void> {
-        if (this._executingCommand || !WorkSpace.HasWorkspace() || !command) { return; }
-
-        // Empty editable text
-        this._editableText?.setState({ value: "" });
-        setTimeout(() => this._editableText.focus(), 0);
-
-        // Execute
-        this._executingCommand = true;
-        try {
-            this.logInfo(`Executing command "${command}"`);
-
-            this._process = ExecTools.ExecAndGetProgram(this.props.editor, command, WorkSpace.DirPath!);
-            this.setState({ hasProcessRunning: true });
-            await this._process.promise;
-
-            this.logInfo(`Successfully executed command "${command}"`);
-        } catch (e) {
-            this.logError(`Command "${command}" failed.`);
-        }
-
-        this.setState({ hasProcessRunning: false });
-        this._executingCommand = false;
     }
 }
