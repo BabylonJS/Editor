@@ -1,9 +1,9 @@
 import { dirname, join, basename } from "path";
-import { readJSON } from "fs-extra";
+import { readJSON, pathExists } from "fs-extra";
 
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
-    DirectionalLight, Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode,
+    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -193,12 +193,12 @@ export class ProjectImporter {
 
                 if (l.shadowGenerator) {
                     const json = await readJSON(join(Project.DirPath, "shadows", l.shadowGenerator));
-                    ShadowGenerator.Parse(json, editor.scene!, (size, light) => {
-                        if (json.className !== "ShadowGenerator" && light instanceof DirectionalLight) {
-                            return new CascadedShadowGenerator(size, light as DirectionalLight);
-                        }
-                        return new ShadowGenerator(size, light);
-                    });
+                    if (json.className === CascadedShadowGenerator.CLASSNAME) {
+                        CascadedShadowGenerator.Parse(json, editor.scene!);
+                    } else {
+                        ShadowGenerator.Parse(json, editor.scene!);
+                    }
+                    
                     editor.console.logInfo(`Parsed shadows for light "${l.json}"`);
                 }
             } catch (e) {
@@ -245,7 +245,10 @@ export class ProjectImporter {
 
         // Update cache
         Overlay.SetMessage("Loading Cache...");
-        Assets.SetCachedData(await readJSON(join(Project.DirPath, "assets", "cache.json")));
+        const assetsCachePath = join(Project.DirPath, "assets", "cache.json");
+        if ((await pathExists(assetsCachePath))) {
+            Assets.SetCachedData(await readJSON(assetsCachePath));
+        }
 
         // Parent Ids
         const scene = editor.scene!;

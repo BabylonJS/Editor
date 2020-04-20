@@ -9,7 +9,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { ButtonGroup, Button, Classes, Dialog, FormGroup, InputGroup, ContextMenu, Menu, MenuItem, MenuDivider, Divider } from "@blueprintjs/core";
 
-import { Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools, NodeMaterial } from "babylonjs";
+import { Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools, NodeMaterial, MultiMaterial } from "babylonjs";
 
 import { assetsHelper, OffscreenAssetsHelperMesh } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
 import { Tools } from "../tools/tools";
@@ -174,8 +174,14 @@ export class MaterialAssets extends AbstractAssets {
         const material = this.editor.scene!.getMaterialByID(item.key);
         if (!material) { return; }
 
-        mesh.material = material;
-        mesh.getLODLevels().forEach((lod) => lod.mesh && (lod.mesh.material = material));
+        const subMeshId = pickInfo.subMeshId ?? null;
+        if (mesh.material && mesh.material instanceof MultiMaterial && subMeshId) {
+            mesh.material.subMaterials[subMeshId] = material;
+            mesh.getLODLevels().forEach((lod) => lod.mesh && lod.mesh.material instanceof MultiMaterial && (lod.mesh.material.subMaterials[subMeshId] = material));
+        } else {
+            mesh.material = material;
+            mesh.getLODLevels().forEach((lod) => lod.mesh && (lod.mesh.material = material));
+        }
 
         this.editor.inspector.refresh();
     }
@@ -360,7 +366,7 @@ export class MaterialAssets extends AbstractAssets {
      * Clears the unused textures in the project.
      */
     private _clearUnusedMaterials(): void {
-        const toRemove = this.items.map((i) => this.editor.scene!.getMaterialByID(i.key));
+        const toRemove = this.editor.scene!.materials.concat(this.editor.scene!.multiMaterials).filter((m) => m !== this.editor.scene!.defaultMaterial && !(m instanceof ShaderMaterial));
 
         toRemove.forEach((material) => {
             if (!material) { return; }

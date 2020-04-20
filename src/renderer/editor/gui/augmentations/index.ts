@@ -3,11 +3,13 @@ import { TextBoxController } from "./text-box";
 import { ImageBoxController } from "./image";
 import { SuggestController } from "./suggest";
 import { CustomController } from "./custom";
+import { ButtonController } from "./button";
 
 import "./text-box";
 import "./image";
 import "./suggest";
 import "./custom";
+import "./button";
 
 /**
  * Augmentify dat.gui
@@ -65,6 +67,11 @@ declare module "dat.gui" {
          * @param url the url of the image to show
          */
         addImage(url: string): ImageBoxController;
+        /**
+         * Adds a new button.
+         * @param text defines the title of the button.
+         */
+        addButton(text: string): ButtonController;
         /**
          * Adds a suggest box (input text).
          * @param object the object to modify.

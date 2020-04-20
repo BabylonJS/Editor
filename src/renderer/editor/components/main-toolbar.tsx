@@ -2,7 +2,7 @@ import { join, extname } from "path";
 import { readdir, writeFile } from "fs-extra";
 
 import * as React from "react";
-import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes } from "@blueprintjs/core";
+import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent } from "@blueprintjs/core";
 
 import { Undefinable } from "../../../shared/types";
 
@@ -12,11 +12,13 @@ import { Editor } from "../editor";
 
 import { IPCTools } from "../tools/ipc";
 import { Tools } from "../tools/tools";
+import { ExecTools } from "../tools/exec";
 
 import { Icon } from "../gui/icon";
 import { Confirm } from "../gui/confirm";
 import { Overlay } from "../gui/overlay";
 import { Alert } from "../gui/alert";
+import { Dialog } from "../gui/dialog";
 
 import { SceneFactory } from "../scene/factory";
 
@@ -25,7 +27,8 @@ import { Project } from "../project/project";
 import { ProjectExporter } from "../project/project-exporter";
 import { WelcomeDialog } from "../project/welcome/welcome";
 import { NewProjectWizard } from "../project/welcome/new-project";
-import { ExecTools } from "../tools/exec";
+
+import { PhotoshopExtension } from "../extensions/photoshop";
 
 export interface IToolbarProps {
     /**
@@ -39,6 +42,10 @@ export interface IToolbarState {
      * Defines wether or not the current project has a workspace. If true, the workspace tool will be shows.
      */
     hasWorkspace: boolean;
+    /**
+     * Defines wether or not the photoshop extension is enabled.
+     */
+    isPhotoshopEnabled: boolean;
 }
 
 export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
@@ -54,7 +61,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         this._editor = props.editor;
         this._editor.mainToolbar = this;
 
-        this.state = { hasWorkspace: false };
+        this.state = { hasWorkspace: false, isPhotoshopEnabled: false };
     }
 
     /**
@@ -111,6 +118,11 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Sphere" icon={<Icon src="circle.svg" />} onClick={() => this._menuItemClicked("addmesh:sphere")} />
             </Menu>;
 
+        const tools =
+            <Menu>
+                <MenuItem text="Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
+            </Menu>;
+
         const workspace = !this.state.hasWorkspace ? undefined :
             <Menu>
                 <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this._handleRefreshWorkspace()} />
@@ -139,6 +151,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 </Popover>
                 <Popover content={addMesh} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="plus.svg"/>} rightIcon="caret-down" text="Add Mesh"/>
+                </Popover>
+                <Popover content={tools} position={Position.BOTTOM_LEFT}>
+                    <Button icon={<Icon src="wrench.svg"/>} rightIcon="caret-down" text="Tools"/>
                 </Popover>
                 <Popover content={workspace} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="workspace.svg"/>} rightIcon="caret-down" text="Workspace"/>
@@ -241,6 +256,13 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             this._editor.addedNodeObservable.notifyObservers(mesh);
             return this._editor.graph.refresh();
         }
+
+        // Tools
+        if (family === "tools") {
+            switch (action) {
+                case "photoshop": this._handleTogglePhotoshop(); break;
+            }
+        }
     }
 
     /**
@@ -251,6 +273,19 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             Overlay.Show("Reloading...", true);
             window.location.reload();
         }
+    }
+
+    /**
+     * Called on the user wants to toggle the connection to photoshop.
+     */
+    private async _handleTogglePhotoshop(): Promise<void> {
+        let password = "";
+        if (!PhotoshopExtension.IsEnabled) {
+            password = await Dialog.Show("Connect to Photoshop", "Please provide the password to connect to photoshop", undefined, true);
+        }
+        
+        await PhotoshopExtension.ToggleEnabled(this._editor, password);
+        this.setState({ isPhotoshopEnabled: PhotoshopExtension.IsEnabled });
     }
 
     /**
@@ -318,7 +353,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
                                 const base64 = b64.split(",")[1];
                                 await writeFile(destination, new Buffer(base64, "base64"));
-                                this._editor.notifyMessage("Successfully saved screenshot.");
+                                this._editor.notifyMessage("Successfully saved screenshot.", 1000, "saved");
                             }} />
                         </Menu>,
                         { left: e.clientX, top: e.clientY }

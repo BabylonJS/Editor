@@ -40,8 +40,8 @@
 		img.onload = () => {
 			setTimeout(() => {
 				// Require modules hack for development mode.
-				require('./build/src/renderer/module.js');
-				const plugin = require("./build/src/renderer/windows/index.js");
+				require('./build/src/src/renderer/module.js');
+				const plugin = require("./build/src/src/renderer/windows/index.js");
 
 				window.plugin = new plugin.default();
 			}, 100);

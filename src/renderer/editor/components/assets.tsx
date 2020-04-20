@@ -6,6 +6,7 @@ import { Nullable, Undefinable, IStringDictionary } from "../../../shared/types"
 import { Editor } from "../editor";
 import { AbstractAssets, IAbstractAssets, IAssetComponentItem } from "../assets/abstract-assets";
 
+import { Alert } from "../gui/alert";
 
 import { Tools } from "../tools/tools";
 import { IFile } from "../project/files";
@@ -184,6 +185,10 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
      * @param files the files to add in the assets.
      */
     public async addFilesToAssets(files: IFile[]): Promise<void> {
+        if (this._isRefreshing) {
+            return Alert.Show("Please wait.", "Assets are being refreshed. Please wait until the process is done before adding new files.");
+        }
+
         const taskFeedBack = this._editor.addTaskFeedback(0, "Loading Files...");
         const components = Assets._assetComponents.filter((ac) => ac._ref).map((ac) => ac._ref);
         const length = components.length;
@@ -210,7 +215,7 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
             return;
         }
 
-        const task = !object ? this._editor.addTaskFeedback(0, "Updating assets") : null;
+        const task = !object ? this._editor.addTaskFeedback(0, "Updating assets", 0) : null;
         this._isRefreshing = true;
 
         const step = 100 / Assets._assetComponents.length;

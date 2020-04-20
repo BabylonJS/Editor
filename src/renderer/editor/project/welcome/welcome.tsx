@@ -230,7 +230,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         const path = await Tools.ShowSaveDialog();
 
         // Download file
-        const contentBuffer = await Tools.LoadFile<ArrayBuffer>(`http://editor.babylonjs.com/templates/${template.file}`, true, (d) => {
+        const contentBuffer = await Tools.LoadFile<ArrayBuffer>(`http://editor.babylonjs.com/templates/${template.file}?${Date.now()}`, true, (d) => {
             this.setState({ downloadProgress: (d.loaded / d.total) });
         });
 

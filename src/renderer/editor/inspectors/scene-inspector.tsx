@@ -1,12 +1,9 @@
-import { basename } from "path";
-
-import { Scene, Texture } from "babylonjs";
+import { Scene } from "babylonjs";
 
 import { Inspector } from "../components/inspector";
 import { AbstractInspector } from "./abstract-inspector";
 
 export class SceneInspector extends AbstractInspector<Scene> {
-    private _environmentTexture: string = "";
     private _fogMode: string = "";
 
     /**
@@ -51,11 +48,7 @@ export class SceneInspector extends AbstractInspector<Scene> {
 
         reflection.add(this.selectedObject, "environmentIntensity").step(0.01).name("Intensity");
 
-        this._environmentTexture = this.selectedObject.environmentTexture?.name ?? "None";
-        this.addTexture(reflection, this, "_environmentTexture").name("Texture").onChange(() => {
-            const texture = this.editor.scene!.textures.find((t) => basename(t.name) === this._environmentTexture);
-            this.selectedObject.environmentTexture = texture as Texture;
-        });
+        this.addTexture(reflection, this.selectedObject, "environmentTexture").name("Texture");
     }
     
     /**

@@ -1,8 +1,10 @@
 import { basename } from "path";
 
+import { Nullable } from "../../../../shared/types";
+
 import * as React from "react";
 
-import { Texture, CubeTexture } from "babylonjs";
+import { Texture, CubeTexture, DynamicTexture } from "babylonjs";
 import { GUI } from "dat.gui";
 
 import { TextureAssets } from "../../assets/textures";
@@ -69,8 +71,15 @@ export class TextureInspector extends AbstractInspector<Texture> {
 
         // Add preview
         const name = basename(this.selectedObject.name);
-        const file = FilesStore.GetFileFromBaseName(name);
-        if (file) {
+
+        let path: Nullable<string> = null;
+        if (this.selectedObject instanceof DynamicTexture) {
+            path = this.selectedObject.getContext().canvas.toDataURL("image/png");
+        } else {
+            path = FilesStore.GetFileFromBaseName(name)?.path ?? null;
+        }
+
+        if (path) {
             if (this.selectedObject instanceof CubeTexture) {
                 // TODO: add canvas to preview cube.
                 common.addCustom("300px",
@@ -83,7 +92,7 @@ export class TextureInspector extends AbstractInspector<Texture> {
                 common.addCustom("300px",
                     <>
                         <span>{name}</span>
-                        <img src={file.path} style={{ width: "100%", height: "280px", objectFit: "contain" }}></img>
+                        <img src={path} style={{ width: "100%", height: "280px", objectFit: "contain" }}></img>
                     </>
                 );
             }
@@ -126,6 +135,6 @@ export class TextureInspector extends AbstractInspector<Texture> {
 
 Inspector.registerObjectInspector({
     ctor: TextureInspector,
-    ctorNames: ["Texture", "CubeTexture"],
+    ctorNames: ["Texture", "CubeTexture", "DynamicTexture"],
     title: "Texture",
 });

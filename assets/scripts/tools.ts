@@ -67,6 +67,7 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
         for (const event of pointerEvents) {
             n._scene.onPointerObservable.add((e) => {
                 if (e.type !== event.type) { return; }
+                if (!event.onlyWhenMeshPicked) { return n[event.propertyKey](e); }
 
                 if (e.pickInfo?.pickedMesh === n) {
                     n[event.propertyKey](e);

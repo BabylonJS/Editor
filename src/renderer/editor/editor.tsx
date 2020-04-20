@@ -7,7 +7,7 @@ import { IStringDictionary, Nullable, Undefinable } from "../../shared/types";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps } from "@blueprintjs/core";
+import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName, MaybeElement } from "@blueprintjs/core";
 
 import { Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin, SubMesh } from "babylonjs";
 
@@ -416,10 +416,15 @@ export class Editor {
      * Notifies the user the given message.
      * @param message the message to notify.
      * @param timeout the time in ms before hidding the notification.
+     * @param icon optional icon to show in the toast.
      */
-    public notifyMessage(message: string, timeout: number = 1000): void {
-        const task = this.addTaskFeedback(100, message);
-        this.closeTaskFeedback(task, timeout);
+    public notifyMessage(message: string, timeout: number = 1000, icon: IconName | MaybeElement = "notifications"): void {
+        this._toaster?.show({
+            message,
+            timeout,
+            className: Classes.DARK,
+            icon,
+        }, message);
     }
 
     /**
@@ -682,7 +687,7 @@ export class Editor {
             }
 
             if (workspace.watchProject) {
-                WorkSpace.WatchProject(this);
+                await WorkSpace.WatchProject(this);
             }
         }
     }
@@ -878,7 +883,7 @@ export class Editor {
         if (!workspace) { return; }
 
         if (workspace.watchProject && !WorkSpace.IsWatching) {
-            WorkSpace.WatchProject(this);
+            await WorkSpace.WatchProject(this);
         } else if (!workspace.watchProject && WorkSpace.IsWatching) {
             WorkSpace.StopWatching();
         }

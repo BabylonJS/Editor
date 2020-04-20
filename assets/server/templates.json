@@ -2,5 +2,9 @@
     {
         "name": "Third Personal Shooter",
         "file": "tps.zip"
+    },
+    {
+        "name": "First Personal Shooter",
+        "file": "fps.zip"
     }
 ]

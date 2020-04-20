@@ -36,6 +36,7 @@ export class MeshInspector extends NodeInspector {
         this.addScript();
         this.addRendering();
         this.addTransforms();
+        this.addCollisions();
         this.addPhysics();
         this.addLods();
     }
@@ -61,8 +62,6 @@ export class MeshInspector extends NodeInspector {
         rendering.add(this.selectedObject, "receiveShadows").name("Receive Shadows");
         rendering.add(this.selectedObject, "applyFog").name("Apply Fog");
 
-        this.addCollisions();
-
         return rendering;
     }
 
@@ -75,6 +74,9 @@ export class MeshInspector extends NodeInspector {
 
         collisions.add(this.selectedObject, "checkCollisions").name("Check Collisions");
         collisions.add(this.selectedObject, "collisionMask").name("Collision Mask");
+
+        this.addVector(collisions, "Ellipsoid", this.selectedObject, "ellipsoid");
+        this.addVector(collisions, "Ellipsoid Offset", this.selectedObject, "ellipsoidOffset");
     }
 
     /**

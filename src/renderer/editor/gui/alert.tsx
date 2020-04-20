@@ -35,8 +35,8 @@ export class Alert extends React.Component<IAlertProps, { }> {
      * @param icon the icon of the dialog to show on top-left.
      * @param body optional body to draw in the alert.
      */
-    public static async Show(title: string, message: string, icon?: Undefinable<JSX.Element>, body?: Undefinable<JSX.Element>): Promise<boolean> {
-        return new Promise<boolean>((resolve) => {
+    public static async Show(title: string, message: string, icon?: Undefinable<JSX.Element>, body?: Undefinable<JSX.Element>): Promise<void> {
+        return new Promise<void>((resolve) => {
             const dialog = <Alert title={title} message={message} icon={icon} body={body} onClose={resolve}></Alert>;
             ReactDOM.render(dialog, document.getElementById("BABYLON-EDITOR-OVERLAY"));
         });

@@ -1,6 +1,4 @@
-import { basename } from "path";
-
-import { Texture, PBRMaterial } from "babylonjs";
+import { PBRMaterial } from "babylonjs";
 import { GUI } from "dat.gui";
 
 import { MaterialAssets } from "../../assets/materials";
@@ -9,14 +7,6 @@ import { Inspector } from "../../components/inspector";
 import { MaterialInspector } from "./material-inspector";
 
 export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
-    private _albedoTexture: string = "";
-    private _bumpTexture: string = "";
-    private _reflectivityTexture: string = "";
-    private _reflectionTexture: string = "";
-    private _ambientTexture: string = "";
-    private _opacityTexture: string = "";
-    private _microSurfaceTexture: string = "";
-
     /**
      * Called on a controller finished changes.
      * @override
@@ -52,12 +42,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         albedo.open();
         albedo.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
 
-        this._albedoTexture = this.material.albedoTexture?.name ?? "None";
-        this.addTexture(albedo, this, "_albedoTexture").name("Texture").onChange(() => {
-            const texture = this.editor.scene!.textures.find((t) => basename(t.name) === this._albedoTexture);
-            this.material.albedoTexture = texture as Texture;
-        });
-
+        this.addTexture(albedo, this.material, "albedoTexture").name("Texture");
         this.addColor(albedo, "Color", this.material, "albedoColor");
 
         return albedo;
@@ -72,11 +57,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         bump.add(this.material, "invertNormalMapX").name("Invert Normal Map X");
         bump.add(this.material, "invertNormalMapY").name("Invert Normal Map Y");
 
-        this._bumpTexture = this.material.bumpTexture?.name ?? "None";
-        this.addTexture(bump, this, "_bumpTexture").name("Texture").onChange(() => {
-            const texture = this.editor.scene!.textures.find((t) => basename(t.name) === this._bumpTexture);
-            this.material.bumpTexture = texture as Texture;
-        });
+        this.addTexture(bump, this.material, "bumpTexture").name("Texture");
 
         bump.add(this.material, "useParallax").name("Use Parallax");
         bump.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
@@ -93,12 +74,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         reflectivity.open();
         reflectivity.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
 
-        this._reflectivityTexture = this.material.reflectivityTexture?.name ?? "None";
-        this.addTexture(reflectivity, this, "_reflectivityTexture").name("Texture").onChange(() => {
-            const texture = this.editor.scene!.textures.find((t) => basename(t.name) === this._reflectivityTexture);
-            this.material.reflectivityTexture = texture as Texture;
-        });
-
+        this.addTexture(reflectivity, this.material, "reflectivityTexture").name("Texture");
         this.addColor(reflectivity, "Color", this.material, "reflectivityColor");
 
         return reflectivity;
@@ -113,12 +89,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
 
         reflection.add(this.material, "environmentIntensity").step(0.01).name("Intensity");
 
-        this._reflectionTexture = this.material.reflectionTexture?.name ?? "None";
-        this.addTexture(reflection, this, "_reflectionTexture").name("Texture").onChange(() => {
-            const texture = this.editor.scene!.textures.find((t) => basename(t.name) === this._reflectionTexture);
-            this.material.reflectionTexture = texture as Texture;
-        });
-
+        this.addTexture(reflection, this.material, "reflectionTexture").name("Texture");
         this.addColor(reflection, "Color", this.material, "reflectionColor");
 
         return reflection;
@@ -131,11 +102,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         const ambient = this.tool!.addFolder("Ambient");
         ambient.open();
 
-        this._ambientTexture = this.material.ambientTexture?.name ?? "None";
-        this.addTexture(ambient, this, "_ambientTexture").name("Texture").onChange(() => {
-            const texture = this.editor.scene!.textures.find((t) => basename(t.name) === this._ambientTexture);
-            this.material.ambientTexture = texture as Texture;
-        });
+        this.addTexture(ambient, this.material, "ambientTexture").name("Texture");
 
         ambient.add(this.material, "useAmbientInGrayScale").name("Use Ambient In Gray Scale");
         ambient.add(this.material, "ambientTextureStrength").name("Ambient Texture Strength");
@@ -151,11 +118,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         const opacity = this.tool!.addFolder("Opacity");
         opacity.open();
 
-        this._opacityTexture = this.material.opacityTexture?.name ?? "None";
-        this.addTexture(opacity, this, "_opacityTexture").name("Texture").onChange(() => {
-            const texture = this.editor.scene!.textures.find((t) => basename(t.name) === this._opacityTexture);
-            this.material.opacityTexture = texture as Texture;
-        });
+        this.addTexture(opacity, this.material, "opacityTexture").name("Texture");
 
         return opacity;
     }
@@ -170,11 +133,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         microSurface.add(this.material, "microSurface").min(0).max(1).name("Micro Surface");
         microSurface.add(this.material, "useAutoMicroSurfaceFromReflectivityMap").name("Use Auto Micro Surface From Reflectivity Map");
         
-        this._microSurfaceTexture = this.material.microSurfaceTexture?.name ?? "None";
-        this.addTexture(microSurface, this, "_microSurfaceTexture").name("Texture").onChange(() => {
-            const texture = this.editor.scene!.textures.find((t) => basename(t.name) === this._microSurfaceTexture);
-            this.material.microSurfaceTexture = texture as Texture;
-        });
+        this.addTexture(microSurface, this.material, "microSurfaceTexture").name("Texture");
 
         return microSurface;
     }

@@ -292,7 +292,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         node.metadata = node.metadata ?? { };
         if (node instanceof AbstractMesh) {
-            node.metadata.isPickable = node.isPickable;
+            node.metadata.isPickable = node.metadata.isPickable ?? node.isPickable;
             node.isPickable = true;
 
             node.subMeshes?.forEach((sm) => sm._id = sm._id ?? Tools.RandomId());

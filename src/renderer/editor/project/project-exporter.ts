@@ -291,6 +291,7 @@ export class ProjectExporter {
         mesh.isPickable = mesh.metadata.isPickable;
         const json = SceneSerializer.SerializeMesh(mesh, withParents, withChildren);
         json.materials = [];
+        json.multiMaterials = [];
         mesh.isPickable = true;
 
         json.lods = [];

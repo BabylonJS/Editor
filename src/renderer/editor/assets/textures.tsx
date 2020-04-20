@@ -1,10 +1,12 @@
 import { extname, basename, join } from "path";
 import { copy } from "fs-extra";
 
+import { Nullable } from "../../../shared/types";
+
 import * as React from "react";
 import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider } from "@blueprintjs/core";
 
-import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture } from "babylonjs";
+import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, DynamicTexture, BaseTexture } from "babylonjs";
 
 import { Tools } from "../tools/tools";
 import { undoRedo } from "../tools/undo-redo";
@@ -14,6 +16,7 @@ import { Project } from "../project/project";
 
 import { Icon } from "../gui/icon";
 import { Dialog } from "../gui/dialog";
+import { Alert } from "../gui/alert";
 
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
@@ -53,24 +56,33 @@ export class TextureAssets extends AbstractAssets {
      */
     public async refresh(object?: Texture): Promise<void> {
         for (const texture of this.editor.scene!.textures) {
-            if (!(texture instanceof Texture) && !(texture instanceof CubeTexture)) { continue; }
-            if (object && object !== texture) { continue; }
+            const isDyamicTexture = texture instanceof DynamicTexture;
 
-            const item = this.items.find((i) => i.key === texture.uniqueId.toString());
+            if (!(texture instanceof Texture) && !(texture instanceof CubeTexture) && !isDyamicTexture) { continue; }
+            if (object && object !== texture) { continue; }
+            if (isDyamicTexture && !texture.metadata?.photoshop) { continue; }
+
+            const item = this.items.find((i) => i.key === texture.metadata?.editorId);
             if (!object && item) { continue; }
 
             texture.metadata = texture.metadata ?? { };
             if (!texture.metadata.editorName) {
                 texture.metadata.editorName = basename(texture.name);
             }
+            if (!texture.metadata.editorId) {
+                texture.metadata.editorId = Tools.RandomId();
+            }
 
             const name = basename(texture.name);
             const file = FilesStore.GetFileFromBaseName(name);
-            if (!file) { continue; }
+            if (!file && !isDyamicTexture) { continue; }
 
-            const base64 = texture.isCube ? "./css/svg/dds.svg" : file.path;
+            let base64 = texture.isCube ? "./css/svg/dds.svg" : file?.path ?? "";
+            if (isDyamicTexture) {
+                base64 = (texture as DynamicTexture).getContext().canvas.toDataURL("image/png");
+            }
 
-            const itemData = { key: texture.uniqueId.toString(), id: texture.metadata.editorName, base64 };
+            const itemData = { key: texture.metadata.editorId, id: texture.metadata.editorName, base64 };
             if (item) {
                 const index = this.items.indexOf(item);
                 if (index !== -1) { this.items[index] = itemData; }
@@ -92,7 +104,7 @@ export class TextureAssets extends AbstractAssets {
     public onClick(item: IAssetComponentItem, img: HTMLImageElement): void {
         super.onClick(item, img);
 
-        const texture = this.editor.scene?.getTextureByUniqueID(parseInt(item.key));
+        const texture = this._getTexture(item.key);
         if (!texture) { return; }
 
         this.editor.selectedTextureObservable.notifyObservers(texture);
@@ -106,7 +118,7 @@ export class TextureAssets extends AbstractAssets {
     public async onDoubleClick(item: IAssetComponentItem, img: HTMLImageElement): Promise<void> {
         super.onDoubleClick(item, img);
 
-        const texture = this.editor.scene!.getTextureByUniqueID(parseInt(item.key));
+        const texture = this._getTexture(item.key);
         if (!texture || (!(texture instanceof Texture) && !(texture instanceof CubeTexture))) { return; }
 
         const name = basename(texture.name);
@@ -124,7 +136,7 @@ export class TextureAssets extends AbstractAssets {
     public onContextMenu(item: IAssetComponentItem, e: React.MouseEvent<HTMLImageElement, MouseEvent>): void {
         super.onContextMenu(item, e);
 
-        const texture = this.editor.scene!.getTextureByUniqueID(parseInt(item.key));
+        const texture = this._getTexture(item.key);
         if (!texture || (!(texture instanceof Texture) && !(texture instanceof CubeTexture))) { return; }
 
         ContextMenu.show(
@@ -150,7 +162,7 @@ export class TextureAssets extends AbstractAssets {
         const material = pickInfo.pickedMesh.material;
         if (!material) { return; }
 
-        const texture = this.editor.scene!.getTextureByUniqueID(parseInt(item.key));
+        const texture = this._getTexture(item.key);
         if (!texture) { return; }
 
         if (material instanceof StandardMaterial) {
@@ -216,6 +228,17 @@ export class TextureAssets extends AbstractAssets {
     }
 
     /**
+     * Gets the texture identified by the given uid.
+     */
+    private _getTexture(uid: string): Nullable<BaseTexture> {
+        for (const texture of this.editor.scene!.textures) {
+            if (texture.metadata?.editorId === uid) { return texture; }
+        }
+
+        return null;
+    }
+
+    /**
      * Called on the user wants to add textures.
      */
     private async _addTextures(): Promise<void> {
@@ -227,12 +250,26 @@ export class TextureAssets extends AbstractAssets {
      * Clones the given texture
      */
     private async _cloneTexture(texture: Texture | CubeTexture): Promise<void> {
-        const name = await Dialog.Show("New texture name", "Please provide a name for the cloned texture");
-        
+        let name = await Dialog.Show("New texture name", "Please provide a name for the cloned texture");
+
+        const textureExtension = extname(texture.name);
+        const cloneExtension = extname(name);
+
+        if (cloneExtension !== textureExtension) {
+            name += textureExtension;
+        }
+
+        // Check existing
+        const existing = this.items.find((i) => i.id === name);
+        if (existing) {
+            return Alert.Show("Can't clone texture", `A texture named "${name}" already exists.`);
+        }
+
         const clone = texture.clone();
         clone.uniqueId = this.editor.scene!.getUniqueId();
-        clone.metadata = Tools.CloneObject(clone.metadata);
-        clone.metadata.editorName = name;
+        clone.metadata = {
+            editorName: name,
+        };
 
         this.refresh();
     }
@@ -253,7 +290,7 @@ export class TextureAssets extends AbstractAssets {
      * Clears the unused textures in the project.
      */
     private _clearUnusedTextures(): void {
-        const toRemove = this.items.map((i) => this.editor.scene!.getTextureByUniqueID(parseInt(i.key)));
+        const toRemove = this.items.map((i) => this._getTexture(i.key));
 
         toRemove.forEach((texture) => {
             if (!texture) { return; }
@@ -272,7 +309,7 @@ export class TextureAssets extends AbstractAssets {
             // Not found, remove.
             texture.dispose();
 
-            const itemIndex = this.items.findIndex((i) => i.key === texture.uniqueId.toString());
+            const itemIndex = this.items.findIndex((i) => i.key === texture.uid);
             if (itemIndex) {
                 this.items.splice(itemIndex, 1);
             }

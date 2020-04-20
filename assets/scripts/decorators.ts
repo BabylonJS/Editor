@@ -54,8 +54,9 @@ export function fromScene(nodeName?: string): any {
 /**
  * Sets the decorated member function to be called on the given pointer event is fired.
  * @param type the event type to listen to execute the decorated function.
+ * @param onlyWhenMeshPicked defines wether or not the decorated function should be called only when the mesh is picked. default true.
  */
-export function onPointerEvent(type: PointerEventTypes): any {
+export function onPointerEvent(type: PointerEventTypes, onlyWhenMeshPicked: boolean = true): any {
     return (target: any, propertyKey: string | symbol) => {
         if (typeof(target[propertyKey]) !== "function") {
             throw new Error(`Decorated propery "${propertyKey.toString()}" in class "${target.constructor.name}" must be a function.`);
@@ -65,6 +66,7 @@ export function onPointerEvent(type: PointerEventTypes): any {
         ctor._PointerValues = ctor._PointerValues ?? [];
         ctor._PointerValues.push({
             type,
+            onlyWhenMeshPicked,
             propertyKey: propertyKey.toString(),
         });
     };
@@ -97,7 +99,7 @@ declare global {
     export function visibleInInspector(type: VisiblityPropertyType, name?: string): any;
     export function fromChildren(nodeName: string): any;
     export function fromScene(nodeName: string): any;
-    export function onPointerEvent(event: PointerEventTypes): any;
+    export function onPointerEvent(type: PointerEventTypes, onlyWhenMeshPicked?: boolean): any;
     export function onKeyboardEvent(key: number | number[], type?: KeyboardEventTypes): any;
 }
 

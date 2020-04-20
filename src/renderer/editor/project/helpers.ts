@@ -1,3 +1,5 @@
+import { join, basename } from "path";
+
 import { Nullable } from "../../../shared/types";
 
 import {
@@ -63,7 +65,11 @@ export class ProjectHelpers {
         }
 
         // Environment Intensity
-        serializationObject.environmentTexture = scene.environmentTexture?.serialize();
+        if (scene.environmentTexture) {
+            serializationObject.environmentTexture = scene.environmentTexture.serialize();
+            serializationObject.environmentTexture.name = join("./", "files", basename(scene.environmentTexture.name));
+            serializationObject.environmentTexture.url = join("./", "files", basename(scene.environmentTexture.name));
+        }
         serializationObject.environmentIntensity = scene.environmentIntensity;
 
         // Components
@@ -131,7 +137,7 @@ export class ProjectHelpers {
         }
 
         // Image processing
-        SerializationHelper.Parse(() => scene.imageProcessingConfiguration, parsedData.imageProcessingConfiguration, scene, null);
+        SerializationHelper.Parse(() => scene.imageProcessingConfiguration, parsedData.imageProcessingConfiguration, scene, rootUrl);
 
         // Flags
         scene.postProcessesEnabled = parsedData.postProcessesEnabled;

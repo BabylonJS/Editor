@@ -1,0 +1,16 @@
+{
+    "name": "babylonjs-editor-photoshop-extension",
+    "version": "1.0.0",
+    "description": "Photoshop plugin allowing live texturing with the Babylon.js Editor",
+    "main": "./main.js",
+    "generator-core-version": "3.11.5",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/BabylonJS/Editor"
+    },
+    "license": "(Apache-2.0)",
+    "readmeFilename": "README.md",
+    "scripts": {},
+    "dependencies": {},
+    "devDependencies": {}
+}

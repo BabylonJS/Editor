@@ -38,7 +38,7 @@ export class IPC {
 	 * Starts debugging the game.
 	 */
 	public static async OnOpenWindowOnDemand(event: IpcMainEvent, definition: IWindowDefinition): Promise<void> {
-		definition.url = `file://${__dirname}/../../../${definition.url}`;
+		definition.url = `file://${__dirname}/../../../../${definition.url}`;
 		const window = await WindowController.WindowOnDemand(definition);
 		event.sender.send(IPCResponses.OpenWindowOnDemand, window.id);
 	}

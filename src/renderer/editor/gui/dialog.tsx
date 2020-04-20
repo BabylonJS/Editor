@@ -19,6 +19,10 @@ export interface IDialogProps {
      */
     icon: Undefinable<JSX.Element>;
     /**
+     * Defines wether or not the input should be a password.
+     */
+    password: Undefinable<boolean>;
+    /**
      * Optional body element.
      */
     body?: Undefinable<JSX.Element>;
@@ -34,13 +38,16 @@ export class Dialog extends React.Component<IDialogProps> {
      * @param title the title of the dialog.
      * @param message the message of the dialog.
      * @param icon the icon of the dialog to show on top-left.
+     * @param password defines wether or not the input should be a password.
      */
-    public static async Show(title: string, message: string, icon?: Undefinable<JSX.Element>): Promise<string> {
+    public static async Show(title: string, message: string, icon?: Undefinable<JSX.Element>, password?: boolean): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            const dialog = <Dialog title={title} message={message} icon={icon} onClose={(v) => v ? resolve(v) : reject("User decided to cancel dialog.")}></Dialog>;
+            const dialog = <Dialog title={title} message={message} icon={icon} password={password} onClose={(v) => v ? resolve(v) : reject("User decided to cancel dialog.")}></Dialog>;
             ReactDOM.render(dialog, document.getElementById("BABYLON-EDITOR-OVERLAY"));
         });
     }
+
+    private _enterListener: (this: Window, ev: WindowEventMap["keyup"]) => void;
 
     /**
      * Renders the component.
@@ -58,7 +65,7 @@ export class Dialog extends React.Component<IDialogProps> {
             >
                 <div className={Classes.DIALOG_BODY}>
                     <FormGroup disabled={false} inline={false} label={this.props.message} labelFor="dialog-text-input" labelInfo="(required)">
-                        <InputGroup id="dialog-text-input" placeholder="Value..." disabled={false} autoFocus={true} />
+                        <InputGroup id="dialog-text-input" placeholder="Value..." disabled={false} autoFocus={true} type={this.props.password ? "password" : "text"} />
                     </FormGroup>
                 </div>
                 <div className={Classes.DIALOG_FOOTER}>
@@ -68,6 +75,24 @@ export class Dialog extends React.Component<IDialogProps> {
                 </div>
             </BPDialog>
         );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        window.addEventListener("keyup", this._enterListener = (ev) => {
+            if (ev.keyCode === 13) {
+                this._handleClose(false);
+            }
+        });
+    }
+
+    /**
+     * Called on the component will unmount.
+     */
+    public componentWillUnmount(): void {
+        window.removeEventListener("keyup", this._enterListener);
     }
 
     /**

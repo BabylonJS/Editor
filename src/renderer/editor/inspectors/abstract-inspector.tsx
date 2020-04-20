@@ -1,10 +1,8 @@
-import { basename } from "path";
-
 import * as React from "react";
 import { GUI, GUIParams, GUIController } from "dat.gui";
 import { Divider, InputGroup, Classes } from "@blueprintjs/core";
 
-import { Node, Color3, Tags, Color4, Vector3, Vector4 } from "babylonjs";
+import { Node, Color3, Tags, Color4, Vector3, Vector4, BaseTexture } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
 
@@ -17,7 +15,6 @@ import { IObjectInspectorProps } from "../components/inspector";
 
 import { undoRedo } from "../tools/undo-redo";
 import { IObjectModified } from "../tools/types";
-import { Tools } from "../tools/tools";
 
 export abstract class AbstractInspector<T> extends React.Component<IObjectInspectorProps> {
     /**
@@ -43,7 +40,6 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
      * @param selectedObject the currently selected object reference.
      * @param ref the ref of the inspector properties.
      */
-    // public constructor(protected editor: Editor, protected selectedObject: T, protected ref: IObjectInspector) {
     public constructor(props: IObjectInspectorProps) {
         super(props);
 
@@ -149,8 +145,19 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
         const size = this.editor.getPanelSize("inspector");
         if (this.tool) {
             this.tool.width = size.width;
-            this.tool.domElement.style.height = `${size.height - 160}px`;
+            this.tool.domElement.style.height = `${size.height - 100}px`;
         }
+    }
+
+    /**
+     * Returns the reference to the texture identified by the given editor name.
+     * @param editorName the name of the texture to find.
+     */
+    protected getTexture(editorName: string): Nullable<BaseTexture> {
+        if (editorName === "None") { return null; }
+
+        const texture = this.editor.scene!.textures.find((t) => t.metadata?.editorName === editorName);
+        return texture ?? null;
     }
 
     /**
@@ -158,30 +165,34 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
      * @param parent the parent folder where to add the texture field.
      * @param object the object to modify.
      * @param property the property to modify in the given object.
+     * @param onChange optional callback called on the texture changed.
      */
-    protected addTexture(parent: GUI = this.tool!, object: any, property: string): SuggestController {
-        const textures = ["None"].concat(Tools.Distinct(this.editor.scene!.textures.filter((t) => t.name).map((t) => basename(t.name))));
-        const assets = this.editor.assets.getAssetsOf(TextureAssets);
+    protected addTexture(parent: GUI = this.tool!, object: any, property: string, onChange?: (texture: Nullable<BaseTexture>) => void): SuggestController {
+        const assets = this.editor.assets.getAssetsOf(TextureAssets)!;
+        const textures = ["None"].concat(assets.map((a) => a.id));
 
         if (!assets) {
             return parent.addSuggest(object, property, textures);
         }
 
-        return parent.addSuggest(object, property, textures, {
+        const o = { textureName: object[property]?.metadata?.editorName ?? "None" };
+
+        return parent.addSuggest(o, "textureName", textures, {
             onShowIcon: (i) => {
-                i = basename(i);
-                const asset = assets?.find((a) => a.id === i);
+                const asset = assets.find((a) => a.id === i);
                 if (!asset) { return undefined; }
 
                 return <img src={asset.base64} style={{ width: 20, height: 20 }}></img>;
             },
             onShowTooltip: (i) => {
-                i = basename(i);
-                const asset = assets?.find((a) => a.id === i);
+                const asset = assets.find((a) => a.id === i);
                 if (!asset) { return undefined; }
 
                 return <img src={asset.base64} style={{ maxWidth: "100%", width: 100, maxHeight: "100%", height: 100 }}></img>;
             },
+        }).onChange(() => {
+            object[property] = this.getTexture(o.textureName);
+            if (onChange) { onChange(object[property]); }
         });
     }
 

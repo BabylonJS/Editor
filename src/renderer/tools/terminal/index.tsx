@@ -59,8 +59,12 @@ export default class TerminalPlugin extends AbstractEditorPlugin<{ }> {
      * Called on the plugin is closed.
      */
     public onClose(): void {
+        this._process?.write(`exit\r`);
         if (this._terminal) { this._terminal.dispose(); }
         if (this._process) { this._process.kill(); }
+
+        this._terminal = null;
+        this._process = null;
     }
 
     /**
@@ -91,6 +95,10 @@ export default class TerminalPlugin extends AbstractEditorPlugin<{ }> {
             cols: 80,
             lineHeight: 1,
             rendererType: "canvas",
+            allowTransparency: true,
+            theme: {
+                background: "#111111"
+            },
         });
 
         this._terminal.loadAddon(this._fitAddon);

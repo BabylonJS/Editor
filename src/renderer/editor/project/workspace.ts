@@ -187,8 +187,12 @@ export class WorkSpace {
      * Watchs the project using webpack.
      * @param editor the editor reference.
      */
-    public static WatchProject(editor: Editor): void {
-        this._WatchProgram = ExecTools.ExecAndGetProgram(editor, "npm run watch", this.DirPath!);
+    public static async WatchProject(editor: Editor): Promise<void> {
+        // Get command
+        const packageJson = await readJSON(join(this.DirPath!, "package.json"));
+        const watchScript = join("node_modules", ".bin", packageJson.scripts.watch);
+        
+        this._WatchProgram = ExecTools.ExecAndGetProgram(editor, watchScript, this.DirPath!);
     }
 
     /**
@@ -203,7 +207,7 @@ export class WorkSpace {
      */
     public static StopWatching(): void {
         if (this._WatchProgram) {
-            this._WatchProgram.process.kill("SIGINT");
+            this._WatchProgram.process.kill();
         }
 
         this._WatchProgram = null;

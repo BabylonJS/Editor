@@ -4,6 +4,9 @@ import { SubMesh, MultiMaterial } from "babylonjs";
 
 import { MaterialAssets } from "../assets/materials";
 
+import { Dialog } from "../gui/dialog";
+import { Tools } from "../tools/tools";
+
 import { Inspector } from "../components/inspector";
 import { AbstractInspector } from "./abstract-inspector";
 
@@ -11,7 +14,7 @@ export class SubMeshInspector extends AbstractInspector<SubMesh> {
     private _materialName: string = "";
 
     /**
-     * Called on the component did moubnt.
+     * Called on the component did mount.
      * @override
      */
     public onUpdate(): void {
@@ -22,12 +25,15 @@ export class SubMeshInspector extends AbstractInspector<SubMesh> {
      * Adds the common editable properties.
      */
     protected addMaterial(): void {
+        this.tool!.addTextBox(`Selected submesh id: "${this.selectedObject._id}"`);
+        
         const folder = this.tool!.addFolder("Material");
         folder.open();
 
         const mesh = this.selectedObject.getMesh();
         if (!mesh.material || !(mesh.material instanceof MultiMaterial)) {
             folder.addTextBox("Please add a multi material to the root mesh before.");
+            folder.add(this, "_createMultiMaterial").name("Create new multi material...");
             return;
         }
 
@@ -62,6 +68,24 @@ export class SubMeshInspector extends AbstractInspector<SubMesh> {
 
             (mesh.material as MultiMaterial).subMaterials[this.selectedObject.materialIndex] = material;
         });
+    }
+
+    /**
+     * Called on the user wants to create a new multi material.
+     */
+    // @ts-ignore
+    private async _createMultiMaterial(): Promise<void> {
+        const materialName = await Dialog.Show("Create new multi material", "Please provide a name for the new multi material to create");
+        const mesh = this.selectedObject.getMesh();
+
+        const material = new MultiMaterial(materialName, this.editor.scene!);
+        material.id = Tools.RandomId();
+        for (let i = 0; i < mesh.subMeshes.length; i++) {
+            material.subMaterials.push(this.editor.scene!.defaultMaterial);
+        }
+
+        mesh.material = material;
+        this.refresh();
     }
 }
 
