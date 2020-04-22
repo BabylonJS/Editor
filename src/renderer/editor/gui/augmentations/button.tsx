@@ -32,7 +32,7 @@ export class CustomButton extends React.Component<ICustomButtonProps, ICustomBut
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return <Button small={true} text={this.props.text} fill={true} onClick={() => this.state.onClick && this.state.onClick()} />;
+        return <Button style={{ height: "20px", marginTop: "2px", width: "calc(100% - 15px)", backgroundColor: "#555555 !important" }} small={true} text={this.props.text} fill={true} onClick={() => this.state.onClick && this.state.onClick()} />;
     }
 }
 
@@ -48,7 +48,14 @@ export class ButtonController extends dat.controllers.Controller {
      */
     public constructor(text: string) {
         super({ }, "");
-        ReactDOM.render(<CustomButton ref={this._refHandler.getButton} text={text} />, this.domElement);
+
+        // Create div
+        const div = document.createElement("div");
+        div.classList.add("c");
+        div.style.width = "100%";
+        this.domElement.appendChild(div);
+
+        ReactDOM.render(<CustomButton ref={this._refHandler.getButton} text={text} />, div);
     }
 
     /**

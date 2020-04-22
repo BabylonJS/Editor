@@ -32,6 +32,8 @@ import { WelcomeDialog } from "./project/welcome/welcome";
 import { SceneSettings } from "./scene/settings";
 import { GizmoType } from "./scene/gizmo";
 
+import { SandboxMain } from "../sandbox/main";
+
 // Components
 import { Inspector } from "./components/inspector";
 import { Graph } from "./components/graph";
@@ -523,20 +525,21 @@ export class Editor {
      * @param integratedBrowser defines wether or not the integrated browser should be used to run the project.
      */
     public async runProject(integratedBrowser: boolean): Promise<void> {
-        await ProjectExporter.Save(this);
+        await ProjectExporter.Save(this, true);
         await ProjectExporter.ExportFinalScene(this);
 
         const task = this.addTaskFeedback(0, "Running Server");
+        const workspace = WorkSpace.Workspace!;
 
-        await IPCTools.CallWithPromise(IPCRequests.StartGameServer, WorkSpace.DirPath!);
+        await IPCTools.CallWithPromise(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort);
 
         this.updateTaskFeedback(task, 100);
         this.closeTaskFeedback(task, 500);
 
         if (integratedBrowser) {
-            this.addWindowedPlugin("play", undefined, WorkSpace.Workspace);
+            this.addWindowedPlugin("play", undefined, workspace);
         } else {
-            shell.openExternal(`http://localhost:${WorkSpace.Workspace!.serverPort}`);
+            shell.openExternal(`http://localhost:${workspace.serverPort}`);
         }
     }
 
@@ -649,6 +652,9 @@ export class Editor {
         // Reveal console
         this.revealPanel("console");
 
+        // Init sandbox
+        await SandboxMain.Init();
+
         // Check workspace
         const workspacePath = await WorkSpace.GetOpeningWorkspace();
         if (workspacePath) {
@@ -686,6 +692,10 @@ export class Editor {
                 await WorkSpace.InstallAndBuild(this);
             }
 
+            // Watch typescript project.
+            await WorkSpace.WatchTypeScript(this);
+
+            // Watch project?
             if (workspace.watchProject) {
                 await WorkSpace.WatchProject(this);
             }
@@ -882,10 +892,10 @@ export class Editor {
         const workspace = WorkSpace.Workspace;
         if (!workspace) { return; }
 
-        if (workspace.watchProject && !WorkSpace.IsWatching) {
+        if (workspace.watchProject && !WorkSpace.IsWatchingProject) {
             await WorkSpace.WatchProject(this);
-        } else if (!workspace.watchProject && WorkSpace.IsWatching) {
-            WorkSpace.StopWatching();
+        } else if (!workspace.watchProject && WorkSpace.IsWatchingProject) {
+            WorkSpace.StopWatchingProject();
         }
     }
 }

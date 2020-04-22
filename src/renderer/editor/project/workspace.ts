@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import { join, dirname, extname, basename } from "path";
-import { readdir, readJSON, writeJSON, stat } from "fs-extra";
+import { readdir, readJSON, writeJSON, stat, copyFile } from "fs-extra";
 
 import { Nullable } from "../../../shared/types";
 import { IPCRequests, IPCResponses } from "../../../shared/ipc";
@@ -37,7 +37,8 @@ export class WorkSpace {
      */
     public static ServerPort: Nullable<number> = null;
 
-    private static _WatchProgram: Nullable<IExecProcess> = null;
+    private static _WatchProjectProgram: Nullable<IExecProcess> = null;
+    private static _WatchTypescriptProgram: Nullable<IExecProcess> = null;
 
     /**
      * Returns wether or not the editor has a workspace opened.
@@ -188,35 +189,71 @@ export class WorkSpace {
      * @param editor the editor reference.
      */
     public static async WatchProject(editor: Editor): Promise<void> {
+        if (this._WatchProjectProgram) { return; }
+
         // Get command
         const packageJson = await readJSON(join(this.DirPath!, "package.json"));
         const watchScript = join("node_modules", ".bin", packageJson.scripts.watch);
         
-        this._WatchProgram = ExecTools.ExecAndGetProgram(editor, watchScript, this.DirPath!);
+        this._WatchProjectProgram = ExecTools.ExecAndGetProgram(editor, watchScript, this.DirPath!);
     }
 
     /**
      * Returns wether or not the project is being watched using webpack.
      */
-    public static get IsWatching(): boolean {
-        return this._WatchProgram !== null;
+    public static get IsWatchingProject(): boolean {
+        return this._WatchProjectProgram !== null;
     }
 
     /**
      * Stops watching the project using webpack.
      */
-    public static StopWatching(): void {
-        if (this._WatchProgram) {
-            this._WatchProgram.process.kill();
+    public static StopWatchingProject(): void {
+        if (this._WatchProjectProgram) {
+            this._WatchProjectProgram.process.kill();
         }
 
-        this._WatchProgram = null;
+        this._WatchProjectProgram = null;
+    }
+
+    /**
+     * Watchs the project's typescript using tsc. This is used to safely watch attached scripts on nodes.
+     * @param editor the editor reference.
+     */
+    public static async WatchTypeScript(editor: Editor): Promise<void> {
+        if (this._WatchTypescriptProgram) { return; }
+
+        // Update the tsconfig file
+        await copyFile(join(Tools.GetAppPath(), "assets", "scripts", "editor.tsconfig.json"), join(this.DirPath!, "editor.tsconfig.json"));
+
+        // Get command
+        const watchScript = join("node_modules", ".bin", "tsc");
+        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!);
+    }
+
+    /**
+     * Returns wether or not the typescript project is being watched.
+     */
+    public static get IsWatchingTypeScript(): boolean {
+        return this._WatchTypescriptProgram !== null;
+    }
+
+    /**
+     * Stops watching the TypeScript project.
+     */
+    public static StopWatchingTypeScript(): void {
+        if (this._WatchTypescriptProgram) {
+            this._WatchTypescriptProgram.process.kill();
+        }
+
+        this._WatchTypescriptProgram = null;
     }
 
     /**
      * Kills all the existing programs.
      */
     public static KillAllProcesses(): void {
-        this.StopWatching();
+        this.StopWatchingProject();
+        this.StopWatchingTypeScript();
     }
 }

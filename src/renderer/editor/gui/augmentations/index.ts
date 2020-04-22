@@ -4,12 +4,14 @@ import { ImageBoxController } from "./image";
 import { SuggestController } from "./suggest";
 import { CustomController } from "./custom";
 import { ButtonController } from "./button";
+import { KeyMapperController } from "./key-mapper";
 
 import "./text-box";
 import "./image";
 import "./suggest";
 import "./custom";
 import "./button";
+import "./key-mapper";
 
 /**
  * Augmentify dat.gui
@@ -84,6 +86,12 @@ declare module "dat.gui" {
 			onShowIcon?: (item: string) => JSX.Element | undefined;
 			onShowTooltip?: (item: string) => JSX.Element | undefined;
         }): SuggestController;
+        /**
+         * Adds a new keymapper input.
+         * @param object the object to modify.
+         * @param property the property of the object to get and set changes.
+         */
+        addKeyMapper(object: any, property: string): KeyMapperController;
         /**
          * Adds a custom element using react.
          * @param height the height expressed using css of the element (ex: 500px).

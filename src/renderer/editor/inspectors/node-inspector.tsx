@@ -1,8 +1,11 @@
-import { normalize, join } from "path";
+import { normalize, join, extname } from "path";
 import { readFile } from "fs-extra";
 import { transpile, ModuleKind, ScriptTarget } from "typescript";
 
 import { Nullable } from "../../../shared/types";
+
+import * as React from "react";
+import { Spinner } from "@blueprintjs/core";
 
 import { Node } from "babylonjs";
 import { GUI, GUIController } from "dat.gui";
@@ -10,6 +13,7 @@ import { GUI, GUIController } from "dat.gui";
 import { WorkSpace } from "../project/workspace";
 
 import { Tools } from "../tools/tools";
+import { SandboxMain } from "../../sandbox/main";
 
 import { Inspector } from "../components/inspector";
 import { AbstractInspector } from "./abstract-inspector";
@@ -70,19 +74,30 @@ export class NodeInspector extends AbstractInspector<Node> {
         });
 
         // Refresh
-        const refresh = { fn: async () => {
-            if (this._refreshingScripts) { return; }
-            this._refreshingScripts = true;
-            await this._updateScriptVisibleProperties(script);
-            this._refreshingScripts = false;
-        } };
-
-        script.add(refresh, "fn").name("Refresh...");
+        script.addButton("Refresh...").onClick(() => this._refreshScript(script));
 
         // Serialized properties.
         if (this._selectedScript !== "None") {
-            await this._updateScriptVisibleProperties(script);
+            const spinner = script.addCustom("35px", <Spinner size={35} />);
+            
+            try {
+                await this._updateScriptVisibleProperties(script);
+            } catch (e) {
+                // TODO: manage errors.
+            }
+
+            script.remove(spinner as any);
         }
+    }
+
+    /**
+     * Refreshes the script.
+     */
+    private async _refreshScript(folder: GUI): Promise<void> {
+        if (this._refreshingScripts) { return; }
+        this._refreshingScripts = true;
+        await this._updateScriptVisibleProperties(folder);
+        this._refreshingScripts = false;
     }
 
     /**
@@ -91,37 +106,32 @@ export class NodeInspector extends AbstractInspector<Node> {
     private async _updateScriptVisibleProperties(folder: GUI): Promise<void> {
         await this._refreshDecorators();
 
-        const name = this.selectedObject.metadata.script.name;
-        const path = normalize(join(WorkSpace.DirPath!, name));
-        const content = await readFile(path, { encoding: "utf-8" });
+        const name = this.selectedObject.metadata.script.name as string;
+        const extension = extname(name);
+        const extensionIndex = name.lastIndexOf(extension);
 
-        const transpiledScript = transpile(content, { module: ModuleKind.None, target: ScriptTarget.ES5, experimentalDecorators: true });
+        if (extensionIndex === -1) { return; }
 
-        const Module = require("module");
+        const jsName = normalize(`${name.substr(0, extensionIndex)}.js`);
+        const jsPath = join(WorkSpace.DirPath!, "build", jsName);
 
-        let module: any;
-        try {
-            module = new Module();
-            module._compile(transpiledScript, name);
-        } catch (e) {
-            return this.editor.console.logError(`Failed to parse script "${name}":\n${e.message}`);
-        }
-
-        if (!module.exports || !module.exports.default || !module.exports.default._InspectorValues) { return; }
+        const inspectorValues = await SandboxMain.GetInspectorValues(jsPath);
+        if (!inspectorValues) { return; }
 
         // Manage properties
         const script = this.selectedObject.metadata.script;
         script.properties = script.properties ?? { };
 
-        const values = module.exports.default._InspectorValues;
         const computedValues: string[] = [];
-        values.forEach((v) => {
+        inspectorValues.forEach((v) => {
             script.properties[v.propertyKey] = script.properties[v.propertyKey] ?? { type: v.type };
 
+            const defaultValue = v.defaultValue;
             switch (v.type) {
-                case "number": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? 0; break;
-                case "string": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? ""; break;
-                case "boolean": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? false; break;
+                case "number": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? defaultValue ?? 0; break;
+                case "string": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? defaultValue ?? ""; break;
+                case "boolean": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? defaultValue ?? false; break;
+                case "KeyMap": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? defaultValue ?? 0; break;
             }
 
             computedValues.push(v.propertyKey);
@@ -137,14 +147,17 @@ export class NodeInspector extends AbstractInspector<Node> {
         });
         this._scriptControllers = [];
 
-        // Add 
-        values.forEach((v) => {
-            let controller: Nullable<GUIController> = null;
+        // Add all editable values
+        inspectorValues.forEach((v) => {
+            let controller: Nullable<any> = null;
             switch (v.type) {
                 case "number":
                 case "string":
                 case "boolean":
                     controller = folder.add(script.properties[v.propertyKey], "value").name(v.name);
+                    break;
+                case "KeyMap":
+                    controller = folder.addKeyMapper(script.properties[v.propertyKey], "value").name(v.name);
                     break;
             }
 
@@ -159,10 +172,7 @@ export class NodeInspector extends AbstractInspector<Node> {
         const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
         const transpiledScript = transpile(decorators, { module: ModuleKind.None, target: ScriptTarget.ES5, experimentalDecorators: true });
 
-        const Module = require("module");
-
-        const module = new Module();
-        module._compile(transpiledScript, name);
+       await SandboxMain.ExecuteCode(transpiledScript, "__editor__decorators__.js");
     }
 }
 

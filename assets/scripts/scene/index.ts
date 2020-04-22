@@ -3,7 +3,7 @@
  */
 
 import { Scene } from "@babylonjs/core";
-import { attachScripts } from "../tools";
+import { attachScripts, configurePostProcesses } from "../tools";
 
 /**
  * Defines the map of all available scripts in the project.
@@ -17,6 +17,10 @@ const scriptsMap = {
  * = attach scripts on objects.
  * @param scene the scene to attach scripts, etc.
  */
-export function runScene(scene: Scene): void {
+export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
+    // Attach scripts to objects in scene.
     attachScripts(scriptsMap, scene);
+
+    // Configure post-processes
+    configurePostProcesses(scene, rootUrl);
 }

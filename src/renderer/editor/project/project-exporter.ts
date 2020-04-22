@@ -41,13 +41,14 @@ export class ProjectExporter {
      * Saves the project in the current location. If no path provided, a dialog will prompt to select
      * the folder where to export the project.
      * @param editor the editor reference.
+     * @param skipGenerateScene defines wether or not the generation of the scene should be skipped.
      */
-    public static async Save(editor: Editor): Promise<void> {
+    public static async Save(editor: Editor, skipGenerateScene: boolean = false): Promise<void> {
         if (this._IsSaving) { return; }
 
         this._IsSaving = true;
         try {
-            await this._Save(editor);
+            await this._Save(editor, skipGenerateScene);
         } catch (e) {
             console.error(e);
         }
@@ -58,7 +59,7 @@ export class ProjectExporter {
     /**
      * Saves the project
      */
-    private static async _Save(editor: Editor): Promise<void> {
+    private static async _Save(editor: Editor, skipGenerateScene: boolean): Promise<void> {
         if (!Project.Path) { return this.SaveAs(editor); }
 
         const task = editor.addTaskFeedback(0, "Saving Files...");
@@ -107,7 +108,7 @@ export class ProjectExporter {
             const dest = join(filesDir, file.name);
 
             project.filesList.push(file.name);
-            if (await pathExists(dest)) {
+            if ((await pathExists(dest))) {
                 continue;
             }
 
@@ -270,7 +271,9 @@ export class ProjectExporter {
         if (WorkSpace.HasWorkspace()) {
             await WorkSpace.WriteWorkspaceFile(Project.Path);
 
-            if (WorkSpace.Workspace!.generateSceneOnSave) { await this.ExportFinalScene(editor); }
+            if (!skipGenerateScene && WorkSpace.Workspace!.generateSceneOnSave) {
+                await this.ExportFinalScene(editor);
+            }
         }
 
         // Done!
@@ -318,6 +321,13 @@ export class ProjectExporter {
         const task = editor.addTaskFeedback(0, "Saving Final Scene");
 
         const scene = SceneSerializer.Serialize(editor.scene!);
+        scene.metadata = scene.metadata ?? { };
+        scene.metadata.postProcesses = {
+            ssao: { enabled: SceneSettings.IsSSAOEnabled(), json: SceneSettings.SSAOPipeline?.serialize() },
+            standard: { enabled: SceneSettings.IsStandardPipelineEnabled(), json: SceneSettings.StandardPipeline?.serialize() },
+            default: { enabled: SceneSettings.IsDefaultPipelineEnabled(), json: SceneSettings.DefaultPipeline?.serialize() },
+        };
+
         // Active camera
         scene.activeCameraID = scene.cameras[0]?.id;
         // LODs

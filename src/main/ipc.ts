@@ -106,8 +106,8 @@ export class IPC {
 	/**
 	 * The user wants to set the new project path.
 	 */
-	public static StartWebServer(event: IpcMainEvent, path: string): void {
-		GameServer.RunServer(path);
+	public static StartWebServer(event: IpcMainEvent, path: string, port: number): void {
+		GameServer.RunServer(path, port);
 		event.sender.send(IPCResponses.StartGameServer);
 	}
 

@@ -1,4 +1,4 @@
-import { mkdir, readJSON, writeJSON, readdir } from "fs-extra";
+import { mkdir, readJSON, writeJSON, readdir, writeJson } from "fs-extra";
 import { basename, join, extname } from "path";
 import Zip from "adm-zip";
 
@@ -17,7 +17,8 @@ import { Tools } from "../../tools/tools";
 import { Project } from "../project";
 import { IWorkSpace } from "../typings";
 
-import { WorkspaceWizard, IWorkspaceTemplate } from "./wizard-workspace0";
+import { WorkspaceWizard0, IWorkspaceTemplate } from "./wizard-workspace0";
+import { WorkspaceWizard1 } from "./wizard-workspace1";
 import { WorkSpace } from "../workspace";
 
 export interface IWelcomeDialogProps {
@@ -42,9 +43,11 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         ReactDOM.render(<WelcomeDialog canClose={canClose} />, document.getElementById("BABYLON-EDITOR-OVERLAY"));
     }
 
-    private _wizard: WorkspaceWizard;
+    private _wizard0: WorkspaceWizard0;
+    private _wizard1: WorkspaceWizard1;
     private _refHandler = {
-        getWizard: (ref: WorkspaceWizard) => ref && (this._wizard = ref),
+        getWizard0: (ref: WorkspaceWizard0) => ref && (this._wizard0 = ref),
+        getWizard1: (ref: WorkspaceWizard1) => ref && (this._wizard1 = ref),
     };
 
     /**
@@ -69,8 +72,11 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
                     height={400}
                     onFinish={() => this._handleFinishWizard()}
                     steps={[{
-                        title: "New workspace",
-                        element: <WorkspaceWizard ref={this._refHandler.getWizard} />
+                        title: "New Workspace",
+                        element: <WorkspaceWizard0 ref={this._refHandler.getWizard0} />
+                    }, {
+                        title: "Workspace Settings",
+                        element: <WorkspaceWizard1 ref={this._refHandler.getWizard1} />
                     }]}
                 ></Wizard>
             );
@@ -181,7 +187,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
      * Called on the user finished the new project wizard.
      */
     private async _handleFinishWizard(): Promise<void> {
-        const templateType = this._wizard.state.selectedTemplate;
+        const templateType = this._wizard0.state.selectedTemplate;
         if (templateType && templateType.name !== "Empty") {
             return this._downloadTemplate(templateType);
         }
@@ -217,8 +223,12 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         workspace.firstLoad = true;
         await writeJSON(join(path, "workspace.editorworkspace"), workspace, { spaces: "\t" });
 
+        // Configure workspace
+        const workspacePath = join(path, "workspace.editorworkspace");
+        await this._updateWorkspaceSettings(workspacePath);
+
         // Open project!
-        await WorkSpace.SetOpeningWorkspace(join(path, "workspace.editorworkspace"));
+        await WorkSpace.SetOpeningWorkspace(workspacePath);
         window.location.reload();
     }
 
@@ -230,6 +240,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         const path = await Tools.ShowSaveDialog();
 
         // Download file
+        this.setState({ downloadProgress: 0.001 });
         const contentBuffer = await Tools.LoadFile<ArrayBuffer>(`http://editor.babylonjs.com/templates/${template.file}?${Date.now()}`, true, (d) => {
             this.setState({ downloadProgress: (d.loaded / d.total) });
         });
@@ -237,11 +248,31 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         const zip = new Zip(Buffer.from(contentBuffer));
         await new Promise<void>((resolve, reject) => zip.extractAllToAsync(path, false, (err) => err ? reject(err) : resolve()));
 
+        // Notify
+        Overlay.Show("Creating Project...", true);
+
         // Open project!
         const filesList = await readdir(path);
         const workspaceFile = filesList.find((f) => extname(f).toLowerCase() === ".editorworkspace") ?? "workspace.editorworkspace";
+        const workspacePath = join(path, workspaceFile);
+
+        await this._updateWorkspaceSettings(workspacePath);
 
         await WorkSpace.SetOpeningWorkspace(join(path, workspaceFile));
         window.location.reload();
+    }
+
+    /**
+     * Updates the workspace settings on 
+     */
+    private async _updateWorkspaceSettings(worksapcePath: string): Promise<void> {
+        const workspace = await readJSON(worksapcePath, { encoding: "utf-8" }) as IWorkSpace;
+        workspace.serverPort = this._wizard1.state.serverPort;
+        workspace.watchProject = this._wizard1.state.watchWorkspaceWithWebPack;
+
+        await writeJson(worksapcePath, workspace, {
+            encoding: "utf-8",
+            spaces: "\t",
+        });
     }
 }

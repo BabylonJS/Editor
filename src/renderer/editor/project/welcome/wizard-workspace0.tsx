@@ -15,11 +15,11 @@ export interface IWorkspaceTemplate {
     file: string;
 }
 
-export interface IWelcomeWizardProps {
+export interface IWelcomeWizard0Props {
 
 }
 
-export interface IWorkspaceWizardState {
+export interface IWorkspaceWizard0State {
     /**
      * Defines the list of available
      */
@@ -34,12 +34,12 @@ export interface IWorkspaceWizardState {
     downloadProgress?: Undefinable<number>;
 }
 
-export class WorkspaceWizard extends React.Component<IWelcomeWizardProps, IWorkspaceWizardState> {
+export class WorkspaceWizard0 extends React.Component<IWelcomeWizard0Props, IWorkspaceWizard0State> {
     /**
      * Constructor.
      * @param props the component's props.
      */
-    public constructor(props: IWelcomeWizardProps) {
+    public constructor(props: IWelcomeWizard0Props) {
         super(props);
         this.state = { };
     }
