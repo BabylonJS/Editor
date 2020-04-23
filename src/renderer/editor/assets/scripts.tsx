@@ -80,14 +80,14 @@ export class ScriptAssets extends AbstractAssets {
         for (const f of files) {
             const infos = await stat(join(path, f));
             if (infos.isDirectory()) {
-                this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "./css/svg/folder-open.svg" });
+                this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "../css/svg/folder-open.svg" });
                 continue;
             }
             
             const extension = extname(f).toLowerCase();
             if (extension !== ".ts") { continue; }
 
-            this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "./css/images/ts.png" });
+            this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "../css/images/ts.png" });
         }
 
         return super.refresh();

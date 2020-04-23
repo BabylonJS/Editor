@@ -103,7 +103,7 @@ export default class MeshViewerWindow extends React.Component {
                 enablePopup: false,
                 enableClose: false,
                 embedMode: true,
-                inspectorURL: "./node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
+                inspectorURL: "../node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
             });
         });
 
@@ -118,7 +118,7 @@ export default class MeshViewerWindow extends React.Component {
         this._camera.maxZ = distance * 10;
         
         // Environment texture
-        const texture = CubeTexture.CreateFromPrefilteredData("./assets/textures/forest.env", this._scene);
+        const texture = CubeTexture.CreateFromPrefilteredData("../assets/textures/forest.env", this._scene);
         this._scene.environmentTexture = texture;
 
         const materialTexture = texture.clone();
@@ -143,7 +143,7 @@ export default class MeshViewerWindow extends React.Component {
         gridMaterial.lineColor = new Color3(1, 1, 1);
         gridMaterial.opacity = 0.8;
         gridMaterial.zOffset = 1;
-        gridMaterial.opacityTexture = new Texture("./assets/textures/grid_background.png", this._scene);
+        gridMaterial.opacityTexture = new Texture("../assets/textures/grid_background.png", this._scene);
 
         // Create grid
         const grid = Mesh.CreateGround("grid", distance, distance, 2, this._scene);

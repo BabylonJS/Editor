@@ -39,16 +39,13 @@ Builder.build({
         ],
         files: [
             "src/**",
-            "electron/**",
 
             "build/**",
             "declaration/**",
 
             "assets/**",
             "css/**",
-
-            "index-local.html",
-            "plugin.html",
+            "html/**",
 
             "photoshop-extension/**"
         ]

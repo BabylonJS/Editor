@@ -236,7 +236,7 @@ export class Editor {
         Overlay.Show("Loading Editor...", true);
 
         // Get version
-        this._packageJson = JSON.parse(await Tools.LoadFile("./package.json", false));
+        this._packageJson = JSON.parse(await Tools.LoadFile("../package.json", false));
 
         // Create default layout
         const layoutVersion = localStorage.getItem('babylonjs-editor-layout-version');

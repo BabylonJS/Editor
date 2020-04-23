@@ -66,7 +66,7 @@ export default class EditorApp {
 					nodeIntegrationInSubFrames: true,
 				},
 			},
-			url: "file://" + __dirname + "/../../../../index-local.html",
+			url: "file://" + __dirname + "/../../../../html/editor.html",
 			autofocus: true,
 		});
 		this.Window.maximize();

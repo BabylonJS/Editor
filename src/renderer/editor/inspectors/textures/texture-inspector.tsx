@@ -85,7 +85,7 @@ export class TextureInspector extends AbstractInspector<Texture> {
                 common.addCustom("300px",
                 <>
                     <span>{name}</span>
-                    <img src="./css/svg/dds.svg" style={{ width: "100%", height: "280px", objectFit: "contain" }}></img>
+                    <img src="../css/svg/dds.svg" style={{ width: "100%", height: "280px", objectFit: "contain" }}></img>
                 </>
             );
             } else {

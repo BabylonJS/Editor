@@ -77,7 +77,7 @@ export class TextureAssets extends AbstractAssets {
             const file = FilesStore.GetFileFromBaseName(name);
             if (!file && !isDyamicTexture) { continue; }
 
-            let base64 = texture.isCube ? "./css/svg/dds.svg" : file?.path ?? "";
+            let base64 = texture.isCube ? "../css/svg/dds.svg" : file?.path ?? "";
             if (isDyamicTexture) {
                 base64 = (texture as DynamicTexture).getContext().canvas.toDataURL("image/png");
             }

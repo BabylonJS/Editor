@@ -17,7 +17,7 @@ export class SandboxMain {
             this._IFrame.addEventListener("load", () => resolve());
             this._IFrame.addEventListener("error", (e) => reject(e));
             this._IFrame.style.visibility = "hidden";
-            this._IFrame.src = "./html/sandbox.html";
+            this._IFrame.src = "../html/sandbox.html";
             document.body.append(this._IFrame);
         });
     }

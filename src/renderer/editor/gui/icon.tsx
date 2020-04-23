@@ -55,7 +55,7 @@ export class Icon extends React.Component<IIconProps, IIconState> {
         return (
             <img
                 id={this.props.id}
-                src={`./css/svg/${this.props.src}`}
+                src={`../css/svg/${this.props.src}`}
                 style={{ width: "16px", height: "16px", filter: "invert(1.0)", ...this.props.style, ...this.state.style }}
                 onClick={this.props.onClick}
                 onContextMenu={this.props.onClick}

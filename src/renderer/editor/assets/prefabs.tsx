@@ -64,7 +64,7 @@ export class PrefabAssets extends AbstractAssets {
             const entries = zip.getEntries();
             const previewEntry = entries.find((e) => e.entryName === "preview.png");
 
-            let base64 = "./css/svg/logo-babylon.svg";
+            let base64 = "../css/svg/logo-babylon.svg";
             if (previewEntry) {
                 try {
                     const buffer = await new Promise<Nullable<Buffer>>((resolve, reject) => {

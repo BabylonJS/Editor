@@ -28,7 +28,7 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
     public constructor(props: any) {
         super(props);
 
-        this.state = { path: "./css/svg/magic.svg", isCube: false };
+        this.state = { path: "../css/svg/magic.svg", isCube: false };
         this._bindEvents();
     }
 
