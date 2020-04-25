@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, Menu } from "electron";
+import { app, BrowserWindow, globalShortcut, Menu, ipcMain } from "electron";
 import { extname } from "path";
 
 import { Settings } from "./settings";
@@ -14,6 +14,8 @@ export default class EditorApp {
 	 * Reference to the IPC handler.
 	 */
 	public static IPCHandler: IPC;
+
+	private static _forceQuit: boolean = false;
 
     /**
      * Creates a new Electron window
@@ -71,6 +73,17 @@ export default class EditorApp {
 		});
 		this.Window.maximize();
 		this.Window.on("closed", () => app.quit());
+		this.Window.on("close", async (e) => {
+			if (this._forceQuit) { return; }
+
+			e.preventDefault();
+			this._forceQuit = await new Promise<boolean>((resolve) => {
+				ipcMain.on("quit", (_, shouldQuit) => resolve(shouldQuit));
+				this.Window.webContents.send("quit");
+			});
+
+			if (this._forceQuit) { app.quit(); }
+		});
 	}
 
     /**

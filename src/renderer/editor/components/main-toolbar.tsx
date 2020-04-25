@@ -1,3 +1,4 @@
+import { shell } from "electron";
 import { join, extname } from "path";
 import { readdir, writeFile } from "fs-extra";
 
@@ -23,10 +24,10 @@ import { Dialog } from "../gui/dialog";
 import { SceneFactory } from "../scene/factory";
 
 import { WorkSpace } from "../project/workspace";
-import { Project } from "../project/project";
 import { ProjectExporter } from "../project/project-exporter";
 import { WelcomeDialog } from "../project/welcome/welcome";
 import { NewProjectWizard } from "../project/welcome/new-project";
+import { ProjectRenamer } from "../project/rename";
 
 import { PhotoshopExtension } from "../extensions/photoshop";
 
@@ -70,15 +71,14 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
     public render(): React.ReactNode {
         const project =
             <Menu>
-                <MenuItem text="Open Project..." icon={<Icon src="folder.svg" />} onClick={() => this._menuItemClicked("project:open")} />
-                <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} />
-                <MenuDivider />
-                <MenuItem text="Save Project..." icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
-                <MenuItem text="Save Project As..." icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save-as")} />
-                <MenuDivider />
                 <MenuItem text="Open Workspace..." icon={<Icon src="workspace.svg" />} onClick={() => this._menuItemClicked("project:open-workspace")} />
+                <MenuItem text="Reveal WorkSpace In File Explorer" disabled={!WorkSpace.HasWorkspace()} icon="document-open" onClick={() => this._menuItemClicked("project:open-worspace-file-explorer")} />
                 <MenuDivider />
-                <MenuItem text="Wizard..." icon={<Icon src="jedi.svg" />} onClick={() => this._menuItemClicked("project:wizard")} />
+                <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} />
+                <MenuItem text="Save Project..." icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
+                <MenuItem text="Rename Project..." icon="edit" onClick={() => this._menuItemClicked("project:rename")} />
+                <MenuDivider />
+                <MenuItem text="Rename Project..." icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
             </Menu>;
         const edit =
             <Menu>
@@ -120,25 +120,34 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         const tools =
             <Menu>
-                <MenuItem text="Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
+                <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
             </Menu>;
 
         const workspace = !this.state.hasWorkspace ? undefined :
             <Menu>
-                <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this._handleRefreshWorkspace()} />
                 <MenuItem text="Add New Project..." icon={<Icon src="plus.svg" />} onClick={() => NewProjectWizard.Show()} />
                 <MenuItem text="Settings..." icon={<Icon src="wrench.svg" />} onClick={() => this._handleWorkspaceSettings()} />
                 <MenuItem text="Projects" icon="more">
+                    <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this._handleRefreshWorkspace()} />
+                    <MenuDivider />
                     {WorkSpace.AvailableProjects.map((p) => <MenuItem key={p} text={p} onClick={() => this._handleChangeProject(p)} />)}
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem text="Open Visual Studio Code..." icon={<Icon src="vscode.svg" style={{ filter: "none" }} />} onClick={() => this._handleOpenVSCode()} />
             </Menu>;
 
+        const help =
+            <Menu>
+                <MenuItem text="Documentation..." icon={<Icon src="internetarchive.svg" />} onClick={() => this._menuItemClicked("help:documentation")} />
+                <MenuItem text="Report issue..." icon={<Icon src="github.svg" />} onClick={() => this._menuItemClicked("help:report")} />
+                <MenuDivider />
+                <MenuItem text="Welcome..." icon={<Icon src="jedi.svg" />} onClick={() => this._menuItemClicked("help:welcome")} />
+            </Menu>
+
         return (
             <ButtonGroup style={{ marginTop: "auto", marginBottom: "auto" }}>
                 <Popover content={project} position={Position.BOTTOM_LEFT}>
-                    <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="Project"/>
+                    <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="File"/>
                 </Popover>
                 <Popover content={edit} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="edit.svg"/>} rightIcon="caret-down" text="Edit"/>
@@ -158,7 +167,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <Popover content={workspace} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="workspace.svg"/>} rightIcon="caret-down" text="Workspace"/>
                 </Popover>
-                <Button icon={<Icon src="dog.svg"/>} text="Help..." onClick={() => this._menuItemClicked("help")}/>
+                <Popover content={help} position={Position.BOTTOM_LEFT}>
+                    <Button icon={<Icon src="dog.svg"/>} rightIcon="caret-down" text="Help"/>
+                </Popover>
             </ButtonGroup>
         );
     }
@@ -182,19 +193,21 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         // Common id.
         switch (id) {
             // Project
-            case "project:open": Project.Browse(); break;
+            case "project:open-workspace": WorkSpace.Browse(); break;
+            case "project:open-worspace-file-explorer": shell.openExternal(WorkSpace.DirPath!); break;
+
             case "project:reload": this._reloadProject(); break;
             case "project:save": ProjectExporter.Save(this._editor); break;
-            case "project:save-as": ProjectExporter.SaveAs(this._editor); break;
-            case "project:open-workspace": WorkSpace.Browse(); break;
-            case "project:wizard": WelcomeDialog.Show(true); break;
+            case "project:rename": ProjectRenamer.Rename(this._editor); break;
 
             // Edit
             case "edit:refresh-assets": this._editor.assets.forceRefresh(); break;
             case "edit:reset": this._editor._resetEditor(); break;
 
             // Help
-            case "help": this._editor.addPlugin("doc"); break;
+            case "help:documentation": this._editor.addPlugin("doc"); break;
+            case "help:report": shell.openExternal("https://github.com/BabylonJS/Editor/issues"); break;
+            case "help:welcome": WelcomeDialog.Show(true); break;
 
             default: break;
         }

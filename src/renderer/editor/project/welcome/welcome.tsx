@@ -108,7 +108,6 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
                 <div className={Classes.DIALOG_BODY}>
                     <Callout title="Open an existing project" icon="info-sign">
                         <ButtonGroup vertical={true} fill={true} alignText={Alignment.LEFT}>
-                            <Button key="open-project" icon={<Icon src="folder.svg" />} onClick={() => this._handleOpenProject()}>Open Project...</Button>
                             <Button key="open-workspace" icon={<Icon src="workspace.svg" />} onClick={() => this._handleOpenWorkspace()}>Open Workspace...</Button>
                         </ButtonGroup>
                     </Callout>
@@ -153,13 +152,6 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
      */
     private _handleClose(): void {
         ReactDOM.unmountComponentAtNode(document.getElementById("BABYLON-EDITOR-OVERLAY") as Element);
-    }
-
-    /**
-     * Called on the user wants to load a project.
-     */
-    private _handleOpenProject(): void {
-        Project.Browse();
     }
 
     /**

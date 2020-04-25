@@ -15,6 +15,7 @@ import GoldenLayout from "golden-layout";
 
 import { Overlay } from "./gui/overlay";
 import { ActivityIndicator } from "./gui/acitivity-indicator";
+import { Confirm } from "./gui/confirm";
 
 import { Tools } from "./tools/tools";
 import { IPCTools } from "./tools/ipc";
@@ -179,6 +180,10 @@ export class Editor {
      * @hidden
      */
     public _packageJson: any = { };
+    /**
+     * @hidden
+     */
+    public _byPassBeforeUnload: boolean;
 
     private _components: IStringDictionary<any> = { };
     private _stacks: IStringDictionary<any> = { };
@@ -198,6 +203,7 @@ export class Editor {
     };
 
     private _isInitialized: boolean = false;
+    private _closing: boolean = false;
     private _pluginWindows: number[] = [];
 
     /**
@@ -784,10 +790,22 @@ export class Editor {
             this.preview.setDirty();
         });
 
-        // Events
+        // Resize
         window.addEventListener("resize", () => {
             this.layout.updateSize();
             this.resize();
+        });
+
+        // Close window
+        ipcRenderer.on("quit", async () => {
+            if (!WorkSpace.HasWorkspace()) {
+                return ipcRenderer.send("quit", true);
+            }
+
+            const shouldQuit = await Confirm.Show("Quit Editor?", "Are you sure to quit the editor? All unsaved work will be lost.");
+            if (shouldQuit) { this._byPassBeforeUnload = true; }
+
+            ipcRenderer.send("quit", shouldQuit);
         });
 
         // Drag'n'drop
@@ -827,7 +845,17 @@ export class Editor {
         });
 
         // State
-        window.addEventListener("beforeunload", () => {
+        window.addEventListener("beforeunload", async (e) => {
+            if (this._byPassBeforeUnload) { return; }
+
+            if (WorkSpace.HasWorkspace() && !this._closing) {
+                e.returnValue = false;
+                this._closing = await Confirm.Show("Close project?", "Are you sure to close the project? All unsaved work will be lost.");
+
+                if (this._closing) { window.location.reload(); }
+                return;
+            }
+
             // Windows
             this._pluginWindows.forEach((id) => IPCTools.Send(IPCRequests.CloseWindow, id));
 

@@ -416,7 +416,7 @@ export class ProjectExporter {
             height: 2160
         });
 
-        const data = localStorage.getItem('babylonjs-editor-welcome');
+        const data = localStorage.getItem("babylonjs-editor-welcome");
         const welcome = data ? JSON.parse(data) : [];
         const path = WorkSpace.Path ?? Project.Path;
 
