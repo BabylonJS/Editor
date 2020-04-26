@@ -2,6 +2,7 @@ import { Nullable } from "../../shared/types";
 
 /**
  * Defines the main sandbox class used in the iFrame.
+ * @see ./main.ts for more informations.
  */
 export class SandboxIFrame {
     /**

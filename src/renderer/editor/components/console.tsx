@@ -169,7 +169,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                     console.error(log.message);
                     break;
                 case ConsoleLogType.Raw:
-                    this._terminal.writeln(log.message);
+                    this._terminal.write(log.message);
                     console.log(log.message);
                     break;
         }

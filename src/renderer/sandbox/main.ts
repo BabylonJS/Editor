@@ -4,6 +4,34 @@ import { Tools } from "../editor/tools/tools";
 
 /**
  * Defines the main sandbox class used in the editor's renderer process.
+ * Nodes in the scene can have scripts attached to them. A script can decorate properties (numbers, strings, vectors, etc.) using
+ * decorators. In these decorators, the "@visibleInInspector" decorator is used to be able to customize the members directly in the editor.
+ * As decorators are executed in runtime, we need to require/import the script attached to the node being modified in the scene.
+ * To avoid having user scripts running in the same process as the editor, we use an iframe that will require/import these scripts and return
+ * the desired objects.
+ * 
+ * Example script:
+ *  import { Mesh } from "@babylonjs/core";
+ * 
+ *  // Import a lib that is not used by the editor.
+ *  import { io } from "socket.io";
+ * 
+ *  // Import decorators
+ *  import { visibleInInspector } from "../tools";
+ * 
+ *  export default class MyScript extends Mesh {
+ *      @visibleInInspector("number", "Speed")
+ *      public speed: number = null;
+ * 
+ *      ...
+ * }
+ * 
+ * This script will be imported using "require("./myScript.js");"
+ * Then, the decorators will be executed and will put the needed data in the MyScript class object.
+ * 
+ * The only thing the iFrame has do do now, is to return the exported object of the require. Typically exports.default._InspectorValues.
+ * 
+ * @see ./iframe.ts for more informations about require/import of scripts and returned values.
  */
 export class SandboxMain {
     private static _IFrame: HTMLIFrameElement;

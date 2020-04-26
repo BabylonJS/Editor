@@ -1,4 +1,4 @@
-import { mkdir, readJSON, writeJSON, readdir, writeJson } from "fs-extra";
+import { readJSON, readdir, writeJson } from "fs-extra";
 import { basename, join, extname } from "path";
 import Zip from "adm-zip";
 
@@ -186,9 +186,6 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
 
         const path = await Tools.ShowSaveDialog();
 
-        const type = "Empty";
-        const name = "scene1";
-
         this._handleClose();
         Overlay.Show("Creating Project...", true);
 
@@ -198,22 +195,6 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         await new Promise<void>((resolve, reject) => {
             projectZip.extractAllToAsync(path, false, (err) => err ? reject(err) : resolve());
         });
-
-        // Write scene.
-        const sceneZipPath = join(Tools.GetAppPath(), `assets/wizard/${type.toLowerCase()}.zip`);
-        const sceneZip = new Zip(sceneZipPath);
-
-        const scenePath = join(path, "projects", name);
-        await mkdir(scenePath);
-        await new Promise<void>((resolve, reject) => {
-            sceneZip.extractAllToAsync(scenePath, false, (err) => err ? reject(err) : resolve());
-        });
-
-        // Upate workspace
-        const workspace = await readJSON(join(path, "workspace.editorworkspace")) as IWorkSpace;
-        workspace.lastOpenedScene = join("projects", name, "scene.editorproject");
-        workspace.firstLoad = true;
-        await writeJSON(join(path, "workspace.editorworkspace"), workspace, { spaces: "\t" });
 
         // Configure workspace
         const workspacePath = join(path, "workspace.editorworkspace");

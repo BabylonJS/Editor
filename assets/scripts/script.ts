@@ -19,13 +19,6 @@ import { Node } from "@babylonjs/core";
  */
 export default class MyScript extends Node {
     /**
-     * Export that property as number to be shown in the inspector.
-     * That will allow to configure scripts using the editor.
-     */
-    @visibleInInspector("number", "My Property")
-    private _myProperty: number = 0;
-
-    /**
      * Override constructor.
      * @warn do not fill.
      */
@@ -36,13 +29,13 @@ export default class MyScript extends Node {
      * Called on the scene starts.
      */
     public onStart(): void {
-        console.log(this._myProperty);
+        // ...
     }
 
     /**
      * Called each frame.
      */
     public onUpdate(): void {
-
+        // ...
     }
 }

@@ -11,6 +11,16 @@ export class CameraInspector extends NodeInspector {
     protected selectedObject: Camera;
 
     /**
+     * Called on the component did moubnt.
+     * @override
+     */
+    public onUpdate(): void {
+        this.addCommon();
+        this.addScript();
+        this.addTransforms();
+    }
+
+    /**
      * Adds the common editable properties.
      * @override
      */
@@ -20,8 +30,6 @@ export class CameraInspector extends NodeInspector {
         common.add(this.selectedObject, "minZ").step(0.01).name("Min Z");
         common.add(this.selectedObject, "maxZ").step(0.01).name("Max Z");
         common.add(this.selectedObject, "inertia").step(0.01).name("Inertia");
-
-        this.addTransforms();
 
         return common;
     }
