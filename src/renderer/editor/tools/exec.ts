@@ -45,7 +45,7 @@ export class ExecTools {
 
         if (!noLogs) {
             program.onData((e) => {
-                editor.console.logInfo(escape(e));
+                editor.console.logRaw(e);
             });
         }
 
@@ -53,7 +53,8 @@ export class ExecTools {
             program.onExit((e) => e.exitCode === 0 ? resolve() : reject());
         });
 
-        program.write(`${command.replace(/\\/g, "/")}\n`);
+        program.write(`${command.replace(/\\/g, "/")}\n\r`);
+        program.write("exit\n\r");
 
         return { process: program, promise };
     }

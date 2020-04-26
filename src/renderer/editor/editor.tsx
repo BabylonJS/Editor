@@ -297,6 +297,7 @@ export class Editor {
         this.layout.on("componentCreated", (c) => {
             this._components[c.config.component] = c;
             c.container.on("resize", () => this.resize());
+            c.container.on("show", () => this.resize());
         });
         this.layout.on("stackCreated", (s) => {
             if (s.config?.componentName) {
@@ -347,6 +348,7 @@ export class Editor {
         this.engine!.resize();
         this.inspector.resize();
         this.assets.resize();
+        this.console.resize();
         
         for (const p in this.plugins) {
             const panel = this.getPanelSize(p);
@@ -465,6 +467,8 @@ export class Editor {
         } catch (e) {
             // Catch silently.
         }
+
+        this.resize();
     }
 
     /**
@@ -606,6 +610,9 @@ export class Editor {
         // Listen to events
         const container = stack?.getActiveContentItem()["container"];
         this._bindPluginEvents(container, plugin);
+
+        // Resize
+        this.resize();
     }
 
     /**

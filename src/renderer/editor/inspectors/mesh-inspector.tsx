@@ -19,6 +19,7 @@ export class MeshInspector extends NodeInspector {
     protected selectedObject: Mesh;
 
     private _physicsImpostor: string = "";
+    private _numBoneInfluencers: number = 0;
 
     private _physicsFolder: Nullable<GUI> = null;
     private _lodFolder: Nullable<GUI> = null;
@@ -38,6 +39,7 @@ export class MeshInspector extends NodeInspector {
         this.addTransforms();
         this.addCollisions();
         this.addPhysics();
+        this.addSkeleton();
         this.addLods();
     }
 
@@ -144,6 +146,42 @@ export class MeshInspector extends NodeInspector {
             this._physicsFolder.add(this.selectedObject.physicsImpostor, "mass").min(0).step(0.1).name("Mass").onChange(() => this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false);
             this._physicsFolder.add(this.selectedObject.physicsImpostor, "restitution").min(0).step(0.1).name("Restitution").onChange(() => this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false);
             this._physicsFolder.add(this.selectedObject.physicsImpostor, "friction").min(0).step(0.1).name("Friction").onChange(() => this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false);
+        }
+    }
+
+    /**
+     * Adds all skeleton editable properties.
+     */
+    protected addSkeleton(): void {
+        if (!this.selectedObject.skeleton) { return; }
+
+        // Skeleton
+        const skeleton = this.tool!.addFolder("Skeleton");
+        skeleton.open();
+
+        skeleton.add(this.selectedObject.skeleton, "needInitialSkinMatrix").name("Need Initial Skin Matrix");
+        skeleton.add(this.selectedObject.skeleton, "useTextureToStoreBoneMatrices").name("Use Texture To Store Bone Matrices");
+
+        this._numBoneInfluencers = this.selectedObject.numBoneInfluencers;
+        skeleton.add(this, "_numBoneInfluencers").min(0).max(8).step(1).name("Num Bone Influencers").onChange(() => {
+            this._numBoneInfluencers = this._numBoneInfluencers >> 0;
+            this.selectedObject.numBoneInfluencers = this._numBoneInfluencers;
+        });
+
+        // Animation ranges
+        const ranges = this.selectedObject.skeleton.getAnimationRanges();
+        if (ranges && ranges.length > 0) {
+            const animationRanges = skeleton.addFolder("Animation Ranges");
+            animationRanges.open();
+
+            ranges.forEach((r) => {
+                if (!r) { return; }
+
+                animationRanges.addButton(r.name).onClick(() => {
+                    this.selectedObject._scene.stopAnimation(this.selectedObject.skeleton);
+                    this.selectedObject.skeleton?.beginAnimation(r.name, true, 1.0);
+                });
+            });
         }
     }
 

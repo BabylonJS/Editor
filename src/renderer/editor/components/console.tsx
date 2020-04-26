@@ -1,13 +1,11 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { editor } from "monaco-editor";
+import { Terminal } from "xterm";
+import { FitAddon } from 'xterm-addon-fit';
+import chalk from "chalk";
 
-import Editor from "../index";
-
-// Declare monaco on the window.
-import * as monacoEditor from "monaco-editor";
-declare var monaco: typeof monacoEditor;
+import { Editor } from "../editor";
 
 export enum ConsoleLogType {
     /**
@@ -22,6 +20,10 @@ export enum ConsoleLogType {
      * Shows an error.
      */
     Error,
+    /**
+     * Just adds a message in its raw form.
+     */
+    Raw,
 }
 
 export interface IConsoleProps {
@@ -32,10 +34,7 @@ export interface IConsoleProps {
 }
 
 export interface IConsoleState {
-    /**
-     * Defines wether or not the console has a running process.
-     */
-    hasProcessRunning: boolean;
+
 }
 
 export interface IConsoleLog {
@@ -50,10 +49,8 @@ export interface IConsoleLog {
 }
 
 export class Console extends React.Component<IConsoleProps, IConsoleState> {
-    private _editor: Nullable<editor.ICodeEditor> = null;
-    private _messages: IConsoleLog[] = [];
-    private _autoScroll: boolean = true;
-    private _addingLog: boolean = false;
+    private _terminal: Nullable<Terminal> = null;
+    private _fitAddon: FitAddon = new FitAddon();
 
     /**
      * Constructor.
@@ -63,18 +60,14 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
         super(props);
 
         props.editor.console = this;
-        this.state = { hasProcessRunning: false };
+        this.state = { };
     }
 
     /**
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return (
-            <>
-                <div id="babylon-editor-console" style={{ width: "100%", height: "100%" }}></div>
-            </>
-        );
+        return <div id="babylon-editor-console" style={{ width: "100%", height: "100%" }}></div>;
     }
 
     /**
@@ -83,25 +76,27 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     public componentDidMount(): void {
         const div = document.getElementById("babylon-editor-console") as HTMLDivElement;
         
-        this._editor = monaco.editor.create(div, {
-            readOnly: true,
-            value: "",
-            language: "plaintext",
-            theme: "vs-dark",
-            automaticLayout: true,
-            selectionHighlight: true,
+        // Create terminal
+        this._terminal = new Terminal({
+            fontFamily: "Consolas, 'Courier New', monospace",
+            fontSize: 12,
+            fontWeight: "normal",
+            cursorStyle: "block",
+            cursorWidth: 1,
+            drawBoldTextInBrightColors: true,
+            fontWeightBold: "bold",
+            letterSpacing: -4,
+            cols: 80,
+            lineHeight: 1,
+            rendererType: "canvas",
+            allowTransparency: true,
+            theme: {
+                background: "#222222",
+            },
         });
 
-        this._editor.onDidScrollChange((e) => {
-            if (!this._editor) { return; }
-            const topForLastLine = this._editor.getTopForLineNumber(this._messages.length);
-
-            if (e.scrollTop >= topForLastLine) {
-                this._autoScroll = true;
-            } else if (e.scrollTopChanged && !this._addingLog) {
-                this._autoScroll = false;
-            }
-        });
+        this._terminal.loadAddon(this._fitAddon);
+        this._terminal.open(div);
 
         this.logInfo("Console ready.");
     }
@@ -110,7 +105,16 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Called on the component will unmount.
      */
     public componentWillUnmount(): void {
-        if (this._editor) { this._editor.dispose(); }
+        if (this._terminal) { this._terminal.dispose(); }
+    }
+
+    /**
+     * Called on the panel has been resized.
+     */
+    public resize(): void {
+        setTimeout(() => {
+            try { this._fitAddon.fit(); } catch (e) { /* Catch silently */ }
+        }, 0);
     }
 
     /**
@@ -138,40 +142,36 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     }
 
     /**
+     * Logs the given message in its raw form.
+     * @param message the message to log directly.
+     */
+    public logRaw(message: string): void {
+        this._addLog({ type: ConsoleLogType.Raw, message });
+    }
+
+    /**
      * Adds the given log to the editor.
      */
     private _addLog(log: IConsoleLog): void {
-        if (!this._editor) { return; }
-
-        this._messages.push(log);
-        if (this._messages.length > 1000) {
-            this._messages.shift();
-        }
-
-        const model = this._editor.getModel() as editor.ITextModel;
-        if (!model) { return; }
-
-        const value = model.getValue();
-        const message = log.message.split("\n").map((m) => `\t${m}`).join("\n");
-
-        this._addingLog = true;
+        if (!this._terminal) { return; }
 
         switch (log.type) {
             case ConsoleLogType.Info:
-                model.setValue(`${value}\n[INFO]:${message}`);
-                console.log(log.message);
-                break;
-            case ConsoleLogType.Warning:
-                model.setValue(`${value}\n[WARING]:${message}`);
-                console.warn(log.message);
-                break;
-            case ConsoleLogType.Error:
-                model.setValue(`${value}\n[ERROR]:${message}`);
-                console.error(log.message);
-                break;
+                    this._terminal.writeln(chalk.white(`[INFO]: ${log.message}`));
+                    console.info(log.message);
+                    break;
+                case ConsoleLogType.Warning:
+                    this._terminal.writeln(chalk.yellow(`[WARN]: ${log.message}`));
+                    console.warn(log.message);
+                    break;
+                case ConsoleLogType.Error:
+                    this._terminal.writeln(chalk.red(`[WARN]: ${log.message}`));
+                    console.error(log.message);
+                    break;
+                case ConsoleLogType.Raw:
+                    this._terminal.writeln(log.message);
+                    console.log(log.message);
+                    break;
         }
-
-        if (this._autoScroll) { this._editor.revealLine(model.getLineCount()); }
-        this._addingLog = false;
     }
 }

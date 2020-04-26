@@ -62,6 +62,7 @@
     "babylonjs-serializers": "4.1.0",
     "cannon": "0.6.2",
     "ccapture.js": "1.1.0",
+    "chalk": "4.0.0",
     "dat.gui": "0.7.6",
     "earcut": "2.2.2",
     "fs-extra": "8.1.0",
