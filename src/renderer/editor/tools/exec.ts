@@ -1,4 +1,5 @@
-import { exec, ChildProcess } from "child_process";
+import * as os from "os";
+import { spawn, IPty } from "node-pty";
 
 import { Editor } from "../editor";
 
@@ -6,7 +7,7 @@ export interface IExecProcess {
     /**
      * Defines the reference to the child process.
      */
-    process: ChildProcess;
+    process: IPty;
     /**
      * Defines the reference to the promise resolve/rejected on the program exists.
      */
@@ -19,18 +20,10 @@ export class ExecTools {
      * @param editor the editor reference (used to write output in console).
      * @param command the command to execute.
      * @param cwd the working directory while executing the command.
+     * @param noLogs defines wether or not the command's outputs should be listened and drawn in the editor's console.
      */
-    public static async Exec(editor: Editor, command: string, cwd?: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const program = exec(command, { cwd }, (error) => {
-                if (error) { return reject(); }
-
-                resolve();
-            });
-
-            program.stdout?.on("data", (d) => editor.console.logInfo(d.toString()));
-            program.stderr?.on("data", (d) => editor.console.logError(d.toString()));
-        });
+    public static async Exec(editor: Editor, command: string, cwd?: string, noLogs?: boolean): Promise<void> {
+        return this.ExecAndGetProgram(editor, command, cwd, noLogs).promise;
     }
 
     /**
@@ -38,17 +31,29 @@ export class ExecTools {
      * @param editor the editor reference (used to write output in console).
      * @param command the command to execute.
      * @param cwd the working directory while executing the command.
+     * @param noLogs defines wether or not the command's outputs should be listened and drawn in the editor's console.
      */
-    public static ExecAndGetProgram(editor: Editor, command: string, cwd?: string): IExecProcess {
-        const program = exec(command, { cwd });
+    public static ExecAndGetProgram(editor: Editor, command: string, cwd?: string, noLogs?: boolean): IExecProcess {
+        const shell = editor.getPreferences().terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"];
+        if (!shell) {
+            const message = `Can't execute command "${command}" as no shell environment is available.`;
+            editor.console.logError(message);
+            throw new Error(message);
+        }
 
-        program.stdout?.on("data", (d) => editor.console.logInfo(d.toString()));
-        program.stderr?.on("data", (d) => editor.console.logError(d.toString()));
+        const program = spawn(shell, [], { cwd });
+
+        if (!noLogs) {
+            program.onData((e) => {
+                editor.console.logInfo(escape(e));
+            });
+        }
 
         const promise = new Promise<void>((resolve, reject) => {
-            program.on("exit", () => resolve());
-            program.on("error", () => reject());
+            program.onExit((e) => e.exitCode === 0 ? resolve() : reject());
         });
+
+        program.write(`${command.replace(/\\/g, "/")}\n`);
 
         return { process: program, promise };
     }

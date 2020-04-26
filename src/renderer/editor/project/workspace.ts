@@ -228,7 +228,7 @@ export class WorkSpace {
 
         // Get command
         const watchScript = join("node_modules", ".bin", "tsc");
-        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!);
+        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, true);
     }
 
     /**

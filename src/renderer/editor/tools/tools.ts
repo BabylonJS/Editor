@@ -74,8 +74,8 @@ export class Tools {
      * Returns the given array by keeping only distinct values.
      * @param array the array to filter.
      */
-    public static Distinct(array: string[]): string[] {
-        const unique = (value: string, index: number, self: string[]) => self.indexOf(value) === index;
+    public static Distinct<T>(array: T[]): T[] {
+        const unique = (value: T, index: number, self: T[]) => self.indexOf(value) === index;
         return array.filter(unique);
     }
 

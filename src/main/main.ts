@@ -66,6 +66,7 @@ export default class EditorApp {
 					nodeIntegrationInWorker: true,
 					nativeWindowOpen: false,
 					nodeIntegrationInSubFrames: true,
+					allowRunningInsecureContent: false,
 				},
 			},
 			url: "file://" + __dirname + "/../../../../html/editor.html",

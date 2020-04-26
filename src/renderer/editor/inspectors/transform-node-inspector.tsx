@@ -16,6 +16,7 @@ export class TransformNodeInspector extends NodeInspector {
      */
     public onUpdate(): void {
         this.addCommon();
+        this.addScript();
         this.addTransforms();
     }
 

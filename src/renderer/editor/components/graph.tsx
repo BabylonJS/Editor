@@ -20,6 +20,7 @@ import { undoRedo } from "../tools/undo-redo";
 import { Prefab } from "../prefab/prefab";
 
 import { SceneSettings } from "../scene/settings";
+import { SceneTools } from "../scene/tools";
 
 export interface IGraphProps {
     editor: Editor;
@@ -366,16 +367,30 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         const name = node.name ?? Tools.GetConstructorName(node);
 
-        const extraMenus: JSX.Element[] = [];
-        if (node instanceof Mesh && node.subMeshes?.length) {
+        const subMeshesItems: JSX.Element[] = [];
+        if (node instanceof Mesh && node.subMeshes?.length && node.subMeshes.length > 1) {
             const multiMaterial = node.material && node.material instanceof MultiMaterial ? node.material : null;
 
             node.subMeshes.forEach((sm, index) => {
                 const material = multiMaterial && sm.getMaterial();
                 const text = material ? (material.name ?? Tools.GetConstructorName(material)) : `Sub Mesh "${index}`;
                 const extraMenu = <MenuItem id={`${node.id}-${index}`} text={text} icon={<Icon src="vector-square.svg" />} onClick={() => this._editor.selectedSubMeshObservable.notifyObservers(sm)} />;
-                extraMenus.push(extraMenu);
+                subMeshesItems.push(extraMenu);
             });
+        }
+
+        let mergeMeshesItem: React.ReactNode;
+        if (this.state.selectedNodeIds) {
+            const all = this.state.selectedNodeIds.map((id) => this._getNodeById(id));
+            const notAllMeshes = all.find((n) => !(n instanceof Mesh));
+            if (!notAllMeshes && all.length > 1) {
+                mergeMeshesItem = (
+                    <>
+                        <MenuDivider />
+                        <MenuItem text="Merge Meshes..." onClick={() => SceneTools.MergeMeshes(this._editor, all as Mesh[])} />
+                    </>
+                )
+            }
         }
 
         ContextMenu.show(
@@ -399,10 +414,11 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 <MenuItem text="Clone" icon={<Icon src="clone.svg" />} onClick={() => this._handleClone()} />
                 <MenuDivider />
                 <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh)} />
+                {mergeMeshesItem}
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveNode()} />
-                {extraMenus.length ? <MenuDivider title="Sub-Meshes:" /> : undefined}
-                {extraMenus}
+                {subMeshesItems.length ? <MenuDivider title="Sub-Meshes:" /> : undefined}
+                {subMeshesItems}
             </Menu>,
             { left: e.clientX, top: e.clientY }
         );

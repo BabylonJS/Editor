@@ -1,8 +1,10 @@
-import { ipcRenderer } from "electron";
+import { ipcRenderer, shell } from "electron";
 
 import { IPCRequests } from "../../../shared/ipc";
+import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
+import { Classes, ButtonGroup, Button } from "@blueprintjs/core";
 
 import { IWorkSpace } from "../../editor/project/typings";
 
@@ -16,6 +18,11 @@ export interface IPlayWindowState {
 }
 
 export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
+    private _iframe: Nullable<HTMLIFrameElement> = null;
+    private _refHandler = {
+        getIFrame: (ref: HTMLIFrameElement) => this._iframe = ref,
+    };
+
     /**
      * Constructor
      * @param props the component's props.
@@ -35,7 +42,15 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
 
         const iframeUrl = `http://localhost:${this.state.workspace.serverPort}/`;
         return (
-            <iframe src={iframeUrl} style={{ width: "100%", height: "100%" }}></iframe>
+            <>
+                <div className={Classes.FILL} key="documentation-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
+                    <ButtonGroup>
+                        <Button key="open-browser" small={true} icon="document-open" text="Open In My Browser" onClick={() => this._handleOpenInBrowser()} />
+                        <Button key="refresh" small={true} icon="refresh" text="Refresh" onClick={() => this._handleRefresh()} />
+                    </ButtonGroup>
+                </div>
+                <iframe ref={this._refHandler.getIFrame} src={iframeUrl} style={{ width: "100%", height: "calc(100% - 25px)" }}></iframe>
+            </>
         );
     }
 
@@ -51,5 +66,24 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
      */
     private _bindEvents(): void {
         ipcRenderer.once(IPCRequests.SendWindowMessage, (_ , data) => data.id === "init" && this.setState({ workspace: data }));
+    }
+
+    /**
+     * Called on the user wants to open the documentation in his browser.
+     */
+    private async _handleOpenInBrowser(): Promise<void> {
+        if (!this._iframe) { return; }
+
+        await shell.openExternal(this._iframe.src);
+        window.close();
+    }
+
+    /**
+     * Called on the user wants to refresh.
+     */
+    private _handleRefresh(): void {
+        if (!this._iframe) { return; }
+
+        this._iframe.src = this._iframe.src;
     }
 }

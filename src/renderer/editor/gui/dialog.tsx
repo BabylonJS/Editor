@@ -19,6 +19,10 @@ export interface IDialogProps {
      */
     icon: Undefinable<JSX.Element>;
     /**
+     * Defines the html div element that contains the alert.
+     */
+    container: HTMLDivElement;
+    /**
      * Defines wether or not the input should be a password.
      */
     password: Undefinable<boolean>;
@@ -42,8 +46,13 @@ export class Dialog extends React.Component<IDialogProps> {
      */
     public static async Show(title: string, message: string, icon?: Undefinable<JSX.Element>, password?: boolean): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            const dialog = <Dialog title={title} message={message} icon={icon} password={password} onClose={(v) => v ? resolve(v) : reject("User decided to cancel dialog.")}></Dialog>;
-            ReactDOM.render(dialog, document.getElementById("BABYLON-EDITOR-OVERLAY"));
+            const container = document.createElement("div");
+            container.style.position = "absolute";
+            container.style.pointerEvents = "none";
+            document.body.appendChild(container);
+
+            const dialog = <Dialog title={title} message={message} icon={icon} container={container} password={password} onClose={(v) => v ? resolve(v) : reject("User decided to cancel dialog.")}></Dialog>;
+            ReactDOM.render(dialog, container);
         });
     }
 
@@ -100,7 +109,9 @@ export class Dialog extends React.Component<IDialogProps> {
      */
     private _handleClose(discard: boolean): void {
         const input = document.getElementById("dialog-text-input") as HTMLInputElement;
+
+        ReactDOM.unmountComponentAtNode(this.props.container);
+        this.props.container.remove();
         this.props.onClose(discard ? null : input.value);
-        ReactDOM.unmountComponentAtNode(document.getElementById("BABYLON-EDITOR-OVERLAY") as Element);
     }
 }

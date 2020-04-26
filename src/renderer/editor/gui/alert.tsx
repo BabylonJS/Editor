@@ -18,6 +18,10 @@ export interface IAlertProps {
      */
     icon: Undefinable<JSX.Element>;
     /**
+     * Defines the html div element that contains the alert.
+     */
+    container: HTMLDivElement;
+    /**
      * Optional body element.
      */
     body?: Undefinable<JSX.Element>;
@@ -37,8 +41,13 @@ export class Alert extends React.Component<IAlertProps, { }> {
      */
     public static async Show(title: string, message: string, icon?: Undefinable<JSX.Element>, body?: Undefinable<JSX.Element>): Promise<void> {
         return new Promise<void>((resolve) => {
-            const dialog = <Alert title={title} message={message} icon={icon} body={body} onClose={resolve}></Alert>;
-            ReactDOM.render(dialog, document.getElementById("BABYLON-EDITOR-OVERLAY"));
+            const container = document.createElement("div");
+            container.style.position = "absolute";
+            container.style.pointerEvents = "none";
+            document.body.appendChild(container);
+
+            const dialog = <Alert title={title} message={message} icon={icon} container={container} body={body} onClose={resolve}></Alert>;
+            ReactDOM.render(dialog, container);
         });
     }
 
@@ -82,7 +91,8 @@ export class Alert extends React.Component<IAlertProps, { }> {
      * Called on the user clicks on the "Ok" button or closes the dialog.
      */
     private _handleClose(): void {
+        ReactDOM.unmountComponentAtNode(this.props.container);
+        this.props.container.remove();
         this.props.onClose && this.props.onClose();
-        ReactDOM.unmountComponentAtNode(document.getElementById("BABYLON-EDITOR-OVERLAY") as Element);
     }
 }

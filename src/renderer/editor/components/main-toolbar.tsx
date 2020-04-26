@@ -77,8 +77,6 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} />
                 <MenuItem text="Save Project..." icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
                 <MenuItem text="Rename Project..." icon="edit" onClick={() => this._menuItemClicked("project:rename")} />
-                <MenuDivider />
-                <MenuItem text="Rename Project..." icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
             </Menu>;
         const edit =
             <Menu>
@@ -323,8 +321,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
      * Called on the user wants to open VSCode.
      */
     private _handleOpenVSCode(): void {
-        const vscode = ExecTools.ExecAndGetProgram(this._editor, `code "${WorkSpace.DirPath!}"`);
-        vscode.process.unref();
+        ExecTools.ExecAndGetProgram(this._editor, `code "${WorkSpace.DirPath!}"`, undefined, true);
     }
 
     /**

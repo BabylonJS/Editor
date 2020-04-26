@@ -18,6 +18,10 @@ export interface IConfirmProps {
      */
     icon: Undefinable<JSX.Element>;
     /**
+     * Defines the html div element that contains the alert.
+     */
+    container: HTMLDivElement;
+    /**
      * Called on the user clicks on "Yes" or "No".
      */
     onAnswer: (yes: boolean) => void;
@@ -32,8 +36,13 @@ export class Confirm extends React.Component<IConfirmProps> {
      */
     public static async Show(title: string, message: string, icon?: Undefinable<JSX.Element>): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
-            const dialog = <Confirm title={title} message={message} icon={icon} onAnswer={resolve}></Confirm>;
-            ReactDOM.render(dialog, document.getElementById("BABYLON-EDITOR-OVERLAY"));
+            const container = document.createElement("div");
+            container.style.position = "absolute";
+            container.style.pointerEvents = "none";
+            document.body.appendChild(container);
+
+            const dialog = <Confirm title={title} message={message} container={container} icon={icon} onAnswer={resolve}></Confirm>;
+            ReactDOM.render(dialog, container);
         });
     }
 
@@ -68,7 +77,8 @@ export class Confirm extends React.Component<IConfirmProps> {
      * Handles the close event.
      */
     private _handleClose(yes: boolean): void {
+        ReactDOM.unmountComponentAtNode(this.props.container);
+        this.props.container.remove();
         this.props.onAnswer(yes);
-        ReactDOM.unmountComponentAtNode(document.getElementById("BABYLON-EDITOR-OVERLAY") as Element);
     }
 }

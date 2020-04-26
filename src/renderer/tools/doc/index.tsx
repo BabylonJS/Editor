@@ -1,10 +1,11 @@
+import { shell } from "electron";
+
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
 import { Classes, ButtonGroup, Button } from "@blueprintjs/core";
 
 import { AbstractEditorPlugin } from "../../editor/tools/plugin";
-import { shell } from "electron";
 
 export const title = "Documentation";
 
@@ -51,10 +52,10 @@ export default class PreviewPlugin extends AbstractEditorPlugin<{ }> {
     /**
      * Called on the user wants to open the documentation in his browser.
      */
-    private _handleOpenInBrowser(): void {
+    private async _handleOpenInBrowser(): Promise<void> {
         if (!this._iframe) { return; }
 
-        shell.openExternal(this._iframe.src);
+        await shell.openExternal(this._iframe.src);
         this.editor.closePlugin(title);
     }
 }
