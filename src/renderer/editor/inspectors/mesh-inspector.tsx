@@ -3,7 +3,7 @@ import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
 
-import { Mesh, SceneLoader, PhysicsImpostor, SubMesh } from "babylonjs";
+import { Mesh, SceneLoader, PhysicsImpostor, SubMesh, Vector3, Tools as BabylonTools } from "babylonjs";
 import { GUI } from "dat.gui";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -20,6 +20,7 @@ export class MeshInspector extends NodeInspector {
 
     private _physicsImpostor: string = "";
     private _numBoneInfluencers: number = 0;
+    private _rotation: Vector3 = Vector3.Zero();
 
     private _physicsFolder: Nullable<GUI> = null;
     private _lodFolder: Nullable<GUI> = null;
@@ -41,6 +42,21 @@ export class MeshInspector extends NodeInspector {
         this.addPhysics();
         this.addSkeleton();
         this.addLods();
+    }
+
+    /**
+     * Refreshes the edition tool.
+     * @override
+     */
+    public refreshDisplay(): void {
+        // Rotation
+        if (this.selectedObject.rotationQuaternion) {
+            this._getRotationDegrees(this._rotation.copyFrom(this.selectedObject.rotationQuaternion.toEulerAngles()));
+        } else {
+            this._getRotationDegrees(this._rotation.copyFrom(this.selectedObject.rotation));
+        }
+
+        super.refreshDisplay();
     }
 
     /**
@@ -88,18 +104,50 @@ export class MeshInspector extends NodeInspector {
         const transforms = this.tool!.addFolder("Transforms");
         transforms.open();
 
+        // Position
         const position = transforms.addFolder("Position");
         position.open();
         position.add(this.selectedObject.position, "x").step(0.1);
         position.add(this.selectedObject.position, "y").step(0.1);
         position.add(this.selectedObject.position, "z").step(0.1);
 
-        const rotation = transforms.addFolder("Rotation");
+        // Rotation
+        const rotation = transforms.addFolder("Rotation (degrees)");
         rotation.open();
-        rotation.add(this.selectedObject.rotation, "x").step(0.1);
-        rotation.add(this.selectedObject.rotation, "y").step(0.1);
-        rotation.add(this.selectedObject.rotation, "z").step(0.1);
 
+        if (this.selectedObject.rotationQuaternion) {
+            this._rotation = this._getRotationDegrees(this.selectedObject.rotationQuaternion.toEulerAngles());
+            
+            const onChangeQuaternion = (finished: boolean): void => {
+                this.selectedObject.rotationQuaternion = this._getRotationRadians(this._rotation.clone()).toQuaternion()
+                if (finished) {
+                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" });
+                } else {
+                    this.editor.objectModifiedObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" })
+                }
+            }
+
+            rotation.add(this._rotation, "x").step(0.1).onChange(() => onChangeQuaternion(false)).onFinishChange(() => onChangeQuaternion(true));
+            rotation.add(this._rotation, "y").step(0.1).onChange(() => onChangeQuaternion(false)).onFinishChange(() => onChangeQuaternion(true));
+            rotation.add(this._rotation, "z").step(0.1).onChange(() => onChangeQuaternion(false)).onFinishChange(() => onChangeQuaternion(true));
+        } else {
+            this._rotation = this._getRotationDegrees(this.selectedObject.rotation.clone());
+
+            const onChangeRotation = (finished: boolean): void => {
+                this.selectedObject.rotation = (this._getRotationRadians(this._rotation.clone()));
+                if (finished) {
+                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotation" });
+                } else {
+                    this.editor.objectModifiedObservable.notifyObservers({ object: this.selectedObject, path: "rotation" })
+                }
+            };
+
+            rotation.add(this._rotation, "x").step(0.1).onChange(() => onChangeRotation(false)).onFinishChange(() => onChangeRotation(true));
+            rotation.add(this._rotation, "y").step(0.1).onChange(() => onChangeRotation(false)).onFinishChange(() => onChangeRotation(true));
+            rotation.add(this._rotation, "z").step(0.1).onChange(() => onChangeRotation(false)).onFinishChange(() => onChangeRotation(true));
+        }
+
+        // Scaling
         const scaling = transforms.addFolder("Scaling");
         scaling.open();
         scaling.add(this.selectedObject.scaling, "x").step(0.1);
@@ -283,6 +331,28 @@ export class MeshInspector extends NodeInspector {
         if (mesh) { mesh.dispose(true, false); }
 
         folder.parent.removeFolder(folder);
+    }
+
+     /**
+     * Converts the given vector3 from radians to degrees.
+     */
+    private _getRotationDegrees(rot: Vector3): Vector3 {
+        rot.x = BabylonTools.ToDegrees(rot.x);
+        rot.y = BabylonTools.ToDegrees(rot.y);
+        rot.z = BabylonTools.ToDegrees(rot.z);
+
+        return rot;
+    }
+
+    /**
+     * Converts the given vector3 from degrees to radians.
+     */
+    private _getRotationRadians(rot: Vector3): Vector3 {
+        rot.x = BabylonTools.ToRadians(rot.x);
+        rot.y = BabylonTools.ToRadians(rot.y);
+        rot.z = BabylonTools.ToRadians(rot.z);
+
+        return rot;
     }
 }
 

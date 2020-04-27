@@ -20,8 +20,9 @@ export class ArcRotateCameraInspector extends CameraInspector {
     protected addCommon(): GUI {
         const common = super.addCommon();
         common.add(this.selectedObject, "noRotationConstraint").name("No Rotation Constraint");
-        common.add(this.selectedObject, "speed").min(0).step(0.01).name("Speed");
         common.add(this.selectedObject, "wheelPrecision").min(0).step(0.1).name("Wheel Precision");
+
+        common.add(this.selectedObject, "panningSensibility").name("Panning Sensibility");
         common.add(this.selectedObject, "angularSensibilityX").name("Angular Sensibility X");
         common.add(this.selectedObject, "angularSensibilityY").name("Angular Sensibility Y");
 

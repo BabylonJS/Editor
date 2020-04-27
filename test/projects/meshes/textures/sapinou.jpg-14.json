@@ -15,7 +15,8 @@
 	"uniqueId": 14,
 	"name": "files\\sapinou.jpg",
 	"metadata": {
-		"editorName": "sapinou.jpg"
+		"editorName": "sapinou.jpg",
+		"editorId": "d96ca2d5-b201-4a37-87ec-89702fa17243"
 	},
 	"hasAlpha": false,
 	"getAlphaFromRGB": false,

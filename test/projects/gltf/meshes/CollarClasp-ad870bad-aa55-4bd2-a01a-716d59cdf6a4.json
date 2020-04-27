@@ -8480,5 +8480,6 @@
 			"applyFog": true
 		}
 	],
+	"multiMaterials": [],
 	"lods": []
 }

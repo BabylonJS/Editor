@@ -53130,5 +53130,6 @@
 			"applyFog": true
 		}
 	],
+	"multiMaterials": [],
 	"lods": []
 }

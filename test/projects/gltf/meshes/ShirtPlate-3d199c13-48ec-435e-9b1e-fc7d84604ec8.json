@@ -2646,5 +2646,6 @@
 			"applyFog": true
 		}
 	],
+	"multiMaterials": [],
 	"lods": []
 }

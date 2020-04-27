@@ -45729,5 +45729,6 @@
 			"applyFog": true
 		}
 	],
+	"multiMaterials": [],
 	"lods": []
 }

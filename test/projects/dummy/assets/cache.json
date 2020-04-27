@@ -5,7 +5,7 @@
 		{
 			"id": "index.ts",
 			"key": "index.ts",
-			"base64": "./css/images/ts.png"
+			"base64": "../css/images/ts.png"
 		}
 	],
 	"Prefabs": [],

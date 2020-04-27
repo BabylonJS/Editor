@@ -1,6 +1,7 @@
 {
-	"lastOpenedScene": "projects\\dummy\\scene.editorproject",
+	"lastOpenedScene": "projects\\gltf\\scene.editorproject",
 	"serverPort": 1338,
 	"generateSceneOnSave": true,
-	"firstLoad": false
+	"firstLoad": false,
+	"watchProject": false
 }

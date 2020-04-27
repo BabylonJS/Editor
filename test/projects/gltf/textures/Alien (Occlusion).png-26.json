@@ -21,7 +21,8 @@
 			],
 			"editorDone": true
 		},
-		"editorName": "Alien (Occlusion).png"
+		"editorName": "Alien (Occlusion).png",
+		"editorId": "3c689dfa-48b7-4889-bc81-5d96db9fccf4"
 	},
 	"hasAlpha": false,
 	"getAlphaFromRGB": false,

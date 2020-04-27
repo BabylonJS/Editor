@@ -22,6 +22,7 @@ import { Alert } from "../gui/alert";
 import { Dialog } from "../gui/dialog";
 
 import { SceneFactory } from "../scene/factory";
+import { SceneSettings } from "../scene/settings";
 
 import { WorkSpace } from "../project/workspace";
 import { ProjectExporter } from "../project/project-exporter";
@@ -82,6 +83,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             <Menu>
                 <MenuItem text="Undo" icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("edit:undo")} />
                 <MenuItem text="Redo" icon={<Icon src="redo.svg" />} onClick={() => this._menuItemClicked("edit:redo")} />
+                <MenuDivider />
+                <MenuItem text="Editor Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("edit:editor-camera")} />
                 <MenuDivider />
                 <MenuItem text="Refresh Assets..." icon={<Icon src="recycle.svg" />} onClick={() => this._menuItemClicked("edit:refresh-assets")} />
                 <MenuItem text="Reset Editor..." icon={<Icon src="recycle.svg" />} onClick={() => this._menuItemClicked("edit:reset")} />
@@ -199,6 +202,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "project:rename": ProjectRenamer.Rename(this._editor); break;
 
             // Edit
+            case "edit:editor-camera": this._editor.inspector.setSelectedObject(SceneSettings.Camera); break;
+
             case "edit:refresh-assets": this._editor.assets.forceRefresh(); break;
             case "edit:reset": this._editor._resetEditor(); break;
 

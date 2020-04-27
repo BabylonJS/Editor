@@ -28,7 +28,8 @@
 				],
 				"editorDone": true
 			},
-			"editorName": "Alien (Base Color).png"
+			"editorName": "Alien (Base Color).png",
+			"editorId": "ee117e94-6b2a-4fe2-9c75-3ea4f404e590"
 		},
 		"hasAlpha": false,
 		"getAlphaFromRGB": false,
@@ -76,7 +77,8 @@
 				],
 				"editorDone": true
 			},
-			"editorName": "Alien (Occlusion).png"
+			"editorName": "Alien (Occlusion).png",
+			"editorId": "3c689dfa-48b7-4889-bc81-5d96db9fccf4"
 		},
 		"hasAlpha": false,
 		"getAlphaFromRGB": false,
@@ -126,7 +128,8 @@
 				],
 				"editorDone": true
 			},
-			"editorName": "Alien (Metallic Roughness).png"
+			"editorName": "Alien (Metallic Roughness).png",
+			"editorId": "20b296a1-2cb6-411c-aa39-f3a72d24a58d"
 		},
 		"hasAlpha": false,
 		"getAlphaFromRGB": false,
@@ -178,7 +181,8 @@
 				],
 				"editorDone": true
 			},
-			"editorName": "Alien (Normal).png"
+			"editorName": "Alien (Normal).png",
+			"editorId": "33a6b1e8-cfe7-4d95-8104-ae6063549f8b"
 		},
 		"hasAlpha": false,
 		"getAlphaFromRGB": false,
@@ -273,7 +277,8 @@
 		"uniqueId": 24,
 		"name": "EnvironmentBRDFTexture",
 		"metadata": {
-			"editorName": "data:EnvironmentBRDFTexture"
+			"editorName": "data:EnvironmentBRDFTexture",
+			"editorId": "85835ea9-702d-42cc-b4be-7bb5b7462123"
 		},
 		"hasAlpha": false,
 		"getAlphaFromRGB": false,
@@ -346,7 +351,6 @@
 		"_isEnabled": true
 	},
 	"useLogarithmicDepth": false,
-	"transparencyMode": 0,
 	"id": "a6d55a31-3c68-4dde-8df6-eabcf28c7fa3",
 	"uniqueId": 23,
 	"name": "Alien",
@@ -359,15 +363,16 @@
 	"alphaMode": 2,
 	"_needDepthPrePass": false,
 	"disableDepthWrite": false,
+	"disableColorWrite": false,
 	"forceDepthWrite": false,
 	"depthFunction": 0,
 	"separateCullingPass": false,
 	"fogEnabled": true,
 	"pointSize": 1,
 	"zOffset": 0,
-	"wireframe": false,
 	"pointsCloud": false,
 	"fillMode": 0,
+	"transparencyMode": 0,
 	"customType": "BABYLON.PBRMaterial",
 	"clearCoat": {
 		"tags": null,
@@ -409,7 +414,8 @@
 			1,
 			1,
 			1
-		]
+		],
+		"albedoScaling": false
 	},
 	"subSurface": {
 		"tags": null,

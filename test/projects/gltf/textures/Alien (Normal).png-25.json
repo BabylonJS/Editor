@@ -21,7 +21,8 @@
 			],
 			"editorDone": true
 		},
-		"editorName": "Alien (Normal).png"
+		"editorName": "Alien (Normal).png",
+		"editorId": "33a6b1e8-cfe7-4d95-8104-ae6063549f8b"
 	},
 	"hasAlpha": false,
 	"getAlphaFromRGB": false,

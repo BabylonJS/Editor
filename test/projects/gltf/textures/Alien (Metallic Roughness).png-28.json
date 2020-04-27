@@ -21,7 +21,8 @@
 			],
 			"editorDone": true
 		},
-		"editorName": "Alien (Metallic Roughness).png"
+		"editorName": "Alien (Metallic Roughness).png",
+		"editorId": "20b296a1-2cb6-411c-aa39-f3a72d24a58d"
 	},
 	"hasAlpha": false,
 	"getAlphaFromRGB": false,

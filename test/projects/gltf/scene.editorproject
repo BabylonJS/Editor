@@ -134,6 +134,7 @@
 		"postProcessesEnabled": true,
 		"environmentTexture": {
 			"tags": "modified",
+			"url": "files\\forest.env",
 			"rotationY": 0,
 			"files": [],
 			"textureMatrix": {
@@ -157,7 +158,8 @@
 			"uniqueId": 34,
 			"name": "files\\forest.env",
 			"metadata": {
-				"editorName": "forest.env"
+				"editorName": "forest.env",
+				"editorId": "ad042b28-6598-4f48-a8c1-fe449d6557e1"
 			},
 			"hasAlpha": false,
 			"getAlphaFromRGB": false,
@@ -191,9 +193,9 @@
 	"project": {
 		"camera": {
 			"tags": null,
-			"alpha": 5.228126872407401,
-			"beta": 1.3165601652838042,
-			"radius": 1.899447839216153,
+			"alpha": 5.568328955654401,
+			"beta": 1.4552520084644214,
+			"radius": 1.8810232373395754,
 			"target": [
 				0,
 				0,
@@ -232,9 +234,9 @@
 			],
 			"speed": 2,
 			"position": [
-				0.906652163801554,
-				0.4777229017772858,
-				-1.5992700762830403
+				1.4110532625538186,
+				0.21685826776113862,
+				-1.2248059443647878
 			],
 			"fov": 0.8,
 			"minZ": 1,

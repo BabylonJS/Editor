@@ -17,35 +17,35 @@
 		{
 			"id": "index.ts",
 			"key": "index.ts",
-			"base64": "./css/images/ts.png"
+			"base64": "../css/images/ts.png"
 		}
 	],
 	"Prefabs": [],
 	"Textures": [
 		{
-			"key": "34",
+			"key": "ad042b28-6598-4f48-a8c1-fe449d6557e1",
 			"id": "forest.env",
-			"base64": "./css/svg/dds.svg"
+			"base64": "../css/svg/dds.svg"
 		},
 		{
-			"key": "25",
-			"id": "Alien (Normal).png",
-			"base64": "C:\\Users\\morea\\Documents\\BabylonJS\\Editor\\test\\projects\\gltf\\files\\Alien (Normal).png"
-		},
-		{
-			"key": "26",
-			"id": "Alien (Occlusion).png",
-			"base64": "C:\\Users\\morea\\Documents\\BabylonJS\\Editor\\test\\projects\\gltf\\files\\Alien (Occlusion).png"
-		},
-		{
-			"key": "27",
+			"key": "ee117e94-6b2a-4fe2-9c75-3ea4f404e590",
 			"id": "Alien (Base Color).png",
 			"base64": "C:\\Users\\morea\\Documents\\BabylonJS\\Editor\\test\\projects\\gltf\\files\\Alien (Base Color).png"
 		},
 		{
-			"key": "28",
+			"key": "3c689dfa-48b7-4889-bc81-5d96db9fccf4",
+			"id": "Alien (Occlusion).png",
+			"base64": "C:\\Users\\morea\\Documents\\BabylonJS\\Editor\\test\\projects\\gltf\\files\\Alien (Occlusion).png"
+		},
+		{
+			"key": "20b296a1-2cb6-411c-aa39-f3a72d24a58d",
 			"id": "Alien (Metallic Roughness).png",
 			"base64": "C:\\Users\\morea\\Documents\\BabylonJS\\Editor\\test\\projects\\gltf\\files\\Alien (Metallic Roughness).png"
+		},
+		{
+			"key": "33a6b1e8-cfe7-4d95-8104-ae6063549f8b",
+			"id": "Alien (Normal).png",
+			"base64": "C:\\Users\\morea\\Documents\\BabylonJS\\Editor\\test\\projects\\gltf\\files\\Alien (Normal).png"
 		}
 	]
 }

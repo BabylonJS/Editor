@@ -50448,5 +50448,6 @@
 			"applyFog": true
 		}
 	],
+	"multiMaterials": [],
 	"lods": []
 }

@@ -93,8 +93,8 @@
 	"project": {
 		"camera": {
 			"tags": null,
-			"alpha": 0.9186107959706483,
-			"beta": 1.0698319966494343,
+			"alpha": 2.1576035961235696,
+			"beta": 1.1464329419771195,
 			"radius": 7.1857392625515395,
 			"target": [
 				0,
@@ -106,8 +106,8 @@
 				1,
 				0
 			],
-			"inertialAlphaOffset": 0.08405762145996096,
-			"inertialBetaOffset": -0.013252810729980472,
+			"inertialAlphaOffset": 0,
+			"inertialBetaOffset": 0,
 			"inertialRadiusOffset": 0,
 			"lowerBetaLimit": 0.01,
 			"upperBetaLimit": 3.1315926535897933,
@@ -134,9 +134,9 @@
 			],
 			"speed": 2,
 			"position": [
-				3.8252981069264504,
-				3.451106455987955,
-				5.009172324042956
+				-3.625867577417782,
+				2.9586614371523408,
+				5.4529125759279236
 			],
 			"fov": 0.8,
 			"minZ": 1,

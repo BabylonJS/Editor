@@ -65,7 +65,6 @@ import "./inspectors/lights/shadows-inspector";
 import "./inspectors/cameras/camera-inspector";
 import "./inspectors/cameras/free-camera-inspector";
 import "./inspectors/cameras/arc-rotate-camera-inspector";
-import "./inspectors/cameras/editor-camera-inspector";
 
 import "./inspectors/materials/standard-material-inspector";
 import "./inspectors/materials/pbr-material-inspector";
@@ -700,7 +699,8 @@ export class Editor {
         if (workspace) {
             // First load?
             const hasNodeModules = await pathExists(join(WorkSpace.DirPath!, "node_modules"));
-            if (!hasNodeModules) {
+            const hasPackageJson = await pathExists(join(WorkSpace.DirPath!, "package.json"));
+            if (!hasNodeModules && hasPackageJson) {
                 await ProjectExporter.ExportFinalScene(this);
                 await WorkSpace.InstallAndBuild(this);
             }

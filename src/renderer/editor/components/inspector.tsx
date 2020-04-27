@@ -168,7 +168,7 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
      * Refreshes the current display of the current inspector.
      */
     public refreshDisplay(): void {
-        Inspector._objectInspectorsConfigurations.forEach((i) => i._ref?.tool?.updateDisplay());
+        Inspector._objectInspectorsConfigurations.forEach((i) => i._ref?.refreshDisplay());
     }
 
     /**

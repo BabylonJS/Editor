@@ -21,7 +21,8 @@
 			],
 			"editorDone": true
 		},
-		"editorName": "Alien (Base Color).png"
+		"editorName": "Alien (Base Color).png",
+		"editorId": "ee117e94-6b2a-4fe2-9c75-3ea4f404e590"
 	},
 	"hasAlpha": false,
 	"getAlphaFromRGB": false,

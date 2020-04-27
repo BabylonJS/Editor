@@ -290,6 +290,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      */
     private _parseNode(node: Node): Nullable<JSX.Element> {
         if (node instanceof Mesh && node._masterMesh) { return null; }
+        if (node === SceneSettings.Camera) { return null; }
 
         node.metadata = node.metadata ?? { };
         if (node instanceof AbstractMesh) {

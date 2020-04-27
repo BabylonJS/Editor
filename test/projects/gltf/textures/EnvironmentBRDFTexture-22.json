@@ -15,7 +15,8 @@
 	"uniqueId": 22,
 	"name": "files\\EnvironmentBRDFTexture",
 	"metadata": {
-		"editorName": "data:EnvironmentBRDFTexture"
+		"editorName": "data:EnvironmentBRDFTexture",
+		"editorId": "a858c1eb-ed63-4024-ae3f-82dabde7736d"
 	},
 	"hasAlpha": false,
 	"getAlphaFromRGB": false,

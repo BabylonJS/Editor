@@ -136,10 +136,7 @@ export class SceneGizmo {
      */
     private _notifyGizmoDrag(): void {
         if (!this._currentGizmo) { return; }
-
-        const mesh = this._currentGizmo.attachedMesh;
-        const selected = this._editor.inspector.selectedObject;
-
-        if (mesh === selected) { this._editor.inspector.refreshDisplay(); }
+        
+        this._editor.inspector.refreshDisplay();
     }
 }
