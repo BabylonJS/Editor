@@ -4,16 +4,18 @@ import { join, extname, normalize, basename } from "path";
 import Glob from "glob";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, Breadcrumbs, Boundary, IBreadcrumbProps, Divider } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, Breadcrumbs, Boundary, IBreadcrumbProps, Divider, ContextMenu, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
 
 import { WorkSpace } from "../project/workspace";
 
 import { Icon } from "../gui/icon";
+import { Alert } from "../gui/alert";
+import { Dialog } from "../gui/dialog";
+
+import { Tools } from "../tools/tools";
 
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
-import { Dialog } from "../gui/dialog";
-import { Tools } from "../tools/tools";
 
 export class ScriptAssets extends AbstractAssets {
     /**
@@ -120,6 +122,38 @@ export class ScriptAssets extends AbstractAssets {
     }
 
     /**
+     * Called on the user right-clicks on the component's main div.
+     * @param event the original mouse event.
+     */
+    public onComponentContextMenu(event: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+        ContextMenu.show(
+            <Menu className={Classes.DARK}>
+                <MenuItem text="New Script..." icon={<Icon src="plus.svg" />} onClick={() => this._addScript()} />
+                <MenuDivider />
+                <MenuItem text="Add Folder..." icon={<Icon src="plus.svg" />} onClick={() => this._addNewFolder()} />
+            </Menu>,
+            { left: event.clientX, top: event.clientY }
+        );
+    }
+
+    /**
+     * Adds a new folder.
+     */
+    private async _addNewFolder(): Promise<void> {
+        const name = await Dialog.Show("New Folder Name", "Please provide a name for the new folder");
+        const path = join(this._getCurrentPath(), name);
+        const exists = await pathExists(path);
+        if (exists) {
+            return Alert.Show("Can't Create Folder", `A folder named "${name}" already exists.`);
+        }
+
+        // Craete folder
+        await mkdir(path);
+
+        this.refresh();
+    }
+
+    /**
      * Returns the navbar properties.
      */
     private _getPathBrowser(): IBreadcrumbProps[] {
@@ -160,10 +194,15 @@ export class ScriptAssets extends AbstractAssets {
      */
     private async _addScript(): Promise<void> {
         const name = await Dialog.Show("Script name?", "Please provide a name for the new script");
-        const path = this._getCurrentPath();
+        const path = join(this._getCurrentPath(), `${name}.ts`);
+
+        const exists = await pathExists(path);
+        if (exists) {
+            return Alert.Show("Can't Create Script", `A script named "${name}" already exists.`);
+        }
 
         const skeleton = await readFile(join(Tools.GetAppPath(), `assets/scripts/script.ts`), { encoding: "utf-8" });
-        await writeFile(join(path, `${name}.ts`), skeleton);
+        await writeFile(path, skeleton);
 
         return this.refresh();
     }

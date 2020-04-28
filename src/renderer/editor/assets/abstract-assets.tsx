@@ -158,7 +158,15 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      * @param item the item being right-clicked.
      * @param event the original mouse event.
      */
-    public onContextMenu(_: IAssetComponentItem, __: React.MouseEvent<HTMLImageElement, MouseEvent>): void {
+    public onContextMenu(_: IAssetComponentItem, event: React.MouseEvent<HTMLImageElement, MouseEvent>): void {
+        event.stopPropagation();
+    }
+
+    /**
+     * Called on the user right-clicks on the component's main div.
+     * @param event the original mouse event.
+     */
+    public onComponentContextMenu(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
         // Empty for now.
     }
 
@@ -194,7 +202,13 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
             );
         }
 
-        return <div style={{ width: "100%", height: size.height - 90, overflow: "auto", ...this.props.style }} children={this._itemsNodes}></div>;
+        return (
+            <div 
+                onContextMenu={(e) => this.onComponentContextMenu(e)}
+                style={{ width: "100%", height: size.height - 90, overflow: "auto", ...this.props.style }}
+                children={this._itemsNodes}
+            ></div>
+        );
     }
 
     /**
@@ -240,8 +254,8 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                         onClick={(e) => this.onClick(item, e.target as HTMLImageElement)}
                         onDoubleClick={(e) => this.onDoubleClick(item, e.target as HTMLImageElement)}
                         onContextMenu={(e) => this.onContextMenu(item, e)}
-                        onDragStart={(e) => this._dragStart(e, item)}
-                        onDragEnd={() => this._dragEnd()}
+                        onDragStart={(e) => this.dragStart(e, item)}
+                        onDragEnd={() => this.dragEnd()}
                     ></img>
                 </Tooltip>
                 <small style={{
@@ -262,7 +276,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
     /**
      * Called on the user starts dragging the asset.
      */
-    private _dragStart(_: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
+    protected dragStart(_: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
         this._dropListener = this._getDropListener(item);
         this.editor.engine!.getRenderingCanvas()?.addEventListener("drop", this._dropListener);
     }
@@ -270,7 +284,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
     /**
      * Called on the user ends dragging the asset.
      */
-    private _dragEnd(): void {
+    protected dragEnd(): void {
         this.editor.engine!.getRenderingCanvas()?.removeEventListener("drop", this._dropListener!);
         this._dropListener = null;
     }
