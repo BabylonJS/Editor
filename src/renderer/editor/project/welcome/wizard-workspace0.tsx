@@ -87,7 +87,7 @@ export class WorkspaceWizard0 extends React.Component<IWelcomeWizard0Props, IWor
      * Called on the component did mount.
      */
     public async componentDidMount(): Promise<void> {
-        const emptyTemplate = { name: "Empty", file: "project.zip" } as IWorkspaceTemplate;
+        const emptyTemplate = { name: "Empty", file: "workspace.zip" } as IWorkspaceTemplate;
 
         try {
             const data = await Tools.LoadFile<string>(`http://editor.babylonjs.com/templates/templates.json?${Date.now()}`, false);

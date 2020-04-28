@@ -13,7 +13,7 @@ import { Icon } from "../../gui/icon";
 import { Tools } from "../../tools/tools";
 
 import { Wizard0 } from "./wizard-project0";
-import { Wizard1 } from "./wizard-project1";
+// import { Wizard1 } from "./wizard-project1";
 import { Wizard2 } from "./wizard-project2";
 
 import { WorkSpace } from "../workspace";
@@ -26,10 +26,10 @@ export class NewProjectWizard extends React.Component {
         ReactDOM.render(<NewProjectWizard />, document.getElementById("BABYLON-EDITOR-OVERLAY"));
     }
 
-    private _wizard1: Wizard1;
+    // private _wizard1: Wizard1;
     private _wizard2: Wizard2;
     private _refHandler = {
-        getWizardStep1: (ref: Wizard1) => ref && (this._wizard1 = ref),
+        // getWizardStep1: (ref: Wizard1) => ref && (this._wizard1 = ref),
         getWizardStep2: (ref: Wizard2) => ref && (this._wizard2 = ref),
     };
 
@@ -57,10 +57,10 @@ export class NewProjectWizard extends React.Component {
                         steps={[{
                             title: "New project wizard",
                             element: <Wizard0 />
-                        }, {
+                        }, /* {
                             title: "New project type",
                             element: <Wizard1 ref={this._refHandler.getWizardStep1} />
-                        }, {
+                        }, */ {
                             title: "New project name",
                             element: <Wizard2 ref={this._refHandler.getWizardStep2} />
                         }]}
@@ -81,7 +81,6 @@ export class NewProjectWizard extends React.Component {
      * Called on the user finished the new project wizard.
      */
     private async _handleFinishWizard(): Promise<void> {
-        const type = this._wizard1.state.projectType;
         const name = this._wizard2.state.projectName;
 
         // Get destination
@@ -90,7 +89,7 @@ export class NewProjectWizard extends React.Component {
         await mkdir(dest);
 
         // Write project.
-        const sceneZipPath = join(Tools.GetAppPath(), `assets/wizard/${type.toLowerCase()}.zip`);
+        const sceneZipPath = join(Tools.GetAppPath(), `assets/project/add-project.zip`);
         const sceneZip = new Zip(sceneZipPath);
 
         await new Promise<void>((resolve, reject) => {
