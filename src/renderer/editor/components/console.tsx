@@ -5,6 +5,8 @@ import { Terminal } from "xterm";
 import { FitAddon } from 'xterm-addon-fit';
 import chalk from "chalk";
 
+import { Logger } from "babylonjs";
+
 import { Editor } from "../editor";
 
 export enum ConsoleLogType {
@@ -99,6 +101,9 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
         this._terminal.open(div);
 
         this.logInfo("Console ready.");
+
+        // Register logs from BabylonJS
+        this._overrideLogger();
     }
 
     /**
@@ -173,5 +178,18 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                     console.log(log.message);
                     break;
         }
+    }
+
+    /**
+     * Overrides the current BabylonJS Logger class.
+     */
+    private _overrideLogger(): void {
+        const log = Logger.Log;
+        const warn = Logger.Warn;
+        const error = Logger.Error;
+
+        Logger.Log = (m) => { log(m); this.logInfo(m); }
+        Logger.Warn = (m) => { warn(m); this.logWarning(m); }
+        Logger.Error = (m) => { error(m); this.logError(m); }
     }
 }

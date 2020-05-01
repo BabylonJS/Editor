@@ -43,10 +43,6 @@ export interface IPreviewState {
      * Defines wether or not force wireframe is enabled or not.
      */
     forceWireframe: boolean;
-    /**
-     * Sets the current dirty count used to refresh or not the preview (i.e icons).
-     */
-    dirty: number;
 }
 
 export class Preview extends React.Component<IPreviewProps, IPreviewState> {
@@ -80,7 +76,6 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             overNodeName: "",
             gizmoType: GizmoType.None,
             gizmoStep: 0,
-            dirty: 0,
             forceWireframe: false,
         };
     }
@@ -133,7 +128,6 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 </div>
                 <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "absolute", top: "0", touchAction: "none" }}></canvas>
                 <Tag key="preview-tag" round={true} large={true} style={{ visibility: (this.state.canvasFocused ? "visible" : "hidden"), position: "absolute", left: "50%", top: "calc(100% - 15px)", transform: "translate(-50%, -50%)" }} >{this.state.overNodeName}</Tag>
-                {this.picker?.getNodesIcons()}
             </>
         );
     }
@@ -254,13 +248,6 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         if (!node) { return; }
 
         this._editor.graph.removeNode(node);
-    }
-
-    /**
-     * Sets the canvas dirty.
-     */
-    public setDirty(): void {
-        this.setState({ dirty: this.state.dirty + 0.01 });
     }
 
     /**

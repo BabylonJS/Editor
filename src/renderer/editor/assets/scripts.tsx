@@ -1,10 +1,12 @@
 import { shell } from "electron";
-import { readdir, pathExists, mkdir, writeFile, stat, readFile } from "fs-extra";
+import { readdir, pathExists, mkdir, writeFile, stat, readFile, move } from "fs-extra";
 import { join, extname, normalize, basename } from "path";
 import Glob from "glob";
 
 import * as React from "react";
 import { ButtonGroup, Button, Classes, Breadcrumbs, Boundary, IBreadcrumbProps, Divider, ContextMenu, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
+
+import { Node } from "babylonjs";
 
 import { WorkSpace } from "../project/workspace";
 
@@ -80,6 +82,8 @@ export class ScriptAssets extends AbstractAssets {
 
         const files = await readdir(path);
         for (const f of files) {
+            if (ScriptAssets._Path === "" && f === "index.ts") { continue; }
+            
             const infos = await stat(join(path, f));
             if (infos.isDirectory()) {
                 this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "../css/svg/folder-open.svg" });
@@ -137,6 +141,62 @@ export class ScriptAssets extends AbstractAssets {
     }
 
     /**
+     * Called on the currently dragged item is over the given item.
+     * @param item the item having the currently dragged item over.
+     */
+    protected dragEnter(item: IAssetComponentItem): void {
+        super.dragEnter(item);
+
+        const extension = extname(item.key);
+        if (extension) { return; }
+
+        if (item.ref) {
+            item.ref.style.backgroundColor = "#222222";
+        }
+    }
+
+    /**
+     * Called on the currently dragged item is out the given item.
+     * @param item the item having the currently dragged item out.
+     */
+    protected dragLeave(item: IAssetComponentItem): void {
+        super.dragLeave(item);
+
+        const extension = extname(item.key);
+        if (extension) { return; }
+
+        if (item.ref) {
+            item.ref.style.backgroundColor = "";
+        }
+    }
+
+    /**
+     * Called on the currently dragged item has been dropped.
+     * @param item the item having the currently dragged item dropped over.
+     * @param droppedItem the item that has been dropped.
+     */
+    protected async dropOver(item: IAssetComponentItem, droppedItem: IAssetComponentItem): Promise<void> {
+        super.dropOver(item, droppedItem);
+
+        if (item === droppedItem) { return; }
+        if (item.ref) { item.ref.style.backgroundColor = ""; }
+
+        const root = join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName());
+        const target = join(root, item.key);
+
+        const isDirectory = (await stat(target)).isDirectory();
+        if (!isDirectory) { return; }
+
+        const src = join(root, droppedItem.key);
+        const dest = join(target, basename(droppedItem.key));
+
+        await move(src, dest);
+
+        this._updateAttachedElements(src, dest);
+        this.refresh();
+    }
+
+    /**
      * Adds a new folder.
      */
     private async _addNewFolder(): Promise<void> {
@@ -157,7 +217,7 @@ export class ScriptAssets extends AbstractAssets {
      * Returns the navbar properties.
      */
     private _getPathBrowser(): IBreadcrumbProps[] {
-        const result: IBreadcrumbProps[] = [{ text: "Scene", icon: "folder-close", onClick: () => {
+        const result: IBreadcrumbProps[] = [{ text: this._getBreadCumpText("Scene", "./"), icon: "folder-close", onClick: () => {
             ScriptAssets._Path = "";
             this.refresh();
         } }];
@@ -173,13 +233,68 @@ export class ScriptAssets extends AbstractAssets {
             previous = join(previous, s);
             const path = previous;
 
-            result.push({ text: s, icon: "folder-close", onClick: () => {
+            result.push({ text: this._getBreadCumpText(s, path), icon: "folder-close", onClick: () => {
                 ScriptAssets._Path = normalize(path);
                 this.refresh();
             } });
         });
 
         return result;
+    }
+
+    /**
+     * Returns the breadcump text.
+     */
+    private _getBreadCumpText(text: string, path: string): React.ReactNode {
+        return (
+            <span
+                onDragEnter={(ev) => {
+                    if (!this.itemBeingDragged) { return; }
+                    (ev.target as HTMLSpanElement).style.background = "#222222";
+                }}
+                onDragLeave={(ev) => {
+                    if (!this.itemBeingDragged) { return; }
+                    (ev.target as HTMLSpanElement).style.background = "";
+                }}
+                onDrop={async (ev) => {
+                    if (!this.itemBeingDragged) { return; }
+                    (ev.target as HTMLSpanElement).style.background = "";
+
+                    const root = join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName());
+                    const target = join(root, path);
+                    const src = join(root, this.itemBeingDragged.key);
+                    const dest = join(target, basename(this.itemBeingDragged.key));
+
+                    if (src === dest) { return; }
+
+                    await move(src, dest);
+
+                    this._updateAttachedElements(src, dest);
+                    this.refresh();
+                }}
+            >
+                {text}
+            </span>
+        );
+    }
+
+    /**
+     * Updates the attached elements that can have attached scripts.
+     */
+    private _updateAttachedElements(from: string, to: string): void {
+        from = from.replace(/\\/g, "/").replace(WorkSpace.DirPath!.replace(/\\/g, "/"), "");
+        to = to.replace(/\\/g, "/").replace(WorkSpace.DirPath!.replace(/\\/g, "/"), "");
+
+        const all = (this.editor.scene!.meshes as Node[])
+                         .concat(this.editor.scene!.lights)
+                         .concat(this.editor.scene!.cameras)
+                         .concat(this.editor.scene!.transformNodes);
+
+        all.forEach((n) => {
+            if (!n.metadata?.script) { return; }
+            if (n.metadata.script.name !== from) { return; }
+            n.metadata.script.name = to;
+        });
     }
 
     /**

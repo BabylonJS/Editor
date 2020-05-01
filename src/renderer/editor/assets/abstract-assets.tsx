@@ -44,6 +44,10 @@ export interface IAssetComponentItem {
      * The key string used by React.
      */
     key: string;
+    /**
+     * Optional style that can be added to the item node.
+     */
+    ref?: Nullable<HTMLDivElement>;
 }
 
 export interface IAssetsComponentState {
@@ -103,6 +107,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
 
     private _filter: string = "";
     private _dropListener: Nullable<(ev: DragEvent) => void> = null;
+    private _itemBeingDragged: Nullable<IAssetComponentItem> = null; 
 
     /**
      * Constructor.
@@ -188,17 +193,19 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
 
         if (!this._itemsNodes.length) {
             return (
-                <h1 style={{
-                    float: "left",
-                    left: "50%",
-                    top: "50%",
-                    transform: "translate(-50%, -50%)",
-                    overflow: "hidden",
-                    position: "relative",
-                    fontFamily: "Roboto,sans-serif !important",
-                    opacity: "0.5",
-                    color: "white",
-                }}>Empty</h1>
+                <div style={{ width: "100%", height: "100%" }} onContextMenu={(e) => this.onComponentContextMenu(e)}>
+                    <h1 style={{
+                        float: "left",
+                        left: "50%",
+                        top: "50%",
+                        transform: "translate(-50%, -50%)",
+                        overflow: "hidden",
+                        position: "relative",
+                        fontFamily: "Roboto,sans-serif !important",
+                        opacity: "0.5",
+                        color: "white",
+                    }}>Empty</h1>
+                </div>
             );
         }
 
@@ -240,12 +247,13 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      */
     private _getItemNode(item: IAssetComponentItem): JSX.Element {
         return (
-            <div key={item.key} style={{
+            <div key={item.key} ref={(ref) => item.ref = ref} style={{
                 position: "relative",
                 width: `${this.size}px`,
-                height: `${this.size}px`,
+                height: `${this.size + 15}px`,
                 float: "left",
                 margin: "10px",
+                borderRadius: "10px",
             }}>
                 <Tooltip content={item.id} position={Position.TOP} usePortal={false}>
                     <img
@@ -256,6 +264,9 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                         onContextMenu={(e) => this.onContextMenu(item, e)}
                         onDragStart={(e) => this.dragStart(e, item)}
                         onDragEnd={() => this.dragEnd()}
+                        onDrop={() => this._itemBeingDragged && this.dropOver(item, this.itemBeingDragged!)}
+                        onDragEnter={() => this._itemBeingDragged && this.dragEnter(item)}
+                        onDragLeave={() => this._itemBeingDragged && this.dragLeave(item)}
                     ></img>
                 </Tooltip>
                 <small style={{
@@ -274,11 +285,45 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
     }
 
     /**
+     * Returns the current item that is being dragged.
+     */
+    protected get itemBeingDragged(): Nullable<IAssetComponentItem> {
+        return this._itemBeingDragged;
+    }
+
+    /**
      * Called on the user starts dragging the asset.
      */
     protected dragStart(_: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
         this._dropListener = this._getDropListener(item);
+        this._itemBeingDragged = item;
+
         this.editor.engine!.getRenderingCanvas()?.addEventListener("drop", this._dropListener);
+    }
+
+    /**
+     * Called on the currently dragged item is over the given item.
+     * @param item the item having the currently dragged item over.
+     */
+    protected dragEnter(_: IAssetComponentItem): void {
+        // Nothing to do now...
+    }
+
+    /**
+     * Called on the currently dragged item is out the given item.
+     * @param item the item having the currently dragged item out.
+     */
+    protected dragLeave(_: IAssetComponentItem): void {
+        // Nothing to do now...
+    }
+
+    /**
+     * Called on the currently dragged item has been dropped.
+     * @param item the item having the currently dragged item dropped over.
+     * @param droppedItem the item that has been dropped.
+     */
+    protected dropOver(_: IAssetComponentItem, __: IAssetComponentItem): void {
+        // Nothing to do now...
     }
 
     /**
@@ -287,6 +332,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
     protected dragEnd(): void {
         this.editor.engine!.getRenderingCanvas()?.removeEventListener("drop", this._dropListener!);
         this._dropListener = null;
+        this._itemBeingDragged = null;
     }
 
     /**

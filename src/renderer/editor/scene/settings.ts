@@ -43,7 +43,6 @@ export class SceneSettings {
         camera.doNotSerialize = true;
 
         this.Camera = camera;
-        this._BindEvents(editor, camera);
 
         this.SetActiveCamera(editor, this.Camera);
         return this.Camera as ArcRotateCamera;
@@ -61,7 +60,6 @@ export class SceneSettings {
         this.Camera.attachControl(editor.scene!.getEngine().getRenderingCanvas()!, true, false);
         this.Camera.doNotSerialize = true;
 
-        this._BindEvents(editor, this.Camera);
         this.SetActiveCamera(editor, this.Camera);
         this.ResetPipelines(editor);
     }
@@ -90,14 +88,6 @@ export class SceneSettings {
         }
 
         this.ResetPipelines(editor);
-    }
-
-    /**
-     * Binds the events on the camera.
-     */
-    private static _BindEvents(editor: Editor, camera: Camera): void {
-        camera.onViewMatrixChangedObservable.add(() => editor.preview.setDirty());
-        camera.onProjectionMatrixChangedObservable.add(() => editor.preview.setDirty());
     }
 
     /**

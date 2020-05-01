@@ -67,7 +67,11 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
      */
     public static GetCachedData(): IStringDictionary<IAssetComponentItem[]> {
         const result = { };
-        this._assetComponents.forEach((ac) => result[ac.title] = ac._ref?.items);
+        this._assetComponents.forEach((ac) => result[ac.title] = ac._ref?.items.map((i) => ({
+            id: i.id,
+            key: i.key,
+            base64: i.base64,
+        })));
 
         return result;
     }

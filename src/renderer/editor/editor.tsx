@@ -9,7 +9,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName, MaybeElement } from "@blueprintjs/core";
 
-import { Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin, SubMesh } from "babylonjs";
+import { Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin, SubMesh, Animation } from "babylonjs";
 
 import GoldenLayout from "golden-layout";
 
@@ -655,6 +655,9 @@ export class Editor {
         // Physics
         this.scene.enablePhysics(Vector3.Zero(), new CannonJSPlugin());
 
+        // Animations
+        Animation.AllowMatricesInterpolation = true;
+
         this._bindEvents();
         this.resize();
 
@@ -776,6 +779,7 @@ export class Editor {
         });
         this.selectedSubMeshObservable.add((o, ev) => {
             this.inspector.setSelectedObject(o);
+            this.preview.gizmo.setAttachedNode(o.getMesh());
 
             if (ev.target !== this.graph) { this.graph.setSelected(o.getMesh()); }
         });
@@ -785,16 +789,15 @@ export class Editor {
         this.selectedMaterialObservable.add((m) => this.inspector.setSelectedObject(m));
 
         this.objectModigyingObservable.add(() => {
-            this.preview.setDirty();
+            // Nothing to to now...
         });
 
         this.removedNodeObservable.add(() => {
-            this.preview.setDirty();
             this.preview.picker.reset();
         });
 
         this.addedNodeObservable.add(() => {
-            this.preview.setDirty();
+            // Nothing to do now...
         });
 
         // Resize

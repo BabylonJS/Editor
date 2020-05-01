@@ -1,15 +1,14 @@
-import { Nullable, IStringDictionary } from "../../../shared/types";
+import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
 import { ContextMenu, Menu, MenuItem, MenuDivider, Classes } from "@blueprintjs/core";
 
-import { Observable, Node, Vector2, PointerEventTypes, AbstractMesh, Vector3, Viewport, SubMesh } from "babylonjs";
-
+import { Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh } from "babylonjs";
 
 import { Editor } from "../editor";
 import { Icon } from "../gui/icon";
 
-import { SceneSettings } from "./settings";
+import { SceneIcons } from "./icons";
 
 export class ScenePicker {
     /**
@@ -18,14 +17,10 @@ export class ScenePicker {
     public onNodeOver: Observable<Node> = new Observable<Node>();
 
     private _editor: Editor;
+    private _icons: SceneIcons;
+
     private _downMousePosition: Vector2 = Vector2.Zero();
     private _lastSelectedNode: Nullable<Node> = null;
-
-    private _cachedIconsElements: IStringDictionary<JSX.Element> = { };
-    private _cachedIcons: IStringDictionary<Icon> = { };
-    private _refHandler = {
-        getIcon: (ref: Icon) => ref && (this._cachedIcons[ref.props.id!] = ref),
-    };
 
     /**
      * Constructor.
@@ -33,24 +28,9 @@ export class ScenePicker {
      */
     public constructor(editor: Editor) {
         this._editor = editor;
+        this._icons = new SceneIcons(editor);
 
         this._bindCanvasEvents();
-    }
-
-    /**
-     * Returns the current light icons.
-     */
-    public getNodesIcons(): JSX.Element[] {
-        const result: JSX.Element[] = [];
-        const viewport = new Viewport(0, 0, this._editor.engine!.getRenderWidth(), this._editor.engine!.getRenderHeight());
-        
-        this._editor.scene!.lights.forEach((l) => result.push(this._getNodeIcon(l, viewport, "lightbulb.svg")));
-        this._editor.scene!.cameras.forEach((c) => {
-            if (c === this._editor.scene!.activeCamera || c === SceneSettings.Camera) { return; }
-            result.push(this._getNodeIcon(c, viewport, "camera.svg"));
-        });
-
-        return result;
     }
 
     /**
@@ -65,8 +45,15 @@ export class ScenePicker {
      * @param fastCheck Launch a fast check only using the bounding boxes. Can be set to null.
      */
     public getObjectUnderPointer(fastCheck: boolean = false): Nullable<Node | SubMesh> {
-        const scene = this._editor.scene!;
-        const pick = scene.pick(scene.pointerX, scene.pointerY, undefined, fastCheck);
+        // Icons
+        let scene = this._icons._layer.utilityLayerScene;
+        let pick = scene.pick(scene.pointerX, scene.pointerY, undefined, fastCheck);
+
+        if (pick?.pickedMesh) { return pick.pickedMesh; }
+
+        // Scene
+        scene = this._editor.scene!;
+        pick = scene.pick(scene.pointerX, scene.pointerY, undefined, fastCheck);
         
         if (!pick) { return null; }
 
@@ -82,6 +69,12 @@ export class ScenePicker {
      * Binds all the needed canvas events.
      */
     private _bindCanvasEvents(): void {
+        // Icons
+        this._icons.onClickObservable.add((event) => {
+            this._onCanvasUp(event, true);
+        });
+
+        // Scene
         this._editor.scene!.onPointerObservable.add(ev => {
             if (!this._editor.scene!.activeCamera) { return; }
             
@@ -103,18 +96,31 @@ export class ScenePicker {
     /**
      * Called on the pointer is up on the canvas.
      */
-    private _onCanvasUp(ev: MouseEvent): void {
-        const distance = Vector2.Distance(this._downMousePosition, new Vector2(ev.offsetX, ev.offsetY));
-        if (distance > 2) { return; }
+    private _onCanvasUp(ev: MouseEvent, byPassDistance: boolean = false): void {
+        if (!byPassDistance) {
+            const distance = Vector2.Distance(this._downMousePosition, new Vector2(ev.offsetX, ev.offsetY));
+            if (distance > 2) { return; }
+        }
 
-        if (ev.button === 2) { return this._onCanvasContextMenu(ev); }
+        let object = this.getObjectUnderPointer(false);
+        
+        if (ev.button === 2) {
+            if (object instanceof SubMesh) { object = object.getMesh(); }
+            if (object!._scene === this._icons._layer.utilityLayerScene) { object = object!.metadata.node as Node; }
+            return this._onCanvasContextMenu(ev, object);
+        }
 
-        const object = this.getObjectUnderPointer(false);
         if (object) {
             if (object instanceof SubMesh) {
                 this._editor.selectedSubMeshObservable.notifyObservers(object);
             } else {
-                this._editor.selectedNodeObservable.notifyObservers(object);
+                if (object._scene === this._icons._layer.utilityLayerScene) {
+                    object = object.metadata.node as Node;
+                }
+
+                if (object) {
+                    this._editor.selectedNodeObservable.notifyObservers(object);
+                }
             }
         }
     }
@@ -122,18 +128,18 @@ export class ScenePicker {
     /**
      * Called on the pointer is up with right button on the canvas.
      */
-    private _onCanvasContextMenu(ev: MouseEvent): void {
-        if (!this._lastSelectedNode) { return; }
+    private _onCanvasContextMenu(ev: MouseEvent, node: Nullable<Node>): void {
+        if (!node) { return; }
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <MenuItem text="Clone" icon={<Icon src="clone.svg" />} onClick={() => {
-                    this._editor.graph.cloneNode(this._lastSelectedNode!);
+                    this._editor.graph.cloneNode(node!);
                     this._editor.graph.refresh();
                 }} />
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => {
-                    this._editor.graph.removeNode(this._lastSelectedNode!);
+                    this._editor.graph.removeNode(node!);
                     this._editor.graph.refresh();
                 }} />
             </Menu>,
@@ -161,59 +167,10 @@ export class ScenePicker {
             this._lastSelectedNode = object;
         }
 
-        this.onNodeOver.notifyObservers(object);
-    }
-
-    /**
-     * Returns the icon element of the given node to be used as a gizmo in the preview canvas.
-     */
-    private _getNodeIcon(node: Node, viewport: Viewport, icon: string): JSX.Element {
-        const translation = Vector3.Zero();
-        node.getWorldMatrix().decompose(undefined, undefined, translation);
-
-        const projection = Vector3.Project(translation, node.getWorldMatrix(), this._editor.scene!.getTransformMatrix(), viewport);
-
-        const cachedIcon = this._cachedIcons[node.id];
-        if (cachedIcon) {
-            cachedIcon.setState({ style: { marginLeft: projection.x >> 0, marginTop: projection.y >> 0 } });
+        if (object._scene === this._icons._layer.utilityLayerScene) {
+            this.onNodeOver.notifyObservers(object.metadata.node as Node);
         } else {
-            this._cachedIconsElements[node.id] = (
-                <Icon
-                    id={node.id}
-                    ref={this._refHandler.getIcon}
-                    key={node.id} src={icon}
-                    style={{ width: "35px", height: "35px", position: "absolute" }}
-                    onClick={(e) => this._handleIconClicked(node, e)}
-                    onOver={(e) => {
-                        (e.target as HTMLImageElement).style.borderStyle = "groove";
-                        this.onNodeOver.notifyObservers(node);
-                    }}
-                    onLeave={(e) => (e.target as HTMLImageElement).style.borderStyle = ""}
-                />
-            );
+            this.onNodeOver.notifyObservers(object);
         }
-
-        return this._cachedIconsElements[node.id];
-    }
-
-    /**
-     * Called on the user clicks on an icon.
-     */
-    private _handleIconClicked(node: Node, e: React.MouseEvent<HTMLImageElement, MouseEvent>): void {
-        if (this._lastSelectedNode instanceof AbstractMesh) {
-            this._lastSelectedNode.showBoundingBox = false;
-            this._lastSelectedNode.showSubMeshesBoundingBox = false;
-            this._lastSelectedNode = null;
-        }
-
-        this._lastSelectedNode = node;
-
-        switch (e.button) {
-            case 0: this._editor.selectedNodeObservable.notifyObservers(node); break;
-            case 2: this._onCanvasContextMenu(e.nativeEvent); break;
-            default: return;
-        }
-
-        e.stopPropagation();
     }
 }

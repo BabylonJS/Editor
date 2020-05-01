@@ -1,4 +1,4 @@
-import { PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode } from "babylonjs";
+import { PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode, LightGizmo, Light } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
 
@@ -20,6 +20,7 @@ export class SceneGizmo {
     private _positionGizmo: Nullable<PositionGizmo> = null;
     private _rotationGizmo: Nullable<RotationGizmo> = null;
     private _scalingGizmo: Nullable<ScaleGizmo> = null;
+    private _lightGizmo: Nullable<LightGizmo> = null;
 
     private _type: GizmoType = GizmoType.None;
     private _step: number = 0;
@@ -33,7 +34,6 @@ export class SceneGizmo {
         // Create layer
         this._gizmosLayer = new UtilityLayerRenderer(editor.scene!);
         this._gizmosLayer.utilityLayerScene.postProcessesEnabled = false;
-        this._gizmosLayer.shouldRender = false;
     }
 
     /**
@@ -66,8 +66,6 @@ export class SceneGizmo {
                 this._currentGizmo = this._scalingGizmo = new ScaleGizmo(this._gizmosLayer);
                 break;
         }
-
-        this._gizmosLayer.shouldRender = this._currentGizmo !== null;
 
         if (this._currentGizmo) {
             this._currentGizmo.snapDistance = this._step;
@@ -110,11 +108,32 @@ export class SceneGizmo {
      * @param node the node to attach to current gizmos if exists.
      */
     public setAttachedNode(node: Nullable<Node>): void {
+        // Light?
+        if (node instanceof Light) {
+            return this._setLightGizmo(node);
+        } else {
+            this._lightGizmo?.dispose();
+            this._lightGizmo = null;
+        }
+
+        // Mesh or transform node
         if (!node || !this._currentGizmo) { return; }
 
         if (node instanceof AbstractMesh || node instanceof TransformNode) {
             this._currentGizmo.attachedMesh = node as any;
         }
+    }
+
+    /**
+     * Sets the light gizmo.
+     */
+    private _setLightGizmo(light: Light): void {
+        if (!this._lightGizmo) {
+            this._lightGizmo = new LightGizmo(this._gizmosLayer);
+            this._lightGizmo.scaleRatio = 2.5;
+        }
+
+        this._lightGizmo.light = light;
     }
 
     /**
