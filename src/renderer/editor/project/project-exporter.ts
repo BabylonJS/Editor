@@ -292,9 +292,14 @@ export class ProjectExporter {
      */
     public static ExportMesh(mesh: Mesh, withParents: boolean = false, withChildren: boolean = false): any {
         mesh.isPickable = mesh.metadata.isPickable;
+
         const json = SceneSerializer.SerializeMesh(mesh, withParents, withChildren);
         json.materials = [];
         json.multiMaterials = [];
+        json.meshes?.forEach((m) => {
+            delete m.renderOverlay;
+        });
+
         mesh.isPickable = true;
 
         json.lods = [];
@@ -333,6 +338,8 @@ export class ProjectExporter {
         // LODs
         scene.meshes?.forEach((m) => {
             if (!m) { return; }
+
+            delete m.renderOverlay;
 
             const mesh = editor.scene!.getMeshByID(m.id);
             if (!mesh || !(mesh instanceof Mesh)) { return; }

@@ -115,8 +115,13 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             </Menu>;
         const addMesh =
             <Menu>
-                <MenuItem text="Cube" icon={<Icon src="vector-square.svg" />} onClick={() => this._menuItemClicked("addmesh:cube")} />
+                <MenuItem text="Cube" icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("addmesh:cube")} />
                 <MenuItem text="Sphere" icon={<Icon src="circle.svg" />} onClick={() => this._menuItemClicked("addmesh:sphere")} />
+                <MenuItem text="Cylinder" icon={<Icon src="cylinder.svg" />} onClick={() => this._menuItemClicked("addmesh:cylinder")} />
+                <MenuItem text="Plane" icon={<Icon src="square-full.svg" />} onClick={() => this._menuItemClicked("addmesh:plane")} />
+                <MenuDivider />
+                <MenuItem text="Ground" icon={<Icon src="vector-square.svg" />} onClick={() => this._menuItemClicked("addmesh:ground")} />
+                <MenuItem text="Terrain From Height Map..." icon={<Icon src="terrain.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("addmesh:heightmap")} />
             </Menu>;
 
         const tools =
@@ -264,6 +269,11 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             switch (action) {
                 case "cube": mesh = SceneFactory.AddCube(this._editor); break;
                 case "sphere": mesh = SceneFactory.AddSphere(this._editor); break;
+                case "cylinder": mesh = SceneFactory.AddCynlinder(this._editor); break;
+                case "plane": mesh = SceneFactory.AddPlane(this._editor); break;
+
+                case "ground": mesh = SceneFactory.AddGround(this._editor); break;
+                case "heightmap": mesh = await SceneFactory.AddTerrainFromHeightMap(this._editor); break;
                 default: break;
             }
 

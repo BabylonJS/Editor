@@ -56,6 +56,7 @@ import "./inspectors/mesh-inspector";
 import "./inspectors/transform-node-inspector";
 import "./inspectors/instanced-mesh-inspector";
 import "./inspectors/sub-mesh-inspector";
+import "./inspectors/ground-inspector";
 
 import "./inspectors/lights/light-inspector";
 import "./inspectors/lights/directional-light-inspector";

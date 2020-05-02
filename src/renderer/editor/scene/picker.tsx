@@ -47,7 +47,7 @@ export class ScenePicker {
     public getObjectUnderPointer(fastCheck: boolean = false): Nullable<Node | SubMesh> {
         // Icons
         let scene = this._icons._layer.utilityLayerScene;
-        let pick = scene.pick(scene.pointerX, scene.pointerY, undefined, fastCheck);
+        let pick = scene.pick(scene.pointerX, scene.pointerY, undefined, false);
 
         if (pick?.pickedMesh) { return pick.pickedMesh; }
 
@@ -158,12 +158,15 @@ export class ScenePicker {
         if (this._lastSelectedNode instanceof AbstractMesh) {
             this._lastSelectedNode.showBoundingBox = false;
             this._lastSelectedNode.showSubMeshesBoundingBox = false;
+            this._lastSelectedNode.renderOverlay = false;
             this._lastSelectedNode = null;
         }
 
         if (object instanceof AbstractMesh) {
             object.showBoundingBox = true;
             object.showSubMeshesBoundingBox = true;
+            object.renderOverlay = true;
+            object.overlayAlpha = 0.3;
             this._lastSelectedNode = object;
         }
 

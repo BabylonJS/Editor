@@ -66,15 +66,19 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
 
     /**
      * Called on a controller changes.
+     * @param folder the folder containing the modified controller.
+     * @param controller the controller that has been modified.
      */
-    public onControllerChange(): void {
+    public onControllerChange(_?: GUI, __?: GUIController): void {
         // Empty. Can be overrided by other inspectors.
     }
 
     /**
      * Called on a controller finished changes.
+     * @param folder the folder containing the modified controller.
+     * @param controller the controller that has been modified.
      */
-    public onControllerFinishChange(): void {
+    public onControllerFinishChange(_?: GUI, __?: GUIController): void {
         Tags.AddTagsTo(this.selectedObject, "modified");
     }
 
@@ -202,8 +206,9 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
      * @param name the name of the color folder.
      * @param object the base object to modify.
      * @param property the path to the color property.
+     * @param onChange optional callback called on the color changed.
      */
-    protected addColor(parent: GUI, name: string, object: any, property: string): GUI {
+    protected addColor(parent: GUI, name: string, object: any, property: string, onChange?: (color: Color3 | Color4) => void): GUI {
         const folder = parent.addFolder(name);
         folder.open();
 
@@ -217,18 +222,23 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
         folder.add(color, "r").min(0).max(1).step(0.01).onChange(() => {
             o.color = getHexString();
             this.refreshDisplay();
+            if (onChange) { onChange(color); }
         });
         folder.add(color, "g").min(0).max(1).step(0.01).onChange(() => {
             o.color = getHexString();
             this.refreshDisplay();
+            if (onChange) { onChange(color); }
         });
         folder.add(color, "b").min(0).max(1).step(0.01).onChange(() => {
             o.color = getHexString();
             this.refreshDisplay();
+            if (onChange) { onChange(color); }
         });
 
         if (color instanceof Color4) {
-            folder.add(color, "a").min(0).max(1).step(0.01);
+            folder.add(color, "a").min(0).max(1).step(0.01).onChange(() => {
+                if (onChange) { onChange(color); }
+            });
         }
 
         folder.addColor(o, "color").name("Color").onChange(() => {
@@ -237,6 +247,7 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
             object[property].g = value.g;
             object[property].b = value.b;
             this.refreshDisplay();
+            if (onChange) { onChange(color); }
         });
 
         return folder;
@@ -327,16 +338,20 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
     /**
      * Called on the tool is mounted to handle onChange & onFinishChange
      */
-    private _handleChanged(root?: GUI): void {
+    protected _handleChanged(root?: GUI): void {
         if (!root) { root = this.tool!; }
 
         root.__controllers.forEach((c) => {
+            if (c["__editorDone"]) { return; }
+
+            c["__editorDone"] = true;
+
             const existingChangeFn = c["__onChange"];
             const existingFinishChangeFn = c["__onFinishChange"];
 
             c.onChange((r) => {
                 if (existingChangeFn) { existingChangeFn(r); }
-                this.onControllerChange();
+                this.onControllerChange(root!, c);
 
                 if (c.object === this) { return; }
 
@@ -350,7 +365,7 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
 
             c.onFinishChange((r) => {
                 if (existingFinishChangeFn) { existingFinishChangeFn(r); }
-                this.onControllerFinishChange();
+                this.onControllerFinishChange(root!, c);
                 
                 if (c.object === this) { return; }
                 
