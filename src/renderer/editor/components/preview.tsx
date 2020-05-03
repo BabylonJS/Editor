@@ -3,7 +3,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 import * as React from "react";
 import { Position, ButtonGroup, Popover, Button, Menu, MenuItem, Divider, Tag } from "@blueprintjs/core";
 
-import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh } from "babylonjs";
+import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem, ParticleSystem, AbstractMesh } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -57,7 +57,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
     private _editor: Editor;
 
-    private _copiedNode: Nullable<Node> = null;
+    private _copiedNode: Nullable<Node | IParticleSystem> = null;
 
     /**
      * Constructor.
@@ -172,14 +172,16 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Focuses the currently selected node.
      */
     public focusSelectedNode(): void {
-        const node = this._editor.graph.lastSelectedNode;
+        let node = this._editor.graph.lastSelectedObject;
         if (!node) { return; }
+
+        if (node instanceof ParticleSystem) { node = node.emitter as AbstractMesh; }
 
         const camera = this._editor.scene!.activeCamera;
         if (!camera || !(camera instanceof TargetCamera)) { return; }
 
         const translation = Vector3.Zero();
-        node.getWorldMatrix().decompose(undefined, undefined, translation);
+        (node as Node).getWorldMatrix().decompose(undefined, undefined, translation);
         
         if (camera["target"]) {
             const a = new Animation("FocusTargetAnimation", "target", 60, Animation.ANIMATIONTYPE_VECTOR3);
@@ -196,7 +198,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Copies the currently selected node.
      */
     public copySelectedNode(): void {
-        this._copiedNode = this._editor.graph.lastSelectedNode;
+        this._copiedNode = this._editor.graph.lastSelectedObject;
     }
 
     /**
@@ -205,7 +207,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     public pasteCopiedNode(): void {
         if (!this._copiedNode) { return; }
 
-        let clone: Nullable<Node> = null;
+        let clone: Nullable<Node | IParticleSystem> = null;
 
         if (this._copiedNode instanceof Light) {
             clone = this._copiedNode.clone(this._copiedNode.name);
@@ -227,15 +229,29 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 instance.rotationQuaternion = this._copiedNode.rotationQuaternion.clone();
             }
             instance.scaling.copyFrom(this._copiedNode.scaling);
+        } else if (this._copiedNode instanceof ParticleSystem) {
+            clone = this._copiedNode.clone(this._copiedNode.name, this._copiedNode.emitter);
         }
 
         if (clone) {
-            clone.parent = this._copiedNode.parent;
+            if (clone instanceof Node && this._copiedNode instanceof Node) {
+                clone.parent = this._copiedNode.parent;
+            }
+
             clone.id = Tools.RandomId();
 
-            this._editor.addedNodeObservable.notifyObservers(clone);
+            if (clone instanceof Node) {
+                this._editor.addedNodeObservable.notifyObservers(clone);
+            } else {
+                this._editor.addedParticleSystemObservable.notifyObservers(clone);
+            }
+
             this._editor.graph.refresh(() => {
-                this._editor.selectedNodeObservable.notifyObservers(clone!);
+                if (clone instanceof Node) {
+                    this._editor.selectedNodeObservable.notifyObservers(clone);
+                } else {
+                    this._editor.selectedParticleSystemObservable.notifyObservers(clone!);
+                }
             });
         }
     }
@@ -244,10 +260,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Removes the currently selected node.
      */
     public removeSelectedNode(): void {
-        const node = this._editor.graph.lastSelectedNode;
+        const node = this._editor.graph.lastSelectedObject;
         if (!node) { return; }
 
-        this._editor.graph.removeNode(node);
+        this._editor.graph.removeObject(node);
     }
 
     /**

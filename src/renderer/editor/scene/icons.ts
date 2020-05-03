@@ -1,7 +1,11 @@
-import { Mesh, UtilityLayerRenderer, Observer, Scene, StandardMaterial, Texture, Vector3, Observable, PointerEventTypes, Vector2 } from "babylonjs";
+import { Nullable } from "../../../shared/types";
+
+import {
+    Mesh, UtilityLayerRenderer, Observer, Scene, StandardMaterial, Texture, Vector3,
+    Observable, PointerEventTypes, Vector2, AbstractMesh,
+} from "babylonjs";
 
 import { Editor } from "../editor";
-import { Nullable } from "../../../shared/types";
 
 export class SceneIcons {
     /**
@@ -20,9 +24,11 @@ export class SceneIcons {
 
     private _lights: Mesh[] = [];
     private _cameras: Mesh[] = [];
+    private _particleSystems: Mesh[] = [];
 
     private _lightMaterial: StandardMaterial;
     private _cameraMaterial: StandardMaterial;
+    private _particleMaterial: StandardMaterial;
 
     private _downMousePosition: Vector2 = Vector2.Zero();
 
@@ -49,6 +55,12 @@ export class SceneIcons {
         this._cameraMaterial.useAlphaFromDiffuseTexture = true;
         this._cameraMaterial.diffuseTexture = new Texture("../assets/textures/camera.png", this._layer.utilityLayerScene);
         this._cameraMaterial.diffuseTexture.hasAlpha = true;
+
+        this._particleMaterial = new StandardMaterial("particleMaterial", this._layer.utilityLayerScene);
+        this._particleMaterial.disableLighting = true;
+        this._particleMaterial.useAlphaFromDiffuseTexture = true;
+        this._particleMaterial.diffuseTexture = new Texture("../assets/textures/wind.png", this._layer.utilityLayerScene);
+        this._particleMaterial.diffuseTexture.hasAlpha = true;
 
         // Register
         this._onBeforeRenderObserver = this._layer.utilityLayerScene.onBeforeRenderObservable.add(() => {
@@ -112,6 +124,30 @@ export class SceneIcons {
             const distance = Vector3.Distance(c.globalPosition, this._editor.scene!.activeCamera!.position) * 0.05;
 
             plane.position.copyFrom(c.globalPosition);
+            plane.scaling.set(distance, distance, distance);
+        });
+
+        // Particle systems
+        if (this._particleSystems.length !== this._editor.scene!.particleSystems.length) {
+            this._particleSystems.forEach((ps) => ps.dispose());
+            this._particleSystems = [];
+            
+            this._editor.scene!.particleSystems.forEach((ps) => {
+                const plane = this._createPlane(ps.name);
+                plane.material = this._particleMaterial;
+                plane.metadata = { node: ps };
+                this._particleSystems.push(plane);
+            });
+        }
+
+        this._editor.scene!.particleSystems.forEach((ps, index) => {
+            const plane = this._particleSystems[index];
+            if (!plane) { return; }
+
+            const emitter = ps.emitter as AbstractMesh;
+            const distance = Vector3.Distance(emitter.getAbsolutePosition(), this._editor.scene!.activeCamera!.position) * 0.05;
+
+            plane.position.copyFrom(emitter.getAbsolutePosition());
             plane.scaling.set(distance, distance, distance);
         });
     }

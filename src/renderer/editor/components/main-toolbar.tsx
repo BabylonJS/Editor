@@ -7,7 +7,7 @@ import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, Co
 
 import { Undefinable } from "../../../shared/types";
 
-import { AbstractMesh, Node } from "babylonjs";
+import { AbstractMesh, Node, IParticleSystem } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -112,6 +112,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Sky" icon={<Icon src="smog.svg" />} onClick={() => this._menuItemClicked("add:sky")} />
                 <MenuDivider />
                 <MenuItem text="Dummy Node" icon={<Icon src="clone.svg" />} onClick={() => this._menuItemClicked("add:dummy")} />
+                <MenuDivider />
+                <MenuItem text="Particle System" icon={<Icon src="wind.svg" />} onClick={() => this._menuItemClicked("add:particle-system")} />
             </Menu>;
         const addMesh =
             <Menu>
@@ -240,7 +242,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         // Add
         if (family === "add") {
-            let node: Undefinable<Node>;
+            let node: Undefinable<Node | IParticleSystem>;
 
             switch (action) {
                 case "pointlight": node = SceneFactory.AddPointLight(this._editor); break;
@@ -253,12 +255,18 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 case "sky": node = SceneFactory.AddSky(this._editor); break;
 
                 case "dummy": node = SceneFactory.AddDummy(this._editor); break;
+
+                case "particle-system": node = SceneFactory.AddParticleSystem(this._editor, false); break;
                 default: break;
             }
 
             if (!node) { return; }
 
-            this._editor.addedNodeObservable.notifyObservers(node);
+            if (node instanceof Node) {
+                this._editor.addedNodeObservable.notifyObservers(node);
+            } else {
+                this._editor.addedParticleSystemObservable.notifyObservers(node);
+            }
             return this._editor.graph.refresh();
         }
 

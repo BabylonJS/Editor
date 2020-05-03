@@ -7,7 +7,7 @@ import {
 
 import { Nullable, Undefinable } from "../../../shared/types";
 
-import { Node, Scene, Mesh, Light, Camera, TransformNode, InstancedMesh, AbstractMesh, MultiMaterial } from "babylonjs";
+import { Node, Scene, Mesh, Light, Camera, TransformNode, InstancedMesh, AbstractMesh, MultiMaterial, IParticleSystem, ParticleSystem } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -40,7 +40,9 @@ export interface IGraphState {
      * Defines the list of all selected nodes.
      */
     selectedNodeIds?: Undefinable<string[]>;
-
+    /**
+     * Defines the current filter to search nodes.
+     */
     filter: string;
 }
 
@@ -53,7 +55,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Defines the last selected node in the graph.
      */
-    public lastSelectedNode: Nullable<Node> = null;
+    public lastSelectedObject: Nullable<Node | IParticleSystem> = null;
 
     /**
      * Constructor.
@@ -114,7 +116,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     group="graph-shortcuts"
                     combo="del"
                     label="Delete the selected node(s)."
-                    onKeyDown={() => this._handleRemoveNode()}
+                    onKeyDown={() => this._handleRemoveObject()}
                 />
             </Hotkeys>
         );
@@ -144,10 +146,16 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Selecs the given node in the graph.
      * @param node the node to select in the graph.
      */
-    public setSelected(node: Node): void {
+    public setSelected(node: Node | IParticleSystem): void {
         let expanded = this.state.expandedNodeIds?.slice();
         if (expanded) {
-            let parent = node.parent;
+            let parent: Nullable<Node>;
+            if (node instanceof Node) {
+                parent = node.parent;
+            } else {
+                parent = node.emitter as AbstractMesh;
+            }
+
             while (parent) {
                 const pid = parent.id;
                 if (expanded.indexOf(pid) === -1) { expanded.push(pid); }
@@ -156,7 +164,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             }
         }
 
-        this.lastSelectedNode = node;
+        this.lastSelectedObject = node;
+
         this.setState({
             selectedNodeIds: [node.id],
             expandedNodeIds: expanded ?? undefined,
@@ -177,23 +186,27 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Clones the given node.
      * @param node the node to clone.
      */
-    public cloneNode(node: Node): Nullable<Node> {
-        let clone: Nullable<Node> = null;
+    public cloneObject(node: Node | IParticleSystem): Nullable<Node | IParticleSystem> {
+        let clone: Nullable<Node | IParticleSystem> = null;
         
         if (node instanceof Mesh) { clone = node.clone(node.name, node.parent, false, true); }
         else if (node instanceof Light) { clone = node.clone(node.name); }
         else if (node instanceof Camera) { clone = node.clone(node.name); }
         else if (node instanceof TransformNode) { clone = node.clone(node.name, node.parent, false); }
+        else if (node instanceof ParticleSystem) { clone = node.clone(node.name, node.emitter); }
 
         if (clone) {
             clone.id = Tools.RandomId();
-            clone.metadata = Tools.CloneObject(clone.metadata);
-            
-            const descendants = clone.getDescendants(false);
-            descendants.forEach((d) => {
-                d.id = Tools.RandomId();
-                d.metadata = Tools.CloneObject(d.metadata);
-            });
+
+            if (clone instanceof Node) {
+                clone.metadata = Tools.CloneObject(clone.metadata);
+
+                const descendants = clone.getDescendants(false);
+                descendants.forEach((d) => {
+                    d.id = Tools.RandomId();
+                    d.metadata = Tools.CloneObject(d.metadata);
+                });
+            }
         }
 
         return clone;
@@ -203,9 +216,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Removes the given node.
      * @param node the node to remove.
      */
-    public removeNode(node: Node): void {
-        let removeFunc: Nullable<(n: Node) => void> = null;
-        let addFunc: Nullable<(n: Node) => void> = null;
+    public removeObject(node: Node | IParticleSystem): void {
+        let removeFunc: Nullable<(n: Node | IParticleSystem) => void> = null;
+        let addFunc: Nullable<(n: Node | IParticleSystem) => void> = null;
         let caller: any = this._editor.scene!;
 
         if (node instanceof AbstractMesh) {
@@ -224,29 +237,50 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         } else if (node instanceof TransformNode) {
             removeFunc = this._editor.scene!.removeTransformNode;
             addFunc = this._editor.scene!.addTransformNode;
+        } else if (node instanceof ParticleSystem) {
+            removeFunc = this._editor.scene!.removeParticleSystem;
+            addFunc = this._editor.scene!.addParticleSystem;
         }
 
         if (!removeFunc || !addFunc) { return; }
 
-        const parent = node.parent;
-        const descendants = node.getDescendants();
+        const parent = node instanceof Node ? node.parent : node.emitter as AbstractMesh;
+        const descendants = node instanceof Node ? node.getDescendants() : [];
+        const particleSystems = this._editor.scene!.particleSystems.filter((ps) => ps.emitter === node);
         
         undoRedo.push({
             common: () => {
-                this._editor.removedNodeObservable.notifyObservers(node);
                 this.refresh();
             },
             redo: () => {
-                node.parent = null;
+                if (node instanceof Node) { node.parent = null; }
                 removeFunc?.call(caller, node);
                 if (node instanceof InstancedMesh) { node.sourceMesh.removeInstance(node); }
-                descendants.forEach((d) => d.parent = parent);
+                if (node instanceof Node) { descendants.forEach((d) => d.parent = parent); }
+
+                particleSystems.forEach((ps) => this._editor.scene!.removeParticleSystem(ps));
+
+                if (node instanceof Node) {
+                    this._editor.removedNodeObservable.notifyObservers(node);
+                } else {
+                    this._editor.removedParticleSystemObservable.notifyObservers(node);
+                }
             },
             undo: () => {
                 addFunc?.call(caller, node);
                 if (node instanceof InstancedMesh) { node.sourceMesh.addInstance(node); }
-                node.parent = parent;
-                descendants.forEach((d) => d.parent = node);
+                if (node instanceof Node) {
+                    node.parent = parent;
+                    descendants.forEach((d) => d.parent = node);
+                }
+
+                particleSystems.forEach((ps) => this._editor.scene!.addParticleSystem(ps));
+
+                if (node instanceof Node) {
+                    this._editor.addedNodeObservable.notifyObservers(node);
+                } else {
+                    this._editor.addedParticleSystemObservable.notifyObservers(node);
+                }
             },
         });
     }
@@ -324,6 +358,30 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             children = node.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as JSX.Element[];
         }
 
+        // Search for particle systems.
+        this._editor.scene!.particleSystems.forEach((ps) => {
+            if (ps.emitter !== node) { return; }
+
+            children.push(
+                <Tree.TreeNode
+                    active={true}
+                    expanded={true}
+                    title={
+                        <Tooltip
+                            content={<span>{Tools.GetConstructorName(ps)}</span>}
+                            position={Position.RIGHT}
+                            usePortal={false}
+                        >
+                            <span style={style}>{ps.name}</span>
+                        </Tooltip>
+                    }
+                    key={ps.id}
+                    isLeaf={true}
+                    icon={<Icon src="wind.svg" />}
+                ></Tree.TreeNode>
+            );
+        });
+
         return (
             <Tree.TreeNode
                 active={true}
@@ -338,7 +396,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     </Tooltip>
                 }
                 key={node.id}
-                isLeaf={!node.getChildren().length}
+                isLeaf={!children.length}
                 icon={<Icon src={this._getIcon(node)} />}
             >
                 {children}
@@ -363,8 +421,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * @param e the event object coming from react.
      */
     private _handleNodeContextMenu(e: React.MouseEvent, graphNode: any): void {
-        const node = this._getNodeById(graphNode.key);
-        if (!node || node.doNotSerialize || node === SceneSettings.Camera) { return; }
+        let node = this._getNodeById(graphNode.key);
+
+        if (!node || node === SceneSettings.Camera) { return; }
+        if (node instanceof Node && node.doNotSerialize) { return; }
 
         const name = node.name ?? Tools.GetConstructorName(node);
 
@@ -375,7 +435,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             node.subMeshes.forEach((sm, index) => {
                 const material = multiMaterial && sm.getMaterial();
                 const text = material ? (material.name ?? Tools.GetConstructorName(material)) : `Sub Mesh "${index}`;
-                const extraMenu = <MenuItem id={`${node.id}-${index}`} text={text} icon={<Icon src="vector-square.svg" />} onClick={() => this._editor.selectedSubMeshObservable.notifyObservers(sm)} />;
+                const extraMenu = <MenuItem id={`${node!.id}-${index}`} text={text} icon={<Icon src="vector-square.svg" />} onClick={() => this._editor.selectedSubMeshObservable.notifyObservers(sm)} />;
                 subMeshesItems.push(extraMenu);
             });
         }
@@ -403,21 +463,21 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     selectAllOnFocus={true}
                     className={Classes.FILL}
                     onConfirm={(v) => {
-                        const oldName = node.name;
+                        const oldName = node!.name;
                         undoRedo.push({
                             common: () => this.refresh(),
-                            redo: () => node.name = v,
-                            undo: () => node.name = oldName,
+                            redo: () => node!.name = v,
+                            undo: () => node!.name = oldName,
                         });
                     }}
                 />
                 <MenuDivider />
-                <MenuItem text="Clone" icon={<Icon src="clone.svg" />} onClick={() => this._handleClone()} />
+                <MenuItem text="Clone" icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneObject()} />
                 <MenuDivider />
                 <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh)} />
                 {mergeMeshesItem}
                 <MenuDivider />
-                <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveNode()} />
+                <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveObject()} />
                 {subMeshesItems.length ? <MenuDivider title="Sub-Meshes:" /> : undefined}
                 {subMeshesItems}
             </Menu>,
@@ -438,26 +498,26 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Removes the given node from the graph and destroys its data.
      */
-    private _handleRemoveNode(): void {
+    private _handleRemoveObject(): void {
         if (!this.state.selectedNodeIds) { return; }
         this.state.selectedNodeIds.forEach((id) => {
             const node = this._getNodeById(id);
             if (!node) { return; }
 
-            this.removeNode(node);
+            this.removeObject(node);
         });
     }
 
     /**
      * Clones all selected nodes.
      */
-    private _handleClone(): void {
+    private _handleCloneObject(): void {
         if (!this.state.selectedNodeIds) { return; }
         this.state.selectedNodeIds.forEach((id) => {
             const node = this._getNodeById(id);
             if (!node) { return; }
 
-            this.cloneNode(node);
+            this.cloneObject(node);
         });
 
         this.refresh();
@@ -475,11 +535,16 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             return;
         }
 
+        // Node
         const lastSelected = this._getNodeById(id);
         if (!lastSelected) { return; }
 
-        this._editor.selectedNodeObservable.notifyObservers(lastSelected, undefined, this);
-        this.lastSelectedNode = lastSelected;
+        if (lastSelected instanceof Node) {
+            this._editor.selectedNodeObservable.notifyObservers(lastSelected, undefined, this);
+        } else {
+            this._editor.selectedParticleSystemObservable.notifyObservers(lastSelected, undefined, this);
+        }
+        this.lastSelectedObject = lastSelected;
     }
 
     /**
@@ -508,13 +573,29 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (!source) { return; }
 
         const target = this._getNodeById(info.node.key);
-        if (!target) { return; }
+        if (!target || !(target instanceof Node)) { return; }
 
-        const all = this.state.selectedNodeIds.map((s) => this._getNodeById(s)).filter((n) => n) as Node[];
+        const all = this.state.selectedNodeIds.map((s) => this._getNodeById(s)).filter((n) => n) as (Node | IParticleSystem)[];
         if (info.node.dragOver) {
-            all.forEach((n) => n.parent = target);
+            all.forEach((n) => {
+                if (n instanceof Node) {
+                    return (n.parent = target);
+                }
+
+                if (target instanceof AbstractMesh) {
+                    n.emitter = target;
+                }
+            });
         } else {
-            all.forEach((n) => n.parent = target.parent);
+            all.forEach((n) => {
+                if (n instanceof Node) {
+                    return (n.parent = target.parent);
+                }
+
+                if (target.parent instanceof AbstractMesh) {
+                    n.emitter = target.parent;
+                }
+            });
         }
 
         this.refresh();
@@ -524,8 +605,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Returns the node in the stage identified by the given id.
      * @param id the id of the node to find.
      */
-    private _getNodeById(id: string): Undefinable<Node> {
+    private _getNodeById(id: string): Undefinable<Node | IParticleSystem> {
         const all = Tools.getAllSceneNodes(this._editor.scene!);
-        return all.find((c) => c.id === id);
+        return all.find((c) => c.id === id) ?? this._editor.scene!.getParticleSystemByID(id) ?? undefined;
     }
 }

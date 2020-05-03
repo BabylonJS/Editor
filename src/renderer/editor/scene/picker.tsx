@@ -118,8 +118,10 @@ export class ScenePicker {
                     object = object.metadata.node as Node;
                 }
 
-                if (object) {
+                if (object instanceof Node) {
                     this._editor.selectedNodeObservable.notifyObservers(object);
+                } else {
+                    this._editor.selectedParticleSystemObservable.notifyObservers(object);
                 }
             }
         }
@@ -134,12 +136,12 @@ export class ScenePicker {
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <MenuItem text="Clone" icon={<Icon src="clone.svg" />} onClick={() => {
-                    this._editor.graph.cloneNode(node!);
+                    this._editor.graph.cloneObject(node!);
                     this._editor.graph.refresh();
                 }} />
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => {
-                    this._editor.graph.removeNode(node!);
+                    this._editor.graph.removeObject(node!);
                     this._editor.graph.refresh();
                 }} />
             </Menu>,

@@ -1,4 +1,4 @@
-import { PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode, LightGizmo, Light } from "babylonjs";
+import { PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode, LightGizmo, Light, IParticleSystem } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
 
@@ -83,7 +83,7 @@ export class SceneGizmo {
                 this._scalingGizmo.uniformScaleGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
             }
 
-            const node = this._editor.graph.lastSelectedNode;
+            const node = this._editor.graph.lastSelectedObject;
             this.setAttachedNode(node);
         }
     }
@@ -107,7 +107,7 @@ export class SceneGizmo {
      * Sets the given node attached to the current gizmos if exists.
      * @param node the node to attach to current gizmos if exists.
      */
-    public setAttachedNode(node: Nullable<Node>): void {
+    public setAttachedNode(node: Nullable<Node | IParticleSystem>): void {
         // Light?
         if (node instanceof Light) {
             return this._setLightGizmo(node);

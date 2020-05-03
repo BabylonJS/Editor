@@ -3,9 +3,10 @@ import { extname } from "path";
 import {
     Mesh,
     PointLight, DirectionalLight, SpotLight,
-    Node, TransformNode,
+    Node, TransformNode,  GroundMesh, ParticleHelper, IParticleSystem,
     Vector3,
-    FreeCamera, ArcRotateCamera, Texture, VertexData, Color3, GroundMesh,
+    FreeCamera, ArcRotateCamera,
+    Texture, VertexData, Color3,
 } from "babylonjs";
 import { SkyMaterial } from "babylonjs-materials";
 
@@ -170,6 +171,21 @@ export class SceneFactory {
      */
     public static AddDummy(editor: Editor): TransformNode {
         return this._ConfigureNode(new TransformNode("New Dummy Node", editor.scene!, true));
+    }
+
+    /**
+     * Adds a new particle system to the scene.
+     * @param editor the editor reference.
+     * @param gpu defines wether or not the create system particle should use GPU accelration features.
+     */
+    public static AddParticleSystem(editor: Editor, gpu: boolean): IParticleSystem {
+        const emitter = this._ConfigureNode(new Mesh("New Particle System", editor.scene));
+
+        const ps = ParticleHelper.CreateDefault(emitter, 2000, editor.scene!, gpu);
+        ps.start();
+        ps.id = Tools.RandomId();
+
+        return ps;
     }
 
     /**

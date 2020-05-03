@@ -9,7 +9,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName, MaybeElement } from "@blueprintjs/core";
 
-import { Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin, SubMesh, Animation } from "babylonjs";
+import { Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin, SubMesh, Animation, AbstractMesh, IParticleSystem } from "babylonjs";
 
 import GoldenLayout from "golden-layout";
 
@@ -73,6 +73,8 @@ import "./inspectors/materials/sky-material-inspector";
 import "./inspectors/materials/node-material-inspector";
 
 import "./inspectors/textures/texture-inspector";
+
+import "./inspectors/particle-systems/particle-system-inspector";
 
 // Assets
 import "./assets/meshes";
@@ -155,6 +157,10 @@ export class Editor {
      */
     public selectedSubMeshObservable: Observable<SubMesh> = new Observable<SubMesh>();
     /**
+     * Notifies observers that a particle system has been selected in the editor (preview or graph).
+     */
+    public selectedParticleSystemObservable: Observable<IParticleSystem> = new Observable<IParticleSystem>();
+    /**
      * Notifies observers that a texture has been selected in the editor (assets).
      */
     public selectedTextureObservable: Observable<BaseTexture> = new Observable<BaseTexture>();
@@ -171,9 +177,17 @@ export class Editor {
      */
     public addedNodeObservable: Observable<Node> = new Observable<Node>();
     /**
+     * Notifies observers that a particle system has been added in the editor?
+     */
+    public addedParticleSystemObservable: Observable<IParticleSystem> = new Observable<IParticleSystem>();
+    /**
      * Notifies observers that a node has been removed in the editor (graph, preview, etc.).
      */
     public removedNodeObservable: Observable<Node> = new Observable<Node>();
+    /**
+     * Notifies observers that a particle system has been removed in the editor (graph, preview, etc.).
+     */
+    public removedParticleSystemObservable: Observable<IParticleSystem> = new Observable<IParticleSystem>();
 
     /**
      * Defines the current editor version.
@@ -784,6 +798,14 @@ export class Editor {
 
             if (ev.target !== this.graph) { this.graph.setSelected(o.getMesh()); }
         });
+        this.selectedParticleSystemObservable.add((o, ev) => {
+            this.inspector.setSelectedObject(o);
+            if (o.emitter instanceof AbstractMesh) {
+                this.preview.gizmo.setAttachedNode(o.emitter);
+            }
+
+            if (ev.target !== this.graph) { this.graph.setSelected(o); }
+        });
         
         this.selectedSceneObservable.add((s) => this.inspector.setSelectedObject(s));
         this.selectedTextureObservable.add((t) => this.inspector.setSelectedObject(t));
@@ -794,6 +816,9 @@ export class Editor {
         });
 
         this.removedNodeObservable.add(() => {
+            this.preview.picker.reset();
+        });
+        this.removedParticleSystemObservable.add(() => {
             this.preview.picker.reset();
         });
 

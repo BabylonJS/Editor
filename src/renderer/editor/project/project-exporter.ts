@@ -73,6 +73,7 @@ export class ProjectExporter {
             textures: [],
             meshes: [],
             transformNodes: [],
+            particleSystems: [],
             lights: [],
             scene: ProjectHelpers.ExportSceneSettings(editor.scene!),
             assets: {
@@ -255,6 +256,25 @@ export class ProjectExporter {
 
             await writeFile(join(transformNodesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
             project.transformNodes.push(dest);
+
+            editor.updateTaskFeedback(task, progressValue += progressCount);
+        }
+
+        // Write all particle systems
+        editor.updateTaskFeedback(task, 0, "Saving Particle Systems");
+
+        progressValue = 0;
+        progressCount = 100 / editor.scene!.particleSystems.length;
+
+        const particleSystemsDir = join(Project.DirPath!, "particleSystems");
+        if (!(await pathExists(particleSystemsDir))) { await mkdir(particleSystemsDir); }
+
+        for (const ps of editor.scene!.particleSystems) {
+            const json = ps.serialize(true);
+            const dest = `${normalize(`${basename(ps.name)}-${ps.id}`)}.json`;
+
+            await writeFile(join(particleSystemsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+            project.particleSystems!.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
         }

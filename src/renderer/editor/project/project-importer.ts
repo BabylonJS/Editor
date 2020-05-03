@@ -3,7 +3,7 @@ import { readJSON, pathExists } from "fs-extra";
 
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
-    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode,
+    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -64,7 +64,7 @@ export class ProjectImporter {
         const rootUrl = join(Project.DirPath!, "/");
 
         Overlay.SetSpinnervalue(0);
-        const spinnerStep = 1 / (project.textures.length + project.materials.length + project.meshes.length + project.lights.length + project.cameras.length);
+        const spinnerStep = 1 / (project.textures.length + project.materials.length + project.meshes.length + project.lights.length + project.cameras.length + (project.particleSystems?.length ?? 0));
         let spinnerValue = 0;
 
         // Register files
@@ -222,6 +222,20 @@ export class ProjectImporter {
                 editor.console.logInfo(`Parsed camera "${c}"`);
             } catch (e) {
                 editor.console.logError(`Failed to parse camera "${c}"`);
+            }
+
+            Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+        }
+
+        // Load all particle systems
+        Overlay.SetMessage("Creating Particle Systems...");
+
+        for (const ps of project.particleSystems ?? []) {
+            try {
+                const json = await readJSON(join(Project.DirPath, "particleSystems", ps));
+                ParticleSystem.Parse(json, editor.scene!, rootUrl);
+            } catch (e) {
+                editor.console.logError(`Failed to parse particle system "${ps}"`);
             }
 
             Overlay.SetSpinnervalue(spinnerValue += spinnerStep);

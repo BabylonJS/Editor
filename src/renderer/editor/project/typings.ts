@@ -63,6 +63,10 @@ export interface IProject {
      */
     transformNodes: string[];
     /**
+     * Defines the list of scene's particle systems.
+     */
+    particleSystems?: string[];
+    /**
      * Defines the list of scene's lights
      */
     lights: {

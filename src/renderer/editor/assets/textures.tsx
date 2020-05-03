@@ -303,6 +303,13 @@ export class TextureAssets extends AbstractAssets {
                 }
             }
 
+            // Check particle systems
+            for (const ps of this.editor.scene!.particleSystems) {
+                if (texture === ps.particleTexture || texture === ps.noiseTexture) {
+                    return;
+                }
+            }
+
             // Check scene
             if (texture === this.editor.scene!.environmentTexture) { return; }
 
