@@ -92,9 +92,8 @@ export class MeshInspector extends NodeInspector {
 
         collisions.add(this.selectedObject, "checkCollisions").name("Check Collisions");
         collisions.add(this.selectedObject, "collisionMask").name("Collision Mask");
-
-        this.addVector(collisions, "Ellipsoid", this.selectedObject, "ellipsoid");
-        this.addVector(collisions, "Ellipsoid Offset", this.selectedObject, "ellipsoidOffset");
+        collisions.addVector("Ellipsoid", this.selectedObject.ellipsoid);
+        collisions.addVector("Ellipsoid Offset", this.selectedObject.ellipsoidOffset);
     }
 
     /**
@@ -105,16 +104,9 @@ export class MeshInspector extends NodeInspector {
         transforms.open();
 
         // Position
-        const position = transforms.addFolder("Position");
-        position.open();
-        position.add(this.selectedObject.position, "x").step(0.1);
-        position.add(this.selectedObject.position, "y").step(0.1);
-        position.add(this.selectedObject.position, "z").step(0.1);
+        transforms.addVector("Position", this.selectedObject.position);
 
         // Rotation
-        const rotation = transforms.addFolder("Rotation (degrees)");
-        rotation.open();
-
         if (this.selectedObject.rotationQuaternion) {
             this._rotation = this._getRotationDegrees(this.selectedObject.rotationQuaternion.toEulerAngles());
             
@@ -127,9 +119,7 @@ export class MeshInspector extends NodeInspector {
                 }
             }
 
-            rotation.add(this._rotation, "x").step(0.1).onChange(() => onChangeQuaternion(false)).onFinishChange(() => onChangeQuaternion(true));
-            rotation.add(this._rotation, "y").step(0.1).onChange(() => onChangeQuaternion(false)).onFinishChange(() => onChangeQuaternion(true));
-            rotation.add(this._rotation, "z").step(0.1).onChange(() => onChangeQuaternion(false)).onFinishChange(() => onChangeQuaternion(true));
+            transforms.addVector("Rotation (Quaternion)", this._rotation).onChange(() => onChangeQuaternion(false)).onFinishChange(() => onChangeQuaternion(true));
         } else {
             this._rotation = this._getRotationDegrees(this.selectedObject.rotation.clone());
 
@@ -142,17 +132,11 @@ export class MeshInspector extends NodeInspector {
                 }
             };
 
-            rotation.add(this._rotation, "x").step(0.1).onChange(() => onChangeRotation(false)).onFinishChange(() => onChangeRotation(true));
-            rotation.add(this._rotation, "y").step(0.1).onChange(() => onChangeRotation(false)).onFinishChange(() => onChangeRotation(true));
-            rotation.add(this._rotation, "z").step(0.1).onChange(() => onChangeRotation(false)).onFinishChange(() => onChangeRotation(true));
+            transforms.addVector("Rotation (Vector3)", this._rotation).onChange(() => onChangeRotation(false)).onFinishChange(() => onChangeRotation(true));
         }
 
         // Scaling
-        const scaling = transforms.addFolder("Scaling");
-        scaling.open();
-        scaling.add(this.selectedObject.scaling, "x").step(0.1);
-        scaling.add(this.selectedObject.scaling, "y").step(0.1);
-        scaling.add(this.selectedObject.scaling, "z").step(0.1);
+        transforms.addVector("Scaling", this.selectedObject.scaling);
 
         return transforms;
     }

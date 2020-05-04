@@ -38,7 +38,11 @@ export class CameraInspector extends NodeInspector {
      * Adds the transform editable properties.
      */
     protected addTransforms(): GUI {
-        return this.addVector(this.tool!, "Position", this.selectedObject, "position");
+        const transforms = this.tool!.addFolder("Transforms");
+        transforms.open();
+        transforms.addVector("Position", this.selectedObject.position);
+
+        return transforms;
     }
 }
 

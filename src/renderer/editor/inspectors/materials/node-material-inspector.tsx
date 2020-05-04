@@ -68,7 +68,7 @@ export class NodeMaterialInspector extends MaterialInspector<NodeMaterial> {
             case "number": folder.add(block, "value").min(block.min).max(block.max).name(block.name); break;
             case "vector2":
             case "vector3":
-            case "vector4": this.addVector(folder, block.name, block, "value"); break;
+            case "vector4": folder.addVector(block.name, block.value); break;
             case "color3":
             case "color4": this.addColor(folder, block.name, block, "value"); break;
         }

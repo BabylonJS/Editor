@@ -26,24 +26,9 @@ export class TransformNodeInspector extends NodeInspector {
     protected addTransforms(): GUI {
         const transforms = this.tool!.addFolder("Transforms");
         transforms.open();
-
-        const position = transforms.addFolder("Position");
-        position.open();
-        position.add(this.selectedObject.position, "x").step(0.1);
-        position.add(this.selectedObject.position, "y").step(0.1);
-        position.add(this.selectedObject.position, "z").step(0.1);
-
-        const rotation = transforms.addFolder("Rotation");
-        rotation.open();
-        rotation.add(this.selectedObject.rotation, "x").step(0.1);
-        rotation.add(this.selectedObject.rotation, "y").step(0.1);
-        rotation.add(this.selectedObject.rotation, "z").step(0.1);
-
-        const scaling = transforms.addFolder("Scaling");
-        scaling.open();
-        scaling.add(this.selectedObject.scaling, "x").step(0.1);
-        scaling.add(this.selectedObject.scaling, "y").step(0.1);
-        scaling.add(this.selectedObject.scaling, "z").step(0.1);
+        transforms.addVector("Position", this.selectedObject.position);
+        transforms.addVector("Rotation", this.selectedObject.rotation);
+        transforms.addVector("Scaling", this.selectedObject.scaling);
 
         return transforms;
     }

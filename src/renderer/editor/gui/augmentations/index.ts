@@ -5,6 +5,7 @@ import { SuggestController } from "./suggest";
 import { CustomController } from "./custom";
 import { ButtonController } from "./button";
 import { KeyMapperController } from "./key-mapper";
+import { VectorController, IVector } from "./vector";
 
 import "./text-box";
 import "./image";
@@ -12,6 +13,7 @@ import "./suggest";
 import "./custom";
 import "./button";
 import "./key-mapper";
+import "./vector";
 
 /**
  * Augmentify dat.gui
@@ -98,6 +100,12 @@ declare module "dat.gui" {
          * @param element the element to add in "this" folder.
          */
         addCustom(height: string, element: JSX.Element): CustomController;
+        /**
+         * Adds a new vector controller.
+         * @param title the title of the controller.
+         * @param vector the vector to modify.
+         */
+        addVector(title: string, vector: IVector): VectorController;
     }
 
     /**

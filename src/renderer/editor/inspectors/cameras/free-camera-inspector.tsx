@@ -28,7 +28,7 @@ export class FreeCameraInspector extends CameraInspector {
      */
     protected addTransforms(): GUI {
         const transforms = super.addTransforms();
-        this.addVector(this.tool!, "Rotation", this.selectedObject, "rotation");
+        transforms.addVector("Rotation", this.selectedObject.rotation);
 
         this.addCollisions();
 
@@ -45,8 +45,8 @@ export class FreeCameraInspector extends CameraInspector {
         collisions.add(this.selectedObject, "checkCollisions").name("Check Collisions");
         collisions.add(this.selectedObject, "applyGravity").name("Apply Gravity");
 
-        this.addVector(collisions, "Ellipsoid", this.selectedObject, "ellipsoid");
-        this.addVector(collisions, "Ellipsoid Offset", this.selectedObject, "ellipsoidOffset");
+        collisions.addVector("Ellipsoid", this.selectedObject.ellipsoid);
+        collisions.addVector("Ellipsoid Offset", this.selectedObject.ellipsoidOffset);
     }
 }
 

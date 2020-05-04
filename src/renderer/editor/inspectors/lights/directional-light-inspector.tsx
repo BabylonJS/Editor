@@ -25,19 +25,12 @@ export class DirectionalLightInspector extends LightInspector {
      * Adds the transforms editable properties.
      */
     protected addTransforms(): GUI {
-        const position = this.tool!.addFolder("Position");
-        position.open();
-        position.add(this.selectedObject.position, "x");
-        position.add(this.selectedObject.position, "y");
-        position.add(this.selectedObject.position, "z");
+        const transforms = this.tool!.addFolder("Transforms");
+        transforms.open();
+        transforms.addVector("Position", this.selectedObject.position);
+        transforms.addVector("Direction", this.selectedObject.direction);
 
-        const direction = this.tool!.addFolder("Direction");
-        direction.open();
-        direction.add(this.selectedObject.direction, "x");
-        direction.add(this.selectedObject.direction, "y");
-        direction.add(this.selectedObject.direction, "z");
-
-        return direction;
+        return transforms;
     }
 }
 

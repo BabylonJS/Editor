@@ -61,8 +61,8 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
         
         common.add(this.selectedObject, "isBillboardBased").name("Is Billboard Based");
 
-        this.addVector(common, "Gravity", this.selectedObject, "gravity");
-        this.addVector(common, "World Offset", this.selectedObject, "worldOffset");
+        common.addVector("Gravity", this.selectedObject.gravity);
+        common.addVector("World Offset", this.selectedObject.worldOffset);
 
         return common;
     }
@@ -112,15 +112,15 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
 
         // Point
         if (particleEmitterType instanceof PointParticleEmitter) {
-            this.addVector(this._emitterFolder, "Direction 1", particleEmitterType, "direction1");
-            this.addVector(this._emitterFolder, "Direction 2", particleEmitterType, "direction2");
+            this._emitterFolder.addVector("Direction 1", particleEmitterType.direction1);
+            this._emitterFolder.addVector("Direction 2", particleEmitterType.direction2);
         }
         // Box
         else if (particleEmitterType instanceof BoxParticleEmitter) {
-            this.addVector(this._emitterFolder, "Direction 1", particleEmitterType, "direction1");
-            this.addVector(this._emitterFolder, "Direction 2", particleEmitterType, "direction2");
-            this.addVector(this._emitterFolder, "Min Emit Box", particleEmitterType, "minEmitBox");
-            this.addVector(this._emitterFolder, "Max Emit Box", particleEmitterType, "maxEmitBox");
+            this._emitterFolder.addVector("Direction 1", particleEmitterType.direction1);
+            this._emitterFolder.addVector("Direction 2", particleEmitterType.direction2);
+            this._emitterFolder.addVector("Min Emit Box", particleEmitterType.minEmitBox);
+            this._emitterFolder.addVector("Max Emit Box", particleEmitterType.maxEmitBox);
         }
         // Sphere
         else if (particleEmitterType instanceof SphereParticleEmitter) {
@@ -152,8 +152,8 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
         }
         // Mesh
         else if (particleEmitterType instanceof MeshParticleEmitter) {
-            this.addVector(this._emitterFolder, "Direction 1", particleEmitterType, "direction1");
-            this.addVector(this._emitterFolder, "Direction 2", particleEmitterType, "direction2");
+            this._emitterFolder.addVector("Direction 1", particleEmitterType.direction1);
+            this._emitterFolder.addVector("Direction 2", particleEmitterType.direction2);
             this._emitterFolder.add(particleEmitterType, "useMeshNormalsForDirection").name("Use Mesh Normals For Direction");
         }
     }

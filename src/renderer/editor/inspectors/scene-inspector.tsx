@@ -78,9 +78,8 @@ export class SceneInspector extends AbstractInspector<Scene> {
     protected addCollisions(): void {
         const collisions = this.tool!.addFolder("Collisions");
         collisions.open();
-
         collisions.add(this.selectedObject, "collisionsEnabled").name("Enabled");
-        this.addVector(collisions, "Gravity", this.selectedObject, "gravity").open();
+        collisions.addVector("Gravity", this.selectedObject.gravity);
     }
 
     /**
@@ -92,8 +91,7 @@ export class SceneInspector extends AbstractInspector<Scene> {
 
         const physics = this.tool!.addFolder("Physics");
         physics.open();
-
-        this.addVector(physics, "Gravity", physicsEngine, "gravity");
+        physics.addVector("Gravity", physicsEngine.gravity);
     }
 }
 

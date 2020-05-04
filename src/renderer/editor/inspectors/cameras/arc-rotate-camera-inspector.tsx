@@ -35,9 +35,9 @@ export class ArcRotateCameraInspector extends CameraInspector {
      */
     protected addTransforms(): GUI {
         const transforms = super.addTransforms();
-        this.addVector(this.tool!, "Rotation", this.selectedObject, "rotation");
-        this.addVector(this.tool!, "Target", this.selectedObject, "target");
-        this.addVector(this.tool!, "Panning Axis", this.selectedObject, "panningAxis");
+        transforms.addVector("Rotation", this.selectedObject.rotation);
+        transforms.addVector("Target", this.selectedObject.target);
+        transforms.addVector("Panning Axis", this.selectedObject.panningAxis);
 
         this.addRadius();
         this.addCollisions();
@@ -69,7 +69,7 @@ export class ArcRotateCameraInspector extends CameraInspector {
         collisions.open();
         
         collisions.add(this.selectedObject, "checkCollisions").name("Check Collisions");
-        this.addVector(collisions, "Collisions Radius", this.selectedObject, "collisionRadius");
+        collisions.addVector("Collisions Radius", this.selectedObject.collisionRadius);
     }
 }
 

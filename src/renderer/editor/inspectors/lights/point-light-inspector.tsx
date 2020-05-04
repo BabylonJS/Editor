@@ -25,13 +25,11 @@ export class PointLightInspector extends LightInspector {
      * Adds the transforms editable properties.
      */
     protected addTransforms(): GUI {
-        const position = this.tool!.addFolder("Position");
-        position.open();
-        position.add(this.selectedObject.position, "x");
-        position.add(this.selectedObject.position, "y");
-        position.add(this.selectedObject.position, "z");
+        const transforms = this.tool!.addFolder("Transforms");
+        transforms.open();
+        transforms.addVector("Position", this.selectedObject.position);
 
-        return position;
+        return transforms;
     }
 }
 

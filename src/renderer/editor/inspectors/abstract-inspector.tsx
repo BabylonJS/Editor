@@ -2,7 +2,7 @@ import * as React from "react";
 import { GUI, GUIParams, GUIController } from "dat.gui";
 import { Divider, InputGroup, Classes } from "@blueprintjs/core";
 
-import { Node, Color3, Tags, Color4, Vector3, Vector4, BaseTexture } from "babylonjs";
+import { Node, Color3, Tags, Color4, BaseTexture } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
 
@@ -249,32 +249,6 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
             this.refreshDisplay();
             if (onChange) { onChange(color); }
         });
-
-        return folder;
-    }
-
-    /**
-     * Adds a vector folder to edit XY(Z)(W)
-     * @param parent the parent folder where to add the vector folder.
-     * @param name the name of the vector folder.
-     * @param object the base object to modify.
-     * @param property the path to the vector property.
-     */
-    protected addVector(parent: GUI, name: string, object: any, property: string): GUI {
-        const folder = parent.addFolder(name);
-        folder.open();
-
-        const vec = object[property];
-        folder.add(vec, "x").step(0.1);
-        folder.add(vec, "y").step(0.1);
-
-        if (vec instanceof Vector3 || vec instanceof Vector4) {
-            folder.add(vec, "z").step(0.1);
-        }
-
-        if (vec instanceof Vector4) {
-            folder.add(vec, "w").step(0.1);
-        }
 
         return folder;
     }
