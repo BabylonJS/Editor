@@ -97,6 +97,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         selectedKeys={this.state.selectedNodeIds}
                         expandAction="doubleClick"
                         onDragEnter={(n) => this._handleDragEnter(n)}
+                        onDragStart={(n) => this._handleDragStart(n)}
                         onDrop={(i) => this._handleDrop(i)}
                     >
                         {this.state.nodes}
@@ -557,10 +558,20 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Called on the drag event tries to enter in an existing node.
      */
-    // @ts-ignore
-    private _handleDragEnter(n: any): void {
+    private _handleDragEnter(_: any): void {
         // Nothing to do now.
-        // console.log(n);
+    }
+
+    /**
+     * Called on the user starts dragging a node.
+     */
+    private _handleDragStart(info: any): void {
+        const draggedNodeId = info.node?.key;
+        if (!draggedNodeId) { return; }
+
+        if (this.state.selectedNodeIds?.indexOf(draggedNodeId) === -1) {
+            this.setState({ selectedNodeIds: this.state.selectedNodeIds.slice().concat([draggedNodeId]) });
+        }
     }
 
     /**

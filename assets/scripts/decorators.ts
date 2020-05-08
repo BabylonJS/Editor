@@ -55,6 +55,21 @@ export function fromScene(nodeName?: string): any {
 }
 
 /**
+ * Sets the decorated member linked to a particle system which has the current Mesh attached.
+ * @param particleSystemname the name of the attached particle system to retrieve.
+ */
+export function fromParticleSystems(particleSystemname?: string): any {
+    return (target: any, propertyKey: string | symbol) => {
+        const ctor = target.constructor;
+        ctor._ParticleSystemValues = ctor._ParticleSystemValues ?? [];
+        ctor._ParticleSystemValues.push({
+            particleSystemName: particleSystemname ?? propertyKey.toString(),
+            propertyKey: propertyKey.toString(),
+        });
+    }
+}
+
+/**
  * Sets the decorated member function to be called on the given pointer event is fired.
  * @param type the event type to listen to execute the decorated function.
  * @param onlyWhenMeshPicked defines wether or not the decorated function should be called only when the mesh is picked. default true.

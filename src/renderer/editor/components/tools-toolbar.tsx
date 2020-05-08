@@ -42,7 +42,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
      */
     public render(): React.ReactNode {
         return (
-            <ButtonGroup style={{ marginTop: "auto", marginBottom: "auto" }}>
+            <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
                 <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("play")} />
                 <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} />
             </ButtonGroup>

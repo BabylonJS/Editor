@@ -39,7 +39,9 @@ export default class MeshViewerWindow extends React.Component {
         const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
         if (!canvas) { return; }
 
-        this._engine = new Engine(canvas, true);
+        this._engine = new Engine(canvas, true, {
+            audioEngine: true,
+        });
         this._scene = new Scene(this._engine);
         
         this._camera = new ArcRotateCamera("camera", 0, 0, 100, Vector3.Zero(), this._scene, true);

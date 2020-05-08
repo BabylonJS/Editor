@@ -153,7 +153,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             </Menu>
 
         return (
-            <ButtonGroup style={{ marginTop: "auto", marginBottom: "auto" }}>
+            <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
                 <Popover content={project} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="File"/>
                 </Popover>

@@ -1,7 +1,7 @@
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { Position, ButtonGroup, Popover, Button, Menu, MenuItem, Divider, Tag } from "@blueprintjs/core";
+import { Position, ButtonGroup, Popover, Button, Menu, MenuItem, Divider, Tag, Tooltip } from "@blueprintjs/core";
 
 import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem, ParticleSystem, AbstractMesh } from "babylonjs";
 
@@ -43,6 +43,10 @@ export interface IPreviewState {
      * Defines wether or not force wireframe is enabled or not.
      */
     forceWireframe: boolean;
+    /**
+     * Defines wether or not the icons should be drawn.
+     */
+    showIcons: boolean;
 }
 
 export class Preview extends React.Component<IPreviewProps, IPreviewState> {
@@ -77,6 +81,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             gizmoType: GizmoType.None,
             gizmoStep: 0,
             forceWireframe: false,
+            showIcons: true,
         };
     }
 
@@ -109,25 +114,49 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         return (
             <>
-                <div id="preview-toolbar" style={{ width: "100%", height: "30px" }}>
+                <div id="preview-toolbar" style={{ width: "100%", height: "25px" }}>
                     <ButtonGroup key="preview-buttons" large={false} style={{ height: "20px", marginTop: "auto", marginBottom: "auto" }}>
                         <Popover key="cameras-popover" content={cameras} position={Position.BOTTOM_LEFT}>
                             <Button key="cameras-button" small={true} icon={<Icon src="camera.svg" />} rightIcon="caret-down" text="Cameras"/>
                         </Popover>
+
                         <Divider />
-                        <Button key="gizmo-none" small={true} active={isNone} disabled={isNone} text="None" onClick={() => this.setGizmoType(GizmoType.None)} />
-                        <Button key="gizmo-position" small={true} active={isPosition} disabled={isPosition} icon={<Icon src="arrows-alt.svg" />} onClick={() => this.setGizmoType(GizmoType.Position)} />
-                        <Button key="gizmo-rotation" small={true} active={isRotation} disabled={isRotation} icon={<Icon src="crosshairs.svg" />} onClick={() => this.setGizmoType(GizmoType.Rotation)} />
-                        <Button key="gizmo-scaling" small={true} active={isScaling} disabled={isScaling} icon={<Icon src="arrows-alt-v.svg" />} onClick={() => this.setGizmoType(GizmoType.Scaling)} />
+
+                        <Tooltip content="Hide Gizmo" position={Position.BOTTOM}>
+                            <Button key="gizmo-none" small={true} active={isNone} disabled={isNone} text="None" onClick={() => this.setGizmoType(GizmoType.None)} />
+                        </Tooltip>
+
+                        <Tooltip content="Position" position={Position.BOTTOM}>
+                            <Button key="gizmo-position" small={true} active={isPosition} disabled={isPosition} icon={<Icon src="arrows-alt.svg" />} onClick={() => this.setGizmoType(GizmoType.Position)} />
+                        </Tooltip>
+
+                        <Tooltip content="Rotation" position={Position.BOTTOM}>
+                            <Button key="gizmo-rotation" small={true} active={isRotation} disabled={isRotation} icon={<Icon src="crosshairs.svg" />} onClick={() => this.setGizmoType(GizmoType.Rotation)} />
+                        </Tooltip>
+
+                        <Tooltip content="Scaling" position={Position.BOTTOM}>
+                            <Button key="gizmo-scaling" small={true} active={isScaling} disabled={isScaling} icon={<Icon src="arrows-alt-v.svg" />} onClick={() => this.setGizmoType(GizmoType.Scaling)} />
+                        </Tooltip>
+
                         <Popover content={steps} position={Position.BOTTOM_LEFT}>
                             <Button key="step1" small={true} rightIcon="caret-down" text={`Steps (${this.state.gizmoStep})`} />
                         </Popover>
+
                         <Divider />
-                        <Button key="wireframe" small={true} icon={<Icon src="grip-lines.svg" style={{ opacity: (this.state.forceWireframe ? 0.5 : 1) }} />} onClick={() => this.toggleWireframe()} />
+
+                        <Tooltip content="Wireframe" position={Position.BOTTOM}>
+                            <Button key="wireframe" small={true} icon={<Icon src="grip-lines.svg" style={{ opacity: (this.state.forceWireframe ? 1 : 0.5) }} />} onClick={() => this.toggleWireframe()} />
+                        </Tooltip>
+
+                        <Tooltip content="Show Icons" position={Position.BOTTOM}>
+                            <Button key="icons" small={true} icon={<Icon src="eye.svg" style={{ opacity: (this.state.showIcons ? 1 : 0.5) }} />} onClick={() => this.toggleShowIcons()} />
+                        </Tooltip>
                     </ButtonGroup>
                 </div>
-                <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "absolute", top: "0", touchAction: "none" }}></canvas>
-                <Tag key="preview-tag" round={true} large={true} style={{ visibility: (this.state.canvasFocused ? "visible" : "hidden"), position: "absolute", left: "50%", top: "calc(100% - 15px)", transform: "translate(-50%, -50%)" }} >{this.state.overNodeName}</Tag>
+                <div style={{ height: "calc(100% - 25px)" }}>
+                    <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none" }}></canvas>
+                    <Tag key="preview-tag" round={true} large={true} style={{ visibility: (this.state.canvasFocused ? "visible" : "hidden"), position: "absolute", left: "50%", top: "calc(100% - 15px)", transform: "translate(-50%, -50%)" }} >{this.state.overNodeName}</Tag>
+                </div>
             </>
         );
     }
@@ -159,6 +188,14 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     public toggleWireframe(): void {
         this._editor.scene!.forceWireframe = !this._editor.scene!.forceWireframe;
         this.setState({ forceWireframe: this._editor.scene!.forceWireframe });
+    }
+
+    /**
+     * Togglets the scene icons for the current scene.
+     */
+    public toggleShowIcons(): void {
+        this.picker.icons.enabled = !this.picker.icons.enabled;
+        this.setState({ showIcons: this.picker.icons.enabled });
     }
 
     /**

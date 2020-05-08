@@ -15,9 +15,12 @@ export class ScenePicker {
      * Notifies users when the 
      */
     public onNodeOver: Observable<Node> = new Observable<Node>();
-
+    /**
+     * Defines the reference to the scene icons.
+     */
+    public icons: SceneIcons;
+    
     private _editor: Editor;
-    private _icons: SceneIcons;
 
     private _downMousePosition: Vector2 = Vector2.Zero();
     private _lastSelectedNode: Nullable<Node> = null;
@@ -28,7 +31,7 @@ export class ScenePicker {
      */
     public constructor(editor: Editor) {
         this._editor = editor;
-        this._icons = new SceneIcons(editor);
+        this.icons = new SceneIcons(editor);
 
         this._bindCanvasEvents();
     }
@@ -46,7 +49,7 @@ export class ScenePicker {
      */
     public getObjectUnderPointer(fastCheck: boolean = false): Nullable<Node | SubMesh> {
         // Icons
-        let scene = this._icons._layer.utilityLayerScene;
+        let scene = this.icons._layer.utilityLayerScene;
         let pick = scene.pick(scene.pointerX, scene.pointerY, undefined, false);
 
         if (pick?.pickedMesh) { return pick.pickedMesh; }
@@ -70,7 +73,7 @@ export class ScenePicker {
      */
     private _bindCanvasEvents(): void {
         // Icons
-        this._icons.onClickObservable.add((event) => {
+        this.icons.onClickObservable.add((event) => {
             this._onCanvasUp(event, true);
         });
 
@@ -106,7 +109,7 @@ export class ScenePicker {
         
         if (ev.button === 2) {
             if (object instanceof SubMesh) { object = object.getMesh(); }
-            if (object!._scene === this._icons._layer.utilityLayerScene) { object = object!.metadata.node as Node; }
+            if (object!._scene === this.icons._layer.utilityLayerScene) { object = object!.metadata.node as Node; }
             return this._onCanvasContextMenu(ev, object);
         }
 
@@ -114,7 +117,7 @@ export class ScenePicker {
             if (object instanceof SubMesh) {
                 this._editor.selectedSubMeshObservable.notifyObservers(object);
             } else {
-                if (object._scene === this._icons._layer.utilityLayerScene) {
+                if (object._scene === this.icons._layer.utilityLayerScene) {
                     object = object.metadata.node as Node;
                 }
 
@@ -172,7 +175,7 @@ export class ScenePicker {
             this._lastSelectedNode = object;
         }
 
-        if (object._scene === this._icons._layer.utilityLayerScene) {
+        if (object._scene === this.icons._layer.utilityLayerScene) {
             this.onNodeOver.notifyObservers(object.metadata.node as Node);
         } else {
             this.onNodeOver.notifyObservers(object);

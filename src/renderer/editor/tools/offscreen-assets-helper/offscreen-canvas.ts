@@ -44,8 +44,22 @@ class OffscreenAssetsHelper {
         this.canvas = canvas;
 
         // Babylon.JS stuffs
-        this.engine = new Engine(this.canvas as any);
+        this.engine = new Engine(this.canvas as any, true, {
+            antialias: true,
+            audioEngine: true,
+            disableWebGL2Support: false,
+            powerPreference: "high-performance",
+            failIfMajorPerformanceCaveat: false,
+            useHighPrecisionFloats: true,
+            preserveDrawingBuffer: true,
+            stencil: true,
+        });
         this.engine.enableOfflineSupport = false;
+
+        if (!Engine.audioEngine) {
+            Engine.audioEngine = { } as any;
+        }
+
         this.reset();
     }
 

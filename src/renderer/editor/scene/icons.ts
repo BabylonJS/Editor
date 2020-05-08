@@ -2,7 +2,7 @@ import { Nullable } from "../../../shared/types";
 
 import {
     Mesh, UtilityLayerRenderer, Observer, Scene, StandardMaterial, Texture, Vector3,
-    Observable, PointerEventTypes, Vector2, AbstractMesh,
+    Observable, PointerEventTypes, Vector2, AbstractMesh, ParticleSystem,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -66,12 +66,27 @@ export class SceneIcons {
         this._onBeforeRenderObserver = this._layer.utilityLayerScene.onBeforeRenderObservable.add(() => {
             this.refresh();
         });
+
         this._layer.utilityLayerScene.onPointerObservable.add((info) => {
             switch (info.type) {
                 case PointerEventTypes.POINTERDOWN: this._onPointerDown(info.event); break;
                 case PointerEventTypes.POINTERUP: this._onPointerUp(info.event); break;
             }
-        })
+        });
+    }
+ 
+    /**
+     * Gets wether or not the icons should be rendered.
+     */
+    public get enabled(): boolean {
+        return this._layer.shouldRender;
+    }
+
+    /**
+     * Sets wether or not the icons should be rendered.
+     */
+    public set enabled(enabled: boolean) {
+        this._layer.shouldRender = enabled;
     }
 
     /**
@@ -145,9 +160,13 @@ export class SceneIcons {
             if (!plane) { return; }
 
             const emitter = ps.emitter as AbstractMesh;
-            const distance = Vector3.Distance(emitter.getAbsolutePosition(), this._editor.scene!.activeCamera!.position) * 0.05;
+            const emitterPosition = emitter.getAbsolutePosition();
+            const distance = Vector3.Distance(emitterPosition, this._editor.scene!.activeCamera!.position) * 0.05;
 
-            plane.position.copyFrom(emitter.getAbsolutePosition());
+            if (ps instanceof ParticleSystem) {
+                plane.position.copyFrom(emitterPosition.add(ps.worldOffset));
+            }
+
             plane.scaling.set(distance, distance, distance);
         });
     }

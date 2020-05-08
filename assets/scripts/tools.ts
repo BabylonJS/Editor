@@ -65,6 +65,13 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
             n[link.propertyKey] = node;
         }
 
+        // Check particle systems
+        const particleSystemLinks = (exports.default as any)._ParticleSystemValues ?? [];
+        for (const link of particleSystemLinks) {
+            const ps = n._scene.particleSystems.filter((ps) => ps.emitter === n && ps.name === link.particleSystemName)[0];
+            n[link.propertyKey] = ps;
+        }
+
         // Check pointer events
         const pointerEvents = (exports.default as any)._PointerValues ?? [];
         for (const event of pointerEvents) {
