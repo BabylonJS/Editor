@@ -138,6 +138,12 @@ export class MaterialAssets extends AbstractAssets {
                 material.build();
                 this.refresh(material);
             });
+        } else {
+            await this.editor.addWindowedPlugin("material-viewer", undefined, {
+                rootUrl: join(Project.DirPath!),
+                json: material.serialize(),
+                environmentTexture: this.editor.scene!.environmentTexture?.serialize(),
+            });
         }
     }
 

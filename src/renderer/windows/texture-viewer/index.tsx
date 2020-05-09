@@ -43,7 +43,7 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
             return (
                 <>
                     {span}
-                    <canvas id="renderCanvas" style={{ width: "100%", height: "100%", top: "0", touchAction: "none" }}></canvas>
+                    <canvas id="renderCanvas" style={{ width: "100%", height: "calc(100% - 18px)", top: "0", touchAction: "none" }}></canvas>
                 </>
             );
         }

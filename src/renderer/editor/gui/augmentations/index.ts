@@ -6,6 +6,7 @@ import { CustomController } from "./custom";
 import { ButtonController } from "./button";
 import { KeyMapperController } from "./key-mapper";
 import { VectorController, IVector } from "./vector";
+import { GradientController } from "./gradient";
 
 import "./text-box";
 import "./image";
@@ -14,6 +15,8 @@ import "./custom";
 import "./button";
 import "./key-mapper";
 import "./vector";
+import "./gradient";
+import { FactorGradient } from "babylonjs";
 
 /**
  * Augmentify dat.gui
@@ -106,6 +109,12 @@ declare module "dat.gui" {
          * @param vector the vector to modify.
          */
         addVector(title: string, vector: IVector): VectorController;
+        /**
+         * Adds a new gradient controller.
+         * @param title the title of the controller.
+         * @param gradient the gradient to modify.
+         */
+        addGradient(title: string, gradient: FactorGradient): GradientController;
     }
 
     /**

@@ -1,6 +1,9 @@
 import { Nullable } from "../../../../shared/types";
 
-import { ParticleSystem, PointParticleEmitter, BoxParticleEmitter, SphereParticleEmitter, HemisphericParticleEmitter, CylinderParticleEmitter, ConeParticleEmitter, MeshParticleEmitter } from "babylonjs";
+import {
+    ParticleSystem, PointParticleEmitter, BoxParticleEmitter, SphereParticleEmitter, HemisphericParticleEmitter,
+    CylinderParticleEmitter, ConeParticleEmitter, MeshParticleEmitter,
+} from "babylonjs";
 import { GUI } from "dat.gui";
 
 import { Tools } from "../../tools/tools";
@@ -30,6 +33,9 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
     private _emitterType: string = "";
     private _blendMode: string = "";
 
+    private _sizeFolder: Nullable<GUI> = null;
+    private _lifeTimeFolder: Nullable<GUI> = null;
+    private _rotationFolder: Nullable<GUI> = null;
     private _emitterFolder: Nullable<GUI> = null;
 
     /**
@@ -174,28 +180,52 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
      * Adds all the size editable properties.
      */
     protected addSize(): void {
-        const size = this.tool!.addFolder("Size");
-        size.open();
+        this._sizeFolder = this._sizeFolder ?? this.tool!.addFolder("Size");
+        this._sizeFolder.open();
 
-        size.add(this.selectedObject, "minSize").name("Min Size");
-        size.add(this.selectedObject, "maxSize").name("Max Size");
+        // Common
+        this._sizeFolder.add(this.selectedObject, "minSize").name("Min Size");
+        this._sizeFolder.add(this.selectedObject, "maxSize").name("Max Size");
 
-        size.add(this.selectedObject, "minScaleX").name("Min Scale X");
-        size.add(this.selectedObject, "maxScaleX").name("Max Scale X");
+        this._sizeFolder.add(this.selectedObject, "minScaleX").name("Min Scale X");
+        this._sizeFolder.add(this.selectedObject, "maxScaleX").name("Max Scale X");
         
-        size.add(this.selectedObject, "minScaleY").name("Min Scale Y");
-        size.add(this.selectedObject, "maxScaleY").name("Max Scale Y");
+        this._sizeFolder.add(this.selectedObject, "minScaleY").name("Min Scale Y");
+        this._sizeFolder.add(this.selectedObject, "maxScaleY").name("Max Scale Y");
+
+        // Gradients
+        const sizeGradients = this.selectedObject.getSizeGradients();
+        sizeGradients?.forEach((sg, index) => {
+            this._sizeFolder!.addGradient(`Gradient n°${index}`, sg).onRemove(() => {
+                const sizeGradients = this.selectedObject.getSizeGradients();
+                if (sizeGradients) {
+                    const index = sizeGradients.indexOf(sg);
+                    if (index !== -1) { sizeGradients.splice(index, 1); }
+                }
+
+                this.clearFolder(this._sizeFolder!);
+                this.addSize();
+            });
+        });
+
+        // Add gradient
+        this._sizeFolder.addButton("Add Gradient").onClick(() => {
+            this.selectedObject.addSizeGradient(0, 1, 1);
+
+            this.clearFolder(this._sizeFolder!);
+            this.addSize();
+        });
     }
 
     /**
      * Adds all the lifetime editable properties.
      */
     protected addLifeTime(): void {
-        const lifeTime = this.tool!.addFolder("Lifetime");
-        lifeTime.open();
+        this._lifeTimeFolder = this._lifeTimeFolder ?? this.tool!.addFolder("Lifetime");
+        this._lifeTimeFolder.open();
 
-        lifeTime.add(this.selectedObject, "minLifeTime").min(0).name("Min Life Time");
-        lifeTime.add(this.selectedObject, "maxLifeTime").min(0).name("Max Life Time");
+        this._lifeTimeFolder.add(this.selectedObject, "minLifeTime").min(0).name("Min Life Time");
+        this._lifeTimeFolder.add(this.selectedObject, "maxLifeTime").min(0).name("Max Life Time");
     }
 
     /**
@@ -214,13 +244,36 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
      * Adds all the rotation editable properties.
      */
     protected addRotation(): void {
-        const rotation = this.tool!.addFolder("Rotation");
-        rotation.open();
+        this._rotationFolder = this._rotationFolder ?? this.tool!.addFolder("Rotation");
+        this._rotationFolder.open();
 
-        rotation.add(this.selectedObject, "minAngularSpeed").name("Min Angular Speed");
-        rotation.add(this.selectedObject, "maxAngularSpeed").name("Max Angular Speed");
-        rotation.add(this.selectedObject, "minInitialRotation").name("Min Initial Rotation");
-        rotation.add(this.selectedObject, "maxInitialRotation").name("Max Initial Rotation");
+        this._rotationFolder.add(this.selectedObject, "minAngularSpeed").name("Min Angular Speed");
+        this._rotationFolder.add(this.selectedObject, "maxAngularSpeed").name("Max Angular Speed");
+        this._rotationFolder.add(this.selectedObject, "minInitialRotation").name("Min Initial Rotation");
+        this._rotationFolder.add(this.selectedObject, "maxInitialRotation").name("Max Initial Rotation");
+
+        // Gradients
+        const angularSpeedGradients = this.selectedObject.getAngularSpeedGradients();
+        angularSpeedGradients?.forEach((sg, index) => {
+            this._rotationFolder!.addGradient(`Gradient n°${index}`, sg).onRemove(() => {
+                const angularSpeedGradients = this.selectedObject.getAngularSpeedGradients();
+                if (angularSpeedGradients) {
+                    const index = angularSpeedGradients.indexOf(sg);
+                    if (index !== -1) { angularSpeedGradients.splice(index, 1); }
+                }
+
+                this.clearFolder(this._rotationFolder!);
+                this.addRotation();
+            });
+        });
+
+        // Add gradient
+        this._rotationFolder.addButton("Add Gradient").onClick(() => {
+            this.selectedObject.addAngularSpeedGradient(0, 1, 1);
+
+            this.clearFolder(this._rotationFolder!);
+            this.addRotation();
+        });
     }
 
     /**

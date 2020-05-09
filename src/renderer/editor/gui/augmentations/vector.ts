@@ -89,8 +89,6 @@ export class VectorController extends dat.controllers.Controller {
         c.onChange(() => this.__onChange && this.__onChange(this.vector));
         c.onFinishChange(() => this.__onFinishChange && this.__onFinishChange(this.vector));
         dummyController.domElement.appendChild(c.domElement);
-
-        this.__gui.__controllers.push(c);
     }
 }
 
