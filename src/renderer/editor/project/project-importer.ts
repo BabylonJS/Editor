@@ -3,7 +3,7 @@ import { readJSON, pathExists } from "fs-extra";
 
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
-    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem,
+    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -64,7 +64,10 @@ export class ProjectImporter {
         const rootUrl = join(Project.DirPath!, "/");
 
         Overlay.SetSpinnervalue(0);
-        const spinnerStep = 1 / (project.textures.length + project.materials.length + project.meshes.length + project.lights.length + project.cameras.length + (project.particleSystems?.length ?? 0));
+        const spinnerStep = 1 / (
+                                    project.textures.length + project.materials.length + project.meshes.length + project.lights.length +
+                                    project.cameras.length + (project.particleSystems?.length ?? 0) + (project.sounds?.length ?? 0)
+                                );
         let spinnerValue = 0;
 
         // Register files
@@ -236,6 +239,20 @@ export class ProjectImporter {
                 ParticleSystem.Parse(json, editor.scene!, rootUrl);
             } catch (e) {
                 editor.console.logError(`Failed to parse particle system "${ps}"`);
+            }
+
+            Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+        }
+
+        // Load all sounds
+        Overlay.SetMessage("Creating Sounds...");
+
+        for (const s of project.sounds ?? []) {
+            try {
+                const json = await readJSON(join(Project.DirPath, "sounds", s));
+                Sound.Parse(json, editor.scene!, join(rootUrl, "files", "/"));
+            } catch (e) {
+                editor.console.logError(`Failed to parse sound "${s}"`);
             }
 
             Overlay.SetSpinnervalue(spinnerValue += spinnerStep);

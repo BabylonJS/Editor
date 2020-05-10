@@ -9,7 +9,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName, MaybeElement } from "@blueprintjs/core";
 
-import { Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin, SubMesh, Animation, AbstractMesh, IParticleSystem } from "babylonjs";
+import { Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin, SubMesh, Animation, AbstractMesh, IParticleSystem, Sound } from "babylonjs";
 
 import GoldenLayout from "golden-layout";
 
@@ -76,12 +76,15 @@ import "./inspectors/textures/texture-inspector";
 
 import "./inspectors/particle-systems/particle-system-inspector";
 
+import "./inspectors/sound-inspector";
+
 // Assets
 import "./assets/meshes";
 import "./assets/textures";
 import "./assets/materials";
 import "./assets/prefabs";
 import "./assets/scripts";
+import "./assets/sounds";
 
 export class Editor {
     /**
@@ -173,13 +176,21 @@ export class Editor {
      */
     public selectedSceneObservable: Observable<Scene> = new Observable<Scene>();
     /**
+     * Notifies observers that a sound has been selected in the editor (graph, preview).
+     */
+    public selectedSoundObservable: Observable<Sound> = new Observable<Sound>();
+    /**
      * Notifies observers that a node has been added in the editor.
      */
     public addedNodeObservable: Observable<Node> = new Observable<Node>();
     /**
-     * Notifies observers that a particle system has been added in the editor?
+     * Notifies observers that a particle system has been added in the editor.
      */
     public addedParticleSystemObservable: Observable<IParticleSystem> = new Observable<IParticleSystem>();
+    /**
+     * Notifies observers that a sound has been added in the editor.
+     */
+    public addedSoundObservable: Observable<Sound> = new Observable<Sound>();
     /**
      * Notifies observers that a node has been removed in the editor (graph, preview, etc.).
      */
@@ -188,7 +199,11 @@ export class Editor {
      * Notifies observers that a particle system has been removed in the editor (graph, preview, etc.).
      */
     public removedParticleSystemObservable: Observable<IParticleSystem> = new Observable<IParticleSystem>();
-
+    /**
+     * Notifies observers that a sound has been removed in the editor (graph, preview, etc.).
+     */
+    public removedSoundObservable: Observable<Sound> = new Observable<Sound>();
+    
     /**
      * Defines the current editor version.
      * @hidden
@@ -806,6 +821,14 @@ export class Editor {
 
             if (ev.target !== this.graph) { this.graph.setSelected(o); }
         });
+        this.selectedSoundObservable.add((o, ev) => {
+            this.inspector.setSelectedObject(o);
+            if (o["_connectedTransformNode"]) {
+                this.preview.gizmo.setAttachedNode(o);
+            }
+
+            if (ev.target !== this.graph) { this.graph.setSelected(o); }
+        });
         
         this.selectedSceneObservable.add((s) => this.inspector.setSelectedObject(s));
         this.selectedTextureObservable.add((t) => this.inspector.setSelectedObject(t));
@@ -819,6 +842,9 @@ export class Editor {
             this.preview.picker.reset();
         });
         this.removedParticleSystemObservable.add(() => {
+            this.preview.picker.reset();
+        });
+        this.removedSoundObservable.add(() => {
             this.preview.picker.reset();
         });
 

@@ -75,6 +75,7 @@ export class ProjectExporter {
             transformNodes: [],
             particleSystems: [],
             lights: [],
+            sounds: [],
             scene: ProjectHelpers.ExportSceneSettings(editor.scene!),
             assets: {
                 meshes: MeshesAssets.Meshes.map((m) => m.name),
@@ -275,6 +276,25 @@ export class ProjectExporter {
 
             await writeFile(join(particleSystemsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
             project.particleSystems!.push(dest);
+
+            editor.updateTaskFeedback(task, progressValue += progressCount);
+        }
+
+        // Write all sounds
+        editor.updateTaskFeedback(task, 0, "Saving Sounds");
+
+        progressValue = 0;
+        progressCount = 100 / editor.scene!.mainSoundTrack.soundCollection.length;
+
+        const soundsDir = join(Project.DirPath!, "sounds");
+        if (!(await pathExists(soundsDir))) { await mkdir(soundsDir); }
+
+        for (const s of editor.scene!.mainSoundTrack.soundCollection) {
+            const json = s.serialize();
+            const dest = `${normalize(`${basename(s.name)}`)}.json`;
+
+            await writeFile(join(soundsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+            project.sounds!.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
         }

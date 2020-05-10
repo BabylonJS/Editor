@@ -25,10 +25,13 @@ export class SceneIcons {
     private _lights: Mesh[] = [];
     private _cameras: Mesh[] = [];
     private _particleSystems: Mesh[] = [];
+    private _sounds: Mesh[] = [];
 
     private _lightMaterial: StandardMaterial;
     private _cameraMaterial: StandardMaterial;
     private _particleMaterial: StandardMaterial;
+    private _soundOnMaterial: StandardMaterial;
+    private _soundOffMaterial: StandardMaterial;
 
     private _downMousePosition: Vector2 = Vector2.Zero();
 
@@ -44,23 +47,12 @@ export class SceneIcons {
         this._layer.utilityLayerScene.postProcessesEnabled = false;
 
         // Materials
-        this._lightMaterial = new StandardMaterial("cameraMaterial", this._layer.utilityLayerScene);
-        this._lightMaterial.disableLighting = true;
-        this._lightMaterial.useAlphaFromDiffuseTexture = true;
-        this._lightMaterial.diffuseTexture = new Texture("../assets/textures/lightbulb.png", this._layer.utilityLayerScene);
-        this._lightMaterial.diffuseTexture.hasAlpha = true;
+        this._lightMaterial = this._getIconMaterial("lightMaterial", "../assets/textures/lightbulb.png");
+        this._cameraMaterial = this._getIconMaterial("cameraMaterial", "../assets/textures/camera.png");
+        this._particleMaterial = this._getIconMaterial("particleMaterial", "../assets/textures/wind.png");
 
-        this._cameraMaterial = new StandardMaterial("cameraMaterial", this._layer.utilityLayerScene);
-        this._cameraMaterial.disableLighting = true;
-        this._cameraMaterial.useAlphaFromDiffuseTexture = true;
-        this._cameraMaterial.diffuseTexture = new Texture("../assets/textures/camera.png", this._layer.utilityLayerScene);
-        this._cameraMaterial.diffuseTexture.hasAlpha = true;
-
-        this._particleMaterial = new StandardMaterial("particleMaterial", this._layer.utilityLayerScene);
-        this._particleMaterial.disableLighting = true;
-        this._particleMaterial.useAlphaFromDiffuseTexture = true;
-        this._particleMaterial.diffuseTexture = new Texture("../assets/textures/wind.png", this._layer.utilityLayerScene);
-        this._particleMaterial.diffuseTexture.hasAlpha = true;
+        this._soundOnMaterial = this._getIconMaterial("soundOnMaterial", "../assets/textures/volume-up.png");
+        this._soundOffMaterial = this._getIconMaterial("soundOffMaterial", "../assets/textures/volume-mute.png");
 
         // Register
         this._onBeforeRenderObserver = this._layer.utilityLayerScene.onBeforeRenderObservable.add(() => {
@@ -75,6 +67,16 @@ export class SceneIcons {
         });
     }
  
+    private _getIconMaterial(name: string, textureUrl: string): StandardMaterial {
+        const m = new StandardMaterial(name, this._layer.utilityLayerScene);
+        m.disableLighting = true;
+        m.useAlphaFromDiffuseTexture = true;
+        m.diffuseTexture = new Texture(textureUrl, this._layer.utilityLayerScene);
+        m.diffuseTexture.hasAlpha = true;
+
+        return m;
+    }
+
     /**
      * Gets wether or not the icons should be rendered.
      */
@@ -167,6 +169,36 @@ export class SceneIcons {
                 plane.position.copyFrom(emitterPosition.add(ps.worldOffset));
             }
 
+            plane.scaling.set(distance, distance, distance);
+        });
+
+        // Sounds
+        const sounds = this._editor.scene!.mainSoundTrack.soundCollection.filter((s) => s.spatialSound);
+        if (this._sounds.length !== sounds.length) {
+            this._sounds.forEach((s) => s.dispose());
+            this._sounds = [];
+            
+            sounds.forEach((s) => {
+                const plane = this._createPlane(s.name);
+                plane.material = this._soundOnMaterial;
+                plane.metadata = { node: s };
+                this._sounds.push(plane);
+            });
+        }
+
+        sounds.forEach((s, index) => {
+            const plane = this._sounds[index];
+            if (!plane) { return; }
+
+            const attachedNode = s["_connectedTransformNode"];
+            if (!attachedNode) { return; }
+
+            plane.material = s.isPlaying ? this._soundOnMaterial : this._soundOffMaterial;
+
+            const soundPosition = attachedNode.getAbsolutePosition();
+            const distance = Vector3.Distance(soundPosition, this._editor.scene!.activeCamera!.position) * 0.05;
+
+            plane.position.copyFrom(soundPosition);
             plane.scaling.set(distance, distance, distance);
         });
     }

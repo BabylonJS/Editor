@@ -1,3 +1,5 @@
+import { FactorGradient } from "babylonjs";
+
 import * as dat from "dat.gui";
 import { TextBoxController } from "./text-box";
 import { ImageBoxController } from "./image";
@@ -7,6 +9,7 @@ import { ButtonController } from "./button";
 import { KeyMapperController } from "./key-mapper";
 import { VectorController, IVector } from "./vector";
 import { GradientController } from "./gradient";
+import { SliderController } from "./slider";
 
 import "./text-box";
 import "./image";
@@ -16,7 +19,7 @@ import "./button";
 import "./key-mapper";
 import "./vector";
 import "./gradient";
-import { FactorGradient } from "babylonjs";
+import "./slider";
 
 /**
  * Augmentify dat.gui
@@ -60,6 +63,15 @@ declare module "dat.gui" {
              * @param path the path of the property that is being modified by the controller.
              */
             public setPath(path: string): GUIController;
+
+            /**
+             * Defines the object being modified.
+             */
+            object: any;
+            /**
+             * Defines the property being modified in the object.
+             */
+            public property: string;
         }
     }
 
@@ -115,6 +127,15 @@ declare module "dat.gui" {
          * @param gradient the gradient to modify.
          */
         addGradient(title: string, gradient: FactorGradient): GradientController;
+        /**
+         * Adds a new slider controller.
+         * @param object the object to modify.
+         * @param property the property of the object to get and set changes.
+         * @param min defines the minimum value of the slider.
+         * @param max defines the maximum value of the slider.
+         * @param step defines the step size of the slider.
+         */
+        addSlider(object: any, property: string, min: number, max: number, step: number): SliderController;
     }
 
     /**

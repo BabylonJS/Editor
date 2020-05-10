@@ -80,6 +80,10 @@ export interface IProject {
         shadowGenerator: Undefinable<string>;
     }[];
     /**
+     * Defines the list of scene's sounds.
+     */
+    sounds?: string[];
+    /**
      * Saves the scene's settings.
      */
     scene: any;

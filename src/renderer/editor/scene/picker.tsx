@@ -3,7 +3,7 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 import { ContextMenu, Menu, MenuItem, MenuDivider, Classes } from "@blueprintjs/core";
 
-import { Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh } from "babylonjs";
+import { Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh, Sound, ParticleSystem } from "babylonjs";
 
 import { Editor } from "../editor";
 import { Icon } from "../gui/icon";
@@ -41,6 +41,15 @@ export class ScenePicker {
      */
     public reset(): void {
         this._lastSelectedNode = null;
+    }
+
+    /**
+     * Called on the mouse exists the canvas.
+     */
+    public canvasBlur(): void {
+        if (this._lastSelectedNode && this._lastSelectedNode instanceof AbstractMesh) {
+            this._lastSelectedNode.renderOverlay = false;
+        }
     }
 
     /**
@@ -118,12 +127,14 @@ export class ScenePicker {
                 this._editor.selectedSubMeshObservable.notifyObservers(object);
             } else {
                 if (object._scene === this.icons._layer.utilityLayerScene) {
-                    object = object.metadata.node as Node;
+                    object = object.metadata.node;
                 }
 
                 if (object instanceof Node) {
                     this._editor.selectedNodeObservable.notifyObservers(object);
-                } else {
+                } else if (object instanceof Sound) {
+                    this._editor.selectedSoundObservable.notifyObservers(object);
+                } else if (object instanceof ParticleSystem) {
                     this._editor.selectedParticleSystemObservable.notifyObservers(object);
                 }
             }

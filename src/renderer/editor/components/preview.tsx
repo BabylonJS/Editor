@@ -3,7 +3,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 import * as React from "react";
 import { Position, ButtonGroup, Popover, Button, Menu, MenuItem, Divider, Tag, Tooltip } from "@blueprintjs/core";
 
-import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem, ParticleSystem, AbstractMesh } from "babylonjs";
+import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem, ParticleSystem, AbstractMesh, Sound } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -235,7 +235,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Copies the currently selected node.
      */
     public copySelectedNode(): void {
-        this._copiedNode = this._editor.graph.lastSelectedObject;
+        const object = this._editor.graph.lastSelectedObject;
+        if (!(object instanceof Sound)) {
+            this._copiedNode = object;
+        }
     }
 
     /**
@@ -331,7 +334,12 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         const canvas = this._editor.engine!.getRenderingCanvas();
         if (!canvas) { return; }
 
-        canvas.addEventListener("mouseenter", () => this.setState({ canvasFocused: true }));
-        canvas.addEventListener("mouseleave", () => this.setState({ canvasFocused: false }));
+        canvas.addEventListener("mouseenter", () => {
+            this.setState({ canvasFocused: true });
+        });
+        canvas.addEventListener("mouseleave", () => {
+            this.setState({ canvasFocused: false });
+            this.picker?.canvasBlur();
+        });
     }
 }

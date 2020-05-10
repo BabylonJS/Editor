@@ -112,4 +112,4 @@ export class OffscreenAssetsHelper {
 /**
  * Export a default instance.
  */
-export const assetsHelper = new OffscreenAssetsHelper;
+export const assetsHelper = new OffscreenAssetsHelper();

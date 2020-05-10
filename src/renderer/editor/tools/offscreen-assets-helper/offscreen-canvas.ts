@@ -6,7 +6,7 @@ import { Engine, Scene, TargetCamera, Vector3, Color4, HemisphericLight, Mesh, N
 import "babylonjs-materials";
 import "babylonjs-loaders";
 
-class OffscreenAssetsHelper {
+class OffscreenAssets {
     /**
      * The canvas used to render elements.
      */
@@ -34,7 +34,7 @@ class OffscreenAssetsHelper {
      * Defines the instance of the assets helper.
      * @hidden
      */
-    public static _Instance: OffscreenAssetsHelper;
+    public static _Instance: OffscreenAssets;
 
     /**
      * Constructor.
@@ -169,19 +169,19 @@ addEventListener("message", async (ev) => {
 
         switch (ev.data.id) {
             // Init helper.
-            case "init": OffscreenAssetsHelper._Instance = new OffscreenAssetsHelper(ev.data.canvas); break;
+            case "init": OffscreenAssets._Instance = new OffscreenAssets(ev.data.canvas); break;
             // Resets the helper by removing elements and disposing the scene.
-            case "reset": OffscreenAssetsHelper._Instance.reset(); break;
+            case "reset": OffscreenAssets._Instance.reset(); break;
             // Return a screeshot of the current canvas.
-            case "getScreenshot": response = await OffscreenAssetsHelper._Instance.getScreenshot(); break;
+            case "getScreenshot": response = await OffscreenAssets._Instance.getScreenshot(); break;
             // Creates the given mesh.
-            case "createMesh": OffscreenAssetsHelper._Instance.createMesh(ev.data.type); break;
+            case "createMesh": OffscreenAssets._Instance.createMesh(ev.data.type); break;
             // Import a mesh
-            case "importMesh": await OffscreenAssetsHelper._Instance.importMesh(ev.data.rootUrl, ev.data.filename); break;
+            case "importMesh": await OffscreenAssets._Instance.importMesh(ev.data.rootUrl, ev.data.filename); break;
             // Sets the given material to the mesh.
-            case "setMaterial": OffscreenAssetsHelper._Instance.setMaterial(ev.data.json, ev.data.rootUrl); break;
+            case "setMaterial": OffscreenAssets._Instance.setMaterial(ev.data.json, ev.data.rootUrl); break;
             // Disposes the current material
-            case "disposeMaterial": OffscreenAssetsHelper._Instance.disposeMaterial(); break;
+            case "disposeMaterial": OffscreenAssets._Instance.disposeMaterial(); break;
         }
 
         postMessage({ id: ev.data.id, response }, undefined!);

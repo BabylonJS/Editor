@@ -1,4 +1,4 @@
-import { PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode, LightGizmo, Light, IParticleSystem } from "babylonjs";
+import { PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode, LightGizmo, Light, IParticleSystem, Sound } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
 
@@ -107,7 +107,7 @@ export class SceneGizmo {
      * Sets the given node attached to the current gizmos if exists.
      * @param node the node to attach to current gizmos if exists.
      */
-    public setAttachedNode(node: Nullable<Node | IParticleSystem>): void {
+    public setAttachedNode(node: Nullable<Node | IParticleSystem | Sound>): void {
         // Light?
         if (node instanceof Light) {
             return this._setLightGizmo(node);

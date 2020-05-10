@@ -118,7 +118,8 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
                 this._firstTabId = tabId;
             }
 
-            const objectInspector = <i.ctor key={this.state.selectedObject.id ?? this.state.selectedObject._id ?? this.state.selectedObject.uniqueId} editor={this._editor} _objectRef={this.state.selectedObject} toolId={i._id!} ref={this._refHandler.getInspector} />;
+            const key = this.state.selectedObject.id ?? this.state.selectedObject._id ?? this.state.selectedObject.uniqueId ?? this.state.selectedObject.name;
+            const objectInspector = <i.ctor key={key} editor={this._editor} _objectRef={this.state.selectedObject} toolId={i._id!} ref={this._refHandler.getInspector} />;
             const tab = <Tab id={tabId} title={i.title} key={i._id!} panel={objectInspector} />;
 
             tabs.push(tab);
