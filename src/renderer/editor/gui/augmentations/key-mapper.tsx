@@ -72,6 +72,11 @@ export class KeyMapper extends React.Component<IKeyMapperProps, IKeyMapperState>
 export class KeyMapperController extends dat.controllers.Controller {
     private _title: HTMLSpanElement;
 
+    private _keyMapper: KeyMapper;
+    private _refHandler = {
+        getKeyMapper: (ref: KeyMapper) => this._keyMapper = ref,
+    };
+
     /**
      * Constructor.
      * @param object the object to modify.
@@ -92,7 +97,7 @@ export class KeyMapperController extends dat.controllers.Controller {
         this.domElement.appendChild(div);
 
         // Render mapper
-        ReactDOM.render(<KeyMapper onChange={(k) => object[property] = k} mappedKey={object[property]} />, div);
+        ReactDOM.render(<KeyMapper ref={this._refHandler.getKeyMapper} onChange={(k) => object[property] = k} mappedKey={object[property]} />, div);
     }
 
     /**
@@ -101,6 +106,14 @@ export class KeyMapperController extends dat.controllers.Controller {
      */
     public name(name: string): KeyMapperController {
         this._title.innerHTML = name;
+        return this;
+    }
+
+    /**
+     * Updates the current display of the controller.
+     */
+    public updateDisplay(): KeyMapperController {
+        this._keyMapper?.setState({ mappedKey: this.object[this.property] });
         return this;
     }
 }

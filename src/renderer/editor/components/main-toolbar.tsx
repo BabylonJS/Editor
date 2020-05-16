@@ -11,7 +11,6 @@ import { AbstractMesh, Node, IParticleSystem } from "babylonjs";
 
 import { Editor } from "../editor";
 
-import { IPCTools } from "../tools/ipc";
 import { Tools } from "../tools/tools";
 import { ExecTools } from "../tools/exec";
 
@@ -334,10 +333,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
      * Called on the user wants to show the workspace settings.
      */
     private async _handleWorkspaceSettings(): Promise<void> {
-        const popupId = await this._editor.addWindowedPlugin("workspace-settings");
+        const popupId = await this._editor.addWindowedPlugin("workspace-settings", undefined, WorkSpace.Path);
         if (!popupId) { return; }
-
-        IPCTools.SendWindowMessage(popupId, "workspace-path", { path: WorkSpace.Path! });
     }
 
     /**

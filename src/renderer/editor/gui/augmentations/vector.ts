@@ -13,6 +13,8 @@ export class VectorController extends dat.controllers.Controller {
     private __onChange: (v: IVector) => void;
     private __onFinishChange: (v: IVector) => void;
 
+    private _numberControllers: dat.GUIController[] = [];
+
     /**
      * Constructor.
      * @param title defines the title of the controller.
@@ -69,6 +71,14 @@ export class VectorController extends dat.controllers.Controller {
     }
 
     /**
+     * Updates the current display of the controller.
+     */
+    public updateDisplay(): VectorController {
+        this._numberControllers.forEach((c) => c.updateDisplay());
+        return this;
+    }
+
+    /**
      * Adds a new number controller.
      */
     private _addNumberController(percent: number, propertyPath: string): void {
@@ -88,6 +98,8 @@ export class VectorController extends dat.controllers.Controller {
         c.domElement.style.width = "calc(100% - 25px)";
         c.onChange(() => this.__onChange && this.__onChange(this.vector));
         c.onFinishChange(() => this.__onFinishChange && this.__onFinishChange(this.vector));
+
+        this._numberControllers.push(c);
         dummyController.domElement.appendChild(c.domElement);
     }
 }

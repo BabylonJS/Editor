@@ -21,7 +21,7 @@ npm install
 ```
 
 ## Building
-Building Editor)
+Building Editor
 
 ```bash
 npm run build

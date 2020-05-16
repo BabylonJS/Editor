@@ -125,7 +125,7 @@ export class TextureAssets extends AbstractAssets {
         const file = FilesStore.GetFileFromBaseName(name);
         if (!file) { return; }
 
-        await this.editor.addWindowedPlugin("texture-viewer", undefined, { path: file.path });
+        await this.editor.addWindowedPlugin("texture-viewer", undefined, file.path);
     }
 
     /**

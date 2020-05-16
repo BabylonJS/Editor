@@ -1,7 +1,3 @@
-import { ipcRenderer } from "electron";
-
-import { IPCRequests } from "../../../shared/ipc";
-
 import { Engine, Scene, ArcRotateCamera, Vector3, SceneLoader, PointLight, Mesh, Texture, PBRMaterial, CubeTexture, Color3 } from "babylonjs";
 import { GridMaterial } from "babylonjs-materials";
 import "babylonjs-loaders";
@@ -21,8 +17,6 @@ export default class MeshViewerWindow extends React.Component {
      */
     public constructor(props: any) {
         super(props);
-
-        this._bindEvents();
     }
 
     /**
@@ -55,10 +49,11 @@ export default class MeshViewerWindow extends React.Component {
     }
 
     /**
-     * Binds the ipc events.
+     * Inits the plugin.
+     * @param data the initialization data containing the mesh to load etc.
      */
-    private _bindEvents(): void {
-        ipcRenderer.on(IPCRequests.SendWindowMessage, (_ , data) => data.id === "init" && this._loadMesh(data.rootUrl, data.name));
+    public init(data: { rootUrl: string, name: string }): void {
+        this._loadMesh(data.rootUrl, data.name);
     }
 
     /**

@@ -1,7 +1,3 @@
-import { ipcRenderer } from "electron";
-
-import { IPCRequests } from "../../../shared/ipc";
-
 import { Engine, Scene, ArcRotateCamera, Vector3, Material, Mesh, Texture, HemisphericLight } from "babylonjs";
 import "babylonjs-materials";
 
@@ -21,8 +17,6 @@ export default class MeshViewerWindow extends React.Component {
      */
     public constructor(props: any) {
         super(props);
-
-        this._bindEvents();
     }
 
     /**
@@ -61,10 +55,11 @@ export default class MeshViewerWindow extends React.Component {
     }
 
     /**
-     * Binds the ipc events.
+     * Inits the plugin.
+     * @param data the initialization data containing the material definition etc.
      */
-    private _bindEvents(): void {
-        ipcRenderer.on(IPCRequests.SendWindowMessage, (_ , data) => data.id === "init" && this._parseMaterial(data.rootUrl, data.json, data.environmentTexture));
+    public init(data: { rootUrl: string, json: any, environmentTexture: any }): void {
+        this._parseMaterial(data.rootUrl, data.json, data.environmentTexture);
     }
 
     /**

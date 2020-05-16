@@ -36,6 +36,7 @@
     "./build",
     "./declaration",
     "./index.d.ts",
+    "module",
     "electron-packages",
     "assets",
     "test"

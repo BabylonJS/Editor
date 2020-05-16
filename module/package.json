@@ -1,0 +1,19 @@
+{
+    "name": "babylonjs-editor",
+    "version": "3.2.1-beta.4",
+    "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
+    "productName": "Babylon.js Editor",
+    "typings": "index.d.ts",
+    "repository": {
+        "url": "https://github.com/BabylonJS/Editor/"
+    },
+    "author": {
+        "name": "Julien Moreau-Mathis",
+        "url": "https://medium.com/@Luaacro"
+    },
+    "scripts": {},
+    "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
+    "license": "(Apache-2.0)",
+    "devDependencies": {},
+    "dependencies": {}
+}

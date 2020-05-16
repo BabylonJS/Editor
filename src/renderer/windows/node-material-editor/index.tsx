@@ -39,6 +39,14 @@ export default class NodeMaterialEditorWindow extends React.Component {
     }
 
     /**
+     * Inits the plugin.
+     * @param data the initialization data containing the material definition etc.
+     */
+    public init(data: { json: any, lights: any[], editorData: any }): void {
+        this._setMaterial(data.json, data.editorData, data.lights);
+    }
+
+    /**
      * Binds the ipc events.
      */
     private _bindEvents(): void {

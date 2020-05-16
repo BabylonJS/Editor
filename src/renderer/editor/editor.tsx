@@ -504,9 +504,9 @@ export class Editor {
      * Adds a new plugin handled by its own window.
      * @param name the name of the plugin to load.
      * @param windowId the id of the window that is possibly already opened.
-     * @param initData optional data to send for the initialization of the plugin.
+     * @param args optional arguments to pass the plugn's .init function.
      */
-    public async addWindowedPlugin(name: string, windowId?: Undefinable<number>, initData?: Undefinable<any>): Promise<Nullable<number>> {
+    public async addWindowedPlugin(name: string, windowId?: Undefinable<number>, ...args: any[]): Promise<Nullable<number>> {
         // Check if the provided window id exists. If exists, just restore.
         if (windowId) {
             const index = this._pluginWindows.indexOf(windowId);
@@ -536,12 +536,8 @@ export class Editor {
         this._pluginWindows.push(popupId);
 
         await Tools.Wait(100);
-        await IPCTools.SendWindowMessage(popupId, "pluginName", { name });
+        await IPCTools.SendWindowMessage(popupId, "pluginName", { name, args });
         await Tools.Wait(100);
-
-        if (initData !== undefined) {
-            IPCTools.SendWindowMessage(popupId, "init", initData);
-        }
 
         return popupId;
     }

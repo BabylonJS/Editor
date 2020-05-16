@@ -1,7 +1,4 @@
-import { ipcRenderer } from "electron";
 import { basename, extname } from "path";
-
-import { IPCRequests } from "../../../shared/ipc";
 
 import * as React from "react";
 
@@ -27,9 +24,7 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
      */
     public constructor(props: any) {
         super(props);
-
         this.state = { path: "../css/svg/magic.svg", isCube: false };
-        this._bindEvents();
     }
 
     /**
@@ -57,6 +52,17 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
     }
 
     /**
+     * Inits the plugin
+     * @param path defines the path to the texture file.
+     */
+    public init(path: string): void {
+        const extension = extname(path).toLowerCase();
+        const isCube = extension === ".dds" || extension === ".env";
+
+        this.setState({ path: path, isCube });
+    }
+
+    /**
      * Called on the component did update.
      */
     public componentDidUpdate(): void {
@@ -79,19 +85,5 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
 
         window.addEventListener("resize", () => engine.resize());
         engine.runRenderLoop(() => scene.render());
-    }
-
-    /**
-     * Binds the ipc events.
-     */
-    private _bindEvents(): void {
-        ipcRenderer.on(IPCRequests.SendWindowMessage, async (_ , data) => {
-            if (data.id !== "init") { return; }
-
-            const extension = extname(data.path).toLowerCase();
-            const isCube = extension === ".dds" || extension === ".env";
-
-            this.setState({ path: data.path, isCube });
-        });
     }
 }

@@ -1,6 +1,5 @@
-import { ipcRenderer, shell } from "electron";
+import { shell } from "electron";
 
-import { IPCRequests } from "../../../shared/ipc";
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
@@ -31,7 +30,6 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
         super(props);
 
         this.state = { };
-        this._bindEvents();
     }
 
     /**
@@ -62,10 +60,11 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
     }
 
     /**
-     * Binds the plugin's events.
+     * Inits the plugin.
+     * @param workspace defines the current workspace configuration.
      */
-    private _bindEvents(): void {
-        ipcRenderer.once(IPCRequests.SendWindowMessage, (_ , data) => data.id === "init" && this.setState({ workspace: data }));
+    public init(workspace: IWorkSpace): void {
+        this.setState({ workspace });
     }
 
     /**

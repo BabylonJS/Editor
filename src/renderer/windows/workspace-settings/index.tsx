@@ -1,7 +1,4 @@
-import { ipcRenderer } from "electron";
 import { readJSON, writeJSON } from "fs-extra";
-
-import { IPCRequests } from "../../../shared/ipc";
 
 import * as React from "react";
 import { FormGroup, InputGroup, ButtonGroup, Button, Switch, Divider, Callout, FileInput } from "@blueprintjs/core";
@@ -36,8 +33,6 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
             watchProject: false,
             ...this._getPreferences(),
         };
-
-        this._bindEvents();
     }
 
     /**
@@ -79,6 +74,15 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
     }
 
     /**
+     * Inits the plugin?
+     * @param path defines the path to the workspace file.
+     */
+    public async init(path: string): Promise<void> {
+        const json = await readJSON(path, { encoding: "utf-8" });
+        this.setState({ workspacePath: path, ...json });
+    }
+
+    /**
      * Called on the user saves the changes.
      */
     private async _handleApply(): Promise<void> {
@@ -103,21 +107,6 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
 
         // Close
         window.close();
-    }
-
-    /**
-     * Binds the ipc events.
-     */
-    private _bindEvents(): void {
-        ipcRenderer.on(IPCRequests.SendWindowMessage, (_ , data) => data.id === "workspace-path" && this._setWorkspace(data.path));
-    }
-
-    /**
-     * Sets the workspace data.
-     */
-    private async _setWorkspace(path: string): Promise<void> {
-        const json = await readJSON(path, { encoding: "utf-8" });
-        this.setState({ workspacePath: path, ...json });
     }
 
     /**
