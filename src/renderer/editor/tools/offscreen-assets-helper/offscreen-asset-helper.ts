@@ -68,7 +68,7 @@ export class OffscreenAssetsHelper {
      * @param json the JSON representation of the material.
      * @param rootUrl the rootUrl containing the material's assets.
      */
-    public setMaterial(json: any, rootUrl: string): Promise<void> {
+    public setMaterial(json: any, rootUrl?: string): Promise<void> {
         return this._getPromise("setMaterial", { json, rootUrl });
     }
 

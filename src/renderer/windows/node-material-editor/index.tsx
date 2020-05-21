@@ -1,4 +1,5 @@
 import { ipcRenderer } from "electron";
+
 import { Nullable } from "../../../shared/types";
 import { IPCResponses, IPCRequests } from "../../../shared/ipc";
 
@@ -74,6 +75,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
         nodeMaterial.onBuildObservable.add(() => this._saveMaterial(nodeMaterial));
         window.addEventListener("beforeunload", () => this._saveMaterial(nodeMaterial));
 
+        // Create node material editor.
         const { NodeEditor } = require("babylonjs-node-editor");
         NodeEditor.Show({
             hostElement: this._div,

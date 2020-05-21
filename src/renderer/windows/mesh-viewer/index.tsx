@@ -64,7 +64,7 @@ export default class MeshViewerWindow extends React.Component {
         await SceneLoader.AppendAsync(rootUrl, name, this._scene);
 
         // Place camera
-        this._scene.onReadyObservable.addOnce(() => {
+        this._scene.onReadyObservable.addOnce(async () => {
             const minimum = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
             const maximum = new Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
 
@@ -94,7 +94,7 @@ export default class MeshViewerWindow extends React.Component {
             this._createEnvironment(minimum, distance * 10);
 
             // Open bjs inspector
-            this._scene.debugLayer.show({
+            await this._scene.debugLayer.show({
                 globalRoot: document.body,
                 handleResize: false,
                 enablePopup: false,
@@ -102,6 +102,8 @@ export default class MeshViewerWindow extends React.Component {
                 embedMode: true,
                 inspectorURL: "../node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
             });
+
+            this._scene.debugLayer.select(this._scene.meshes[0]);
         });
 
         this._scene._checkIsReady();

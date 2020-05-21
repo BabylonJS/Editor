@@ -75,7 +75,7 @@ export default class MeshViewerWindow extends React.Component {
         }
 
         // Open bjs inspector
-        this._scene.debugLayer.show({
+        await this._scene.debugLayer.show({
             globalRoot: document.body,
             handleResize: false,
             enablePopup: false,
@@ -83,5 +83,6 @@ export default class MeshViewerWindow extends React.Component {
             embedMode: true,
             inspectorURL: "../node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
         });
+        this._scene.debugLayer.select(material);
     }
 }

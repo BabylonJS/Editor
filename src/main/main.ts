@@ -1,5 +1,8 @@
 import { app, BrowserWindow, globalShortcut, Menu, ipcMain } from "electron";
 import { extname } from "path";
+import * as os from "os";
+
+import { Undefinable } from "../shared/types";
 
 import { Settings } from "./settings";
 import { IPC } from "./ipc";
@@ -33,19 +36,36 @@ export default class EditorApp {
 
 	/**
 	 * Configures the app's settings according to the opened file.
-	 * @param fileArgumentPath the file opened
+	 * @param filePathArgument the file opened
 	 */
-	public static ConfigureSettings(fileArgumentPath: string): void {
-		if (!fileArgumentPath) { return; }
+	public static ConfigureSettings(filePathArgument: Undefinable<string>): void {
+		if (!filePathArgument) { return; }
 		Settings.OpenedFile = null;
 		Settings.WorkspacePath = null;
 
-		const extension = extname(fileArgumentPath).toLowerCase();
+		const extension = extname(filePathArgument).toLowerCase();
 		switch (extension) {
-			case ".editorproject": Settings.OpenedFile = fileArgumentPath; break;
-			case ".editorworkspace": Settings.WorkspacePath = fileArgumentPath; break;
+			case ".editorproject": Settings.OpenedFile = filePathArgument; break;
+			case ".editorworkspace": Settings.WorkspacePath = filePathArgument; break;
 			default: break;
 		}
+	}
+
+	/**
+	 * Returns the file path argument according to the current platform.
+	 * @param argv defines the list of all arguments sent to the program when opening.
+	 */
+	public static GetFilePathArgument(argv: Undefinable<string[]>): Undefinable<string> {
+		if (!argv) {
+			return undefined;
+		}
+
+		const platform = os.platform();
+		if (platform === "darwin") {
+			return argv[2];
+		}
+
+		return argv[1];
 	}
 
     /**
@@ -53,7 +73,7 @@ export default class EditorApp {
      */
 	public static async CreateWindow(): Promise<void> {
 		// Save the opened file from the OS file explorer
-		this.ConfigureSettings(process.argv[1]);
+		this.ConfigureSettings(this.GetFilePathArgument(process.argv));
 
 		this.Window = await WindowController.WindowOnDemand({
 			options: {
@@ -112,14 +132,14 @@ if (shouldQuit) {
 	app.quit();
 }
 else {
-	app.on("second-instance", (argv) => {
+	app.on("second-instance", (_, argv) => {
 		if (EditorApp.Window) {
 			if (EditorApp.Window.isMinimized())
 				EditorApp.Window.restore();
 	
 			EditorApp.Window.focus();
 	
-			const filename = argv[1];
+			const filename = EditorApp.GetFilePathArgument(argv);
 			if (filename !== Settings.OpenedFile && filename !== Settings.WorkspacePath) {
 				EditorApp.ConfigureSettings(filename);
 				EditorApp.Window.reload();

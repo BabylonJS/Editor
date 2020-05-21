@@ -145,7 +145,9 @@ export class ProjectImporter {
         for (const m of project.materials) {
             try {
                 const json = await readJSON(join(Project.DirPath, "materials", m.json));
-                const material = m.isMultiMaterial ? MultiMaterial.ParseMultiMaterial(json, editor.scene!) : Material.Parse(json, editor.scene!, rootUrl);
+                const materialRootUrl = json.customType === "BABYLON.NodeMaterial" ? undefined : rootUrl;
+                
+                const material = m.isMultiMaterial ? MultiMaterial.ParseMultiMaterial(json, editor.scene!) : Material.Parse(json, editor.scene!, materialRootUrl!);
                 editor.console.logInfo(`Parsed material "${m.json}"`);
 
                 m.bindedMeshes.forEach((bm) => {

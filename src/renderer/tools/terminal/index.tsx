@@ -72,8 +72,15 @@ export default class TerminalPlugin extends AbstractEditorPlugin<{ }> {
      */
     private _createTerminal(): void {
         // Create process.
-        const shell = this.editor.getPreferences().terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"];
+        const platform = os.platform();
+
+        const shell = this.editor.getPreferences().terminalPath ?? process.env[platform === "win32" ? "COMSPEC" : "SHELL"];
         if (!shell) { return; }
+
+        const args: string[] = [];
+        if (platform === "darwin") {
+            args.push("-l");
+        }
 
         this._process = spawn(shell, [], {
             name: 'xterm-color',

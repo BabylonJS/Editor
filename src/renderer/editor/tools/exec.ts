@@ -22,7 +22,7 @@ export class ExecTools {
      * @param cwd the working directory while executing the command.
      * @param noLogs defines wether or not the command's outputs should be listened and drawn in the editor's console.
      */
-    public static async Exec(editor: Editor, command: string, cwd?: string, noLogs?: boolean): Promise<void> {
+    public static Exec(editor: Editor, command: string, cwd?: string, noLogs?: boolean): Promise<void> {
         return this.ExecAndGetProgram(editor, command, cwd, noLogs).promise;
     }
 
@@ -41,7 +41,13 @@ export class ExecTools {
             throw new Error(message);
         }
 
-        const program = spawn(shell, [], { cwd });
+        const args: string[] = [];
+        const platform = os.platform();
+        if (platform === "darwin") {
+            args.push("-l");
+        }
+
+        const program = spawn(shell, args, { cwd });
 
         if (!noLogs) {
             program.onData((e) => {

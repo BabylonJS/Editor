@@ -7,7 +7,7 @@ import { IPCResponses } from "../../../shared/ipc";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { ButtonGroup, Button, Classes, Dialog, FormGroup, InputGroup, ContextMenu, Menu, MenuItem, MenuDivider, Divider } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, Dialog as BPDialog, FormGroup, InputGroup, ContextMenu, Menu, MenuItem, MenuDivider, Divider, Popover, Position } from "@blueprintjs/core";
 
 import { Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools, NodeMaterial, MultiMaterial } from "babylonjs";
 
@@ -17,12 +17,15 @@ import { undoRedo } from "../tools/undo-redo";
 
 import { Icon } from "../gui/icon";
 import { List } from "../gui/list";
+import { Dialog } from "../gui/dialog";
+import { Overlay } from "../gui/overlay";
 
 import { Project } from "../project/project";
 import { FilesStore } from "../project/files";
 
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
+import { Alert } from "../gui/alert";
 
 export class MaterialAssets extends AbstractAssets {
     private static _NodeMaterialEditors: { id: number; material: NodeMaterial }[] = [];
@@ -33,15 +36,23 @@ export class MaterialAssets extends AbstractAssets {
     public render(): React.ReactNode {
         const node = super.render();
 
+        const add = 
+            <Menu>
+                <MenuItem key="add-built-in-material" text="Built-in Material..." onClick={() => this._addMaterial()} />
+                <MenuItem key="add-node-material-from-snippet" text="Node Material From Snippet..." onClick={() => this._addNodeMaterialFromWeb()} />
+                <MenuDivider />
+                <MenuItem key="add-material-from-preset" icon={<Icon src="search.svg" />} text="From Preset..." onClick={() => this._handleLoadFromPreset()} />
+            </Menu>;
+
         return (
             <>
                 <div className={Classes.FILL} key="materials-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
                         <Divider />
-                        <Button key="add-material" icon={<Icon src="plus.svg" />} small={true} text="Add Material..." onClick={() => this._addMaterial()} />
-                        <Divider />
-                        <Button key="load-preset" icon={<Icon src="search.svg" />} small={true} text="Load Preset..." onClick={() => this._handleLoadFromPreset()} />
+                        <Popover content={add} position={Position.BOTTOM_LEFT}>
+                            <Button icon={<Icon src="plus.svg"/>} rightIcon="caret-down" small={true} text="Add"/>
+                        </Popover>
                         <Divider />
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedMaterials()} />
                     </ButtonGroup>
@@ -67,7 +78,7 @@ export class MaterialAssets extends AbstractAssets {
             if (!object && item) { continue; }
 
             const copy = material.serialize();
-            await assetsHelper.setMaterial(copy, join(Project.DirPath!, "/"));
+            await assetsHelper.setMaterial(copy, material instanceof NodeMaterial ? undefined : join(Project.DirPath!, "/"));
 
             const base64 = await assetsHelper.getScreenshot();
 
@@ -130,11 +141,11 @@ export class MaterialAssets extends AbstractAssets {
                 if (data.id !== "node-material-json") { return; }
                 if (data.json.id !== material.id) { return; }
 
-                // CLear textures
+                // Clear textures
                 material.getTextureBlocks().forEach((block) => block.texture?.dispose());
 
                 material.editorData = data.editorData;
-                material.loadFromSerialization(data.json, Project.DirPath!);
+                material.loadFromSerialization(data.json);
                 material.build();
                 this.refresh(material);
             });
@@ -289,7 +300,7 @@ export class MaterialAssets extends AbstractAssets {
         const availableMaterials = ["StandardMaterial", "PBRMaterial", "NodeMaterial"];
 
         ReactDOM.render((
-            <Dialog
+            <BPDialog
                 className={Classes.DARK}
                 isOpen={true}
                 usePortal={true}
@@ -320,8 +331,23 @@ export class MaterialAssets extends AbstractAssets {
                         }} />
                     </div>
                 </div>
-            </Dialog>
+            </BPDialog>
         ), document.getElementById("BABYLON-EDITOR-OVERLAY"));
+    }
+
+    private async _addNodeMaterialFromWeb(): Promise<void> {
+        const snippetId = await Dialog.Show("Snippet Id", "Please provide the Id of the snippet.");
+
+        Overlay.Show("Loading From Snippet...", true);
+        try {
+            const material = await NodeMaterial.ParseFromSnippetAsync(snippetId, this.editor.scene!);
+            material.id = Tools.RandomId();
+        } catch (e) {
+            Alert.Show("Failed to load from snippet", e.message);
+        }
+        Overlay.Hide();
+
+        this.refresh();
     }
 
     /**

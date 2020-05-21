@@ -65,7 +65,7 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
     /**
      * Called on the component did update.
      */
-    public componentDidUpdate(): void {
+    public async componentDidUpdate(): Promise<void> {
         if (!this.state.isCube) { return; }
 
         const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
@@ -85,5 +85,16 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
 
         window.addEventListener("resize", () => engine.resize());
         engine.runRenderLoop(() => scene.render());
+
+        // Open bjs inspector
+        await scene.debugLayer.show({
+            globalRoot: document.body,
+            handleResize: false,
+            enablePopup: false,
+            enableClose: false,
+            embedMode: true,
+            inspectorURL: "../node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
+        });
+        scene.debugLayer.select(material.reflectionTexture);
     }
 }
