@@ -2,7 +2,12 @@
  * TODO: use offscreen canvas for assets rendering.
  */
 import "../../../module";
-import { Engine, Scene, TargetCamera, Vector3, Color4, HemisphericLight, Mesh, Nullable, Material, SceneLoader, Tools } from "babylonjs";
+
+import {
+    Engine, Scene, TargetCamera, Vector3, Color4, HemisphericLight, Mesh, Nullable,
+    Material, SceneLoader, Tools,
+} from "babylonjs";
+
 import "babylonjs-materials";
 import "babylonjs-loaders";
 
@@ -85,11 +90,12 @@ class OffscreenAssets {
 
     /**
      * Returns a screenshot of the scene once the scene is ready.
-     * Returns a screenshot as a base64 string.
      */
     public async getScreenshot(): Promise<string> {
         return new Promise<string>((resolve) => {
-            this.scene.onReadyObservable.addOnce(async () => {
+            this.scene.executeWhenReady(async () => {
+                await new Promise<void>((resolve) => setTimeout(() => resolve(), 100));
+
                 const minimum = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
                 const maximum = new Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
 

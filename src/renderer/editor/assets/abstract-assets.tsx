@@ -182,10 +182,10 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
         // Filter
         const filter = this._filter.toLowerCase();
         if (filter !== "") {
-            this._itemsNodes = this.items.filter((i) => i.id.toLowerCase().indexOf(filter) !== -1)
+            this._itemsNodes = this.state.items.filter((i) => i.id.toLowerCase().indexOf(filter) !== -1)
                                          .map((i) => this._getItemNode(i));
         } else {
-            this._itemsNodes = this.items.map((i) => this._getItemNode(i));
+            this._itemsNodes = this.state.items.map((i) => this._getItemNode(i));
         }
 
         // Render!
@@ -212,7 +212,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
         return (
             <div 
                 onContextMenu={(e) => this.onComponentContextMenu(e)}
-                style={{ width: "100%", height: size.height - 90, overflow: "auto", ...this.props.style }}
+                style={{ width: "100%", height: size.height - 30, overflow: "auto", ...this.props.style }}
                 children={this._itemsNodes}
             ></div>
         );
@@ -240,6 +240,20 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      */
     public resize(): void {
         this.setState({ height: this.editor.getPanelSize("assets").height });
+    }
+
+    /**
+     * Updates the given item thumbnail.
+     * @param key defines the key (identifier) or the item to update.
+     * @param base64 defines the new base64 value of the thumbnail.
+     */
+    public updateAssetThumbnail(key: string, base64: string): void {
+        const items = this.state.items?.slice() ?? [];
+        const item = items.find((i) => i.key === key);
+        if (item) {
+            item.base64 = base64;
+            this.setState({ items });
+        }
     }
 
     /**

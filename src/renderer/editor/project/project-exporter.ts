@@ -312,7 +312,7 @@ export class ProjectExporter {
             await WorkSpace.WriteWorkspaceFile(Project.Path);
 
             if (!skipGenerateScene && WorkSpace.Workspace!.generateSceneOnSave) {
-                await this.ExportFinalScene(editor);
+                await this.ExportFinalScene(editor, task);
             }
         }
 
@@ -360,10 +360,11 @@ export class ProjectExporter {
      * Eports the final scene.
      * @param editor the editor reference.
      */
-    public static async ExportFinalScene(editor: Editor): Promise<void> {
+    public static async ExportFinalScene(editor: Editor, task?: string): Promise<void> {
         if (!WorkSpace.HasWorkspace()) { return; }
 
-        const task = editor.addTaskFeedback(0, "Saving Final Scene");
+        task = task ?? editor.addTaskFeedback(0, "Saving Final Scene");
+        editor.updateTaskFeedback(task, 0, "Saving Final Scene");
 
         const scene = SceneSerializer.Serialize(editor.scene!);
         scene.metadata = scene.metadata ?? { };

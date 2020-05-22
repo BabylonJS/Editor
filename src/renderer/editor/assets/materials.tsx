@@ -90,8 +90,10 @@ export class MaterialAssets extends AbstractAssets {
                 this.items.push(itemData);
             }
 
-            this.updateAssetObservable.notifyObservers();
+            this.updateAssetThumbnail(material.id, base64);
             await assetsHelper.disposeMaterial();
+
+            this.updateAssetObservable.notifyObservers();
         }
 
         await assetsHelper.reset();

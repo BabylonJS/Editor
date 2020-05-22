@@ -51,8 +51,10 @@ export class MeshesAssets extends AbstractAssets {
             const base64 = await assetsHelper.getScreenshot();
             this.items.push({ id: m.name, key: m.path, base64 });
 
-            this.updateAssetObservable.notifyObservers();
+            this.updateAssetThumbnail(m.path, base64);
+
             await assetsHelper.reset();
+            this.updateAssetObservable.notifyObservers();
         }
         
         return super.refresh();
