@@ -14,6 +14,7 @@ import { Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools, Nod
 import { assetsHelper, OffscreenAssetsHelperMesh } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
 import { Tools } from "../tools/tools";
 import { undoRedo } from "../tools/undo-redo";
+import { IPCTools } from "../tools/ipc";
 
 import { Icon } from "../gui/icon";
 import { List } from "../gui/list";
@@ -140,21 +141,34 @@ export class MaterialAssets extends AbstractAssets {
             }
 
             let callback: (...args: any[]) => void;
-            ipcRenderer.on(IPCResponses.SendWindowMessage, (_, data) => {
-                if (data.id !== "node-material-json") { return; }
-                if (data.json.id !== material.id) { return; }
+            ipcRenderer.on(IPCResponses.SendWindowMessage, callback = (_, message) => {
+                if (message.id !== "node-material-json") { return; }
+                if (message.data.json && message.data.json.id !== material.id) { return; }
 
-                if (data.closed) {
+                if (message.data.closed) {
                     ipcRenderer.removeListener(IPCResponses.SendWindowMessage, callback);
+
+                    const windowIndex = MaterialAssets._NodeMaterialEditors.findIndex((m) => m.id === popupId);
+                    if (windowIndex !== -1) {
+                        MaterialAssets._NodeMaterialEditors.splice(windowIndex, 1);
+                    }
                 }
 
-                // Clear textures
-                material.getTextureBlocks().forEach((block) => block.texture?.dispose());
+                if (message.data.json) {
+                    try {
+                        // Clear textures
+                        material.getTextureBlocks().forEach((block) => block.texture?.dispose());
 
-                material.editorData = data.editorData;
-                material.loadFromSerialization(data.json);
-                material.build();
-                this.refresh(material);
+                        material.editorData = message.data.editorData;
+                        material.loadFromSerialization(message.data.json);
+                        material.build();
+
+                        IPCTools.SendWindowMessage(popupId, "node-material-json");
+                    } catch (e) {
+                        IPCTools.SendWindowMessage(popupId, "graph-json", { error: true });
+                    }
+                    this.refresh(material);
+                }
             });
         } else {
             await this.editor.addWindowedPlugin("material-viewer", undefined, {

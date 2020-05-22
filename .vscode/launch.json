@@ -11,7 +11,8 @@
                 "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
             },
             "env": {
-                "DEBUG": "true"
+                "DEBUG": "true",
+                "ONE_WINDOW_AT_A_TIME": "false"
             },
             "args": [
                 "--remote-debugging-port=9223",

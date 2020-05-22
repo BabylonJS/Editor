@@ -48,6 +48,10 @@ export interface IAssetComponentItem {
      * Optional style that can be added to the item node.
      */
     ref?: Nullable<HTMLDivElement>;
+    /**
+     * Optional style options for the div.
+     */
+    style?: Undefinable<React.CSSProperties>;
 }
 
 export interface IAssetsComponentState {
@@ -272,7 +276,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                 <Tooltip content={item.id} position={Position.TOP} usePortal={false}>
                     <img
                         src={item.base64}
-                        style={{ width: `${this.size}px`, height: `${this.size}px`, borderRadius: "15px", objectFit: "contain" }}
+                        style={{ width: `${this.size}px`, height: `${this.size}px`, borderRadius: "15px", objectFit: "contain", ...item.style ?? { } }}
                         onClick={(e) => this.onClick(item, e.target as HTMLImageElement)}
                         onDoubleClick={(e) => this.onDoubleClick(item, e.target as HTMLImageElement)}
                         onContextMenu={(e) => this.onContextMenu(item, e)}

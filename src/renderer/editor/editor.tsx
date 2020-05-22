@@ -22,6 +22,7 @@ import { IPCTools } from "./tools/ipc";
 import { IObjectModified, IEditorPreferences } from "./tools/types";
 import { undoRedo } from "./tools/undo-redo";
 import { AbstractEditorPlugin } from "./tools/plugin";
+import { LayoutUtils } from "./tools/layout-utils";
 
 import { IFile } from "./project/files";
 import { WorkSpace } from "./project/workspace";
@@ -32,6 +33,7 @@ import { WelcomeDialog } from "./project/welcome/welcome";
 
 import { SceneSettings } from "./scene/settings";
 import { GizmoType } from "./scene/gizmo";
+import { SceneUtils } from "./scene/utils";
 
 import { SandboxMain } from "../sandbox/main";
 
@@ -137,6 +139,11 @@ export class Editor {
     public plugins: IStringDictionary<AbstractEditorPlugin<any>> = { };
 
     /**
+     * Reference to the scene utils.
+     */
+    public sceneUtils: SceneUtils;
+
+    /**
      * Notifies observers once the editor has been initialized.
      */
     public editorInitializedObservable: Observable<void> = new Observable<void>();
@@ -218,7 +225,6 @@ export class Editor {
     private _components: IStringDictionary<any> = { };
     private _stacks: IStringDictionary<any> = { };
 
-    private _resetting: boolean = false;
     private _taskFeedbacks: IStringDictionary<{
         message: string;
         amount: number;
@@ -279,7 +285,7 @@ export class Editor {
         const layoutStateItem = (layoutVersion === Editor.LayoutVersion) ? localStorage.getItem('babylonjs-editor-layout-state') : null;
         const layoutState = layoutStateItem ? JSON.parse(layoutStateItem) : null;
 
-        if (layoutState) { this._configureLayoutContent(layoutState.content); }
+        if (layoutState) { LayoutUtils.ConfigureLayoutContent(this, layoutState.content); }
 
         this.layout = new GoldenLayout(layoutState ?? {
             settings: {
@@ -685,6 +691,9 @@ export class Editor {
         // Animations
         Animation.AllowMatricesInterpolation = true;
 
+        // Utils
+        this.sceneUtils = new SceneUtils(this);
+
         this._bindEvents();
         this.resize();
 
@@ -696,6 +705,9 @@ export class Editor {
 
         // Init sandbox
         await SandboxMain.Init();
+
+        // Refresh preferences
+        this._applyPreferences();
 
         // Check workspace
         const workspacePath = await WorkSpace.GetOpeningWorkspace();
@@ -781,18 +793,25 @@ export class Editor {
      */
     private _bindEvents(): void {
         // IPC
-        ipcRenderer.on(IPCRequests.SendWindowMessage, async (_, data) => {
-            switch (data.id) {
+        ipcRenderer.on(IPCRequests.SendWindowMessage, async (_, message) => {
+            switch (message.id) {
                 // A window has been closed
                 case "close-window":
-                    const index = this._pluginWindows.indexOf(data.windowId);
+                    const index = this._pluginWindows.indexOf(message.windowId);
                     if (index !== -1) { this._pluginWindows.splice(index, 1); }
                     break;
 
                 // An editor function should be executed
                 case "execute-editor-function":
-                    const result = await this[data.functionName](...data.args);
-                    IPCTools.SendWindowMessage(data.popupId, "execute-editor-function", result)
+                    const caller = Tools.GetEffectiveProperty(this, message.data.functionName);
+                    const fn = Tools.GetProperty<(...args: any[]) => any>(this, message.data.functionName);
+
+                    try {
+                        const result = await fn.call(caller, ...message.data.args);
+                        IPCTools.SendWindowMessage(message.data.popupId, "execute-editor-function", result);
+                    } catch (e) {
+                        IPCTools.SendWindowMessage(message.data.popupId, "execute-editor-function");
+                    }
                     break;
             }
         });
@@ -867,6 +886,14 @@ export class Editor {
             ipcRenderer.send("quit", shouldQuit);
         });
 
+        // Save
+        ipcRenderer.on("save-editor-project", () => ProjectExporter.Save(this));
+        ipcRenderer.on("save-editor-project-as", () => ProjectExporter.SaveAs(this));
+        
+        // Undo / Redo
+        ipcRenderer.on("undo", () => undoRedo.undo());
+        ipcRenderer.on("redo", () => undoRedo.redo());
+
         // Drag'n'drop
         document.addEventListener("dragover", (ev) => ev.preventDefault());
         document.addEventListener("drop", (ev) => {
@@ -884,13 +911,6 @@ export class Editor {
 
         // Shortcuts
         window.addEventListener("keyup", (ev) => {
-            if ((ev.ctrlKey || ev.metaKey) && ev.key === "s") { return ProjectExporter.Save(this); }
-            if ((ev.ctrlKey || ev.metaKey) && ev.key === "S") { return ProjectExporter.SaveAs(this); }
-
-            if ((ev.ctrlKey || ev.metaKey) && ev.key === "z") { return undoRedo.undo(); }
-            if (ev.ctrlKey && ev.key === "y") { return undoRedo.redo(); }
-            if (ev.metaKey && ev.key === "Z") { return undoRedo.redo(); }
-
             if (this.preview.canvasFocused) {
                 if (ev.key === "t") { return this.preview.setGizmoType(GizmoType.Position); }
                 if (ev.key === "r") { return this.preview.setGizmoType(GizmoType.Rotation); }
@@ -920,41 +940,20 @@ export class Editor {
 
             // Processes
             if (WorkSpace.HasWorkspace()) { WorkSpace.KillAllProcesses(); }
-
-            // Save state
-            if (this._resetting) { return; }
-
-            const config = this.layout.toConfig();
-            this._clearLayoutContent(config.content);
-
-            localStorage.setItem("babylonjs-editor-layout-state", JSON.stringify(config));
-            localStorage.setItem("babylonjs-editor-layout-version", Editor.LayoutVersion);
-            localStorage.setItem("babylonjs-editor-loaded-plugins", JSON.stringify(Editor._loadedPlugins));
         });
     }
 
     /**
-     * Clears the contents of the serialized layout.
+     * Saves the editor configuration.
+     * @hidden
      */
-    private _clearLayoutContent(content: Nullable<any[]>): void {
-        if (!content) { return; }
-        content.forEach((c) => {
-            if (c.props) { c.props = { }; }
-            if (c.componentState) { delete c.componentState; }
+    public _saveEditorConfig(): void {
+        const config = this.layout.toConfig();
+        LayoutUtils.ClearLayoutContent(this, config.content);
 
-            this._clearLayoutContent(c.content);
-        });
-    }
-
-    /**
-     * Configures the contents of the serialized layout.
-     */
-    private _configureLayoutContent(content: Nullable<any[]>): void {
-        if (!content) { return; }
-        content.forEach((c) => {
-            if (c.props) { c.props = { editor: this, id: c.id }; }
-            this._configureLayoutContent(c.content);
-        });
+        localStorage.setItem("babylonjs-editor-layout-state", JSON.stringify(config));
+        localStorage.setItem("babylonjs-editor-layout-version", Editor.LayoutVersion);
+        localStorage.setItem("babylonjs-editor-loaded-plugins", JSON.stringify(Editor._loadedPlugins));
     }
 
     /**
@@ -962,7 +961,6 @@ export class Editor {
      * @hidden
      */
     public _resetEditor(): void {
-        this._resetting = true;
         localStorage.removeItem("babylonjs-editor-layout-state");
         localStorage.removeItem("babylonjs-editor-layout-version");
         localStorage.removeItem("babylonjs-editor-loaded-plugins");
@@ -972,6 +970,7 @@ export class Editor {
 
     /**
      * Called by the workspace settings windows.
+     * @hidden
      */
     public async _refreshWorkSpace(): Promise<void> {
         await WorkSpace.ReadWorkSpaceFile(WorkSpace.Path!);
@@ -984,5 +983,17 @@ export class Editor {
         } else if (!workspace.watchProject && WorkSpace.IsWatchingProject) {
             WorkSpace.StopWatchingProject();
         }
+    }
+
+    /**
+     * @hidden
+     */
+    public _applyPreferences(): void {
+        const preferences = this.getPreferences();
+        document.body.style.zoom = preferences.zoom ?? document.body.style.zoom;
+
+        this.engine?.setHardwareScalingLevel(preferences.scalingLevel ?? 1);
+
+        this.layout.updateSize();
     }
 }

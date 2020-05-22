@@ -6,5 +6,9 @@
     {
         "name": "First Personal Shooter",
         "file": "fps.zip"
+    },
+    {
+        "name": "First Personal Shooter Using Graphs",
+        "file": "fps_graphs.zip"
     }
 ]

@@ -1,21 +1,23 @@
 import { ipcRenderer } from "electron";
-import { join } from "path";
-import { pathExists, mkdir, writeJSON } from "fs-extra";
+import { join, extname } from "path";
+import { pathExists, mkdir, writeJSON, readFile, writeFile, remove } from "fs-extra";
 
 import { IPCResponses } from "../../../shared/ipc";
 
 import * as React from "react";
 import { ButtonGroup, Button, Classes, Menu, MenuItem, Popover, Divider, Position, ContextMenu } from "@blueprintjs/core";
 
-import { LGraph } from "litegraph.js";
-
 import { IFile } from "../project/files";
 import { Project } from "../project/project";
+import { ProjectExporter } from "../project/project-exporter";
+import { WorkSpace } from "../project/workspace";
 
 import { Icon } from "../gui/icon";
 import { Dialog } from "../gui/dialog";
 
+import { Tools } from "../tools/tools";
 import { undoRedo } from "../tools/undo-redo";
+import { IPCTools } from "../tools/ipc";
 
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
@@ -32,7 +34,7 @@ export class GraphAssets extends AbstractAssets {
      * Defines the size of assets to be drawn in the panel. Default is 100x100 pixels.
      * @override
      */
-    protected size: number = 50;
+    protected size: number = 100;
 
     /**
      * Renders the component.
@@ -69,7 +71,7 @@ export class GraphAssets extends AbstractAssets {
         for (const m of GraphAssets.Graphs) {
             if (this.items.find((i) => i.key === m.path)) { continue; }
             
-            this.items.push({ id: m.name, key: m.path, base64: "../css/svg/grip-lines.svg" });
+            this.items.push({ id: m.name, key: m.path, base64: "../css/svg/grip-lines.svg", style: { backgroundColor: "#222222" } });
             this.updateAssetObservable.notifyObservers();
         }
         
@@ -97,18 +99,32 @@ export class GraphAssets extends AbstractAssets {
         }
 
         let callback: (...args: any[]) => void;
-        ipcRenderer.on(IPCResponses.SendWindowMessage, callback = async (_, data) => {
-            if (data.id !== "graph-json") { return; }
-            if (data.path !== item.key) { return; }
+        ipcRenderer.on(IPCResponses.SendWindowMessage, callback = async (_, message) => {
+            if (message.id !== "graph-json") { return; }
+            if (message.data.path !== item.key) { return; }
 
-            if (data.closed) {
+            if (message.data.closed) {
                 ipcRenderer.removeListener(IPCResponses.SendWindowMessage, callback);
             }
 
-            await writeJSON(item.key, data.json, {
-                encoding: "utf-8",
-                spaces: "\t",
-            });
+            if (message.data.json) {
+                try {
+                    await writeJSON(item.key, message.data.json, {
+                        encoding: "utf-8",
+                        spaces: "\t",
+                    });
+                    
+                    IPCTools.SendWindowMessage(popupId, "graph-json");
+                } catch (e) {
+                    IPCTools.SendWindowMessage(popupId, "graph-json", { error: true });
+                }
+
+                // Update preview
+                item.base64 = message.data.preview;
+                this.setState({ items: this.items });
+
+                await ProjectExporter.ExportGraphs(this.editor);
+            }
         });
     }
 
@@ -141,10 +157,9 @@ export class GraphAssets extends AbstractAssets {
 
         const fileame = `${name}.json`;
         const dest = join(destFolder, fileame);
-        await writeJSON(dest, new LGraph().serialize(), {
-            encoding: "utf-8",
-            spaces: "\t",
-        });
+        const skeleton = await readFile(join(Tools.GetAppPath(), `assets/graphs/default.json`), { encoding: "utf-8" });
+
+        await writeFile(dest, skeleton);
 
         GraphAssets.Graphs.push({ name: fileame, path: dest });
         this.refresh();
@@ -153,19 +168,31 @@ export class GraphAssets extends AbstractAssets {
     /**
      * Called on the user wants to remove a mesh from the library.
      */
-    private _handleRemoveGraph(item: IAssetComponentItem): void {
+    private async _handleRemoveGraph(item: IAssetComponentItem): Promise<void> {
+        const extension = extname(item.id);
+        const sourcePath = join(WorkSpace.DirPath!, "src/scenes/", WorkSpace.GetProjectName(), "graphs", item.id.replace(extension, ".ts"));
+        const scriptExists = await pathExists(sourcePath);
+
         undoRedo.push({
             common: () => this.refresh(),
-            redo: () => {
+            redo: async () => {
                 const graphIndex = GraphAssets.Graphs.findIndex((m) => m.path === item.key);
                 if (graphIndex !== -1) { GraphAssets.Graphs.splice(graphIndex, 1); }
 
                 const itemIndex = this.items.indexOf(item);
                 if (itemIndex !== -1) { this.items.splice(itemIndex, 1); }
+
+                if (scriptExists) {
+                    remove(sourcePath);
+                }
             },
-            undo: () => {
+            undo: async () => {
                 GraphAssets.Graphs.push({ name: item.id, path: item.key });
                 this.items.push(item);
+
+                if (scriptExists) {
+                    await ProjectExporter.ExportGraphs(this.editor);
+                }
             },
         });
     }

@@ -21,12 +21,12 @@ export class IPCTools {
      * @param id the id of the message.
      * @param data the data to send to the window.
      */
-    public static SendWindowMessage<T>(popupId: number, id: string, data: any = { }): Promise<T> {
-        return new Promise<T>((resolve) => {
-            ipcRenderer.once(IPCResponses.SendWindowMessage, (_, data) => data.id === id && resolve(data as T));
+    public static SendWindowMessage<T>(popupId: number, id: string, data: any = { }): Promise<{ id: string; data: T; }> {
+        return new Promise<{ id: string; data: T; }>((resolve) => {
+            ipcRenderer.once(IPCResponses.SendWindowMessage, (_, data) => data.id === id && resolve(data));
             ipcRenderer.send(IPCRequests.SendWindowMessage, popupId, {
                 id,
-                ...data,
+                data,
             });
         });
     }
@@ -36,12 +36,12 @@ export class IPCTools {
      * @param args the editor's function arguments.
      * @warning take care with arguments.
      */
-    public static async ExecuteEditorFunction<T>(functionName: string, ...args: any[]): Promise<T> {
+    public static async ExecuteEditorFunction<T>(functionName: string, ...args: any[]): Promise<{ id: string; data: T; }> {
         return this.SendWindowMessage(-1, "execute-editor-function", {
             popupId: remote.getCurrentWindow().id,
             functionName,
             args,
-        })
+        });
     }
 
     /**

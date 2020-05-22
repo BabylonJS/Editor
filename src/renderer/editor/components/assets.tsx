@@ -71,6 +71,7 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
             id: i.id,
             key: i.key,
             base64: i.base64,
+            style: i.style,
         })));
 
         return result;

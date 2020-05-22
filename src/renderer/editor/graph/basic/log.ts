@@ -1,29 +1,38 @@
-import { GraphNode, ICodeGenerationOutput, CodeGenrationOutputType } from "../node";
+import { LiteGraph } from "litegraph.js";
 
-export class Log extends GraphNode {
+import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
+
+export class Log extends GraphNode<{ message: string; }> {
     /**
      * Constructor.
      */
     public constructor() {
         super("Log");
 
+        this.addInput("", LiteGraph.EVENT as any);
         this.addInput("Message", "");
+
+        this.addProperty("message", "message", "string");
+        this.addWidget("text", "message", this.properties.message, (v) => this.properties.message = v);
+
+        this.addOutput("", LiteGraph.EVENT as any);
     }
 
     /**
      * Called on the node is being executed.
      */
-    public onExecute(): void {
-        console.log(this.getInputData(0));
+    public execute(): void {
+        console.log(this.getInputData(1) ?? this.properties.message);
+        this.triggerSlot(0, null);
     }
 
     /**
      * Generates the code of the graph.
      */
-    public generateCode(value: ICodeGenerationOutput): ICodeGenerationOutput {
+    public generateCode(value?: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenrationOutputType.Function,
-            code: `console.log(${value.code})`,
+            type: CodeGenerationOutputType.Function,
+            code: `console.log(${value?.code ?? `"${this.properties.message}"`})`,
         };
     }
 }

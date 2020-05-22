@@ -150,7 +150,7 @@ export class WorkSpace {
     public static async InstallAndBuild(editor: Editor): Promise<void> {
         if (!this.Workspace) { return; }
         
-        const task = editor.addTaskFeedback(0, "Installing dependencies", 0);
+        const task = editor.addTaskFeedback(0, "Installing dependencies. Please wait...", 0);
         try {
             await ExecTools.Exec(editor, "npm install", WorkSpace.DirPath!);
 
@@ -228,7 +228,7 @@ export class WorkSpace {
 
         // Get command
         const watchScript = join("node_modules", ".bin", "tsc");
-        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, true);
+        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, false);
     }
 
     /**

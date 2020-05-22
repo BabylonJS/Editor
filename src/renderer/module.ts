@@ -34,5 +34,14 @@ Module._resolveFilename = function (filename: string, parent: any, isMain: boole
 	return originalResolveFilename(filename, parent, isMain);
 }
 
+// Globals
 global["React"] = require("react");
 global["ReactDOM"] = require("react-dom");
+
+// Path
+import path from "path";
+
+const pathJoin = path.join;
+path.join = function(...args: string[]): string {
+	return pathJoin(...args).replace(/\\/g, "/");
+};

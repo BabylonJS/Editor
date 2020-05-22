@@ -7,9 +7,12 @@ import {
     SSAO2RenderingPipeline, DefaultRenderingPipeline, StandardRenderingPipeline,
 } from "@babylonjs/core";
 
+export type NodeScriptConstructor = (new (...args: any[]) => Node);
+export type GraphScriptConstructor = (new (scene: Scene) => any);
 export type ScriptMap = {
     [index: string]: {
-        default: (new (...args: any[]) => Node);
+        IsGraph?: boolean;
+        default: (new (...args: any[]) => NodeScriptConstructor | GraphScriptConstructor);
     }
 };
 
@@ -115,6 +118,16 @@ export function attachScripts(scriptsMap: ScriptMap, scene: Scene): void {
     requireScriptForNodes(scriptsMap, scene.lights);
     requireScriptForNodes(scriptsMap, scene.cameras);
     requireScriptForNodes(scriptsMap, scene.transformNodes);
+
+    // Graphs
+    for (const scriptKey in scriptsMap) {
+        const script = scriptsMap[scriptKey];
+        if (script.IsGraph) {
+            const instance = new script.default(scene);
+            scene.executeWhenReady(() => instance["onStart"]());
+            scene.onBeforeRenderObservable.add(() => instance["onUpdate"]());
+        }
+    }
 }
 
 /**

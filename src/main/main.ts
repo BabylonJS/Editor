@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, Menu, ipcMain } from "electron";
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu } from "electron";
 import { extname } from "path";
 import * as os from "os";
 
@@ -122,7 +122,67 @@ export default class EditorApp {
 		});
 
 		// Menu
-		Menu.setApplicationMenu(null);
+		const menu = Menu.buildFromTemplate([
+			{
+				label: "BabylonJS Editor",
+				submenu: [
+					{
+						label: "Exit BabylonJS Editor",
+						accelerator: "Command+Q",
+						click: () => app.quit(),
+					},
+				],
+			},
+			{
+				label: "File",
+				submenu: [
+					{
+						label: "Save",
+						accelerator: "CommandOrControl+S",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save-editor-project"),
+					},
+					{
+						label: "Save As...",
+						accelerator: "CommandOrControl+Shift+S",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save-editor-project-as"),
+					},
+				],
+			},
+			{
+				label: "Edit",
+				submenu: [
+					{
+						label: "Undo",
+						accelerator: "CommandOrControl+Z",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("undo"),
+					},
+					{
+						label: "Redo",
+						accelerator: os.platform() === "darwin" ? "CommandOrControl+Shift+Z" : "Control+Y",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("redo"),
+					},
+				]
+			},
+			{
+				label: "Window",
+				submenu: [
+					{
+						label: "Minimize",
+						accelerator: "Command+M",
+						click: () => BrowserWindow.getFocusedWindow()?.minimize(),
+					},
+					{
+						label: "Close",
+						accelerator: "Command+W",
+						click: () => BrowserWindow.getFocusedWindow()?.close(),
+					},
+				],
+			}
+		]);
+		Menu.setApplicationMenu(menu);
+
+		// Remove from main window. Will be useful only for MacOs
+		this.Window.setMenuBarVisibility(false);
 	}
 }
 

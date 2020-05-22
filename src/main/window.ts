@@ -26,6 +26,8 @@ export class WindowController {
 			window.focus();
 		}
 
+		window.setMenuBarVisibility(false);
+
 		return window;
 	}
 

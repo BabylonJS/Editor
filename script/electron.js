@@ -36,6 +36,7 @@ Builder.build({
             "assets/wizard/**",
             "assets/project/**",
             "assets/scripts/**",
+            "assets/graphs/**",
         ],
         files: [
             "src/**",

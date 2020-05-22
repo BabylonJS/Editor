@@ -1,7 +1,8 @@
-import { mkdir, pathExists, copy, writeFile, writeJSON, readFile } from "fs-extra";
-import { join, normalize, basename, dirname } from "path";
+import { mkdir, pathExists, copy, writeFile, writeJSON, readFile, readJSON } from "fs-extra";
+import { join, normalize, basename, dirname, extname } from "path";
 
 import { SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial } from "babylonjs";
+import { LGraph } from "litegraph.js";
 
 import { MeshesAssets } from "../assets/meshes";
 import { PrefabAssets } from "../assets/prefabs";
@@ -14,6 +15,9 @@ import { Assets } from "../components/assets";
 import { ScriptAssets } from "../assets/scripts";
 
 import { SceneSettings } from "../scene/settings";
+
+import { GraphCode } from "../graph/graph";
+import { GraphCodeGenerator } from "../graph/generate";
 
 import { WorkSpace } from "./workspace";
 import { Project } from "./project";
@@ -293,6 +297,8 @@ export class ProjectExporter {
 
         for (const s of editor.scene!.mainSoundTrack.soundCollection) {
             const json = s.serialize();
+            json.url = basename(json.name);
+            
             const dest = `${normalize(`${basename(s.name)}`)}.json`;
 
             await writeFile(join(soundsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
@@ -321,6 +327,9 @@ export class ProjectExporter {
         // Done!
         editor.updateTaskFeedback(task, 100, "Done!");
         editor.closeTaskFeedback(task, 500);
+
+        // Save editor config
+        editor._saveEditorConfig();
 
         // Update recent projects to be shown in welcome wizard
         this._UpdateWelcomeRecentProjects(editor);
@@ -359,14 +368,14 @@ export class ProjectExporter {
     }
 
     /**
-     * Eports the final scene.
-     * @param editor the editor reference.
+     * Returns the final scene in its JSON representation.
+     * @param editor defines the reference to the editor.
      */
-    public static async ExportFinalScene(editor: Editor, task?: string): Promise<void> {
-        if (!WorkSpace.HasWorkspace()) { return; }
-
-        task = task ?? editor.addTaskFeedback(0, "Saving Final Scene");
-        editor.updateTaskFeedback(task, 0, "Saving Final Scene");
+    public static GetFinalSceneJson(editor: Editor): any {
+        // Sounds
+        if (editor.scene!.soundTracks?.indexOf(editor.scene!.mainSoundTrack) === -1) {
+            editor.scene!.soundTracks.push(editor.scene!.mainSoundTrack);
+        }
 
         const scene = SceneSerializer.Serialize(editor.scene!);
         scene.metadata = scene.metadata ?? { };
@@ -394,6 +403,21 @@ export class ProjectExporter {
             m.lodDistances = lods.map((lod) => lod.distance);
             m.lodCoverages = lods.map((lod) => lod.distance);
         });
+
+        return scene;
+    }
+
+    /**
+     * Eports the final scene.
+     * @param editor the editor reference.
+     */
+    public static async ExportFinalScene(editor: Editor, task?: string): Promise<void> {
+        if (!WorkSpace.HasWorkspace()) { return; }
+
+        task = task ?? editor.addTaskFeedback(0, "Saving Final Scene");
+        editor.updateTaskFeedback(task, 0, "Saving Final Scene");
+
+        const scene = this.GetFinalSceneJson(editor);
 
         const projectName = basename(dirname(WorkSpace.Workspace!.lastOpenedScene));
 
@@ -445,11 +469,45 @@ export class ProjectExporter {
     }
 
     /**
+     * Exports all available graphs in the scene.
+     * @param editor defines the reference to the editor.
+     */
+    public static async ExportGraphs(editor: Editor): Promise<void> {
+        // Write all graphs
+        const destGraphs = join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName(), "graphs");
+        if (!(await pathExists(destGraphs))) {
+            await mkdir(destGraphs);
+        }
+
+        const graphs = editor.assets.getAssetsOf(GraphAssets);
+        if (graphs?.length) {
+            GraphCode.Init();
+            await GraphCodeGenerator.Init();
+        }
+
+        for (const g of graphs ?? []) {
+            const extension = extname(g.id);
+            const name = g.id.replace(extension, "");
+            const json = await readJSON(g.key);
+
+            try {
+                const code = GraphCodeGenerator.GenerateCode(new LGraph(json))?.replace("${editor-version}", editor._packageJson.version);
+                await writeFile(join(destGraphs, `${name}.ts`), code);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    }
+
+    /**
      * Updates the script content to be written.
      */
     private static async _UpdateScriptContent(editor: Editor, scriptsContent: string): Promise<string> {
-        const all = await ScriptAssets.GetAllScripts();
+        // Write all graphs.
+        await this.ExportGraphs(editor);
 
+        // Export scripts.
+        const all = await ScriptAssets.GetAllScripts();
         return scriptsContent.replace("${editor-version}", editor._packageJson.version).replace("// ${scripts}", all.map((s) => {
             const toReplace = `src/scenes/${WorkSpace.GetProjectName()}/`;
             return `\t"${s}": require("./${s.replace(toReplace, "")}"),`;

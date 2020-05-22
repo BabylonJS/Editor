@@ -56,7 +56,7 @@ export class NodeInspector extends AbstractInspector<Node> {
         script.open();
 
         // Get all available scripts
-        const allScripts = await ScriptAssets.GetAllScripts();
+        const allScripts = (await ScriptAssets.GetAllScripts()).filter((s) => s.indexOf("src/scenes/scene/graphs/") === -1);
 
         // Check metadata
         this.selectedObject.metadata = this.selectedObject.metadata ?? { };

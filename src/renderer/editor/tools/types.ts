@@ -16,4 +16,12 @@ export interface IEditorPreferences {
      * Defines the path of the terminal to execute when opening the terminal in the editor.
      */
     terminalPath?: string;
+    /**
+     * Defines the current zoom value of the editor.
+     */
+    zoom?: string;
+    /**
+     * Defines the current hardware scaling level.
+     */
+    scalingLevel: number;
 }

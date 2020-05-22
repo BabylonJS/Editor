@@ -1,4 +1,4 @@
-import { Undefinable } from "../../../shared/types";
+import { Undefinable, Nullable } from "../../../shared/types";
 
 export interface IUndoRedoAction {
     /**
@@ -30,6 +30,7 @@ export class UndoRedo {
      */
     public stack: IUndoRedoAction[] = [];
 
+    private _promise: Nullable<Promise<void>> = null;
     private _position: number = 0;
 
     /**
@@ -55,8 +56,12 @@ export class UndoRedo {
 
 		this._position = this.stack.length - 1;
 
-        await action.redo();
-        if (action.common) { await action.common(); }
+        if (this._promise) { await this._promise; }
+
+        await (this._promise = action.redo());
+        if (action.common) { await (this._promise = action.common()); }
+
+        this._promise = null;
     }
 
     /**
@@ -68,21 +73,29 @@ export class UndoRedo {
 
 		this._position--;
 
-        await action.undo();
-        if (action.common) { await action.common(); }
-    }
+        if (this._promise) { await this._promise; }
 
+        await (this._promise = action.undo());
+        if (action.common) { await (this._promise = action.common()); }
+
+        this._promise = null;
+    }
+    
     /**
      * Redoes the current action in the undo/redo stack.
      */
     public async redo(): Promise<void> {
         const action = this.stack[this._position + 1];
         if (!action) { return; }
+        
+        this._position++;
+        
+        if (this._promise) { await this._promise; }
+        
+        await (this._promise = action.redo());
+        if (action.common) { await (this._promise = action.common()); }
 
-		this._position++;
-
-        await action.redo();
-        if (action.common) { await action.common(); }
+        this._promise = null;
     }
 
     /**

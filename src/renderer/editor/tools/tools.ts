@@ -90,6 +90,34 @@ export class Tools {
     }
 
     /**
+     * Returns the property of the given object at the given path..
+     * @param object defines the object reference containing the property to get.
+     * @param path defines the path of the property to get;
+     */
+    public static GetProperty<T>(object: any, path: string): T {
+        const split = path.split(".");
+        for (let i = 0; i < split.length; i++) {
+            object = object[split[i]];
+        }
+
+        return object;
+    }
+
+    /**
+     * Returns the effective property of the given object at the given path..
+     * @param object defines the object reference containing the property to get.
+     * @param path the path of the property to get.
+     */
+    public static GetEffectiveProperty<T> (object: any, path: string): T {
+        const split = path.split(".");
+        for (let i = 0; i < split.length - 1; i++) {
+            object = object[split[i]];
+        }
+
+        return object;
+    }
+
+    /**
      * Creates a screenshot of the current scene.
      * @param engine the engine used to render the scene to take as screenshot.
      * @param camera the camera that should be used for the screenshot.

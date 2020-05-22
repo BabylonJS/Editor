@@ -1,4 +1,4 @@
-import { join, extname } from "path";
+import { join, extname, basename } from "path";
 import { copy } from "fs-extra";
 
 import { Undefinable } from "../../../shared/types";
@@ -9,7 +9,7 @@ import { ButtonGroup, Button, Classes } from "@blueprintjs/core";
 import { Sound, PickingInfo, Vector3 } from "babylonjs";
 
 import { Project } from "../project/project";
-import { IFile } from "../project/files";
+import { IFile, FilesStore } from "../project/files";
 
 import { Tools } from "../tools/tools";
 
@@ -70,9 +70,13 @@ export class SoundAssets extends AbstractAssets {
             const extension = extname(file.name).toLowerCase();
             if (this._extensions.indexOf(extension) === -1) { continue; }
 
+            // Register file
+            const path = join(Project.DirPath!, "files", file.name);
+            FilesStore.List[path] = { path, name: file.name };
+
             // Create sound
-            new Sound(file.name, file.path, this.editor.scene!, () => {
-                // Nothing to do at the moment.
+            const sound = new Sound(file.name, file.path, this.editor.scene!, () => {
+                sound.name = join("files", basename(file.name));
             }, {
                 autoplay: false,
             });

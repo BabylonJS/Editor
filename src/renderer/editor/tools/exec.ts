@@ -56,7 +56,10 @@ export class ExecTools {
         }
 
         const promise = new Promise<void>((resolve, reject) => {
-            program.onExit((e) => e.exitCode === 0 ? resolve() : reject());
+            program.onExit((e) => {
+                if (e?.exitCode === 0) { return resolve(); }
+                reject();
+            });
         });
 
         program.write(`${command.replace(/\\/g, "/")}\n\r`);

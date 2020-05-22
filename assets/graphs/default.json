@@ -1,0 +1,155 @@
+{
+	"last_node_id": 3,
+	"last_link_id": 2,
+	"nodes": [
+		{
+			"id": 1,
+			"type": "events/start_game_event",
+			"pos": {
+				"0": 70,
+				"1": 130,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 140,
+				"1": 26
+			},
+			"flags": {},
+			"order": 0,
+			"mode": 0,
+			"inputs": [],
+			"outputs": [
+				{
+					"name": "",
+					"type": -1,
+					"links": [
+						1
+					]
+				}
+			],
+			"title": "Start Game",
+			"properties": {},
+			"bgcolor": "#7a4646",
+			"boxcolor": "#666",
+			"shape": 3
+		},
+		{
+			"id": 2,
+			"type": "basics/log",
+			"pos": {
+				"0": 360,
+				"1": 130,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 210,
+				"1": 78
+			},
+			"flags": {},
+			"order": 2,
+			"mode": 3,
+			"inputs": [
+				{
+					"name": "",
+					"type": -1,
+					"link": 1
+				},
+				{
+					"name": "Message",
+					"type": 0,
+					"link": 2
+				}
+			],
+			"outputs": [
+				{
+					"name": "",
+					"type": -1,
+					"links": null
+				}
+			],
+			"properties": {
+				"message": "message"
+			},
+			"color": "#151",
+			"bgcolor": "#353535",
+			"boxcolor": "#666",
+			"shape": 2
+		},
+		{
+			"id": 3,
+			"type": "basics/string",
+			"pos": {
+				"0": 60,
+				"1": 280,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 210,
+				"1": 58
+			},
+			"flags": {},
+			"order": 1,
+			"mode": 0,
+			"inputs": [],
+			"outputs": [
+				{
+					"name": "",
+					"type": "string",
+					"links": [
+						2
+					]
+				}
+			],
+			"properties": {
+				"value": "game started!"
+			},
+			"bgcolor": "#353535",
+			"boxcolor": "#666",
+			"shape": 2
+		}
+	],
+	"links": [
+		[
+			1,
+			1,
+			0,
+			2,
+			0,
+			-1
+		],
+		[
+			2,
+			3,
+			0,
+			2,
+			1,
+			0
+		]
+	],
+	"groups": [],
+	"config": {
+		"align_to_grid": true
+	},
+	"version": 0.4
+}

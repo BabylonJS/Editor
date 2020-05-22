@@ -77,6 +77,15 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} />
                 <MenuItem text="Save Project..." icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
                 <MenuItem text="Rename Project..." icon="edit" onClick={() => this._menuItemClicked("project:rename")} />
+                <MenuDivider />
+                <MenuItem text="Add New Project..." icon={<Icon src="plus.svg" />} onClick={() => NewProjectWizard.Show()} />
+                <MenuItem text="Projects" icon="more">
+                    <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this._handleRefreshWorkspace()} />
+                    <MenuDivider />
+                    {WorkSpace.AvailableProjects.map((p) => <MenuItem key={p} text={p} onClick={() => this._handleChangeProject(p)} />)}
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem text="Open Visual Studio Code..." icon={<Icon src="vscode.svg" style={{ filter: "none" }} />} onClick={() => this._handleOpenVSCode()} />
             </Menu>;
         const edit =
             <Menu>
@@ -87,6 +96,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Refresh Assets..." icon={<Icon src="recycle.svg" />} onClick={() => this._menuItemClicked("edit:refresh-assets")} />
                 <MenuItem text="Reset Editor..." icon={<Icon src="recycle.svg" />} onClick={() => this._menuItemClicked("edit:reset")} />
+                <MenuDivider />
+                <MenuItem text="Preferences..." icon={<Icon src="wrench.svg" />} onClick={() => this._handleWorkspaceSettings()} />
             </Menu>;
         const view =
             <Menu>
@@ -130,19 +141,6 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
             </Menu>;
 
-        const workspace = !this.state.hasWorkspace ? undefined :
-            <Menu>
-                <MenuItem text="Add New Project..." icon={<Icon src="plus.svg" />} onClick={() => NewProjectWizard.Show()} />
-                <MenuItem text="Settings..." icon={<Icon src="wrench.svg" />} onClick={() => this._handleWorkspaceSettings()} />
-                <MenuItem text="Projects" icon="more">
-                    <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this._handleRefreshWorkspace()} />
-                    <MenuDivider />
-                    {WorkSpace.AvailableProjects.map((p) => <MenuItem key={p} text={p} onClick={() => this._handleChangeProject(p)} />)}
-                </MenuItem>
-                <MenuDivider />
-                <MenuItem text="Open Visual Studio Code..." icon={<Icon src="vscode.svg" style={{ filter: "none" }} />} onClick={() => this._handleOpenVSCode()} />
-            </Menu>;
-
         const help =
             <Menu>
                 <MenuItem text="Documentation..." icon={<Icon src="internetarchive.svg" />} onClick={() => this._menuItemClicked("help:documentation")} />
@@ -171,9 +169,6 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <Popover content={tools} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="wrench.svg"/>} rightIcon="caret-down" text="Tools"/>
                 </Popover>
-                <Popover content={workspace} position={Position.BOTTOM_LEFT}>
-                    <Button icon={<Icon src="workspace.svg"/>} rightIcon="caret-down" text="Workspace"/>
-                </Popover>
                 <Popover content={help} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="dog.svg"/>} rightIcon="caret-down" text="Help"/>
                 </Popover>
@@ -201,7 +196,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         switch (id) {
             // Project
             case "project:open-workspace": WorkSpace.Browse(); break;
-            case "project:open-worspace-file-explorer": shell.openExternal(WorkSpace.DirPath!); break;
+            case "project:open-worspace-file-explorer": shell.openItem(WorkSpace.DirPath!); break;
 
             case "project:reload": this._reloadProject(); break;
             case "project:save": ProjectExporter.Save(this._editor); break;
@@ -340,8 +335,15 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
     /**
      * Called on the user wants to open VSCode.
      */
-    private _handleOpenVSCode(): void {
-        ExecTools.ExecAndGetProgram(this._editor, `code "${WorkSpace.DirPath!}"`, undefined, true);
+    private async _handleOpenVSCode(): Promise<void> {
+        try {
+            await ExecTools.ExecAndGetProgram(this._editor, `code "${WorkSpace.DirPath!}"`, undefined, true).promise;
+        } catch (e) {
+            Alert.Show("Failed to open VSCode", `
+                Failed to open Visual Studio Code. Please ensure the command named "code" is available in the "PATH" environment. 
+                You can add the command by opening VSCode, type "Command or Control + Shift + P" and find the command "Shell Command : Install code in PATH".
+            `);
+        }
     }
 
     /**

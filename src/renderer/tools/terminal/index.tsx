@@ -82,7 +82,7 @@ export default class TerminalPlugin extends AbstractEditorPlugin<{ }> {
             args.push("-l");
         }
 
-        this._process = spawn(shell, [], {
+        this._process = spawn(shell, args, {
             name: 'xterm-color',
             cols: 80,
             rows: 30,

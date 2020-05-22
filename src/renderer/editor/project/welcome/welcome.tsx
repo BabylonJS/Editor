@@ -1,4 +1,4 @@
-import { readJSON, readdir, writeJson } from "fs-extra";
+import { readJSON, readdir, writeJson, stat } from "fs-extra";
 import { basename, join, extname } from "path";
 import Zip from "adm-zip";
 
@@ -11,6 +11,7 @@ import { Dialog, Classes, Button, Tooltip, Position, Divider, Callout, Intent, B
 import { Icon } from "../../gui/icon";
 import { Wizard } from "../../gui/wizard";
 import { Overlay } from "../../gui/overlay";
+import { Alert } from "../../gui/alert";
 
 import { Tools } from "../../tools/tools";
 
@@ -185,6 +186,10 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         }
 
         const path = await Tools.ShowSaveDialog();
+        if (!(await this._isFolderEmpty(path))) {
+            await Alert.Show("Can't Create Project.", "Can't create project. The destination folder must be empty.");
+            return this._handleFinishWizard();
+        }
 
         this._handleClose();
         Overlay.Show("Creating Project...", true);
@@ -211,6 +216,10 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
     private async _downloadTemplate(template: IWorkspaceTemplate): Promise<void> {
         // Get destination path.
         const path = await Tools.ShowSaveDialog();
+        if (!(await this._isFolderEmpty(path))) {
+            await Alert.Show("Can't Create Project.", "Can't create project. The destination folder must be empty.");
+            return this._downloadTemplate(template);
+        }
 
         // Download file
         this.setState({ downloadProgress: 0.001 });
@@ -247,5 +256,16 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
             encoding: "utf-8",
             spaces: "\t",
         });
+    }
+
+    /**
+     * Returns wether or not the folder is empty.
+     */
+    private async _isFolderEmpty(path: string): Promise<boolean> {
+        const stats = await stat(path);
+        if (!stats.isDirectory()) { return false; }
+
+        const files = await readdir(path);
+        return files.length === 0;
     }
 }

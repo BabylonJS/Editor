@@ -77,10 +77,10 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
                     <FormGroup disabled={false} inline={false} label="Search..." labelFor="filter-input" labelInfo="(filter)">
                         <InputGroup id="filter-input" placeholder="Search..." disabled={false} autoFocus={true} type="text" onChange={(v) => this.setState({ filter: v.target.value, nodes: this._updateTreeNodes(v.target.value) })} />
                     </FormGroup>
-                    <div style={{ width: "760px", height: "600px" }}>
+                    <div style={{ width: "760px", height: "450px", overflow: "auto" }}>
                         <Tree
                             contents={this.state.nodes}
-                            // onNodeClick={this.handleNodeClick}
+                            onNodeDoubleClick={(n) => this._handleNodeDoubleClick(n)}
                             onNodeCollapse={(n) => this._handleNodeCollapse(n)}
                             onNodeExpand={(n) => this._handleNodeExpand(n)}
                             className={Classes.ELEVATION_0}
@@ -116,6 +116,16 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
     }
 
     /**
+     * Called on a node is double clicked.
+     */
+    private _handleNodeDoubleClick(nodeData: ITreeNode): void {
+        if (nodeData.childNodes?.length) { return; }
+
+        this._selectedNode = nodeData;
+        this._handleClose(false);
+    }
+
+    /**
      * Called on a node is being collapsed.
      */
     private _handleNodeCollapse(nodeData: ITreeNode): void {
@@ -147,14 +157,14 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
         }
 
         const folders: ITreeNode[] = [];
-        filter = filter.toLowerCase();
+        filter = filter.toLowerCase().replace(/ /g, "");
 
         for (const folder in map) {
             const nodes = map[folder];
-            const children = nodes.filter((n) => n.toLowerCase().indexOf(filter) !== -1).map((n) => ({
+            const children = nodes.filter((n) => n.replace(/_/g, "").toLowerCase().indexOf(filter) !== -1).map((n) => ({
                 id: `${folder}/${n}`,
                 hasCaret: false,
-                label: n,
+                label: this._getFormatedname(n.replace(/_/g, " ")),
             })) as ITreeNode[];
 
             if (!children.length) {
@@ -165,7 +175,7 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
                 id: folder,
                 hasCaret: children.length > 0,
                 icon: "folder-close",
-                label: folder,
+                label: this._getFormatedname(folder),
                 isExpanded: true,
                 childNodes: children,
             });
@@ -180,5 +190,12 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
         }
 
         return folders;
+    }
+
+    /**
+     * Returns the name of the folder or node in its formated form.
+     */
+    private _getFormatedname(name: string): string {
+        return name[0].toUpperCase() + name.substr(1, name.length - 1);
     }
 }
