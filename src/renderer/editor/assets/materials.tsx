@@ -139,9 +139,14 @@ export class MaterialAssets extends AbstractAssets {
                 MaterialAssets._NodeMaterialEditors[index].id = popupId;
             }
 
+            let callback: (...args: any[]) => void;
             ipcRenderer.on(IPCResponses.SendWindowMessage, (_, data) => {
                 if (data.id !== "node-material-json") { return; }
                 if (data.json.id !== material.id) { return; }
+
+                if (data.closed) {
+                    ipcRenderer.removeListener(IPCResponses.SendWindowMessage, callback);
+                }
 
                 // Clear textures
                 material.getTextureBlocks().forEach((block) => block.texture?.dispose());

@@ -5,6 +5,7 @@ import { SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTar
 
 import { MeshesAssets } from "../assets/meshes";
 import { PrefabAssets } from "../assets/prefabs";
+import { GraphAssets } from "../assets/graphs";
 
 import { Editor } from "../editor";
 import { Tools } from "../tools/tools";
@@ -80,6 +81,7 @@ export class ProjectExporter {
             assets: {
                 meshes: MeshesAssets.Meshes.map((m) => m.name),
                 prefabs: PrefabAssets.Prefabs.map((p) => p.name),
+                graphs: GraphAssets.Graphs.map((g) => g.name),
             },
             project: {
                 camera: SceneSettings.Camera!.serialize(),

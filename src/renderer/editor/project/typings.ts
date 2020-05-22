@@ -99,6 +99,10 @@ export interface IProject {
          * Defines all the informations about the prefabs assets.
          */
         prefabs: Undefinable<string[]>;
+        /**
+         * Defines all the graphs available in the project.
+         */
+        graphs: Undefinable<string[]>;
     };
     /**
      * Defines some useful datas

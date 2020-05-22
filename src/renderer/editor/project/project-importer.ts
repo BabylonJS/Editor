@@ -8,6 +8,7 @@ import {
 
 import { MeshesAssets } from "../assets/meshes";
 import { PrefabAssets } from "../assets/prefabs";
+import { GraphAssets } from "../assets/graphs";
 
 import { Editor } from "../editor";
 
@@ -80,6 +81,9 @@ export class ProjectImporter {
         project.assets.meshes.forEach((m) => MeshesAssets.Meshes.push({ name: m, path: join(Project.DirPath!, "assets", "meshes", m) }));
         if (project.assets.prefabs) {
             project.assets.prefabs.forEach((p) => PrefabAssets.Prefabs.push({ name: p, path: join(Project.DirPath!, "prefabs", p) }));
+        }
+        if (project.assets.graphs) {
+            project.assets.graphs.forEach((g) => GraphAssets.Graphs.push({ name: g, path: join(Project.DirPath!, "graphs", g) }));
         }
 
         // Configure scene

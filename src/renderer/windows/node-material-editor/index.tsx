@@ -1,7 +1,7 @@
 import { ipcRenderer } from "electron";
 
 import { Nullable } from "../../../shared/types";
-import { IPCResponses, IPCRequests } from "../../../shared/ipc";
+import { IPCResponses } from "../../../shared/ipc";
 
 import * as React from "react";
 import { NodeMaterial, Engine, Scene, Light } from "babylonjs";
@@ -14,6 +14,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
     private _canvas: HTMLCanvasElement;
     private _engine: Engine;
     private _scene: Scene;
+    private _material: NodeMaterial;
 
     public constructor(props: any) {
         super(props);
@@ -27,9 +28,6 @@ export default class NodeMaterialEditorWindow extends React.Component {
 
         this._engine = new Engine(this._canvas);
         this._scene = new Scene(this._engine);
-
-        // Bind all events
-        this._bindEvents();
     }
 
     /**
@@ -48,13 +46,10 @@ export default class NodeMaterialEditorWindow extends React.Component {
     }
 
     /**
-     * Binds the ipc events.
+     * Called on the window is being closed.
      */
-    private _bindEvents(): void {
-        ipcRenderer.on(IPCRequests.SendWindowMessage, (_ , data) => {
-            if (data.id !== "init") { return; }
-            this._setMaterial(data.json, data.editorData, data.lights);
-        });
+    public onClose(): void {
+        this._saveMaterial(this._material, true);
     }
 
     /**
@@ -70,28 +65,28 @@ export default class NodeMaterialEditorWindow extends React.Component {
 
         // Create material
         json.editorData = editorData;
-        const nodeMaterial = NodeMaterial.Parse(json, this._scene);
+        this._material = NodeMaterial.Parse(json, this._scene);
 
-        nodeMaterial.onBuildObservable.add(() => this._saveMaterial(nodeMaterial));
-        window.addEventListener("beforeunload", () => this._saveMaterial(nodeMaterial));
+        this._material.onBuildObservable.add(() => this._saveMaterial(this._material));
 
         // Create node material editor.
         const { NodeEditor } = require("babylonjs-node-editor");
         NodeEditor.Show({
             hostElement: this._div,
-            nodeMaterial,
+            nodeMaterial: this._material,
         });
-        NodeEditor._CurrentState.onUpdateRequiredObservable.add(() => this._saveMaterial(nodeMaterial));
+        NodeEditor._CurrentState.onUpdateRequiredObservable.add(() => this._saveMaterial(this._material));
     }
 
     /**
      * Saves the node material.
      */
-    private _saveMaterial(nodeMaterial: NodeMaterial): void {
+    private _saveMaterial(nodeMaterial: NodeMaterial, closed: boolean = false): void {
         ipcRenderer.send(IPCResponses.SendWindowMessage, -1, {
             id: "node-material-json",
             json: nodeMaterial.serialize(),
             editorData: nodeMaterial.editorData,
+            closed,
         });
     }
 }

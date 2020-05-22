@@ -35,6 +35,7 @@ export default class WindowedPlugin {
     private async _init(): Promise<void> {
         // Bind event on the window is closing
         window.addEventListener("beforeunload", () => {
+            this._ref?.onClose?.call(this._ref);
             ipcRenderer.send(IPCRequests.SendWindowMessage, -1, { id: "close-window", windowId: remote.getCurrentWindow().id });
         });
 
@@ -57,5 +58,10 @@ export default class WindowedPlugin {
         }
 
         document.getElementById("BABYLON-START-IMAGE")?.remove();
+
+        // Debug?
+        if (process.env.DEBUG) {
+            remote.getCurrentWindow().maximize();
+        }
     }
 }

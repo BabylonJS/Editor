@@ -85,6 +85,7 @@ import "./assets/materials";
 import "./assets/prefabs";
 import "./assets/scripts";
 import "./assets/sounds";
+import "./assets/graphs";
 
 export class Editor {
     /**
