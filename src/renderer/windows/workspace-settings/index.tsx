@@ -98,9 +98,41 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
             </div>
         );
 
+        // Editor
+        const positionGizmoSnapping = this.state.positionGizmoSnapping ?? [0, 1, 2, 5, 10];
+        const rotationGizmoSnapping = this.state.rotationGizmoSnapping ?? [0, 1, 2, 5, 10];
+
+        const editor = (
+            <div>
+                <Callout intent={Intent.NONE} title="Position Gizmo Snapping Values">
+                    <FormGroup key="position-snapping" label="Positon Gizmo Snapping Values">
+                        {positionGizmoSnapping.map((p, index) => (
+                            <InputGroup id="" key={`position-snapping-${index}`} type="number" min={0} value={p.toString()} step={0.1} onChange={(e) => {
+                                positionGizmoSnapping[index] = parseFloat(e.currentTarget.value);
+                                this.setState({ positionGizmoSnapping });
+                            }} />
+                        ))}
+                        <Button text="Add..." icon="add" fill={true} />
+                    </FormGroup>
+                </Callout>
+                <Divider />
+                <Callout intent={Intent.PRIMARY} title="Rotation Gizmo Snapping Values">
+                    <FormGroup key="rotation-snapping" label="Rotation Gizmo Snapping Values">
+                        {rotationGizmoSnapping.map((p, index) => (
+                            <InputGroup id="" key={`rotation-snapping-${index}`} type="number" min={0} value={p.toString()} step={0.1} onChange={(e) => {
+                                rotationGizmoSnapping[index] = parseFloat(e.currentTarget.value);
+                                this.setState({ rotationGizmoSnapping });
+                            }} />
+                        ))}
+                        <Button text="Add..." icon="add" fill={true} />
+                    </FormGroup>
+                </Callout>
+            </div>
+        );
+
         return (
             <>
-                <div style={{ width: "100%", height: "calc(100% - 30px)", background: "#333333" }}>
+                <div style={{ width: "100%", height: "calc(100% - 30px)", background: "#333333", overflow: "auto" }}>
                     <Navbar>
                         <Navbar.Group>
                             <Navbar.Heading>
@@ -117,11 +149,13 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
                             >
                                 <Tab id="workspace" title="Workspace" key="workspace-tab" />
                                 <Tab id="common" title="Common" key="common-tab" />
+                                <Tab id="editor" title="Editor" key="editor-tab" />
                             </Tabs>
                         </Navbar.Group>
                     </Navbar>
                     {this.state.navbarTabId === "workspace" ? workspaceContent : undefined}
                     {this.state.navbarTabId === "common" ? commonContent : undefined}
+                    {this.state.navbarTabId === "editor" ? editor : undefined}
                 </div>
                 <div style={{ width: "100%", height: "30px", background: "#333333" }}>
                     <ButtonGroup>
@@ -162,6 +196,8 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
         preferences.terminalPath = this.state.terminalPath;
         preferences.zoom = this.state.zoom;
         preferences.scalingLevel = this.state.scalingLevel;
+        preferences.positionGizmoSnapping = this.state.positionGizmoSnapping;
+        preferences.rotationGizmoSnapping = this.state.rotationGizmoSnapping;
 
         localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(preferences));
 

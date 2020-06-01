@@ -1,3 +1,4 @@
+import { ipcRenderer } from "electron";
 import { writeJSON } from "fs-extra";
 import { extname } from "path";
 
@@ -154,8 +155,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
      */
     private _bindEvents(): void {
         // Shortcuts
-        window.addEventListener("keyup", (ev) => {
-            if ((ev.ctrlKey || ev.metaKey) && ev.key === "s") { return this._saveMaterial(this._material); }
-        });
+        ipcRenderer.on("save", () => this._saveMaterial(this._material));
+        ipcRenderer.on("save-as", () => this._saveAs(this._material));
     }
 }

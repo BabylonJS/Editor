@@ -266,6 +266,6 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         if (!stats.isDirectory()) { return false; }
 
         const files = await readdir(path);
-        return files.length === 0;
+        return files.filter((f) => f[0] !== ".").length === 0;
     }
 }

@@ -155,7 +155,7 @@ export class WorkSpace {
             await ExecTools.Exec(editor, "npm install", WorkSpace.DirPath!);
 
             editor.updateTaskFeedback(task, 50, "Building project...");
-            await ExecTools.Exec(editor, "npm run build", WorkSpace.DirPath!);
+            await ExecTools.Exec(editor, "npm run build -- --progress", WorkSpace.DirPath!);
             editor.updateTaskFeedback(task, 100, "Done!");
         } catch (e) {
             editor.updateTaskFeedback(task, 0, "Failed");
@@ -175,7 +175,7 @@ export class WorkSpace {
         const task = editor.addTaskFeedback(50, "Building project...");
 
         try {
-            await ExecTools.Exec(editor, "npm run build", WorkSpace.DirPath!);
+            await ExecTools.Exec(editor, "npm run build -- --progress", WorkSpace.DirPath!);
             editor.updateTaskFeedback(task, 100, "Done!");
         } catch (e) {
             editor.updateTaskFeedback(task, 0, "Failed");

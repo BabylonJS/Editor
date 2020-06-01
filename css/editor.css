@@ -55,6 +55,17 @@ div::-webkit-scrollbar-thumb {
     border-radius: 0px !important;
 }
 
+/* EDITOR */
+.searchBar {
+    left: calc(50% - 200px);
+    top: calc(50% - 100px);
+    width: 400px;
+}
+
+.whitePlaceHolder::placeholder {
+    color: gray;
+}
+
 /* Blue Print */
 
 .bp3-dark .bp3-menu {
@@ -91,6 +102,10 @@ div::-webkit-scrollbar-thumb {
 .bp3-dark .bp3-menu {
     max-height: 500px;
     overflow: auto;
+}
+
+.bp3-menu-header > h6 {
+    color: grey;
 }
 
 /* ANTD */

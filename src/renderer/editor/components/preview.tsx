@@ -11,9 +11,13 @@ import { ScenePicker } from "../scene/picker";
 import { SceneGizmo, GizmoType } from "../scene/gizmo";
 import { SceneSettings } from "../scene/settings";
 
-import { Icon } from "../gui/icon";
-
 import { Tools } from "../tools/tools";
+
+import { Icon } from "../gui/icon";
+import { Omnibar, IOmnibarItem } from "../gui/omni-bar";
+
+import { WorkSpace } from "../project/workspace";
+import { ProjectExporter } from "../project/project-exporter";
 
 export interface IPreviewProps {
     /**
@@ -60,8 +64,12 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     public gizmo: SceneGizmo;
 
     private _editor: Editor;
-
     private _copiedNode: Nullable<Node | IParticleSystem> = null;
+
+    private _searchBar: Omnibar;
+    private _refHandler = {
+        getSearchBar: (ref: Omnibar) => this._searchBar = ref,
+    };
 
     /**
      * Constructor.
@@ -156,6 +164,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 <div style={{ height: "calc(100% - 25px)" }}>
                     <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none" }}></canvas>
                     <Tag key="preview-tag" round={true} large={true} style={{ visibility: (this.state.canvasFocused ? "visible" : "hidden"), position: "absolute", left: "50%", top: "calc(100% - 15px)", transform: "translate(-50%, -50%)" }} >{this.state.overNodeName}</Tag>
+                    <Omnibar ref={this._refHandler.getSearchBar} onChange={(i) => this._handleSearchBarChanged(i)} />
                 </div>
             </>
         );
@@ -206,29 +215,23 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     }
 
     /**
+     * Shows the search bar.
+     */
+    public showSearchBar(): void {
+        this._searchBar.show([
+                { id: "__editor__separator__", name: "Scene Nodes" }
+            ].concat(this._editor.sceneUtils.getAllNodes()).concat([
+                { id: "__editor__separator__", name: "Commands" },
+                { id: "__command__build__project__", name: "Build Project..." },
+                { id: "__command__generate_scene__", name: "Generate Scene..." },
+        ]));
+    }
+
+    /**
      * Focuses the currently selected node.
      */
     public focusSelectedNode(): void {
-        let node = this._editor.graph.lastSelectedObject;
-        if (!node) { return; }
-
-        if (node instanceof ParticleSystem) { node = node.emitter as AbstractMesh; }
-
-        const camera = this._editor.scene!.activeCamera;
-        if (!camera || !(camera instanceof TargetCamera)) { return; }
-
-        const translation = Vector3.Zero();
-        (node as Node).getWorldMatrix().decompose(undefined, undefined, translation);
-        
-        if (camera["target"]) {
-            const a = new Animation("FocusTargetAnimation", "target", 60, Animation.ANIMATIONTYPE_VECTOR3);
-            a.setKeys([{ frame: 0, value: camera.getTarget() }, { frame: 60, value: translation }]);
-
-            this._editor.scene!.stopAnimation(camera);
-            this._editor.scene!.beginDirectAnimation(camera, [a], 0, 60, false, 4);
-        } else {
-            camera.setTarget(translation);
-        }
+        this._focusNode(this._editor.graph.lastSelectedObject);
     }
 
     /**
@@ -325,6 +328,48 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         this.gizmo = new SceneGizmo(this._editor);
 
         this._bindEvents();
+    }
+
+    /**
+     * Focuses on the given node.
+     */
+    private _focusNode(node: Nullable<Node | IParticleSystem | Sound>): void {
+        if (!node) { return; }
+
+        if (node instanceof ParticleSystem) { node = node.emitter as AbstractMesh; }
+
+        const camera = this._editor.scene!.activeCamera;
+        if (!camera || !(camera instanceof TargetCamera)) { return; }
+
+        const translation = Vector3.Zero();
+        (node as Node).getWorldMatrix().decompose(undefined, undefined, translation);
+        
+        if (camera["target"]) {
+            const a = new Animation("FocusTargetAnimation", "target", 60, Animation.ANIMATIONTYPE_VECTOR3);
+            a.setKeys([{ frame: 0, value: camera.getTarget() }, { frame: 60, value: translation }]);
+
+            this._editor.scene!.stopAnimation(camera);
+            this._editor.scene!.beginDirectAnimation(camera, [a], 0, 60, false, 4);
+        } else {
+            camera.setTarget(translation);
+        }
+    }
+
+    /**
+     * Called on the user selects an item in the searchbar
+     */
+    private async _handleSearchBarChanged(item: Nullable<IOmnibarItem>): Promise<void> {
+        if (!item) { return; }
+
+        switch (item.id) {
+            case "__command__build__project__": return WorkSpace.BuildProject(this._editor);
+            case "__command__generate_scene__": return ProjectExporter.ExportFinalScene(this._editor);
+        }
+
+        const node = this._editor.scene!.getNodeByID(item.id);
+        if (!node) { return; }
+
+        this._focusNode(node);
     }
 
     /**

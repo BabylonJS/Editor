@@ -1,3 +1,5 @@
+import { ipcRenderer } from "electron";
+
 import { Nullable, IStringDictionary } from "../../../shared/types";
 
 import * as React from "react";
@@ -235,13 +237,6 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
             closed: true,
         });
 
-        const config = this.layout.toConfig();
-        LayoutUtils.ClearLayoutContent(this, config.content);
-
-        localStorage.setItem("babylonjs-editor-graph-layout-state", JSON.stringify(config));
-        localStorage.setItem("babylonjs-editor-graph-layout-version", GraphEditorWindow.LayoutVersion);
-        localStorage.setItem("babylonjs-editor-graph-window-dimensions", JSON.stringify({ width: innerWidth, height: innerHeight }));
-
         return true;
     }
 
@@ -311,20 +306,27 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         } else {
             this._toaster?.show({ message: "Saved.", intent: Intent.SUCCESS, timeout: 1000 });
         }
+
+        // Save state
+        const config = this.layout.toConfig();
+        LayoutUtils.ClearLayoutContent(this, config.content);
+
+        localStorage.setItem("babylonjs-editor-graph-layout-state", JSON.stringify(config));
+        localStorage.setItem("babylonjs-editor-graph-layout-version", GraphEditorWindow.LayoutVersion);
+        localStorage.setItem("babylonjs-editor-graph-window-dimensions", JSON.stringify({ width: innerWidth, height: innerHeight }));
     }
 
     /**
      * Binds all the events.
      */
     private _bindEvents(): void {
+        // Resize
         window.addEventListener("resize", () => {
             this.layout.updateSize();
             this.resize();
         });
 
         // Shortcuts
-        window.addEventListener("keyup", (ev) => {
-            if ((ev.ctrlKey || ev.metaKey) && ev.key === "s") { return this._save(); }
-        });
+        ipcRenderer.on("save", () => this._save());
     }
 }

@@ -128,7 +128,7 @@ export default class EditorApp {
 				submenu: [
 					{
 						label: "Exit BabylonJS Editor",
-						accelerator: "Command+Q",
+						accelerator: "CommandOrControl+Q",
 						click: () => app.quit(),
 					},
 				],
@@ -139,12 +139,12 @@ export default class EditorApp {
 					{
 						label: "Save",
 						accelerator: "CommandOrControl+S",
-						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save-editor-project"),
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save"),
 					},
 					{
 						label: "Save As...",
 						accelerator: "CommandOrControl+Shift+S",
-						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save-editor-project-as"),
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save-as"),
 					},
 				],
 			},
@@ -161,7 +161,15 @@ export default class EditorApp {
 						accelerator: os.platform() === "darwin" ? "CommandOrControl+Shift+Z" : "Control+Y",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("redo"),
 					},
-				]
+					{
+						type: "separator",
+					},
+					{
+						label: "Search...",
+						accelerator: "CommandOrControl+F",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("search"),
+					},
+				],
 			},
 			{
 				label: "Window",

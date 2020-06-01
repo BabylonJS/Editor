@@ -1,6 +1,6 @@
 {
   "name": "babylonjs-editor",
-  "version": "3.2.1-beta.4",
+  "version": "4.0.0-beta.0",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
   "main": "build/src/src/main/main.js",
   "productName": "Babylon.js Editor",
@@ -48,8 +48,8 @@
     "@babylonjs/materials": "4.2.0-alpha.17",
     "@babylonjs/post-processes": "4.2.0-alpha.17",
     "@babylonjs/procedural-textures": "4.2.0-alpha.17",
-    "@blueprintjs/core": "3.26.0",
-    "@blueprintjs/select": "3.12.2",
+    "@blueprintjs/core": "3.28.1",
+    "@blueprintjs/select": "3.13.2",
     "adm-zip": "0.4.14",
     "antd": "4.2.0",
     "babylonjs": "4.2.0-alpha.17",

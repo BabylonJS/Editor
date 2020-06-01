@@ -887,12 +887,15 @@ export class Editor {
         });
 
         // Save
-        ipcRenderer.on("save-editor-project", () => ProjectExporter.Save(this));
-        ipcRenderer.on("save-editor-project-as", () => ProjectExporter.SaveAs(this));
+        ipcRenderer.on("save", () => ProjectExporter.Save(this));
+        ipcRenderer.on("save-as", () => ProjectExporter.SaveAs(this));
         
         // Undo / Redo
         ipcRenderer.on("undo", () => undoRedo.undo());
         ipcRenderer.on("redo", () => undoRedo.redo());
+
+        // Search
+        ipcRenderer.on("search", () => this.preview.showSearchBar());
 
         // Drag'n'drop
         document.addEventListener("dragover", (ev) => ev.preventDefault());
@@ -916,8 +919,9 @@ export class Editor {
                 if (ev.key === "r") { return this.preview.setGizmoType(GizmoType.Rotation); }
                 if (ev.key === "w") { return this.preview.setGizmoType(GizmoType.Scaling); }
                 if (ev.key === "f") { return this.preview.focusSelectedNode(); }
+                
                 if (ev.keyCode === 46) { return this.preview.removeSelectedNode(); }
-
+                
                 if ((ev.ctrlKey || ev.metaKey) && ev.key === "c") { return this.preview.copySelectedNode(); }
                 if ((ev.ctrlKey || ev.metaKey) && ev.key === "v") { return this.preview.pasteCopiedNode(); }
             }

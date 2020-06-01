@@ -23,5 +23,14 @@ export interface IEditorPreferences {
     /**
      * Defines the current hardware scaling level.
      */
-    scalingLevel: number;
+    scalingLevel?: number;
+
+    /**
+     * Defines the list of all position snapping values.
+     */
+    positionGizmoSnapping?: number[];
+    /**
+     * Defines the list of all rotation snapping values.
+     */
+    rotationGizmoSnapping?: number[];
 }

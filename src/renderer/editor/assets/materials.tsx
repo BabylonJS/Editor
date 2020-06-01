@@ -6,8 +6,10 @@ import { Nullable } from "../../../shared/types";
 import { IPCResponses } from "../../../shared/ipc";
 
 import * as React from "react";
-import * as ReactDOM from "react-dom";
-import { ButtonGroup, Button, Classes, Dialog as BPDialog, FormGroup, InputGroup, ContextMenu, Menu, MenuItem, MenuDivider, Divider, Popover, Position } from "@blueprintjs/core";
+import {
+    ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, MenuDivider, Divider,
+    Popover, Position,
+} from "@blueprintjs/core";
 
 import { Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools, NodeMaterial, MultiMaterial } from "babylonjs";
 
@@ -17,7 +19,6 @@ import { undoRedo } from "../tools/undo-redo";
 import { IPCTools } from "../tools/ipc";
 
 import { Icon } from "../gui/icon";
-import { List } from "../gui/list";
 import { Dialog } from "../gui/dialog";
 import { Overlay } from "../gui/overlay";
 
@@ -39,7 +40,10 @@ export class MaterialAssets extends AbstractAssets {
 
         const add = 
             <Menu>
-                <MenuItem key="add-built-in-material" text="Built-in Material..." onClick={() => this._addMaterial()} />
+                <MenuItem key="add-standard-material" text="Standard Material..." onClick={() => this._addMaterial("StandardMaterial")} />
+                <MenuItem key="add-pbr-material" text="PBR Material..." onClick={() => this._addMaterial("PBRMaterial")} />
+                <MenuItem key="add-node-material" text="Node Material..." onClick={() => this._addMaterial("NodeMaterial")} />
+                <MenuDivider />
                 <MenuItem key="add-node-material-from-snippet" text="Node Material From Snippet..." onClick={() => this._addNodeMaterialFromWeb()} />
                 <MenuDivider />
                 <MenuItem key="add-material-from-preset" icon={<Icon src="search.svg" />} text="From Preset..." onClick={() => this._handleLoadFromPreset()} />
@@ -314,48 +318,23 @@ export class MaterialAssets extends AbstractAssets {
     /**
      * Adds a new material on the user clicks on the "Add Material..." button in the toolbar.
      */
-    private async _addMaterial(): Promise<void> {
-        let name = "";
-        let type = "StandardMaterial";
+    private async _addMaterial(type: string): Promise<void> {
+        const name = await Dialog.Show("Material Name", "Please provide a name for the new material to created.");
+        
+        const ctor = BabylonTools.Instantiate(`BABYLON.${type}`);
+        const material = new ctor(name, this.editor.scene!);
+        material.id = Tools.RandomId();
 
-        const availableMaterials = ["StandardMaterial", "PBRMaterial", "NodeMaterial"];
+        if (material instanceof NodeMaterial) {
+            material.setToDefault();
+        }
 
-        ReactDOM.render((
-            <BPDialog
-                className={Classes.DARK}
-                isOpen={true}
-                usePortal={true}
-                title="Add New Material"
-                enforceFocus={true}
-                onClose={() => ReactDOM.unmountComponentAtNode(document.getElementById("BABYLON-EDITOR-OVERLAY") as Element)}
-            >
-                <div className={Classes.DIALOG_BODY}>
-                    <FormGroup label="Please provide a name for the new material" labelFor="material-name" labelInfo="(required)">
-                        <InputGroup id="material-name" placeholder="Name..." autoFocus={true} onChange={(ev) => name = ev.target.value} />
-                        <List onChange={(i) => type = i} selected={type} items={availableMaterials} placeHolder="Type..."></List>
-                    </FormGroup>
-                </div>
-                <div className={Classes.DIALOG_FOOTER}>
-                    <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                        <Button key="add" icon={<Icon src="plus.svg" />} small={true} text="Add" onClick={() => {
-                            if (!name || !type) { return; }
-                            const ctor = BabylonTools.Instantiate(`BABYLON.${type}`);
-                            const material = new ctor(name, this.editor.scene!);
-                            material.id = Tools.RandomId();
-
-                            if (material instanceof NodeMaterial) {
-                                material.setToDefault();
-                            }
-
-                            this.refresh();
-                            ReactDOM.unmountComponentAtNode(document.getElementById("BABYLON-EDITOR-OVERLAY") as Element);
-                        }} />
-                    </div>
-                </div>
-            </BPDialog>
-        ), document.getElementById("BABYLON-EDITOR-OVERLAY"));
+        this.refresh();
     }
 
+    /**
+     * Adds a new Node Material from the given snippet Id.
+     */
     private async _addNodeMaterialFromWeb(): Promise<void> {
         const snippetId = await Dialog.Show("Snippet Id", "Please provide the Id of the snippet.");
 

@@ -341,7 +341,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 active={true}
                 expanded={true}
                 title={<span>Scene</span>}
-                key="scene"
+                key="__editor__scene__"
                 isLeaf={true}
                 icon={<Icon src="camera-retro.svg" />}
             />
@@ -617,7 +617,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         this.setState({ selectedNodeIds: keys });
 
         const id = keys[keys.length - 1];
-        if (id === "scene") {
+        if (id === "__editor__scene__") {
             this._editor.selectedSceneObservable.notifyObservers(this._editor.scene!);
             return;
         }
