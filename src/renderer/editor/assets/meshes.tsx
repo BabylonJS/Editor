@@ -2,13 +2,14 @@ import { join, extname, basename } from "path";
 import { copy } from "fs-extra";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem, Classes } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider } from "@blueprintjs/core";
 
 import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture } from "babylonjs";
 
 import { assetsHelper } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
 import { Tools } from "../tools/tools";
 import { GLTFTools } from "../tools/gltf";
+import { undoRedo } from "../tools/undo-redo";
 
 import { Overlay } from "../gui/overlay";
 import { Icon } from "../gui/icon";
@@ -18,7 +19,6 @@ import { Project } from "../project/project";
 
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
-import { undoRedo } from "../tools/undo-redo";
 
 export class MeshesAssets extends AbstractAssets {
     /**
@@ -33,6 +33,26 @@ export class MeshesAssets extends AbstractAssets {
      * Defines the list of all avaiable meshes in the assets component.
      */
     public static Meshes: IFile[] = [];
+
+    /**
+     * Renders the component.
+     * @override
+     */
+    public render(): React.ReactNode {
+        return (
+            <>
+                <div className={Classes.FILL} key="meshes-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
+                    <ButtonGroup>
+                        <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
+                        <Divider />
+                        <Button key="add-meshes" icon={<Icon src="plus.svg" />} small={true} text="Add..." onClick={() => this._addMeshes()} />
+                        <Divider />
+                    </ButtonGroup>
+                </div>
+                {super.render()}
+            </>
+        );
+    }
 
     /**
      * Refreshes the component.
@@ -181,6 +201,16 @@ export class MeshesAssets extends AbstractAssets {
         }
 
         return this.refresh();
+    }
+
+    /**
+     * Called on the user wants to add textures.
+     */
+    private async _addMeshes(): Promise<void> {
+        const files = await Tools.ShowNativeOpenMultipleFileDialog();
+
+        // Meshes can be scenes. Textures, sounds, etc. should be selected as well.
+        return this.editor.assets.addFilesToAssets(files);
     }
 
     /**

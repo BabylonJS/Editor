@@ -4,12 +4,14 @@ import { copy } from "fs-extra";
 import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, Divider } from "@blueprintjs/core";
 
 import { Sound, PickingInfo, Vector3 } from "babylonjs";
 
 import { Project } from "../project/project";
 import { IFile, FilesStore } from "../project/files";
+
+import { Icon } from "../gui/icon";
 
 import { Tools } from "../tools/tools";
 
@@ -36,6 +38,9 @@ export class SoundAssets extends AbstractAssets {
                 <div className={Classes.FILL} key="sounds-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
+                        <Divider />
+                        <Button key="add-meshes" icon={<Icon src="plus.svg" />} small={true} text="Add..." onClick={() => this._addSounds()} />
+                        <Divider />
                     </ButtonGroup>
                 </div>
                 {node}
@@ -125,6 +130,14 @@ export class SoundAssets extends AbstractAssets {
         if (!sound) { return; }
 
         this.editor.inspector.setSelectedObject(sound);
+    }
+
+    /**
+     * Called on the user wants to add textures.
+     */
+    private async _addSounds(): Promise<void> {
+        const files = await Tools.ShowNativeOpenMultipleFileDialog();
+        return this.onDropFiles(files);
     }
 
     /**
