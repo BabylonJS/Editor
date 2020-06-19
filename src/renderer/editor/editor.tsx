@@ -279,6 +279,7 @@ export class Editor {
 
         // Get version
         this._packageJson = JSON.parse(await Tools.LoadFile("../package.json", false));
+        document.title = `Babylon.JS Editor v${this._packageJson.version}`;
 
         // Create default layout
         const layoutVersion = localStorage.getItem('babylonjs-editor-layout-version');
