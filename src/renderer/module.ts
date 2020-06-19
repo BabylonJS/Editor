@@ -19,6 +19,9 @@ const cacheMap = {
 	"babylonjs-materials": join(dirname(Module._resolveFilename("babylonjs-materials", module, false)), "babylonjs.materials.js"),
 	"babylonjs-loaders": join(dirname(Module._resolveFilename("babylonjs-loaders", module, false)), "babylonjs.loaders.js"),
 	"babylonjs-node-editor": join(dirname(Module._resolveFilename("babylonjs", module, false)), "..", "babylonjs-node-editor", "babylon.nodeEditor.max.js"),
+
+	"babylonjs-editor": join(__dirname, "./index.js"),
+
 	"react": Module._resolveFilename("react", module, false),
 	"react-dom": Module._resolveFilename("react-dom", module, false),
 

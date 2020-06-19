@@ -39,6 +39,7 @@
     "module",
     "electron-packages",
     "assets",
-    "test"
+    "test",
+    "sample-plugin",
   ]
 }

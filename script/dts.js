@@ -1,7 +1,15 @@
 const dts = require("dts-bundle");
 
+console.log(`
+-------------------------------------------------------------
+DTS
+-------------------------------------------------------------
+`);
+
 dts.bundle({
     name: "babylonjs-editor",
-    main: "./declaration/src/src/renderer/editor/index.d.ts",
-    out: "../../../../../module/index.d.ts",
+    main: "./declaration/src/src/index.d.ts",
+    out: "../../../module/index.d.ts",
 });
+
+console.log("DTS available at ./module/index.d.ts");

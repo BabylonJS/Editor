@@ -1,6 +1,6 @@
 {
     "name": "babylonjs-editor",
-    "version": "3.2.1-beta.4",
+    "version": "4.0.0-beta.0",
     "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
     "productName": "Babylon.js Editor",
     "typings": "index.d.ts",
@@ -15,5 +15,26 @@
     "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
     "license": "(Apache-2.0)",
     "devDependencies": {},
-    "dependencies": {}
+    "dependencies": {
+        "@types/dat.gui": "0.7.5",
+        "@types/fs-extra": "8.1.0",
+        "@types/node": "13.9.0",
+        "@types/react": "16.9.19",
+        "@types/react-dom": "16.9.5",
+        "babylonjs-editor": "file:../module",
+        "electron": "8.1.0",
+        "electron-rebuild": "1.10.1",
+        "typescript": "3.7.5",
+        "babylonjs": "4.2.0-alpha.17",
+        "babylonjs-gui": "4.2.0-alpha.17",
+        "babylonjs-inspector": "4.2.0-alpha.17",
+        "babylonjs-loaders": "4.2.0-alpha.17",
+        "babylonjs-materials": "4.2.0-alpha.17",
+        "babylonjs-node-editor": "4.2.0-alpha.17",
+        "babylonjs-post-process": "4.2.0-alpha.17",
+        "babylonjs-procedural-textures": "4.2.0-alpha.17",
+        "babylonjs-serializers": "4.2.0-alpha.17",
+        "@blueprintjs/core": "3.28.1",
+        "@blueprintjs/select": "3.13.2"
+    }
 }
