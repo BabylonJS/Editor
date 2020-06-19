@@ -4,7 +4,7 @@ import { copy } from "fs-extra";
 import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, Divider } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, Divider, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
 
 import { Sound, PickingInfo, Vector3 } from "babylonjs";
 
@@ -133,11 +133,44 @@ export class SoundAssets extends AbstractAssets {
     }
 
     /**
+     * Called on the user right-clicks on an item.
+     * @param item the item being right-clicked.
+     * @param event the original mouse event.
+     */
+    public onContextMenu(item: IAssetComponentItem, e: React.MouseEvent<HTMLImageElement, MouseEvent>): void {
+        super.onContextMenu(item, e);
+
+        const sound = this._getSound(item);
+        if (!sound) { return; }
+
+        ContextMenu.show(
+            <Menu className={Classes.DARK}>
+                <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._removeSound(item, sound)} />
+            </Menu>,
+            { left: e.clientX, top: e.clientY },
+        );
+    }
+
+    /**
      * Called on the user wants to add textures.
      */
     private async _addSounds(): Promise<void> {
         const files = await Tools.ShowNativeOpenMultipleFileDialog();
         return this.onDropFiles(files);
+    }
+
+    /**
+     * Removes the given sound.
+     */
+    private _removeSound(item: IAssetComponentItem, sound: Sound): void {
+        sound.dispose();
+
+        const index = this.items.indexOf(item);
+        if (index !== -1) {
+            this.items.splice(index, 1);
+        }
+
+        this.refresh();
     }
 
     /**

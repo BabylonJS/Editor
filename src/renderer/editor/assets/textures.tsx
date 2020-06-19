@@ -284,6 +284,8 @@ export class TextureAssets extends AbstractAssets {
         if (index !== -1) {
             this.items.splice(index, 1);
         }
+
+        this.refresh();
     }
 
     /**
