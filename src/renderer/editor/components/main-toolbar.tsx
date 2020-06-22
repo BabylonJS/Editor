@@ -31,6 +31,8 @@ import { ProjectRenamer } from "../project/rename";
 
 import { PhotoshopExtension } from "../extensions/photoshop";
 
+import { IPluginToolbar } from "../plugins/toolbar";
+
 export interface IToolbarProps {
     /**
      * The editor reference.
@@ -47,6 +49,10 @@ export interface IToolbarState {
      * Defines wether or not the photoshop extension is enabled.
      */
     isPhotoshopEnabled: boolean;
+    /**
+     * Defines the list of all menus for plugins.
+     */
+    plugins?: Undefinable<IPluginToolbar[]>
 }
 
 export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
@@ -147,7 +153,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Report issue..." icon={<Icon src="github.svg" />} onClick={() => this._menuItemClicked("help:report")} />
                 <MenuDivider />
                 <MenuItem text="Welcome..." icon={<Icon src="jedi.svg" />} onClick={() => this._menuItemClicked("help:welcome")} />
-            </Menu>
+            </Menu>;
 
         return (
             <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
@@ -169,6 +175,13 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <Popover content={tools} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="wrench.svg"/>} rightIcon="caret-down" text="Tools"/>
                 </Popover>
+
+                {this.state.plugins?.map((p) => (
+                    <Popover content={p.content} position={Position.BOTTOM_LEFT}>
+                        <Button icon={p.buttonIcon} rightIcon="caret-down" text={p.buttonLabel}/>
+                    </Popover>
+                ))}
+
                 <Popover content={help} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="dog.svg"/>} rightIcon="caret-down" text="Help"/>
                 </Popover>

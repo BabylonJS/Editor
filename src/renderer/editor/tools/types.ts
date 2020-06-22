@@ -33,4 +33,23 @@ export interface IEditorPreferences {
      * Defines the list of all rotation snapping values.
      */
     rotationGizmoSnapping?: number[];
+    /**
+     * Defines the list of all registered plugins for the editor.
+     */
+    plugins?: IRegisteredPlugin[];
+}
+
+export interface IRegisteredPlugin {
+    /**
+     * Defines the name of the plugin.
+     */
+    name: string;
+    /**
+     * Defines the path to the plugin.
+     */
+    path: string;
+    /**
+     * Defines wether or not the plugin is enabled.
+     */
+    enabled: boolean;
 }

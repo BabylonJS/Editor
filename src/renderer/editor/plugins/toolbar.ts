@@ -1,10 +1,15 @@
 import * as React from "react";
+import { IconName } from "@blueprintjs/core";
 
 export interface IPluginToolbar {
     /**
-     * Defines the button to draw in the toolbar.
+     * Defines the label of the button to draw in the toolbar.
      */
-    button: React.ReactNode;
+    buttonLabel: React.ReactNode;
+    /**
+     * Defines the name of the icon for the plugin.
+     */
+    buttonIcon: IconName;
     /**
      * Defines the content of the menu in the toolbar.
      * @example
@@ -15,5 +20,5 @@ export interface IPluginToolbar {
             <MenuItem text="Remove..." icon="remove" onClick={() => ...} />
         </Menu>
      */
-    content: React.ReactNode;
+    content: JSX.Element;
 }

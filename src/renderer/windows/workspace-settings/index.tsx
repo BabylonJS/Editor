@@ -1,16 +1,18 @@
 import { readJSON, writeJSON } from "fs-extra";
 
 import * as React from "react";
-import {
-    FormGroup, InputGroup, ButtonGroup, Button, Switch, Divider, Callout, FileInput,
-    Tabs, Tab, Navbar, Alignment, TabId, Intent, RadioGroup, Radio,
-} from "@blueprintjs/core";
+import { ButtonGroup, Button, Tabs, Tab, Navbar, Alignment, TabId } from "@blueprintjs/core";
 
 import { IWorkSpace } from "../../editor/project/typings";
 import { IPCTools } from "../../editor/tools/ipc";
 import { IEditorPreferences } from "../../editor/tools/types";
 
-export const title = "Workspace Settings";
+import { WorkspaceSettings } from "./workspace";
+import { CommonSettings } from "./common";
+import { EditorSettings } from "./editor";
+import { PluginsSettings } from "./plugins";
+
+export const title = "Settings";
 
 export interface IWorkspaceSettingsState extends IWorkSpace, IEditorPreferences {
     /**
@@ -40,7 +42,8 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
             generateSceneOnSave: false,
             firstLoad: true,
             watchProject: false,
-            ...this._getPreferences(),
+            plugins: [],
+            ...this.getPreferences(),
         };
     }
 
@@ -48,88 +51,6 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
      * Renders the component.
      */
     public render(): React.ReactNode {
-        const workspaceContent = (
-            <div>
-                <Divider />
-                <Callout title="Debug" icon="series-derived">
-                    <FormGroup helperText="Defines the port of the webserver used while testing the game." label="Server Port" labelFor="port-input" labelInfo="(required)">
-                        <InputGroup key="port-input" id="port-input" type="number" min="0" max={65536} value={this.state.serverPort.toString()} onChange={(e) => this.setState({ serverPort: parseInt(e.currentTarget.value) })} />
-                    </FormGroup>
-                </Callout>
-                <Divider />
-                <Callout title="Project" icon="projects">
-                    <FormGroup helperText="Options when saving the project" label="Project save" labelInfo="Optional">
-                        <Switch label="Generate scene when saving project" checked={this.state.generateSceneOnSave} onChange={(e) => this.setState({ generateSceneOnSave: e.currentTarget.checked })} />
-                    </FormGroup>
-                    <FormGroup helperText="Defines all options for developers" label="Developer Options" labelInfo="Optional">
-                        <Switch label="Watch project automatically" checked={this.state.watchProject} onChange={(e) => this.setState({ watchProject: e.currentTarget.checked })} />
-                    </FormGroup>
-                </Callout>
-            </div>
-        );
-        
-        const commonContent = (
-            <div>
-                <Divider />
-                <Callout intent={Intent.PRIMARY} title="Terminal" icon="console">
-                    <FormGroup key="terminalPath" label="Terminal path">
-                        <FileInput text={this.state.terminalPath ?? "Default"} fill={true} buttonText="Browse" onInputChange={(e) => this._handleTerminalPathChanged(e)} />
-                    </FormGroup>
-                </Callout>
-                <Divider />
-                <Callout intent={Intent.PRIMARY} title="User Interface" icon="intersection">
-                    <FormGroup key="zoom" label="User Interface Size" labelInfo="Used to adapt resolution for high device ratios" labelFor="editor-zoom" helperText="Value between 0.5 and 2.">
-                        <InputGroup id="editor-zoom" key="editor-zoom" type="number" min={0.5} max={2} value={this.state.zoom ?? "1"} step={0.1} onChange={(e) => this.setState({ zoom: e.currentTarget.value })} />
-                    </FormGroup>
-                </Callout>
-                <Divider />
-                <Callout intent={Intent.WARNING} title="Rendering" icon="camera">
-                    <RadioGroup
-                        label="Rendering Quality"
-                        inline={true}
-                        selectedValue={this.state.scalingLevel ?? 1}
-                        onChange={(v) => this.setState({ scalingLevel: parseFloat(v.currentTarget.value) })}
-                    >
-                        <Radio key="high" label="High Quality" value={0.5} />
-                        <Radio key="regular" label="Regular Quality" value={1} />
-                        <Radio key="low" label="Low Quality" value={2} />
-                    </RadioGroup>
-                </Callout>
-            </div>
-        );
-
-        // Editor
-        const positionGizmoSnapping = this.state.positionGizmoSnapping ?? [0, 1, 2, 5, 10];
-        const rotationGizmoSnapping = this.state.rotationGizmoSnapping ?? [0, 1, 2, 5, 10];
-
-        const editor = (
-            <div>
-                <Callout intent={Intent.NONE} title="Position Gizmo Snapping Values">
-                    <FormGroup key="position-snapping" label="Positon Gizmo Snapping Values">
-                        {positionGizmoSnapping.map((p, index) => (
-                            <InputGroup id="" key={`position-snapping-${index}`} type="number" min={0} value={p.toString()} step={0.1} onChange={(e) => {
-                                positionGizmoSnapping[index] = parseFloat(e.currentTarget.value);
-                                this.setState({ positionGizmoSnapping });
-                            }} />
-                        ))}
-                        <Button text="Add..." icon="add" fill={true} />
-                    </FormGroup>
-                </Callout>
-                <Divider />
-                <Callout intent={Intent.PRIMARY} title="Rotation Gizmo Snapping Values">
-                    <FormGroup key="rotation-snapping" label="Rotation Gizmo Snapping Values">
-                        {rotationGizmoSnapping.map((p, index) => (
-                            <InputGroup id="" key={`rotation-snapping-${index}`} type="number" min={0} value={p.toString()} step={0.1} onChange={(e) => {
-                                rotationGizmoSnapping[index] = parseFloat(e.currentTarget.value);
-                                this.setState({ rotationGizmoSnapping });
-                            }} />
-                        ))}
-                        <Button text="Add..." icon="add" fill={true} />
-                    </FormGroup>
-                </Callout>
-            </div>
-        );
-
         return (
             <>
                 <div style={{ width: "100%", height: "calc(100% - 30px)", background: "#333333", overflow: "auto" }}>
@@ -150,12 +71,14 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
                                 <Tab id="workspace" title="Workspace" key="workspace-tab" />
                                 <Tab id="common" title="Common" key="common-tab" />
                                 <Tab id="editor" title="Editor" key="editor-tab" />
+                                <Tab id="plugins" title="Plugins" key="plugins-tab" />
                             </Tabs>
                         </Navbar.Group>
                     </Navbar>
-                    {this.state.navbarTabId === "workspace" ? workspaceContent : undefined}
-                    {this.state.navbarTabId === "common" ? commonContent : undefined}
-                    {this.state.navbarTabId === "editor" ? editor : undefined}
+                    {this.state.navbarTabId === "workspace" ? <WorkspaceSettings settings={this} /> : undefined}
+                    {this.state.navbarTabId === "common" ? <CommonSettings settings={this} /> : undefined}
+                    {this.state.navbarTabId === "editor" ? <EditorSettings settings={this} /> : undefined}
+                    {this.state.navbarTabId === "plugins" ? <PluginsSettings settings={this} /> : undefined}
                 </div>
                 <div style={{ width: "100%", height: "30px", background: "#333333" }}>
                     <ButtonGroup>
@@ -192,12 +115,13 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
         });
 
         // Editor preferences
-        const preferences = this._getPreferences();
+        const preferences = this.getPreferences();
         preferences.terminalPath = this.state.terminalPath;
         preferences.zoom = this.state.zoom;
         preferences.scalingLevel = this.state.scalingLevel;
         preferences.positionGizmoSnapping = this.state.positionGizmoSnapping;
         preferences.rotationGizmoSnapping = this.state.rotationGizmoSnapping;
+        preferences.plugins = this.state.plugins ?? [];
 
         localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(preferences));
 
@@ -212,20 +136,8 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
     /**
      * Returns the current preferences of the editor.
      */
-    private _getPreferences(): IEditorPreferences {
+    public getPreferences(): IEditorPreferences {
         const settings = JSON.parse(localStorage.getItem("babylonjs-editor-preferences") ?? "{ }") as IEditorPreferences;
         return settings;
-    }
-
-    /**
-     * Called on the user changed the terminal path.
-     */
-    private _handleTerminalPathChanged(e: React.FormEvent<HTMLInputElement>): void {
-        const files = (e.target as HTMLInputElement).files;
-
-        if (!files) { return; }
-        if (!files?.length) { return; }
-
-        this.setState({ terminalPath: files.item(0)!.path });
     }
 }

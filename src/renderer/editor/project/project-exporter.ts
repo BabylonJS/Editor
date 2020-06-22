@@ -408,6 +408,14 @@ export class ProjectExporter {
     }
 
     /**
+     * Returns the location of the exported scene on the file system.
+     */
+    public static GetExportedSceneLocation(): string {
+        const projectName = basename(dirname(WorkSpace.Workspace!.lastOpenedScene));
+        return join(WorkSpace.DirPath!, "scenes", projectName);
+    }
+
+    /**
      * Eports the final scene.
      * @param editor the editor reference.
      */
@@ -419,9 +427,7 @@ export class ProjectExporter {
 
         const scene = this.GetFinalSceneJson(editor);
 
-        const projectName = basename(dirname(WorkSpace.Workspace!.lastOpenedScene));
-
-        const scenePath = join(WorkSpace.DirPath!, "scenes", projectName);
+        const scenePath = this.GetExportedSceneLocation();
         if (!(await pathExists(scenePath))) { await mkdir(scenePath); }
         const destFilesDir = join(scenePath, "files");
 

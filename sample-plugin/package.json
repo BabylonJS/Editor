@@ -2,7 +2,7 @@
     "name": "babylonjs-editor-sample-plugin",
     "version": "1.0.0",
     "description": "",
-    "main": "build/index.js",
+    "main": "build/src/index.js",
     "author": {
         "name": "Julien Moreau-Mathis",
         "url": "https://medium.com/@Luaacro"
