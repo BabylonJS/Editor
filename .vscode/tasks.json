@@ -7,7 +7,7 @@
             "label": "watch-all",
             "group": "build",
             "problemMatcher": [],
-            "dependsOn": ["watch", "watch-vscode-extension", "watch-electron", "watch-photoshop-extension"],
+            "dependsOn": ["watch", "watch-sample-plugin"],
             "presentation": {
                 "panel": "shared",
                 "group": "build",
@@ -27,61 +27,19 @@
             }
         },
         {
-            "label": "watch-electron",
+            "label": "watch-sample-plugin",
             "type": "npm",
-            "script": "watch-electron",
+            "script": "watch-sample-plugin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
                 "panel": "shared",
                 "group": "build"
             }
-        },
-        {
-            "label": "watch-vscode-extension",
-            "type": "npm",
-            "script": "watch-vscode-extension",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "panel": "shared",
-                "group": "build"
-            }
-        },
-        {
-            "label": "watch-photoshop-extension",
-            "type": "npm",
-            "script": "watch-photoshop-extension",
-            "group": "build",
-            "problemMatcher": [],
-            "presentation": {
-                "panel": "shared",
-                "group": "build"
-            }
-        },
-        {
-            "type": "npm",
-            "script": "compile",
-            "problemMatcher": []
-        },
-        {
-            "type": "npm",
-            "script": "build",
-            "problemMatcher": []
         },
         {
             "type": "npm",
             "script": "rebuild",
-            "problemMatcher": []
-        },
-        {
-            "type": "npm",
-            "script": "dts",
-            "problemMatcher": []
-        },
-        {
-            "type": "npm",
-            "script": "bundle-js",
             "problemMatcher": []
         }
     ]

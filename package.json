@@ -13,13 +13,15 @@
     "url": "https://medium.com/@Luaacro"
   },
   "scripts": {
-    "postinstall": "electron-rebuild && electron-builder install-app-deps",
+    "postinstall": "electron-rebuild && electron-builder install-app-deps && cd sample-plugin && npm i && cd ..",
     "clean": "rimraf build && rimraf declaration && rimraf electron-packages",
     "compile": "tsc -p .",
     "build": "npm run compile && npm run bundle",
     "rebuild": "npm run clean && npm run build",
     "watch": "tsc -p . --watch",
-    "bundle": "node ./script/dts.js && node ./script/electron.js"
+    "watch-sample-plugin": "cd sample-plugin && tsc -p . --watch",
+    "bundle": "node ./script/dts.js && node ./script/electron.js",
+    "dts": "node ./script/dts.js"
   },
   "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
   "license": "(Apache-2.0)",

@@ -1,3 +1,4 @@
+import { shell } from "electron";
 import { normalize, join, extname } from "path";
 import { readFile } from "fs-extra";
 import { transpile, ModuleKind, ScriptTarget } from "typescript";
@@ -5,7 +6,7 @@ import { transpile, ModuleKind, ScriptTarget } from "typescript";
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Spinner } from "@blueprintjs/core";
+import { Spinner, Pre } from "@blueprintjs/core";
 
 import { Node } from "babylonjs";
 import { GUI, GUIController } from "dat.gui";
@@ -78,8 +79,19 @@ export class NodeInspector extends AbstractInspector<Node> {
 
         // Serialized properties.
         if (this._selectedScript !== "None") {
+            const tsPath = join(WorkSpace.DirPath!, this.selectedObject.metadata.script.name);
+
+            script.addButton("Open Script...").onClick(() => shell.openItem(tsPath));
+
+            // Preview
+            readFile(tsPath, { encoding: "utf-8" }).then((c) => {
+                const preview = script.addFolder("Preview");
+                preview.addCustom("500px", <Pre style={{ height: "500px" }}>{c}</Pre>);
+            });
+
+            // Properties
             const spinner = script.addCustom("35px", <Spinner size={35} />);
-            
+
             try {
                 await this._updateScriptVisibleProperties(script);
             } catch (e) {

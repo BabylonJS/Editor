@@ -171,6 +171,7 @@ export class SoundAssets extends AbstractAssets {
         }
 
         this.refresh();
+        this.editor.graph.refresh();
     }
 
     /**

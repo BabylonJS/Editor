@@ -19,6 +19,8 @@ const cacheMap = {
 	"babylonjs-materials": join(dirname(Module._resolveFilename("babylonjs-materials", module, false)), "babylonjs.materials.js"),
 	"babylonjs-loaders": join(dirname(Module._resolveFilename("babylonjs-loaders", module, false)), "babylonjs.loaders.js"),
 	"babylonjs-node-editor": join(dirname(Module._resolveFilename("babylonjs", module, false)), "..", "babylonjs-node-editor", "babylon.nodeEditor.max.js"),
+	"babylonjs-gui": join(dirname(Module._resolveFilename("babylonjs-gui", module, false)), "..", "babylonjs-gui", "babylon.gui.js"),
+	"babylonjs-post-process": join(dirname(Module._resolveFilename("babylonjs-post-process", module, false)), "..", "babylonjs-post-process", "babylonjs.postProcess.js"),
 
 	"babylonjs-editor": join(__dirname, "../index.js"),
 
@@ -27,6 +29,10 @@ const cacheMap = {
 
 	// Redirect @babylonjs/*
 	"@babylonjs/core": join(dirname(Module._resolveFilename("babylonjs", module, false)), "babylon.max.js"),
+	"@babylonjs/loaders": join(dirname(Module._resolveFilename("babylonjs-loaders", module, false)), "babylonjs.loaders.js"),
+	"@babylonjs/materials": join(dirname(Module._resolveFilename("babylonjs-materials", module, false)), "babylonjs.materials.js"),
+	"@babylonjs/gui": join(dirname(Module._resolveFilename("babylonjs-gui", module, false)), "..", "babylonjs-gui", "babylon.gui.js"),
+	"@babylonjs/post-processes": join(dirname(Module._resolveFilename("babylonjs-post-process", module, false)), "..", "babylonjs-post-process", "babylonjs.postProcess.js"),
 }
 
 const originalResolveFilename = Module._resolveFilename;

@@ -1,3 +1,5 @@
+import { Nullable } from "../../../../shared/types";
+
 import * as ReactDOM from "react-dom";
 import * as React from "react";
 import { Slider } from "@blueprintjs/core";
@@ -25,6 +27,10 @@ export interface ICustomSliderProps {
      * Called on the slider changed.
      */
     onChange: (value: number) => void;
+    /**
+     * Called on the slider finished changes.
+     */
+    onRelease: (value: number) => void;
 }
 
 export interface ICustomSliderState {
@@ -48,7 +54,7 @@ export class CustomSlider extends React.Component<ICustomSliderProps, ICustomSli
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return <Slider min={this.props.min} max={this.props.max} stepSize={this.props.step} value={this.state.value} onChange={(v) => this._handleChangeValue(v)} />
+        return <Slider min={this.props.min} max={this.props.max} stepSize={this.props.step} value={this.state.value} onRelease={(v) => this._handleFinishChangeValue(v)} onChange={(v) => this._handleChangeValue(v)} />
     }
 
     /**
@@ -58,11 +64,22 @@ export class CustomSlider extends React.Component<ICustomSliderProps, ICustomSli
         this.setState({ value });
         this.props.onChange(value);
     }
+
+    /**
+     * Called on the user changes the slider.
+     */
+    private _handleFinishChangeValue(value: number): void {
+        this.setState({ value });
+        this.props.onRelease(value);
+    }
 }
 
 export class SliderController extends dat.controllers.Controller {
     private _title: HTMLSpanElement;
     private __onChange: (value: number) => void;
+    private __onFinishChange: (value: number) => void;
+
+    private _slider: Nullable<CustomSlider> = null;
 
     /**
      * Constructor
@@ -92,7 +109,26 @@ export class SliderController extends dat.controllers.Controller {
         container.style.paddingLeft = "10px";
         this.__li.appendChild(container);
 
-        ReactDOM.render(<CustomSlider min={this._min} max={this._max} step={this._step} value={this.object[this.property]} onChange={(v) => this._handleChange(v)} />, container);
+        ReactDOM.render((
+            <CustomSlider
+                ref={(ref) => this._slider = ref}
+                min={this._min}
+                max={this._max}
+                step={this._step}
+                value={this.object[this.property]}
+                onChange={(v) => this._handleChange(v)}
+                onRelease={(v) => this._handleFinishChange(v)}
+            />
+        ), container);
+    }
+
+    /**
+     * Sets the new value of the slider.
+     * @param value defines the new value of the slider.
+     */
+    public setValue(value: number): SliderController {
+        this._slider?.setState({ value });
+        return this;
     }
 
     /**
@@ -106,10 +142,19 @@ export class SliderController extends dat.controllers.Controller {
 
     /**
      * Registers the given callback on an input changes.
-     * @param cb the callback to register on a controller changes (x, y, z, w).
+     * @param cb the callback to register on a controller changes .
      */
     public onChange(cb: (value: number) => void): SliderController {
         this.__onChange = cb;
+        return this;
+    }
+
+    /**
+     * Registers the given callback on an input finished changes.
+     * @param cb the callback to register on a controller finished changes.
+     */
+    public onFinishChange(cb: (value: number) => void): SliderController {
+        this.__onFinishChange = cb;
         return this;
     }
 
@@ -119,6 +164,14 @@ export class SliderController extends dat.controllers.Controller {
     private _handleChange(value: number): void {
         this.object[this.property] = value;
         if (this.__onChange) { this.__onChange(value); }
+    }
+
+    /**
+     * Called on the slider finished changes.
+     */
+    private _handleFinishChange(value: number): void {
+        this.object[this.property] = value;
+        if (this.__onFinishChange) { this.__onFinishChange(value); }
     }
 }
 
