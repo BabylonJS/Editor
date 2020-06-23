@@ -41,15 +41,15 @@ export class VectorController extends dat.controllers.Controller {
 
         // Controllers sizes
         let percent = 0;
-        if (this.vector.hasOwnProperty("x")) { percent++; }
-        if (this.vector.hasOwnProperty("y")) { percent++; }
-        if (this.vector.hasOwnProperty("z")) { percent++; }
+        if ((this.vector.x ?? null) !== null) { percent++; }
+        if ((this.vector.y ?? null) !== null) { percent++; }
+        if ((this.vector.z ?? null) !== null) { percent++; }
         percent = (100 / percent);
 
         // Controllers
-        if (this.vector.hasOwnProperty("x")) { this._addNumberController(percent, "x"); }
-        if (this.vector.hasOwnProperty("y")) { this._addNumberController(percent, "y"); }
-        if (this.vector.hasOwnProperty("z")) { this._addNumberController(percent, "z"); }
+        if ((this.vector.x ?? null) !== null) { this._addNumberController(percent, "x"); }
+        if ((this.vector.y ?? null) !== null) { this._addNumberController(percent, "y"); }
+        if ((this.vector.z ?? null) !== null) { this._addNumberController(percent, "z"); }
     }
 
     /**
