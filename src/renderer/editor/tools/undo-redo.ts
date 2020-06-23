@@ -1,3 +1,5 @@
+import { shell } from "electron";
+
 import { Undefinable, Nullable } from "../../../shared/types";
 
 export interface IUndoRedoAction {
@@ -69,7 +71,7 @@ export class UndoRedo {
      */
     public async undo(): Promise<void> {
         const action = this.stack[this._position];
-        if (!action) { return; }
+        if (!action) { return shell.beep(); }
 
 		this._position--;
 
@@ -86,7 +88,7 @@ export class UndoRedo {
      */
     public async redo(): Promise<void> {
         const action = this.stack[this._position + 1];
-        if (!action) { return; }
+        if (!action) { return shell.beep(); }
         
         this._position++;
         

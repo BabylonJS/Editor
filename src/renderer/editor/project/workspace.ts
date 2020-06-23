@@ -2,7 +2,7 @@ import { ipcRenderer } from "electron";
 import { join, dirname, extname, basename } from "path";
 import { readdir, readJSON, writeJSON, stat, copyFile } from "fs-extra";
 
-import { Nullable } from "../../../shared/types";
+import { Nullable, IStringDictionary } from "../../../shared/types";
 import { IPCRequests, IPCResponses } from "../../../shared/ipc";
 
 import { Editor } from "../editor";
@@ -89,12 +89,29 @@ export class WorkSpace {
     public static WriteWorkspaceFile(projectPath: string): Promise<void> {
         if (!this.DirPath || !this.Path) { return Promise.resolve(); }
 
+        // Get all plugin prefernces
+        const pluginsPreferences: IStringDictionary<any> = { };
+        for (const p in Editor.LoadedExternalPlugins) {
+            const plugin = Editor.LoadedExternalPlugins[p];
+            if (!plugin.getWorkspacePreferences) { continue; }
+
+            try {
+                const preferences = plugin.getWorkspacePreferences();
+                JSON.stringify(preferences);
+
+                pluginsPreferences[p] = preferences;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
         return writeJSON(this.Path, {
             lastOpenedScene: projectPath.replace(this.DirPath!, ""),
             serverPort: this.Workspace!.serverPort,
             generateSceneOnSave: this.Workspace!.generateSceneOnSave,
             firstLoad: this.Workspace!.firstLoad,
             watchProject: this.Workspace!.watchProject,
+            pluginsPreferences,
         } as IWorkSpace, {
             encoding: "utf-8",
             spaces: "\t",

@@ -1,3 +1,5 @@
+import { Undefinable } from "../../../shared/types";
+
 export interface IObjectModified<T> {
     /**
      * Defines the reference to the object that has been modified.
@@ -36,7 +38,7 @@ export interface IEditorPreferences {
     /**
      * Defines the list of all registered plugins for the editor.
      */
-    plugins?: IRegisteredPlugin[];
+    plugins?: Undefinable<IRegisteredPlugin[]>;
 }
 
 export interface IRegisteredPlugin {

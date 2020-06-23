@@ -249,9 +249,14 @@ export class Editor {
      * Defines the current version of the layout.
      */
     public static readonly LayoutVersion = "3.0.0";
-
-    private static _LoadedPlugins: IStringDictionary<{ name: string }> = { };
-    private static _LoadedExternalPlugins: IStringDictionary<IPlugin> = { };
+    /**
+     * Defines the dictionary of all loaded plugins in the editor.
+     */
+    public static LoadedPlugins: IStringDictionary<{ name: string }> = { };
+    /**
+     * Defines the dictionary of all loaded external plugins in the editor.
+     */
+    public static LoadedExternalPlugins: IStringDictionary<IPlugin> = { };
 
     /**
      * Constructor.
@@ -356,9 +361,9 @@ export class Editor {
         // Retrieve preview layout state for plugins.
         const loadedPluginsItem = localStorage.getItem("babylonjs-editor-loaded-plugins");
         if (loadedPluginsItem) {
-            Editor._LoadedPlugins = JSON.parse(loadedPluginsItem);
-            for (const key in Editor._LoadedPlugins) {
-                const plugin = require(`../tools/${Editor._LoadedPlugins[key].name}`);
+            Editor.LoadedPlugins = JSON.parse(loadedPluginsItem);
+            for (const key in Editor.LoadedPlugins) {
+                const plugin = require(`../tools/${Editor.LoadedPlugins[key].name}`);
                 this.layout.registerComponent(key, plugin.default);
             }
         }
@@ -370,11 +375,11 @@ export class Editor {
         }
 
         // Don't forget to listen closing plugins
-        for (const key in Editor._LoadedPlugins) {
+        for (const key in Editor.LoadedPlugins) {
             const item = this.layout.root.getItemsById(key)[0];
             if (!item) { continue; }
 
-            const plugin = require(`../tools/${Editor._LoadedPlugins[key].name}`);
+            const plugin = require(`../tools/${Editor.LoadedPlugins[key].name}`);
             this._bindPluginEvents(item["container"], plugin);
         }
 
@@ -624,7 +629,7 @@ export class Editor {
         }
 
         // Plugin already loaded?
-        if (Editor._LoadedPlugins[plugin.title]) {
+        if (Editor.LoadedPlugins[plugin.title]) {
             return this.revealPanel(plugin.title);
         }
 
@@ -642,7 +647,7 @@ export class Editor {
         });
 
         // Register plugin
-        Editor._LoadedPlugins[plugin.title] = { name };
+        Editor.LoadedPlugins[plugin.title] = { name };
 
         // Listen to events
         const container = stack?.getActiveContentItem()["container"];
@@ -656,7 +661,7 @@ export class Editor {
      * Binds the plugin's events. 
      */
     private _bindPluginEvents(container: any, plugin: any): void {
-        container?.on("destroy", () => delete Editor._LoadedPlugins[plugin.title]);
+        container?.on("destroy", () => delete Editor.LoadedPlugins[plugin.title]);
         container?.on("show", () => {
             const pluginSize = this.getPanelSize(plugin.title);
             if (!pluginSize) { return; }
@@ -744,6 +749,20 @@ export class Editor {
         // If has workspace, od workspace stuffs.
         const workspace = WorkSpace.Workspace;
         if (workspace) {
+            // Plugins
+            for (const p in workspace.pluginsPreferences ?? { }) {
+                const plugin = Editor.LoadedExternalPlugins[p];
+                if (!plugin?.setWorkspacePreferences) { continue; }
+
+                const preferences = workspace.pluginsPreferences![p];
+                
+                try {
+                    plugin.setWorkspacePreferences(preferences);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
             // First load?
             const hasNodeModules = await pathExists(join(WorkSpace.DirPath!, "node_modules"));
             const hasPackageJson = await pathExists(join(WorkSpace.DirPath!, "package.json"));
@@ -896,8 +915,16 @@ export class Editor {
         ipcRenderer.on("save-as", () => ProjectExporter.SaveAs(this));
         
         // Undo / Redo
-        ipcRenderer.on("undo", () => undoRedo.undo());
-        ipcRenderer.on("redo", () => undoRedo.redo());
+        ipcRenderer.on("undo", () => !(document.activeElement instanceof HTMLInputElement) && undoRedo.undo());
+        ipcRenderer.on("redo", () => !(document.activeElement instanceof HTMLInputElement) && undoRedo.redo());
+
+        // Copy / Paste
+        document.addEventListener("copy", () => {
+            if (this.preview.canvasFocused) { return this.preview.copySelectedNode(); }
+        });
+        document.addEventListener("paste", () => {
+            if (this.preview.canvasFocused) { return this.preview.pasteCopiedNode(); }
+        });
 
         // Search
         ipcRenderer.on("search", () => this.preview.showSearchBar());
@@ -927,8 +954,8 @@ export class Editor {
                 
                 if (ev.keyCode === 46) { return this.preview.removeSelectedNode(); }
                 
-                if ((ev.ctrlKey || ev.metaKey) && ev.key === "c") { return this.preview.copySelectedNode(); }
-                if ((ev.ctrlKey || ev.metaKey) && ev.key === "v") { return this.preview.pasteCopiedNode(); }
+                // if ((ev.ctrlKey || ev.metaKey) && ev.key === "c") { return this.preview.copySelectedNode(); }
+                // if ((ev.ctrlKey || ev.metaKey) && ev.key === "v") { return this.preview.pasteCopiedNode(); }
             }
         });
 
@@ -962,7 +989,7 @@ export class Editor {
 
         localStorage.setItem("babylonjs-editor-layout-state", JSON.stringify(config));
         localStorage.setItem("babylonjs-editor-layout-version", Editor.LayoutVersion);
-        localStorage.setItem("babylonjs-editor-loaded-plugins", JSON.stringify(Editor._LoadedPlugins));
+        localStorage.setItem("babylonjs-editor-loaded-plugins", JSON.stringify(Editor.LoadedPlugins));
     }
 
     /**
@@ -1008,9 +1035,9 @@ export class Editor {
         const pluginToolbars: IPluginToolbar[] = [];
 
         for (const p of plugins) {
-            if (Editor._LoadedExternalPlugins[p.name]) {
+            if (Editor.LoadedExternalPlugins[p.name]) {
                 if (!p.enabled) {
-                    delete Editor._LoadedExternalPlugins[p.name];
+                    delete Editor.LoadedExternalPlugins[p.name];
                 }
 
                 continue;
@@ -1020,10 +1047,10 @@ export class Editor {
                 const exports = require(p.path);
                 const plugin = exports.registerEditorPlugin(this) as IPlugin;
 
-                Editor._LoadedExternalPlugins[p.name] = plugin;
+                Editor.LoadedExternalPlugins[p.name] = plugin;
 
                 // this.mainToolbar.setState({ plugins: plugin.toolbarElements });
-                pluginToolbars.push.apply(pluginToolbars, plugin.toolbarElements);
+                pluginToolbars.push.apply(pluginToolbars, plugin.toolbar);
             } catch (e) {
                 console.error(e);
             }

@@ -28,7 +28,7 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
         return (
             <div>
                 <Divider />
-                {this.props.settings.state.plugins?.map((p) => (
+                {this.props.settings.state.pluginsPreferences?.map((p) => (
                     <Callout key={p.name} title={p.name} icon="series-derived">
                         <span style={{ color: "grey" }}>{p.path}</span>
                         <Switch key={p.path} checked={p.enabled} label="Enabled" onChange={() => this._handlePluginEnabled(p)} />
@@ -54,12 +54,12 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
         }
 
         const packageJson = await readJSON(join(folder, "package.json"), { encoding: "utf-8" });
-        const plugins = this.props.settings.state.plugins?.slice() ?? [];
+        const plugins = this.props.settings.state.pluginsPreferences?.slice() ?? [];
 
         const exists = plugins.find((p) => p.name === packageJson.name);
         if (exists) { return; }
 
-        this.props.settings.setState({ plugins: plugins.concat([{
+        this.props.settings.setState({ pluginsPreferences: plugins.concat([{
             name: packageJson.name,
             path: folder,
             enabled: true,
@@ -70,12 +70,12 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
      * Called on the user wants to remove a plugin.
      */
     private _handleRemovePlugin(plugin: IRegisteredPlugin): void {
-        const plugins = this.props.settings.state.plugins?.slice() ?? [];
+        const plugins = this.props.settings.state.pluginsPreferences?.slice() ?? [];
 
         const index = plugins.indexOf(plugin);
         if (index !== -1) {
             plugins.splice(index, 1);
-            this.props.settings.setState({ plugins });
+            this.props.settings.setState({ pluginsPreferences: plugins });
         }
     }
 
@@ -83,12 +83,12 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
      * Called on the user enables/disables a plugin.
      */
     private _handlePluginEnabled(plugin: IRegisteredPlugin): void {
-        const plugins = this.props.settings.state.plugins?.slice() ?? [];
+        const plugins = this.props.settings.state.pluginsPreferences?.slice() ?? [];
 
         const index = plugins.indexOf(plugin);
         if (index !== -1) {
             plugins[index].enabled = !plugins[index].enabled;
-            this.props.settings.setState({ plugins });
+            this.props.settings.setState({ pluginsPreferences: plugins });
         }
     }
 }

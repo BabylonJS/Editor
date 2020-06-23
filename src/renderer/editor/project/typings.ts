@@ -1,4 +1,4 @@
-import { Undefinable } from "../../../shared/types";
+import { Undefinable, IStringDictionary } from "../../../shared/types";
 
 export interface IWorkSpace {
     /**
@@ -21,6 +21,10 @@ export interface IWorkSpace {
      * Defines wether or not the workspace has been loaded for the first time.
      */
     firstLoad: boolean;
+    /**
+     * Defines the dictionary that contains the preferences of external plugins in the editor.
+     */
+    pluginsPreferences?: Undefinable<IStringDictionary<any>>;
 }
 
 export interface IProject {

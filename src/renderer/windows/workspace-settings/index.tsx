@@ -42,7 +42,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
             generateSceneOnSave: false,
             firstLoad: true,
             watchProject: false,
-            plugins: [],
+            pluginsPreferences: [],
             ...this.getPreferences(),
         };
     }
