@@ -111,13 +111,17 @@ export class SoundInspector extends AbstractInspector<Sound> {
      * Adds the sound bar when the object is playing.
      */
     private _addSoundBar(folder: GUI): void {
-        this._time = this.selectedObject.getSoundSource()?.context.currentTime ?? 0;
-        this._soundBar = folder.addSlider(this, "_time", 0, this.selectedObject.getAudioBuffer()?.duration ?? 1, 0.01).name("Current Time").onFinishChange(() => {
+        const buffer = this.selectedObject.getAudioBuffer();
+        const source = this.selectedObject.getSoundSource();
+        if (!buffer || !source) { return; }
+
+        this._time = 1 / (source.context.currentTime || 1);
+        this._soundBar = folder.addSlider(this, "_time", 0, 1, 0.01).name("Current Time").onFinishChange(() => {
             this.selectedObject?.stop();
-            this.selectedObject?.play(0, this._time);
+            this.selectedObject?.play(0, this._time * buffer.duration);
         });
 
-        this._updateInterval = setInterval(() => this._soundBar?.setValue(this._time += 1 * this.selectedObject["_playbackRate"]), 1000) as any;
+        this._updateInterval = setInterval(() => this._soundBar?.setValue(this._time += (1 / buffer.duration) * this.selectedObject["_playbackRate"]), 1000) as any;
     }
 
     /**
