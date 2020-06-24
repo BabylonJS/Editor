@@ -74,7 +74,7 @@ export default class EditorApp {
 	public static async CreateWindow(): Promise<void> {
 		// Save the opened file from the OS file explorer
 		this.ConfigureSettings(this.GetFilePathArgument(process.argv));
-
+		
 		this.Window = await WindowController.WindowOnDemand({
 			options: {
 				width: 800,
@@ -96,19 +96,19 @@ export default class EditorApp {
 		this.Window.on("closed", () => app.quit());
 		this.Window.on("close", async (e) => {
 			if (this._forceQuit) { return; }
-
+			
 			e.preventDefault();
 			this._forceQuit = await new Promise<boolean>((resolve) => {
 				ipcMain.on("quit", (_, shouldQuit) => resolve(shouldQuit));
 				this.Window.webContents.send("quit");
 			});
-
+			
 			if (this._forceQuit) { app.quit(); }
 		});
 	}
-
+	
     /**
-     * Creates the short cuts
+	 * Creates the short cuts
      */
 	public static CreateShortcutsAndMenu(): void {
 		// Short cuts
@@ -234,10 +234,18 @@ else {
 		}
 	});
 	app.on("window-all-closed", async () => {
-		if (process.platform !== "darwin")
+		if (process.platform !== "darwin") {
 			app.quit();
+		}
 	});
 
 	app.on("ready", () => EditorApp.Create());
 	app.on("activate", () => EditorApp.Window || EditorApp.Create());
+
+	app.on("open-file", (_, filename) => {
+		if (filename !== Settings.OpenedFile && filename !== Settings.WorkspacePath) {
+			EditorApp.ConfigureSettings(filename);
+			EditorApp.Window?.reload();
+		}
+	});
 }
