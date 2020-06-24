@@ -159,6 +159,11 @@ export class ProjectExporter {
 
             const json = texture.serialize();
             if (!json) { continue; }
+
+            if (json.isCube && !json.isRenderTarget && json.files) {
+                // Replace Urls
+                json.files = json.files.map((f) => join("files", basename(f)));
+            }
             
             json.name = join("./", "files", basename(texture.name));
             json.url = join("./", "files", basename(texture.name));

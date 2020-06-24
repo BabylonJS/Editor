@@ -93,7 +93,17 @@ class OffscreenAssets {
      */
     public async getScreenshot(): Promise<string> {
         return new Promise<string>((resolve) => {
+            // After 10 seconds, resolve if failed.
+            const timeoutId = setTimeout(async () => {
+                this.scene.render();
+
+                const blob = await this.canvas.convertToBlob({ type: "image/png" });
+                Tools.ReadFileAsDataURL(blob, (data) => resolve(data), null!);
+            }, 10000);
+
             this.scene.executeWhenReady(async () => {
+                clearTimeout(timeoutId);
+
                 await new Promise<void>((resolve) => setTimeout(() => resolve(), 100));
 
                 const minimum = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);

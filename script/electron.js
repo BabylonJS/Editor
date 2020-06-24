@@ -37,6 +37,7 @@ Builder.build({
             "assets/project/**",
             "assets/scripts/**",
             "assets/graphs/**",
+            "assets/extras/**",
         ],
         files: [
             "src/**",

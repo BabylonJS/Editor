@@ -30,6 +30,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         this.addOpacity();
         this.addEmissive();
         this.addLightMap();
+        this.addReflection();
 
         return common;
     }
@@ -133,6 +134,18 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         this.addTexture(lightMap, this.material, "lightmapTexture").name("Texture");
 
         return lightMap;
+    }
+
+    /**
+     * Adds the reflection editable properties.
+     */
+    protected addReflection(): GUI {
+        const reflection = this.tool!.addFolder("Reflection");
+        reflection.open();
+
+        this.addTexture(reflection, this.material, "reflectionTexture").name("Texture");
+
+        return reflection;
     }
 }
 

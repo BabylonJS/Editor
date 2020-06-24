@@ -3,7 +3,7 @@ import { readJSON, pathExists } from "fs-extra";
 
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
-    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound,
+    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -51,6 +51,14 @@ export class ProjectImporter {
             if (source.metadata && source.metadata.editorName) {
                 const texture = scene.textures.find((t) => t.metadata && t.metadata.editorName === source.metadata.editorName);
                 if (texture) { return texture; }
+
+                // Cube texture?
+                if (source.isCube && !source.isRenderTarget && source.files) {
+                    // Replace Urls
+                    source.files.forEach((f, index) => {
+                        source.files[index] = join(Project.DirPath!, f);
+                    });
+                }
             }
 
             return textureParser(source, scene, rootUrl);
@@ -176,10 +184,23 @@ export class ProjectImporter {
             try {
                 const json = await readJSON(join(Project.DirPath, "textures", t));
 
-                const existing = editor.scene!.getTextureByUniqueID(json.uniqueId);
+                const existing = editor.scene!.textures.find((t) => {
+                    return t.metadata && json.metadata && t.metadata.editorId === json.metadata.editorId;
+                 }) ?? null;
+
                 if (existing) { continue; }
 
-                Texture.Parse(json, editor.scene!, rootUrl) as Texture;
+                if (json.isCube && !json.isRenderTarget && json.files) {
+                    // Replace Urls
+                    json.files.forEach((f, index) => {
+                        json.files[index] = join(Project.DirPath!, f);
+                    });
+
+                    const cube = CubeTexture.Parse(json, editor.scene!, rootUrl);
+                    cube.name = cube.url = basename(cube.name);
+                } else {
+                    Texture.Parse(json, editor.scene!, rootUrl);
+                }
                 editor.console.logInfo(`Parsed texture "${t}"`);
             } catch (e) {
                 editor.console.logError(`Failed to parse texture "${t}"`);

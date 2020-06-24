@@ -4,7 +4,7 @@ import { copy } from "fs-extra";
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position } from "@blueprintjs/core";
 
 import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, DynamicTexture, BaseTexture } from "babylonjs";
 
@@ -21,6 +21,8 @@ import { Alert } from "../gui/alert";
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
 
+import { PureCubeDialog } from "./textures/pure-cube";
+
 export class TextureAssets extends AbstractAssets {
     /**
      * Defines the size of assets to be drawn in the panel. Default is 100x100 pixels.
@@ -34,13 +36,21 @@ export class TextureAssets extends AbstractAssets {
      * Renders the component.
      */
     public render(): React.ReactNode {
+        const add = 
+            <Menu>
+                <MenuItem key="add-from-files" text="From Files..." onClick={() => this._addTextures()} />
+                <MenuItem key="add-pure-cube" text="Pur Cube Texture..." onClick={() => this._addPureCubeTexture()} />
+            </Menu>;
+        
         return (
             <>
                 <div className={Classes.FILL} key="materials-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
                         <Divider />
-                        <Button key="add-textures" icon={<Icon src="plus.svg" />} small={true} text="Add..." onClick={() => this._addTextures()} />
+                        <Popover content={add} position={Position.BOTTOM_LEFT}>
+                            <Button icon={<Icon src="plus.svg"/>} rightIcon="caret-down" small={true} text="Add"/>
+                        </Popover>
                         <Divider />
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedTextures()} />
                     </ButtonGroup>
@@ -75,7 +85,12 @@ export class TextureAssets extends AbstractAssets {
 
             const name = basename(texture.name);
             const file = FilesStore.GetFileFromBaseName(name);
-            if (!file && !isDyamicTexture) { continue; }
+            if (!file && !isDyamicTexture) {
+                // Maybe pure cube texture, check again
+                if (!texture.isCube || texture.isRenderTarget) {
+                    continue;
+                }
+            }
 
             let base64 = texture.isCube ? "../css/svg/dds.svg" : file?.path ?? "";
             if (isDyamicTexture) {
@@ -244,6 +259,29 @@ export class TextureAssets extends AbstractAssets {
     private async _addTextures(): Promise<void> {
         const files = await Tools.ShowNativeOpenMultipleFileDialog();
         this.onDropFiles(files.map((f) => f));
+    }
+
+    /**
+     * Called on the user wants to add a pure cube texture.
+     */
+    private async _addPureCubeTexture(): Promise<void> {
+        const texture = await PureCubeDialog.Show(this.editor);
+        if (!texture) { return; }
+
+        const files = texture["_files"] as string[] ?? [];
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+
+            // Change Url
+            const path = join("files", basename(f));
+            files[i] = path;
+
+            // Copy assets
+            const dest = join(Project.DirPath!, "files", basename(f));
+            if (dest) { await copy(f, dest); }
+        }
+
+        this.refresh();
     }
 
     /**
