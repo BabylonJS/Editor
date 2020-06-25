@@ -271,11 +271,7 @@ export class TextureAssets extends AbstractAssets {
         const files = texture["_files"] as string[] ?? [];
         for (let i = 0; i < files.length; i++) {
             const f = files[i];
-
-            // Change Url
-            const path = join("files", basename(f));
-            files[i] = path;
-
+            
             // Copy assets
             const dest = join(Project.DirPath!, "files", basename(f));
             if (dest) { await copy(f, dest); }

@@ -53,9 +53,10 @@ export class ProjectImporter {
                 if (texture) { return texture; }
 
                 // Cube texture?
-                if (source.isCube && !source.isRenderTarget && source.files) {
+                if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
                     // Replace Urls
                     source.files.forEach((f, index) => {
+                        if (f.indexOf("files") !== 0) { return; }
                         source.files[index] = join(Project.DirPath!, f);
                     });
                 }
@@ -190,7 +191,7 @@ export class ProjectImporter {
 
                 if (existing) { continue; }
 
-                if (json.isCube && !json.isRenderTarget && json.files) {
+                if (json.isCube && !json.isRenderTarget && json.files && json.metadata?.isPureCube) {
                     // Replace Urls
                     json.files.forEach((f, index) => {
                         json.files[index] = join(Project.DirPath!, f);

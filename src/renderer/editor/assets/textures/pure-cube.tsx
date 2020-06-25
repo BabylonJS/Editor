@@ -193,6 +193,7 @@ export class PureCubeDialog extends React.Component<IPureCubeDialogProps, IPureC
         const texture = CubeTexture.CreateFromImages(images, this.props.editor.scene!);
         texture.name = "Pure Cube Texture";
         texture.url = "Pure Cube Texture";
+        texture.metadata = { isPureCube: true };
 
         texture.onLoadObservable.addOnce(() => {
             this._handleClose(texture);

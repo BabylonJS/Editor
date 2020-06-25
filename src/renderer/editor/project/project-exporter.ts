@@ -160,7 +160,7 @@ export class ProjectExporter {
             const json = texture.serialize();
             if (!json) { continue; }
 
-            if (json.isCube && !json.isRenderTarget && json.files) {
+            if (json.isCube && !json.isRenderTarget && json.files && json.metadata?.isPureCube) {
                 // Replace Urls
                 json.files = json.files.map((f) => join("files", basename(f)));
             }
