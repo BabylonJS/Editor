@@ -191,6 +191,29 @@ export default class EditorApp {
 				],
 			},
 			{
+				label: "Project",
+				submenu: [
+					{
+						label: "Build Project...",
+						accelerator: "CommandOrControl+B",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("build-project"),
+					},
+					{
+						label: "Build And Run Project...",
+						accelerator: "CommandOrControl+Shift+R",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("build-and-run-project"),
+					},
+					{
+						type: "separator",
+					},
+					{
+						label: "Run Project...",
+						accelerator: "CommandOrControl+R",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("run-project"),
+					},
+				],
+			},
+			{
 				label: "Window",
 				submenu: [
 					{

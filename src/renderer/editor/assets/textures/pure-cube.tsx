@@ -103,7 +103,7 @@ export class PureCubeDialog extends React.Component<IPureCubeDialogProps, IPureC
 
                 <div className={Classes.DIALOG_FOOTER}>
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                        <Button onClick={() => this._handleClose()}>Close</Button>
+                        <Button onClick={() => this._handleClose()}>Cancel</Button>
                         <AnchorButton intent={Intent.PRIMARY} onClick={() => this._handleCreate()}>Create</AnchorButton>
                     </div>
                 </div>

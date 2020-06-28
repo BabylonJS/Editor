@@ -40,6 +40,8 @@ export class WorkSpace {
     private static _WatchProjectProgram: Nullable<IExecProcess> = null;
     private static _WatchTypescriptProgram: Nullable<IExecProcess> = null;
 
+    private static _BuildingProject: boolean = false;
+
     /**
      * Returns wether or not the editor has a workspace opened.
      */
@@ -187,7 +189,9 @@ export class WorkSpace {
      * @param editor the editor reference.
      */
     public static async BuildProject(editor: Editor): Promise<void> {
-        if (!this.Workspace) { return; }
+        if (!this.Workspace || this._BuildingProject) { return; }
+
+        this._BuildingProject = true;
 
         const task = editor.addTaskFeedback(50, "Building project...");
 
@@ -197,6 +201,8 @@ export class WorkSpace {
         } catch (e) {
             editor.updateTaskFeedback(task, 0, "Failed");
         }
+
+        this._BuildingProject = false;
 
         editor.closeTaskFeedback(task, 1000);
     }

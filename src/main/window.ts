@@ -33,10 +33,18 @@ export class WindowController {
 
 	/**
 	 * Finds the window according to the given id.
-	 * @param id the id of the window to find.
+	 * @param id defines the id of the window to find.
 	 */
-	public static GetWindowByID(id: number): Undefinable<BrowserWindow> {
+	public static GetWindowById(id: number): Undefinable<BrowserWindow> {
 		return this._Windows.find((w) => w.id === id);
+	}
+
+	/**
+	 * Finds the window according to the given web contents id.
+	 * @param id defines the id of the webcontents to find.
+	 */
+	public static GetWindowByWebContentsId(id: number): Undefinable<BrowserWindow> {
+		return this._Windows.find((w) => w.webContents?.id === id);
 	}
 
 	/**
@@ -53,13 +61,13 @@ export class WindowController {
 
 	private static _setWindowURL(window: BrowserWindow, url: string): Promise<void> {
 		window.loadURL(url);
-		return new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
+		return new Promise((resolve) => window.webContents.once("did-finish-load", resolve));
 	}
 
 	private static _createWindow(options: BrowserWindowConstructorOptions): BrowserWindow {
 		let window = new BrowserWindow(options);
 		this._Windows.push(window);
-		window.on('closed', () => this._removeWindow(window));
+		window.on("closed", () => this._removeWindow(window));
 		return window;
 	}
 

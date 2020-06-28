@@ -929,6 +929,14 @@ export class Editor {
         // Search
         ipcRenderer.on("search", () => this.preview.showSearchBar());
 
+        // Project
+        ipcRenderer.on("build-project", () => WorkSpace.BuildProject(this));
+        ipcRenderer.on("build-and-run-project", async () => {
+            await WorkSpace.BuildProject(this);
+            this.runProject(true);
+        });
+        ipcRenderer.on("run-project", () => this.runProject(true));
+
         // Drag'n'drop
         document.addEventListener("dragover", (ev) => ev.preventDefault());
         document.addEventListener("drop", (ev) => {

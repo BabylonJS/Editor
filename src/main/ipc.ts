@@ -47,7 +47,8 @@ export class IPC {
 	 * The user wants to show the open file dialog.
 	 */
 	public static async OnOpenDirectoryDialog(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
-		const result = await dialog.showOpenDialog(EditorApp.Window, { title, defaultPath, properties: ["openDirectory"] });
+		const window = WindowController.GetWindowByWebContentsId(event.sender.id) ?? EditorApp.Window;
+		const result = await dialog.showOpenDialog(window, { title, defaultPath, properties: ["openDirectory"] });
 
 		if (!result || !result.filePaths.length) { return event.sender.send(IPCResponses.CancelOpenFileDialog); }
 		event.sender.send(IPCResponses.OpenDirectoryDialog, result.filePaths[0]);
@@ -57,7 +58,8 @@ export class IPC {
 	 * The user wants to show the open file dialog.
 	 */
 	public static async OnOpenFileDialog(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
-		const result = await dialog.showOpenDialog(EditorApp.Window, { title, defaultPath, properties: ["openFile"] });
+		const window = WindowController.GetWindowByWebContentsId(event.sender.id) ?? EditorApp.Window;
+		const result = await dialog.showOpenDialog(window, { title, defaultPath, properties: ["openFile"] });
 
 		if (!result || !result.filePaths.length) { return event.sender.send(IPCResponses.CancelOpenFileDialog); }
 		event.sender.send(IPCResponses.OpenFileDialog, result.filePaths[0]);
@@ -67,7 +69,8 @@ export class IPC {
 	 * The user wants to show a save file dialog.
 	 */
 	public static async OnSaveFileDialog(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
-		const result = await dialog.showSaveDialog(EditorApp.Window, { title, defaultPath, properties: [] });
+		const window = WindowController.GetWindowByWebContentsId(event.sender.id) ?? EditorApp.Window;
+		const result = await dialog.showSaveDialog(window, { title, defaultPath, properties: [] });
 
 		if (!result || !result.filePath) { return event.sender.send(IPCResponses.CancelSaveFileDialog); }
 		event.sender.send(IPCResponses.SaveFileDialog, result.filePath);
@@ -115,7 +118,7 @@ export class IPC {
 	 * The user opened a new window and the window is requiring things.
 	 */
 	public static SendWindowMessage(_: IpcMainEvent, windowId: number, data: any): void {
-		const window = WindowController.GetWindowByID(windowId);
+		const window = WindowController.GetWindowById(windowId);
 		if (!window) {
 			return IPC.Window.webContents.send(IPCResponses.SendWindowMessage, data);
 		}
@@ -127,7 +130,7 @@ export class IPC {
 	 * Focuses the window identified by the given id.
 	 */
 	public static FocusWindow(_: IpcMainEvent, windowId: number): void {
-		const window = WindowController.GetWindowByID(windowId);
+		const window = WindowController.GetWindowById(windowId);
 		if (window) {
 			if (window.isMinimized()) { window.restore(); }
 			window.focus();
