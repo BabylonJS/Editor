@@ -13,6 +13,7 @@ import { Editor } from "../editor";
 
 import { Tools } from "../tools/tools";
 import { ExecTools } from "../tools/exec";
+import { EditorUpdater } from "../tools/updater";
 
 import { Icon } from "../gui/icon";
 import { Confirm } from "../gui/confirm";
@@ -153,6 +154,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Report issue..." icon={<Icon src="github.svg" />} onClick={() => this._menuItemClicked("help:report")} />
                 <MenuDivider />
                 <MenuItem text="Welcome..." icon={<Icon src="jedi.svg" />} onClick={() => this._menuItemClicked("help:welcome")} />
+                <MenuDivider />
+                <MenuItem text="Check For Updates..." icon="updated" onClick={() => this._menuItemClicked("help:check-for-updates")} />
             </Menu>;
 
         return (
@@ -225,6 +228,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "help:documentation": this._editor.addPlugin("doc"); break;
             case "help:report": shell.openExternal("https://github.com/BabylonJS/Editor/issues"); break;
             case "help:welcome": WelcomeDialog.Show(true); break;
+            case "help:check-for-updates": EditorUpdater.CheckForUpdates(this._editor, true); break;
 
             default: break;
         }

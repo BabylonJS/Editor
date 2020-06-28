@@ -26,5 +26,14 @@
     "3.2.0": {
         "win32": "electron/3.2.0/BabylonJS Editor Setup 3.2.0.exe",
         "darwin": "electron/3.2.0/BabylonJS Editor-3.2.0.dmg"
+    },
+
+    "4.0.0-beta.0": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.0.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.0.dmg"
+    },
+    "4.0.0-beta.1": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.1.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.1.dmg"
     }
 }

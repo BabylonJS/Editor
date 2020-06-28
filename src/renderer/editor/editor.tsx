@@ -23,6 +23,7 @@ import { IObjectModified, IEditorPreferences } from "./tools/types";
 import { undoRedo } from "./tools/undo-redo";
 import { AbstractEditorPlugin } from "./tools/plugin";
 import { LayoutUtils } from "./tools/layout-utils";
+import { EditorUpdater } from "./tools/updater";
 
 import { IFile } from "./project/files";
 import { WorkSpace } from "./project/workspace";
@@ -224,6 +225,10 @@ export class Editor {
      * @hidden
      */
     public _byPassBeforeUnload: boolean;
+    /**
+     * @hidden
+     */
+    public _toaster: Nullable<Toaster> = null;
 
     private _components: IStringDictionary<any> = { };
     private _stacks: IStringDictionary<any> = { };
@@ -234,7 +239,6 @@ export class Editor {
         timeout: number;
     }> = { };
 
-    private _toaster: Nullable<Toaster> = null;
     private _activityIndicator: Nullable<ActivityIndicator> = null;
     private _refHandlers = {
         getToaster: (ref: Toaster) => (this._toaster = ref),
@@ -779,6 +783,9 @@ export class Editor {
                 await WorkSpace.WatchProject(this);
             }
         }
+
+        // Check for updates
+        EditorUpdater.CheckForUpdates(this, false);
     }
 
     /**
