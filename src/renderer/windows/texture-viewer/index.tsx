@@ -3,6 +3,7 @@ import { basename, extname } from "path";
 import * as React from "react";
 
 import { Engine, Scene, ArcRotateCamera, Vector3, PBRMaterial, CubeTexture, Mesh } from "babylonjs";
+import "babylonjs-loaders";
 
 export interface ITextureViewerState {
     /**

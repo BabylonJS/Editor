@@ -1,5 +1,6 @@
 import { Engine, Scene, ArcRotateCamera, Vector3, Material, Mesh, Texture, HemisphericLight } from "babylonjs";
 import "babylonjs-materials";
+import "babylonjs-loaders";
 
 import * as React from "react";
 
