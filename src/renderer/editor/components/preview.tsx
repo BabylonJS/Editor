@@ -44,6 +44,10 @@ export interface IPreviewState {
      */
     gizmoStep: number;
     /**
+     * Defines the list of all available gizmo steps.
+     */
+    availableGizmoSteps: number[];
+    /**
      * Defines wether or not force wireframe is enabled or not.
      */
     forceWireframe: boolean;
@@ -88,6 +92,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             overNodeName: "",
             gizmoType: GizmoType.None,
             gizmoStep: 0,
+            availableGizmoSteps: [0, 1, 2, 5, 10],
             forceWireframe: false,
             showIcons: true,
         };
@@ -112,11 +117,9 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         const steps = (
             <Menu>
-                <MenuItem key="0" text="0" icon={this._getCheckedIcon(this.state.gizmoStep === 0)} onClick={() => this.setGizmoStep(0)} />
-                <MenuItem key="1" text="1" icon={this._getCheckedIcon(this.state.gizmoStep === 1)} onClick={() => this.setGizmoStep(1)} />
-                <MenuItem key="2" text="2" icon={this._getCheckedIcon(this.state.gizmoStep === 2)} onClick={() => this.setGizmoStep(2)} />
-                <MenuItem key="5" text="5" icon={this._getCheckedIcon(this.state.gizmoStep === 3)} onClick={() => this.setGizmoStep(5)} />
-                <MenuItem key="10" text="10" icon={this._getCheckedIcon(this.state.gizmoStep === 4)} onClick={() => this.setGizmoStep(10)} />
+                {this.state.availableGizmoSteps.map((s) => (
+                    <MenuItem key={s.toString()} text={s.toString()} icon={this._getCheckedIcon(this.state.gizmoStep === s)} onClick={() => this.setGizmoStep(s)} />
+                ))}
             </Menu>
         );
 

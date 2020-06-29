@@ -120,7 +120,6 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
         preferences.zoom = this.state.zoom;
         preferences.scalingLevel = this.state.scalingLevel;
         preferences.positionGizmoSnapping = this.state.positionGizmoSnapping;
-        preferences.rotationGizmoSnapping = this.state.rotationGizmoSnapping;
         preferences.plugins = this.state.plugins ?? [];
 
         localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(preferences));

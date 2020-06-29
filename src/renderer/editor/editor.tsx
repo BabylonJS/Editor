@@ -1045,6 +1045,11 @@ export class Editor {
         document.body.style.zoom = preferences.zoom ?? document.body.style.zoom;
         this.engine?.setHardwareScalingLevel(preferences.scalingLevel ?? 1);
 
+        // Gizmo steps
+        if (preferences.positionGizmoSnapping) {
+            this.preview?.setState({ availableGizmoSteps: preferences.positionGizmoSnapping });
+        }
+
         // Plugins
         const plugins = preferences.plugins ?? [];
         const pluginToolbars: IPluginToolbar[] = [];
@@ -1053,6 +1058,8 @@ export class Editor {
             if (Editor.LoadedExternalPlugins[p.name]) {
                 if (!p.enabled) {
                     delete Editor.LoadedExternalPlugins[p.name];
+                } else {
+                    pluginToolbars.push.apply(pluginToolbars, Editor.LoadedExternalPlugins[p.name].toolbar);
                 }
 
                 continue;
@@ -1071,7 +1078,7 @@ export class Editor {
             }
         }
 
-        this.mainToolbar.setState({ plugins: pluginToolbars });
+        this.mainToolbar?.setState({ plugins: pluginToolbars });
 
         this.layout.updateSize();
     }

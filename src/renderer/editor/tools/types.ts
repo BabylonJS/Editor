@@ -32,10 +32,6 @@ export interface IEditorPreferences {
      */
     positionGizmoSnapping?: number[];
     /**
-     * Defines the list of all rotation snapping values.
-     */
-    rotationGizmoSnapping?: number[];
-    /**
      * Defines the list of all registered plugins for the editor.
      */
     plugins?: Undefinable<IRegisteredPlugin[]>;
