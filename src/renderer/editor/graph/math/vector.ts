@@ -27,7 +27,7 @@ export class Vec2 extends GraphNode<{ value: Vector2; }> {
     public configure(info: SerializedLGraphNode): void {
         super.configure(info);
 
-        this.properties.value = new Vector2(info.properties.value.x, info.properties.value.y);
+        this.properties.value = new Vector2(info.properties.value._x, info.properties.value._y);
         if (this.widgets) {
             this.widgets[0].value = this.properties.value.x;
             this.widgets[1].value = this.properties.value.y;
@@ -87,7 +87,7 @@ export class Vec3 extends GraphNode<{ value: Vector3; }> {
     public configure(info: SerializedLGraphNode): void {
         super.configure(info);
 
-        this.properties.value = new Vector3(info.properties.value.x, info.properties.value.y, info.properties.value.z);
+        this.properties.value = new Vector3(info.properties.value._x, info.properties.value._y, info.properties.value._z);
         if (this.widgets) {
             this.widgets[0].value = this.properties.value.x;
             this.widgets[1].value = this.properties.value.y;

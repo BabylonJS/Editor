@@ -28,6 +28,7 @@ import { PointerEvent } from "./events/pointer-event";
 import { KeyboardEvent } from "./events/keyboard-event";
 import { TimeoutEvent } from "./events/set-timeout";
 import { StartGameEvent } from "./events/start-game-event";
+import { TickGameEvent } from "./events/tick-game-event";
 import { CollisionEvent } from "./events/collision-event";
 
 import { PickInfos } from "./data/pick-info";
@@ -130,6 +131,7 @@ export class GraphCode {
         LiteGraph.registerNodeType("events/keyboard_event", KeyboardEvent);
         LiteGraph.registerNodeType("events/timeout_event", TimeoutEvent);
         LiteGraph.registerNodeType("events/start_game_event", StartGameEvent);
+        LiteGraph.registerNodeType("events/tick_game_event", TickGameEvent);
         LiteGraph.registerNodeType("events/collision_event", CollisionEvent);
 
         // Data
