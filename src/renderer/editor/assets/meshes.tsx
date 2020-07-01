@@ -2,7 +2,7 @@ import { join, extname, basename } from "path";
 import { copy } from "fs-extra";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider } from "@blueprintjs/core";
 
 import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture } from "babylonjs";
 
@@ -16,6 +16,8 @@ import { Icon } from "../gui/icon";
 
 import { IFile, FilesStore } from "../project/files";
 import { Project } from "../project/project";
+
+import { SceneTools } from "../scene/tools";
 
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
@@ -104,6 +106,12 @@ export class MeshesAssets extends AbstractAssets {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
+                <MenuItem text="Export To">
+                    <MenuItem text="To Babylon..." icon={<Icon src="logo-babylon.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToBabylonJSFormat(this.editor, item.id)} />
+                    <MenuItem text="To GLB..." icon={<Icon src="gltf.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToGLTF(this.editor, item.id, "glb")} />
+                    <MenuItem text="To GLTF..." icon={<Icon src="gltf.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToGLTF(this.editor, item.id, "gltf")} />
+                </MenuItem>
+                <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveMesh(item)} />
             </Menu>,
             { left: e.clientX, top: e.clientY },

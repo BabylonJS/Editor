@@ -2,14 +2,13 @@ import { extname } from "path";
 
 import {
     Mesh,
-    PointLight, DirectionalLight, SpotLight,
+    PointLight, DirectionalLight, SpotLight, HemisphericLight,
     Node, TransformNode,  GroundMesh, ParticleHelper, IParticleSystem,
     Vector3,
     FreeCamera, ArcRotateCamera,
     Texture, VertexData, Color3,
 } from "babylonjs";
 import { SkyMaterial } from "babylonjs-materials";
-
 
 import { Alert } from "../gui/alert";
 import { Tools } from "../tools/tools";
@@ -135,6 +134,14 @@ export class SceneFactory {
      */
     public static AddSpotLight(editor: Editor): SpotLight {
         return this._ConfigureNode(new SpotLight("New Spot Light", new Vector3(10, 10, 10), new Vector3(-1, -2, -1), Math.PI * 0.5, 1, editor.scene!));
+    }
+
+    /**
+     * Adds a new hemispheric light to the scene.
+     * @param editor the editor reference.
+     */
+    public static AddHemisphericLight(editor: Editor): HemisphericLight {
+        return this._ConfigureNode(new HemisphericLight("New Hemispheric Light", new Vector3(0, 1, 0), editor.scene!));
     }
 
     /**

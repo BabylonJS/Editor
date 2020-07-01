@@ -122,6 +122,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Point Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:pointlight")} />
                 <MenuItem text="Directional Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:directional-light")} />
                 <MenuItem text="Spot Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:spot-light")} />
+                <MenuItem text="Hemispheric Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:hemispheric-light")} />
                 <MenuDivider />
                 <MenuItem text="Free Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("add:camera")} />
                 <MenuItem text="Arc Rotate Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("add:arc-rotate-camera")} />
@@ -259,6 +260,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 case "pointlight": node = SceneFactory.AddPointLight(this._editor); break;
                 case "directional-light": node = SceneFactory.AddDirectionalLight(this._editor); break;
                 case "spot-light": node = SceneFactory.AddSpotLight(this._editor); break;
+                case "hemispheric-light": node = SceneFactory.AddHemisphericLight(this._editor); break;
 
                 case "camera": node = SceneFactory.AddFreeCamera(this._editor); break;
                 case "arc-rotate-camera": node = SceneFactory.AddArcRotateCamera(this._editor); break;

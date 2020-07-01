@@ -1,7 +1,18 @@
-import { Mesh } from "babylonjs";
+import { shell } from "electron";
+import { writeJSON, writeFile } from "fs-extra";
+import { join, extname, dirname } from "path";
+
+import { Mesh, Scene, SceneLoader, SceneSerializer } from "babylonjs";
+import { GLTF2Export } from 'babylonjs-serializers';
+
+import { Alert } from "../gui/alert";
+import { Dialog } from "../gui/dialog";
+
+import { Project } from "../project/project";
+
+import { Tools } from "../tools/tools";
 
 import { Editor } from "../editor";
-import { Alert } from "../gui/alert";
 
 export class SceneTools {
     /**
@@ -18,5 +29,69 @@ export class SceneTools {
 
         // Refresh graph!
         editor.graph.refresh();
+    }
+
+    /**
+     * Exports the given scene to a BabylonJS Scene.
+     * @param editor the editor reference.
+     * @param meshName defines the name of the mesh to export.
+     */
+    public static async ExportMeshToBabylonJSFormat(editor: Editor, meshName: string): Promise<void> {
+        const rootUrl = join(Project.DirPath!, "files", "/");
+        const name = join("..", "assets/meshes", meshName);
+
+        const scene = new Scene(editor.engine!);
+        await SceneLoader.AppendAsync(rootUrl, name, scene);
+
+        try {
+            let dest = await Tools.ShowSaveFileDialog("Please select the path where to save the exported scene.");
+            if (extname(dest) !== ".babylon") {
+                dest += ".babylon";
+            }
+
+            const json = SceneSerializer.Serialize(scene);
+            await writeJSON(dest, json, { encoding: "utf-8", spaces: "\t" });
+
+            shell.openItem(dirname(dest));
+        } catch (e) {
+
+        }
+
+        scene.dispose();
+    }
+
+    /**
+     * Exports the given scene to a GLTF scene.
+     * @param editor the editor reference.
+     * @param meshName defines the name of the mesh to export.
+     */
+    public static async ExportMeshToGLTF(editor: Editor, meshName: string, format: "gltf" | "glb"): Promise<void> {
+        const rootUrl = join(Project.DirPath!, "files", "/");
+        const name = join("..", "assets/meshes", meshName);
+
+        const scene = new Scene(editor.engine!);
+        await SceneLoader.AppendAsync(rootUrl, name, scene);
+
+        const prefix = await Dialog.Show("GLTF file prefix", "Please provide a prefix for files.");
+        const data = format === "glb" ? await GLTF2Export.GLBAsync(scene, prefix, { }) : await GLTF2Export.GLTFAsync(scene, prefix, { });
+
+        try {
+            const dest = await Tools.ShowSaveDialog();
+            for (const f in data.glTFFiles) {
+                const file = data.glTFFiles[f];
+
+                if (file instanceof Blob) {
+                    const buffer = await Tools.ReadFileAsArrayBuffer(file);
+                    await writeFile(join(dest, f), Buffer.from(buffer));
+                } else {
+                    await writeFile(join(dest, f), file, { encoding: "utf-8" });
+                }
+            }
+
+            shell.openItem(dest);
+        } catch (e) {
+
+        }
+        scene.dispose();
     }
 }
