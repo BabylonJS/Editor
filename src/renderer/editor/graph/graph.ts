@@ -19,6 +19,7 @@ import { ForLoop } from "./math/loop";
 
 import { Vec2, Vec3, VectorLength } from "./math/vector";
 import { AddVectors, MultiplyVectors } from "./math/vector-operation";
+import { VectorSplitter } from "./math/vector-splitter";
 
 import { Sound } from "./sound/sound";
 import { PlaySound } from "./sound/play";
@@ -120,6 +121,8 @@ export class GraphCode {
 
         LiteGraph.registerNodeType("math/add_vectors", AddVectors);
         LiteGraph.registerNodeType("math/multiply_vectors", MultiplyVectors);
+
+        LiteGraph.registerNodeType("math/vector_splitter", VectorSplitter);
 
         // Sound
         LiteGraph.registerNodeType("sound/sound", Sound);
