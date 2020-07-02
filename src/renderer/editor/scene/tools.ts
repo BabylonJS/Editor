@@ -94,4 +94,32 @@ export class SceneTools {
         }
         scene.dispose();
     }
+
+    /**
+     * Exports the current scene to GLTF/GLB.
+     * @param editor the editor reference.
+     * @param format defines the format (GLTF or GLB).
+     */
+    public static async ExportSceneToGLTF(editor: Editor, format: "gltf" | "glb"): Promise<void> {
+        const prefix = await Dialog.Show("GLTF file prefix", "Please provide a prefix for files.");
+        const data = format === "glb" ? await GLTF2Export.GLBAsync(editor.scene!, prefix, { }) : await GLTF2Export.GLTFAsync(editor.scene!, prefix, { });
+
+        try {
+            const dest = await Tools.ShowSaveDialog();
+            for (const f in data.glTFFiles) {
+                const file = data.glTFFiles[f];
+
+                if (file instanceof Blob) {
+                    const buffer = await Tools.ReadFileAsArrayBuffer(file);
+                    await writeFile(join(dest, f), Buffer.from(buffer));
+                } else {
+                    await writeFile(join(dest, f), file, { encoding: "utf-8" });
+                }
+            }
+
+            shell.openItem(dest);
+        } catch (e) {
+
+        }
+    }
 }

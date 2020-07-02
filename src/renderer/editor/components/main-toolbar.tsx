@@ -23,6 +23,7 @@ import { Dialog } from "../gui/dialog";
 
 import { SceneFactory } from "../scene/factory";
 import { SceneSettings } from "../scene/settings";
+import { SceneTools } from "../scene/tools";
 
 import { WorkSpace } from "../project/workspace";
 import { ProjectExporter } from "../project/project-exporter";
@@ -93,6 +94,11 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem text="Open Visual Studio Code..." icon={<Icon src="vscode.svg" style={{ filter: "none" }} />} onClick={() => this._handleOpenVSCode()} />
+                <MenuDivider />
+                <MenuItem text="Export" icon="more">
+                    <MenuItem text="GLTF..." icon={<Icon src="gltf.svg" />} onClick={() => this._menuItemClicked("project:export:gltf")} />
+                    <MenuItem text="GLB..." icon={<Icon src="gltf.svg" />} onClick={() => this._menuItemClicked("project:export:glb")} />
+                </MenuItem>
             </Menu>;
         const edit =
             <Menu>
@@ -218,6 +224,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "project:reload": this._reloadProject(); break;
             case "project:save": ProjectExporter.Save(this._editor); break;
             case "project:rename": ProjectRenamer.Rename(this._editor); break;
+
+            case "project:export:gltf": SceneTools.ExportSceneToGLTF(this._editor, "gltf"); break;
+            case "project:export:glb": SceneTools.ExportSceneToGLTF(this._editor, "glb"); break;
 
             // Edit
             case "edit:editor-camera": this._editor.inspector.setSelectedObject(SceneSettings.Camera); break;
