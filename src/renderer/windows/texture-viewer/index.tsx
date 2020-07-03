@@ -34,7 +34,7 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
     public render(): React.ReactNode {
         document.title = basename(this.state.path);
 
-        const span = <span style={{ color: "black" }}>{this.state.path}</span>;
+        const span = <span style={{ color: "white" }}>{this.state.path}</span>;
         if (this.state.isCube) {
             return (
                 <>
@@ -90,12 +90,15 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
         // Open bjs inspector
         await scene.debugLayer.show({
             globalRoot: document.body,
-            handleResize: false,
+            handleResize: true,
             enablePopup: false,
             enableClose: false,
             embedMode: true,
             inspectorURL: "../node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
         });
+
         scene.debugLayer.select(material.reflectionTexture);
+
+        engine.resize();
     }
 }

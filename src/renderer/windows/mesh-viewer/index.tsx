@@ -96,7 +96,7 @@ export default class MeshViewerWindow extends React.Component {
             // Open bjs inspector
             await this._scene.debugLayer.show({
                 globalRoot: document.body,
-                handleResize: false,
+                handleResize: true,
                 enablePopup: false,
                 enableClose: false,
                 embedMode: true,

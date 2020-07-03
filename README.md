@@ -3,17 +3,23 @@ Babylon.js Editor v3
 
 The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
 
-The editor is available online at http://editor.babylonjs.com/
-
-The Documentation is available here: http://doc.babylonjs.com/resources/
-
-Some more articles/tutorials are available here: https://medium.com/babylon-js/
+The online documentation is available here: http://doc.babylonjs.com/resources/
 
 ## Features
-* TODO
+* Workspace based to manage multiple projects
+* Import and edit meshes
+* Create and edit materials
+* Import and edit textures
+* Import and edit sounds
+* Create and edit particle systems
+* Attach scripts written in TypeScript to nodes in scene
+* Develop scripts written using the Graph Editor to nodes in the scene
+* Uses ES6 modules of @babylonjs
+* Contains pre-built templates
 
 ## Installing
-Follow this tutorial to install the window build tools (required by node-pty): https://github.com/felixrieseberg/windows-build-tools
+For Windows users, follow this tutorial to install the windows build tools: https://github.com/felixrieseberg/windows-build-tools
+This is mandatory for native modules used in the Editor.
 
 Then, just install the dependencies:
 ```bash
@@ -21,15 +27,16 @@ npm install
 ```
 
 ## Building
-Building Editor
+Just type the following command:
 
 ```bash
 npm run build
 ```
 
+This will transpile all the TypeScript files to JavaScript and build the Electron version of the Editor.
+
 ## Developing
-To develop the editor, or for the editor, just watch your TypeScript files and run a local webserver.
-Then, access to http://localhost:1338/index-local.html
+To contribute to the editor, using VSCode, just watch TypeScript files and run the launch setting "Electron With Devtools". This allows to debug the main part in VSCode and have the devtools opened in the renderer part.
 
 Watching TypeScript (front)
 ```bash
