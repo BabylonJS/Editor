@@ -282,9 +282,6 @@ export class MaterialAssets extends AbstractAssets {
         });
 
         const material = Material.Parse(json, this.editor.scene!, Project.DirPath!);
-        if (material) {
-            this.items.push({ id: material.name, key: material.id, base64: json.editorPreview });
-        }
 
         return material;
     }
