@@ -2,10 +2,10 @@ import { shell } from "electron";
 import { join, extname } from "path";
 import { readdir, writeFile } from "fs-extra";
 
+import { Undefinable } from "../../../shared/types";
+
 import * as React from "react";
 import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent } from "@blueprintjs/core";
-
-import { Undefinable } from "../../../shared/types";
 
 import { AbstractMesh, Node, IParticleSystem } from "babylonjs";
 

@@ -137,10 +137,11 @@ export class MeshesAssets extends AbstractAssets {
         const rootUrl = join(Project.DirPath!, "files", "/");
         const name = join("..", "assets/meshes", item.id);
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, name, this.editor.scene!);
+
         for (const mesh of result.meshes) {
             mesh.id = Tools.RandomId();
             if (mesh.material) { mesh.material.id = Tools.RandomId(); }
-            if (!mesh.parent && pickInfo.pickedPoint) { mesh.position.copyFrom(pickInfo.pickedPoint); }
+            if (!mesh.parent && pickInfo.pickedPoint) { mesh.position.addInPlace(pickInfo.pickedPoint); }
 
             // Materials
             if (mesh.material) {
@@ -150,10 +151,19 @@ export class MeshesAssets extends AbstractAssets {
                     for (const m of mesh.material.subMaterials) {
                         if (!m) { return; }
                         m.id = Tools.RandomId();
-                        if (isGltf) { await this._configureGltfMaterial(m); }
+
+                        if (isGltf) {
+                            await this._configureGltfMaterial(m);
+                        }
+
+                        this._configureMaterialTextures(m);
                     };
                 } else {
-                    if (isGltf) { await this._configureGltfMaterial(mesh.material); }
+                    if (isGltf) {
+                        await this._configureGltfMaterial(mesh.material);
+                    }
+
+                    this._configureMaterialTextures(mesh.material);
                 }
             }
         }
@@ -219,6 +229,20 @@ export class MeshesAssets extends AbstractAssets {
 
         // Meshes can be scenes. Textures, sounds, etc. should be selected as well.
         return this.editor.assets.addFilesToAssets(files);
+    }
+
+    /**
+     * Configures the given material's textures.
+     */
+    private _configureMaterialTextures(material: Material): void {
+        const textures = material.getActiveTextures();
+        textures?.forEach((t) => {
+            if (!(t instanceof Texture) && !(t instanceof CubeTexture)) { return; }
+            const path = join("files", basename(t.name));
+
+            t.name = path;
+            if (t.url) { t.url = path; }
+        });
     }
 
     /**

@@ -100,7 +100,13 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
         document.getElementById(this._id!)?.appendChild(this.tool.domElement);
 
         this.resize();
-        this.onUpdate();
+
+        try {
+            this.onUpdate();
+        } catch (e) {
+            /* Catch silently */
+            this.tool?.addTextBox(`An error occured: ${e?.message}`);
+        }
 
         setTimeout(() => this._handleChanged(), 0);
     }
