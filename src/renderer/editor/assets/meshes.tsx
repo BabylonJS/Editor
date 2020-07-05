@@ -29,7 +29,7 @@ export class MeshesAssets extends AbstractAssets {
      */
     protected size: number = 75;
 
-    private _extensions: string[] = [".babylon", ".glb"];
+    private _extensions: string[] = [".babylon", ".glb", ".gltf"];
 
     /**
      * Defines the list of all avaiable meshes in the assets component.
@@ -129,7 +129,8 @@ export class MeshesAssets extends AbstractAssets {
 
         require("babylonjs-loaders");
 
-        const isGltf = extname(item.id).toLowerCase() === ".glb";
+        const extension = extname(item.id).toLowerCase();
+        const isGltf = extension === ".glb" || extension === ".gltf";
         if (isGltf) {
             Overlay.Show("Configuring GLTF...", true);
         }
@@ -203,6 +204,11 @@ export class MeshesAssets extends AbstractAssets {
     public async onDropFiles(files: IFile[]): Promise<void> {
         for (const file of files) {
             const extension = extname(file.name).toLowerCase();
+            if (extension === ".bin") {
+                // For GLTF files.
+                await copy(file.path, join(Project.DirPath!, "files", file.name));
+            }
+
             if (this._extensions.indexOf(extension) === -1) { continue; }
 
             require("babylonjs-loaders");
@@ -275,7 +281,14 @@ export class MeshesAssets extends AbstractAssets {
 
             if (!(texture instanceof Texture) && !(texture instanceof CubeTexture)) { return; }
 
-            texture.name = join("files", `${basename(texture.name)}${Tools.GetExtensionFromMimeType(texture["_mimeType"])}`);
+            const mimeType = texture["_mimeType"];
+            if (mimeType) {
+                texture.name = join("files", `${basename(texture.name)}${Tools.GetExtensionFromMimeType(mimeType)}`);
+            } else {
+                texture.name = join("files", basename(texture.url!));
+                if (texture.url) { texture.url = texture.name; }
+            }
+
             if (texture.url) { texture.url = texture.name; }
 
             FilesStore.AddFile(join(Project.DirPath!, texture.name));
