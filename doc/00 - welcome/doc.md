@@ -9,6 +9,7 @@ Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are 
 * [Adding materials](../04%20-%20adding-materials/doc.md)
 * [Adding textures](../05%20-%20adding-textures/doc.md)
 * [Adding sounds](../06%20-%20adding-sounds/doc.md)
+* [Attaching scripts](../07%20-%20attaching-scripts/doc.md)
 
 ## Useful shortcuts
 
