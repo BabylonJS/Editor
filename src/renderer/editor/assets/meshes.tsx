@@ -5,6 +5,7 @@ import * as React from "react";
 import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider } from "@blueprintjs/core";
 
 import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture } from "babylonjs";
+import "babylonjs-loaders";
 
 import { assetsHelper } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
 import { Tools } from "../tools/tools";
@@ -211,8 +212,6 @@ export class MeshesAssets extends AbstractAssets {
 
             if (this._extensions.indexOf(extension) === -1) { continue; }
 
-            require("babylonjs-loaders");
-
             const existing = MeshesAssets.Meshes.find((m) => m.name === file.name);
 
             // Copy assets
@@ -223,8 +222,6 @@ export class MeshesAssets extends AbstractAssets {
                 MeshesAssets.Meshes.push({ name: file.name, path: dest });
             }
         }
-
-        return this.refresh();
     }
 
     /**

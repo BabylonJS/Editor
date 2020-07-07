@@ -123,8 +123,6 @@ export class PrefabAssets extends AbstractAssets {
                 PrefabAssets.Prefabs.push({ name: file.name, path: dest });
             }
         }
-
-        return this.refresh();
     }
 
     /**

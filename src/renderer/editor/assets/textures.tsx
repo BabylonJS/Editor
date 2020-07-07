@@ -238,8 +238,6 @@ export class TextureAssets extends AbstractAssets {
             const dest = join(Project.DirPath!, "files", file.name);
             if (dest) { await copy(file.path, dest); }
         }
-
-        return this.refresh();
     }
 
     /**
