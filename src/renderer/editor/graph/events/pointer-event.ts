@@ -68,7 +68,7 @@ export class PointerEvent extends GraphNode<{ type: string; }> {
         `;
         
         return {
-            type: CodeGenerationOutputType.FunctionCallback,
+            type: CodeGenerationOutputType.CallbackFunction,
             executionType: CodeGenerationExecutionType.Start,
             code,
             outputsCode: [

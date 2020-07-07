@@ -25,7 +25,7 @@ export class TickGameEvent extends GraphNode {
         const code = "{{generated__body}}";
         
         return {
-            type: CodeGenerationOutputType.FunctionCallback,
+            type: CodeGenerationOutputType.CallbackFunction,
             executionType: CodeGenerationExecutionType.Update,
             code,
         };

@@ -54,7 +54,7 @@ export class PickMesh extends GraphNode<{ fast_check: boolean; check_result: boo
             {{generated__body}}`;
 
         return {
-            type: CodeGenerationOutputType.FunctionCallback,
+            type: CodeGenerationOutputType.CallbackFunction,
             code,
             outputsCode: [
                 { code: undefined },

@@ -44,6 +44,8 @@ import { GetCamera } from "./camera/get-camera";
 import { GetCameraDirection } from "./camera/get-direction";
 import { TransformCamera } from "./camera/transform";
 
+import { Light } from "./light/light";
+
 import { Mesh } from "./mesh/mesh";
 import { RotateMesh } from "./mesh/rotate";
 import { Translate } from "./mesh/translate";
@@ -60,6 +62,8 @@ import { CreatePhysicsImpostor } from "./physics/create-physics-impostor";
 // Animation
 import { AnimationRatio } from "./animation/ratio";
 import { InterpolationAnimation } from "./animation/interpolate";
+import { PlayAnimation } from "./animation/start";
+import { StopAnimation } from "./animation/stop";
 
 export class GraphCode {
     private static _Initialized: boolean = false;
@@ -153,6 +157,9 @@ export class GraphCode {
         LiteGraph.registerNodeType("camera/get_camera_direction", GetCameraDirection);
         LiteGraph.registerNodeType("camera/camera_transform", TransformCamera);
 
+        // Light
+        LiteGraph.registerNodeType("light/light", Light);
+
         // Mesh
         LiteGraph.registerNodeType("mesh/mesh", Mesh);
         LiteGraph.registerNodeType("mesh/rotate_mesh", RotateMesh);
@@ -171,5 +178,7 @@ export class GraphCode {
         // Animation
         LiteGraph.registerNodeType("animation/animation_ratio", AnimationRatio);
         LiteGraph.registerNodeType("animation/interpolation_animation", InterpolationAnimation);
+        LiteGraph.registerNodeType("animation/play_animation", PlayAnimation);
+        LiteGraph.registerNodeType("animation/stop_animation", StopAnimation);
     }
 }

@@ -5,7 +5,7 @@ import { LiteGraph } from "litegraph.js";
 
 type VariableType = "number" | "string" | "boolean" |
                     "Vector2" | "Vector3" |
-                    "mesh";
+                    "Mesh" | "Camera" | "Light";
 
 export class Variable extends GraphNode<
     { value: any; name: string, type: VariableType }
@@ -32,7 +32,7 @@ export class Variable extends GraphNode<
             values: [
                 "number", "string", "boolean",
                 "Vector3", "Vector3",
-                "mesh",
+                "Mesh", "Camera", "Light",
             ],
         });
 
@@ -79,7 +79,7 @@ export class Variable extends GraphNode<
                 value: input?.code ?? this._getOutput(),
             },
             requires: [
-                { module: "@babylonjs/core", classes: ["Vector2", "Vector3", "Mesh"] },
+                { module: "@babylonjs/core", classes: ["Vector2", "Vector3", "Mesh", "Camera", "Light"] },
             ],
         };
     }
@@ -96,7 +96,9 @@ export class Variable extends GraphNode<
             case "Vector2": return "new Vector2(0, 0)";
             case "Vector3": return "new Vector3(0, 0, 0)";
 
-            case "mesh": return "null";
+            case "Mesh": return "null";
+            case "Camera": return "null";
+            case "Light": return "null";
         }
     }
 
@@ -123,7 +125,9 @@ export class Variable extends GraphNode<
             case "Vector2": this.properties.value = new Vector2(0, 0); break;
             case "Vector3": this.properties.value = new Vector3(0, 0, 0); break;
 
-            case "mesh": this.properties.value = null; break;
+            case "Mesh": this.properties.value = null; break;
+            case "Camera": this.properties.value = null; break;
+            case "Light": this.properties.value = null; break;
         }
     }
 }

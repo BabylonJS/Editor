@@ -169,7 +169,7 @@ export class GraphCodeGenerator {
                     break;
 
                 // Function with callback, means it has a trigger output
-                case CodeGenerationOutputType.FunctionCallback:
+                case CodeGenerationOutputType.CallbackFunction:
                     const callbackResult = this._FunctionCallback(graph, { stack, output, previous, executionType, node: n, nodeIndex: index, inputs });
                     if (callbackResult?.error) {
                         return callbackResult;
@@ -178,7 +178,8 @@ export class GraphCodeGenerator {
 
                 // Condition that as an if / else
                 case CodeGenerationOutputType.Condition:
-                    const conditioNResult = this._Condition(graph, { stack, output, previous, executionType, node: n, nodeIndex: index, inputs });
+                case CodeGenerationOutputType.FunctionWithCallback:
+                    const conditioNResult = this._Condition(graph, previous.type, { stack, output, previous, executionType, node: n, nodeIndex: index, inputs });
 
                     if (conditioNResult?.error) {
                         return conditioNResult;
@@ -232,7 +233,7 @@ export class GraphCodeGenerator {
     /**
      * Converts the current node as a condition.
      */
-    private static _Condition(graph: LGraph, properties: ICodeGenerationFunctionProperties): Nullable<ICodeGenerationStackFinalOutput> {
+    private static _Condition(graph: LGraph, type: CodeGenerationOutputType, properties: ICodeGenerationFunctionProperties): Nullable<ICodeGenerationStackFinalOutput> {
         const yesChildren: GraphNode[] = CodeGenerationUtils.GetChildren(graph, properties.node, 0);
         const noChildren: GraphNode[] = CodeGenerationUtils.GetChildren(graph, properties.node, 1);
 
@@ -265,12 +266,29 @@ export class GraphCodeGenerator {
             return { output: properties.output, nodeOutputs: properties.stack.visited!, error: noResult.error };
         }
 
-        if (yesNodes.length || noNodes.length) {
+        // TODO: simply this.
+        if (type === CodeGenerationOutputType.Condition) {
+            if (yesNodes.length || noNodes.length) {
+                const output1 = CodeGenerationUtils.DeconstructOutput(yesResult.output);
+                const output2 = CodeGenerationUtils.DeconstructOutput(noResult.output);
+
+                properties.previous.code = properties.previous.code.replace("{{generated__equals__body}}", output1.common.map((o) => o.code).join("\n"));
+                properties.previous.code = properties.previous.code.replace("{{generated__not__equals__body}}", output2.common.map((o) => o.code).join("\n"));
+
+                properties.output.push({
+                    code: properties.previous.code,
+                    type: properties.executionType,
+                });
+
+                output1.properties.forEach((o) => properties.output.push(o));
+                output2.properties.forEach((o) => properties.output.push(o));
+            }
+        } else {
             const output1 = CodeGenerationUtils.DeconstructOutput(yesResult.output);
             const output2 = CodeGenerationUtils.DeconstructOutput(noResult.output);
 
-            properties.previous.code = properties.previous.code.replace("{{generated__equals__body}}", output1.common.map((o) => o.code).join("\n"));
-            properties.previous.code = properties.previous.code.replace("{{generated__not__equals__body}}", output2.common.map((o) => o.code).join("\n"));
+            properties.previous.code = properties.previous.code.replace("{{generated__body}}", output1.common.map((o) => o.code).join("\n"));
+            properties.previous.code = properties.previous.code.replace("{{generated__callback__body}}", output2.common.map((o) => o.code).join("\n"));
 
             properties.output.push({
                 code: properties.previous.code,

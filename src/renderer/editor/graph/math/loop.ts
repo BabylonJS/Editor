@@ -51,7 +51,7 @@ export class ForLoop extends GraphNode<{ start: number; end: number; increment: 
         }`;
         
         return {
-            type: CodeGenerationOutputType.FunctionCallback,
+            type: CodeGenerationOutputType.CallbackFunction,
             code,
             outputsCode: [
                 { code: undefined },

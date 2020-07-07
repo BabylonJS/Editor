@@ -80,12 +80,12 @@ export class InterpolationAnimation extends GraphNode<
                 Animation.${this.properties.loop_mode}, // loop mode
                 undefined, // easing function
                 () => { // on complete
-                    {{generated__not__equals__body}}
+                    {{generated__callback__body}}
                 },
             );
-            {{generated__equals__body}}`;
+            {{generated__body}}`;
         return {
-            type: CodeGenerationOutputType.Condition,
+            type: CodeGenerationOutputType.FunctionWithCallback,
             code,
             outputsCode: [
                 { code: undefined },

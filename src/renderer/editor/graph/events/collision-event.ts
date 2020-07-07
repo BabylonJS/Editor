@@ -48,7 +48,7 @@ export class CollisionEvent extends GraphNode {
         `;
         
         return {
-            type: CodeGenerationOutputType.FunctionCallback,
+            type: CodeGenerationOutputType.CallbackFunction,
             code,
             outputsCode: [
                 { code: undefined },

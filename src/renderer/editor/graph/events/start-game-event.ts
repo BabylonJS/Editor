@@ -38,7 +38,7 @@ export class StartGameEvent extends GraphNode {
         const code = "{{generated__body}}";
         
         return {
-            type: CodeGenerationOutputType.FunctionCallback,
+            type: CodeGenerationOutputType.CallbackFunction,
             executionType: CodeGenerationExecutionType.Start,
             code,
         };

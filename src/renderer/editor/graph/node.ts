@@ -17,8 +17,9 @@ export enum CodeGenerationOutputType {
     Constant = 0,
     Variable,
     Function,
-    FunctionCallback,
+    CallbackFunction,
     Condition,
+    FunctionWithCallback,
 }
 
 export enum CodeGenerationExecutionType {

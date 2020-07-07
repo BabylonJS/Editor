@@ -6,6 +6,7 @@ export class Cast extends GraphNode<{ type: string; }> {
         "number": "number",
         "string": "string",
         "boolean": "boolean",
+        "any": "any",
     };
 
     public static BabylonJSTypes: IStringDictionary<string> = {

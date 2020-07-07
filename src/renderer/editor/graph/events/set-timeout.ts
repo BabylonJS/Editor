@@ -54,7 +54,7 @@ export class TimeoutEvent extends GraphNode<{ duration: number; }> {
         `;
         
         return {
-            type: CodeGenerationOutputType.FunctionCallback,
+            type: CodeGenerationOutputType.CallbackFunction,
             code,
             outputsCode: [
                 { code: undefined },
