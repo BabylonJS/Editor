@@ -134,6 +134,10 @@ export class SceneGizmo {
         }
 
         this._lightGizmo.light = light;
+
+        if (this._currentGizmo) {
+            this._currentGizmo.attachedMesh = this._lightGizmo.attachedMesh;
+        }
     }
 
     /**

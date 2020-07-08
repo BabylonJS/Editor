@@ -22,6 +22,8 @@ import { AbstractInspector } from "./abstract-inspector";
 import { ScriptAssets } from "../assets/scripts";
 
 export class NodeInspector extends AbstractInspector<Node> {
+    private _enabled: boolean = false;
+
     private _selectedScript: string = "";
     private _scriptControllers: GUIController[] = [];
 
@@ -43,6 +45,11 @@ export class NodeInspector extends AbstractInspector<Node> {
         const common = this.tool!.addFolder("Common");
         common.open();
         common.add(this.selectedObject, 'name').name('Name');
+
+        this._enabled = this.selectedObject.isEnabled(false);
+        common.add(this, "_enabled").name("Enabled").onChange(() => {
+            this.selectedObject.setEnabled(this._enabled);
+        });
 
         return common;
     }
