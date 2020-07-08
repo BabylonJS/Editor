@@ -21,6 +21,8 @@ import { Vec2, Vec3, VectorLength } from "./math/vector";
 import { AddVectors, MultiplyVectors } from "./math/vector-operation";
 import { VectorSplitter } from "./math/vector-splitter";
 
+import { Col3 } from "./math/color";
+
 import { Sound } from "./sound/sound";
 import { PlaySound } from "./sound/play";
 import { StopSound } from "./sound/stop";
@@ -119,6 +121,7 @@ export class GraphCode {
         LiteGraph.registerNodeType("trigonometry/cosinus", Cosinus);
         LiteGraph.registerNodeType("trigonometry/tangent", Tangent);
 
+        // Vectors
         LiteGraph.registerNodeType("vector/vector_2d", Vec2);
         LiteGraph.registerNodeType("vector/vector_3d", Vec3);
         LiteGraph.registerNodeType("vector/vector_length", VectorLength);
@@ -127,6 +130,9 @@ export class GraphCode {
         LiteGraph.registerNodeType("math/multiply_vectors", MultiplyVectors);
 
         LiteGraph.registerNodeType("math/vector_splitter", VectorSplitter);
+
+        // Colors
+        LiteGraph.registerNodeType("math/color_3", Col3);
 
         // Sound
         LiteGraph.registerNodeType("sound/sound", Sound);

@@ -128,6 +128,9 @@ export class Inspector extends React.Component<IInspectorProps> {
                 case "vector3":
                     properties.addVector(this._getFormatedname(p), value);
                     break;
+                case "color3":
+                    properties.addColor(this._getFormatedname(p), value);
+                    break;
             }
 
             if (controller && widget) {
