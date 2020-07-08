@@ -266,38 +266,28 @@ export class GraphCodeGenerator {
             return { output: properties.output, nodeOutputs: properties.stack.visited!, error: noResult.error };
         }
 
-        // TODO: simply this.
+        // Build output
+        const output1 = CodeGenerationUtils.DeconstructOutput(yesResult.output);
+        const output2 = CodeGenerationUtils.DeconstructOutput(noResult.output);
+
         if (type === CodeGenerationOutputType.Condition) {
-            if (yesNodes.length || noNodes.length) {
-                const output1 = CodeGenerationUtils.DeconstructOutput(yesResult.output);
-                const output2 = CodeGenerationUtils.DeconstructOutput(noResult.output);
+            if (!yesNodes.length && !noNodes.length) { return null; }
 
-                properties.previous.code = properties.previous.code.replace("{{generated__equals__body}}", output1.common.map((o) => o.code).join("\n"));
-                properties.previous.code = properties.previous.code.replace("{{generated__not__equals__body}}", output2.common.map((o) => o.code).join("\n"));
+            properties.previous.code = properties.previous.code.replace("{{generated__equals__body}}", output1.common.map((o) => o.code).join("\n"));
+            properties.previous.code = properties.previous.code.replace("{{generated__not__equals__body}}", output2.common.map((o) => o.code).join("\n"));
 
-                properties.output.push({
-                    code: properties.previous.code,
-                    type: properties.executionType,
-                });
-
-                output1.properties.forEach((o) => properties.output.push(o));
-                output2.properties.forEach((o) => properties.output.push(o));
-            }
         } else {
-            const output1 = CodeGenerationUtils.DeconstructOutput(yesResult.output);
-            const output2 = CodeGenerationUtils.DeconstructOutput(noResult.output);
-
             properties.previous.code = properties.previous.code.replace("{{generated__body}}", output1.common.map((o) => o.code).join("\n"));
             properties.previous.code = properties.previous.code.replace("{{generated__callback__body}}", output2.common.map((o) => o.code).join("\n"));
-
-            properties.output.push({
-                code: properties.previous.code,
-                type: properties.executionType,
-            });
-
-            output1.properties.forEach((o) => properties.output.push(o));
-            output2.properties.forEach((o) => properties.output.push(o));
         }
+
+        properties.output.push({
+            code: properties.previous.code,
+            type: properties.executionType,
+        });
+
+        output1.properties.forEach((o) => properties.output.push(o));
+        output2.properties.forEach((o) => properties.output.push(o));
 
         return null;
     }

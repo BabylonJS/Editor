@@ -166,7 +166,9 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
             await this.waitForBreakPoint();
         }
         
-        super.triggerSlot(slot, param, link_id);
+        setTimeout(() => {
+            super.triggerSlot(slot, param, link_id);
+        }, 0);
     }
 
     /**

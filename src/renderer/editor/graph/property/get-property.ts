@@ -21,7 +21,9 @@ export class GetProperty extends GraphNode<{ path: string; }> {
         this.title = this.properties.path;
 
         const target = this.getInputData(0);
-        this.setOutputData(0, target[this.properties.path] ?? null);
+        if (target) {
+            this.setOutputData(0, target[this.properties.path] ?? null);
+        }
     }
 
     /**

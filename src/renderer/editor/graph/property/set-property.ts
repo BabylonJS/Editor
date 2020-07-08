@@ -24,9 +24,10 @@ export class SetProperty extends GraphNode<{ path: string; }> {
      */
     public execute(): void {
         const node = this.getInputData(1);
-        node[this.properties.path] = this.getInputData(1, true);
-
-        this.triggerSlot(0, null);
+        if (node) {
+            node[this.properties.path] = this.getInputData(1, true);
+            this.triggerSlot(0, null);
+        }
     }
 
     /**

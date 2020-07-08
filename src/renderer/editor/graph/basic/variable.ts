@@ -8,12 +8,17 @@ type VariableType = "number" | "string" | "boolean" |
                     "Mesh" | "Camera" | "Light";
 
 export class Variable extends GraphNode<
-    { value: any; name: string, type: VariableType }
+    { name: string, type: VariableType }
 > {
     /**
      * Defines the list of all available variables in the code.
      */
     public static Variables: Variable[] = [];
+
+    /**
+     * @hidden
+     */
+    public _value: any = undefined;
 
     /**
      * Constructor.
@@ -45,14 +50,14 @@ export class Variable extends GraphNode<
      * Called on the graph is being started.
      */
     public onStart(): void {
-        this.properties.value = this.getInputData(0, true);
+        this._value = this.getInputData(0, true);
     }
 
     /**
      * Called on the node is being executed.
      */
     public execute(): void {
-        this.setOutputData(0, this.properties.value);
+        this.setOutputData(0, this._value);
     }
 
     /**
@@ -111,23 +116,24 @@ export class Variable extends GraphNode<
         this.properties = {
             name: this.properties.name,
             type: this.properties.type,
-            value: undefined,
         };
+
+        this._value = undefined;
 
         this.addInput(`Default Value (${this.properties.type})`, this.properties.type);
         this.addOutput("Value", this.properties.type);
 
         switch (this.properties.type) {
-            case "number": this.properties.value = 0; break;
-            case "boolean": this.properties.value = true; break;
-            case "string": this.properties.value = "Value"; break;
+            case "number": this._value = 0; break;
+            case "boolean": this._value = true; break;
+            case "string": this._value = "Value"; break;
 
-            case "Vector2": this.properties.value = new Vector2(0, 0); break;
-            case "Vector3": this.properties.value = new Vector3(0, 0, 0); break;
+            case "Vector2": this._value = new Vector2(0, 0); break;
+            case "Vector3": this._value = new Vector3(0, 0, 0); break;
 
-            case "Mesh": this.properties.value = null; break;
-            case "Camera": this.properties.value = null; break;
-            case "Light": this.properties.value = null; break;
+            case "Mesh": this._value = null; break;
+            case "Camera": this._value = null; break;
+            case "Light": this._value = null; break;
         }
     }
 }
@@ -156,7 +162,7 @@ export class GetVariable extends GraphNode<{ name: string; }> {
         const variable = Variable.Variables.find((v) => v.properties.name === this.properties.name);
 
         if (variable) {
-            this.setOutputData(0, variable.properties.value);
+            this.setOutputData(0, variable._value);
         }
     }
 
@@ -200,7 +206,7 @@ export class UpdateVariable extends GraphNode<{ name: string; }> {
         const variable = Variable.Variables.find((v) => v.properties.name === this.properties.name);
 
         if (variable) {
-            variable.properties.value = value;
+            variable._value = value;
             this.setOutputData(1, value);
 
             this.triggerSlot(0, null);
