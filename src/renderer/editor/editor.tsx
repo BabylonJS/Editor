@@ -66,6 +66,7 @@ import "./inspectors/ground-inspector";
 
 import "./inspectors/lights/light-inspector";
 import "./inspectors/lights/directional-light-inspector";
+import "./inspectors/lights/spot-light-inspector";
 import "./inspectors/lights/point-light-inspector";
 import "./inspectors/lights/hemispheric-inspector";
 import "./inspectors/lights/shadows-inspector";

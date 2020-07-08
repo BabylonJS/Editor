@@ -2,7 +2,7 @@ import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
-import { DirectionalLight, SpotLight, CascadedShadowGenerator, ShadowGenerator, RenderTargetTexture, IShadowLight } from "babylonjs";
+import { DirectionalLight, SpotLight, PointLight, CascadedShadowGenerator, ShadowGenerator, RenderTargetTexture, IShadowLight } from "babylonjs";
 import { GUI } from "dat.gui";
 
 import { Inspector } from "../../components/inspector";
@@ -179,7 +179,7 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
 
 Inspector.registerObjectInspector({
     ctor: ShadowsInspector,
-    ctorNames: ["DirectionalLight", "SpotLight"],
+    ctorNames: ["DirectionalLight", "SpotLight", "PointLight"],
     title: "Shadows",
-    isSupported: (o) => (o instanceof DirectionalLight || o instanceof SpotLight),
+    isSupported: (o) => (o instanceof DirectionalLight || o instanceof SpotLight || o instanceof PointLight),
 });

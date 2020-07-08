@@ -69,6 +69,11 @@ export class MaterialInspector<T extends Material> extends AbstractInspector<Mes
         common.add(this.material, "disableDepthWrite").name("Disable Depth Write");
         common.add(this.material, "needDepthPrePass").name("Need Depth Pre Pass");
 
+        const maxSimultaneousLights = this.material["maxSimultaneousLights"] ?? null;
+        if (maxSimultaneousLights !== null) {
+            common.add(this.material, "maxSimultaneousLights").step(1).min(0).max(32).name("Max Simultaneous Lights");
+        }
+
         const sideOrientations: string[] = ["ClockWiseSideOrientation", "CounterClockWiseSideOrientation"];
         this._sideOrientation = sideOrientations.find((so) => this.material.sideOrientation === Material[so]) ?? sideOrientations[0];
         common.add(this, "_sideOrientation", sideOrientations).name("Side Orientation").onChange(() => {
