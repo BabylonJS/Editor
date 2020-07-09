@@ -75,6 +75,17 @@ export interface ICodeGenerationOutput {
     }[];
 }
 
+export interface INodeContextMenuOption {
+    /**
+     * Defines the label of the extra option in the context menu.
+     */
+    label: string;
+    /**
+     * Defines the callback caleld on the menu has been clicked.
+     */
+    onClick: () => void;
+}
+
 export abstract class GraphNode<TProperties = Record<string, any>> extends LGraphNode {
     /**
      * Defines all the available properties of the node.
@@ -410,4 +421,10 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
 
         this._mouseOver = false;
     }
+
+    /**
+     * Called on the node is right-clicked in the Graph Editor.
+     * This is used to show extra options in the context menu.
+     */
+    public getContextMenuOptions?(): INodeContextMenuOption[];
 }

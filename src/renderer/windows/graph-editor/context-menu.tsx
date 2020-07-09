@@ -8,6 +8,7 @@ import { LGraphGroup, LLink } from "litegraph.js";
 import { Icon } from "../../editor/gui/icon";
 
 import { Graph } from "./components/graph";
+import { GraphNode } from "../../editor/graph/node";
 
 export class GraphContextMenu {
     /**
@@ -15,12 +16,26 @@ export class GraphContextMenu {
      * @param event defines the mouse event.
      * @param editor defines the reference to the graph editor.
      */
-    public static ShowNodeContextMenu( event: MouseEvent, editor: Graph): void {
+    public static ShowNodeContextMenu(event: MouseEvent, editor: Graph): void {
+        let extraOptions: JSX.Element[] = [];
+        
+        const selectedNodes = Object.keys(editor.graphCanvas!.selected_nodes);
+        if (selectedNodes.length === 1) {
+            const node = editor.graphCanvas!.selected_nodes[selectedNodes[0]] as GraphNode;
+            if (node.getContextMenuOptions) {
+                extraOptions = node.getContextMenuOptions().map((o) => (
+                    <MenuItem text={o.label} onClick={() => o.onClick()} />
+                ));
+                extraOptions.splice(0, 0, <MenuDivider />);
+            }
+        }
+
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <MenuItem text="Clone" icon={<Icon src="plus.svg" />} onClick={() => editor.cloneNode()} />
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => editor.removeNode()} />
+                {extraOptions}
             </Menu>,
             { left: event.clientX, top: event.clientY }
         );

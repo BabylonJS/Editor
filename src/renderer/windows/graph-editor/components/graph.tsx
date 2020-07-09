@@ -30,6 +30,7 @@ import { GetCamera } from "../../../editor/graph/camera/get-camera";
 import { GraphContextMenu } from "../context-menu";
 import GraphEditorWindow from "../index";
 import { NodeCreator } from "../node-creator";
+import { GetLight } from "../../../editor/graph/light/get-light";
 
 declare module "litegraph.js" {
     interface LGraph {
@@ -386,6 +387,6 @@ export class Graph extends React.Component<IGraphProps> {
         Sound.Sounds = sounds.data;
 
         const lights = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllLights");
-        Light.Lights = lights.data.map((l) => l.name);
+        Light.Lights = GetLight.Lights = lights.data.map((l) => l.name);
     }
 }

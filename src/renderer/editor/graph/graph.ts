@@ -47,6 +47,7 @@ import { GetCameraDirection } from "./camera/get-direction";
 import { TransformCamera } from "./camera/transform";
 
 import { Light } from "./light/light";
+import { GetLight } from "./light/get-light";
 
 import { Mesh } from "./mesh/mesh";
 import { RotateMesh } from "./mesh/rotate";
@@ -165,6 +166,7 @@ export class GraphCode {
 
         // Light
         LiteGraph.registerNodeType("light/light", Light);
+        LiteGraph.registerNodeType("light/get_light", GetLight);
 
         // Mesh
         LiteGraph.registerNodeType("mesh/mesh", Mesh);

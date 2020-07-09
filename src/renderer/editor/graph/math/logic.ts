@@ -1,6 +1,6 @@
 import { LiteGraph } from "litegraph.js";
 
-import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
+import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, INodeContextMenuOption } from "../node";
 
 export class Equals extends GraphNode {
     /**
@@ -210,14 +210,37 @@ export class And extends GraphNode {
      * Called on the node is being executed.
      */
     public execute(): void {
-        this.setOutputData(0, this.getInputData(0) && this.getInputData(1));
+        for (let i = 0; i < this.inputs.length; i++) {
+            if (!this.getInputData(i)) {
+                return this.setOutputData(0, false);
+            }
+        }
+
+        this.setOutputData(0, true);
+    }
+
+    /**
+     * Called on the node is right-clicked in the Graph Editor.
+     * This is used to show extra options in the context menu.
+     */
+    public getContextMenuOptions(): INodeContextMenuOption[] {
+        return [
+            { label: "Add Input", onClick: () => {
+                this.addInput(String.fromCharCode("a".charCodeAt(0) + this.inputs.length), "");
+            } }
+        ];
     }
 
     /**
      * Generates the code of the graph.
      */
-    public generateCode(a: ICodeGenerationOutput, b: ICodeGenerationOutput): ICodeGenerationOutput {
-        const code = `(${a.code} && ${b.code})`;
+    public generateCode(...args: ICodeGenerationOutput[]): ICodeGenerationOutput {
+        const inputs = args.filter((a) => a);
+        if (inputs.length < 2) {
+            throw new Error("And node needs at least 2 elements to compare.");
+        }
+
+        const code = `(${inputs.map((a) => a.code).join(" && ")})`;
         
         return {
             type: CodeGenerationOutputType.Constant,
@@ -243,14 +266,37 @@ export class Or extends GraphNode {
      * Called on the node is being executed.
      */
     public execute(): void {
-        this.setOutputData(0, this.getInputData(0) || this.getInputData(1));
+        for (let i = 0; i < this.inputs.length; i++) {
+            if (this.getInputData(i)) {
+                return this.setOutputData(0, true);
+            }
+        }
+
+        this.setOutputData(0, false);
+    }
+
+    /**
+     * Called on the node is right-clicked in the Graph Editor.
+     * This is used to show extra options in the context menu.
+     */
+    public getContextMenuOptions(): INodeContextMenuOption[] {
+        return [
+            { label: "Add Input", onClick: () => {
+                this.addInput(String.fromCharCode("a".charCodeAt(0) + this.inputs.length), "");
+            } }
+        ];
     }
 
     /**
      * Generates the code of the graph.
      */
-    public generateCode(a: ICodeGenerationOutput, b: ICodeGenerationOutput): ICodeGenerationOutput {
-        const code = `(${a.code} || ${b.code})`;
+    public generateCode(...args: ICodeGenerationOutput[]): ICodeGenerationOutput {
+        const inputs = args.filter((a) => a);
+        if (inputs.length < 2) {
+            throw new Error("Or node needs at least 2 elements to compare.");
+        }
+
+        const code = `(${inputs.map((a) => a.code).join(" || ")})`;
         
         return {
             type: CodeGenerationOutputType.Constant,
