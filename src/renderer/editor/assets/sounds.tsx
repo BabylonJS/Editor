@@ -1,10 +1,12 @@
-import { join, extname, basename } from "path";
+import { shell } from "electron";
+import { join, extname, basename, dirname } from "path";
 import { copy } from "fs-extra";
+import * as os from "os";
 
 import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, Divider, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, Divider, ContextMenu, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
 
 import { Sound, PickingInfo, Vector3 } from "babylonjs";
 
@@ -141,8 +143,17 @@ export class SoundAssets extends AbstractAssets {
         const sound = this._getSound(item);
         if (!sound) { return; }
 
+        const platform = os.platform();
+        const explorer = platform === "darwin" ? "Finder" : "File Explorer";
+
         ContextMenu.show(
             <Menu className={Classes.DARK}>
+                <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {
+                    const name = basename(sound.name);
+                    const file = FilesStore.GetFileFromBaseName(name);
+                    if (file) { shell.openItem(dirname(file.path)); }
+                }} />
+                <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._removeSound(item, sound)} />
             </Menu>,
             { left: e.clientX, top: e.clientY },
@@ -154,7 +165,8 @@ export class SoundAssets extends AbstractAssets {
      */
     private async _addSounds(): Promise<void> {
         const files = await Tools.ShowNativeOpenMultipleFileDialog();
-        return this.onDropFiles(files);
+        await this.onDropFiles(files);
+        return this.refresh();
     }
 
     /**

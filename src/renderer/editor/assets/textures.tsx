@@ -1,10 +1,12 @@
-import { extname, basename, join } from "path";
+import { shell } from "electron";
+import { extname, basename, join, dirname } from "path";
 import { copy } from "fs-extra";
+import * as os from "os";
 
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position, MenuDivider } from "@blueprintjs/core";
 
 import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, DynamicTexture, BaseTexture } from "babylonjs";
 
@@ -154,9 +156,18 @@ export class TextureAssets extends AbstractAssets {
         const texture = this._getTexture(item.key);
         if (!texture || (!(texture instanceof Texture) && !(texture instanceof CubeTexture))) { return; }
 
+        const platform = os.platform();
+        const explorer = platform === "darwin" ? "Finder" : "File Explorer";
+
         ContextMenu.show(
             <Menu className={Classes.DARK}>
+                <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {
+                    const name = basename(texture.name);
+                    const file = FilesStore.GetFileFromBaseName(name);
+                    if (file) { shell.openItem(dirname(file.path)); }
+                }} />
                 <MenuItem text="Clone..." icon={<Icon src="clone.svg" />} onClick={() => this._cloneTexture(texture)} />
+                <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._removeTexture(item, texture)} />
             </Menu>,
             { left: e.clientX, top: e.clientY },
@@ -256,7 +267,9 @@ export class TextureAssets extends AbstractAssets {
      */
     private async _addTextures(): Promise<void> {
         const files = await Tools.ShowNativeOpenMultipleFileDialog();
-        this.onDropFiles(files.map((f) => f));
+        await this.onDropFiles(files.map((f) => f));
+
+        return this.refresh();
     }
 
     /**

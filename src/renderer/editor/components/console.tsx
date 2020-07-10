@@ -1,11 +1,15 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
+import { Classes, ButtonGroup, Button } from "@blueprintjs/core";
+
 import { Terminal } from "xterm";
 import { FitAddon } from 'xterm-addon-fit';
 import chalk from "chalk";
 
 import { Logger } from "babylonjs";
+
+import { Icon } from "../gui/icon";
 
 import { Editor } from "../editor";
 
@@ -69,7 +73,16 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return <div id="babylon-editor-console" style={{ width: "100%", height: "100%" }}></div>;
+        return (
+            <div style={{ width: "100%", height: "100%" }}>
+                <div className={Classes.FILL} key="materials-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
+                    <ButtonGroup>
+                        <Button key="clear" icon={<Icon src="recycle.svg" />} small={true} text="Clear" onClick={() => this._terminal?.clear()} />
+                    </ButtonGroup>
+                </div>
+                <div id="babylon-editor-console" style={{ width: "100%", height: "calc(100% - 25px)" }}></div>
+            </div>
+        );
     }
 
     /**

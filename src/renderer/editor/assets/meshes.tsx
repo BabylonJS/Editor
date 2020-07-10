@@ -1,5 +1,7 @@
-import { join, extname, basename } from "path";
+import { shell } from "electron";
+import { join, extname, basename, dirname } from "path";
 import { copy } from "fs-extra";
+import * as os from "os";
 
 import * as React from "react";
 import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider } from "@blueprintjs/core";
@@ -105,9 +107,13 @@ export class MeshesAssets extends AbstractAssets {
     public onContextMenu(item: IAssetComponentItem, e: React.MouseEvent<HTMLImageElement, MouseEvent>): void {
         super.onContextMenu(item, e);
 
+        const platform = os.platform();
+        const explorer = platform === "darwin" ? "Finder" : "File Explorer";
+
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Export To">
+                <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => shell.openItem(dirname(item.key))} />
+                <MenuItem text="Export To" icon="export">
                     <MenuItem text="To Babylon..." icon={<Icon src="logo-babylon.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToBabylonJSFormat(this.editor, item.id)} />
                     <MenuItem text="To GLB..." icon={<Icon src="gltf.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToGLTF(this.editor, item.id, "glb")} />
                     <MenuItem text="To GLTF..." icon={<Icon src="gltf.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToGLTF(this.editor, item.id, "gltf")} />

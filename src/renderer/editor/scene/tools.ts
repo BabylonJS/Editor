@@ -37,11 +37,15 @@ export class SceneTools {
      * @param meshName defines the name of the mesh to export.
      */
     public static async ExportMeshToBabylonJSFormat(editor: Editor, meshName: string): Promise<void> {
+        const task = editor.addTaskFeedback(0, "Exporting to Babylon...");
+
         const rootUrl = join(Project.DirPath!, "files", "/");
         const name = join("..", "assets/meshes", meshName);
 
         const scene = new Scene(editor.engine!);
         await SceneLoader.AppendAsync(rootUrl, name, scene);
+
+        editor.updateTaskFeedback(task, 50);
 
         try {
             let dest = await Tools.ShowSaveFileDialog("Please select the path where to save the exported scene.");
@@ -58,6 +62,9 @@ export class SceneTools {
         }
 
         scene.dispose();
+
+        editor.updateTaskFeedback(task, 100);
+        editor.closeTaskFeedback(task, 500);
     }
 
     /**
@@ -66,14 +73,20 @@ export class SceneTools {
      * @param meshName defines the name of the mesh to export.
      */
     public static async ExportMeshToGLTF(editor: Editor, meshName: string, format: "gltf" | "glb"): Promise<void> {
+        const task = editor.addTaskFeedback(0, "Exporting to GLTF...");
+
         const rootUrl = join(Project.DirPath!, "files", "/");
         const name = join("..", "assets/meshes", meshName);
 
         const scene = new Scene(editor.engine!);
         await SceneLoader.AppendAsync(rootUrl, name, scene);
 
+        editor.updateTaskFeedback(task, 35);
+
         const prefix = await Dialog.Show("GLTF file prefix", "Please provide a prefix for files.");
         const data = format === "glb" ? await GLTF2Export.GLBAsync(scene, prefix, { }) : await GLTF2Export.GLTFAsync(scene, prefix, { });
+
+        editor.updateTaskFeedback(task, 75);
 
         try {
             const dest = await Tools.ShowSaveDialog();
@@ -93,6 +106,9 @@ export class SceneTools {
 
         }
         scene.dispose();
+
+        editor.updateTaskFeedback(task, 100);
+        editor.closeTaskFeedback(task, 500);
     }
 
     /**
