@@ -30,11 +30,31 @@ export class FreeCameraInspector extends CameraInspector {
         const transforms = super.addTransforms();
         transforms.addVector("Rotation", this.selectedObject.rotation);
 
+        this.addControls();
         this.addCollisions();
 
         return transforms;
     }
 
+    /**
+     * Adds the controls editable properties.
+     */
+    protected addControls(): void {
+        const controls = this.tool!.addFolder("Controls");
+        controls.open();
+
+        const o = {
+            up: this.selectedObject.keysUp[0],
+            down: this.selectedObject.keysDown[0],
+            left: this.selectedObject.keysLeft[0],
+            right: this.selectedObject.keysRight[0],
+        };
+        controls.addKeyMapper(o, "up").name("Up").onChange(() => this.selectedObject.keysUp = [o.up]);
+        controls.addKeyMapper(o, "down").name("Down").onChange(() => this.selectedObject.keysDown = [o.down]);
+        controls.addKeyMapper(o, "left").name("Left").onChange(() => this.selectedObject.keysLeft = [o.left]);
+        controls.addKeyMapper(o, "right").name("Right").onChange(() => this.selectedObject.keysRight = [o.right]);
+    }
+    
     /**
      * Adds the collisions editable properties.
      */

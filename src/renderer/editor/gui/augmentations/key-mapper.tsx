@@ -77,6 +77,8 @@ export class KeyMapperController extends dat.controllers.Controller {
         getKeyMapper: (ref: KeyMapper) => this._keyMapper = ref,
     };
 
+    private __onChange: (r: number) => void;
+
     /**
      * Constructor.
      * @param object the object to modify.
@@ -97,7 +99,10 @@ export class KeyMapperController extends dat.controllers.Controller {
         this.domElement.appendChild(div);
 
         // Render mapper
-        ReactDOM.render(<KeyMapper ref={this._refHandler.getKeyMapper} onChange={(k) => object[property] = k} mappedKey={object[property]} />, div);
+        ReactDOM.render(<KeyMapper ref={this._refHandler.getKeyMapper} onChange={(k) => {
+            object[property] = k;
+            if (this.__onChange) { this.__onChange(k); }
+        }} mappedKey={object[property]} />, div);
     }
 
     /**
@@ -114,6 +119,15 @@ export class KeyMapperController extends dat.controllers.Controller {
      */
     public updateDisplay(): KeyMapperController {
         this._keyMapper?.setState({ mappedKey: this.object[this.property] });
+        return this;
+    }
+
+    /**
+     * Registers the given callback on an input changes.
+     * @param cb the callback to register on a controller changes (x, y, z, w).
+     */
+    public onChange(cb: (r: number) => void): KeyMapperController {
+        this.__onChange = cb;
         return this;
     }
 }
