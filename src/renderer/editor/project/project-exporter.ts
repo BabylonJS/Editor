@@ -427,8 +427,8 @@ export class ProjectExporter {
     public static async ExportFinalScene(editor: Editor, task?: string): Promise<void> {
         if (!WorkSpace.HasWorkspace()) { return; }
 
-        task = task ?? editor.addTaskFeedback(0, "Saving Final Scene");
-        editor.updateTaskFeedback(task, 0, "Saving Final Scene");
+        task = task ?? editor.addTaskFeedback(0, "Generating Final Scene");
+        editor.updateTaskFeedback(task, 0, "Generating Final Scene");
 
         const scene = this.GetFinalSceneJson(editor);
 

@@ -583,7 +583,7 @@ export class Editor {
      * @param integratedBrowser defines wether or not the integrated browser should be used to run the project.
      */
     public async runProject(integratedBrowser: boolean): Promise<void> {
-        await ProjectExporter.Save(this, true);
+        // await ProjectExporter.Save(this, true);
         await ProjectExporter.ExportFinalScene(this);
 
         const task = this.addTaskFeedback(0, "Running Server");
