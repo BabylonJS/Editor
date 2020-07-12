@@ -970,9 +970,27 @@ export class Editor {
                 if (ev.key === "f") { return this.preview.focusSelectedNode(); }
                 
                 if (ev.keyCode === 46) { return this.preview.removeSelectedNode(); }
-                
-                // if ((ev.ctrlKey || ev.metaKey) && ev.key === "c") { return this.preview.copySelectedNode(); }
-                // if ((ev.ctrlKey || ev.metaKey) && ev.key === "v") { return this.preview.pasteCopiedNode(); }
+            }
+
+            if (!ev.ctrlKey && SceneSettings.Camera?.metadata.detached) {
+                SceneSettings.Camera.metadata.detached = false;
+
+                for (const i in SceneSettings.Camera.inputs.attached) {
+                    const input = SceneSettings.Camera.inputs.attached[i];
+                    SceneSettings.Camera.inputs.attachInput(input);
+                }
+            }
+        });
+
+        window.addEventListener("keydown", (ev) => {
+            if (ev.ctrlKey && SceneSettings.Camera) {
+                for (const i in SceneSettings.Camera.inputs.attached) {
+                    const input = SceneSettings.Camera.inputs.attached[i];
+                    input.detachControl(this.engine!.getRenderingCanvas());
+                }
+
+                SceneSettings.Camera.metadata = SceneSettings.Camera.metadata ?? { };
+                SceneSettings.Camera.metadata.detached = true;
             }
         });
 

@@ -1,3 +1,5 @@
+import { Nullable } from "../../../../shared/types";
+
 import { PBRMaterial } from "babylonjs";
 import { GUI } from "dat.gui";
 
@@ -7,6 +9,11 @@ import { Inspector } from "../../components/inspector";
 import { MaterialInspector } from "./material-inspector";
 
 export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
+    private _useMetallic: boolean = false;
+    private _useRoughness: boolean = false;
+
+    private _metallicFolder: Nullable<GUI> = null;
+
     /**
      * Called on a controller finished changes.
      * @override
@@ -30,6 +37,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         this.addAmbient();
         this.addOpacity();
         this.addMicroSurface();
+        this.addMetallicRoughness();
 
         return common;
     }
@@ -136,6 +144,48 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         this.addTexture(microSurface, this.material, "microSurfaceTexture").name("Texture");
 
         return microSurface;
+    }
+
+    /**
+     * Adds the metallic editable properties.
+     */
+    protected addMetallicRoughness(): GUI {
+        this._metallicFolder = this._metallicFolder ?? this.tool!.addFolder("Metallic / Roughness");
+        this._metallicFolder.open();
+
+        this._metallicFolder.add(this.material, "useMetallnessFromMetallicTextureBlue").name("Use Metallness From Metallic Texture Blue");
+        this._metallicFolder.add(this.material, "useRoughnessFromMetallicTextureAlpha").name("Use Roughness From Metallic Texture Alpha");
+        this._metallicFolder.add(this.material, "useRoughnessFromMetallicTextureGreen").name("Use Roughness From Metallic Texture Green");
+        this.addTexture(this._metallicFolder, this.material, "metallicTexture").name("Texture");
+
+        this._useMetallic = (this.material.metallic ?? null) !== null ? true : false;
+        this._useRoughness = (this.material.roughness ?? null) !== null ? true : false;
+
+        // Metallic
+        this._metallicFolder.add(this, "_useMetallic").name("Use Metallic").onChange(() => {
+            this.material.metallic = this._useMetallic ? 0 : null;
+
+            this.clearFolder(this._metallicFolder!);
+            this.addMetallicRoughness();
+        });
+
+        if (this._useMetallic) {
+            this._metallicFolder.add(this.material, "metallic").min(0).max(1).name("Metallic");
+        }
+
+        // Roughness
+        this._metallicFolder.add(this, "_useRoughness").name("Use Roughness").onChange(() => {
+            this.material.roughness = this._useRoughness ? 0 : null;
+
+            this.clearFolder(this._metallicFolder!);
+            this.addMetallicRoughness();
+        });
+        
+        if (this._useRoughness) {
+            this._metallicFolder.add(this.material, "roughness").min(0).max(1).name("Roughness");
+        }
+
+        return this._metallicFolder;
     }
 }
 
