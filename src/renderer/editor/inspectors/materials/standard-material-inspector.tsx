@@ -32,6 +32,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         this.addLightMap();
         this.addReflection();
 
+        this.material.disableLighting;
         return common;
     }
 

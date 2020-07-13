@@ -49,6 +49,21 @@ export class DecalsPainter {
     }
 
     /**
+     * Gets the current size for decal.
+     */
+    public get size(): number {
+        return this._decal.size.x;
+    }
+
+    /**
+     * Sets the current size for decal.
+     */
+    public set size(size: number) {
+        this._decal.size.set(size, size, size);
+        this._updateDecalWithLastPickInfo();
+    }
+
+    /**
      * Gets the current angle for decal.
      */
     public get angle(): number {
@@ -93,11 +108,15 @@ export class DecalsPainter {
      * Processes the global pointer.
      */
     private _processGlobalPointer(info: PointerInfo): void {
-        if (!SceneSettings.IsCameraLocked) { return; }
-
         if (info.type === PointerEventTypes.POINTERMOVE) {
-            return this._updateDecal(false);
+            if (SceneSettings.IsCameraLocked) {
+                return this._updateDecal(false);
+            } else {
+                this._decal.disposeMesh();
+            }
         }
+
+        if (!SceneSettings.IsCameraLocked) { return; }
 
         if (info.type === PointerEventTypes.POINTERWHEEL) {
             const event = info.event as WheelEvent;
@@ -127,9 +146,6 @@ export class DecalsPainter {
      */
     private _canvasEvent(event: PreviewCanvasEventType): void {
         switch (event) {
-            case PreviewCanvasEventType.Focused:
-                this._updateDecalWithLastPickInfo();
-                break;
             case PreviewCanvasEventType.Blurred:
                 this._decal.disposeMesh();
                 break;
@@ -173,6 +189,7 @@ export class DecalsPainter {
             if (decal) {
                 decal.name = this.material?.name ?? "new decal";
                 decal.id = Tools.RandomId();
+                decal.metadata = { isDecal: true };
 
                 if (this._lastPickingInfo.pickedMesh) {
                     decal.setParent(this._lastPickingInfo.pickedMesh);

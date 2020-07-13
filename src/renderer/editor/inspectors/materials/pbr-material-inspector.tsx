@@ -38,6 +38,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         this.addOpacity();
         this.addMicroSurface();
         this.addMetallicRoughness();
+        this.addEmissive();
 
         return common;
     }
@@ -186,6 +187,20 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         }
 
         return this._metallicFolder;
+    }
+
+    /**
+     * Adds the emissive editable properties.
+     */
+    protected addEmissive(): GUI {
+        const emissive = this.tool!.addFolder("Emissive");
+        emissive.open();
+
+        this.addTexture(emissive, this.material, "emissiveTexture").name("Texture");
+        emissive.add(this.material, "emissiveIntensity").min(0).step(0.01).name("Intensity");
+        this.addColor(emissive, "Color", this.material, "emissiveColor");
+
+        return emissive;
     }
 }
 

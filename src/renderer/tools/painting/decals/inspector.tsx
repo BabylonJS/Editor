@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import { MaterialAssets } from "../../../editor/assets/materials";
 
 import { DecalsPainter } from "../../../editor/painting/decals/decals";
@@ -13,9 +14,17 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter> {
      * @override
      */
     public onUpdate(): void {
-        this.selectedObject = this.props._objectRef;
-
+        this.selectedObject = new DecalsPainter(this.editor);
         this.addOptions();
+    }
+
+    /**
+     * Called on the component will unmount.
+     * @override
+     */
+    public componentWillUnmount(): void {
+        super.componentWillUnmount();
+        this.selectedObject?.dispose();
     }
 
     /**
@@ -27,6 +36,7 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter> {
 
         // Add options
         options.add(this.selectedObject, "angle").min(-Math.PI).max(Math.PI).step(0.01).name("Angle");
+        options.add(this.selectedObject, "size").min(0).step(0.01).name("Size");
 
         // Add suggest material
         const assets = this.editor.assets.getAssetsOf(MaterialAssets);

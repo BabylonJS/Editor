@@ -320,7 +320,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         // Tools
         if (family === "tools") {
             switch (action) {
-                case "decal-painter": this._editor.addPlugin("painting/decals"); break;
+                case "decal-painter": this._editor.addPlugin("painting"); break;
                 case "photoshop": this._handleTogglePhotoshop(); break;
             }
         }

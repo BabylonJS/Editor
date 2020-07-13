@@ -70,6 +70,10 @@ export class MaterialInspector<T extends Material> extends AbstractInspector<Mes
         common.add(this.material, "disableDepthWrite").name("Disable Depth Write");
         common.add(this.material, "needDepthPrePass").name("Need Depth Pre Pass");
 
+        if ((this.material["disableLighting"] ?? null) !== null) {
+            common.add(this.material, "disableLighting").name("Disable Lighting");
+        }
+
         const maxSimultaneousLights = this.material["maxSimultaneousLights"] ?? null;
         if (maxSimultaneousLights !== null) {
             common.add(this.material, "maxSimultaneousLights").step(1).min(0).max(32).name("Max Simultaneous Lights");

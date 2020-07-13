@@ -2,7 +2,8 @@ import * as React from "react";
 import Tree from "antd/lib/tree/Tree";
 import {
     ContextMenu, Menu, MenuItem, MenuDivider, Classes, Tooltip,
-    Position, HotkeysTarget, Hotkeys, Hotkey, InputGroup,
+    Position, HotkeysTarget, Hotkeys, Hotkey, InputGroup, FormGroup,
+    Switch, ButtonGroup, Button, Popover,
 } from "@blueprintjs/core";
 
 import { Nullable, Undefinable } from "../../../shared/types";
@@ -49,6 +50,19 @@ export interface IGraphState {
      * Defines the current filter to search nodes.
      */
     filter: string;
+
+    /**
+     * Defines wether or not the graphs options should be drawn.
+     */
+    showOptions: boolean;
+    /**
+     * Defines wether or not the instances should be shown in the graph.
+     */
+    showInstances: boolean;
+    /**
+     * Defines wether or not the lights should be shown in the graph.
+     */
+    showLights: boolean;
 }
 
 @HotkeysTarget
@@ -72,7 +86,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         this._editor = props.editor;
         if (!props.scene) { this._editor.graph = this; }
 
-        this.state = { nodes: [], expandedNodeIds: [], selectedNodeIds: [], filter: "" };
+        this.state = {
+            nodes: [], expandedNodeIds: [], selectedNodeIds: [], filter: "",
+            showOptions: false, showInstances: true, showLights: true,
+        };
     }
 
     /**
@@ -84,6 +101,25 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         return (
             <>
                 <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={(e) => this._handleFilterChanged(e.target.value)}></InputGroup>
+                <Popover
+                    fill={true}
+                    isOpen={this.state.showOptions}
+                    position={Position.BOTTOM}
+                    popoverClassName={Classes.POPOVER_CONTENT_SIZING}
+                    usePortal={true}
+                    inheritDarkTheme={true}
+                    onClose={() => this.setState({ showOptions: false })}
+                    content={
+                        <FormGroup label="Graph" labelInfo="Options" >
+                            <Switch label="Show Instances" checked={this.state.showInstances} onChange={(e) => this.setState({ showInstances: e.currentTarget.checked }, () => this.refresh())} />
+                            <Switch label="Show Lights" checked={this.state.showLights} onChange={(e) => this.setState({ showLights: e.currentTarget.checked }, () => this.refresh())} />
+                        </FormGroup>
+                    }
+                >
+                    <ButtonGroup fill={true}>
+                        <Button text="Options..." onClick={() => this.setState({ showOptions: true })} />
+                    </ButtonGroup>
+                </Popover>
                 <div style={{ width: "100%", height: "calc(100% - 55px)", overflow: "auto" }}>
                     <Tree.DirectoryTree
                         className="draggable-tree"
@@ -384,6 +420,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     private _parseNode(node: Node): Nullable<JSX.Element> {
         if (node instanceof Mesh && node._masterMesh) { return null; }
         if (node === SceneSettings.Camera) { return null; }
+
+        // Filters
+        if (node instanceof InstancedMesh && !this.state.showInstances) { return null; }
+        if (node instanceof Light && !this.state.showLights) { return null; }
 
         node.metadata = node.metadata ?? { };
         if (node instanceof AbstractMesh) {
