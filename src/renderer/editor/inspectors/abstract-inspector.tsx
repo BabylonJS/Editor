@@ -2,7 +2,7 @@ import * as React from "react";
 import { GUI, GUIParams, GUIController } from "dat.gui";
 import { Divider, InputGroup, Classes } from "@blueprintjs/core";
 
-import { Node, Color3, Tags, Color4, BaseTexture } from "babylonjs";
+import { Node, Color3, Tags, Color4, BaseTexture, ISize } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
 
@@ -34,6 +34,8 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
     private _id: string;
     private _isMounted: boolean = false;
 
+    private _div: Nullable<HTMLDivElement> = null;
+
     /**
      * Constructor.
      * @param editor the editor reference.
@@ -52,7 +54,7 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
      */
     public render(): React.ReactNode {
         return (
-            <div id={this._id} style={{ width: "100%", height: "100%" }}>
+            <div ref={(ref) => this._div = ref} id={this._id} style={{ width: "100%", height: "100%" }}>
                 <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={(e) => this._handleSearchChanged(e.target.value)} />
                 <Divider />
             </div>
@@ -97,7 +99,7 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
         this._isMounted = true;
 
         this.tool = new GUI({ autoPlace: false, scrollable: true } as GUIParams);
-        document.getElementById(this._id!)?.appendChild(this.tool.domElement);
+        (this._div ?? document.getElementById(this._id!))?.appendChild(this.tool.domElement);
 
         this.resize();
 
@@ -150,9 +152,10 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
 
     /**
      * Resizes the edition tool.
+     * @param size defines the size of the panel.
      */
-    public resize(): void {
-        const size = this.editor.getPanelSize("inspector");
+    public resize(size?: ISize): void {
+        size = size ?? this.editor.getPanelSize("inspector");
         if (this.tool) {
             this.tool.width = size.width;
             this.tool.domElement.style.height = `${size.height - 100}px`;

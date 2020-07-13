@@ -61,6 +61,7 @@ export class MaterialInspector<T extends Material> extends AbstractInspector<Mes
         common.open();
         common.add(this.material, "name").name("Name");
         common.add(this.material, "alpha").min(0).max(1).name("Alpha");
+        common.add(this.material, "zOffset").step(0.01).name("Z Offset");
         common.add(this.material, "wireframe").name("Wire Frame");
         common.add(this.material, "fogEnabled").name("Fog Enabled");
         common.add(this.material, "backFaceCulling").name("Back Face Culling");

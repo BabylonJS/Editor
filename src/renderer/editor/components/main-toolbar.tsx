@@ -141,7 +141,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Particle System" icon={<Icon src="wind.svg" />} onClick={() => this._menuItemClicked("add:particle-system")} />
             </Menu>;
         const addMesh =
-            <Menu>
+        <Menu>
                 <MenuItem text="Cube" icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("addmesh:cube")} />
                 <MenuItem text="Sphere" icon={<Icon src="circle.svg" />} onClick={() => this._menuItemClicked("addmesh:sphere")} />
                 <MenuItem text="Cylinder" icon={<Icon src="cylinder.svg" />} onClick={() => this._menuItemClicked("addmesh:cylinder")} />
@@ -153,6 +153,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         const tools =
             <Menu>
+                <MenuItem text="Decal Painter..." icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("tools:decal-painter")} />
+                <MenuDivider />
                 <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
             </Menu>;
 
@@ -318,6 +320,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         // Tools
         if (family === "tools") {
             switch (action) {
+                case "decal-painter": this._editor.addPlugin("painting/decals"); break;
                 case "photoshop": this._handleTogglePhotoshop(); break;
             }
         }

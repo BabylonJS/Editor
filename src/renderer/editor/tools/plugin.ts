@@ -59,6 +59,20 @@ export abstract class AbstractEditorPlugin<T> extends React.Component<IEditorPlu
     }
 
     /**
+     * Called on the plugin was previously hidden and is now shown.
+     */
+    public onShow(): void {
+        // To be implemented.
+    }
+
+    /**
+     * Called on the plugin was previously visible and is now hidden.
+     */
+    public onHide(): void {
+        // TO be implemented.
+    }
+
+    /**
      * Called on the plugin is ready.
      */
     public abstract onReady(): void;

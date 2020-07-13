@@ -31,6 +31,13 @@ export class SceneSettings {
     private static _DefaultPipelineEnabled: boolean = true;
 
     /**
+     * Returns wehter or not the camera is locked.
+     */
+    public static get IsCameraLocked(): boolean {
+        return this.Camera?.metadata.detached ?? false;
+    }
+
+    /**
      * Returns the editor cameras as an ArcRotateCamera.
      * @param editor the editor reference.
      */

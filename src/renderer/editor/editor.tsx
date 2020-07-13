@@ -673,6 +673,9 @@ export class Editor {
             if (!pluginSize) { return; }
             this.plugins[plugin.title]?.resize(pluginSize.width, pluginSize.height);
         });
+
+        container?.on("show", () => this.plugins[plugin.title]?.onShow());
+        container?.on("hide", () => this.plugins[plugin.title]?.onHide());
     }
 
     /**

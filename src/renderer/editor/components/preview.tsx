@@ -3,7 +3,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 import * as React from "react";
 import { Position, ButtonGroup, Popover, Button, Menu, MenuItem, Divider, Tag, Tooltip } from "@blueprintjs/core";
 
-import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem, ParticleSystem, AbstractMesh, Sound } from "babylonjs";
+import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -57,6 +57,11 @@ export interface IPreviewState {
     showIcons: boolean;
 }
 
+export enum PreviewCanvasEventType {
+    Focused = 0,
+    Blurred
+}
+
 export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     /**
      * Defines the scene picker used to get/pick infos from the scene.
@@ -66,6 +71,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Defines the scene gizmo manager.
      */
     public gizmo: SceneGizmo;
+    /**
+     * Notifies observers that an event happened on the canvas.
+     */
+    public onCanvasEventObservable: Observable<PreviewCanvasEventType> = new Observable<PreviewCanvasEventType>();
 
     private _editor: Editor;
     private _copiedNode: Nullable<Node | IParticleSystem> = null;
@@ -384,10 +393,12 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         canvas.addEventListener("mouseenter", () => {
             this.setState({ canvasFocused: true });
+            this.onCanvasEventObservable.notifyObservers(PreviewCanvasEventType.Focused);
         });
         canvas.addEventListener("mouseleave", () => {
             this.setState({ canvasFocused: false });
             this.picker?.canvasBlur();
+            this.onCanvasEventObservable.notifyObservers(PreviewCanvasEventType.Blurred);
         });
     }
 }

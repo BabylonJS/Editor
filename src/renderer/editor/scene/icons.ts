@@ -45,6 +45,7 @@ export class SceneIcons {
         // Create layer
         this._layer = new UtilityLayerRenderer(editor.scene!);
         this._layer.utilityLayerScene.postProcessesEnabled = false;
+        this._layer.utilityLayerScene.autoClear = false;
 
         // Materials
         this._lightMaterial = this._getIconMaterial("lightMaterial", "../assets/textures/lightbulb.png");
