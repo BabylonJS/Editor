@@ -4,9 +4,9 @@ import { MaterialAssets } from "../../../editor/assets/materials";
 
 import { DecalsPainter } from "../../../editor/painting/decals/decals";
 
-import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
+import { PaintingInspector } from "../painting-inspector";
 
-export class DecalsPainterInspector extends AbstractInspector<DecalsPainter> {
+export class DecalsPainterInspector extends PaintingInspector<DecalsPainter> {
     private _materialName: string = "";
 
     /**

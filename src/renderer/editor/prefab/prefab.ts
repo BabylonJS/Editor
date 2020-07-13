@@ -1,4 +1,6 @@
 import { join, extname, basename } from "path";
+import { tmpdir } from "os";
+
 import Zip from "adm-zip";
 
 import { Mesh, Light, SceneLoader } from "babylonjs";
@@ -12,15 +14,19 @@ import { ProjectExporter } from "../project/project-exporter";
 import { IBabylonFileNode, IBabylonFile } from "../project/typings";
 
 import { MaterialAssets } from "../assets/materials";
-import { readFile } from "fs-extra";
+import { readFile, mkdtemp, remove, rmdir } from "fs-extra";
 import { PrefabAssets } from "../assets/prefabs";
+import { Dialog } from "../gui/dialog";
+import { Undefinable } from "../../../shared/types";
 
 export class Prefab {
     /**
      * Creates a new prefab from the given node as root.
+     * @param editor the editor reference.
      * @param mesh the source node to create prefab.
+     * @param as defines wether or not the prefab should be saved as.
      */
-    public static async CreateMeshPrefab(editor: Editor, mesh: Mesh): Promise<void> {
+    public static async CreateMeshPrefab(editor: Editor, mesh: Mesh, as: boolean): Promise<void> {
         const task = editor.addTaskFeedback(0, "Saving Prefab...");
         await Tools.Wait(500);
 
@@ -31,6 +37,11 @@ export class Prefab {
         const json = ProjectExporter.ExportMesh(mesh, false, true) as IBabylonFile;
         json.lights = [];
         json.particleSystems = [];
+        json.meshes.forEach((m) => {
+            if (m.instances) {
+                m.instances = [];
+            }
+        });
         json.meshes[0].parentId = undefined;
 
         // Descendants
@@ -51,6 +62,7 @@ export class Prefab {
         const jsonStr = JSON.stringify(json, null, "\t");
         const prefabConfig = JSON.stringify({
             id: prefabId,
+            sourceMeshId: mesh.id,
         }, null, "\t");
 
         editor.updateTaskFeedback(task, 50, "Writing Prefab...");
@@ -89,7 +101,17 @@ export class Prefab {
 
         // Write prefab
         try {
-            let destination = await Tools.ShowSaveFileDialog("Save Mesh Prefab");
+            let destination: string;
+            let tempDir: Undefinable<string> = undefined;
+
+            if (as) {
+                destination = await Tools.ShowSaveFileDialog("Save Mesh Prefab");
+            } else {
+                destination = await Dialog.Show("Prefab name?", "Please provide a name for the prefab.");
+
+                tempDir = await mkdtemp(join(tmpdir(), "babylonjs-editor"));
+                destination = join(tempDir, destination);
+            }
 
             const extension = extname(destination);
             if (extension !== ".meshprefab") { destination += ".meshprefab"; }
@@ -101,6 +123,17 @@ export class Prefab {
 
             const assets = editor.assets.getComponent(PrefabAssets);
             await assets?.onDropFiles([{ path: destination, name: basename(destination) }]);
+            await assets?.refresh();
+
+            // Remove temp file?
+            if (tempDir) {
+                try {
+                    await remove(destination);
+                    await rmdir(tempDir);
+                } catch (e) {
+                    // Catch silently.
+                }
+            }
 
             // Done
             editor.updateTaskFeedback(task, 100, "Done");

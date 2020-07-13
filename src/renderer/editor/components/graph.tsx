@@ -601,7 +601,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 <MenuDivider />
                 <MenuItem text="Clone" disabled={node instanceof Sound} icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneObject()} />
                 <MenuDivider />
-                <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh)} />
+                <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, false)} />
+                <MenuItem text="Create Prefab As..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, true)} />
                 {mergeMeshesItem}
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveObject()} />

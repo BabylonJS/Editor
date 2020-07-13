@@ -1,6 +1,6 @@
 import { Nullable } from "../../../../shared/types";
 
-import { PointerEventTypes, Observer, PointerInfo, PickingInfo } from "babylonjs";
+import { PointerEventTypes, Observer, PointerInfo, PickingInfo, Mesh } from "babylonjs";
 
 import { Editor } from "../../editor";
 
@@ -14,6 +14,11 @@ export class FoliagePainter {
     private _globalPointerObserver: Nullable<Observer<PointerInfo>>;
 
     private _lastPickingInfo: Nullable<PickingInfo> = null;
+
+    /**
+     * Defines the array of all available meshes to draw.
+     */
+    public meshes: Nullable<Mesh>[] = [];
 
     /**
      * Constructor.
@@ -32,7 +37,19 @@ export class FoliagePainter {
     public dispose(): void {
         if (this._globalPointerObserver) { this._editor.scene!.onPointerObservable.remove(this._globalPointerObserver); }
 
+        this.reset();
         this._volume.dispose();
+    }
+
+    /**
+     * Resets the foliage painter.
+     */
+    public reset(): void {
+        this.meshes.forEach((m) => {
+            if (m?.metadata?.waitingFoliage) { m.dispose(); }
+        });
+
+        this.meshes = [null];
     }
 
     /**

@@ -2,12 +2,12 @@ import { join, extname } from "path";
 import { copy, writeFile, remove } from "fs-extra";
 import Zip from "adm-zip";
 
-import { Nullable } from "../../../shared/types";
+import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
 import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
 
-import { PickingInfo } from "babylonjs";
+import { PickingInfo, AnimationGroup, Skeleton, IParticleSystem, AbstractMesh } from "babylonjs";
 
 import { undoRedo } from "../tools/undo-redo";
 
@@ -131,7 +131,12 @@ export class PrefabAssets extends AbstractAssets {
      * @param pickInfo the pick info generated on the drop event.
      * @override
      */
-    public async onDropAsset(item: IAssetComponentItem, pickInfo: PickingInfo): Promise<void> {
+    public async onDropAsset(item: IAssetComponentItem, pickInfo: PickingInfo): Promise<Undefinable<{
+        meshes: AbstractMesh[];
+        particleSystems: IParticleSystem[];
+        skeletons: Skeleton[];
+        animationGroups: AnimationGroup[];
+    }>> {
         super.onDropAsset(item, pickInfo);
 
         // TODO: manage complete prefab system. Here, only .meshprefab is supported at the moment.
@@ -171,6 +176,7 @@ export class PrefabAssets extends AbstractAssets {
         this.editor.updateTaskFeedback(task, 50, "Done");
         const tempJsonPath = join(Project.DirPath!, "prefabs", `${item.id}_json_temp.json`);
         
+        let result: any;
         try {
             const jsonEntry = zip.getEntries().find((e) => e.entryName === "prefab.json");
             if (!jsonEntry) { throw "Can't find the mesh preset json file."; }
@@ -183,7 +189,7 @@ export class PrefabAssets extends AbstractAssets {
 
             // Load meshes
             await writeFile(tempJsonPath, JSON.stringify(json), { encoding: "utf-8" });
-            const result = await Prefab.LoadMeshPrefab(this.editor, json, Project.DirPath!, item.id);
+            result = await Prefab.LoadMeshPrefab(this.editor, json, Project.DirPath!, item.id);
 
             if (pickInfo.pickedPoint) { result.meshes[0]?.position.copyFrom(pickInfo.pickedPoint!); }
         } catch (e) {
@@ -198,6 +204,8 @@ export class PrefabAssets extends AbstractAssets {
 
         this.editor.updateTaskFeedback(task, 100, "Done");
         this.editor.closeTaskFeedback(task, 500);
+
+        return result;
     }
 
     /**
