@@ -147,6 +147,7 @@ export class FoliagePainterInspector extends PaintingInspector<FoliagePainter> {
 
             existingMesh.metadata = existingMesh.metadata ?? { };
             existingMesh.metadata.waitingFoliage = true;
+            existingMesh.doNotSerialize = true;
 
             this.editor.scene!.removeMesh(existingMesh);
             
