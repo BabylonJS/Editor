@@ -1,6 +1,6 @@
 import { Nullable } from "../../../../shared/types";
 
-import { Observer, PointerInfo, PointerEventTypes, Vector3, Material, PickingInfo } from "babylonjs";
+import { Observer, PointerInfo, PointerEventTypes, Vector3, Material, PickingInfo, Mesh } from "babylonjs";
 
 import { Editor } from "../../editor";
 
@@ -8,8 +8,10 @@ import { SceneSettings } from "../../scene/settings";
 
 import { PreviewCanvasEventType } from "../../components/preview";
 
-import { Decal } from "../tools/decal";
 import { Tools } from "../../tools/tools";
+import { undoRedo } from "../../tools/undo-redo";
+
+import { Decal } from "../tools/decal";
 
 export class DecalsPainter {
     private _editor: Editor;
@@ -185,18 +187,29 @@ export class DecalsPainter {
         if (keepInScene) {
             this._decal.disposeMesh();
             
-            const decal = this._decal.createDecal(this._lastPickingInfo);
-            if (decal) {
-                decal.name = this.material?.name ?? "new decal";
-                decal.id = Tools.RandomId();
-                decal.metadata = { isDecal: true };
+            const clonedPickingInfo = this._lastPickingInfo;
+            let decal: Nullable<Mesh> = null;
 
-                if (this._lastPickingInfo.pickedMesh) {
-                    decal.setParent(this._lastPickingInfo.pickedMesh);
-                }
-
-                this._editor.graph.refreshAndSelect(decal);
-            }
+            undoRedo.push({
+                common: () => this._editor.graph.refresh(),
+                redo: () => {
+                    decal = this._decal.createDecal(clonedPickingInfo);
+                    if (decal) {
+                        decal.name = this.material?.name ?? "new decal";
+                        decal.id = Tools.RandomId();
+                        decal.metadata = { isDecal: true };
+        
+                        if (clonedPickingInfo.pickedMesh && !clonedPickingInfo.pickedMesh.isDisposed()) {
+                            decal.setParent(clonedPickingInfo.pickedMesh);
+                        }
+                    }
+                },
+                undo: () => {
+                    if (decal && !decal.isDisposed()) {
+                        decal.dispose();
+                    }
+                },
+            })
         } else {
             this._decal.updateDecal(this._lastPickingInfo);
         }

@@ -426,10 +426,6 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (node instanceof Mesh && node._masterMesh) { return null; }
         if (node === SceneSettings.Camera) { return null; }
 
-        // Filters
-        if (node instanceof InstancedMesh && !this.state.showInstances) { return null; }
-        if (node instanceof Light && !this.state.showLights) { return null; }
-
         node.metadata = node.metadata ?? { };
         if (node instanceof AbstractMesh) {
             node.metadata.isPickable = node.metadata.isPickable ?? node.isPickable;
@@ -440,6 +436,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         node.id = node.id ?? Tools.RandomId();
         node.name = node.name ?? "Node";
+
+        // Filters
+        if (node instanceof InstancedMesh && !this.state.showInstances) { return null; }
+        if (node instanceof Light && !this.state.showLights) { return null; }
 
         const ctor = Tools.GetConstructorName(node);
         const name = node.name ?? ctor;

@@ -15,6 +15,7 @@ import { Assets } from "../components/assets";
 import { ScriptAssets } from "../assets/scripts";
 
 import { SceneSettings } from "../scene/settings";
+import { SceneExportOptimzer } from "../scene/export-optimizer";
 
 import { GraphCode } from "../graph/graph";
 import { GraphCodeGenerator } from "../graph/generate";
@@ -382,6 +383,10 @@ export class ProjectExporter {
             editor.scene!.soundTracks.push(editor.scene!.mainSoundTrack);
         }
 
+        // Optimize
+        const optimizer = new SceneExportOptimzer(editor.scene!);
+        optimizer.optimize();
+
         const scene = SceneSerializer.Serialize(editor.scene!);
         scene.metadata = scene.metadata ?? { };
         scene.metadata.postProcesses = {
@@ -408,6 +413,9 @@ export class ProjectExporter {
             m.lodDistances = lods.map((lod) => lod.distance);
             m.lodCoverages = lods.map((lod) => lod.distance);
         });
+
+        // Clean
+        optimizer.clean();
 
         return scene;
     }
