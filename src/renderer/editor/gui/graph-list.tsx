@@ -97,6 +97,7 @@ export class GraphList extends React.Component<IGraphListProps, IGraphListState>
                     onSelect={(k) => this._handleSelectedNodes(k as string[])}
                     autoExpandParent={false}
                     selectedKeys={this.state.selectedIds}
+                    expandedKeys={[]}
                 >
                     {nodes}
                 </Tree.DirectoryTree>

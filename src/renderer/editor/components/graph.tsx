@@ -130,12 +130,12 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         key={"Graph"}
                         style={{ height: "calc(100% - 32px)" }}
                         blockNode={true}
-                        expandedKeys={this.state.expandedNodeIds}
+                        expandedKeys={this.state.expandedNodeIds ?? []}
                         onExpand={(k) => this._handleExpandedNode(k as string[])}
                         onRightClick={(e) => this._handleNodeContextMenu(e.event, e.node)}
                         onSelect={(k) => this._handleSelectedNodes(k as string[])}
                         autoExpandParent={false}
-                        selectedKeys={this.state.selectedNodeIds}
+                        selectedKeys={this.state.selectedNodeIds ?? []}
                         expandAction="doubleClick"
                         onDragEnter={(n) => this._handleDragEnter(n)}
                         onDragStart={(n) => this._handleDragStart(n)}
@@ -260,7 +260,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Removes the given node.
      * @param node the node to remove.
      */
-    public removeObject(node: Node | IParticleSystem | Sound): void {
+    public removeObject(node: Node | IParticleSystem | Sound, refresh: boolean = true): void {
         let removeFunc: Nullable<(n: Node | IParticleSystem | Sound) => void> = null;
         let addFunc: Nullable<(n: Node | IParticleSystem | Sound) => void> = null;
         let caller: any = this._editor.scene!;
@@ -300,7 +300,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         
         undoRedo.push({
             common: () => {
-                this.refresh();
+                if (refresh) {
+                    this.refresh();
+                }
+                refresh = true;
             },
             redo: () => {
                 if (node instanceof Node) { node.parent = null; }
@@ -383,30 +386,32 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             />
         );
         
+        const soundsChildren = this._editor.scene!.mainSoundTrack.soundCollection.filter((s) => !s.spatialSound).map((s) => {
+            s.metadata = s.metadata ?? { };
+            if (!s.metadata.id) { s.metadata.id = Tools.RandomId(); }
+
+            return (
+                <Tree.TreeNode
+                    active={true}
+                    expanded={true}
+                    title={<span>{s.name}</span>}
+                    key={s.metadata.id}
+                    isLeaf={true}
+                    icon={<Icon src={s.isPlaying ? "volume-up.svg" : "volume-mute.svg"} />}
+                    children={sounds}
+                />
+            );
+        });
+
         const sounds = (
             <Tree.TreeNode
                 active={true}
                 expanded={true}
                 title={<span>Sounds</span>}
                 key="sounds"
-                isLeaf={false}
+                isLeaf={soundsChildren.length === 0}
                 icon={<Icon src="volume-off.svg" />}
-                children={this._editor.scene!.mainSoundTrack.soundCollection.filter((s) => !s.spatialSound).map((s) => {
-                    s.metadata = s.metadata ?? { };
-                    if (!s.metadata.id) { s.metadata.id = Tools.RandomId(); }
-
-                    return (
-                        <Tree.TreeNode
-                            active={true}
-                            expanded={true}
-                            title={<span>{s.name}</span>}
-                            key={s.metadata.id}
-                            isLeaf={true}
-                            icon={<Icon src={s.isPlaying ? "volume-up.svg" : "volume-mute.svg"} />}
-                            children={sounds}
-                        />
-                    );
-                })}
+                children={soundsChildren}
             />
         );
 
@@ -628,12 +633,22 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      */
     private _handleRemoveObject(): void {
         if (!this.state.selectedNodeIds) { return; }
+
+        const selectedNodeIds = this.state.selectedNodeIds.slice();
+
         this.state.selectedNodeIds.forEach((id) => {
             const node = this._getNodeById(id);
             if (!node) { return; }
 
-            this.removeObject(node);
+            const index = selectedNodeIds.indexOf(id);
+            if (index !== -1) {
+                selectedNodeIds.splice(index, 1);
+            }
+
+            this.removeObject(node, false);
         });
+
+        this.refresh(() => this.setState({ selectedNodeIds }));
     }
 
     /**
@@ -702,8 +717,6 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             if (this.state.selectedNodeIds?.indexOf(draggedNodeId) === -1) {
                 this.setState({ selectedNodeIds: this.state.selectedNodeIds.slice().concat([draggedNodeId]) });
             }
-        } else {
-            this.setState({ selectedNodeIds: [draggedNodeId] });
         }
     }
 

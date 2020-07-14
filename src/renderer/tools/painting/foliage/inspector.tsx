@@ -88,6 +88,8 @@ export class FoliagePainterInspector extends PaintingInspector<FoliagePainter> {
                     return <img src={asset.base64} style={{ maxWidth: "100%", width: 100, maxHeight: "100%", height: 100 }}></img>;
                 },
             }).onChange(async () => {
+                this._clearAssetAt(index);
+
                 const a = assets?.find((a) => a.id === o[propertyName]);
                 if (!a) { return; }
 
@@ -104,6 +106,18 @@ export class FoliagePainterInspector extends PaintingInspector<FoliagePainter> {
             this.clearFolder(this._prefabsFolder!);
             this.addPrefabs();
         });
+    }
+
+    /**
+     * Clears the current asset at the given index.
+     */
+    private _clearAssetAt(index: number): void {
+        if (this.selectedObject.meshes[index]) {
+            const existing = this.selectedObject.meshes[index];
+            if (existing?.metadata?.waitingFoliage) { existing.dispose(); }
+        }
+
+        this.selectedObject.meshes[index] = null;
     }
 
     /**
@@ -147,11 +161,12 @@ export class FoliagePainterInspector extends PaintingInspector<FoliagePainter> {
 
         if (index > this.selectedObject.meshes.length) {
             this.selectedObject.meshes.push(existingMesh as Mesh);
+            this._prefabIds.push(asset.id);
         } else {
             this.selectedObject.meshes[index] = existingMesh as Mesh;
+            this._prefabIds[index] = asset.id;
         }
 
-        this._prefabIds[index] = asset.id;
         this.editor.graph.refresh();
     }
 }

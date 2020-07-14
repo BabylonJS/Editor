@@ -53,7 +53,7 @@
     "@blueprintjs/core": "3.28.1",
     "@blueprintjs/select": "3.13.2",
     "adm-zip": "0.4.14",
-    "antd": "4.2.0",
+    "antd": "4.4.2",
     "babylonjs": "4.2.0-alpha.23",
     "babylonjs-gui": "4.2.0-alpha.23",
     "babylonjs-inspector": "4.2.0-alpha.23",
