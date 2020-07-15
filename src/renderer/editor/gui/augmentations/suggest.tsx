@@ -1,3 +1,5 @@
+import { Undefinable } from "../../../../shared/types";
+
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
@@ -6,8 +8,6 @@ import { Select } from "@blueprintjs/select";
 
 import * as dat from "dat.gui";
 
-import { Undefinable } from "../../../../shared/types";
-
 const ListSelect = Select.ofType<string>();
 
 export interface _IListSuggestProps {
@@ -15,6 +15,7 @@ export interface _IListSuggestProps {
 }
 
 export interface _IListSuggestState {
+    list: string[];
     value: string;
 }
 
@@ -25,7 +26,10 @@ export class _ListSuggest extends React.Component<_IListSuggestProps, _IListSugg
      */
     public constructor(props: _IListSuggestProps) {
         super(props);
-        this.state = { value: props.controller.object[props.controller.property] };
+        this.state = {
+            list: props.controller.list,
+            value: props.controller.object[props.controller.property],
+        };
     }
 
     /**
@@ -34,7 +38,7 @@ export class _ListSuggest extends React.Component<_IListSuggestProps, _IListSugg
     public render(): React.ReactNode {
         return (
             <ListSelect
-                items={this.props.controller.list}
+                items={this.state.list}
                 itemRenderer={(i, props) => {
                     if (!props.modifiers.matchesPredicate) { return null; }
                     const showLabel = this.props.controller.__renderer?.onShowLabel;
@@ -45,7 +49,7 @@ export class _ListSuggest extends React.Component<_IListSuggestProps, _IListSugg
 
                     const icon = (showIcon && showIcon(i)) ?? undefined;
 
-                    return <MenuItem active={props.modifiers.active} disabled={props.modifiers.disabled} icon={icon} label={label} key={i} text={i} onClick={props.handleClick} />;
+                    return <MenuItem active={props.modifiers.active} disabled={props.modifiers.disabled} icon={icon} label={label} key={`${i}_${props.index}`} text={i} onClick={props.handleClick} />;
                 }}
                 itemPredicate={(query, i) => i.toLowerCase().indexOf(query.toLowerCase()) !== -1}
                 itemsEqual={(a, b) => a.toLowerCase() === b.toLowerCase()}
@@ -79,6 +83,11 @@ export class _ListSuggest extends React.Component<_IListSuggestProps, _IListSugg
                     readOnly={true}
                     value={this.state.value ?? "(No selection)"}
                     disabled={false}
+                    onMouseEnter={() => {
+                        if (this.props.controller.__renderer?.onUpdate) {
+                            this.setState({ list: this.props.controller.__renderer.onUpdate() });
+                        }
+                    }}
                 ></InputGroup>
                 {this._getRightImg()}
             </ListSelect>
@@ -131,6 +140,7 @@ export class SuggestController extends dat.controllers.Controller {
         onShowLabel?: (item: string) => string;
         onShowIcon?: (item: string) => JSX.Element;
         onShowTooltip?: (item: string) => JSX.Element | undefined;
+        onUpdate?: () => string[];
     }>;
 
     private _title: HTMLSpanElement;
@@ -142,16 +152,20 @@ export class SuggestController extends dat.controllers.Controller {
      * @param list the list of suggestions.
      * @param onShowLabel optional callback called when rendering a suggestion item.
      */
-    public constructor(object: any, property: string, list: string[], renderer?: {
+    public constructor(object: any, property: string, list?: string[], renderer?: {
         onShowLabel?: (item: string) => string;
         onShowIcon?: (item: string) => JSX.Element;
+        onUpdate?: () => string[];
         tooltip?: JSX.Element;
     }) {
         super(object, property);
         if (typeof(object[property]) !== "string") { throw "Can't create a suggest on types different from 'string'"; }
 
         // Common
-        this.list = list;
+        if (!list && !renderer?.onUpdate) {
+            throw new Error("Must provide at least a list of onUpdate function.");
+        }
+        this.list = list ?? renderer!.onUpdate!();
         this.__renderer = renderer;
 
         // Create title
@@ -194,9 +208,10 @@ export class SuggestController extends dat.controllers.Controller {
     }
 }
 
-dat.GUI.prototype.addSuggest = function (object: any, property: string, list: string[], renderer?: {
+dat.GUI.prototype.addSuggest = function (object: any, property: string, list?: string[], renderer?: {
     onShowLabel?: (item: string) => string;
     onShowIcon?: (item: string) => JSX.Element;
+    onUpdate?: () => string[];
 }): SuggestController {
     // Create controller
     const controller = new SuggestController(object, property, list, renderer);

@@ -36,6 +36,8 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
 
     private _div: Nullable<HTMLDivElement> = null;
 
+    private _lastScroll: Nullable<number> = null;
+
     /**
      * Constructor.
      * @param editor the editor reference.
@@ -110,6 +112,16 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
             this.tool?.addTextBox(`An error occured: ${e?.message}`);
         }
 
+        // Last scroll
+        if (this._lastScroll) {
+            const div = this.tool!.domElement;
+            if (div) {
+                div.scrollTop = this._lastScroll;
+            }
+
+            this._lastScroll = null;
+        }
+
         setTimeout(() => this._handleChanged(), 0);
     }
 
@@ -118,7 +130,13 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
      */
     public componentWillUnmount(): void {
         this._isMounted = false;
-        if (this.tool) { this.tool.destroy(); }
+        if (this.tool) {
+            const div = this.tool.domElement.parentElement;
+            if (div) { this._lastScroll = div.scrollHeight; }
+            
+            this.tool.destroy();
+            div?.removeChild(this.tool.domElement);
+        }
     }
 
     /**
@@ -181,7 +199,7 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
      * @param onChange optional callback called on the texture changed.
      */
     protected addTexture(parent: GUI = this.tool!, object: any, property: string, onChange?: (texture: Nullable<BaseTexture>) => void): SuggestController {
-        const assets = this.editor.assets.getAssetsOf(TextureAssets)!;
+        let assets = this.editor.assets.getAssetsOf(TextureAssets)!;
         const textures = ["None"].concat(assets.map((a) => a.id));
 
         if (!assets) {
@@ -203,6 +221,7 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
 
                 return <img src={asset.base64} style={{ maxWidth: "100%", width: 100, maxHeight: "100%", height: 100 }}></img>;
             },
+            onUpdate: () => ["None"].concat((assets = this.editor.assets.getAssetsOf(TextureAssets)!).map((a) => a.id)),
         }).onChange(() => {
             object[property] = this.getTexture(o.textureName);
             if (onChange) { onChange(object[property]); }

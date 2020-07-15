@@ -1,18 +1,19 @@
-import * as React from "react";
-import { GUI } from "dat.gui";
-
 import Zip from "adm-zip";
 
 import { Nullable } from "../../../../shared/types";
 
+import * as React from "react";
+import { Spinner } from "@blueprintjs/core";
+
+import { GUI } from "dat.gui";
 import { Mesh, PickingInfo } from "babylonjs";
 
 import { PrefabAssets } from "../../../editor/assets/prefabs";
+import { IAssetComponentItem } from "../../../editor/assets/abstract-assets";
+
 import { FoliagePainter } from "../../../editor/painting/foliage/foliage";
 
 import { PaintingInspector } from "../painting-inspector";
-import { Spinner } from "@blueprintjs/core";
-import { IAssetComponentItem } from "../../../editor/assets/abstract-assets";
 
 export class FoliagePainterInspector extends PaintingInspector<FoliagePainter> {
     private _prefabIds: string[] = ["None"];
@@ -65,16 +66,13 @@ export class FoliagePainterInspector extends PaintingInspector<FoliagePainter> {
         });
 
         // Prefabs list
-        const assets = this.editor.assets.getAssetsOf(PrefabAssets)!;
-        if (!assets) { return; }
-
-        const prefabs = ["None"].concat(assets.map((a) => a.id));
+        let assets: IAssetComponentItem[];
 
         this._prefabIds.forEach((pid, index) => {
             const propertyName = `Prefab n°${index}`
             const o = { [propertyName]: pid };
 
-            return this._prefabsFolder!.addSuggest(o, propertyName, prefabs, {
+            return this._prefabsFolder!.addSuggest(o, propertyName, undefined, {
                 onShowIcon: (i) => {
                     const asset = assets.find((a) => a.id === i);
                     if (!asset) { return undefined; }
@@ -87,6 +85,7 @@ export class FoliagePainterInspector extends PaintingInspector<FoliagePainter> {
 
                     return <img src={asset.base64} style={{ maxWidth: "100%", width: 100, maxHeight: "100%", height: 100 }}></img>;
                 },
+                onUpdate: () => ["None"].concat((assets = this.editor.assets.getAssetsOf(PrefabAssets)!).map((a) => a.id)),
             }).onChange(async () => {
                 this._clearAssetAt(index);
 

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Tabs, Tab, InputGroup, Classes } from "@blueprintjs/core";
+import { Tabs, Tab, InputGroup, Classes, TabId } from "@blueprintjs/core";
 
 import { Nullable, Undefinable, IStringDictionary } from "../../../shared/types";
 
@@ -38,7 +38,10 @@ export interface IAssetsProps {
 }
 
 export interface IAssetsState {
-    // Empty for now.
+    /**
+     * Defines the Id of the active tab.
+     */
+    activeTabId?: TabId;
 }
 
 export class Assets extends React.Component<IAssetsProps, IAssetsState> {
@@ -48,8 +51,10 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
     private _needsRefresh: boolean = false;
 
     private _parentDiv: Nullable<HTMLDivElement> = null;
+    private _tabs: Nullable<Tabs> = null;
     private _refHandler = {
         getParentDiv: (ref: HTMLDivElement) => this._parentDiv = ref,
+        getTabs: (ref: Tabs) => this._tabs = ref,
         getAssetComponent: (ref: AbstractAssets) => ref && (Assets._assetComponents.find((a) => a._id === ref.props.id)!._ref = ref),
     };
 
@@ -108,7 +113,7 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
     public render(): React.ReactNode {
         const tabs = Assets._assetComponents.map((ac) => {
             const component = <ac.ctor editor={this._editor} id={ac._id!} ref={this._refHandler.getAssetComponent} />;
-            return <Tab id={Tools.RandomId()} title={ac.title} key={ac._id} panel={component} />;
+            return <Tab id={ac._id} title={ac.title} key={ac._id} panel={component} />;
         });
 
         tabs.push(<Tabs.Expander />);
@@ -118,6 +123,7 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
                 <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={(e) => this._handleSearchChanged(e)} />
                 <div id="EDITOR-ASSETS" ref={this._refHandler.getParentDiv} style={{ width: "100%", height: "100%" }}>
                     <Tabs
+                        ref={this._refHandler.getTabs}
                         animate={true}
                         id="assets"
                         key="assets"
@@ -132,7 +138,21 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
     }
 
     /**
+     * Selects (activates) the tab of the given assets component.
+     * @param component defines the component to show.
+     */
+    public selectTab(component?: (new (props: IAssetsProps) => AbstractAssets)): void {
+        const id = Assets._assetComponents.find((ac) => ac.ctor === component)?._id ?? null;
+
+        if (id !== null && this._tabs && this._tabs.state.selectedTabId !== id) {
+            this._tabs.setState({ selectedTabId: id });
+        }
+    }
+
+    /**
      * Refreshes all the assets.
+     * @param component defines the component to refresh.
+     * @param object defines the object to refresh.
      */
     public refresh<T>(component?: (new (props: IAssetsProps) => AbstractAssets), object?: Undefinable<T>): Promise<void> {
         return this._refreshAllAssets(component, object);
@@ -208,7 +228,10 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
         };
 
         this._editor.closeTaskFeedback(taskFeedBack);
-        this._refreshAllAssets();
+
+        await this._refreshAllAssets();
+
+        this._editor.inspector.refresh();
     }
 
     /**

@@ -98,10 +98,11 @@ declare module "dat.gui" {
          * @param list the list of suggestions.
          * @param renderer optional callbacks called when rendering a suggestion item.
          */
-        addSuggest(object: any, property: string, list: string[], renderer?: {
+        addSuggest(object: any, property: string, list?: string[], renderer?: {
             onShowLabel?: (item: string) => string | undefined;
 			onShowIcon?: (item: string) => JSX.Element | undefined;
-			onShowTooltip?: (item: string) => JSX.Element | undefined;
+            onShowTooltip?: (item: string) => JSX.Element | undefined;
+            onUpdate?: () => string[];
         }): SuggestController;
         /**
          * Adds a new keymapper input.

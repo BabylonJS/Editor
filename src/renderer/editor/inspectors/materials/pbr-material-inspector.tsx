@@ -5,6 +5,8 @@ import { GUI } from "dat.gui";
 
 import { MaterialAssets } from "../../assets/materials";
 
+import { TextureTools } from "../../tools/texture";
+
 import { Inspector } from "../../components/inspector";
 import { MaterialInspector } from "./material-inspector";
 
@@ -12,6 +14,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
     private _useMetallic: boolean = false;
     private _useRoughness: boolean = false;
 
+    private _opacityFolder: Nullable<GUI> = null;
     private _metallicFolder: Nullable<GUI> = null;
 
     /**
@@ -124,12 +127,22 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
      * Adds the opacity editable properties.
      */
     protected addOpacity(): GUI {
-        const opacity = this.tool!.addFolder("Opacity");
-        opacity.open();
+        this._opacityFolder = this._opacityFolder ?? this.tool!.addFolder("Opacity");
+        this._opacityFolder.open();
 
-        this.addTexture(opacity, this.material, "opacityTexture").name("Texture");
+        this.addTexture(this._opacityFolder, this.material, "opacityTexture", () => {
+            this.clearFolder(this._opacityFolder!);
+            this.addOpacity();
+        }).name("Texture");
 
-        return opacity;
+        if (this.material.albedoTexture && this.material.opacityTexture) {
+            this._opacityFolder.addButton("Merge Opacity To Albedo Texture...").onClick(async () => {
+                if (!this.material.albedoTexture) { return; }
+                await TextureTools.MergeDiffuseWithOpacity(this.editor, this.material.albedoTexture, this.material.opacityTexture);
+            });
+        }
+
+        return this._opacityFolder;
     }
 
     /**

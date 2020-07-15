@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { MaterialAssets } from "../../../editor/assets/materials";
+import { IAssetComponentItem } from "../../../editor/assets/abstract-assets";
 
 import { DecalsPainter } from "../../../editor/painting/decals/decals";
 
@@ -40,10 +41,10 @@ export class DecalsPainterInspector extends PaintingInspector<DecalsPainter> {
         options.add(this.selectedObject, "receiveShadows").name("Receive Shadows");
 
         // Add suggest material
-        const assets = this.editor.assets.getAssetsOf(MaterialAssets);
+        let assets: IAssetComponentItem[];
 
         this._materialName = this.selectedObject.material?.name ?? "None";
-        options.addSuggest(this, "_materialName", ["None"].concat(assets!.map((a) => a.id)), {
+        options.addSuggest(this, "_materialName", undefined, {
             onShowIcon: (i) => {
                 const asset = assets?.find((a) => a.id === i);
                 if (!asset) { return undefined; }
@@ -56,6 +57,7 @@ export class DecalsPainterInspector extends PaintingInspector<DecalsPainter> {
                 
                 return <img src={asset.base64} style={{ maxWidth: "100%", width: 100, maxHeight: "100%", height: 100 }}></img>;
             },
+            onUpdate: () => ["None"].concat((assets = this.editor.assets.getAssetsOf(MaterialAssets)!).map((a) => a.id)),
         }).name("Material").onChange(() => {
             if (this._materialName === "None") {
                 this.selectedObject!.material = null;
