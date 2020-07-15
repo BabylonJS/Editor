@@ -25,6 +25,11 @@ export class DecalsPainter {
     private _lastPickingInfo: Nullable<PickingInfo> = null;
 
     /**
+     * Defines wether or not the created decals receive shadows or not.
+     */
+    public receiveShadows: boolean = true;
+
+    /**
      * Constructor.
      * @param editor the editor reference.
      */
@@ -181,7 +186,7 @@ export class DecalsPainter {
     private _updateDecal(keepInScene: boolean): void {
         const scene = this._editor.scene!;
 
-        this._lastPickingInfo = scene.pick(scene.pointerX, scene.pointerY, undefined, false, scene.activeCamera);
+        this._lastPickingInfo = scene.pick(scene.pointerX, scene.pointerY, (n) => !n.metadata?.isDecal, false, scene.activeCamera);
         if (!this._lastPickingInfo) { return; }
 
         if (keepInScene) {
@@ -199,6 +204,8 @@ export class DecalsPainter {
                         decal.id = Tools.RandomId();
                         decal.metadata = { isDecal: true };
         
+                        decal.receiveShadows = this.receiveShadows;
+
                         if (clonedPickingInfo.pickedMesh && !clonedPickingInfo.pickedMesh.isDisposed()) {
                             decal.setParent(clonedPickingInfo.pickedMesh);
                         }

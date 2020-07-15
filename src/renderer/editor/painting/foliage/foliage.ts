@@ -135,7 +135,7 @@ export class FoliagePainter {
     private _updateVolume(): void {
         const scene = this._editor.scene!;
 
-        this._lastPickingInfo = scene.pick(scene.pointerX, scene.pointerY, (n) => (n.metadata?.isFoliage ?? false) === false, false, scene.activeCamera);
+        this._lastPickingInfo = scene.pick(scene.pointerX, scene.pointerY, (n) => !n.metadata?.isFoliage && this.meshes.indexOf(n as Mesh) === -1, false, scene.activeCamera);
         if (!this._lastPickingInfo) { return; }
 
         this._volume.updateMesh(this._lastPickingInfo);

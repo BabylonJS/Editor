@@ -37,6 +37,7 @@ export class DecalsPainterInspector extends PaintingInspector<DecalsPainter> {
         // Add options
         options.add(this.selectedObject, "angle").min(-Math.PI).max(Math.PI).step(0.01).name("Angle");
         options.add(this.selectedObject, "size").min(0).step(0.01).name("Size");
+        options.add(this.selectedObject, "receiveShadows").name("Receive Shadows");
 
         // Add suggest material
         const assets = this.editor.assets.getAssetsOf(MaterialAssets);
