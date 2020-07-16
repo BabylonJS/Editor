@@ -82,7 +82,7 @@
     "react": "16.12.0",
     "react-dom": "16.12.0",
     "spectorjs": "0.9.4",
-    "typescript": "3.7.5",
+    "typescript": "3.9.6",
     "xterm": "4.5.0",
     "xterm-addon-fit": "0.3.0",
     "yargs": "10.0.3"

@@ -31,7 +31,7 @@ export class MeshInspector extends NodeInspector {
      */
     public onUpdate(): void {
         if (this.selectedObject instanceof SubMesh) {
-            this.selectedObject = this.selectedObject.getMesh() as Mesh;
+            this.selectedObject = (this.selectedObject as any).getMesh() as Mesh;
         }
 
         this.addCommon();
