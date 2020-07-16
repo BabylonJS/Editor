@@ -183,7 +183,7 @@ export class FoliagePainter {
         if (!this._lastPickingInfo?.pickedPoint || !this._lastPickingInfo?.pickedMesh) { return; }
 
         // Check can paint
-        const nearMesh = this._editor.scene!.meshes.find((m) => Vector3.Distance(m.getAbsolutePosition(), this._lastPickingInfo!.pickedPoint!) < this._volume.radius)
+        const nearMesh = this._editor.scene!.meshes.find((m) => m.metadata?.isFoliage && Vector3.Distance(m.getAbsolutePosition(), this._lastPickingInfo!.pickedPoint!) < this._volume.radius);
         if (nearMesh) {
             return;
         }
