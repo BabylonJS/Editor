@@ -78,6 +78,9 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
      * @param objectInspectorConfiguration the object inspector configuration.
      */
     public static registerObjectInspector(objectInspectorConfiguration: IObjectInspector): void {
+        const exists = this._objectInspectorsConfigurations.find((o) => o.ctor === objectInspectorConfiguration.ctor);
+        if (exists) { return; }
+
         objectInspectorConfiguration._id = Tools.RandomId();
         this._objectInspectorsConfigurations.push(objectInspectorConfiguration);
     }

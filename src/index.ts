@@ -8,10 +8,20 @@ export { AbstractEditorPlugin, IEditorPluginProps } from "./renderer/editor/tool
 export { Editor } from "./renderer/editor/editor";
 
 // Assets
+export { Assets, IAssetComponent, IAssetsProps, IAssetsState } from "./renderer/editor/components/assets";
 export { AbstractAssets, IAbstractAssets, IAssetComponentItem, IAssetsComponentProps, IAssetsComponentState } from "./renderer/editor/assets/abstract-assets";
 
+export { MeshesAssets } from "./renderer/editor/assets/meshes";
+export { MaterialAssets } from "./renderer/editor/assets/materials";
+export { TextureAssets } from "./renderer/editor/assets/textures";
+export { SoundAssets } from "./renderer/editor/assets/sounds";
+export { PrefabAssets } from "./renderer/editor/assets/prefabs";
+export { GraphAssets } from "./renderer/editor/assets/graphs";
+
 // Inspectors
+export { Inspector, IInspectorProps, IInspectorState, IObjectInspector, IObjectInspectorProps } from "./renderer/editor/components/inspector";
 export { AbstractInspector } from "./renderer/editor/inspectors/abstract-inspector";
+export { MaterialInspector } from "./renderer/editor/inspectors/materials/material-inspector";
 
 // Project
 export { FilesStore, IContentFile, IFile } from "./renderer/editor/project/files";
@@ -22,3 +32,5 @@ export { ProjectExporter } from "./renderer/editor/project/project-exporter";
 export { Alert, IAlertProps } from "./renderer/editor/gui/alert";
 export { Dialog, IDialogProps } from "./renderer/editor/gui/dialog";
 export { Confirm, IConfirmProps } from "./renderer/editor/gui/confirm";
+
+import "./renderer/editor/gui/augmentations/index";
