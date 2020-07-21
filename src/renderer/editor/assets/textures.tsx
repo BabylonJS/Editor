@@ -390,7 +390,8 @@ export class TextureAssets extends AbstractAssets {
             }
         });
 
-        super.refresh();
+        this.items = [];
+        this.refresh();
     }
 
     /**
