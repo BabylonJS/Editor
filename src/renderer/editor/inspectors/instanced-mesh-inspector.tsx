@@ -6,14 +6,14 @@ export class InstancedMeshInspector extends MeshInspector {
      * Called on the component did moubnt.
      * @override
      */
-    public onUpdate(): void {
-        this.addCommon();
-        this.addTransforms();
-    }
+    // public onUpdate(): void {
+    //     this.addCommon();
+    //     this.addTransforms();
+    // }
 }
 
 Inspector.registerObjectInspector({
-    ctor: MeshInspector,
+    ctor: InstancedMeshInspector,
     ctorNames: ["InstancedMesh"],
     title: "Instanced Mesh",
 });

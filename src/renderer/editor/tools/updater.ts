@@ -114,6 +114,6 @@ export class EditorUpdater {
      * Loads the package.json file.
      */
     private static async _LoadPackageJson(): Promise<any> {
-        return JSON.parse(await Tools.LoadFile("http://editor.babylonjs.com/electron/package.json", false));
+        return JSON.parse(await Tools.LoadFile("http://editor.babylonjs.com/electron/package.json?" + Date.now(), false));
     }
 }

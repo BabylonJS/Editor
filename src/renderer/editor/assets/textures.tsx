@@ -1,6 +1,6 @@
 import { shell } from "electron";
 import { extname, basename, join, dirname } from "path";
-import { copy } from "fs-extra";
+import { copy, readdir, remove } from "fs-extra";
 import * as os from "os";
 
 import { Nullable } from "../../../shared/types";
@@ -24,6 +24,11 @@ import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
 
 import { PureCubeDialog } from "./textures/pure-cube";
+
+interface _IUsedTextureInfos {
+    object: any;
+    property: string;
+}
 
 export class TextureAssets extends AbstractAssets {
     /**
@@ -55,6 +60,7 @@ export class TextureAssets extends AbstractAssets {
                         </Popover>
                         <Divider />
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedTextures()} />
+                        <Button key="clear-unused-files" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused Files..." onClick={() => this._clearUnusedTexturesFiles()} />
                     </ButtonGroup>
                 </div>
                 {super.render()}
@@ -99,7 +105,11 @@ export class TextureAssets extends AbstractAssets {
                 base64 = (texture as DynamicTexture).getContext().canvas.toDataURL("image/png");
             }
 
-            const itemData = { key: texture.metadata.editorId, id: texture.metadata.editorName, base64 };
+            const itemData: IAssetComponentItem = { key: texture.metadata.editorId, id: texture.metadata.editorName, base64 };
+            if (texture.metadata?.isLocked) {
+                itemData.style = { border: "solid red" };
+            }
+
             if (item) {
                 const index = this.items.indexOf(item);
                 if (index !== -1) { this.items[index] = itemData; }
@@ -156,6 +166,9 @@ export class TextureAssets extends AbstractAssets {
         const texture = this._getTexture(item.key);
         if (!texture || (!(texture instanceof Texture) && !(texture instanceof CubeTexture))) { return; }
 
+        texture.metadata = texture.metadata ?? { };
+        texture.metadata.isLocked = texture.metadata.isLocked ?? false;
+
         const platform = os.platform();
         const explorer = platform === "darwin" ? "Finder" : "File Explorer";
 
@@ -167,6 +180,13 @@ export class TextureAssets extends AbstractAssets {
                     if (file) { shell.openItem(dirname(file.path)); }
                 }} />
                 <MenuItem text="Clone..." icon={<Icon src="clone.svg" />} onClick={() => this._cloneTexture(texture)} />
+                <MenuDivider />
+                <MenuItem text="Locked" icon={texture.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
+                    texture.metadata.isLocked = !texture.metadata.isLocked;
+                    item.style = item.style ?? { };
+                    item.style.border = texture.metadata.isLocked ? "solid red": "";
+                    super.refresh();
+                }} />
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._removeTexture(item, texture)} />
             </Menu>,
@@ -323,6 +343,21 @@ export class TextureAssets extends AbstractAssets {
      * Removes the given texture.
      */
     private _removeTexture(item: IAssetComponentItem, texture: Texture | CubeTexture): void {
+        if (texture.metadata?.isLocked) { return; }
+
+        const used = this._getPropertiesUsingTexture(texture);
+        used.forEach((u) => {
+            u.object[u.property] = null;
+        });
+
+        // Not found, remove.
+        texture.dispose();
+
+        const itemIndex = this.items.findIndex((i) => i.key === texture.uid);
+        if (itemIndex) {
+            this.items.splice(itemIndex, 1);
+        }
+
         texture.dispose();
 
         const index = this.items.indexOf(item);
@@ -340,25 +375,11 @@ export class TextureAssets extends AbstractAssets {
         const toRemove = this.items.map((i) => this._getTexture(i.key));
 
         toRemove.forEach((texture) => {
-            if (!texture) { return; }
+            if (!texture || texture.metadata?.isLocked) { return; }
 
-            // Check materials
-            for (const m of this.editor.scene!.materials) {
-                const activeTextures = m.getActiveTextures();
-                if (activeTextures.indexOf(texture) !== -1) {
-                    return;
-                }
-            }
-
-            // Check particle systems
-            for (const ps of this.editor.scene!.particleSystems) {
-                if (texture === ps.particleTexture || texture === ps.noiseTexture) {
-                    return;
-                }
-            }
-
-            // Check scene
-            if (texture === this.editor.scene!.environmentTexture) { return; }
+            // Check used
+            const used = this._getPropertiesUsingTexture(texture);
+            if (used.length) { return; }
 
             // Not found, remove.
             texture.dispose();
@@ -369,7 +390,79 @@ export class TextureAssets extends AbstractAssets {
             }
         });
 
-        this.refresh();
+        super.refresh();
+    }
+
+    /**
+     * Clears all the unsed textures files.
+     */
+    private async _clearUnusedTexturesFiles(): Promise<void> {
+        const files = await readdir(join(Project.DirPath!, "files"));
+        const textures = files.filter((f) => this._extensions.indexOf(extname(f).toLowerCase()) !== -1);
+
+        this.editor.scene!.textures.forEach((texture) => {
+            const extension = extname(texture.name).toLowerCase();
+            if (!extension || this._extensions.indexOf(extension) === -1) { return; }
+
+            const index = textures.indexOf(basename(texture.name));
+            if (index !== -1) {
+                textures.splice(index, 1);
+            }
+        });
+
+        if (!textures.length) { return; }
+
+        // Remove!
+        const step = 100 / textures.length;
+        let amount = 0;
+
+        const task = this.editor.addTaskFeedback(0, "Cleaning Textures Files...");
+
+        for (const name of textures) {
+            const path = join(Project.DirPath!, "files", name);
+            try {
+                await remove(path);
+            } finally {
+                this.editor.updateTaskFeedback(task, amount += step);
+            }
+        }
+
+        this.editor.updateTaskFeedback(task, 100, "Done");
+        this.editor.closeTaskFeedback(task, 1000);
+    }
+
+    /**
+     * Returns the list of all objects that use the texture.
+     */
+    private _getPropertiesUsingTexture(texture: BaseTexture): _IUsedTextureInfos[] {
+        const result: _IUsedTextureInfos[] = [];
+
+        // Check materials
+        for (const m of this.editor.scene!.materials) {
+            for (const thing in m) {
+                if (m[thing] === texture) {
+                    result.push({ object: m, property: thing });
+                }
+            }
+        }
+
+        // Check particle systems
+        for (const ps of this.editor.scene!.particleSystems) {
+            if (texture === ps.particleTexture) {
+                result.push({ object: ps, property: "particleTexture" });
+            }
+
+            if (texture === ps.noiseTexture) {
+                result.push({ object: ps, property: "noiseTexture" });
+            }
+        }
+
+        // Check scene
+        if (texture === this.editor.scene!.environmentTexture) {
+            result.push({ object: this.editor.scene, property: "environmentTexture" });
+        }
+
+        return result;
     }
 }
 

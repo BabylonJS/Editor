@@ -87,7 +87,11 @@ export class MaterialAssets extends AbstractAssets {
 
             const base64 = await assetsHelper.getScreenshot();
 
-            const itemData = { id: material.name, key: material.id, base64 };
+            const itemData: IAssetComponentItem = { id: material.name, key: material.id, base64 };
+            if (material.metadata?.isLocked) {
+                itemData.style = { border: "solid red" };
+            }
+
             if (item) {
                 const index = this.items.indexOf(item);
                 if (index !== -1) { this.items[index] = itemData; }
@@ -191,9 +195,22 @@ export class MaterialAssets extends AbstractAssets {
     public onContextMenu(item: IAssetComponentItem, e: React.MouseEvent<HTMLImageElement, MouseEvent>): void {
         super.onContextMenu(item, e);
 
+        const material = this.editor.scene!.getMaterialByID(item.key);
+        if (!material) { return; }
+
+        material.metadata = material.metadata ?? { };
+        material.metadata.isLocked = material.metadata.isLocked ?? false;
+
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <MenuItem text="Save Material Preset..." icon={<Icon src="save.svg" />} onClick={() => this._handleSaveMaterialPreset(item)} />
+                <MenuDivider />
+                <MenuItem text="Locked" icon={material.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
+                    material.metadata.isLocked = !material.metadata.isLocked;
+                    item.style = item.style ?? { };
+                    item.style.border = material.metadata.isLocked ? "solid red": "";
+                    super.refresh();
+                }} />
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveMaterial(item)} />
             </Menu>,
@@ -291,7 +308,7 @@ export class MaterialAssets extends AbstractAssets {
      */
     private _handleRemoveMaterial(item: IAssetComponentItem): void {
         const material = this.editor.scene!.getMaterialByID(item.key);
-        if (!material) { return; }
+        if (!material || material.metadata?.isLocked) { return; }
 
         const bindedMeshes = material.getBindedMeshes();
 
@@ -398,7 +415,7 @@ export class MaterialAssets extends AbstractAssets {
         const toRemove = this.editor.scene!.materials.concat(this.editor.scene!.multiMaterials).filter((m) => m !== this.editor.scene!.defaultMaterial && !(m instanceof ShaderMaterial));
 
         toRemove.forEach((material) => {
-            if (!material) { return; }
+            if (!material || material.metadata?.isLocked) { return; }
 
             const bindedMesh = this.editor.scene!.meshes.find((m) => !m._masterMesh && m.material === material);
 
