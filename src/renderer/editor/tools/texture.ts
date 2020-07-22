@@ -48,22 +48,22 @@ export class TextureTools {
      */
     private static async _ConvertPixelsToTextureFile(editor: Editor, textureA: BaseTexture, textureB: BaseTexture, pixels: Uint8ClampedArray): Promise<void> {
         // Base canvas
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = textureA.getBaseSize().width;
         canvas.height = textureA.getBaseSize().height;
 
-        const context = canvas.getContext('2d');
+        const context = canvas.getContext("2d");
         if (!context) { return; }
 
         const imageData = new ImageData(pixels, canvas.width, canvas.height);
         context.putImageData(imageData, 0, 0);
 
         // Final canvas
-        const finalCanvas = document.createElement('canvas');
+        const finalCanvas = document.createElement("canvas");
         finalCanvas.width = textureA.getBaseSize().width;
         finalCanvas.height = textureA.getBaseSize().height;
 
-        const finalContext = finalCanvas.getContext('2d');
+        const finalContext = finalCanvas.getContext("2d");
         if (!finalContext) { return; }
         finalContext.transform(1, 0, 0, -1, 0, canvas.height);
         finalContext.drawImage(canvas, 0, 0);

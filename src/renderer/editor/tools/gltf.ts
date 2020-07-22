@@ -12,8 +12,9 @@ export class GLTFTools {
      * Converts the embeded GLTF/GLB textures to files.
      * @param filesUrl the absolute path of the "files" folder of the project.
      * @param textures the array of textures to convert.
+     * @param onTextureDone optional callback called on a texture has been done.
      */
-    public static async TexturesToFiles(filesUrl: string, textures: BaseTexture[]): Promise<void> {
+    public static async TexturesToFiles(filesUrl: string, textures: BaseTexture[], onTextureDone?: (name: string) => void): Promise<void> {
         for (const texture of textures) {
             // Get texture url
             const textureUrl = join(filesUrl, basename(texture.name));
@@ -50,6 +51,10 @@ export class GLTFTools {
                 if (texture.metadata && texture.metadata.gltf) {
                     texture.metadata.gltf.editorDone = true;
                 }
+            }
+
+            if (onTextureDone) {
+                onTextureDone(texture.name);
             }
         }
     }

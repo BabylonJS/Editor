@@ -68,6 +68,10 @@ export class Decal {
         });
         mesh.material = this.material;
 
+        if (this.material?.zOffset === 0) {
+            this.material.zOffset = -2;
+        }
+
         return mesh;
     }
 

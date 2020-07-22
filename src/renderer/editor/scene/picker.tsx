@@ -49,6 +49,8 @@ export class ScenePicker {
     public canvasBlur(): void {
         if (this._lastSelectedNode && this._lastSelectedNode instanceof AbstractMesh) {
             this._lastSelectedNode.renderOverlay = false;
+            this._lastSelectedNode.showBoundingBox = false;
+            this._lastSelectedNode.showSubMeshesBoundingBox = false;
         }
     }
 

@@ -146,6 +146,8 @@ export class MeshesAssets extends AbstractAssets {
         const name = join("..", "assets/meshes", item.id);
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, name, this.editor.scene!);
 
+        const onTextureDone = (n: string) => Overlay.SetMessage(`Configurin GLTF... ${n}`);
+
         for (const mesh of result.meshes) {
             mesh.id = Tools.RandomId();
             if (mesh.material) { mesh.material.id = Tools.RandomId(); }
@@ -161,14 +163,14 @@ export class MeshesAssets extends AbstractAssets {
                         m.id = Tools.RandomId();
 
                         if (isGltf) {
-                            await this._configureGltfMaterial(m);
+                            await this._configureGltfMaterial(m, onTextureDone);
                         }
 
                         this._configureMaterialTextures(m);
                     };
                 } else {
                     if (isGltf) {
-                        await this._configureGltfMaterial(mesh.material);
+                        await this._configureGltfMaterial(mesh.material, onTextureDone);
                     }
 
                     this._configureMaterialTextures(mesh.material);
@@ -277,7 +279,7 @@ export class MeshesAssets extends AbstractAssets {
     /**
      * Configures the given material's textures.
      */
-    private async _configureGltfMaterial(material: Material): Promise<void> {
+    private async _configureGltfMaterial(material: Material, onTextureDone: (name: string) => void): Promise<void> {
         const textures = material.getActiveTextures();
         for (const texture of textures) {
             if (texture.metadata?.gltf?.editorDone) { continue; }
@@ -295,9 +297,9 @@ export class MeshesAssets extends AbstractAssets {
             if (texture.url) { texture.url = texture.name; }
 
             FilesStore.AddFile(join(Project.DirPath!, texture.name));
-        };
+        }
 
-        await GLTFTools.TexturesToFiles(join(Project.DirPath!, "files"), textures);
+        await GLTFTools.TexturesToFiles(join(Project.DirPath!, "files"), textures, onTextureDone);
     }
 }
 

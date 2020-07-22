@@ -16,6 +16,7 @@ import { AbstractInspector } from "../abstract-inspector";
 
 export class TextureInspector extends AbstractInspector<Texture> {
     private _coordinatesMode: string = "";
+    private _samplingMode: string = "";
 
     /**
      * Called on a controller finished changes.
@@ -57,15 +58,23 @@ export class TextureInspector extends AbstractInspector<Texture> {
         common.add(this.selectedObject, "gammaSpace").name("Gamme Space");
         common.add(this.selectedObject, "invertZ").name("Invert Z");
         common.add(this.selectedObject, "coordinatesIndex").min(0).step(1).name("Coordinates Index");
+        common.add(this.selectedObject, "level").min(0).step(0.01).name("Level");
+
+        // Sampling mode
+        const samplingModes: string[] = ["NEAREST_SAMPLINGMODE", "BILINEAR_SAMPLINGMODE", "TRILINEAR_SAMPLINGMODE"];
+        this._samplingMode = samplingModes.find((sm) => this.selectedObject.samplingMode === Texture[sm]) ?? samplingModes[0];
+        common.addSuggest(this, "_samplingMode", samplingModes).name("Sampling Mode").onChange(() => {
+            this.selectedObject.updateSamplingMode(Texture[this._samplingMode]);
+        });
 
         // Coordinates mode
-        const modes: string[] = [
+        const coordinatesModes: string[] = [
             "EXPLICIT_MODE", "SPHERICAL_MODE", "PLANAR_MODE", "CUBIC_MODE",
             "PROJECTION_MODE", "SKYBOX_MODE", "INVCUBIC_MODE", "EQUIRECTANGULAR_MODE",
             "FIXED_EQUIRECTANGULAR_MODE", "FIXED_EQUIRECTANGULAR_MIRRORED_MODE",
         ];
-        this._coordinatesMode = modes.find((m) => this.selectedObject.coordinatesMode === Texture[m]) ?? modes[0];
-        common.add(this, "_coordinatesMode", modes).name("Coordinates Mode").onChange(() => {
+        this._coordinatesMode = coordinatesModes.find((m) => this.selectedObject.coordinatesMode === Texture[m]) ?? coordinatesModes[0];
+        common.addSuggest(this, "_coordinatesMode", coordinatesModes).name("Coordinates Mode").onChange(() => {
             this.selectedObject.coordinatesMode = Texture[this._coordinatesMode];
         });
 

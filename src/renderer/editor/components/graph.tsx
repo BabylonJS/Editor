@@ -297,6 +297,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                        node.emitter as AbstractMesh;
         const descendants = node instanceof Node ? node.getDescendants() : [];
         const particleSystems = this._editor.scene!.particleSystems.filter((ps) => ps.emitter === node);
+        const shadowLights = this._editor.scene!.lights.filter((l) => l.getShadowGenerator()?.getShadowMap()?.renderList)
+                                                       .filter((l) => l.getShadowGenerator()!.getShadowMap()!.renderList!.indexOf(node as AbstractMesh) !== -1);
         
         undoRedo.push({
             common: () => {
@@ -327,6 +329,16 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 } else {
                     this._editor.removedParticleSystemObservable.notifyObservers(node);
                 }
+
+                shadowLights.forEach((sl) => {
+                    const renderList = sl.getShadowGenerator()?.getShadowMap()?.renderList;
+                    if (renderList) {
+                        const index = renderList.indexOf(node as AbstractMesh);
+                        if (index !== -1) {
+                            renderList.splice(index, 1);
+                        }
+                    }
+                });
             },
             undo: () => {
                 addFunc?.call(caller, node);
@@ -350,6 +362,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 } else {
                     this._editor.addedParticleSystemObservable.notifyObservers(node);
                 }
+
+                shadowLights.forEach((sl) => {
+                    sl.getShadowGenerator()?.getShadowMap()?.renderList?.push(node as AbstractMesh);
+                });
             },
         });
     }

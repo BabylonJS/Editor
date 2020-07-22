@@ -1,4 +1,4 @@
-import { mkdir, pathExists, copy, writeFile, writeJSON, readFile, readJSON } from "fs-extra";
+import { mkdir, pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove } from "fs-extra";
 import { join, normalize, basename, dirname, extname } from "path";
 
 import { SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial } from "babylonjs";
@@ -463,6 +463,24 @@ export class ProjectExporter {
 
             await copy(file.path, dest);
             editor.updateTaskFeedback(task, progress += step);
+        }
+
+        // Clean unused files
+        try {
+            const existingFiles = await readdir(destFilesDir);
+            for (const existingFile of existingFiles) {
+                if (FilesStore.GetFileFromBaseName(existingFile)) {
+                    continue;
+                }
+
+                try {
+                    await remove(join(destFilesDir, existingFile));
+                } catch (e) {
+                    // Catch silently.
+                }
+            }
+        } catch (e) {
+            // Catch silently.
         }
 
         // Tools
