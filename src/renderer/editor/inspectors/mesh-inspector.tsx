@@ -113,9 +113,9 @@ export class MeshInspector extends NodeInspector {
             const onChangeQuaternion = (finished: boolean): void => {
                 this.selectedObject.rotationQuaternion = this._getRotationRadians(this._rotation.clone()).toQuaternion()
                 if (finished) {
-                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" });
+                    this.editor.objectModifiedObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" });
                 } else {
-                    this.editor.objectModifiedObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" })
+                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" })
                 }
             }
 
@@ -126,9 +126,9 @@ export class MeshInspector extends NodeInspector {
             const onChangeRotation = (finished: boolean): void => {
                 this.selectedObject.rotation = (this._getRotationRadians(this._rotation.clone()));
                 if (finished) {
-                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotation" });
+                    this.editor.objectModifiedObservable.notifyObservers({ object: this.selectedObject, path: "rotation" });
                 } else {
-                    this.editor.objectModifiedObservable.notifyObservers({ object: this.selectedObject, path: "rotation" })
+                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotation" })
                 }
             };
 

@@ -21,7 +21,7 @@ export class VectorController extends dat.controllers.Controller {
      * @param vector defines the vector object to modify
      */
     public constructor(public title: string, public vector: IVector) {
-        super({ }, "");
+        super(vector, "");
     }
 
     /**
@@ -96,8 +96,20 @@ export class VectorController extends dat.controllers.Controller {
         const c = new dat.controllers["NumberControllerBox"](this.vector, propertyPath);
         c.domElement.classList.add("c");
         c.domElement.style.width = "calc(100% - 25px)";
-        c.onChange(() => this.__onChange && this.__onChange(this.vector));
-        c.onFinishChange(() => this.__onFinishChange && this.__onFinishChange(this.vector));
+        c.onChange(() => {
+            if (this.__onChange) {
+                this["property"] = c.property;
+                this["initialValue"] = c.initialValue;
+                this.__onChange(this.vector[propertyPath]);
+            }
+        });
+        c.onFinishChange(() => {
+			if (this.__onFinishChange) {
+				this["property"] = c.property;
+				this["initialValue"] = c.initialValue;
+				this.__onFinishChange(this.vector[propertyPath]);
+			}
+		});
 
         this._numberControllers.push(c);
         dummyController.domElement.appendChild(c.domElement);

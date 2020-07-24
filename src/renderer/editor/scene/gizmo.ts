@@ -1,6 +1,11 @@
-import { PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode, LightGizmo, Light, IParticleSystem, Sound } from "babylonjs";
+import {
+    PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode,
+    LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion,
+} from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
+
+import { undoRedo } from "../tools/undo-redo";
 
 import { Editor } from "../editor";
 
@@ -21,6 +26,8 @@ export class SceneGizmo {
     private _rotationGizmo: Nullable<RotationGizmo> = null;
     private _scalingGizmo: Nullable<ScaleGizmo> = null;
     private _lightGizmo: Nullable<LightGizmo> = null;
+
+    private _initialValue: Nullable<Vector3 | Quaternion> = null;
 
     private _type: GizmoType = GizmoType.None;
     private _step: number = 0;
@@ -50,7 +57,10 @@ export class SceneGizmo {
         this._type = type;
 
         this._disposeGizmos();
-        if (type === GizmoType.None) { return; }
+        if (type === GizmoType.None) {
+            this._initialValue = null;
+            return;
+        }
 
         this._currentGizmo = null;
 
@@ -58,18 +68,30 @@ export class SceneGizmo {
             case GizmoType.Position:
                 this._currentGizmo = this._positionGizmo = new PositionGizmo(this._gizmosLayer);
                 this._positionGizmo.planarGizmoEnabled = true;
+                this._currentGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("position"));
                 break;
             case GizmoType.Rotation:
                 this._currentGizmo = this._rotationGizmo = new RotationGizmo(this._gizmosLayer, undefined, false);
+                this._currentGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("rotationQuaternion"));
                 break;
             case GizmoType.Scaling:
                 this._currentGizmo = this._scalingGizmo = new ScaleGizmo(this._gizmosLayer);
+                this._currentGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("scaling"));
                 break;
         }
 
         if (this._currentGizmo) {
             this._currentGizmo.snapDistance = this._step;
             this._currentGizmo.scaleRatio = 2.5;
+
+            this._currentGizmo.onDragStartObservable.add(() => {
+                if (!this._currentGizmo?.attachedMesh) { return; }
+                switch (type) {
+                    case GizmoType.Position: this._initialValue = this._currentGizmo.attachedMesh.position.clone(); break;
+                    case GizmoType.Rotation: this._initialValue = this._currentGizmo.attachedMesh.rotationQuaternion?.clone() ?? Quaternion.Identity(); break;
+                    case GizmoType.Scaling: this._initialValue = this._currentGizmo.attachedMesh.scaling.clone(); break;
+                }
+            });
 
             this._currentGizmo.xGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
             this._currentGizmo.yGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
@@ -79,6 +101,16 @@ export class SceneGizmo {
                 this._positionGizmo.xPlaneGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
                 this._positionGizmo.yPlaneGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
                 this._positionGizmo.zPlaneGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
+                
+                // A bit of hacking.
+                this._positionGizmo.xPlaneGizmo["_coloredMaterial"].alpha = 0.5;
+                this._positionGizmo.xPlaneGizmo["_hoverMaterial"].alpha = 1;
+
+                this._positionGizmo.yPlaneGizmo["_coloredMaterial"].alpha = 0.5;
+                this._positionGizmo.yPlaneGizmo["_hoverMaterial"].alpha = 1;
+
+                this._positionGizmo.zPlaneGizmo["_coloredMaterial"].alpha = 0.5;
+                this._positionGizmo.zPlaneGizmo["_hoverMaterial"].alpha = 1;
             } else if (this._scalingGizmo) {
                 this._scalingGizmo.uniformScaleGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
             }
@@ -161,5 +193,30 @@ export class SceneGizmo {
         if (!this._currentGizmo) { return; }
         
         this._editor.inspector.refreshDisplay();
+    }
+
+    /**
+     * Notifies that the current gizmo ended dragging.
+     * This is the place to support undo/redo.
+     */
+    private _notifyGizmoEndDrag(propertyPath: string): void {
+        if (!this._initialValue) { return; }
+
+        const attachedMesh = this._currentGizmo?.attachedMesh;
+        if (!attachedMesh) { return; }
+
+        const property = attachedMesh[propertyPath];
+        if (!property || this._initialValue.equals(property)) { return; }
+
+        const initialValue = this._initialValue.clone();
+        const endValue = property.clone();
+
+        undoRedo.push({
+            common: () => this._editor.inspector.refresh(),
+            redo: () => attachedMesh[propertyPath] = endValue,
+            undo: () => attachedMesh[propertyPath] = initialValue,
+        });
+
+        this._initialValue = null;
     }
 }
