@@ -2,7 +2,8 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "outDir": "./build/src",
-        "rootDir": "./src"
+        "rootDir": "./src",
+        "preserveWatchOutput": true
     },
     "include": [
         "./src"

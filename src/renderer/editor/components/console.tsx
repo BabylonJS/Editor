@@ -58,6 +58,11 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     private _terminal: Nullable<Terminal> = null;
     private _fitAddon: FitAddon = new FitAddon();
 
+    private _terminalDiv: Nullable<HTMLDivElement> = null;
+    private _refHandler = {
+        getDiv: (ref: HTMLDivElement) => this._terminalDiv = ref,
+    };
+
     /**
      * Constructor.
      * @param props the component's props.
@@ -80,7 +85,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                         <Button key="clear" icon={<Icon src="recycle.svg" />} small={true} text="Clear" onClick={() => this._terminal?.clear()} />
                     </ButtonGroup>
                 </div>
-                <div id="babylon-editor-console" style={{ width: "100%", height: "calc(100% - 25px)" }}></div>
+                <div ref={this._refHandler.getDiv} style={{ minWidth: "100px", minHeight: "100px", width: "100%", height: "calc(100% - 25px)" }}></div>
             </div>
         );
     }
@@ -89,8 +94,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Called on the component did mount.
      */
     public componentDidMount(): void {
-        const div = document.getElementById("babylon-editor-console") as HTMLDivElement;
-        
+        if (!this._terminalDiv) { return; }
+
         // Create terminal
         this._terminal = new Terminal({
             fontFamily: "Consolas, 'Courier New', monospace",
@@ -111,7 +116,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
         });
 
         this._terminal.loadAddon(this._fitAddon);
-        this._terminal.open(div);
+        this._terminal.open(this._terminalDiv);
 
         this.logInfo("Console ready.");
 
@@ -130,8 +135,15 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Called on the panel has been resized.
      */
     public resize(): void {
+        if (!this._terminal) { return; }
+
         setTimeout(() => {
-            try { this._fitAddon.fit(); } catch (e) { /* Catch silently */ }
+            const size = this.props.editor.getPanelSize("console");
+
+            const width = (size.width / this._terminal!["_core"]._renderService.dimensions.actualCellWidth) >> 0;
+            const height = (size.height / this._terminal!["_core"]._renderService.dimensions.actualCellHeight) >> 0;
+
+            this._terminal!.resize(width || size.width, height || size.height);
         }, 0);
     }
 

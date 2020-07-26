@@ -103,13 +103,13 @@ export class SceneGizmo {
                 this._positionGizmo.zPlaneGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
                 
                 // A bit of hacking.
-                this._positionGizmo.xPlaneGizmo["_coloredMaterial"].alpha = 0.5;
+                this._positionGizmo.xPlaneGizmo["_coloredMaterial"].alpha = 0.3;
                 this._positionGizmo.xPlaneGizmo["_hoverMaterial"].alpha = 1;
 
-                this._positionGizmo.yPlaneGizmo["_coloredMaterial"].alpha = 0.5;
+                this._positionGizmo.yPlaneGizmo["_coloredMaterial"].alpha = 0.3;
                 this._positionGizmo.yPlaneGizmo["_hoverMaterial"].alpha = 1;
 
-                this._positionGizmo.zPlaneGizmo["_coloredMaterial"].alpha = 0.5;
+                this._positionGizmo.zPlaneGizmo["_coloredMaterial"].alpha = 0.3;
                 this._positionGizmo.zPlaneGizmo["_hoverMaterial"].alpha = 1;
             } else if (this._scalingGizmo) {
                 this._scalingGizmo.uniformScaleGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
