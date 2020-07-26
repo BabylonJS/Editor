@@ -356,6 +356,9 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
                 this.onControllerChange(root!, c);
 
                 if (c.object === this) { return; }
+                for (const thing in this) {
+                    if (this[thing] === c.object) { return; }
+                }
 
                 const modificationInfos = { object: this.selectedObject, path: this._getPropertyPath(c) } as IObjectModified<T>;
                 if (this.selectedObject instanceof Node && this.selectedObject.metadata && this.selectedObject.metadata.prefab) {
@@ -370,6 +373,9 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
                 this.onControllerFinishChange(root!, c);
                 
                 if (c.object === this) { return; }
+                for (const thing in this) {
+                    if (this[thing] === c.object) { return; }
+                }
                 
                 // Notify
                 const modificationInfos = { object: this.selectedObject, path: this._getPropertyPath(c) } as IObjectModified<T>;

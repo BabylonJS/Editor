@@ -8,6 +8,7 @@ import { GUI } from "dat.gui";
 
 import { MeshesAssets } from "../assets/meshes";
 import { Tools } from "../tools/tools";
+import { undoRedo } from "../tools/undo-redo";
 
 import { Inspector } from "../components/inspector";
 import { NodeInspector } from "./node-inspector";
@@ -108,12 +109,28 @@ export class MeshInspector extends NodeInspector {
 
         // Rotation
         if (this.selectedObject.rotationQuaternion) {
+            let initialValue = this.selectedObject.rotationQuaternion.clone();
             this._rotation = this._getRotationDegrees(this.selectedObject.rotationQuaternion.toEulerAngles());
             
             const onChangeQuaternion = (finished: boolean): void => {
                 this.selectedObject.rotationQuaternion = this._getRotationRadians(this._rotation.clone()).toQuaternion()
                 if (finished) {
                     this.editor.objectModifiedObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" });
+
+                    const oldValue = initialValue.clone();
+                    const newValue = this.selectedObject.rotationQuaternion.clone();
+
+                    undoRedo.push({
+                        common: () => this.tool?.updateDisplay(),
+                        redo: () => {
+                            this.selectedObject.rotationQuaternion = newValue;
+                            initialValue = newValue.clone();
+                        },
+                        undo: () => {
+                            this.selectedObject.rotationQuaternion = oldValue;
+                            initialValue = oldValue.clone();
+                        },
+                    });
                 } else {
                     this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" })
                 }
@@ -121,12 +138,28 @@ export class MeshInspector extends NodeInspector {
 
             transforms.addVector("Rotation (Quaternion)", this._rotation).onChange(() => onChangeQuaternion(false)).onFinishChange(() => onChangeQuaternion(true));
         } else {
+            let initialValue = this.selectedObject.rotation.clone();
             this._rotation = this._getRotationDegrees(this.selectedObject.rotation.clone());
 
             const onChangeRotation = (finished: boolean): void => {
                 this.selectedObject.rotation = (this._getRotationRadians(this._rotation.clone()));
                 if (finished) {
                     this.editor.objectModifiedObservable.notifyObservers({ object: this.selectedObject, path: "rotation" });
+
+                    const oldValue = initialValue.clone();
+                    const newValue = this.selectedObject.rotation.clone();
+
+                    undoRedo.push({
+                        common: () => this.tool?.updateDisplay(),
+                        redo: () => {
+                            this.selectedObject.rotation = newValue;
+                            initialValue = newValue.clone();
+                        },
+                        undo: () => {
+                            this.selectedObject.rotation = oldValue;
+                            initialValue = oldValue.clone();
+                        },
+                    });
                 } else {
                     this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotation" })
                 }
