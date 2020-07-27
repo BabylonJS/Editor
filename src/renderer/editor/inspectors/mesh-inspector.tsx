@@ -82,6 +82,7 @@ export class MeshInspector extends NodeInspector {
         rendering.add(this.selectedObject, "applyFog").name("Apply Fog");
 
         if (this.selectedObject instanceof Mesh) {
+            rendering.add(this.selectedObject, "infiniteDistance").name("Infinite Distance");
             this.addMaterialList(rendering, this.selectedObject, "material").name("Material");
         }
 
