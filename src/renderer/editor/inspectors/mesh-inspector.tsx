@@ -81,6 +81,10 @@ export class MeshInspector extends NodeInspector {
         rendering.add(this.selectedObject, "receiveShadows").name("Receive Shadows");
         rendering.add(this.selectedObject, "applyFog").name("Apply Fog");
 
+        if (this.selectedObject instanceof Mesh) {
+            this.addMaterialList(rendering, this.selectedObject, "material").name("Material");
+        }
+
         return rendering;
     }
 

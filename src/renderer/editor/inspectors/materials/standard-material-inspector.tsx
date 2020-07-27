@@ -45,7 +45,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         diffuse.add(this.material, "linkEmissiveWithDiffuse").name("Link Emissive With Diffuse");
         diffuse.add(this.material, "useAlphaFromDiffuseTexture").name("Use Alpha From Diffuse Texture");
 
-        this.addTexture(diffuse, this.material, "diffuseTexture").name("Texture");
+        this.addTextureList(diffuse, this.material, "diffuseTexture").name("Texture");
         this.addColor(diffuse, "Color", this.material, "diffuseColor");
 
         return diffuse;
@@ -60,7 +60,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         bump.add(this.material, "invertNormalMapX").name("Invert Normal Map X");
         bump.add(this.material, "invertNormalMapY").name("Invert Normal Map Y");
 
-        this.addTexture(bump, this.material, "bumpTexture").name("Texture");
+        this.addTextureList(bump, this.material, "bumpTexture").name("Texture");
 
         bump.add(this.material, "useParallax").name("Use Parallax");
         bump.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
@@ -80,7 +80,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         specular.add(this.material, "useReflectionFresnelFromSpecular").name("Use Reflection Fresnel From Specular");
         specular.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
 
-        this.addTexture(specular, this.material, "specularTexture").name("Texture");
+        this.addTextureList(specular, this.material, "specularTexture").name("Texture");
         this.addColor(specular, "Color", this.material, "specularColor");
 
         return specular;
@@ -93,7 +93,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         const ambient = this.tool!.addFolder("Ambient");
         ambient.open();
 
-        this.addTexture(ambient, this.material, "ambientTexture").name("Texture");
+        this.addTextureList(ambient, this.material, "ambientTexture").name("Texture");
         this.addColor(ambient, "Color", this.material, "ambientColor");
 
         return ambient;
@@ -106,7 +106,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         const opacity = this.tool!.addFolder("Opacity");
         opacity.open();
 
-        this.addTexture(opacity, this.material, "opacityTexture").name("Texture");
+        this.addTextureList(opacity, this.material, "opacityTexture").name("Texture");
 
         return opacity;
     }
@@ -118,7 +118,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         const emissive = this.tool!.addFolder("Emissive");
         emissive.open();
 
-        this.addTexture(emissive, this.material, "emissiveTexture").name("Texture");
+        this.addTextureList(emissive, this.material, "emissiveTexture").name("Texture");
         this.addColor(emissive, "Color", this.material, "emissiveColor");
 
         return emissive;
@@ -132,7 +132,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         lightMap.open();
         lightMap.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
 
-        this.addTexture(lightMap, this.material, "lightmapTexture").name("Texture");
+        this.addTextureList(lightMap, this.material, "lightmapTexture").name("Texture");
 
         return lightMap;
     }
@@ -144,7 +144,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
         const reflection = this.tool!.addFolder("Reflection");
         reflection.open();
 
-        this.addTexture(reflection, this.material, "reflectionTexture").name("Texture");
+        this.addTextureList(reflection, this.material, "reflectionTexture").name("Texture");
 
         return reflection;
     }

@@ -1,8 +1,6 @@
-import * as React from "react";
+import { Nullable } from "../../../shared/types";
 
-import { SubMesh, MultiMaterial } from "babylonjs";
-
-import { MaterialAssets } from "../assets/materials";
+import { SubMesh, MultiMaterial, Material } from "babylonjs";
 
 import { Dialog } from "../gui/dialog";
 import { Tools } from "../tools/tools";
@@ -11,7 +9,7 @@ import { Inspector } from "../components/inspector";
 import { AbstractInspector } from "./abstract-inspector";
 
 export class SubMeshInspector extends AbstractInspector<SubMesh> {
-    private _materialName: string = "";
+    private _material: Nullable<Material> = null;
 
     /**
      * Called on the component did mount.
@@ -33,40 +31,14 @@ export class SubMeshInspector extends AbstractInspector<SubMesh> {
         const mesh = this.selectedObject.getMesh();
         if (!mesh.material || !(mesh.material instanceof MultiMaterial)) {
             folder.addTextBox("Please add a multi material to the root mesh before.");
-            folder.add(this, "_createMultiMaterial").name("Create new multi material...");
+            folder.addButton("Create new multi material...").onClick(() => this._createMultiMaterial());
             return;
         }
 
-        // Add suggest material
-        const assets = this.editor.assets.getAssetsOf(MaterialAssets);
-
-        this._materialName = this.selectedObject.getMaterial()?.name ?? "None";
-        folder.addSuggest(this, "_materialName", ["None"].concat(assets!.map((a) => a.id)), {
-            onShowIcon: (i) => {
-                const asset = assets?.find((a) => a.id === i);
-                if (!asset) { return undefined; }
-                
-                return <img src={asset.base64} style={{ width: 20, height: 20 }}></img>;
-            },
-            onShowTooltip: (i) => {
-                const asset = assets?.find((a) => a.id === i);
-                if (!asset) { return undefined; }
-                
-                return <img src={asset.base64} style={{ maxWidth: "100%", width: 100, maxHeight: "100%", height: 100 }}></img>;
-            },
-        }).name("Material").onChange(() => {
-            if (this._materialName === "None") {
-                (mesh.material as MultiMaterial).subMaterials[this.selectedObject.materialIndex] = null;
-                return;
-            }
-
-            const asset = assets?.find((a) => a.id === this._materialName);
-            if (!asset) { return; }
-
-            const material = this.editor.scene!.getMaterialByID(asset.key);
-            if (!material) { return; }
-
-            (mesh.material as MultiMaterial).subMaterials[this.selectedObject.materialIndex] = material;
+        this._material = mesh.material.subMaterials[this.selectedObject.materialIndex];
+        this.addMaterialList(folder, this, "_material", () => {
+            if (!(mesh.material instanceof MultiMaterial)) { return; }
+            mesh.material.subMaterials[this.selectedObject.materialIndex] = this._material;
         });
     }
 

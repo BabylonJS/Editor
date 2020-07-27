@@ -86,7 +86,7 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
             ParticleSystem.BLENDMODE_STANDARD;
         })
 
-        this.addTexture(textures, this.selectedObject, "particleTexture").name("Texture");
+        this.addTextureList(textures, this.selectedObject, "particleTexture").name("Texture");
         this.addColor(textures, "Texture Mask", this.selectedObject, "textureMask");
     }
 

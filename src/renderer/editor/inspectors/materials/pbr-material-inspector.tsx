@@ -62,7 +62,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         albedo.open();
         albedo.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
 
-        this.addTexture(albedo, this.material, "albedoTexture").name("Texture");
+        this.addTextureList(albedo, this.material, "albedoTexture").name("Texture");
         this.addColor(albedo, "Color", this.material, "albedoColor");
 
         return albedo;
@@ -81,7 +81,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
             this._bumpFolder.add(this.material.bumpTexture, "level").min(0).step(0.01).name("Strength");
         }
 
-        this.addTexture(this._bumpFolder, this.material, "bumpTexture", () => {
+        this.addTextureList(this._bumpFolder, this.material, "bumpTexture", () => {
             this.clearFolder(this._bumpFolder!);
             this.addBump();
         }).name("Texture");
@@ -103,7 +103,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         reflectivity.open();
         reflectivity.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
 
-        this.addTexture(reflectivity, this.material, "reflectivityTexture").name("Texture");
+        this.addTextureList(reflectivity, this.material, "reflectivityTexture").name("Texture");
         this.addColor(reflectivity, "Color", this.material, "reflectivityColor");
 
         return reflectivity;
@@ -118,7 +118,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
 
         reflection.add(this.material, "environmentIntensity").step(0.01).name("Intensity");
 
-        this.addTexture(reflection, this.material, "reflectionTexture").name("Texture");
+        this.addTextureList(reflection, this.material, "reflectionTexture").name("Texture");
         this.addColor(reflection, "Color", this.material, "reflectionColor");
 
         return reflection;
@@ -131,7 +131,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         const ambient = this.tool!.addFolder("Ambient");
         ambient.open();
 
-        this.addTexture(ambient, this.material, "ambientTexture").name("Texture");
+        this.addTextureList(ambient, this.material, "ambientTexture").name("Texture");
 
         ambient.add(this.material, "useAmbientInGrayScale").name("Use Ambient In Gray Scale");
         ambient.add(this.material, "ambientTextureStrength").name("Ambient Texture Strength");
@@ -147,7 +147,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         this._opacityFolder = this._opacityFolder ?? this.tool!.addFolder("Opacity");
         this._opacityFolder.open();
 
-        this.addTexture(this._opacityFolder, this.material, "opacityTexture", () => {
+        this.addTextureList(this._opacityFolder, this.material, "opacityTexture", () => {
             this.clearFolder(this._opacityFolder!);
             this.addOpacity();
         }).name("Texture");
@@ -172,7 +172,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         microSurface.add(this.material, "microSurface").min(0).max(1).name("Micro Surface");
         microSurface.add(this.material, "useAutoMicroSurfaceFromReflectivityMap").name("Use Auto Micro Surface From Reflectivity Map");
         
-        this.addTexture(microSurface, this.material, "microSurfaceTexture").name("Texture");
+        this.addTextureList(microSurface, this.material, "microSurfaceTexture").name("Texture");
 
         return microSurface;
     }
@@ -187,7 +187,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         this._metallicFolder.add(this.material, "useMetallnessFromMetallicTextureBlue").name("Use Metallness From Metallic Texture Blue");
         this._metallicFolder.add(this.material, "useRoughnessFromMetallicTextureAlpha").name("Use Roughness From Metallic Texture Alpha");
         this._metallicFolder.add(this.material, "useRoughnessFromMetallicTextureGreen").name("Use Roughness From Metallic Texture Green");
-        this.addTexture(this._metallicFolder, this.material, "metallicTexture").name("Texture");
+        this.addTextureList(this._metallicFolder, this.material, "metallicTexture").name("Texture");
 
         this._useMetallic = (this.material.metallic ?? null) !== null ? true : false;
         this._useRoughness = (this.material.roughness ?? null) !== null ? true : false;
@@ -236,8 +236,8 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         this._clearCoatFolder.add(this.material.clearCoat, "roughness").min(0).max(1).step(0.01).name("Roughness");
         this._clearCoatFolder.add(this.material.clearCoat, "indexOfRefraction").min(0).step(0.01).name("Index Of Refraction");
 
-        this.addTexture(this._clearCoatFolder, this.material.clearCoat, "texture").name("Texture");
-        this.addTexture(this._clearCoatFolder, this.material.clearCoat, "bumpTexture").name("Bump Texture");
+        this.addTextureList(this._clearCoatFolder, this.material.clearCoat, "texture").name("Texture");
+        this.addTextureList(this._clearCoatFolder, this.material.clearCoat, "bumpTexture").name("Bump Texture");
 
         // Tint
         this._clearCoatFolder.add(this.material.clearCoat, "isTintEnabled").name("Tint Enabled");
@@ -263,7 +263,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
 
         this._anisotropyFolder.add(this.material.anisotropy, "intensity").step(0.01).name("Intensity");
         this._anisotropyFolder.addVector("Direction", this.material.anisotropy.direction);
-        this.addTexture(this._anisotropyFolder, this.material.anisotropy, "texture").name("Texture");
+        this.addTextureList(this._anisotropyFolder, this.material.anisotropy, "texture").name("Texture");
 
         return this._anisotropyFolder;
     }
@@ -298,7 +298,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
 
         this._sheenFolder.add(this.material.sheen, "intensity").step(0.01).name("Intensity");
 
-        this.addTexture(this._sheenFolder, this.material.sheen, "texture").name("Texture");
+        this.addTextureList(this._sheenFolder, this.material.sheen, "texture").name("Texture");
         this.addColor(this._sheenFolder, "Color", this.material.sheen, "color");
 
         return this._sheenFolder;
@@ -311,7 +311,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         const emissive = this.tool!.addFolder("Emissive");
         emissive.open();
 
-        this.addTexture(emissive, this.material, "emissiveTexture").name("Texture");
+        this.addTextureList(emissive, this.material, "emissiveTexture").name("Texture");
         emissive.add(this.material, "emissiveIntensity").min(0).step(0.01).name("Intensity");
         this.addColor(emissive, "Color", this.material, "emissiveColor");
 

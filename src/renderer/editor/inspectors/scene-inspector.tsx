@@ -48,7 +48,7 @@ export class SceneInspector extends AbstractInspector<Scene> {
 
         reflection.add(this.selectedObject, "environmentIntensity").step(0.01).name("Intensity");
 
-        this.addTexture(reflection, this.selectedObject, "environmentTexture").name("Texture");
+        this.addTextureList(reflection, this.selectedObject, "environmentTexture").name("Texture");
     }
     
     /**

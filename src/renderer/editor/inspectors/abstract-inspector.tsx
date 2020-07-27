@@ -2,15 +2,19 @@ import * as React from "react";
 import { GUI, GUIParams, GUIController } from "dat.gui";
 import { Divider, InputGroup, Classes } from "@blueprintjs/core";
 
-import { Node, Color3, Tags, Color4, BaseTexture, ISize } from "babylonjs";
+import { Node, Color3, Tags, Color4, BaseTexture, ISize, Material } from "babylonjs";
 
-import { Nullable } from "../../../shared/types";
+import { Nullable, Undefinable } from "../../../shared/types";
 
 import { Editor } from "../editor";
 
 import { SuggestController } from "../gui/augmentations/suggest";
-import { TextureAssets } from "../assets/textures";
 
+import { AbstractAssets } from "../assets/abstract-assets";
+import { TextureAssets } from "../assets/textures";
+import { MaterialAssets } from "../assets/materials";
+
+import { IAssetsProps } from "../components/assets";
 import { IObjectInspectorProps } from "../components/inspector";
 
 import { undoRedo } from "../tools/undo-redo";
@@ -192,38 +196,40 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
     }
 
     /**
+     * Returns the reference to the material identified by the given editor name.
+     * @param name defines the name of the material to find.
+     */
+    protected getMaterial(name: string): Nullable<Material> {
+        if (name === "None") { return null; }
+
+        const material = this.editor.scene!.materials.find((t) => t.name === name);
+        return material ?? null;
+    }
+
+    /**
      * Adds a new texture field to the inspector.
      * @param parent the parent folder where to add the texture field.
      * @param object the object to modify.
      * @param property the property to modify in the given object.
      * @param onChange optional callback called on the texture changed.
      */
-    protected addTexture(parent: GUI = this.tool!, object: any, property: string, onChange?: (texture: Nullable<BaseTexture>) => void): SuggestController {
-        let assets = this.editor.assets.getAssetsOf(TextureAssets)!;
-        const textures = ["None"].concat(assets.map((a) => a.id));
+    protected addTextureList(parent: GUI = this.tool!, object: any, property: string, onChange?: (texture: Nullable<BaseTexture>) => void): SuggestController {
+        return this.addAssetsList(parent, TextureAssets, object[property]?.metadata?.editorName, object, property).onChange((r) => {
+            object[property] = this.getTexture(r);
+            if (onChange) { onChange(object[property]); }
+        });
+    }
 
-        if (!assets) {
-            return parent.addSuggest(object, property, textures);
-        }
-
-        const o = { textureName: object[property]?.metadata?.editorName ?? "None" };
-
-        return parent.addSuggest(o, "textureName", textures, {
-            onShowIcon: (i) => {
-                const asset = assets.find((a) => a.id === i);
-                if (!asset) { return undefined; }
-
-                return <img src={asset.base64} style={{ width: 20, height: 20 }}></img>;
-            },
-            onShowTooltip: (i) => {
-                const asset = assets.find((a) => a.id === i);
-                if (!asset) { return undefined; }
-
-                return <img src={asset.base64} style={{ maxWidth: "100%", width: 100, maxHeight: "100%", height: 100 }}></img>;
-            },
-            onUpdate: () => ["None"].concat((assets = this.editor.assets.getAssetsOf(TextureAssets)!).map((a) => a.id)),
-        }).onChange(() => {
-            object[property] = this.getTexture(o.textureName);
+    /**
+     * Adds a new texture field to the inspector.
+     * @param parent the parent folder where to add the texture field.
+     * @param object the object to modify.
+     * @param property the property to modify in the given object.
+     * @param onChange optional callback called on the texture changed.
+     */
+    protected addMaterialList(parent: GUI = this.tool!, object: any, property: string, onChange?: (material: Nullable<Material>) => void): SuggestController {
+        return this.addAssetsList(parent, MaterialAssets, object[property]?.name, object, property).onChange((r) => {
+            object[property] = this.getMaterial(r);
             if (onChange) { onChange(object[property]); }
         });
     }
@@ -279,6 +285,41 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
         });
 
         return folder;
+    }
+
+    /**
+     * Adds a new suggest contoller containg the list of all the civen componet's assets.
+     * @param parent defines the parent folder where to add the assets list.
+     * @param componentCtor defines the reference to the constructor of the assets component to get its items.
+     * @param baseValue defines the base value of the suggest controller to display.
+     * @param object defines the reference to the object to modify.
+     * @param property defines the path to the property to modify.
+     */
+    protected addAssetsList(parent: GUI, componentCtor: (new (props: IAssetsProps) => AbstractAssets), baseValue: Undefinable<string>, object: any, property: string): SuggestController {
+        let assets = this.editor.assets.getAssetsOf(componentCtor)!;
+        const items = ["None"].concat(assets.map((a) => a.id));
+
+        if (!assets) {
+            return parent.addSuggest(object, property, items);
+        }
+
+        const o = { value: baseValue ?? "None" };
+
+        return parent.addSuggest(o, "value", items, {
+            onShowIcon: (i) => {
+                const asset = assets.find((a) => a.id === i);
+                if (!asset) { return undefined; }
+
+                return <img src={asset.base64} style={{ width: 20, height: 20 }}></img>;
+            },
+            onShowTooltip: (i) => {
+                const asset = assets.find((a) => a.id === i);
+                if (!asset) { return undefined; }
+
+                return <img src={asset.base64} style={{ maxWidth: "100%", width: 100, maxHeight: "100%", height: 100 }}></img>;
+            },
+            onUpdate: () => ["None"].concat((assets = this.editor.assets.getAssetsOf(componentCtor)!).map((a) => a.id)),
+        });
     }
 
     /**
