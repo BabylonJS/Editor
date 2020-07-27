@@ -74,6 +74,7 @@ export class ScenePicker {
         pick = scene.pick(x, y, undefined, fastCheck);
         
         if (!pick) { return null; }
+        if (pick.pickedMesh?.metadata?.isLocked) { return null; }
 
         if (pick.pickedMesh && pick.pickedMesh.subMeshes?.length > 1) {
             const subMesh = pick.pickedMesh.subMeshes[pick.subMeshId];

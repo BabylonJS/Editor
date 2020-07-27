@@ -466,6 +466,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             style.textDecoration = "line-through";
         }
 
+        if (node.metadata.isLocked) {
+            style.color = "grey";
+        }
+
         // Filter
         let matchesFilter: boolean = true;
         if (this._filter) {
@@ -588,16 +592,37 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         }
 
         let mergeMeshesItem: React.ReactNode;
+        let lockedMeshesItem: React.ReactNode;
+
         if (this.state.selectedNodeIds) {
-            const all = this.state.selectedNodeIds.map((id) => this._getNodeById(id));
+            const all = this.state.selectedNodeIds.map((id) => this._getNodeById(id)) as Mesh[];
             const notAllMeshes = all.find((n) => !(n instanceof Mesh));
+            const notAllAbstractMeshes = all.find((n) => !(n instanceof AbstractMesh));
+
             if (!notAllMeshes && all.length > 1) {
                 mergeMeshesItem = (
                     <>
                         <MenuDivider />
                         <MenuItem text="Merge Meshes..." onClick={() => SceneTools.MergeMeshes(this._editor, all as Mesh[])} />
                     </>
-                )
+                );
+            }
+
+            if (!notAllAbstractMeshes) {
+                lockedMeshesItem = (
+                    <>
+                        <MenuDivider />
+                        <MenuItem text="Locked" icon={(node as Mesh).metadata?.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
+                            all.forEach((m) => {
+                                m.metadata = m.metadata ?? { };
+                                m.metadata.isLocked = m.metadata.isLocked ?? false;
+                                m.metadata.isLocked = !m.metadata.isLocked;
+                            });
+
+                            this.refresh();
+                        }} />
+                    </>
+                );
             }
         }
 
@@ -625,6 +650,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, false)} />
                 <MenuItem text="Create Prefab As..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, true)} />
                 {mergeMeshesItem}
+                {lockedMeshesItem}
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveObject()} />
                 {subMeshesItems.length ? <MenuDivider title="Sub-Meshes:" /> : undefined}
