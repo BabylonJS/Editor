@@ -13,9 +13,14 @@ import { MaterialInspector } from "./material-inspector";
 export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
     private _useMetallic: boolean = false;
     private _useRoughness: boolean = false;
+    private _useSheenRoughness: boolean = false;
 
+    private _bumpFolder: Nullable<GUI> = null;
     private _opacityFolder: Nullable<GUI> = null;
     private _metallicFolder: Nullable<GUI> = null;
+    private _clearCoatFolder: Nullable<GUI> = null;
+    private _sheenFolder: Nullable<GUI> = null;
+    private _anisotropyFolder: Nullable<GUI> = null;
 
     /**
      * Called on a controller finished changes.
@@ -39,9 +44,12 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         this.addReflection();
         this.addAmbient();
         this.addOpacity();
+        this.addEmissive();
         this.addMicroSurface();
         this.addMetallicRoughness();
-        this.addEmissive();
+        this.addClearCoat();
+        this.addSheen();
+        this.addAnisotropy();
 
         return common;
     }
@@ -64,18 +72,27 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
      * Adds the bump editable properties.
      */
     protected addBump(): GUI {
-        const bump = this.tool!.addFolder('Bump');
-        bump.open();
-        bump.add(this.material, "invertNormalMapX").name("Invert Normal Map X");
-        bump.add(this.material, "invertNormalMapY").name("Invert Normal Map Y");
+        this._bumpFolder = this._bumpFolder ?? this.tool!.addFolder('Bump');
+        this._bumpFolder.open();
+    
+        if (this.material.bumpTexture) {
+            this._bumpFolder.add(this.material, "invertNormalMapX").name("Invert Normal Map X");
+            this._bumpFolder.add(this.material, "invertNormalMapY").name("Invert Normal Map Y");
+            this._bumpFolder.add(this.material.bumpTexture, "level").min(0).step(0.01).name("Strength");
+        }
 
-        this.addTexture(bump, this.material, "bumpTexture").name("Texture");
+        this.addTexture(this._bumpFolder, this.material, "bumpTexture", () => {
+            this.clearFolder(this._bumpFolder!);
+            this.addBump();
+        }).name("Texture");
 
-        bump.add(this.material, "useParallax").name("Use Parallax");
-        bump.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
-        bump.add(this.material, "parallaxScaleBias").step(0.001).name("Parallax Scale Bias");
+        if (this.material.bumpTexture) {
+            this._bumpFolder.add(this.material, "useParallax").name("Use Parallax");
+            this._bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
+            this._bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Parallax Scale Bias");
+        }
 
-        return bump;
+        return this._bumpFolder;
     }
 
     /**
@@ -200,6 +217,91 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         }
 
         return this._metallicFolder;
+    }
+
+    /**
+     * Adds the clear coat editable properties.
+     */
+    protected addClearCoat(): GUI {
+        this._clearCoatFolder = this._clearCoatFolder ?? this.tool!.addFolder("Clear Coat");
+        this._clearCoatFolder.open();
+
+        this._clearCoatFolder.add(this.material.clearCoat, "isEnabled").name("Enabled").onFinishChange(() => {
+            this.clearFolder(this._clearCoatFolder!);
+            this.addClearCoat();
+        });
+        if (!this.material.clearCoat.isEnabled) { return this._clearCoatFolder; }
+
+        this._clearCoatFolder.add(this.material.clearCoat, "intensity").step(0.01).name("Intensity");
+        this._clearCoatFolder.add(this.material.clearCoat, "roughness").min(0).max(1).step(0.01).name("Roughness");
+        this._clearCoatFolder.add(this.material.clearCoat, "indexOfRefraction").min(0).step(0.01).name("Index Of Refraction");
+
+        this.addTexture(this._clearCoatFolder, this.material.clearCoat, "texture").name("Texture");
+        this.addTexture(this._clearCoatFolder, this.material.clearCoat, "bumpTexture").name("Bump Texture");
+
+        // Tint
+        this._clearCoatFolder.add(this.material.clearCoat, "isTintEnabled").name("Tint Enabled");
+        this._clearCoatFolder.add(this.material.clearCoat, "tintColorAtDistance").name("Tint Color At Distance");
+        this._clearCoatFolder.add(this.material.clearCoat, "tintThickness").name("Tint Thickness");
+        this.addColor(this._clearCoatFolder, "Tint Color", this.material.clearCoat, "tintColor");
+
+        return this._clearCoatFolder;
+    }
+
+    /**
+     * Adds the anisotropy editable properties.
+     */
+    protected addAnisotropy(): GUI {
+        this._anisotropyFolder = this._anisotropyFolder ?? this.tool!.addFolder("Anisotropy");
+        this._anisotropyFolder.open();
+
+        this._anisotropyFolder.add(this.material.anisotropy, "isEnabled").name("Enabled").onFinishChange(() => {
+            this.clearFolder(this._anisotropyFolder!);
+            this.addAnisotropy();
+        });
+        if (!this.material.anisotropy.isEnabled) { return this._anisotropyFolder; }
+
+        this._anisotropyFolder.add(this.material.anisotropy, "intensity").step(0.01).name("Intensity");
+        this._anisotropyFolder.addVector("Direction", this.material.anisotropy.direction);
+        this.addTexture(this._anisotropyFolder, this.material.anisotropy, "texture").name("Texture");
+
+        return this._anisotropyFolder;
+    }
+
+    /**
+     * Adds the sheen editable properties.
+     */
+    protected addSheen(): GUI {
+        this._sheenFolder = this._sheenFolder ?? this.tool!.addFolder("Sheen");
+        this._sheenFolder.open();
+
+        this._sheenFolder.add(this.material.sheen, "isEnabled").name("Enabled").onFinishChange(() => {
+            this.clearFolder(this._sheenFolder!);
+            this.addSheen();
+        });
+        if (!this.material.sheen.isEnabled) { return this._sheenFolder; }
+
+        this._sheenFolder.add(this.material.sheen, "linkSheenWithAlbedo").name("Link With Albedo");
+        this._sheenFolder.add(this.material.sheen, "albedoScaling").name("Albedo Scaling");
+
+        this._useSheenRoughness = (this.material.sheen.roughness ?? null) !== null ? true : false;
+        this._sheenFolder.add(this, "_useSheenRoughness").name("Use Roughness").onFinishChange(() => {
+            this.material.sheen.roughness = this._useSheenRoughness ? 0 : null;
+
+            this.clearFolder(this._sheenFolder!);
+            this.addSheen();
+        });
+
+        if (this._useSheenRoughness) {
+            this._sheenFolder.add(this.material.sheen, "roughness").min(0).max(1).name("Roughness");
+        }
+
+        this._sheenFolder.add(this.material.sheen, "intensity").step(0.01).name("Intensity");
+
+        this.addTexture(this._sheenFolder, this.material.sheen, "texture").name("Texture");
+        this.addColor(this._sheenFolder, "Color", this.material.sheen, "color");
+
+        return this._sheenFolder;
     }
 
     /**

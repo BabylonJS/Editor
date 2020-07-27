@@ -94,6 +94,7 @@ export class VectorController extends dat.controllers.Controller {
         dummyController.domElement.appendChild(title);
 
         const c = new dat.controllers["NumberControllerBox"](this.vector, propertyPath);
+        c.step(0.01);
         c.domElement.classList.add("c");
         c.domElement.style.width = "calc(100% - 25px)";
         c.onChange(() => {

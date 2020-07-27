@@ -170,7 +170,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      */
     public refresh(done?: Undefinable<() => void>): void {
         const nodes = this._parseScene();
-        const expandedNodeIds = this._firstUpdate ? this.state.expandedNodeIds : undefined;
+        const expandedNodeIds = this._firstUpdate ? undefined : this.state.expandedNodeIds;
 
         this.setState({ nodes, expandedNodeIds }, () => done && done());
         this._firstUpdate = false;
@@ -212,7 +212,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         this.setState({
             selectedNodeIds: [node instanceof Sound ? node.metadata?.id : node.id],
-            expandedNodeIds: expanded ?? undefined,
+            expandedNodeIds: expanded ?? [],
         });
     }
 
@@ -733,6 +733,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             if (this.state.selectedNodeIds?.indexOf(draggedNodeId) === -1) {
                 this.setState({ selectedNodeIds: this.state.selectedNodeIds.slice().concat([draggedNodeId]) });
             }
+        } else {
+            this.setState({ selectedNodeIds: [draggedNodeId] });
         }
     }
 

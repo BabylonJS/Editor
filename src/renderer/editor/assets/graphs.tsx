@@ -199,6 +199,6 @@ export class GraphAssets extends AbstractAssets {
 }
 
 Assets.addAssetComponent({
-    title: "Graphs (Beta)",
+    title: "Visual Scripts (Beta)",
     ctor: GraphAssets,
 });
