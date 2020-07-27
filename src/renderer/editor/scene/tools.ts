@@ -1,8 +1,8 @@
 import { shell } from "electron";
 import { writeJSON, writeFile } from "fs-extra";
-import { join, extname, dirname } from "path";
+import { join, extname, dirname, basename } from "path";
 
-import { Mesh, Scene, SceneLoader, SceneSerializer } from "babylonjs";
+import { Mesh, Scene, SceneLoader, SceneSerializer, BaseTexture } from "babylonjs";
 import { GLTF2Export } from 'babylonjs-serializers';
 
 import { Alert } from "../gui/alert";
@@ -118,9 +118,17 @@ export class SceneTools {
      */
     public static async ExportSceneToGLTF(editor: Editor, format: "gltf" | "glb"): Promise<void> {
         const prefix = await Dialog.Show("GLTF file prefix", "Please provide a prefix for files.");
-        const data = format === "glb" ? await GLTF2Export.GLBAsync(editor.scene!, prefix, { }) : await GLTF2Export.GLTFAsync(editor.scene!, prefix, { });
 
+        const savedTextures: { texture: BaseTexture; name: string; }[] = [];
+        editor.scene!.textures.forEach((texture) => {
+            savedTextures.push({ texture, name: texture.name });
+
+            const extension = extname(texture.name);
+            texture.name = basename(texture.name).replace(extension, "");
+        });
+        
         try {
+            const data = format === "glb" ? await GLTF2Export.GLBAsync(editor.scene!, prefix, { }) : await GLTF2Export.GLTFAsync(editor.scene!, prefix, { });
             const dest = await Tools.ShowSaveDialog();
             for (const f in data.glTFFiles) {
                 const file = data.glTFFiles[f];
@@ -135,7 +143,11 @@ export class SceneTools {
 
             shell.openItem(dest);
         } catch (e) {
-
+            // Catch silently.
+        } finally {
+            savedTextures.forEach((texture) => {
+                texture.texture.name = texture.name;
+            });
         }
     }
 }

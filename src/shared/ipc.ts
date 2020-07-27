@@ -16,6 +16,8 @@ export enum IPCRequests {
 	SendWindowMessage = "sendwindowmessage",
 	FocusWindow = "focuswindow",
 	CloseWindow = "closewindow",
+
+	EnableDevTools = "enabledevtools",
 }
 
 export enum IPCResponses {
@@ -36,4 +38,6 @@ export enum IPCResponses {
 	StartGameServer = "startgameserver",
 
 	SendWindowMessage = "sendwindowmessage",
+
+	EnableDevTools = "enabledevtools",
 }

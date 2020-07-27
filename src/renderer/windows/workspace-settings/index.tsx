@@ -11,6 +11,7 @@ import { WorkspaceSettings } from "./workspace";
 import { CommonSettings } from "./common";
 import { EditorSettings } from "./editor";
 import { PluginsSettings } from "./plugins";
+import { DeveloperSettings } from "./developers";
 
 export const title = "Settings";
 
@@ -72,6 +73,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
                                 <Tab id="common" title="Common" key="common-tab" />
                                 <Tab id="editor" title="Editor" key="editor-tab" />
                                 <Tab id="plugins" title="Plugins" key="plugins-tab" />
+                                <Tab id="developers" title="Developers" key="developers" />
                             </Tabs>
                         </Navbar.Group>
                     </Navbar>
@@ -79,6 +81,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
                     {this.state.navbarTabId === "common" ? <CommonSettings settings={this} /> : undefined}
                     {this.state.navbarTabId === "editor" ? <EditorSettings settings={this} /> : undefined}
                     {this.state.navbarTabId === "plugins" ? <PluginsSettings settings={this} /> : undefined}
+                    {this.state.navbarTabId === "developers" ? <DeveloperSettings settings={this} /> : undefined}
                 </div>
                 <div style={{ width: "100%", height: "30px", background: "#333333" }}>
                     <ButtonGroup>
@@ -121,6 +124,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
         preferences.scalingLevel = this.state.scalingLevel;
         preferences.positionGizmoSnapping = this.state.positionGizmoSnapping;
         preferences.plugins = this.state.plugins ?? [];
+        preferences.developerMode = this.state.developerMode ?? false;
 
         localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(preferences));
 

@@ -1,10 +1,12 @@
 import { ipcMain, dialog, IpcMainEvent, BrowserWindow } from "electron";
 
-import { IPCRequests, IPCResponses } from "../shared/ipc";
-import { WindowController, IWindowDefinition } from "./window";
-import { Settings } from "./settings";
 import EditorApp from "./main";
+import { Settings } from "./settings";
+import { DevTools } from "./devtools";
+import { WindowController, IWindowDefinition } from "./window";
+
 import { GameServer } from "./game/server";
+import { IPCRequests, IPCResponses } from "../shared/ipc";
 
 export class IPC {
 	public static Window: BrowserWindow;
@@ -32,6 +34,8 @@ export class IPC {
 		ipcMain.on(IPCRequests.SendWindowMessage, IPC.SendWindowMessage);
 		ipcMain.on(IPCRequests.FocusWindow, IPC.FocusWindow);
 		ipcMain.on(IPCRequests.CloseWindow, IPC.CloseWindow);
+
+		ipcMain.on(IPCRequests.EnableDevTools, IPC.OnEnableDevTools);
 	}
 
 	/**
@@ -142,5 +146,13 @@ export class IPC {
 	 */
 	public static CloseWindow(_: IpcMainEvent, windowId: number): void{
 		WindowController.CloseWindow(windowId);
+	}
+
+	/**
+	 * Enables the devtools. Typically used when developing a plugin for the Editor.
+	 */
+	public static async OnEnableDevTools(event: IpcMainEvent, enabled: boolean): Promise<void> {
+		await DevTools.Apply(enabled, event.sender);
+		event.sender.send(IPCResponses.EnableDevTools);
 	}
 }

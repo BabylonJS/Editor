@@ -35,6 +35,11 @@ export interface IEditorPreferences {
      * Defines the list of all registered plugins for the editor.
      */
     plugins?: Undefinable<IRegisteredPlugin[]>;
+    /**
+     * Defines wether or not the developer mode is activated. When activated, the editor will install
+     * the React dev tools and other dev tools useful to debug plugins.
+     */
+    developerMode?: Undefinable<boolean>;
 }
 
 export interface IRegisteredPlugin {

@@ -2,7 +2,7 @@ import { ipcRenderer, shell } from "electron";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 
-import { IPCRequests } from "../../shared/ipc";
+import { IPCRequests, IPCResponses } from "../../shared/ipc";
 import { IStringDictionary, Nullable, Undefinable } from "../../shared/types";
 
 import * as React from "react";
@@ -1062,7 +1062,7 @@ export class Editor {
     /**
      * @hidden
      */
-    public _applyPreferences(): void {
+    public async _applyPreferences(): Promise<void> {
         const preferences = this.getPreferences();
 
         document.body.style.zoom = preferences.zoom ?? document.body.style.zoom;
@@ -1102,7 +1102,12 @@ export class Editor {
         }
 
         this.mainToolbar?.setState({ plugins: pluginToolbars });
-
         this.layout.updateSize();
+
+        // Devtools
+        await new Promise<void>((resolve) => {
+            ipcRenderer.once(IPCResponses.EnableDevTools, () => resolve());
+            ipcRenderer.send(IPCRequests.EnableDevTools, preferences.developerMode);
+        });
     }
 }
