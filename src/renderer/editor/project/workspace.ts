@@ -7,6 +7,8 @@ import { IPCRequests, IPCResponses } from "../../../shared/ipc";
 
 import { Editor } from "../editor";
 
+import { ConsoleLayer } from "../components/console";
+
 import { Tools } from "../tools/tools";
 import { ExecTools, IExecProcess } from "../tools/exec";
 
@@ -196,7 +198,8 @@ export class WorkSpace {
         const task = editor.addTaskFeedback(50, "Building project...");
 
         try {
-            await ExecTools.Exec(editor, "npm run build -- --progress", WorkSpace.DirPath!);
+            editor.console.setActiveTab("webpack");
+            await ExecTools.Exec(editor, "npm run build -- --progress", WorkSpace.DirPath!, false, ConsoleLayer.WebPack);
             editor.updateTaskFeedback(task, 100, "Done!");
         } catch (e) {
             editor.updateTaskFeedback(task, 0, "Failed");
@@ -218,7 +221,7 @@ export class WorkSpace {
         const packageJson = await readJSON(join(this.DirPath!, "package.json"));
         const watchScript = join("node_modules", ".bin", packageJson.scripts.watch);
         
-        this._WatchProjectProgram = ExecTools.ExecAndGetProgram(editor, watchScript, this.DirPath!);
+        this._WatchProjectProgram = ExecTools.ExecAndGetProgram(editor, watchScript, this.DirPath!, false, ConsoleLayer.WebPack);
     }
 
     /**

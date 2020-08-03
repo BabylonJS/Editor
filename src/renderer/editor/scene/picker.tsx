@@ -178,6 +178,8 @@ export class ScenePicker {
         if (!object) { return; }
         if (object instanceof SubMesh) { object = object.getMesh(); }
 
+        if (object === this._lastSelectedNode) { return; }
+
         if (this._lastSelectedNode instanceof AbstractMesh) {
             this._lastSelectedNode.showBoundingBox = false;
             this._lastSelectedNode.showSubMeshesBoundingBox = false;

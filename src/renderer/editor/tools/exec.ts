@@ -1,6 +1,8 @@
 import * as os from "os";
 import { spawn, IPty } from "node-pty";
 
+import { ConsoleLayer } from "../components/console";
+
 import { Editor } from "../editor";
 
 export interface IExecProcess {
@@ -21,9 +23,10 @@ export class ExecTools {
      * @param command the command to execute.
      * @param cwd the working directory while executing the command.
      * @param noLogs defines wether or not the command's outputs should be listened and drawn in the editor's console.
+     * @param layer defines the layer where to draw the output.
      */
-    public static Exec(editor: Editor, command: string, cwd?: string, noLogs?: boolean): Promise<void> {
-        return this.ExecAndGetProgram(editor, command, cwd, noLogs).promise;
+    public static Exec(editor: Editor, command: string, cwd?: string, noLogs?: boolean, layer?: ConsoleLayer): Promise<void> {
+        return this.ExecAndGetProgram(editor, command, cwd, noLogs, layer).promise;
     }
 
     /**
@@ -32,12 +35,13 @@ export class ExecTools {
      * @param command the command to execute.
      * @param cwd the working directory while executing the command.
      * @param noLogs defines wether or not the command's outputs should be listened and drawn in the editor's console.
+     * @param layer defines the layer where to draw the output.
      */
-    public static ExecAndGetProgram(editor: Editor, command: string, cwd?: string, noLogs?: boolean): IExecProcess {
+    public static ExecAndGetProgram(editor: Editor, command: string, cwd?: string, noLogs?: boolean, layer?: ConsoleLayer): IExecProcess {
         const shell = editor.getPreferences().terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"];
         if (!shell) {
             const message = `Can't execute command "${command}" as no shell environment is available.`;
-            editor.console.logError(message);
+            editor.console.logError(message, layer);
             throw new Error(message);
         }
 
@@ -51,7 +55,7 @@ export class ExecTools {
 
         if (!noLogs) {
             program.onData((e) => {
-                editor.console.logRaw(e);
+                editor.console.logRaw(e, layer);
             });
         }
 
