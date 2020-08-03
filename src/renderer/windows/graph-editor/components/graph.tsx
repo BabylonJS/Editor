@@ -9,6 +9,7 @@ import { Scene } from "babylonjs";
 import { LGraph, LGraphCanvas, LGraphGroup, LiteGraph, LLink } from "litegraph.js";
 
 import { EditableText } from "../../../editor/gui/editable-text";
+import { Alert } from "../../../editor/gui/alert";
 
 import { Tools } from "../../../editor/tools/tools";
 import { IPCTools } from "../../../editor/tools/ipc";
@@ -16,7 +17,7 @@ import { IPCTools } from "../../../editor/tools/ipc";
 import { INodeResult } from "../../../editor/scene/utils";
 
 import { GraphCodeGenerator } from "../../../editor/graph/generate";
-import { GraphNode } from "../../../editor/graph/node";
+import { GraphNode, ELinkErrorType } from "../../../editor/graph/node";
 import { NodeUtils } from "../../../editor/graph/utils";
 
 import { Mesh } from "../../../editor/graph/mesh/mesh";
@@ -26,11 +27,11 @@ import { Sound } from "../../../editor/graph/sound/sound";
 
 import { GetMesh } from "../../../editor/graph/mesh/get-mesh";
 import { GetCamera } from "../../../editor/graph/camera/get-camera";
+import { GetLight } from "../../../editor/graph/light/get-light";
 
 import { GraphContextMenu } from "../context-menu";
 import GraphEditorWindow from "../index";
 import { NodeCreator } from "../node-creator";
-import { GetLight } from "../../../editor/graph/light/get-light";
 
 declare module "litegraph.js" {
     interface LGraph {
@@ -46,6 +47,7 @@ declare module "litegraph.js" {
 
     interface LGraphCanvas {
         read_only: boolean;
+        notifyLinkError(errorType: ELinkErrorType): void;
     }
 }
 
@@ -155,6 +157,13 @@ export class Graph extends React.Component<IGraphProps> {
 
         this.graphCanvas.showSearchBox = (e: MouseEvent) => {
             setTimeout(() => this.addNode(e), 100);
+        };
+
+        this.graphCanvas.notifyLinkError = (errorType: ELinkErrorType) => {
+            switch (errorType) {
+                case ELinkErrorType.MultipleEvent: Alert.Show("Can't connect nodes", "Triggerable links can't be parallelized, they must be linear by chaining actions."); break;
+                default: break;
+            }
         };
 
         this.graphCanvas.canvas.addEventListener('mouseover', () => this._canvasFocused = true);

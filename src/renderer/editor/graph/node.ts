@@ -28,6 +28,13 @@ export enum CodeGenerationExecutionType {
     Properties,
 }
 
+export enum ELinkErrorType {
+    /**
+     * Defines a link error raised when user wants to connect multiple nodes for an "EVENT".
+     */
+    MultipleEvent = 0,
+}
+
 export interface ICodeGenerationOutput {
     /**
      * Defines the type of the output.
@@ -192,7 +199,27 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      */
     public onConnectionsChange(type: number, _: number, added: boolean, link: LLink, input: any): void {
         if (this.mode === LiteGraph.NEVER) { return; }
+
+        // Check can't connect multiple triggers
+        if (link && added && this.graph && type === LiteGraph.INPUT && input.type === LiteGraph.EVENT) {
+            for (const l in this.graph.links) {
+                const existingLink = this.graph.links[l];
+                const isTrigger = link.type === LiteGraph.EVENT as any;
+
+                if (isTrigger && existingLink.target_id !== link.target_id && existingLink.origin_id === link.origin_id) {
+                    this.graph.removeLink(link.id);
+
+                    const canvas = this.graph.list_of_graphcanvas[0];
+                    if (canvas && canvas.notifyLinkError) {
+                        canvas.notifyLinkError(ELinkErrorType.MultipleEvent);
+                    }
+
+                    return;
+                }
+            }
+        }
         
+        // Change mode?
         if (link && type === LiteGraph.INPUT && input.type === LiteGraph.EVENT) {
             if (added && input.type === LiteGraph.EVENT) {
                 this.mode = LiteGraph.ON_TRIGGER;
