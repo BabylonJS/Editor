@@ -3,10 +3,10 @@ import { extname, basename, join, dirname } from "path";
 import { copy, readdir, remove } from "fs-extra";
 import * as os from "os";
 
-import { Nullable } from "../../../shared/types";
+import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position, MenuDivider } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position, MenuDivider, Tag } from "@blueprintjs/core";
 
 import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, DynamicTexture, BaseTexture } from "babylonjs";
 
@@ -269,6 +269,38 @@ export class TextureAssets extends AbstractAssets {
             const dest = join(Project.DirPath!, "files", file.name);
             if (dest) { await copy(file.path, dest); }
         }
+    }
+
+    /**
+     * Returns the content of the item's tooltip on the pointer is over the given item.
+     * @param item defines the reference to the item having the pointer over.
+     */
+    protected getItemTooltipContent(item: IAssetComponentItem): Undefinable<JSX.Element> {
+        const texture = this._getTexture(item.key);
+        if (!texture) { return undefined; }
+
+        const size = texture.getSize();
+
+        return (
+            <>
+                <Tag fill={true}>{item.id}</Tag>
+                <Divider />
+                <Tag fill={true}>{join(Project.DirPath!, texture.name)}</Tag>
+                <Divider />
+                <Tag fill={true}>{size.width}x{size.height}</Tag>
+                <Divider />
+                <img
+                    src={item.base64}
+                    style={{
+                        width: "100%",
+                        height: "256px",
+                        objectFit: "contain",
+                        backgroundColor: "#222222",
+                        left: "50%",
+                    }}
+                ></img>
+            </>
+        );
     }
 
     /**

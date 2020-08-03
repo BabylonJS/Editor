@@ -264,6 +264,8 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      * Returns the jsx element according to the given component item.
      */
     private _getItemNode(item: IAssetComponentItem): JSX.Element {
+        const tooltipContent = this.getItemTooltipContent(item) ?? item.id;
+
         return (
             <div key={item.key} ref={(ref) => item.ref = ref} style={{
                 position: "relative",
@@ -273,7 +275,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                 margin: "10px",
                 borderRadius: "10px",
             }}>
-                <Tooltip content={item.id} position={Position.TOP} usePortal={false}>
+                <Tooltip content={tooltipContent} position={Position.TOP} usePortal={false}>
                     <img
                         src={item.base64}
                         style={{ width: `${this.size}px`, height: `${this.size}px`, borderRadius: "15px", objectFit: "contain", ...item.style ?? { } }}
@@ -307,6 +309,14 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      */
     protected get itemBeingDragged(): Nullable<IAssetComponentItem> {
         return this._itemBeingDragged;
+    }
+
+    /**
+     * Returns the content of the item's tooltip on the pointer is over the given item.
+     * @param item defines the reference to the item having the pointer over.
+     */
+    protected getItemTooltipContent(_: IAssetComponentItem): Undefinable<JSX.Element> {
+        return undefined;
     }
 
     /**

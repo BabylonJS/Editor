@@ -4,7 +4,7 @@ import { copy } from "fs-extra";
 import * as os from "os";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider, Tag } from "@blueprintjs/core";
 
 import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture } from "babylonjs";
 import "babylonjs-loaders";
@@ -230,6 +230,31 @@ export class MeshesAssets extends AbstractAssets {
                 MeshesAssets.Meshes.push({ name: file.name, path: dest });
             }
         }
+    }
+
+    /**
+     * Returns the content of the item's tooltip on the pointer is over the given item.
+     * @param item defines the reference to the item having the pointer over.
+     */
+    protected getItemTooltipContent(item: IAssetComponentItem): JSX.Element {
+        return (
+            <>
+                <Tag fill={true}>{item.id}</Tag>
+                <Divider />
+                <Tag fill={true}>{item.key}</Tag>
+                <Divider />
+                <img
+                    src={item.base64}
+                    style={{
+                        width: "100%",
+                        height: "256px",
+                        objectFit: "contain",
+                        backgroundColor: "#222222",
+                        left: "50%",
+                    }}
+                ></img>
+            </>
+        );
     }
 
     /**

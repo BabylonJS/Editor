@@ -2,13 +2,13 @@ import { ipcRenderer } from "electron";
 import { join, extname } from "path";
 import Zip from "adm-zip";
 
-import { Nullable } from "../../../shared/types";
+import { Nullable, Undefinable } from "../../../shared/types";
 import { IPCResponses } from "../../../shared/ipc";
 
 import * as React from "react";
 import {
     ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, MenuDivider, Divider,
-    Popover, Position,
+    Popover, Position, Tag,
 } from "@blueprintjs/core";
 
 import { Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools, NodeMaterial, MultiMaterial } from "babylonjs";
@@ -243,6 +243,44 @@ export class MaterialAssets extends AbstractAssets {
         }
 
         this.editor.inspector.refresh();
+    }
+
+    /**
+     * Returns the content of the item's tooltip on the pointer is over the given item.
+     * @param item defines the reference to the item having the pointer over.
+     */
+    protected getItemTooltipContent(item: IAssetComponentItem): Undefinable<JSX.Element> {
+        const material = this.editor.scene!.getMaterialByID(item.key);
+        if (!material) { return undefined; }
+
+        const binded = material.getBindedMeshes();
+
+        return (
+            <>
+                <Tag fill={true}>{item.id}</Tag>
+                <Divider />
+                <Tag fill={true}>{material.getClassName()}</Tag>
+                <Divider />
+                Attached to: <br />
+                <ul>
+                    {binded.map((b) => <li><a onClick={() => {
+                        this.editor.selectedNodeObservable.notifyObservers(b);
+                        this.editor.preview.focusSelectedNode();
+                    }}>{b.name}</a></li>)}
+                </ul>
+                <Divider />
+                <img
+                    src={item.base64}
+                    style={{
+                        width: `${Math.max(this.size * 2, 256)}px`,
+                        height: "256px",
+                        objectFit: "contain",
+                        backgroundColor: "#222222",
+                        left: "50%",
+                    }}
+                ></img>
+            </>
+        );
     }
 
     /**

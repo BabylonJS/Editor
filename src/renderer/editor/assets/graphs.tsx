@@ -5,7 +5,7 @@ import { pathExists, mkdir, writeJSON, readFile, writeFile, remove } from "fs-ex
 import { IPCResponses } from "../../../shared/ipc";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, Menu, MenuItem, Popover, Divider, Position, ContextMenu } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, Menu, MenuItem, Popover, Divider, Position, ContextMenu, Tag } from "@blueprintjs/core";
 
 import { IFile } from "../project/files";
 import { Project } from "../project/project";
@@ -141,6 +141,31 @@ export class GraphAssets extends AbstractAssets {
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveGraph(item)} />
             </Menu>,
             { left: e.clientX, top: e.clientY },
+        );
+    }
+
+    /**
+     * Returns the content of the item's tooltip on the pointer is over the given item.
+     * @param item defines the reference to the item having the pointer over.
+     */
+    protected getItemTooltipContent(item: IAssetComponentItem): JSX.Element {
+        return (
+            <>
+                <Tag fill={true}>{item.id}</Tag>
+                <Divider />
+                <Tag fill={true}>{item.key}</Tag>
+                <Divider />
+                <img
+                    src={item.base64}
+                    style={{
+                        width: "100%",
+                        height: "256px",
+                        objectFit: "contain",
+                        backgroundColor: "#222222",
+                        left: "50%",
+                    }}
+                ></img>
+            </>
         );
     }
 
