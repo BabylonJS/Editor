@@ -3,7 +3,7 @@ import { readJSON, pathExists } from "fs-extra";
 
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
-    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
+    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture, AnimationGroup,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -300,6 +300,13 @@ export class ProjectImporter {
         if (project.postProcesses.default) {
             SerializationHelper.Parse(() => SceneSettings.DefaultPipeline, project.postProcesses.default.json, editor.scene!, rootUrl);
             SceneSettings.SetDefaultPipelineEnabled(editor, project.postProcesses.default.enabled);
+        }
+
+        // Animation groups
+        if (project.scene.animationGroups) {
+            for (const g of project.scene.animationGroups) {
+                AnimationGroup.Parse(g, editor.scene!);
+            }
         }
 
         // Update cache

@@ -24,6 +24,7 @@ import { Mesh } from "../../../editor/graph/mesh/mesh";
 import { Camera } from "../../../editor/graph/camera/camera";
 import { Light } from "../../../editor/graph/light/light";
 import { Sound } from "../../../editor/graph/sound/sound";
+import { AnimationGroup } from "../../../editor/graph/animation/animation-group";
 
 import { GetMesh } from "../../../editor/graph/mesh/get-mesh";
 import { GetCamera } from "../../../editor/graph/camera/get-camera";
@@ -397,5 +398,8 @@ export class Graph extends React.Component<IGraphProps> {
 
         const lights = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllLights");
         Light.Lights = GetLight.Lights = lights.data.map((l) => l.name);
+
+        const animationGroups = await IPCTools.ExecuteEditorFunction<string[]>("sceneUtils.getAllAnimationGroups");
+        AnimationGroup.Groups = animationGroups.data;
     }
 }

@@ -80,6 +80,13 @@ export class SceneUtils {
     }
 
     /**
+     * Returns the list of all animation groups in the scene.
+     */
+    public getAllAnimationGroups(): string[] {
+        return this.scene.animationGroups.map((a) => a.name);
+    }
+
+    /**
      * Returns the final scene in its JSON representation.
      */
     public getSceneJson(): { rootUrl: string; scene: any; } {
