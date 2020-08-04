@@ -1,8 +1,7 @@
 import { shell } from "electron";
-
 import * as os from "os";
-import { join } from "path";
-import { mkdtemp, writeFile, remove } from "fs-extra";
+import { writeFile } from "fs-extra";
+import { join, basename, dirname } from "path";
 
 import { Intent, Classes } from "@blueprintjs/core";
 
@@ -57,6 +56,9 @@ export class EditorUpdater {
         const links = versions[packageJson.version];
         const url = join("http://editor.babylonjs.com/", links[os.platform()]);
 
+        const destFolder = await Tools.ShowSaveDialog();
+        const dest = join(destFolder, basename(url));
+        
         // Download!
         this._Updating = true;
 
@@ -68,7 +70,7 @@ export class EditorUpdater {
                 editor.updateTaskFeedback(task, percent, `Downloading Update: ${percent.toFixed(1)}%`);
             });
 
-            this._WriteAndInstall(editor, contentBuffer);
+            this._WriteAndInstall(editor, dest, contentBuffer);
         } catch (e) {
             editor.notifyMessage("Failed to download the update", 3000, "error");
         }
@@ -81,11 +83,9 @@ export class EditorUpdater {
     /**
      * Writes the installer and installs the editor!
      */
-    private static async _WriteAndInstall(editor: Editor, contentBuffer: ArrayBuffer): Promise<void> {
-        const tempDir = await mkdtemp(join(os.tmpdir(), "babylonjs-editor"));
-        const fileDest = join(tempDir, "babylonjs-editor-installer.exe");
-
-        await writeFile(fileDest, Buffer.from(contentBuffer));
+    private static async _WriteAndInstall(editor: Editor, dest: string, contentBuffer: ArrayBuffer): Promise<void> {
+        // const tempDir = await mkdtemp(join(os.tmpdir(), "babylonjs-editor"));
+        await writeFile(dest, Buffer.from(contentBuffer));
 
         // Notify
         editor._toaster?.show({
@@ -94,11 +94,14 @@ export class EditorUpdater {
             intent: Intent.PRIMARY,
             className: Classes.DARK,
             onDismiss: () => {
-                try { remove(tempDir); } catch (e) { /* Catch silently */ }
+                // try { remove(tempDir); } catch (e) { /* Catch silently */ }
             },
             action: {
                 text: "Install",
-                onClick: () => shell.openItem(fileDest),
+                onClick: () => {
+                    // shell.openItem(dest);
+                    shell.openItem(dirname(dest));
+                },
             },
         });
     }
