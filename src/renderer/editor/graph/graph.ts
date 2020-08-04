@@ -65,6 +65,8 @@ import { CreatePhysicsImpostor } from "./physics/create-physics-impostor";
 // Animation
 import { AnimationGroup } from "./animation/animation-group";
 import { PlayAnimationGroup } from "./animation/start-animation-group";
+import { StopAnimationGroup } from "./animation/stop-animation-group";
+import { PauseAnimationGroup } from "./animation/pause-animation-group";
 
 import { AnimationRatio } from "./animation/ratio";
 import { InterpolationAnimation } from "./animation/interpolate";
@@ -189,6 +191,8 @@ export class GraphCode {
         // Animation
         LiteGraph.registerNodeType("animation/animation_group", AnimationGroup);
         LiteGraph.registerNodeType("animation/play_animation_group", PlayAnimationGroup);
+        LiteGraph.registerNodeType("animation/stop_animation_group", StopAnimationGroup);
+        LiteGraph.registerNodeType("animation/pause_animation_group", PauseAnimationGroup);
 
         LiteGraph.registerNodeType("animation/animation_ratio", AnimationRatio);
         LiteGraph.registerNodeType("animation/interpolation_animation", InterpolationAnimation);

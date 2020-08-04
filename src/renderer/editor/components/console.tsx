@@ -188,11 +188,11 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
             const size = this.props.editor.getPanelSize("console");
             size.height -= 25;
 
-            const width = Math.floor(size.width / this._terminalCommon!["_core"]._renderService.dimensions.actualCellWidth);
-            const height = Math.floor(size.height / this._terminalCommon!["_core"]._renderService.dimensions.actualCellHeight);
+            const width = Math.floor(size.width / this._terminalCommon!["_core"]._renderService.dimensions.actualCellWidth) >> 0;
+            const height = Math.floor(size.height / this._terminalCommon!["_core"]._renderService.dimensions.actualCellHeight) >> 0;
 
-            this._terminalCommon?.resize(width || size.width, height || size.height);
-            this._terminalWebPack?.resize(width || size.width, height || size.height);
+            this._terminalCommon?.resize(width || (size.width >> 0), height || (size.height >> 0));
+            this._terminalWebPack?.resize(width || (size.width >> 0), height || (size.height >> 0));
         }, 0);
     }
 

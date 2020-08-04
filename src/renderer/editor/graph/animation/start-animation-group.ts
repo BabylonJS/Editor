@@ -22,6 +22,7 @@ export class PlayAnimationGroup extends GraphNode<{ loop: boolean; }> {
         this.addWidget("toggle", "loop", this.properties.loop, (v) => this.properties.loop = v);
         
         this.addOutput("", LiteGraph.EVENT as any);
+        this.addOutput("group", "AnimationGroup");
         this.addOutput("On End", LiteGraph.EVENT as any);
     }
 
@@ -30,12 +31,14 @@ export class PlayAnimationGroup extends GraphNode<{ loop: boolean; }> {
      */
     public execute(): void {
         const group = this.getInputData<AnimationGroup>(1);
+        this.setOutputData(1, group);
+        
         if (group) {
             this._groupObservers[group.uniqueId] = {
                 group,
                 observer: group.onAnimationGroupEndObservable.addOnce(() => {
                     delete this._groupObservers[group.uniqueId];
-                    this.triggerSlot(1, null);
+                    this.triggerSlot(2, null);
                 }),
             };
             
