@@ -104,7 +104,7 @@ export class SceneSettings {
     public static GetSSAORenderingPipeline(editor: Editor): SSAO2RenderingPipeline {
         if (this.SSAOPipeline) { return this.SSAOPipeline; }
 
-        const ssao = new SSAO2RenderingPipeline("ssao", editor.scene!, { ssaoRatio: 0.5, blurRatio: 0.5 }, this._SSAOPipelineEnabled ? [editor.scene!.activeCamera!] : []);
+        const ssao = new SSAO2RenderingPipeline("ssao", editor.scene!, { ssaoRatio: 0.5, blurRatio: 0.5 }, this._SSAOPipelineEnabled ? [editor.scene!.activeCamera!] : [], true);
         ssao.radius = 3.5;
         ssao.totalStrength = 1.3;
         ssao.expensiveBlur = true;

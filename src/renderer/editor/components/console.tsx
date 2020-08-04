@@ -5,9 +5,8 @@ import { Classes, ButtonGroup, Button, Tabs, TabId, Tab } from "@blueprintjs/cor
 
 import { Terminal } from "xterm";
 import { FitAddon } from 'xterm-addon-fit';
-import chalk from "chalk";
 
-import { Logger } from "babylonjs";
+import { Logger, Observable } from "babylonjs";
 
 import { Icon } from "../gui/icon";
 
@@ -87,6 +86,11 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     };
 
     /**
+     * Notifies all listeners that the logs have been resized.
+     */
+    public onResizeObservable: Observable<void> = new Observable<void>();
+
+    /**
      * Constructor.
      * @param props the component's props.
      */
@@ -114,8 +118,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                     renderActiveTabPanelOnly={false}
                     vertical={true}
                     children={[
-                        <Tab id="common" title="Common" key="common" panel={<div ref={this._refHandler.getCommonDiv} key="common-div" style={{ minWidth: "100px", minHeight: "100px", width: "100%", height: "100%" }}></div>} />,
-                        <Tab id="webpack" title="WebPack" key="webpack" panel={<div ref={this._refHandler.getWebPackDiv} key="webpack-div" style={{ minWidth: "100px", minHeight: "100px", width: "100%", height: "100%" }}></div>} />,
+                        <Tab id="common" title="Common" key="common" panel={<div ref={this._refHandler.getCommonDiv} key="common-div" style={{ width: "100%", height: "100%" }}></div>} />,
+                        <Tab id="webpack" title="WebPack" key="webpack" panel={<div ref={this._refHandler.getWebPackDiv} key="webpack-div" style={{ width: "100%", height: "100%" }}></div>} />,
                     ]}
                     onChange={(id) => this.setActiveTab(id)}
                     selectedTabId={this.state.tabId}
@@ -131,11 +135,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
         if (!this._terminalCommonDiv || !this._terminalWebPackDiv) { return; }
 
         // Create terminals
-        this._terminalCommon = this._createTerminal(this._terminalCommonDiv);
-        this._terminalCommon.loadAddon(this._fitAddonCommon);
-
-        this._terminalWebPack = this._createTerminal(this._terminalWebPackDiv);
-        this._terminalWebPack.loadAddon(this._fitAddonWebPack);
+        this._terminalWebPack = this._createTerminal(this._terminalWebPackDiv, this._fitAddonWebPack);
+        this._terminalCommon = this._createTerminal(this._terminalCommonDiv, this._fitAddonCommon);
 
         this.logInfo("Console ready.", ConsoleLayer.Common);
         this.logInfo("Console ready.", ConsoleLayer.WebPack);
@@ -145,39 +146,14 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     }
 
     /**
-     * Creates an ew terminal opened in the given div HTML element.
-     */
-    private _createTerminal(terminalDiv: HTMLDivElement): Terminal {
-        // Create terminal
-        const terminal = new Terminal({
-            fontFamily: "Consolas, 'Courier New', monospace",
-            fontSize: 12,
-            fontWeight: "normal",
-            cursorStyle: "block",
-            cursorWidth: 1,
-            drawBoldTextInBrightColors: true,
-            fontWeightBold: "bold",
-            letterSpacing: -4,
-            // cols: 80,
-            lineHeight: 1,
-            rendererType: "canvas",
-            allowTransparency: true,
-            theme: {
-                background: "#222222",
-            },
-        });
-
-        terminal.open(terminalDiv);
-
-        return terminal;
-    }
-
-    /**
      * Called on the component will unmount.
      */
     public componentWillUnmount(): void {
         if (this._terminalCommon) { this._terminalCommon.dispose(); }
         if (this._terminalWebPack) { this._terminalWebPack.dispose(); }
+
+        this._fitAddonCommon.dispose();
+        this._fitAddonWebPack.dispose();
     }
 
     /**
@@ -186,14 +162,41 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     public resize(): void {
         setTimeout(() => {
             const size = this.props.editor.getPanelSize("console");
-            size.height -= 25;
 
-            const width = Math.floor(size.width / this._terminalCommon!["_core"]._renderService.dimensions.actualCellWidth) >> 0;
-            const height = Math.floor(size.height / this._terminalCommon!["_core"]._renderService.dimensions.actualCellHeight) >> 0;
+            if (this._terminalCommonDiv) {
+                this._terminalCommonDiv.style.width = `${size.width}px`;
+                this._terminalCommonDiv.style.height = `${size.height - 35}px`;
+            }
 
-            this._terminalCommon?.resize(width || (size.width >> 0), height || (size.height >> 0));
-            this._terminalWebPack?.resize(width || (size.width >> 0), height || (size.height >> 0));
+            if (this._terminalWebPackDiv) {
+                this._terminalWebPackDiv.style.width = `${size.width}px`;
+                this._terminalWebPackDiv.style.height = `${size.height - 35}px`;
+            }
+            
+            switch (this.state.tabId) {
+                case "common":
+                    this._terminalCommon?.resize(1, 1);
+                    this._fitAddonCommon.fit();
+                    break;
+                case "webpack":
+                    this._terminalWebPack?.resize(1, 1);
+                    this._fitAddonWebPack.fit();
+                    break;
+            }
+
+            this.onResizeObservable.notifyObservers();
         }, 0);
+    }
+
+    /**
+     * Returns the terminal according to the given layer type.
+     * @param type defines the type of terminal to get.
+     */
+    public getTerminalByType(type: ConsoleLayer): Nullable<Terminal> {
+        switch (type) {
+            case ConsoleLayer.Common: return this._terminalCommon;
+            case ConsoleLayer.WebPack: return this._terminalWebPack;
+        }
     }
 
     /**
@@ -262,15 +265,15 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
 
         switch (log.type) {
             case ConsoleLogType.Info:
-                    terminal.writeln(chalk.white(`[INFO]: ${log.message}`));
+                    terminal.writeln(`[INFO]: ${log.message}`);
                     console.info(log.message);
                     break;
                 case ConsoleLogType.Warning:
-                    terminal.writeln(chalk.yellow(`[WARN]: ${log.message}`));
+                    terminal.writeln(`[WARN]: ${log.message}`);
                     console.warn(log.message);
                     break;
                 case ConsoleLogType.Error:
-                    terminal.writeln(chalk.red(`[WARN]: ${log.message}`));
+                    terminal.writeln(`[ERROR]: ${log.message}`);
                     console.error(log.message);
                     break;
                 case ConsoleLogType.Raw:
@@ -278,6 +281,35 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                     console.log(log.message);
                     break;
         }
+    }
+
+    /**
+     * Creates an ew terminal opened in the given div HTML element.
+     */
+    private _createTerminal(terminalDiv: HTMLDivElement, addon: FitAddon): Terminal {
+        // Create terminal
+        const terminal = new Terminal({
+            fontFamily: "Consolas, 'Courier New', monospace",
+            fontSize: 12,
+            fontWeight: "normal",
+            cursorStyle: "block",
+            cursorWidth: 1,
+            drawBoldTextInBrightColors: true,
+            fontWeightBold: "bold",
+            letterSpacing: -4,
+            // cols: 80,
+            lineHeight: 1,
+            rendererType: "canvas",
+            allowTransparency: true,
+            theme: {
+                background: "#222222",
+            },
+        });
+
+        terminal.loadAddon(addon);
+        terminal.open(terminalDiv);
+
+        return terminal;
     }
 
     /**

@@ -5,7 +5,7 @@ import { pathExists, mkdir, writeJSON, readFile, writeFile, remove } from "fs-ex
 import { IPCResponses } from "../../../shared/ipc";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, Menu, MenuItem, Popover, Divider, Position, ContextMenu, Tag } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, Menu, MenuItem, Popover, Divider, Position, ContextMenu, Tag, Intent } from "@blueprintjs/core";
 
 import { IFile } from "../project/files";
 import { Project } from "../project/project";
@@ -151,9 +151,9 @@ export class GraphAssets extends AbstractAssets {
     protected getItemTooltipContent(item: IAssetComponentItem): JSX.Element {
         return (
             <>
-                <Tag fill={true}>{item.id}</Tag>
+                <Tag fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
                 <Divider />
-                <Tag fill={true}>{item.key}</Tag>
+                <Tag fill={true} intent={Intent.PRIMARY}>{item.key}</Tag>
                 <Divider />
                 <img
                     src={item.base64}

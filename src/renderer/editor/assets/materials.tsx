@@ -8,7 +8,7 @@ import { IPCResponses } from "../../../shared/ipc";
 import * as React from "react";
 import {
     ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, MenuDivider, Divider,
-    Popover, Position, Tag,
+    Popover, Position, Tag, Intent,
 } from "@blueprintjs/core";
 
 import { Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools, NodeMaterial, MultiMaterial } from "babylonjs";
@@ -257,9 +257,9 @@ export class MaterialAssets extends AbstractAssets {
 
         return (
             <>
-                <Tag fill={true}>{item.id}</Tag>
+                <Tag fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
                 <Divider />
-                <Tag fill={true}>{material.getClassName()}</Tag>
+                <Tag fill={true} intent={Intent.PRIMARY}>{material.getClassName()}</Tag>
                 <Divider />
                 Attached to: <br />
                 <ul>

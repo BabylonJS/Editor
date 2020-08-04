@@ -4,7 +4,7 @@ import { copy } from "fs-extra";
 import * as os from "os";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider, Tag } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
 import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture } from "babylonjs";
 import "babylonjs-loaders";
@@ -239,9 +239,9 @@ export class MeshesAssets extends AbstractAssets {
     protected getItemTooltipContent(item: IAssetComponentItem): JSX.Element {
         return (
             <>
-                <Tag fill={true}>{item.id}</Tag>
+                <Tag fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
                 <Divider />
-                <Tag fill={true}>{item.key}</Tag>
+                <Tag fill={true} intent={Intent.PRIMARY}>{item.key}</Tag>
                 <Divider />
                 <img
                     src={item.base64}

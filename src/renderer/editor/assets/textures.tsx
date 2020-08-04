@@ -6,7 +6,7 @@ import * as os from "os";
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position, MenuDivider, Tag } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
 import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, DynamicTexture, BaseTexture } from "babylonjs";
 
@@ -283,11 +283,11 @@ export class TextureAssets extends AbstractAssets {
 
         return (
             <>
-                <Tag fill={true}>{item.id}</Tag>
+                <Tag fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
                 <Divider />
-                <Tag fill={true}>{join(Project.DirPath!, texture.name)}</Tag>
+                <Tag fill={true} intent={Intent.PRIMARY}>{join(Project.DirPath!, texture.name)}</Tag>
                 <Divider />
-                <Tag fill={true}>{size.width}x{size.height}</Tag>
+                <Tag fill={true} intent={Intent.PRIMARY}>{size.width}x{size.height}</Tag>
                 <Divider />
                 <img
                     src={item.base64}

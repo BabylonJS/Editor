@@ -1,6 +1,10 @@
 import * as os from "os";
 import { spawn, IPty } from "node-pty";
 
+import { Nullable } from "../../../shared/types";
+
+import { Observer } from "babylonjs";
+
 import { ConsoleLayer } from "../components/console";
 
 import { Editor } from "../editor";
@@ -52,8 +56,16 @@ export class ExecTools {
         }
 
         const program = spawn(shell, args, { cwd });
+        let observer: Nullable<Observer<void>> = null;
 
         if (!noLogs) {
+            observer = editor.console.onResizeObservable.add(() => {
+                const terminal = editor.console.getTerminalByType(layer ?? ConsoleLayer.Common);
+                if (terminal && terminal.cols && terminal.rows) {
+                    program.resize(terminal.cols, terminal.rows);
+                }    
+            });
+
             program.onData((e) => {
                 editor.console.logRaw(e, layer);
             });
@@ -61,7 +73,14 @@ export class ExecTools {
 
         const promise = new Promise<void>((resolve, reject) => {
             program.onExit((e) => {
-                if (e?.exitCode === 0) { return resolve(); }
+                if (observer) {
+                    editor.console.onResizeObservable.remove(observer);
+                }
+
+                if (e?.exitCode === 0) {
+                    return resolve();
+                }
+
                 reject();
             });
         });

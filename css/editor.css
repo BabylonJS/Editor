@@ -117,7 +117,7 @@ div::-webkit-scrollbar-thumb {
     fill: #222222;
 }
 
-.bp3-dark .bp3-tag, .bp3-tag.bp3-fill {
+.bp3-tag.bp3-intent-primary {
     background-color: #555555;
     color: white;
 }
