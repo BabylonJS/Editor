@@ -70,7 +70,7 @@ export class PlayAnimationGroup extends GraphNode<{ loop: boolean; }> {
     public generateCode(group: ICodeGenerationOutput): ICodeGenerationOutput {
         let code = "";
 
-        if (this.isOutputConnected(1)) {
+        if (this.isOutputConnected(2)) {
             code += `${group.code}.onAnimationEndObservable.addOnce(() => {
                 {{generated__callback__body}}
             });`;
@@ -84,7 +84,7 @@ export class PlayAnimationGroup extends GraphNode<{ loop: boolean; }> {
             code,
             outputsCode: [
                 { code: undefined },
-                { code: undefined },
+                { code: group.code },
             ],
         };
     }
