@@ -114,6 +114,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     usePortal={true}
                     inheritDarkTheme={true}
                     onClose={() => this.setState({ showOptions: false })}
+                    lazy={true}
                     content={
                         <FormGroup label="Graph" labelInfo="Options" >
                             <Switch label="Show Instances" checked={this.state.showInstances} onChange={(e) => this.setState({ showInstances: e.currentTarget.checked }, () => this.refresh())} />

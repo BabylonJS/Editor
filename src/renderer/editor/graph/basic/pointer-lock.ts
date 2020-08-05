@@ -43,7 +43,7 @@ export class ExitPointerLock extends GraphNode {
      * Constructor.
      */
     public constructor() {
-        super("Request Pointer Lock");
+        super("Exit Pointer Lock");
 
         this.addInput("", LiteGraph.EVENT as any);
         this.addOutput("", LiteGraph.EVENT as any);

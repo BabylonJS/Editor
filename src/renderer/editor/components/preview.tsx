@@ -359,6 +359,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         const camera = this._editor.scene!.activeCamera;
         if (!camera || !(camera instanceof TargetCamera)) { return; }
 
+        this._editor.scene!.stopAnimation(camera);
+
         const translation = Vector3.Zero();
         (node as Node).getWorldMatrix().decompose(undefined, undefined, translation);
         
@@ -366,10 +368,18 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             const a = new Animation("FocusTargetAnimation", "target", 60, Animation.ANIMATIONTYPE_VECTOR3);
             a.setKeys([{ frame: 0, value: camera.getTarget() }, { frame: 60, value: translation }]);
 
-            this._editor.scene!.stopAnimation(camera);
-            this._editor.scene!.beginDirectAnimation(camera, [a], 0, 60, false, 4);
+            this._editor.scene!.beginDirectAnimation(camera, [a], 0, 60, false, 3);
         } else {
             camera.setTarget(translation);
+        }
+
+        if (node instanceof AbstractMesh && node._boundingInfo) {
+            const distance = Vector3.Distance(node._boundingInfo.minimum, node._boundingInfo.maximum);
+
+            const a = new Animation("FocusPositionAnimation", "position", 60, Animation.ANIMATIONTYPE_VECTOR3);
+            a.setKeys([{ frame: 0, value: camera.position.clone() }, { frame: 60, value: translation.add(new Vector3(distance, distance, distance)) }]);
+
+            this._editor.scene!.beginDirectAnimation(camera, [a], 0, 60, false, 3);
         }
     }
 
