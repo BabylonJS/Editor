@@ -72,10 +72,10 @@ export default class StatsPlugin extends AbstractEditorPlugin<IStatsState> {
     public render(): React.ReactNode {
         const common = (
             <div>
-                <Divider style={{ backgroundColor: "#333333", borderRadius: "10px" }}>FPS</Divider>
+                <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>FPS</Divider>
                 <Tag key="averageFPS" fill={true} intent={(this.state.averageFPS ?? 60) < 30 ? Intent.WARNING : Intent.PRIMARY}>FPS: {this.state.averageFPS?.toFixed(2)}</Tag>
                 <Tag intent={Intent.PRIMARY} key="instantaneousFPS" fill={true}>Instantaneous FPS: {this.state.instantaneousFPS?.toFixed(2)}</Tag>
-                <Divider style={{ backgroundColor: "#333333", borderRadius: "10px" }}>Frame Time</Divider>
+                <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Frame Time</Divider>
                 <Tag intent={Intent.PRIMARY} key="averageFrameTime" fill={true}>Average Frame Time: {this.state.averageFrameTime?.toFixed(2)} ms</Tag>
                 <Tag intent={Intent.PRIMARY} key="instantaneousFrameTime" fill={true}>Instantaneous Frame Time: {this.state.instantaneousFrameTime?.toFixed(2)} ms</Tag>
             </div>
@@ -83,17 +83,17 @@ export default class StatsPlugin extends AbstractEditorPlugin<IStatsState> {
         
         const count = (
             <div>
-                <Divider style={{ backgroundColor: "#333333", borderRadius: "10px" }}>Active Vertices</Divider>
+                <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Active Vertices</Divider>
                 <Tag intent={Intent.PRIMARY} key="activeFaces" fill={true}>Active Faces: {this.state.activeFaces}</Tag>
                 <Tag intent={Intent.PRIMARY} key="activeIndices" fill={true}>Active Indices: {this.state.activeIndices}</Tag>
                 <Tag intent={Intent.PRIMARY} key="activeBones" fill={true}>Active Bones: {this.state.activeBones}</Tag>
                 <Tag intent={Intent.PRIMARY} key="activeParticles" fill={true}>Active Particles: {this.state.activeParticles}</Tag>
-                <Divider style={{ backgroundColor: "#333333", borderRadius: "10px" }}>Active</Divider>
+                <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Active</Divider>
                 <Tag intent={Intent.PRIMARY} key="activeMeshes" fill={true}>Active Meshes: {this.state.activeMeshes}</Tag>
                 <Tag intent={Intent.PRIMARY} key="drawCalls" fill={true}>Draw Calls: {this.state.drawCalls}</Tag>
-                <Divider style={{ backgroundColor: "#333333", borderRadius: "10px" }}>Total Vertices</Divider>
+                <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Total Vertices</Divider>
                 <Tag intent={Intent.PRIMARY} key="totalVertices" fill={true}>Total Vertices: {this.state.totalVertices}</Tag>
-                <Divider style={{ backgroundColor: "#333333", borderRadius: "10px" }}>Total Others</Divider>
+                <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Total Others</Divider>
                 <Tag intent={Intent.PRIMARY} key="totalMeshes" fill={true}>Total Meshes: {this.state.totalMeshes}</Tag>
                 <Tag intent={Intent.PRIMARY} key="totalMaterials" fill={true}>Total Materials: {this.state.totalMaterials}</Tag>
                 <Tag intent={Intent.PRIMARY} key="totalTextures" fill={true}>Total Textures: {this.state.totalTextures}</Tag>
@@ -103,15 +103,15 @@ export default class StatsPlugin extends AbstractEditorPlugin<IStatsState> {
 
         const durations = (
             <div>
-                <Divider style={{ backgroundColor: "#333333", borderRadius: "10px" }}>GPU</Divider>
+                <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>GPU</Divider>
                 <Tag intent={Intent.PRIMARY} key="gpuFrameTime" fill={true}>GPU Frame Time: {this.state.gpuFrameTime?.toFixed(2)} ms</Tag>
                 <Tag intent={Intent.PRIMARY} key="gpuFrameTimeAvarage" fill={true}>GPU Frame Time (Average): {this.state.gpuFrameTimeAvarage?.toFixed(2)} ms</Tag>
-                <Divider style={{ backgroundColor: "#333333", borderRadius: "10px" }}>Scene</Divider>
+                <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Scene</Divider>
                 <Tag intent={Intent.PRIMARY} key="absoluteFPS" fill={true}>Absolute FPS: {this.state.absoluteFPS?.toFixed(0)}</Tag>
                 <Tag intent={Intent.PRIMARY} key="render" fill={true}>Render: {this.state.render} ms</Tag>
                 <Tag intent={Intent.PRIMARY} key="frameTotal" fill={true}>Frame Total: {this.state.frameTotal?.toFixed(2)} ms</Tag>
                 <Tag intent={Intent.PRIMARY} key="interFrame" fill={true}>Inter-frame: {this.state.interFrame?.toFixed(2)} ms</Tag>
-                <Divider style={{ backgroundColor: "#333333", borderRadius: "10px" }}>Elements</Divider>
+                <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Elements</Divider>
                 <Tag intent={Intent.PRIMARY} key="meshSelection" fill={true}>Mesh Selection: {this.state.meshSelection?.toFixed(2)} ms</Tag>
                 <Tag intent={Intent.PRIMARY} key="renderTargets" fill={true}>Render Targets: {this.state.renderTargets?.toFixed(2)} ms</Tag>
                 <Tag intent={Intent.PRIMARY} key="animations" fill={true}>Animations: {this.state.animations?.toFixed(2)} ms</Tag>

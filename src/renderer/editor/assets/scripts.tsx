@@ -3,8 +3,10 @@ import { readdir, pathExists, mkdir, writeFile, stat, readFile, move } from "fs-
 import { join, extname, normalize, basename } from "path";
 import Glob from "glob";
 
+import { Undefinable } from "../../../shared/types";
+
 import * as React from "react";
-import { ButtonGroup, Button, Classes, Breadcrumbs, Boundary, IBreadcrumbProps, Divider, ContextMenu, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, Breadcrumbs, Boundary, IBreadcrumbProps, Divider, ContextMenu, Menu, MenuItem, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
 import { Node } from "babylonjs";
 
@@ -106,7 +108,14 @@ export class ScriptAssets extends AbstractAssets {
      */
     public async onDoubleClick(item: IAssetComponentItem, img: HTMLImageElement): Promise<void> {
         super.onDoubleClick(item, img);
+        return this.openItem(item);
+    }
 
+    /**
+     * Opens the given item.
+     * @param item defines the item to open.
+     */
+    public async openItem(item: IAssetComponentItem): Promise<void> {
         const path = normalize(join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName(), item.key));
         const infos = await stat(path);
 
@@ -194,6 +203,56 @@ export class ScriptAssets extends AbstractAssets {
 
         this._updateAttachedElements(src, dest);
         this.refresh();
+    }
+
+    /**
+     * Returns the content of the item's tooltip on the pointer is over the given item.
+     * @param item defines the reference to the item having the pointer over.
+     */
+    protected getItemTooltipContent(item: IAssetComponentItem): Undefinable<JSX.Element> {
+        const path = join("src/scenes", WorkSpace.GetProjectName(), item.key);
+        const attached: Node[] = [];
+        const all = (this.editor.scene!.meshes as Node[])
+                         .concat(this.editor.scene!.lights)
+                         .concat(this.editor.scene!.cameras)
+                         .concat(this.editor.scene!.transformNodes);
+
+        all.forEach((n) => {
+            if (!n.metadata?.script) { return; }
+            if (n.metadata.script.name !== path) { return; }
+            attached.push(n);
+        });
+
+        if (!attached.length) { return undefined; }
+
+        const fullPath = join(WorkSpace.DirPath!, path);
+
+        return (
+            <>
+                <Tag fill={true} interactive={true} intent={Intent.PRIMARY} onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(fullPath))}>{fullPath}</Tag>
+                <Divider />
+                <Tag fill={true} interactive={true} intent={Intent.PRIMARY} onClick={() => this.openItem(item)}>Open...</Tag>
+                <Divider />
+                <b>Attached to:</b><br />
+                <ul>
+                    {attached.map((b) => <li key={`${b.id}-li`}><Tag interactive={true} key={`${b.id}-tag`} fill={true} intent={Intent.PRIMARY} onClick={() => {
+                        this.editor.selectedNodeObservable.notifyObservers(b);
+                        this.editor.preview.focusSelectedNode();
+                    }}>{b.name}</Tag></li>)}
+                </ul>
+                <Divider />
+                <img
+                    src={item.base64}
+                    style={{
+                        width: "256px",
+                        height: "256px",
+                        objectFit: "contain",
+                        backgroundColor: "#222222",
+                        left: "50%",
+                    }}
+                ></img>
+            </>
+        );
     }
 
     /**

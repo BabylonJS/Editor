@@ -1,5 +1,5 @@
 import { shell } from "electron";
-import { join, extname, basename, dirname } from "path";
+import { join, extname, basename } from "path";
 import { copy, readdir, remove } from "fs-extra";
 import * as os from "os";
 
@@ -128,7 +128,7 @@ export class MeshesAssets extends AbstractAssets {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => shell.openItem(dirname(item.key))} />
+                <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(item.key))} />
                 <MenuItem text="Export To" icon="export">
                     <MenuItem text="To Babylon..." icon={<Icon src="logo-babylon.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToBabylonJSFormat(this.editor, item.id)} />
                     <MenuItem text="To GLB..." icon={<Icon src="gltf.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToGLTF(this.editor, item.id, "glb")} />
@@ -257,7 +257,7 @@ export class MeshesAssets extends AbstractAssets {
             <>
                 <Tag fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
                 <Divider />
-                <Tag fill={true} intent={Intent.PRIMARY}>{item.key}</Tag>
+                <Tag fill={true} interactive={true} intent={Intent.PRIMARY} onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(item.key))}>{item.key}</Tag>
                 <Divider />
                 <img
                     src={item.base64}

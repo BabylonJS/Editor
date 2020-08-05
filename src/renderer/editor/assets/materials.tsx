@@ -55,8 +55,8 @@ export class MaterialAssets extends AbstractAssets {
                     <ButtonGroup>
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
                         <Divider />
-                        <Popover content={add} position={Position.BOTTOM_LEFT}>
-                            <Button icon={<Icon src="plus.svg"/>} rightIcon="caret-down" small={true} text="Add"/>
+                        <Popover key="add-popover" content={add} position={Position.BOTTOM_LEFT}>
+                            <Button key="add" icon={<Icon src="plus.svg"/>} rightIcon="caret-down" small={true} text="Add"/>
                         </Popover>
                         <Divider />
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedMaterials()} />
@@ -254,20 +254,25 @@ export class MaterialAssets extends AbstractAssets {
         if (!material) { return undefined; }
 
         const binded = material.getBindedMeshes();
+        const attachedEllement = binded.length > 0 ? (
+            <>
+                <Divider />
+                <b>Attached to:</b><br />
+                <ul>
+                    {binded.map((b) => <li key={`${b.id}-li`}><Tag interactive={true} fill={true} key={`${b.id}-tag`} intent={Intent.PRIMARY} onClick={() => {
+                        this.editor.selectedNodeObservable.notifyObservers(b);
+                        this.editor.preview.focusSelectedNode();
+                    }}>{b.name}</Tag></li>)}
+                </ul>
+            </>
+        ) : undefined;
 
         return (
             <>
-                <Tag fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
+                <Tag key="itemId" fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
                 <Divider />
-                <Tag fill={true} intent={Intent.PRIMARY}>{material.getClassName()}</Tag>
-                <Divider />
-                Attached to: <br />
-                <ul>
-                    {binded.map((b) => <li><a onClick={() => {
-                        this.editor.selectedNodeObservable.notifyObservers(b);
-                        this.editor.preview.focusSelectedNode();
-                    }}>{b.name}</a></li>)}
-                </ul>
+                <Tag key="itemClassName" fill={true} intent={Intent.PRIMARY}>{material.getClassName()}</Tag>
+                {attachedEllement}
                 <Divider />
                 <img
                     src={item.base64}

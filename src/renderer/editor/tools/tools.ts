@@ -1,5 +1,6 @@
 import { remote, ipcRenderer } from "electron";
 import { join } from "path";
+import { platform } from "os";
 
 import { Tools as BabylonTools, Engine, Scene, Node, Nullable, Camera } from "babylonjs";
 
@@ -12,6 +13,17 @@ export class Tools {
     public static GetAppPath(): string {
         if (process.env.DEBUG) { return remote.app.getAppPath(); }
         return join(remote.app.getAppPath(), "..", "..");
+    }
+
+    /**
+     * Normalizes the given path according to the current platform.
+     * @param path defines the path to normalize according to the current platform.
+     */
+    public static NormalizePathForCurrentPlatform(path: string): string {
+        switch (platform()) {
+            case "win32": return path.replace(/\//g, "\\");
+            default: return path;
+        }
     }
 
     /**

@@ -1,5 +1,5 @@
 import { shell } from "electron";
-import { extname, basename, join, dirname } from "path";
+import { extname, basename, join } from "path";
 import { copy, readdir, remove } from "fs-extra";
 import * as os from "os";
 
@@ -177,7 +177,7 @@ export class TextureAssets extends AbstractAssets {
                 <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {
                     const name = basename(texture.name);
                     const file = FilesStore.GetFileFromBaseName(name);
-                    if (file) { shell.openItem(dirname(file.path)); }
+                    if (file) { shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(file.path)); }
                 }} />
                 <MenuItem text="Clone..." icon={<Icon src="clone.svg" />} onClick={() => this._cloneTexture(texture)} />
                 <MenuDivider />
@@ -280,12 +280,13 @@ export class TextureAssets extends AbstractAssets {
         if (!texture) { return undefined; }
 
         const size = texture.getSize();
+        const fullPath = join(Project.DirPath!, texture.name);
 
         return (
             <>
                 <Tag fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
                 <Divider />
-                <Tag fill={true} intent={Intent.PRIMARY}>{join(Project.DirPath!, texture.name)}</Tag>
+                <Tag fill={true} interactive={true} intent={Intent.PRIMARY} onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(fullPath))}>{fullPath}</Tag>
                 <Divider />
                 <Tag fill={true} intent={Intent.PRIMARY}>{size.width}x{size.height}</Tag>
                 <Divider />
