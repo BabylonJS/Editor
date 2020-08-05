@@ -55,4 +55,8 @@ export interface IRegisteredPlugin {
      * Defines wether or not the plugin is enabled.
      */
     enabled: boolean;
+    /**
+     * Defines wether or not the plugin comes from NPM.
+     */
+    fromNpm?: boolean;
 }

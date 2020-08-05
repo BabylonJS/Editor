@@ -37,11 +37,11 @@ const cacheMap = {
 }
 
 const originalResolveFilename = Module._resolveFilename;
-Module._resolveFilename = function (filename: string, parent: any, isMain: boolean) {
+Module._resolveFilename = function (filename: string, parent: any, isMain: boolean, options: any) {
 	if (cacheMap[filename])
 		return cacheMap[filename];
 
-	return originalResolveFilename(filename, parent, isMain);
+	return originalResolveFilename(filename, parent, isMain, options);
 }
 
 // Globals

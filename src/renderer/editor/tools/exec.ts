@@ -7,6 +7,8 @@ import { Observer } from "babylonjs";
 
 import { ConsoleLayer } from "../components/console";
 
+import { IEditorPreferences } from "./types";
+
 import { Editor } from "../editor";
 
 export interface IExecProcess {
@@ -89,5 +91,36 @@ export class ExecTools {
         program.write("exit\n\r");
 
         return { process: program, promise };
+    }
+
+    /**
+     * Excutes the given command.
+     * @param command defines the command to execute.
+     */
+    public static ExecCommand(command: string): IExecProcess {
+        const args: string[] = [];
+        const platform = os.platform();
+        if (platform === "darwin") {
+            args.push("-l");
+        }
+
+        const settings = JSON.parse(localStorage.getItem("babylonjs-editor-preferences") ?? "{ }") as IEditorPreferences;
+        const shell = settings.terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"]!;
+        const program = spawn(shell, args, { });
+
+        const promise = new Promise<void>((resolve, reject) => {
+            program.onExit((e) => {
+                if (e?.exitCode === 0) {
+                    return resolve();
+                }
+
+                reject();
+            });
+        });
+
+        program.write(`${command.replace(/\\/g, "/")}\n\r`);
+        program.write("exit\n\r");
+
+        return { promise, process: program };
     }
 }

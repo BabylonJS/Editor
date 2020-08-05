@@ -1,13 +1,19 @@
 import { join } from "path";
 import { readJSON } from "fs-extra";
+import { execSync } from "child_process";
 
 import * as React from "react";
 import { Divider, Callout, Switch, Button } from "@blueprintjs/core";
 
 import { Tools } from "../../editor/tools/tools";
+import { ExecTools } from "../../editor/tools/exec";
 import { IRegisteredPlugin } from "../../editor/tools/types";
 
+import { Alert } from "../../editor/gui/alert";
+import { Dialog } from "../../editor/gui/dialog";
+
 import WorkspaceSettingsWindow from "./index";
+import { TerminalComponent } from "./gui/terminal";
 
 export interface IPluginsSettingsProps {
     /**
@@ -28,6 +34,9 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
         return (
             <div>
                 <Divider />
+                <Button text="Add..." icon="add" fill={true} onClick={() => this._handleAddPlugin()} />
+                <Button text="Add From NPM..." icon="add" fill={true} onClick={() => this._addFromNpm()} />
+                <Divider />
                 {this.props.settings.state.plugins?.map((p) => (
                     <Callout key={p.name} title={p.name} icon="series-derived">
                         <span style={{ color: "grey" }}>{p.path}</span>
@@ -35,8 +44,6 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
                         <Button text="Remove" icon="remove" fill={true} onClick={() => this._handleRemovePlugin(p)} />
                     </Callout>
                 ))}
-                <Divider />
-                <Button text="Add..." icon="add" fill={true} onClick={() => this._handleAddPlugin()} />
             </div>
         );
     }
@@ -67,9 +74,57 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
     }
 
     /**
+     * Called on the user wants to add from NPM.
+     */
+    private async _addFromNpm(): Promise<void> {
+        const moduleName = await Dialog.Show("NPM Package Name", "Please provide the name of the package");
+
+        const plugins = this.props.settings.state.plugins?.slice() ?? [];
+        const exists = plugins.find((p) => p.name === moduleName);
+        
+        if (exists) { return; }
+
+        try {
+            const program = ExecTools.ExecCommand(`npm i -g ${moduleName}`);
+
+            Alert.Show("Installing...", `Installing ${moduleName}...`, undefined,
+                <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />
+            );
+
+            await program.promise;
+
+            const globalNodeModules = execSync("npm root -g").toString().trim();
+
+            this.props.settings.setState({ plugins: plugins.concat([{
+                name: moduleName,
+                path: join(globalNodeModules, moduleName),
+                enabled: true,
+                fromNpm: true,
+            }]) });
+        } catch (e) {
+            Alert.Show("Failed To Install Plugin From NPM", e?.message);
+        }
+    }
+
+    /**
      * Called on the user wants to remove a plugin.
      */
-    private _handleRemovePlugin(plugin: IRegisteredPlugin): void {
+    private async _handleRemovePlugin(plugin: IRegisteredPlugin): Promise<void> {
+        // If comes from NPM, uninstall
+        if (plugin.fromNpm) {
+            try {
+                const program = ExecTools.ExecCommand(`npm uninstall -g ${plugin.name}`);
+                
+                Alert.Show("Installing...", `Uninstalling ${plugin.name}...`, undefined,
+                    <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />
+                );
+
+                await program.promise;
+            } catch(e) {
+                // Catch silently.
+            }
+        }
+
         const plugins = this.props.settings.state.plugins?.slice() ?? [];
 
         const index = plugins.indexOf(plugin);

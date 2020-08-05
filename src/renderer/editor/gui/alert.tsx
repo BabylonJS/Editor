@@ -76,6 +76,7 @@ export class Alert extends React.Component<IAlertProps, { }> {
             >
                 <div className={Classes.DIALOG_BODY}>
                     <p><strong>{this.props.message}</strong></p>
+                    <br />
                     {this.props.body}
                 </div>
                 <div className={Classes.DIALOG_FOOTER}>

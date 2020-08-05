@@ -62,6 +62,11 @@ export class Dialog extends React.Component<IDialogProps> {
      * Renders the component.
      */
     public render(): React.ReactNode {
+        const body = this.props.body ?? (
+            <FormGroup disabled={false} inline={false} label={this.props.message} labelFor="dialog-text-input" labelInfo="(required)">
+                <InputGroup id="dialog-text-input" placeholder="Value..." disabled={false} autoFocus={true} type={this.props.password ? "password" : "text"} />
+            </FormGroup>
+        );
         return (
             <BPDialog
                 isOpen={true}
@@ -73,9 +78,7 @@ export class Dialog extends React.Component<IDialogProps> {
                 onClose={() => this._handleClose(true)}
             >
                 <div className={Classes.DIALOG_BODY}>
-                    <FormGroup disabled={false} inline={false} label={this.props.message} labelFor="dialog-text-input" labelInfo="(required)">
-                        <InputGroup id="dialog-text-input" placeholder="Value..." disabled={false} autoFocus={true} type={this.props.password ? "password" : "text"} />
-                    </FormGroup>
+                    {body}
                 </div>
                 <div className={Classes.DIALOG_FOOTER}>
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>
