@@ -248,7 +248,7 @@ export class ScriptAssets extends AbstractAssets {
                         height: "256px",
                         objectFit: "contain",
                         backgroundColor: "#222222",
-                        left: "50%",
+                        transform: "translate(50%)",
                     }}
                 ></img>
             </>

@@ -7,6 +7,9 @@ export { AbstractEditorPlugin, IEditorPluginProps } from "./renderer/editor/tool
 // Editor
 export { Editor } from "./renderer/editor/editor";
 
+// Tools
+export { Tools } from "./renderer/editor/tools/tools";
+
 // Assets
 export { Assets, IAssetComponent, IAssetsProps, IAssetsState } from "./renderer/editor/components/assets";
 export { AbstractAssets, IAbstractAssets, IAssetComponentItem, IAssetsComponentProps, IAssetsComponentState } from "./renderer/editor/assets/abstract-assets";

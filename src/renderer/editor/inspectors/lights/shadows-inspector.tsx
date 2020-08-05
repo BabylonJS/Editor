@@ -40,7 +40,10 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
         this._shadowsFolder.add(this, "_hasShadowGenerator").name("Generates Shadows").onChange(() => this._handleHasShadowsChanged());
 
         if (this._hasShadowGenerator) {
-            const generator = this.selectedObject.getShadowGenerator()!;
+            const generator = this.selectedObject.getShadowGenerator()! as CascadedShadowGenerator | ShadowGenerator;
+
+            this._shadowsFolder.add(generator, "enableSoftTransparentShadow").name("Enable Soft Transparent Shadow");
+            this._shadowsFolder.add(generator, "transparencyShadow").name("Enable Transparency Shadow");
             
             if (generator instanceof CascadedShadowGenerator) {
                 this._addCascadedShadowGenerator(this._shadowsFolder, generator);

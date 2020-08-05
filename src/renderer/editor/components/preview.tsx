@@ -362,7 +362,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         this._editor.scene!.stopAnimation(camera);
 
         const translation = Vector3.Zero();
-        (node as Node).getWorldMatrix().decompose(undefined, undefined, translation);
+        const scaling = Vector3.Zero();
+        (node as Node).getWorldMatrix().decompose(scaling, undefined, translation);
         
         if (camera["target"]) {
             const a = new Animation("FocusTargetAnimation", "target", 60, Animation.ANIMATIONTYPE_VECTOR3);
@@ -374,7 +375,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         }
 
         if (node instanceof AbstractMesh && node._boundingInfo) {
-            const distance = Vector3.Distance(node._boundingInfo.minimum, node._boundingInfo.maximum);
+            const distance = Vector3.Distance(
+                node._boundingInfo.minimum.multiply(scaling),
+                node._boundingInfo.maximum.multiply(scaling),
+            );
 
             const a = new Animation("FocusPositionAnimation", "position", 60, Animation.ANIMATIONTYPE_VECTOR3);
             a.setKeys([{ frame: 0, value: camera.position.clone() }, { frame: 60, value: translation.add(new Vector3(distance, distance, distance)) }]);

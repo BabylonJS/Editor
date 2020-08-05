@@ -293,11 +293,11 @@ export class TextureAssets extends AbstractAssets {
                 <img
                     src={item.base64}
                     style={{
-                        width: "100%",
+                        width: "256px",
                         height: "256px",
                         objectFit: "contain",
                         backgroundColor: "#222222",
-                        left: "50%",
+                        transform: "translate(50%)",
                     }}
                 ></img>
             </>
