@@ -95,6 +95,15 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
         }
     }
 
+    /**
+     * Cleans the assets. Typically removes the unused files.
+     */
+    public static async Clean(): Promise<void> {
+        for (const a of this._assetComponents) {
+            await a._ref?.clean();
+        }
+    }
+
     private _editor: Editor;
 
     /**

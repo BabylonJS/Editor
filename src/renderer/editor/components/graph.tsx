@@ -2,7 +2,7 @@ import * as React from "react";
 import Tree from "antd/lib/tree/Tree";
 import {
     ContextMenu, Menu, MenuItem, MenuDivider, Classes, Tooltip,
-    Position, HotkeysTarget, Hotkeys, Hotkey, InputGroup, FormGroup,
+    Position, InputGroup, FormGroup,
     Switch, ButtonGroup, Button, Popover,
 } from "@blueprintjs/core";
 
@@ -29,7 +29,13 @@ import { SceneTools } from "../scene/tools";
 import { SoundAssets } from "../assets/sounds";
 
 export interface IGraphProps {
+    /**
+     * Defines the editor reference.
+     */
     editor: Editor;
+    /**
+     * Defines the reference to the scene to traverse.
+     */
     scene?: Undefinable<Scene>;
 }
 
@@ -65,7 +71,6 @@ export interface IGraphState {
     showLights: boolean;
 }
 
-@HotkeysTarget
 export class Graph extends React.Component<IGraphProps, IGraphState> {
     private _editor: Editor;
     private _firstUpdate: boolean = true;
@@ -145,22 +150,6 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     </Tree.DirectoryTree>
                 </div>
             </>
-        );
-    }
-
-    /**
-     * Renders the hotkeys for the graph component;
-     */
-    public renderHotkeys(): JSX.Element {
-        return (
-            <Hotkeys>
-                <Hotkey
-                    group="graph-shortcuts"
-                    combo="del"
-                    label="Delete the selected node(s)."
-                    onKeyDown={() => this._handleRemoveObject()}
-                />
-            </Hotkeys>
         );
     }
 
@@ -540,8 +529,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 title={
                     <Tooltip
                         content={<span>{ctor}</span>}
-                        position={Position.RIGHT}
-                        usePortal={false}
+                        usePortal={true}
                     >
                         <span style={style}>{name}</span>
                     </Tooltip>
@@ -759,8 +747,6 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             if (this.state.selectedNodeIds?.indexOf(draggedNodeId) === -1) {
                 this.setState({ selectedNodeIds: this.state.selectedNodeIds.slice().concat([draggedNodeId]) });
             }
-        } else {
-            this.setState({ selectedNodeIds: [draggedNodeId] });
         }
     }
 

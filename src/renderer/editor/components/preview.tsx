@@ -58,7 +58,13 @@ export interface IPreviewState {
 }
 
 export enum PreviewCanvasEventType {
+    /**
+     * Defines the event raised when the preview canvas is focused.
+     */
     Focused = 0,
+    /**
+     * Defines the vent raised when the preview canvas is blurred.
+     */
     Blurred
 }
 

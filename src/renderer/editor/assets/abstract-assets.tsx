@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Tooltip, Position } from "@blueprintjs/core";
+import { Tooltip } from "@blueprintjs/core";
 
 import { PickingInfo, Vector3, Observable } from "babylonjs";
 
@@ -129,6 +129,14 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      */
     public async refresh(): Promise<void> {
         this.setState({ items: this.items });
+    }
+
+    /**
+     * Called once a project has been loaded, this function is used to clean up
+     * unused assets files automatically.
+     */
+    public async clean(): Promise<void> {
+        // Empty for now...
     }
 
     /**
@@ -275,7 +283,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                 margin: "10px",
                 borderRadius: "10px",
             }}>
-                <Tooltip content={tooltipContent} position={Position.TOP} usePortal={false}>
+                <Tooltip content={tooltipContent} usePortal={false}>
                     <img
                         src={item.base64}
                         style={{ width: `${this.size}px`, height: `${this.size}px`, borderRadius: "15px", objectFit: "contain", ...item.style ?? { } }}

@@ -1,6 +1,6 @@
 import {
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode,
-    LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion,
+    LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion, Camera,
 } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
@@ -151,8 +151,10 @@ export class SceneGizmo {
         // Mesh or transform node
         if (!node || !this._currentGizmo) { return; }
 
-        if (node instanceof AbstractMesh || node instanceof TransformNode) {
-            this._currentGizmo.attachedMesh = node as any;
+        if (node instanceof AbstractMesh) {
+            this._currentGizmo.attachedMesh = node;
+        } else if (node instanceof TransformNode || node instanceof Camera) {
+            this._currentGizmo.attachedNode = node;
         }
     }
 
@@ -220,3 +222,32 @@ export class SceneGizmo {
         this._initialValue = null;
     }
 }
+
+/**
+ * Defines the problem found in alpha.30, when a scale is -1 then movements are inverted using gizmos.
+var createScene = function () {
+    // Setup scene
+    var scene = new BABYLON.Scene(engine);
+	var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene);
+    camera.setPosition(new BABYLON.Vector3(0, 10, 5));
+    camera.attachControl(canvas, true);
+    var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+    var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene);
+    ground.position.y= -1
+
+    // Create gizmo
+    var gizmo = new BABYLON.PositionGizmo()
+    gizmo.ignoreChildren = true;
+
+    // Import gltf model
+    BABYLON.SceneLoader.ImportMesh('',"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/Yeti_IdleUnity.gltf", "", scene, function (container) {
+        var gltfMesh = container[0]
+        alert(gltfMesh.name);
+        var bb = BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(gltfMesh)
+
+        gizmo.attachedMesh = bb;
+    });
+
+    return scene;
+};
+ */

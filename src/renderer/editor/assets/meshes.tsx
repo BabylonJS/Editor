@@ -1,6 +1,6 @@
 import { shell } from "electron";
 import { join, extname, basename, dirname } from "path";
-import { copy } from "fs-extra";
+import { copy, readdir, remove } from "fs-extra";
 import * as os from "os";
 
 import * as React from "react";
@@ -32,7 +32,7 @@ export class MeshesAssets extends AbstractAssets {
      */
     protected size: number = 75;
 
-    private _extensions: string[] = [".babylon", ".glb", ".gltf"];
+    private _extensions: string[] = [".babylon", ".glb", ".gltf", ".obj"];
 
     /**
      * Defines the list of all avaiable meshes in the assets component.
@@ -83,6 +83,22 @@ export class MeshesAssets extends AbstractAssets {
         }
         
         return super.refresh();
+    }
+
+    /**
+     * Called once a project has been loaded, this function is used to clean up
+     * unused assets files automatically.
+     */
+    public async clean(): Promise<void> {
+        if (!Project.DirPath) { return; }
+
+        const existingFiles = await readdir(join(Project.DirPath, "assets/meshes"));
+        for (const file of existingFiles) {
+            const exists = MeshesAssets.Meshes.find((m) => m.name === file);
+            if (!exists) {
+                await remove(join(Project.DirPath, "assets/meshes", file));
+            }
+        }
     }
 
     /**
