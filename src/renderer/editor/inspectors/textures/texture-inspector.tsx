@@ -142,7 +142,7 @@ export class TextureInspector extends AbstractInspector<Texture> {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: TextureInspector,
     ctorNames: ["Texture", "CubeTexture", "DynamicTexture"],
     title: "Texture",

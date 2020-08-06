@@ -70,7 +70,7 @@ export class FreeCameraInspector extends CameraInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: FreeCameraInspector,
     ctorNames: ["FreeCamera", "UniversalCamera"],
     title: "Free Camera",

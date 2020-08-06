@@ -125,7 +125,7 @@ export class ArcRotateCameraInspector extends CameraInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: ArcRotateCameraInspector,
     ctorNames: ["ArcRotateCamera"],
     title: "Arc Rotate Camera",

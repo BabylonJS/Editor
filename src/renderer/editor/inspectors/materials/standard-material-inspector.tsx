@@ -150,7 +150,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: StandardMaterialInspector,
     ctorNames: ["StandardMaterial"],
     title: "Material",

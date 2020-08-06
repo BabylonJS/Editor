@@ -53,7 +53,7 @@ export class SpotLightInspector extends LightInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: SpotLightInspector,
     ctorNames: ["SpotLight"],
     title: "Spot Light",

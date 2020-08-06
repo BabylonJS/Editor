@@ -46,7 +46,7 @@ export class CameraInspector extends NodeInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: CameraInspector,
     ctorNames: ["Camera"],
     title: "Camera",

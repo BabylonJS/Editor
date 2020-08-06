@@ -45,7 +45,7 @@ export class SkyMaterialInspector extends MaterialInspector<SkyMaterial> {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: SkyMaterialInspector,
     ctorNames: ["SkyMaterial"],
     title: "Sky",

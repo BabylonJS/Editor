@@ -1,13 +1,20 @@
 import { Undefinable } from "../../../shared/types";
 
-import { IPluginToolbar } from "./toolbar";
+import { IObjectInspector } from "../components/inspector";
+
 import { Editor } from "../editor";
+
+import { IPluginToolbar } from "./toolbar";
 
 export interface IPlugin {
     /**
      * Defines the list of all toolbar elements to add when the plugin has been loaded.
      */
     toolbar?: Undefinable<IPluginToolbar[]>;
+    /**
+     * Defines the list of all inspector elements.
+     */
+    inspectors?: Undefinable<IObjectInspector[]>;
 
     /**
      * If implemented, should return an object (plain JSON object) that will be saved

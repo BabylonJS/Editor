@@ -34,7 +34,7 @@ export class DirectionalLightInspector extends LightInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: DirectionalLightInspector,
     ctorNames: ["DirectionalLight"],
     title: "Directional Light",

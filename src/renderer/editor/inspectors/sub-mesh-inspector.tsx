@@ -61,7 +61,7 @@ export class SubMeshInspector extends AbstractInspector<SubMesh> {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: SubMeshInspector,
     ctorNames: ["SubMesh"],
     title: "SubMesh",

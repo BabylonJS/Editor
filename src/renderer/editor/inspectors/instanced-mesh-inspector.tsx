@@ -12,7 +12,7 @@ export class InstancedMeshInspector extends MeshInspector {
     // }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: InstancedMeshInspector,
     ctorNames: ["InstancedMesh"],
     title: "Instanced Mesh",

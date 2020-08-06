@@ -175,8 +175,6 @@ export class ScenePicker {
      */
     private _onCanvasMove(): void {
         let object = this.getObjectUnderPointer(false);
-        if (!object) { return; }
-        if (object instanceof SubMesh) { object = object.getMesh(); }
 
         if (object === this._lastSelectedNode) { return; }
 
@@ -186,6 +184,10 @@ export class ScenePicker {
             this._lastSelectedNode.renderOverlay = false;
             this._lastSelectedNode = null;
         }
+
+        if (!object) { return; }
+        
+        if (object instanceof SubMesh) { object = object.getMesh(); }
 
         if (object instanceof AbstractMesh) {
             object.showBoundingBox = true;

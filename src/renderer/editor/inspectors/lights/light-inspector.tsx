@@ -33,7 +33,7 @@ export class LightInspector extends NodeInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: LightInspector,
     ctorNames: ["Light"],
     title: "Light",

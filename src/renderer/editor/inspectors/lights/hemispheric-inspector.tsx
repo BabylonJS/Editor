@@ -33,7 +33,7 @@ export class HemisphericLightInspector extends LightInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: HemisphericLightInspector,
     ctorNames: ["HemisphericLight"],
     title: "Hemispheric Light",

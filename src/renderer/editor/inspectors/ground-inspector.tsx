@@ -160,7 +160,7 @@ export class GroundMeshInspector extends MeshInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: GroundMeshInspector,
     ctorNames: ["GroundMesh"],
     title: "Ground",

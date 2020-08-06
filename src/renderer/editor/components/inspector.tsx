@@ -68,21 +68,32 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
     private _activeTabId: Nullable<TabId> = null;
 
     private _refHandler = {
-        getInspector: (ref: AbstractInspector<any>) => ref && (Inspector._objectInspectorsConfigurations.find((a) => a._id === ref.props.toolId)!._ref = ref),
+        getInspector: (ref: AbstractInspector<any>) => ref && (Inspector._ObjectInspectorsConfigurations.find((a) => a._id === ref.props.toolId)!._ref = ref),
     };
 
-    private static _objectInspectorsConfigurations: IObjectInspector[] = [];
+    private static _ObjectInspectorsConfigurations: IObjectInspector[] = [];
 
     /**
      * Registers the given object inspector.
      * @param objectInspectorConfiguration the object inspector configuration.
      */
-    public static registerObjectInspector(objectInspectorConfiguration: IObjectInspector): void {
-        const exists = this._objectInspectorsConfigurations.find((o) => o.ctor === objectInspectorConfiguration.ctor);
+    public static RegisterObjectInspector(objectInspectorConfiguration: IObjectInspector): void {
+        const exists = this._ObjectInspectorsConfigurations.find((o) => o.ctor === objectInspectorConfiguration.ctor);
         if (exists) { return; }
 
         objectInspectorConfiguration._id = Tools.RandomId();
-        this._objectInspectorsConfigurations.push(objectInspectorConfiguration);
+        this._ObjectInspectorsConfigurations.push(objectInspectorConfiguration);
+    }
+
+    /**
+     * Removes the given object inspector configuration from the available object inspectors.
+     * @param objectInspectorConfiguration defines the object inspector configuration to remove.
+     */
+    public static UnregisterObjectInspector(objectInspectorConfiguration: IObjectInspector): void {
+        const index = this._ObjectInspectorsConfigurations.indexOf(objectInspectorConfiguration);
+        if (index !== -1) {
+            this._ObjectInspectorsConfigurations.splice(index, 1);
+        }
     }
 
     /**
@@ -109,7 +120,7 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
 
         this._firstTabId = "";
 
-        Inspector._objectInspectorsConfigurations.forEach((i) => {
+        Inspector._ObjectInspectorsConfigurations.forEach((i) => {
             if (i.isSupported) {
                 if (!i.isSupported(this.state.selectedObject)) { return; }
             } else {
@@ -172,14 +183,14 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
      * Refreshes the current display of the current inspector.
      */
     public refreshDisplay(): void {
-        Inspector._objectInspectorsConfigurations.forEach((i) => i._ref?.refreshDisplay());
+        Inspector._ObjectInspectorsConfigurations.forEach((i) => i._ref?.refreshDisplay());
     }
 
     /**
      * Resizes the inspector.
      */
     public resize(): void {
-        Inspector._objectInspectorsConfigurations.forEach((i) => i._ref?.resize());
+        Inspector._ObjectInspectorsConfigurations.forEach((i) => i._ref?.resize());
     }
 
     /**

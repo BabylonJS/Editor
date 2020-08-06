@@ -152,7 +152,7 @@ export class SoundInspector extends AbstractInspector<Sound> {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: SoundInspector,
     ctorNames: ["Sound"],
     title: "Sound",

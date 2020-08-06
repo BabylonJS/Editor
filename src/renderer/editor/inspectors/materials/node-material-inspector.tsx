@@ -75,7 +75,7 @@ export class NodeMaterialInspector extends MaterialInspector<NodeMaterial> {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: NodeMaterialInspector,
     ctorNames: ["NodeMaterial"],
     title: "Node",

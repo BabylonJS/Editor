@@ -293,7 +293,7 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: ParticleSystemInspector,
     ctorNames: ["ParticleSystem"],
     title: "Particle System",

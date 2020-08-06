@@ -195,7 +195,7 @@ export class NodeInspector extends AbstractInspector<Node> {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: NodeInspector,
     ctorNames: ["Node"],
     title: "Node",

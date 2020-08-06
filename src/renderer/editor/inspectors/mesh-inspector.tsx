@@ -378,7 +378,7 @@ export class MeshInspector extends NodeInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: MeshInspector,
     ctorNames: ["Mesh", "SubMesh"],
     title: "Mesh",

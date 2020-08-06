@@ -1094,8 +1094,15 @@ export class Editor {
 
                 Editor.LoadedExternalPlugins[p.name] = plugin;
 
-                // this.mainToolbar.setState({ plugins: plugin.toolbarElements });
-                pluginToolbars.push.apply(pluginToolbars, plugin.toolbar);
+                // Toolbar
+                if (plugin.toolbar) {
+                    pluginToolbars.push.apply(pluginToolbars, plugin.toolbar);
+                }
+
+                // Inspectors
+                if (plugin.inspectors) {
+                    plugin.inspectors.forEach((i) => Inspector.RegisterObjectInspector(i));
+                }
             } catch (e) {
                 console.error(e);
             }

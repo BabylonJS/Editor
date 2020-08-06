@@ -180,7 +180,7 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: ShadowsInspector,
     ctorNames: ["DirectionalLight", "SpotLight", "PointLight"],
     title: "Shadows",

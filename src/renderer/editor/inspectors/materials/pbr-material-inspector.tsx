@@ -171,6 +171,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
 
         microSurface.add(this.material, "microSurface").min(0).max(1).name("Micro Surface");
         microSurface.add(this.material, "useAutoMicroSurfaceFromReflectivityMap").name("Use Auto Micro Surface From Reflectivity Map");
+        microSurface.add(this.material, "useMicroSurfaceFromReflectivityMapAlpha").name("Use Micro Surface From Reflectivity Map Alpha");
         
         this.addTextureList(microSurface, this.material, "microSurfaceTexture").name("Texture");
 
@@ -319,7 +320,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: PBRMaterialInspector,
     ctorNames: ["PBRMaterial"],
     title: "PBR",

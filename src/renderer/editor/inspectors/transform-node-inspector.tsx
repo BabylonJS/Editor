@@ -34,7 +34,7 @@ export class TransformNodeInspector extends NodeInspector {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: TransformNodeInspector,
     ctorNames: ["TransformNode"],
     title: "Transform Node",

@@ -155,7 +155,7 @@ export class RenderingInspector extends AbstractInspector<Scene> {
     }
 }
 
-Inspector.registerObjectInspector({
+Inspector.RegisterObjectInspector({
     ctor: RenderingInspector,
     ctorNames: ["Scene"],
     title: "Rendering",
