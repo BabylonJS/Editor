@@ -32,7 +32,10 @@ export class MeshesAssets extends AbstractAssets {
      */
     protected size: number = 75;
 
-    private _extensions: string[] = [".babylon", ".glb", ".gltf", ".obj"];
+    /**
+     * Defines the list of all supported extensions.
+     */
+    public extensions: string[] = [".babylon", ".glb", ".gltf", ".obj"];
 
     /**
      * Defines the list of all avaiable meshes in the assets component.
@@ -234,7 +237,7 @@ export class MeshesAssets extends AbstractAssets {
                 await copy(file.path, join(Project.DirPath!, "files", file.name));
             }
 
-            if (this._extensions.indexOf(extension) === -1) { continue; }
+            if (this.extensions.indexOf(extension) === -1) { continue; }
 
             const existing = MeshesAssets.Meshes.find((m) => m.name === file.name);
 

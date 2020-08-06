@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Tooltip } from "@blueprintjs/core";
+import { Tooltip, Position } from "@blueprintjs/core";
 
 import { PickingInfo, Vector3, Observable } from "babylonjs";
 
@@ -283,7 +283,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                 margin: "10px",
                 borderRadius: "10px",
             }}>
-                <Tooltip content={tooltipContent} usePortal={true} interactionKind="hover" hoverOpenDelay={250} hoverCloseDelay={250} lazy={true} autoFocus={true} enforceFocus={true}>
+                <Tooltip content={tooltipContent} usePortal={true} interactionKind="hover" position={Position.TOP} hoverOpenDelay={250} hoverCloseDelay={250} lazy={true} autoFocus={true} enforceFocus={true}>
                     <img
                         src={item.base64}
                         style={{ width: `${this.size}px`, height: `${this.size}px`, borderRadius: "15px", objectFit: "contain", ...item.style ?? { } }}

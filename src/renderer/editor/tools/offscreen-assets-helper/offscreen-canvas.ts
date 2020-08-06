@@ -109,16 +109,22 @@ class OffscreenAssets {
                 const minimum = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
                 const maximum = new Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
 
-                this.scene.meshes.forEach(d => {
-                    const b = d._boundingInfo;
-                    if (!b) { return; }
-                    maximum.x = Math.max(b.maximum.x, maximum.x);
-                    maximum.y = Math.max(b.maximum.y, maximum.y);
-                    maximum.z = Math.max(b.maximum.z, maximum.z);
+                this.scene.meshes.forEach((d) => {
+                    const scaling = Vector3.Zero();
+                    d.getWorldMatrix().decompose(scaling, undefined, undefined);
 
-                    minimum.x = Math.min(b.minimum.x, minimum.x);
-                    minimum.y = Math.min(b.minimum.y, minimum.y);
-                    minimum.z = Math.min(b.minimum.z, minimum.z);
+                    const bMinimum = d._boundingInfo?.minimum.multiply(scaling);
+                    const bMaximum = d._boundingInfo?.maximum.multiply(scaling);
+
+                    if (!bMinimum || !bMaximum) { return; }
+
+                    maximum.x = Math.max(bMaximum.x, maximum.x);
+                    maximum.y = Math.max(bMaximum.y, maximum.y);
+                    maximum.z = Math.max(bMaximum.z, maximum.z);
+
+                    minimum.x = Math.min(bMinimum.x, minimum.x);
+                    minimum.y = Math.min(bMinimum.y, minimum.y);
+                    minimum.z = Math.min(bMinimum.z, minimum.z);
                 });
 
                 const center = Vector3.Center(minimum, maximum);

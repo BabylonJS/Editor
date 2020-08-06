@@ -348,7 +348,9 @@ export class ProjectExporter {
      * @param withChildren defines if children must be serialized as well
      */
     public static ExportMesh(mesh: Mesh, withParents: boolean = false, withChildren: boolean = false): any {
-        mesh.isPickable = mesh.metadata.isPickable;
+        if (mesh.metadata?.isPickable) {
+            mesh.isPickable = mesh.metadata.isPickable;
+        }
 
         const json = SceneSerializer.SerializeMesh(mesh, withParents, withChildren);
         json.materials = [];
@@ -357,7 +359,9 @@ export class ProjectExporter {
             delete m.renderOverlay;
         });
 
-        mesh.isPickable = true;
+        if (mesh.metadata?.isPickable) {
+            mesh.isPickable = true;
+        }
 
         json.lods = [];
         for (const lod of mesh.getLODLevels()) {

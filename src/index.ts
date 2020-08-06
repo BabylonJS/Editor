@@ -30,6 +30,8 @@ export { MaterialInspector } from "./renderer/editor/inspectors/materials/materi
 export { FilesStore, IContentFile, IFile } from "./renderer/editor/project/files";
 export { IBabylonFile, IBabylonFileNode, IProject, IWorkSpace } from "./renderer/editor/project/typings";
 export { ProjectExporter } from "./renderer/editor/project/project-exporter";
+export { Project } from "./renderer/editor/project/project";
+export { WorkSpace } from "./renderer/editor/project/workspace";
 
 // GUI
 export { Alert, IAlertProps } from "./renderer/editor/gui/alert";
