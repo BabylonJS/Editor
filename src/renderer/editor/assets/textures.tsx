@@ -297,7 +297,7 @@ export class TextureAssets extends AbstractAssets {
                         height: "256px",
                         objectFit: "contain",
                         backgroundColor: "#222222",
-                        transform: "translate(50%)",
+                        left: "50%",
                     }}
                 ></img>
             </>
