@@ -2,6 +2,8 @@ import { join } from "path";
 import { readJSON } from "fs-extra";
 import { execSync } from "child_process";
 
+import { Nullable } from "../../../shared/types";
+
 import * as React from "react";
 import { Divider, Callout, Switch, Button } from "@blueprintjs/core";
 
@@ -84,17 +86,25 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
         
         if (exists) { return; }
 
+        let alertRef: Nullable<Alert> = null;
+
         try {
             const program = ExecTools.ExecCommand(`npm i -g ${moduleName}`);
 
             Alert.Show("Installing...", `Installing ${moduleName}...`, undefined,
-                <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />
+                <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />,
+                {
+                    canOutsideClickClose: false,
+                    isCloseButtonShown: false,
+                    noFooter: true,
+                },
+                (ref) => alertRef = ref,
             );
 
             await program.promise;
 
             const globalNodeModules = execSync("npm root -g").toString().trim();
-
+            
             this.props.settings.setState({ plugins: plugins.concat([{
                 name: moduleName,
                 path: join(globalNodeModules, moduleName),
@@ -104,6 +114,8 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
         } catch (e) {
             Alert.Show("Failed To Install Plugin From NPM", e?.message);
         }
+
+        alertRef!.close();
     }
 
     /**
@@ -112,17 +124,28 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
     private async _handleRemovePlugin(plugin: IRegisteredPlugin): Promise<void> {
         // If comes from NPM, uninstall
         if (plugin.fromNpm) {
+            let alertRef: Nullable<Alert> = null;
+
             try {
                 const program = ExecTools.ExecCommand(`npm uninstall -g ${plugin.name}`);
                 
                 Alert.Show("Installing...", `Uninstalling ${plugin.name}...`, undefined,
-                    <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />
+                    <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />,
+                    {
+                        canOutsideClickClose: false,
+                        isCloseButtonShown: false,
+                        noFooter: true,
+                    },
+                    (ref) => alertRef = ref,
                 );
 
                 await program.promise;
+
             } catch(e) {
                 // Catch silently.
             }
+
+            alertRef!.close();
         }
 
         const plugins = this.props.settings.state.plugins?.slice() ?? [];
