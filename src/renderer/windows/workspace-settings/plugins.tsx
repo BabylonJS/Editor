@@ -8,11 +8,13 @@ import * as React from "react";
 import { Divider, Callout, Switch, Button } from "@blueprintjs/core";
 
 import { Tools } from "../../editor/tools/tools";
+import { IPCTools } from "../../editor/tools/ipc";
 import { ExecTools } from "../../editor/tools/exec";
 import { IRegisteredPlugin } from "../../editor/tools/types";
 
 import { Alert } from "../../editor/gui/alert";
 import { Dialog } from "../../editor/gui/dialog";
+import { Confirm } from "../../editor/gui/confirm";
 
 import WorkspaceSettingsWindow from "./index";
 import { TerminalComponent } from "./gui/terminal";
@@ -91,7 +93,7 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
         try {
             const program = ExecTools.ExecCommand(`npm i -g ${moduleName}`);
 
-            Alert.Show("Installing...", `Installing ${moduleName}...`, undefined,
+            Alert.Show("Installing...", `Installing "${moduleName}"...`, undefined,
                 <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />,
                 {
                     canOutsideClickClose: false,
@@ -110,7 +112,9 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
                 path: join(globalNodeModules, moduleName),
                 enabled: true,
                 fromNpm: true,
-            }]) });
+            }]) }, () => {
+                this._applyPluginsPreferences();
+            });
         } catch (e) {
             Alert.Show("Failed To Install Plugin From NPM", e?.message);
         }
@@ -122,6 +126,9 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
      * Called on the user wants to remove a plugin.
      */
     private async _handleRemovePlugin(plugin: IRegisteredPlugin): Promise<void> {
+        const confirm = await Confirm.Show("Remove Plugin", `Are you sure to remove the plugin named "${plugin.name}"?`);
+        if (!confirm) { return; }
+
         // If comes from NPM, uninstall
         if (plugin.fromNpm) {
             let alertRef: Nullable<Alert> = null;
@@ -129,7 +136,7 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
             try {
                 const program = ExecTools.ExecCommand(`npm uninstall -g ${plugin.name}`);
                 
-                Alert.Show("Installing...", `Uninstalling ${plugin.name}...`, undefined,
+                Alert.Show("Uninstalling...", `Uninstalling "${plugin.name}"...`, undefined,
                     <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />,
                     {
                         canOutsideClickClose: false,
@@ -153,7 +160,9 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
         const index = plugins.indexOf(plugin);
         if (index !== -1) {
             plugins.splice(index, 1);
-            this.props.settings.setState({ plugins: plugins });
+            this.props.settings.setState({ plugins: plugins }, () => {
+                this._applyPluginsPreferences();
+            });
         }
     }
 
@@ -168,5 +177,17 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
             plugins[index].enabled = !plugins[index].enabled;
             this.props.settings.setState({ plugins: plugins });
         }
+    }
+
+    /**
+     * Applies the plugins preferences.
+     */
+    private _applyPluginsPreferences(): void {
+        const preferences = this.props.settings.getPreferences();
+        preferences.plugins = this.props.settings.state.plugins ?? [];
+
+        localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(preferences));
+
+        IPCTools.ExecuteEditorFunction("_applyPreferences");
     }
 }
