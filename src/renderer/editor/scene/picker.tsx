@@ -3,12 +3,16 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 import { ContextMenu, Menu, MenuItem, MenuDivider, Classes } from "@blueprintjs/core";
 
-import { Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh, Sound, ParticleSystem } from "babylonjs";
+import {
+    Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh, Sound,
+    ParticleSystem, Mesh, MultiMaterial,
+} from "babylonjs";
 
 import { Editor } from "../editor";
 import { Icon } from "../gui/icon";
 
 import { SceneIcons } from "./icons";
+import { Tools } from "../tools/tools";
 
 export class ScenePicker {
     /**
@@ -125,7 +129,7 @@ export class ScenePicker {
         
         if (ev.button === 2) {
             if (object instanceof SubMesh) { object = object.getMesh(); }
-            if (object!._scene === this.icons._layer.utilityLayerScene) { object = object!.metadata.node as Node; }
+            if (object?._scene === this.icons._layer.utilityLayerScene) { object = object.metadata.node as Node; }
             return this._onCanvasContextMenu(ev, object);
         }
 
@@ -154,6 +158,19 @@ export class ScenePicker {
     private _onCanvasContextMenu(ev: MouseEvent, node: Nullable<Node>): void {
         if (!node) { return; }
 
+        const subMeshesItems: JSX.Element[] = [];
+        if (node instanceof Mesh && node.subMeshes?.length && node.subMeshes.length > 1) {
+            const multiMaterial = node.material && node.material instanceof MultiMaterial ? node.material : null;
+
+            node.subMeshes.forEach((sm, index) => {
+                const material = multiMaterial && sm.getMaterial();
+                const text = material ? (material.name ?? Tools.GetConstructorName(material)) : `Sub Mesh "${index}`;
+                const key = `${(node as Mesh)!.id}-${index}`;
+                const extraMenu = <MenuItem key={key} text={text} icon={<Icon src="vector-square.svg" />} onClick={() => this._editor.selectedSubMeshObservable.notifyObservers(sm)} />;
+                subMeshesItems.push(extraMenu);
+            });
+        }
+
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <MenuItem text="Clone" icon={<Icon src="clone.svg" />} onClick={() => {
@@ -165,6 +182,8 @@ export class ScenePicker {
                     this._editor.graph.removeObject(node!);
                     this._editor.graph.refresh();
                 }} />
+                {subMeshesItems.length ? <MenuDivider title="Sub-Meshes:" /> : undefined}
+                {subMeshesItems}
             </Menu>,
             { left: ev.clientX, top: ev.clientY }
         );

@@ -68,6 +68,8 @@ export class ProjectExporter {
     private static async _Save(editor: Editor, skipGenerateScene: boolean): Promise<void> {
         if (!Project.Path) { return this.SaveAs(editor); }
 
+        editor.console.logInfo(`Exporting project to: ${Project.DirPath}`);
+        
         const task = editor.addTaskFeedback(0, "Saving Files...");
         await Tools.Wait(500);
 
@@ -121,7 +123,13 @@ export class ProjectExporter {
                 continue;
             }
 
-            await copy(file.path, dest);
+            try {
+                await copy(file.path, dest);
+                editor.console.logInfo(`Copied resource file "${dest}"`);
+            } catch (e) {
+                editor.console.logError(`Failed to copy resource file "${file.path}" to "${dest}"`)
+                throw e;
+            }
             editor.updateTaskFeedback(task, progressValue += progressCount);
         }
 
@@ -143,6 +151,7 @@ export class ProjectExporter {
 
             project.cameras.push(dest);
             editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved camera configuration "${camera.name}"`);
         }
 
         // Write all textures
@@ -174,6 +183,7 @@ export class ProjectExporter {
 
             project.textures.push(dest);
             editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved texture configuration "${texture.name}"`);
         }
 
         // Write all materials
@@ -200,7 +210,9 @@ export class ProjectExporter {
                 json: dest,
                 isMultiMaterial: material instanceof MultiMaterial,
             });
+
             editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved material configuration "${material.name}"`);
         }
 
         // Write all meshes
@@ -220,7 +232,9 @@ export class ProjectExporter {
 
             await writeFile(join(meshesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
             project.meshes.push(dest);
+
             editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved mesh configuration "${mesh.name}"`);
         }
 
         // Write all lights
@@ -252,6 +266,7 @@ export class ProjectExporter {
             }
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved light configuration "${light.name}"`);
         }
 
         // Write all transform nodes
@@ -271,6 +286,7 @@ export class ProjectExporter {
             project.transformNodes.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved transform node configuration "${transform.name}"`);
         }
 
         // Write all particle systems
@@ -290,6 +306,7 @@ export class ProjectExporter {
             project.particleSystems!.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved particle system configuration "${ps.name}"`);
         }
 
         // Write all sounds
@@ -311,6 +328,7 @@ export class ProjectExporter {
             project.sounds!.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved sound configuration "${s.name}"`);
         }
 
         // Write assets cache
@@ -333,6 +351,8 @@ export class ProjectExporter {
         // Done!
         editor.updateTaskFeedback(task, 100, "Done!");
         editor.closeTaskFeedback(task, 500);
+
+        editor.console.logInfo(`Successfully saved project to: ${Project.DirPath!}`);
 
         // Save editor config
         editor._saveEditorConfig();
@@ -442,6 +462,7 @@ export class ProjectExporter {
         task = task ?? editor.addTaskFeedback(0, "Generating Final Scene");
         editor.updateTaskFeedback(task, 0, "Generating Final Scene");
 
+        editor.console.logInfo("Serializing scene...");
         const scene = this.GetFinalSceneJson(editor);
 
         const scenePath = this.GetExportedSceneLocation();
@@ -465,7 +486,12 @@ export class ProjectExporter {
                 continue;
             }
 
-            await copy(file.path, dest);
+            try {
+                await copy(file.path, dest);
+                editor.console.logInfo(`Copied resource file to: ${dest}`);
+            } catch (e) {
+                editor.console.logError(`Failed to copy resource file "${file.path}" to "${dest}"`);
+            }
             editor.updateTaskFeedback(task, progress += step);
         }
 
@@ -477,10 +503,14 @@ export class ProjectExporter {
                     continue;
                 }
 
+                const removePath = join(destFilesDir, existingFile);
+
                 try {
-                    await remove(join(destFilesDir, existingFile));
+                    await remove(removePath);
+                    editor.console.logInfo(`Removed unused resource file ${removePath}`);
                 } catch (e) {
                     // Catch silently.
+                    editor.console.logError(`Failed to remove unused resource file ${removePath}`);
                 }
             }
         } catch (e) {
@@ -488,6 +518,7 @@ export class ProjectExporter {
         }
 
         // Tools
+        editor.console.logInfo("Copyging tools...");
         const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
         const tools = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
 
@@ -497,6 +528,7 @@ export class ProjectExporter {
         await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "tools.ts"), finalTools, { encoding: "utf-8" });
 
         // Export scripts
+        editor.console.logInfo("Configuring scripts...");
         const scriptsContent = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "scene", "index.ts"), { encoding: "utf-8" });
         const newScriptContent = await this._UpdateScriptContent(editor, scriptsContent);
 
@@ -507,6 +539,7 @@ export class ProjectExporter {
 
         editor.updateTaskFeedback(task, 100);
         editor.closeTaskFeedback(task, 1000);
+        editor.console.logInfo(`Successfully generated scene at ${scenePath}`);
     }
 
     /**

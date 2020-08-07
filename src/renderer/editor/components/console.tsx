@@ -278,7 +278,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                     break;
                 case ConsoleLogType.Raw:
                     terminal.write(log.message);
-                    console.log(log.message);
+                    console.log(log.message.trim());
                     break;
         }
     }

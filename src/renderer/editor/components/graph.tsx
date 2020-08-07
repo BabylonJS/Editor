@@ -575,7 +575,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             node.subMeshes.forEach((sm, index) => {
                 const material = multiMaterial && sm.getMaterial();
                 const text = material ? (material.name ?? Tools.GetConstructorName(material)) : `Sub Mesh "${index}`;
-                const extraMenu = <MenuItem id={`${(node as Mesh)!.id}-${index}`} text={text} icon={<Icon src="vector-square.svg" />} onClick={() => this._editor.selectedSubMeshObservable.notifyObservers(sm)} />;
+                const key = `${(node as Mesh)!.id}-${index}`;
+                const extraMenu = <MenuItem key={key} text={text} icon={<Icon src="vector-square.svg" />} onClick={() => this._editor.selectedSubMeshObservable.notifyObservers(sm)} />;
                 subMeshesItems.push(extraMenu);
             });
         }
