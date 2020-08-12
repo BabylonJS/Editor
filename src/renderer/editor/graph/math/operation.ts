@@ -18,7 +18,7 @@ export class Add extends GraphNode {
      */
     public execute(): void {
         const a = this.getInputData(0) as number;
-        const b = this.getInputData(0) as number;
+        const b = this.getInputData(1) as number;
         this.setOutputData(0, a + b);
     }
 
@@ -51,7 +51,7 @@ export class Subtract extends GraphNode {
      */
     public execute(): void {
         const a = this.getInputData(0) as number;
-        const b = this.getInputData(0) as number;
+        const b = this.getInputData(1) as number;
         this.setOutputData(0, a - b);
     }
 
@@ -84,7 +84,7 @@ export class Multiply extends GraphNode {
      */
     public execute(): void {
         const a = this.getInputData(0) as number;
-        const b = this.getInputData(0) as number;
+        const b = this.getInputData(1) as number;
         this.setOutputData(0, a * b);
     }
 
@@ -117,7 +117,7 @@ export class Divide extends GraphNode {
      */
     public execute(): void {
         const a = this.getInputData(0) as number;
-        const b = this.getInputData(0) as number;
+        const b = this.getInputData(1) as number;
         this.setOutputData(0, a / b);
     }
 
