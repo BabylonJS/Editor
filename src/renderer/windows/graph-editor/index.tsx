@@ -101,19 +101,21 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      * Renders the component.
      */
     public render(): React.ReactNode {
-        const file =
+        const file = (
             <Menu>
                 <MenuItem text="Load From..." icon={<Icon src="folder-open.svg" />} onClick={() => this._loadFrom()} />
                 <MenuDivider />
                 <MenuItem text="Save (CTRL + S)" icon={<Icon src="copy.svg" />} onClick={() => this._save()} />
                 <MenuItem text="Save As... (CTRL + SHIFT + S)" icon={<Icon src="copy.svg" />} onClick={() => this._saveAs()} />
-            </Menu>;
+            </Menu>
+        );
 
-        const edit = 
+        const edit = (
             <Menu>
                 <MenuItem text="Undo" icon={<Icon src="undo.svg" />} onClick={() => { debugger; }} />
                 <MenuItem text="Redo" icon={<Icon src="redo.svg" />} onClick={() => { debugger; }} />
             </Menu>
+        );
         
         return (
             <>

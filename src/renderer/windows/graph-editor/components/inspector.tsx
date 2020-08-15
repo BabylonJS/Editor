@@ -3,6 +3,7 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { GUI, GUIParams, GUIController } from "dat.gui";
 
+import { Vector3 } from "babylonjs";
 import { LGraphGroup, LiteGraph } from "litegraph.js";
 
 import "../../../editor/gui/augmentations/index";
@@ -12,7 +13,6 @@ import { GraphNode } from "../../../editor/graph/node";
 import { Tools } from "../../../editor/tools/tools";
 
 import GraphEditorWindow from "../index";
-import { Vector3, Color4 } from "babylonjs";
 
 export interface IInspectorProps {
     /**
@@ -152,16 +152,11 @@ export class Inspector extends React.Component<IInspectorProps> {
                     });
                     break;
                 case "color3":
-                    properties.addColor(this._getFormatedname(p), value).onChange(() => {
-                        node.setDirtyCanvas(true, true);
-                        node.onPropertyChange("value.r", value.r);
-                        node.onPropertyChange("value.g", value.g);
-                        node.onPropertyChange("value.b", value.b);
-
-                        if (value instanceof Color4) {
-                            node.onPropertyChange("value.a", value.a);
-                        }
-                    });
+                    const colorFolder = properties.addFolder(this._getFormatedname(p));
+                    colorFolder.open();
+                    colorFolder.add(value, "r").min(0).max(1).onChange(() => node.onPropertyChange("value.r", value.r) && node.setDirtyCanvas(true, true));
+                    colorFolder.add(value, "g").min(0).max(1).onChange(() => node.onPropertyChange("value.g", value.g) && node.setDirtyCanvas(true, true));
+                    colorFolder.add(value, "b").min(0).max(1).onChange(() => node.onPropertyChange("value.b", value.b) && node.setDirtyCanvas(true, true));
                     break;
             }
 
