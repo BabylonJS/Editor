@@ -1,7 +1,7 @@
 import { Nullable } from "../../../shared/types";
 
 import { Scene } from "babylonjs";
-import { LGraphNode, LiteGraph, LLink, SerializedLGraphNode, Vector2, LGraphCanvas } from "litegraph.js";
+import { LGraphNode, LiteGraph, LLink, SerializedLGraphNode, Vector2, LGraphCanvas, WidgetCallback, IWidget } from "litegraph.js";
 
 import { Tools } from "../tools/tools";
 
@@ -111,6 +111,11 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      * Defines the id of the node to be used internally.
      */
     public readonly internalId: string = Tools.RandomId();
+
+    /**
+     * Defines the callback called on a widget changes.
+     */
+    public onWidgetChange: Nullable<() => void> = null;
 
     private _resumeFn: Nullable<() => void> = null;
     private _mouseOver: boolean = false;
@@ -229,6 +234,39 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
         }
 
         NodeUtils.SetColor(this);
+    }
+
+    /**
+     * Called on a property changed.
+     * @param name defines the name of the property that changed.
+     * @param value defines the new value of the property.
+     */
+    public onPropertyChange(name: string, value: any): boolean {
+        for (const w of this.widgets ?? []) {
+            if (w.name !== name) { continue; }
+             w.value = value;
+            break;
+        }
+
+        return true;
+    }
+
+    /**
+     * Adds a new widget to the node.
+     * @param type defines the type of widget.
+     * @param name defines the name of the widget.
+     * @param value defines the default value of the widget.
+     * @param callback defines the callback called on the widget changed.
+     * @param options defines the widget options.
+     */
+    public addWidget<T extends IWidget>(type: T["type"], name: string, value: T["value"], callback?: WidgetCallback<T>, options?: T["options"]): T {
+        const originalCallback = callback as any;
+        callback = (v, g, n, p, e) => {
+            if (originalCallback) { originalCallback(v, g, n, p, e); }
+            if (this.onWidgetChange) { this.onWidgetChange(); }
+        };
+
+        return super.addWidget(type, name, value, callback, options);
     }
 
     /**

@@ -15,8 +15,8 @@ export class Vec2 extends GraphNode<{ value: Vector2; }> {
 
         this.addProperty("value", new Vector2(0, 1), "Vector2");
 
-        this.addWidget("number", "x", this.properties.value.x, (v) => this.properties.value.x = v);
-        this.addWidget("number", "y", this.properties.value.y, (v) => this.properties.value.y = v);
+        this.addWidget("number", "value.x", this.properties.value.x, (v) => this.properties.value.x = v);
+        this.addWidget("number", "value.y", this.properties.value.y, (v) => this.properties.value.y = v);
 
         this.addOutput("", "Vector2");
     }
@@ -74,9 +74,9 @@ export class Vec3 extends GraphNode<{ value: Vector3; }> {
 
         this.addProperty("value", new Vector3(0, 1, 2), "Vector3");
 
-        this.addWidget("number", "x", this.properties.value.x, (v) => this.properties.value.x = v);
-        this.addWidget("number", "y", this.properties.value.y, (v) => this.properties.value.y = v);
-        this.addWidget("number", "z", this.properties.value.z, (v) => this.properties.value.z = v);
+        this.addWidget("number", "value.x", this.properties.value.x, (v) => this.properties.value.x = v);
+        this.addWidget("number", "value.y", this.properties.value.y, (v) => this.properties.value.y = v);
+        this.addWidget("number", "value.z", this.properties.value.z, (v) => this.properties.value.z = v);
 
         this.addOutput("", "Vector3");
     }
