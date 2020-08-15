@@ -172,3 +172,62 @@ The types in the Graph Editor are following the names of the classes in Babylon.
 * Light
 * AnimationGroup
 * PickInfo
+
+## Working With Properties
+
+Nodes can use properties instead of inputs. These can be used when an input makes no sense for a parameter. Also, properties can be used
+as fallback when an input node is not connected.
+
+To provide autocompletion on properties of a node, the `GraphNode` class is a generic and can take an interface as parameter.
+
+Here is an example, imagine a node that can take inputs and fallback on properties when no input provided for "var1" and/or "var2":
+
+```typescript
+export class OurNode extends GraphNode<{ var1: number; var2: string; }> {
+    ...
+
+    public constructor() {
+        super("Out node with properties")
+
+        this.addInput("var1 Input", "number");
+        this.addInput("var2 Input", "string");
+
+        this.addProperty(
+            "var1", // defines the name of the property.
+            0, // defines the default value of the property.
+            "number", // defines the type of the property.
+            (v: number) => console.log(`Property changed to "${v}"`), // defines the callback called on the property changed.
+        );
+
+        // Let's do the same for the second property.
+        this.addProperty("var2", "Hello", "string");
+
+        // Here we can add widgets to make the properties easier to modify directly on the node.
+        this.addWidget("number", "var1", this.properties.var1, (v) => this.properties.var1 = v);
+        this.addWidget("string", "var2", this.properties.var2, (v) => this.properties.var2 = v);
+    }
+
+    ...
+
+    public execute(): void {
+        // We can now use the propertie shere.
+        console.log(this.getInputData(0) ?? this.properties.var1);
+        console.log(this.getInputData(1) ?? this.properties.var2);
+    }
+
+    ...
+
+    public generateCode(var1?: ICodeGenerationOutput, var2?: ICodeGenerationOutput): ICodeGenerationOutput {
+        // Now, let's generate the code
+        const code = `
+            console.log(${var1?.code ?? this.properties.var1});
+            console.log(${var2?.code ?? this.properties.var2});
+        `;
+
+        return {
+            type: CodeGenerationOutputType.Function,
+            code,
+        };
+    }
+}
+```
