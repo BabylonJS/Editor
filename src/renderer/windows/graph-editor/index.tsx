@@ -1,4 +1,6 @@
 import { ipcRenderer } from "electron";
+import { writeJson } from "fs-extra";
+import { extname } from "path";
 
 import { Nullable, IStringDictionary } from "../../../shared/types";
 
@@ -9,8 +11,11 @@ import GoldenLayout from "golden-layout";
 import { ISize } from "babylonjs";
 
 import { Icon } from "../../editor/gui/icon";
+import { Confirm } from "../../editor/gui/confirm";
+import { Alert } from "../../editor/gui/alert";
 
 import { Tools } from "../../editor/tools/tools";
+import { IPCTools } from "../../editor/tools/ipc";
 import { LayoutUtils } from "../../editor/tools/layout-utils";
 
 import { GraphCode } from "../../editor/graph/graph";
@@ -21,8 +26,6 @@ import { Preview } from "./components/preview";
 import { Graph } from "./components/graph";
 import { Logs } from "./components/logs";
 import { CallStack } from "./components/call-stack";
-import { IPCTools } from "../../editor/tools/ipc";
-import { Confirm } from "../../editor/gui/confirm";
 
 export const title = "Graph Editor";
 
@@ -100,10 +103,17 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     public render(): React.ReactNode {
         const file =
             <Menu>
-                <MenuItem text="Load From..." icon={<Icon src="folder-open.svg" />} onClick={() => this._save()} />
+                <MenuItem text="Load From..." icon={<Icon src="folder-open.svg" />} onClick={() => this._loadFrom()} />
                 <MenuDivider />
                 <MenuItem text="Save (CTRL + S)" icon={<Icon src="copy.svg" />} onClick={() => this._save()} />
+                <MenuItem text="Save As... (CTRL + SHIFT + S)" icon={<Icon src="copy.svg" />} onClick={() => this._saveAs()} />
             </Menu>;
+
+        const edit = 
+            <Menu>
+                <MenuItem text="Undo" icon={<Icon src="undo.svg" />} onClick={() => { debugger; }} />
+                <MenuItem text="Redo" icon={<Icon src="redo.svg" />} onClick={() => { debugger; }} />
+            </Menu>
         
         return (
             <>
@@ -111,6 +121,9 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
                     <ButtonGroup style={{ paddingTop: "4px" }}>
                         <Popover content={file} position={Position.BOTTOM_LEFT}>
                             <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="File"/>
+                        </Popover>
+                        <Popover content={edit} position={Position.BOTTOM_LEFT}>
+                            <Button icon={<Icon src="edit.svg"/>} rightIcon="caret-down" text="Edit"/>
                         </Popover>
                     </ButtonGroup>
                     <Divider />
@@ -317,6 +330,42 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     }
 
     /**
+     * Saves the current graph as...
+     */
+    private async _saveAs(): Promise<void> {
+        const json = this.graph.graph?.serialize();
+        if (!json) { return; }
+
+        let path = await Tools.ShowSaveFileDialog("Save Graph...");
+        const extension = extname(path).toLowerCase();
+
+        if (extension !== ".json") {
+            path += ".json";
+        }
+
+        await writeJson(path, json, {
+            encoding: "utf-8",
+            spaces: "\t",
+        });
+    }
+
+    /**
+     * Loads the current graph from...
+     */
+    private async _loadFrom(): Promise<void> {
+        const path = await Tools.ShowOpenFileDialog("Load Graph From...");
+        
+        try {
+            const override = await Confirm.Show("Override Current Graph?", "Are you sure to override the current graph? Existing graph will be overwritten and all changes will be lost.");
+            if (!override) { return; }
+
+            this.graph.initGraph(path);
+        } catch (e) {
+            Alert.Show("Failed To Parse Graph", `Failed to parse graph: ${e.message}`);
+        }
+    }
+
+    /**
      * Binds all the events.
      */
     private _bindEvents(): void {
@@ -328,5 +377,6 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         // Shortcuts
         ipcRenderer.on("save", () => this._save());
+        ipcRenderer.on("save-as", () => this._saveAs());
     }
 }
