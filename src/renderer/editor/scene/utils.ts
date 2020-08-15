@@ -66,6 +66,13 @@ export class SceneUtils {
     }
 
     /**
+     * Returns the list of all transform nodes.
+     */
+    public getAllTransformNodes(): INodeResult[] {
+        return this._getAsNodeResult(this.scene.transformNodes);
+    }
+
+    /**
      * Returns the given nodes as INodeResult.
      */
     private _getAsNodeResult(nodes: Node[]): INodeResult[] {

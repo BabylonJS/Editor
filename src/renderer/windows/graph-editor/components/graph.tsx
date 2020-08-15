@@ -21,6 +21,7 @@ import { GraphNode, ELinkErrorType } from "../../../editor/graph/node";
 import { NodeUtils } from "../../../editor/graph/utils";
 
 import { Mesh } from "../../../editor/graph/mesh/mesh";
+import { TransformNode } from "../../../editor/graph/transform-node/transform-node";
 import { Camera } from "../../../editor/graph/camera/camera";
 import { Light } from "../../../editor/graph/light/light";
 import { Sound } from "../../../editor/graph/sound/sound";
@@ -398,6 +399,9 @@ export class Graph extends React.Component<IGraphProps> {
 
         const lights = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllLights");
         Light.Lights = GetLight.Lights = lights.data.map((l) => l.name);
+
+        const transformNodes = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllTransformNodes");
+        TransformNode.TransformNodes = transformNodes.data.map((l) => l.name);
 
         const animationGroups = await IPCTools.ExecuteEditorFunction<string[]>("sceneUtils.getAllAnimationGroups");
         AnimationGroup.Groups = animationGroups.data;
