@@ -13,6 +13,7 @@ import { Alert } from "../../../editor/gui/alert";
 
 import { Tools } from "../../../editor/tools/tools";
 import { IPCTools } from "../../../editor/tools/ipc";
+import { undoRedo } from "../../../editor/tools/undo-redo";
 
 import { INodeResult } from "../../../editor/scene/utils";
 
@@ -32,8 +33,8 @@ import { GetCamera } from "../../../editor/graph/camera/get-camera";
 import { GetLight } from "../../../editor/graph/light/get-light";
 
 import { GraphContextMenu } from "../context-menu";
-import GraphEditorWindow from "../index";
 import { NodeCreator } from "../node-creator";
+import GraphEditorWindow from "../index";
 
 declare module "litegraph.js" {
     interface LGraph {
@@ -50,6 +51,7 @@ declare module "litegraph.js" {
     interface LGraphCanvas {
         read_only: boolean;
         notifyLinkError(errorType: ELinkErrorType): void;
+        onNodeMoved?(node: GraphNode): void;
     }
 }
 
@@ -168,8 +170,8 @@ export class Graph extends React.Component<IGraphProps> {
             }
         };
 
-        this.graphCanvas.canvas.addEventListener('mouseover', () => this._canvasFocused = true);
-        this.graphCanvas.canvas.addEventListener('mouseout', () => this._canvasFocused = false);
+        this.graphCanvas.canvas.addEventListener("mouseover", () => this._canvasFocused = true);
+        this.graphCanvas.canvas.addEventListener("mouseout", () => this._canvasFocused = false);
 
         this.graphCanvas.canvas.addEventListener("click", (e) => {
             const pos = this.graphCanvas!.convertEventToCanvasOffset(e);
@@ -194,11 +196,11 @@ export class Graph extends React.Component<IGraphProps> {
             if (!this._canvasFocused) { return; }
             
             // Copy/paste
-            if (event.key === 'c' && event.ctrlKey) {
+            if (event.key === "c" && event.ctrlKey) {
                 return this.graphCanvas?.copyToClipboard();
             }
             
-            if (event.key === 'v' && event.ctrlKey) {
+            if (event.key === "v" && event.ctrlKey) {
                 return this.graphCanvas?.pasteFromClipboard();
             }
 
@@ -253,6 +255,23 @@ export class Graph extends React.Component<IGraphProps> {
 
             return document.createElement("div");
         };
+
+        this.graphCanvas.onNodeMoved = (n) => {
+            const lastPosition = [n._lastPosition[0], n._lastPosition[1]];
+            const newPosition = [n.pos[0], n.pos[1]];
+
+            undoRedo.push({
+                common: () => this.graphCanvas?.setDirty(true, true),
+                undo: () => {
+                    n.pos[0] = lastPosition[0];
+                    n.pos[1] = lastPosition[1];
+                },
+                redo: () => {
+                    n.pos[0] = newPosition[0];
+                    n.pos[1] = newPosition[1];
+                },
+            });
+        }
     }
 
     /**
@@ -270,10 +289,40 @@ export class Graph extends React.Component<IGraphProps> {
         // node.graph?.remove(node);
         if (!this.graphCanvas) { return; }
 
+        const nodes: { node: GraphNode; inputs: LLink[]; outputs: LLink[][]; }[] = [];
         for (const nodeId in this.graphCanvas.selected_nodes) {
-            const node = this.graphCanvas.selected_nodes[nodeId];
-            node.graph?.remove(node);
+            const node = this.graphCanvas.selected_nodes[nodeId] as GraphNode;
+            nodes.push({
+                node,
+                outputs: node.outputs.filter((o) => o.links).map((o) => o.links!.map((l) => this.graph!.links[l])),
+                inputs: node.inputs.filter((o) => o.link).map((o) => this.graph!.links[o.link!]),
+            });
         }
+
+        undoRedo.push({
+            common: () => this.graphCanvas?.setDirty(true, true),
+            undo: () => {
+                nodes.forEach((n) => {
+                    this.graph?.add(n.node);
+                    n.inputs.forEach((i) => {
+                        const originNode = this.graph?.getNodeById(i.origin_id);
+                        originNode?.connect(i.origin_slot, n.node, i.target_slot);
+                    });
+
+                    n.outputs.forEach((o) => {
+                        o.forEach((o2) => {
+                            const targetNode = this.graph?.getNodeById(o2.target_id);
+                            if (targetNode) {
+                                n.node.connect(o2.origin_slot, targetNode, o2.target_slot);
+                            }
+                        });
+                    });
+                });
+            },
+            redo: () => {
+                nodes.forEach((n) => this.graph?.remove(n.node));
+            },
+        });
     }
 
     /**
@@ -286,9 +335,14 @@ export class Graph extends React.Component<IGraphProps> {
             return;
         }
 
-        const node = LiteGraph.createNode(type);
-        node.pos = this.graphCanvas!.convertEventToCanvasOffset(event);
-        this.graph?.add(node, false);
+        const node = LiteGraph.createNode(type) as GraphNode;
+        node.pos = node._lastPosition = this.graphCanvas!.convertEventToCanvasOffset(event);
+
+        undoRedo.push({
+            common: () => this.graphCanvas?.setDirty(true, true),
+            undo: () => this.graph?.remove(node),
+            redo: () => this.graph?.add(node, false),
+        });
     }
 
     /**
@@ -296,7 +350,11 @@ export class Graph extends React.Component<IGraphProps> {
      * @param group defines the reference to the group to remove.
      */
     public removeGroup(group: LGraphGroup): void {
-        this.graph?.remove(group);
+        undoRedo.push({
+            common: () => this.graphCanvas?.setDirty(true, true),
+            undo: () => this.graph?.add(group),
+            redo: () => this.graph?.remove(group),
+        });
     }
 
     /**
@@ -308,7 +366,12 @@ export class Graph extends React.Component<IGraphProps> {
         const pos = this.graphCanvas!.convertEventToCanvasOffset(event);
 
         group.move(pos[0], pos[1], true);
-        this.graph?.add(group);
+
+        undoRedo.push({
+            common: () => this.graphCanvas?.setDirty(true, true),
+            undo: () => this.graph?.remove(group),
+            redo: () => this.graph?.add(group),
+        });
     }
 
     /**
@@ -316,7 +379,16 @@ export class Graph extends React.Component<IGraphProps> {
      * @param link defines the reference to the link to remove.
      */
     public removeLink(link: LLink): void {
-        this.graph?.removeLink(link.id);
+        const originNode = this.graph?.getNodeById(link.origin_id);
+        const targetNode = this.graph?.getNodeById(link.target_id);
+
+        if (!originNode || !targetNode) { return; }
+
+        undoRedo.push({
+            common: () => this.graphCanvas?.setDirty(true, true),
+            undo: () => originNode.connect(link.origin_slot, targetNode, link.target_slot),
+            redo: () => this.graph?.removeLink(link.id),
+        });
     }
 
     /**

@@ -117,6 +117,11 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      */
     public onWidgetChange: Nullable<() => void> = null;
 
+    /**
+     * @hidden
+     */
+    public _lastPosition: Vector2 = [0, 0];
+
     private _resumeFn: Nullable<() => void> = null;
     private _mouseOver: boolean = false;
     private _isExecuting: boolean = false;
@@ -167,6 +172,9 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
                 w.value = this.properties[w.name];
             }
         });
+
+        this._lastPosition[0] = this.pos[0];
+        this._lastPosition[1] = this.pos[1];
     }
 
     /**

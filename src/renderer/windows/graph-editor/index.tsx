@@ -16,6 +16,7 @@ import { Alert } from "../../editor/gui/alert";
 
 import { Tools } from "../../editor/tools/tools";
 import { IPCTools } from "../../editor/tools/ipc";
+import { undoRedo } from "../../editor/tools/undo-redo";
 import { LayoutUtils } from "../../editor/tools/layout-utils";
 
 import { GraphCode } from "../../editor/graph/graph";
@@ -380,5 +381,8 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         // Shortcuts
         ipcRenderer.on("save", () => this._save());
         ipcRenderer.on("save-as", () => this._saveAs());
+
+        ipcRenderer.on("undo", () => undoRedo.undo());
+        ipcRenderer.on("redo", () => undoRedo.redo());
     }
 }
