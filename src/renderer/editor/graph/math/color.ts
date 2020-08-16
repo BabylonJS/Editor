@@ -16,9 +16,9 @@ export class Col3 extends GraphNode<{ value: Color3; }> {
 
         this.addProperty("value", new Color3(1, 1, 1), "Color3");
 
-        this.addWidget("number", "value.r", this.properties.value.r, (v) => this.properties.value.r = v);
-        this.addWidget("number", "value.g", this.properties.value.g, (v) => this.properties.value.g = v);
-        this.addWidget("number", "value.b", this.properties.value.b, (v) => this.properties.value.b = v);
+        this.addWidget("number", "value.r", this.properties.value.r, (v) => this.properties.value.r = v, { min: 0, max: 1 });
+        this.addWidget("number", "value.g", this.properties.value.g, (v) => this.properties.value.g = v, { min: 0, max: 1 });
+        this.addWidget("number", "value.b", this.properties.value.b, (v) => this.properties.value.b = v, { min: 0, max: 1 });
 
         this.addOutput("", "Color3");
     }

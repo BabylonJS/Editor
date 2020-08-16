@@ -113,8 +113,8 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         const edit = (
             <Menu>
-                <MenuItem text="Undo" icon={<Icon src="undo.svg" />} onClick={() => { debugger; }} />
-                <MenuItem text="Redo" icon={<Icon src="redo.svg" />} onClick={() => { debugger; }} />
+                <MenuItem text="Undo (CTRL + Z)" icon={<Icon src="undo.svg" />} onClick={() => undoRedo.undo()} />
+                <MenuItem text="Redo (CTRL + Y)" icon={<Icon src="redo.svg" />} onClick={() => undoRedo.redo()} />
             </Menu>
         );
         

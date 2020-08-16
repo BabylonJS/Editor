@@ -1,5 +1,7 @@
 import * as React from "react";
-import { Classes, Tree, ITreeNode, Callout, Intent, Tooltip, ButtonGroup, Button } from "@blueprintjs/core";
+import { Classes, Tree, ITreeNode, Callout, Intent, Tooltip, ButtonGroup, Button, Pre, Position } from "@blueprintjs/core";
+
+import { LiteGraph } from "litegraph.js";
 
 import { Icon } from "../../../editor/gui/icon";
 import { GraphNode } from "../../../editor/graph/node";
@@ -89,15 +91,26 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
             return this.setState({ nodes });
         }
 
-        NodeUtils.CallStack.reverse().forEach((n, index) => {
+        NodeUtils.CallStack.reverse().filter((n) => n.mode === LiteGraph.ON_TRIGGER).forEach((n, index) => {
             const isLast = index === 0;
+
+            const inputs = n.inputs.map((i, index) => {
+                if (i.type === LiteGraph.EVENT as any) {
+                    return (<h2 style={{ color: "white", left: "50%" }}>{n.title}</h2>);
+                }
+                return (<Pre>{i.name}: {n.getInputData(index)?.toString() ?? "No input"}</Pre>);
+            });
+
+            const content = (
+                <div style={{ width: "400px" }}>{inputs}</div>
+            );
 
             nodes.push({
                 id: n.id,
                 hasCaret: false,
                 icon: isLast ? "arrow-right" : undefined,
                 secondaryLabel: (
-                    <Tooltip content={JSON.stringify(n.properties ?? { }, null, "\t")}>
+                    <Tooltip content={content} interactionKind="hover" usePortal={true} position={Position.TOP} >
                         <Icon src="eye.svg" />
                     </Tooltip>
                 ),

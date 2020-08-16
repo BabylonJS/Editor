@@ -8,6 +8,7 @@ import { CustomController } from "./custom";
 import { ButtonController } from "./button";
 import { KeyMapperController } from "./key-mapper";
 import { VectorController, IVector } from "./vector";
+import { ColorController, IColor } from "./color";
 import { GradientController } from "./gradient";
 import { SliderController } from "./slider";
 
@@ -18,6 +19,7 @@ import "./custom";
 import "./button";
 import "./key-mapper";
 import "./vector";
+import "./color";
 import "./gradient";
 import "./slider";
 
@@ -122,6 +124,12 @@ declare module "dat.gui" {
          * @param vector the vector to modify.
          */
         addVector(title: string, vector: IVector): VectorController;
+        /**
+         * Adds a new advanced color controller.
+         * @param title defines the title of the controller.
+         * @param color defines the color to modify.
+         */
+        addAdvancedColor(title: string, color: IColor): ColorController;
         /**
          * Adds a new gradient controller.
          * @param title the title of the controller.

@@ -1,4 +1,4 @@
-import { Undefinable } from "../../../../shared/types";
+import { Undefinable, Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
@@ -58,6 +58,8 @@ export class _ListSuggest extends React.Component<_IListSuggestProps, _IListSugg
                     this.props.controller.object[this.props.controller.property] = i;
                     if (this.props.controller.__onChange) { this.props.controller.__onChange(i); }
                     if (this.props.controller.__onFinishChange) { this.props.controller.__onFinishChange(i); }
+
+                    this.props.controller["initialValue"] = this.state.value;
                     this.setState({ value: i });
                 }}
                 // activeItem={this.props.controller.object[this.props.controller.property]}
@@ -145,6 +147,8 @@ export class SuggestController extends dat.controllers.Controller {
 
     private _title: HTMLSpanElement;
 
+    private _suggest: Nullable<_ListSuggest> = null;
+
     /**
      * Constructor.
      * @param object the object to modify.
@@ -179,7 +183,7 @@ export class SuggestController extends dat.controllers.Controller {
         div.classList.add("c");
         this.domElement.appendChild(div);
 
-        ReactDOM.render(<_ListSuggest controller={this}></_ListSuggest>, div);
+        ReactDOM.render(<_ListSuggest ref={(ref) => this._suggest = ref} controller={this}></_ListSuggest>, div);
     }
 
     /**
@@ -195,6 +199,14 @@ export class SuggestController extends dat.controllers.Controller {
      */
     public onFinishChange(callback: (r: string) => void): SuggestController {
         this.__onFinishChange = callback;
+        return this;
+    }
+
+    /**
+     * Updates the current display of the controller.
+     */
+    public updateDisplay(): SuggestController {
+        this._suggest?.setState({ value: this.object[this.property] });
         return this;
     }
 

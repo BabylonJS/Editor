@@ -253,17 +253,7 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
         };
         const o = { color: getHexString() };
 
-        folder.add(color, "r").min(0).max(1).step(0.01).onChange(() => {
-            o.color = getHexString();
-            this.refreshDisplay();
-            if (onChange) { onChange(color); }
-        });
-        folder.add(color, "g").min(0).max(1).step(0.01).onChange(() => {
-            o.color = getHexString();
-            this.refreshDisplay();
-            if (onChange) { onChange(color); }
-        });
-        folder.add(color, "b").min(0).max(1).step(0.01).onChange(() => {
+        folder.addAdvancedColor("RGB", color).onChange(() => {
             o.color = getHexString();
             this.refreshDisplay();
             if (onChange) { onChange(color); }

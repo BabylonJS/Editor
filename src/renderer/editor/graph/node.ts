@@ -4,6 +4,7 @@ import { Scene } from "babylonjs";
 import { LGraphNode, LiteGraph, LLink, SerializedLGraphNode, Vector2, LGraphCanvas, WidgetCallback, IWidget } from "litegraph.js";
 
 import { Tools } from "../tools/tools";
+import { undoRedo } from "../tools/undo-redo";
 
 import { NodeUtils } from "./utils";
 
@@ -197,9 +198,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
             await this.waitForBreakPoint();
         }
         
-        setTimeout(() => {
-            super.triggerSlot(slot, param, link_id);
-        }, 0);
+        super.triggerSlot(slot, param, link_id);
     }
 
     /**
@@ -269,9 +268,51 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      */
     public addWidget<T extends IWidget>(type: T["type"], name: string, value: T["value"], callback?: WidgetCallback<T>, options?: T["options"]): T {
         const originalCallback = callback as any;
+
+        let timeout: Nullable<number> = null;
+        let initialValue: any;
+
+        setTimeout(() => {
+            // Call this after the configure.
+            const split = name.split(".");
+            if (split.length > 1) {
+                const p = Tools.GetEffectiveProperty<any>(this.properties, name);
+                initialValue = p[split[split.length - 1]];
+            } else {
+                initialValue = this.properties[name];
+            }
+        }, 0);
+
         callback = (v, g, n, p, e) => {
             if (originalCallback) { originalCallback(v, g, n, p, e); }
             if (this.onWidgetChange) { this.onWidgetChange(); }
+
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+
+            timeout = setTimeout(() => {
+                const oldValue = initialValue;
+                const newValue = v;
+
+                initialValue = v;
+
+                undoRedo.push({
+                    common: () => {
+                        this.setDirtyCanvas(true, true);
+                        if (this.onWidgetChange) { this.onWidgetChange(); }
+                    },
+                    undo: () => {
+                        originalCallback(oldValue, g, n, p, e);
+                        this.onPropertyChange(name, oldValue);
+                    },
+                    redo: () => {
+                        originalCallback(newValue, g, n, p, e);
+                        this.onPropertyChange(name, newValue);
+                    },
+                });
+            }, 500) as any;
         };
 
         return super.addWidget(type, name, value, callback, options);
@@ -289,6 +330,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
 
         while (this.graph!.hasPaused) {
             await this.waitForBreakPoint();
+            await Tools.Wait(0);
         }
 
         NodeUtils.CallStack.push(this);
@@ -311,9 +353,10 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
             console.error(e);
         }
 
+        await Tools.Wait(0);
+
         while (this.graph!.hasPaused) {
             await this.waitForBreakPoint();
-            await Tools.Wait(0);
         }
 
         NodeUtils.CallStack.pop();

@@ -11,6 +11,7 @@ import "../../../editor/gui/augmentations/index";
 import { GraphNode } from "../../../editor/graph/node";
 
 import { Tools } from "../../../editor/tools/tools";
+import { undoRedo } from "../../../editor/tools/undo-redo";
 
 import GraphEditorWindow from "../index";
 
@@ -95,20 +96,61 @@ export class Inspector extends React.Component<IInspectorProps> {
         // Common
         const common = this.tool!.addFolder("Common");
         common.open();
-        common.add(node, "title");
+        const commonController = common.add(node, "title").onFinishChange((r) => {
+            const initialValue = commonController["initialValue"];
+            undoRedo.push({
+                common: () => {
+                    this.tool?.updateDisplay();
+                    node.setDirtyCanvas(true, true);
+                },
+                undo: () => node.title = initialValue,
+                redo: () => node.title = r,
+            });
+        });
 
         const shapes: string[] = ["BOX_SHAPE", "ROUND_SHAPE", "CIRCLE_SHAPE", "CARD_SHAPE", "ARROW_SHAPE"];
         this._shape = shapes.find((s) => node.shape === LiteGraph[s])!;
-        common.addSuggest(this, "_shape", shapes).name("Shape").onChange(() => {
-            node.shape = LiteGraph[this._shape];
-            node.setDirtyCanvas(true, true);
+        const shapeController = common.addSuggest(this, "_shape", shapes).name("Shape").onChange(() => {
+            const r = this._shape;
+            const initialValue = shapeController["initialValue"];
+
+            undoRedo.push({
+                common: () => {
+                    this.tool?.updateDisplay();
+                    node.setDirtyCanvas(true, true);
+                },
+                undo: () => node.shape = LiteGraph[this._shape = initialValue],
+                redo: () => node.shape = LiteGraph[this._shape = r],
+            });
         });
 
         // Colors
         const colors = this.tool!.addFolder("Colors");
         colors.open();
-        colors.addColor(node, "bgcolor").name("Background Color").onChange(() => node.setDirtyCanvas(true, true));
-        colors.addColor(node, "boxcolor").name("Box Color").onChange(() => node.setDirtyCanvas(true, true));
+
+        const bgColorController = colors.addColor(node, "bgcolor").name("Background Color").onChange(() => node.setDirtyCanvas(true, true)).onFinishChange((r) => {
+            const initialValue = bgColorController["initialValue"];
+            undoRedo.push({
+                common: () => {
+                    this.tool?.updateDisplay();
+                    node.setDirtyCanvas(true, true);
+                },
+                undo: () => node.bgcolor = initialValue,
+                redo: () => node.bgcolor = r,
+            });
+        });
+
+        const boxColorController = colors.addColor(node, "boxcolor").name("Box Color").onChange(() => node.setDirtyCanvas(true, true)).onFinishChange((r) => {
+            const initialValue = boxColorController["initialValue"];
+            undoRedo.push({
+                common: () => {
+                    this.tool?.updateDisplay();
+                    node.setDirtyCanvas(true, true);
+                },
+                undo: () => node.boxcolor = initialValue,
+                redo: () => node.boxcolor = r,
+            });
+        });
 
         // Properties
         const properties = this.tool!.addFolder("Properties");
@@ -122,9 +164,22 @@ export class Inspector extends React.Component<IInspectorProps> {
             const widget = node.widgets?.find((w) => w.name === p);
             if (widget?.options?.values) {
                 const values = (typeof(widget.options.values) === "function") ? widget.options.values() : widget.options.values;
-                properties.addSuggest(node.properties, p, values).name(this._getFormatedname(p)).onChange((r) => {
-                    node.setDirtyCanvas(true, true);
-                    node.onPropertyChange(p, r);
+                const propertyController = properties.addSuggest(node.properties, p, values).name(this._getFormatedname(p)).onChange((r) => {
+                    const initialValue = propertyController["initialValue"];
+                    undoRedo.push({
+                        common: () => {
+                            this.tool?.updateDisplay();
+                            node.setDirtyCanvas(true, true);
+                        },
+                        undo: () => {
+                            node.properties[p] = initialValue;
+                            node.onPropertyChange(p, initialValue);
+                        },
+                        redo: () => {
+                            node.properties[p] = r;
+                            node.onPropertyChange(p, r);
+                        },
+                    });
                 });
                 continue;
             }
@@ -134,14 +189,30 @@ export class Inspector extends React.Component<IInspectorProps> {
                 case "number":
                 case "string":
                 case "boolean":
-                    controller = properties.add(node.properties, p).onChange((r) => {
+                    const commonPropertyController = controller = properties.add(node.properties, p).onChange((r) => {
                         node.setDirtyCanvas(true, true);
                         node.onPropertyChange(p, r);
+                    }).onFinishChange((r) => {
+                        const initialValue = commonPropertyController["initialValue"];
+                        undoRedo.push({
+                            common: () => {
+                                this.tool?.updateDisplay();
+                                node.setDirtyCanvas(true, true);
+                            },
+                            undo: () => {
+                                node.properties[p] = initialValue;
+                                node.onPropertyChange(p, initialValue);
+                            },
+                            redo: () => {
+                                node.properties[p] = r;
+                                node.onPropertyChange(p, r);
+                            },
+                        });
                     }).name(this._getFormatedname(p));
                     break;
                 case "vector2":
                 case "vector3":
-                    properties.addVector(this._getFormatedname(p), value).onChange(() => {
+                    const vectorPropertyController = properties.addVector(this._getFormatedname(p), value).onChange(() => {
                         node.setDirtyCanvas(true, true);
                         node.onPropertyChange("value.x", value.x);
                         node.onPropertyChange("value.y", value.y);
@@ -149,14 +220,47 @@ export class Inspector extends React.Component<IInspectorProps> {
                         if (value instanceof Vector3) {
                             node.onPropertyChange("value.z", value.z);
                         }
+                    }).onFinishChange((r) => {
+                        const property = vectorPropertyController["property"];
+                        const initialValue = vectorPropertyController["initialValue"];
+
+                        undoRedo.push({
+                            common: () => {
+                                this.tool?.updateDisplay();
+                                node.setDirtyCanvas(true, true);
+                                node.onPropertyChange(`value.${property}`, node.properties[p][property]);
+                            },
+                            undo: () => {
+                                node.properties[p][property] = initialValue;
+                            },
+                            redo: () => {
+                                node.properties[p][property] = r;
+                            },
+                        });
                     });
                     break;
                 case "color3":
-                    const colorFolder = properties.addFolder(this._getFormatedname(p));
-                    colorFolder.open();
-                    colorFolder.add(value, "r").min(0).max(1).onChange(() => node.onPropertyChange("value.r", value.r) && node.setDirtyCanvas(true, true));
-                    colorFolder.add(value, "g").min(0).max(1).onChange(() => node.onPropertyChange("value.g", value.g) && node.setDirtyCanvas(true, true));
-                    colorFolder.add(value, "b").min(0).max(1).onChange(() => node.onPropertyChange("value.b", value.b) && node.setDirtyCanvas(true, true));
+                    const colorPropertyController = properties.addAdvancedColor(this._getFormatedname(p), value).onChange((r) => {
+                        node.onPropertyChange(`value.${colorPropertyController.property}`, r);
+                        node.setDirtyCanvas(true, true);
+                    }).onFinishChange((r) => {
+                        const property = colorPropertyController["property"];
+                        const initialValue = colorPropertyController["initialValue"];
+
+                        undoRedo.push({
+                            common: () => {
+                                this.tool?.updateDisplay();
+                                node.setDirtyCanvas(true, true);
+                                node.onPropertyChange(`value.${property}`, node.properties[p][property]);
+                            },
+                            undo: () => {
+                                node.properties[p][property] = initialValue;
+                            },
+                            redo: () => {
+                                node.properties[p][property] = r;
+                            },
+                        });
+                    });
                     break;
             }
 
