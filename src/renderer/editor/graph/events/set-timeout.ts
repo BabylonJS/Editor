@@ -1,11 +1,9 @@
-import { Nullable } from "../../../../shared/types";
-
 import { LiteGraph } from "litegraph.js";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 
 export class TimeoutEvent extends GraphNode<{ duration: number; }> {
-    private _timeoutId: Nullable<number> = null;
+    private _timeoutIds: number[] = [];
 
     /**
      * Constructor.
@@ -14,6 +12,7 @@ export class TimeoutEvent extends GraphNode<{ duration: number; }> {
         super("Set Timeout");
 
         this.addInput("", LiteGraph.EVENT as any);
+        this.addInput("Duration", "number");
 
         this.addProperty("duration", 1000, "number");
         this.addWidget("number", "duration", this.properties.duration, (v) => this.properties.duration = v);
@@ -27,30 +26,35 @@ export class TimeoutEvent extends GraphNode<{ duration: number; }> {
      */
     public onStop(): void {
         super.onStop();
-
-        if (this._timeoutId !== null) {
-            clearTimeout(this._timeoutId);
-        }
+        this._timeoutIds.forEach((id) => clearTimeout(id));
     }
 
     /**
      * Called on the node is being executed.
      */
     public execute(): void {
-        this._timeoutId = setTimeout(() => {
-            this._timeoutId = null;
+        const duration = this.getInputData<number>(1) ?? this.properties.duration;
+        
+        const id = setTimeout(() => {
+            const index = this._timeoutIds.indexOf(id);
+            if (index !== -1) {
+                this._timeoutIds.splice(index);
+            }
+
             this.triggerSlot(0, null);
-        }, this.properties.duration) as any;
+        }, duration) as any;
+
+        this._timeoutIds.push(id);
     }
 
     /**
      * Generates the code of the graph.
      */
-    public generateCode(): ICodeGenerationOutput {
+    public generateCode(duration?: ICodeGenerationOutput): ICodeGenerationOutput {
         const code = `
             const timeoutId = setTimeout(() => {
                 {{generated__body}}
-            }, ${this.properties.duration});
+            }, ${duration?.code ?? this.properties.duration});
         `;
         
         return {

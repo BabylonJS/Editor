@@ -49,6 +49,7 @@ import { TransformCamera } from "./camera/transform";
 import { Light } from "./light/light";
 import { GetLight } from "./light/get-light";
 import { SetLightProperty } from "./light/set-property";
+import { TransformLight } from "./light/transform";
 
 import { TransformNode } from "./transform-node/transform-node";
 
@@ -176,6 +177,7 @@ export class GraphCode {
         LiteGraph.registerNodeType("light/light", Light);
         LiteGraph.registerNodeType("light/get_light", GetLight);
         LiteGraph.registerNodeType("light/set_light_property", SetLightProperty);
+        LiteGraph.registerNodeType("light/transform_light", TransformLight);
 
         // Transfor Node
         LiteGraph.registerNodeType("transform/transform_node", TransformNode);

@@ -31,10 +31,10 @@ export class ForLoop extends GraphNode<{ start: number; end: number; increment: 
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         for (let i = this.properties.start; i < this.properties.end; i += this.properties.increment) {
             this.setOutputData(1, i);
-            this.triggerSlot(0, null);
+            await this.triggerSlot(0, null);
         }
     }
 
