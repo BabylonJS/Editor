@@ -48,7 +48,7 @@ export class SceneUtils {
      * Returns the list of all meshes.
      */
     public getAllMeshes(): INodeResult[] {
-        return this._getAsNodeResult(this.scene.meshes);
+        return this._getAsNodeResult(this.scene.meshes.filter((m) => !m._masterMesh));
     }
 
     /**

@@ -19,9 +19,10 @@ export class InterpolationAnimation extends GraphNode<
         super("Interpolation Animation");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("node", "Node");
-        this.addInput("from" , "");
-        this.addInput("to", "");
+        this.addInput("Node *", "Node");
+        this.addInput("From *" , "");
+        this.addInput("To *", "");
+        this.addInput("easing", "EasingFunction");
 
         this.addProperty("name", "animation", "string");
         this.addProperty("target_property", "visibility", "string");
@@ -56,7 +57,7 @@ export class InterpolationAnimation extends GraphNode<
             this.getInputData(2),
             this.getInputData(3),
             Animation[this.properties.loop_mode],
-            undefined,
+            this.getInputData(4),
             () => {
                 this.triggerSlot(1, null);
             }
@@ -68,7 +69,7 @@ export class InterpolationAnimation extends GraphNode<
     /**
      * Generates the code of the graph.
      */
-    public generateCode(node: ICodeGenerationOutput, from: ICodeGenerationOutput, to: ICodeGenerationOutput): ICodeGenerationOutput {
+    public generateCode(node: ICodeGenerationOutput, from: ICodeGenerationOutput, to: ICodeGenerationOutput, easing?: ICodeGenerationOutput): ICodeGenerationOutput {
         const code = `Animation.CreateAndStartAnimation(
                 "${this.properties.name}", // name
                 ${node.code}, // node
@@ -78,7 +79,7 @@ export class InterpolationAnimation extends GraphNode<
                 ${from.code}, // from
                 ${to.code}, // to
                 Animation.${this.properties.loop_mode}, // loop mode
-                undefined, // easing function
+                ${easing?.code ?? "undefined"}, // easing function
                 () => { // on complete
                     {{generated__callback__body}}
                 },

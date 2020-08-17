@@ -20,7 +20,7 @@ export class Light extends GraphNode<{ name: string; var_name: string; }> {
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
-        this.addOutput("light", "Node,Light");
+        this.addOutput("Light", "Node,Light");
     }
 
     /**

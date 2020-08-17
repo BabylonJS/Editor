@@ -22,10 +22,10 @@ export class SetLightProperty extends GraphNode<{ property: string; }> {
         super("Set Light Property");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("light *", "Light");
+        this.addInput("Light *", "Light");
 
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("light", "Node,Light");
+        this.addOutput("Light", "Node,Light");
 
         this.addProperty("property", "None", "string");
 

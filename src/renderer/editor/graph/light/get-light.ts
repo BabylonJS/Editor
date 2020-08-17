@@ -19,7 +19,7 @@ export class GetLight extends GraphNode<{ name: string; }> {
             values: () => GetLight.Lights,
         });
 
-        this.addOutput("light", "Node,Light");
+        this.addOutput("Light", "Node,Light");
     }
 
     /**

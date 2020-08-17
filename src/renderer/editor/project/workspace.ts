@@ -1,4 +1,5 @@
 import { ipcRenderer } from "electron";
+import { platform } from "os";
 import { join, dirname, extname, basename } from "path";
 import { readdir, readJSON, writeJSON, stat, copyFile } from "fs-extra";
 
@@ -219,9 +220,10 @@ export class WorkSpace {
 
         // Get command
         const packageJson = await readJSON(join(this.DirPath!, "package.json"));
-        const watchScript = join("node_modules", ".bin", packageJson.scripts.watch);
+        const isWin32 = platform() === "win32";
+        const watchScript = join("node_modules", ".bin", isWin32 ? packageJson.scripts.watch.replace("webpack", "webpack.cmd") : packageJson.scripts.watch);
         
-        this._WatchProjectProgram = ExecTools.ExecAndGetProgram(editor, watchScript, this.DirPath!, false, ConsoleLayer.WebPack);
+        this._WatchProjectProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript}`, this.DirPath!, false, ConsoleLayer.WebPack);
     }
 
     /**
@@ -253,8 +255,9 @@ export class WorkSpace {
         await copyFile(join(Tools.GetAppPath(), "assets", "scripts", "editor.tsconfig.json"), join(this.DirPath!, "editor.tsconfig.json"));
 
         // Get command
-        const watchScript = join("node_modules", ".bin", "tsc");
-        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, false);
+        const isWin32 = platform() === "win32";
+        const watchScript = join("node_modules", ".bin", isWin32 ? "tsc.cmd" : "tsc");
+        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, false);
     }
 
     /**
