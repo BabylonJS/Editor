@@ -1,9 +1,9 @@
-Babylon.js Editor v3
+Babylon.js Editor v4
 ======
 
 The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
 
-The online documentation is available here: http://doc.babylonjs.com/resources/
+The online documentation is available here: https://github.com/BabylonJS/Editor/blob/release/4.0.0/doc/00%20-%20welcome/doc.md
 
 ## Features
 * Workspace based to manage multiple projects
