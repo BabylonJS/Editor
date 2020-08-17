@@ -1,59 +1,45 @@
 import { Nullable } from "../../../../shared/types";
 
-import * as React from "react";
-import { GUI, GUIParams, GUIController } from "dat.gui";
-
-import { Vector3 } from "babylonjs";
 import { LGraphGroup, LiteGraph } from "litegraph.js";
-
-import "../../../editor/gui/augmentations/index";
+import { GUI, GUIParams, GUIController } from "dat.gui";
 
 import { GraphNode } from "../../../editor/graph/node";
 
 import { Tools } from "../../../editor/tools/tools";
 import { undoRedo } from "../../../editor/tools/undo-redo";
 
+import "../../../editor/gui/augmentations/index";
+
+import { IObjectInspectorProps } from "../../../editor/components/inspector";
+import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
+
 import GraphEditorWindow from "../index";
 
-export interface IInspectorProps {
+export class Inspector extends AbstractInspector<GraphNode | LGraphGroup> {
     /**
-     * Defines the reference to the editor's window main class.
+     * Defines the reference to the graph editor's window.
      */
-    editor: GraphEditorWindow;
-}
-
-export class Inspector extends React.Component<IInspectorProps> {
+    protected graphEditor: GraphEditorWindow;
     /**
-     * Defines the reference to the dat.gui tool.
+     * Defines the reference to current node being updated.
      */
-    public tool: Nullable<GUI> = null;
-    /**
-     * Defines the reference to the current node being edited.
-     */
-    public node: Nullable<GraphNode> = null;
-
-    private _toolDiv: HTMLDivElement;
-    private _refHandler = {
-        getToolDiv: (ref: HTMLDivElement) => this._toolDiv = ref,
-    };
+    protected node: Nullable<GraphNode> = null;
 
     private _shape: string = "";
 
     /**
      * Constructor.
-     * @param props defines the component's props.
+     * @param editor the editor reference.
+     * @param selectedObject the currently selected object reference.
+     * @param ref the ref of the inspector properties.
      */
-    public constructor(props: IInspectorProps) {
+    public constructor(props: IObjectInspectorProps) {
         super(props);
 
-        props.editor.inspector = this;
-    }
+        this.handleUndoRedo = false;
 
-    /**
-     * Renders the component.
-     */
-    public render(): React.ReactNode {
-        return <div ref={this._refHandler.getToolDiv} style={{ width: "100%", height: "100%" }}></div>;
+        this.graphEditor = props.editor as any;
+        this.graphEditor.inspector = this;
     }
 
     /**
@@ -61,27 +47,116 @@ export class Inspector extends React.Component<IInspectorProps> {
      */
     public componentDidMount(): void {
         this.tool = new GUI({ autoPlace: false, scrollable: true } as GUIParams);
-        this._toolDiv.appendChild(this.tool.domElement);
+        (this._div ?? document.getElementById(this._id!))?.appendChild(this.tool.domElement);
     }
 
     /**
-     * Called on the window or layout is resized.
+     * Sets the group to edit.
+     * @param group defines the reference to the group to edit.
      */
-    public resize(): void {
-        this.tool!.width = this.props.editor.getPanelSize("inspector").width;
+    public setGroup(group: LGraphGroup): void {
+        this.selectedObject = group;
+        this.onUpdate();
     }
 
     /**
      * Sets the node to edit.
      * @param node defines the reference to the node to edit.
      */
-    public async setNode(node: GraphNode): Promise<void> {
-        
+    public setNode(node: GraphNode): void {
+        this.selectedObject = node;
+        this.onUpdate();
+    }
+
+    /**
+     * Called on a controller changes.
+     * @param folder the folder containing the modified controller.
+     * @param controller the controller that has been modified.
+     */
+    public onControllerChange(_?: GUI, controller?: GUIController): void {
+        this.graphEditor.graph.refresh();
+
+        if (controller && this.selectedObject instanceof GraphNode) {
+            this._notifyPropertyChanged(this.selectedObject, controller.object, controller.property);
+        }
+    }
+
+    /**
+     * Called on a controller finished changes.
+     * @param folder the folder containing the modified controller.
+     * @param controller the controller that has been modified.
+     */
+    public onControllerFinishChange(_?: GUI, controller?: GUIController): void {
+        if (!controller) { return; }
+
+        const object = controller.object as any;
+        if (!object || object === this) { return; }
+
+        const node = this.selectedObject;
+        const property = controller.property;
+        const value = object[property];
+        const initialValue = controller["initialValue"];
+
+        if (value === initialValue) { return; }
+
+        undoRedo.push({
+            common: () => {
+                this.refreshDisplay();
+                if (node instanceof GraphNode) {
+                    this._notifyPropertyChanged(node, object, property);
+                }
+
+                this.graphEditor.graph.refresh();
+            },
+            undo: () => object[property] = initialValue,
+            redo: () => object[property] = value,
+        });
+    }
+
+    /**
+     * Resizes the edition tool.
+     * @param size defines the size of the panel.
+     */
+    public resize(): void {
+        this.tool!.width = this.graphEditor.getPanelSize("inspector").width;
+    }
+
+    /**
+     * Called on the component did mount.
+     * @override
+     */
+    public onUpdate(): void {
+        if (this.node) { this.node.onWidgetChange = null; }
+        this.node = null;
+
+        this.clear();
+
+        if (this.selectedObject instanceof LGraphGroup) {
+            this._addGroup(this.selectedObject);
+        } else {
+            this._addNode(this.selectedObject);
+        }
+
         this.resize();
-        this._clear();
-        
+        setTimeout(() => this._handleChanged(), 0);
+    }
+
+    /**
+     * Adds all the group editable properties.
+     */
+    private _addGroup(group: LGraphGroup): void {
+        const folder = this.tool!.addFolder("Group");
+        folder.open();
+        folder.add(group, "title").name("Title");
+        folder.addColor(group, "color").name("Color");
+    }
+
+    /**
+     * Adds all the node editable properties.
+     */
+    private _addNode(node: GraphNode): void {
         this.node = node;
-        this.node.onWidgetChange = () => this.setNode(node);
+        this.node.onWidgetChange = () => this.onUpdate();
 
         // Configure
         node.bgcolor = node.bgcolor ?? LiteGraph.NODE_DEFAULT_BGCOLOR;
@@ -93,75 +168,56 @@ export class Inspector extends React.Component<IInspectorProps> {
         functions.open();
         functions.addButton("Focus").onClick(() => node.focusOn());
 
-        // Common
+        this._addNodeCommon(node);
+        this._addNodeColor(node);
+        this._addNodeProperties(node);
+    }
+
+    /**
+     * Adds the common node editable properties.
+     */
+    private _addNodeCommon(node: GraphNode): void {
         const common = this.tool!.addFolder("Common");
         common.open();
-        const commonController = common.add(node, "title").onFinishChange((r) => {
-            const initialValue = commonController["initialValue"];
-            undoRedo.push({
-                common: () => {
-                    this.tool?.updateDisplay();
-                    node.setDirtyCanvas(true, true);
-                },
-                undo: () => node.title = initialValue,
-                redo: () => node.title = r,
-            });
-        });
+        common.add(node, "title").name("Title");
 
         const shapes: string[] = ["BOX_SHAPE", "ROUND_SHAPE", "CIRCLE_SHAPE", "CARD_SHAPE", "ARROW_SHAPE"];
         this._shape = shapes.find((s) => node.shape === LiteGraph[s])!;
-        const shapeController = common.addSuggest(this, "_shape", shapes).name("Shape").onChange(() => {
-            const r = this._shape;
-            const initialValue = shapeController["initialValue"];
+        common.addSuggest(this, "_shape", shapes).name("Shape").onChange(() => {
+            const newShape = this._shape;
+            const oldShape = shapes.find((s) => node.shape === LiteGraph[s])!;
 
             undoRedo.push({
                 common: () => {
-                    this.tool?.updateDisplay();
-                    node.setDirtyCanvas(true, true);
+                    this.refreshDisplay();
+                    this.graphEditor.graph.refresh();
                 },
-                undo: () => node.shape = LiteGraph[this._shape = initialValue],
-                redo: () => node.shape = LiteGraph[this._shape = r],
+                undo: () => node.shape = LiteGraph[oldShape],
+                redo: () => node.shape = LiteGraph[newShape],
             });
         });
+    }
 
-        // Colors
+    /**
+     * Adds the color node editable properties.
+     */
+    private _addNodeColor(node: GraphNode): void {
         const colors = this.tool!.addFolder("Colors");
         colors.open();
+        colors.addColor(node, "bgcolor").name("Background Color");
+        colors.addColor(node, "boxcolor").name("Box Color");
+    }
 
-        const bgColorController = colors.addColor(node, "bgcolor").name("Background Color").onChange(() => node.setDirtyCanvas(true, true)).onFinishChange((r) => {
-            const initialValue = bgColorController["initialValue"];
-            undoRedo.push({
-                common: () => {
-                    this.tool?.updateDisplay();
-                    node.setDirtyCanvas(true, true);
-                },
-                undo: () => node.bgcolor = initialValue,
-                redo: () => node.bgcolor = r,
-            });
-        });
-
-        const boxColorController = colors.addColor(node, "boxcolor").name("Box Color").onChange(() => node.setDirtyCanvas(true, true)).onFinishChange((r) => {
-            const initialValue = boxColorController["initialValue"];
-            undoRedo.push({
-                common: () => {
-                    this.tool?.updateDisplay();
-                    node.setDirtyCanvas(true, true);
-                },
-                undo: () => node.boxcolor = initialValue,
-                redo: () => node.boxcolor = r,
-            });
-        });
-
-        // Properties
+    /**
+     * Adds the node properties editable properties.
+     */
+    private _addNodeProperties(node: GraphNode): void {
         const properties = this.tool!.addFolder("Properties");
         properties.open();
 
-        // Add properties only
         for (const p in node.properties) {
-            const value = node.properties[p];
-            const ctor = Tools.GetConstructorName(value).toLowerCase();
-
             const widget = node.widgets?.find((w) => w.name === p);
+
             if (widget?.options?.values) {
                 const values = (typeof(widget.options.values) === "function") ? widget.options.values() : widget.options.values;
                 const propertyController = properties.addSuggest(node.properties, p, values).name(this._getFormatedname(p)).onChange((r) => {
@@ -169,7 +225,7 @@ export class Inspector extends React.Component<IInspectorProps> {
                     undoRedo.push({
                         common: () => {
                             this.tool?.updateDisplay();
-                            node.setDirtyCanvas(true, true);
+                            this.graphEditor.graph.refresh();
                         },
                         undo: () => {
                             node.properties[p] = initialValue;
@@ -184,124 +240,49 @@ export class Inspector extends React.Component<IInspectorProps> {
                 continue;
             }
 
+            const value = node.properties[p];
+            const ctor = Tools.GetConstructorName(value).toLowerCase();
+
             let controller: Nullable<GUIController> = null;
             switch (ctor) {
                 case "number":
                 case "string":
                 case "boolean":
-                    const commonPropertyController = controller = properties.add(node.properties, p).onChange((r) => {
-                        node.setDirtyCanvas(true, true);
-                        node.onPropertyChange(p, r);
-                    }).onFinishChange((r) => {
-                        const initialValue = commonPropertyController["initialValue"];
-                        undoRedo.push({
-                            common: () => {
-                                this.tool?.updateDisplay();
-                                node.setDirtyCanvas(true, true);
-                            },
-                            undo: () => {
-                                node.properties[p] = initialValue;
-                                node.onPropertyChange(p, initialValue);
-                            },
-                            redo: () => {
-                                node.properties[p] = r;
-                                node.onPropertyChange(p, r);
-                            },
-                        });
-                    }).name(this._getFormatedname(p));
+                    controller = properties.add(node.properties, p).name(this._getFormatedname(p));
                     break;
                 case "vector2":
                 case "vector3":
-                    const vectorPropertyController = properties.addVector(this._getFormatedname(p), value).onChange(() => {
-                        node.setDirtyCanvas(true, true);
-                        node.onPropertyChange("value.x", value.x);
-                        node.onPropertyChange("value.y", value.y);
-
-                        if (value instanceof Vector3) {
-                            node.onPropertyChange("value.z", value.z);
-                        }
-                    }).onFinishChange((r) => {
-                        const property = vectorPropertyController["property"];
-                        const initialValue = vectorPropertyController["initialValue"];
-
-                        undoRedo.push({
-                            common: () => {
-                                this.tool?.updateDisplay();
-                                node.setDirtyCanvas(true, true);
-                                node.onPropertyChange(`value.${property}`, node.properties[p][property]);
-                            },
-                            undo: () => {
-                                node.properties[p][property] = initialValue;
-                            },
-                            redo: () => {
-                                node.properties[p][property] = r;
-                            },
-                        });
-                    });
+                    controller = properties.addVector(this._getFormatedname(p), value) as any;
                     break;
                 case "color3":
-                    const colorPropertyController = properties.addAdvancedColor(this._getFormatedname(p), value).onChange((r) => {
-                        node.onPropertyChange(`value.${colorPropertyController.property}`, r);
-                        node.setDirtyCanvas(true, true);
-                    }).onFinishChange((r) => {
-                        const property = colorPropertyController["property"];
-                        const initialValue = colorPropertyController["initialValue"];
-
-                        undoRedo.push({
-                            common: () => {
-                                this.tool?.updateDisplay();
-                                node.setDirtyCanvas(true, true);
-                                node.onPropertyChange(`value.${property}`, node.properties[p][property]);
-                            },
-                            undo: () => {
-                                node.properties[p][property] = initialValue;
-                            },
-                            redo: () => {
-                                node.properties[p][property] = r;
-                            },
-                        });
-                    });
+                    controller = properties.addAdvancedColor(this._getFormatedname(p), value) as any;
                     break;
             }
 
             if (controller && widget) {
-                if (widget.options?.min) { controller.min(widget.options.min); }
-                if (widget.options?.max) { controller.max(widget.options.max); }
-                if (widget.options?.step) { controller.step(widget.options.step); }
+                if (widget.options?.min && controller.min) { controller.min(widget.options.min); }
+                if (widget.options?.max && controller.max) { controller.max(widget.options.max); }
+                if (widget.options?.step && controller.step) { controller.step(widget.options.step); }
             }
         }
     }
 
     /**
-     * Sets the group to edit.
-     * @param group defines the reference to the group.
+     * Notifies the given node that property changed.
      */
-    public setGroup(group: LGraphGroup): void {
-        this.resize();
-        this._clear();
-
-        const folder = this.tool!.addFolder("Group");
-        folder.open();
-
-        folder.add(group, "title").onChange(() => this.props.editor.graph.graphCanvas?.setDirty(true, true));
-    }
-
-    /**
-     * Clears the tool.
-     */
-    private _clear(): void {
-        if (this.node) { this.node.onWidgetChange = null; }
-        this.node = null;
-
-        if (!this.tool) { return; }
-
-        while (this.tool.__controllers.length) {
-            this.tool.remove(this.tool.__controllers[0]);
+    private _notifyPropertyChanged(node: GraphNode, object: any, property: string): void {
+        if (object !== node.properties) {
+            for (const key in node.properties) {
+                const value = node.properties[key];
+                if (value === object) {
+                    property = `${key}.${property}`;
+                    break;
+                }
+            }
         }
 
-        for (const key in this.tool.__folders) {
-            this.tool.removeFolder(this.tool.__folders[key]);
-        }
+        const split = property.split(".");
+        node.onPropertyChange(property, Tools.GetEffectiveProperty<any>(node.properties, property)[split.pop()!]);
     }
 
     /**

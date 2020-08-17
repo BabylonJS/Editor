@@ -22,10 +22,10 @@ import { LayoutUtils } from "../../editor/tools/layout-utils";
 import { GraphCode } from "../../editor/graph/graph";
 import { GraphCodeGenerator } from "../../editor/graph/generate";
 
-import { Inspector } from "./components/inspector";
-import { Preview } from "./components/preview";
-import { Graph } from "./components/graph";
 import { Logs } from "./components/logs";
+import { Graph } from "./components/graph";
+import { Preview } from "./components/preview";
+import { Inspector } from "./components/inspector";
 import { CallStack } from "./components/call-stack";
 
 export const title = "Graph Editor";

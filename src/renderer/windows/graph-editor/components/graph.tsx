@@ -401,7 +401,7 @@ export class Graph extends React.Component<IGraphProps> {
         this.graph["scene"] = scene;
 
         this.graph.status = LGraph.STATUS_RUNNING;
-        this._getAllNodes().forEach((n) => n.onStart());
+        this.getAllNodes().forEach((n) => n.onStart());
 
         this._graphInterval = setInterval(() => {
             if (NodeUtils.PausedNode !== this._pausedNode) {
@@ -426,14 +426,21 @@ export class Graph extends React.Component<IGraphProps> {
         }
 
         this.graph.status = LGraph.STATUS_STOPPED;
-        this._getAllNodes().forEach((n) => n.onStop());
+        this.getAllNodes().forEach((n) => n.onStop());
         this.graph.hasPaused = false;
+    }
+
+    /**
+     * Refreshes the graph.
+     */
+    public refresh(): void {
+        this.graphCanvas?.setDirty(true, true);
     }
 
     /**
      * Returns the list of all available nodes of the graph.
      */
-    private _getAllNodes(): GraphNode[] {
+    public getAllNodes(): GraphNode[] {
         return this.graph!["_nodes"] as GraphNode[];
     }
 
@@ -445,7 +452,7 @@ export class Graph extends React.Component<IGraphProps> {
         if (check.error) {
             check.error.node.color = "#ff2222";
         } else {
-            this._getAllNodes().forEach((n) => NodeUtils.SetColor(n));
+            this.getAllNodes().forEach((n) => NodeUtils.SetColor(n));
         }
     }
 

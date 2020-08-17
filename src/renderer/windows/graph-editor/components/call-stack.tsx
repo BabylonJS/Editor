@@ -91,14 +91,20 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
             return this.setState({ nodes });
         }
 
-        NodeUtils.CallStack.reverse().filter((n) => n.mode === LiteGraph.ON_TRIGGER).forEach((n, index) => {
+        const graph = this.props.editor.graph.graph!;
+        const ancestors = graph.getAncestors(NodeUtils.PausedNode);
+
+        const all = ancestors.filter((n) => n.mode === LiteGraph.ON_TRIGGER) as GraphNode[];
+        all.push(NodeUtils.PausedNode);
+
+        all.reverse().forEach((n, index) => {
             const isLast = index === 0;
 
             const inputs = n.inputs.map((i, index) => {
                 if (i.type === LiteGraph.EVENT as any) {
-                    return (<h2 style={{ color: "white", left: "50%" }}>{n.title}</h2>);
+                    return (<h2 style={{ color: "white", left: "50%" }} key={`node-title-${index}`}>{n.title}</h2>);
                 }
-                return (<Pre>{i.name}: {n.getInputData(index)?.toString() ?? "No input"}</Pre>);
+                return (<Pre key={`input-info-${index}`}>{i.name}: {n.getInputData(index)?.toString() ?? "No input"}</Pre>);
             });
 
             const content = (
@@ -110,7 +116,7 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
                 hasCaret: false,
                 icon: isLast ? "arrow-right" : undefined,
                 secondaryLabel: (
-                    <Tooltip content={content} interactionKind="hover" usePortal={true} position={Position.TOP} >
+                    <Tooltip key="node-inputs" content={content} interactionKind="hover" usePortal={true} position={Position.TOP} >
                         <Icon src="eye.svg" />
                     </Tooltip>
                 ),

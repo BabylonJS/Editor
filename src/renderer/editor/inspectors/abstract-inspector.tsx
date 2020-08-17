@@ -25,7 +25,11 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
      * Defines the GUI reference.
      */
     public tool: Nullable<GUI> = null;
-    
+    /**
+     * Defines wether or not undo/redo should be handled by the inspector.
+     */
+    public handleUndoRedo: boolean = true;
+
     /**
      * The editor reference.
      */
@@ -35,18 +39,23 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
      */
     protected selectedObject: T;
 
-    private _id: string;
-    private _isMounted: boolean = false;
+    /**
+     * Defines the Id of the tool.
+     */
+    protected _id: string;
+    /**
+     * Defines the div of the tool.
+     */
+    protected _div: Nullable<HTMLDivElement> = null;
 
-    private _div: Nullable<HTMLDivElement> = null;
+    private _isMounted: boolean = false;
+    
 
     private _lastScroll: Nullable<number> = null;
 
     /**
      * Constructor.
-     * @param editor the editor reference.
-     * @param selectedObject the currently selected object reference.
-     * @param ref the ref of the inspector properties.
+     * @param props the component's props.
      */
     public constructor(props: IObjectInspectorProps) {
         super(props);
@@ -170,6 +179,16 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
         for (const key in folder.__folders) {
             folder.removeFolder(folder.__folders[key]);
         }
+    }
+
+    /**
+     * Clears the whole tool.
+     */
+    public clear(): void {
+        if (!this.tool) { return; }
+        
+        this.clearFolder(this.tool);
+        this.tool.__controllers.forEach((c) => c.remove());
     }
 
     /**
@@ -386,6 +405,8 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
                 if (existingChangeFn) { existingChangeFn(r); }
                 this.onControllerChange(root!, c);
 
+                if (!this.handleUndoRedo) { return; }
+
                 if (c.object === this) { return; }
                 for (const thing in this) {
                     if (this[thing] === c.object) { return; }
@@ -403,6 +424,8 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
                 if (existingFinishChangeFn) { existingFinishChangeFn(r); }
                 this.onControllerFinishChange(root!, c);
                 
+                if (!this.handleUndoRedo) { return; }
+
                 if (c.object === this) { return; }
                 for (const thing in this) {
                     if (this[thing] === c.object) { return; }
