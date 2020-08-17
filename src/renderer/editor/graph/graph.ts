@@ -33,6 +33,8 @@ import { TimeoutEvent } from "./events/set-timeout";
 import { StartGameEvent } from "./events/start-game-event";
 import { TickGameEvent } from "./events/tick-game-event";
 import { CollisionEvent } from "./events/collision-event";
+import { WindowEvent } from "./events/window-event";
+import { DispatchWindowEvent } from "./events/dispatch-window-event";
 
 import { PickInfos } from "./data/pick-info";
 
@@ -156,6 +158,8 @@ export class GraphCode {
         LiteGraph.registerNodeType("events/start_game_event", StartGameEvent);
         LiteGraph.registerNodeType("events/tick_game_event", TickGameEvent);
         LiteGraph.registerNodeType("events/collision_event", CollisionEvent);
+        LiteGraph.registerNodeType("events/window_event", WindowEvent);
+        LiteGraph.registerNodeType("events/dispatch_window_event", DispatchWindowEvent);
 
         // Data
         LiteGraph.registerNodeType("data/pick_infos", PickInfos);
