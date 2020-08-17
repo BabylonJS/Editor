@@ -502,5 +502,6 @@ export class TextureAssets extends AbstractAssets {
 
 Assets.addAssetComponent({
     title: "Textures",
+    identifier: "textures",
     ctor: TextureAssets,
 });

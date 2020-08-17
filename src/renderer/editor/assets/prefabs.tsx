@@ -231,5 +231,6 @@ export class PrefabAssets extends AbstractAssets {
 
 Assets.addAssetComponent({
     title: "Prefabs",
+    identifier: "prefabs",
     ctor: PrefabAssets,
 });

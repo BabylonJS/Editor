@@ -150,6 +150,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             console.error("Failed to remove tmp dir", e);
         }
 
+        // Run!
         this._engine.runRenderLoop(() => {
             if (this.props.editor.graph.graph?.hasPaused) { return; }
             this._scene.render();

@@ -194,5 +194,6 @@ export class SoundAssets extends AbstractAssets {
 
 Assets.addAssetComponent({
     title: "Sounds",
+    identifier: "sounds",
     ctor: SoundAssets,
 });

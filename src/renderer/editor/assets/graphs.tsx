@@ -225,5 +225,6 @@ export class GraphAssets extends AbstractAssets {
 
 Assets.addAssetComponent({
     title: "Visual Scripts (Beta)",
+    identifier: "graphs",
     ctor: GraphAssets,
 });

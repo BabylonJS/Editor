@@ -8,6 +8,8 @@ import { ContextMenu, Menu, Classes, Button, MenuDivider } from "@blueprintjs/co
 import { Scene } from "babylonjs";
 import { LGraph, LGraphCanvas, LGraphGroup, LiteGraph, LLink } from "litegraph.js";
 
+import { IAssetComponentItem } from "../../../editor/assets/abstract-assets";
+
 import { EditableText } from "../../../editor/gui/editable-text";
 import { Alert } from "../../../editor/gui/alert";
 
@@ -75,6 +77,10 @@ export class Graph extends React.Component<IGraphProps> {
      * Defines the reference to the graph canvas utility that renders the graph.
      */
     public graphCanvas: Nullable<LGraphCanvas> = null;
+    /**
+     * Defines the path to the JSON file containing the graph.
+     */
+    public jsonPath: Nullable<string> = null;
 
     private _refHandler = {
         getCanvas: (ref: HTMLCanvasElement) => this.canvas = ref,
@@ -126,6 +132,8 @@ export class Graph extends React.Component<IGraphProps> {
      * Called on the component did mount.
      */
     public async initGraph(jsonPath: string): Promise<void> {
+        this.jsonPath = jsonPath;
+
         // Configure graph
         const json = await readJSON(jsonPath);
         this.graph = new LGraph();
@@ -394,14 +402,38 @@ export class Graph extends React.Component<IGraphProps> {
     /**
      * Called on the graph is being started.
      */
-    public start(scene: Scene): void {
+    public async start(scene: Scene): Promise<void> {
         if (!this.graph || !this.graphCanvas) { return; }
 
-        this.graph.hasPaused = false;
-        this.graph["scene"] = scene;
+        // Start other graphs
+        const graphs = await IPCTools.ExecuteEditorFunction<IAssetComponentItem[]>("assets.getAssetsOfComponentId", "graphs");
 
-        this.graph.status = LGraph.STATUS_RUNNING;
-        this.getAllNodes().forEach((n) => n.onStart());
+        for (const g of graphs.data) {
+            const path = g.key;
+            if (path === this.props.editor.graph.jsonPath) { continue; }
+
+            const graphContent = await readJSON(path);
+            const graph = new LGraph();
+            graph.configure(graphContent, false);
+
+            this.startGraph(graph, scene);
+        }
+
+        this.startGraph(this.graph, scene);
+    }
+
+    /**
+     * Starts the given graph with the given scene.
+     * @todo
+     * @param graph defines the reference to the graph to start.
+     * @param scene defines the reference to the scene attached to graph.
+     */
+    public startGraph(graph: LGraph, scene: Scene): void {
+        graph.hasPaused = false;
+        graph["scene"] = scene;
+
+        graph.status = LGraph.STATUS_RUNNING;
+        this.getAllNodes(graph).forEach((n) => n.onStart());
 
         this._graphInterval = setInterval(() => {
             if (NodeUtils.PausedNode !== this._pausedNode) {
@@ -409,8 +441,8 @@ export class Graph extends React.Component<IGraphProps> {
                 this.props.editor.callStack.refresh();
             }
 
-            if (!this.graph!.hasPaused) {
-                this.graph!.runStep();
+            if (!graph.hasPaused) {
+                graph.runStep();
             }
         }, 0) as any;
     }
@@ -440,8 +472,8 @@ export class Graph extends React.Component<IGraphProps> {
     /**
      * Returns the list of all available nodes of the graph.
      */
-    public getAllNodes(): GraphNode[] {
-        return this.graph!["_nodes"] as GraphNode[];
+    public getAllNodes(graph?: LGraph): GraphNode[] {
+        return (graph ?? this.graph!)["_nodes"] as GraphNode[];
     }
 
     /**

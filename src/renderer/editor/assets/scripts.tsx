@@ -384,5 +384,6 @@ export class ScriptAssets extends AbstractAssets {
 
 Assets.addAssetComponent({
     title: "Scripts",
+    identifier: "scripts",
     ctor: ScriptAssets,
 });

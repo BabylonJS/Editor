@@ -349,5 +349,6 @@ export class MeshesAssets extends AbstractAssets {
 
 Assets.addAssetComponent({
     title: "Meshes",
+    identifier: "meshes",
     ctor: MeshesAssets,
 });

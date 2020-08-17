@@ -17,6 +17,10 @@ export interface IAssetComponent {
      */
     title: string;
     /**
+     * Defines the identifier of the component.
+     */
+    identifier: string;
+    /**
      * Constructor reference of the component.
      */
     ctor: (new (props: IAssetsProps) => AbstractAssets);
@@ -203,6 +207,17 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
         if (assetComponent) { return assetComponent._ref?.items; }
 
         return undefined;
+    }
+
+    /**
+     * Returns all the assets of the component identified by the given Id.
+     * @param id defines the id of the assets component to get its assets.
+     */
+    public getAssetsOfComponentId(id: string): IAssetComponentItem[] {
+        const component = Assets._assetComponents.find((a) => a.identifier === id);
+        if (!component) { return []; }
+
+        return this.getAssetsOf(component.ctor)!.map((c) => ({ id: c.id, base64: c.base64, key: c.key }));
     }
 
     /**

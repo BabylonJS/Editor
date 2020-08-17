@@ -30,7 +30,7 @@ export class DispatchWindowEvent extends GraphNode<{ eventName: string; }> {
      * Generates the code of the graph.
      */
     public generateCode(data?: ICodeGenerationOutput): ICodeGenerationOutput {
-        const code = `window.dispatchEvent(new CustomEvent("${this.properties.eventName}", ${data?.code ?? "undefined"}))`;
+        const code = `window.dispatchEvent(new CustomEvent("${this.properties.eventName}", { detail: ${data?.code ?? "undefined"} }))`;
         
         return {
             type: CodeGenerationOutputType.Function,

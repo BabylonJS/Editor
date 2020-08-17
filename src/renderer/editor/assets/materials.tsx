@@ -484,5 +484,6 @@ export class MaterialAssets extends AbstractAssets {
 
 Assets.addAssetComponent({
     title: "Materials",
+    identifier: "materials",
     ctor: MaterialAssets,
 });

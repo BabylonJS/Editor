@@ -284,10 +284,9 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      */
     public async start(): Promise<void> {
         await this.preview.reset();
+        await this.graph.start(this.preview.getScene());
 
         this.logs.clear();
-        this.graph.start(this.preview.getScene());
-
         this.setState({ playing: true });
     }
 

@@ -59,7 +59,7 @@ export class WindowEvent extends GraphNode<{ eventName: string; }> {
      */
     public generateCode(): ICodeGenerationOutput {
         const code = `
-            window.addEventListener("${this.properties.eventName}", (evt) => {
+            window.addEventListener("${this.properties.eventName}", (evt: CustomEvent) => {
                 {{generated__body}}
             });
         `;
@@ -70,7 +70,7 @@ export class WindowEvent extends GraphNode<{ eventName: string; }> {
             code,
             outputsCode: [
                 { code: undefined },
-                { code: "evt" },
+                { code: "evt.detail" },
             ],
         };
     }
