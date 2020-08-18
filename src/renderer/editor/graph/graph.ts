@@ -21,7 +21,7 @@ import { Vec2, Vec3, VectorLength } from "./math/vector";
 import { AddVectors, MultiplyVectors } from "./math/vector-operation";
 import { VectorSplitter } from "./math/vector-splitter";
 
-import { Col3 } from "./math/color";
+import { Col3, Col4 } from "./math/color";
 
 import { Sound } from "./sound/sound";
 import { PlaySound } from "./sound/play";
@@ -80,6 +80,10 @@ import { PlayAnimation } from "./animation/start-animations";
 import { StopAnimation } from "./animation/stop-animations";
 
 import { EasingFunction } from "./animation/easing";
+
+// Particle systems
+import { ParticleSystem } from "./particle-system/particle-system";
+import { SetParticleSystemProperty } from "./particle-system/set-property";
 
 export class GraphCode {
     private static _Initialized: boolean = false;
@@ -147,6 +151,7 @@ export class GraphCode {
 
         // Colors
         LiteGraph.registerNodeType("math/color_3", Col3);
+        LiteGraph.registerNodeType("math/color_4", Col4);
 
         // Sound
         LiteGraph.registerNodeType("sound/sound", Sound);
@@ -215,5 +220,9 @@ export class GraphCode {
         LiteGraph.registerNodeType("animation/stop_animation", StopAnimation);
 
         LiteGraph.registerNodeType("animation/easing_function", EasingFunction);
+
+        // Particle systems
+        LiteGraph.registerNodeType("particles/particles_system", ParticleSystem);
+        LiteGraph.registerNodeType("particles/set_particles_system_property", SetParticleSystemProperty);
     }
 }

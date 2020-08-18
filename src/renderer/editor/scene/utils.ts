@@ -73,6 +73,13 @@ export class SceneUtils {
     }
 
     /**
+     * Returns the list of all particle systems.
+     */
+    public getAllParticleSystems(): INodeResult[] {
+        return this.scene.particleSystems.map((ps) => ({ name: ps.name, id: ps.id }));
+    }
+
+    /**
      * Returns the given nodes as INodeResult.
      */
     private _getAsNodeResult(nodes: Node[]): INodeResult[] {

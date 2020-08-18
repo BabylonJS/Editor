@@ -29,6 +29,7 @@ import { Camera } from "../../../editor/graph/camera/camera";
 import { Light } from "../../../editor/graph/light/light";
 import { Sound } from "../../../editor/graph/sound/sound";
 import { AnimationGroup } from "../../../editor/graph/animation/animation-group";
+import { ParticleSystem } from "../../../editor/graph/particle-system/particle-system";
 
 import { GetMesh } from "../../../editor/graph/mesh/get-mesh";
 import { GetCamera } from "../../../editor/graph/camera/get-camera";
@@ -450,6 +451,7 @@ export class Graph extends React.Component<IGraphProps> {
         }, 0) as any;
 
         this._startedGraphInvervals.push(intervalId);
+        this._startedGraphs.push(graph);
     }
 
     /**
@@ -523,5 +525,8 @@ export class Graph extends React.Component<IGraphProps> {
 
         const animationGroups = await IPCTools.ExecuteEditorFunction<string[]>("sceneUtils.getAllAnimationGroups");
         AnimationGroup.Groups = animationGroups.data;
+
+        const particleSystems = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllParticleSystems");
+        ParticleSystem.ParticleSystems = particleSystems.data.map((ps) => ps.name);
     }
 }

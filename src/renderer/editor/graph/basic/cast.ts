@@ -21,6 +21,8 @@ export class Cast extends GraphNode<{ type: string; }> {
         "Sound": "Sound",
         "ArcRotateCamera": "Node,Camera,ArcRotateCamera",
         "FreeCamera": "Node,Camera,FreeCamera",
+        "IParticleSystem": "IParticleSystem",
+        "ParticleSystem": "IParticleSystem,ParticleSystem",
     };
 
     /**
