@@ -1,36 +1,37 @@
 import { Nullable } from "../../../../shared/types";
 
-import { Observer, Mesh } from "babylonjs";
+import { ArcRotateCamera, FreeCamera } from "babylonjs";
 import { LiteGraph } from "litegraph.js";
 
-import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
+import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
 
-export class CollisionEvent extends GraphNode {
-    private _observer: Nullable<Observer<any>> = null;
+export class CameraCollisionEvent extends GraphNode {
+    private _camera: Nullable<ArcRotateCamera | FreeCamera> = null;
 
     /**
      * Constructor.
      */
     public constructor() {
-        super("Collision Event");
+        super("Camera Collision Event");
 
-        this.addInput("Mesh *", "AbstractMesh");
+        this.addInput("Camera *", "ArcRotateCamera,FreeCamera");
 
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("Mesh", "AbstractMesh");
-        this.addOutput("Other Mesh", "AbstractMesh");
+        this.addOutput("Camera", "Camera");
+        this.addOutput("Collided Mesh", "AbstractMesh");
     }
 
     /**
      * Called on the node is being executed.
      */
     public execute(): void {
-        const mesh = this.getInputData<Mesh>(0);
+        const camera = this.getInputData<ArcRotateCamera>(0);
         
-        this.setOutputData(1, mesh);
+        this.setOutputData(1, camera);
 
-        if (!this._observer) {
-            this._observer = mesh.onCollideObservable.add((other) => {
+        if (!this._camera) {
+            this._camera = camera;
+            camera.onCollide = ((other) => {
                 this.setOutputData(2, other);
                 this.triggerSlot(0, null);
             });
@@ -40,20 +41,21 @@ export class CollisionEvent extends GraphNode {
     /**
      * Generates the code of the graph.
      */
-    public generateCode(mesh: ICodeGenerationOutput): ICodeGenerationOutput {
+    public generateCode(camera: ICodeGenerationOutput): ICodeGenerationOutput {
         const code = `
-            ${mesh.code}.onCollideObservable.add((other) => {
+            ${camera.code}.onCollide = (collidedMesh) => {
                 {{generated__body}}
-            });
+            };
         `;
         
         return {
             type: CodeGenerationOutputType.CallbackFunction,
+            executionType: CodeGenerationExecutionType.Start,
             code,
             outputsCode: [
                 { code: undefined },
-                { code: mesh.code },
-                { code: "other" },
+                { code: camera.code },
+                { code: "collidedMesh" },
             ],
         };
     }

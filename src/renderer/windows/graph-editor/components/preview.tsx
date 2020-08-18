@@ -2,6 +2,8 @@ import { join, relative } from "path";
 import { tmpdir } from "os";
 import { mkdtemp, writeJson, rmdir, remove } from "fs-extra";
 
+import { Nullable } from "../../../../shared/types";
+
 import * as React from "react";
 import { Callout, Intent } from "@blueprintjs/core";
 
@@ -38,8 +40,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         getCanvas: (ref: HTMLCanvasElement) => this.canvas = ref,
     };
 
-    private _engine: Engine;
-    private _scene: Scene;
+    private _engine: Nullable<Engine> = null;
+    private _scene: Nullable<Scene> = null;
 
     /**
      * Constructor.
@@ -103,7 +105,19 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Gets the current scene.
      */
     public getScene(): Scene {
-        return this._scene;
+        return this._scene!;
+    }
+
+    /**
+     * Stops the preview.
+     */
+    public stop(): void {
+        this._disposeSceneAndEngine();
+
+        this._scene = null;
+        this._engine = null;
+
+        this.setState({ welcome: true });
     }
 
     /**
@@ -114,14 +128,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         if (!this.canvas) { return; }
 
-        if (this._scene) {
-            try { this._scene.dispose(); } catch (e) { /* Catch silently */ }
-        }
-
-        if (this._engine) {
-            this._engine.stopRenderLoop();
-            try { this._engine.dispose(); } catch (e) { /* Catch silently */ }
-        }
+        this._disposeSceneAndEngine();
 
         this._engine = new Engine(this.canvas, true, {
             audioEngine: true,
@@ -153,11 +160,25 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         // Run!
         this._engine.runRenderLoop(() => {
             if (this.props.editor.graph.graph?.hasPaused) { return; }
-            this._scene.render();
+            this._scene?.render();
         });
 
         return new Promise<void>((resolve) => {
-            this._scene.executeWhenReady(() => resolve());
+            this._scene?.executeWhenReady(() => resolve());
         });
+    }
+
+    /**
+     * Disposes the current scene and engine is they exist.
+     */
+    private _disposeSceneAndEngine(): void {
+        if (this._scene) {
+            try { this._scene.dispose(); } catch (e) { /* Catch silently */ }
+        }
+
+        if (this._engine) {
+            this._engine.stopRenderLoop();
+            try { this._engine.dispose(); } catch (e) { /* Catch silently */ }
+        }
     }
 }

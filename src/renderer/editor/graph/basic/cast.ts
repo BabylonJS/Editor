@@ -19,6 +19,8 @@ export class Cast extends GraphNode<{ type: string; }> {
         "PointLight": "Node,Light,PointLight",
         "HemisphericLight": "Node,Light,HemisphericLight",
         "Sound": "Sound",
+        "ArcRotateCamera": "Node,Camera,ArcRotateCamera",
+        "FreeCamera": "Node,Camera,FreeCamera",
     };
 
     /**

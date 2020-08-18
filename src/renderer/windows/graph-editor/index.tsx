@@ -295,6 +295,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      */
     public stop(): void {
         this.graph.stop();
+        this.preview.stop();
         this.callStack.clear();
 
         this.setState({ playing: false });

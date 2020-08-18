@@ -87,8 +87,10 @@ export class Graph extends React.Component<IGraphProps> {
     };
 
     private _canvasFocused: boolean = false;
-    private _graphInterval: Nullable<number> = null;
     private _pausedNode: Nullable<GraphNode> = null;
+
+    private _startedGraphInvervals: number[] = [];
+    private _startedGraphs: LGraph[] = [];
 
     /**
      * Constructor.
@@ -435,31 +437,33 @@ export class Graph extends React.Component<IGraphProps> {
         graph.status = LGraph.STATUS_RUNNING;
         this.getAllNodes(graph).forEach((n) => n.onStart());
 
-        this._graphInterval = setInterval(() => {
+        const intervalId = setInterval(() => {
             if (NodeUtils.PausedNode !== this._pausedNode) {
                 this._pausedNode = NodeUtils.PausedNode;
                 this.props.editor.callStack.refresh();
             }
 
-            if (!graph.hasPaused) {
-                graph.runStep();
-            }
+            if (!graph.hasPaused) { graph.runStep(); }
         }, 0) as any;
+
+        this._startedGraphInvervals.push(intervalId);
     }
 
     /**
      * Stops the graph.
      */
     public stop(): void {
-        if (!this.graph || !this.graphCanvas) { return; }
+        this._startedGraphInvervals.forEach((i) => {
+            clearInterval(i);
+        });
+        this._startedGraphInvervals = [];
 
-        if (this._graphInterval) {
-            clearInterval(this._graphInterval);
-        }
-
-        this.graph.status = LGraph.STATUS_STOPPED;
-        this.getAllNodes().forEach((n) => n.onStop());
-        this.graph.hasPaused = false;
+        this._startedGraphs.forEach((graph) => {
+            graph.status = LGraph.STATUS_STOPPED;
+            this.getAllNodes(graph).forEach((n) => n.onStop());
+            graph.hasPaused = false;
+        });
+        this._startedGraphs = [];
     }
 
     /**
