@@ -19,6 +19,10 @@ export interface IAlertOptions {
      * Defines wehter or not footer should be shown.
      */
     noFooter?: boolean;
+    /**
+     * Defines the optional style of the alert.
+     */
+    style?: React.CSSProperties;
 }
 
 export interface IAlertProps extends IAlertOptions {
@@ -75,6 +79,7 @@ export class Alert extends React.Component<IAlertProps, { }> {
                     canOutsideClickClose={options?.canOutsideClickClose}
                     noFooter={options?.noFooter}
                     isCloseButtonShown={options?.isCloseButtonShown}
+                    style={options?.style}
                 ></Alert>
             );
             ReactDOM.render(dialog, container);
@@ -114,6 +119,7 @@ export class Alert extends React.Component<IAlertProps, { }> {
                 canOutsideClickClose={this.props.canOutsideClickClose ?? true}
                 isCloseButtonShown={this.props.isCloseButtonShown}
                 onClose={() => this.close()}
+                style={this.props.style}
             >
                 <div className={Classes.DIALOG_BODY}>
                     <p><strong>{this.props.message}</strong></p>

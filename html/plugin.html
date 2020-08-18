@@ -61,9 +61,31 @@
 			setTimeout(() => {
 				// Require modules hack for development mode.
 				require('../build/src/src/renderer/module.js');
-				const plugin = require("../build/src/src/renderer/windows/index.js");
+				const path = require('path');
 
-				window.plugin = new plugin.default();
+				// Configure monaco editor embedded loader
+				const amdLoader = require('../node_modules/monaco-editor/min/vs/loader.js');
+				const amdRequire = amdLoader.require;
+				const amdDefine = amdLoader.require.define;
+				function uriFromPath(_path) {
+					var pathName = path.resolve(_path).replace(/\\/g, '/');
+					if (pathName.length > 0 && pathName.charAt(0) !== '/') {
+						pathName = '/' + pathName;
+					}
+					return encodeURI('file://' + pathName);
+				}
+				amdRequire.config({
+					baseUrl: uriFromPath(path.join(__dirname, '../node_modules/monaco-editor/min'))
+				});
+
+				// workaround monaco-css not understanding the environment
+				self.module = undefined;
+				amdRequire(['vs/editor/editor.main'], function () {
+					window.monaco = monaco;
+
+					const plugin = require("../build/src/src/renderer/windows/index.js");
+					window.plugin = new plugin.default();
+				});
 			}, 100);
 		};
 	</script>

@@ -403,22 +403,25 @@ export class Graph extends React.Component<IGraphProps> {
 
     /**
      * Called on the graph is being started.
+     * @param standalone defines wehter or not only the current graph will be executed.
      */
-    public async start(scene: Scene): Promise<void> {
+    public async start(scene: Scene, standalone: boolean): Promise<void> {
         if (!this.graph || !this.graphCanvas) { return; }
 
-        // Start other graphs
-        const graphs = await IPCTools.ExecuteEditorFunction<IAssetComponentItem[]>("assets.getAssetsOfComponentId", "graphs");
+        // Start other graphs?
+        if (!standalone) {
+            const graphs = await IPCTools.ExecuteEditorFunction<IAssetComponentItem[]>("assets.getAssetsOfComponentId", "graphs");
 
-        for (const g of graphs.data) {
-            const path = g.key;
-            if (path === this.props.editor.graph.jsonPath) { continue; }
+            for (const g of graphs.data) {
+                const path = g.key;
+                if (path === this.props.editor.graph.jsonPath) { continue; }
 
-            const graphContent = await readJSON(path);
-            const graph = new LGraph();
-            graph.configure(graphContent, false);
+                const graphContent = await readJSON(path);
+                const graph = new LGraph();
+                graph.configure(graphContent, false);
 
-            this.startGraph(graph, scene);
+                this.startGraph(graph, scene);
+            }
         }
 
         this.startGraph(this.graph, scene);

@@ -73,7 +73,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                         style={{ position: "absolute", left: "50%", bottom: "50%", opacity: "0.5", transform: "translate(-50%, 50%)", width: "100px", height: "100px" }}
                         onOver={(e) => e.currentTarget.style.opacity = "1" }
                         onLeave={(e) => e.currentTarget.style.opacity = "0.5" }
-                        onClick={() => this.props.editor.start()}
+                        onClick={() => this.props.editor.start(false)}
                     />
                 </Callout>
             );

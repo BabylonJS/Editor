@@ -5,7 +5,7 @@ import { extname } from "path";
 import { Nullable, IStringDictionary } from "../../../shared/types";
 
 import * as React from "react";
-import { Button, Divider, ButtonGroup, Popover, Position, Menu, MenuItem, MenuDivider, Toaster, Intent } from "@blueprintjs/core";
+import { Button, Divider, ButtonGroup, Popover, Position, Menu, MenuItem, MenuDivider, Toaster, Intent, ContextMenu, Classes } from "@blueprintjs/core";
 import GoldenLayout from "golden-layout";
 
 import { ISize } from "babylonjs";
@@ -27,6 +27,7 @@ import { Graph } from "./components/graph";
 import { Preview } from "./components/preview";
 import { Inspector } from "./components/inspector";
 import { CallStack } from "./components/call-stack";
+import { Code } from "../../editor/gui/code";
 
 export const title = "Graph Editor";
 
@@ -104,10 +105,10 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     public render(): React.ReactNode {
         const file = (
             <Menu>
-                <MenuItem text="Load From..." icon={<Icon src="folder-open.svg" />} onClick={() => this._loadFrom()} />
+                <MenuItem text="Load From..." icon={<Icon src="folder-open.svg" />} onClick={() => this._handleLoadFrom()} />
                 <MenuDivider />
-                <MenuItem text="Save (CTRL + S)" icon={<Icon src="copy.svg" />} onClick={() => this._save()} />
-                <MenuItem text="Save As... (CTRL + SHIFT + S)" icon={<Icon src="copy.svg" />} onClick={() => this._saveAs()} />
+                <MenuItem text="Save (CTRL + S)" icon={<Icon src="copy.svg" />} onClick={() => this._handleSave()} />
+                <MenuItem text="Save As... (CTRL + SHIFT + S)" icon={<Icon src="copy.svg" />} onClick={() => this._handleSaveAs()} />
             </Menu>
         );
 
@@ -115,6 +116,12 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
             <Menu>
                 <MenuItem text="Undo (CTRL + Z)" icon={<Icon src="undo.svg" />} onClick={() => undoRedo.undo()} />
                 <MenuItem text="Redo (CTRL + Y)" icon={<Icon src="redo.svg" />} onClick={() => undoRedo.redo()} />
+            </Menu>
+        );
+
+        const view = (
+            <Menu>
+                <MenuItem text="Show Generated Code..." icon="code" onClick={() => this._handleShowGeneratedCode()} />
             </Menu>
         );
         
@@ -128,10 +135,13 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
                         <Popover content={edit} position={Position.BOTTOM_LEFT}>
                             <Button icon={<Icon src="edit.svg"/>} rightIcon="caret-down" text="Edit"/>
                         </Popover>
+                        <Popover content={view} position={Position.BOTTOM_LEFT}>
+                            <Button icon={<Icon src="eye.svg"/>} rightIcon="caret-down" text="View"/>
+                        </Popover>
                     </ButtonGroup>
                     <Divider />
                     <ButtonGroup style={{ position: "relative", left: "50%", transform: "translate(-50%)" }}>
-                        <Button disabled={this.state.playing} icon={<Icon src="play.svg" />} text="Play" onClick={() => this.start()} />
+                        <Button disabled={this.state.playing} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play" onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this.start(false)} />
                         <Button disabled={!this.state.playing} icon={<Icon src="square-full.svg" />} text="Stop" onClick={() => this.stop()} />
                     </ButtonGroup>
                     <Divider />
@@ -281,10 +291,11 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
     /**
      * Starts the graph.
+     * @param standalone defines wehter or not only the current graph will be executed.
      */
-    public async start(): Promise<void> {
+    public async start(standalone: boolean): Promise<void> {
         await this.preview.reset();
-        await this.graph.start(this.preview.getScene());
+        await this.graph.start(this.preview.getScene(), standalone);
 
         this.logs.clear();
         this.setState({ playing: true });
@@ -304,7 +315,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     /**
      * Saves the current graph.
      */
-    private async _save(closed: boolean = false): Promise<void> {
+    private async _handleSave(closed: boolean = false): Promise<void> {
         if (this._isSaving) { return; }
         this._isSaving = true;
 
@@ -335,7 +346,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     /**
      * Saves the current graph as...
      */
-    private async _saveAs(): Promise<void> {
+    private async _handleSaveAs(): Promise<void> {
         const json = this.graph.graph?.serialize();
         if (!json) { return; }
 
@@ -355,7 +366,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     /**
      * Loads the current graph from...
      */
-    private async _loadFrom(): Promise<void> {
+    private async _handleLoadFrom(): Promise<void> {
         const path = await Tools.ShowOpenFileDialog("Load Graph From...");
         
         try {
@@ -369,6 +380,35 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     }
 
     /**
+     * Called on the user right-clicks on the "play" button.
+     */
+    private _handlePlayContextMenu(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+        ContextMenu.show(
+            <Menu className={Classes.DARK}>
+                <MenuItem text="Play" icon={<Icon src="play.svg" />} onClick={() => this.start(false)} />
+                <MenuItem text="Play Only Current Graph" icon={<Icon src="play.svg" />} onClick={() => this.start(true)} />
+            </Menu>,
+            { left: e.clientX, top: e.clientY },
+        );
+    }
+
+    /**
+     * Called on the user wants to show the generated code.
+     */
+    private async _handleShowGeneratedCode(): Promise<void> {
+        if (!this.graph.graph) { return; }
+
+        const code = GraphCodeGenerator.GenerateCode(this.graph.graph);
+        if (!code) { return; }
+
+        Alert.Show("Generated Code", "", undefined, (
+            <Code code={code} language="typescript" readonly={true} style={{ width: "800px", height: "600px" }} />
+        ), {
+            style: { width: "840px", height: "700px" }
+        });
+    }
+
+    /**
      * Binds all the events.
      */
     private _bindEvents(): void {
@@ -379,8 +419,8 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         });
 
         // Shortcuts
-        ipcRenderer.on("save", () => this._save());
-        ipcRenderer.on("save-as", () => this._saveAs());
+        ipcRenderer.on("save", () => this._handleSave());
+        ipcRenderer.on("save-as", () => this._handleSaveAs());
 
         ipcRenderer.on("undo", () => undoRedo.undo());
         ipcRenderer.on("redo", () => undoRedo.redo());
