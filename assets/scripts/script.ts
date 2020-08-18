@@ -26,6 +26,14 @@ export default class MyScript extends Node {
     private constructor() { }
 
     /**
+     * Called on the node is being initialized.
+     * This function is called immediatly after the constructor has been called.
+     */
+    public onInitialize(): void {
+        // ...
+    }
+
+    /**
      * Called on the scene starts.
      */
     public onStart(): void {
@@ -37,5 +45,15 @@ export default class MyScript extends Node {
      */
     public onUpdate(): void {
         // ...
+    }
+
+    /**
+     * Called on a message has been received. Messages can come from graphs.
+     * @param message Defines the name of the message sent.
+     * @param data defines the data sent in the message.
+     * @param sender defines the reference to the class that sent the 
+     */
+    public onMessage(name: string, data: any, sender: any): void {
+        // Not yet supported, implementation WIP.
     }
 }

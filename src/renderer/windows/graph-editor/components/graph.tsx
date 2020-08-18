@@ -127,8 +127,8 @@ export class Graph extends React.Component<IGraphProps> {
             return;
         }
 
-        this.graphCanvas?.setDirty(true, true);
         this.graphCanvas?.resize(size.width, size.height);
+        this.graphCanvas?.setDirty(true, true);
     }
 
     /**
@@ -165,11 +165,17 @@ export class Graph extends React.Component<IGraphProps> {
             this.graphCanvas!.dirty_bgcanvas = true;
             this.graphCanvas!.dirty_canvas = true;
         });
-        this.graphCanvas.render_canvas_border = false;
-        this.graphCanvas.render_execution_order = true;
-        this.graphCanvas.render_curved_connections = true;
-        this.graphCanvas.highquality_render = true;
 
+        // Preferences
+        const preferences = JSON.parse(localStorage.getItem("babylonjs-editor-graph-preferences") ?? "{ }");
+
+        this.graphCanvas.render_canvas_border = false;
+        this.graphCanvas.highquality_render = true;
+        this.graphCanvas.render_execution_order = preferences.render_execution_order ?? true;
+        this.graphCanvas.render_curved_connections = preferences.render_curved_connections ?? true;
+        this.graphCanvas.show_info = preferences.show_info ?? true;
+
+        // Override
         this.graphCanvas.showSearchBox = (e: MouseEvent) => {
             setTimeout(() => this.addNode(e), 100);
         };
@@ -283,6 +289,8 @@ export class Graph extends React.Component<IGraphProps> {
                 },
             });
         }
+
+        this.resize();
     }
 
     /**

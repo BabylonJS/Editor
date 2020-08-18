@@ -43,6 +43,7 @@ import { SetProperty } from "./property/set-property";
 
 import { CallNodeFunction } from "./node/call-function";
 import { DisposeNode } from "./node/dispose";
+import { SendNodeMessage } from "./node/send-message";
 
 import { Camera } from "./camera/camera";
 import { GetCamera } from "./camera/get-camera";
@@ -179,6 +180,7 @@ export class GraphCode {
         // Node
         LiteGraph.registerNodeType("node/call_node_function", CallNodeFunction);
         LiteGraph.registerNodeType("node/dispose_node", DisposeNode);
+        LiteGraph.registerNodeType("node/send_message_to_node", SendNodeMessage);
 
         // Camera
         LiteGraph.registerNodeType("camera/camera", Camera);

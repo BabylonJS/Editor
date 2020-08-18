@@ -2,7 +2,7 @@ import { ipcRenderer } from "electron";
 import { writeJson } from "fs-extra";
 import { extname } from "path";
 
-import { Nullable, IStringDictionary } from "../../../shared/types";
+import { Nullable, IStringDictionary, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
 import { Button, Divider, ButtonGroup, Popover, Position, Menu, MenuItem, MenuDivider, Toaster, Intent, ContextMenu, Classes } from "@blueprintjs/core";
@@ -122,6 +122,10 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         const view = (
             <Menu>
                 <MenuItem text="Show Generated Code..." icon="code" onClick={() => this._handleShowGeneratedCode()} />
+                <MenuDivider />
+                <MenuItem text="Show Infos" icon={this._getCheckedIcon(this.graph?.graphCanvas?.show_info ?? true)} onClick={() => this._handleGraphCanvasOption("show_info")} />
+                <MenuItem text="Render Execution Order" icon={this._getCheckedIcon(this.graph?.graphCanvas?.render_execution_order ?? true)} onClick={() => this._handleGraphCanvasOption("render_execution_order")} />
+                <MenuItem text="Render Collapsed Slots" icon={this._getCheckedIcon(this.graph?.graphCanvas?.render_collapsed_slots ?? true)} onClick={() => this._handleGraphCanvasOption("render_collapsed_slots")} />
             </Menu>
         );
         
@@ -232,6 +236,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         // Bind all events
         this._bindEvents();
 
+        this.forceUpdate();
         this.layout.updateSize();
     }
 
@@ -341,6 +346,15 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         localStorage.setItem("babylonjs-editor-graph-layout-state", JSON.stringify(config));
         localStorage.setItem("babylonjs-editor-graph-layout-version", GraphEditorWindow.LayoutVersion);
         localStorage.setItem("babylonjs-editor-graph-window-dimensions", JSON.stringify({ width: innerWidth, height: innerHeight }));
+
+        if (this.graph?.graphCanvas) {
+            localStorage.setItem("babylonjs-editor-graph-preferences", JSON.stringify({
+                show_info: this.graph.graphCanvas.show_info,
+                render_execution_order: this.graph.graphCanvas.render_execution_order,
+                render_collapsed_slots: this.graph.graphCanvas.render_collapsed_slots,
+            }));
+
+        }
     }
 
     /**
@@ -377,6 +391,18 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         } catch (e) {
             Alert.Show("Failed To Parse Graph", `Failed to parse graph: ${e.message}`);
         }
+    }
+
+    /**
+     * Called on the user wants to change a graph canvas option.
+     */
+    private _handleGraphCanvasOption(option: string): void {
+        if (this.graph?.graphCanvas) {
+            this.graph.graphCanvas[option] = !this.graph.graphCanvas[option];
+            this.graph.graphCanvas.setDirty(true, true);
+        }
+
+        this.forceUpdate();
     }
 
     /**
@@ -424,5 +450,12 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         ipcRenderer.on("undo", () => undoRedo.undo());
         ipcRenderer.on("redo", () => undoRedo.redo());
+    }
+
+    /**
+     * Returns the check icon if the given "checked" property is true.
+     */
+    private _getCheckedIcon(checked: Undefinable<boolean>): Undefinable<JSX.Element> {
+        return checked ? <Icon src="check.svg" /> : undefined;
     }
 }

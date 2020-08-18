@@ -21,6 +21,9 @@ export type ScriptMap = {
  * @param nodes the array of nodes to attach script (if exists).
  */
 function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
+    const initializedNodes: { node: Node; exports: any; }[] = [];
+
+    // Initialize nodes
     for (const n of nodes) {
         if (!n.metadata || !n.metadata.script || !n.metadata.script.name || n.metadata.script.name === "None") { continue; }
 
@@ -37,13 +40,24 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
         // Call constructor
         prototype.constructor.call(n);
 
+        // Call onInitialize
+        prototype.onInitialize?.call(n);
+
+        initializedNodes.push({ node: n, exports });
+    }
+
+    // Configure initialized nodes
+    for (const i of initializedNodes) {
+        const n = i.node;
+        const e = i.exports;
+        
         // Check start
-        if (exports.default.prototype.onStart) {
+        if (e.default.prototype.onStart) {
             n.getScene().onBeforeRenderObservable.addOnce(() => n["onStart"]());
         }
 
         // Check update
-        if (exports.default.prototype.onUpdate) {
+        if (e.default.prototype.onUpdate) {
             n.getScene().onBeforeRenderObservable.add(() => n["onUpdate"]());
         }
 
@@ -55,28 +69,28 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
         }
 
         // Check linked children.
-        const childrenLinks = (exports.default as any)._ChildrenValues ?? [];
+        const childrenLinks = (e.default as any)._ChildrenValues ?? [];
         for (const link of childrenLinks) {
             const child = n.getChildren((node => node.name === link.nodeName), true)[0];
             n[link.propertyKey] = child;
         }
 
         // Check linked nodes from scene.
-        const sceneLinks = (exports.default as any)._SceneValues ?? [];
+        const sceneLinks = (e.default as any)._SceneValues ?? [];
         for (const link of sceneLinks) {
             const node = n._scene.getNodeByName(link.nodeName);
             n[link.propertyKey] = node;
         }
 
         // Check particle systems
-        const particleSystemLinks = (exports.default as any)._ParticleSystemValues ?? [];
+        const particleSystemLinks = (e.default as any)._ParticleSystemValues ?? [];
         for (const link of particleSystemLinks) {
             const ps = n._scene.particleSystems.filter((ps) => ps.emitter === n && ps.name === link.particleSystemName)[0];
             n[link.propertyKey] = ps;
         }
 
         // Check pointer events
-        const pointerEvents = (exports.default as any)._PointerValues ?? [];
+        const pointerEvents = (e.default as any)._PointerValues ?? [];
         for (const event of pointerEvents) {
             n._scene.onPointerObservable.add((e) => {
                 if (e.type !== event.type) { return; }
@@ -89,7 +103,7 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
         }
 
         // Check keyboard events
-        const keyboardEvents = (exports.default as any)._KeyboardValues ?? [];
+        const keyboardEvents = (e.default as any)._KeyboardValues ?? [];
         for (const event of keyboardEvents) {
             n._scene.onKeyboardObservable.add((e) => {
                 if (event.type && e.type !== event.type) { return; }
