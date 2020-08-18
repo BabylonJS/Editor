@@ -158,7 +158,7 @@ export class GraphAssets extends AbstractAssets {
                 <img
                     src={item.base64}
                     style={{
-                        width: "256px",
+                        width: "512px",
                         height: "256px",
                         objectFit: "contain",
                         backgroundColor: "#222222",

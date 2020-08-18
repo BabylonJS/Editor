@@ -44,6 +44,7 @@ export default class WindowedPlugin {
         // Get plugin name
         const result = await new Promise<any>((resolve) => {
             ipcRenderer.once(IPCResponses.SendWindowMessage, (_, data) => data.id === "pluginName" && resolve(data));
+            ipcRenderer.send(IPCRequests.SendWindowMessage, -1, { id: "pluginName", popupId: remote.getCurrentWindow().id });
         });
 
         // Load plugin!

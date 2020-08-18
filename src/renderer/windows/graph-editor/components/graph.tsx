@@ -528,5 +528,7 @@ export class Graph extends React.Component<IGraphProps> {
 
         const particleSystems = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllParticleSystems");
         ParticleSystem.ParticleSystems = particleSystems.data.map((ps) => ps.name);
+
+        // const textures = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllTextures");
     }
 }

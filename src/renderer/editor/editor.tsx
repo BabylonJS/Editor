@@ -558,9 +558,11 @@ export class Editor {
 
         this._pluginWindows.push(popupId);
 
-        await Tools.Wait(100);
-        await IPCTools.SendWindowMessage(popupId, "pluginName", { name, args });
-        await Tools.Wait(100);
+        ipcRenderer.once(IPCRequests.SendWindowMessage, (_, data) => {
+            if (data.id === "pluginName" && data.popupId === popupId) {
+                IPCTools.SendWindowMessage(popupId, "pluginName", { name, args });
+            }
+        });
 
         return popupId;
     }

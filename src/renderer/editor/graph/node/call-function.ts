@@ -1,3 +1,4 @@
+import { Node } from "babylonjs";
 import { LiteGraph } from "litegraph.js";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
@@ -15,6 +16,7 @@ export class CallNodeFunction extends GraphNode<{ function: string; cast_as_any:
 
         this.addProperty("function", "myFn", "string");
         this.addProperty("cast_as_any", true, "boolean");
+
         this.addWidget("text", "function", this.properties.function, (v) => this.properties.function = v);
         this.addWidget("toggle", "cast_as_any", this.properties.cast_as_any, (v) => this.properties.cast_as_any = v);
 
@@ -26,7 +28,10 @@ export class CallNodeFunction extends GraphNode<{ function: string; cast_as_any:
      * Called on the node is being executed.
      */
     public execute(): void {
-        // Do nothing.
+        const node = this.getInputData<Node>(1);
+        if (node && node[this.properties.function]) {
+            node[this.properties.function](this.getInputData(2));
+        }
 
         this.setOutputData(1, this.getInputData(1));
         this.triggerSlot(0, null);

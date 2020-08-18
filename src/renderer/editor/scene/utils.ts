@@ -5,6 +5,8 @@ import { Scene, Node } from "babylonjs";
 import { ProjectExporter } from "../project/project-exporter";
 import { Project } from "../project/project";
 
+import { TextureAssets } from "../assets/textures";
+
 import { Editor } from "../editor";
 
 export interface INodeResult {
@@ -16,6 +18,21 @@ export interface INodeResult {
      * Defines the Id of the node.
      */
     id: string;
+}
+
+export interface ITextureResult {
+    /**
+     * Defines the name drawn in the editor.
+     */
+    name: string;
+    /**
+     * Defines the path of the 
+     */
+    path: string;
+    /**
+     * Defines the base64 value of the texture.
+     */
+    base64: string;
 }
 
 export class SceneUtils {
@@ -98,6 +115,13 @@ export class SceneUtils {
      */
     public getAllAnimationGroups(): string[] {
         return this.scene.animationGroups.map((a) => a.name);
+    }
+
+    /**
+     * Returns the list of all textures in the scene.
+     */
+    public getAllTextures(): ITextureResult[] {
+        return this._editor.assets.getAssetsOf(TextureAssets)?.map((i) => ({ name: i.id, path: i.key, base64: i.base64 })) ?? [];
     }
 
     /**
