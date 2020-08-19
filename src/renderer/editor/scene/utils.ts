@@ -6,6 +6,7 @@ import { ProjectExporter } from "../project/project-exporter";
 import { Project } from "../project/project";
 
 import { TextureAssets } from "../assets/textures";
+import { MaterialAssets } from "../assets/materials";
 
 import { Editor } from "../editor";
 
@@ -20,7 +21,7 @@ export interface INodeResult {
     id: string;
 }
 
-export interface ITextureResult {
+export interface IAssetResult {
     /**
      * Defines the name drawn in the editor.
      */
@@ -29,6 +30,13 @@ export interface ITextureResult {
      * Defines the base64 value of the texture.
      */
     base64: string;
+}
+
+export interface IMaterialResult extends IAssetResult {
+    /**
+     * Defines the type of material.
+     */
+    type: string;
 }
 
 export class SceneUtils {
@@ -116,8 +124,15 @@ export class SceneUtils {
     /**
      * Returns the list of all textures in the scene.
      */
-    public getAllTextures(): ITextureResult[] {
+    public getAllTextures(): IAssetResult[] {
         return this._editor.assets.getAssetsOf(TextureAssets)?.map((i) => ({ name: i.id, base64: i.base64 })) ?? [];
+    }
+
+    /**
+     * Returns the list of all textures in the scene.
+     */
+    public getAllMaterials(): IMaterialResult[] {
+        return this._editor.assets.getAssetsOf(MaterialAssets)?.map((i) => ({ name: i.id, base64: i.base64, type: this.scene.getMaterialByName(i.id)?.getClassName() ?? "Material" })) ?? [];
     }
 
     /**

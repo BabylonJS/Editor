@@ -91,6 +91,10 @@ import { SetParticleSystemProperty } from "./particle-system/set-property";
 // Textures
 import { Texture } from "./texture/texture";
 
+// Materials
+import { Material } from "./material/material";
+import { SetMaterialTextures } from "./material/set-textures";
+
 export class GraphCode {
     private static _Initialized: boolean = false;
     
@@ -236,5 +240,9 @@ export class GraphCode {
 
         // Textures
         LiteGraph.registerNodeType("texture/texture", Texture);
+
+        // Materials
+        LiteGraph.registerNodeType("material/material", Material);
+        LiteGraph.registerNodeType("material/set_material_textures", SetMaterialTextures);
     }
 }

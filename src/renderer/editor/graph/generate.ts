@@ -160,8 +160,7 @@ export class GraphCodeGenerator {
                     const count = stack.visited!.filter((o) => o.variable?.name === previous.variable?.name);
                     
                     if (count.length > 1) {
-                        previous.variable.name = `${name}_${count.length}`;
-                        previous.variable.name = name;
+                        previous.variable.name = `${previous.variable.name}_${count.length}`;
                     }
                     
                     previous.code = `this.${previous.variable.name}`;

@@ -2,11 +2,11 @@ import { Nullable } from "../../../../shared/types";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
 
-export class Texture extends GraphNode<{ name: string; var_name: string; }> {
+export class Material extends GraphNode<{ name: string; var_name: string; }> {
     /**
-     * Defines the list of all avaialbe textures in the scene.
+     * Defines the list of all avaialbe materials in the scene.
      */
-    public static Textures: { name: string; base64: string; }[] = [];
+    public static Materials: { name: string; base64: string; type: string; }[] = [];
 
     private _baseHeight: number;
     private _img: Nullable<HTMLImageElement> = null;
@@ -16,17 +16,17 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
      * Constructor.
      */
     public constructor() {
-        super("Texture");
+        super("Material");
 
         this.addProperty("name", "None", "string");
-        this.addProperty("var_name", "myTexture", "string");
+        this.addProperty("var_name", "myMaterial", "string");
 
         this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
-            values: () => Texture.Textures.map((t) => t.name),
+            values: () => Material.Materials.map((m) => m.name),
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
-        this.addOutput("Texture", "BaseTexture,Texture");
+        this.addOutput("Material", "Material");
 
         this._baseHeight = this.size[1];
     }
@@ -35,29 +35,49 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
      * Called on the node is being executed.
      */
     public execute(): void {
-        const texture = this.getScene().textures.find((texture) => texture.metadata?.editorName === this.properties.name);
-        this.setOutputData(0, texture ?? null);
+        const material = this.getScene().getMaterialByName(this.properties.name);
+        this.setOutputData(0, material ?? null);
     }
 
     /**
      * Generates the code of the graph.
      */
     public generateCode(): ICodeGenerationOutput {
+        const type = this.outputs[0].type.split(",").pop()!;
+
         return {
             type: CodeGenerationOutputType.Variable,
             code: this.properties.var_name,
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
-                value: `this._scene.textures.find((texture) => texture.metadata?.editorName === "${this.properties.name.replace("\\", "\\\\")}") as Texture`,
+                value: `this._scene.getMaterialByName("${this.properties.name.replace("\\", "\\\\")}") as ${type}`,
             },
             outputsCode: [
                 { thisVariable: true },
             ],
             requires: [
-                { module: "@babylonjs/core", classes: ["Texture"] }
+                { module: "@babylonjs/core", classes: [type] }
             ]
         };
+    }
+
+    /**
+     * Called on a property changed.
+     * @param name defines the name of the property that changed.
+     * @param value defines the new value of the property.
+     */
+    public onPropertyChange(name: string, value: any): boolean {
+        if (name === "name") {
+            const material = Material.Materials.find((m) => m.name === value);
+            if (material) {
+                this.setOutputDataType(0, `Material,${material.type}`);
+            } else {
+                this.setOutputDataType(0, "Material");
+            }
+        }
+
+        return super.onPropertyChange(name, value);
     }
 
     /**
@@ -68,15 +88,15 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
     public drawBackground(ctx: CanvasRenderingContext2D): void {
         super.drawBackground(ctx);
 
-        const texture = Texture.Textures.find((texture) => texture.name === this.properties.name);
-        if (!texture) {
+        const material = Material.Materials.find((m) => m.name === this.properties.name);
+        if (!material) {
             this.size[1] = this._baseHeight;
             return;
         }
 
         if (this.properties.name !== this._lastTextureName) {
             this._img = new Image();
-            this._img.src = texture.base64;
+            this._img.src = material.base64;
         }
 
         if (this._img?.complete) {

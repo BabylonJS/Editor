@@ -17,7 +17,7 @@ import { Tools } from "../../../editor/tools/tools";
 import { IPCTools } from "../../../editor/tools/ipc";
 import { undoRedo } from "../../../editor/tools/undo-redo";
 
-import { INodeResult, ITextureResult } from "../../../editor/scene/utils";
+import { INodeResult, IAssetResult, IMaterialResult } from "../../../editor/scene/utils";
 
 import { GraphCodeGenerator } from "../../../editor/graph/generate";
 import { GraphNode, ELinkErrorType } from "../../../editor/graph/node";
@@ -31,6 +31,7 @@ import { Sound } from "../../../editor/graph/sound/sound";
 import { AnimationGroup } from "../../../editor/graph/animation/animation-group";
 import { ParticleSystem } from "../../../editor/graph/particle-system/particle-system";
 import { Texture } from "../../../editor/graph/texture/texture";
+import { Material } from "../../../editor/graph/material/material";
 
 import { GetMesh } from "../../../editor/graph/mesh/get-mesh";
 import { GetCamera } from "../../../editor/graph/camera/get-camera";
@@ -538,7 +539,10 @@ export class Graph extends React.Component<IGraphProps> {
         const particleSystems = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllParticleSystems");
         ParticleSystem.ParticleSystems = particleSystems.data.map((ps) => ps.name);
 
-        const textures = await IPCTools.ExecuteEditorFunction<ITextureResult[]>("sceneUtils.getAllTextures");
-        Texture.Textures = textures.data.map((texture) => ({ name: texture.name, base64: texture.base64 }));
+        const textures = await IPCTools.ExecuteEditorFunction<IAssetResult[]>("sceneUtils.getAllTextures");
+        Texture.Textures = textures.data.map((t) => ({ name: t.name, base64: t.base64 }));
+
+        const materials = await IPCTools.ExecuteEditorFunction<IMaterialResult[]>("sceneUtils.getAllMaterials");
+        Material.Materials = materials.data.map((m) => ({ name: m.name, base64: m.base64, type: m.type }));
     }
 }

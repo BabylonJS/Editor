@@ -387,7 +387,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
         if (!graphCanvas) { return; }
 
         const start = graphCanvas.ds.offset.slice();
-        graphCanvas.centerOnNode(this);
+        graphCanvas.centerOnNode(this as any);
 
         const end = graphCanvas.ds.offset.slice();
         graphCanvas.ds.offset[0] = start[0];
@@ -465,6 +465,25 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
             ctx.closePath();
             ctx.restore();
         }
+    }
+
+    /**
+     * Called each time the background is drawn.
+     * @param ctx defines the rendering context of the canvas.
+     */
+    public onDrawBackground(canvas: HTMLCanvasElement, _: CanvasRenderingContext2D): void {
+        // Nothing to do now...
+        if (this.flags["collapsed"]) { return; }
+        
+        this.drawBackground(canvas as any);
+    }
+
+    /**
+     * Called each time the background is drawn.
+     * @param ctx defines the rendering context of the canvas.
+     */
+    public drawBackground(_: CanvasRenderingContext2D): void {
+        // Nothin to do now...
     }
 
     /**
