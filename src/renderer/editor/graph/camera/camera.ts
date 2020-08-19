@@ -20,7 +20,7 @@ export class Camera extends GraphNode<{ var_name: string; name: string; }> {
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
-        this.addOutput("camera", "Node,Camera");
+        this.addOutput("Camera", "Node,Camera");
     }
 
     /**

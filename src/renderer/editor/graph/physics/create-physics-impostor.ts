@@ -35,7 +35,7 @@ export class CreatePhysicsImpostor extends GraphNode<{ type: string; mass: numbe
         this.addWidget("number", "restitution", this.properties.restitution, (v) => this.properties.restitution = v);
 
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("mesh", "Node,TransformNode,AbstractMesh");
+        this.addOutput("Mesh", "Node,TransformNode,AbstractMesh");
     }
 
     /**

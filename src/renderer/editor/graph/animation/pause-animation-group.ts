@@ -11,10 +11,10 @@ export class PauseAnimationGroup extends GraphNode {
         super("Pause Animation Group");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("group", "AnimationGroup");
+        this.addInput("Group *", "AnimationGroup");
         
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("group", "AnimationGroup");
+        this.addOutput("Group", "AnimationGroup");
     }
 
     /**

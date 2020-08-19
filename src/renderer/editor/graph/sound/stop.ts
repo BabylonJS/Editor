@@ -11,7 +11,7 @@ export class StopSound extends GraphNode {
         super("Stop Sound");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("sound *", "Sound");
+        this.addInput("Sound *", "Sound");
 
         this.addOutput("", LiteGraph.EVENT as any);
     }

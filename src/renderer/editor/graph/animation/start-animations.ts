@@ -11,9 +11,9 @@ export class PlayAnimation extends GraphNode<{ from: number; to: number; loop: b
         super("Play Animation");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("node", "Node");
-        this.addInput("from" , "");
-        this.addInput("to", "");
+        this.addInput("Node *", "Node");
+        this.addInput("From" , "");
+        this.addInput("To", "");
 
         this.addProperty("from", 0, "number");
         this.addProperty("to", 8, "number");

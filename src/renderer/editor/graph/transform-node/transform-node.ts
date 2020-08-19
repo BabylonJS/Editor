@@ -23,7 +23,7 @@ export class TransformNode extends GraphNode<{ var_name: string; name: string; }
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
-        this.addOutput("mesh", "Node,TransformNode");
+        this.addOutput("Transform Node", "Node,TransformNode");
     }
 
     /**

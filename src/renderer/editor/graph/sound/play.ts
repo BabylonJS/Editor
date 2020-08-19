@@ -11,7 +11,7 @@ export class PlaySound extends GraphNode {
         super("Play Sound");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("sound *", "Sound");
+        this.addInput("Sound *", "Sound");
 
         this.addOutput("", LiteGraph.EVENT as any);
     }

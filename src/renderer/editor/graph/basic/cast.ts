@@ -41,7 +41,7 @@ export class Cast extends GraphNode<{ type: string; }> {
             values: Object.keys(Cast.Types).concat(Object.keys(Cast.BabylonJSTypes)),
         });
 
-        this.addInput("object *", "");
+        this.addInput("Object *", "");
         this.addOutput("", "");
     }
 

@@ -192,7 +192,7 @@ export class UpdateVariable extends GraphNode<{ name: string; }> {
         });
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Value", "");
+        this.addInput("Value *", "");
 
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("Value", "");

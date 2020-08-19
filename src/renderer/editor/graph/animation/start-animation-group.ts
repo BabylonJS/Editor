@@ -15,14 +15,14 @@ export class PlayAnimationGroup extends GraphNode<{ loop: boolean; }> {
         super("Play Animation Group");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("group", "AnimationGroup");
+        this.addInput("Group *", "AnimationGroup");
 
         this.addProperty("loop", false, "boolean");
 
         this.addWidget("toggle", "loop", this.properties.loop, (v) => this.properties.loop = v);
         
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("group", "AnimationGroup");
+        this.addOutput("Group", "AnimationGroup");
         this.addOutput("On End", LiteGraph.EVENT as any);
     }
 

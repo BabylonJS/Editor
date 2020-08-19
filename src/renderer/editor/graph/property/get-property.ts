@@ -10,7 +10,7 @@ export class GetProperty extends GraphNode<{ path: string; }> {
         this.addProperty("path", "name", "string");
         this.addWidget("text", "path", this.properties.path, (v) => this.properties.path = this.title = v);
         
-        this.addInput("object *", "");
+        this.addInput("Object *", "");
         this.addOutput("Value", "");
     }
 

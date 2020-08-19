@@ -20,9 +20,9 @@ export class AnimationGroup extends GraphNode<{ name: string; var_name: string; 
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
-        this.addOutput("group", "AnimationGroup");
-        this.addOutput("from", "number");
-        this.addOutput("to", "number");
+        this.addOutput("Group", "AnimationGroup");
+        this.addOutput("From", "number");
+        this.addOutput("To", "number");
     }
 
     /**

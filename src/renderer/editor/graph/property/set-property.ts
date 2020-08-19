@@ -10,7 +10,7 @@ export class SetProperty extends GraphNode<{ path: string; }> {
         super("Set Property");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("object *", "");
+        this.addInput("Object *", "");
         this.addInput("Value *", "");
         
         this.addProperty("path", "name", "string");

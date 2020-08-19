@@ -22,7 +22,7 @@ export class InterpolationAnimation extends GraphNode<
         this.addInput("Node *", "Node");
         this.addInput("From *" , "");
         this.addInput("To *", "");
-        this.addInput("easing", "EasingFunction");
+        this.addInput("Easing", "EasingFunction");
 
         this.addProperty("name", "animation", "string");
         this.addProperty("target_property", "visibility", "string");
