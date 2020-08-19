@@ -1,6 +1,6 @@
 import {
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode,
-    LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion, Camera,
+    LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion, Camera, CameraGizmo,
 } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
@@ -26,6 +26,7 @@ export class SceneGizmo {
     private _rotationGizmo: Nullable<RotationGizmo> = null;
     private _scalingGizmo: Nullable<ScaleGizmo> = null;
     private _lightGizmo: Nullable<LightGizmo> = null;
+    private _cameraGizmo: Nullable<CameraGizmo> = null;
 
     private _initialValue: Nullable<Vector3 | Quaternion> = null;
 
@@ -142,10 +143,23 @@ export class SceneGizmo {
     public setAttachedNode(node: Nullable<Node | IParticleSystem | Sound>): void {
         // Light?
         if (node instanceof Light) {
-            return this._setLightGizmo(node);
+            this._setLightGizmo(node);
         } else {
             this._lightGizmo?.dispose();
             this._lightGizmo = null;
+        }
+
+        // Camera?
+        if (node instanceof Camera) {
+            this._setCameraGizmo(node);
+        } else {
+            this._cameraGizmo?.dispose();
+            this._cameraGizmo = null;
+        }
+
+        // Camera or light?
+        if (this._cameraGizmo || this._lightGizmo) {
+            return;
         }
 
         // Mesh or transform node
@@ -171,6 +185,22 @@ export class SceneGizmo {
 
         if (this._currentGizmo) {
             this._currentGizmo.attachedMesh = this._lightGizmo.attachedMesh;
+        }
+    }
+
+    /**
+     * Sets the camera gizmo.
+     */
+    private _setCameraGizmo(camera: Camera): void {
+        if (!this._cameraGizmo) {
+            this._cameraGizmo = new CameraGizmo(this._gizmosLayer);
+        }
+        
+        this._cameraGizmo.camera = camera;
+        this._cameraGizmo.displayFrustum = true;
+
+        if (this._currentGizmo) {
+            this._currentGizmo.attachedNode = this._cameraGizmo.camera;
         }
     }
 

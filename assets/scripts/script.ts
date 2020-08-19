@@ -15,6 +15,7 @@ import { Node } from "@babylonjs/core";
  *              this.rotation.y += 0.04;
  *          }
  *      }
+ * The function "onInitialize" is called immediately after the constructor is called.
  * The functions "onStart" and "onUpdate" are called automatically.
  */
 export default class MyScript extends Node {
@@ -48,10 +49,10 @@ export default class MyScript extends Node {
     }
 
     /**
-     * Called on a message has been received. Messages can come from graphs.
-     * @param message Defines the name of the message sent.
+     * Called on a message has been received and sent from a graph.
+     * @param message defines the name of the message sent from the graph.
      * @param data defines the data sent in the message.
-     * @param sender defines the reference to the class that sent the 
+     * @param sender defines the reference to the graph class that sent the message.
      */
     public onMessage(name: string, data: any, sender: any): void {
         // Not yet supported, implementation WIP.

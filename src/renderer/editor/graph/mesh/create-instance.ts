@@ -3,11 +3,13 @@ import { LiteGraph } from "litegraph.js";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 
-export class CreateMeshInstance extends GraphNode {
+export class CreateMeshInstance extends GraphNode<{ name: string; }> {
     /**
      * Defines the number of times the code generation has been called.
      */
     public static Count: number = 0;
+
+    private _count: number;
 
     /**
      * Constructor.
@@ -18,10 +20,13 @@ export class CreateMeshInstance extends GraphNode {
         this.addInput("", LiteGraph.EVENT as any);
         this.addInput("Mesh *", "Mesh");
 
+        this.addProperty("name", "", "string");
+        this.addWidget("text", "name", this.properties.name, (v) => this.properties.name = v);
+
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("instance", "Node,TransformNode,AbstractMesh");
 
-        CreateMeshInstance.Count++;
+        this._count = CreateMeshInstance.Count++;
     }
 
     /**
@@ -29,7 +34,7 @@ export class CreateMeshInstance extends GraphNode {
      */
     public execute(): void {
         const mesh = this.getInputData(1) as Mesh;
-        const instance = mesh.createInstance(`${mesh.name}_${CreateMeshInstance.Count}`);
+        const instance = mesh.createInstance(`${mesh.name}_${this._count}`);
 
         this.setOutputData(1, instance);
 
@@ -40,15 +45,16 @@ export class CreateMeshInstance extends GraphNode {
      * Generates the code of the graph.
      */
     public generateCode(mesh: ICodeGenerationOutput): ICodeGenerationOutput {
-        const name = `meshInstance_${CreateMeshInstance.Count}`;
-        const code = `const ${name} = ${mesh.code}.createInstance(${mesh.code}.name);`;
+        const varName = `meshInstance_${this._count}`;
+        const name = this.properties.name || `${mesh.code}.name`;
+        const code = `const ${varName} = ${mesh.code}.createInstance("${name}");`;
 
         return {
             type: CodeGenerationOutputType.Function,
             code,
             outputsCode: [
                 { code: undefined },
-                { code: name },
+                { code: varName },
             ],
         };
     }

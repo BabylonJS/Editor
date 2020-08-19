@@ -3,6 +3,12 @@ import { LiteGraph } from "litegraph.js";
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 
 export class TimeoutEvent extends GraphNode<{ duration: number; }> {
+    /**
+     * Defines the number of times the code generation has been called.
+     */
+    public static Count: number = 0;
+
+    private _count: number;
     private _timeoutIds: number[] = [];
 
     /**
@@ -19,6 +25,8 @@ export class TimeoutEvent extends GraphNode<{ duration: number; }> {
 
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("Id", "number");
+
+        this._count = TimeoutEvent.Count++;
     }
 
     /**
@@ -51,8 +59,9 @@ export class TimeoutEvent extends GraphNode<{ duration: number; }> {
      * Generates the code of the graph.
      */
     public generateCode(duration?: ICodeGenerationOutput): ICodeGenerationOutput {
+        const name = `timeoutId_${this._count}`;
         const code = `
-            const timeoutId = setTimeout(() => {
+            const ${name} = setTimeout(() => {
                 {{generated__body}}
             }, ${duration?.code ?? this.properties.duration});
         `;
@@ -62,7 +71,7 @@ export class TimeoutEvent extends GraphNode<{ duration: number; }> {
             code,
             outputsCode: [
                 { code: undefined },
-                { code: "timeoutId" },
+                { code: name },
             ],
         };
     }
