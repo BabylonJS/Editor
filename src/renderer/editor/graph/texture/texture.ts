@@ -21,10 +21,13 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
         this.addProperty("name", "None", "string");
         this.addProperty("var_name", "myTexture", "string");
 
-        this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
+        this.addWidget("combo", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Texture (${v})`;
+        }, {
             values: () => Texture.Textures.map((t) => t.name),
         });
-        this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
+        this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.name = v);
 
         this.addOutput("Texture", "BaseTexture,Texture");
 

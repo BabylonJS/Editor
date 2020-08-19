@@ -1,5 +1,7 @@
 import { Nullable } from "../../../../shared/types";
 
+import { LLink } from "litegraph.js";
+
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
 
 export class Material extends GraphNode<{ name: string; var_name: string; }> {
@@ -21,7 +23,10 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
         this.addProperty("name", "None", "string");
         this.addProperty("var_name", "myMaterial", "string");
 
-        this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
+        this.addWidget("combo", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Material (${v})`;
+        }, {
             values: () => Material.Materials.map((m) => m.name),
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
@@ -74,6 +79,25 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
                 this.setOutputDataType(0, `Material,${material.type}`);
             } else {
                 this.setOutputDataType(0, "Material");
+            }
+
+            // Update links
+            if (this.graph && this.isOutputConnected(0)) {
+                const links: LLink[] = [];
+                for (const linkId in this.graph.links) {
+                    const link = this.graph.links[linkId];
+
+                    if (link.origin_id === this.id && link.origin_slot === 0) {
+                        links.push(link);
+                    }
+                }
+
+                links.forEach((link) => {
+                    const node = this.graph!.getNodeById(link.target_id);
+                    if (!node) { return; }
+
+                    this.connect(0, node, link.target_slot);
+                });
             }
         }
 

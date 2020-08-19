@@ -15,7 +15,10 @@ export class Light extends GraphNode<{ name: string; var_name: string; }> {
         this.addProperty("name", "None", "string");
         this.addProperty("var_name", "myLight", "string");
 
-        this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
+        this.addWidget("combo", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Light (${v})`;
+        }, {
             values: () => Light.Lights,
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);

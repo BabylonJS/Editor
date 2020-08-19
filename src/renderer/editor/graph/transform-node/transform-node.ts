@@ -15,7 +15,10 @@ export class TransformNode extends GraphNode<{ var_name: string; name: string; }
         this.addProperty("var_name", "aMesh", "string", (v) => this.properties.name = this.title = v);
         this.addProperty("name", "None", "string", (v) => this.properties.name = this.title = v);
 
-        this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
+        this.addWidget("combo", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Transform Node (${v})`;
+        }, {
             values: () => TransformNode.TransformNodes,
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);

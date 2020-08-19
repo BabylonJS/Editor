@@ -15,7 +15,10 @@ export class Mesh extends GraphNode<{ var_name: string; name: string; }> {
         this.addProperty("var_name", "aMesh", "string", (v) => this.properties.name = this.title = v);
         this.addProperty("name", "None", "string", (v) => this.properties.name = this.title = v);
 
-        this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
+        this.addWidget("combo", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Mesh (${v})`;
+        }, {
             values: () => Mesh.Meshes,
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
@@ -29,14 +32,6 @@ export class Mesh extends GraphNode<{ var_name: string; name: string; }> {
     public execute(): void {
         const mesh = this.getScene().getMeshByName(this.properties.name);
         this.setOutputData(0, mesh);
-    }
-
-    /**
-     * Draws the foreground of the node.
-     */
-    public onDrawForeground(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
-        super.onDrawForeground(canvas, ctx);
-        this.title = `${this.properties.name} (Mesh)`;
     }
 
     /**

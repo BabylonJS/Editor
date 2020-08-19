@@ -256,7 +256,9 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
     public onPropertyChange(name: string, value: any): boolean {
         for (const w of this.widgets ?? []) {
             if (w.name !== name) { continue; }
-             w.value = value;
+            w.value = value;
+
+            if (w.callback) { w.callback(value, this.graph?.list_of_graphcanvas[0]!, this, this.pos); }
             break;
         }
 
