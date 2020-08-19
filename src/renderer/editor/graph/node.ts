@@ -130,6 +130,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
     private _resumeFn: Nullable<() => void> = null;
     private _mouseOver: boolean = false;
     private _isExecuting: boolean = false;
+    private _callingWidgetCallback: boolean = false;
 
     /**
      * Constructor.
@@ -258,7 +259,11 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
             if (w.name !== name) { continue; }
             w.value = value;
 
-            if (w.callback) { w.callback(value, this.graph?.list_of_graphcanvas[0]!, this, this.pos); }
+            if (w.callback) {
+                this._callingWidgetCallback = true;
+                w.callback(value, this.graph?.list_of_graphcanvas[0]!, this, this.pos);
+                this._callingWidgetCallback = false;
+            }
             break;
         }
 
@@ -293,6 +298,8 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
         callback = (v, g, n, p, e) => {
             if (originalCallback) { originalCallback(v, g, n, p, e); }
             if (this.onWidgetChange) { this.onWidgetChange(); }
+
+            if (this._callingWidgetCallback) { return; }
 
             if (timeout) {
                 clearTimeout(timeout);
