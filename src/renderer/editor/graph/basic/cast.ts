@@ -23,6 +23,8 @@ export class Cast extends GraphNode<{ type: string; }> {
         "FreeCamera": "Node,Camera,FreeCamera",
         "IParticleSystem": "IParticleSystem",
         "ParticleSystem": "IParticleSystem,ParticleSystem",
+        "StandardMaterial": "Material,StandardMaterial",
+        "PBRMaterial": "Material,StandardMaterial",
     };
 
     /**

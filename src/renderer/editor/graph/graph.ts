@@ -67,6 +67,7 @@ import { AbsoluteTransformMesh } from "./mesh/absolute-transform";
 import { GetMesh } from "./mesh/get-mesh";
 import { CreateMeshInstance } from "./mesh/create-instance";
 import { GetMeshDirection } from "./mesh/get-direction";
+import { SetMeshMaterial } from "./mesh/set-material";
 
 import { ApplyImpulse } from "./physics/apply-impulse";
 import { CreatePhysicsImpostor } from "./physics/create-physics-impostor";
@@ -216,6 +217,7 @@ export class GraphCode {
         LiteGraph.registerNodeType("mesh/get_mesh", GetMesh);
         LiteGraph.registerNodeType("mesh/create_mesh_instance", CreateMeshInstance);
         LiteGraph.registerNodeType("mesh/get_mesh_direction", GetMeshDirection);
+        LiteGraph.registerNodeType("mesh/set_mesh_material", SetMeshMaterial);
 
         // Physics
         LiteGraph.registerNodeType("physics/apply_impulse", ApplyImpulse);
