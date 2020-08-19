@@ -89,6 +89,8 @@ export class Graph extends React.Component<IGraphProps> {
         getCanvas: (ref: HTMLCanvasElement) => this.canvas = ref,
     };
 
+    private _editor: GraphEditorWindow;
+
     private _canvasFocused: boolean = false;
     private _pausedNode: Nullable<GraphNode> = null;
 
@@ -102,6 +104,7 @@ export class Graph extends React.Component<IGraphProps> {
     public constructor(props: IGraphProps) {
         super(props);
 
+        this._editor = props.editor;
         props.editor.graph = this;
     }
 
@@ -124,7 +127,7 @@ export class Graph extends React.Component<IGraphProps> {
      * Called on the window or layout is resized.
      */
     public resize(): void {
-        const size = this.props.editor.getPanelSize("graph");
+        const size = this._editor.getPanelSize("graph");
         if (size.width <= 0 || size.height <= 0) {
             return;
         }
@@ -143,7 +146,7 @@ export class Graph extends React.Component<IGraphProps> {
         const json = await readJSON(jsonPath);
         this.graph = new LGraph();
         this.graph.configure(json, false);
-        this.graph["scene"] = this.props.editor.preview.getScene();
+        this.graph["scene"] = this._editor.preview.getScene();
         this.graph.config["align_to_grid"] = true;
         this._checkGraph();
 
@@ -196,10 +199,10 @@ export class Graph extends React.Component<IGraphProps> {
             const pos = this.graphCanvas!.convertEventToCanvasOffset(e);
 
             const node = this.graph?.getNodeOnPos(pos[0], pos[1]) as Undefinable<GraphNode>;
-            if (node) { return this.props.editor.inspector.setNode(node); }
+            if (node) { return this._editor.inspector.setNode(node); }
 
             const group = this.graph?.getGroupOnPos(pos[0], pos[1]) as Undefinable<LGraphGroup>;
-            if (group) { return this.props.editor.inspector.setGroup(group); }
+            if (group) { return this._editor.inspector.setGroup(group); }
         });
 
         this.graphCanvas.canvas.addEventListener("dblclick", (e) => {
@@ -293,6 +296,13 @@ export class Graph extends React.Component<IGraphProps> {
         }
 
         this.resize();
+
+        // Select first node
+        const firstNode = this.getAllNodes()[0];
+        if (firstNode) {
+            this.graphCanvas.selectNode(firstNode);
+            this._editor.inspector.setNode(firstNode);
+        }
     }
 
     /**
@@ -425,7 +435,7 @@ export class Graph extends React.Component<IGraphProps> {
 
             for (const g of graphs.data) {
                 const path = g.key;
-                if (path === this.props.editor.graph.jsonPath) { continue; }
+                if (path === this._editor.graph.jsonPath) { continue; }
 
                 const graphContent = await readJSON(path);
                 const graph = new LGraph();
@@ -454,7 +464,7 @@ export class Graph extends React.Component<IGraphProps> {
         const intervalId = setInterval(() => {
             if (NodeUtils.PausedNode !== this._pausedNode) {
                 this._pausedNode = NodeUtils.PausedNode;
-                this.props.editor.callStack.refresh();
+                this._editor.callStack.refresh();
             }
 
             if (!graph.hasPaused) { graph.runStep(); }
