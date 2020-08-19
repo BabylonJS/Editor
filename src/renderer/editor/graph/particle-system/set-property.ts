@@ -93,6 +93,7 @@ export class SetParticleSystemProperty extends GraphNode<{ property: string; }> 
      */
     public static Properties: IParticleSystemProperty[] = [
         { name: "emitter", type: "Vector3,AbstractMesh" },
+        { name: "particleTexture", type: "BaseTexture" },
         { name: "isBillboardBased", type: "boolean" },
         { name: "updateSpeed", type: "number" },
         { name: "targetStopDuration", type: "number" },

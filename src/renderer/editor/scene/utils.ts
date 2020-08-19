@@ -26,10 +26,6 @@ export interface ITextureResult {
      */
     name: string;
     /**
-     * Defines the path of the 
-     */
-    path: string;
-    /**
      * Defines the base64 value of the texture.
      */
     base64: string;
@@ -121,7 +117,7 @@ export class SceneUtils {
      * Returns the list of all textures in the scene.
      */
     public getAllTextures(): ITextureResult[] {
-        return this._editor.assets.getAssetsOf(TextureAssets)?.map((i) => ({ name: i.id, path: i.key, base64: i.base64 })) ?? [];
+        return this._editor.assets.getAssetsOf(TextureAssets)?.map((i) => ({ name: i.id, base64: i.base64 })) ?? [];
     }
 
     /**

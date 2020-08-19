@@ -44,7 +44,7 @@ export class Light extends GraphNode<{ name: string; var_name: string; }> {
                 value: `this._scene.getLightByName("${this.properties.name.replace("\\", "\\\\")}")`,
             },
             outputsCode: [
-                { code: `this.${this.properties.var_name}` },
+                { thisVariable: true },
             ],
         };
     }

@@ -106,11 +106,19 @@ export class GraphCodeGenerator {
                 
                 if (!output || inputIndex === -1) { continue; }
 
-                if (output.outputsCode && output.outputsCode[link.origin_slot].code) {
-                    inputs[inputIndex] = {
-                        ...output,
-                        code: output.outputsCode[link.origin_slot].code!,
-                    };
+                if (output.outputsCode && output.outputsCode[link.origin_slot]) {
+                    const outputCode = output.outputsCode[link.origin_slot];
+                    
+                    let code = outputCode.code!;
+                    if (outputCode.thisVariable) {
+                        code = `this.${output.variable?.name}`;
+                        if (outputCode.code) {
+                            code = `${code}.${outputCode.code}`;
+                        }
+                    }
+
+                    inputs[inputIndex] = { ...output, code };
+                // Simple input
                 } else {
                     inputs[inputIndex] = output;
                 }
@@ -147,18 +155,19 @@ export class GraphCodeGenerator {
                     if (!previous.variable) {
                         throw new Error(`Variables nodes must provide a ".variable" property.`);
                     }
+
+                    previous.variable.name = previous.variable.name.replace(/ /g, "_");
                     const count = stack.visited!.filter((o) => o.variable?.name === previous.variable?.name);
                     
-                    let name = previous.variable.name;
                     if (count.length > 1) {
-                        name = `${name}_${count.length}`;
+                        previous.variable.name = `${name}_${count.length}`;
                         previous.variable.name = name;
                     }
                     
-                    previous.code = `this.${name}`;
+                    previous.code = `this.${previous.variable.name}`;
                     previous.code = previous.code!.replace(/ \t\n\r/g, "");
                     output.push({
-                        code: `public ${name} = ${previous.variable.value.toString()};\n`,
+                        code: `public ${previous.variable.name} = ${previous.variable.value.toString()};\n`,
                         type: executionType,
                     });
                     break;

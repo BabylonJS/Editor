@@ -51,6 +51,9 @@ export class Mesh extends GraphNode<{ var_name: string; name: string; }> {
                 name: this.properties.var_name,
                 value: `this._scene.getMeshByName("${this.properties.name}")`,
             },
+            outputsCode: [
+                { thisVariable: true },
+            ],
         };
     }
 }

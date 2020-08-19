@@ -49,9 +49,9 @@ export class AnimationGroup extends GraphNode<{ name: string; var_name: string; 
                 value: `this._scene.getAnimationGroupByName("${this.properties.name.replace("\\", "\\\\")}")`,
             },
             outputsCode: [
-                { code: `this.${this.properties.var_name}` },
-                { code: `this.${this.properties.var_name}.from` },
-                { code: `this.${this.properties.var_name}.to` },
+                { thisVariable: true },
+                { thisVariable: true, code: "from" },
+                { thisVariable: true, code: "to" },
             ],
         };
     }

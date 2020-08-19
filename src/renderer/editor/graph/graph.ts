@@ -88,6 +88,9 @@ import { EasingFunction } from "./animation/easing";
 import { ParticleSystem } from "./particle-system/particle-system";
 import { SetParticleSystemProperty } from "./particle-system/set-property";
 
+// Textures
+import { Texture } from "./texture/texture";
+
 export class GraphCode {
     private static _Initialized: boolean = false;
     
@@ -230,5 +233,8 @@ export class GraphCode {
         // Particle systems
         LiteGraph.registerNodeType("particles/particles_system", ParticleSystem);
         LiteGraph.registerNodeType("particles/set_particles_system_property", SetParticleSystemProperty);
+
+        // Textures
+        LiteGraph.registerNodeType("texture/texture", Texture);
     }
 }

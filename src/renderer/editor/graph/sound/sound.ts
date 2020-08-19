@@ -44,7 +44,7 @@ export class Sound extends GraphNode<{ name: string; var_name: string; }> {
                 value: `this._scene.getSoundByName("${this.properties.name.replace("\\", "\\\\")}")`,
             },
             outputsCode: [
-                { code: `this.${this.properties.var_name}` },
+                { thisVariable: true },
             ],
         };
     }

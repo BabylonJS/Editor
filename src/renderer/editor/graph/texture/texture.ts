@@ -1,34 +1,34 @@
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
 
-export class ParticleSystem extends GraphNode<{ name: string; var_name: string; }> {
+export class Texture extends GraphNode<{ name: string; var_name: string; }> {
     /**
-     * Defines the list of all avaialbe sounds in the scene.
+     * Defines the list of all avaialbe textures in the scene.
      */
-    public static ParticleSystems: string[] = [];
+    public static Textures: { name: string; base64: string; }[] = [];
 
     /**
      * Constructor.
      */
     public constructor() {
-        super("Particle System");
+        super("Texture");
 
         this.addProperty("name", "None", "string");
-        this.addProperty("var_name", "myPs", "string");
+        this.addProperty("var_name", "myTexture", "string");
 
         this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
-            values: () => ParticleSystem.ParticleSystems,
+            values: () => Texture.Textures.map((t) => t.name),
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
-        this.addOutput("Particles System", "IParticleSystem");
+        this.addOutput("Texture", "BaseTexture,Texture");
     }
 
     /**
      * Called on the node is being executed.
      */
     public execute(): void {
-        const ps = this.getScene().particleSystems.find((ps) => ps.name === this.properties.name);
-        this.setOutputData(0, ps ?? null);
+        const texture = this.getScene().textures.find((texture) => texture.metadata?.editorName === this.properties.name);
+        this.setOutputData(0, texture ?? null);
     }
 
     /**
@@ -41,11 +41,14 @@ export class ParticleSystem extends GraphNode<{ name: string; var_name: string; 
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
-                value: `this._scene.particleSystems.find((ps) => ps.name === "${this.properties.name.replace("\\", "\\\\")}")`,
+                value: `this._scene.textures.find((texture) => texture.metadata?.editorName === "${this.properties.name.replace("\\", "\\\\")}") as Texture`,
             },
             outputsCode: [
                 { thisVariable: true },
             ],
+            requires: [
+                { module: "@babylonjs/core", classes: ["Texture"] }
+            ]
         };
     }
 }

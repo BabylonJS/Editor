@@ -51,6 +51,9 @@ export class Camera extends GraphNode<{ var_name: string; name: string; }> {
                 name: this.properties.var_name,
                 value: `this._scene.getCameraByName("${this.properties.name}")`,
             },
+            outputsCode: [
+                { thisVariable: true },
+            ],
         };
     }
 }
