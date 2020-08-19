@@ -453,6 +453,21 @@ export class ProjectExporter {
     }
 
     /**
+     * Returns the list of ALL exported files located in the scene's output folder.
+     * @scenePath defines the absolute path to the .babylon file.
+     * @filesPaths defines the list of all resource files of the scene.
+     */
+    public static async ListExportedFiles(): Promise<{ scenePath: string; filesPaths: string[]; }> {
+        const projectName = basename(dirname(WorkSpace.Workspace!.lastOpenedScene));
+        const projectDir = join(WorkSpace.DirPath!, "scenes", projectName);
+
+        const scenePath = join(projectDir, "scene.babylon");
+        const filesPaths = (await readdir(join(projectDir, "files"))).map((f) => join(projectDir, "files", f));
+
+        return { scenePath, filesPaths };
+    }
+
+    /**
      * Eports the final scene.
      * @param editor the editor reference.
      */
