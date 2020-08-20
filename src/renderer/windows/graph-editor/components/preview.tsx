@@ -5,7 +5,7 @@ import { mkdtemp, writeJson, rmdir, remove } from "fs-extra";
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { Callout, Intent } from "@blueprintjs/core";
+import { Callout, Intent, Spinner } from "@blueprintjs/core";
 
 import { Engine, Scene, SceneLoader } from "babylonjs";
 import "babylonjs-materials";
@@ -13,8 +13,9 @@ import "babylonjs-procedural-textures";
 
 import { IPCTools } from "../../../editor/tools/ipc";
 
-import GraphEditorWindow from "../index";
 import { Icon } from "../../../editor/gui/icon";
+
+import GraphEditorWindow from "../index";
 
 export interface IPreviewProps {
     /**
@@ -28,6 +29,10 @@ export interface IPreviewState {
      * Defines wether or not the panel should draw a welcome message.
      */
     welcome: boolean;
+    /**
+     * Defines wether or not the scene is loading.
+     */
+    loadingScene: boolean;
 }
 
 export class Preview extends React.Component<IPreviewProps, IPreviewState> {
@@ -52,7 +57,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         props.editor.preview = this;
         
-        this.state = { welcome: true };
+        this.state = { welcome: true, loadingScene: false };
     }
 
     /**
@@ -79,10 +84,23 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             );
         }
 
+        let loadingSpinner: React.ReactNode;
+        if (this.state.loadingScene) {
+            loadingSpinner = (
+                <div style={{ width: "100%", height: "100%" }}>
+                    <div style={{ marginTop: "100px" }}>
+                        <Spinner size={200} />
+                        <h1 style={{ color: "grey", textAlign: "center" }}>Loading...</h1>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <>
                 <canvas ref={this._refHandler.getCanvas} style={{ width: "100%", height: "100%", position: "absolute", top: "0" }}></canvas>
                 {welcome}
+                {loadingSpinner}
             </>
         );
     }
@@ -124,7 +142,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Resets the preview.
      */
     public async reset(): Promise<void> {
-        this.setState({ welcome: false });
+        this.setState({ welcome: false, loadingScene: true });
 
         if (!this.canvas) { return; }
 
@@ -144,6 +162,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         const sceneFileName = join(relative(json.data.rootUrl, tempDir), "scene.babylon");
 
         // Load scene
+        this.setState({ loadingScene: false });
         await SceneLoader.AppendAsync(json.data.rootUrl, sceneFileName, this._scene, null, "babylon");
 
         // Attach controls to camera

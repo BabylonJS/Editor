@@ -166,6 +166,10 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         const windowDimensions = JSON.parse(localStorage.getItem("babylonjs-editor-graph-window-dimensions") ?? "null");
         if (windowDimensions) {
             window.resizeTo(windowDimensions.width, windowDimensions.height);
+
+            const x = windowDimensions.x ?? screenLeft;
+            const y = windowDimensions.y ?? screenTop;
+            window.moveTo(x, y);
         }
 
         // Layout configuration
@@ -345,7 +349,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         localStorage.setItem("babylonjs-editor-graph-layout-state", JSON.stringify(config));
         localStorage.setItem("babylonjs-editor-graph-layout-version", GraphEditorWindow.LayoutVersion);
-        localStorage.setItem("babylonjs-editor-graph-window-dimensions", JSON.stringify({ width: innerWidth, height: innerHeight }));
+        localStorage.setItem("babylonjs-editor-graph-window-dimensions", JSON.stringify({ x: screenLeft, y: screenTop, width: innerWidth, height: innerHeight }));
 
         if (this.graph?.graphCanvas) {
             localStorage.setItem("babylonjs-editor-graph-preferences", JSON.stringify({
