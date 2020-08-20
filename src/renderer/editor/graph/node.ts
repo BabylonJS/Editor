@@ -227,17 +227,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
                     this.outputs[outputIndex].type = parentNode.outputs[link.origin_slot].type;
                 }
 
-                for (const linkId in this.graph!.links) {
-                    const link = this.graph!.links[linkId];
-                    if (link.origin_id !== this.id || link.origin_slot !== outputIndex) {
-                        continue;
-                    }
-
-                    const node = this.graph!.getNodeById(link.target_id);
-                    if (node) {
-                        this.connect(outputIndex, node, link.target_slot);
-                    }
-                }
+                this.updateConnectedNodesFromOutput(outputIndex);
             }
         }
 

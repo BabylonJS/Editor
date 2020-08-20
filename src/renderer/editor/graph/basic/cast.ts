@@ -15,6 +15,7 @@ export class Cast extends GraphNode<{ type: string; }> {
         "Vector3": "Vector3",
         "AbstractMesh": "Node,TransformNode,AbstractMesh",
         "Mesh": "Node,TransformNode,AbstractMesh,Mesh",
+        "InstancedMesh": "Node,TransformNode,AbstractMesh,InstancedMesh",
         "DirectionalLight": "Node,Light,DirectionalLight",
         "SpotLight": "Node,Light,SpotLight",
         "PointLight": "Node,Light,PointLight",

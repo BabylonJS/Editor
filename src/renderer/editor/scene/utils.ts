@@ -21,6 +21,13 @@ export interface INodeResult {
     id: string;
 }
 
+export interface IMeshResult extends INodeResult {
+    /**
+     * Defines the type of the mesh.
+     */
+    type: string;
+}
+
 export interface IAssetResult {
     /**
      * Defines the name drawn in the editor.
@@ -60,7 +67,7 @@ export class SceneUtils {
      * Returns the list of all available nodes in the scene.
      */
     public getAllNodes(): INodeResult[] {
-        return this.getAllMeshes()
+        return (this.getAllMeshes() as INodeResult[])
                     .concat(this.getAllLights())
                     .concat(this.getAllCameras());
     }
@@ -68,8 +75,8 @@ export class SceneUtils {
     /**
      * Returns the list of all meshes.
      */
-    public getAllMeshes(): INodeResult[] {
-        return this._getAsNodeResult(this.scene.meshes.filter((m) => !m._masterMesh));
+    public getAllMeshes(): IMeshResult[] {
+        return this.scene.meshes.filter((m) => !m._masterMesh).map((m) => ({ id: m.id, name: m.name, type: m.getClassName() }));
     }
 
     /**

@@ -24,7 +24,7 @@ export class CreateMeshInstance extends GraphNode<{ name: string; }> {
         this.addWidget("text", "name", this.properties.name, (v) => this.properties.name = v);
 
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("Instance", "Node,TransformNode,AbstractMesh");
+        this.addOutput("Instance", "Node,TransformNode,AbstractMesh,InstancedMesh");
 
         this._count = CreateMeshInstance.Count++;
     }

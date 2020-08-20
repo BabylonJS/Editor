@@ -4,7 +4,7 @@ export class GetMesh extends GraphNode<{ name: string; }> {
     /**
      * Defines the list of all avaialbe meshes in the scene.
      */
-    public static Meshes: string[] = [];
+    public static Meshes: { name: string; type: string; }[] = [];
 
     /**
      * Constructor.
@@ -16,7 +16,7 @@ export class GetMesh extends GraphNode<{ name: string; }> {
 
         this.addProperty("name", "None", "string", (v) => this.properties.name = this.title = v);
         this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
-            values: () => GetMesh.Meshes,
+            values: () => GetMesh.Meshes.map((m) => m.name),
         });
 
         this.addOutput("mesh", "Node,TransformNode,AbstractMesh");

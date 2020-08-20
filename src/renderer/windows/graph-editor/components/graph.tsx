@@ -17,7 +17,7 @@ import { Tools } from "../../../editor/tools/tools";
 import { IPCTools } from "../../../editor/tools/ipc";
 import { undoRedo } from "../../../editor/tools/undo-redo";
 
-import { INodeResult, IAssetResult, IMaterialResult } from "../../../editor/scene/utils";
+import { INodeResult, IAssetResult, IMaterialResult, IMeshResult } from "../../../editor/scene/utils";
 
 import { GraphCodeGenerator } from "../../../editor/graph/generate";
 import { GraphNode, ELinkErrorType } from "../../../editor/graph/node";
@@ -536,8 +536,8 @@ export class Graph extends React.Component<IGraphProps> {
      * Updates the list of nodes in the scene.
      */
     private async _updateSceneNodesLists(): Promise<void> {
-        const meshes = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllMeshes");
-        Mesh.Meshes = GetMesh.Meshes = meshes.data.map((d) => d.name);
+        const meshes = await IPCTools.ExecuteEditorFunction<IMeshResult[]>("sceneUtils.getAllMeshes");
+        Mesh.Meshes = GetMesh.Meshes = meshes.data.map((d) => ({ name: d.name, type: d.type }));
         
         const cameras = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllCameras");
         Camera.Cameras = GetCamera.Cameras = cameras.data.map((d) => d.name);

@@ -1,7 +1,7 @@
 import { join } from "path";
 import { readFile } from "fs-extra";
 import {
-    transpile, LanguageServiceHost, IScriptSnapshot, getDefaultCompilerOptions,
+    LanguageServiceHost, IScriptSnapshot, getDefaultCompilerOptions,
     ScriptSnapshot, CompilerOptions, getDefaultLibFilePath, MapLike, createLanguageService,
     IndentStyle, SemicolonPreference,
 } from "typescript";
@@ -65,7 +65,7 @@ export class GraphCodeGenerator {
                                        .replace("// ${properties}", properties.map((o) => o.code).join(""));
 
         const bFinalStr = this._FormatTsCode(finalStr);
-        return this._Wrap(bFinalStr);
+        return bFinalStr;
     }
 
     /**
@@ -187,10 +187,9 @@ export class GraphCodeGenerator {
                 // Condition that as an if / else
                 case CodeGenerationOutputType.Condition:
                 case CodeGenerationOutputType.FunctionWithCallback:
-                    const conditioNResult = this._Condition(graph, previous.type, { stack, output, previous, executionType, node: n, nodeIndex: index, inputs });
-
-                    if (conditioNResult?.error) {
-                        return conditioNResult;
+                    const conditionResult = this._Condition(graph, previous.type, { stack, output, previous, executionType, node: n, nodeIndex: index, inputs });
+                    if (conditionResult?.error) {
+                        return conditionResult;
                     }
                     break;
             }
@@ -311,7 +310,6 @@ export class GraphCodeGenerator {
             }
         
             // for ts.LanguageServiceHost
-        
             getCompilationSettings = () => getDefaultCompilerOptions();
             getScriptFileNames = () => Object.keys(this.files);
             getScriptVersion = (_fileName: string) => "0";
@@ -360,33 +358,5 @@ export class GraphCodeGenerator {
             });
 
         return code;
-    }
-
-    /**
-     * Wraps the given output.
-     */
-    private static _Wrap(result: string): string {
-        if (result) {
-            return result;
-        }
-        
-        const wrapped = transpile(result);
-        // const wrapped = `
-        //     const exports = { };
-        //     ${js}
-
-        //     const b = require("@babylonjs/core");
-        //     const engine = new b.Engine(document.createElement("canvas"));
-        //     const scene = new b.Scene(engine);
-        //     const node = new b.Mesh("mesh", scene);
-
-        //     debugger;
-        //     var instance = new GraphClass();
-        //     instance.onStart(node);
-        //     instance.onUpdate(node);
-        // `;
-
-        const beautify = require("js-beautify");
-        return beautify.js_beautify(wrapped);
     }
 }
