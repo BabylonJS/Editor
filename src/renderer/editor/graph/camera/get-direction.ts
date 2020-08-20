@@ -9,7 +9,7 @@ export class GetCameraDirection extends GraphNode {
     public constructor() {
         super("Get Camera Direction");
 
-        this.addInput("Camera *", "Camera");
+        this.addInput("Camera *", "Camera", { linkedOutput: "Camera" });
         this.addInput("Local Axis *", "Vector3");
         
         this.addOutput("Camera", "Node,Camera");

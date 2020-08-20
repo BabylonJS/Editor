@@ -11,7 +11,7 @@ export class SetMaterialTextures extends GraphNode {
         super("Set Material Textures");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Material *", "Material");
+        this.addInput("Material *", "Material", { linkedOutput: "Material" });
 
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("Material", "Material");

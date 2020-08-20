@@ -11,7 +11,7 @@ export class TransformMesh extends GraphNode {
         super("Mesh Transform");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Mesh *", "AbstractMesh");
+        this.addInput("Mesh *", "AbstractMesh", { linkedOutput: "Mesh" });
         this.addInput("Position", "Vector3");
         this.addInput("Rotation", "Vector3");
         this.addInput("Scaling", "Vector3");

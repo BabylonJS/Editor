@@ -22,7 +22,7 @@ export class SetParticleSystemProperty extends GraphNode<{ property: string; }> 
         super("Set Particle System Property");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Particles System *", "IParticleSystem");
+        this.addInput("Particles System *", "IParticleSystem", { linkedOutput: "Particles System" });
 
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("Particles System", "IParticleSystem");

@@ -58,6 +58,14 @@ declare module "litegraph.js" {
         notifyLinkError(errorType: ELinkErrorType): void;
         onNodeMoved?(node: GraphNode): void;
     }
+
+    interface INodeInputSlot {
+        /**
+         * Defines the output linked to the input. When a link exists, the output
+         * type becomes the input's type.
+         */
+        linkedOutput?: string;
+    }
 }
 
 export interface IGraphProps {

@@ -1,7 +1,5 @@
 import { Nullable } from "../../../../shared/types";
 
-import { LLink } from "litegraph.js";
-
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
 
 export class Material extends GraphNode<{ name: string; var_name: string; }> {
@@ -81,24 +79,7 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
                 this.setOutputDataType(0, "Material");
             }
 
-            // Update links
-            if (this.graph && this.isOutputConnected(0)) {
-                const links: LLink[] = [];
-                for (const linkId in this.graph.links) {
-                    const link = this.graph.links[linkId];
-
-                    if (link.origin_id === this.id && link.origin_slot === 0) {
-                        links.push(link);
-                    }
-                }
-
-                links.forEach((link) => {
-                    const node = this.graph!.getNodeById(link.target_id);
-                    if (!node) { return; }
-
-                    this.connect(0, node, link.target_slot);
-                });
-            }
+            this.updateConnectedNodesFromOutput(0);
         }
 
         return super.onPropertyChange(name, value);

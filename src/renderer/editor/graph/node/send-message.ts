@@ -10,7 +10,7 @@ export class SendNodeMessage extends GraphNode<{ message: string; }> {
         super("Send Message To Node");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Node *", "Node");
+        this.addInput("Node *", "Node", { linkedOutput: "Node" });
         this.addInput("Data", "");
 
         this.addProperty("message", "myMessage", "string");

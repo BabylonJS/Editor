@@ -20,7 +20,7 @@ export class CreatePhysicsImpostor extends GraphNode<{ type: string; mass: numbe
         super("Create Physics Impostor");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Mesh *", "AbstractMesh");
+        this.addInput("Mesh *", "AbstractMesh", { linkedOutput: "Mesh" });
 
         this.addProperty("type", "NoImpostor", "string");
         this.addProperty("mass", 1, "number");

@@ -1,5 +1,6 @@
-import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 import { IStringDictionary } from "../../../../shared/types";
+
+import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 
 export class Cast extends GraphNode<{ type: string; }> {
     public static Types: IStringDictionary<string> = {
@@ -73,6 +74,8 @@ export class Cast extends GraphNode<{ type: string; }> {
      */
     private _reset(): void {
         this.title = `Cast as ${this.properties.type}`;
-        this.setOutputDataType(0, Cast.Types[this.properties.type] ?? Cast.BabylonJSTypes[this.properties.type]);
+        this.outputs[0].type = Cast.Types[this.properties.type] ?? Cast.BabylonJSTypes[this.properties.type];
+
+        this.updateConnectedNodesFromOutput(0);
     }
 }

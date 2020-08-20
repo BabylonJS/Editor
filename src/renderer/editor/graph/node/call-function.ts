@@ -11,7 +11,7 @@ export class CallNodeFunction extends GraphNode<{ function: string; cast_as_any:
         super("Call Node Function");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Node *", "Node");
+        this.addInput("Node *", "Node", { linkedOutput: "Node" });
         this.addInput("Arg", "");
 
         this.addProperty("function", "myFn", "string");
@@ -21,7 +21,7 @@ export class CallNodeFunction extends GraphNode<{ function: string; cast_as_any:
         this.addWidget("toggle", "cast_as_any", this.properties.cast_as_any, (v) => this.properties.cast_as_any = v);
 
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("mesh", "Node");
+        this.addOutput("Node", "Node");
     }
 
     /**

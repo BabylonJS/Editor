@@ -11,7 +11,7 @@ export class TransformCamera extends GraphNode {
         super("Camera Transform");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Camera *", "Camera");
+        this.addInput("Camera *", "Camera", { linkedOutput: "Camera" });
         this.addInput("Position", "Vector3");
         
         this.addOutput("", LiteGraph.EVENT as any);

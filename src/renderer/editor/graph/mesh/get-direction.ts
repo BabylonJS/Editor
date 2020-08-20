@@ -9,7 +9,7 @@ export class GetMeshDirection extends GraphNode {
     public constructor() {
         super("Get Mesh Direction");
 
-        this.addInput("Mesh *", "AbstractMesh");
+        this.addInput("Mesh *", "AbstractMesh", { linkedOutput: "Mesh" });
         this.addInput("Local Axis *", "Vector3");
         
         this.addOutput("Mesh", "Node,TransformNode,AbstractMesh");

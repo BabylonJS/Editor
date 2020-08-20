@@ -11,8 +11,8 @@ export class AddMeshToShadowGenerator extends GraphNode {
         super("Add Mesh To Shadow Generator");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Mesh *", "AbstractMesh");
-        this.addInput("Light *", "Light");
+        this.addInput("Mesh *", "AbstractMesh", { linkedOutput: "Mesh" });
+        this.addInput("Light *", "Light", { linkedOutput: "Light" });
 
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("Mesh", "Node,TransformNode,AbstractMesh");

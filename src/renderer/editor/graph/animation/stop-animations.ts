@@ -11,10 +11,10 @@ export class StopAnimation extends GraphNode {
         super("Stop Animation");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Node *", "Node");
+        this.addInput("Node *", "Node", { linkedOutput: "Node" });
         
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("node", "Node");
+        this.addOutput("Node", "Node");
     }
 
     /**

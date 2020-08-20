@@ -13,7 +13,7 @@ export class TransformLight extends GraphNode {
         super("Light Transform");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Light *", "DirectionalLight,SpotLight,PointLight");
+        this.addInput("Light *", "DirectionalLight,SpotLight,PointLight", { linkedOutput: "Light" });
         this.addInput("Position", "Vector3");
         this.addInput("Direction", "Vector3");
         

@@ -9,7 +9,7 @@ export class AbsoluteTransformMesh extends GraphNode {
     public constructor() {
         super("Absolute Transform");
 
-        this.addInput("Mesh *", "AbstractMesh");
+        this.addInput("Mesh *", "AbstractMesh", { linkedOutput: "Mesh" });
         
         this.addOutput("Mesh", "Node,TransformNode,AbstractMesh");
         this.addOutput("Position", "Vector3");

@@ -11,7 +11,7 @@ export class RotateMesh extends GraphNode<{ amount: number; space: string; }> {
         super("Rotate");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Mesh *", "AbstractMesh");
+        this.addInput("Mesh *", "AbstractMesh", { linkedOutput: "Mesh" });
         this.addInput("Axis *", "Vector3");
         this.addInput("Amount", "number");
 
@@ -24,8 +24,8 @@ export class RotateMesh extends GraphNode<{ amount: number; space: string; }> {
         this.addWidget("number", "amount", this.properties.amount, (v) => this.properties.amount = v);
 
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("mesh", "Node,TransformNode,AbstractMesh");
-        this.addOutput("rotation", "Vector3");
+        this.addOutput("Mesh", "Node,TransformNode,AbstractMesh");
+        this.addOutput("Rotation", "Vector3");
     }
 
     /**

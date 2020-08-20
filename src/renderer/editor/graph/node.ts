@@ -217,26 +217,30 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      */
     public onConnectionsChange(type: number, _: number, added: boolean, link: LLink, input: any): void {
         if (this.mode === LiteGraph.NEVER) { return; }
-
-        // Check can't connect multiple triggers
-        // if (link && added && this.graph && type === LiteGraph.INPUT && input.type === LiteGraph.EVENT) {
-        //     for (const l in this.graph.links) {
-        //         const existingLink = this.graph.links[l];
-        //         const isTrigger = link.type === LiteGraph.EVENT as any;
-
-        //         if (isTrigger && existingLink.target_id !== link.target_id && existingLink.origin_id === link.origin_id) {
-        //             this.graph.removeLink(link.id);
-
-        //             const canvas = this.graph.list_of_graphcanvas[0];
-        //             if (canvas && canvas.notifyLinkError) {
-        //                 canvas.notifyLinkError(ELinkErrorType.MultipleEvent);
-        //             }
-
-        //             return;
-        //         }
-        //     }
-        // }
         
+        // Changed output type?
+        if (link?.type && type === LiteGraph.INPUT && input?.linkedOutput) {
+            const outputIndex = this.outputs.findIndex((o) => o.name === input.linkedOutput);
+            if (outputIndex !== -1) {
+                const parentNode = this.graph!.getNodeById(link.origin_id);
+                if (parentNode) {
+                    this.outputs[outputIndex].type = parentNode.outputs[link.origin_slot].type;
+                }
+
+                for (const linkId in this.graph!.links) {
+                    const link = this.graph!.links[linkId];
+                    if (link.origin_id !== this.id || link.origin_slot !== outputIndex) {
+                        continue;
+                    }
+
+                    const node = this.graph!.getNodeById(link.target_id);
+                    if (node) {
+                        this.connect(outputIndex, node, link.target_slot);
+                    }
+                }
+            }
+        }
+
         // Change mode?
         if (link && type === LiteGraph.INPUT && input.type === LiteGraph.EVENT) {
             if (added && input.type === LiteGraph.EVENT) {
@@ -576,4 +580,36 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      * This is used to show extra options in the context menu.
      */
     public getContextMenuOptions?(): INodeContextMenuOption[];
+
+    /**
+     * Returns the list of nodes connected to the given output.
+     * @param outputId defines the Id of the output.
+     */
+    public getConnectedNodesFromOutput(outputId: number): { node: GraphNode; inputId: number; }[] {
+        if (!this.graph) { return []; }
+
+        const result: { node: GraphNode; inputId: number; }[] = [];
+        for (const linkId in this.graph.links) {
+            const link = this.graph.links[linkId];
+            if (link.origin_id !== this.id || link.origin_slot !== outputId) {
+                continue;
+            }
+
+            const node = this.graph.getNodeById(link.target_id) as GraphNode;
+            if (node) {
+                result.push({ node, inputId: link.target_slot });
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Updates the given output's children nodes.
+     * @param outputId defines the Id of the output that has been updated.
+     */
+    public updateConnectedNodesFromOutput(outputId: number): void {
+        const connected = this.getConnectedNodesFromOutput(outputId);
+        connected.forEach((c) => this.connect(outputId, c.node, c.inputId));
+    }
 }

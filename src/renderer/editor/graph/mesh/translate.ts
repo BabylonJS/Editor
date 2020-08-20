@@ -11,7 +11,7 @@ export class Translate extends GraphNode<{ distance: number; space: string; }> {
         super("Translate");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Mesh *", "AbstractMesh");
+        this.addInput("Mesh *", "AbstractMesh", { linkedOutput: "Mesh" });
         this.addInput("Axis *", "Vector3");
         this.addInput("Amount", "number");
 
@@ -24,8 +24,8 @@ export class Translate extends GraphNode<{ distance: number; space: string; }> {
         this.addWidget("number", "distance", this.properties.distance, (v) => this.properties.distance = v);
 
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("mesh", "Node,TransformNode,AbstractMesh");
-        this.addOutput("position", "Vector3");
+        this.addOutput("Mesh", "Node,TransformNode,AbstractMesh");
+        this.addOutput("Position", "Vector3");
     }
 
     /**

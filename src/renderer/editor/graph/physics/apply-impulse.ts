@@ -11,12 +11,12 @@ export class ApplyImpulse extends GraphNode {
         super("Apply Impulse");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Mesh *", "AbstractMesh");
+        this.addInput("Mesh *", "AbstractMesh", { linkedOutput: "Mesh" });
         this.addInput("Force *", "Vector3");
         this.addInput("Contact Point *", "Vector3");
 
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("mesh", "Node,TransformNode,AbstractMesh");
+        this.addOutput("Mesh", "Node,TransformNode,AbstractMesh");
     }
 
     /**

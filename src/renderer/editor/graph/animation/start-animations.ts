@@ -11,7 +11,7 @@ export class PlayAnimation extends GraphNode<{ from: number; to: number; loop: b
         super("Play Animation");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Node *", "Node");
+        this.addInput("Node *", "Node", { linkedOutput: "Node" });
         this.addInput("From" , "");
         this.addInput("To", "");
 
@@ -27,7 +27,7 @@ export class PlayAnimation extends GraphNode<{ from: number; to: number; loop: b
         
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("On End", LiteGraph.EVENT as any);
-        this.addOutput("node", "Node");
+        this.addOutput("Node", "Node");
     }
 
     /**

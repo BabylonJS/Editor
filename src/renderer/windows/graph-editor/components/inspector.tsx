@@ -73,12 +73,8 @@ export class Inspector extends AbstractInspector<GraphNode | LGraphGroup> {
      * @param folder the folder containing the modified controller.
      * @param controller the controller that has been modified.
      */
-    public onControllerChange(_?: GUI, controller?: GUIController): void {
+    public onControllerChange(_?: GUI, __?: GUIController): void {
         this.graphEditor.graph.refresh();
-
-        if (controller && this.selectedObject instanceof GraphNode) {
-            this._notifyPropertyChanged(this.selectedObject, controller.object, controller.property);
-        }
     }
 
     /**

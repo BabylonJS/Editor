@@ -19,7 +19,7 @@ export class InterpolationAnimation extends GraphNode<
         super("Interpolation Animation");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Node *", "Node");
+        this.addInput("Node *", "Node", { linkedOutput: "Node" });
         this.addInput("From *" , "");
         this.addInput("To *", "");
         this.addInput("Easing", "EasingFunction");
@@ -40,6 +40,7 @@ export class InterpolationAnimation extends GraphNode<
         
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("On Complete", LiteGraph.EVENT as any);
+        this.addOutput("Node", "Node");
 
         this.size[0] = 400;
     }
