@@ -9,16 +9,19 @@ import { Button, Divider, ButtonGroup, Popover, Position, Menu, MenuItem, MenuDi
 import GoldenLayout from "golden-layout";
 
 import { ISize } from "babylonjs";
+import { LiteGraph, LLink, LGraphGroup } from "litegraph.js";
 
 import { Icon } from "../../editor/gui/icon";
-import { Confirm } from "../../editor/gui/confirm";
+import { Code } from "../../editor/gui/code";
 import { Alert } from "../../editor/gui/alert";
+import { Confirm } from "../../editor/gui/confirm";
 
 import { Tools } from "../../editor/tools/tools";
 import { IPCTools } from "../../editor/tools/ipc";
 import { undoRedo } from "../../editor/tools/undo-redo";
 import { LayoutUtils } from "../../editor/tools/layout-utils";
 
+import { GraphNode } from "../../editor/graph/node";
 import { GraphCode } from "../../editor/graph/graph";
 import { GraphCodeGenerator } from "../../editor/graph/generate";
 
@@ -27,9 +30,19 @@ import { Graph } from "./components/graph";
 import { Preview } from "./components/preview";
 import { Inspector } from "./components/inspector";
 import { CallStack } from "./components/call-stack";
-import { Code } from "../../editor/gui/code";
 
 export const title = "Graph Editor";
+
+export interface IGraphEditorTemplate {
+    /**
+     * Defines the name of the template.
+     */
+    name: string;
+    /**
+     * Defines the path to the file.
+     */
+    file: string;
+}
 
 export interface IGraphEditorWindowProps {
 
@@ -40,6 +53,10 @@ export interface IGraphEditorWindowState {
      * Defines wether or not the graph is plaging.
      */
     playing: boolean;
+    /**
+     * Defines the list of all existing templates.
+     */
+    templates: IGraphEditorTemplate[];
 }
 
 export default class GraphEditorWindow extends React.Component<IGraphEditorWindowProps, IGraphEditorWindowState> {
@@ -94,6 +111,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         this.state = {
             playing: false,
+            templates: [],
         };
 
         GraphCode.Init();
@@ -128,6 +146,16 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
                 <MenuItem text="Render Collapsed Slots" icon={this._getCheckedIcon(this.graph?.graphCanvas?.render_collapsed_slots ?? true)} onClick={() => this._handleGraphCanvasOption("render_collapsed_slots")} />
             </Menu>
         );
+
+        const templates = (
+            <Menu>
+                <MenuItem text="Refresh..." icon="refresh" onClick={() => this._loadTemplates()} />
+                <MenuDivider />
+                {this.state.templates.length ? this.state.templates.map((t) => (
+                    <MenuItem text={t.name} onClick={() => this._applyTemplate(t)} />
+                )) : undefined}
+            </Menu>
+        );
         
         return (
             <>
@@ -141,6 +169,9 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
                         </Popover>
                         <Popover content={view} position={Position.BOTTOM_LEFT}>
                             <Button icon={<Icon src="eye.svg"/>} rightIcon="caret-down" text="View"/>
+                        </Popover>
+                        <Popover content={templates} position={Position.BOTTOM_LEFT}>
+                            <Button icon={<Icon src="grip-lines.svg"/>} rightIcon="caret-down" text="Templates"/>
                         </Popover>
                     </ButtonGroup>
                     <Divider />
@@ -242,6 +273,9 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         this.forceUpdate();
         this.layout.updateSize();
+
+        // Init templates
+        await this._loadTemplates();
     }
 
     /**
@@ -461,5 +495,127 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      */
     private _getCheckedIcon(checked: Undefinable<boolean>): Undefinable<JSX.Element> {
         return checked ? <Icon src="check.svg" /> : undefined;
+    }
+
+    /**
+     * Loads the list of all existing templates.
+     */
+    private async _loadTemplates(): Promise<void> {
+        try {
+            const templates = await Tools.LoadFile<string>("http://editor.babylonjs.com/templates/graphs/templates.json", false);
+            this.setState({ templates: JSON.parse(templates) });
+        } catch (e) {
+            // Catch silently.
+        }
+    }
+
+    /**
+     * Applies the given template.
+     */
+    private async _applyTemplate(template: IGraphEditorTemplate): Promise<void> {
+        const override = await Confirm.Show("Apply template?", `Are you sure to apply the template "${template.name}"? All current work will be overwritten.`);
+        if (!override) { return; }
+
+        try {
+            const content = await Tools.LoadFile<string>(`http://editor.babylonjs.com/templates/graphs/${template.file}`, false);
+            if (this.graph.graph && this.graph.graphCanvas) {
+                const graphJson = JSON.parse(content);
+                const graph = this.graph.graph;
+
+                const nodes: GraphNode[] = [];
+                const links: LLink[] = [];
+                const groups: LGraphGroup[] = [];
+
+                let minX = Infinity;
+                let minY = -Infinity;
+
+                const allNodes = this.graph.getAllNodes();
+                allNodes.forEach((n) => {
+                    if (n.pos[0] < minX) { minX = n.pos[0]; }
+                    if (n.pos[1] + n.size[1] > minY) { minY = n.pos[1] + n.size[1]; }
+                });
+
+                minY += 20;
+                minX = minX >> 0;
+                minY = minY >> 0;
+
+                // Create links
+                graphJson.links?.forEach((l) => {
+                    const link = new LiteGraph.LLink(l.id, l.type, l.origin_id, l.origin_slot, l.target_id, l.target_slot);
+                    link.configure(l);
+
+                    links.push(link);
+                });
+
+                // Configure links
+                links.forEach((l) => {
+                    let id = l.id;
+                    while (graph.links[id] || links.find((l2) => l2 !== l && l2.id === id)) {
+                        id++;
+                    }
+
+                    graphJson.nodes?.forEach((n) => {
+                        n.inputs?.forEach((i) => {
+                            if (i.link === l.id) { i.link = id; }
+                        });
+
+                        n.outputs?.forEach((o) => {
+                            // if (o === id) { n.outputs[index] = id; }
+                            o.links?.forEach((l2, index) => {
+                                if (l2 === l.id) { o.links[index] = id; }
+                            });
+                        });
+                    })
+
+                    l.id = id;
+                });
+                
+                // Register links
+                links.forEach((l) => graph.links[l.id] = l);
+
+                // Create nodes
+                graphJson.nodes?.forEach((n) => {
+                    const node = LiteGraph.createNode(n.type, n.title, { }) as GraphNode;
+                    node.configure(n);
+                    node.pos[0] += minX;
+                    node.pos[1] += minY;
+
+                    nodes.push(node);
+                });
+
+                // Create groups
+                graphJson.groups?.forEach((g) => {
+                    const group = new LGraphGroup();
+                    group.configure(g);
+                    group.move(minX, minY);
+
+                    groups.push(group);
+                });
+
+                // Configure Ids
+                nodes.forEach((n) => {
+                    let id = n.id;
+                    while (graph.getNodeById(id) || nodes.find((n2) => n2 !== n && n2.id === id)) {
+                        id++;
+                    }
+
+                    links.forEach((l) => {
+                        if (l.origin_id === n.id) { l.origin_id = id; }
+                        if (l.target_id === n.id) { l.target_id = id; }
+                    });
+
+                    n.id = id;
+                });
+
+                // Add to graph
+                nodes.forEach((n) => graph.add(n, true));
+                groups.forEach((g) => graph.add(g));
+
+                graph.updateExecutionOrder();
+                graph.setDirtyCanvas(true, true);
+            }
+        } catch (e) {
+            Alert.Show("Failed To Apply Template", e.message);
+        }
     }
 }

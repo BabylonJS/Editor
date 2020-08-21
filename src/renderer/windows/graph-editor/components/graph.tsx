@@ -242,6 +242,11 @@ export class Graph extends React.Component<IGraphProps> {
 
         this.graphCanvas.processContextMenu = (n, e: MouseEvent) => {
             if (n) {
+                const slot = n.getSlotInPosition(e["canvasX"], e["canvasY"]);
+                if (slot) {
+                    // TODO: handle slot context menu.
+                }
+
                 return GraphContextMenu.ShowNodeContextMenu(e, this);
             }
 
@@ -507,10 +512,19 @@ export class Graph extends React.Component<IGraphProps> {
     }
 
     /**
-     * Returns the list of all available nodes of the graph.
+     * Returns the list of all available nodes of the given graph.
+     * @param graph defines the optional graph where to get all its nodes.
      */
     public getAllNodes(graph?: LGraph): GraphNode[] {
         return (graph ?? this.graph!)["_nodes"] as GraphNode[];
+    }
+
+    /**
+     * Returns the list of all available groups of the given graph.
+     * @param graph defines the optional graph where to get all its groups.
+     */
+    public getAllGroups(graph?: LGraph): LGraphGroup[] {
+        return (graph ?? this.graph!)["_groups"] as LGraphGroup[];
     }
 
     /**
