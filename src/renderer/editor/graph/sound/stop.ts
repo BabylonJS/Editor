@@ -19,13 +19,13 @@ export class StopSound extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const sound = this.getInputData(1) as Sound;
-        if (sound) {
-            sound.stop();
-        }
+        if (!sound) { return; }
 
-        this.triggerSlot(0, null);
+        sound.stop();
+
+        return this.triggerSlot(0, null);
     }
 
     /**

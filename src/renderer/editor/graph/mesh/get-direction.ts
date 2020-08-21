@@ -19,13 +19,14 @@ export class GetMeshDirection extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const mesh = this.getInputData(0) as AbstractMesh;
+        if (!mesh) { return; }
 
         this.setOutputData(0, mesh);
         this.setOutputData(1, mesh.getDirection(this.getInputData(1)));
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

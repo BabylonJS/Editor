@@ -22,15 +22,17 @@ export class ApplyImpulse extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const scene = this.getScene();
 
         const mesh = this.getInputData(1) as AbstractMesh;
+        if (!mesh) { return; }
+
         mesh.physicsImpostor = scene.getPhysicsEngine()?.getImpostorForPhysicsObject(mesh) ?? null;
         mesh.applyImpulse(this.getInputData(2), this.getInputData(3));
 
         this.setOutputData(1, mesh);
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

@@ -20,7 +20,7 @@ export class SetMaterialTextures extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const material = this.getInputData<Material>(1);
         if (!material) { return; }
 
@@ -33,7 +33,7 @@ export class SetMaterialTextures extends GraphNode {
         }
 
         this.setOutputData(1, material);
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

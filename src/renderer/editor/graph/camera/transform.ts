@@ -22,14 +22,14 @@ export class TransformCamera extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public execute(): Promise<void> {
         const camera = this.getInputData(1) as Camera;
         camera.position = this.getInputData(2) ?? camera.position;
 
         this.setOutputData(1, camera);
         this.setOutputData(2, camera.position);
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

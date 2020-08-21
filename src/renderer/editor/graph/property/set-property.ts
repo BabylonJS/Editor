@@ -22,12 +22,13 @@ export class SetProperty extends GraphNode<{ path: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const node = this.getInputData(1);
-        if (node) {
-            node[this.properties.path] = this.getInputData(2, true);
-            this.triggerSlot(0, null);
-        }
+        if (!node) { return; }
+
+        node[this.properties.path] = this.getInputData(2, true);
+
+        return this.triggerSlot(0, null);
     }
 
     /**

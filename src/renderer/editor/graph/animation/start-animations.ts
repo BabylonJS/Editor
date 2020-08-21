@@ -33,24 +33,24 @@ export class PlayAnimation extends GraphNode<{ from: number; to: number; loop: b
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const node = this.getInputData<Node>(1);
-        if (node) {
-            this.setOutputData(2, node);
-            
-            this.getScene()?.beginAnimation(
-                node,
-                this.getInputData(2) ?? this.properties.from,
-                this.getInputData(3) ?? this.properties.to,
-                this.properties.loop,
-                this.properties.speed,
-                () => {
-                    this.triggerSlot(1, null);
-                }
-            );
+        if (!node) { return; }
+        
+        this.setOutputData(2, node);
+        
+        this.getScene()?.beginAnimation(
+            node,
+            this.getInputData(2) ?? this.properties.from,
+            this.getInputData(3) ?? this.properties.to,
+            this.properties.loop,
+            this.properties.speed,
+            () => {
+                this.triggerSlot(1, null);
+            }
+        );
 
-            this.triggerSlot(0, null);
-        }
+        return this.triggerSlot(0, null);
     }
 
     /**

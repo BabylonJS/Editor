@@ -48,7 +48,7 @@ export class InterpolationAnimation extends GraphNode<
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public execute(): Promise<void> {
         Animation.CreateAndStartAnimation(
             this.properties.name,
             this.getInputData(1),
@@ -64,7 +64,7 @@ export class InterpolationAnimation extends GraphNode<
             }
         );
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

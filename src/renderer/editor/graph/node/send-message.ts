@@ -23,10 +23,10 @@ export class SendNodeMessage extends GraphNode<{ message: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public execute(): Promise<void> {
         // Nothing we can do now...
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

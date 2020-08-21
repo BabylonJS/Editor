@@ -20,14 +20,14 @@ export class StopAnimation extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const node = this.getInputData<Node>(1);
-        if (node) {
-            this.getScene()?.stopAnimation(node);
+        if (!node) { return; }
+        
+        this.getScene()?.stopAnimation(node);
 
-            this.setOutputData(1, node);
-            this.triggerSlot(0, null);
-        }
+        this.setOutputData(1, node);
+        return this.triggerSlot(0, null);
     }
 
     /**

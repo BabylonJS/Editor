@@ -31,8 +31,9 @@ export class Translate extends GraphNode<{ distance: number; space: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const mesh = this.getInputData(1) as AbstractMesh;
+        if (!mesh) { return; }
         mesh.translate(
             this.getInputData(2),
             this.getInputData(3) ?? this.properties.distance,
@@ -42,7 +43,7 @@ export class Translate extends GraphNode<{ distance: number; space: string; }> {
         this.setOutputData(1, mesh);
         this.setOutputData(2, mesh.position);
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

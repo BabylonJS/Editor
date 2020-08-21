@@ -25,13 +25,13 @@ export class DisposeNode extends GraphNode<{ do_not_recurse: boolean; dispose_ma
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const node = this.getInputData<Node>(1);
-        if (node) {
-            node.dispose(this.properties.do_not_recurse, this.properties.dispose_material_and_textures);
-        }
+        if (!node) { return; }
 
-        this.triggerSlot(0, null);
+        node.dispose(this.properties.do_not_recurse, this.properties.dispose_material_and_textures);
+
+        return this.triggerSlot(0, null);
     }
 
     /**

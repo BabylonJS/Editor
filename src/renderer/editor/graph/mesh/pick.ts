@@ -28,7 +28,7 @@ export class PickMesh extends GraphNode<{ fast_check: boolean; check_result: boo
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const scene = this.getScene();
         const pick = scene.pick(this.getInputData(1) ?? scene.pointerX, this.getInputData(2) ?? scene.pointerY, undefined, this.properties.fast_check);
 
@@ -37,7 +37,7 @@ export class PickMesh extends GraphNode<{ fast_check: boolean; check_result: boo
         this.setOutputData(3, pick?.pickedPoint ?? null);
         
         if (pick?.hit) {
-            this.triggerSlot(0, null);
+            return this.triggerSlot(0, null);
         }
     }
 

@@ -24,10 +24,10 @@ export class StartGameEvent extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         if (!this._started) {
             this._started = true;
-            setTimeout(() => this.triggerSlot(0, null), 0);
+            return this.triggerSlot(0, null);
         }
     }
 

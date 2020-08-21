@@ -201,16 +201,16 @@ export class UpdateVariable extends GraphNode<{ name: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const value = this.getInputData(1, true);
         const variable = Variable.Variables.find((v) => v.properties.name === this.properties.name);
 
-        if (variable) {
-            variable._value = value;
-            this.setOutputData(1, value);
+        if (!variable) { return; }
 
-            this.triggerSlot(0, null);
-        }
+        variable._value = value;
+        this.setOutputData(1, value);
+
+        return this.triggerSlot(0, null);
     }
 
     /**

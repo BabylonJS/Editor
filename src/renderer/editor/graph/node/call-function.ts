@@ -27,14 +27,16 @@ export class CallNodeFunction extends GraphNode<{ function: string; cast_as_any:
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const node = this.getInputData<Node>(1);
-        if (node && node[this.properties.function]) {
-            node[this.properties.function](this.getInputData(2));
-        }
+        if (!node) { return; }
 
-        this.setOutputData(1, this.getInputData(1));
-        this.triggerSlot(0, null);
+        if (node[this.properties.function]) {
+            node[this.properties.function](this.getInputData(2));
+
+            this.setOutputData(1, this.getInputData(1));
+            return this.triggerSlot(0, null);
+        }
     }
 
     /**

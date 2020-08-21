@@ -40,14 +40,14 @@ export class SetParticleSystemProperty extends GraphNode<{ property: string; }> 
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const ps = this.getInputData<IParticleSystem>(1);
         if (!ps) { return; }
 
         ps[this.properties.property] = this.getInputData(2);
 
         this.setOutputData(1, ps);
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

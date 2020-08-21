@@ -31,6 +31,8 @@ import { CallStack } from "./components/call-stack";
 
 import { GraphEditorTemplate } from "./template";
 
+import "./augmentations";
+
 export const title = "Graph Editor";
 
 export interface IGraphEditorTemplate {

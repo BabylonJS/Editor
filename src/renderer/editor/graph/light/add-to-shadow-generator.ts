@@ -22,7 +22,7 @@ export class AddMeshToShadowGenerator extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const mesh = this.getInputData<AbstractMesh>(1);
         if (!mesh) { return; }
 
@@ -31,7 +31,7 @@ export class AddMeshToShadowGenerator extends GraphNode {
 
         light.getShadowGenerator()?.getShadowMap()?.renderList?.push(mesh);
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

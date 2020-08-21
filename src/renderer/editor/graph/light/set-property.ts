@@ -40,14 +40,14 @@ export class SetLightProperty extends GraphNode<{ property: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const light = this.getInputData<Light>(1);
         if (!light) { return; }
 
         light[this.properties.property] = this.getInputData(2);
 
         this.setOutputData(1, light);
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

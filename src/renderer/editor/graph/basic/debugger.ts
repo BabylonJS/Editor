@@ -18,8 +18,8 @@ export class Debugger extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
-        this.triggerSlot(0, null);
+    public execute(): Promise<void> {
+        return this.triggerSlot(0, null);
     }
 
     /**

@@ -26,8 +26,10 @@ export class TransformLight extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const light = this.getInputData<Light>(1);
+        if (!light) { return; }
+
         light.position = this.getInputData(2) ?? light.position;
         light.direction = this.getInputData(3) ?? light.direction;
 
@@ -35,7 +37,7 @@ export class TransformLight extends GraphNode {
         this.setOutputData(2, light.position);
         this.setOutputData(3, light.direction);
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

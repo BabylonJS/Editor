@@ -161,7 +161,6 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
         this.pausedOnBreakPoint = false;
         this._isExecuting = false;
 
-        NodeUtils.ClearCallStack();
         NodeUtils.PausedNode = null;
     }
 
@@ -188,23 +187,20 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      * @param slot defines the slot id to get its input data.
      * @param force_update defines wether or not to force the connected node of this slot to output data into this link
      */
-    public getInputData<T = any>(slot: number, _?: boolean): T {
-        return super.getInputData(slot, /* slot > 0 ? true : false */ false);
-    }
-
-    /**
-     * Triggers an slot event in this node.
-     * @param slot the index of the output slot.
-     * @param param defines the parameters to send to the target slot.
-     * @param link_id in case you want to trigger and specific output link in a slot.
-     */
-    public async triggerSlot(slot: number, param: any, link_id?: number): Promise<void> {
-        if (this.graph!.hasPaused) {
-            await this.waitForBreakPoint();
+    public getInputData<T = any>(slot: number, force_update?: boolean): T {
+        let force = force_update ?? false;
+        for (const linkId in this.graph?.links ?? { }) {
+            const link = this.graph!.links[linkId];
+            if (link.target_id === this.id && link.target_slot === slot) {
+                const originNode = this.graph!.getNodeById(link.origin_id);
+                if (originNode && originNode.mode === LiteGraph.ALWAYS) {
+                    force = true;
+                    break;
+                }
+            }
         }
-        
-        await Tools.Wait(0);
-        super.triggerSlot(slot, param, link_id);
+
+        return super.getInputData(slot, /* slot > 0 ? true : false */ force);
     }
 
     /**
@@ -327,6 +323,20 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
     }
 
     /**
+     * Triggers an slot event in this node.
+     * @param slot the index of the output slot.
+     * @param param defines the parameters to send to the target slot.
+     * @param link_id in case you want to trigger and specific output link in a slot.
+     */
+    public async triggerSlot(slot: number, param?: any, link_id?: number): Promise<void> {
+        if (this.graph!.hasPaused) {
+            await this.waitForBreakPoint();
+        }
+        
+        return super.triggerSlot(slot, param ?? null, link_id);
+    }
+
+    /**
      * Called on the node is being executed.
      */
     public async onExecute(): Promise<void> {
@@ -338,10 +348,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
 
         while (this.graph!.hasPaused) {
             await this.waitForBreakPoint();
-            await Tools.Wait(0);
         }
-
-        NodeUtils.CallStack.push(this);
 
         if (this.hasBeakPoint) {
             this.graph!.hasPaused = true;
@@ -356,18 +363,15 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
         }
 
         try {
-            this.execute();
+            await this.execute();
         } catch (e) {
             console.error(e);
         }
-
-        await Tools.Wait(0);
 
         while (this.graph!.hasPaused) {
             await this.waitForBreakPoint();
         }
 
-        NodeUtils.CallStack.pop();
         this._isExecuting = false;
     }
 
@@ -410,7 +414,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
     /**
      * Called on the node is being executed.
      */
-    public abstract execute(): void;
+    public abstract execute(): void | Promise<void>;
 
     /**
      * Generates the code of the node.

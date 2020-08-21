@@ -41,7 +41,7 @@ export class CreatePhysicsImpostor extends GraphNode<{ type: string; mass: numbe
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const mesh = this.getInputData(1) as AbstractMesh;
         if (!mesh) { return; }
 
@@ -52,7 +52,7 @@ export class CreatePhysicsImpostor extends GraphNode<{ type: string; mass: numbe
         });
 
         this.setOutputData(1, mesh);
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

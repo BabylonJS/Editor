@@ -22,7 +22,7 @@ export class SetMeshMaterial extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const mesh = this.getInputData<Mesh>(1);
         if (!mesh) { return; }
 
@@ -33,7 +33,7 @@ export class SetMeshMaterial extends GraphNode {
         this.setOutputData(1, mesh);
         this.setOutputData(2, material);
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

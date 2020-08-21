@@ -29,7 +29,7 @@ export class PlayAnimationGroup extends GraphNode<{ loop: boolean; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public execute(): Promise<void> {
         const group = this.getInputData<AnimationGroup>(1);
         this.setOutputData(1, group);
         
@@ -45,7 +45,7 @@ export class PlayAnimationGroup extends GraphNode<{ loop: boolean; }> {
             group.play(this.properties.loop);
         }
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

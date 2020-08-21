@@ -14,8 +14,8 @@ export class TickGameEvent extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
-        setTimeout(() => this.triggerSlot(0, null), 0);
+    public execute(): Promise<void> {
+        return this.triggerSlot(0, null);
     }
 
     /**

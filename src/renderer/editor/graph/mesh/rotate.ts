@@ -31,8 +31,10 @@ export class RotateMesh extends GraphNode<{ amount: number; space: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const mesh = this.getInputData(1) as AbstractMesh;
+        if (!mesh) { return; }
+
         mesh.rotate(
             this.getInputData(2),
             this.getInputData(3) ?? this.properties.amount,
@@ -42,7 +44,7 @@ export class RotateMesh extends GraphNode<{ amount: number; space: string; }> {
         this.setOutputData(1, mesh);
         this.setOutputData(2, mesh.rotation);
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

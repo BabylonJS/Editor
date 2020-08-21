@@ -24,8 +24,6 @@ export class GetCameraDirection extends GraphNode {
 
         this.setOutputData(0, camera);
         this.setOutputData(1, camera.getDirection(this.getInputData(1)));
-
-        this.triggerSlot(0, null);
     }
 
     /**

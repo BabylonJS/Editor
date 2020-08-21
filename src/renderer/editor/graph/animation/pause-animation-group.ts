@@ -20,12 +20,12 @@ export class PauseAnimationGroup extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public execute(): Promise<void> {
         const group = this.getInputData<AnimationGroup>(1);
         group?.pause();
 
         this.setOutputData(1, group);
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

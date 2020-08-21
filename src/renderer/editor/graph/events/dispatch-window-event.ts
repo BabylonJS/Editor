@@ -21,9 +21,11 @@ export class DispatchWindowEvent extends GraphNode<{ eventName: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public execute(): Promise<void> {
         const data = this.getInputData<any>(1);
         window.dispatchEvent(new CustomEvent(this.properties.eventName, { detail: data }));
+
+        return this.triggerSlot(0, null);
     }
 
     /**

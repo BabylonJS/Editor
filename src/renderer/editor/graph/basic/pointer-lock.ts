@@ -16,13 +16,13 @@ export class RequestPointerLock extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public execute(): Promise<void> {
         const engine = this.getScene().getEngine();
         if (!engine.isPointerLock) {
             engine.enterPointerlock();
         }
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**
@@ -52,13 +52,13 @@ export class ExitPointerLock extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public execute(): Promise<void> {
         const engine = this.getScene().getEngine();
         if (engine.isPointerLock) {
             engine.exitPointerlock();
         }
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

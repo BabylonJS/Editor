@@ -32,13 +32,15 @@ export class CreateMeshInstance extends GraphNode<{ name: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const mesh = this.getInputData(1) as Mesh;
+        if (!mesh) { return; }
+
         const instance = mesh.createInstance(`${mesh.name}_${this._count}`);
 
         this.setOutputData(1, instance);
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

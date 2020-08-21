@@ -28,8 +28,10 @@ export class TransformMesh extends GraphNode {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public async execute(): Promise<void> {
         const mesh = this.getInputData(1) as AbstractMesh;
+        if (!mesh) { return; }
+
         mesh.position = this.getInputData(2) ?? mesh.position;
         mesh.rotation = this.getInputData(3) ?? mesh.rotation;
         mesh.scaling = this.getInputData(4) ?? mesh.scaling;
@@ -41,7 +43,7 @@ export class TransformMesh extends GraphNode {
         this.setOutputData(4, mesh.scaling);
         this.setOutputData(5, mesh.rotationQuaternion);
 
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**

@@ -6,20 +6,9 @@ import { GraphNode } from "./node";
 
 export class NodeUtils {
     /**
-     * Defines the current stack of nodes being called.
-     */
-    public static CallStack: GraphNode[] = [];
-    /**
      * Defines the reference to the node that is being paused.
      */
     public static PausedNode: Nullable<GraphNode> = null;
-
-    /**
-     * Clears the current call stack.
-     */
-    public static ClearCallStack(): void {
-        this.CallStack = [];
-    }
 
     /**
      * Sets the node's color according to its mode.

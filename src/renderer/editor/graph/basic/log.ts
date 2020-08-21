@@ -21,9 +21,9 @@ export class Log extends GraphNode<{ message: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
+    public execute(): Promise<void> {
         console.log(this.getInputData(1) ?? this.properties.message);
-        this.triggerSlot(0, null);
+        return this.triggerSlot(0, null);
     }
 
     /**
