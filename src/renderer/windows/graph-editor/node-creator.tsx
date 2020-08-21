@@ -156,7 +156,7 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
             map[folder].push(node);
         }
 
-        const folders: ITreeNode[] = [];
+        let folders: ITreeNode[] = [];
         filter = filter.toLowerCase().replace(/ /g, "");
 
         for (const folder in map) {
@@ -171,17 +171,23 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
                 continue;
             }
 
+            // Sort children by id length
+            const orderedChildren = children.sort((a, b) => (a.label as string).length - (b.label as string).length);
+
             folders.push({
                 id: folder,
                 hasCaret: children.length > 0,
                 icon: "folder-close",
                 label: this._getFormatedname(folder),
                 isExpanded: true,
-                childNodes: children,
+                childNodes: orderedChildren,
             });
         }
 
         if (folders.length) {
+            // Sort folders by length.
+            folders = folders.sort((a, b) => b.childNodes!.length - a.childNodes!.length);
+
             const firstChild = folders[0].childNodes![0];
             if (firstChild) {
                 firstChild.isSelected = true;

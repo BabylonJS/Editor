@@ -440,6 +440,8 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
                 const property = c["property"];
                 const initialValue = c["initialValue"];
 
+                if (c.object[property] === initialValue) { return; }
+
                 undoRedo.push({
                     common: () => {
                         this.tool?.updateDisplay();
