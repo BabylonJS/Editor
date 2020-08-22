@@ -44,16 +44,15 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
         const script = this.tool!.addFolder("Script");
         script.open();
 
-        // Get all available scripts
-        const allScripts = (await ScriptAssets.GetAllScripts()).filter((s) => s.indexOf("src/scenes/scene/graphs/") === -1);
-
         // Check metadata
         this.selectedObject.metadata = this.selectedObject.metadata ?? { };
         this.selectedObject.metadata.script = this.selectedObject.metadata.script ?? { };
 
         // Add suggest
         this._selectedScript = this.selectedObject.metadata.script.name ?? "None";
-        script.addSuggest(this, "_selectedScript", ["None"].concat(allScripts)).name("Script").onChange(() => {
+        script.addSuggest(this, "_selectedScript", ["None"], {
+            onUpdate: async () => ["None"].concat((await ScriptAssets.GetAllScripts()).filter((s) => s.indexOf("src/scenes/scene/graphs/") === -1)),
+        }).name("Script").onChange(() => {
             this.selectedObject.metadata.script.name = this._selectedScript;
             if (this._selectedScript === "None") {
                 return;

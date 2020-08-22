@@ -58,9 +58,11 @@ export class SandboxIFrame {
             return;
         }
 
-        path = require.resolve(path);
-        if (!require.cache[path]) {
-            return console.warn(`Sandbox: no require cache for path "${path}"`);
+        for (const c in require.cache) {
+            const cachePath = c.replace(/\\/g, "/");
+            if (cachePath.indexOf("node_modules") === -1) {
+                delete require.cache[path];
+            }
         }
 
         delete require.cache[path];

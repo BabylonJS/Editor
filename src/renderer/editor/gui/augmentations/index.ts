@@ -104,7 +104,7 @@ declare module "dat.gui" {
             onShowLabel?: (item: string) => string | undefined;
 			onShowIcon?: (item: string) => JSX.Element | undefined;
             onShowTooltip?: (item: string) => JSX.Element | undefined;
-            onUpdate?: () => string[];
+            onUpdate?: () => string[] | Promise<string[]>;
         }): SuggestController;
         /**
          * Adds a new keymapper input.

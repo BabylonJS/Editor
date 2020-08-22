@@ -85,9 +85,9 @@ export class _ListSuggest extends React.Component<_IListSuggestProps, _IListSugg
                     readOnly={true}
                     value={this.state.value ?? "(No selection)"}
                     disabled={false}
-                    onMouseEnter={() => {
+                    onMouseEnter={async () => {
                         if (this.props.controller.__renderer?.onUpdate) {
-                            this.setState({ list: this.props.controller.__renderer.onUpdate() });
+                            this.setState({ list: await this.props.controller.__renderer.onUpdate() });
                         }
                     }}
                 ></InputGroup>
@@ -142,7 +142,7 @@ export class SuggestController extends dat.controllers.Controller {
         onShowLabel?: (item: string) => string;
         onShowIcon?: (item: string) => JSX.Element;
         onShowTooltip?: (item: string) => JSX.Element | undefined;
-        onUpdate?: () => string[];
+        onUpdate?: () => string[] | Promise<string[]>;
     }>;
 
     private _title: HTMLSpanElement;
