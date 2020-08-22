@@ -5,7 +5,7 @@ import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plu
 import { AbstractInspector } from "../../editor/inspectors/abstract-inspector";
 
 import { DecalsPainterInspector } from "./decals/inspector";
-import { FoliagePainterInspector } from "./foliage/inspector";
+// import { FoliagePainterInspector } from "./foliage/inspector";
 
 export const title = "Painting Tools";
 
@@ -56,7 +56,7 @@ export default class PreviewPlugin extends AbstractEditorPlugin<IPaintingTools> 
 
         const tabs = [
             <Tab id="decals" title="Decals" key="decals" panel={<DecalsPainterInspector ref={this._refHandler.getTool} toolId={"decals"} editor={this.editor} _objectRef={null} />} />,
-            <Tab id="foliage" title="Foliage" key="foliage" panel={<FoliagePainterInspector ref={this._refHandler.getTool} toolId={"foliage"} editor={this.editor} _objectRef={null} />} />
+            // <Tab id="foliage" title="Foliage" key="foliage" panel={<FoliagePainterInspector ref={this._refHandler.getTool} toolId={"foliage"} editor={this.editor} _objectRef={null} />} />
         ];
 
         return (

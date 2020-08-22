@@ -235,6 +235,8 @@ export class TextureAssets extends AbstractAssets {
      * @param files the list of files being dropped.
      */
     public async onDropFiles(files: IFile[]): Promise<void> {
+        const loadPromises: Promise<void>[] = [];
+
         for (const file of files) {
             const extension = extname(file.name).toLowerCase();
             if (this._extensions.indexOf(extension) === -1) { continue; }
@@ -258,17 +260,23 @@ export class TextureAssets extends AbstractAssets {
                     break;
             }
 
-            texture.onLoadObservable.addOnce(() => {
-                const path = join("files", basename(texture.name));
+            loadPromises.push(new Promise<void>((resolve) => {
+                texture.onLoadObservable.addOnce(() => {
+                    const path = join("files", basename(texture.name));
 
-                texture.name = path;
-                if (texture.url) { texture.url = path; }
-            });
+                    texture.name = path;
+                    if (texture.url) { texture.url = path; }
+
+                    resolve();
+                });
+            }));
 
             // Copy assets
             const dest = join(Project.DirPath!, "files", file.name);
             if (dest) { await copy(file.path, dest); }
         }
+
+        await Promise.all(loadPromises);
     }
 
     /**

@@ -153,9 +153,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         const tools =
             <Menu>
-                {/* <MenuItem text="Decal Painter..." icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("tools:decal-painter")} />
-                <MenuItem text="Foliage Painter..." icon={<Icon src="grass.svg" />} onClick={() => this._menuItemClicked("tools:grass-painter")} />
-                <MenuDivider /> */}
+                {/* <MenuItem text="Decal Painter..." icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("tools:decal-painter")} /> */}
+                {/* <MenuItem text="Foliage Painter..." icon={<Icon src="grass.svg" />} onClick={() => this._menuItemClicked("tools:grass-painter")} /> */}
+                {/* <MenuDivider /> */}
                 <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
             </Menu>;
 

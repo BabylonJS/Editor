@@ -59,17 +59,47 @@ export class DecalsPainter {
      * Gets the current size for decal.
      */
     public get size(): number {
-        return this._decal.size.x;
+        return this._decal.size.z;
     }
 
     /**
      * Sets the current size for decal.
      */
     public set size(size: number) {
-        this._decal.size.set(size, size, size);
+        this._decal.size.z = size;
         this._updateDecalWithLastPickInfo();
     }
 
+    /**
+     * Gets the current width for decal.
+     */
+    public get width(): number {
+        return this._decal.size.x;
+    }
+
+    /**
+     * Sets the current width for for decal.
+     */
+    public set width(width: number) {
+        this._decal.size.x = width;
+        this._updateDecalWithLastPickInfo();
+    }
+
+    /**
+     * Gets the current height of decal.
+     */
+    public get height(): number {
+        return this._decal.size.y;
+    }
+
+    /**
+     * Sets the current height of decal.
+     */
+    public set height(height: number) {
+        this._decal.size.y = height;
+        this._updateDecalWithLastPickInfo();
+    }
+    
     /**
      * Gets the current angle for decal.
      */

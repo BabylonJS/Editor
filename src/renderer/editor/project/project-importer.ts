@@ -363,9 +363,16 @@ export class ProjectImporter {
         }
 
         // Parent
-        result.meshes.forEach((m, index) => {
+        result.meshes.forEach((m, meshIndex) => {
             m.metadata = m.metadata ?? { };
-            m.metadata._waitingParentId = json.meshes[index].parentId;
+            m.metadata._waitingParentId = json.meshes[meshIndex].parentId;
+
+            if (m instanceof Mesh) {
+                m.instances?.forEach((i, instanceIndex) => {
+                    i.metadata = i.metadata ?? { };
+                    i.metadata._waitingParentId = json.meshes[meshIndex].instances[instanceIndex]?.parentId;
+                });
+            }
         });
 
         return result as any;

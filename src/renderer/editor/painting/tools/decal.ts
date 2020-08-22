@@ -63,7 +63,7 @@ export class Decal {
         const mesh = MeshBuilder.CreateDecal("decal", pickInfo.pickedMesh, {
             position: pickInfo.pickedPoint,
             normal: pickInfo.getNormal(true) ?? undefined,
-            size: this.size,
+            size: new Vector3(this.size.x * this.size.z, this.size.y * this.size.z, this.size.z),
             angle: this.angle,
         });
         mesh.material = this.material;
