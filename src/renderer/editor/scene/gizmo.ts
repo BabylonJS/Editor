@@ -244,9 +244,9 @@ export class SceneGizmo {
         const endValue = property.clone();
 
         undoRedo.push({
-            common: () => this._editor.inspector.refresh(),
-            redo: () => attachedMesh[propertyPath] = endValue,
-            undo: () => attachedMesh[propertyPath] = initialValue,
+            common: () => this._editor.inspector.refreshDisplay(),
+            redo: () => attachedMesh[propertyPath].copyFrom(endValue),
+            undo: () => attachedMesh[propertyPath].copyFrom(initialValue),
         });
 
         this._initialValue = null;
