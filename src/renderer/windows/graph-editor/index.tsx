@@ -56,6 +56,10 @@ export interface IGraphEditorWindowState {
      */
     playing: boolean;
     /**
+     * Defines wether or not the graph is played in standalone mode.
+     */
+    standalone: boolean;
+    /**
      * Defines the list of all existing templates.
      */
     templates: IGraphEditorTemplate[];
@@ -113,6 +117,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         this.state = {
             playing: false,
+            standalone: false,
             templates: [],
         };
 
@@ -180,6 +185,10 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
                     <ButtonGroup style={{ position: "relative", left: "50%", transform: "translate(-50%)" }}>
                         <Button disabled={this.state.playing} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play" onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this.start(false)} />
                         <Button disabled={!this.state.playing} icon={<Icon src="square-full.svg" />} text="Stop" onClick={() => this.stop()} />
+                        <Button disabled={!this.state.playing} icon="reset" text="Restart" onClick={() => {
+                            this.stop();
+                            this.start(this.state.standalone);
+                        }} />
                     </ButtonGroup>
                     <Divider />
                 </div>
@@ -345,7 +354,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         await this.preview.reset();
         await this.graph.start(this.preview.getScene(), standalone);
 
-        this.setState({ playing: true });
+        this.setState({ playing: true, standalone });
     }
 
     /**

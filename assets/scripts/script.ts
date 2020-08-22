@@ -55,6 +55,10 @@ export default class MyScript extends Node {
      * @param sender defines the reference to the graph class that sent the message.
      */
     public onMessage(name: string, data: any, sender: any): void {
-        // Not yet supported, implementation WIP.
+        switch (name) {
+            case "myMessage":
+                // Do something...
+                break;
+        }
     }
 }
