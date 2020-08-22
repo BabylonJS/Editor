@@ -20,8 +20,8 @@ export type ScriptMap = {
  * Requires the nedded scripts for the given nodes array and attach them.
  * @param nodes the array of nodes to attach script (if exists).
  */
-function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
-    const initializedNodes: { node: Node; exports: any; }[] = [];
+function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[] | Scene[]): void {
+    const initializedNodes: { node: Node | Scene; exports: any; }[] = [];
 
     // Initialize nodes
     for (const n of nodes) {
@@ -50,15 +50,16 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
     for (const i of initializedNodes) {
         const n = i.node;
         const e = i.exports;
+        const scene = i.node instanceof Scene ? i.node : i.node.getScene();
         
         // Check start
         if (e.default.prototype.onStart) {
-            n.getScene().onBeforeRenderObservable.addOnce(() => n["onStart"]());
+            scene.onBeforeRenderObservable.addOnce(() => n["onStart"]());
         }
 
         // Check update
         if (e.default.prototype.onUpdate) {
-            n.getScene().onBeforeRenderObservable.add(() => n["onUpdate"]());
+            scene.onBeforeRenderObservable.add(() => n["onUpdate"]());
         }
 
         // Check properties
@@ -69,30 +70,32 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
         }
 
         // Check linked children.
-        const childrenLinks = (e.default as any)._ChildrenValues ?? [];
-        for (const link of childrenLinks) {
-            const child = n.getChildren((node => node.name === link.nodeName), true)[0];
-            n[link.propertyKey] = child;
+        if (n instanceof Node) {
+            const childrenLinks = (e.default as any)._ChildrenValues ?? [];
+            for (const link of childrenLinks) {
+                const child = n.getChildren((node => node.name === link.nodeName), true)[0];
+                n[link.propertyKey] = child;
+            }
         }
 
         // Check linked nodes from scene.
         const sceneLinks = (e.default as any)._SceneValues ?? [];
         for (const link of sceneLinks) {
-            const node = n._scene.getNodeByName(link.nodeName);
+            const node = scene.getNodeByName(link.nodeName);
             n[link.propertyKey] = node;
         }
 
         // Check particle systems
         const particleSystemLinks = (e.default as any)._ParticleSystemValues ?? [];
         for (const link of particleSystemLinks) {
-            const ps = n._scene.particleSystems.filter((ps) => ps.emitter === n && ps.name === link.particleSystemName)[0];
+            const ps = scene.particleSystems.filter((ps) => ps.emitter === n && ps.name === link.particleSystemName)[0];
             n[link.propertyKey] = ps;
         }
 
         // Check pointer events
         const pointerEvents = (e.default as any)._PointerValues ?? [];
         for (const event of pointerEvents) {
-            n._scene.onPointerObservable.add((e) => {
+            scene.onPointerObservable.add((e) => {
                 if (e.type !== event.type) { return; }
                 if (!event.onlyWhenMeshPicked) { return n[event.propertyKey](e); }
 
@@ -105,7 +108,7 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[]): void {
         // Check keyboard events
         const keyboardEvents = (e.default as any)._KeyboardValues ?? [];
         for (const event of keyboardEvents) {
-            n._scene.onKeyboardObservable.add((e) => {
+            scene.onKeyboardObservable.add((e) => {
                 if (event.type && e.type !== event.type) { return; }
                 
                 if (!event.keys.length) { return n[event.propertyKey](e); }
@@ -132,6 +135,7 @@ export function attachScripts(scriptsMap: ScriptMap, scene: Scene): void {
     requireScriptForNodes(scriptsMap, scene.lights);
     requireScriptForNodes(scriptsMap, scene.cameras);
     requireScriptForNodes(scriptsMap, scene.transformNodes);
+    requireScriptForNodes(scriptsMap, [scene]);
 
     // Graphs
     for (const scriptKey in scriptsMap) {

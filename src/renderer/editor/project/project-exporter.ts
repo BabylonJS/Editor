@@ -599,7 +599,8 @@ export class ProjectExporter {
         const all = await ScriptAssets.GetAllScripts();
         return scriptsContent.replace("${editor-version}", editor._packageJson.version).replace("// ${scripts}", all.map((s) => {
             const toReplace = `src/scenes/${WorkSpace.GetProjectName()}/`;
-            return `\t"${s}": require("./${s.replace(toReplace, "")}"),`;
+            const extension = extname(s);
+            return `\t"${s}": require("./${s.replace(toReplace, "").replace(extension, "")}"),`;
         }).join("\n"));
     }
 

@@ -54,6 +54,17 @@ export class ProjectHelpers {
         // Flags
         serializationObject.postProcessesEnabled = scene.postProcessesEnabled;
 
+        // Metadata
+        serializationObject.metadata = { };
+        for (const key in scene.metadata ?? { }) {
+            try {
+                JSON.stringify(scene.metadata[key]);
+                serializationObject.metadata[key] = scene.metadata[key];
+            } catch (e) {
+                // Catch silently.
+            }
+        }
+
         // Animation Groups
         if (scene.animationGroups && scene.animationGroups.length > 0) {
             serializationObject.animationGroups = [];
@@ -141,6 +152,11 @@ export class ProjectHelpers {
 
         // Flags
         scene.postProcessesEnabled = parsedData.postProcessesEnabled;
+
+        // Metadata
+        if (parsedData.metadata) {
+            scene.metadata = parsedData.metadata;
+        }
 
         // Environment
         if (parsedData.environmentIntensity !== undefined) { scene.environmentIntensity = parsedData.environmentIntensity; }

@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import { writeJson } from "fs-extra";
-import { extname } from "path";
+import { extname, basename } from "path";
 
 import { Nullable, IStringDictionary, Undefinable } from "../../../shared/types";
 
@@ -286,6 +286,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      */
     public async init(path: string): Promise<void> {
         this._path = path;
+        document.title = `${document.title} - ${basename(path)}`;
     }
 
     /**
@@ -339,10 +340,11 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      * @param standalone defines wehter or not only the current graph will be executed.
      */
     public async start(standalone: boolean): Promise<void> {
+        this.logs.clear();
+        
         await this.preview.reset();
         await this.graph.start(this.preview.getScene(), standalone);
 
-        this.logs.clear();
         this.setState({ playing: true });
     }
 

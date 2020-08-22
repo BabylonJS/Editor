@@ -2,8 +2,9 @@ import { join } from "path";
 
 import { Scene, Node } from "babylonjs";
 
-import { ProjectExporter } from "../project/project-exporter";
 import { Project } from "../project/project";
+import { WorkSpace } from "../project/workspace";
+import { ProjectExporter } from "../project/project-exporter";
 
 import { TextureAssets } from "../assets/textures";
 import { MaterialAssets } from "../assets/materials";
@@ -44,6 +45,25 @@ export interface IMaterialResult extends IAssetResult {
      * Defines the type of material.
      */
     type: string;
+}
+
+export interface ISceneJsonResult {
+    /**
+     * Defines the Root Url of the scene.
+     */
+    rootUrl: string;
+    /**
+     * Defines the absolute path to the workspace.
+     */
+    workspacePath: string;
+    /**
+     * Defines the name of the scene (project).
+     */
+    sceneName: string;
+    /**
+     * Defines the JSON representation of the scenE.
+     */
+    scene: any;
 }
 
 export class SceneUtils {
@@ -145,9 +165,11 @@ export class SceneUtils {
     /**
      * Returns the final scene in its JSON representation.
      */
-    public getSceneJson(): { rootUrl: string; scene: any; } {
+    public getSceneJson(): ISceneJsonResult {
         return {
             rootUrl: join(Project.DirPath!),
+            workspacePath: WorkSpace.DirPath!,
+            sceneName: WorkSpace.GetProjectName(),
             scene: ProjectExporter.GetFinalSceneJson(this._editor),
         };
     }

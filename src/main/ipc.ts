@@ -36,6 +36,7 @@ export class IPC {
 		ipcMain.on(IPCRequests.CloseWindow, IPC.CloseWindow);
 
 		ipcMain.on(IPCRequests.EnableDevTools, IPC.OnEnableDevTools);
+		ipcMain.on(IPCRequests.OpenDevTools, IPC.OnOpenDevTools);
 	}
 
 	/**
@@ -154,5 +155,15 @@ export class IPC {
 	public static async OnEnableDevTools(event: IpcMainEvent, enabled: boolean): Promise<void> {
 		await DevTools.Apply(enabled, event.sender);
 		event.sender.send(IPCResponses.EnableDevTools);
+	}
+
+	/**
+	 * Enables the devtools. Typically used when developing a plugin for the Editor.
+	 */
+	public static async OnOpenDevTools(event: IpcMainEvent): Promise<void> {
+		const window = WindowController.GetWindowByWebContentsId(event.sender.id);
+		if (window) {
+			window.webContents?.openDevTools({ mode: "detach" });
+		}
 	}
 }

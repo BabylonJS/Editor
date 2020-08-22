@@ -8,7 +8,7 @@ import { attachScripts, configurePostProcesses } from "../tools";
 /**
  * Defines the map of all available scripts in the project.
  */
-const scriptsMap = {
+export const scriptsMap = {
 // ${scripts}
 }
 

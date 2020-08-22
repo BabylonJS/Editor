@@ -23,8 +23,11 @@ export class SendNodeMessage extends GraphNode<{ message: string; }> {
     /**
      * Called on the node is being executed.
      */
-    public execute(): Promise<void> {
-        // Nothing we can do now...
+    public async execute(): Promise<void> {
+        const node = this.getInputData<Node>(1);
+        if (!node) { return; }
+
+        (node as any).onMessage?.call(node, this.properties.message, this.getInputData(2) ?? null, this);
 
         return this.triggerSlot(0, null);
     }

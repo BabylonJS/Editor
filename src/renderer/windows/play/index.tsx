@@ -1,9 +1,12 @@
 import { shell } from "electron";
 
 import { Nullable } from "../../../shared/types";
+import { IPCRequests } from "../../../shared/ipc";
 
 import * as React from "react";
 import { Classes, ButtonGroup, Button } from "@blueprintjs/core";
+
+import { IPCTools } from "../../editor/tools/ipc";
 
 import { IWorkSpace } from "../../editor/project/typings";
 
@@ -13,7 +16,7 @@ export interface IPlayWindowState {
     /**
      * Defines the current workspace object.
      */
-    workspace?: IWorkSpace
+    workspace?: IWorkSpace;
 }
 
 export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
@@ -45,6 +48,7 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
                     <ButtonGroup>
                         <Button key="open-browser" small={true} icon="document-open" text="Open In My Browser" onClick={() => this._handleOpenInBrowser()} />
                         <Button key="refresh" small={true} icon="refresh" text="Refresh" onClick={() => this._handleRefresh()} />
+                        <Button key="open-devtools" small={true} icon="code-block" text="Open DevTools..." onClick={() => this._handleOpenDevTools()} />
                     </ButtonGroup>
                 </div>
                 <iframe ref={this._refHandler.getIFrame} src={iframeUrl} style={{ width: "100%", height: "calc(100% - 25px)" }}></iframe>
@@ -84,5 +88,12 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
         if (!this._iframe) { return; }
 
         this._iframe.src = this._iframe.src;
+    }
+
+    /**
+     * Called on the user wants to open the devtools.
+     */
+    private _handleOpenDevTools(): void {
+        IPCTools.Send(IPCRequests.OpenDevTools);
     }
 }

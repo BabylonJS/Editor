@@ -18,6 +18,7 @@ export enum IPCRequests {
 	CloseWindow = "closewindow",
 
 	EnableDevTools = "enabledevtools",
+	OpenDevTools = "opendevtools",
 }
 
 export enum IPCResponses {

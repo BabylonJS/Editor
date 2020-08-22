@@ -1,9 +1,9 @@
 import { Scene } from "babylonjs";
 
 import { Inspector } from "../components/inspector";
-import { AbstractInspector } from "./abstract-inspector";
+import { ScriptInspector } from "./script-inspector";
 
-export class SceneInspector extends AbstractInspector<Scene> {
+export class SceneInspector extends ScriptInspector<Scene> {
     private _fogMode: string = "";
 
     /**
@@ -14,6 +14,7 @@ export class SceneInspector extends AbstractInspector<Scene> {
         this.addColors();
         this.addImageProcessing();
         this.addEnvironment();
+        this.addScript();
         this.addFog();
         this.addCollisions();
         this.addPhysics();

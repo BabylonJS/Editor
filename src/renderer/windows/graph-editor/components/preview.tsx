@@ -1,4 +1,4 @@
-import { join, relative } from "path";
+import { join, relative, dirname, extname } from "path";
 import { tmpdir } from "os";
 import { mkdtemp, writeJson, rmdir, remove } from "fs-extra";
 
@@ -11,9 +11,11 @@ import { Engine, Scene, SceneLoader } from "babylonjs";
 import "babylonjs-materials";
 import "babylonjs-procedural-textures";
 
+import { Icon } from "../../../editor/gui/icon";
+
 import { IPCTools } from "../../../editor/tools/ipc";
 
-import { Icon } from "../../../editor/gui/icon";
+import { ISceneJsonResult } from "../../../editor/scene/utils";
 
 import GraphEditorWindow from "../index";
 
@@ -47,6 +49,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
     private _engine: Nullable<Engine> = null;
     private _scene: Nullable<Scene> = null;
+
+    private _requiredScriptsPaths: string[] = [];
 
     /**
      * Constructor.
@@ -153,7 +157,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         });
         this._scene = new Scene(this._engine);
 
-        const json = await IPCTools.ExecuteEditorFunction<{ rootUrl: string; scene: any; }>("sceneUtils.getSceneJson");
+        const json = await IPCTools.ExecuteEditorFunction<ISceneJsonResult>("sceneUtils.getSceneJson");
 
         const tempDir = await mkdtemp(join(tmpdir(), "babylonjs-editor"));
         const sceneDest = join(tempDir, "scene.babylon");
@@ -175,6 +179,12 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         } catch (e) {
             console.error("Failed to remove tmp dir", e);
         }
+
+        // Clear previously loaded scripts
+        this._clearRequireCache();
+
+        // Attach scripts
+        this._attachScripts(json.data);
 
         // Run!
         this._engine.runRenderLoop(() => {
@@ -198,6 +208,49 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         if (this._engine) {
             this._engine.stopRenderLoop();
             try { this._engine.dispose(); } catch (e) { /* Catch silently */ }
+        }
+    }
+
+    /**
+     * Clears the require cache.
+     */
+    private _clearRequireCache(): void {
+        for (const c in require.cache) {
+            const cachePath = c.replace(/\\/g, "/");
+            if (this._requiredScriptsPaths.indexOf(cachePath) !== -1) {
+                delete require.cache[c];
+            }
+        }
+
+        this._requiredScriptsPaths = [];
+    }
+
+    /**
+     * Attaches the scripts to the current scene.
+     */
+    private _attachScripts(json: ISceneJsonResult): void {
+        try {
+            const sceneUtilsPath = join(json.workspacePath, "build/src/scenes", json.sceneName, "index.js");
+            const sceneUtils = require(sceneUtilsPath);
+
+            this._requiredScriptsPaths.push(sceneUtilsPath);
+
+            // Clear graphs.
+            for (const script in sceneUtils.scriptsMap) {
+                if (sceneUtils.scriptsMap[script].IsGraph) {
+                    delete sceneUtils.scriptsMap[script];
+                } else {
+                    const scriptPath = script.replace(join("src/scenes", json.sceneName), "");
+                    const extension = extname(scriptPath);
+
+                    this._requiredScriptsPaths.push(join(dirname(sceneUtilsPath), scriptPath.replace(extension, ".js")));
+                }
+            }
+
+            sceneUtils.runScene(this._scene);
+        } catch (e) {
+            this._clearRequireCache();
+            this.props.editor.logs.log(e.message);
         }
     }
 }
