@@ -1,4 +1,35 @@
+import { Scene } from "babylonjs";
 import { LGraphNode, LiteGraph } from "litegraph.js";
+
+import { ELinkErrorType, GraphNode } from "../../editor/graph/node";
+
+declare module "litegraph.js" {
+    interface LGraph {
+        onNodeAdded?: (n: GraphNode) => void;
+
+        add(graphOrGroup: GraphNode | LGraphGroup): void;
+        remove(graphOrGroup: GraphNode | LGraphGroup): void;
+
+        sendEventToAllNodes(event: string): void;
+
+        hasPaused: boolean;
+        scene?: Scene;
+    }
+
+    interface LGraphCanvas {
+        read_only: boolean;
+        notifyLinkError(errorType: ELinkErrorType): void;
+        onNodeMoved?(node: GraphNode): void;
+    }
+
+    interface INodeInputSlot {
+        /**
+         * Defines the output linked to the input. When a link exists, the output
+         * type becomes the input's type.
+         */
+        linkedOutput?: string;
+    }
+}
 
 /**
  * Triggers an slot event in this node.

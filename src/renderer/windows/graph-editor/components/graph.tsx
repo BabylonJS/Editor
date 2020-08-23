@@ -41,33 +41,6 @@ import { GraphContextMenu } from "../context-menu";
 import { NodeCreator } from "../node-creator";
 import GraphEditorWindow from "../index";
 
-declare module "litegraph.js" {
-    interface LGraph {
-        onNodeAdded?: (n: GraphNode) => void;
-
-        add(graphOrGroup: GraphNode | LGraphGroup): void;
-        remove(graphOrGroup: GraphNode | LGraphGroup): void;
-
-        sendEventToAllNodes(event: string): void;
-
-        hasPaused: boolean;
-    }
-
-    interface LGraphCanvas {
-        read_only: boolean;
-        notifyLinkError(errorType: ELinkErrorType): void;
-        onNodeMoved?(node: GraphNode): void;
-    }
-
-    interface INodeInputSlot {
-        /**
-         * Defines the output linked to the input. When a link exists, the output
-         * type becomes the input's type.
-         */
-        linkedOutput?: string;
-    }
-}
-
 export interface IGraphProps {
     /**
      * Defines the reference to the editor's window main class.
@@ -154,29 +127,18 @@ export class Graph extends React.Component<IGraphProps> {
         const json = await readJSON(jsonPath);
         this.graph = new LGraph();
         this.graph.configure(json, false);
-        this.graph["scene"] = this._editor.preview.getScene();
+        this.graph.scene = this._editor.preview.getScene();
         this.graph.config["align_to_grid"] = true;
         this._checkGraph();
 
         // Graph events
-        const connectionChange = this.graph.connectionChange;
-        this.graph.connectionChange = (n) => {
-            connectionChange.call(this.graph, n);
-            this._checkGraph();
-        }
-
-        this.graph.onNodeAdded = () => {
-            this._checkGraph();
-        };
+        this._handleConnectionChange(this.graph);
+        this._handleNodeAdded(this.graph);
 
         // Create graph canvas
         this.graphCanvas = new LGraphCanvas(this.canvas, this.graph, {
             autoresize: true,
             skip_render: false,
-        });
-        this.graphCanvas.canvas.addEventListener("mousemove", () => {
-            this.graphCanvas!.dirty_bgcanvas = true;
-            this.graphCanvas!.dirty_canvas = true;
         });
 
         // Preferences
@@ -188,125 +150,14 @@ export class Graph extends React.Component<IGraphProps> {
         this.graphCanvas.render_curved_connections = preferences.render_curved_connections ?? true;
         this.graphCanvas.show_info = preferences.show_info ?? true;
 
-        // Override
-        this.graphCanvas.showSearchBox = (e: MouseEvent) => {
-            setTimeout(() => this.addNode(e), 100);
-        };
-
-        this.graphCanvas.notifyLinkError = (errorType: ELinkErrorType) => {
-            switch (errorType) {
-                case ELinkErrorType.MultipleEvent: Alert.Show("Can't connect nodes", "Triggerable links can't be parallelized, they must be linear by chaining actions."); break;
-                default: break;
-            }
-        };
-
-        this.graphCanvas.canvas.addEventListener("mouseover", () => this._canvasFocused = true);
-        this.graphCanvas.canvas.addEventListener("mouseout", () => this._canvasFocused = false);
-
-        this.graphCanvas.canvas.addEventListener("click", (e) => {
-            const pos = this.graphCanvas!.convertEventToCanvasOffset(e);
-
-            const node = this.graph?.getNodeOnPos(pos[0], pos[1]) as Undefinable<GraphNode>;
-            if (node) { return this._editor.inspector.setNode(node); }
-
-            const group = this.graph?.getGroupOnPos(pos[0], pos[1]) as Undefinable<LGraphGroup>;
-            if (group) { return this._editor.inspector.setGroup(group); }
-        });
-
-        this.graphCanvas.canvas.addEventListener("dblclick", (e) => {
-            const pos = this.graphCanvas!.convertEventToCanvasOffset(e);
-
-            const node = this.graph?.getNodeOnPos(pos[0], pos[1]) as Undefinable<GraphNode>;
-            if (node && node instanceof GraphNode) {
-                node.focusOn();
-            }
-        });
-
-        document.addEventListener("keydown", (event) => {
-            if (!this._canvasFocused) { return; }
-            
-            // Copy/paste
-            if (event.key === "c" && event.ctrlKey) {
-                return this.graphCanvas?.copyToClipboard();
-            }
-            
-            if (event.key === "v" && event.ctrlKey) {
-                return this.graphCanvas?.pasteFromClipboard();
-            }
-
-            // Del
-            if (event.keyCode === 46) {
-                return this.removeNode();
-            }
-        });
-
-        this.graphCanvas.processContextMenu = (n, e: MouseEvent) => {
-            if (n) {
-                const slot = n.getSlotInPosition(e["canvasX"], e["canvasY"]);
-                if (slot) {
-                    // TODO: handle slot context menu.
-                }
-
-                return GraphContextMenu.ShowNodeContextMenu(e, this);
-            }
-
-            const pos = this.graphCanvas!.convertEventToCanvasOffset(e);
-            const group = this.graph?.getGroupOnPos(pos[0], pos[1]);
-            GraphContextMenu.ShowGraphContextMenu(e, this, group!);
-        };
-
-        this.graphCanvas.showLinkMenu = (l, e) => {
-            GraphContextMenu.ShowLinkContextMenu(l, e, this);
-            return false;
-        };
-
-        this.graphCanvas.prompt = (title, value, callback, event: MouseEvent) => {
-            ContextMenu.show(
-                <Menu className={Classes.DARK}>
-                    <Button disabled={true}>{title}</Button>
-                    <MenuDivider />
-                    <EditableText
-                        disabled={false}
-                        value={value.toString()}
-                        multiline={true}
-                        confirmOnEnterKey={true}
-                        selectAllOnFocus={true}
-                        className={Classes.FILL}
-                        onConfirm={(v) => {
-                            const ctor = Tools.GetConstructorName(v).toLowerCase();
-                            switch (ctor) {
-                                case "string": callback(v); break;
-                                case "number": callback(parseFloat(v)); break;
-                            }
-
-                            if (ContextMenu.isOpen()) {
-                                ContextMenu.hide();
-                            }
-                        }}
-                    />
-                </Menu>,
-                { left: event.clientX, top: event.clientY }
-            );
-
-            return document.createElement("div");
-        };
-
-        this.graphCanvas.onNodeMoved = (n) => {
-            const lastPosition = [n._lastPosition[0], n._lastPosition[1]];
-            const newPosition = [n.pos[0], n.pos[1]];
-
-            undoRedo.push({
-                common: () => this.graphCanvas?.setDirty(true, true),
-                undo: () => {
-                    n.pos[0] = lastPosition[0];
-                    n.pos[1] = lastPosition[1];
-                },
-                redo: () => {
-                    n.pos[0] = newPosition[0];
-                    n.pos[1] = newPosition[1];
-                },
-            });
-        }
+        // Graph canvas events
+        this._handleShowSearchBox(this.graphCanvas);
+        this._handleLinkError(this.graphCanvas);
+        this._handleGraphCanvasEvents(this.graphCanvas);
+        this._handleProcessContextMenu(this.graphCanvas);
+        this._handleLinkContextMenu(this.graphCanvas);
+        this._handlePrompt(this.graphCanvas);
+        this._handleNodeMoved(this.graphCanvas);
 
         this.resize();
 
@@ -576,5 +427,184 @@ export class Graph extends React.Component<IGraphProps> {
 
         const materials = await IPCTools.ExecuteEditorFunction<IMaterialResult[]>("sceneUtils.getAllMaterials");
         Material.Materials = materials.data.map((m) => ({ name: m.name, base64: m.base64, type: m.type }));
+    }
+
+    /**
+     * Handles the connection change event.
+     */
+    private _handleConnectionChange(graph: LGraph): void {
+        const connectionChange = graph.connectionChange;
+        graph.connectionChange = (n) => {
+            connectionChange.call(this.graph, n);
+            this._checkGraph();
+        }
+    }
+
+    /**
+     * Handles the node added event.
+     */
+    private _handleNodeAdded(graph: LGraph): void {
+        graph.onNodeAdded = () => {
+            this._checkGraph();
+        };
+    }
+
+    /**
+     * Handles the show search box event.
+     */
+    private _handleShowSearchBox(graphCanvas: LGraphCanvas): void {
+        graphCanvas.showSearchBox = (e: MouseEvent) => {
+            setTimeout(() => this.addNode(e), 100);
+        };
+    }
+
+    /**
+     * Handles the link error event.
+     */
+    private _handleLinkError(graphCanvas: LGraphCanvas): void {
+        graphCanvas.notifyLinkError = (errorType: ELinkErrorType) => {
+            switch (errorType) {
+                case ELinkErrorType.MultipleEvent: Alert.Show("Can't connect nodes", "Triggerable links can't be parallelized, they must be linear by chaining actions."); break;
+                default: break;
+            }
+        };
+    }
+
+    /**
+     * Handles the graph canvas events.
+     */
+    private _handleGraphCanvasEvents(graphCanvas: LGraphCanvas): void {
+        graphCanvas.canvas.addEventListener("mousemove", () => {
+            this.graphCanvas!.dirty_bgcanvas = true;
+            this.graphCanvas!.dirty_canvas = true;
+        });
+
+        graphCanvas.canvas.addEventListener("mouseover", () => this._canvasFocused = true);
+        graphCanvas.canvas.addEventListener("mouseout", () => this._canvasFocused = false);
+
+        graphCanvas.canvas.addEventListener("click", (e) => {
+            const pos = this.graphCanvas!.convertEventToCanvasOffset(e);
+
+            const node = this.graph?.getNodeOnPos(pos[0], pos[1]) as Undefinable<GraphNode>;
+            if (node) { return this._editor.inspector.setNode(node); }
+
+            const group = this.graph?.getGroupOnPos(pos[0], pos[1]) as Undefinable<LGraphGroup>;
+            if (group) { return this._editor.inspector.setGroup(group); }
+        });
+
+        graphCanvas.canvas.addEventListener("dblclick", (e) => {
+            const pos = this.graphCanvas!.convertEventToCanvasOffset(e);
+
+            const node = this.graph?.getNodeOnPos(pos[0], pos[1]) as Undefinable<GraphNode>;
+            if (node && node instanceof GraphNode) {
+                node.focusOn();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (!this._canvasFocused) { return; }
+            
+            // Copy/paste
+            if (event.key === "c" && event.ctrlKey) {
+                return this.graphCanvas?.copyToClipboard();
+            }
+            
+            if (event.key === "v" && event.ctrlKey) {
+                return this.graphCanvas?.pasteFromClipboard();
+            }
+
+            // Del
+            if (event.keyCode === 46) {
+                return this.removeNode();
+            }
+        });
+    }
+
+    /**
+     * Handles the graph canvas context menu event.
+     */
+    private _handleProcessContextMenu(graphCanvas: LGraphCanvas): void {
+        graphCanvas.processContextMenu = (n, e: MouseEvent) => {
+            if (n) {
+                const slot = n.getSlotInPosition(e["canvasX"], e["canvasY"]);
+                if (slot) {
+                    // TODO: handle slot context menu.
+                }
+
+                return GraphContextMenu.ShowNodeContextMenu(e, this);
+            }
+
+            const pos = this.graphCanvas!.convertEventToCanvasOffset(e);
+            const group = this.graph?.getGroupOnPos(pos[0], pos[1]);
+            GraphContextMenu.ShowGraphContextMenu(e, this, group!);
+        };
+    }
+
+    /**
+     * Handles the graph canvas link contet menu event.
+     */
+    private _handleLinkContextMenu(graphCanvas: LGraphCanvas): void {
+        graphCanvas.showLinkMenu = (l, e) => {
+            GraphContextMenu.ShowLinkContextMenu(l, e, this);
+            return false;
+        };
+    }
+
+    /**
+     * Handles the graph canvas prompt event.
+     */
+    private _handlePrompt(graphCanvas: LGraphCanvas): void {
+        graphCanvas.prompt = (title, value, callback, event: MouseEvent) => {
+            ContextMenu.show(
+                <Menu className={Classes.DARK}>
+                    <Button disabled={true}>{title}</Button>
+                    <MenuDivider />
+                    <EditableText
+                        disabled={false}
+                        value={value.toString()}
+                        multiline={true}
+                        confirmOnEnterKey={true}
+                        selectAllOnFocus={true}
+                        className={Classes.FILL}
+                        onConfirm={(v) => {
+                            const ctor = Tools.GetConstructorName(v).toLowerCase();
+                            switch (ctor) {
+                                case "string": callback(v); break;
+                                case "number": callback(parseFloat(v)); break;
+                            }
+
+                            if (ContextMenu.isOpen()) {
+                                ContextMenu.hide();
+                            }
+                        }}
+                    />
+                </Menu>,
+                { left: event.clientX, top: event.clientY }
+            );
+
+            return document.createElement("div");
+        };
+    }
+
+    /**
+     * Handles the graph canvas node moved event
+     */
+    private _handleNodeMoved(graphCanvas: LGraphCanvas): void {
+        graphCanvas.onNodeMoved = (n) => {
+            const lastPosition = [n._lastPosition[0], n._lastPosition[1]];
+            const newPosition = [n.pos[0], n.pos[1]];
+
+            undoRedo.push({
+                common: () => this.graphCanvas?.setDirty(true, true),
+                undo: () => {
+                    n.pos[0] = lastPosition[0];
+                    n.pos[1] = lastPosition[1];
+                },
+                redo: () => {
+                    n.pos[0] = newPosition[0];
+                    n.pos[1] = newPosition[1];
+                },
+            });
+        }
     }
 }
