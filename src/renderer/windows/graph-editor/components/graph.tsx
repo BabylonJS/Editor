@@ -167,6 +167,9 @@ export class Graph extends React.Component<IGraphProps> {
             this.graphCanvas.selectNode(firstNode);
             this._editor.inspector.setNode(firstNode);
         }
+
+        // Clean graph's links
+        this._cleanUselessLinks(this.graph);
     }
 
     /**
@@ -195,7 +198,12 @@ export class Graph extends React.Component<IGraphProps> {
         }
 
         undoRedo.push({
-            common: () => this.graphCanvas?.setDirty(true, true),
+            common: () => {
+                this.graphCanvas?.setDirty(true, true);
+                if (this.graph) {
+                    this._cleanUselessLinks(this.graph);
+                }
+            },
             undo: () => {
                 nodes.forEach((n) => {
                     this.graph?.add(n.node);
@@ -234,7 +242,12 @@ export class Graph extends React.Component<IGraphProps> {
         node.pos = node._lastPosition = this.graphCanvas!.convertEventToCanvasOffset(event);
 
         undoRedo.push({
-            common: () => this.graphCanvas?.setDirty(true, true),
+            common: () => {
+                this.graphCanvas?.setDirty(true, true);
+                if (this.graph) {
+                    this._cleanUselessLinks(this.graph);
+                }
+            },
             undo: () => this.graph?.remove(node),
             redo: () => this.graph?.add(node, false),
         });
@@ -280,7 +293,12 @@ export class Graph extends React.Component<IGraphProps> {
         if (!originNode || !targetNode) { return; }
 
         undoRedo.push({
-            common: () => this.graphCanvas?.setDirty(true, true),
+            common: () => {
+                this.graphCanvas?.setDirty(true, true);
+                if (this.graph) {
+                    this._cleanUselessLinks(this.graph);
+                }
+            },
             undo: () => originNode.connect(link.origin_slot, targetNode, link.target_slot),
             redo: () => this.graph?.removeLink(link.id),
         });
@@ -376,6 +394,14 @@ export class Graph extends React.Component<IGraphProps> {
      */
     public getAllGroups(graph?: LGraph): LGraphGroup[] {
         return (graph ?? this.graph!)["_groups"] as LGraphGroup[];
+    }
+
+    /**
+     * Returns the list of all available links of the given graph.
+     * @param graph defines the optional graph where to get all its links.
+     */
+    public getAllLinks(graph?: LGraph): LLink[] {
+        return Object.keys((graph ?? this.graph!).links).map((key) => (graph ?? this.graph!).links[key]);
     }
 
     /**
@@ -606,5 +632,23 @@ export class Graph extends React.Component<IGraphProps> {
                 },
             });
         }
+    }
+
+    /**
+     * Cleans the useless links of the graph.
+     */
+    private _cleanUselessLinks(graph: LGraph): void {
+        const oldLinks: string[] = [];
+        for (const linkId in graph.links) {
+            const link = graph.links[linkId];
+            const origin = graph.getNodeById(link.origin_id);
+            const target = graph.getNodeById(link.target_id);
+
+            if (!origin || !target) {
+                oldLinks.push(linkId);
+            }
+        }
+
+        oldLinks.forEach((ol) => delete graph.links[ol]);
     }
 }

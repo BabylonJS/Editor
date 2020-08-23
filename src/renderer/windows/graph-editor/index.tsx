@@ -141,6 +141,8 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
             <Menu>
                 <MenuItem text="Undo (CTRL + Z)" icon={<Icon src="undo.svg" />} onClick={() => undoRedo.undo()} />
                 <MenuItem text="Redo (CTRL + Y)" icon={<Icon src="redo.svg" />} onClick={() => undoRedo.redo()} />
+                <MenuDivider />
+                <MenuItem text="Clear..." icon={<Icon src="recycle.svg" />} onClick={() => this._handleClearGraph()} />
             </Menu>
         );
 
@@ -483,6 +485,19 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         ), {
             style: { width: "840px", height: "700px" }
         });
+    }
+
+    /**
+     * Called on the user wants to clear the graph.
+     */
+    private async _handleClearGraph(): Promise<void> {
+        const clear = await Confirm.Show("Clear whole graph?", "Are you sure to clear the whole graph? All work will be lost.");
+        if (!clear) { return; }
+
+        const graph = this.graph.graph;
+        if (!graph) { return; }
+
+        graph.clear();
     }
 
     /**
