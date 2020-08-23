@@ -55,12 +55,12 @@ export class SetParticleSystemProperty extends GraphNode<{ property: string; }> 
      * @param name defines the name of the property that changed.
      * @param value defines the new value of the property.
      */
-    public onPropertyChange(name: string, value: any): boolean {
+    public propertyChanged(name: string, value: any): boolean {
         if (name === "property") {
             this._changeProperty(SetParticleSystemProperty.Properties.find((p) => p.name === value));
         }
 
-        return super.onPropertyChange(name, value);
+        return super.propertyChanged(name, value);
     }
 
     /**

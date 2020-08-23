@@ -225,11 +225,11 @@ export class Inspector extends AbstractInspector<GraphNode | LGraphGroup> {
                         },
                         undo: () => {
                             node.properties[p] = initialValue;
-                            node.onPropertyChange(p, initialValue);
+                            node.propertyChanged(p, initialValue);
                         },
                         redo: () => {
                             node.properties[p] = r;
-                            node.onPropertyChange(p, r);
+                            node.propertyChanged(p, r);
                         },
                     });
                 });
@@ -278,7 +278,7 @@ export class Inspector extends AbstractInspector<GraphNode | LGraphGroup> {
         }
 
         const split = property.split(".");
-        node.onPropertyChange(property, Tools.GetEffectiveProperty<any>(node.properties, property)[split.pop()!]);
+        node.propertyChanged(property, Tools.GetEffectiveProperty<any>(node.properties, property)[split.pop()!]);
     }
 
     /**

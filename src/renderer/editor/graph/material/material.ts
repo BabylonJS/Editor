@@ -70,7 +70,7 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
      * @param name defines the name of the property that changed.
      * @param value defines the new value of the property.
      */
-    public onPropertyChange(name: string, value: any): boolean {
+    public propertyChanged(name: string, value: any): boolean {
         if (name === "name") {
             const material = Material.Materials.find((m) => m.name === value);
             if (material) {
@@ -82,7 +82,7 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
             this.updateConnectedNodesFromOutput(0);
         }
 
-        return super.onPropertyChange(name, value);
+        return super.propertyChanged(name, value);
     }
 
     /**

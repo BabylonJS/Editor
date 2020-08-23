@@ -244,7 +244,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      * @param name defines the name of the property that changed.
      * @param value defines the new value of the property.
      */
-    public onPropertyChange(name: string, value: any): boolean {
+    public propertyChanged(name: string, value: any): boolean {
         for (const w of this.widgets ?? []) {
             if (w.name !== name) { continue; }
             w.value = value;
@@ -309,11 +309,11 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
                     },
                     undo: () => {
                         originalCallback(oldValue, g, n, p, e);
-                        this.onPropertyChange(name, oldValue);
+                        this.propertyChanged(name, oldValue);
                     },
                     redo: () => {
                         originalCallback(newValue, g, n, p, e);
-                        this.onPropertyChange(name, newValue);
+                        this.propertyChanged(name, newValue);
                     },
                 });
             }, 500) as any;

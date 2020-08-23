@@ -44,12 +44,12 @@ export class EasingFunction extends GraphNode<{ easingFunction: string; }> {
      * @param name defines the name of the property that changed.
      * @param value defines the new value of the property.
      */
-    public onPropertyChange(name: string, value: any): boolean {
+    public propertyChanged(name: string, value: any): boolean {
         if (name === "easingFunction") {
             this._changeProperty();
         }
 
-        return super.onPropertyChange(name, value);
+        return super.propertyChanged(name, value);
     }
 
     /**
