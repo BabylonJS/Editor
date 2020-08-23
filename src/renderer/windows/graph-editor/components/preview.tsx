@@ -42,14 +42,20 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Defines the reference to the canvas used to draw the graph.
      */
     public canvas: HTMLCanvasElement;
+    /**
+     * Defines the reference to the Babylon.JS engine.
+     */
+    public engine: Nullable<Engine> = null;
+    /**
+     * Defines the reference to the Babylon.JS scene.
+     */
+    public scene: Nullable<Scene> = null;
 
     private _refHandler = {
         getCanvas: (ref: HTMLCanvasElement) => this.canvas = ref,
     };
 
-    private _engine: Nullable<Engine> = null;
-    private _scene: Nullable<Scene> = null;
-
+    private _editor: GraphEditorWindow;
     private _requiredScriptsPaths: string[] = [];
 
     /**
@@ -59,9 +65,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     public constructor(props: IPreviewProps) {
         super(props);
 
-        props.editor.preview = this;
-        
         this.state = { welcome: true, loadingScene: false };
+
+        this._editor = props.editor;
+        this._editor.preview = this;
     }
 
     /**
@@ -82,7 +89,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                         style={{ position: "absolute", left: "50%", bottom: "50%", opacity: "0.5", transform: "translate(-50%, 50%)", width: "100px", height: "100px" }}
                         onOver={(e) => e.currentTarget.style.opacity = "1" }
                         onLeave={(e) => e.currentTarget.style.opacity = "0.5" }
-                        onClick={() => this.props.editor.start(false)}
+                        onClick={() => this._editor.start(false)}
                     />
                 </Callout>
             );
@@ -120,14 +127,14 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Called on the window or layout is resized.
      */
     public resize(): void {
-        this._engine?.resize();
+        this.engine?.resize();
     }
 
     /**
      * Gets the current scene.
      */
     public getScene(): Scene {
-        return this._scene!;
+        return this.scene!;
     }
 
     /**
@@ -136,8 +143,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     public stop(): void {
         this._disposeSceneAndEngine();
 
-        this._scene = null;
-        this._engine = null;
+        this.scene = null;
+        this.engine = null;
 
         this.setState({ welcome: true });
     }
@@ -152,10 +159,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         this._disposeSceneAndEngine();
 
-        this._engine = new Engine(this.canvas, true, {
+        this.engine = new Engine(this.canvas, true, {
             audioEngine: true,
         });
-        this._scene = new Scene(this._engine);
+        this.scene = new Scene(this.engine);
 
         const json = await IPCTools.ExecuteEditorFunction<ISceneJsonResult>("sceneUtils.getSceneJson");
 
@@ -167,10 +174,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         // Load scene
         this.setState({ loadingScene: false });
-        await SceneLoader.AppendAsync(json.data.rootUrl, sceneFileName, this._scene, null, "babylon");
+        await SceneLoader.AppendAsync(json.data.rootUrl, sceneFileName, this.scene, null, "babylon");
 
         // Attach controls to camera
-        this._scene.activeCamera?.attachControl(this.canvas, false);
+        this.scene.activeCamera?.attachControl(this.canvas, false);
 
         // Remove temp files.
         try {
@@ -187,13 +194,13 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         this._attachScripts(json.data);
 
         // Run!
-        this._engine.runRenderLoop(() => {
-            if (this.props.editor.graph.graph?.hasPaused) { return; }
-            this._scene?.render();
+        this.engine.runRenderLoop(() => {
+            if (this._editor.graph.graph?.hasPaused) { return; }
+            this.scene?.render();
         });
 
         return new Promise<void>((resolve) => {
-            this._scene?.executeWhenReady(() => resolve());
+            this.scene?.executeWhenReady(() => resolve());
         });
     }
 
@@ -201,13 +208,13 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Disposes the current scene and engine is they exist.
      */
     private _disposeSceneAndEngine(): void {
-        if (this._scene) {
-            try { this._scene.dispose(); } catch (e) { /* Catch silently */ }
+        if (this.scene) {
+            try { this.scene.dispose(); } catch (e) { /* Catch silently */ }
         }
 
-        if (this._engine) {
-            this._engine.stopRenderLoop();
-            try { this._engine.dispose(); } catch (e) { /* Catch silently */ }
+        if (this.engine) {
+            this.engine.stopRenderLoop();
+            try { this.engine.dispose(); } catch (e) { /* Catch silently */ }
         }
     }
 
@@ -247,10 +254,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 }
             }
 
-            sceneUtils.runScene(this._scene);
+            sceneUtils.runScene(this.scene);
         } catch (e) {
             this._clearRequireCache();
-            this.props.editor.logs.log(e.message);
+            this._editor.logs.log(e.message);
         }
     }
 }

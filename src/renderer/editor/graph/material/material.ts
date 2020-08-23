@@ -106,7 +106,7 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
 
         if (this._img?.complete) {
             this.size[1] = this._baseHeight * 2 + 120;
-            ctx.drawImage(this._img, 5, this._baseHeight + 5, this.size[0] - 10, this._baseHeight + 100);
+            ctx.drawImage(this._img, 5, this._baseHeight + 5, this.size[0] - 10, this._baseHeight + 110);
         }
         
         this._lastTextureName = this.properties.name;

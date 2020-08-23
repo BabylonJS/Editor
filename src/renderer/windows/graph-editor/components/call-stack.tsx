@@ -23,7 +23,9 @@ export interface ICallStackState {
     nodes: ITreeNode<GraphNode>[];
 }
 
-export class CallStack extends React.Component<ICallStackProps, ICallStackState> {    
+export class CallStack extends React.Component<ICallStackProps, ICallStackState> {
+    private _editor: GraphEditorWindow;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -32,7 +34,9 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
         super(props);
 
         this.state = { nodes: [] };
-        props.editor.callStack = this;
+        
+        this._editor = props.editor;
+        this._editor.callStack = this;
     }
 
     /**
@@ -91,7 +95,14 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
             return this.setState({ nodes });
         }
 
-        const graph = this.props.editor.graph.graph!;
+        // Exit locks
+        const engine = this._editor.preview.engine;
+        if (engine) {
+            if (engine.isPointerLock) { engine.exitPointerlock(); }
+            if (engine.isFullscreen) { engine.exitFullscreen(); }
+        }
+
+        const graph = this._editor.graph.graph!;
         const ancestors = graph.getAncestors(NodeUtils.PausedNode);
 
         const all = ancestors.filter((n) => n.mode === LiteGraph.ON_TRIGGER) as GraphNode[];
@@ -114,7 +125,7 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
                         try {
                             inputDetails = JSON.stringify(input, null, "\t");
                         } catch (e) {
-                            inputDetails = e.message
+                            inputDetails = `(Error): ${e.message}`;
                         }
                     }
                 }
