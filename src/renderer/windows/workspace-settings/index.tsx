@@ -111,8 +111,10 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
             lastOpenedScene: this.state.lastOpenedScene,
             serverPort: this.state.serverPort,
             generateSceneOnSave: this.state.generateSceneOnSave,
+            useIncrementalLoading: this.state.useIncrementalLoading,
             firstLoad: this.state.firstLoad,
             watchProject: this.state.watchProject ?? false,
+            pluginsPreferences: this.state.pluginsPreferences,
         } as IWorkSpace, {
             spaces: "\t",
         });

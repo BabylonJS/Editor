@@ -114,6 +114,7 @@ export class WorkSpace {
             lastOpenedScene: projectPath.replace(this.DirPath!, ""),
             serverPort: this.Workspace!.serverPort,
             generateSceneOnSave: this.Workspace!.generateSceneOnSave,
+            useIncrementalLoading: this.Workspace!.useIncrementalLoading,
             firstLoad: this.Workspace!.firstLoad,
             watchProject: this.Workspace!.watchProject,
             pluginsPreferences,

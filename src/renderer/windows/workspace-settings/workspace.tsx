@@ -29,9 +29,11 @@ export class WorkspaceSettings extends React.Component<IWorkspaceSettingsProps, 
                 </Callout>
                 <Divider />
                 <Callout title="Project" icon="projects">
-                    <FormGroup helperText="Options when saving the project" label="Project save" labelInfo="Optional">
+                    <FormGroup helperText="Options when saving the project" label="Scene Output Options" labelInfo="Optional">
                         <Switch label="Generate scene when saving project" checked={this.props.settings.state.generateSceneOnSave} onChange={(e) => this.props.settings.setState({ generateSceneOnSave: e.currentTarget.checked })} />
+                        <Switch label="Save scene as binary file" checked={this.props.settings.state.useIncrementalLoading ?? false} onChange={(e) => this.props.settings.setState({ useIncrementalLoading: e.currentTarget.checked })} />
                     </FormGroup>
+                    <Divider />
                     <FormGroup helperText="Defines all options for developers" label="Developer Options" labelInfo="Optional">
                         <Switch label="Watch project automatically" checked={this.props.settings.state.watchProject} onChange={(e) => this.props.settings.setState({ watchProject: e.currentTarget.checked })} />
                     </FormGroup>

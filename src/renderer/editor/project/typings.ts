@@ -22,6 +22,10 @@ export interface IWorkSpace {
      */
     firstLoad: boolean;
     /**
+     * Defines wether or not incremental loading is used when generating the final scenes.
+     */
+    useIncrementalLoading?: boolean;
+    /**
      * Defines the dictionary that contains the preferences of external plugins in the editor.
      */
     pluginsPreferences?: Undefinable<IStringDictionary<any>>;

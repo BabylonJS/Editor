@@ -1,4 +1,4 @@
-import { mkdir, pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove } from "fs-extra";
+import { mkdir, pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove, createWriteStream } from "fs-extra";
 import { join, normalize, basename, dirname, extname } from "path";
 
 import { SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial } from "babylonjs";
@@ -421,6 +421,7 @@ export class ProjectExporter {
 
         // Active camera
         scene.activeCameraID = scene.cameras[0]?.id;
+        
         // LODs
         scene.meshes?.forEach((m) => {
             if (!m) { return; }
@@ -457,14 +458,19 @@ export class ProjectExporter {
      * @scenePath defines the absolute path to the .babylon file.
      * @filesPaths defines the list of all resource files of the scene.
      */
-    public static async ListExportedFiles(): Promise<{ scenePath: string; filesPaths: string[]; }> {
+    public static async ListExportedFiles(): Promise<{ scenePath: string; filesPaths: string[]; incrementalFiles: string[]; }> {
         const projectName = basename(dirname(WorkSpace.Workspace!.lastOpenedScene));
         const projectDir = join(WorkSpace.DirPath!, "scenes", projectName);
 
         const scenePath = join(projectDir, "scene.babylon");
         const filesPaths = (await readdir(join(projectDir, "files"))).map((f) => join(projectDir, "files", f));
 
-        return { scenePath, filesPaths };
+        let incrementalFiles: string[] = [];
+        if (WorkSpace.Workspace!.useIncrementalLoading) {
+            incrementalFiles = (await readdir(join(projectDir, "geometries"))).map((f) => join(projectDir, "geometries", f));
+        }
+
+        return { scenePath, filesPaths, incrementalFiles };
     }
 
     /**
@@ -485,6 +491,36 @@ export class ProjectExporter {
         const destFilesDir = join(scenePath, "files");
 
         editor.updateTaskFeedback(task, 50);
+
+        // Handle incremental loading
+        const geometriesPath = join(scenePath, "geometries");
+        const incrementalFolderExists = await pathExists(geometriesPath);
+
+        if (incrementalFolderExists) {
+            const incrementalFiles = await readdir(geometriesPath);
+
+            try {
+                await Promise.all(incrementalFiles.map((f) => remove(join(geometriesPath, f))));
+            } catch (e) {
+                editor.console.logError("Failed to remove incremental geometry file");
+            }
+        }
+
+        if (!WorkSpace.Workspace?.useIncrementalLoading) {
+            try {
+                await remove(geometriesPath);
+            } catch (e) {
+                editor.console.logError("Failed to remove geometries output folder.");
+            }
+        } else {
+            if (!incrementalFolderExists) {
+                await mkdir(geometriesPath);
+            }
+
+            this._WriteIncrementalGeometryFiles(editor, geometriesPath, scene);
+        }
+
+        editor.updateTaskFeedback(task, 50, "Writing scene...");
         await writeJSON(join(scenePath, "scene.babylon"), scene);
 
         // Copy files
@@ -586,6 +622,137 @@ export class ProjectExporter {
                 console.error(e);
             }
         }
+    }
+
+    /**
+     * When using incremental export, write all the .babylonbinarymesh files into the "geometries" output folder.
+     */
+    private static _WriteIncrementalGeometryFiles(editor: Editor, geometriesPath: string, scene: any, task?: string): void {
+        if (task) {
+            editor.updateTaskFeedback(task, 0, "Exporting incremental files...");
+        }
+
+        scene.meshes?.forEach((m, index) => {
+            if (!m.geometryId) { return; }
+
+            const geometry = scene.geometries?.vertexData?.find((v) => v.id === m.geometryId);
+            if (!geometry) { return; }
+
+            const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
+            const originMesh = editor.scene!.getMeshByID(m.id);
+
+            m.delayLoadingFile = `geometries/${geometryFileName}`;
+            m.boundingBoxMaximum = originMesh?.getBoundingInfo()?.maximum?.asArray() ?? [0, 0, 0];
+            m.boundingBoxMinimum = originMesh?.getBoundingInfo()?.minimum?.asArray() ?? [0, 0, 0];
+            m._binaryInfo = { };
+
+            const stream = createWriteStream(join(geometriesPath, geometryFileName));
+            let offset = 0;
+
+            if (geometry.positions) {
+                m._binaryInfo.positionsAttrDesc = { count: geometry.positions.length, stride: 3, offset, dataType: 1 };
+                stream.write(Buffer.from(new Float32Array(geometry.positions).buffer));
+
+                m.positions = null;
+                offset += geometry.positions.length * Float32Array.BYTES_PER_ELEMENT;
+            }
+
+            if (geometry.normals) {
+                m._binaryInfo.normalsAttrDesc = { count: geometry.normals.length, stride: 3, offset, dataType: 1 };
+                stream.write(Buffer.from(new Float32Array(geometry.normals).buffer));
+
+                m.normals = null;
+                offset += geometry.normals.length * Float32Array.BYTES_PER_ELEMENT;
+            }
+
+            if (geometry.uvs) {
+                m._binaryInfo.uvsAttrDesc = { count: geometry.uvs.length, stride: 2, offset, dataType: 1 };
+                stream.write(Buffer.from(new Float32Array(geometry.uvs).buffer));
+
+                m.uvs = null;
+                m.hasUVs = true;
+                offset += geometry.uvs.length * Float32Array.BYTES_PER_ELEMENT;
+            }
+
+            if (geometry.uvs2) {
+                m._binaryInfo.uvs2AttrDesc = { count: geometry.uvs2.length, stride: 2, offset, dataType: 1 };
+                stream.write(Buffer.from(new Float32Array(geometry.uvs2).buffer));
+
+                m.uvs2 = null;
+                m.hasUVs2 = true;
+                offset += geometry.uvs2.length * Float32Array.BYTES_PER_ELEMENT;
+            }
+
+            if (geometry.tangents) {
+                m._binaryInfo.tangetsAttrDesc = { count: geometry.tangents.length, stride: 3, offset, dataType: 1 };
+                stream.write(Buffer.from(new Float32Array(geometry.tangents).buffer));
+
+                m.tangents = null;
+                offset += geometry.tangents.length * Float32Array.BYTES_PER_ELEMENT;
+            }
+
+            if (geometry.colors) {
+                m._binaryInfo.colorsAttrDesc = { count: geometry.colors.length, stride: 3, offset, dataType: 1 };
+                stream.write(Buffer.from(new Float32Array(geometry.colors).buffer));
+
+                m.colors = null;
+                offset += geometry.colors.length * Float32Array.BYTES_PER_ELEMENT;
+            }
+
+            if (geometry.matricesIndices) {
+                const matricesIndices: number[] = [];
+
+                for (let i = 0; i < geometry.matricesIndices.length; i += 4) {
+                    matricesIndices.push(geometry.matricesIndices[i]);
+                }
+
+                m._binaryInfo.matricesIndicesAttrDesc = { count: matricesIndices.length, stride: 1, offset, dataType: 0 };
+                stream.write(Buffer.from(new Int32Array(matricesIndices).buffer));
+
+                m.matricesIndices = null;
+                m.hasMatricesIndices = true;
+                offset += matricesIndices.length * Int32Array.BYTES_PER_ELEMENT;
+            }
+
+            if (geometry.matricesWeights) {
+                m._binaryInfo.matricesWeightsAttrDesc = { count: geometry.matricesWeights.length, stride: 2, offset, dataType: 1 };
+                stream.write(Buffer.from(new Float32Array(geometry.matricesWeights).buffer));
+
+                m.matricesWeights = null;
+                m.hasMatricesWeights = true;
+                offset += geometry.matricesWeights.length * Float32Array.BYTES_PER_ELEMENT;
+            }
+
+            if (geometry.indices) {
+                m._binaryInfo.indicesAttrDesc = { count: geometry.indices.length, stride: 1, offset, dataType: 0 };
+                stream.write(Buffer.from(new Int32Array(geometry.indices).buffer));
+
+                m.indices = null;
+                offset += geometry.indices.length * Int32Array.BYTES_PER_ELEMENT;
+            }
+
+            if (m.subMeshes?.length > 0) {
+                const subMeshesData: number[] = [];
+                m.subMeshes.forEach((sm) => {
+                    subMeshesData.push( sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount);
+                });
+
+                m._binaryInfo.subMeshesAttrDesc = { count: m.subMeshes.length, stride: 5, offset, dataType: 0 };
+                m.subMeshes = null;
+
+                stream.write(Buffer.from(new Int32Array(subMeshesData).buffer));
+                offset += subMeshesData.length * Int32Array.BYTES_PER_ELEMENT;
+            }
+
+            stream.end();
+            stream.close();
+
+            if (task) {
+                editor.updateTaskFeedback(task, 100 * (index / scene.meshes.length));
+            }
+        });
+
+        delete scene.geometries;
     }
 
     /**
