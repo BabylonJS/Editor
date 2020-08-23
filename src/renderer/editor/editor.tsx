@@ -746,6 +746,9 @@ export class Editor {
             WelcomeDialog.Show(false);
         }
 
+        // Console
+        this.console.overrideLogger();
+        
         // Refresh
         this.mainToolbar.setState({ hasWorkspace: workspacePath !== null });
         this.toolsToolbar.setState({ hasWorkspace: WorkSpace.HasWorkspace() });

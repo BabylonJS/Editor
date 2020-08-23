@@ -326,6 +326,14 @@ export class ProjectImporter {
         scene.cameras.forEach((c) => this._SetWaitingParent(c));
         scene.transformNodes.forEach((tn) => this._SetWaitingParent(tn));
 
+        // Geometry Ids
+        scene.meshes.forEach((m) => {
+            if (m.metadata?._waitingGeometryId && m instanceof Mesh && m.geometry) {
+                m.geometry.id = m.metadata._waitingGeometryId;
+                delete m.metadata._waitingGeometryId;
+            }
+        })
+
         // Refresh
         editor.scene!.onReadyObservable.addOnce(() => this._RefreshEditor(editor));
         editor.scene!._checkIsReady();
@@ -366,6 +374,7 @@ export class ProjectImporter {
         result.meshes.forEach((m, meshIndex) => {
             m.metadata = m.metadata ?? { };
             m.metadata._waitingParentId = json.meshes[meshIndex].parentId;
+            m.metadata._waitingGeometryId = json.meshes[meshIndex].geometryId;
 
             if (m instanceof Mesh) {
                 m.instances?.forEach((i, instanceIndex) => {

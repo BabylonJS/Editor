@@ -140,9 +140,6 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
 
         this.logInfo("Console ready.", ConsoleLayer.Common);
         this.logInfo("Console ready.", ConsoleLayer.WebPack);
-
-        // Register logs from BabylonJS
-        this._overrideLogger();
     }
 
     /**
@@ -315,7 +312,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     /**
      * Overrides the current BabylonJS Logger class.
      */
-    private _overrideLogger(): void {
+    public overrideLogger(): void {
         const log = Logger.Log;
         const warn = Logger.Warn;
         const error = Logger.Error;

@@ -100,6 +100,17 @@ export class ProjectExporter {
             }
         };
 
+        const exportedMeshes: string[] = [];
+        const exportedLights: string[] = [];
+        const exportedShadows: string[] = [];
+        const exportedCameras: string[] = [];
+        const exportedMaterials: string[] = [];
+        const exportedTextures: string[] = [];
+        const exportedGeometries: string[] = [];
+        const exportedSounds: string[] = [];
+        const exportedTransformNodes: string[] = [];
+        const exportedParticleSystems: string[] = [];
+
         // Write all files
         const filesDir = join(Project.DirPath!, "files");
         if (!(await pathExists(filesDir))) { await mkdir(filesDir); }
@@ -150,6 +161,8 @@ export class ProjectExporter {
             await writeFile(join(camerasDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
             project.cameras.push(dest);
+            exportedCameras.push(dest);
+
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved camera configuration "${camera.name}"`);
         }
@@ -182,6 +195,8 @@ export class ProjectExporter {
             await writeFile(join(texturesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
             project.textures.push(dest);
+            exportedTextures.push(dest);
+
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved texture configuration "${texture.name}"`);
         }
@@ -210,6 +225,7 @@ export class ProjectExporter {
                 json: dest,
                 isMultiMaterial: material instanceof MultiMaterial,
             });
+            exportedMaterials.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved material configuration "${material.name}"`);
@@ -224,14 +240,27 @@ export class ProjectExporter {
         const meshesDir = join(Project.DirPath!, "meshes");
         if (!(await pathExists(meshesDir))) { await mkdir(meshesDir); }
 
+        const geometriesDir = join(Project.DirPath!, "geometries");
+        if (!(await pathExists(geometriesDir))) { await mkdir(geometriesDir); }
+
         for (const mesh of editor.scene!.meshes) {
             if (!(mesh instanceof Mesh) || mesh._masterMesh) { continue; }
             
             const json = this.ExportMesh(mesh);
+
+            exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, json));
+            json.lods.forEach((lod) => {
+                if (lod.mesh) {
+                    exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh));
+                }
+            });
+
             const dest = `${normalize(`${basename(mesh.name)}-${mesh.id}`)}.json`;
 
             await writeFile(join(meshesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+
             project.meshes.push(dest);
+            exportedMeshes.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved mesh configuration "${mesh.name}"`);
@@ -260,10 +289,14 @@ export class ProjectExporter {
                 const shadowDest = `${normalize(`${basename(light.name)}-${light.id}`)}.json`;
                 
                 await writeFile(join(shadowsDir, shadowDest), JSON.stringify(shadowJson, null, "\t"), { encoding: "utf-8" });
+
                 project.lights.push({ json: lightDest, shadowGenerator: shadowDest });
+                exportedShadows.push(shadowDest);
             } else {
                 project.lights.push({ json: lightDest, shadowGenerator: undefined });
             }
+
+            exportedLights.push(lightDest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved light configuration "${light.name}"`);
@@ -283,7 +316,9 @@ export class ProjectExporter {
             const dest = `${normalize(`${basename(transform.name)}-${transform.id}`)}.json`;
 
             await writeFile(join(transformNodesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+
             project.transformNodes.push(dest);
+            exportedTransformNodes.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved transform node configuration "${transform.name}"`);
@@ -303,7 +338,9 @@ export class ProjectExporter {
             const dest = `${normalize(`${basename(ps.name)}-${ps.id}`)}.json`;
 
             await writeFile(join(particleSystemsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+
             project.particleSystems!.push(dest);
+            exportedParticleSystems.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved particle system configuration "${ps.name}"`);
@@ -325,7 +362,9 @@ export class ProjectExporter {
             const dest = `${normalize(`${basename(s.name)}`)}.json`;
 
             await writeFile(join(soundsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+
             project.sounds!.push(dest);
+            exportedSounds.push(dest);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved sound configuration "${s.name}"`);
@@ -359,6 +398,18 @@ export class ProjectExporter {
 
         // Update recent projects to be shown in welcome wizard
         this._UpdateWelcomeRecentProjects(editor);
+
+        // Run clean in background
+        this._CleanOutputDir(camerasDir, exportedCameras);
+        this._CleanOutputDir(geometriesDir, exportedGeometries);
+        this._CleanOutputDir(lightsDir, exportedLights);
+        this._CleanOutputDir(materialsDir, exportedMaterials);
+        this._CleanOutputDir(meshesDir, exportedMeshes);
+        this._CleanOutputDir(shadowsDir, exportedShadows);
+        this._CleanOutputDir(texturesDir, exportedTextures);
+        this._CleanOutputDir(soundsDir, exportedSounds);
+        this._CleanOutputDir(particleSystemsDir, exportedParticleSystems);
+        this._CleanOutputDir(transformNodesDir, exportedTransformNodes);
     }
 
     /**
@@ -627,10 +678,12 @@ export class ProjectExporter {
     /**
      * When using incremental export, write all the .babylonbinarymesh files into the "geometries" output folder.
      */
-    private static _WriteIncrementalGeometryFiles(editor: Editor, geometriesPath: string, scene: any, task?: string): void {
+    private static _WriteIncrementalGeometryFiles(editor: Editor, geometriesPath: string, scene: any, task?: string): string[] {
         if (task) {
             editor.updateTaskFeedback(task, 0, "Exporting incremental files...");
         }
+
+        const result: string[] = [];
 
         scene.meshes?.forEach((m, index) => {
             if (!m.geometryId) { return; }
@@ -646,7 +699,9 @@ export class ProjectExporter {
             m.boundingBoxMinimum = originMesh?.getBoundingInfo()?.minimum?.asArray() ?? [0, 0, 0];
             m._binaryInfo = { };
 
-            const stream = createWriteStream(join(geometriesPath, geometryFileName));
+            const geometryPath = join(geometriesPath, geometryFileName);
+            const stream = createWriteStream(geometryPath);
+
             let offset = 0;
 
             if (geometry.positions) {
@@ -750,9 +805,30 @@ export class ProjectExporter {
             if (task) {
                 editor.updateTaskFeedback(task, 100 * (index / scene.meshes.length));
             }
+
+            result.push(geometryPath);
         });
 
         delete scene.geometries;
+
+        return result;
+    }
+
+    /**
+     * Cleans the given output dir.
+     */
+    private static async _CleanOutputDir(directory: string, exportedFiles: string[]): Promise<void> {
+        try {
+            const outputFiles = await readdir(directory);
+
+            for (const outputFile of outputFiles) {
+                if (!exportedFiles.find((ef) => basename(ef) === outputFile)) {
+                    remove(join(directory, outputFile));
+                }
+            }
+        } catch (e) {
+            // Catch silently.
+        }
     }
 
     /**

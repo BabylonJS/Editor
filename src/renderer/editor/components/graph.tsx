@@ -286,6 +286,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                        node instanceof Sound ? node["_connectedTransformNode"] :
                        node.emitter as AbstractMesh;
         const descendants = node instanceof Node ? node.getDescendants() : [];
+        const lods = node instanceof Mesh ? node.getLODLevels().slice() : [];
         const particleSystems = this._editor.scene!.particleSystems.filter((ps) => ps.emitter === node);
         const shadowLights = this._editor.scene!.lights.filter((l) => l.getShadowGenerator()?.getShadowMap()?.renderList)
                                                        .filter((l) => l.getShadowGenerator()!.getShadowMap()!.renderList!.indexOf(node as AbstractMesh) !== -1);
@@ -310,6 +311,15 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 if (node instanceof InstancedMesh) { node.sourceMesh.removeInstance(node); }
                 if (node instanceof Node) { descendants.forEach((d) => d.parent = parent); }
 
+                if (node instanceof Mesh) {
+                    lods.forEach((lod) => {
+                        node.removeLODLevel(lod.mesh!);
+                        if (lod.mesh) {
+                            this._editor.scene!.removeMesh(lod.mesh);
+                        }
+                    });
+                }
+
                 particleSystems.forEach((ps) => this._editor.scene!.removeParticleSystem(ps));
 
                 if (node instanceof Node) {
@@ -333,7 +343,14 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             undo: () => {
                 addFunc?.call(caller, node);
 
+                if (node instanceof Mesh) {
+                    lods.forEach((lod) => {
+                        if (lod.mesh) { this._editor.scene!.addMesh(lod.mesh); }
+                        node.addLODLevel(lod.distance, lod.mesh);
+                    });
+                }
                 if (node instanceof InstancedMesh) { node.sourceMesh.addInstance(node); }
+
                 if (node instanceof Node) {
                     node.parent = parent;
                     descendants.forEach((d) => d.parent = node);
