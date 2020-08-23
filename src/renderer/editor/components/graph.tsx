@@ -747,7 +747,11 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         if (info.event.ctrlKey) {
             if (this.state.selectedNodeIds?.indexOf(draggedNodeId) === -1) {
-                this.setState({ selectedNodeIds: this.state.selectedNodeIds.slice().concat([draggedNodeId]) });
+                this.setState({ selectedNodeIds: this.state.selectedNodeIds.concat([draggedNodeId]) });
+            }
+        } else {
+            if (this.state.selectedNodeIds?.indexOf(draggedNodeId) === -1) {
+                this.setState({ selectedNodeIds: [draggedNodeId] });
             }
         }
     }
