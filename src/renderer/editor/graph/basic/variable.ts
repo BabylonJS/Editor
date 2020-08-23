@@ -5,7 +5,8 @@ import { LiteGraph } from "litegraph.js";
 
 type VariableType = "number" | "string" | "boolean" |
                     "Vector2" | "Vector3" |
-                    "Mesh" | "Camera" | "Light";
+                    "Mesh" | "Camera" | "Light" | "Skeleton" |
+                    "Animatable";
 
 export class Variable extends GraphNode<
     { name: string, type: VariableType }
@@ -37,7 +38,8 @@ export class Variable extends GraphNode<
             values: [
                 "number", "string", "boolean",
                 "Vector3", "Vector3",
-                "Mesh", "Camera", "Light",
+                "Mesh", "Camera", "Light", "Skeleton",
+                "Animatable",
             ],
         });
 
@@ -104,6 +106,8 @@ export class Variable extends GraphNode<
             case "Mesh": return "null";
             case "Camera": return "null";
             case "Light": return "null";
+            case "Skeleton": return "null";
+            case "Animatable": return "null";
         }
     }
 
@@ -134,6 +138,9 @@ export class Variable extends GraphNode<
             case "Mesh": this._value = null; break;
             case "Camera": this._value = null; break;
             case "Light": this._value = null; break;
+
+            case "Skeleton": this._value = null; break;
+            case "Animatable": this._value = null; break;
         }
     }
 }

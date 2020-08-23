@@ -28,6 +28,10 @@ declare module "litegraph.js" {
          * type becomes the input's type.
          */
         linkedOutput?: string;
+        /**
+         * Defines wether or not the input is removable.
+         */
+        removable?: boolean;
     }
 }
 

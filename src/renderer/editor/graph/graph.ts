@@ -6,6 +6,7 @@ import { Log } from "./basic/log";
 import { Debugger } from "./basic/debugger";
 import { Cast } from "./basic/cast";
 import { KeyCode } from "./basic/key-code";
+import { ObjectNode } from "./basic/object";
 
 // Pointer
 import { RequestPointerLock, ExitPointerLock } from "./basic/pointer-lock";
@@ -81,9 +82,11 @@ import { PauseAnimationGroup } from "./animation/pause-animation-group";
 import { AnimationRatio } from "./animation/ratio";
 import { InterpolationAnimation } from "./animation/interpolate";
 import { PlayAnimation } from "./animation/start-animations";
+import { PlayWeightedAnimation } from "./animation/start-weighted-animation";
 import { StopAnimation } from "./animation/stop-animations";
 
 import { EasingFunction } from "./animation/easing";
+import { GetAnimationRange } from "./animation/get-animation-range";
 
 // Particle systems
 import { ParticleSystem } from "./particle-system/particle-system";
@@ -122,6 +125,8 @@ export class GraphCode {
         LiteGraph.registerNodeType("basics/update_variable", UpdateVariable);
 
         LiteGraph.registerNodeType("basics/key_code", KeyCode);
+
+        LiteGraph.registerNodeType("basics/object", ObjectNode);
 
         // Pointer
         LiteGraph.registerNodeType("pointer/request_pointer_lock", RequestPointerLock);
@@ -232,9 +237,11 @@ export class GraphCode {
         LiteGraph.registerNodeType("animation/animation_ratio", AnimationRatio);
         LiteGraph.registerNodeType("animation/interpolation_animation", InterpolationAnimation);
         LiteGraph.registerNodeType("animation/play_animation", PlayAnimation);
+        LiteGraph.registerNodeType("animation/play_weighted_animation", PlayWeightedAnimation);
         LiteGraph.registerNodeType("animation/stop_animation", StopAnimation);
 
         LiteGraph.registerNodeType("animation/easing_function", EasingFunction);
+        LiteGraph.registerNodeType("animation/get_animation_range", GetAnimationRange);
 
         // Particle systems
         LiteGraph.registerNodeType("particles/particles_system", ParticleSystem);

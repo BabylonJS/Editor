@@ -104,7 +104,21 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
                 if (i.type === LiteGraph.EVENT as any) {
                     return (<h2 style={{ color: "white", left: "50%" }} key={`node-title-${index}`}>{n.title}</h2>);
                 }
-                return (<Pre key={`input-info-${index}`}>{i.name}: {n.getInputData(index)?.toString() ?? "No input"}</Pre>);
+
+                const input = n.getInputData(index);
+                let inputDetails = input?.toString();
+                if (inputDetails === "[object Object]") {
+                    if (input.serialize) {
+                        inputDetails = JSON.stringify(input.serialize(), null, "\t");
+                    } else {
+                        try {
+                            inputDetails = JSON.stringify(input, null, "\t");
+                        } catch (e) {
+                            inputDetails = e.message
+                        }
+                    }
+                }
+                return (<Pre key={`input-info-${index}`}>{i.name}: {inputDetails ?? "No input"}</Pre>);
             });
 
             const content = (

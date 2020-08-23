@@ -6,6 +6,9 @@ import { ContextMenu, Classes, Menu, MenuItem, MenuDivider, Divider } from "@blu
 import { LGraphGroup, LLink } from "litegraph.js";
 
 import { Icon } from "../../editor/gui/icon";
+import { Dialog } from "../../editor/gui/dialog";
+
+import { undoRedo } from "../../editor/tools/undo-redo";
 
 import { Graph } from "./components/graph";
 import { GraphNode } from "../../editor/graph/node";
@@ -77,6 +80,46 @@ export class GraphContextMenu {
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => editor.removeLink(link)} />
+            </Menu>,
+            { left: event.clientX, top: event.clientY }
+        );
+    }
+
+    /**
+     * Shows the context menu when a slot is right-clicked.
+     * @param node defines the reference to the node containing the clicked slot.
+     * @param slot defines the index of the slot being clicked.
+     * @param event defines the mouse event.
+     */
+    public static ShowSlotContextMenu(node: GraphNode, slot: number, event: MouseEvent): void {
+        ContextMenu.show(
+            <Menu>
+                <MenuItem text="Rename Slot..." onClick={async () => {
+                    const newName = await Dialog.Show("Input Name", "Please provide the new name of the input");
+                    const oldName = node.inputs[slot].name;
+                    const input = node.inputs[slot];
+
+                    undoRedo.push({
+                        common: () => {
+                            node.computeSize();
+                            node.setDirtyCanvas(true, true);
+                        },
+                        undo: () => input.name = oldName,
+                        redo: () => input.name = newName,
+                    });
+                }} />
+                <MenuItem text="Remove Slot" icon={<Icon src="times.svg" />} onClick={() => {
+                    const input = node.inputs[slot];
+
+                    undoRedo.push({
+                        common: () => {
+                            node.computeSize();
+                            node.setDirtyCanvas(true, true);
+                        },
+                        undo: () => node.inputs.push(input),
+                        redo: () => node.inputs.splice(node.inputs.indexOf(input)),
+                    });
+                }} />
             </Menu>,
             { left: event.clientX, top: event.clientY }
         );

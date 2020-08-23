@@ -1,4 +1,4 @@
-import { CircleEase } from "babylonjs";
+import { CircleEase, BackEase, BounceEase, CubicEase, ElasticEase, ExponentialEase, PowerEase, QuadraticEase, QuarticEase, QuinticEase, SineEase, BezierCurveEase } from "babylonjs";
 import { SerializedLGraphNode } from "litegraph.js";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
@@ -66,7 +66,18 @@ export class EasingFunction extends GraphNode<{ easingFunction: string; }> {
      */
     public execute(): void {
         switch (this.properties.easingFunction) {
-            case "CircleEase": this.setOutputData(0, new CircleEase());
+            case "CircleEase": this.setOutputData(0, new CircleEase()); break;
+            case "BackEase": this.setOutputData(0, new BackEase(this.properties["amplitude"])); break;
+            case "BounceEase": this.setOutputData(0, new BounceEase(this.properties["bounces"], this.properties["bounciness"])); break;
+            case "CubicEase": this.setOutputData(0, new CubicEase()); break;
+            case "ElasticEase": this.setOutputData(0, new ElasticEase(this.properties["oscillations"], this.properties["springiness"])); break;
+            case "ExponentialEase": this.setOutputData(0, new ExponentialEase(this.properties["exponent"])); break;
+            case "PowerEase": this.setOutputData(0, new PowerEase(this.properties["power"])); break;
+            case "QuadraticEase": this.setOutputData(0, new QuadraticEase()); break;
+            case "QuarticEase": this.setOutputData(0, new QuarticEase()); break;
+            case "QuinticEase": this.setOutputData(0, new QuinticEase()); break;
+            case "SineEase": this.setOutputData(0, new SineEase()); break;
+            case "BezierCurveEase": this.setOutputData(0, new BezierCurveEase(this.properties["x1"], this.properties["y1"], this.properties["x2"], this.properties["y2"])); break;
         }
     }
 

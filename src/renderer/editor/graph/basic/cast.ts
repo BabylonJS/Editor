@@ -16,6 +16,7 @@ export class Cast extends GraphNode<{ type: string; }> {
         "AbstractMesh": "Node,TransformNode,AbstractMesh",
         "Mesh": "Node,TransformNode,AbstractMesh,Mesh",
         "InstancedMesh": "Node,TransformNode,AbstractMesh,InstancedMesh",
+        "Skeleton": "Skeleton",
         "DirectionalLight": "Node,Light,DirectionalLight",
         "SpotLight": "Node,Light,SpotLight",
         "PointLight": "Node,Light,PointLight",
@@ -27,6 +28,7 @@ export class Cast extends GraphNode<{ type: string; }> {
         "ParticleSystem": "IParticleSystem,ParticleSystem",
         "StandardMaterial": "Material,StandardMaterial",
         "PBRMaterial": "Material,StandardMaterial",
+        "Animatable": "Animatable",
     };
 
     /**

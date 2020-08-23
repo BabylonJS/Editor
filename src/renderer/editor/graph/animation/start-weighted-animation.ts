@@ -3,7 +3,7 @@ import { LiteGraph } from "litegraph.js";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 
-export class PlayAnimation extends GraphNode<{ from: number; to: number; loop: boolean; speed: number; }> {
+export class PlayWeightedAnimation extends GraphNode<{ from: number; to: number; loop: boolean; speed: number; weight: number; }> {
     /**
      * Defines the number of times the code generation has been called.
      */
@@ -15,29 +15,32 @@ export class PlayAnimation extends GraphNode<{ from: number; to: number; loop: b
      * Constructor.
      */
     public constructor() {
-        super("Play Animation");
+        super("Play Weighted Animation");
 
         this.addInput("", LiteGraph.EVENT as any);
         this.addInput("Animatable *", "Node,Skeleton", { linkedOutput: "Animatable" });
-        this.addInput("From" , "");
-        this.addInput("To", "");
+        this.addInput("From" , "number");
+        this.addInput("To", "number");
+        this.addInput("Weight", "number");
 
         this.addProperty("from", 0, "number");
         this.addProperty("to", 8, "number");
         this.addProperty("loop", false, "boolean");
         this.addProperty("speed", 1, "number");
+        this.addProperty("weight", 0, "number");
 
         this.addWidget("number", "from", this.properties.from, (v) => this.properties.from = v);
         this.addWidget("number", "to", this.properties.to, (v) => this.properties.to = v);
         this.addWidget("toggle", "loop", this.properties.loop, (v) => this.properties.loop = v);
         this.addWidget("number", "speed", this.properties.speed, (v) => this.properties.speed = v);
+        this.addWidget("number", "weight", this.properties.weight, (v) => this.properties.weight = v);
         
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("On End", LiteGraph.EVENT as any);
         this.addOutput("Animatable", "Node,Skeleton");
         this.addOutput("Animation", "Animatable");
 
-        this._count = PlayAnimation.Count++;
+        this._count = PlayWeightedAnimation.Count++;
     }
 
     /**
@@ -47,10 +50,11 @@ export class PlayAnimation extends GraphNode<{ from: number; to: number; loop: b
         const node = this.getInputData<Node>(1);
         if (!node) { return; }
         
-        const animatable = this.getScene()?.beginAnimation(
+        const animatable = this.getScene()?.beginWeightedAnimation(
             node,
             this.getInputData(2) ?? this.properties.from,
             this.getInputData(3) ?? this.properties.to,
+            this.getInputData(4) ?? this.properties.weight,
             this.properties.loop,
             this.properties.speed,
             () => {
@@ -66,13 +70,14 @@ export class PlayAnimation extends GraphNode<{ from: number; to: number; loop: b
     /**
      * Generates the code of the graph.
      */
-    public generateCode(node: ICodeGenerationOutput, from?: ICodeGenerationOutput, to?: ICodeGenerationOutput): ICodeGenerationOutput {
+    public generateCode(node: ICodeGenerationOutput, from?: ICodeGenerationOutput, to?: ICodeGenerationOutput, weight?: ICodeGenerationOutput): ICodeGenerationOutput {
         const varName = `animatable_${this._count}`;
 
-        const startFrame = from?.code ?? this.properties.from;
-        const endFrame = to?.code ?? this.properties.to;
+        const s = from?.code ?? this.properties.from;
+        const e = to?.code ?? this.properties.to;
+        const w = weight?.code ?? this.properties.weight;
 
-        const code = `const ${varName} = this._scene.beginAnimation(${node.code}, ${startFrame}, ${endFrame}, ${this.properties.loop}, ${this.properties.speed}, () => {
+        const code = `const ${varName} = this._scene.beginWeightedAnimation(${node.code}, ${s}, ${e}, ${w}, ${this.properties.loop}, ${this.properties.speed}, () => {
             {{generated__callback__body}}
         });
         {{generated__body}}`;

@@ -149,6 +149,13 @@ export class SceneUtils {
     }
 
     /**
+     * Returns the list of all skeletons.
+     */
+    public getAllSkeletons(): INodeResult[] {
+        return this.scene.skeletons.map((s) => ({ name: s.name, id: s.id }));
+    }
+
+    /**
      * Returns the list of all textures in the scene.
      */
     public getAllTextures(): IAssetResult[] {

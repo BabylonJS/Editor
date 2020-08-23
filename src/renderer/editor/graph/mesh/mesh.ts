@@ -29,7 +29,8 @@ export class Mesh extends GraphNode<{ var_name: string; name: string; }> {
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
-        this.addOutput("mesh", "Node,TransformNode,AbstractMesh");
+        this.addOutput("Mesh", "Node,TransformNode,AbstractMesh");
+        this.addOutput("Skeleton", "Skeleton");
     }
 
     /**
@@ -38,6 +39,7 @@ export class Mesh extends GraphNode<{ var_name: string; name: string; }> {
     public execute(): void {
         const mesh = this.getScene().getMeshByName(this.properties.name);
         this.setOutputData(0, mesh);
+        this.setOutputData(1, mesh?.skeleton);
     }
 
     /**
@@ -56,6 +58,7 @@ export class Mesh extends GraphNode<{ var_name: string; name: string; }> {
             },
             outputsCode: [
                 { thisVariable: true },
+                { thisVariable: true, code: "skeleton" },
             ],
             requires: [
                 { module: "@babylonjs/core", classes: [type] },

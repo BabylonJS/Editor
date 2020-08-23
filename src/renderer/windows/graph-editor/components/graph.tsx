@@ -524,11 +524,11 @@ export class Graph extends React.Component<IGraphProps> {
      * Handles the graph canvas context menu event.
      */
     private _handleProcessContextMenu(graphCanvas: LGraphCanvas): void {
-        graphCanvas.processContextMenu = (n, e: MouseEvent) => {
+        graphCanvas.processContextMenu = (n: GraphNode, e: MouseEvent) => {
             if (n) {
                 const slot = n.getSlotInPosition(e["canvasX"], e["canvasY"]);
-                if (slot) {
-                    // TODO: handle slot context menu.
+                if (slot?.input?.removable) {
+                    return GraphContextMenu.ShowSlotContextMenu(n, slot.slot, e);
                 }
 
                 return GraphContextMenu.ShowNodeContextMenu(e, this);
