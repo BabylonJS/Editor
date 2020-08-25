@@ -249,11 +249,13 @@ export class ProjectExporter {
             const json = this.ExportMesh(mesh);
 
             exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, json));
-            json.lods.forEach((lod) => {
-                if (lod.mesh) {
-                    exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh));
-                }
-            });
+
+            // TODO: fix support of binary format for LODs.
+            // json.lods.forEach((lod) => {
+            //     if (lod.mesh) {
+            //         exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh));
+            //     }
+            // });
 
             const dest = `${normalize(`${basename(mesh.name)}-${mesh.id}`)}.json`;
 
