@@ -3,7 +3,7 @@ import { readJSON, pathExists } from "fs-extra";
 
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
-    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture, AnimationGroup,
+    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture, AnimationGroup, Constants,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -13,6 +13,8 @@ import { GraphAssets } from "../assets/graphs";
 import { Editor } from "../editor";
 
 import { Overlay } from "../gui/overlay";
+
+import { Tools } from "../tools/tools";
 
 import { SceneSettings } from "../scene/settings";
 
@@ -328,11 +330,13 @@ export class ProjectImporter {
 
         // Geometry Ids
         scene.meshes.forEach((m) => {
-            if (m.metadata?._waitingGeometryId && m instanceof Mesh && m.geometry) {
-                m.geometry.id = m.metadata._waitingGeometryId;
-                delete m.metadata._waitingGeometryId;
+            if (m instanceof Mesh) {
+                if (m.metadata?._waitingGeometryId && m.geometry) {
+                    m.geometry.id = m.metadata._waitingGeometryId;
+                    delete m.metadata._waitingGeometryId;
+                }
             }
-        })
+        });
 
         // Refresh
         editor.scene!.onReadyObservable.addOnce(() => this._RefreshEditor(editor));
@@ -350,6 +354,22 @@ export class ProjectImporter {
     public static async ImportMesh(editor: Editor, name: string, json: any, rootUrl: string, filename: string): Promise<ReturnType<typeof SceneLoader.ImportMeshAsync>> {
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, filename, editor.scene, null, ".babylon");
         editor.console.logInfo(`Parsed mesh "${name}"`);
+        
+        const allMeshes: { mesh: Mesh; geometryId: string; parentId?: string; instances?: string[]; }[] = [];
+
+        result.meshes.forEach((m, index) => {
+            if (!(m instanceof Mesh)) { return; }
+            if (m.delayLoadState && m.delayLoadState !== Constants.DELAYLOADSTATE_LOADED) {
+                m._checkDelayState();
+            }
+
+            allMeshes.push({
+                mesh: m,
+                geometryId: json.meshes[index].geometryId,
+                parentId: json.meshes[index].parentId,
+                instances: json.meshes[index].instances?.map((i) => i.parentId) ?? [],
+            });
+        });
 
         // Lods
         for (const lod of json.lods) {
@@ -361,6 +381,13 @@ export class ProjectImporter {
                 const mesh = lodResult.meshes[0];
                 if (!mesh || !(mesh instanceof Mesh)) { continue; }
 
+                if (mesh.delayLoadState && mesh.delayLoadState !== Constants.DELAYLOADSTATE_LOADED) {
+                    mesh.delayLoadingFile = join(Project.DirPath!, mesh.delayLoadingFile);
+                    mesh._checkDelayState();
+                }
+
+                allMeshes.push({ mesh, geometryId: lod.mesh.meshes[0].geometryId });
+
                 (result.meshes[0] as Mesh).addLODLevel(lod.distance, mesh);
                 URL.revokeObjectURL(url);
 
@@ -370,16 +397,20 @@ export class ProjectImporter {
             }
         }
 
-        // Parent
-        result.meshes.forEach((m, meshIndex) => {
-            m.metadata = m.metadata ?? { };
-            m.metadata._waitingParentId = json.meshes[meshIndex].parentId;
-            m.metadata._waitingGeometryId = json.meshes[meshIndex].geometryId;
+        while (allMeshes.find((m) => m.mesh.delayLoadState && m.mesh.delayLoadState !== Constants.DELAYLOADSTATE_LOADED)) {
+            await Tools.Wait(150);
+        }
 
-            if (m instanceof Mesh) {
-                m.instances?.forEach((i, instanceIndex) => {
+        // Parent
+        allMeshes.forEach((m) => {
+            m.mesh.metadata = m.mesh.metadata ?? { };
+            m.mesh.metadata._waitingParentId = m.parentId;
+            m.mesh.metadata._waitingGeometryId = m.geometryId;
+
+            if (m.instances) {
+                m.mesh.instances?.forEach((i, instanceIndex) => {
                     i.metadata = i.metadata ?? { };
-                    i.metadata._waitingParentId = json.meshes[meshIndex].instances[instanceIndex]?.parentId;
+                    i.metadata._waitingParentId = m.instances![instanceIndex];
                 });
             }
         });
