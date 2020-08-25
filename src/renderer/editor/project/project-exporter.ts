@@ -687,7 +687,7 @@ export class ProjectExporter {
         const result: string[] = [];
 
         scene.meshes?.forEach((m, index) => {
-            if (!m.geometryId) { return; }
+            if (!m.geometryId || m.metadata?.keepGeometryInline) { return; }
 
             const geometry = scene.geometries?.vertexData?.find((v) => v.id === m.geometryId);
             if (!geometry) { return; }
@@ -808,9 +808,16 @@ export class ProjectExporter {
             }
 
             result.push(geometryPath);
+
+            const geometryIndex = scene.geometries.vertexData.findIndex((g) => g.id === m.geometryId);
+            if (geometryIndex !== -1) {
+                scene.geometries.vertexData.splice(geometryIndex, 1);
+            }
         });
 
-        delete scene.geometries;
+        if (scene.geometries.vertexData?.length === 0) {
+            delete scene.geometries;
+        }
 
         return result;
     }
