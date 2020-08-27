@@ -248,11 +248,11 @@ export class ProjectExporter {
             
             const json = this.ExportMesh(mesh);
 
-            exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, json));
+            exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, json, false));
 
             json.lods.forEach((lod) => {
                 if (lod.mesh) {
-                    exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh));
+                    exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh, false));
                 }
             });
 
@@ -569,7 +569,7 @@ export class ProjectExporter {
                 await mkdir(geometriesPath);
             }
 
-            this._WriteIncrementalGeometryFiles(editor, geometriesPath, scene);
+            this._WriteIncrementalGeometryFiles(editor, geometriesPath, scene, true, task);
         }
 
         editor.updateTaskFeedback(task, 50, "Writing scene...");
@@ -679,7 +679,7 @@ export class ProjectExporter {
     /**
      * When using incremental export, write all the .babylonbinarymesh files into the "geometries" output folder.
      */
-    private static _WriteIncrementalGeometryFiles(editor: Editor, geometriesPath: string, scene: any, task?: string): string[] {
+    private static _WriteIncrementalGeometryFiles(editor: Editor, path: string, scene: any, finalExport: boolean, task?: string): string[] {
         if (task) {
             editor.updateTaskFeedback(task, 0, "Exporting incremental files...");
         }
@@ -687,7 +687,7 @@ export class ProjectExporter {
         const result: string[] = [];
 
         scene.meshes?.forEach((m, index) => {
-            if (!m.geometryId || m.metadata?.keepGeometryInline) { return; }
+            if (!m.geometryId || (finalExport && m.metadata?.keepGeometryInline)) { return; }
 
             const geometry = scene.geometries?.vertexData?.find((v) => v.id === m.geometryId);
             if (!geometry) { return; }
@@ -700,7 +700,7 @@ export class ProjectExporter {
             m.boundingBoxMinimum = originMesh?.getBoundingInfo()?.minimum?.asArray() ?? [0, 0, 0];
             m._binaryInfo = { };
 
-            const geometryPath = join(geometriesPath, geometryFileName);
+            const geometryPath = join(path, geometryFileName);
             const stream = createWriteStream(geometryPath);
 
             let offset = 0;
