@@ -78,9 +78,12 @@ export class ProjectImporter {
         Overlay.SetSpinnervalue(0);
         const spinnerStep = 1 / (
                                     project.textures.length + project.materials.length + project.meshes.length + project.lights.length +
-                                    project.cameras.length + (project.particleSystems?.length ?? 0) + (project.sounds?.length ?? 0)
+                                    project.cameras.length + (project.particleSystems?.length ?? 0) + (project.sounds?.length ?? 0) +
+                                    (project.transformNodes?.length ?? 0)
                                 );
         let spinnerValue = 0;
+
+        let loadPromises: Promise<void>[] = [];
 
         // Register files
         project.filesList.forEach((f) => {
@@ -108,51 +111,65 @@ export class ProjectImporter {
         Overlay.SetMessage("Creating Meshes...");
 
         for (const m of project.meshes) {
-            try {
-                const json = await readJSON(join(Project.DirPath, "meshes", m));
-                const result = await this.ImportMesh(editor, m, json, Project.DirPath, join("meshes", m));
+            loadPromises.push(new Promise<void>(async (resolve) => {
+                try {
+                    const json = await readJSON(join(Project.DirPath!, "meshes", m));
+                    const result = await this.ImportMesh(editor, m, json, Project.DirPath!, join("meshes", m));
 
-                if (physicsEngine) {
-                    result.meshes.forEach((m) => {
-                        try {
-                            m.physicsImpostor = physicsEngine.getImpostorForPhysicsObject(m);
-                            m.physicsImpostor?.sleep();
-                            editor.console.logInfo(`Parsed physics impostor for mesh "${m.name}"`);
+                    if (physicsEngine) {
+                        result.meshes.forEach((m) => {
+                            try {
+                                m.physicsImpostor = physicsEngine.getImpostorForPhysicsObject(m);
+                                m.physicsImpostor?.sleep();
+                                editor.console.logInfo(`Parsed physics impostor for mesh "${m.name}"`);
 
-                            // Retrieve physics impostors for instances as well
-                            if (m instanceof Mesh) {
-                                m.instances.forEach((i) => {
-                                    i.physicsImpostor = physicsEngine.getImpostorForPhysicsObject(i);
-                                    i.physicsImpostor?.sleep();
-                                    editor.console.logInfo(`Parsed physics impostor for instance "${i.name}" of mesh "${m.name}"`);
-                                });
+                                // Retrieve physics impostors for instances as well
+                                if (m instanceof Mesh) {
+                                    m.instances.forEach((i) => {
+                                        i.physicsImpostor = physicsEngine.getImpostorForPhysicsObject(i);
+                                        i.physicsImpostor?.sleep();
+                                        editor.console.logInfo(`Parsed physics impostor for instance "${i.name}" of mesh "${m.name}"`);
+                                    });
+                                }
+                            } catch (e) {
+                                editor.console.logError(`Failed to set physics impostor for mesh "${m.name}"`);
                             }
-                        } catch (e) {
-                            editor.console.logError(`Failed to set physics impostor for mesh "${m.name}"`);
-                        }
-                    });
+                        });
+                    }
+                } catch (e) {
+                    editor.console.logError(`Failed to load mesh "${m}"`);
                 }
-            } catch (e) {
-                editor.console.logError(`Failed to load mesh "${m}"`);
-            }
 
-            Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+                Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+                resolve();
+            }));
         }
+
+        await Promise.all(loadPromises);
+        loadPromises = [];
 
         // Load all transform nodes
         Overlay.SetMessage("Creating Transform Nodes");
 
         for (const t of project.transformNodes ?? []) {
-            try {
-                const json = await readJSON(join(Project.DirPath, "transform", t));
-                const transform = TransformNode.Parse(json, editor.scene!, rootUrl);
+            loadPromises.push(new Promise<void>(async (resolve) => {
+                try {
+                    const json = await readJSON(join(Project.DirPath!, "transform", t));
+                    const transform = TransformNode.Parse(json, editor.scene!, rootUrl);
 
-                transform.metadata = transform.metadata ?? { };
-                transform.metadata._waitingParentId = json.parentId;
-            } catch (e) {
-                editor.console.logError(`Failed to load transform node "${t}"`);
-            }
+                    transform.metadata = transform.metadata ?? { };
+                    transform.metadata._waitingParentId = json.parentId;
+                } catch (e) {
+                    editor.console.logError(`Failed to load transform node "${t}"`);
+                }
+
+                Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+                resolve();
+            }));
         }
+
+        await Promise.all(loadPromises);
+        loadPromises = [];
 
         // Load all materials
         Overlay.SetMessage("Creating Materials...");
@@ -189,7 +206,7 @@ export class ProjectImporter {
 
                 const existing = editor.scene!.textures.find((t) => {
                     return t.metadata && json.metadata && t.metadata.editorId === json.metadata.editorId;
-                 }) ?? null;
+                }) ?? null;
 
                 if (existing) { continue; }
 
@@ -208,6 +225,7 @@ export class ProjectImporter {
             } catch (e) {
                 editor.console.logError(`Failed to parse texture "${t}"`);
             }
+
             Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
         }
 
@@ -215,31 +233,37 @@ export class ProjectImporter {
         Overlay.SetMessage("Creating Lights...");
 
         for (const l of project.lights) {
-            try {
-                const json = await readJSON(join(Project.DirPath, "lights", l.json));
-                const light = Light.Parse(json, editor.scene!)!;
+            loadPromises.push(new Promise<void>(async (resolve) => {
+                try {
+                    const json = await readJSON(join(Project.DirPath!, "lights", l.json));
+                    const light = Light.Parse(json, editor.scene!)!;
 
-                light.metadata = light.metadata ?? { };
-                light.metadata._waitingParentId = json.parentId;
+                    light.metadata = light.metadata ?? { };
+                    light.metadata._waitingParentId = json.parentId;
 
-                editor.console.logInfo(`Parsed light "${l.json}"`);
+                    editor.console.logInfo(`Parsed light "${l.json}"`);
 
-                if (l.shadowGenerator) {
-                    const json = await readJSON(join(Project.DirPath, "shadows", l.shadowGenerator));
-                    if (json.className === CascadedShadowGenerator.CLASSNAME) {
-                        CascadedShadowGenerator.Parse(json, editor.scene!);
-                    } else {
-                        ShadowGenerator.Parse(json, editor.scene!);
+                    if (l.shadowGenerator) {
+                        const json = await readJSON(join(Project.DirPath!, "shadows", l.shadowGenerator));
+                        if (json.className === CascadedShadowGenerator.CLASSNAME) {
+                            CascadedShadowGenerator.Parse(json, editor.scene!);
+                        } else {
+                            ShadowGenerator.Parse(json, editor.scene!);
+                        }
+                        
+                        editor.console.logInfo(`Parsed shadows for light "${l.json}"`);
                     }
-                    
-                    editor.console.logInfo(`Parsed shadows for light "${l.json}"`);
+                } catch (e) {
+                    editor.console.logError(`Failed to parse light "${l}"`);
                 }
-            } catch (e) {
-                editor.console.logError(`Failed to parse light "${l}"`);
-            }
 
-            Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+                Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+                resolve();
+            }));
         }
+
+        await Promise.all(loadPromises);
+        loadPromises = [];
 
         // Load all cameras
         Overlay.SetMessage("Creating Cameras...");

@@ -6,7 +6,7 @@ import * as os from "os";
 import * as React from "react";
 import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
-import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture } from "babylonjs";
+import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture, Mesh } from "babylonjs";
 import "babylonjs-loaders";
 
 import { assetsHelper } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
@@ -171,6 +171,11 @@ export class MeshesAssets extends AbstractAssets {
             mesh.id = Tools.RandomId();
             if (mesh.material) { mesh.material.id = Tools.RandomId(); }
             if (!mesh.parent && pickInfo.pickedPoint) { mesh.position.addInPlace(pickInfo.pickedPoint); }
+            if (mesh instanceof Mesh) {
+                if (mesh.geometry) {
+                    mesh.geometry.id = Tools.RandomId();
+                }
+            }
 
             // Materials
             if (mesh.material) {

@@ -111,6 +111,8 @@ export class ProjectExporter {
         const exportedTransformNodes: string[] = [];
         const exportedParticleSystems: string[] = [];
 
+        let savePromises: Promise<void>[] = [];
+
         // Write all files
         const filesDir = join(Project.DirPath!, "files");
         if (!(await pathExists(filesDir))) { await mkdir(filesDir); }
@@ -180,26 +182,33 @@ export class ProjectExporter {
             if (texture instanceof RenderTargetTexture || texture instanceof DynamicTexture) { continue; }
             if (texture.name.indexOf("data:") === 0) { continue; }
 
-            const json = texture.serialize();
-            if (!json) { continue; }
+            savePromises.push(new Promise<void>(async (resolve) => {
+                const json = texture.serialize();
+                if (!json) { return resolve(); }
 
-            if (json.isCube && !json.isRenderTarget && json.files && json.metadata?.isPureCube) {
-                // Replace Urls
-                json.files = json.files.map((f) => join("files", basename(f)));
-            }
-            
-            json.name = join("./", "files", basename(texture.name));
-            json.url = join("./", "files", basename(texture.name));
+                if (json.isCube && !json.isRenderTarget && json.files && json.metadata?.isPureCube) {
+                    // Replace Urls
+                    json.files = json.files.map((f) => join("files", basename(f)));
+                }
+                
+                json.name = join("./", "files", basename(texture.name));
+                json.url = join("./", "files", basename(texture.name));
 
-            const dest = `${normalize(`${basename(texture.name)}-${texture.uniqueId.toString()}`)}.json`;
-            await writeFile(join(texturesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+                const dest = `${normalize(`${basename(texture.name)}-${texture.uniqueId.toString()}`)}.json`;
+                await writeFile(join(texturesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
-            project.textures.push(dest);
-            exportedTextures.push(dest);
+                project.textures.push(dest);
+                exportedTextures.push(dest);
 
-            editor.updateTaskFeedback(task, progressValue += progressCount);
-            editor.console.logInfo(`Saved texture configuration "${texture.name}"`);
+                editor.updateTaskFeedback(task, progressValue += progressCount);
+                editor.console.logInfo(`Saved texture configuration "${texture.name}"`);
+
+                resolve();
+            }));
         }
+
+        await Promise.all(savePromises);
+        savePromises = [];
 
         // Write all materials
         editor.updateTaskFeedback(task, 0, "Saving Materials");
@@ -215,21 +224,28 @@ export class ProjectExporter {
         for (const material of materials) {
             if (material instanceof ShaderMaterial || material === editor.scene!.defaultMaterial) { continue; }
 
-            const json = material.serialize();
+            savePromises.push(new Promise<void>(async (resolve) => {
+                const json = material.serialize();
 
-            const dest = `${normalize(`${basename(material.name)}-${material.id}`)}.json`;
-            await writeFile(join(materialsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+                const dest = `${normalize(`${basename(material.name)}-${material.id}`)}.json`;
+                await writeFile(join(materialsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
-            project.materials.push({
-                bindedMeshes: material.getBindedMeshes().map((m) => m.id),
-                json: dest,
-                isMultiMaterial: material instanceof MultiMaterial,
-            });
-            exportedMaterials.push(dest);
+                project.materials.push({
+                    bindedMeshes: material.getBindedMeshes().map((m) => m.id),
+                    json: dest,
+                    isMultiMaterial: material instanceof MultiMaterial,
+                });
+                exportedMaterials.push(dest);
 
-            editor.updateTaskFeedback(task, progressValue += progressCount);
-            editor.console.logInfo(`Saved material configuration "${material.name}"`);
+                editor.updateTaskFeedback(task, progressValue += progressCount);
+                editor.console.logInfo(`Saved material configuration "${material.name}"`);
+
+                resolve();
+            }));
         }
+
+        await Promise.all(savePromises);
+        savePromises = [];
 
         // Write all meshes
         editor.updateTaskFeedback(task, 0, "Saving Meshes");
@@ -246,26 +262,33 @@ export class ProjectExporter {
         for (const mesh of editor.scene!.meshes) {
             if (!(mesh instanceof Mesh) || mesh._masterMesh) { continue; }
             
-            const json = this.ExportMesh(mesh);
+            savePromises.push(new Promise<void>(async (resolve) => {
+                const json = this.ExportMesh(mesh);
 
-            exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, json, false));
+                exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, json, false));
 
-            json.lods.forEach((lod) => {
-                if (lod.mesh) {
-                    exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh, false));
-                }
-            });
+                json.lods.forEach((lod) => {
+                    if (lod.mesh) {
+                        exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh, false));
+                    }
+                });
 
-            const dest = `${normalize(`${basename(mesh.name)}-${mesh.id}`)}.json`;
+                const dest = `${normalize(`${basename(mesh.name)}-${mesh.id}`)}.json`;
 
-            await writeFile(join(meshesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+                await writeFile(join(meshesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
-            project.meshes.push(dest);
-            exportedMeshes.push(dest);
+                project.meshes.push(dest);
+                exportedMeshes.push(dest);
 
-            editor.updateTaskFeedback(task, progressValue += progressCount);
-            editor.console.logInfo(`Saved mesh configuration "${mesh.name}"`);
+                editor.updateTaskFeedback(task, progressValue += progressCount);
+                editor.console.logInfo(`Saved mesh configuration "${mesh.name}"`);
+
+                resolve();
+            }));
         }
+
+        await Promise.all(savePromises);
+        savePromises = [];
 
         // Write all lights
         editor.updateTaskFeedback(task, 0, "Saving Lights");
@@ -313,17 +336,24 @@ export class ProjectExporter {
         if (!(await pathExists(transformNodesDir))) { await mkdir(transformNodesDir); }
 
         for (const transform of editor.scene!.transformNodes) {
-            const json = transform.serialize();
-            const dest = `${normalize(`${basename(transform.name)}-${transform.id}`)}.json`;
+            savePromises.push(new Promise<void>(async (resolve) => {
+                const json = transform.serialize();
+                const dest = `${normalize(`${basename(transform.name)}-${transform.id}`)}.json`;
 
-            await writeFile(join(transformNodesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+                await writeFile(join(transformNodesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
-            project.transformNodes.push(dest);
-            exportedTransformNodes.push(dest);
+                project.transformNodes.push(dest);
+                exportedTransformNodes.push(dest);
 
-            editor.updateTaskFeedback(task, progressValue += progressCount);
-            editor.console.logInfo(`Saved transform node configuration "${transform.name}"`);
+                editor.updateTaskFeedback(task, progressValue += progressCount);
+                editor.console.logInfo(`Saved transform node configuration "${transform.name}"`);
+
+                resolve();
+            }));
         }
+
+        await Promise.all(savePromises);
+        savePromises = [];
 
         // Write all particle systems
         editor.updateTaskFeedback(task, 0, "Saving Particle Systems");
@@ -815,7 +845,7 @@ export class ProjectExporter {
             }
         });
 
-        if (scene.geometries.vertexData?.length === 0) {
+        if (scene.geometries?.vertexData?.length === 0) {
             delete scene.geometries;
         }
 

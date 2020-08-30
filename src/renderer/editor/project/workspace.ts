@@ -223,8 +223,9 @@ export class WorkSpace {
         const packageJson = await readJSON(join(this.DirPath!, "package.json"));
         const isWin32 = platform() === "win32";
         const watchScript = join("node_modules", ".bin", isWin32 ? packageJson.scripts.watch.replace("webpack", "webpack.cmd") : packageJson.scripts.watch);
-        
-        this._WatchProjectProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript}`, this.DirPath!, false, ConsoleLayer.WebPack);
+        const fullWatchScript = isWin32 ? (`.\\${watchScript}`.replace(/\//g, "\\")) : `./${watchScript}`;
+
+        this._WatchProjectProgram = ExecTools.ExecAndGetProgram(editor, fullWatchScript, this.DirPath!, false, ConsoleLayer.WebPack);
     }
 
     /**
@@ -258,7 +259,9 @@ export class WorkSpace {
         // Get command
         const isWin32 = platform() === "win32";
         const watchScript = join("node_modules", ".bin", isWin32 ? "tsc.cmd" : "tsc");
-        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, false);
+        const fullWatchScript = isWin32 ? (`.\\${watchScript} -p .\\editor.tsconfig.json --watch`.replace(/\//g, "\\")) : `./${watchScript} -p ./editor.tsconfig.json --watch`;
+
+        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, fullWatchScript, this.DirPath!, false);
     }
 
     /**
