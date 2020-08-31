@@ -1,7 +1,7 @@
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { Position, ButtonGroup, Popover, Button, Menu, MenuItem, Divider, Tag, Tooltip } from "@blueprintjs/core";
+import { Position, ButtonGroup, Popover, Button, Menu, MenuItem, Divider, Tag, Tooltip, Pre } from "@blueprintjs/core";
 
 import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable } from "babylonjs";
 
@@ -55,6 +55,10 @@ export interface IPreviewState {
      * Defines wether or not the icons should be drawn.
      */
     showIcons: boolean;
+    /**
+     * Defines wether or not the preview is in isolated mode.
+     */
+    isIsolatedMode: boolean;
 }
 
 export enum PreviewCanvasEventType {
@@ -65,7 +69,7 @@ export enum PreviewCanvasEventType {
     /**
      * Defines the vent raised when the preview canvas is blurred.
      */
-    Blurred
+    Blurred,
 }
 
 export class Preview extends React.Component<IPreviewProps, IPreviewState> {
@@ -84,6 +88,9 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
     private _editor: Editor;
     private _copiedNode: Nullable<Node | IParticleSystem> = null;
+
+    private _isolatedObject: Nullable<AbstractMesh | IParticleSystem> = null;
+    private _baseMeshesArray: Nullable<AbstractMesh[]> = null;
 
     private _searchBar: Omnibar;
     private _refHandler = {
@@ -110,6 +117,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             availableGizmoSteps: [0, 1, 2, 5, 10],
             forceWireframe: false,
             showIcons: true,
+            isIsolatedMode: false,
         };
     }
 
@@ -137,6 +145,12 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 ))}
             </Menu>
         );
+
+        const isolatedMode = this.state.isIsolatedMode ? (
+            <Pre style={{ position: "absolute", top: "30px", left: "10px" }}>
+                Focusing On: {this._isolatedObject?.name}
+            </Pre>
+        ) : undefined;
 
         return (
             <>
@@ -181,11 +195,46 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 </div>
                 <div style={{ height: "calc(100% - 25px)" }}>
                     <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none" }}></canvas>
+                    {isolatedMode}
                     <Tag key="preview-tag" round={true} large={true} style={{ visibility: (this.state.canvasFocused ? "visible" : "hidden"), position: "absolute", left: "50%", top: "calc(100% - 15px)", transform: "translate(-50%, -50%)" }} >{this.state.overNodeName}</Tag>
                     <Omnibar ref={this._refHandler.getSearchBar} onChange={(i) => this._handleSearchBarChanged(i)} />
                 </div>
             </>
         );
+    }
+
+    /**
+     * Toggles the isolated mode.
+     */
+    public toggleIsolatedMode(object: Nullable<AbstractMesh | IParticleSystem> = null): void {
+        const scene = this._editor.scene!;
+        const camera = scene.activeCamera;
+
+        if (!camera) { return; }
+
+        if (this.state.isIsolatedMode) {
+            scene.meshes = this._baseMeshesArray!.concat(scene.meshes.filter((m) => this._baseMeshesArray?.indexOf(m) === -1));
+
+            this._isolatedObject = null;
+            this.setState({ isIsolatedMode: false });
+        } else {
+            if (!object) {
+                object = this._editor.graph.lastSelectedObject as any;
+            }
+
+            if (!object || (!(object instanceof AbstractMesh) && !(object instanceof ParticleSystem))) { return; }
+
+            this._isolatedObject = object;
+
+            if (object instanceof AbstractMesh) {
+                this._baseMeshesArray = scene.meshes;
+                scene.meshes = [object];
+            }
+            
+            this._editor.inspector.setSelectedObject(object);
+            this._focusNode(object, camera);
+            this.setState({ isIsolatedMode: true });
+        }
     }
 
     /**
@@ -351,12 +400,15 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     /**
      * Focuses on the given node.
      */
-    private _focusNode(node: Nullable<Node | IParticleSystem | Sound>): void {
+    private _focusNode(node: Nullable<Node | IParticleSystem | Sound>, camera?: Nullable<Camera>): void {
         if (!node) { return; }
 
         if (node instanceof ParticleSystem) { node = node.emitter as AbstractMesh; }
 
-        const camera = this._editor.scene!.activeCamera;
+        if (!camera) {
+            camera = this._editor.scene!.activeCamera;
+        }
+
         if (!camera || !(camera instanceof TargetCamera)) { return; }
 
         this._editor.scene!.stopAnimation(camera);

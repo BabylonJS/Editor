@@ -68,6 +68,11 @@ export class ProjectExporter {
     private static async _Save(editor: Editor, skipGenerateScene: boolean): Promise<void> {
         if (!Project.Path) { return this.SaveAs(editor); }
 
+        // Check is isolated mode
+        if (editor.preview.state.isIsolatedMode) {
+            return editor.notifyMessage("Can't save when Isolated Mode is enabled.", 2000, "error");
+        }
+
         editor.console.logInfo(`Exporting project to: ${Project.DirPath}`);
         
         const task = editor.addTaskFeedback(0, "Saving Files...");
@@ -561,6 +566,11 @@ export class ProjectExporter {
      */
     public static async ExportFinalScene(editor: Editor, task?: string): Promise<void> {
         if (!WorkSpace.HasWorkspace()) { return; }
+
+        // Check is isolated mode
+        if (editor.preview.state.isIsolatedMode) {
+            return editor.notifyMessage("Can't export when Isolated Mode is enabled.", 2000, "error");
+        }
 
         task = task ?? editor.addTaskFeedback(0, "Generating Final Scene");
         editor.updateTaskFeedback(task, 0, "Generating Final Scene");

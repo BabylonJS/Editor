@@ -27,6 +27,7 @@ Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are 
 * `t`: enable/disable the positon gizmo
 * `r`: enable/disable the rotation gizmo
 * `w`: enable/disable the scaling gizmo
+* `i`: toggle the isolated mode. Isolated mode is used to help debugging a mesh by isolating it. Just select a mesh in the Editor and then type `i`. `escape` to exit isolation mode.
 * `suppr.`: remove the selected node
 * `Ctrl+c` or `Command+c`: copy the selected node
 * `Ctrl+v` or `Command+v`: past previously copied node. In case of a mesh, a new instance will be created instead of a real clone of the mesh.

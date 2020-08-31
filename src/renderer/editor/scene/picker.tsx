@@ -156,6 +156,16 @@ export class ScenePicker {
      * Called on the pointer is up with right button on the canvas.
      */
     private _onCanvasContextMenu(ev: MouseEvent, node: Nullable<Node>): void {
+        // Isolated?
+        if (this._editor.preview.state.isIsolatedMode) {
+            return ContextMenu.show(
+                <Menu className={Classes.DARK}>
+                    <MenuItem text="Exit isolated mode" onClick={() => this._editor.preview.toggleIsolatedMode()} />
+                </Menu>,
+                { left: ev.clientX, top: ev.clientY }
+            );
+        }
+        
         if (!node) { return; }
 
         const subMeshesItems: JSX.Element[] = [];
@@ -171,12 +181,20 @@ export class ScenePicker {
             });
         }
 
+        let isolatedMode = node instanceof AbstractMesh ? (
+            <>
+                <MenuDivider />
+                <MenuItem text="Isolate..." onClick={() => this._editor.preview.toggleIsolatedMode(node)} />
+            </>
+        ) : undefined;
+
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <MenuItem text="Clone" icon={<Icon src="clone.svg" />} onClick={() => {
                     this._editor.graph.cloneObject(node!);
                     this._editor.graph.refresh();
                 }} />
+                {isolatedMode}
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => {
                     this._editor.graph.removeObject(node!);

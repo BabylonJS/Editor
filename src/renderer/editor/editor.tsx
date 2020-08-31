@@ -695,7 +695,9 @@ export class Editor {
             preserveDrawingBuffer: true,
             stencil: true,
         }, true);
+        
         this.scene = new Scene(this.engine);
+
         this.engine.runRenderLoop(() => this.scene!.render());
 
         // Camera
@@ -929,7 +931,7 @@ export class Editor {
 
         // Save
         ipcRenderer.on("save", () => ProjectExporter.Save(this));
-        ipcRenderer.on("save-as", () => ProjectExporter.SaveAs(this));
+        // ipcRenderer.on("save-as", () => ProjectExporter.SaveAs(this));
         
         // Undo / Redo
         ipcRenderer.on("undo", () => !(document.activeElement instanceof HTMLInputElement) && undoRedo.undo());
@@ -976,8 +978,13 @@ export class Editor {
                 if (ev.key === "r") { return this.preview.setGizmoType(GizmoType.Rotation); }
                 if (ev.key === "w") { return this.preview.setGizmoType(GizmoType.Scaling); }
                 if (ev.key === "f") { return this.preview.focusSelectedNode(); }
+                if (ev.key === "i") { return this.preview.toggleIsolatedMode(); }
                 
                 if (ev.keyCode === 46) { return this.preview.removeSelectedNode(); }
+
+                if (ev.keyCode === 27) {
+                    if (this.preview.state.isIsolatedMode) { return this.preview.toggleIsolatedMode(); }
+                }
             }
 
             if (!ev.ctrlKey && SceneSettings.Camera?.metadata.detached) {
