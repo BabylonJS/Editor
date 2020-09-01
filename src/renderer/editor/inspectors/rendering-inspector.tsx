@@ -151,7 +151,15 @@ export class RenderingInspector extends AbstractInspector<Scene> {
         this._dofBlurLevel = blurLevels.find((l) => SceneSettings.DefaultPipeline!.depthOfFieldBlurLevel === DepthOfFieldEffectBlurLevel[l]) ?? "Low";
         dof.add(this, "_dofBlurLevel", blurLevels).name("Blur Level").onChange(() => {
             SceneSettings.DefaultPipeline!.depthOfFieldBlurLevel = DepthOfFieldEffectBlurLevel[this._dofBlurLevel];
-        })
+        });
+
+        const ca = this._defaultFolder.addFolder("Chromatic Aberration");
+        ca.open();
+        ca.add(SceneSettings.DefaultPipeline, "chromaticAberrationEnabled").name("Chromatic Aberration Enabled");
+        ca.add(SceneSettings.DefaultPipeline.chromaticAberration, "aberrationAmount").step(0.01).name("Aberration Amount");
+        ca.add(SceneSettings.DefaultPipeline.chromaticAberration, "radialIntensity").step(0.01).name("Radial Intensity");
+        ca.addVector("Direction", SceneSettings.DefaultPipeline.chromaticAberration.direction);
+        ca.addVector("Center Position", SceneSettings.DefaultPipeline.chromaticAberration.centerPosition);
     }
 }
 

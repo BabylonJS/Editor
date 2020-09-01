@@ -381,14 +381,14 @@ export class ProjectImporter {
         
         const allMeshes: { mesh: Mesh; geometryId: string; parentId?: string; instances?: string[]; }[] = [];
 
-        result.meshes.forEach((m, index) => {
-            if (!(m instanceof Mesh)) { return; }
-            if (m.delayLoadState && m.delayLoadState !== Constants.DELAYLOADSTATE_LOADED) {
-                m._checkDelayState();
+        result.meshes.forEach((mesh, index) => {
+            if (!(mesh instanceof Mesh)) { return; }
+            if (mesh.delayLoadState && mesh.delayLoadState !== Constants.DELAYLOADSTATE_LOADED) {
+                mesh._checkDelayState();
             }
 
             allMeshes.push({
-                mesh: m,
+                mesh,
                 geometryId: json.meshes[index].geometryId,
                 parentId: json.meshes[index].parentId,
                 instances: json.meshes[index].instances?.map((i) => i.parentId) ?? [],
@@ -424,6 +424,8 @@ export class ProjectImporter {
         while (allMeshes.find((m) => m.mesh.delayLoadState && m.mesh.delayLoadState !== Constants.DELAYLOADSTATE_LOADED)) {
             await Tools.Wait(150);
         }
+
+        await Tools.Wait(0);
 
         // Parent
         allMeshes.forEach((m) => {
