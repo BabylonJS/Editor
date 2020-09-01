@@ -3,7 +3,7 @@ import Tree from "antd/lib/tree/Tree";
 import {
     ContextMenu, Menu, MenuItem, MenuDivider, Classes, Tooltip,
     Position, InputGroup, FormGroup,
-    Switch, ButtonGroup, Button, Popover,
+    Switch, ButtonGroup, Button, Popover, Pre, Intent,
 } from "@blueprintjs/core";
 
 import { Nullable, Undefinable } from "../../../shared/types";
@@ -635,22 +635,26 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <EditableText
-                    disabled={node instanceof Sound}
-                    value={name}
-                    multiline={true}
-                    confirmOnEnterKey={true}
-                    selectAllOnFocus={true}
-                    className={Classes.FILL}
-                    onConfirm={(v) => {
-                        const oldName = node!.name;
-                        undoRedo.push({
-                            common: () => this.refresh(),
-                            redo: () => node!.name = v,
-                            undo: () => node!.name = oldName,
-                        });
-                    }}
-                />
+                <Pre>
+                    <p style={{ color: "white", marginBottom: "0px" }}>Name</p>
+                    <EditableText
+                        disabled={node instanceof Sound}
+                        value={name}
+                        intent={Intent.PRIMARY}
+                        multiline={true}
+                        confirmOnEnterKey={true}
+                        selectAllOnFocus={true}
+                        className={Classes.FILL}
+                        onConfirm={(v) => {
+                            const oldName = node!.name;
+                            undoRedo.push({
+                                common: () => this.refresh(),
+                                redo: () => node!.name = v,
+                                undo: () => node!.name = oldName,
+                            });
+                        }}
+                    />
+                </Pre>
                 <MenuDivider />
                 <MenuItem text="Clone" disabled={node instanceof Sound} icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneObject()} />
                 <MenuDivider />

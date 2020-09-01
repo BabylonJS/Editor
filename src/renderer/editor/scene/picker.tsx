@@ -1,7 +1,7 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem, MenuDivider, Classes } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, MenuDivider, Classes, Pre } from "@blueprintjs/core";
 
 import {
     Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh, Sound,
@@ -190,6 +190,10 @@ export class ScenePicker {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
+                <Pre>
+                    "{node.name}" <b style={{ color: "grey" }}>({Tools.GetConstructorName(node)})</b>
+                </Pre>
+                <MenuDivider />
                 <MenuItem text="Clone" icon={<Icon src="clone.svg" />} onClick={() => {
                     this._editor.graph.cloneObject(node!);
                     this._editor.graph.refresh();
