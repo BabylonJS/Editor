@@ -3,7 +3,7 @@ import Tree from "antd/lib/tree/Tree";
 import {
     ContextMenu, Menu, MenuItem, MenuDivider, Classes, Tooltip,
     Position, InputGroup, FormGroup,
-    Switch, ButtonGroup, Button, Popover, Pre, Intent,
+    Switch, ButtonGroup, Button, Popover, Pre, Intent, Code,
 } from "@blueprintjs/core";
 
 import { Nullable, Undefinable } from "../../../shared/types";
@@ -589,6 +589,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (node instanceof Mesh && node.subMeshes?.length && node.subMeshes.length > 1) {
             const multiMaterial = node.material && node.material instanceof MultiMaterial ? node.material : null;
 
+            subMeshesItems.push(<MenuDivider />);
+            subMeshesItems.push(<Code>Sub-Meshes:</Code>);
+
             node.subMeshes.forEach((sm, index) => {
                 const material = multiMaterial && sm.getMaterial();
                 const text = material ? (material.name ?? Tools.GetConstructorName(material)) : `Sub Mesh "${index}`;
@@ -658,13 +661,14 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 <MenuDivider />
                 <MenuItem text="Clone" disabled={node instanceof Sound} icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneObject()} />
                 <MenuDivider />
+                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!)} />
+                <MenuDivider />
                 <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, false)} />
                 <MenuItem text="Create Prefab As..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, true)} />
                 {mergeMeshesItem}
                 {lockedMeshesItem}
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveObject()} />
-                {subMeshesItems.length ? <MenuDivider title="Sub-Meshes:" /> : undefined}
                 {subMeshesItems}
             </Menu>,
             { left: e.clientX, top: e.clientY }

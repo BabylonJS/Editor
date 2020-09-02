@@ -302,6 +302,14 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     }
 
     /**
+     * Focuses the given node.
+     * @param node defines the reference to the node to focus.
+     */
+    public focusNode(node: Node | IParticleSystem | Sound): void {
+        this._focusNode(node);
+    }
+
+    /**
      * Copies the currently selected node.
      */
     public copySelectedNode(): void {
@@ -404,6 +412,9 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         if (!node) { return; }
 
         if (node instanceof ParticleSystem) { node = node.emitter as AbstractMesh; }
+        if (node instanceof Sound) { node = node["_connectedTransformNode"]; }
+
+        if (!node) { return; }
 
         if (!camera) {
             camera = this._editor.scene!.activeCamera;

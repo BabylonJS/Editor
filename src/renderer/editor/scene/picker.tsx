@@ -1,7 +1,7 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem, MenuDivider, Classes, Pre } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, MenuDivider, Classes, Pre, Code } from "@blueprintjs/core";
 
 import {
     Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh, Sound,
@@ -172,6 +172,9 @@ export class ScenePicker {
         if (node instanceof Mesh && node.subMeshes?.length && node.subMeshes.length > 1) {
             const multiMaterial = node.material && node.material instanceof MultiMaterial ? node.material : null;
 
+            subMeshesItems.push(<MenuDivider />);
+            subMeshesItems.push(<Code style={{ width: "100%" }}>Sub-Meshes:</Code>);
+
             node.subMeshes.forEach((sm, index) => {
                 const material = multiMaterial && sm.getMaterial();
                 const text = material ? (material.name ?? Tools.GetConstructorName(material)) : `Sub Mesh "${index}`;
@@ -199,12 +202,12 @@ export class ScenePicker {
                     this._editor.graph.refresh();
                 }} />
                 {isolatedMode}
+                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!)} />
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => {
                     this._editor.graph.removeObject(node!);
                     this._editor.graph.refresh();
                 }} />
-                {subMeshesItems.length ? <MenuDivider title="Sub-Meshes:" /> : undefined}
                 {subMeshesItems}
             </Menu>,
             { left: ev.clientX, top: ev.clientY }

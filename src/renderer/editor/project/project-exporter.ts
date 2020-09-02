@@ -252,6 +252,9 @@ export class ProjectExporter {
         await Promise.all(savePromises);
         savePromises = [];
 
+        // Reorder material to have multi materials at the end.
+        project.materials = project.materials.filter((m) => !m.isMultiMaterial).concat(project.materials.filter((m) => m.isMultiMaterial));
+
         // Write all meshes
         editor.updateTaskFeedback(task, 0, "Saving Meshes");
 
