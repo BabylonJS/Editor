@@ -50,8 +50,10 @@ export class ExecTools {
             editor.console.logError(message, layer);
             throw new Error(message);
         }
-
+        
+        const hasBackSlashes = shell.toLowerCase() === process.env["COMSPEC"]?.toLowerCase();
         const args: string[] = [];
+
         const platform = os.platform();
         if (platform === "darwin") {
             args.push("-l");
@@ -87,7 +89,12 @@ export class ExecTools {
             });
         });
 
-        program.write(`${command.replace(/\\/g, "/")}\n\r`);
+        if (hasBackSlashes) {
+            program.write(`${command.replace(/\//g, "\\")}\n\r`);
+        } else {
+            program.write(`${command}\n\r`);
+        }
+
         program.write("exit\n\r");
 
         return { process: program, promise };
