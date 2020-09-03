@@ -61,7 +61,7 @@ export class SandboxIFrame {
         for (const c in require.cache) {
             const cachePath = c.replace(/\\/g, "/");
             if (cachePath.indexOf("node_modules") === -1) {
-                delete require.cache[path];
+                delete require.cache[c];
             }
         }
 
