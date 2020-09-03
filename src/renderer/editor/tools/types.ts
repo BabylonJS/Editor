@@ -1,4 +1,4 @@
-import { Undefinable } from "../../../shared/types";
+import { Undefinable, IStringDictionary } from "../../../shared/types";
 
 export interface IObjectModified<T> {
     /**
@@ -59,4 +59,40 @@ export interface IRegisteredPlugin {
      * Defines wether or not the plugin comes from NPM.
      */
     fromNpm?: boolean;
+}
+
+export interface IAttachedScriptMetadata {
+    /**
+     * Defines the name of the script.
+     */
+    name?: string;
+    /**
+     * Defines the dictionary of all editable properties.
+     */
+    properties?: IStringDictionary<{
+        type: string;
+        value?: number | boolean | string |
+                { x: number; y: number; z?: number; w?: number; } |
+                { r: number; g: number; b: number; a?: number; }
+    }>;
+}
+
+export interface ICommonMetadata {
+    /**
+     * Defines wether or not the mesh is pickable.
+     */
+    isPickable?: boolean;
+    /**
+     * Defines wether or not the node is exportable.
+     */
+    doNotExport?: boolean;
+    /**
+     * Defines wether or not the mesh is locked.
+     */
+    isLocked?: boolean;
+
+    /**
+     * Defines the overall script properties of the object (scene or node).
+     */
+    script?: IAttachedScriptMetadata;
 }

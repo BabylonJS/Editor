@@ -5,6 +5,8 @@
 import {
     Scene, Node, Mesh,
     SSAO2RenderingPipeline, DefaultRenderingPipeline, StandardRenderingPipeline,
+    Vector2, Vector3, Vector4,
+    Color3, Color4,
 } from "@babylonjs/core";
 
 export type NodeScriptConstructor = (new (...args: any[]) => Node);
@@ -66,7 +68,17 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[] | Scene[]): 
         const properties = n.metadata.script.properties ?? { };
         for (const key in properties) {
             const p = properties[key];
-            n[key] = p.value;
+
+            switch (p.type) {
+                case "Vector2": n[key] = new Vector2(p.value.x, p.value.y); break;
+                case "Vector3": n[key] = new Vector3(p.value.x, p.value.y, p.value.z); break;
+                case "Vector4": n[key] = new Vector4(p.value.x, p.value.y, p.value.z, p.value.w); break;
+
+                case "Color3": n[key] = new Color3(p.value.r, p.value.g, p.value.b); break;
+                case "Color4": n[key] = new Color4(p.value.r, p.value.g, p.value.b, p.value.a); break;
+
+                default: n[key] = p.value; break;
+            }
         }
 
         // Check linked children.

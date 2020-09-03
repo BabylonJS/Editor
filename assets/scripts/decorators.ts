@@ -3,6 +3,7 @@ import { PointerEventTypes, KeyboardEventTypes } from "@babylonjs/core";
 export type VisiblityPropertyType =
     "number" | "string" | "boolean" |
     "Vector2" | "Vector3" | "Vector4" |
+    "Color3" | "Color4" |
     "KeyMap";
 
 /**

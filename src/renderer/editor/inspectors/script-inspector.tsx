@@ -8,12 +8,14 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 import { Spinner, Pre } from "@blueprintjs/core";
 
-import { Node, Scene } from "babylonjs";
+import { Node, Scene, Color3, Color4 } from "babylonjs";
 import { GUI, GUIController } from "dat.gui";
 
 import { WorkSpace } from "../project/workspace";
 
 import { Tools } from "../tools/tools";
+import { IAttachedScriptMetadata } from "../tools/types";
+
 import { SandboxMain } from "../../sandbox/main";
 
 import { Inspector } from "../components/inspector";
@@ -23,7 +25,9 @@ import { ScriptAssets } from "../assets/scripts";
 
 export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T> {
     private _selectedScript: string = "";
+
     private _scriptControllers: GUIController[] = [];
+    private _scriptFolders: GUI[] = [];
 
     private _refreshingScripts: boolean = false;
 
@@ -118,19 +122,41 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
         if (!inspectorValues) { return; }
 
         // Manage properties
-        const script = this.selectedObject.metadata.script;
+        const script = this.selectedObject.metadata.script as IAttachedScriptMetadata;
         script.properties = script.properties ?? { };
 
         const computedValues: string[] = [];
         inspectorValues.forEach((v) => {
-            script.properties[v.propertyKey] = script.properties[v.propertyKey] ?? { type: v.type };
+            script.properties![v.propertyKey] = script.properties![v.propertyKey] ?? { type: v.type };
 
             const defaultValue = v.defaultValue;
             switch (v.type) {
-                case "number": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? defaultValue ?? 0; break;
-                case "string": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? defaultValue ?? ""; break;
-                case "boolean": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? defaultValue ?? false; break;
-                case "KeyMap": script.properties[v.propertyKey].value = script.properties[v.propertyKey].value ?? defaultValue ?? 0; break;
+                case "number": script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? defaultValue ?? 0; break;
+                case "string": script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? defaultValue ?? ""; break;
+                case "boolean": script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? defaultValue ?? false; break;
+                case "KeyMap": script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? defaultValue ?? 0; break;
+
+                case "Vector2":
+                    var { x, y } = defaultValue;
+                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { x, y } : null) ?? { x: 0, y: 0 };
+                    break;
+                case "Vector3":
+                    var { _x, _y, _z } = defaultValue;
+                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { x: _x, y: _y, z: _z } : null) ?? { x: 0, y: 0, z: 0 };
+                    break;
+                case "Vector4":
+                    var { x, y, z, w } = defaultValue;
+                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { x, y, z, w } : null) ?? { x: 0, y: 0, z: 0, w: 0 };
+                    break;
+
+                case "Color3":
+                    var { r, g, b } = defaultValue;
+                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { r, g, b } : null) ?? { r: 0, g: 0, b: 0 };
+                    break;
+                case "Color4":
+                    var { r, g, b, a } = defaultValue;
+                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { r, g, b, a } : null) ?? { r: 0, g: 0, b: 0, a: 1 };
+                    break;
             }
 
             computedValues.push(v.propertyKey);
@@ -144,23 +170,60 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
         this._scriptControllers.forEach((sc) => {
             folder.remove(sc);
         });
+
+        this._scriptFolders.forEach((f) => {
+            folder.removeFolder(f);
+        });
+
         this._scriptControllers = [];
+        this._scriptFolders = [];
 
         // Add all editable values
         inspectorValues.forEach((v) => {
             let controller: Nullable<any> = null;
+            let color: Nullable<any> = null;
+
+            const property = script.properties![v.propertyKey];
+            const value = property.value as any;
+
             switch (v.type) {
                 case "number":
                 case "string":
                 case "boolean":
-                    controller = folder.add(script.properties[v.propertyKey], "value").name(v.name);
+                    controller = folder.add(property, "value").name(v.name);
                     break;
+
                 case "KeyMap":
-                    controller = folder.addKeyMapper(script.properties[v.propertyKey], "value").name(v.name);
+                    controller = folder.addKeyMapper(property, "value").name(v.name);
+                    break;
+
+                case "Vector2":
+                case "Vector3":
+                case "Vector4":
+                    controller = folder.addVector(v.name, value);
+                    break;
+
+                case "Color3":
+                    const color3 = new Color3(value.r, value.g, value.b);
+                    color = this.addColor(folder, v.name, { value: color3 }, "value", (c: Color3) => {
+                        value.r = c.r;
+                        value.g = c.g;
+                        value.b = c.b;
+                    });
+                    break;
+                case "Color4":
+                    const color4 = new Color4(value.r, value.g, value.b, value.a);
+                    color = this.addColor(folder, v.name, { value: color4 }, "value", (c: Color4) => {
+                        value.r = c.r;
+                        value.g = c.g;
+                        value.b = c.b;
+                        value.a = c.a;
+                    });
                     break;
             }
 
             if (controller) { this._scriptControllers.push(controller); }
+            if (color) { this._scriptFolders.push(color); }
         });
     }
 
