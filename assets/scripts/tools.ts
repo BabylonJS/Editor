@@ -7,6 +7,7 @@ import {
     SSAO2RenderingPipeline, DefaultRenderingPipeline, StandardRenderingPipeline,
     Vector2, Vector3, Vector4,
     Color3, Color4,
+    SerializationHelper,
 } from "@babylonjs/core";
 
 export type NodeScriptConstructor = (new (...args: any[]) => Node);
@@ -189,5 +190,21 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
         }
     }
 }
+
+/**
+ * Overrides the texture parser.
+ */
+(function overrideTextureParser(): void {
+    const textureParser = SerializationHelper._TextureParser;
+    SerializationHelper._TextureParser = (sourceProperty, scene, rootUrl) => {
+        const texture = textureParser.call(SerializationHelper, sourceProperty, scene, rootUrl);
+
+        if (sourceProperty.url) {
+            texture.url = rootUrl + sourceProperty.url;
+        }
+
+        return texture;
+    };
+})();
 
 // ${decorators}
