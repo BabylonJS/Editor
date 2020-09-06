@@ -61,6 +61,21 @@ export interface IRegisteredPlugin {
     fromNpm?: boolean;
 }
 
+export enum EditorPlayMode {
+    /**
+     * Opens the game in a new panel of the Editor.
+     */
+    EditorPanelBrowser = 0,
+    /**
+     * Opens the game in a new window using the integrated browser.
+     */
+    IntegratedBrowser,
+    /**
+     * Opens the game in an external browser (see user's prefs).
+     */
+    ExternalBrowser,
+}
+
 export interface IAttachedScriptMetadata {
     /**
      * Defines the name of the script.

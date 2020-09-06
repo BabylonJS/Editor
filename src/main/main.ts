@@ -242,6 +242,10 @@ if (shouldQuit) {
 	app.quit();
 }
 else {
+	// Enable remote debugging
+	app.commandLine.appendSwitch("remote-debugging-port", "8315");
+
+	// Events
 	app.on("second-instance", (_, argv) => {
 		if (EditorApp.Window) {
 			if (EditorApp.Window.isMinimized())

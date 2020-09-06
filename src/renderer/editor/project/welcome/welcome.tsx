@@ -1,4 +1,4 @@
-import { readJSON, readdir, writeJson, stat } from "fs-extra";
+import { readJSON, readdir, writeJson, stat, mkdir, pathExists, copy } from "fs-extra";
 import { basename, join, extname } from "path";
 import Zip from "adm-zip";
 
@@ -204,6 +204,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         // Configure workspace
         const workspacePath = join(path, "workspace.editorworkspace");
         await this._updateWorkspaceSettings(workspacePath);
+        await this._copyVsCodeLaunch(path);
 
         // Open project!
         await WorkSpace.SetOpeningWorkspace(workspacePath);
@@ -239,6 +240,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         const workspacePath = join(path, workspaceFile);
 
         await this._updateWorkspaceSettings(workspacePath);
+        await this._copyVsCodeLaunch(path);
 
         await WorkSpace.SetOpeningWorkspace(join(path, workspaceFile));
         window.location.reload();
@@ -256,6 +258,17 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
             encoding: "utf-8",
             spaces: "\t",
         });
+    }
+
+    /**
+     * Copies the .vscode launch folder into the new created workspace.
+     */
+    private async _copyVsCodeLaunch(path: string): Promise<void> {
+        if (!await pathExists(join(path, ".vscode"))) {
+            await mkdir(join(path, ".vscode"));
+        }
+
+        await copy(join(Tools.GetAppPath(), "assets/project/launch.json"), join(path, ".vscode/launch.json"), { overwrite: false });
     }
 
     /**

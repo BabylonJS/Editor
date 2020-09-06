@@ -19,7 +19,7 @@ import { Confirm } from "./gui/confirm";
 
 import { Tools } from "./tools/tools";
 import { IPCTools } from "./tools/ipc";
-import { IObjectModified, IEditorPreferences } from "./tools/types";
+import { IObjectModified, IEditorPreferences, EditorPlayMode } from "./tools/types";
 import { undoRedo } from "./tools/undo-redo";
 import { AbstractEditorPlugin } from "./tools/plugin";
 import { LayoutUtils } from "./tools/layout-utils";
@@ -584,7 +584,7 @@ export class Editor {
      * Runs the project.
      * @param integratedBrowser defines wether or not the integrated browser should be used to run the project.
      */
-    public async runProject(integratedBrowser: boolean): Promise<void> {
+    public async runProject(mode: EditorPlayMode): Promise<void> {
         // await ProjectExporter.Save(this, true);
         await ProjectExporter.ExportFinalScene(this);
 
@@ -596,10 +596,16 @@ export class Editor {
         this.updateTaskFeedback(task, 100);
         this.closeTaskFeedback(task, 500);
 
-        if (integratedBrowser) {
-            this.addWindowedPlugin("play", undefined, workspace);
-        } else {
-            shell.openExternal(`http://localhost:${workspace.serverPort}`);
+        switch (mode) {
+            case EditorPlayMode.EditorPanelBrowser:
+                this.addPlugin("play");
+                break;
+            case EditorPlayMode.IntegratedBrowser:
+                this.addWindowedPlugin("play", undefined, workspace);
+                break;
+            case EditorPlayMode.ExternalBrowser:
+                shell.openExternal(`http://localhost:${workspace.serverPort}`);
+                break;
         }
     }
 
@@ -952,9 +958,9 @@ export class Editor {
         ipcRenderer.on("build-project", () => WorkSpace.BuildProject(this));
         ipcRenderer.on("build-and-run-project", async () => {
             await WorkSpace.BuildProject(this);
-            this.runProject(true);
+            this.runProject(EditorPlayMode.EditorPanelBrowser);
         });
-        ipcRenderer.on("run-project", () => this.runProject(true));
+        ipcRenderer.on("run-project", () => this.runProject(EditorPlayMode.EditorPanelBrowser));
 
         // Drag'n'drop
         document.addEventListener("dragover", (ev) => ev.preventDefault());

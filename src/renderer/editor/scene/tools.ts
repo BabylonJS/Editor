@@ -118,6 +118,7 @@ export class SceneTools {
      */
     public static async ExportSceneToGLTF(editor: Editor, format: "gltf" | "glb"): Promise<void> {
         const prefix = await Dialog.Show("GLTF file prefix", "Please provide a prefix for files.");
+        const task = editor.addTaskFeedback(0, `Exporting to ${format}...`);
 
         const savedTextures: { texture: BaseTexture; name: string; }[] = [];
         editor.scene!.textures.forEach((texture) => {
@@ -128,6 +129,8 @@ export class SceneTools {
         });
         
         try {
+            editor.updateTaskFeedback(task, 50);
+
             const data = format === "glb" ? await GLTF2Export.GLBAsync(editor.scene!, prefix, { }) : await GLTF2Export.GLTFAsync(editor.scene!, prefix, { });
             const dest = await Tools.ShowSaveDialog();
             for (const f in data.glTFFiles) {
@@ -141,9 +144,13 @@ export class SceneTools {
                 }
             }
 
+            editor.updateTaskFeedback(task, 100, "Done");
+            editor.closeTaskFeedback(task, 1000);
+
             shell.openItem(dest);
         } catch (e) {
-            // Catch silently.
+            editor.updateTaskFeedback(task, 0, "Error!");
+            editor.closeTaskFeedback(task, 1000);
         } finally {
             savedTextures.forEach((texture) => {
                 texture.texture.name = texture.name;

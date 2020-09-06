@@ -2,7 +2,10 @@ import * as React from "react";
 import { ButtonGroup, Button, ContextMenu, Classes, Menu, MenuItem } from "@blueprintjs/core";
 
 import { Editor } from "../editor";
+
 import { Icon } from "../gui/icon";
+
+import { EditorPlayMode } from "../tools/types";
 
 import { ProjectExporter } from "../project/project-exporter";
 import { WorkSpace } from "../project/workspace";
@@ -43,7 +46,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     public render(): React.ReactNode {
         return (
             <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
-                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("play")} />
+                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("play-integrated")} />
                 <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} />
             </ButtonGroup>
         );
@@ -54,8 +57,9 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
      */
     private async _buttonClicked(id: string): Promise<void> {
         switch (id) {
-            case "play": this._editor.runProject(true); break;
-            case "play-my-browser": this._editor.runProject(false); break;
+            case "play": this._editor.runProject(EditorPlayMode.EditorPanelBrowser); break;
+            case "play-integrated": this._editor.runProject(EditorPlayMode.IntegratedBrowser); break;
+            case "play-my-browser": this._editor.runProject(EditorPlayMode.ExternalBrowser); break;
 
             case "generate": ProjectExporter.ExportFinalScene(this._editor); break;
             case "build-project": WorkSpace.BuildProject(this._editor); break;
@@ -69,7 +73,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     private _handlePlayContextMenu(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Play in integrated browser" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("play")} />
+                <MenuItem text="Play in integrated browser" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("play-integrated")} />
                 <MenuItem text="Play in my browser" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("play-my-browser")} />
             </Menu>,
             { left: e.clientX, top: e.clientY },

@@ -67,7 +67,9 @@ export class WindowController {
 	private static _createWindow(options: BrowserWindowConstructorOptions): BrowserWindow {
 		let window = new BrowserWindow(options);
 		this._Windows.push(window);
+
 		window.on("closed", () => this._removeWindow(window));
+
 		return window;
 	}
 
