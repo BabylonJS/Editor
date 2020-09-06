@@ -59,7 +59,7 @@ export class OffscreenAssetsHelper {
      * @param rootUrl the root url containing the mesh's file.
      * @param filename the name of the mesh file to load.
      */
-    public importMesh(rootUrl: string, filename: string): Promise<void> {
+    public importMesh(rootUrl: string, filename: string): Promise<boolean> {
         return this._getPromise("importMesh", { rootUrl, filename });
     }
 

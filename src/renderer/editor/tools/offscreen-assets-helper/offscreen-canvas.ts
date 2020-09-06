@@ -159,8 +159,21 @@ class OffscreenAssets {
      * @param rootUrl the root url containing the mesh's file.
      * @param filename the name of the mesh file to load.
      */
-    public async importMesh(rootUrl: string, filename: string): Promise<void> {
-        await SceneLoader.ImportMeshAsync("", rootUrl, filename, this.scene, null, null);
+    public async importMesh(rootUrl: string, filename: string): Promise<boolean> {
+        return new Promise<boolean>(async (resolve) => {
+            const timeoutId = setTimeout(() => {
+                resolve(false);
+            }, 10000);
+
+            try {
+                await SceneLoader.ImportMeshAsync("", rootUrl, filename, this.scene, null, null);
+                resolve(true);
+            } catch (e) {
+                resolve(false);
+            }
+
+            clearTimeout(timeoutId);
+        });
     }
 
     /**
@@ -199,7 +212,7 @@ addEventListener("message", async (ev) => {
             // Creates the given mesh.
             case "createMesh": OffscreenAssets._Instance.createMesh(ev.data.type); break;
             // Import a mesh
-            case "importMesh": await OffscreenAssets._Instance.importMesh(ev.data.rootUrl, ev.data.filename); break;
+            case "importMesh": response = await OffscreenAssets._Instance.importMesh(ev.data.rootUrl, ev.data.filename); break;
             // Sets the given material to the mesh.
             case "setMaterial": OffscreenAssets._Instance.setMaterial(ev.data.json, ev.data.rootUrl); break;
             // Disposes the current material

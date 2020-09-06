@@ -64,20 +64,32 @@ export class MeshesAssets extends AbstractAssets {
 
     /**
      * Refreshes the component.
+     * @param object defines the optional reference to the object to refresh.
      * @override
      */
-    public async refresh(): Promise<void> {
+    public async refresh(object?: string): Promise<void> {
         await assetsHelper.init();
 
         for (const m of MeshesAssets.Meshes) {
-            if (this.items.find((i) => i.key === m.path)) { continue; }
-            
+            if (!object && this.items.find((i) => i.key === m.path)) { continue; }
+            if (object && m.path !== object) { continue; }
+
             const rootUrl = join(Project.DirPath!, "files", "/");
             const name = join("..", "assets/meshes", m.name);
-            await assetsHelper.importMesh(rootUrl, name);
 
-            const base64 = await assetsHelper.getScreenshot();
-            this.items.push({ id: m.name, key: m.path, base64 });
+            const importSuccess = await assetsHelper.importMesh(rootUrl, name);
+
+            const base64 = (importSuccess ? await assetsHelper.getScreenshot() : "../css/svg/times.svg");
+            const style = (importSuccess ? { } : { background: "darkred" });
+            
+            const item = this.items.find((i) => i.key === m.path);
+
+            if (item) {
+                item.style = style;
+                item.base64 = base64;
+            } else {
+                this.items.push({ id: m.name, key: m.path, base64, style });
+            }
 
             this.updateAssetThumbnail(m.path, base64);
 
@@ -131,6 +143,8 @@ export class MeshesAssets extends AbstractAssets {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
+                <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this._refreshMeshPreview(item.id, item.key)} />
+                <MenuDivider />
                 <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(item.key))} />
                 <MenuItem text="Export To" icon="export">
                     <MenuItem text="To Babylon..." icon={<Icon src="logo-babylon.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToBabylonJSFormat(this.editor, item.id)} />
@@ -142,6 +156,19 @@ export class MeshesAssets extends AbstractAssets {
             </Menu>,
             { left: e.clientX, top: e.clientY },
         );
+    }
+
+    private async _refreshMeshPreview(name: string, path: string): Promise<void> {
+        const task = this.editor.addTaskFeedback(50, `Refresing "${name}"`);
+
+        try {
+            await this.editor.assets.refresh(MeshesAssets, path);
+            this.editor.updateTaskFeedback(task, 100, "Done");
+        } catch (e) {
+            this.editor.updateTaskFeedback(task, 0, "Failed");
+        }
+
+        this.editor.closeTaskFeedback(task, 500);
     }
 
     /**
@@ -248,7 +275,13 @@ export class MeshesAssets extends AbstractAssets {
 
             // Copy assets
             const dest = join(Project.DirPath!, "assets", "meshes", file.name);
-            if (dest) { await copy(file.path, dest); }
+            if (dest) {
+                try {
+                    await copy(file.path, dest);
+                } catch (e) {
+                    this.editor.console.logError(e.message);
+                }
+            }
 
             if (!existing) {
                 MeshesAssets.Meshes.push({ name: file.name, path: dest });
