@@ -424,9 +424,15 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         this._editor.scene!.stopAnimation(camera);
 
-        const translation = Vector3.Zero();
+        let translation = Vector3.Zero();
+        
         const scaling = Vector3.Zero();
         (node as Node).getWorldMatrix().decompose(scaling, undefined, translation);
+
+        if (node instanceof AbstractMesh) {
+            node.refreshBoundingInfo(true);
+            translation = node.getBoundingInfo()?.boundingBox?.centerWorld?.clone() ?? translation;
+        }
         
         if (camera["target"]) {
             const a = new Animation("FocusTargetAnimation", "target", 60, Animation.ANIMATIONTYPE_VECTOR3);
