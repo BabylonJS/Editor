@@ -107,8 +107,10 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Editor Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("edit:editor-camera")} />
                 <MenuDivider />
-                <MenuItem text="Refresh Assets..." icon={<Icon src="recycle.svg" />} onClick={() => this._menuItemClicked("edit:refresh-assets")} />
-                <MenuItem text="Reset Editor..." icon={<Icon src="recycle.svg" />} onClick={() => this._menuItemClicked("edit:reset")} />
+                <MenuItem text="Refresh Assets Thumbnails..." onClick={() => this._menuItemClicked("edit:refresh-assets")} />
+                <MenuItem text="Clear Unused Assets Files..." onClick={() => this._menuItemClicked("edit:clear-unused-assets")} />
+                <MenuDivider />
+                <MenuItem text="Reset Editor..." icon={<Icon src="reset.svg" style={{ filter: "grayscale(1)", width: "20px", height: "20px" }} />} onClick={() => this._menuItemClicked("edit:reset")} />
                 <MenuDivider />
                 <MenuItem text="Preferences..." icon={<Icon src="wrench.svg" />} onClick={() => this._handleWorkspaceSettings()} />
             </Menu>;
@@ -236,6 +238,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "edit:editor-camera": this._editor.inspector.setSelectedObject(SceneSettings.Camera); break;
 
             case "edit:refresh-assets": this._editor.assets.forceRefresh(); break;
+            case "edit:clear-unused-assets": this._editor.assets.clearUnusedAssets(); break;
+
             case "edit:reset": this._editor._resetEditor(); break;
 
             // Help

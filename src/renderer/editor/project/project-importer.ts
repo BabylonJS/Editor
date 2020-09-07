@@ -342,9 +342,6 @@ export class ProjectImporter {
             Assets.SetCachedData(await readJSON(assetsCachePath));
         }
 
-        // Clean up assets
-        await Assets.Clean();
-
         // Parent Ids
         const scene = editor.scene!;
         scene.meshes.forEach((m) => this._SetWaitingParent(m));

@@ -1,6 +1,6 @@
 import { shell } from "electron";
 import { join, extname, basename, dirname } from "path";
-import { copy } from "fs-extra";
+import { copy, readdir, remove } from "fs-extra";
 import * as os from "os";
 
 import { Undefinable } from "../../../shared/types";
@@ -66,6 +66,42 @@ export class SoundAssets extends AbstractAssets {
         }
 
         return super.refresh();
+    }
+
+    /**
+     * Called once a project has been loaded, this function is used to clean up
+     * unused assets files automatically.
+     */
+    public async clean(): Promise<void> {
+        if (!Project.DirPath) { return; }
+
+        const usedSounds: string[] = [];
+        const existingFiles = (await readdir(join(Project.DirPath, "files"))).filter((f) => this._extensions.indexOf(extname(f).toLowerCase()) !== -1);
+        const soundtracks = (this.editor.scene!.soundTracks ?? []).concat([this.editor.scene!.mainSoundTrack]).filter((st) => st);
+
+        for (const soundtrack of soundtracks) {
+            for (const sound of soundtrack.soundCollection) {
+                const name = basename(sound.name);
+                const existingIndex = usedSounds.indexOf(name);
+                if (existingIndex === -1) {
+                    usedSounds.push(name);
+                }
+            }
+        }
+
+        for (const file of existingFiles) {
+            const index = usedSounds.indexOf(file);
+            if (index === -1) {
+                try {
+                    await remove(join(Project.DirPath!, "files", file));
+                } finally {
+                    const fileRef = FilesStore.GetFileFromBaseName(file);
+                    if (fileRef) {
+                        FilesStore.RemoveFileFromPath(fileRef.path);
+                    }
+                }
+            }
+        }
     }
 
     /**

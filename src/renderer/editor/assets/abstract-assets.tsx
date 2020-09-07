@@ -224,7 +224,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
         return (
             <div 
                 onContextMenu={(e) => this.onComponentContextMenu(e)}
-                style={{ width: "100%", height: size.height - 30, overflow: "auto", ...this.props.style }}
+                style={{ width: "100%", height: size.height - 60, overflow: "auto", ...this.props.style }}
                 children={this._itemsNodes}
             ></div>
         );

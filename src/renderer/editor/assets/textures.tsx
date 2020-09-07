@@ -60,7 +60,6 @@ export class TextureAssets extends AbstractAssets {
                         </Popover>
                         <Divider />
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedTextures()} />
-                        <Button key="clear-unused-files" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused Files..." onClick={() => this._clearUnusedTexturesFiles()} />
                     </ButtonGroup>
                 </div>
                 {super.render()}
@@ -121,6 +120,45 @@ export class TextureAssets extends AbstractAssets {
         }
 
         return super.refresh();
+    }
+
+    /**
+     * Called once a project has been loaded, this function is used to clean up
+     * unused assets files automatically.
+     */
+    public async clean(): Promise<void> {
+        const files = await readdir(join(Project.DirPath!, "files"));
+        const textures = files.filter((f) => this._extensions.indexOf(extname(f).toLowerCase()) !== -1);
+
+        this.editor.scene!.textures.forEach((texture) => {
+            const extension = extname(texture.name).toLowerCase();
+            if (!extension || this._extensions.indexOf(extension) === -1) { return; }
+
+            const index = textures.indexOf(basename(texture.name));
+            if (index !== -1) {
+                textures.splice(index, 1);
+            }
+        });
+
+        if (!textures.length) { return; }
+
+        // Remove!
+        const step = 100 / textures.length;
+        let amount = 0;
+
+        const task = this.editor.addTaskFeedback(0, "Cleaning Textures Files...");
+
+        for (const name of textures) {
+            const path = join(Project.DirPath!, "files", name);
+            try {
+                await remove(path);
+            } finally {
+                this.editor.updateTaskFeedback(task, amount += step);
+            }
+        }
+
+        this.editor.updateTaskFeedback(task, 100, "Done");
+        this.editor.closeTaskFeedback(task, 1000);
     }
 
     /**
@@ -433,44 +471,6 @@ export class TextureAssets extends AbstractAssets {
 
         this.items = [];
         this.refresh();
-    }
-
-    /**
-     * Clears all the unsed textures files.
-     */
-    private async _clearUnusedTexturesFiles(): Promise<void> {
-        const files = await readdir(join(Project.DirPath!, "files"));
-        const textures = files.filter((f) => this._extensions.indexOf(extname(f).toLowerCase()) !== -1);
-
-        this.editor.scene!.textures.forEach((texture) => {
-            const extension = extname(texture.name).toLowerCase();
-            if (!extension || this._extensions.indexOf(extension) === -1) { return; }
-
-            const index = textures.indexOf(basename(texture.name));
-            if (index !== -1) {
-                textures.splice(index, 1);
-            }
-        });
-
-        if (!textures.length) { return; }
-
-        // Remove!
-        const step = 100 / textures.length;
-        let amount = 0;
-
-        const task = this.editor.addTaskFeedback(0, "Cleaning Textures Files...");
-
-        for (const name of textures) {
-            const path = join(Project.DirPath!, "files", name);
-            try {
-                await remove(path);
-            } finally {
-                this.editor.updateTaskFeedback(task, amount += step);
-            }
-        }
-
-        this.editor.updateTaskFeedback(task, 100, "Done");
-        this.editor.closeTaskFeedback(task, 1000);
     }
 
     /**

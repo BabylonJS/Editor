@@ -180,6 +180,31 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
     }
 
     /**
+     * Clears all the unused assets by removing their files.
+     */
+    public async clearUnusedAssets(): Promise<void> {
+        const components = Assets._assetComponents.filter((ac) => ac._ref?.clean);
+
+        let currentStep = 0;
+        
+        const task = this._editor.addTaskFeedback(0, "Cleaning Assets...");
+        const step = 100 / components.length;
+
+        for (const ac of components) {
+            try {
+                this._editor.updateTaskFeedback(task, currentStep, `Cleaning Assets "${ac.title}"`);
+                await ac._ref!.clean();
+
+                this._editor.updateTaskFeedback(task, currentStep += step);
+            } catch (e) {
+                //Catch siently.
+            }
+        }
+
+        this._editor.closeTaskFeedback(task, 500);
+    }
+
+    /**
      * Resizes the assets components.
      */
     public resize(): void {
