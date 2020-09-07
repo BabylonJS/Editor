@@ -773,13 +773,13 @@ export class ProjectExporter {
                 offset += geometry.uvs.length * Float32Array.BYTES_PER_ELEMENT;
             }
 
-            if (geometry.uvs2) {
-                m._binaryInfo.uvs2AttrDesc = { count: geometry.uvs2.length, stride: 2, offset, dataType: 1 };
-                stream.write(Buffer.from(new Float32Array(geometry.uvs2).buffer));
+            if (geometry.uv2s) {
+                m._binaryInfo.uvs2AttrDesc = { count: geometry.uv2s.length, stride: 2, offset, dataType: 1 };
+                stream.write(Buffer.from(new Float32Array(geometry.uv2s).buffer));
 
-                m.uvs2 = null;
+                m.uv2s = null;
                 m.hasUVs2 = true;
-                offset += geometry.uvs2.length * Float32Array.BYTES_PER_ELEMENT;
+                offset += geometry.uv2s.length * Float32Array.BYTES_PER_ELEMENT;
             }
 
             if (geometry.tangents) {
