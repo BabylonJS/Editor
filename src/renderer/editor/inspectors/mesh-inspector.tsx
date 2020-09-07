@@ -199,11 +199,20 @@ export class MeshInspector extends NodeInspector {
             if (this.selectedObject.physicsImpostor && this.selectedObject.physicsImpostor.type === PhysicsImpostor[this._physicsImpostor]) {
                 return;
             }
+            
+            try {
+                this.selectedObject.physicsImpostor = new PhysicsImpostor(this.selectedObject, PhysicsImpostor[this._physicsImpostor], {
+                    mass: 1,
+                });
 
-            this.selectedObject.physicsImpostor = new PhysicsImpostor(this.selectedObject, PhysicsImpostor[this._physicsImpostor], {
-                mass: 1,
-            });
-            this.selectedObject.physicsImpostor.sleep();
+                if (this.selectedObject.parent) {
+                    this.selectedObject.physicsImpostor.forceUpdate();
+                }
+
+                this.selectedObject.physicsImpostor.sleep();
+            } catch (e) {
+                // Catch silently   
+            }
 
             while (this._physicsFolder!.__controllers.length) {
                 this._physicsFolder!.remove(this._physicsFolder!.__controllers[0]);
