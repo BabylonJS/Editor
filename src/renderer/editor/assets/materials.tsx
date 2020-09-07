@@ -205,6 +205,24 @@ export class MaterialAssets extends AbstractAssets {
             <Menu className={Classes.DARK}>
                 <MenuItem text="Save Material Preset..." icon={<Icon src="save.svg" />} onClick={() => this._handleSaveMaterialPreset(item)} />
                 <MenuDivider />
+                <MenuItem text="Clone..." onClick={async () => {
+                    const name = await Dialog.Show("Material Name?", "Please provide a name for the cloned material");
+
+                    const existing = this.editor.scene!.materials.find((m) => m.name === name);
+                    if (existing) {
+                        return Alert.Show("Can't clone material", `A material named "${name}" already exists.`);
+                    }
+
+                    const clone = material.clone(name);
+                    if (!clone) {
+                        return Alert.Show("Failed to clone", "An error occured while clonig the material. The returned refenrence is equal to null.");
+                    }
+
+                    clone.uniqueId = this.editor.scene!.getUniqueId();
+                    clone.id = Tools.RandomId();
+
+                    this.refresh();
+                }} />
                 <MenuItem text="Locked" icon={material.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
                     material.metadata.isLocked = !material.metadata.isLocked;
                     item.style = item.style ?? { };
