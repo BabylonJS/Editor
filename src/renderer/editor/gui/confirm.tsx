@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { Dialog, Button, Classes, Intent } from "@blueprintjs/core";
+import { Dialog, Button, Classes, Intent, IconName } from "@blueprintjs/core";
 
 import { Undefinable } from "../../../shared/types";
 
@@ -16,7 +16,7 @@ export interface IConfirmProps {
     /**
      * The icon to show on top-left of the dialog.
      */
-    icon: Undefinable<JSX.Element>;
+    icon: Undefinable<IconName | JSX.Element>;
     /**
      * Defines the html div element that contains the alert.
      */
@@ -34,7 +34,7 @@ export class Confirm extends React.Component<IConfirmProps> {
      * @param message the message of the dialog.
      * @param icon the icon of the dialog to show on top-left.
      */
-    public static async Show(title: string, message: string, icon?: Undefinable<JSX.Element>): Promise<boolean> {
+    public static async Show(title: string, message: string, icon?: Undefinable<IconName | JSX.Element>): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
             const container = document.createElement("div");
             container.style.position = "absolute";

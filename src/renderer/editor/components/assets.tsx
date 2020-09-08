@@ -10,6 +10,7 @@ import { Alert } from "../gui/alert";
 
 import { Tools } from "../tools/tools";
 import { IFile } from "../project/files";
+import { Confirm } from "../gui/confirm";
 
 export interface IAssetComponent {
     /**
@@ -183,6 +184,10 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
      * Clears all the unused assets by removing their files.
      */
     public async clearUnusedAssets(): Promise<void> {
+        if (!await Confirm.Show("Are You Sure?", "This operation will remove all files that are not used (meshes, textures, sounds, etc.). This operation is irreversible until you manually re-add the files yourself. Continue?", "warning-sign")) {
+            return;
+        }
+
         const components = Assets._assetComponents.filter((ac) => ac._ref?.clean);
 
         let currentStep = 0;
