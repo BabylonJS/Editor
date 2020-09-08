@@ -260,7 +260,7 @@ export class WorkSpace {
         const isWin32 = platform() === "win32";
         const watchScript = join("node_modules", ".bin", isWin32 ? "tsc.cmd" : "tsc");
 
-        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, false);
+        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, false, ConsoleLayer.TypeScript);
     }
 
     /**

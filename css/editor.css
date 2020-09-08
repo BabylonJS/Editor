@@ -41,16 +41,17 @@ html, body {
 
 /* SCROLLBARS */
 
-div::-webkit-scrollbar {
+::-webkit-scrollbar {
     /* background: transparent none; */
     width: 5px !important;
+    height: 5px !important;
 }
 
-div::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
     background: #222222 !important;
 }
 
-div::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
     background: #ddd !important;
     border-radius: 0px !important;
 }

@@ -37,6 +37,10 @@ export enum ConsoleLayer {
      */
     Common = 0,
     /**
+     * Defines the layer containing all the typescript logs.
+     */
+    TypeScript,
+    /**
      * Defines the layer containing all the webpack logs.
      */
     WebPack,
@@ -54,6 +58,14 @@ export interface IConsoleState {
      * Defines the current Id of the active tab.
      */
     tabId: TabId;
+    /**
+     * Defines the current width in pixels of the panel.
+     */
+    width: number;
+    /**
+     * Defines the current height in pixels of the panel.
+     */
+    height: number;
 }
 
 export interface IConsoleLog {
@@ -72,16 +84,19 @@ export interface IConsoleLog {
 }
 
 export class Console extends React.Component<IConsoleProps, IConsoleState> {
-    private _terminalCommon: Nullable<Terminal> = null;
+    private _terminalTypeScript: Nullable<Terminal> = null;
     private _terminalWebPack: Nullable<Terminal> = null;
 
     private _fitAddonCommon: FitAddon = new FitAddon();
     private _fitAddonWebPack: FitAddon = new FitAddon();
 
-    private _terminalCommonDiv: Nullable<HTMLDivElement> = null;
+    private _commonPre: Nullable<HTMLPreElement> = null;
+    private _terminalTypeScriptDiv: Nullable<HTMLDivElement> = null;
     private _terminalWebPackDiv: Nullable<HTMLDivElement> = null;
+
     private _refHandler = {
-        getCommonDiv: (ref: HTMLDivElement) => this._terminalCommonDiv = ref,
+        getPre: (ref: HTMLPreElement) => this._commonPre = ref,
+        getTypeScriptDiv: (ref: HTMLDivElement) => this._terminalTypeScriptDiv = ref,
         getWebPackDiv: (ref: HTMLDivElement) => this._terminalWebPackDiv = ref,
     };
 
@@ -98,7 +113,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
         super(props);
 
         props.editor.console = this;
-        this.state = { tabId: "common" };
+        this.state = { tabId: "common", width: 1, height: 1 };
     }
 
     /**
@@ -118,8 +133,9 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                     renderActiveTabPanelOnly={false}
                     vertical={true}
                     children={[
-                        <Tab id="common" title="Common" key="common" panel={<div ref={this._refHandler.getCommonDiv} key="common-div" style={{ width: "100%", height: "100%" }}></div>} />,
-                        <Tab id="webpack" title="WebPack" key="webpack" panel={<div ref={this._refHandler.getWebPackDiv} key="webpack-div" style={{ width: "100%", height: "100%" }}></div>} />,
+                        <Tab id="common"     title="Common"     key="common"     panel={<pre ref={this._refHandler.getPre} key="common-div" className="bp3-code-block" style={{ width: this.state.width, height: this.state.height, marginTop: "6px" }}></pre>} />,
+                        <Tab id="typescript" title="TypeScript" key="typescript" panel={<div ref={this._refHandler.getTypeScriptDiv} key="typescript-div" style={{ width: "100%", height: "100%" }}></div>} />,
+                        <Tab id="webpack"    title="WebPack"    key="webpack"    panel={<div ref={this._refHandler.getWebPackDiv} key="webpack-div" style={{ width: "100%", height: "100%" }}></div>} />,
                     ]}
                     onChange={(id) => this.setActiveTab(id)}
                     selectedTabId={this.state.tabId}
@@ -132,13 +148,14 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Called on the component did mount.
      */
     public componentDidMount(): void {
-        if (!this._terminalCommonDiv || !this._terminalWebPackDiv) { return; }
+        if (!this._commonPre || !this._terminalTypeScriptDiv || !this._terminalWebPackDiv) { return; }
 
         // Create terminals
         this._terminalWebPack = this._createTerminal(this._terminalWebPackDiv, this._fitAddonWebPack);
-        this._terminalCommon = this._createTerminal(this._terminalCommonDiv, this._fitAddonCommon);
+        this._terminalTypeScript = this._createTerminal(this._terminalTypeScriptDiv, this._fitAddonCommon);
 
         this.logInfo("Console ready.", ConsoleLayer.Common);
+        this.logInfo("Console ready.", ConsoleLayer.TypeScript);
         this.logInfo("Console ready.", ConsoleLayer.WebPack);
     }
 
@@ -146,7 +163,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Called on the component will unmount.
      */
     public componentWillUnmount(): void {
-        if (this._terminalCommon) { this._terminalCommon.dispose(); }
+        if (this._terminalTypeScript) { this._terminalTypeScript.dispose(); }
         if (this._terminalWebPack) { this._terminalWebPack.dispose(); }
 
         this._fitAddonCommon.dispose();
@@ -160,19 +177,22 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
         setTimeout(() => {
             const size = this.props.editor.getPanelSize("console");
 
-            if (this._terminalCommonDiv) {
-                this._terminalCommonDiv.style.width = `${size.width}px`;
-                this._terminalCommonDiv.style.height = `${size.height - 35}px`;
+            if (this._terminalTypeScriptDiv) {
+                this._terminalTypeScriptDiv.style.width = `${size.width - 126}px`;
+                this._terminalTypeScriptDiv.style.height = `${size.height - 30}px`;
             }
 
             if (this._terminalWebPackDiv) {
-                this._terminalWebPackDiv.style.width = `${size.width}px`;
-                this._terminalWebPackDiv.style.height = `${size.height - 35}px`;
+                this._terminalWebPackDiv.style.width = `${size.width - 126}px`;
+                this._terminalWebPackDiv.style.height = `${size.height - 30}px`;
             }
             
             switch (this.state.tabId) {
                 case "common":
-                    this._terminalCommon?.resize(1, 1);
+                    this.setState({ width: size.width - 126, height: size.height - 40 });
+                    break;
+                case "typescript":
+                    this._terminalTypeScript?.resize(1, 1);
                     this._fitAddonCommon.fit();
                     break;
                 case "webpack":
@@ -191,8 +211,9 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      */
     public getTerminalByType(type: ConsoleLayer): Nullable<Terminal> {
         switch (type) {
-            case ConsoleLayer.Common: return this._terminalCommon;
+            case ConsoleLayer.TypeScript: return this._terminalTypeScript;
             case ConsoleLayer.WebPack: return this._terminalWebPack;
+            default: return null;
         }
     }
 
@@ -246,7 +267,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      */
     public clear(tabId: TabId): void {
         switch (tabId) {
-            case "common": this._terminalCommon?.clear(); break;
+            case "common": this._commonPre && (this._commonPre.innerHTML = ""); break;
+            case "typescript": this._terminalTypeScript?.clear(); break;
             case "webpack": this._terminalWebPack?.clear(); break;
             default: break;
         }
@@ -256,27 +278,59 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Adds the given log to the editor.
      */
     private _addLog(log: IConsoleLog): void {
-        // if (!this._terminalCommon) { return; }
-        const terminal = (log.layer ?? ConsoleLayer.Common) === ConsoleLayer.Common ? this._terminalCommon : this._terminalWebPack;
+        log.layer = log.layer ?? ConsoleLayer.Common;
+
+        // Common
+        if (log.layer === ConsoleLayer.Common) {
+            if (!this._commonPre) { return; }
+
+            let logs = this._commonPre.innerHTML;
+
+            switch (log.type) {
+                case ConsoleLogType.Info:
+                case ConsoleLogType.Raw:
+                    logs += `[INFO]: ${log.message}`;
+                    console.info(log.message);
+                    break;
+                case ConsoleLogType.Warning:
+                    logs += `[WARN]: ${log.message}`;
+                    console.warn(log.message);
+                    break;
+                case ConsoleLogType.Error:
+                    logs += `[ERROR]: ${log.message}`;
+                    console.error(log.message);
+                    break;
+            }
+
+            if (this._commonPre) {
+                this._commonPre.innerHTML = logs + "\n";
+                this._commonPre.scrollTop = this._commonPre.scrollHeight + 25;
+            }
+
+            return;
+        }
+
+        // Terminal
+        const terminal = log.layer === ConsoleLayer.TypeScript ? this._terminalTypeScript : this._terminalWebPack;
         if (!terminal) { return; }
 
         switch (log.type) {
             case ConsoleLogType.Info:
-                    terminal.writeln(`[INFO]: ${log.message}`);
-                    console.info(log.message);
-                    break;
-                case ConsoleLogType.Warning:
-                    terminal.writeln(`[WARN]: ${log.message}`);
-                    console.warn(log.message);
-                    break;
-                case ConsoleLogType.Error:
-                    terminal.writeln(`[ERROR]: ${log.message}`);
-                    console.error(log.message);
-                    break;
-                case ConsoleLogType.Raw:
-                    terminal.write(log.message);
-                    console.log(log.message.trim());
-                    break;
+                terminal.writeln(`[INFO]: ${log.message}`);
+                console.info(log.message);
+                break;
+            case ConsoleLogType.Warning:
+                terminal.writeln(`[WARN]: ${log.message}`);
+                console.warn(log.message);
+                break;
+            case ConsoleLogType.Error:
+                terminal.writeln(`[ERROR]: ${log.message}`);
+                console.error(log.message);
+                break;
+            case ConsoleLogType.Raw:
+                terminal.write(log.message);
+                console.log(log.message.trim());
+                break;
         }
     }
 
