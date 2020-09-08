@@ -90,12 +90,12 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     private _fitAddonCommon: FitAddon = new FitAddon();
     private _fitAddonWebPack: FitAddon = new FitAddon();
 
-    private _commonPre: Nullable<HTMLPreElement> = null;
+    private _commonDiv: Nullable<HTMLDivElement> = null;
     private _terminalTypeScriptDiv: Nullable<HTMLDivElement> = null;
     private _terminalWebPackDiv: Nullable<HTMLDivElement> = null;
 
     private _refHandler = {
-        getPre: (ref: HTMLPreElement) => this._commonPre = ref,
+        getCommonDiv: (ref: HTMLDivElement) => this._commonDiv = ref,
         getTypeScriptDiv: (ref: HTMLDivElement) => this._terminalTypeScriptDiv = ref,
         getWebPackDiv: (ref: HTMLDivElement) => this._terminalWebPackDiv = ref,
     };
@@ -133,7 +133,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                     renderActiveTabPanelOnly={false}
                     vertical={true}
                     children={[
-                        <Tab id="common"     title="Common"     key="common"     panel={<pre ref={this._refHandler.getPre} key="common-div" className="bp3-code-block" style={{ width: this.state.width, height: this.state.height, marginTop: "6px" }}></pre>} />,
+                        <Tab id="common"     title="Common"     key="common"     panel={<div ref={this._refHandler.getCommonDiv} key="common-div" className="bp3-code-block" style={{ width: this.state.width, height: this.state.height, marginTop: "6px", overflow: "auto" }}></div>} />,
                         <Tab id="typescript" title="TypeScript" key="typescript" panel={<div ref={this._refHandler.getTypeScriptDiv} key="typescript-div" style={{ width: "100%", height: "100%" }}></div>} />,
                         <Tab id="webpack"    title="WebPack"    key="webpack"    panel={<div ref={this._refHandler.getWebPackDiv} key="webpack-div" style={{ width: "100%", height: "100%" }}></div>} />,
                     ]}
@@ -148,7 +148,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Called on the component did mount.
      */
     public componentDidMount(): void {
-        if (!this._commonPre || !this._terminalTypeScriptDiv || !this._terminalWebPackDiv) { return; }
+        if (!this._commonDiv || !this._terminalTypeScriptDiv || !this._terminalWebPackDiv) { return; }
 
         // Create terminals
         this._terminalWebPack = this._createTerminal(this._terminalWebPackDiv, this._fitAddonWebPack);
@@ -267,7 +267,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      */
     public clear(tabId: TabId): void {
         switch (tabId) {
-            case "common": this._commonPre && (this._commonPre.innerHTML = ""); break;
+            case "common": this._commonDiv && (this._commonDiv.innerHTML = ""); break;
             case "typescript": this._terminalTypeScript?.clear(); break;
             case "webpack": this._terminalWebPack?.clear(); break;
             default: break;
@@ -282,30 +282,31 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
 
         // Common
         if (log.layer === ConsoleLayer.Common) {
-            if (!this._commonPre) { return; }
+            if (!this._commonDiv) { return; }
 
-            let logs = this._commonPre.innerHTML;
-
+            const p = document.createElement("p");
+            p.style.marginBottom = "0px";
+            p.style.whiteSpace = "nowrap";
+            
             switch (log.type) {
                 case ConsoleLogType.Info:
-                case ConsoleLogType.Raw:
-                    logs += `[INFO]: ${log.message}`;
+                    p.innerText = `[INFO]: ${log.message}`;
                     console.info(log.message);
                     break;
                 case ConsoleLogType.Warning:
-                    logs += `[WARN]: ${log.message}`;
+                    p.innerText = `[WARN]: ${log.message}`;
+                    p.style.color = "yellow";
                     console.warn(log.message);
                     break;
                 case ConsoleLogType.Error:
-                    logs += `[ERROR]: ${log.message}`;
-                    console.error(log.message);
+                    p.innerText = `[ERROR]: ${log.message}`;
+                    p.style.color = "red";
+                    console.warn(log.message);
                     break;
             }
 
-            if (this._commonPre) {
-                this._commonPre.innerHTML = logs + "\n";
-                this._commonPre.scrollTop = this._commonPre.scrollHeight + 25;
-            }
+            this._commonDiv.appendChild(p);
+            this._commonDiv.scrollTop = this._commonDiv.scrollHeight + 25;
 
             return;
         }
