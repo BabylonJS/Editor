@@ -1,3 +1,5 @@
+import { Nullable } from "../../../../shared/types";
+
 import * as ReactDOM from "react-dom";
 import * as React from "react";
 import { Button } from "@blueprintjs/core";
@@ -27,7 +29,7 @@ export interface IKeyMapperState {
 }
 
 export class KeyMapper extends React.Component<IKeyMapperProps, IKeyMapperState> {
-    private _keyListener: (this: Window, ev: WindowEventMap["keyup"]) => void;
+    private _keyListener: Nullable<(this: Window, ev: WindowEventMap["keyup"]) => void> = null;
 
     /**
      * Constructor.
@@ -48,23 +50,37 @@ export class KeyMapper extends React.Component<IKeyMapperProps, IKeyMapperState>
         let text = "";
         if (this.state.settingKey) {
             text = "Type key";
-            window.addEventListener("keyup", this._keyListener = (ev) => {
-                this._removeListener();
-                this.setState({ mappedKey: ev.keyCode });
-                this.props.onChange(ev.keyCode);
-            });
         } else {
-            text = `${this.state.mappedKey} (${String.fromCharCode(this.state.mappedKey)})`
+            text = `${this.state.mappedKey} (${String.fromCharCode(this.state.mappedKey)})`;
         }
 
-        return <Button style={{ height: "20px", marginTop: "2px", width: "calc(100% - 15px)" }} small={true} text={text} fill={true} onMouseOut={() => this._removeListener()} onClick={() => this.setState({ settingKey: true })} />;
+        return <Button style={{ height: "20px", marginTop: "2px", width: "calc(100% - 15px)" }} small={true} text={text} fill={true} onMouseLeave={() => this._removeListener()} onClick={() => this._handleClick()} />;
+    }
+
+    /**
+     * Called on the user clicks on the keymap.
+     */
+    private _handleClick(): void {
+        if (this._keyListener) { return; }
+
+        window.addEventListener("keyup", this._keyListener = (ev) => {
+            this._removeListener();
+            this.setState({ mappedKey: ev.keyCode, settingKey: false });
+            this.props.onChange(ev.keyCode);
+        });
+
+        this.setState({ settingKey: true })
     }
 
     /**
      * Removes the listener.
      */
     private _removeListener(): void {
-        window.removeEventListener("keyup", this._keyListener);
+        if (this._keyListener) {
+            window.removeEventListener("keyup", this._keyListener);
+            this._keyListener = null;
+        }
+
         this.setState({ settingKey: false });
     }
 }

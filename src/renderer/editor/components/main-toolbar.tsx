@@ -5,7 +5,7 @@ import { readdir, writeFile } from "fs-extra";
 import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent } from "@blueprintjs/core";
+import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent, Tag } from "@blueprintjs/core";
 
 import { AbstractMesh, Node, IParticleSystem } from "babylonjs";
 
@@ -83,7 +83,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Reveal WorkSpace In File Explorer" disabled={!WorkSpace.HasWorkspace()} icon="document-open" onClick={() => this._menuItemClicked("project:open-worspace-file-explorer")} />
                 <MenuDivider />
                 <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} />
-                <MenuItem text="Save Project..." icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
+                <MenuItem text={<div>Save Project... <Tag>(CTRL+s)</Tag></div>} icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
                 <MenuItem text="Rename Project..." icon="edit" onClick={() => this._menuItemClicked("project:rename")} />
                 <MenuDivider />
                 <MenuItem text="Add New Project..." icon={<Icon src="plus.svg" />} onClick={() => NewProjectWizard.Show()} />
@@ -102,8 +102,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             </Menu>;
         const edit =
             <Menu>
-                <MenuItem text="Undo" icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("edit:undo")} />
-                <MenuItem text="Redo" icon={<Icon src="redo.svg" />} onClick={() => this._menuItemClicked("edit:redo")} />
+                <MenuItem text={<div>Undo <Tag>(CTRL+z</Tag></div>} icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("edit:undo")} />
+                <MenuItem text={<div>Redo <Tag>(CTRL+y</Tag></div>} icon={<Icon src="redo.svg" />} onClick={() => this._menuItemClicked("edit:redo")} />
                 <MenuDivider />
                 <MenuItem text="Editor Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("edit:editor-camera")} />
                 <MenuDivider />
@@ -125,6 +125,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Console" icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:console")} />
                 <MenuItem text="Terminal" icon={<Icon src="terminal.svg" />} onClick={() => this._menuItemClicked("view:terminal")} />
                 <MenuItem text="Statistics" icon={<Icon src="stats.svg" />} onClick={() => this._menuItemClicked("view:stats")} />
+                <MenuDivider />
+                <MenuItem text={<div>Focus Selected Object <Tag>(CTRL+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(true)} />
+                <MenuItem text={<div>Go To Selected Object <Tag>(CTRL+Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(false)} />
             </Menu>;
         const add =
             <Menu>

@@ -202,7 +202,7 @@ export class ScenePicker {
                     this._editor.graph.refresh();
                 }} />
                 {isolatedMode}
-                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!)} />
+                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, false)} />
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => {
                     this._editor.graph.removeObject(node!);

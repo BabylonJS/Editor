@@ -42,6 +42,15 @@ export class SceneGizmo {
         // Create layer
         this._gizmosLayer = new UtilityLayerRenderer(editor.scene!);
         this._gizmosLayer.utilityLayerScene.postProcessesEnabled = false;
+
+        // Register events
+        this._editor.removedNodeObservable.add((n) => {
+            if (this._currentGizmo && this._currentGizmo.attachedNode === n) {
+                this.gizmoType = this._type;
+                this.setAttachedNode(null);
+                this._currentGizmo.attachedNode = null;
+            }
+        })
     }
 
     /**
@@ -212,10 +221,17 @@ export class SceneGizmo {
         if (this._rotationGizmo) { this._rotationGizmo.dispose(); }
         if (this._scalingGizmo) { this._scalingGizmo.dispose(); }
 
+        if (this._lightGizmo) { debugger; this._lightGizmo.dispose(); }
+        if (this._cameraGizmo) { debugger; this._cameraGizmo.dispose(); }
+
         this._currentGizmo = null;
+
         this._positionGizmo = null;
         this._rotationGizmo = null;
         this._scalingGizmo = null;
+
+        this._lightGizmo = null;
+        this._cameraGizmo = null;
     }
 
     /**
@@ -252,32 +268,3 @@ export class SceneGizmo {
         this._initialValue = null;
     }
 }
-
-/**
- * Defines the problem found in alpha.30, when a scale is -1 then movements are inverted using gizmos.
-var createScene = function () {
-    // Setup scene
-    var scene = new BABYLON.Scene(engine);
-	var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene);
-    camera.setPosition(new BABYLON.Vector3(0, 10, 5));
-    camera.attachControl(canvas, true);
-    var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
-    var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene);
-    ground.position.y= -1
-
-    // Create gizmo
-    var gizmo = new BABYLON.PositionGizmo()
-    gizmo.ignoreChildren = true;
-
-    // Import gltf model
-    BABYLON.SceneLoader.ImportMesh('',"https://raw.githubusercontent.com/PatrickRyanMS/SampleModels/master/Yeti/glTF/Yeti_IdleUnity.gltf", "", scene, function (container) {
-        var gltfMesh = container[0]
-        alert(gltfMesh.name);
-        var bb = BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(gltfMesh)
-
-        gizmo.attachedMesh = bb;
-    });
-
-    return scene;
-};
- */

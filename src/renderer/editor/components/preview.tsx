@@ -232,7 +232,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             }
             
             this._editor.inspector.setSelectedObject(object);
-            this._focusNode(object, camera);
+            this._focusNode(object, false, camera);
             this.setState({ isIsolatedMode: true });
         }
     }
@@ -296,17 +296,19 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
     /**
      * Focuses the currently selected node.
+     * @param onlyCameraTarget defines wether or not only camera's target should focus (no position animation).
      */
-    public focusSelectedNode(): void {
-        this._focusNode(this._editor.graph.lastSelectedObject);
+    public focusSelectedNode(onlyCameraTarget: boolean): void {
+        this._focusNode(this._editor.graph.lastSelectedObject, onlyCameraTarget);
     }
 
     /**
      * Focuses the given node.
      * @param node defines the reference to the node to focus.
+     * @param onlyCameraTarget defines wether or not only camera's target should focus (no position animation).
      */
-    public focusNode(node: Node | IParticleSystem | Sound): void {
-        this._focusNode(node);
+    public focusNode(node: Node | IParticleSystem | Sound, onlyCameraTarget: boolean): void {
+        this._focusNode(node, onlyCameraTarget);
     }
 
     /**
@@ -408,7 +410,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     /**
      * Focuses on the given node.
      */
-    private _focusNode(node: Nullable<Node | IParticleSystem | Sound>, camera?: Nullable<Camera>): void {
+    private _focusNode(node: Nullable<Node | IParticleSystem | Sound>, onlyCameraTarget: boolean, camera?: Nullable<Camera>): void {
         if (!node) { return; }
 
         if (node instanceof ParticleSystem) { node = node.emitter as AbstractMesh; }
@@ -443,7 +445,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             camera.setTarget(translation);
         }
 
-        if (node instanceof AbstractMesh && node._boundingInfo) {
+        if (!onlyCameraTarget && node instanceof AbstractMesh && node._boundingInfo) {
             const distance = Vector3.Distance(
                 node._boundingInfo.minimum.multiply(scaling),
                 node._boundingInfo.maximum.multiply(scaling),
@@ -470,7 +472,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         const node = this._editor.scene!.getNodeByID(item.id);
         if (!node) { return; }
 
-        this._focusNode(node);
+        this._focusNode(node, false);
     }
 
     /**

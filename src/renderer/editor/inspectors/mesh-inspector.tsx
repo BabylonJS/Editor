@@ -137,7 +137,7 @@ export class MeshInspector extends NodeInspector {
                         },
                     });
                 } else {
-                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" })
+                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotationQuaternion" });
                 }
             }
 
@@ -166,7 +166,7 @@ export class MeshInspector extends NodeInspector {
                         },
                     });
                 } else {
-                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotation" })
+                    this.editor.objectModigyingObservable.notifyObservers({ object: this.selectedObject, path: "rotation" });
                 }
             };
 

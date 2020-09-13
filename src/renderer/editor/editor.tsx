@@ -983,7 +983,8 @@ export class Editor {
                 if (ev.key === "t") { return this.preview.setGizmoType(GizmoType.Position); }
                 if (ev.key === "r") { return this.preview.setGizmoType(GizmoType.Rotation); }
                 if (ev.key === "w") { return this.preview.setGizmoType(GizmoType.Scaling); }
-                if (ev.key === "f") { return this.preview.focusSelectedNode(); }
+                if (ev.key === "f") { return this.preview.focusSelectedNode(true); }
+                if (ev.key === "F") { return this.preview.focusSelectedNode(false); }
                 if (ev.key === "i") { return this.preview.toggleIsolatedMode(); }
                 
                 if (ev.keyCode === 46) { return this.preview.removeSelectedNode(); }

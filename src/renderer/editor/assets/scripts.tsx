@@ -237,7 +237,7 @@ export class ScriptAssets extends AbstractAssets {
                 <ul>
                     {attached.map((b) => <li key={`${b.id}-li`}><Tag interactive={true} key={`${b.id}-tag`} fill={true} intent={Intent.PRIMARY} onClick={() => {
                         this.editor.selectedNodeObservable.notifyObservers(b);
-                        this.editor.preview.focusSelectedNode();
+                        this.editor.preview.focusSelectedNode(false);
                     }}>{b.name}</Tag></li>)}
                 </ul>
                 <Divider />

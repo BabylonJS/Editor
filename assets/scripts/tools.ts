@@ -19,6 +19,29 @@ export type ScriptMap = {
     }
 };
 
+export interface IScript {
+    /**
+     * Called on the node is being initialized.
+     * This function is called immediatly after the constructor has been called.
+     */
+    onInitialize?(): void;
+    /**
+     * Called on the scene starts.
+     */
+    onStart?(): void;
+    /**
+     * Called each frame.
+     */
+    onUpdate?(): void;
+    /**
+     * Called on a message has been received and sent from a graph.
+     * @param message defines the name of the message sent from the graph.
+     * @param data defines the data sent in the message.
+     * @param sender defines the reference to the graph class that sent the message.
+     */
+    onMessage?(name: string, data: any, sender: any): void;
+}
+
 /**
  * Requires the nedded scripts for the given nodes array and attach them.
  * @param nodes the array of nodes to attach script (if exists).
@@ -27,42 +50,48 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[] | Scene[]): 
     const initializedNodes: { node: Node | Scene; exports: any; }[] = [];
 
     // Initialize nodes
-    for (const n of nodes) {
+    for (const n of nodes as ((Scene | Node) & IScript)[]) {
         if (!n.metadata || !n.metadata.script || !n.metadata.script.name || n.metadata.script.name === "None") { continue; }
 
         const exports = scriptsMap[n.metadata.script.name];
         if (!exports) { continue; }
 
-        // Add prototype.
-        const prototype = exports.default.prototype;
-        for (const key in prototype) {
-            if (!prototype.hasOwnProperty(key) || key === "constructor") { continue; }
-            n[key] = prototype[key].bind(n);
-        }
+        // Get prototype.
+        let prototype = exports.default.prototype;
 
         // Call constructor
         prototype.constructor.call(n);
 
+        // Add prototype
+        do {
+            for (const key in prototype) {
+                if (!prototype.hasOwnProperty(key) || key === "constructor") { continue; }
+                n[key] = prototype[key].bind(n);
+            }
+
+            prototype = Object.getPrototypeOf(prototype);
+        } while (prototype.constructor?.IsComponent === true);
+
         // Call onInitialize
-        prototype.onInitialize?.call(n);
+        n.onInitialize?.call(n);
 
         initializedNodes.push({ node: n, exports });
     }
 
     // Configure initialized nodes
     for (const i of initializedNodes) {
-        const n = i.node;
+        const n = i.node as (Scene | Node) & IScript;
         const e = i.exports;
         const scene = i.node instanceof Scene ? i.node : i.node.getScene();
         
         // Check start
-        if (e.default.prototype.onStart) {
-            scene.onBeforeRenderObservable.addOnce(() => n["onStart"]());
+        if (n.onStart) {
+            scene.onBeforeRenderObservable.addOnce(() => n.onStart());
         }
 
         // Check update
-        if (e.default.prototype.onUpdate) {
-            scene.onBeforeRenderObservable.add(() => n["onUpdate"]());
+        if (n.onUpdate) {
+            scene.onBeforeRenderObservable.add(() => n.onUpdate());
         }
 
         // Check properties

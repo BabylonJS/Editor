@@ -279,7 +279,7 @@ export class MaterialAssets extends AbstractAssets {
                 <ul>
                     {binded.map((b) => <li key={`${b.id}-li`}><Tag interactive={true} fill={true} key={`${b.id}-tag`} intent={Intent.PRIMARY} onClick={() => {
                         this.editor.selectedNodeObservable.notifyObservers(b);
-                        this.editor.preview.focusSelectedNode();
+                        this.editor.preview.focusSelectedNode(false);
                     }}>{b.name}</Tag></li>)}
                 </ul>
             </>
