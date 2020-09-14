@@ -482,12 +482,16 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         const style: React.CSSProperties = { marginLeft: "5px", textOverflow: "ellipsis", whiteSpace: "nowrap" };
         if (node.metadata.doNotExport) {
-            style.color = "grey";
+            style.opacity = "0.5";
             style.textDecoration = "line-through";
         }
 
         if (node.metadata.isLocked) {
-            style.color = "grey";
+            style.opacity = "0.5";
+        }
+
+        if (node.metadata.script?.name && node.metadata.script.name !== "None") {
+            style.color = "#48aff0";
         }
 
         // Filter

@@ -28,6 +28,8 @@ export class ScriptAssets extends AbstractAssets {
      */
     protected size: number = 50;
 
+    private _refreshing: boolean = false;
+
     private static _Path: string = "";
 
     /**
@@ -77,28 +79,36 @@ export class ScriptAssets extends AbstractAssets {
         this.items = [];
         if (!WorkSpace.HasWorkspace()) { return super.refresh(); }
 
-        const path = this._getCurrentPath();
-        if (!(await pathExists(path))) {
-            await mkdir(path);
-        }
+        if (this._refreshing) { return; }
+        this._refreshing = true;
 
-        const files = await readdir(path);
-        for (const f of files) {
-            if (ScriptAssets._Path === "" && f === "index.ts") { continue; }
-            
-            const infos = await stat(join(path, f));
-            if (infos.isDirectory()) {
-                this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "../css/svg/folder-open.svg" });
-                continue;
+        try {
+            const path = this._getCurrentPath();
+            if (!(await pathExists(path))) {
+                await mkdir(path);
             }
-            
-            const extension = extname(f).toLowerCase();
-            if (extension !== ".ts") { continue; }
 
-            this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "../css/images/ts.png" });
+            const files = await readdir(path);
+            for (const f of files) {
+                if (ScriptAssets._Path === "" && f === "index.ts") { continue; }
+                
+                const infos = await stat(join(path, f));
+                if (infos.isDirectory()) {
+                    this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "../css/svg/folder-open.svg" });
+                    continue;
+                }
+                
+                const extension = extname(f).toLowerCase();
+                if (extension !== ".ts") { continue; }
+
+                this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "../css/images/ts.png" });
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            this._refreshing = false;
+            return super.refresh();
         }
-
-        return super.refresh();
     }
 
     /**

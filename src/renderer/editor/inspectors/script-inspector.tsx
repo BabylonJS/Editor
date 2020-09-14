@@ -58,6 +58,8 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
             onUpdate: async () => ["None"].concat((await ScriptAssets.GetAllScripts()).filter((s) => s.indexOf("src/scenes/scene/graphs/") === -1)),
         }).name("Script").onChange(() => {
             this.selectedObject.metadata.script.name = this._selectedScript;
+            this.editor.graph.refresh();
+            
             if (this._selectedScript === "None") {
                 return;
             }
