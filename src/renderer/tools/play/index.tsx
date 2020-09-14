@@ -52,6 +52,7 @@ export default class PlayPlugin extends AbstractEditorPlugin<IPlayPlugin> {
             <>
                 <div className={Classes.FILL} key="documentation-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
+                        <Button key="refresh" small={true} icon="refresh" text="" onClick={() => this._handleRefresh()} />
                         <Button key="restart" small={true} icon="refresh" text="Restart" onClick={() => this._handleRestart()} />
                     </ButtonGroup>
                 </div>
@@ -75,12 +76,19 @@ export default class PlayPlugin extends AbstractEditorPlugin<IPlayPlugin> {
     }
 
     /**
+     * Called on the user wants to refresh the game.
+     */
+    private _handleRefresh(): void {
+        if (this._iframe) {
+            this._iframe.src = this._iframe.src;
+        }
+    }
+
+    /**
      * Called on the user wants to refresh.
      */
     private async _handleRestart(): Promise<void> {
-        if (!this._iframe) { return; }
-
         await ProjectExporter.ExportFinalScene(this.editor);
-        this._iframe.src = this._iframe.src;
+        this._handleRefresh();
     }
 }
