@@ -60,6 +60,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             case "play": this._editor.runProject(EditorPlayMode.EditorPanelBrowser); break;
             case "play-integrated": this._editor.runProject(EditorPlayMode.IntegratedBrowser); break;
             case "play-my-browser": this._editor.runProject(EditorPlayMode.ExternalBrowser); break;
+            case "play-editor": this._editor.runProject(EditorPlayMode.EditorPanelBrowser); break;
 
             case "generate": ProjectExporter.ExportFinalScene(this._editor); break;
             case "build-project": WorkSpace.BuildProject(this._editor); break;
@@ -75,6 +76,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             <Menu className={Classes.DARK}>
                 <MenuItem text="Play in integrated browser" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("play-integrated")} />
                 <MenuItem text="Play in my browser" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("play-my-browser")} />
+                <MenuItem text="Play in Editor" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("play-editor")} />
             </Menu>,
             { left: e.clientX, top: e.clientY },
         );

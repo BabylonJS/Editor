@@ -33,7 +33,7 @@ export default class PreviewPlugin extends AbstractEditorPlugin<IPreviewPluginSt
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return <canvas id={this.state.canvasId} style={{ width: "100%", height: "100%", position: "absolute", top: "0", touchAction: "none" }}></canvas>
+        return <canvas id={this.state.canvasId} style={{ width: "100%", height: "100%", position: "absolute", top: "0", touchAction: "none" }}></canvas>;
     }
 
     /**
