@@ -80,19 +80,7 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
             });
         }
 
-        this._shadowMapFolder.addCustom("500px", <RenderList editor={this.editor} renderTarget={shadowMap} onRemove={(ids) => this._handleRemoveFromShadows(shadowMap, ids)} />);
-    }
-
-    /**
-     * Called on the user wants to remove meshes from the shadow map.
-     */
-    private _handleRemoveFromShadows(shadowMap: RenderTargetTexture, ids: string[]): void {
-        ids.forEach((id) => {
-            const index = shadowMap.renderList!.findIndex((m) => m.id === id);
-            if (index !== -1) {
-                shadowMap.renderList!.splice(index, 1);
-            }
-        });
+        this._shadowMapFolder.addCustom("500px", <RenderList editor={this.editor} renderTarget={shadowMap} />);
     }
 
     /**

@@ -1,95 +1,146 @@
 import * as React from "react";
-import { ButtonGroup, Button, Classes } from "@blueprintjs/core";
+import Transfer, { TransferItem } from "antd/lib/transfer";
 
-import { RenderTargetTexture, AbstractMesh } from "babylonjs";
+import { AbstractMesh, RenderTargetTexture } from "babylonjs";
 
 import { Editor } from "../../editor";
 
-import { Icon } from "../../gui/icon";
-import { Alert } from "../../gui/alert";
-import { GraphList, IListItem } from "../../gui/graph-list";
-
 export interface IRenderListProps {
     /**
-     * The editor reference.
+     * Defines the reference to the editor.
      */
     editor: Editor;
     /**
      * Defines the reference to the render target
      */
     renderTarget: RenderTargetTexture;
-    /**
-     * Optional callback called on the user wants to remove elements from the list.
-     */
-    onRemove: (ids: string[]) => void;
 }
 
-export class RenderList extends React.Component<IRenderListProps> {
-    private _renderList: GraphList;
-    private _addList: GraphList;
-    private _refHandler = {
-        getRenderList: (ref: GraphList) => this._renderList = ref,
-        getAddList: (ref: GraphList) => ref && (this._addList = ref),
-    };
+export interface IRenderListState {
+    /**
+     * Defines the list of all excluded meshes.
+     */
+    excludedMeshes: TransferItem[];
+    /**
+     * Defines the list of all included meshes.
+     */
+    includedMeshes: TransferItem[];
 
+    /**
+     * Defines the list of all selected keys.
+     */
+    selectedKeys: string[];
+}
+
+export class RenderList extends React.Component<IRenderListProps, IRenderListState> {
+    /**
+     * Constructor.
+     * @param props defines the component's props.
+     */
+    public constructor(props: IRenderListProps) {
+        super(props);
+        this.state = {
+            excludedMeshes: this._getExcludedMeshes(),
+            includedMeshes: this._getIncludedMeshes(),
+            selectedKeys: [],
+        };
+    }
     /**
      * Renders the component.
      */
     public render(): React.ReactNode {
-        const existing = this.props.renderTarget.renderList!.map((m) => this._getListItem(m));
-
         return (
-            <div style={{ height: "500px" }}>
-                <span>Render list:</span>
-                <div className={Classes.FILL} key="render-list-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
-                    <ButtonGroup>
-                        <Button key="render-list-add" icon={<Icon src="plus.svg" />} small={true} text="Add Mesh..." onClick={() => this._handleAddToRenderList()} />
-                    </ButtonGroup>
-                </div>
-
-                <GraphList ref={this._refHandler.getRenderList} list={existing} onRemove={(ids) => this._handleRemoveFromRenderList(ids)} style={{ marginTop: "5px", width: "100%", height: "460px" }} />
-            </div>
-        );
+            <Transfer
+                dataSource={this.state.excludedMeshes.concat(this.state.includedMeshes)}
+                titles={["Excluded", "Included"]}
+                selectedKeys={this.state.selectedKeys}
+                render={(i) => i.title ?? i.key}
+                targetKeys={this.state.includedMeshes.map((im) => im.key)}
+                onSelectChange={(s, t) => this._handleSelectionChange(s, t)}
+                onChange={(t, d, m) => this._handleChange(t, d, m)}
+                showSearch={true}
+                listStyle={{
+                    width: "calc(50% - 20px)",
+                    height: "490px",
+                }}
+            />
+        )
     }
 
     /**
-     * Returns the item to be drawn in the list.
+     * Called on the user selects keys.
      */
-    private _getListItem(m: AbstractMesh): IListItem {
-        return {
-            name: m.name,
-            id: m.id,
-            icon: <Icon src="vector-square.svg" />
-        };
+    private _handleSelectionChange(sourceSelectedKeys: string[], targetSelectedKeys: string[]): void {
+        this.setState({ selectedKeys: sourceSelectedKeys.concat(targetSelectedKeys) });
     }
 
     /**
-     * Called on the user wants to remove meshes from the shadow map.
+     * Called on the transfer changed.
      */
-    private _handleRemoveFromRenderList(ids: string[]): void {
-        this.props.onRemove(ids);
-        this._renderList.setState({ list: this.props.renderTarget.renderList!.map((m) => this._getListItem(m)) })
-    }
+    private _handleChange(_: string[], direction: string, moveKeys: string[]): void {
+        if (!this.props.renderTarget.renderList) {
+            return;
+        }
 
-    /**
-     * Called on the user wants to add an element to the render list.
-     */
-    private async _handleAddToRenderList(): Promise<void> {
-        const renderList = this.props.renderTarget.renderList!;
-        const toAdd = this.props.editor.scene!.meshes.filter((m) => !renderList.find((rl) => rl === m) && !m._masterMesh)
-                                                     .map((m) => this._getListItem(m));
-        
-        const body = <GraphList ref={this._refHandler.getAddList} list={toAdd} style={{ marginTop: "5px", height: "500px" }} />;
+        switch (direction) {
+            // Include
+            case "right":
+                moveKeys.forEach((k) => {
+                    const mesh = this.props.editor.scene!.getMeshByID(k);
+                    if (!mesh) { return; }
 
-        await Alert.Show("Add To Render List", "Select meshes to add to the render list", undefined, body);
+                    if (this.props.renderTarget.renderList!.indexOf(mesh) === -1) {
+                        this.props.renderTarget.renderList!.push(mesh);
+                    }
+                });
+                break;
 
-        // Configure render list
-        this._addList.state.selectedIds.forEach((id) => {
-            const mesh = this.props.editor.scene!.getMeshByID(id);
-            if (mesh) { renderList.push(mesh); }
+            // Exclude
+            case "left":
+                moveKeys.forEach((k) => {
+                    const mesh = this.props.editor.scene!.getMeshByID(k);
+                    if (!mesh) { return; }
+
+                    const index = this.props.renderTarget.renderList!.indexOf(mesh);
+                    if (index !== -1) {
+                        this.props.renderTarget.renderList!.splice(index, 1);
+                    }
+                });
+                break;
+        }
+
+        this.setState({
+            excludedMeshes: this._getExcludedMeshes(),
+            includedMeshes: this._getIncludedMeshes(),
         });
+    }
+    
+    /**
+     * Returns the list of all exlucded meshes.
+     */
+    private _getExcludedMeshes(): TransferItem[] {
+        return this._getMeshes().filter((m) => this.props.renderTarget.renderList!.indexOf(m) === -1).map((m) => ({
+            key: m.id,
+            title: m.name,
+            disabled: false,
+        }));
+    }
 
-        // Update graph list.
-        this._renderList.setState({ list: renderList.map((m) => this._getListItem(m)) });
+    /**
+     * Returns the list of all included meshes.
+     */
+    private _getIncludedMeshes(): TransferItem[] {
+        return this.props.renderTarget.renderList!.map((m) => ({
+            key: m.id,
+            title: m.name,
+            disabled: false,
+        }));
+    }
+
+    /**
+     * Returns the list of all meshes that can cast shadows.
+     */
+    private _getMeshes(): AbstractMesh[] {
+        return this.props.editor.scene!.meshes.filter((m) => !m._masterMesh);
     }
 }

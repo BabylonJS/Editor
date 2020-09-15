@@ -154,6 +154,53 @@ html, body {
     padding-left: 3px;
 }
 
+.ant-transfer-list {
+    border: 1px solid #111111;
+    border-radius: 2px;
+    padding-top: 3px;
+}
+
+.ant-transfer-list-content {
+    background: #393939;
+}
+
+.ant-transfer-list-header {
+    background: #444444;
+    color: white;
+}
+
+.ant-input:placeholder-shown {
+    background: rgba(16, 22, 26, 0.3);
+}
+
+.ant-dropdown-menu {
+    background-color: #333333;
+}
+
+.ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title {
+    color: white;
+}
+
+.ant-dropdown-menu-item:hover, .ant-dropdown-menu-submenu-title:hover {
+    background-color: rgba(138, 155, 168, 0.15);
+}
+
+.ant-transfer-list-body-search-wrapper {
+    width: calc(100% - 55px);
+}
+
+.ant-transfer-list-content-item-text {
+    font-size: 13px;
+}
+
+.ant-empty-small {
+    color: white;
+}
+
+.ant-checkbox-inner {
+    background: #777777;
+}
+
 /* GOLDEN LAYOUT */
 
 .lm_header .lm_tab {
