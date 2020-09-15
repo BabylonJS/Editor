@@ -3,6 +3,8 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 import { Classes, ButtonGroup, Button } from "@blueprintjs/core";
 
+import { Icon } from "../../editor/gui/icon";
+
 import { WorkSpace } from "../../editor/project/workspace";
 import { ProjectExporter } from "../../editor/project/project-exporter";
 
@@ -53,7 +55,7 @@ export default class PlayPlugin extends AbstractEditorPlugin<IPlayPlugin> {
                 <div className={Classes.FILL} key="documentation-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="refresh" small={true} icon="refresh" text="" onClick={() => this._handleRefresh()} />
-                        <Button key="restart" small={true} icon="refresh" text="Restart" onClick={() => this._handleRestart()} />
+                        <Button key="restart" small={true} icon={<Icon src="recycle.svg" />} text="Restart" onClick={() => this._handleRestart()} />
                     </ButtonGroup>
                 </div>
                 <iframe ref={this._refHandler.getIFrame} src={iframeUrl} style={{ width: "100%", height: "calc(100% - 25px)" }}></iframe>

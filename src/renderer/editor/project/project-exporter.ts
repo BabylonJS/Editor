@@ -501,12 +501,27 @@ export class ProjectExporter {
         const optimizer = new SceneExportOptimzer(editor.scene!);
         optimizer.optimize();
 
+        // Configure nodes that are not serializable.
+        Tools.getAllSceneNodes(editor.scene!).forEach((n) => {
+            if (n.metadata?.doNotExport === true) {
+                n.doNotSerialize = true;
+            }
+        });
+
         const scene = SceneSerializer.Serialize(editor.scene!);
         scene.metadata = scene.metadata ?? { };
         scene.metadata.postProcesses = {
             ssao: { enabled: SceneSettings.IsSSAOEnabled(), json: SceneSettings.SSAOPipeline?.serialize() },
             standard: { enabled: SceneSettings.IsStandardPipelineEnabled(), json: SceneSettings.StandardPipeline?.serialize() },
             default: { enabled: SceneSettings.IsDefaultPipelineEnabled(), json: SceneSettings.DefaultPipeline?.serialize() },
+        };
+
+        // Set producer
+        scene.producer = {
+            file: "scene.babylon",
+            name: "Babylon.JS Editor",
+            version: `v${editor._packageJson.version}`,
+            exporter_version: `v${editor._packageJson.dependencies.babylonjs}`,
         };
 
         // Active camera
@@ -531,6 +546,13 @@ export class ProjectExporter {
 
         // Clean
         optimizer.clean();
+
+        // Restore nodes that are not serialized.
+        Tools.getAllSceneNodes(editor.scene!).forEach((n) => {
+            if (n.metadata?.doNotExport === true) {
+                n.doNotSerialize = false;
+            }
+        });
 
         return scene;
     }
