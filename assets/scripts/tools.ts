@@ -3,7 +3,7 @@
  */
 
 import {
-    Scene, Node, Mesh,
+    Scene, Node, AbstractMesh,
     SSAO2RenderingPipeline, DefaultRenderingPipeline, StandardRenderingPipeline,
     Vector2, Vector3, Vector4,
     Color3, Color4,
@@ -162,7 +162,7 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[] | Scene[]): 
         }
 
         // Retrieve impostors
-        if (n instanceof Mesh && !n.physicsImpostor) {
+        if (n instanceof AbstractMesh && !n.physicsImpostor) {
             n.physicsImpostor = n._scene.getPhysicsEngine()?.getImpostorForPhysicsObject(n);
         }
     }
