@@ -3,7 +3,7 @@ import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
 
-import { Mesh, SceneLoader, PhysicsImpostor, SubMesh, Vector3, Tools as BabylonTools } from "babylonjs";
+import { Mesh, SceneLoader, PhysicsImpostor, SubMesh, Vector3, Tools as BabylonTools, AbstractMesh } from "babylonjs";
 import { GUI } from "dat.gui";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -21,6 +21,7 @@ export class MeshInspector extends NodeInspector {
 
     private _physicsImpostor: string = "";
     private _numBoneInfluencers: number = 0;
+    private _billboardMode: string = "";
     private _rotation: Vector3 = Vector3.Zero();
 
     private _physicsFolder: Nullable<GUI> = null;
@@ -85,6 +86,12 @@ export class MeshInspector extends NodeInspector {
             rendering.add(this.selectedObject, "infiniteDistance").name("Infinite Distance");
             this.addMaterialList(rendering, this.selectedObject, "material").name("Material");
         }
+
+        const billboardModes = ["BILLBOARDMODE_NONE", "BILLBOARDMODE_X", "BILLBOARDMODE_Y", "BILLBOARDMODE_Z", "BILLBOARDMODE_ALL", "BILLBOARDMODE_USE_POSITION"];
+        this._billboardMode = billboardModes.find((b) => this.selectedObject.billboardMode === AbstractMesh[b]) ?? billboardModes[0];
+        rendering.addSuggest(this, "_billboardMode", billboardModes).name("Billboard Mode").onChange(() => {
+            this.selectedObject.billboardMode = AbstractMesh[this._billboardMode];
+        });
 
         return rendering;
     }
