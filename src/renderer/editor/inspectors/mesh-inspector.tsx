@@ -85,6 +85,8 @@ export class MeshInspector extends NodeInspector {
         if (this.selectedObject instanceof Mesh) {
             rendering.add(this.selectedObject, "infiniteDistance").name("Infinite Distance");
             this.addMaterialList(rendering, this.selectedObject, "material").name("Material");
+
+            rendering.add(this.selectedObject, "visibility").name("Visibility").min(0).max(1).step(0.01);
         }
 
         const billboardModes = ["BILLBOARDMODE_NONE", "BILLBOARDMODE_X", "BILLBOARDMODE_Y", "BILLBOARDMODE_Z", "BILLBOARDMODE_ALL", "BILLBOARDMODE_USE_POSITION"];
