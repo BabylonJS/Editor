@@ -1,6 +1,6 @@
 import {
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode,
-    LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion, Camera, CameraGizmo,
+    LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion, Camera, CameraGizmo, HemisphericLight
 } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
@@ -192,9 +192,10 @@ export class SceneGizmo {
 
         this._lightGizmo.light = light;
 
-        if (this._currentGizmo) {
-            this._currentGizmo.attachedMesh = this._lightGizmo.attachedMesh;
-        }
+        if (!this._currentGizmo) { return; }
+        if ((this._currentGizmo instanceof PositionGizmo || this._currentGizmo instanceof ScaleGizmo) && light instanceof HemisphericLight) { return; }
+
+        this._currentGizmo.attachedMesh = this._lightGizmo.attachedMesh;
     }
 
     /**
@@ -221,8 +222,8 @@ export class SceneGizmo {
         if (this._rotationGizmo) { this._rotationGizmo.dispose(); }
         if (this._scalingGizmo) { this._scalingGizmo.dispose(); }
 
-        if (this._lightGizmo) { debugger; this._lightGizmo.dispose(); }
-        if (this._cameraGizmo) { debugger; this._cameraGizmo.dispose(); }
+        if (this._lightGizmo) { this._lightGizmo.dispose(); }
+        if (this._cameraGizmo) { this._cameraGizmo.dispose(); }
 
         this._currentGizmo = null;
 
