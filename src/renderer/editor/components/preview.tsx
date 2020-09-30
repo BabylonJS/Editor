@@ -90,7 +90,9 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     private _copiedNode: Nullable<Node | IParticleSystem> = null;
 
     private _isolatedObject: Nullable<AbstractMesh | IParticleSystem> = null;
-    private _baseMeshesArray: Nullable<AbstractMesh[]> = null;
+    private _cameraPositionBeforeIsolation: Nullable<Vector3> = null;
+    private _cameraTargetBeforeIsolation: Nullable<Vector3> = null;
+    private _isolationBaseMeshesArray: Nullable<AbstractMesh[]> = null;
 
     private _searchBar: Omnibar;
     private _refHandler = {
@@ -213,9 +215,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         if (!camera) { return; }
 
         if (this.state.isIsolatedMode) {
-            scene.meshes = this._baseMeshesArray!.concat(scene.meshes.filter((m) => this._baseMeshesArray?.indexOf(m) === -1));
+            scene.meshes = this._isolationBaseMeshesArray!.concat(scene.meshes.filter((m) => this._isolationBaseMeshesArray?.indexOf(m) === -1));
 
             this._isolatedObject = null;
+            this._restoreCameraPositionBeforeIsolation(camera);
             this.setState({ isIsolatedMode: false });
         } else {
             if (!object) {
@@ -227,10 +230,15 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             this._isolatedObject = object;
 
             if (object instanceof AbstractMesh) {
-                this._baseMeshesArray = scene.meshes;
+                this._isolationBaseMeshesArray = scene.meshes;
                 scene.meshes = [object];
             }
-            
+
+            this._cameraPositionBeforeIsolation = camera.position.clone();
+            if (camera instanceof TargetCamera) {
+                this._cameraTargetBeforeIsolation = camera.target.clone();
+            }
+
             this._editor.inspector.setSelectedObject(object);
             this._focusNode(object, false, camera);
             this.setState({ isIsolatedMode: true });
@@ -456,6 +464,31 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
             this._editor.scene!.beginDirectAnimation(camera, [a], 0, 60, false, 3);
         }
+    }
+
+    /**
+     * Restores the camera's position before the isolation.
+     */
+    private _restoreCameraPositionBeforeIsolation(camera: Camera): void {
+        if (!this._cameraPositionBeforeIsolation) { return; }
+
+        const positionAnimation = new Animation("RestorePositionAnimation", "position", 60, Animation.ANIMATIONTYPE_VECTOR3);
+        positionAnimation.setKeys([{ frame: 0, value: camera.position.clone() }, { frame: 60, value: this._cameraPositionBeforeIsolation.clone() }]);
+        
+        this._cameraPositionBeforeIsolation = null;
+        
+        const animations = [positionAnimation];
+
+        if (camera instanceof TargetCamera && this._cameraTargetBeforeIsolation) {
+            const targetAnimation = new Animation("RestoreTargetAnimation", "target", 60, Animation.ANIMATIONTYPE_VECTOR3);
+            targetAnimation.setKeys([{ frame: 0, value: camera.getTarget() }, { frame: 60, value: this._cameraTargetBeforeIsolation.clone() }]);
+
+            animations.push(targetAnimation);
+
+            this._cameraTargetBeforeIsolation = null;
+        }
+
+        this._editor.scene!.beginDirectAnimation(camera, animations, 0, 60, false, 3);
     }
 
     /**
