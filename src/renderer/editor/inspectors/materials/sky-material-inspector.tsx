@@ -42,6 +42,12 @@ export class SkyMaterialInspector extends MaterialInspector<SkyMaterial> {
         sky.add(this.material, "mieCoefficient").step(0.0001).name("Mie Coefficient");
         sky.add(this.material, "mieDirectionalG").step(0.01).name("Mie Coefficient G");
         sky.add(this.material, "rayleigh").step(0.01).name("Reileigh Coefficient");
+
+        const positions = sky.addFolder("Positions");
+        positions.open();
+        positions.add(this.material, "useSunPosition").name("Use Sun Position");
+        positions.addVector("Sun Position", this.material.sunPosition);
+        positions.addVector("Camera Offset", this.material.cameraOffset);
     }
 }
 
