@@ -189,14 +189,44 @@ export class MeshesAssets extends AbstractAssets {
         }
 
         const rootUrl = join(Project.DirPath!, "files", "/");
-        const name = join("..", "assets/meshes", item.id);
-        const result = await SceneLoader.ImportMeshAsync("", rootUrl, name, this.editor.scene!);
+        const sceneFilename = join("..", "assets/meshes", item.id);
+        const result = await SceneLoader.ImportMeshAsync("", rootUrl, sceneFilename, this.editor.scene!);
 
         const onTextureDone = (n: string) => Overlay.SetMessage(`Configurin GLTF... ${n}`);
 
         await SceneTools.ImportAnimationGroupsFromFile(this.editor, item.key);
 
         for (const mesh of result.meshes) {
+            if (mesh instanceof Mesh) {
+                // Check mesh already exists
+                const existingMesh = this.editor.scene!.meshes.find((m) => {
+                    if (!(m instanceof Mesh)) {
+                        return undefined;
+                    }
+
+                    const meshMetadata = Tools.GetMeshMetadata(m);
+                    if (!meshMetadata.originalSourceFile?.id || meshMetadata.originalSourceFile.sceneFileName !== item.id) { return; }
+
+                    if (meshMetadata.originalSourceFile.id === mesh.id) {
+                        mesh.geometry?.applyToMesh(m);
+                        return m;
+                    }
+                });
+
+                if (existingMesh) {
+                    mesh.dispose();
+                    continue;
+                }
+
+                // Store original datas
+                const meshMetadata = Tools.GetMeshMetadata(mesh);
+                meshMetadata.originalSourceFile = {
+                    id: mesh.id,
+                    name: mesh.name,
+                    sceneFileName: item.id,
+                };  
+            }
+
             mesh.id = Tools.RandomId();
             if (mesh.material) { mesh.material.id = Tools.RandomId(); }
             if (!mesh.parent && pickInfo.pickedPoint) { mesh.position.addInPlace(pickInfo.pickedPoint); }

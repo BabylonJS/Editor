@@ -118,4 +118,22 @@ export interface IMeshMetadata extends ICommonMetadata {
      * the geometry for THIS mesh should be kept inline.
      */
     keepGeometryInline?: boolean;
+
+    /**
+     * Defines the original data of the source file.
+     */
+    originalSourceFile?: {
+        /**
+         * Defines the id of the mesh in the scene file.
+         */
+        id: string;
+        /**
+         * Defines the name of the mesh in the scene file.
+         */
+        name: string;
+        /**
+         * Defines the name of the scene file.
+         */
+        sceneFileName: string;
+    };
 }
