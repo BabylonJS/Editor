@@ -46,7 +46,7 @@ export interface IScript {
  * Requires the nedded scripts for the given nodes array and attach them.
  * @param nodes the array of nodes to attach script (if exists).
  */
-function requireScriptForNodes(scriptsMap: ScriptMap, nodes: Node[] | Scene[]): void {
+function requireScriptForNodes(scriptsMap: ScriptMap, nodes: (Node | Scene)[]): void {
     const initializedNodes: { node: Node | Scene; exports: any; }[] = [];
 
     // Initialize nodes
@@ -188,6 +188,20 @@ export function attachScripts(scriptsMap: ScriptMap, scene: Scene): void {
             scene.onBeforeRenderObservable.add(() => instance["onUpdate"]());
         }
     }
+}
+
+/**
+ * Attaches the given script (according to its path in the given script map) to the given object.
+ * @param scriptsMap defines the map containing all exported scripts of an Editor project.
+ * @param scriptsKey defines the key in the scripts map of the script to attach to the given object.
+ * @param object defines the reference to the object that the script must be attached to.
+ */
+export function attachScriptToNodeAtRumtine(scriptsMap: ScriptMap, scriptsKey: string, object: Node | Scene): any {
+    object.metadata = object.metadata ?? { };
+    object.metadata.script = object.metadata.script ?? { };
+    object.metadata.script.name = scriptsKey;
+
+    requireScriptForNodes(scriptsMap, [object]);
 }
 
 /**

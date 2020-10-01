@@ -917,6 +917,8 @@ export class ProjectExporter {
             const toReplace = `src/scenes/${WorkSpace.GetProjectName()}/`;
             const extension = extname(s);
             return `\t"${s}": require("./${s.replace(toReplace, "").replace(extension, "")}"),`;
+        }).join("\n")).replace("// ${scriptsInterface}", all.map((s) => {
+            return `\t"${s}": any;`;
         }).join("\n"));
     }
 
