@@ -1,8 +1,8 @@
 import { shell } from "electron";
-import { writeJSON, writeFile } from "fs-extra";
+import { writeJSON, writeFile, readJSON } from "fs-extra";
 import { join, extname, dirname, basename } from "path";
 
-import { Mesh, Scene, SceneLoader, SceneSerializer, BaseTexture } from "babylonjs";
+import { Mesh, Scene, SceneLoader, SceneSerializer, BaseTexture, AnimationGroup } from "babylonjs";
 import { GLTF2Export } from 'babylonjs-serializers';
 
 import { Alert } from "../gui/alert";
@@ -155,6 +155,56 @@ export class SceneTools {
             savedTextures.forEach((texture) => {
                 texture.texture.name = texture.name;
             });
+        }
+    }
+
+    /**
+     * Imports all animation groups from a file and adds them to the scene.
+     * @param editor defines the reference to the editor.
+     * @param path defines the path where to find the animation groups file. If not provided, the editor will ask for the file.
+     */
+    public static async ImportAnimationGroupsFromFile(editor: Editor, path?: string): Promise<void> {
+        if (!path) {
+            path = await Tools.ShowOpenFileDialog("Please select the file to load");
+        }
+
+        if (!path) { return; }
+
+        const extension = extname(path).toLowerCase();
+
+        switch (extension) {
+            case ".babylon":
+                const task = editor.addTaskFeedback(0, "Importing Animation Groups...");
+
+                try {
+                    const sceneContent = await readJSON(path);
+
+                    for (const animationGroup of sceneContent.animationGroups ?? []) {
+                        const existingAnimationGroup = editor.scene!.getAnimationGroupByName(animationGroup.name);
+                        if (existingAnimationGroup) {
+                            editor.console.logWarning(`Animation group named "${existingAnimationGroup.name}" already exists, it has been replaced by the new one.`);
+                            existingAnimationGroup.dispose();
+                        }
+
+                        AnimationGroup.Parse(animationGroup, editor.scene!);
+                        editor.console.logInfo(`Animation group named "${animationGroup.name}" successfully imported.`);
+                    }
+                } catch (e) {
+                    if (e?.message) {
+                        editor.console.logError(e.message);
+                    }
+
+                    editor.updateTaskFeedback(task, 100, "Failed to import Animation Groups");
+                    editor.closeTaskFeedback(task, 1000);
+                } finally {
+                    editor.updateTaskFeedback(task, 100, "Done");
+                    editor.closeTaskFeedback(task, 1000);
+                }
+                break;
+
+            default:
+                editor.notifyMessage(`Can't import animation groups from file of type "${extension}"`, 1000);
+                break;
         }
     }
 }

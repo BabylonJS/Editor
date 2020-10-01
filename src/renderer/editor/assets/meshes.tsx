@@ -194,6 +194,8 @@ export class MeshesAssets extends AbstractAssets {
 
         const onTextureDone = (n: string) => Overlay.SetMessage(`Configurin GLTF... ${n}`);
 
+        await SceneTools.ImportAnimationGroupsFromFile(this.editor, item.key);
+
         for (const mesh of result.meshes) {
             mesh.id = Tools.RandomId();
             if (mesh.material) { mesh.material.id = Tools.RandomId(); }

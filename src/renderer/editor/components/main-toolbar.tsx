@@ -145,8 +145,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Particle System" icon={<Icon src="wind.svg" />} onClick={() => this._menuItemClicked("add:particle-system")} />
             </Menu>;
+
         const addMesh =
-        <Menu>
+            <Menu>
                 <MenuItem text="Cube" icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("addmesh:cube")} />
                 <MenuItem text="Sphere" icon={<Icon src="circle.svg" />} onClick={() => this._menuItemClicked("addmesh:sphere")} />
                 <MenuItem text="Cylinder" icon={<Icon src="cylinder.svg" />} onClick={() => this._menuItemClicked("addmesh:cylinder")} />

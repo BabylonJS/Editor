@@ -2,9 +2,11 @@ import { remote, ipcRenderer } from "electron";
 import { join } from "path";
 import { platform } from "os";
 
-import { Tools as BabylonTools, Engine, Scene, Node, Nullable, Camera } from "babylonjs";
-
 import { IPCResponses, IPCRequests } from "../../../shared/ipc";
+
+import { Tools as BabylonTools, Engine, Scene, Node, Nullable, Camera, Mesh } from "babylonjs";
+
+import { ICommonMetadata, IMeshMetadata } from "./types";
 
 export class Tools {
     /**
@@ -38,6 +40,24 @@ export class Tools {
         }
 
         return name;
+    }
+
+    /**
+     * Returns the metadatas of the given node.
+     * @param node defines the reference to the node to get its metadatas.
+     */
+    public static GetNodeMetadata(node: Node): ICommonMetadata {
+        node.metadata = node.metadata ?? { };
+        return node.metadata;
+    }
+
+    /**
+     * Returns the metadatas of the given mesh.
+     * @param mesh defines the reference to the mesh to get its metadatas.
+     */
+    public static GetMeshMetadata(mesh: Mesh): IMeshMetadata {
+        mesh.metadata = mesh.metadata ?? { };
+        return mesh.metadata;
     }
 
     /**

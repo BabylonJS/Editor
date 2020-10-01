@@ -111,3 +111,11 @@ export interface ICommonMetadata {
      */
     script?: IAttachedScriptMetadata;
 }
+
+export interface IMeshMetadata extends ICommonMetadata {
+    /**
+     * In case the mesh is exported as binary format, this defines wether or not
+     * the geometry for THIS mesh should be kept inline.
+     */
+    keepGeometryInline?: boolean;
+}
