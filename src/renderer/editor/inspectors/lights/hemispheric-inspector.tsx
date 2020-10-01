@@ -2,6 +2,7 @@ import { HemisphericLight } from "babylonjs";
 import { GUI } from "dat.gui";
 
 import { Inspector } from "../../components/inspector";
+
 import { LightInspector } from "./light-inspector";
 
 export class HemisphericLightInspector extends LightInspector {

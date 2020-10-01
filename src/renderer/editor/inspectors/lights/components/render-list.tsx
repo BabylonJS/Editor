@@ -3,7 +3,7 @@ import Transfer, { TransferItem } from "antd/lib/transfer";
 
 import { AbstractMesh, RenderTargetTexture } from "babylonjs";
 
-import { Editor } from "../../editor";
+import { Editor } from "../../../editor";
 
 export interface IRenderListProps {
     /**
@@ -45,6 +45,7 @@ export class RenderList extends React.Component<IRenderListProps, IRenderListSta
             selectedKeys: [],
         };
     }
+    
     /**
      * Renders the component.
      */
