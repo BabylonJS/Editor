@@ -145,7 +145,7 @@ export class MeshesAssets extends AbstractAssets {
             <Menu className={Classes.DARK}>
                 <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this._refreshMeshPreview(item.id, item.key)} />
                 <MenuDivider />
-                <MenuItem text="Update Instantiated References..." onClick={() => this.addOrUpdateMeshesInScene(item, true)} />
+                <MenuItem text="Force Update Instantiated References..." onClick={() => this.addOrUpdateMeshesInScene(item, true)} />
                 <MenuDivider />
                 <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(item.key))} />
                 <MenuItem text="Export To" icon="export">
@@ -208,8 +208,11 @@ export class MeshesAssets extends AbstractAssets {
         await SceneTools.ImportAnimationGroupsFromFile(this.editor, item.key);
 
         for (const mesh of result.meshes) {
-            if (!update || !this._updateImportedMeshGeometry(mesh, item.id)) {
-                // Store original datas
+            if (!update || !this._updateImportedMeshGeometry(mesh, item.id)) {                
+                if (!mesh.parent && pickInfo?.pickedPoint) {
+                    mesh.position.addInPlace(pickInfo.pickedPoint);
+                }
+                
                 if (mesh instanceof Mesh) {
                     const meshMetadata = Tools.GetMeshMetadata(mesh);
                     meshMetadata.originalSourceFile = {
@@ -217,26 +220,34 @@ export class MeshesAssets extends AbstractAssets {
                         name: mesh.name,
                         sceneFileName: item.id,
                     };  
-                }
 
-                mesh.id = Tools.RandomId();
-                if (!mesh.parent && pickInfo?.pickedPoint) { mesh.position.addInPlace(pickInfo.pickedPoint); }
-                if (mesh instanceof Mesh) {
                     if (mesh.geometry) {
                         mesh.geometry.id = Tools.RandomId();
                     }
                 }
+
+                mesh.id = Tools.RandomId();
             }
 
             // Materials
             if (mesh.material) {
+                // Store original datas
+                const materialMetadata = Tools.GetMaterialMetadata(mesh.material);
+                materialMetadata.originalSourceFile = materialMetadata.originalSourceFile ?? {
+                    id: mesh.material.id,
+                    name: mesh.material.name,
+                    sceneFileName: item.id,
+                };
+
+                mesh.material.id = Tools.RandomId();
+
                 if (mesh.material instanceof MultiMaterial) {
                     for (const m of mesh.material.subMaterials) {
                         if (!m) { return; }
 
                         // Store original datas
-                        const materialMetadata = Tools.GetMaterialMetadata(m);
-                        materialMetadata.originalSourceFile = {
+                        const subMaterialMetadata = Tools.GetMaterialMetadata(m);
+                        subMaterialMetadata.originalSourceFile = subMaterialMetadata.originalSourceFile ?? {
                             id: m.id,
                             name: m.name,
                             sceneFileName: item.id,
@@ -251,16 +262,6 @@ export class MeshesAssets extends AbstractAssets {
                         this._configureMaterialTextures(m);
                     };
                 } else {
-                    // Store original datas
-                    const materialMetadata = Tools.GetMaterialMetadata(mesh.material);
-                    materialMetadata.originalSourceFile = {
-                        id: mesh.material.id,
-                        name: mesh.material.name,
-                        sceneFileName: item.id,
-                    };
-
-                    mesh.material.id = Tools.RandomId();
-
                     if (isGltf) {
                         await this._configureGltfMaterial(mesh.material, onTextureDone);
                     }
@@ -377,7 +378,7 @@ export class MeshesAssets extends AbstractAssets {
         }
 
         // Check mesh already exists
-        const existingMeshes: Mesh[] = [];
+        const updatedMeshes: Mesh[] = [];
 
         this.editor.scene!.meshes.forEach((m) => {
             if (!(m instanceof Mesh)) {
@@ -395,19 +396,21 @@ export class MeshesAssets extends AbstractAssets {
                         m.material = mesh.material;
                     } else {
                         const materialMetadata = Tools.GetMaterialMetadata(m.material);
-                        if (!materialMetadata.originalSourceFile || materialMetadata.originalSourceFile.sceneFileName !== sceneFileName) { return; }
-
-                        if (materialMetadata.originalSourceFile.id === mesh.material.id) {
-                            m.material = mesh.material;
+                        if (!materialMetadata.originalSourceFile || materialMetadata.originalSourceFile.sceneFileName !== sceneFileName) {
+                            return;
                         }
+
+                        m.material = mesh.material;
                     }
+                } else if (m.material) {
+                    m.material = null;
                 }
 
-                existingMeshes.push(m);
+                updatedMeshes.push(m);
             }
         });
 
-        if (existingMeshes.length) {
+        if (updatedMeshes.length) {
             mesh.dispose();
             return true;
         }
