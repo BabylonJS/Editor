@@ -1,4 +1,4 @@
-import { Mesh, Material, SubMesh } from "babylonjs";
+import { Mesh, Material, SubMesh, Constants } from "babylonjs";
 import { GUI } from "dat.gui";
 
 import { MaterialAssets } from "../../assets/materials";
@@ -12,6 +12,7 @@ export class MaterialInspector<T extends Material> extends AbstractInspector<Mes
     protected material: T;
 
     private _sideOrientation: string = "";
+    private _alphaMode: string = "";
 
     /**
      * Returns wether or not the selected object in the editor is supported to edit material.
@@ -81,9 +82,19 @@ export class MaterialInspector<T extends Material> extends AbstractInspector<Mes
 
         const sideOrientations: string[] = ["ClockWiseSideOrientation", "CounterClockWiseSideOrientation"];
         this._sideOrientation = sideOrientations.find((so) => this.material.sideOrientation === Material[so]) ?? sideOrientations[0];
-        common.add(this, "_sideOrientation", sideOrientations).name("Side Orientation").onChange(() => {
+        common.addSuggest(this, "_sideOrientation", sideOrientations).name("Side Orientation").onChange(() => {
             this.material.sideOrientation = Material[this._sideOrientation];
         });
+
+        const alphaModes: string[] = [
+            "ALPHA_DISABLE", "ALPHA_ADD", "ALPHA_COMBINE", "ALPHA_SUBTRACT",
+            "ALPHA_MULTIPLY", "ALPHA_MAXIMIZED", "ALPHA_ONEONE", "ALPHA_PREMULTIPLIED",
+            "ALPHA_PREMULTIPLIED_PORTERDUFF", "ALPHA_INTERPOLATE", "ALPHA_SCREENMODE",
+        ];
+        this._alphaMode = alphaModes.find((am) => this.material.alphaMode === Constants[am]) ?? alphaModes[0];
+        common.addSuggest(this, "_alphaMode", alphaModes).name("Alpha Mode").onChange(() => {
+            this.material.alphaMode = Constants[this._alphaMode];
+        })
 
         return common;
     }

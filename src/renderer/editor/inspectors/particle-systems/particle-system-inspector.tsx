@@ -30,6 +30,8 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
         "BLENDMODE_MULTIPLYADD",
     ];
 
+    private _billboardMode: string = "";
+
     private _emitterType: string = "";
     private _blendMode: string = "";
 
@@ -44,6 +46,7 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
      */
     public onUpdate(): void {
         this.addCommon();
+        this.addBillboard();
         this.addTextures();
         this.addEmitter();
         this.addEmission();
@@ -64,13 +67,27 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
         
         common.addButton("Start").onClick(() => this.selectedObject.start());
         common.addButton("Stop").onClick(() => this.selectedObject.stop());
-        
-        common.add(this.selectedObject, "isBillboardBased").name("Is Billboard Based");
 
         common.addVector("Gravity", this.selectedObject.gravity);
         common.addVector("World Offset", this.selectedObject.worldOffset);
 
         return common;
+    }
+
+    /**
+     * Adds the billboard editable properties.
+     */
+    protected addBillboard(): void {
+        const billboard = this.tool!.addFolder("Billboard");
+        billboard.open();
+
+        billboard.add(this.selectedObject, "isBillboardBased").name("Is Billboard Based");
+
+        const billboardModes = ["BILLBOARDMODE_Y", "BILLBOARDMODE_STRETCHED", "BILLBOARDMODE_ALL"];
+        this._billboardMode = billboardModes.find((b) => this.selectedObject.billboardMode === ParticleSystem[b]) ?? billboardModes[0];
+        billboard.addSuggest(this, "_billboardMode", billboardModes).name("Billboard Mode").onChange(() => {
+            this.selectedObject.billboardMode = ParticleSystem[this._billboardMode];
+        });
     }
 
     /**
