@@ -4,9 +4,9 @@ import { platform } from "os";
 
 import { IPCResponses, IPCRequests } from "../../../shared/ipc";
 
-import { Tools as BabylonTools, Engine, Scene, Node, Nullable, Camera, Mesh } from "babylonjs";
+import { Tools as BabylonTools, Engine, Scene, Node, Nullable, Camera, Mesh, Material } from "babylonjs";
 
-import { ICommonMetadata, IMeshMetadata } from "./types";
+import { ICommonMetadata, IMaterialMetadata, IMeshMetadata } from "./types";
 
 export class Tools {
     /**
@@ -56,8 +56,16 @@ export class Tools {
      * @param mesh defines the reference to the mesh to get its metadatas.
      */
     public static GetMeshMetadata(mesh: Mesh): IMeshMetadata {
-        mesh.metadata = mesh.metadata ?? { };
-        return mesh.metadata;
+        return this.GetNodeMetadata(mesh) as IMeshMetadata;
+    }
+
+    /**
+     * Returns the metadatas of the given material.
+     * @param material defines the reference to the material to get its metadatas.
+     */
+    public static GetMaterialMetadata(material: Material): IMaterialMetadata {
+        material.metadata = material.metadata ?? { };
+        return material.metadata;
     }
 
     /**

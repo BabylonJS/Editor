@@ -180,6 +180,10 @@ export class ProjectImporter {
                 const materialRootUrl = json.customType === "BABYLON.NodeMaterial" ? undefined : rootUrl;
 
                 const material = m.isMultiMaterial ? MultiMaterial.ParseMultiMaterial(json, editor.scene!) : Material.Parse(json, editor.scene!, materialRootUrl!);
+                if (material && json.metadata) {
+                    material.metadata = json.metadata;
+                }
+
                 editor.console.logInfo(`Parsed material "${m.json}"`);
 
                 m.bindedMeshes.forEach((bm) => {

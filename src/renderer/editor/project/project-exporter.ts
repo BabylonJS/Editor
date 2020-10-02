@@ -231,6 +231,13 @@ export class ProjectExporter {
 
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = material.serialize();
+                if (material.metadata) {
+                    try {
+                        json.metadata = Tools.CloneObject(material.metadata);
+                    } catch (e) {
+                        // Catch silently.
+                    }
+                }
 
                 const dest = `${normalize(`${basename(material.name)}-${material.id}`)}.json`;
                 await writeFile(join(materialsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
