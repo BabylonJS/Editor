@@ -391,6 +391,7 @@ export class MeshesAssets extends AbstractAssets {
             if (meshMetadata.originalSourceFile.id === mesh.id) {
                 mesh.geometry?.applyToMesh(m);
 
+                // Material
                 if (mesh.material) {
                     if (!m.material) {
                         m.material = mesh.material;
@@ -404,6 +405,13 @@ export class MeshesAssets extends AbstractAssets {
                     }
                 } else if (m.material) {
                     m.material = null;
+                }
+
+                // Skeleton
+                if (mesh.skeleton) {
+                    m.skeleton = mesh.skeleton;
+                } else {
+                    m.skeleton = null;
                 }
 
                 updatedMeshes.push(m);
