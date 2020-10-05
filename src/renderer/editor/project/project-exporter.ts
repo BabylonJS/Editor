@@ -468,6 +468,13 @@ export class ProjectExporter {
         if (mesh.metadata?.isPickable) {
             mesh.isPickable = mesh.metadata.isPickable;
         }
+        
+        const meshMetadata = Tools.GetMeshMetadata(mesh);
+        const waitingUpdatedReferences = meshMetadata._waitingUpdatedReferences;
+
+        if (waitingUpdatedReferences) {
+            delete meshMetadata._waitingUpdatedReferences;
+        }
 
         const json = SceneSerializer.SerializeMesh(mesh, withParents, withChildren);
         json.materials = [];
@@ -490,6 +497,8 @@ export class ProjectExporter {
 
             json.lods.push(lodJson);
         }
+
+        meshMetadata._waitingUpdatedReferences = waitingUpdatedReferences;
 
         return json;
     }

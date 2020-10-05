@@ -145,7 +145,8 @@ export class MeshesAssets extends AbstractAssets {
             <Menu className={Classes.DARK}>
                 <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this._refreshMeshPreview(item.id, item.key)} />
                 <MenuDivider />
-                <MenuItem text="Force Update Instantiated References..." onClick={() => this.addOrUpdateMeshesInScene(item, true)} />
+                <MenuItem text="Update Instantiated References..." onClick={() => this.addOrUpdateMeshesInScene(item, true, false)} />
+                <MenuItem text="Force Update Instantiated References..." onClick={() => this.addOrUpdateMeshesInScene(item, true, true)} />
                 <MenuDivider />
                 <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(item.key))} />
                 <MenuItem text="Export To" icon="export">
@@ -181,16 +182,17 @@ export class MeshesAssets extends AbstractAssets {
      */
     public onDropAsset(item: IAssetComponentItem, pickInfo: PickingInfo): Promise<void> {
         super.onDropAsset(item, pickInfo);
-        return this.addOrUpdateMeshesInScene(item, false, pickInfo);
+        return this.addOrUpdateMeshesInScene(item, false, false, pickInfo);
     }
 
     /**
      * Adds or updates the meshes/material in scehe scene. In case of an update, it will just add the newest meshes.
      * @param item defines the item being added or updated.
      * @param update defines wether or not the instantiated meshes in scene should be updated.
+     * @param forceUpdate defines wether or not, in case of an update, the update should be forced.
      * @param pickInfo defines the pick info generated in case of a drop event.
      */
-    public async addOrUpdateMeshesInScene(item: IAssetComponentItem, update: boolean, pickInfo?: PickingInfo): Promise<void> {
+    public async addOrUpdateMeshesInScene(item: IAssetComponentItem, update: boolean, forceUpdate: boolean, pickInfo?: PickingInfo): Promise<void> {
         require("babylonjs-loaders");
 
         const extension = extname(item.id).toLowerCase();
@@ -208,7 +210,7 @@ export class MeshesAssets extends AbstractAssets {
         await SceneTools.ImportAnimationGroupsFromFile(this.editor, item.key);
 
         for (const mesh of result.meshes) {
-            if (!update || !this._updateImportedMeshGeometry(mesh, item.id)) {                
+            if (!update || !this._updateImportedMeshGeometry(mesh, item.id, forceUpdate)) {                
                 if (!mesh.parent && pickInfo?.pickedPoint) {
                     mesh.position.addInPlace(pickInfo.pickedPoint);
                 }
@@ -372,7 +374,7 @@ export class MeshesAssets extends AbstractAssets {
     /**
      * Updates the existing meshes in scene with the given mesh's geometry.
      */
-    private _updateImportedMeshGeometry(mesh: AbstractMesh, sceneFileName: string): boolean {
+    private _updateImportedMeshGeometry(mesh: AbstractMesh, sceneFileName: string, force: boolean): boolean {
         if (!(mesh instanceof Mesh)) {
             return false;
         }
@@ -386,40 +388,54 @@ export class MeshesAssets extends AbstractAssets {
             }
 
             const meshMetadata = Tools.GetMeshMetadata(m);
+
             if (!meshMetadata.originalSourceFile?.id || meshMetadata.originalSourceFile.sceneFileName !== sceneFileName) { return; }
 
+            meshMetadata._waitingUpdatedReferences = { };
+
             if (meshMetadata.originalSourceFile.id === mesh.id) {
-                mesh.geometry?.applyToMesh(m);
+                meshMetadata._waitingUpdatedReferences!.geometry = mesh.geometry;
 
                 // Material
                 if (mesh.material) {
                     if (!m.material) {
-                        m.material = mesh.material;
+                        meshMetadata._waitingUpdatedReferences!.material = mesh.material;
                     } else {
                         const materialMetadata = Tools.GetMaterialMetadata(m.material);
                         if (!materialMetadata.originalSourceFile || materialMetadata.originalSourceFile.sceneFileName !== sceneFileName) {
                             return;
                         }
 
-                        m.material = mesh.material;
+                        meshMetadata._waitingUpdatedReferences!.material = mesh.material;
                     }
                 } else if (m.material) {
-                    m.material = null;
+                    meshMetadata._waitingUpdatedReferences!.material = null;
                 }
 
                 // Skeleton
-                if (mesh.skeleton) {
-                    m.skeleton = mesh.skeleton;
-                } else {
-                    m.skeleton = null;
-                }
+                meshMetadata._waitingUpdatedReferences!.skeleton = mesh.skeleton;
 
+                // Keep updated mesh metadata.
                 updatedMeshes.push(m);
             }
         });
 
         if (updatedMeshes.length) {
-            mesh.dispose();
+            if (force) {
+                updatedMeshes.forEach((um) => {
+                    const umMetadata = Tools.GetMeshMetadata(um);
+                    if (!umMetadata._waitingUpdatedReferences) { return; }
+
+                    umMetadata._waitingUpdatedReferences.geometry?.applyToMesh(um);
+                    um.material = umMetadata._waitingUpdatedReferences.material ?? null;
+                    um.skeleton = umMetadata._waitingUpdatedReferences.skeleton ?? null;
+
+                    delete umMetadata._waitingUpdatedReferences;
+                });
+            }
+
+            mesh._geometry = null;
+            mesh.dispose(true, false);
             return true;
         }
 

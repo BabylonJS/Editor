@@ -1,4 +1,6 @@
-import { Undefinable, IStringDictionary } from "../../../shared/types";
+import { Undefinable, IStringDictionary, Nullable } from "../../../shared/types";
+
+import { Material, Geometry, Skeleton } from "babylonjs";
 
 export interface IObjectModified<T> {
     /**
@@ -138,6 +140,23 @@ export interface IMeshMetadata extends ICommonMetadata {
      * Defines the original data of the source file.
      */
     originalSourceFile?: IOriginalSourceFileMetadata;
+    /**
+     * Defines the objects that are waiting to be updated.
+     */
+    _waitingUpdatedReferences?: {
+        /**
+         * @hidden
+         */
+        geometry?: Nullable<Geometry>;
+        /**
+         * @hidden
+         */
+        material?: Nullable<Material>;
+        /**
+         * @hidden
+         */
+        skeleton?: Nullable<Skeleton>;
+    }
 }
 
 export interface IMaterialMetadata {

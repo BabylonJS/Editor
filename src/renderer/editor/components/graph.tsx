@@ -3,7 +3,7 @@ import Tree from "antd/lib/tree/Tree";
 import {
     ContextMenu, Menu, MenuItem, MenuDivider, Classes, Tooltip,
     Position, InputGroup, FormGroup,
-    Switch, ButtonGroup, Button, Popover, Pre, Intent, Code,
+    Switch, ButtonGroup, Button, Popover, Pre, Intent, Code, Tag,
 } from "@blueprintjs/core";
 
 import { Nullable, Undefinable } from "../../../shared/types";
@@ -557,6 +557,56 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             );
         });
 
+        // Update references
+        let updateReferences: React.ReactNode;
+        if (node.metadata?._waitingUpdatedReferences && Object.keys(node.metadata?._waitingUpdatedReferences).length) {
+            updateReferences = (
+                <Tag
+                    interactive={true}
+                    intent={Intent.WARNING}
+                    style={{ marginLeft: "10px" }}
+                    onClick={(e) => {
+                        const meshMedatata = Tools.GetMeshMetadata(node as Mesh);
+
+                        let updateGeometry: React.ReactNode;
+                        let updateMaterial: React.ReactNode;
+                        let updateSkeleton: React.ReactNode;
+
+                        if (meshMedatata._waitingUpdatedReferences?.geometry) {
+                            updateGeometry = (<MenuItem text="Update Geometry" onClick={() => {
+                                meshMedatata._waitingUpdatedReferences?.geometry?.applyToMesh(node as Mesh);
+                                delete meshMedatata._waitingUpdatedReferences?.geometry;
+                                this.refresh();
+                            }} />);
+                        }
+                        if (meshMedatata._waitingUpdatedReferences?.material) {
+                            updateMaterial = (<MenuItem text="Update Material" onClick={() => {
+                                (node as Mesh).material = meshMedatata._waitingUpdatedReferences?.material ?? null;
+                                delete meshMedatata._waitingUpdatedReferences?.material;
+                                this.refresh();
+                            }} />);
+                        }
+                        if (meshMedatata._waitingUpdatedReferences?.skeleton) {
+                            updateSkeleton = (<MenuItem text="Update Skeleton" onClick={() => {
+                                (node as Mesh).skeleton = meshMedatata._waitingUpdatedReferences?.skeleton ?? null;
+                                delete meshMedatata._waitingUpdatedReferences?.skeleton;
+                                this.refresh();
+                            }} />);
+                        }
+
+                        ContextMenu.show(
+                            <Menu className={Classes.DARK}>
+                                {updateGeometry}
+                                {updateMaterial}
+                                {updateSkeleton}
+                            </Menu>,
+                            { left: e.clientX, top: e.clientY }
+                        );
+                    }}
+                >...</Tag>
+            );
+        }
+
         return (
             <Tree.TreeNode
                 active={true}
@@ -566,7 +616,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         content={<span>{ctor}</span>}
                         usePortal={true}
                     >
-                        <span style={style}>{name}</span>
+                        <>
+                            <span style={style}>{name}</span>
+                            {updateReferences}
+                        </>
                     </Tooltip>
                 }
                 key={node.id}
