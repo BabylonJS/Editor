@@ -274,22 +274,22 @@ export class MeshesAssets extends AbstractAssets {
         }
 
         // Don't forget transform nodes
-        for (const t of this.editor.scene!.transformNodes) {
-            if (!t.metadata || !t.metadata.gltf) { continue; }
-            if (t.metadata.gltf.editorDone) { continue; }
+        for (const transformNode of this.editor.scene!.transformNodes) {
+            if (!transformNode.metadata || !transformNode.metadata.gltf) { continue; }
+            if (transformNode.metadata.gltf.editorDone) { continue; }
 
-            t.id = Tools.RandomId();
-            t.metadata.gltf.editorDone = true;
+            transformNode.id = Tools.RandomId();
+            transformNode.metadata.gltf.editorDone = true;
         }
 
-        result.skeletons.forEach((s) => {
+        result.skeletons.forEach((skeleton) => {
             // Skeleton Ids are not strings but numbers
             let id = 0;
             while (this.editor.scene!.getSkeletonById(id as any)) {
                 id++;
             }
 
-            s.id = id as any;
+            skeleton.id = id as any;
         });
         
         result.particleSystems.forEach((ps) => ps.id = Tools.RandomId());
@@ -399,7 +399,7 @@ export class MeshesAssets extends AbstractAssets {
                 meshMetadata._waitingUpdatedReferences!.geometry = {
                     geometry: mesh.geometry,
                     skeleton: mesh.skeleton,
-                    subMeshes: mesh.subMeshes.slice(),
+                    subMeshes: mesh.subMeshes?.slice() ?? [],
                 };
 
                 // Material
@@ -407,11 +407,6 @@ export class MeshesAssets extends AbstractAssets {
                     if (!m.material) {
                         meshMetadata._waitingUpdatedReferences!.material = mesh.material;
                     } else {
-                        // const materialMetadata = Tools.GetMaterialMetadata(m.material);
-                        // if (!materialMetadata.originalSourceFile || materialMetadata.originalSourceFile.sceneFileName !== sceneFileName) {
-                        //     return;
-                        // }
-
                         meshMetadata._waitingUpdatedReferences!.material = mesh.material;
                     }
                 } else if (m.material) {
@@ -423,35 +418,35 @@ export class MeshesAssets extends AbstractAssets {
             }
         });
 
-        if (updatedMeshes.length) {
-            if (force) {
-                updatedMeshes.forEach((um) => {
-                    const umMetadata = Tools.GetMeshMetadata(um);
-                    if (!umMetadata._waitingUpdatedReferences) { return; }
-
-                    umMetadata._waitingUpdatedReferences.geometry!.geometry?.applyToMesh(um);
-                    um.skeleton = umMetadata._waitingUpdatedReferences.geometry!.skeleton ?? null;
-
-                    if (umMetadata._waitingUpdatedReferences.geometry!.subMeshes) {
-                        um.subMeshes = [];
-                        umMetadata._waitingUpdatedReferences.geometry!.subMeshes?.forEach((sm) => {
-                            new SubMesh(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount, um, um, true, true);
-                        });
-                    }
-
-                    um.material = umMetadata._waitingUpdatedReferences.material ?? null;
-
-                    delete umMetadata._waitingUpdatedReferences;
-                });
-            }
-
-            mesh._geometry = null;
-            mesh.subMeshes = [];
-            mesh.dispose(true, false);
-            return true;
+        if (!updatedMeshes.length) {
+            return false;
         }
 
-        return false;
+        if (force) {
+            updatedMeshes.forEach((um) => {
+                const umMetadata = Tools.GetMeshMetadata(um);
+                if (!umMetadata._waitingUpdatedReferences) { return; }
+
+                umMetadata._waitingUpdatedReferences.geometry!.geometry?.applyToMesh(um);
+                um.skeleton = umMetadata._waitingUpdatedReferences.geometry!.skeleton ?? null;
+
+                if (umMetadata._waitingUpdatedReferences.geometry!.subMeshes) {
+                    um.subMeshes = [];
+                    umMetadata._waitingUpdatedReferences.geometry!.subMeshes?.forEach((sm) => {
+                        new SubMesh(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount, um, um, true, true);
+                    });
+                }
+
+                um.material = umMetadata._waitingUpdatedReferences.material ?? null;
+
+                delete umMetadata._waitingUpdatedReferences;
+            });
+        }
+
+        mesh._geometry = null;
+        mesh.subMeshes = [];
+        mesh.dispose(true, false);
+        return true;
     }
 
     /**

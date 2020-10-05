@@ -174,9 +174,14 @@ export class SceneGizmo {
         // Mesh or transform node
         if (!node || !this._currentGizmo) { return; }
 
+        // CHeck node has a billboard mode
+        if (node instanceof TransformNode && node.billboardMode !== TransformNode.BILLBOARDMODE_NONE && this._type === GizmoType.Rotation) {
+            return;
+        }
+
         if (node instanceof AbstractMesh) {
             this._currentGizmo.attachedMesh = node;
-        } else if (node instanceof TransformNode || node instanceof Camera) {
+        } else if (node instanceof Node) {
             this._currentGizmo.attachedNode = node;
         }
     }
