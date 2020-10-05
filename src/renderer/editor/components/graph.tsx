@@ -10,7 +10,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 
 import {
     Node, Scene, Mesh, Light, Camera, TransformNode, InstancedMesh, AbstractMesh,
-    MultiMaterial, IParticleSystem, ParticleSystem, Sound,
+    MultiMaterial, IParticleSystem, ParticleSystem, Sound, SubMesh
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -559,46 +559,71 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         // Update references
         let updateReferences: React.ReactNode;
-        if (node.metadata?._waitingUpdatedReferences && Object.keys(node.metadata?._waitingUpdatedReferences).length) {
+        if (node.metadata?._waitingUpdatedReferences && Object.values(node.metadata?._waitingUpdatedReferences).find((v) => v !== undefined)) {
             updateReferences = (
                 <Tag
                     interactive={true}
                     intent={Intent.WARNING}
                     style={{ marginLeft: "10px" }}
                     onClick={(e) => {
-                        const meshMedatata = Tools.GetMeshMetadata(node as Mesh);
+                        const mesh = node as Mesh;
+                        const meshMedatata = Tools.GetMeshMetadata(mesh);
 
                         let updateGeometry: React.ReactNode;
                         let updateMaterial: React.ReactNode;
-                        let updateSkeleton: React.ReactNode;
 
-                        if (meshMedatata._waitingUpdatedReferences?.geometry) {
+                        if (meshMedatata._waitingUpdatedReferences?.geometry != undefined) {
                             updateGeometry = (<MenuItem text="Update Geometry" onClick={() => {
-                                meshMedatata._waitingUpdatedReferences?.geometry?.applyToMesh(node as Mesh);
-                                delete meshMedatata._waitingUpdatedReferences?.geometry;
+                                meshMedatata._waitingUpdatedReferences!.geometry!.geometry?.applyToMesh(mesh);
+                                mesh.skeleton = meshMedatata._waitingUpdatedReferences!.geometry!.skeleton ?? null;
+                                
+                                if (meshMedatata._waitingUpdatedReferences!.geometry!.subMeshes) {
+                                    mesh.subMeshes = [];
+                                    meshMedatata._waitingUpdatedReferences!.geometry!.subMeshes?.forEach((sm) => {
+                                        new SubMesh(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount, mesh, mesh, true, true);
+                                    });
+                                }
+
+                                delete meshMedatata._waitingUpdatedReferences!.geometry;
                                 this.refresh();
                             }} />);
                         }
-                        if (meshMedatata._waitingUpdatedReferences?.material) {
+
+                        if (meshMedatata._waitingUpdatedReferences?.material !== undefined) {
                             updateMaterial = (<MenuItem text="Update Material" onClick={() => {
-                                (node as Mesh).material = meshMedatata._waitingUpdatedReferences?.material ?? null;
-                                delete meshMedatata._waitingUpdatedReferences?.material;
-                                this.refresh();
-                            }} />);
-                        }
-                        if (meshMedatata._waitingUpdatedReferences?.skeleton) {
-                            updateSkeleton = (<MenuItem text="Update Skeleton" onClick={() => {
-                                (node as Mesh).skeleton = meshMedatata._waitingUpdatedReferences?.skeleton ?? null;
-                                delete meshMedatata._waitingUpdatedReferences?.skeleton;
+                                mesh.material = meshMedatata._waitingUpdatedReferences?.material ?? null;
+                                delete meshMedatata._waitingUpdatedReferences!.material;
                                 this.refresh();
                             }} />);
                         }
 
                         ContextMenu.show(
                             <Menu className={Classes.DARK}>
+                                <Tag>Changes available from source file</Tag>
                                 {updateGeometry}
                                 {updateMaterial}
-                                {updateSkeleton}
+                                <MenuDivider />
+                                <MenuItem text="Update All" onClick={() => {
+                                    if (meshMedatata._waitingUpdatedReferences?.geometry) {
+                                        meshMedatata._waitingUpdatedReferences.geometry.geometry?.applyToMesh(mesh);
+                                        mesh.skeleton = meshMedatata._waitingUpdatedReferences.geometry.skeleton ?? null;
+                                        
+                                        if (meshMedatata._waitingUpdatedReferences!.geometry!.subMeshes) {
+                                            mesh.subMeshes = [];
+                                            meshMedatata._waitingUpdatedReferences!.geometry!.subMeshes?.forEach((sm) => {
+                                                new SubMesh(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount, mesh, mesh, true, true);
+                                            });
+                                        }
+                                    }
+
+                                    if (meshMedatata._waitingUpdatedReferences?.material !== undefined) {
+                                        mesh.material = meshMedatata._waitingUpdatedReferences?.material ?? null;
+                                    }
+
+                                    delete meshMedatata._waitingUpdatedReferences;
+
+                                    this.refresh();
+                                }} />
                             </Menu>,
                             { left: e.clientX, top: e.clientY }
                         );

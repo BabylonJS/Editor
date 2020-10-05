@@ -1,6 +1,6 @@
 import { Undefinable, IStringDictionary, Nullable } from "../../../shared/types";
 
-import { Material, Geometry, Skeleton } from "babylonjs";
+import { Material, Geometry, Skeleton, SubMesh } from "babylonjs";
 
 export interface IObjectModified<T> {
     /**
@@ -145,17 +145,26 @@ export interface IMeshMetadata extends ICommonMetadata {
      */
     _waitingUpdatedReferences?: {
         /**
-         * @hidden
+         * Defines the geometry object containing the components to update.
          */
-        geometry?: Nullable<Geometry>;
+        geometry?: {
+            /**
+             * @hidden
+             */
+            geometry: Nullable<Geometry>;
+            /**
+             * @hidden
+             */
+            skeleton: Nullable<Skeleton>;
+            /**
+             * @hidden
+             */
+            subMeshes: SubMesh[];
+        }
         /**
-         * @hidden
+         * Defines the reference to the material to update.
          */
         material?: Nullable<Material>;
-        /**
-         * @hidden
-         */
-        skeleton?: Nullable<Skeleton>;
     }
 }
 

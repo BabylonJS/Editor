@@ -480,6 +480,9 @@ export class ProjectExporter {
         json.materials = [];
         json.multiMaterials = [];
         json.meshes?.forEach((m) => {
+            if (m.metadata) {
+                m.metadata = Tools.CloneObject(m.metadata);
+            }
             delete m.renderOverlay;
         });
 
@@ -548,6 +551,14 @@ export class ProjectExporter {
             if (!m) { return; }
 
             delete m.renderOverlay;
+
+            const exportedMeshMetadata = m.metadata;
+            const waitingUpdatedReferences = exportedMeshMetadata?._waitingUpdatedReferences;
+            if (waitingUpdatedReferences) {
+                delete m.metadata._waitingUpdatedReferences;
+                m.metadata = Tools.CloneObject(m.metadata);
+                exportedMeshMetadata._waitingUpdatedReferences = waitingUpdatedReferences;
+            }
 
             const mesh = editor.scene!.getMeshByID(m.id);
             if (!mesh || !(mesh instanceof Mesh)) { return; }

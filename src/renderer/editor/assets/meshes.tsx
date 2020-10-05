@@ -6,7 +6,7 @@ import * as os from "os";
 import * as React from "react";
 import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
-import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture, Mesh, AbstractMesh } from "babylonjs";
+import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture, Mesh, AbstractMesh, SubMesh } from "babylonjs";
 import "babylonjs-loaders";
 
 import { assetsHelper } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
@@ -389,31 +389,34 @@ export class MeshesAssets extends AbstractAssets {
 
             const meshMetadata = Tools.GetMeshMetadata(m);
 
-            if (!meshMetadata.originalSourceFile?.id || meshMetadata.originalSourceFile.sceneFileName !== sceneFileName) { return; }
-
-            meshMetadata._waitingUpdatedReferences = { };
+            if (!meshMetadata.originalSourceFile?.id || meshMetadata.originalSourceFile.sceneFileName !== sceneFileName) {
+                return;
+            }
 
             if (meshMetadata.originalSourceFile.id === mesh.id) {
-                meshMetadata._waitingUpdatedReferences!.geometry = mesh.geometry;
+                meshMetadata._waitingUpdatedReferences = { };
+                
+                meshMetadata._waitingUpdatedReferences!.geometry = {
+                    geometry: mesh.geometry,
+                    skeleton: mesh.skeleton,
+                    subMeshes: mesh.subMeshes.slice(),
+                };
 
                 // Material
                 if (mesh.material) {
                     if (!m.material) {
                         meshMetadata._waitingUpdatedReferences!.material = mesh.material;
                     } else {
-                        const materialMetadata = Tools.GetMaterialMetadata(m.material);
-                        if (!materialMetadata.originalSourceFile || materialMetadata.originalSourceFile.sceneFileName !== sceneFileName) {
-                            return;
-                        }
+                        // const materialMetadata = Tools.GetMaterialMetadata(m.material);
+                        // if (!materialMetadata.originalSourceFile || materialMetadata.originalSourceFile.sceneFileName !== sceneFileName) {
+                        //     return;
+                        // }
 
                         meshMetadata._waitingUpdatedReferences!.material = mesh.material;
                     }
                 } else if (m.material) {
                     meshMetadata._waitingUpdatedReferences!.material = null;
                 }
-
-                // Skeleton
-                meshMetadata._waitingUpdatedReferences!.skeleton = mesh.skeleton;
 
                 // Keep updated mesh metadata.
                 updatedMeshes.push(m);
@@ -426,15 +429,24 @@ export class MeshesAssets extends AbstractAssets {
                     const umMetadata = Tools.GetMeshMetadata(um);
                     if (!umMetadata._waitingUpdatedReferences) { return; }
 
-                    umMetadata._waitingUpdatedReferences.geometry?.applyToMesh(um);
+                    umMetadata._waitingUpdatedReferences.geometry!.geometry?.applyToMesh(um);
+                    um.skeleton = umMetadata._waitingUpdatedReferences.geometry!.skeleton ?? null;
+
+                    if (umMetadata._waitingUpdatedReferences.geometry!.subMeshes) {
+                        um.subMeshes = [];
+                        umMetadata._waitingUpdatedReferences.geometry!.subMeshes?.forEach((sm) => {
+                            new SubMesh(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount, um, um, true, true);
+                        });
+                    }
+
                     um.material = umMetadata._waitingUpdatedReferences.material ?? null;
-                    um.skeleton = umMetadata._waitingUpdatedReferences.skeleton ?? null;
 
                     delete umMetadata._waitingUpdatedReferences;
                 });
             }
 
             mesh._geometry = null;
+            mesh.subMeshes = [];
             mesh.dispose(true, false);
             return true;
         }
