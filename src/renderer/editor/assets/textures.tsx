@@ -318,6 +318,19 @@ export class TextureAssets extends AbstractAssets {
     }
 
     /**
+     * Called on the user pressed the delete key on the asset.
+     * @param item defines the item being deleted.
+     */
+    public onDeleteAsset(item: IAssetComponentItem): void {
+        super.onDeleteAsset(item);
+
+        const texture = this._getTexture(item.key);
+        if (!texture || (!(texture instanceof Texture) && !(texture instanceof CubeTexture))) { return; }
+        
+        this._removeTexture(item, texture);
+    }
+
+    /**
      * Returns the content of the item's tooltip on the pointer is over the given item.
      * @param item defines the reference to the item having the pointer over.
      */

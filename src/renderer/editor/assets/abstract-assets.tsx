@@ -188,6 +188,14 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
     }
 
     /**
+     * Called on the user pressed the delete key on the asset.
+     * @param item defines the item being deleted.
+     */
+    public onDeleteAsset(_: IAssetComponentItem): void {
+        // Empty for now...
+    }
+
+    /**
      * Renders the component.
      */
     public render(): React.ReactNode {
@@ -295,6 +303,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                         onDrop={() => this._itemBeingDragged && this.dropOver(item, this.itemBeingDragged!)}
                         onDragEnter={() => this._itemBeingDragged && this.dragEnter(item)}
                         onDragLeave={() => this._itemBeingDragged && this.dragLeave(item)}
+                        onKeyDown={(ev) => ev.keyCode === 46 && this.onDeleteAsset(item)}
                     ></img>
                 </Tooltip>
                 <small style={{

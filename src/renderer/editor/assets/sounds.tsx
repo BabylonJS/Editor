@@ -197,6 +197,19 @@ export class SoundAssets extends AbstractAssets {
     }
 
     /**
+     * Called on the user pressed the delete key on the asset.
+     * @param item defines the item being deleted.
+     */
+    public onDeleteAsset(item: IAssetComponentItem): void {
+        super.onDeleteAsset(item);
+
+        const sound = this._getSound(item);
+        if (sound) {
+            this._removeSound(item, sound);
+        }
+    }
+
+    /**
      * Called on the user wants to add textures.
      */
     private async _addSounds(): Promise<void> {

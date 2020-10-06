@@ -210,7 +210,7 @@ export class MeshesAssets extends AbstractAssets {
         await SceneTools.ImportAnimationGroupsFromFile(this.editor, item.key);
 
         for (const mesh of result.meshes) {
-            if (!update || !this._updateImportedMeshGeometry(mesh, item.id, forceUpdate)) {                
+            if (!update || !this._updateImportedMeshGeometry(mesh, item.id, forceUpdate)) {
                 if (!mesh.parent && pickInfo?.pickedPoint) {
                     mesh.position.addInPlace(pickInfo.pickedPoint);
                 }
@@ -278,8 +278,12 @@ export class MeshesAssets extends AbstractAssets {
             if (!transformNode.metadata || !transformNode.metadata.gltf) { continue; }
             if (transformNode.metadata.gltf.editorDone) { continue; }
 
-            transformNode.id = Tools.RandomId();
-            transformNode.metadata.gltf.editorDone = true;
+            if (update) {
+                transformNode.dispose(true, false);
+            } else {
+                transformNode.id = Tools.RandomId();
+                transformNode.metadata.gltf.editorDone = true;
+            }
         }
 
         result.skeletons.forEach((skeleton) => {
@@ -334,6 +338,15 @@ export class MeshesAssets extends AbstractAssets {
                 this.editor.assets.refresh(MeshesAssets, existing.path);
             }
         }
+    }
+
+    /**
+     * Called on the user pressed the delete key on the asset.
+     * @param item defines the item being deleted.
+     */
+    public onDeleteAsset(item: IAssetComponentItem): void {
+        super.onDeleteAsset(item);
+        this._handleRemoveMesh(item);
     }
 
     /**
