@@ -2,7 +2,7 @@ import { shell } from "electron";
 import { writeJSON, writeFile, readJSON } from "fs-extra";
 import { join, extname, dirname, basename } from "path";
 
-import { Mesh, Scene, SceneLoader, SceneSerializer, BaseTexture, AnimationGroup } from "babylonjs";
+import { Mesh, Scene, SceneLoader, SceneSerializer, BaseTexture, AnimationGroup, Node } from "babylonjs";
 import { GLTF2Export } from 'babylonjs-serializers';
 
 import { Alert } from "../gui/alert";
@@ -206,5 +206,16 @@ export class SceneTools {
                 editor.notifyMessage(`Can't import animation groups from file of type "${extension}"`, 1000);
                 break;
         }
+    }
+
+    /**
+     * Returns the list of nodes that have the given id as original id from source file.
+     * @param scene defines the reference to the scene that contains the nodes.
+     * @param id defines the original id of the nodes to find.
+     */
+    public static GetNodesByIdFromSourceFile(scene: Scene, id: string): Node[] {
+        const meshes = scene.meshes.filter((m: Mesh) => Tools.GetMeshMetadata(m).originalSourceFile?.id === id);
+        
+        return meshes;
     }
 }

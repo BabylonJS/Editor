@@ -168,6 +168,13 @@ export interface IMeshMetadata extends ICommonMetadata {
     }
 }
 
+export interface ITransformNodeMetadata extends ICommonMetadata {
+    /**
+     * Defines the original data of the source file.
+     */
+    originalSourceFile?: IOriginalSourceFileMetadata;
+}
+
 export interface IMaterialMetadata {
     /**
      * Defines the original data of the source file.

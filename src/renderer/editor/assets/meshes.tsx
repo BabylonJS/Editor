@@ -205,7 +205,7 @@ export class MeshesAssets extends AbstractAssets {
         const sceneFilename = join("..", "assets/meshes", item.id);
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, sceneFilename, this.editor.scene!);
 
-        const onTextureDone = (n: string) => Overlay.SetMessage(`Configurin GLTF... ${n}`);
+        const onTextureDone = (n: string) => Overlay.SetMessage(`Configuring GLTF... ${n}`);
 
         await SceneTools.ImportAnimationGroupsFromFile(this.editor, item.key);
 
@@ -388,7 +388,6 @@ export class MeshesAssets extends AbstractAssets {
             }
 
             const meshMetadata = Tools.GetMeshMetadata(m);
-
             if (!meshMetadata.originalSourceFile?.id || meshMetadata.originalSourceFile.sceneFileName !== sceneFileName) {
                 return;
             }
@@ -488,14 +487,23 @@ export class MeshesAssets extends AbstractAssets {
      */
     private async _configureGltfMaterial(material: Material, onTextureDone: (name: string) => void): Promise<void> {
         const textures = material.getActiveTextures();
+
         for (const texture of textures) {
             if (texture.metadata?.gltf?.editorDone) { continue; }
 
             if (!(texture instanceof Texture) && !(texture instanceof CubeTexture)) { return; }
 
             const mimeType = texture["_mimeType"];
+
             if (mimeType) {
-                texture.name = join("files", `${basename(texture.name)}${Tools.GetExtensionFromMimeType(mimeType)}`);
+                const existingExtension = extname(texture.name);
+                const targetExtension = Tools.GetExtensionFromMimeType(mimeType);
+
+                if (existingExtension !== targetExtension) {
+                    texture.name = join("files", `${basename(texture.name)}${targetExtension}`);
+                } else {
+                    texture.name = join("files", basename(texture.name));
+                }
             } else {
                 texture.name = join("files", basename(texture.url!));
                 if (texture.url) { texture.url = texture.name; }

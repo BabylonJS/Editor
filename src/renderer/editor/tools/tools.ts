@@ -6,7 +6,7 @@ import { IPCResponses, IPCRequests } from "../../../shared/ipc";
 
 import { Tools as BabylonTools, Engine, Scene, Node, Nullable, Camera, Mesh, Material } from "babylonjs";
 
-import { ICommonMetadata, IMaterialMetadata, IMeshMetadata } from "./types";
+import { ICommonMetadata, IMaterialMetadata, IMeshMetadata, ITransformNodeMetadata } from "./types";
 
 export class Tools {
     /**
@@ -57,6 +57,14 @@ export class Tools {
      */
     public static GetMeshMetadata(mesh: Mesh): IMeshMetadata {
         return this.GetNodeMetadata(mesh) as IMeshMetadata;
+    }
+
+    /**
+     * Returns the metadatas of the given transform node.
+     * @param transformNode defines the reference to the transform node to get its metadatas.
+     */
+    public static GetTransformNodeMetadata(transformNode: Mesh): ITransformNodeMetadata {
+        return this.GetNodeMetadata(transformNode) as ITransformNodeMetadata;
     }
 
     /**
