@@ -13,6 +13,7 @@ import { Editor } from "../editor";
 
 import { Tools } from "../tools/tools";
 import { ExecTools } from "../tools/exec";
+import { EditorPlayMode } from "../tools/types";
 import { EditorUpdater } from "../tools/updater";
 
 import { Icon } from "../gui/icon";
@@ -83,7 +84,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Reveal WorkSpace In File Explorer" disabled={!WorkSpace.HasWorkspace()} icon="document-open" onClick={() => this._menuItemClicked("project:open-worspace-file-explorer")} />
                 <MenuDivider />
                 <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} />
-                <MenuItem text={<div>Save Project... <Tag>(CTRL+s)</Tag></div>} icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
+                <MenuItem text={<div>Save Project... <Tag intent={Intent.PRIMARY}>(CTRL+s)</Tag></div>} icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
                 <MenuItem text="Rename Project..." icon="edit" onClick={() => this._menuItemClicked("project:rename")} />
                 <MenuDivider />
                 <MenuItem text="Add New Project..." icon={<Icon src="plus.svg" />} onClick={() => NewProjectWizard.Show()} />
@@ -95,6 +96,13 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Open Visual Studio Code..." icon={<Icon src="vscode.svg" style={{ filter: "none" }} />} onClick={() => this._handleOpenVSCode()} />
                 <MenuDivider />
+                <MenuItem text={<div>Build Project... <Tag intent={Intent.PRIMARY}>(CTRL+b)</Tag></div>} onClick={() => WorkSpace.BuildProject(this._editor)} />
+                <MenuItem text={<div>Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={() => this._editor.runProject(EditorPlayMode.IntegratedBrowser)} />
+                <MenuItem text={<div>Build & Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={async () => {
+                    await WorkSpace.BuildProject(this._editor);
+                    this._editor.runProject(EditorPlayMode.IntegratedBrowser);
+                }} />
+                <MenuDivider />
                 <MenuItem text="Export" icon="more">
                     <MenuItem text="GLTF..." icon={<Icon src="gltf.svg" />} onClick={() => this._menuItemClicked("project:export:gltf")} />
                     <MenuItem text="GLB..." icon={<Icon src="gltf.svg" />} onClick={() => this._menuItemClicked("project:export:glb")} />
@@ -102,8 +110,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             </Menu>;
         const edit =
             <Menu>
-                <MenuItem text={<div>Undo <Tag>(CTRL+z</Tag></div>} icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("edit:undo")} />
-                <MenuItem text={<div>Redo <Tag>(CTRL+y</Tag></div>} icon={<Icon src="redo.svg" />} onClick={() => this._menuItemClicked("edit:redo")} />
+                <MenuItem text={<div>Undo <Tag intent={Intent.PRIMARY}>(CTRL+z</Tag></div>} icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("edit:undo")} />
+                <MenuItem text={<div>Redo <Tag intent={Intent.PRIMARY}>(CTRL+y</Tag></div>} icon={<Icon src="redo.svg" />} onClick={() => this._menuItemClicked("edit:redo")} />
                 <MenuDivider />
                 <MenuItem text="Editor Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("edit:editor-camera")} />
                 <MenuDivider />
@@ -126,8 +134,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Terminal" icon={<Icon src="terminal.svg" />} onClick={() => this._menuItemClicked("view:terminal")} />
                 <MenuItem text="Statistics" icon={<Icon src="stats.svg" />} onClick={() => this._menuItemClicked("view:stats")} />
                 <MenuDivider />
-                <MenuItem text={<div>Focus Selected Object <Tag>(CTRL+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(true)} />
-                <MenuItem text={<div>Go To Selected Object <Tag>(CTRL+Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(false)} />
+                <MenuItem text={<div>Focus Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(true)} />
+                <MenuItem text={<div>Go To Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(false)} />
             </Menu>;
         const add =
             <Menu>

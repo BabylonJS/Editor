@@ -958,9 +958,9 @@ export class Editor {
         ipcRenderer.on("build-project", () => WorkSpace.BuildProject(this));
         ipcRenderer.on("build-and-run-project", async () => {
             await WorkSpace.BuildProject(this);
-            this.runProject(EditorPlayMode.EditorPanelBrowser);
+            this.runProject(EditorPlayMode.IntegratedBrowser);
         });
-        ipcRenderer.on("run-project", () => this.runProject(EditorPlayMode.EditorPanelBrowser));
+        ipcRenderer.on("run-project", () => this.runProject(EditorPlayMode.IntegratedBrowser));
 
         // Drag'n'drop
         document.addEventListener("dragover", (ev) => ev.preventDefault());
