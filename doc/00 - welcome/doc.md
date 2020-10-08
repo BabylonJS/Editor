@@ -11,6 +11,10 @@ Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are 
 * [Adding sounds](../06%20-%20adding-sounds/doc.md)
 * [Attaching scripts](../07%20-%20attaching-scripts/doc.md)
 
+## External tutorials
+
+* [Introduction to the Babylon.JS Editor v4](https://www.crossroad-tech.com/entry/babylonjs-editor-v4-introduction-en) by [@Limes2018](https://gist.github.com/flushpot1125)
+
 ## Useful shortcuts
 
 ### Global
