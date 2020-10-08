@@ -364,8 +364,7 @@ export class ProjectImporter {
         });
 
         // Refresh
-        editor.scene!.onReadyObservable.addOnce(() => this._RefreshEditor(editor));
-        editor.scene!._checkIsReady();
+        this._RefreshEditor(editor);
     }
 
     /**
