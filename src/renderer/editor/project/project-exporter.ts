@@ -613,10 +613,23 @@ export class ProjectExporter {
     }
 
     /**
+     * Exports the final scene and asks for the destination folder.
+     * @param editor defines the reference to the editor.
+     */
+    public static async ExportFinalSceneAs(editor: Editor): Promise<void> {
+        const destPath = await Tools.ShowSaveDialog();
+        if (!destPath) { return; }
+
+        return this.ExportFinalScene(editor, undefined, destPath);
+    }
+
+    /**
      * Eports the final scene.
      * @param editor the editor reference.
+     * @param task defines the already existing task feedback to reuse.
+     * @param destPath defines the optional path where to save to final scene.
      */
-    public static async ExportFinalScene(editor: Editor, task?: string): Promise<void> {
+    public static async ExportFinalScene(editor: Editor, task?: string, destPath?: string): Promise<void> {
         if (!WorkSpace.HasWorkspace()) { return; }
 
         // Check is isolated mode
@@ -630,7 +643,7 @@ export class ProjectExporter {
         editor.console.logInfo("Serializing scene...");
         const scene = this.GetFinalSceneJson(editor);
 
-        const scenePath = this.GetExportedSceneLocation();
+        const scenePath = destPath ?? this.GetExportedSceneLocation();
         if (!(await pathExists(scenePath))) { await mkdir(scenePath); }
         const destFilesDir = join(scenePath, "files");
 

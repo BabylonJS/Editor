@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ButtonGroup, Button, ContextMenu, Classes, Menu, MenuItem } from "@blueprintjs/core";
+import { ButtonGroup, Button, ContextMenu, Classes, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
 
 import { Editor } from "../editor";
 
@@ -47,7 +47,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
         return (
             <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
                 <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("play-integrated")} />
-                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} />
+                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="generate.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} />
             </ButtonGroup>
         );
     }
@@ -63,6 +63,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             case "play-editor": this._editor.runProject(EditorPlayMode.EditorPanelBrowser); break;
 
             case "generate": ProjectExporter.ExportFinalScene(this._editor); break;
+            case "generate-as": ProjectExporter.ExportFinalSceneAs(this._editor); break;
             case "build-project": WorkSpace.BuildProject(this._editor); break;
             default: break;
         }
@@ -74,9 +75,9 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     private _handlePlayContextMenu(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Play in integrated browser" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("play-integrated")} />
-                <MenuItem text="Play in my browser" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("play-my-browser")} />
-                <MenuItem text="Play in Editor" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("play-editor")} />
+                <MenuItem text="Play In Integrated Browser" onClick={() => this._buttonClicked("play-integrated")} />
+                <MenuItem text="Play In My Browser" onClick={() => this._buttonClicked("play-my-browser")} />
+                <MenuItem text="Play In Editor" onClick={() => this._buttonClicked("play-editor")} />
             </Menu>,
             { left: e.clientX, top: e.clientY },
         );
@@ -88,8 +89,10 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     private _handleGenerateContextMenu(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Generate scene" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("generate")} />
-                <MenuItem text="Build project" icon={<Icon src="play.svg" />} onClick={() => this._buttonClicked("build-project")} />
+                <MenuItem text="Generate Scene..." onClick={() => this._buttonClicked("generate")} />
+                <MenuItem text="Generate Scene As..." onClick={() => this._buttonClicked("generate-as")} />
+                <MenuDivider />
+                <MenuItem text="Build Project..." onClick={() => this._buttonClicked("build-project")} />
             </Menu>,
             { left: e.clientX, top: e.clientY },
         );
