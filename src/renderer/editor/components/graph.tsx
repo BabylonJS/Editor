@@ -780,8 +780,13 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 <MenuDivider />
                 <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, false)} />
                 <MenuDivider />
-                <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, false)} />
-                <MenuItem text="Create Prefab As..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, true)} />
+                <MenuItem text="Prefab">
+                    <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, false)} />
+                    <MenuItem text="Create Prefab As..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, true)} />
+                </MenuItem>
+                <MenuItem text="Export">
+                    <MenuItem text="Export as Babylon..." disabled={!(node instanceof Mesh)} onClick={() => SceneTools.ExportMeshToBabylonJSFormat(this._editor, node as Mesh)} />
+                </MenuItem>
                 {mergeMeshesItem}
                 {doNotExportItem}
                 {lockedMeshesItem}

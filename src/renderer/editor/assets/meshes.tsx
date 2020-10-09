@@ -150,9 +150,9 @@ export class MeshesAssets extends AbstractAssets {
                 <MenuDivider />
                 <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(item.key))} />
                 <MenuItem text="Export To" icon="export">
-                    <MenuItem text="To Babylon..." icon={<Icon src="logo-babylon.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToBabylonJSFormat(this.editor, item.id)} />
-                    <MenuItem text="To GLB..." icon={<Icon src="gltf.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToGLTF(this.editor, item.id, "glb")} />
-                    <MenuItem text="To GLTF..." icon={<Icon src="gltf.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshToGLTF(this.editor, item.id, "gltf")} />
+                    <MenuItem text="To Babylon..." icon={<Icon src="logo-babylon.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshAssetToBabylonJSFormat(this.editor, item.id)} />
+                    <MenuItem text="To GLB..." icon={<Icon src="gltf.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshAssetToGLTF(this.editor, item.id, "glb")} />
+                    <MenuItem text="To GLTF..." icon={<Icon src="gltf.svg" style={{ filter: "none" }} />} onClick={() => SceneTools.ExportMeshAssetToGLTF(this.editor, item.id, "gltf")} />
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveMesh(item)} />

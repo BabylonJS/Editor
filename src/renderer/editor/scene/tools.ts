@@ -9,6 +9,7 @@ import { Alert } from "../gui/alert";
 import { Dialog } from "../gui/dialog";
 
 import { Project } from "../project/project";
+import { ProjectExporter } from "../project/project-exporter";
 
 import { Tools } from "../tools/tools";
 
@@ -32,11 +33,43 @@ export class SceneTools {
     }
 
     /**
+     * 
+     * @param editor defines the reference to the editor.
+     * @param mesh defines the reference to the mesh to export.
+     */
+    public static async ExportMeshToBabylonJSFormat(editor: Editor, mesh: Mesh): Promise<void> {
+        let destPath = await Tools.ShowSaveFileDialog(`Export location for mesh "${mesh.name ?? ""}"`);
+        
+        if (!destPath) { return; }
+
+        if (extname(destPath).toLowerCase() !== ".babylon") {
+            destPath += ".babylon";
+        }
+
+        try {
+            // Serialize and clear
+            const serializedMesh = ProjectExporter.ExportMesh(mesh, false, false);
+            serializedMesh.meshes?.forEach((m) => m.instances = []);
+            delete serializedMesh.lods;
+
+            // Write file
+            await writeJSON(destPath, serializedMesh, { encoding: "utf-8" });
+
+            editor.notifyMessage(`Successfully exported mesh at "${destPath}"`, 2000);
+        } catch (e) {
+            if (e.message) {
+                editor.console.logError(e.message);
+            }
+            editor.notifyMessage(`Failed to export mesh "${mesh.name ?? ""}". Please refer to console.`, 2000, "error");
+        }
+    }
+
+    /**
      * Exports the given scene to a BabylonJS Scene.
      * @param editor the editor reference.
      * @param meshName defines the name of the mesh to export.
      */
-    public static async ExportMeshToBabylonJSFormat(editor: Editor, meshName: string): Promise<void> {
+    public static async ExportMeshAssetToBabylonJSFormat(editor: Editor, meshName: string): Promise<void> {
         const task = editor.addTaskFeedback(0, "Exporting to Babylon...");
 
         const rootUrl = join(Project.DirPath!, "files", "/");
@@ -72,7 +105,7 @@ export class SceneTools {
      * @param editor the editor reference.
      * @param meshName defines the name of the mesh to export.
      */
-    public static async ExportMeshToGLTF(editor: Editor, meshName: string, format: "gltf" | "glb"): Promise<void> {
+    public static async ExportMeshAssetToGLTF(editor: Editor, meshName: string, format: "gltf" | "glb"): Promise<void> {
         const task = editor.addTaskFeedback(0, "Exporting to GLTF...");
 
         const rootUrl = join(Project.DirPath!, "files", "/");
