@@ -87,13 +87,13 @@ import "./inspectors/particle-systems/particle-system-inspector";
 import "./inspectors/sound-inspector";
 
 // Assets
-import "./assets/meshes";
-import "./assets/textures";
-import "./assets/materials";
-import "./assets/prefabs";
-import "./assets/scripts";
-import "./assets/sounds";
-import "./assets/graphs";
+import { MeshesAssets } from "./assets/meshes";
+import { MaterialAssets } from "./assets/materials";
+import { TextureAssets } from "./assets/textures";
+import { SoundAssets } from "./assets/sounds";
+import { ScriptAssets } from "./assets/scripts";
+import { GraphAssets } from "./assets/graphs";
+import { PrefabAssets } from "./assets/prefabs";
 
 export class Editor {
     /**
@@ -268,6 +268,15 @@ export class Editor {
      * Constructor.
      */
     public constructor() {
+        // Register assets
+        MeshesAssets.Register();
+        MaterialAssets.Register();
+        TextureAssets.Register();
+        SoundAssets.Register();
+        ScriptAssets.Register();
+        GraphAssets.Register();
+        PrefabAssets.Register();
+
         // Create toolbar
         ReactDOM.render(<MainToolbar editor={this} />, document.getElementById("BABYLON-EDITOR-MAIN-TOOLBAR"));
         ReactDOM.render(<ToolsToolbar editor={this} />, document.getElementById("BABYLON-EDITOR-TOOLS-TOOLBAR"));

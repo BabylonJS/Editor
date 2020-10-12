@@ -123,6 +123,10 @@ html, body {
     color: white;
 }
 
+.bp3-popover.bp3-dark .bp3-popover-arrow-fill, .bp3-dark .bp3-popover .bp3-popover-arrow-fill {
+    fill: "#333333";
+}
+
 /* ANTD */
 
 .ant-tree {

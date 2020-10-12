@@ -16,6 +16,10 @@ export interface ICustomButtonState {
      * Callback called on the button is clicked.
      */
     onClick?: Undefinable<() => void>;
+    /**
+     * Defines wether or not the button is loading.
+     */
+    loading: boolean;
 }
 
 export class CustomButton extends React.Component<ICustomButtonProps, ICustomButtonState> {
@@ -25,14 +29,14 @@ export class CustomButton extends React.Component<ICustomButtonProps, ICustomBut
      */
     public constructor(props: ICustomButtonProps) {
         super(props);
-        this.state = { };
+        this.state = { loading: false };
     }
 
     /**
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return <Button style={{ height: "20px", marginTop: "2px", width: "calc(100% - 15px)", backgroundColor: "#555555 !important" }} small={true} text={this.props.text} fill={true} onClick={() => this.state.onClick && this.state.onClick()} />;
+        return <Button loading={this.state.loading} style={{ height: "20px", marginTop: "2px", width: "calc(100% - 15px)", backgroundColor: "#555555 !important" }} small={true} text={this.props.text} fill={true} onClick={() => this.state.onClick && this.state.onClick()} />;
     }
 }
 
@@ -59,11 +63,21 @@ export class ButtonController extends dat.controllers.Controller {
     }
 
     /**
+     * Sets wether or not the button is in loading state.
+     * @param loading defines wether or not the button is in loading state.
+     */
+    public setLoading(loading: boolean): ButtonController {
+        this._button?.setState({ loading });
+        return this;
+    }
+
+    /**
      * Registers the given callback, called on the button is clicked.
      * @param callback the callback to register on the button is clicked.
      */
-    public onClick(callback: () => void): void {
+    public onClick(callback: () => void): ButtonController {
         setTimeout(() => this._button?.setState({ onClick: callback }), 0);
+        return this;
     }
 }
 

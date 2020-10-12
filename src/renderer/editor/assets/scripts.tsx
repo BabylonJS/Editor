@@ -33,6 +33,17 @@ export class ScriptAssets extends AbstractAssets {
     private static _Path: string = "";
 
     /**
+     * Registers the component.
+     */
+    public static Register(): void {
+        Assets.addAssetComponent({
+            title: "Scripts",
+            identifier: "scripts",
+            ctor: ScriptAssets,
+        });
+    }
+
+    /**
      * Returns the list of all available scripts.
      */
     public static GetAllScripts(): Promise<string[]> {
@@ -391,9 +402,3 @@ export class ScriptAssets extends AbstractAssets {
         return this.refresh();
     }
 }
-
-Assets.addAssetComponent({
-    title: "Scripts",
-    identifier: "scripts",
-    ctor: ScriptAssets,
-});

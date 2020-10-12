@@ -43,6 +43,17 @@ export class MeshesAssets extends AbstractAssets {
     public static Meshes: IFile[] = [];
 
     /**
+     * Registers the component.
+     */
+    public static Register(): void {
+        Assets.addAssetComponent({
+            title: "Meshes",
+            identifier: "meshes",
+            ctor: MeshesAssets,
+        });
+    }
+
+    /**
      * Renders the component.
      * @override
      */
@@ -530,9 +541,3 @@ export class MeshesAssets extends AbstractAssets {
         await GLTFTools.TexturesToFiles(join(Project.DirPath!, "files"), textures, onTextureDone);
     }
 }
-
-Assets.addAssetComponent({
-    title: "Meshes",
-    identifier: "meshes",
-    ctor: MeshesAssets,
-});

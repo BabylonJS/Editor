@@ -40,6 +40,17 @@ export class TextureAssets extends AbstractAssets {
     private _extensions: string[] = [".png", ".jpg", ".jpeg", ".dds", ".env"];
 
     /**
+     * Registers the component.
+     */
+    public static Register(): void {
+        Assets.addAssetComponent({
+            title: "Textures",
+            identifier: "textures",
+            ctor: TextureAssets,
+        });
+    }
+
+    /**
      * Renders the component.
      */
     public render(): React.ReactNode {
@@ -330,6 +341,18 @@ export class TextureAssets extends AbstractAssets {
         this._removeTexture(item, texture);
     }
 
+    public getLastTextureByName<T extends Texture>(name: string): Nullable<T> {
+        let texture: Nullable<T> = null;
+
+        for (const tex of this.editor.scene!.textures) {
+            if (basename(tex.name) === name) {
+                texture = tex as T;
+            }
+        }
+
+        return texture;
+    }
+
     /**
      * Returns the content of the item's tooltip on the pointer is over the given item.
      * @param item defines the reference to the item having the pointer over.
@@ -520,9 +543,3 @@ export class TextureAssets extends AbstractAssets {
         return result;
     }
 }
-
-Assets.addAssetComponent({
-    title: "Textures",
-    identifier: "textures",
-    ctor: TextureAssets,
-});

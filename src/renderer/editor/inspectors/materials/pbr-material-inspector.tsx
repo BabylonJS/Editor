@@ -3,6 +3,7 @@ import { Nullable } from "../../../../shared/types";
 import { PBRMaterial } from "babylonjs";
 import { GUI } from "dat.gui";
 
+import { TextureAssets } from "../../assets/textures";
 import { MaterialAssets } from "../../assets/materials";
 
 import { TextureTools } from "../../tools/texture";
@@ -15,6 +16,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
     private _useRoughness: boolean = false;
     private _useSheenRoughness: boolean = false;
 
+    private _albedoFolder: Nullable<GUI> = null;
     private _bumpFolder: Nullable<GUI> = null;
     private _opacityFolder: Nullable<GUI> = null;
     private _metallicFolder: Nullable<GUI> = null;
@@ -58,14 +60,14 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
      * Adds the albedo editable properties.
      */
     protected addAlbedo(): GUI {
-        const albedo = this.tool!.addFolder("Albedo");
-        albedo.open();
-        albedo.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
+        this._albedoFolder = this._albedoFolder ?? this.tool!.addFolder("Albedo");
+        this._albedoFolder.open();
+        this._albedoFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
 
-        this.addTextureList(albedo, this.material, "albedoTexture").name("Texture");
-        this.addColor(albedo, "Color", this.material, "albedoColor");
+        this.addTextureList(this._albedoFolder, this.material, "albedoTexture").name("Texture");
+        this.addColor(this._albedoFolder, "Color", this.material, "albedoColor");
 
-        return albedo;
+        return this._albedoFolder;
     }
 
     /**
@@ -153,9 +155,33 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         }).name("Texture");
 
         if (this.material.albedoTexture && this.material.opacityTexture) {
-            this._opacityFolder.addButton("Merge Opacity To Albedo Texture...").onClick(async () => {
+            const mergeButton = this._opacityFolder.addButton("Merge Opacity To Albedo Texture...").onClick(async () => {
                 if (!this.material.albedoTexture) { return; }
-                await TextureTools.MergeDiffuseWithOpacity(this.editor, this.material.albedoTexture, this.material.opacityTexture);
+
+                mergeButton.setLoading(true);
+
+                try {
+                    const textureName = await TextureTools.MergeDiffuseWithOpacity(this.editor, this.material.albedoTexture, this.material.opacityTexture);
+                    const texture = textureName ? this.editor.assets.getComponent(TextureAssets)?.getLastTextureByName(textureName) : null;
+
+                    if (texture) {
+                        texture.hasAlpha = true;
+
+                        this.material.opacityTexture = null!;
+                        this.material.albedoTexture = texture;
+                        this.material.useAlphaFromAlbedoTexture = true;
+                    }
+                } catch (e) {
+                    // Catch silently.
+                }
+
+                mergeButton.setLoading(false);
+
+                this.clearFolder(this._albedoFolder!);
+                this.addAlbedo();
+
+                this.clearFolder(this._opacityFolder!);
+                this.addOpacity();
             });
         }
 

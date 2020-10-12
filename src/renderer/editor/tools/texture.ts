@@ -19,19 +19,19 @@ export class TextureTools {
      * @param diffuse defines the diffuse texture reference.
      * @param opacity defines the opacity texture reference.
      */
-    public static async MergeDiffuseWithOpacity(editor: Editor, diffuse: BaseTexture, opacity: BaseTexture): Promise<void> {
+    public static async MergeDiffuseWithOpacity(editor: Editor, diffuse: BaseTexture, opacity: BaseTexture): Promise<Nullable<string>> {
         const diffuseSize = diffuse.getSize();
         const opacitySize = opacity.getSize();
 
         if (diffuseSize.width !== opacitySize.width || diffuseSize.height !== opacitySize.height) {
-            return;
+            return null;
         }
 
         const diffuseBuffer = diffuse.readPixels()?.buffer;
-        if (!diffuseBuffer) { return; }
+        if (!diffuseBuffer) { return null; }
 
         const opacityBuffer = opacity.readPixels()?.buffer;
-        if (!opacityBuffer) { return; }
+        if (!opacityBuffer) { return null; }
 
         const diffusePixels = new Uint8ClampedArray(diffuseBuffer);
         const opacityPixels = new Uint8ClampedArray(opacityBuffer);
@@ -46,14 +46,14 @@ export class TextureTools {
     /**
      * Converts the given pixels to a texture file.
      */
-    private static async _ConvertPixelsToTextureFile(editor: Editor, textureA: BaseTexture, textureB: BaseTexture, pixels: Uint8ClampedArray): Promise<void> {
+    private static async _ConvertPixelsToTextureFile(editor: Editor, textureA: BaseTexture, textureB: BaseTexture, pixels: Uint8ClampedArray): Promise<Nullable<string>> {
         // Base canvas
         const canvas = document.createElement("canvas");
         canvas.width = textureA.getBaseSize().width;
         canvas.height = textureA.getBaseSize().height;
 
         const context = canvas.getContext("2d");
-        if (!context) { return; }
+        if (!context) { return null; }
 
         const imageData = new ImageData(pixels, canvas.width, canvas.height);
         context.putImageData(imageData, 0, 0);
@@ -64,7 +64,7 @@ export class TextureTools {
         finalCanvas.height = textureA.getBaseSize().height;
 
         const finalContext = finalCanvas.getContext("2d");
-        if (!finalContext) { return; }
+        if (!finalContext) { return null; }
         finalContext.transform(1, 0, 0, -1, 0, canvas.height);
         finalContext.drawImage(canvas, 0, 0);
 
@@ -76,7 +76,7 @@ export class TextureTools {
         canvas.remove();
         finalCanvas.remove();
 
-        if (!blob) { return; }
+        if (!blob) { return null; }
 
         // Write the temp file
         const tempDir = await mkdtemp(join(tmpdir(), "babylonjs-editor"));
@@ -97,6 +97,8 @@ export class TextureTools {
         }
         
         editor.inspector.refreshDisplay();
+
+        return name;
     }
 
     /**

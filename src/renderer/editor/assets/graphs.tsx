@@ -37,6 +37,17 @@ export class GraphAssets extends AbstractAssets {
     protected size: number = 100;
 
     /**
+     * Registers the component.
+     */
+    public static Register(): void {
+        Assets.addAssetComponent({
+            title: "Visual Scripts (Beta)",
+            identifier: "graphs",
+            ctor: GraphAssets,
+        });
+    }
+
+    /**
      * Renders the component.
      */
     public render(): React.ReactNode {
@@ -231,9 +242,3 @@ export class GraphAssets extends AbstractAssets {
         });
     }
 }
-
-Assets.addAssetComponent({
-    title: "Visual Scripts (Beta)",
-    identifier: "graphs",
-    ctor: GraphAssets,
-});

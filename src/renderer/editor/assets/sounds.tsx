@@ -30,6 +30,17 @@ export class SoundAssets extends AbstractAssets {
     private _extensions: string[] = [".mp3", ".wav", ".wave"];
 
     /**
+     * Registers the component.
+     */
+    public static Register(): void {
+        Assets.addAssetComponent({
+            title: "Sounds",
+            identifier: "sounds",
+            ctor: SoundAssets,
+        });
+    }
+
+    /**
      * Renders the component.
      */
     public render(): React.ReactNode {
@@ -240,9 +251,3 @@ export class SoundAssets extends AbstractAssets {
         return this.editor.scene!.mainSoundTrack.soundCollection.find((s) => s.metadata?.id === item.key);
     }
 }
-
-Assets.addAssetComponent({
-    title: "Sounds",
-    identifier: "sounds",
-    ctor: SoundAssets,
-});

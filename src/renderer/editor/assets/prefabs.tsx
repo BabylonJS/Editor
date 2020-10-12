@@ -33,6 +33,17 @@ export class PrefabAssets extends AbstractAssets {
     private _extensions: string[] = [".meshprefab"];
 
     /**
+     * Registers the component.
+     */
+    public static Register(): void {
+        Assets.addAssetComponent({
+            title: "Prefabs (Beta)",
+            identifier: "prefabs",
+            ctor: PrefabAssets,
+        });
+    }
+
+    /**
      * Renders the component.
      */
     public render(): React.ReactNode {
@@ -228,9 +239,3 @@ export class PrefabAssets extends AbstractAssets {
         });
     }
 }
-
-Assets.addAssetComponent({
-    title: "Prefabs (Beta)",
-    identifier: "prefabs",
-    ctor: PrefabAssets,
-});

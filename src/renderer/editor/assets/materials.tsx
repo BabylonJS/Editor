@@ -33,6 +33,17 @@ export class MaterialAssets extends AbstractAssets {
     private static _NodeMaterialEditors: { id: number; material: NodeMaterial }[] = [];
 
     /**
+     * Registers the component.
+     */
+    public static Register(): void {
+        Assets.addAssetComponent({
+            title: "Materials",
+            identifier: "materials",
+            ctor: MaterialAssets,
+        });
+    }
+
+    /**
      * Renders the component.
      */
     public render(): React.ReactNode {
@@ -508,9 +519,3 @@ export class MaterialAssets extends AbstractAssets {
         this.refresh();
     }
 }
-
-Assets.addAssetComponent({
-    title: "Materials",
-    identifier: "materials",
-    ctor: MaterialAssets,
-});
