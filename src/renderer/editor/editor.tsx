@@ -9,7 +9,10 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName, MaybeElement } from "@blueprintjs/core";
 
-import { Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin, SubMesh, Animation, AbstractMesh, IParticleSystem, Sound } from "babylonjs";
+import {
+    Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin,
+    SubMesh, Animation, AbstractMesh, IParticleSystem, Sound, KeyboardInfo, KeyboardEventTypes,
+} from "babylonjs";
 
 import GoldenLayout from "golden-layout";
 
@@ -217,6 +220,10 @@ export class Editor {
      * Notifies observers that a sound has been removed in the editor (graph, preview, etc.).
      */
     public removedSoundObservable: Observable<Sound> = new Observable<Sound>();
+    /**
+     * Notifies observers that a keyboard event has been fired.
+     */
+    public onKeyboardEventObservable: Observable<KeyboardInfo> = new Observable<KeyboardInfo>();
     
     /**
      * Defines the current editor version.
@@ -988,6 +995,8 @@ export class Editor {
 
         // Shortcuts
         window.addEventListener("keyup", (ev) => {
+            this.onKeyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYUP, ev));
+
             if (this.preview.canvasFocused) {
                 if (ev.key === "t") { return this.preview.setGizmoType(GizmoType.Position); }
                 if (ev.key === "r") { return this.preview.setGizmoType(GizmoType.Rotation); }
@@ -1014,10 +1023,12 @@ export class Editor {
         });
 
         window.addEventListener("keydown", (ev) => {
+            this.onKeyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYDOWN, ev));
+
             if (ev.ctrlKey && SceneSettings.Camera) {
                 for (const i in SceneSettings.Camera.inputs.attached) {
                     const input = SceneSettings.Camera.inputs.attached[i];
-                    input.detachControl(this.engine!.getRenderingCanvas());
+                    input.detachControl();
                 }
 
                 SceneSettings.Camera.metadata = SceneSettings.Camera.metadata ?? { };

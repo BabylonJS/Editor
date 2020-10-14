@@ -288,8 +288,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             removeFunc = this._editor.scene!.removeParticleSystem;
             addFunc = this._editor.scene!.addParticleSystem;
         } else if (node instanceof Sound) {
-            removeFunc = this._editor.scene!.mainSoundTrack.RemoveSound;
-            addFunc = this._editor.scene!.mainSoundTrack.AddSound;
+            removeFunc = this._editor.scene!.mainSoundTrack.removeSound;
+            addFunc = this._editor.scene!.mainSoundTrack.addSound;
             caller = this._editor.scene!.mainSoundTrack;
         }
 

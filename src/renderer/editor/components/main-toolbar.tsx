@@ -168,9 +168,10 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         const tools =
             <Menu>
-                {/* <MenuItem text="Decal Painter..." icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("tools:decal-painter")} /> */}
-                {/* <MenuItem text="Foliage Painter..." icon={<Icon src="grass.svg" />} onClick={() => this._menuItemClicked("tools:grass-painter")} /> */}
-                {/* <MenuDivider /> */}
+                <MenuItem text="Animation Editor" onClick={() => this._menuItemClicked("tools:animation-editor")} />
+                <MenuDivider />
+                <MenuItem text="Painting Tools..." icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("tools:painting-tools")} />
+                <MenuDivider />
                 <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
             </Menu>;
 
@@ -338,8 +339,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         // Tools
         if (family === "tools") {
             switch (action) {
-                case "decal-painter": this._editor.addPlugin("painting"); break;
-                case "grass-painter": this._editor.addPlugin("painting"); break;
+                case "animation-editor": this._editor.addPlugin("animation-editor"); break;
+
+                case "painting-tools": this._editor.addPlugin("painting"); break;
 
                 case "photoshop": this._handleTogglePhotoshop(); break;
             }

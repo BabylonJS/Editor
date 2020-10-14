@@ -128,6 +128,23 @@ export class Tools {
     }
 
     /**
+     * Sorts the given array alphabetically.
+     * @param array defines the array containing the elements to sort alphabetically.
+     * @param property in case of an array of objects, this property will be used to get the right value to sort.
+     */
+    public static SortAlphabetically(array: any[], property?: string): void {
+        array.sort((a, b) => {
+            a = property ? a[property] : a;
+            b = property ? b[property] : b;
+
+            a = a.toUpperCase();
+            b = b.toUpperCase();
+
+            return (a < b) ? -1 : (a > b) ? 1 : 0;
+        });
+    }
+
+    /**
      * Deeply clones the given object.
      * @param object the object reference to clone.
      * @warning take care of cycle dependencies!

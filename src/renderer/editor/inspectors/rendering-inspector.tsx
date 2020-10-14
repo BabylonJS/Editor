@@ -143,7 +143,7 @@ export class RenderingInspector extends AbstractInspector<Scene> {
         const dof = this._defaultFolder.addFolder("Depth Of Field");
         dof.open();
         dof.add(SceneSettings.DefaultPipeline, "depthOfFieldEnabled").name("Depth Of Field Enabled");
-        dof.add(SceneSettings.DefaultPipeline.depthOfField, "focusDistance").min(0).max(this.editor.scene!.activeCamera!.maxZ * 2).name("Focus Distance");
+        dof.add(SceneSettings.DefaultPipeline.depthOfField, "focusDistance").min(0).step(1).max(this.editor.scene!.activeCamera!.maxZ * 5).name("Focus Distance");
         dof.add(SceneSettings.DefaultPipeline.depthOfField, "fStop").min(1).max(10).name("F-Stop");
         dof.add(SceneSettings.DefaultPipeline.depthOfField, "focalLength").min(1).max(300).name("Focal Length");
 

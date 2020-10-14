@@ -102,7 +102,12 @@ export class ProjectImporter {
 
         // Configure scene
         ProjectHelpers.ImportSceneSettings(editor.scene!, project.scene, rootUrl);
+        
         const physicsEngine = editor.scene!.getPhysicsEngine();
+        if (physicsEngine) {
+            // Remove physics engine steps
+            physicsEngine._step = () => { };
+        }
 
         // Configure camera
         SceneSettings.ConfigureFromJson(project.project.camera, editor);
