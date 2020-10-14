@@ -1,8 +1,10 @@
 import { Nullable } from "../../../../shared/types";
 
+import * as React from "react";
 import { GUI } from "dat.gui";
 
 import * as BABYLON from "babylonjs";
+import { Animation, EasingFunction } from "babylonjs";
 
 import { Tools } from "../../../editor/tools/tools";
 
@@ -10,7 +12,8 @@ import { AnimationObject } from "../tools/animation-object";
 
 import { Inspector } from "../../../editor/components/inspector";
 import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
-import { Animation, EasingFunction } from "babylonjs";
+
+import { AnimationRanges } from "./animation-ranges";
 
 export class AnimationObjectInspector extends AbstractInspector<AnimationObject> {
     private _loopMode: string = "";
@@ -35,6 +38,7 @@ export class AnimationObjectInspector extends AbstractInspector<AnimationObject>
         this._addCommon();
         this._addBlending();
         this._addEasing();
+        this._addRanges();
     }
 
     /**
@@ -53,7 +57,7 @@ export class AnimationObjectInspector extends AbstractInspector<AnimationObject>
             "ANIMATIONLOOPMODE_RELATIVE",
         ];
         this._loopMode = loopModes.find((lm) => this.selectedObject.animation.loopMode === Animation[lm]) ?? loopModes[0];
-        common.addSuggest(this, "_loopMode", loopModes).onChange(() => {
+        common.addSuggest(this, "_loopMode", loopModes).name("Loop Mode").onChange(() => {
             this.selectedObject.animation.loopMode = Animation[this._loopMode];
         });
     }
@@ -150,6 +154,29 @@ export class AnimationObjectInspector extends AbstractInspector<AnimationObject>
                 break;
             default: break; // Should never happen
         }
+    }
+
+    /**
+     * Adds all the ranges editable properties.
+     */
+    private _addRanges(): void {
+        const ranges = this.tool!.addFolder("Ranges");
+        ranges.open();
+
+        ranges.addCustom("250px", (
+            <AnimationRanges animation={this.selectedObject.animation} onRangeSelected={(r) => {
+                while (ranges.__controllers.length > 1) {
+                    ranges.remove(ranges.__controllers[1]);
+                }
+
+                if (r) {
+                    ranges.add(r, "from").min(0).step(0.01);
+                    ranges.add(r, "to").min(0).step(0.01);
+                }
+            }} />
+        ), {
+            marginLeft: "0px",
+        });
     }
 }
 

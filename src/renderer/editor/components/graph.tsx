@@ -264,6 +264,29 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * @param node the node to remove.
      */
     public removeObject(node: Node | IParticleSystem | Sound, refresh: boolean = true): void {
+        const descendants = [node].concat(node instanceof Node ? node.getDescendants() : []);
+        const actions = descendants.map((d) => this._removeObject(d));
+
+        undoRedo.push({
+            common: () => {
+                if (refresh) { this.refresh(); }
+                refresh = true;
+            },
+            redo: () => {
+                actions.forEach((a) => a.redo());
+            },
+            undo: () => {
+                actions.forEach((a) => a.undo());
+            },
+        });
+    }
+
+    /**
+     * Removes the given node.
+     * @param node the node to remove.
+     * @hidden
+     */
+    public _removeObject(node: Node | IParticleSystem | Sound): { redo: () => void; undo: () => void; } {
         let removeFunc: Nullable<(n: Node | IParticleSystem | Sound) => void> = null;
         let addFunc: Nullable<(n: Node | IParticleSystem | Sound) => void> = null;
         let caller: any = this._editor.scene!;
@@ -293,24 +316,25 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             caller = this._editor.scene!.mainSoundTrack;
         }
 
-        if (!removeFunc || !addFunc) { return; }
+        if (!removeFunc || !addFunc) {
+            return { redo: () => { }, undo: () => { } };
+        }
 
         const parent = node instanceof Node ? node.parent :
                        node instanceof Sound ? node["_connectedTransformNode"] :
                        node.emitter as AbstractMesh;
-        const descendants = node instanceof Node ? node.getDescendants() : [];
         const lods = node instanceof Mesh ? node.getLODLevels().slice() : [];
         const particleSystems = this._editor.scene!.particleSystems.filter((ps) => ps.emitter === node);
         const shadowLights = this._editor.scene!.lights.filter((l) => l.getShadowGenerator()?.getShadowMap()?.renderList)
                                                        .filter((l) => l.getShadowGenerator()!.getShadowMap()!.renderList!.indexOf(node as AbstractMesh) !== -1);
+
+        const sounds: Sound[] = [];
+        [this._editor.scene!.mainSoundTrack].concat(this._editor.scene!.soundTracks ?? []).forEach((st) => {
+            if (!st) { return; }
+            st.soundCollection?.forEach((s) => s["_connectedTransformNode"] === node && sounds.push(s));
+        });
         
-        undoRedo.push({
-            common: () => {
-                if (refresh) {
-                    this.refresh();
-                }
-                refresh = true;
-            },
+        return ({
             redo: () => {
                 if (node instanceof Node) { node.parent = null; }
                 
@@ -322,7 +346,6 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 }
 
                 if (node instanceof InstancedMesh) { node.sourceMesh.removeInstance(node); }
-                if (node instanceof Node) { descendants.forEach((d) => d.parent = parent); }
 
                 if (node instanceof Mesh) {
                     lods.forEach((lod) => {
@@ -352,6 +375,11 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         }
                     }
                 });
+
+                sounds.forEach((s) => {
+                    s.detachFromMesh();
+                    s.spatialSound = false;
+                });
             },
             undo: () => {
                 addFunc?.call(caller, node);
@@ -366,7 +394,6 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
                 if (node instanceof Node) {
                     node.parent = parent;
-                    descendants.forEach((d) => d.parent = node);
                 }
                 if (node instanceof Sound) {
                     if (parent) { node.attachToMesh(parent); }
@@ -386,6 +413,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 shadowLights.forEach((sl) => {
                     sl.getShadowGenerator()?.getShadowMap()?.renderList?.push(node as AbstractMesh);
                 });
+
+                sounds.forEach((s) => s.attachToMesh(node as TransformNode));
             },
         });
     }

@@ -34,6 +34,11 @@ export class AnimationKeyInspector extends AbstractInspector<AnimationKeyObject>
             case Animation.ANIMATIONTYPE_COLOR4:
                 this.addColor(this.tool!, "Value", this.selectedObject.key, "value");
                 break;
+
+            case Animation.ANIMATIONTYPE_QUATERNION:
+                this.tool!.addVector("XYZ", this.selectedObject.key.value);
+                this.tool!.add(this.selectedObject.key.value, "w").step(0.01);
+                break;
         }
     }
 }

@@ -11,9 +11,16 @@ export class CustomController extends dat.controllers.Controller {
 
         ReactDOM.render(element, this.domElement);
     }
+
+    /**
+     * Disposes the component.
+     */
+    public dispose(): void {
+        ReactDOM.unmountComponentAtNode(this.domElement);
+    }
 }
 
-dat.GUI.prototype.addCustom = function(height: string, element: JSX.Element): CustomController {
+dat.GUI.prototype.addCustom = function(height: string, element: JSX.Element, style?: Partial<CSSStyleDeclaration>): CustomController {
     const controller = new CustomController(element);
 
     // Create li element
@@ -22,6 +29,10 @@ dat.GUI.prototype.addCustom = function(height: string, element: JSX.Element): Cu
     li.style.height = height;
     li.setAttribute("style", `height: ${height}; background: #333333 !important;`);
     li.appendChild(controller.domElement);
+
+    if (style) {
+        Object.assign(li.style, style);
+    }
 
     this.__ul.appendChild(li);
 

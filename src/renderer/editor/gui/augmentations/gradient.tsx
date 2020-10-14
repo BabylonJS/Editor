@@ -52,6 +52,9 @@ export class GradientController extends dat.controllers.Controller {
     private __onFinishChange: (v: FactorGradient) => void;
     private __onRemove: (v: FactorGradient) => void;
 
+    private _sliderController: dat.controllers.Controller;
+    private _buttonController: dat.controllers.Controller;
+
     /**
      * Constructor.
      * @param title defines the title of the controller.
@@ -111,6 +114,14 @@ export class GradientController extends dat.controllers.Controller {
     }
 
     /**
+     * Disposes the component.
+     */
+    public dispose(): void {
+        ReactDOM.unmountComponentAtNode(this._sliderController.domElement);
+        ReactDOM.unmountComponentAtNode(this._buttonController.domElement);
+    }
+
+    /**
      * Adds a new number controller.
      */
     private _addNumberController(name: string, propertyPath: string): void {
@@ -137,24 +148,24 @@ export class GradientController extends dat.controllers.Controller {
      * Adds the factor slider.
      */
     private _addSlider(): void {
-        const dummyController = new dat.controllers.Controller({ }, "");
-        dummyController.domElement.style.width = "calc(70% - 60px)";
-        dummyController.domElement.style.paddingTop = "5px";
-        dummyController.domElement.style.float = "left";
-        dummyController.domElement.style.paddingLeft = "10px";
-        this._container.appendChild(dummyController.domElement);
-        ReactDOM.render(<SizeGradient gradient={this.gradient} />, dummyController.domElement);
+        this._sliderController = new dat.controllers.Controller({ }, "");
+        this._sliderController.domElement.style.width = "calc(70% - 60px)";
+        this._sliderController.domElement.style.paddingTop = "5px";
+        this._sliderController.domElement.style.float = "left";
+        this._sliderController.domElement.style.paddingLeft = "10px";
+        this._container.appendChild(this._sliderController.domElement);
+        ReactDOM.render(<SizeGradient gradient={this.gradient} />, this._sliderController.domElement);
     }
 
     /**
      * Adds the remove button.
      */
     private _addRemoveButton(): void {
-        const dummyController = new dat.controllers.Controller({ }, "");
-        dummyController.domElement.style.width = "50px";
-        dummyController.domElement.style.float = "left";
-        this._container.appendChild(dummyController.domElement);
-        ReactDOM.render(<Button small={true} style={{ marginLeft: "10px" }} icon={<Icon src="trash.svg" />} onClick={() => this.__onRemove && this.__onRemove(this.gradient)} />, dummyController.domElement);
+        this._buttonController = new dat.controllers.Controller({ }, "");
+        this._buttonController.domElement.style.width = "50px";
+        this._buttonController.domElement.style.float = "left";
+        this._container.appendChild(this._buttonController.domElement);
+        ReactDOM.render(<Button small={true} style={{ marginLeft: "10px" }} icon={<Icon src="trash.svg" />} onClick={() => this.__onRemove && this.__onRemove(this.gradient)} />, this._buttonController.domElement);
     }
 }
 

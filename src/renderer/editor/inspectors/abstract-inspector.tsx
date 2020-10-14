@@ -147,6 +147,8 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
             const div = this.tool.domElement.parentElement;
             if (div) { this._lastScroll = div.scrollHeight; }
             
+            this._handleDispose(this.tool);
+
             this.tool.destroy();
             div?.removeChild(this.tool.domElement);
         }
@@ -179,6 +181,8 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
         for (const key in folder.__folders) {
             folder.removeFolder(folder.__folders[key]);
         }
+
+        this._handleDispose(folder);
     }
 
     /**
@@ -476,5 +480,21 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
         }
 
         return `${controller.__path + "." ?? ""}${controller["property"]}`;
+    }
+
+    /**
+     * Calls the .dispose method on all controllers (if exists).
+     */
+    private _handleDispose(root?: GUI) {
+        if (!root) { root = this.tool!; }
+
+        root.__controllers.forEach((c) => {
+            if (!c.dispose) { return; }
+            try { c.dispose(); } catch (e) { /* Catch silently */ }
+        });
+
+        for (const f in root.__folders) {
+            this._handleDispose(root.__folders[f]);
+        }
     }
 }

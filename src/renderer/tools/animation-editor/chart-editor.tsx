@@ -185,6 +185,11 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
                         borderColor: "#000000",
                     }],
                 },
+                legend: {
+                    labels: {
+                        fontColor: "black",
+                    },
+                },
                 plugins: {
                     zoom: {
                         pan: {
@@ -198,6 +203,7 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
                             mode: () => {
                                 if (this._mousePositonOnChart.x <= this.chart!["scales"]["x-axis-0"].left) { return "y"; }
                                 if (this._mousePositonOnChart.y >= this.chart!["scales"]["y-axis-0"].bottom) { return "x"; }
+                                if (this._mousePositonOnChart.y <= this.chart!["scales"]["y-axis-0"].top) { return "x"; }
                                 return "xy";
                             },
                             onZoom: () => this.chart?.render(0),
@@ -216,6 +222,15 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
                             fontStyle: "bold",
                             fontColor: "#222222",
                         },
+                    }, {
+                        type: "linear",
+                        position: "top",
+                        ticks: {
+                            min: -2,
+                            max: 60,
+                            fontSize: 12,
+                            fontColor: "#ffffff",
+                        },
                     }],
                     yAxes: [{
                         ticks: {
@@ -229,6 +244,12 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
                 }
             },
         });
+
+        // X Axis time (in seconds)
+        this.chart.config.options!.scales!.xAxes![1].ticks!.callback = (value) => {
+            if (value < 0 || !this.state.selectedAnimation) { return ""; }
+            return `${(value / this.state.selectedAnimation.framePerSecond).toFixed(1)}s`;
+        };
 
         // Create time tracker
         this.timeTracker = new TimeTracker(this.chart, {
@@ -610,7 +631,7 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
                     y: <Tag intent={Intent.PRIMARY}>{chartPosition.y}</Tag>
                 </Pre>
                 <MenuDivider />
-                <MenuItem text="Reset Zoom" onClick={() => this._resetZoom()} />
+                <MenuItem text="Reset Zoom" icon="reset" onClick={() => this._resetZoom()} />
                 {removeElement}
             </Menu>,
             { left: ev.nativeEvent.clientX, top: ev.nativeEvent.clientY },
@@ -675,15 +696,18 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
     private _resetZoom(): void {
         if (!this.state.selectedAnimation || !this.chart) { return; }
 
-        const xAxis = this.chart?.config?.options?.scales?.xAxes![0]?.ticks;
-        if (!xAxis) { return; }
+        const xAxis1 = this.chart?.config?.options?.scales?.xAxes![0]?.ticks;
+        if (!xAxis1) { return; }
+
+        const xAxis2 = this.chart?.config?.options?.scales?.xAxes![1]?.ticks;
+        if (!xAxis2) { return; }
 
         const yAxis = this.chart?.config?.options?.scales?.yAxes![0]?.ticks;
         if (!yAxis) { return; }
 
         const framesRange = AnimationTools.GetFramesRange(this.state.selectedAnimation);
-        xAxis.min = 0;
-        xAxis.max = framesRange.max * 2;
+        xAxis1.min = xAxis2.min = 0;
+        xAxis1.max = xAxis2.max = framesRange.max * 2;
 
         const valuesRange = AnimationTools.GetValuesRange(this.state.selectedAnimation);
         yAxis.min = valuesRange.min * 2;

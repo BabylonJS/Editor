@@ -1,6 +1,8 @@
 import {
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, AbstractMesh, Node, TransformNode,
-    LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion, Camera, CameraGizmo, HemisphericLight
+    LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion, Camera, CameraGizmo, HemisphericLight,
+    SkeletonViewer,
+    Mesh,
 } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
@@ -32,6 +34,8 @@ export class SceneGizmo {
 
     private _type: GizmoType = GizmoType.None;
     private _step: number = 0;
+
+    private _skeletonViewer: Nullable<SkeletonViewer> = null;
 
     /**
      * Constructor.
@@ -150,6 +154,29 @@ export class SceneGizmo {
      * @param node the node to attach to current gizmos if exists.
      */
     public setAttachedNode(node: Nullable<Node | IParticleSystem | Sound>): void {
+        // Skeleton gizmo
+        if (this._skeletonViewer) {
+            this._skeletonViewer.dispose();
+            this._skeletonViewer = null;
+        }
+
+        if (node instanceof Mesh && node.skeleton) {
+            // this._skeletonViewer = new SkeletonViewer(node.skeleton, node, node.getScene(), false, (node.renderingGroupId > 0 ) ? node.renderingGroupId + 1 : 1, {
+            //     pauseAnimations: false, 
+            //     returnToRest: false, 
+            //     computeBonesUsingShaders: true, 
+            //     useAllBones: false,
+            //     displayMode: SkeletonViewer.DISPLAY_SPHERE_AND_SPURS,
+            //     displayOptions: {
+            //         sphereBaseSize: 1,
+            //         sphereScaleUnit: 10, 
+            //         sphereFactor: 0.9, 
+            //         midStep: 0.1,
+            //         midStepFactor: 0.05,
+            //     }
+            // });
+        }
+
         // Light?
         if (node instanceof Light) {
             this._setLightGizmo(node);

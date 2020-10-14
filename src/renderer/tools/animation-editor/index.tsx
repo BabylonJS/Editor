@@ -383,6 +383,7 @@ export default class AnimationEditorPlugin extends AbstractEditorPlugin<IAnimati
                 case Animation.ANIMATIONTYPE_VECTOR3:
                 case Animation.ANIMATIONTYPE_COLOR3:
                 case Animation.ANIMATIONTYPE_COLOR4:
+                case Animation.ANIMATIONTYPE_QUATERNION:
                     value = property.clone();
                     break;
             }

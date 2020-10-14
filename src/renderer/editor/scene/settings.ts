@@ -1,6 +1,6 @@
 import {
     Camera, ArcRotateCamera, Vector3, FreeCamera, SSAO2RenderingPipeline, DefaultRenderingPipeline,
-    SerializationHelper, PostProcessRenderPipeline, StandardRenderingPipeline,
+    SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess,
 } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
@@ -18,17 +18,22 @@ export class SceneSettings {
      */
     public static SSAOPipeline: Nullable<SSAO2RenderingPipeline> = null;
     /**
-     * Defines the reference to the standard rendering pipeline.
+     * Defines the reference to the screen space reflections post-process.
      */
-    public static StandardPipeline: Nullable<StandardRenderingPipeline> = null;
+    public static ScreenSpaceReflectionsPostProcess: Nullable<ScreenSpaceReflectionPostProcess> = null;
     /**
      * Defines the reference to the default rendering pipeline.
      */
     public static DefaultPipeline: Nullable<DefaultRenderingPipeline> = null;
+    /**
+     * Defines the reference to the motion blur post-process.
+     */
+    public static MotionBlurPostProcess: Nullable<MotionBlurPostProcess> = null;
 
     private static _SSAOPipelineEnabled: boolean = true;
-    private static _StandardPipelineEnabled: boolean = true;
+    private static _ScreenSpaceReflectionsEnabled: boolean = false;
     private static _DefaultPipelineEnabled: boolean = true;
+    private static _MotionBlurEnabled: boolean = false;
 
     /**
      * Returns wehter or not the camera is locked.
@@ -127,42 +132,9 @@ export class SceneSettings {
      * @param editor the editor reference.
      * @param enabled wether or not the SSAO pipeline is enabled.
      */
-    public static SetSSAOEnabled(editor: Editor, enabled: boolean) {
+    public static SetSSAOEnabled(editor: Editor, enabled: boolean): void {
         if (this._SSAOPipelineEnabled === enabled) { return; }
         this._SSAOPipelineEnabled = enabled;
-        this.ResetPipelines(editor);
-    }
-
-    /**
-     * Returns the standard rendering pipeline.
-     * @param editor the editor reference.
-     */
-    public static GetStandardRenderingPipeline(editor: Editor): StandardRenderingPipeline {
-        if (this.StandardPipeline) { return this.StandardPipeline; }
-
-        const standard = new StandardRenderingPipeline("standard", editor.scene!, 1.0, null, [editor.scene!.activeCamera!]);
-        standard.MotionBlurEnabled = true;
-        standard.motionStrength = 0.2;
-        this.StandardPipeline = standard;
-
-        return standard;
-    }
-
-    /**
-     * Returns wether or not default pipeline is enabled.
-     */
-    public static IsStandardPipelineEnabled(): boolean {
-        return this._StandardPipelineEnabled;
-    }
-
-    /**
-     * Sets wether or not default pipeline is enabled
-     * @param editor the editor reference.
-     * @param enabled wether or not the SSAO is enabled.
-     */
-    public static SetStandardPipelineEnabled(editor: Editor, enabled: boolean) {
-        if (this._StandardPipelineEnabled === enabled) { return; }
-        this._StandardPipelineEnabled = enabled;
         this.ResetPipelines(editor);
     }
 
@@ -211,13 +183,78 @@ export class SceneSettings {
     }
 
     /**
+     * Returns the reference to the motion blur post-process.
+     * @param editor defines the refenrece to the editor.
+     */
+    public static GetMotionBlurPostProcess(editor: Editor): MotionBlurPostProcess {
+        if (this.MotionBlurPostProcess) { return this.MotionBlurPostProcess; }
+
+        this.MotionBlurPostProcess = new MotionBlurPostProcess("motionBlur", editor.scene!, 1.0, editor.scene!.activeCamera, undefined, undefined, undefined, undefined, undefined, true);
+        return this.MotionBlurPostProcess;
+    }
+
+    /**
+     * Returns wether or not Motion Blur is enabled.
+     */
+    public static IsMotionBlurEnabled(): boolean {
+        return this._MotionBlurEnabled;
+    }
+
+    /**
+     * Sets wether or not motion blur post-process is enabled.
+     * @param editor defines the reference to the editor.
+     * @param enabled defines wether or not motion blur post-process is enabled.
+     */
+    public static SetMotionBlurEnabled(editor: Editor, enabled: boolean): void {
+        if (this._MotionBlurEnabled === enabled) { return; }
+        this._MotionBlurEnabled = enabled;
+        this.ResetPipelines(editor);
+    }
+
+    /**
+     * Returns the reference to the screen space reflections post-process.
+     * @param editor defines the reference to the editor.
+     */
+    public static GetScreenSpaceReflectionsPostProcess(editor: Editor): ScreenSpaceReflectionPostProcess {
+        if (this.ScreenSpaceReflectionsPostProcess) { return this.ScreenSpaceReflectionsPostProcess; }
+
+        this.ScreenSpaceReflectionsPostProcess = new ScreenSpaceReflectionPostProcess("ssr", editor.scene!, 1.0, editor.scene!.activeCamera!, undefined, undefined, undefined, undefined, undefined, true);
+        return this.ScreenSpaceReflectionsPostProcess;
+    }
+
+    /**
+     * Returns wether or not screen space reflections is enabled.
+     */
+    public static IsScreenSpaceReflectionsEnabled(): boolean {
+        return this._ScreenSpaceReflectionsEnabled;
+    }
+
+    /**
+     * Sets wether or not screen space reflection post-process is enabled.
+     * @param editor defines the reference to the editor.
+     * @param enabled defines wether or not screen space reflections post-process is enabled.
+     */
+    public static SetScreenSpaceReflectionsEnabled(editor: Editor, enabled: boolean): void {
+        if (this._ScreenSpaceReflectionsEnabled === enabled) { return; }
+        this._ScreenSpaceReflectionsEnabled = enabled;
+        this.ResetPipelines(editor);
+    }
+
+    /**
      * Resets the rendering pipelines.
      * @param editor the editor reference.
      */
     public static ResetPipelines(editor: Editor): void {
         editor.scene!.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline("ssao", editor.scene!.cameras);
-        editor.scene!.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline("standard", editor.scene!.cameras);
         editor.scene!.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline("default", editor.scene!.cameras);
+
+        const ssrSource = this.ScreenSpaceReflectionsPostProcess?.serialize();
+        this.ScreenSpaceReflectionsPostProcess?.dispose(editor.scene!.activeCamera!);
+        this.ScreenSpaceReflectionsPostProcess = null;
+
+        const motionBlurSource = this.MotionBlurPostProcess?.serialize();
+        this.MotionBlurPostProcess?.dispose(editor.scene!.activeCamera!);
+        this.MotionBlurPostProcess = null;
 
         // SSAO
         if (this.SSAOPipeline) {
@@ -234,18 +271,16 @@ export class SceneSettings {
             }
         }
 
-        // Standard
-        if (this.StandardPipeline) {
-            const source = this.StandardPipeline.serialize();
-            this.StandardPipeline.dispose();
-            this.StandardPipeline = null;
+        // Screen spsace reflections
+        if (this._ScreenSpaceReflectionsEnabled) {
             try {
-                this.GetStandardRenderingPipeline(editor);
-                SerializationHelper.Parse(() => this.StandardPipeline, source, editor.scene!);
+                this.GetScreenSpaceReflectionsPostProcess(editor);
+                if (ssrSource) {
+                    SerializationHelper.Parse(() => this.ScreenSpaceReflectionsPostProcess, ssrSource, editor.scene!, "");
+                }
                 editor.scene!.render();
             } catch (e) {
-                this._DisposePipeline(editor, this.StandardPipeline);
-                editor.console.logError("Failed to attach Standard rendering pipeline to cameras");
+                this.ScreenSpaceReflectionsPostProcess!.dispose(editor.scene!.activeCamera!);
             }
         }
 
@@ -262,6 +297,19 @@ export class SceneSettings {
             } catch (e) {
                 this._DisposePipeline(editor, this.DefaultPipeline);
                 editor.console.logError("Failed to attach default rendering pipeline to camera.");
+            }
+        }
+
+        // Motion Blur
+        if (this._MotionBlurEnabled) {
+            try {
+                this.GetMotionBlurPostProcess(editor);
+                if (motionBlurSource) {
+                    SerializationHelper.Parse(() => this.MotionBlurPostProcess, motionBlurSource, editor.scene!, "");
+                }
+                editor.scene!.render();
+            } catch (e) {
+                this.MotionBlurPostProcess!.dispose(editor.scene!.activeCamera!);
             }
         }
     }

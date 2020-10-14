@@ -3,9 +3,6 @@ import { LiteGraph } from "litegraph.js";
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 
 export class Debugger extends GraphNode {
-    public get hasBeakPoint(): boolean { return true; }
-    public set hasBeakPoint(v: boolean) { v; }
-
     /**
      * Constructor.
      */
@@ -32,3 +29,8 @@ export class Debugger extends GraphNode {
         };
     }
 }
+
+Object.defineProperty(Debugger.prototype, "hasBeakPoint", {
+    get: () => true,
+    set: () => { },
+});

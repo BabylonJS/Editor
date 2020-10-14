@@ -172,6 +172,8 @@ export class AnimationsPanel extends React.Component<IAnimationPanelProps, IAnim
      * Called ont he user right-clicks on a node.
      */
     private _handleNodeContextMenu(node: ITreeNode<Animation>, ev: React.MouseEvent<HTMLElement, MouseEvent>): void {
+        this._handleNodeClick(node);
+        
         ContextMenu.show(
             <Menu>
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => {

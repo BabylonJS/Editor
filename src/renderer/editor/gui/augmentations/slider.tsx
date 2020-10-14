@@ -79,6 +79,8 @@ export class SliderController extends dat.controllers.Controller {
     private __onChange: (value: number) => void;
     private __onFinishChange: (value: number) => void;
 
+    private _container: HTMLDivElement;
+
     private _slider: Nullable<CustomSlider> = null;
 
     /**
@@ -104,10 +106,10 @@ export class SliderController extends dat.controllers.Controller {
         this.__li.appendChild(this._title);
 
         // Container
-        const container = document.createElement("div");
-        container.style.width = "calc(100% - 20px)";
-        container.style.paddingLeft = "10px";
-        this.__li.appendChild(container);
+        this._container = document.createElement("div");
+        this._container.style.width = "calc(100% - 20px)";
+        this._container.style.paddingLeft = "10px";
+        this.__li.appendChild(this._container);
 
         ReactDOM.render((
             <CustomSlider
@@ -119,7 +121,7 @@ export class SliderController extends dat.controllers.Controller {
                 onChange={(v) => this._handleChange(v)}
                 onRelease={(v) => this._handleFinishChange(v)}
             />
-        ), container);
+        ), this._container);
     }
 
     /**
@@ -156,6 +158,13 @@ export class SliderController extends dat.controllers.Controller {
     public onFinishChange(cb: (value: number) => void): SliderController {
         this.__onFinishChange = cb;
         return this;
+    }
+
+    /**
+     * Disposes the component.
+     */
+    public dispose(): void {
+        ReactDOM.unmountComponentAtNode(this._container);
     }
 
     /**

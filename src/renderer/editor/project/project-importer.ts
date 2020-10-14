@@ -324,17 +324,28 @@ export class ProjectImporter {
         // Post-Processes
         Overlay.SetMessage("Configuring Rendering...");
 
-        if (project.postProcesses.ssao) {
+        if (project.postProcesses.ssao?.json) {
             SerializationHelper.Parse(() => SceneSettings.SSAOPipeline, project.postProcesses.ssao.json, editor.scene!, rootUrl);
             SceneSettings.SetSSAOEnabled(editor, project.postProcesses.ssao.enabled);
         }
-        if (project.postProcesses.standard) {
-            SerializationHelper.Parse(() => SceneSettings.StandardPipeline, project.postProcesses.standard.json, editor.scene!, rootUrl);
-            SceneSettings.SetStandardPipelineEnabled(editor, project.postProcesses.standard.enabled);
+
+        if (project.postProcesses.screenSpaceReflections?.json) {
+            SceneSettings.SetScreenSpaceReflectionsEnabled(editor, project.postProcesses.screenSpaceReflections.enabled);
+            if (SceneSettings.ScreenSpaceReflectionsPostProcess) {
+                SerializationHelper.Parse(() => SceneSettings.ScreenSpaceReflectionsPostProcess, project.postProcesses.screenSpaceReflections?.json, editor.scene!, "");
+            }
         }
-        if (project.postProcesses.default) {
+
+        if (project.postProcesses.default?.json) {
             SerializationHelper.Parse(() => SceneSettings.DefaultPipeline, project.postProcesses.default.json, editor.scene!, rootUrl);
             SceneSettings.SetDefaultPipelineEnabled(editor, project.postProcesses.default.enabled);
+        }
+
+        if (project.postProcesses.motionBlur?.json) {
+            SceneSettings.SetMotionBlurEnabled(editor, project.postProcesses.motionBlur.enabled);
+            if (SceneSettings.MotionBlurPostProcess) {
+                SerializationHelper.Parse(() => SceneSettings.MotionBlurPostProcess, project.postProcesses.motionBlur?.json, editor.scene!, "");
+            }
         }
 
         // Animation groups
@@ -458,7 +469,7 @@ export class ProjectImporter {
         n.parent = n.getScene().getNodeByID(n.metadata._waitingParentId) ?? n.getScene().getTransformNodeByID(n.metadata._waitingParentId);
 
         delete n.metadata._waitingParentId;
-        delete n._waitingParentId;
+        n._waitingParentId = null;
     }
 
     /**

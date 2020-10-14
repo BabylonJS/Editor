@@ -3,11 +3,11 @@
  */
 
 import {
-    Scene, Node, AbstractMesh,
-    SSAO2RenderingPipeline, DefaultRenderingPipeline, StandardRenderingPipeline,
-    Vector2, Vector3, Vector4,
     Color3, Color4,
     SerializationHelper,
+    Scene, Node, AbstractMesh,
+    Vector2, Vector3, Vector4,
+    SSAO2RenderingPipeline, DefaultRenderingPipeline, ScreenSpaceReflectionPostProcess, MotionBlurPostProcess,
 } from "@babylonjs/core";
 
 export type NodeScriptConstructor = (new (...args: any[]) => Node);
@@ -230,17 +230,17 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
             scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(ssao.name, scene.cameras);
         }
     }
-    if (data.standard) {
-        const standard = StandardRenderingPipeline.Parse(data.standard.json, scene, rootUrl);
-        if (!data.standard.enabled) {
-            scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(standard.name, scene.cameras);
-        }
+    if (data.screenSpaceReflections?.json) {
+        ScreenSpaceReflectionPostProcess._Parse(data.screenSpaceReflections.json, scene.activeCamera!, scene, "");
     }
     if (data.default) {
         const def = DefaultRenderingPipeline.Parse(data.default.json, scene, rootUrl);
         if (!data.default.enabled) {
             scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(def.name, scene.cameras);
         }
+    }
+    if (data.motionBlur?.json) {
+        MotionBlurPostProcess._Parse(data.motionBlur.json, scene.activeCamera!, scene, "");
     }
 }
 

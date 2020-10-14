@@ -95,6 +95,8 @@ export class KeyMapperController extends dat.controllers.Controller {
 
     private __onChange: (r: number) => void;
 
+    private _div: HTMLDivElement;
+
     /**
      * Constructor.
      * @param object the object to modify.
@@ -110,15 +112,15 @@ export class KeyMapperController extends dat.controllers.Controller {
         this.domElement.appendChild(this._title);
 
         // Create div
-        const div = document.createElement("div");
-        div.classList.add("c");
-        this.domElement.appendChild(div);
+        this._div = document.createElement("div");
+        this._div.classList.add("c");
+        this.domElement.appendChild(this._div);
 
         // Render mapper
         ReactDOM.render(<KeyMapper ref={this._refHandler.getKeyMapper} onChange={(k) => {
             object[property] = k;
             if (this.__onChange) { this.__onChange(k); }
-        }} mappedKey={object[property]} />, div);
+        }} mappedKey={object[property]} />, this._div);
     }
 
     /**
@@ -145,6 +147,13 @@ export class KeyMapperController extends dat.controllers.Controller {
     public onChange(cb: (r: number) => void): KeyMapperController {
         this.__onChange = cb;
         return this;
+    }
+
+    /**
+     * Disposes the component.
+     */
+    public dispose(): void {
+        ReactDOM.unmountComponentAtNode(this._div);
     }
 }
 
