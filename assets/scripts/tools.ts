@@ -86,12 +86,22 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: (Node | Scene)[]): 
         
         // Check start
         if (n.onStart) {
-            scene.onBeforeRenderObservable.addOnce(() => n.onStart());
+            let startObserver = scene.onBeforeRenderObservable.addOnce(() => {
+                startObserver = null!;
+                n.onStart();
+            });
+            
+            n.onDisposeObservable.addOnce(() => {
+                if (startObserver) {
+                    scene.onBeforeRenderObservable.remove(startObserver);
+                }
+            });
         }
 
         // Check update
         if (n.onUpdate) {
-            scene.onBeforeRenderObservable.add(() => n.onUpdate());
+            const updateObserver = scene.onBeforeRenderObservable.add(() => n.onUpdate());
+            n.onDisposeObservable.addOnce(() => scene.onBeforeRenderObservable.remove(updateObserver));
         }
 
         // Check properties

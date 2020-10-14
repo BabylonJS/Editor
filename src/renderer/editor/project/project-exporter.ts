@@ -442,9 +442,6 @@ export class ProjectExporter {
         // Save editor config
         editor._saveEditorConfig();
 
-        // Update recent projects to be shown in welcome wizard
-        this._UpdateWelcomeRecentProjects(editor);
-
         // Run clean in background
         this._CleanOutputDir(camerasDir, exportedCameras);
         this._CleanOutputDir(geometriesDir, exportedGeometries);
@@ -456,6 +453,9 @@ export class ProjectExporter {
         this._CleanOutputDir(soundsDir, exportedSounds);
         this._CleanOutputDir(particleSystemsDir, exportedParticleSystems);
         this._CleanOutputDir(transformNodesDir, exportedTransformNodes);
+
+        // Update recent projects to be shown in welcome wizard
+        this._UpdateWelcomeRecentProjects(editor);
     }
 
     /**
