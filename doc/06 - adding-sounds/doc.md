@@ -6,7 +6,7 @@ Supported file types:
 * .wav
 
 ## Adding assets to the project
-Textures can be added by browsing files and drag'n'dopping files. In the assets panel, a tab named `Sounds` contains the list of all available sounds in the scene.
+Sounds can be added by browsing files and drag'n'dopping files. In the assets panel, a tab named `Sounds` contains the list of all available sounds in the scene.
 
 ### Browsing for files
 Simply go to the "Assets" panel of the Editor and click "Add...". A dialog opens to select the files:
