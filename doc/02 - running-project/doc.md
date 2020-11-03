@@ -1,6 +1,6 @@
 # Running the application/game
 
-Once all dependencies have been installed and the game built, the game be ran using 2 mthods:
+Once all dependencies have been installed and the game built, the game be ran using 2 methods:
 * In an integrated browser: simply opens a new window with the application/game rendered in it
 * In the default browser of the user: will start a local webserver and open the default browser of the user (FireFox for example).
 
