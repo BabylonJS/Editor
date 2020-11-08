@@ -62,12 +62,12 @@ dat.GUI.prototype.addImage = function (url: string): ImageBoxController {
                 const width = (controller.img.width * ratio) + "px";
                 controller.img.style.width = width;
                 li.style.width = width;
-                $(li).animate({ height: width }, 300);
+                jQuery(li).animate({ height: width }, 300);
             } else {
                 const height = (controller.img.height * ratio) + "px";
                 controller.img.style.height = height;
                 li.style.width = height;
-                $(li).animate({ height: height }, 300);
+                jQuery(li).animate({ height: height }, 300);
             }
         }
 

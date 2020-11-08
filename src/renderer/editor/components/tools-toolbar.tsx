@@ -46,8 +46,8 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     public render(): React.ReactNode {
         return (
             <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
-                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("play-integrated")} />
-                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="generate.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} />
+                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("play-integrated")} id="play-game" />
+                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="generate.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} id="generate-scene" />
             </ButtonGroup>
         );
     }

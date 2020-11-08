@@ -14,6 +14,8 @@ export class Tools {
      */
     public static GetAppPath(): string {
         if (process.env.DEBUG) { return remote.app.getAppPath(); }
+        if (process.env.DRIVEN_TESTS) { return process.env.DRIVEN_TESTS; }
+
         return join(remote.app.getAppPath(), "..", "..");
     }
 

@@ -255,6 +255,8 @@ export class Editor {
     };
 
     private _isInitialized: boolean = false;
+    private _isProjectReady: boolean = false;
+
     private _closing: boolean = false;
     private _pluginWindows: number[] = [];
 
@@ -359,7 +361,7 @@ export class Editor {
                     ] }
                 ]
             }],
-        }, $("#BABYLON-EDITOR"));
+        }, jQuery("#BABYLON-EDITOR"));
 
         // Register layout events
         this.layout.on("componentCreated", (c) => {
@@ -431,6 +433,13 @@ export class Editor {
      */
     public get isInitialized(): boolean {
         return this._isInitialized;
+    }
+
+    /**
+     * Returns wether or not the project is fully ready.
+     */
+    public get isProjectReady(): boolean {
+        return this._isProjectReady;
     }
 
     /**
@@ -816,6 +825,8 @@ export class Editor {
                 await WorkSpace.WatchProject(this);
             }
         }
+
+        this._isProjectReady = true;
 
         // Check for updates
         EditorUpdater.CheckForUpdates(this, false);

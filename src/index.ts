@@ -9,6 +9,7 @@ export { Editor } from "./renderer/editor/editor";
 
 // Tools
 export { Tools } from "./renderer/editor/tools/tools";
+export { IPCTools } from "./renderer/editor/tools/ipc";
 
 // Assets
 export { Assets, IAssetComponent, IAssetsProps, IAssetsState } from "./renderer/editor/components/assets";

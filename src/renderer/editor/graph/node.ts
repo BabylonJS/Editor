@@ -408,7 +408,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
             set y(y: number) { graphCanvas.ds.offset[1] = y; graphCanvas.setDirty(true, true); },
         };
 
-        $(anim).animate({ x: end[0], y: end[1] }, 750, "swing");
+        jQuery(anim).animate({ x: end[0], y: end[1] }, 750, "swing");
     }
 
     /**

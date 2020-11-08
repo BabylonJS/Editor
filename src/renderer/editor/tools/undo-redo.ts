@@ -1,7 +1,5 @@
 import { shell } from "electron";
 
-import { Undefinable, Nullable } from "../../../shared/types";
-
 export interface IUndoRedoAction {
     /**
      * Called on the user redoes or undoes an action.
@@ -18,7 +16,7 @@ export interface IUndoRedoAction {
     /**
      * Defines the optional id of the action in the stack. Typically used bu the plugins.
      */
-    stackId?: Undefinable<string>;
+    stackId?: string;
 }
 
 export class UndoRedo {
@@ -31,9 +29,12 @@ export class UndoRedo {
      * Defines the current stake of undo/redo actions.
      */
     public stack: IUndoRedoAction[] = [];
-
-    private _promise: Nullable<Promise<void>> = null;
-    private _position: number = 0;
+    /**
+     * @hidden
+     */
+    public _position: number = -1;
+    
+    private _asyncQueue: Set<IUndoRedoAction> = new Set();
 
     /**
      * Constructor.
@@ -58,12 +59,16 @@ export class UndoRedo {
 
 		this._position = this.stack.length - 1;
 
-        if (this._promise) { await this._promise; }
+        await this._waitForPromise();
+        this._asyncQueue.add(action);
 
-        await (this._promise = action.redo());
-        if (action.common) { await (this._promise = action.common()); }
+        await action.redo();
 
-        this._promise = null;
+        if (action.common) {
+            await action.common();
+        }
+
+        this._asyncQueue.delete(action);
     }
 
     /**
@@ -71,16 +76,20 @@ export class UndoRedo {
      */
     public async undo(): Promise<void> {
         const action = this.stack[this._position];
-        if (!action) { return shell.beep(); }
+        if (!action) { return shell?.beep(); }
 
-		this._position--;
+        this._position--;
 
-        if (this._promise) { await this._promise; }
+        await this._waitForPromise();
+        this._asyncQueue.add(action);
 
-        await (this._promise = action.undo());
-        if (action.common) { await (this._promise = action.common()); }
+        await action.undo();
 
-        this._promise = null;
+        if (action.common) {
+            await action.common();
+        }
+
+        this._asyncQueue.delete(action);
     }
     
     /**
@@ -92,22 +101,27 @@ export class UndoRedo {
         
         this._position++;
         
-        if (this._promise) { await this._promise; }
+        await this._waitForPromise();
+        this._asyncQueue.add(action);
         
-        await (this._promise = action.redo());
-        if (action.common) { await (this._promise = action.common()); }
+        await action.redo();
 
-        this._promise = null;
+        if (action.common) {
+            await action.common();
+        }
+
+        this._asyncQueue.delete(action);
     }
 
     /**
      * Clears the stack using the given actions id.
      * @param stackId the id of the stack to clear.
      */
-    public clear(stackId?: Undefinable<string>): void {
+    public clear(stackId?: string): void {
         if (!stackId) {
             this.stack = [];
-            this._position = 0;
+            this._position = -1;
+            this._asyncQueue.clear();
             return;
         }
 
@@ -118,6 +132,18 @@ export class UndoRedo {
                 this._position--;
                 i--;
             }
+        }
+    }
+
+    /**
+     * Waits for the actions promises to be resolved.
+     * @hidden
+     */
+    public async _waitForPromise(): Promise<void> {
+        while (this._asyncQueue.size > 0) {
+            await new Promise<void>((resolve) => {
+                setTimeout(() => resolve(), 16);
+            });
         }
     }
 }

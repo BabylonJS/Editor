@@ -109,7 +109,7 @@ export class WizardStep extends React.Component<IWizardStepProps> {
             <>
                 {this.props.body}
                 <Divider key={`wizard-divider-${this.props.index}`} />
-                <Button key={`wizard-next-${this.props.index}`} intent={intent} onClick={() => this.openNewPanel()} text={text} />
+                <Button key={`wizard-next-${this.props.index}`} id={`wizard-next-${this.props.index}`} intent={intent} onClick={() => this.openNewPanel()} text={text} />
             </>
         );
     }

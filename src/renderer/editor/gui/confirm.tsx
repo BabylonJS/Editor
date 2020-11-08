@@ -65,8 +65,8 @@ export class Confirm extends React.Component<IConfirmProps> {
                 </div>
                 <div className={Classes.DIALOG_FOOTER}>
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                        <Button onClick={() => this._handleClose(false)}>No</Button>
-                        <Button onClick={() => this._handleClose(true)} intent={Intent.DANGER}>Yes</Button>
+                        <Button id="confirm-no-button" onClick={() => this._handleClose(false)}>No</Button>
+                        <Button id="confirm-yes-button" onClick={() => this._handleClose(true)} intent={Intent.DANGER}>Yes</Button>
                     </div>
                 </div>
             </Dialog>

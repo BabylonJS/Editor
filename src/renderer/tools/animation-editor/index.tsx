@@ -170,7 +170,7 @@ export default class AnimationEditorPlugin extends AbstractEditorPlugin<IAnimati
         // Build layout
         if (!this._graphDiv) { return; }
 
-        this._graphLayout = new GoldenLayout( {
+        this._graphLayout = new GoldenLayout({
             settings: {
                 showPopoutIcon: false,
                 showCloseIcon: false,
@@ -201,7 +201,7 @@ export default class AnimationEditorPlugin extends AbstractEditorPlugin<IAnimati
                     } as IChartEditorProps },
                 ] },
             ],
-        }, $(this._graphDiv));
+        }, jQuery(this._graphDiv));
         
         this._graphLayout.registerComponent("animations-list", AnimationsPanel);
         this._graphLayout.registerComponent("graph", ChartEditor);

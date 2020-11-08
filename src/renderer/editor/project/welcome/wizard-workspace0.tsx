@@ -68,7 +68,7 @@ export class WorkspaceWizard0 extends React.Component<IWelcomeWizard0Props, IWor
                     onChange={(v) => this._handleTemplateTypeChanged((v.target as HTMLInputElement).value)}
                     selectedValue={this.state.selectedTemplate?.name}
                 >
-                    {this.state.availableProjects.map((ap) => <Radio key={ap.file} label={ap.name} value={ap.name} />)}
+                    {this.state.availableProjects.map((ap) => <Radio key={ap.file} id={ap.file} label={ap.name} value={ap.name} />)}
                 </RadioGroup>
             );
         }
