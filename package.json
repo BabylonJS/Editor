@@ -48,7 +48,8 @@
     "spectron": "10.0.1",
     "mocha": "8.2.1",
     "spectron-dialog-addon": "1.0.1",
-    "rimraf": "3.0.2"
+    "rimraf": "3.0.2",
+    "xhr2": "0.2.0"
   },
   "dependencies": {
     "@babylonjs/core": "4.2.0-rc.7",

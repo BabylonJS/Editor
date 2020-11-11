@@ -1,4 +1,6 @@
 import * as assert from "assert";
+import { NullEngine, Scene } from "babylonjs";
+import "babylonjs-materials";
 
 import { TestApp } from "../app";
 
@@ -6,6 +8,8 @@ describe("Editor - Save project and get same result when reload", async function
     this.timeout(600000);
 
     const testApp = new TestApp();
+    const engine = new NullEngine();
+    const scene = new Scene(engine);
 
     before(async function() {
         await testApp.start();
@@ -14,6 +18,9 @@ describe("Editor - Save project and get same result when reload", async function
 
     after(async function() {
         await testApp.stop();
+
+        scene.dispose();
+        engine.dispose();
     });
 
     it("should generate the scene", async function() {
@@ -34,5 +41,14 @@ describe("Editor - Save project and get same result when reload", async function
 
         assert.deepEqual(await testApp.execute(`editor.scene.getMeshByName("cube").position.asArray()`), [1, 1, 1]);
         assert.deepEqual(await testApp.execute(`editor.scene.getMeshByName("cube").rotation.asArray()`), [0.5, 1, -0.25]);
+    });
+
+    it("should have outputed scene with the previous modifications", async function() {
+        await testApp.execute("editor.runProject(0)");
+        await testApp.waitUntil("editor._activityIndicator.state.enabled === false");
+        await testApp.wait(1000);
+
+        // const rootUrl = "http://localhost:1338/scenes/scene/";
+        // await SceneLoader.AppendAsync(rootUrl, "scene.babylon", scene);
     });
 });
