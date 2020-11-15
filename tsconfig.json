@@ -37,10 +37,12 @@
     "./declaration",
     "./index.d.ts",
     "./testOutput",
+    "./templates",
     "module",
     "electron-packages",
     "assets",
     "sample-plugin",
     "testOutput",
+    "templates"
   ]
 }

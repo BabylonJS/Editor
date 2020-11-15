@@ -1,0 +1,14 @@
+[
+    {
+        "name": "Third Personal Shooter",
+        "file": "tps.zip"
+    },
+    {
+        "name": "First Personal Shooter",
+        "file": "fps.zip"
+    },
+    {
+        "name": "First Personal Shooter Using Graphs (v4.0.0-beta.5)",
+        "file": "fps_graphs.zip"
+    }
+]
