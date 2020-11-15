@@ -83,8 +83,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Open Workspace..." icon={<Icon src="workspace.svg" />} onClick={() => this._menuItemClicked("project:open-workspace")} />
                 <MenuItem text="Reveal WorkSpace In File Explorer" disabled={!WorkSpace.HasWorkspace()} icon="document-open" onClick={() => this._menuItemClicked("project:open-worspace-file-explorer")} />
                 <MenuDivider />
-                <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} />
-                <MenuItem text={<div>Save Project... <Tag intent={Intent.PRIMARY}>(CTRL+s)</Tag></div>} icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} />
+                <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} id="toolbar-files-reload" />
+                <MenuItem text={<div>Save Project... <Tag intent={Intent.PRIMARY}>(CTRL+s)</Tag></div>} icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} id="toolbar-save-project" />
                 <MenuItem text="Rename Project..." icon="edit" onClick={() => this._menuItemClicked("project:rename")} />
                 <MenuDivider />
                 <MenuItem text="Add New Project..." icon={<Icon src="plus.svg" />} onClick={() => NewProjectWizard.Show()} />
@@ -94,11 +94,11 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                     {WorkSpace.AvailableProjects.map((p) => <MenuItem key={p} text={p} onClick={() => this._handleChangeProject(p)} />)}
                 </MenuItem>
                 <MenuDivider />
-                <MenuItem text={<div>Build Project... <Tag intent={Intent.PRIMARY}>(CTRL+b)</Tag></div>} onClick={() => WorkSpace.BuildProject(this._editor)} />
+                <MenuItem text={<div>Build Project... <Tag intent={Intent.PRIMARY}>(CTRL+b)</Tag></div>} onClick={() => WorkSpace.BuildProject(this._editor)} id="toolbar-build-project" />
                 <MenuItem text={<div>Build & Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={async () => {
                     await WorkSpace.BuildProject(this._editor);
                     this._editor.runProject(EditorPlayMode.IntegratedBrowser);
-                }} />
+                }} id="toolbar-build-and-run-project" />
                 <MenuDivider />
                 <MenuItem text={<div>Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={() => this._editor.runProject(EditorPlayMode.IntegratedBrowser)} />
                 <MenuDivider />
@@ -168,9 +168,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         const tools =
             <Menu>
-                {/* <MenuItem text="Decal Painter..." icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("tools:decal-painter")} /> */}
-                {/* <MenuItem text="Foliage Painter..." icon={<Icon src="grass.svg" />} onClick={() => this._menuItemClicked("tools:grass-painter")} /> */}
-                {/* <MenuDivider /> */}
+                <MenuItem text="Animation Editor" icon={<Icon src="film.svg" />} onClick={() => this._menuItemClicked("tools:animation-editor")} />
+                <MenuItem text="Painting Tools..." icon={<Icon src="paint-brush.svg" />} onClick={() => this._menuItemClicked("tools:painting-tools")} />
+                <MenuDivider />
                 <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
             </Menu>;
 
@@ -187,7 +187,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         return (
             <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
                 <Popover content={project} position={Position.BOTTOM_LEFT}>
-                    <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="File"/>
+                    <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="File" id="toolbar-files" />
                 </Popover>
                 <Popover content={edit} position={Position.BOTTOM_LEFT}>
                     <Button icon={<Icon src="edit.svg"/>} rightIcon="caret-down" text="Edit"/>
@@ -338,8 +338,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         // Tools
         if (family === "tools") {
             switch (action) {
-                case "decal-painter": this._editor.addPlugin("painting"); break;
-                case "grass-painter": this._editor.addPlugin("painting"); break;
+                case "animation-editor": this._editor.addPlugin("animation-editor"); break;
+
+                case "painting-tools": this._editor.addPlugin("painting"); break;
 
                 case "photoshop": this._handleTogglePhotoshop(); break;
             }

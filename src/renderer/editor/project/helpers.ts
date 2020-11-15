@@ -5,7 +5,7 @@ import { Nullable } from "../../../shared/types";
 import {
     Scene, SerializationHelper, SceneLoader,
     Color4, Color3, Vector3, Texture,
-    CannonJSPlugin, OimoJSPlugin, AmmoJSPlugin, BabylonFileLoaderConfiguration, IPhysicsEnginePlugin,
+    CannonJSPlugin, OimoJSPlugin, AmmoJSPlugin, BabylonFileLoaderConfiguration, IPhysicsEnginePlugin, Animation,
 } from "babylonjs";
 
 export class ProjectHelpers {
@@ -149,6 +149,11 @@ export class ProjectHelpers {
 
         // Image processing
         SerializationHelper.Parse(() => scene.imageProcessingConfiguration, parsedData.imageProcessingConfiguration, scene, rootUrl);
+
+        // Animations
+        for (const animation of parsedData.animations ?? []) {
+            scene.animations.push(Animation.Parse(animation));
+        }
 
         // Flags
         scene.postProcessesEnabled = parsedData.postProcessesEnabled;

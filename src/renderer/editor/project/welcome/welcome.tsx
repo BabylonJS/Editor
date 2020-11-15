@@ -109,7 +109,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
                 <div className={Classes.DIALOG_BODY}>
                     <Callout title="Open an existing project" icon="info-sign">
                         <ButtonGroup vertical={true} fill={true} alignText={Alignment.LEFT}>
-                            <Button key="open-workspace" icon={<Icon src="workspace.svg" />} onClick={() => this._handleOpenWorkspace()}>Open Workspace...</Button>
+                            <Button key="open-workspace" id="welcome-open-workspace" icon={<Icon src="workspace.svg" />} onClick={() => this._handleOpenWorkspace()}>Open Workspace...</Button>
                         </ButtonGroup>
                     </Callout>
                     <Divider />
@@ -195,7 +195,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         Overlay.Show("Creating Project...", true);
 
         // Write project.
-        const projectZipPath = join(Tools.GetAppPath(), `assets/project/workspace.zip`);
+        const projectZipPath = join(Tools.GetAppPath(), `assets/project/workspace.zip`);        
         const projectZip = new Zip(projectZipPath);
         await new Promise<void>((resolve, reject) => {
             projectZip.extractAllToAsync(path, false, (err) => err ? reject(err) : resolve());

@@ -117,7 +117,7 @@ declare module "dat.gui" {
          * @param height the height expressed using css of the element (ex: 500px).
          * @param element the element to add in "this" folder.
          */
-        addCustom(height: string, element: JSX.Element): CustomController;
+        addCustom(height: string, element: JSX.Element, style?: Partial<CSSStyleDeclaration>): CustomController;
         /**
          * Adds a new vector controller.
          * @param title the title of the controller.
@@ -161,6 +161,10 @@ declare module "dat.gui" {
          * @param path the path of the base property.
          */
         setPath(path: string): GUIController;
+        /**
+         * Disposes the controller.
+         */
+        dispose?(): void;
     }
 }
 

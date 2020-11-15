@@ -46,6 +46,8 @@ export class ButtonController extends dat.controllers.Controller {
         getButton: (ref: CustomButton) => this._button = ref,
     };
 
+    private _div: HTMLDivElement;
+
     /**
      * Constructor.
      * @param text defines the title of the button.
@@ -54,12 +56,12 @@ export class ButtonController extends dat.controllers.Controller {
         super({ }, "");
 
         // Create div
-        const div = document.createElement("div");
-        div.classList.add("c");
-        div.style.width = "100%";
-        this.domElement.appendChild(div);
+        this._div = document.createElement("div");
+        this._div.classList.add("c");
+        this._div.style.width = "100%";
+        this.domElement.appendChild(this._div);
 
-        ReactDOM.render(<CustomButton ref={this._refHandler.getButton} text={text} />, div);
+        ReactDOM.render(<CustomButton ref={this._refHandler.getButton} text={text} />, this._div);
     }
 
     /**
@@ -78,6 +80,13 @@ export class ButtonController extends dat.controllers.Controller {
     public onClick(callback: () => void): ButtonController {
         setTimeout(() => this._button?.setState({ onClick: callback }), 0);
         return this;
+    }
+
+    /**
+     * Disposes the component.
+     */
+    public dispose(): void {
+        ReactDOM.unmountComponentAtNode(this._div);
     }
 }
 

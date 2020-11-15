@@ -138,9 +138,12 @@ export interface IProject {
              */
             json: any;
         };
-        standard: {
+        /**
+         * Defines the configuration of the SSR post-process
+         */
+        screenSpaceReflections?: {
             /**
-             * Defines wether or not standard pipeline is enabeld.
+             * Defines wether or not SSR is enabled.
              */
             enabled: boolean;
             /**
@@ -148,9 +151,25 @@ export interface IProject {
              */
             json: any;
         }
+        /**
+         * Defines the configuration of the default pipeline.
+         */
         default: {
             /**
              * Defines wether or not Default Pipeline is enabled.
+             */
+            enabled: boolean;
+            /**
+             * Defines the JSON representation of the post-process
+             */
+            json: any;
+        };
+        /**
+         * Defines the configuration of the motion blur post-process.
+         */
+        motionBlur?: {
+            /**
+             * Defines wether or not motion blur is enabled.
              */
             enabled: boolean;
             /**

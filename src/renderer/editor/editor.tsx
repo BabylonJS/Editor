@@ -9,7 +9,10 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName, MaybeElement } from "@blueprintjs/core";
 
-import { Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin, SubMesh, Animation, AbstractMesh, IParticleSystem, Sound } from "babylonjs";
+import {
+    Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin,
+    SubMesh, Animation, AbstractMesh, IParticleSystem, Sound, KeyboardInfo, KeyboardEventTypes,
+} from "babylonjs";
 
 import GoldenLayout from "golden-layout";
 
@@ -217,6 +220,10 @@ export class Editor {
      * Notifies observers that a sound has been removed in the editor (graph, preview, etc.).
      */
     public removedSoundObservable: Observable<Sound> = new Observable<Sound>();
+    /**
+     * Notifies observers that a keyboard event has been fired.
+     */
+    public onKeyboardEventObservable: Observable<KeyboardInfo> = new Observable<KeyboardInfo>();
     
     /**
      * Defines the current editor version.
@@ -248,6 +255,8 @@ export class Editor {
     };
 
     private _isInitialized: boolean = false;
+    private _isProjectReady: boolean = false;
+
     private _closing: boolean = false;
     private _pluginWindows: number[] = [];
 
@@ -352,7 +361,7 @@ export class Editor {
                     ] }
                 ]
             }],
-        }, $("#BABYLON-EDITOR"));
+        }, jQuery("#BABYLON-EDITOR"));
 
         // Register layout events
         this.layout.on("componentCreated", (c) => {
@@ -424,6 +433,13 @@ export class Editor {
      */
     public get isInitialized(): boolean {
         return this._isInitialized;
+    }
+
+    /**
+     * Returns wether or not the project is fully ready.
+     */
+    public get isProjectReady(): boolean {
+        return this._isProjectReady;
     }
 
     /**
@@ -720,7 +736,6 @@ export class Editor {
         
         // Post-processes
         SceneSettings.GetSSAORenderingPipeline(this);
-        SceneSettings.GetStandardRenderingPipeline(this);
         SceneSettings.GetDefaultRenderingPipeline(this);
 
         // Physics
@@ -810,6 +825,8 @@ export class Editor {
                 await WorkSpace.WatchProject(this);
             }
         }
+
+        this._isProjectReady = true;
 
         // Check for updates
         EditorUpdater.CheckForUpdates(this, false);
@@ -988,6 +1005,8 @@ export class Editor {
 
         // Shortcuts
         window.addEventListener("keyup", (ev) => {
+            this.onKeyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYUP, ev));
+
             if (this.preview.canvasFocused) {
                 if (ev.key === "t") { return this.preview.setGizmoType(GizmoType.Position); }
                 if (ev.key === "r") { return this.preview.setGizmoType(GizmoType.Rotation); }
@@ -1014,10 +1033,12 @@ export class Editor {
         });
 
         window.addEventListener("keydown", (ev) => {
+            this.onKeyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYDOWN, ev));
+
             if (ev.ctrlKey && SceneSettings.Camera) {
                 for (const i in SceneSettings.Camera.inputs.attached) {
                     const input = SceneSettings.Camera.inputs.attached[i];
-                    input.detachControl(this.engine!.getRenderingCanvas());
+                    input.detachControl();
                 }
 
                 SceneSettings.Camera.metadata = SceneSettings.Camera.metadata ?? { };

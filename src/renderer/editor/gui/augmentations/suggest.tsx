@@ -62,7 +62,7 @@ export class _ListSuggest extends React.Component<_IListSuggestProps, _IListSugg
                     this.props.controller["initialValue"] = this.state.value;
                     this.setState({ value: i });
                 }}
-                // activeItem={this.props.controller.object[this.props.controller.property]}
+                activeItem={this.props.controller.object[this.props.controller.property]}
                 // scrollToActiveItem={true}
                 resetOnClose={true}
                 resetOnQuery={true}
@@ -145,6 +145,7 @@ export class SuggestController extends dat.controllers.Controller {
         onUpdate?: () => string[] | Promise<string[]>;
     }>;
 
+    private _div: HTMLDivElement;
     private _title: HTMLSpanElement;
 
     private _suggest: Nullable<_ListSuggest> = null;
@@ -179,11 +180,11 @@ export class SuggestController extends dat.controllers.Controller {
         this.domElement.appendChild(this._title);
 
         // Create div
-        const div = document.createElement("div");
-        div.classList.add("c");
-        this.domElement.appendChild(div);
+        this._div = document.createElement("div");
+        this._div.classList.add("c");
+        this.domElement.appendChild(this._div);
 
-        ReactDOM.render(<_ListSuggest ref={(ref) => this._suggest = ref} controller={this}></_ListSuggest>, div);
+        ReactDOM.render(<_ListSuggest ref={(ref) => this._suggest = ref} controller={this}></_ListSuggest>, this._div);
     }
 
     /**
@@ -217,6 +218,13 @@ export class SuggestController extends dat.controllers.Controller {
     public name(name: string): SuggestController {
         this._title.innerHTML = name;
         return this;
+    }
+
+    /**
+     * Disposes the component.
+     */
+    public dispose(): void {
+        ReactDOM.unmountComponentAtNode(this._div);
     }
 }
 

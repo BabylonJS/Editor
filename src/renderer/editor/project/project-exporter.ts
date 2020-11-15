@@ -100,8 +100,9 @@ export class ProjectExporter {
             },
             postProcesses: {
                 ssao: { enabled: SceneSettings.IsSSAOEnabled(), json: SceneSettings.SSAOPipeline?.serialize() },
-                standard: { enabled: SceneSettings.IsStandardPipelineEnabled(), json: SceneSettings.StandardPipeline?.serialize() },
+                screenSpaceReflections: { enabled: SceneSettings.IsScreenSpaceReflectionsEnabled(), json: SceneSettings.ScreenSpaceReflectionsPostProcess?.serialize() },
                 default: { enabled: SceneSettings.IsDefaultPipelineEnabled(), json: SceneSettings.DefaultPipeline?.serialize() },
+                motionBlur: { enabled: SceneSettings.IsMotionBlurEnabled(), json: SceneSettings.MotionBlurPostProcess?.serialize() },
             }
         };
 
@@ -531,8 +532,9 @@ export class ProjectExporter {
         scene.metadata = scene.metadata ?? { };
         scene.metadata.postProcesses = {
             ssao: { enabled: SceneSettings.IsSSAOEnabled(), json: SceneSettings.SSAOPipeline?.serialize() },
-            standard: { enabled: SceneSettings.IsStandardPipelineEnabled(), json: SceneSettings.StandardPipeline?.serialize() },
+            screenSpaceReflections: { enabled: SceneSettings.IsScreenSpaceReflectionsEnabled(), json: SceneSettings.ScreenSpaceReflectionsPostProcess?.serialize() },
             default: { enabled: SceneSettings.IsDefaultPipelineEnabled(), json: SceneSettings.DefaultPipeline?.serialize() },
+            motionBlur: { enabled: SceneSettings.IsMotionBlurEnabled(), json: SceneSettings.MotionBlurPostProcess?.serialize() },
         };
 
         // Set producer

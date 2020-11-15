@@ -83,6 +83,7 @@ export class MeshInspector extends NodeInspector {
         rendering.add(this.selectedObject, "applyFog").name("Apply Fog");
 
         if (this.selectedObject instanceof Mesh) {
+            this.selectedObject.infiniteDistance ??= false;
             rendering.add(this.selectedObject, "infiniteDistance").name("Infinite Distance");
             this.addMaterialList(rendering, this.selectedObject, "material").name("Material");
 
@@ -246,6 +247,8 @@ export class MeshInspector extends NodeInspector {
         // Skeleton
         const skeleton = this.tool!.addFolder("Skeleton");
         skeleton.open();
+
+        this.selectedObject.skeleton.needInitialSkinMatrix ??= false;
 
         skeleton.add(this.selectedObject.skeleton, "needInitialSkinMatrix").name("Need Initial Skin Matrix");
         skeleton.add(this.selectedObject.skeleton, "useTextureToStoreBoneMatrices").name("Use Texture To Store Bone Matrices");

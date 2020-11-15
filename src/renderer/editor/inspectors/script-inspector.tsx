@@ -1,6 +1,6 @@
 import { shell } from "electron";
 import { normalize, join, extname } from "path";
-import { readFile } from "fs-extra";
+import { readFile, watch, FSWatcher } from "fs-extra";
 import { transpile, ModuleKind, ScriptTarget } from "typescript";
 
 import { Nullable } from "../../../shared/types";
@@ -31,12 +31,26 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
 
     private _refreshingScripts: boolean = false;
 
+    private _scriptWatcher: Nullable<FSWatcher> = null;
+
     /**
      * Called on the component did moubnt.
      * @override
      */
     public onUpdate(): void {
         this.addScript();
+    }
+
+    /**
+     * Called on the component will unmount.
+     * @override
+     */
+    public componentWillUnmount(): void {
+        super.componentWillUnmount();
+
+        if (this._scriptWatcher) {
+            this._scriptWatcher.close();
+        }
     }
 
     /**
@@ -60,6 +74,13 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
             this.selectedObject.metadata.script.name = this._selectedScript;
             this.editor.graph.refresh();
             
+            if (this._scriptWatcher) {
+                this._scriptWatcher.close();
+                this._scriptWatcher = null;
+            }
+
+            this._clearScriptControllersAndFolders(script);
+
             if (this._selectedScript === "None") {
                 return;
             }
@@ -120,8 +141,15 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
         const jsName = normalize(`${name.substr(0, extensionIndex)}.js`);
         const jsPath = join(WorkSpace.DirPath!, "build", jsName);
 
-        const inspectorValues = await SandboxMain.GetInspectorValues(jsPath);
-        if (!inspectorValues) { return; }
+        if (!this._scriptWatcher) {
+            this._scriptWatcher = watch(jsPath, { encoding: "utf-8" }, (ev) => {
+                if (ev === "change") {
+                    this._refreshScript(folder);
+                }
+            });
+        }
+
+        const inspectorValues = await SandboxMain.GetInspectorValues(jsPath) ?? [];
 
         // Manage properties
         const script = this.selectedObject.metadata.script as IAttachedScriptMetadata;
@@ -169,16 +197,7 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
             if (computedValues.indexOf(key) === -1) { delete script.properties[key]; }
         }
 
-        this._scriptControllers.forEach((sc) => {
-            folder.remove(sc);
-        });
-
-        this._scriptFolders.forEach((f) => {
-            folder.removeFolder(f);
-        });
-
-        this._scriptControllers = [];
-        this._scriptFolders = [];
+        this._clearScriptControllersAndFolders(folder);
 
         // Add all editable values
         inspectorValues.forEach((v) => {
@@ -237,6 +256,22 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
         const transpiledScript = transpile(decorators, { module: ModuleKind.None, target: ScriptTarget.ES5, experimentalDecorators: true });
 
        await SandboxMain.ExecuteCode(transpiledScript, "__editor__decorators__.js");
+    }
+
+    /**
+     * Clears all controllers and folders for script.
+     */
+    private _clearScriptControllersAndFolders(folder: GUI): void {
+        this._scriptControllers.forEach((sc) => {
+            folder.remove(sc);
+        });
+
+        this._scriptFolders.forEach((f) => {
+            folder.removeFolder(f);
+        });
+
+        this._scriptControllers = [];
+        this._scriptFolders = [];
     }
 }
 

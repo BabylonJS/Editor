@@ -22,7 +22,8 @@
     "types": [
       "jquery",
       "monaco-editor",
-      "typescript"
+      "typescript",
+      "mocha"
     ],
     "lib": [
       "es2015.promise",
@@ -31,15 +32,15 @@
     ]
   },
   "exclude": [
-    "./test",
     "./node_modules",
     "./build",
     "./declaration",
     "./index.d.ts",
+    "./testOutput",
     "module",
     "electron-packages",
     "assets",
-    "test",
     "sample-plugin",
+    "testOutput",
   ]
 }

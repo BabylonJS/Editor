@@ -38,6 +38,21 @@
             }
         },
         {
+            "label": "clean-tests",
+            "type": "npm",
+            "script": "prepare-tests",
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "group": "test",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
             "type": "npm",
             "script": "rebuild",
             "problemMatcher": []

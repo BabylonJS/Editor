@@ -31,9 +31,9 @@
             "sourceMaps": true,
             "port": 9223,
             "sourceMapPathOverrides": {
-				"file://*": "${workspaceRoot}/src/*",
-				"file://./*": "${workspaceRoot}/src/*",
-			}
+                "file://*": "${workspaceRoot}/src/*",
+                "file://./*": "${workspaceRoot}/src/*",
+            }
         },
         {
             "name": "Electron",
@@ -52,12 +52,38 @@
                 "build/**/*.js"
             ],
             "sourceMaps": true
+        },
+        {
+            "name": "Run Tests",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "args": [
+                "${workspaceRoot}/build/src/test/index.js"
+            ],
+            "preLaunchTask": "clean-tests",
+            "presentation": {
+                "hidden": false,
+                "group": "test",
+                "order": 1
+            },
+            "console": "internalConsole",
+            "cwd": "${workspaceRoot}",
+            "runtimeExecutable": null,
+            "env": {
+                "NODE_ENV": "development"
+            },
         }
     ],
     "compounds": [
         {
             "name": "Editor",
-            "configurations": ["Electron", "Attach Electron Renderer"],
+            "configurations": [
+                "Electron",
+                "Attach Electron Renderer"
+            ],
         }
     ]
 }

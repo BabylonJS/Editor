@@ -14,6 +14,8 @@ export class Tools {
      */
     public static GetAppPath(): string {
         if (process.env.DEBUG) { return remote.app.getAppPath(); }
+        if (process.env.DRIVEN_TESTS) { return process.env.DRIVEN_TESTS; }
+
         return join(remote.app.getAppPath(), "..", "..");
     }
 
@@ -125,6 +127,23 @@ export class Tools {
     public static Distinct<T>(array: T[]): T[] {
         const unique = (value: T, index: number, self: T[]) => self.indexOf(value) === index;
         return array.filter(unique);
+    }
+
+    /**
+     * Sorts the given array alphabetically.
+     * @param array defines the array containing the elements to sort alphabetically.
+     * @param property in case of an array of objects, this property will be used to get the right value to sort.
+     */
+    public static SortAlphabetically(array: any[], property?: string): void {
+        array.sort((a, b) => {
+            a = property ? a[property] : a;
+            b = property ? b[property] : b;
+
+            a = a.toUpperCase();
+            b = b.toUpperCase();
+
+            return (a < b) ? -1 : (a > b) ? 1 : 0;
+        });
     }
 
     /**

@@ -70,11 +70,27 @@ html, body {
 /* Blue Print */
 
 .bp3-dark .bp3-menu {
-    background: #444444 !important;
+    background-color: #444444;
 }
 
 .bp3-dark .bp3-button {
     background: #444444 !important;
+}
+
+.bp3-dark .bp3-button:hover {
+    background: #555555 !important;
+}
+
+.bp3-dark .bp3-button:active {
+    background-color: #222222 !important;
+}
+
+.bp3-button.bp3-intent-danger {
+    background-color: #c23030 !important;
+}
+
+.bp3-button.bp3-intent-primary {
+    background-color: #394b59 !important;
 }
 
 .bp3-tree-node-label {
@@ -124,7 +140,11 @@ html, body {
 }
 
 .bp3-popover.bp3-dark .bp3-popover-arrow-fill, .bp3-dark .bp3-popover .bp3-popover-arrow-fill {
-    fill: "#333333";
+    fill: #333333;
+}
+
+.bp3-card.bp3-dark, .bp3-dark .bp3-card {
+    background: #444444;
 }
 
 /* ANTD */
@@ -203,6 +223,19 @@ html, body {
 
 .ant-checkbox-inner {
     background: #777777;
+}
+
+.ant-drawer-header {
+    background: #444444;
+    border-bottom: 1px solid #000000;
+}
+
+.ant-drawer-title {
+    color: white;
+}
+
+.ant-drawer-body {
+    background: #333333;
 }
 
 /* GOLDEN LAYOUT */

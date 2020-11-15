@@ -136,4 +136,4 @@ photoshop-extension/.declaration
 module/index.d.ts
 
 # Tests
-!test/**/
+testOutput

@@ -52,6 +52,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         this.addClearCoat();
         this.addSheen();
         this.addAnisotropy();
+        this.addOptions();
 
         return common;
     }
@@ -104,6 +105,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         const reflectivity = this.tool!.addFolder("Reflectivity");
         reflectivity.open();
         reflectivity.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
+        reflectivity.add(this.material, "enableSpecularAntiAliasing").name("Enable Specular Anti-Aliasing");
 
         this.addTextureList(reflectivity, this.material, "reflectivityTexture").name("Texture");
         this.addColor(reflectivity, "Color", this.material, "reflectivityColor");
@@ -186,6 +188,20 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
         }
 
         return this._opacityFolder;
+    }
+
+    /**
+     * Adds the emissive editable properties.
+     */
+    protected addEmissive(): GUI {
+        const emissive = this.tool!.addFolder("Emissive");
+        emissive.open();
+
+        this.addTextureList(emissive, this.material, "emissiveTexture").name("Texture");
+        emissive.add(this.material, "emissiveIntensity").min(0).step(0.01).name("Intensity");
+        this.addColor(emissive, "Color", this.material, "emissiveColor");
+
+        return emissive;
     }
 
     /**
@@ -332,17 +348,16 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial> {
     }
 
     /**
-     * Adds the emissive editable properties.
+     * Adds the option editable properties.
      */
-    protected addEmissive(): GUI {
-        const emissive = this.tool!.addFolder("Emissive");
-        emissive.open();
+    protected addOptions(): GUI {
+        const options = this.tool!.addFolder("Options");
+        options.open();
 
-        this.addTextureList(emissive, this.material, "emissiveTexture").name("Texture");
-        emissive.add(this.material, "emissiveIntensity").min(0).step(0.01).name("Intensity");
-        this.addColor(emissive, "Color", this.material, "emissiveColor");
+        options.add(this.material, "usePhysicalLightFalloff").name("Use Physical Light Falloff");
+        options.add(this.material, "forceIrradianceInFragment").name("Force Irradiance In Fragment");
 
-        return emissive;
+        return options;
     }
 }
 

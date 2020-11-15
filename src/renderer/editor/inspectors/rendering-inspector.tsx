@@ -9,11 +9,14 @@ import { Inspector } from "../components/inspector";
 import { AbstractInspector } from "./abstract-inspector";
 
 export class RenderingInspector extends AbstractInspector<Scene> {
+    private _ssrEnabled: boolean = false;
     private _ssaoEnabled: boolean = false;
     private _defaultEnabled: boolean = false;
+    private _motionBlurEnabled: boolean = false;
 
     private _ssaoFolder: Nullable<GUI> = null;
     private _defaultFolder: Nullable<GUI> = null;
+    private _motionBlurFolder: Nullable<GUI> = null;
     private _screenSpaceReflectionsFolder: Nullable<GUI> = null;
 
     private _dofBlurLevel: string = "";
@@ -58,40 +61,47 @@ export class RenderingInspector extends AbstractInspector<Scene> {
      * Adds the standard editable properties.
      */
     protected addMotionBlur(): void {
-        if (!SceneSettings.StandardPipeline) { return; }
-        
-        const motionBlur = this.tool!.addFolder("Motion Blur");
-        motionBlur.open();
-        motionBlur.add(SceneSettings.StandardPipeline, "MotionBlurEnabled").name("Motion Blur Enabled");
-        motionBlur.add(SceneSettings.StandardPipeline, "motionBlurSamples").min(1).max(64).step(1).name("Samples Count");
-        motionBlur.add(SceneSettings.StandardPipeline, "motionStrength").min(0).step(0.01).name("Strength");
-        motionBlur.add(SceneSettings.StandardPipeline, "objectBasedMotionBlur").name("Object Based Motion Blur");
+        this._motionBlurFolder = this._motionBlurFolder ?? this.tool!.addFolder("Motion Blur");
+        this._motionBlurFolder.open();
+
+        this._motionBlurEnabled = SceneSettings.IsMotionBlurEnabled();
+        this._motionBlurFolder.add(this, "_motionBlurEnabled").name("Enabled").onChange(() => {
+            SceneSettings.SetMotionBlurEnabled(this.editor, this._motionBlurEnabled);
+            this.clearFolder(this._motionBlurFolder!);
+            this.addMotionBlur();
+        });
+
+        if (!this._motionBlurEnabled || !SceneSettings.MotionBlurPostProcess) { return; }
+
+        this._motionBlurFolder.add(SceneSettings.MotionBlurPostProcess!, "motionBlurSamples").min(1).max(64).step(1).name("Samples Count");
+        this._motionBlurFolder.add(SceneSettings.MotionBlurPostProcess!, "motionStrength").min(0).step(0.01).name("Strength");
+        this._motionBlurFolder.add(SceneSettings.MotionBlurPostProcess!, "isObjectBased").name("Is Object Based");
     }
 
     /**
      * Adds the screen space reflections editable properties.
      */
     protected addScreenSpaceReflections(): void {
-        if (!SceneSettings.StandardPipeline) { return; }
-
         this._screenSpaceReflectionsFolder = this._screenSpaceReflectionsFolder ?? this.tool!.addFolder("Screen Space Reflections");
         this._screenSpaceReflectionsFolder.open();
 
-        this._screenSpaceReflectionsFolder.add(SceneSettings.StandardPipeline, "screenSpaceReflectionsEnabled").onChange(() => {
+        this._ssrEnabled = SceneSettings.IsScreenSpaceReflectionsEnabled();
+        this._screenSpaceReflectionsFolder.add(this, "_ssrEnabled").name("Enabled").onChange(() => {
+            SceneSettings.SetScreenSpaceReflectionsEnabled(this.editor, this._ssrEnabled);
             this.clearFolder(this._screenSpaceReflectionsFolder!);
             this.addScreenSpaceReflections();
         });
 
-        if (SceneSettings.StandardPipeline.screenSpaceReflectionPostProcess) {
-            this._screenSpaceReflectionsFolder.add(SceneSettings.StandardPipeline.screenSpaceReflectionPostProcess, "strength").name("Reflection Strength");
-            this._screenSpaceReflectionsFolder.add(SceneSettings.StandardPipeline.screenSpaceReflectionPostProcess, "threshold").name("Reflection Threshold");
-            this._screenSpaceReflectionsFolder.add(SceneSettings.StandardPipeline.screenSpaceReflectionPostProcess, "step").step(0.001).name("Step");
-            this._screenSpaceReflectionsFolder.add(SceneSettings.StandardPipeline.screenSpaceReflectionPostProcess, "reflectionSpecularFalloffExponent").name("Specular Fall Off Exponent");
-            this._screenSpaceReflectionsFolder.add(SceneSettings.StandardPipeline.screenSpaceReflectionPostProcess, "reflectionSamples").min(1).max(512).step(1).name("Reflection Samples");
-            this._screenSpaceReflectionsFolder.add(SceneSettings.StandardPipeline.screenSpaceReflectionPostProcess, "enableSmoothReflections").name("Enable Smoothing Reflections");
-            this._screenSpaceReflectionsFolder.add(SceneSettings.StandardPipeline.screenSpaceReflectionPostProcess, "smoothSteps").min(1).max(32).name("Smooth steps");
-            this._screenSpaceReflectionsFolder.add(SceneSettings.StandardPipeline.screenSpaceReflectionPostProcess, "roughnessFactor").min(0).max(10).name("Roughness Factor");
-        }
+        if (!this._ssrEnabled || !SceneSettings.ScreenSpaceReflectionsPostProcess) { return; }
+
+        this._screenSpaceReflectionsFolder.add(SceneSettings.ScreenSpaceReflectionsPostProcess, "strength").name("Reflection Strength");
+        this._screenSpaceReflectionsFolder.add(SceneSettings.ScreenSpaceReflectionsPostProcess, "threshold").name("Reflection Threshold");
+        this._screenSpaceReflectionsFolder.add(SceneSettings.ScreenSpaceReflectionsPostProcess, "step").step(0.001).name("Step");
+        this._screenSpaceReflectionsFolder.add(SceneSettings.ScreenSpaceReflectionsPostProcess, "reflectionSpecularFalloffExponent").name("Specular Fall Off Exponent");
+        this._screenSpaceReflectionsFolder.add(SceneSettings.ScreenSpaceReflectionsPostProcess, "reflectionSamples").min(1).max(512).step(1).name("Reflection Samples");
+        this._screenSpaceReflectionsFolder.add(SceneSettings.ScreenSpaceReflectionsPostProcess, "enableSmoothReflections").name("Enable Smoothing Reflections");
+        this._screenSpaceReflectionsFolder.add(SceneSettings.ScreenSpaceReflectionsPostProcess, "smoothSteps").min(1).max(32).name("Smooth steps");
+        this._screenSpaceReflectionsFolder.add(SceneSettings.ScreenSpaceReflectionsPostProcess, "roughnessFactor").min(0).max(10).name("Roughness Factor");
     }
 
     /**
@@ -143,7 +153,7 @@ export class RenderingInspector extends AbstractInspector<Scene> {
         const dof = this._defaultFolder.addFolder("Depth Of Field");
         dof.open();
         dof.add(SceneSettings.DefaultPipeline, "depthOfFieldEnabled").name("Depth Of Field Enabled");
-        dof.add(SceneSettings.DefaultPipeline.depthOfField, "focusDistance").min(0).max(this.editor.scene!.activeCamera!.maxZ * 2).name("Focus Distance");
+        dof.add(SceneSettings.DefaultPipeline.depthOfField, "focusDistance").min(0).step(1).max(this.editor.scene!.activeCamera!.maxZ * 5).name("Focus Distance");
         dof.add(SceneSettings.DefaultPipeline.depthOfField, "fStop").min(1).max(10).name("F-Stop");
         dof.add(SceneSettings.DefaultPipeline.depthOfField, "focalLength").min(1).max(300).name("Focal Length");
 

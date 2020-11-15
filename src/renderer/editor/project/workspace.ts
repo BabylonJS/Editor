@@ -158,11 +158,11 @@ export class WorkSpace {
      * Opens the file dialog and loads the selected project.
      */
     public static async Browse(): Promise<void> {
-        const file = await Tools.ShowNativeOpenFileDialog();
-        if (!file || extname(file.name).toLowerCase() !== ".editorworkspace") { return; }
+        const file = await Tools.ShowOpenFileDialog("Please select the workspace to open.");
+        if (!file || extname(file).toLowerCase() !== ".editorworkspace") { return; }
 
         Overlay.Show("Preparing...", true);
-        await this.SetOpeningWorkspace(file.path);
+        await this.SetOpeningWorkspace(file);
         window.location.reload();
     }
 
