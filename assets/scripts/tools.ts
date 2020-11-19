@@ -250,6 +250,12 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
 (function overrideTextureParser(): void {
     const textureParser = SerializationHelper._TextureParser;
     SerializationHelper._TextureParser = (sourceProperty, scene, rootUrl) => {
+        if (sourceProperty.isCube && !sourceProperty.isRenderTarget && sourceProperty.files && sourceProperty.metadata?.isPureCube) {
+            sourceProperty.files.forEach((f, index) => {
+                sourceProperty.files[index] = rootUrl + f;
+            });
+        }
+
         const texture = textureParser.call(SerializationHelper, sourceProperty, scene, rootUrl);
 
         if (sourceProperty.url) {

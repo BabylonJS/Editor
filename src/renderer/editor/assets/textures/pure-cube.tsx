@@ -1,3 +1,5 @@
+import { join } from "path";
+
 import { Undefinable, Nullable } from "../../../../shared/types";
 
 import * as React from "react";
@@ -10,7 +12,6 @@ import { CubeTexture, Engine, Scene, Mesh, StandardMaterial, Texture, ArcRotateC
 import { Tools } from "../../tools/tools";
 
 import { Editor } from "../../editor";
-import { join } from "path";
 
 export interface IPureCubeDialogProps {
     /**
@@ -93,7 +94,7 @@ export class PureCubeDialog extends React.Component<IPureCubeDialogProps, IPureC
                         <FileInput fill={true} onInputChange={(e) => this._handleSelectedFile("positiveY", e)} text={this.state.positiveY ?? "Positive Y"} buttonText={"Choose..."} title={"Positive Y"} />
                         <FileInput fill={true} onInputChange={(e) => this._handleSelectedFile("positiveZ", e)} text={this.state.positiveZ ?? "Positive Z"} buttonText={"Choose..."} title={"Positive Z"} />
 
-                        <FileInput fill={true} onInputChange={(e) => this._handleSelectedFile("negativeX", e)} text={this.state.negativeX ?? "Positive X"} buttonText={"Choose..."} title={"Negative X"} />
+                        <FileInput fill={true} onInputChange={(e) => this._handleSelectedFile("negativeX", e)} text={this.state.negativeX ?? "Negative X"} buttonText={"Choose..."} title={"Negative X"} />
                         <FileInput fill={true} onInputChange={(e) => this._handleSelectedFile("negativeY", e)} text={this.state.negativeY ?? "Negative Y"} buttonText={"Choose..."} title={"Negative Y"} />
                         <FileInput fill={true} onInputChange={(e) => this._handleSelectedFile("negativeZ", e)} text={this.state.negativeZ ?? "Negative Z"} buttonText={"Choose..."} title={"Negative Z"} />
                     </div>
@@ -167,8 +168,8 @@ export class PureCubeDialog extends React.Component<IPureCubeDialogProps, IPureC
             // Update preview
             if (this._scene && this._material) {
                 const files = [
-                    this.state.negativeX ?? PureCubeDialog.DefaultImage, this.state.negativeY ?? PureCubeDialog.DefaultImage, this.state.negativeZ ?? PureCubeDialog.DefaultImage,
                     this.state.positiveX ?? PureCubeDialog.DefaultImage, this.state.positiveY ?? PureCubeDialog.DefaultImage, this.state.positiveZ ?? PureCubeDialog.DefaultImage,
+                    this.state.negativeX ?? PureCubeDialog.DefaultImage, this.state.negativeY ?? PureCubeDialog.DefaultImage, this.state.negativeZ ?? PureCubeDialog.DefaultImage,
                 ];
 
                 this._material.reflectionTexture?.dispose();
@@ -183,8 +184,8 @@ export class PureCubeDialog extends React.Component<IPureCubeDialogProps, IPureC
      */
     private _handleCreate(): void {
         const images = [
-            this.state.negativeX!, this.state.negativeY!, this.state.negativeZ!,
             this.state.positiveX!, this.state.positiveY!, this.state.positiveZ!,
+            this.state.negativeX!, this.state.negativeY!, this.state.negativeZ!,
         ];
         if (images.indexOf(undefined!) !== -1) {
             return;

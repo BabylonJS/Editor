@@ -50,13 +50,13 @@ export class ProjectImporter {
         // Configure Serialization Helper
         const textureParser = SerializationHelper._TextureParser;
         SerializationHelper._TextureParser = (source, scene, rootUrl) => {
-            if (source.metadata && source.metadata.editorName) {
+            if (source.metadata?.editorName) {
                 const texture = scene.textures.find((t) => t.metadata && t.metadata.editorName === source.metadata.editorName);
                 if (texture) { return texture; }
 
                 // Cube texture?
                 if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
-                    // Replace Urls
+                    // Replace Urls for files in case of pure cube texture
                     source.files.forEach((f, index) => {
                         if (f.indexOf("files") !== 0) { return; }
                         source.files[index] = join(Project.DirPath!, f);
@@ -64,7 +64,20 @@ export class ProjectImporter {
                 }
             }
 
-            return textureParser(source, scene, rootUrl);
+            const texture = textureParser(source, scene, rootUrl);
+
+            if (source.metadata?.editorName && source.metadata?.isPureCube) {
+                // Cube texture?
+                if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
+                    // Restore Urls for files in case of pure cube texture
+                    source.files.forEach((f, index) => {
+                        if (f.indexOf("files") === 0) { return; }
+                        source.files[index] = join("files", basename(f));
+                    });
+                }
+            }
+
+            return texture;
         };
 
         // Configure editor project
