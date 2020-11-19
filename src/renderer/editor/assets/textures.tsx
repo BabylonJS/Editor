@@ -142,13 +142,20 @@ export class TextureAssets extends AbstractAssets {
         const textures = files.filter((f) => this._extensions.indexOf(extname(f).toLowerCase()) !== -1);
 
         this.editor.scene!.textures.forEach((texture) => {
-            const extension = extname(texture.name).toLowerCase();
-            if (!extension || this._extensions.indexOf(extension) === -1) { return; }
-
-            const index = textures.indexOf(basename(texture.name));
-            if (index !== -1) {
-                textures.splice(index, 1);
+            let files: string[] = [texture.name];
+            if (texture.isCube && !texture.isRenderTarget && texture.metadata?.isPureCube && texture["_files"]) {
+                files = texture["_files"];
             }
+
+            files.forEach((f) => {
+                const extension = extname(f).toLowerCase();
+                if (!extension || this._extensions.indexOf(extension) === -1) { return; }
+
+                const index = textures.indexOf(basename(f));
+                if (index !== -1) {
+                    textures.splice(index, 1);
+                }
+            });
         });
 
         if (!textures.length) { return; }
