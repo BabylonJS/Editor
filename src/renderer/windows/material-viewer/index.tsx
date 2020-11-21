@@ -1,4 +1,7 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, Material, Mesh, Texture, HemisphericLight } from "babylonjs";
+import {
+    Engine, Scene, ArcRotateCamera, Vector3, Material, Mesh, Texture,
+    HemisphericLight, SerializationHelper,
+} from "babylonjs";
 import "babylonjs-materials";
 import "babylonjs-loaders";
 
@@ -67,6 +70,18 @@ export default class MeshViewerWindow extends React.Component {
      * Loads the mesh located at the given path.
      */
     private async _parseMaterial(rootUrl: string, json: any, environmentTexture: any): Promise<void> {
+        // Configure serialization helper
+        const textureParser = SerializationHelper._TextureParser;
+        SerializationHelper._TextureParser = (source, scene, rootUrl) => {
+            if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
+                source.files.forEach((f, index) => {
+                    source.files[index] = rootUrl + f;
+                });
+            }
+
+            return textureParser(source, scene, rootUrl);
+        };
+
         // Create material
         const material = Material.Parse(json, this._scene, rootUrl);
         this._sphere.material = material;

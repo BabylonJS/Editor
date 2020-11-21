@@ -4,6 +4,8 @@ import { join, normalize, basename, dirname, extname } from "path";
 import { SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial } from "babylonjs";
 import { LGraph } from "litegraph.js";
 
+import filenamify from "filenamify";
+
 import { MeshesAssets } from "../assets/meshes";
 import { PrefabAssets } from "../assets/prefabs";
 import { GraphAssets } from "../assets/graphs";
@@ -165,7 +167,7 @@ export class ProjectExporter {
             if (camera.doNotSerialize) { continue; }
 
             const json = camera.serialize();
-            const dest = `${normalize(`${basename(camera.name)}-${camera.id}`)}.json`;
+            const dest = `${normalize(`${basename(filenamify(camera.name))}-${camera.id}`)}.json`;
             await writeFile(join(camerasDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
             project.cameras.push(dest);
@@ -200,7 +202,7 @@ export class ProjectExporter {
                 json.name = join("./", "files", basename(texture.name));
                 json.url = join("./", "files", basename(texture.name));
 
-                const dest = `${normalize(`${basename(texture.name)}-${texture.uniqueId.toString()}`)}.json`;
+                const dest = `${normalize(`${filenamify(basename(texture.name))}-${texture.uniqueId.toString()}`)}.json`;
                 await writeFile(join(texturesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
                 project.textures.push(dest);
@@ -240,7 +242,7 @@ export class ProjectExporter {
                     }
                 }
 
-                const dest = `${normalize(`${basename(material.name)}-${material.id}`)}.json`;
+                const dest = `${normalize(`${basename(filenamify(material.name))}-${material.id}`)}.json`;
                 await writeFile(join(materialsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
                 project.materials.push({
@@ -289,7 +291,7 @@ export class ProjectExporter {
                     }
                 });
 
-                const dest = `${normalize(`${basename(mesh.name)}-${mesh.id}`)}.json`;
+                const dest = `${normalize(`${basename(filenamify(mesh.name))}-${mesh.id}`)}.json`;
 
                 await writeFile(join(meshesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
@@ -320,13 +322,13 @@ export class ProjectExporter {
 
         for (const light of editor.scene!.lights) {
             const lightJson = light.serialize();
-            const lightDest = `${normalize(`${basename(light.name)}-${light.id}`)}.json`;
+            const lightDest = `${normalize(`${basename(filenamify(light.name))}-${light.id}`)}.json`;
 
             await writeFile(join(lightsDir, lightDest), JSON.stringify(lightJson, null, "\t"), { encoding: "utf-8" });
 
             const shadowJson = light.getShadowGenerator()?.serialize();
             if (shadowJson) {
-                const shadowDest = `${normalize(`${basename(light.name)}-${light.id}`)}.json`;
+                const shadowDest = `${normalize(`${basename(filenamify(light.name))}-${light.id}`)}.json`;
                 
                 await writeFile(join(shadowsDir, shadowDest), JSON.stringify(shadowJson, null, "\t"), { encoding: "utf-8" });
 
@@ -354,7 +356,7 @@ export class ProjectExporter {
         for (const transform of editor.scene!.transformNodes) {
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = transform.serialize();
-                const dest = `${normalize(`${basename(transform.name)}-${transform.id}`)}.json`;
+                const dest = `${normalize(`${filenamify(basename(transform.name))}-${transform.id}`)}.json`;
 
                 await writeFile(join(transformNodesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
@@ -382,7 +384,7 @@ export class ProjectExporter {
 
         for (const ps of editor.scene!.particleSystems) {
             const json = ps.serialize(true);
-            const dest = `${normalize(`${basename(ps.name)}-${ps.id}`)}.json`;
+            const dest = `${normalize(`${basename(filenamify(ps.name))}-${ps.id}`)}.json`;
 
             await writeFile(join(particleSystemsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
@@ -406,7 +408,7 @@ export class ProjectExporter {
             const json = s.serialize();
             json.url = basename(json.name);
             
-            const dest = `${normalize(`${basename(s.name)}`)}.json`;
+            const dest = `${normalize(`${basename(filenamify(s.name))}`)}.json`;
 
             await writeFile(join(soundsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 

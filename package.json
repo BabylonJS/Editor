@@ -99,6 +99,7 @@
     "typescript": "4.0.5",
     "xterm": "4.8.1",
     "xterm-addon-fit": "0.4.0",
-    "yargs": "10.0.3"
+    "yargs": "10.0.3",
+    "filenamify": "4.2.0"
   }
 }

@@ -5,7 +5,7 @@ import "../../../module";
 
 import {
     Engine, Scene, TargetCamera, Vector3, Color4, HemisphericLight, Mesh, Nullable,
-    Material, SceneLoader, Tools,
+    Material, SceneLoader, Tools, SerializationHelper,
 } from "babylonjs";
 
 import "babylonjs-materials";
@@ -65,6 +65,18 @@ class OffscreenAssets {
             Engine.audioEngine = { } as any;
         }
 
+        // Configure serialization helper
+        const textureParser = SerializationHelper._TextureParser;
+        SerializationHelper._TextureParser = (source, scene, rootUrl) => {
+            if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
+                source.files.forEach((f, index) => {
+                    source.files[index] = rootUrl + f;
+                });
+            }
+
+            return textureParser(source, scene, rootUrl);
+        };
+
         this.reset();
     }
 
@@ -102,8 +114,6 @@ class OffscreenAssets {
             }, 10000);
 
             this.scene.executeWhenReady(async () => {
-                clearTimeout(timeoutId);
-
                 await new Promise<void>((resolve) => setTimeout(() => resolve(), 100));
 
                 const minimum = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
@@ -136,7 +146,10 @@ class OffscreenAssets {
                 this.scene.render();
 
                 const blob = await this.canvas.convertToBlob({ type: "image/png" });
-                Tools.ReadFileAsDataURL(blob, (data) => resolve(data), null!);
+                Tools.ReadFileAsDataURL(blob, (data) => {
+                    clearTimeout(timeoutId);
+                    resolve(data);
+                }, null!);
             });
 
             this.scene._checkIsReady();
