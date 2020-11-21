@@ -615,6 +615,33 @@ export class ProjectExporter {
     }
 
     /**
+     * Exports the current scene into .babylon format including only geometries.
+     * @param editor defines the editor reference.
+     */
+    public static async ExportFinalSceneOnlyGeometries(editor: Editor): Promise<void> {
+        // Generate scene
+        const scene = this.GetFinalSceneJson(editor);
+        if (!scene) { return; }
+
+        scene.materials = [];
+        scene.lights = [];
+        scene.cameras = [];
+        scene.shadowGenerators = [];
+        scene.particleSystems = [];
+        scene.meshes?.forEach((m) => m.materialId = null);
+
+        // Save
+        let destPath = await Tools.ShowSaveFileDialog("Save Scene (Only Geometries)");
+        if (!destPath) { return; }
+
+        if (extname(destPath).toLowerCase() !== ".babylon") {
+            destPath += ".babylon";
+        }
+
+        await writeFile(destPath, JSON.stringify(scene), { encoding: "utf-8" });
+    }
+
+    /**
      * Exports the final scene and asks for the destination folder.
      * @param editor defines the reference to the editor.
      */

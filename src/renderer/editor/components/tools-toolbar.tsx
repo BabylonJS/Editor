@@ -64,6 +64,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
 
             case "generate": ProjectExporter.ExportFinalScene(this._editor); break;
             case "generate-as": ProjectExporter.ExportFinalSceneAs(this._editor); break;
+            case "generate-only-geometries": ProjectExporter.ExportFinalSceneOnlyGeometries(this._editor); break;
             case "build-project": WorkSpace.BuildProject(this._editor); break;
             default: break;
         }
@@ -91,6 +92,8 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             <Menu className={Classes.DARK}>
                 <MenuItem text="Generate Scene..." onClick={() => this._buttonClicked("generate")} />
                 <MenuItem text="Generate Scene As..." onClick={() => this._buttonClicked("generate-as")} />
+                <MenuDivider />
+                <MenuItem text="Generate Scene (Only Geometries)..." onClick={() => this._buttonClicked("generate-only-geometries")} />
                 <MenuDivider />
                 <MenuItem text="Build Project..." onClick={() => this._buttonClicked("build-project")} />
             </Menu>,
