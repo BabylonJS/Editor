@@ -22,7 +22,7 @@ export class GameServer {
         if (this.Server) { this.StopServer(); }
 
         this.Server = createServer({ root, cache: -1 });
-        this.Server.listen(port, "localhost");
+        this.Server.listen(port/*, "localhost*/);
 
         this.Path = root;
     }
