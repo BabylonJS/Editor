@@ -87,7 +87,7 @@ export class MaterialAssets extends AbstractAssets {
         await assetsHelper.createMesh(OffscreenAssetsHelperMesh.Sphere);
         
         for (const material of this.editor.scene!.materials) {
-            if (material === this.editor.scene!.defaultMaterial || material instanceof ShaderMaterial) { continue; }
+            if (material === this.editor.scene!.defaultMaterial || material instanceof ShaderMaterial || material.doNotSerialize) { continue; }
             if (object && object !== material) { continue; }
             
             const item = this.items.find((i) => i.key === material.id);

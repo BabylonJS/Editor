@@ -1165,6 +1165,8 @@ export class Editor {
                 continue;
             }
 
+            if (!p.enabled) { continue; }
+
             try {
                 const exports = require(p.path);
                 const plugin = exports.registerEditorPlugin(this) as IPlugin;

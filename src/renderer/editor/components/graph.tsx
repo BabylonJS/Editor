@@ -523,6 +523,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             style.color = "#48aff0";
         }
 
+        if (node.metadata?.editorGraphStyles) {
+            Object.assign(style, node.metadata.editorGraphStyles);
+        }
+
         // Filter
         let matchesFilter: boolean = true;
         if (this._filter) {

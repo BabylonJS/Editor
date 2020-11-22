@@ -127,6 +127,16 @@ export interface ICommonMetadata {
      * Defines the overall script properties of the object (scene or node).
      */
     script?: IAttachedScriptMetadata;
+
+    /**
+     * Defines the optional CSS properties for custom rendering in editor's graph.
+     */
+    editorGraphStyles?: React.CSSProperties;
+
+    /**
+     * Any other key
+     */
+    [index: string]: any;
 }
 
 export interface IMeshMetadata extends ICommonMetadata {

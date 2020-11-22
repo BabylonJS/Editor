@@ -279,7 +279,7 @@ export class ProjectExporter {
         if (!(await pathExists(geometriesDir))) { await mkdir(geometriesDir); }
 
         for (const mesh of editor.scene!.meshes) {
-            if (!(mesh instanceof Mesh) || mesh._masterMesh) { continue; }
+            if (!(mesh instanceof Mesh) || mesh._masterMesh || mesh.doNotSerialize) { continue; }
             
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = this.ExportMesh(mesh);
@@ -966,7 +966,7 @@ export class ProjectExporter {
     /**
      * Cleans the given output dir.
      */
-    private static async _CleanOutputDir(directory: string, exportedFiles: string[]): Promise<void> {
+    public static async _CleanOutputDir(directory: string, exportedFiles: string[]): Promise<void> {
         try {
             const outputFiles = await readdir(directory);
 
