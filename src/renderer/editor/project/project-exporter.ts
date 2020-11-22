@@ -76,6 +76,7 @@ export class ProjectExporter {
         }
 
         editor.console.logInfo(`Exporting project to: ${Project.DirPath}`);
+        editor.beforeSaveProjectObservable.notifyObservers(Project.DirPath!);
         
         const task = editor.addTaskFeedback(0, "Saving Files...");
         await Tools.Wait(500);
@@ -230,7 +231,7 @@ export class ProjectExporter {
         const materials = editor.scene!.materials.concat(editor.scene!.multiMaterials);
 
         for (const material of materials) {
-            if (material instanceof ShaderMaterial || material === editor.scene!.defaultMaterial) { continue; }
+            if (material instanceof ShaderMaterial || material === editor.scene!.defaultMaterial || material.doNotSerialize) { continue; }
 
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = material.serialize();
@@ -441,6 +442,7 @@ export class ProjectExporter {
         editor.closeTaskFeedback(task, 500);
 
         editor.console.logInfo(`Successfully saved project to: ${Project.DirPath!}`);
+        editor.afterSaveProjectObservable.notifyObservers(Project.DirPath!);
 
         // Save editor config
         editor._saveEditorConfig();
@@ -679,6 +681,7 @@ export class ProjectExporter {
         const destFilesDir = join(scenePath, "files");
 
         editor.updateTaskFeedback(task, 50);
+        editor.beforeGenerateSceneObservable.notifyObservers(scenePath);
 
         // Handle incremental loading
         const geometriesPath = join(scenePath, "geometries");
@@ -778,6 +781,8 @@ export class ProjectExporter {
 
         editor.updateTaskFeedback(task, 100);
         editor.closeTaskFeedback(task, 1000);
+
+        editor.afterGenerateSceneObservable.notifyObservers(scenePath);
         editor.console.logInfo(`Successfully generated scene at ${scenePath}`);
     }
 

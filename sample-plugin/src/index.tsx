@@ -34,6 +34,13 @@ export const registerEditorPlugin = (editor: Editor): IPlugin => {
          */
         setWorkspacePreferences: (preferences: any) => {
             console.log(preferences);
-        }
+        },
+
+        /**
+         * Called on the plugin is being disposed.
+         */
+        onDispose: () => {
+            console.log("Disposed plugin");
+        },
     };
 }

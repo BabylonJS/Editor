@@ -140,7 +140,7 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
         }
 
         // Register events
-        this._keyboardObserver = this._editor.onKeyboardEventObservable.add((infos) => this._handleKeyboardEvent(infos));
+        this._keyboardObserver = this._editor.keyboardEventObservable.add((infos) => this._handleKeyboardEvent(infos));
 
         // Create chart
         this.chart = new Chart(this._canvas.getContext("2d")!, {
@@ -276,7 +276,7 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
         }
 
         // Remove events
-        this._editor.onKeyboardEventObservable.remove(this._keyboardObserver);
+        this._editor.keyboardEventObservable.remove(this._keyboardObserver);
     }
 
     /**

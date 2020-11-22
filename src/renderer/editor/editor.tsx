@@ -223,7 +223,23 @@ export class Editor {
     /**
      * Notifies observers that a keyboard event has been fired.
      */
-    public onKeyboardEventObservable: Observable<KeyboardInfo> = new Observable<KeyboardInfo>();
+    public keyboardEventObservable: Observable<KeyboardInfo> = new Observable<KeyboardInfo>();
+    /**
+     * Notifies observers that the project will be saved.
+     */
+    public beforeSaveProjectObservable: Observable<string> = new Observable<string>();
+    /**
+     * Notifies observers that the project has been saved.
+     */
+    public afterSaveProjectObservable: Observable<string> = new Observable<string>();
+    /**
+     * Notifies observers that the scene will be generated.
+     */
+    public beforeGenerateSceneObservable: Observable<string> = new Observable<string>();
+    /**
+     * Notifies observers that the scene has been generated.
+     */
+    public afterGenerateSceneObservable: Observable<string> = new Observable<string>();
     
     /**
      * Defines the current editor version.
@@ -1005,7 +1021,7 @@ export class Editor {
 
         // Shortcuts
         window.addEventListener("keyup", (ev) => {
-            this.onKeyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYUP, ev));
+            this.keyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYUP, ev));
 
             if (this.preview.canvasFocused) {
                 if (ev.key === "t") { return this.preview.setGizmoType(GizmoType.Position); }
@@ -1033,7 +1049,7 @@ export class Editor {
         });
 
         window.addEventListener("keydown", (ev) => {
-            this.onKeyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYDOWN, ev));
+            this.keyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYDOWN, ev));
 
             if (ev.ctrlKey && SceneSettings.Camera) {
                 for (const i in SceneSettings.Camera.inputs.attached) {
@@ -1126,9 +1142,21 @@ export class Editor {
         const plugins = preferences.plugins ?? [];
         const pluginToolbars: IPluginToolbar[] = [];
 
+        for (const p in Editor.LoadedExternalPlugins) {
+            const pluginReference = Editor.LoadedExternalPlugins[p];
+            const exists = plugins.find((p2) => p2.name === p);
+            if (exists) { continue; }
+
+            if (pluginReference.onDispose) { pluginReference.onDispose(); }
+            delete Editor.LoadedExternalPlugins[p];
+        }
+
         for (const p of plugins) {
             if (Editor.LoadedExternalPlugins[p.name]) {
                 if (!p.enabled) {
+                    const pluginReference = Editor.LoadedExternalPlugins[p.name];
+                    if (pluginReference.onDispose) { pluginReference.onDispose(); }
+
                     delete Editor.LoadedExternalPlugins[p.name];
                 } else {
                     pluginToolbars.push.apply(pluginToolbars, Editor.LoadedExternalPlugins[p.name].toolbar);

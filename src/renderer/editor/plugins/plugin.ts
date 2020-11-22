@@ -30,6 +30,11 @@ export interface IPlugin {
      * the current plugin.
      */
     setWorkspacePreferences?: (preferences: any) => void;
+
+    /**
+     * Called on the plugin is being disposed.
+     */
+    onDispose?: () => void;
 }
 
 /**

@@ -11,8 +11,7 @@
         "watch": "tsc -p . --watch"
     },
     "devDependencies": {
-        "babylonjs-editor": "file:../module",
-        "typescript": "3.7.5"
+        "babylonjs-editor": "file:../module"
     },
     "dependencies": {}
 }
