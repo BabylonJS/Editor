@@ -128,7 +128,7 @@ export default class AnimationEditorPlugin extends AbstractEditorPlugin<IAnimati
                         >
                             <Tab
                                 id={SelectedTab.Timeline}
-                                title="Timeline"
+                                title="Timeline (Beta)"
                                 panel={
                                     <div style={{ position: "absolute", width: "100%", height: "100%" }}>
                                         <TimelineEditor
@@ -153,7 +153,7 @@ export default class AnimationEditorPlugin extends AbstractEditorPlugin<IAnimati
                                 }
                             />
                         </Tabs>
-                        <ButtonGroup style={{ position: "relative", left: "50%", transform: "translate(-50%)", top: "-40px" }}>
+                        <ButtonGroup style={{ position: "relative", left: "50%", transform: "translate(-50%)", top: "-40px", marginTop: "-5px", padding: "5px", background: "#333333", borderRadius: "10px", borderWidth: "50px" }}>
                             <Button disabled={!this.state.selectedAnimation || this.state.playingAnimatables.length > 0} icon={<Icon src="play.svg"/>} text="Play" onClick={() => this._handlePlayAnimation()} />
                             <Button disabled={this.state.playingAnimatables.length === 0} icon={<Icon src="square-full.svg" />} text="Stop" onClick={() => this._handleStopAnimation()} />
                         </ButtonGroup>
@@ -229,10 +229,15 @@ export default class AnimationEditorPlugin extends AbstractEditorPlugin<IAnimati
 
     /**
      * Called on the panel has been resized.
+     * @param height the new height of the plugin's panel.
      */
-    public resize(): void {
+    public resize(width?: number, height?: number): void {
         setTimeout(() => {
             this._graphLayout?.updateSize();
+
+            if (width && height) {
+                this._timelineEditor?.resize(height);
+            }
         }, 0);
     }
 

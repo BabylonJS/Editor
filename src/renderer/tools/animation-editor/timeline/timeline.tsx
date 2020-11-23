@@ -276,6 +276,20 @@ export class TimelineEditor extends React.Component<ITimelineEditorProps, ITimel
     }
 
     /**
+     * Called on the panel has been resized.
+     * @param height the new height of the plugin's panel.
+     */
+    public resize(height: number): void {
+        if (!this.chart || height <= 0) { return; }
+
+        const lineHeight = 40;
+        const lineCount = (height / lineHeight) >> 0;
+
+        this.chart.config.options!.scales!.yAxes![0].ticks!.max = lineCount;
+        this.chart.update(0);
+    }
+
+    /**
      * Called on the user moves the time tracker.
      */
     private _handleTimeTrackerChanged(): void {
