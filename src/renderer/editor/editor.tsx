@@ -1,4 +1,4 @@
-import { ipcRenderer, shell } from "electron";
+import { ipcRenderer, remote, shell } from "electron";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 
@@ -1130,7 +1130,7 @@ export class Editor {
     public async _applyPreferences(): Promise<void> {
         const preferences = this.getPreferences();
 
-        document.body.style.zoom = preferences.zoom ?? document.body.style.zoom;
+        remote.getCurrentWebContents()?.setZoomFactor(parseFloat(preferences.zoom ?? "1"));
         this.engine?.setHardwareScalingLevel(preferences.scalingLevel ?? 1);
 
         // Gizmo steps
