@@ -889,7 +889,7 @@ export class ProjectExporter {
             }
 
             if (geometry.colors) {
-                m._binaryInfo.colorsAttrDesc = { count: geometry.colors.length, stride: 3, offset, dataType: 1 };
+                m._binaryInfo.colorsAttrDesc = { count: geometry.colors.length, stride: 4, offset, dataType: 1 };
                 stream.write(Buffer.from(new Float32Array(geometry.colors).buffer));
 
                 m.colors = null;
