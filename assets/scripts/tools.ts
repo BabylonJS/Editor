@@ -175,6 +175,8 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: (Node | Scene)[]): 
         if (n instanceof AbstractMesh && !n.physicsImpostor) {
             n.physicsImpostor = n._scene.getPhysicsEngine()?.getImpostorForPhysicsObject(n);
         }
+
+        delete n.metadata.script;
     }
 }
 

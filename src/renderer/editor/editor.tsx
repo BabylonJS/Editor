@@ -795,7 +795,7 @@ export class Editor {
             await ProjectImporter.ImportProject(this, projectPath);
         } else {
             this.graph.refresh();
-            WelcomeDialog.Show(false);
+            WelcomeDialog.Show(this, false);
         }
 
         // Console

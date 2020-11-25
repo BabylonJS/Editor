@@ -1,5 +1,7 @@
 import { readJSON, writeJSON } from "fs-extra";
 
+import { Nullable } from "../../../shared/types";
+
 import * as React from "react";
 import { ButtonGroup, Button, Tabs, Tab, Navbar, Alignment, TabId } from "@blueprintjs/core";
 
@@ -97,7 +99,9 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
      * Inits the plugin?
      * @param path defines the path to the workspace file.
      */
-    public async init(path: string): Promise<void> {
+    public async init(path: Nullable<string>): Promise<void> {
+        if (!path) { return; }
+
         const json = await readJSON(path, { encoding: "utf-8" });
         this.setState({ workspacePath: path, ...json });
     }
@@ -107,17 +111,19 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
      */
     private async _handleApply(): Promise<void> {
         // Workspace
-        await writeJSON(this.state.workspacePath, {
-            lastOpenedScene: this.state.lastOpenedScene,
-            serverPort: this.state.serverPort,
-            generateSceneOnSave: this.state.generateSceneOnSave,
-            useIncrementalLoading: this.state.useIncrementalLoading,
-            firstLoad: this.state.firstLoad,
-            watchProject: this.state.watchProject ?? false,
-            pluginsPreferences: this.state.pluginsPreferences,
-        } as IWorkSpace, {
-            spaces: "\t",
-        });
+        if (this.state.workspacePath) {
+            await writeJSON(this.state.workspacePath, {
+                lastOpenedScene: this.state.lastOpenedScene,
+                serverPort: this.state.serverPort,
+                generateSceneOnSave: this.state.generateSceneOnSave,
+                useIncrementalLoading: this.state.useIncrementalLoading,
+                firstLoad: this.state.firstLoad,
+                watchProject: this.state.watchProject ?? false,
+                pluginsPreferences: this.state.pluginsPreferences,
+            } as IWorkSpace, {
+                spaces: "\t",
+            });
+        }
 
         // Editor preferences
         const preferences = this.getPreferences();
@@ -131,7 +137,10 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
         localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(preferences));
 
         // Apply
-        await IPCTools.ExecuteEditorFunction("_refreshWorkSpace");
+        if (this.state.workspacePath) {
+            await IPCTools.ExecuteEditorFunction("_refreshWorkSpace");
+        }
+        
         await IPCTools.ExecuteEditorFunction("_applyPreferences");
 
         // Close

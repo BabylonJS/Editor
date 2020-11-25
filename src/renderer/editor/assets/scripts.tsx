@@ -11,6 +11,7 @@ import { ButtonGroup, Button, Classes, Breadcrumbs, Boundary, IBreadcrumbProps, 
 import { Node } from "babylonjs";
 
 import { WorkSpace } from "../project/workspace";
+import { ProjectExporter } from "../project/project-exporter";
 
 import { Icon } from "../gui/icon";
 import { Alert } from "../gui/alert";
@@ -398,6 +399,8 @@ export class ScriptAssets extends AbstractAssets {
 
         const skeleton = await readFile(join(Tools.GetAppPath(), `assets/scripts/script.ts`), { encoding: "utf-8" });
         await writeFile(path, skeleton);
+
+        await ProjectExporter.GenerateScripts(this.editor);
 
         return this.refresh();
     }

@@ -760,6 +760,20 @@ export class ProjectExporter {
         }
 
         // Tools
+        await this.GenerateScripts(editor);
+
+        editor.updateTaskFeedback(task, 100);
+        editor.closeTaskFeedback(task, 1000);
+
+        editor.afterGenerateSceneObservable.notifyObservers(scenePath);
+        editor.console.logInfo(`Successfully generated scene at ${scenePath}`);
+    }
+
+    /**
+     * Generates the scripts for the project. Will wirte the "tools.ts" file and all index.ts files.
+     * @param editor defines the reference to the editor.
+     */
+    public static async GenerateScripts(editor: Editor): Promise<void> {
         editor.console.logInfo("Copyging tools...");
         const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
         const tools = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
@@ -778,12 +792,6 @@ export class ProjectExporter {
         if (!(await pathExists(indexPath))) { await mkdir(indexPath); }
 
         await writeFile(join(indexPath, "index.ts"), newScriptContent, { encoding: "utf-8" });
-
-        editor.updateTaskFeedback(task, 100);
-        editor.closeTaskFeedback(task, 1000);
-
-        editor.afterGenerateSceneObservable.notifyObservers(scenePath);
-        editor.console.logInfo(`Successfully generated scene at ${scenePath}`);
     }
 
     /**

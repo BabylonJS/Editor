@@ -258,7 +258,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             // Help
             case "help:documentation": this._editor.addPlugin("doc"); break;
             case "help:report": shell.openExternal("https://github.com/BabylonJS/Editor/issues"); break;
-            case "help:welcome": WelcomeDialog.Show(true); break;
+            case "help:welcome": WelcomeDialog.Show(this._editor, true); break;
             case "help:check-for-updates": EditorUpdater.CheckForUpdates(this._editor, true); break;
 
             default: break;

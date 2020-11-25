@@ -8,6 +8,8 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Dialog, Classes, Button, Tooltip, Position, Divider, Callout, Intent, ButtonGroup, Alignment, ProgressBar } from "@blueprintjs/core";
 
+import { Editor } from "../../editor";
+
 import { Icon } from "../../gui/icon";
 import { Wizard } from "../../gui/wizard";
 import { Overlay } from "../../gui/overlay";
@@ -23,6 +25,10 @@ import { WorkspaceWizard1 } from "./wizard-workspace1";
 import { WorkSpace } from "../workspace";
 
 export interface IWelcomeDialogProps {
+    /**
+     * Defines the reference to the editor.
+     */
+    editor: Editor;
     /**
      * Sets wether or not the dialog can be closed.
      */
@@ -40,8 +46,8 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
     /**
      * Shows the welcome wizard.
      */
-    public static Show(canClose: boolean): void {
-        ReactDOM.render(<WelcomeDialog canClose={canClose} />, document.getElementById("BABYLON-EDITOR-OVERLAY"));
+    public static Show(editor: Editor, canClose: boolean): void {
+        ReactDOM.render(<WelcomeDialog editor={editor} canClose={canClose} />, document.getElementById("BABYLON-EDITOR-OVERLAY"));
     }
 
     private _wizard0: WorkspaceWizard0;
@@ -110,6 +116,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
                     <Callout title="Open an existing project" icon="info-sign">
                         <ButtonGroup vertical={true} fill={true} alignText={Alignment.LEFT}>
                             <Button key="open-workspace" id="welcome-open-workspace" icon={<Icon src="workspace.svg" />} onClick={() => this._handleOpenWorkspace()}>Open Workspace...</Button>
+                            <Button key="open-preferences" id="welcome-open-preferences" icon={<Icon src="wrench.svg" />} onClick={() => this._handleOpenPreferences()}>Preferences...</Button>
                         </ButtonGroup>
                     </Callout>
                     <Divider />
@@ -160,6 +167,13 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
      */
     private _handleOpenWorkspace(): void {
         WorkSpace.Browse();
+    }
+
+    /**
+     * Called on the user wants to open the preferences.
+     */
+    private _handleOpenPreferences(): void {
+        this.props.editor.addWindowedPlugin("workspace-settings", undefined, WorkSpace.Path);
     }
 
     /**

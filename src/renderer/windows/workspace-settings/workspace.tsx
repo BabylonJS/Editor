@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Divider, Callout, FormGroup, InputGroup, Switch } from "@blueprintjs/core";
+import { Divider, Callout, FormGroup, InputGroup, Switch, NonIdealState } from "@blueprintjs/core";
 
 import WorkspaceSettingsWindow from "./index";
 
@@ -19,6 +19,16 @@ export class WorkspaceSettings extends React.Component<IWorkspaceSettingsProps, 
      * Renders the component.
      */
     public render(): React.ReactNode {
+        if (!this.props.settings.state.workspacePath) {
+            return (
+                <NonIdealState
+                    title="No Workspace Loaded."
+                    icon="search"
+                    description="Workspace options will appear on a workspace will be loaded."
+                />
+            );
+        }
+
         return (
             <div>
                 <Divider />
