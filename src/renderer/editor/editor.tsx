@@ -591,7 +591,11 @@ export class Editor {
                 y: window.screenY + Math.max(window.outerHeight - height, 0) / 2,
                 resizable: true,
                 autoHideMenuBar: true,
-                webPreferences: { nodeIntegration: true }
+
+                webPreferences: {
+                    nodeIntegration: true,
+                    zoomFactor: parseFloat(this.getPreferences()?.zoom ?? "1"),
+                },
             },
             url: "./plugin.html",
             autofocus: true,
