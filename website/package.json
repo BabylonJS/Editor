@@ -10,6 +10,7 @@
     "readmeFilename": "README.md",
     "scripts": {
         "watch": "webpack --mode development --watch",
+        "build": "webpack --mode production",
         "webserver": "http-server -p 1337 -c-1"
     },
     "dependencies": {
@@ -18,11 +19,14 @@
         "react-dom": "16.12.0"
     },
     "devDependencies": {
+        "@types/node": "13.9.0",
         "@types/react": "16.9.19",
         "@types/react-dom": "16.9.5",
         "babel-loader": "8.0.4",
         "http-server": "0.12.3",
         "ts-loader": "4.4.2",
+        "css-loader": "5.0.1",
+        "style-loader": "1.2.1",
         "typescript": "4.0.5",
         "webpack": "4.41.2",
         "webpack-cli": "3.3.10"

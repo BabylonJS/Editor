@@ -27,6 +27,11 @@ module.exports = (_, argv) => {
 						path.join(__dirname, "scenes"),
 					],
 				},
+				{
+					test: /\.css$/i,
+					use: ["style-loader", "css-loader"],
+					include: /node_modules/,
+				},
 			],
 		},
 		resolve: {
@@ -44,6 +49,11 @@ module.exports = (_, argv) => {
 		optimization: {
 			minimize: false,
 			usedExports: true,
+		},
+		devServer: {
+			contentBase: path.join(__dirname, "dist"),
+			compress: false,
+			port: 1337
 		},
 		devtool: "source-map",
 	};

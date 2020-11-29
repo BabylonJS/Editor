@@ -32,7 +32,6 @@ export class WebSiteNavBar extends React.Component<IWebSiteNavBarProps, IWebSite
      */
     public render(): React.ReactNode {
         // Get selected content
-        debugger;
         let content: React.ReactNode;
         switch (this.state.tabId) {
             case "home": content = <HomeContent />; break;
@@ -43,6 +42,9 @@ export class WebSiteNavBar extends React.Component<IWebSiteNavBarProps, IWebSite
             <>
                 <Navbar style={{ backgroundColor: "#201936" }}>
                     <Navbar.Group>
+                        <Navbar.Heading>
+                            <img width="200" height="200" src="./img/babylonjs_logo.svg"></img>
+                        </Navbar.Heading>
                         <Navbar.Heading>
                             <strong>Babylon.JS Editor</strong>
                         </Navbar.Heading>
