@@ -2,6 +2,7 @@ import * as React from "react";
 import { Alignment, Navbar, Tab, TabId, Tabs } from "@blueprintjs/core";
 
 import { HomeContent } from "./contents/home";
+import { DocumentationContent } from "./contents/documentation";
 import { DownloadContent } from "./contents/download";
 
 export interface IWebSiteNavBarProps {
@@ -35,6 +36,7 @@ export class WebSiteNavBar extends React.Component<IWebSiteNavBarProps, IWebSite
         let content: React.ReactNode;
         switch (this.state.tabId) {
             case "home": content = <HomeContent />; break;
+            case "documentation": content = <DocumentationContent />; break;
             case "download": content = <DownloadContent />; break;
         }
 
@@ -56,6 +58,7 @@ export class WebSiteNavBar extends React.Component<IWebSiteNavBarProps, IWebSite
                             onChange={(tabId) => this._handleTabChanged(tabId)}
                         >
                             <Tab id="home" title="Home" key="home-tab" />
+                            <Tab id="documentation" title="Documentation" key="documentation-tab" />
                             <Tab id="download" title="Download" key="download-tab" />
                         </Tabs>
                     </Navbar.Group>
