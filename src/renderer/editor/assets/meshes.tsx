@@ -516,6 +516,7 @@ export class MeshesAssets extends AbstractAssets {
             if (texture.metadata?.gltf?.editorDone) { continue; }
 
             if (!(texture instanceof Texture) && !(texture instanceof CubeTexture)) { return; }
+            if (texture.isRenderTarget) { return; }
 
             const mimeType = texture["_mimeType"];
 
