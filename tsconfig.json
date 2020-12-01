@@ -38,11 +38,13 @@
     "./index.d.ts",
     "./testOutput",
     "./templates",
+    "./website",
     "module",
     "electron-packages",
     "assets",
     "sample-plugin",
     "testOutput",
-    "templates"
+    "templates",
+    "website"
   ]
 }

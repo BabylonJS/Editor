@@ -1,0 +1,32 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "declaration": true,
+        "outDir": "./build/src",
+        "declarationDir": "./declaration/src",
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "jsx": "react",
+        "strictNullChecks": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "allowSyntheticDefaultImports": true,
+        "typeRoots": [
+            "node_modules/@types"
+        ],
+        "skipLibCheck": true,
+        "lib": [
+            "es2015.promise",
+            "es2015",
+            "dom"
+        ]
+    },
+    "exclude": [
+        "./node_modules",
+        "./build",
+        "./declaration"
+    ]
+}
