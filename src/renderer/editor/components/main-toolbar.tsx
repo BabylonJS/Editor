@@ -121,6 +121,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Reset Editor..." icon={<Icon src="reset.svg" style={{ filter: "grayscale(1)", width: "20px", height: "20px" }} />} onClick={() => this._menuItemClicked("edit:reset")} />
                 <MenuDivider />
+                <MenuItem text="Restart TypeScript Watcher" onClick={() => this._menuItemClicked("edit:reset-typescript-watcher")} />
+                <MenuDivider />
                 <MenuItem text="Preferences..." icon={<Icon src="wrench.svg" />} onClick={() => this._handleWorkspaceSettings()} />
             </Menu>;
         const view =
@@ -254,6 +256,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "edit:clear-unused-assets": this._editor.assets.clearUnusedAssets(); break;
 
             case "edit:reset": this._editor._resetEditor(); break;
+
+            case "edit:reset-typescript-watcher": WorkSpace.RestartTypeScriptWatcher(this._editor); break;
 
             // Help
             case "help:documentation": this._editor.addPlugin("doc"); break;

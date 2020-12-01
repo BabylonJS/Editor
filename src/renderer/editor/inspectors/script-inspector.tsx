@@ -1,6 +1,6 @@
 import { shell } from "electron";
 import { normalize, join, extname } from "path";
-import { readFile, watch, FSWatcher } from "fs-extra";
+import { readFile, watch, FSWatcher, pathExists } from "fs-extra";
 import { transpile, ModuleKind, ScriptTarget } from "typescript";
 
 import { Nullable } from "../../../shared/types";
@@ -142,6 +142,12 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
         const jsPath = join(WorkSpace.DirPath!, "build", jsName);
 
         if (!this._scriptWatcher) {
+            while (this.isMounted && !(await pathExists(jsPath))) {
+                await Tools.Wait(500);
+            }
+
+            if (!this.isMounted) { return; }
+
             this._scriptWatcher = watch(jsPath, { encoding: "utf-8" }, (ev) => {
                 if (ev === "change") {
                     this._refreshScript(folder);

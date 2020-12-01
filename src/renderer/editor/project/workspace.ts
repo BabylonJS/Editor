@@ -275,10 +275,23 @@ export class WorkSpace {
      */
     public static StopWatchingTypeScript(): void {
         if (this._WatchTypescriptProgram) {
-            this._WatchTypescriptProgram.process.kill();
+            try {
+                this._WatchTypescriptProgram.process.kill();
+            } catch (e) {
+                // Catch silently.
+            }
         }
 
         this._WatchTypescriptProgram = null;
+    }
+
+    /**
+     * Restarts the TypeScript watcher in case it goes in error.
+     * @param editor defines the editor reference.
+     */
+    public static RestartTypeScriptWatcher(editor: Editor): Promise<void> {
+        this.StopWatchingTypeScript();
+        return this.WatchTypeScript(editor);
     }
 
     /**
