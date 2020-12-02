@@ -129,12 +129,18 @@ export class RenderingInspector extends AbstractInspector<Scene> {
         
         const imageProcessing = this._defaultFolder.addFolder("Image Processing");
         imageProcessing.open();
-        imageProcessing.add(SceneSettings.DefaultPipeline, "imageProcessingEnabled").name("Image Processing Enabled");
-        imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "toneMappingEnabled").name("Tone Mapping");
-        imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "exposure").min(0).step(0.01).name("Exposure");
-        imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "contrast").min(0).step(0.01).name("Contrast");
-        imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "fromLinearSpace").name("From Linear Space");
-        // imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "colorGradingEnabled").name("Color Grading Enabled");
+        imageProcessing.add(SceneSettings.DefaultPipeline, "imageProcessingEnabled").name("Image Processing Enabled").onChange(() => {
+            this.clearFolder(this._defaultFolder!);
+            this.addDefault();
+        });
+
+        if (SceneSettings.DefaultPipeline.imageProcessing) {
+            imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "toneMappingEnabled").name("Tone Mapping");
+            imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "exposure").min(0).step(0.01).name("Exposure");
+            imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "contrast").min(0).step(0.01).name("Contrast");
+            imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "fromLinearSpace").name("From Linear Space");
+            // imageProcessing.add(SceneSettings.DefaultPipeline.imageProcessing, "colorGradingEnabled").name("Color Grading Enabled");
+        }
         
         const bloom = this._defaultFolder.addFolder("Bloom");
         bloom.open();
@@ -152,7 +158,10 @@ export class RenderingInspector extends AbstractInspector<Scene> {
 
         const dof = this._defaultFolder.addFolder("Depth Of Field");
         dof.open();
-        dof.add(SceneSettings.DefaultPipeline, "depthOfFieldEnabled").name("Depth Of Field Enabled");
+        dof.add(SceneSettings.DefaultPipeline, "depthOfFieldEnabled").name("Depth Of Field Enabled").onChange(() => {
+            this.clearFolder(this._defaultFolder!);
+            this.addDefault();
+        });
         dof.add(SceneSettings.DefaultPipeline.depthOfField, "focusDistance").min(0).step(1).max(this.editor.scene!.activeCamera!.maxZ * 5).name("Focus Distance");
         dof.add(SceneSettings.DefaultPipeline.depthOfField, "fStop").min(1).max(10).name("F-Stop");
         dof.add(SceneSettings.DefaultPipeline.depthOfField, "focalLength").min(1).max(300).name("Focal Length");
@@ -161,6 +170,8 @@ export class RenderingInspector extends AbstractInspector<Scene> {
         this._dofBlurLevel = blurLevels.find((l) => SceneSettings.DefaultPipeline!.depthOfFieldBlurLevel === DepthOfFieldEffectBlurLevel[l]) ?? "Low";
         dof.add(this, "_dofBlurLevel", blurLevels).name("Blur Level").onChange(() => {
             SceneSettings.DefaultPipeline!.depthOfFieldBlurLevel = DepthOfFieldEffectBlurLevel[this._dofBlurLevel];
+            this.clearFolder(this._defaultFolder!);
+            this.addDefault();
         });
 
         const ca = this._defaultFolder.addFolder("Chromatic Aberration");
