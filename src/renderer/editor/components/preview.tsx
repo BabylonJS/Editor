@@ -1,7 +1,7 @@
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { Position, ButtonGroup, Popover, Button, Menu, MenuItem, Divider, Tag, Tooltip, Pre } from "@blueprintjs/core";
+import { Position, ButtonGroup, Popover, Menu, MenuItem, Divider, Tag, Tooltip, Pre, AnchorButton } from "@blueprintjs/core";
 
 import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable } from "babylonjs";
 
@@ -159,39 +159,39 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 <div id="preview-toolbar" style={{ width: "100%", height: "25px" }}>
                     <ButtonGroup key="preview-buttons" large={false} style={{ height: "20px", marginTop: "auto", marginBottom: "auto" }}>
                         <Popover key="cameras-popover" content={cameras} position={Position.BOTTOM_LEFT}>
-                            <Button key="cameras-button" small={true} icon={<Icon src="camera.svg" />} rightIcon="caret-down" text="Cameras"/>
+                            <AnchorButton key="cameras-button" small={true} icon={<Icon src="camera.svg" />} rightIcon="caret-down" text="Cameras"/>
                         </Popover>
 
                         <Divider />
 
                         <Tooltip content="Hide Gizmo" position={Position.BOTTOM}>
-                            <Button key="gizmo-none" small={true} active={isNone} disabled={isNone} text="None" onClick={() => this.setGizmoType(GizmoType.None)} />
+                            <AnchorButton key="gizmo-none" small={true} active={isNone} disabled={isNone} text="None" onClick={() => this.setGizmoType(GizmoType.None)} />
                         </Tooltip>
 
                         <Tooltip content="Position" position={Position.BOTTOM}>
-                            <Button key="gizmo-position" small={true} active={isPosition} disabled={isPosition} icon={<Icon src="arrows-alt.svg" />} onClick={() => this.setGizmoType(GizmoType.Position)} />
+                            <AnchorButton key="gizmo-position" small={true} active={isPosition} disabled={isPosition} icon={<Icon src="arrows-alt.svg" />} onClick={() => this.setGizmoType(GizmoType.Position)} />
                         </Tooltip>
 
                         <Tooltip content="Rotation" position={Position.BOTTOM}>
-                            <Button key="gizmo-rotation" small={true} active={isRotation} disabled={isRotation} icon={<Icon src="crosshairs.svg" />} onClick={() => this.setGizmoType(GizmoType.Rotation)} />
+                            <AnchorButton key="gizmo-rotation" small={true} active={isRotation} disabled={isRotation} icon={<Icon src="crosshairs.svg" />} onClick={() => this.setGizmoType(GizmoType.Rotation)} />
                         </Tooltip>
 
                         <Tooltip content="Scaling" position={Position.BOTTOM}>
-                            <Button key="gizmo-scaling" small={true} active={isScaling} disabled={isScaling} icon={<Icon src="arrows-alt-v.svg" />} onClick={() => this.setGizmoType(GizmoType.Scaling)} />
+                            <AnchorButton key="gizmo-scaling" small={true} active={isScaling} disabled={isScaling} icon={<Icon src="arrows-alt-v.svg" />} onClick={() => this.setGizmoType(GizmoType.Scaling)} />
                         </Tooltip>
 
                         <Popover content={steps} position={Position.BOTTOM_LEFT}>
-                            <Button key="step1" small={true} rightIcon="caret-down" text={`Steps (${this.state.gizmoStep})`} />
+                            <AnchorButton key="step1" small={true} rightIcon="caret-down" text={`Steps (${this.state.gizmoStep})`} />
                         </Popover>
 
                         <Divider />
 
                         <Tooltip content="Wireframe" position={Position.BOTTOM}>
-                            <Button key="wireframe" small={true} icon={<Icon src="grip-lines.svg" style={{ opacity: (this.state.forceWireframe ? 1 : 0.5) }} />} onClick={() => this.toggleWireframe()} />
+                            <AnchorButton key="wireframe" small={true} icon={<Icon src="grip-lines.svg" style={{ opacity: (this.state.forceWireframe ? 1 : 0.5) }} />} onClick={() => this.toggleWireframe()} />
                         </Tooltip>
 
                         <Tooltip content="Show Icons" position={Position.BOTTOM}>
-                            <Button key="icons" small={true} icon={<Icon src="eye.svg" style={{ opacity: (this.state.showIcons ? 1 : 0.5) }} />} onClick={() => this.toggleShowIcons()} />
+                            <AnchorButton key="icons" small={true} icon={<Icon src="eye.svg" style={{ opacity: (this.state.showIcons ? 1 : 0.5) }} />} onClick={() => this.toggleShowIcons()} />
                         </Tooltip>
                     </ButtonGroup>
                 </div>
