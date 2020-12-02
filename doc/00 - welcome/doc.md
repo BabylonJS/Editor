@@ -22,6 +22,7 @@ Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are 
 * `Ctrl+f` or `Command+f`: find a node in the current scene or run a command
 * `Ctrl+r` or `Command+r`: run the application/game in the integrated browser
 * `Ctrl+b` or `Command+b`: build the project (using WebPack, this can take a while)
+* `Ctrl+g` or `Command+g`: generate the project (generates all outputs of the current project (scripts, scene files, etc.))
 * `Ctrl+Shift+r` or `Command+Shift+r`: build and run the application/game
 * `Ctrl+z` or `Command+z`: Undo action
 * `Ctrl+y` or `Command+Shift+z`: Redo action

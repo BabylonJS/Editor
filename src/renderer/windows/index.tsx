@@ -6,6 +6,8 @@ import { Undefinable } from "../../shared/types";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
+import { Tools } from "../editor/tools/tools";
+
 export interface IWindowedPluginInitialization {
     /**
      * Defines the name of the plugin to require.
@@ -61,5 +63,9 @@ export default class WindowedPlugin {
         }
 
         document.getElementById("BABYLON-START-IMAGE")?.remove();
+
+        // Apply preferences
+        const preferences = Tools.GetEditorPreferences();
+        remote.getCurrentWebContents()?.setZoomFactor(parseFloat(preferences.zoom ?? "1"));
     }
 }

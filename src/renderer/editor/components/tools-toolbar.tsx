@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ButtonGroup, Button, ContextMenu, Classes, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
+import { ButtonGroup, Button, ContextMenu, Classes, Menu, MenuItem, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
 import { Editor } from "../editor";
 
@@ -90,7 +90,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     private _handleGenerateContextMenu(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Generate Scene..." onClick={() => this._buttonClicked("generate")} />
+                <MenuItem text={<div>Generate Scene... <Tag intent={Intent.PRIMARY}>(CTRL+g)</Tag></div>} onClick={() => this._buttonClicked("generate")} />
                 <MenuItem text="Generate Scene As..." onClick={() => this._buttonClicked("generate-as")} />
                 <MenuDivider />
                 <MenuItem text="Generate Scene (Only Geometries)..." onClick={() => this._buttonClicked("generate-only-geometries")} />

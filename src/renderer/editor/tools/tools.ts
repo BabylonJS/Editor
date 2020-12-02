@@ -6,7 +6,7 @@ import { IPCResponses, IPCRequests } from "../../../shared/ipc";
 
 import { Tools as BabylonTools, Engine, Scene, Node, Nullable, Camera, Mesh, Material } from "babylonjs";
 
-import { ICommonMetadata, IMaterialMetadata, IMeshMetadata, ITransformNodeMetadata } from "./types";
+import { ICommonMetadata, IEditorPreferences, IMaterialMetadata, IMeshMetadata, ITransformNodeMetadata } from "./types";
 
 export class Tools {
     /**
@@ -182,6 +182,15 @@ export class Tools {
         }
 
         return object;
+    }
+
+
+    /**
+     * Returns the saved editor preferences (zoom, etc.).
+     */
+    public static GetEditorPreferences(): IEditorPreferences {
+        const settings = JSON.parse(localStorage.getItem("babylonjs-editor-preferences") ?? "{ }") as IEditorPreferences;
+        return settings;
     }
 
     /**

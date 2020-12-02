@@ -672,8 +672,7 @@ export class Editor {
      * Returns the current settings of the editor.
      */
     public getPreferences(): IEditorPreferences {
-        const settings = JSON.parse(localStorage.getItem("babylonjs-editor-preferences") ?? "{ }") as IEditorPreferences;
-        return settings;
+        return Tools.GetEditorPreferences();
     }
 
     /**
@@ -1007,6 +1006,7 @@ export class Editor {
             this.runProject(EditorPlayMode.IntegratedBrowser);
         });
         ipcRenderer.on("run-project", () => this.runProject(EditorPlayMode.IntegratedBrowser));
+        ipcRenderer.on("generate-project", () => ProjectExporter.ExportFinalScene(this));
 
         // Drag'n'drop
         document.addEventListener("dragover", (ev) => ev.preventDefault());
