@@ -263,14 +263,13 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Removes the given node.
      * @param node the node to remove.
      */
-    public removeObject(node: Node | IParticleSystem | Sound, refresh: boolean = true): void {
+    public removeObject(node: Node | IParticleSystem | Sound): void {
         const descendants = [node].concat(node instanceof Node ? node.getDescendants() : []);
         const actions = descendants.map((d) => this._removeObject(d));
 
         undoRedo.push({
             common: () => {
-                if (refresh) { this.refresh(); }
-                refresh = true;
+                this.refresh();
             },
             redo: () => {
                 actions.forEach((a) => a.redo());
@@ -858,7 +857,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 selectedNodeIds.splice(index, 1);
             }
 
-            this.removeObject(node, false);
+            this.removeObject(node);
         });
 
         this.refresh(() => this.setState({ selectedNodeIds }));
