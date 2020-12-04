@@ -275,6 +275,24 @@ export class ProjectImporter {
                         
                         editor.console.logInfo(`Parsed shadows for light "${l.json}"`);
                     }
+
+                    // Handled excluded meshes
+                    if (light._excludedMeshesIds?.length) {
+                        light._excludedMeshesIds.forEach((emid) => {
+                            const excludedMesh = editor.scene!.getMeshByID(emid);
+                            if (excludedMesh) { light.excludedMeshes.push(excludedMesh); }
+                        });
+                        light._excludedMeshesIds = [];
+                    }
+
+                    // Handle included only meshes
+                    if (light._includedOnlyMeshesIds) {
+                        light._includedOnlyMeshesIds.forEach((imid) => {
+                            const excludedMesh = editor.scene!.getMeshByID(imid);
+                            if (excludedMesh) { light.includedOnlyMeshes.push(excludedMesh); }
+                        });
+                        light._includedOnlyMeshesIds = [];
+                    }
                 } catch (e) {
                     editor.console.logError(`Failed to parse light "${l}"`);
                 }
