@@ -711,6 +711,22 @@ export class ProjectExporter {
             this._WriteIncrementalGeometryFiles(editor, geometriesPath, scene, true, task);
         }
 
+        // Handle node material textures
+        for (const m of scene.materials ?? []) {
+            if (m?.customType !== "BABYLON.NodeMaterial") { continue; }
+            for (const b of m.blocks ?? []) {
+                if ((b?.customType !== "BABYLON.TextureBlock" && b?.customType !== "BABYLON.ReflectionTextureBlock") || !b.texture?.name) { continue; }
+                if (b.texture.name.indexOf("data:") !== 0) { continue; }
+
+                if (b.customType === "BABYLON.TextureBlock") {
+                    b.texture.url = b.texture.name;
+                    b.texture.name = b.texture.metadata?.editorName ?? Tools.RandomId();
+                } else {
+                    b.texture.url = `data:${Tools.RandomId()}`;
+                }
+            }
+        }
+
         editor.updateTaskFeedback(task, 50, "Writing scene...");
         await writeJSON(join(scenePath, "scene.babylon"), scene);
 
