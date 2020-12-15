@@ -92,6 +92,10 @@ export interface IProject {
      */
     sounds?: string[];
     /**
+     * Defines the list of all scene's morph target managers.
+     */
+    morphTargetManagers?: string[];
+    /**
      * Saves the scene's settings.
      */
     scene: any;

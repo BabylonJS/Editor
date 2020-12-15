@@ -3,7 +3,8 @@ import { readJSON, pathExists } from "fs-extra";
 
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
-    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture, AnimationGroup, Constants,
+    Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
+    AnimationGroup, Constants, MorphTargetManager,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -92,7 +93,7 @@ export class ProjectImporter {
         const spinnerStep = 1 / (
                                     project.textures.length + project.materials.length + project.meshes.length + project.lights.length +
                                     project.cameras.length + (project.particleSystems?.length ?? 0) + (project.sounds?.length ?? 0) +
-                                    (project.transformNodes?.length ?? 0)
+                                    (project.transformNodes?.length ?? 0) + (project.scene.morphTargetManagers?.length ?? 0)
                                 );
         let spinnerValue = 0;
 
@@ -124,6 +125,28 @@ export class ProjectImporter {
 
         // Configure camera
         SceneSettings.ConfigureFromJson(project.project.camera, editor);
+
+        // Morph targets
+        Overlay.SetMessage("Creating Morph Target Managers");
+
+        if (project.morphTargetManagers) {
+            for (const mtm of project.morphTargetManagers) {
+                loadPromises.push(new Promise<void>(async (resolve) => {
+                    try {
+                        const json = await readJSON(join(Project.DirPath!, "morphTargets", mtm));
+                        MorphTargetManager.Parse(json, editor.scene!);
+                    } catch (e) {
+                        editor.console.logError(`Failed to load morph target manager "${mtm}"`);
+                    }
+
+                    Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+                    resolve();
+                }));
+            }
+
+            await Promise.all(loadPromises);
+            loadPromises = [];
+        }
 
         // Load all meshes
         Overlay.SetMessage("Creating Meshes...");

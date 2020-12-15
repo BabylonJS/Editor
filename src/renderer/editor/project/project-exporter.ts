@@ -92,6 +92,7 @@ export class ProjectExporter {
             particleSystems: [],
             lights: [],
             sounds: [],
+            morphTargetManagers: [],
             scene: ProjectHelpers.ExportSceneSettings(editor.scene!),
             assets: {
                 meshes: MeshesAssets.Meshes.map((m) => m.name),
@@ -119,6 +120,7 @@ export class ProjectExporter {
         const exportedSounds: string[] = [];
         const exportedTransformNodes: string[] = [];
         const exportedParticleSystems: string[] = [];
+        const exportedMorphTargets: string[] = [];
 
         let savePromises: Promise<void>[] = [];
 
@@ -153,6 +155,48 @@ export class ProjectExporter {
                 throw e;
             }
             editor.updateTaskFeedback(task, progressValue += progressCount);
+        }
+
+        // Write all morph target managers
+        debugger;
+        const morphTargets: any[] = [];
+        const morphTargetsDir = join(Project.DirPath!, "morphTargets");
+
+        for (const mesh of editor.scene!.meshes) {
+            if (!(mesh instanceof Mesh)) { continue; }
+
+            const manager = mesh.morphTargetManager;
+            if (manager) {
+                morphTargets.push(manager.serialize());
+            }
+        }
+
+        if (morphTargets.length) {
+            editor.updateTaskFeedback(task, 0, "Saving Morph Target Managers");
+
+            progressValue = 0;
+            progressCount = 100 / morphTargets.length ?? 1;
+
+            if (!(await pathExists(morphTargetsDir))) { await mkdir(morphTargetsDir); }
+
+            for (const mtm of morphTargets) {
+                const morphTargetManagerDest = `${mtm.id}.json`;
+
+                savePromises.push(new Promise<void>(async (resolve) => {
+                    await writeJSON(join(morphTargetsDir, morphTargetManagerDest), mtm, { encoding: "utf-8" });
+
+                    project.morphTargetManagers!.push(morphTargetManagerDest);
+                    exportedMorphTargets.push(morphTargetManagerDest);
+
+                    editor.updateTaskFeedback(task, progressValue += progressCount);
+                    editor.console.logInfo(`Saved morph target manager configuration "${mtm.id}"`);
+
+                    resolve();
+                }));
+            }
+
+            await Promise.all(savePromises);
+            savePromises = [];
         }
 
         // Write all cameras
@@ -458,6 +502,7 @@ export class ProjectExporter {
         this._CleanOutputDir(soundsDir, exportedSounds);
         this._CleanOutputDir(particleSystemsDir, exportedParticleSystems);
         this._CleanOutputDir(transformNodesDir, exportedTransformNodes);
+        this._CleanOutputDir(morphTargetsDir, exportedMorphTargets);
 
         // Update recent projects to be shown in welcome wizard
         this._UpdateWelcomeRecentProjects(editor);
