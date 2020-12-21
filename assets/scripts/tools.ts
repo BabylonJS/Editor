@@ -5,7 +5,7 @@
 import {
     Color3, Color4,
     SerializationHelper,
-    Scene, Node, AbstractMesh,
+    Scene, Node, AbstractMesh, Mesh,
     Vector2, Vector3, Vector4,
     SSAO2RenderingPipeline, DefaultRenderingPipeline, ScreenSpaceReflectionPostProcess, MotionBlurPostProcess,
 } from "@babylonjs/core";
@@ -200,6 +200,17 @@ export function attachScripts(scriptsMap: ScriptMap, scene: Scene): void {
             scene.onBeforeRenderObservable.add(() => instance["onUpdate"]());
         }
     }
+}
+
+/**
+ * Setups the rendering groups for meshes in the given scene.
+ * @param scene defines the scene containing the meshes to configure their rendering group Ids.
+ */
+export function setupRenderingGroups(scene: Scene): void {
+    scene.meshes.forEach((m) => {
+        if (!m.metadata || !(m instanceof Mesh)) { return; }
+        m.renderingGroupId = m.metadata.renderingGroupId ?? m.renderingGroupId;
+    });
 }
 
 /**

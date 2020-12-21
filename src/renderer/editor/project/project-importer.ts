@@ -502,6 +502,7 @@ export class ProjectImporter {
             m.mesh.metadata = m.mesh.metadata ?? { };
             m.mesh.metadata._waitingParentId = m.parentId;
             m.mesh.metadata._waitingGeometryId = m.geometryId;
+            m.mesh.renderingGroupId = m.mesh.metadata.renderingGroupId ?? m.mesh.renderingGroupId;
 
             if (m.instances) {
                 m.mesh.instances?.forEach((i, instanceIndex) => {

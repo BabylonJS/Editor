@@ -158,7 +158,6 @@ export class ProjectExporter {
         }
 
         // Write all morph target managers
-        debugger;
         const morphTargets: any[] = [];
         const morphTargetsDir = join(Project.DirPath!, "morphTargets");
 

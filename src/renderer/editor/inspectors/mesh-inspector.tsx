@@ -3,7 +3,10 @@ import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
 
-import { Mesh, SceneLoader, PhysicsImpostor, SubMesh, Vector3, Tools as BabylonTools, AbstractMesh } from "babylonjs";
+import {
+    Mesh, SceneLoader, PhysicsImpostor, SubMesh, Vector3, Tools as BabylonTools,
+    AbstractMesh, RenderingManager,
+} from "babylonjs";
 import { GUI } from "dat.gui";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -18,6 +21,8 @@ export class MeshInspector extends NodeInspector {
      * The selected object reference.
      */
     protected selectedObject: Mesh;
+
+    private _renderingGroupId: string = "";
 
     private _physicsImpostor: string = "";
     private _numBoneInfluencers: number = 0;
@@ -90,10 +95,25 @@ export class MeshInspector extends NodeInspector {
             rendering.add(this.selectedObject, "visibility").name("Visibility").min(0).max(1).step(0.01);
         }
 
+        // Billboard
         const billboardModes = ["BILLBOARDMODE_NONE", "BILLBOARDMODE_X", "BILLBOARDMODE_Y", "BILLBOARDMODE_Z", "BILLBOARDMODE_ALL", "BILLBOARDMODE_USE_POSITION"];
         this._billboardMode = billboardModes.find((b) => this.selectedObject.billboardMode === AbstractMesh[b]) ?? billboardModes[0];
         rendering.addSuggest(this, "_billboardMode", billboardModes).name("Billboard Mode").onChange(() => {
             this.selectedObject.billboardMode = AbstractMesh[this._billboardMode];
+        });
+
+        // Rendering group
+        this.selectedObject.metadata ??= { };
+        this.selectedObject.metadata.renderingGroupId ??= this.selectedObject.renderingGroupId;
+
+        this._renderingGroupId = this.selectedObject.renderingGroupId.toString();
+        
+        const renderingGroupIds: string[] = [];
+        for (let i = RenderingManager.MIN_RENDERINGGROUPS; i <= RenderingManager.MAX_RENDERINGGROUPS; i++) {
+            renderingGroupIds.push(i.toString());
+        }
+        rendering.addSuggest(this, "_renderingGroupId", renderingGroupIds).name("Rendering Group Id").onChange(() => {
+            this.selectedObject.renderingGroupId = this.selectedObject.metadata.renderingGroupId = parseInt(this._renderingGroupId);
         });
 
         return rendering;

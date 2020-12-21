@@ -3,7 +3,10 @@
  */
 
 import { Node, Scene } from "@babylonjs/core";
-import { ScriptMap, attachScripts, attachScriptToNodeAtRumtine, configurePostProcesses } from "../tools";
+import {
+    ScriptMap, attachScripts, attachScriptToNodeAtRumtine,
+    configurePostProcesses, setupRenderingGroups,
+} from "../tools";
 
 /**
  * Defines the interface that exposes all exported scripts in this project.
@@ -30,6 +33,9 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
 
     // Configure post-processes
     configurePostProcesses(scene, rootUrl);
+
+    // Rendering groups
+    setupRenderingGroups(scene);
 }
 
 /**
