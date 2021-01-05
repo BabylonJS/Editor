@@ -49,6 +49,7 @@ export class MeshInspector extends NodeInspector {
         this.addPhysics();
         this.addSkeleton();
         this.addLods();
+        this.addMorphTargets();
     }
 
     /**
@@ -293,6 +294,31 @@ export class MeshInspector extends NodeInspector {
                     this.selectedObject.skeleton?.beginAnimation(r.name, true, 1.0);
                 });
             });
+        }
+    }
+
+    /**
+     * Adds the morph targets editable properties.
+     */
+    protected addMorphTargets(): void {
+        if (!this.selectedObject.morphTargetManager) { return; }
+
+        const morphTargets = this.tool!.addFolder("Morph Targets");
+        morphTargets.open();
+
+        // Not yet serialized
+        // morphTargets.add(this.selectedObject.morphTargetManager, "enableNormalMorphing").name("Enable Normal Morphing");
+        // morphTargets.add(this.selectedObject.morphTargetManager, "enableTangentMorphing").name("Enable Tangent Morphing");
+        // morphTargets.add(this.selectedObject.morphTargetManager, "enableUVMorphing").name("Enable UV Morphing");
+
+        for (let i = 0; i < this.selectedObject.morphTargetManager.numTargets; i++) {
+            const target = this.selectedObject.morphTargetManager.getTarget(i);
+            if (!target) { continue; }
+
+            target.name ??= `morphTarget${i}`;
+            target.id ??= Tools.RandomId();
+
+            morphTargets.add(target, "influence").min(0).max(1).step(0.01).name(target.name);
         }
     }
 

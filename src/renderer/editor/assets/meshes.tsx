@@ -214,7 +214,10 @@ export class MeshesAssets extends AbstractAssets {
 
         const rootUrl = join(Project.DirPath!, "files", "/");
         const sceneFilename = join("..", "assets/meshes", item.id);
+
+        // Load and stop all animations
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, sceneFilename, this.editor.scene!);
+        this.editor.scene!.stopAllAnimations();
 
         const onTextureDone = (n: string) => Overlay.SetMessage(`Configuring GLTF... ${n}`);
 
