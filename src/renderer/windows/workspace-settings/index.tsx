@@ -119,6 +119,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
                 useIncrementalLoading: this.state.useIncrementalLoading,
                 firstLoad: this.state.firstLoad,
                 watchProject: this.state.watchProject ?? false,
+                physicsEngine: this.state.physicsEngine,
                 pluginsPreferences: this.state.pluginsPreferences,
             } as IWorkSpace, {
                 spaces: "\t",
