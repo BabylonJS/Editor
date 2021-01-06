@@ -24,7 +24,7 @@ export class WorkspaceWizard1 extends React.Component<IWelcomeWizard1Props, IWor
     public constructor(props: IWelcomeWizard1Props) {
         super(props);
         this.state = {
-            watchWorkspaceWithWebPack: false,
+            watchWorkspaceWithWebPack: true,
             serverPort: 1338,
         };
     }
