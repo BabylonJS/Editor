@@ -1,5 +1,11 @@
 import { Undefinable, IStringDictionary } from "../../../shared/types";
 
+/**
+ * Defines the type the possible values of the physics engine type string
+ * store in the workspace JSON file.
+ */
+export type PhysicsEngineType = "cannon" | "oimo" | "ammo";
+
 export interface IWorkSpace {
     /**
      * Defines the local path to the latest opened project.
@@ -25,6 +31,10 @@ export interface IWorkSpace {
      * Defines wether or not incremental loading is used when generating the final scenes.
      */
     useIncrementalLoading?: boolean;
+    /**
+     * Defines the physics engine that should be used by the project.
+     */
+    physicsEngine?: PhysicsEngineType;
     /**
      * Defines the dictionary that contains the preferences of external plugins in the editor.
      */

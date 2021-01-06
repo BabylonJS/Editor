@@ -1,10 +1,19 @@
+import { Nullable } from "../../../shared/types";
+
+import { GUI } from "dat.gui";
 import { Scene } from "babylonjs";
+
+import { WorkSpace } from "../project/workspace";
+import { PhysicsEngineType } from "../project/typings";
 
 import { Inspector } from "../components/inspector";
 import { ScriptInspector } from "./script-inspector";
 
 export class SceneInspector extends ScriptInspector<Scene> {
     private _fogMode: string = "";
+
+    private _physicsFolder: Nullable<GUI> = null;
+    private _physicsEngine: string = "None";
 
     /**
      * Called on the component did moubnt.
@@ -87,12 +96,31 @@ export class SceneInspector extends ScriptInspector<Scene> {
      * Adds all the physics editable properties.
      */
     protected addPhysics(): void {
+        if (!WorkSpace.Workspace) { return; }
+
         const physicsEngine = this.selectedObject.getPhysicsEngine();
         if (!physicsEngine) { return; }
 
-        const physics = this.tool!.addFolder("Physics");
-        physics.open();
-        physics.addVector("Gravity", physicsEngine.gravity);
+        this._physicsFolder ??= this.tool!.addFolder("Physics");
+        this._physicsFolder.open();
+
+        WorkSpace.Workspace.physicsEngine ??= "cannon";
+
+        // Engine
+        this._physicsEngine = WorkSpace.Workspace.physicsEngine === "cannon" ? "Cannon" :
+                              WorkSpace.Workspace.physicsEngine === "oimo" ? "Oimo" :
+                              "Ammo";
+        
+        this._physicsFolder.addSuggest(this, "_physicsEngine", ["Cannon", "Oimo", "Ammo"]).name("Engine").onChange(() => {
+            const physicsEngine = this._physicsEngine.toLocaleLowerCase() as PhysicsEngineType;
+            WorkSpace.Workspace!.physicsEngine = physicsEngine;
+
+            this.clearFolder(this._physicsFolder!);
+            this.addPhysics();
+        });
+
+        // Properties
+        this._physicsFolder.addVector("Gravity", physicsEngine.gravity);
     }
 }
 

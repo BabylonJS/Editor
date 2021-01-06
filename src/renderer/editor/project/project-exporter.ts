@@ -621,6 +621,11 @@ export class ProjectExporter {
             m.lodCoverages = lods.map((lod) => lod.distance);
         });
 
+        // Physics
+        if (scene.physicsEnabled && scene.physicsEngine && WorkSpace.Workspace?.physicsEngine) {
+            scene.physicsEngine = WorkSpace.Workspace?.physicsEngine;
+        }
+
         // Clean
         optimizer.clean();
 

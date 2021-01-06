@@ -117,6 +117,7 @@ export class WorkSpace {
             useIncrementalLoading: this.Workspace!.useIncrementalLoading,
             firstLoad: this.Workspace!.firstLoad,
             watchProject: this.Workspace!.watchProject,
+            physicsEngine: this.Workspace!.physicsEngine,
             pluginsPreferences,
         } as IWorkSpace, {
             encoding: "utf-8",

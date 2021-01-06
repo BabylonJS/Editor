@@ -1,11 +1,9 @@
 import { join, basename } from "path";
 
-import { Nullable } from "../../../shared/types";
-
 import {
     Scene, SerializationHelper, SceneLoader,
     Color4, Color3, Vector3, Texture,
-    CannonJSPlugin, OimoJSPlugin, AmmoJSPlugin, BabylonFileLoaderConfiguration, IPhysicsEnginePlugin, Animation,
+    CannonJSPlugin, Animation,
 } from "babylonjs";
 
 export class ProjectHelpers {
@@ -126,19 +124,15 @@ export class ProjectHelpers {
         }
 
         if (parsedData.physicsEnabled) {
-            if (!scene.getPhysicsEngine()) {
-                let physicsPlugin: Nullable<IPhysicsEnginePlugin> = null;
-                if (parsedData.physicsEngine === "cannon") {
-                    physicsPlugin = new CannonJSPlugin(undefined, undefined, BabylonFileLoaderConfiguration.LoaderInjectedPhysicsEngine);
-                } else if (parsedData.physicsEngine === "oimo") {
-                    physicsPlugin = new OimoJSPlugin(undefined, BabylonFileLoaderConfiguration.LoaderInjectedPhysicsEngine);
-                } else if (parsedData.physicsEngine === "ammo") {
-                    physicsPlugin = new AmmoJSPlugin(undefined, BabylonFileLoaderConfiguration.LoaderInjectedPhysicsEngine, undefined);
-                }
+            const cannon = require("cannon/build/cannon.js");
+            const physicsPlugin = new CannonJSPlugin(undefined, undefined, cannon);
 
-                if (physicsPlugin) {
-                    scene.enablePhysics(Vector3.Zero(), physicsPlugin);
+            if (physicsPlugin) {
+                if (scene.getPhysicsEngine()) {
+                    scene.disablePhysicsEngine();
                 }
+                
+                scene.enablePhysics(Vector3.Zero(), physicsPlugin);
             }
 
             const physicsEngine = scene.getPhysicsEngine();
