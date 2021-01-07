@@ -532,6 +532,12 @@ export class ProjectExporter {
             if (m.metadata) {
                 m.metadata = Tools.CloneObject(m.metadata);
             }
+
+            // TODO: fix in babylonjs where restitution is equal to mass when serializing mesh.
+            if (mesh.physicsImpostor) {
+                m.physicsRestitution = mesh.physicsImpostor.getParam("restitution");
+            }
+
             delete m.renderOverlay;
         });
 
@@ -625,6 +631,13 @@ export class ProjectExporter {
         if (scene.physicsEnabled && scene.physicsEngine && WorkSpace.Workspace?.physicsEngine) {
             scene.physicsEngine = WorkSpace.Workspace?.physicsEngine;
         }
+
+        scene.meshes?.forEach((m) => {
+            const existingMesh = editor.scene!.getMeshByID(m.id);
+            if (!existingMesh?.physicsImpostor) { return; }
+
+            m.physicsRestitution = existingMesh.physicsImpostor.getParam("restitution");
+        });
 
         // Clean
         optimizer.clean();

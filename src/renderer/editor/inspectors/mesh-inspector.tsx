@@ -252,10 +252,15 @@ export class MeshInspector extends NodeInspector {
         });
 
         // Impostor properties
+        const onPropertyChanged = (param: string, value: number) => {
+            this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false;
+            this.selectedObject.physicsImpostor!.setParam(param, value);
+        };
+
         if (this.selectedObject.physicsImpostor && this.selectedObject.physicsImpostor.type !== PhysicsImpostor.NoImpostor) {
-            this._physicsFolder.add(this.selectedObject.physicsImpostor, "mass").min(0).step(0.1).name("Mass").onChange(() => this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false);
-            this._physicsFolder.add(this.selectedObject.physicsImpostor, "restitution").min(0).step(0.1).name("Restitution").onChange(() => this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false);
-            this._physicsFolder.add(this.selectedObject.physicsImpostor, "friction").min(0).step(0.1).name("Friction").onChange(() => this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false);
+            this._physicsFolder.add(this.selectedObject.physicsImpostor, "mass").min(0).step(0.1).name("Mass").onChange(() => onPropertyChanged("mass", this.selectedObject.physicsImpostor!.mass));
+            this._physicsFolder.add(this.selectedObject.physicsImpostor, "restitution").min(0).step(0.1).name("Restitution").onChange(() => onPropertyChanged("restitution", this.selectedObject.physicsImpostor!.restitution));
+            this._physicsFolder.add(this.selectedObject.physicsImpostor, "friction").min(0).step(0.1).name("Friction").onChange(() => onPropertyChanged("friction", this.selectedObject.physicsImpostor!.friction));
         }
     }
 
