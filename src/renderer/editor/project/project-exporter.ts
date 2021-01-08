@@ -107,7 +107,8 @@ export class ProjectExporter {
                 screenSpaceReflections: { enabled: SceneSettings.IsScreenSpaceReflectionsEnabled(), json: SceneSettings.ScreenSpaceReflectionsPostProcess?.serialize() },
                 default: { enabled: SceneSettings.IsDefaultPipelineEnabled(), json: SceneSettings.DefaultPipeline?.serialize() },
                 motionBlur: { enabled: SceneSettings.IsMotionBlurEnabled(), json: SceneSettings.MotionBlurPostProcess?.serialize() },
-            }
+            },
+            physicsEnabled: Project.Project?.physicsEnabled ?? true,
         };
 
         const exportedMeshes: string[] = [];
@@ -480,6 +481,9 @@ export class ProjectExporter {
             }
         }
 
+        // Save project configuration
+        Project.Project = project;
+
         // Done!
         editor.updateTaskFeedback(task, 100, "Done!");
         editor.closeTaskFeedback(task, 500);
@@ -634,7 +638,8 @@ export class ProjectExporter {
         });
 
         // Physics
-        if (scene.physicsEnabled && scene.physicsEngine && WorkSpace.Workspace?.physicsEngine) {
+        scene.physicsEnabled = Project.Project?.physicsEnabled ?? true;
+        if (scene.physicsEngine && WorkSpace.Workspace?.physicsEngine) {
             scene.physicsEngine = WorkSpace.Workspace?.physicsEngine;
         }
 
@@ -642,15 +647,29 @@ export class ProjectExporter {
             const existingMesh = editor.scene!.getMeshByID(m.id);
             if (!existingMesh) { return; }
 
-            if (existingMesh.physicsImpostor) {
-                m.physicsRestitution = existingMesh.physicsImpostor.getParam("restitution");
+            if (scene.physicsEnabled) {
+                if (existingMesh.physicsImpostor) {
+                    m.physicsRestitution = existingMesh.physicsImpostor.getParam("restitution");
+                }
+            } else {
+                delete m.physicsImpostor;
+                delete m.physicsMass;
+                delete m.physicsFriction;
+                delete m.physicsRestitution;
             }
 
             m.instances?.forEach((i) => {
                 const instance = existingMesh._scene.getMeshByID(i.id);
                 if (!instance?.physicsImpostor) { return; }
 
-                i.physicsRestitution = instance.physicsImpostor.getParam("restitution");
+                if (scene.physicsEnabled) {
+                    i.physicsRestitution = instance.physicsImpostor.getParam("restitution");
+                } else {
+                    delete i.physicsImpostor;
+                    delete i.physicsMass;
+                    delete i.physicsFriction;
+                    delete i.physicsRestitution;
+                }
             });
         });
 

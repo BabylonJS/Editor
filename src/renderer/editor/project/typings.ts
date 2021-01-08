@@ -192,6 +192,11 @@ export interface IProject {
             json: any;
         }
     };
+
+    /**
+     * Defines wether or not the physics is enabled in the project.
+     */
+    physicsEnabled?: boolean;
 }
 
 /**

@@ -409,6 +409,10 @@ export class ProjectImporter {
             }
         }
 
+        // Configure and save project
+        project.physicsEnabled ??= true;
+        Project.Project = project;
+
         // Update cache
         Overlay.SetMessage("Loading Cache...");
         const assetsCachePath = join(Project.DirPath, "assets", "cache.json");

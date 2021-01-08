@@ -3,6 +3,7 @@ import { Nullable } from "../../../shared/types";
 import { GUI } from "dat.gui";
 import { Scene } from "babylonjs";
 
+import { Project } from "../project/project";
 import { WorkSpace } from "../project/workspace";
 import { PhysicsEngineType } from "../project/typings";
 
@@ -104,9 +105,12 @@ export class SceneInspector extends ScriptInspector<Scene> {
         this._physicsFolder ??= this.tool!.addFolder("Physics");
         this._physicsFolder.open();
 
-        WorkSpace.Workspace.physicsEngine ??= "cannon";
-
+        // Properties
+        this._physicsFolder.add(Project.Project!, "physicsEnabled").name("Physics Enabled");
+        this._physicsFolder.addVector("Gravity", physicsEngine.gravity);
+        
         // Engine
+        WorkSpace.Workspace.physicsEngine ??= "cannon";
         this._physicsEngine = WorkSpace.Workspace.physicsEngine === "cannon" ? "Cannon" :
                               WorkSpace.Workspace.physicsEngine === "oimo" ? "Oimo" :
                               "Ammo";
@@ -118,9 +122,6 @@ export class SceneInspector extends ScriptInspector<Scene> {
             this.clearFolder(this._physicsFolder!);
             this.addPhysics();
         });
-
-        // Properties
-        this._physicsFolder.addVector("Gravity", physicsEngine.gravity);
     }
 }
 
