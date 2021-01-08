@@ -8,7 +8,7 @@ import { IPCResponses } from "../../../shared/ipc";
 import * as React from "react";
 import {
     ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, MenuDivider, Divider,
-    Popover, Position, Tag, Intent,
+    Popover, Position, Tag, Intent, Code,
 } from "@blueprintjs/core";
 
 import { Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools, NodeMaterial, MultiMaterial } from "babylonjs";
@@ -58,6 +58,9 @@ export class MaterialAssets extends AbstractAssets {
                 <MenuItem key="add-node-material-from-snippet" text="Node Material From Snippet..." onClick={() => this._addNodeMaterialFromWeb()} />
                 <MenuDivider />
                 <MenuItem key="add-material-from-preset" icon={<Icon src="search.svg" />} text="From Preset..." onClick={() => this._handleLoadFromPreset()} />
+                <MenuDivider />
+                <Code>Materials Library</Code>
+                <MenuItem key="add-cell-material" text="Add Cell Material..." onClick={() => this._addMaterial("CellMaterial")} />
             </Menu>;
 
         return (
