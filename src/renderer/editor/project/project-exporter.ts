@@ -537,6 +537,12 @@ export class ProjectExporter {
             if (mesh.physicsImpostor) {
                 m.physicsRestitution = mesh.physicsImpostor.getParam("restitution");
             }
+            m.instances?.forEach((i) => {
+                const instance = mesh._scene.getMeshByID(i.id);
+                if (!instance?.physicsImpostor) { return; }
+
+                i.physicsRestitution = instance.physicsImpostor.getParam("restitution");
+            });
 
             delete m.renderOverlay;
         });
@@ -634,9 +640,18 @@ export class ProjectExporter {
 
         scene.meshes?.forEach((m) => {
             const existingMesh = editor.scene!.getMeshByID(m.id);
-            if (!existingMesh?.physicsImpostor) { return; }
+            if (!existingMesh) { return; }
 
-            m.physicsRestitution = existingMesh.physicsImpostor.getParam("restitution");
+            if (existingMesh.physicsImpostor) {
+                m.physicsRestitution = existingMesh.physicsImpostor.getParam("restitution");
+            }
+
+            m.instances?.forEach((i) => {
+                const instance = existingMesh._scene.getMeshByID(i.id);
+                if (!instance?.physicsImpostor) { return; }
+
+                i.physicsRestitution = instance.physicsImpostor.getParam("restitution");
+            });
         });
 
         // Clean
