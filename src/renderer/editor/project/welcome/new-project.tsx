@@ -96,6 +96,10 @@ export class NewProjectWizard extends React.Component {
             sceneZip.extractAllToAsync(dest, false, (err) => err ? reject(err) : resolve());
         });
 
+        // Write src project
+        const srcDest = join(WorkSpace.DirPath!, "src/scenes/", name);
+        if (!(await pathExists(srcDest))) { await mkdir(srcDest); }
+
         this._handleClose();
         if (!(await Confirm.Show("Load new project?", "Do you want to load the new created project?"))) { return; }
 

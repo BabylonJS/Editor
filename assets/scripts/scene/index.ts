@@ -4,23 +4,11 @@
 
 import { Node, Scene } from "@babylonjs/core";
 import {
-    ScriptMap, attachScripts, attachScriptToNodeAtRumtine,
+    attachScripts, attachScriptToNodeAtRumtine,
     configurePostProcesses, setupRenderingGroups,
 } from "../tools";
 
-/**
- * Defines the interface that exposes all exported scripts in this project.
- */
-export interface ISceneScriptMap extends ScriptMap {
-// ${scriptsInterface}
-}
-
-/**
- * Defines the map of all available scripts in the project.
- */
-export const scriptsMap: ISceneScriptMap = {
-// ${scripts}
-}
+import { scriptsMap } from "../scripts-map";
 
 /**
  * Works as an helper, this will:

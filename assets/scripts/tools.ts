@@ -8,6 +8,7 @@ import {
     Scene, Node, AbstractMesh, Mesh,
     Vector2, Vector3, Vector4,
     SSAO2RenderingPipeline, DefaultRenderingPipeline, ScreenSpaceReflectionPostProcess, MotionBlurPostProcess,
+    Nullable,
 } from "@babylonjs/core";
 
 export type NodeScriptConstructor = (new (...args: any[]) => Node);
@@ -228,6 +229,23 @@ export function attachScriptToNodeAtRumtine(scriptsMap: ScriptMap, scriptsKey: s
 }
 
 /**
+ * Defines the reference to the SSAO2 rendering pipeline.
+ */
+export let ssao2RenderingPipelineRef: Nullable<SSAO2RenderingPipeline> = null;
+/**
+ * Defines the reference to the SSR post-process.
+ */
+export let screenSpaceReflectionPostProcessRef: Nullable<ScreenSpaceReflectionPostProcess> = null;
+/**
+ * Defines the reference to the default rendering pipeline.
+ */
+export let defaultRenderingPipelineRef: Nullable<DefaultRenderingPipeline> = null;
+/**
+ * Defines the reference to the motion blur post-process.
+ */
+export let motionBlurPostProcessRef: Nullable<MotionBlurPostProcess> = null;
+
+/**
  * Configures and attaches the post-processes of the given scene.
  * @param scene the scene where to create the post-processes and attach to its cameras.
  * @param rootUrl the root Url where to find extra assets used by pipelines. Should be the same as the scene.
@@ -237,24 +255,35 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
 
     // Load  post-processes configuration
     const data = scene.metadata.postProcesses;
-    if (data.ssao) {
-        const ssao = SSAO2RenderingPipeline.Parse(data.ssao.json, scene, rootUrl);
+
+    if (data.ssao && !ssao2RenderingPipelineRef) {
+        ssao2RenderingPipelineRef = SSAO2RenderingPipeline.Parse(data.ssao.json, scene, rootUrl);
         if (data.ssao.enabled) {
-            scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(ssao.name, scene.cameras);
+            scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(ssao2RenderingPipelineRef.name, scene.cameras);
         }
     }
-    if (data.screenSpaceReflections?.json) {
-        ScreenSpaceReflectionPostProcess._Parse(data.screenSpaceReflections.json, scene.activeCamera!, scene, "");
+
+    if (data.screenSpaceReflections?.json && !screenSpaceReflectionPostProcessRef) {
+        screenSpaceReflectionPostProcessRef = ScreenSpaceReflectionPostProcess._Parse(data.screenSpaceReflections.json, scene.activeCamera!, scene, "");
     }
-    if (data.default) {
-        const def = DefaultRenderingPipeline.Parse(data.default.json, scene, rootUrl);
+
+    if (data.default && !defaultRenderingPipelineRef) {
+        defaultRenderingPipelineRef = DefaultRenderingPipeline.Parse(data.default.json, scene, rootUrl);
         if (!data.default.enabled) {
-            scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(def.name, scene.cameras);
+            scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(defaultRenderingPipelineRef.name, scene.cameras);
         }
     }
+
     if (data.motionBlur?.json) {
-        MotionBlurPostProcess._Parse(data.motionBlur.json, scene.activeCamera!, scene, "");
+        motionBlurPostProcessRef = MotionBlurPostProcess._Parse(data.motionBlur.json, scene.activeCamera!, scene, "");
     }
+
+    scene.onDisposeObservable.addOnce(() => {
+        ssao2RenderingPipelineRef = null;
+        screenSpaceReflectionPostProcessRef = null;
+        defaultRenderingPipelineRef = null;
+        motionBlurPostProcessRef = null;
+    });
 }
 
 /**
@@ -279,4 +308,7 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
     };
 })();
 
-// ${decorators}
+/**
+ * @deprecated will be moved to "./decorators.ts".
+ */
+export * from "./decorators";

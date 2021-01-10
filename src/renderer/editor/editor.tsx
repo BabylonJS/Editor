@@ -833,10 +833,13 @@ export class Editor {
             }
 
             // First load?
+            if (!(await pathExists(join(WorkSpace.DirPath!, "scenes", WorkSpace.GetProjectName())))) {
+                await ProjectExporter.ExportFinalScene(this);
+            }
+            
             const hasNodeModules = await pathExists(join(WorkSpace.DirPath!, "node_modules"));
             const hasPackageJson = await pathExists(join(WorkSpace.DirPath!, "package.json"));
             if (!hasNodeModules && hasPackageJson) {
-                await ProjectExporter.ExportFinalScene(this);
                 await WorkSpace.InstallAndBuild(this);
             }
 

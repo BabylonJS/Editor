@@ -49,9 +49,19 @@ export class ScriptAssets extends AbstractAssets {
      */
     public static GetAllScripts(): Promise<string[]> {
         return new Promise<string[]>((resolve, reject) => {
-            Glob(join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName(), "**", "*.ts"), { }, (err, files) => {
+            Glob(join(WorkSpace.DirPath!, "src", "scenes", "**", "*.ts"), { }, (err, files) => {
                 if (err) { return reject(err); }
-                resolve(files.filter((f) => f.indexOf("index.ts") === -1).map((f) => f.replace(/\\/g, "/").replace(WorkSpace.DirPath!.replace(/\\/g, "/"), "")));
+
+                const excluded = [
+                    "src/scenes/decorators.ts",
+                    "src/scenes/scripts-map.ts",
+                    "src/scenes/tools.ts",
+                ];
+                const result = files.filter((f) => f.indexOf("index.ts") === -1)
+                                    .map((f) => f.replace(/\\/g, "/").replace(WorkSpace.DirPath!.replace(/\\/g, "/"), ""))
+                                    .filter((f) => excluded.indexOf(f) === -1);
+
+                resolve(result);
             });
         });
     }
@@ -138,7 +148,7 @@ export class ScriptAssets extends AbstractAssets {
      * @param item defines the item to open.
      */
     public async openItem(item: IAssetComponentItem): Promise<void> {
-        const path = normalize(join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName(), item.key));
+        const path = normalize(join(WorkSpace.DirPath!, "src", "scenes", item.key));
         const infos = await stat(path);
 
         if (infos.isDirectory()) {
@@ -212,7 +222,7 @@ export class ScriptAssets extends AbstractAssets {
         if (item === droppedItem) { return; }
         if (item.ref) { item.ref.style.backgroundColor = ""; }
 
-        const root = join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName());
+        const root = join(WorkSpace.DirPath!, "src", "scenes");
         const target = join(root, item.key);
 
         const isDirectory = (await stat(target)).isDirectory();
@@ -232,7 +242,7 @@ export class ScriptAssets extends AbstractAssets {
      * @param item defines the reference to the item having the pointer over.
      */
     protected getItemTooltipContent(item: IAssetComponentItem): Undefinable<JSX.Element> {
-        const path = join("src/scenes", WorkSpace.GetProjectName(), item.key);
+        const path = join("src/scenes", item.key);
         const attached: Node[] = [];
         const all = (this.editor.scene!.meshes as Node[])
                          .concat(this.editor.scene!.lights)
@@ -341,7 +351,7 @@ export class ScriptAssets extends AbstractAssets {
                     if (!this.itemBeingDragged) { return; }
                     (ev.target as HTMLSpanElement).style.background = "";
 
-                    const root = join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName());
+                    const root = join(WorkSpace.DirPath!, "src", "scenes");
                     const target = join(root, path);
                     const src = join(root, this.itemBeingDragged.key);
                     const dest = join(target, basename(this.itemBeingDragged.key));
@@ -382,7 +392,7 @@ export class ScriptAssets extends AbstractAssets {
      * Returns the current path being browsed by the assets component.
      */
     private _getCurrentPath(): string {
-        return join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName(), ScriptAssets._Path);
+        return join(WorkSpace.DirPath!, "src", "scenes", ScriptAssets._Path);
     }
 
     /**

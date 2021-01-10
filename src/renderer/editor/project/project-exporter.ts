@@ -886,24 +886,32 @@ export class ProjectExporter {
      * @param editor defines the reference to the editor.
      */
     public static async GenerateScripts(editor: Editor): Promise<void> {
+        // Copy tools
         editor.console.logInfo("Copyging tools...");
-        const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
-        const tools = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
 
-        const finalTools = tools.replace("// ${decorators}", decorators)
+        const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
+        await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "decorators.ts"), decorators, { encoding: "utf-8" });
+
+        const tools = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
+        const finalTools = tools// .replace("// ${decorators}", decorators)
                                 .replace("${editor-version}", editor._packageJson.version);
 
         await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "tools.ts"), finalTools, { encoding: "utf-8" });
 
         // Export scripts
         editor.console.logInfo("Configuring scripts...");
+        const scriptsMap = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "scripts-map.ts"), { encoding: "utf-8" });
+        const newScriptsMap = await this._UpdateScriptContent(editor, scriptsMap);
+        await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "scripts-map.ts"), newScriptsMap, { encoding: "utf-8" });
+
+        // Export scene content
+        editor.console.logInfo("Configuring scene entry point...");
         const scriptsContent = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "scene", "index.ts"), { encoding: "utf-8" });
-        const newScriptContent = await this._UpdateScriptContent(editor, scriptsContent);
 
         const indexPath = join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName());
         if (!(await pathExists(indexPath))) { await mkdir(indexPath); }
 
-        await writeFile(join(indexPath, "index.ts"), newScriptContent, { encoding: "utf-8" });
+        await writeFile(join(indexPath, "index.ts"), scriptsContent, { encoding: "utf-8" });
     }
 
     /**
@@ -1110,7 +1118,7 @@ export class ProjectExporter {
         // Export scripts.
         const all = await ScriptAssets.GetAllScripts();
         return scriptsContent.replace("${editor-version}", editor._packageJson.version).replace("// ${scripts}", all.map((s) => {
-            const toReplace = `src/scenes/${WorkSpace.GetProjectName()}/`;
+            const toReplace = `src/scenes/`;
             const extension = extname(s);
             return `\t"${s}": require("./${s.replace(toReplace, "").replace(extension, "")}"),`;
         }).join("\n")).replace("// ${scriptsInterface}", all.map((s) => {

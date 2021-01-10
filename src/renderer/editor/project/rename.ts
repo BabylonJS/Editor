@@ -1,6 +1,8 @@
 import { readdir, rename, pathExists } from "fs-extra";
 import { join, basename, resolve } from "path";
 
+import { IStringDictionary } from "../../../shared/types";
+
 import { Node } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -11,6 +13,7 @@ import { Overlay } from "../gui/overlay";
 
 import { Project } from "./project";
 import { WorkSpace } from "./workspace";
+import { FilesStore, IFile } from "./files";
 
 export class ProjectRenamer {
     /**
@@ -18,11 +21,12 @@ export class ProjectRenamer {
      * @param editor the editor reference.
      */
     public static async Rename(editor: Editor): Promise<void> {
+        const basename = WorkSpace.GetProjectName();
         const name = await Dialog.Show("New Project Name", "Please provide the new name of the project.");
         
         Overlay.Show("Renaming...", true);
         try {
-            await this._Rename(editor, name);
+            await this._Rename(editor, name, basename);
         } catch (e) {
             Alert.Show("Can't Rename Project", "An error occured when renaming project.");
         }
@@ -33,16 +37,30 @@ export class ProjectRenamer {
     /**
      * Renames the current project.
      */
-    private static async _Rename(editor: Editor, name: string): Promise<void> {
+    private static async _Rename(editor: Editor, name: string, originalname: string): Promise<void> {
         if (!Project.DirPath || !WorkSpace.DirPath) { return; }
         if (!Project.Path || ! WorkSpace.Path) { return; }
 
         const files = await readdir(join(WorkSpace.DirPath, "projects"));
-
         const existing = files.find((f) => f.toLowerCase() === name.toLowerCase()) ?? null;
         if (existing !== null) {
-            return Alert.Show("Can't Rename Project", `A project named "${name}" already exists. Please provide another name`);
+            return Alert.Show("Can't Rename Project", `A project named "${name}" already exists. Please provide another name.`);
         }
+
+        // Rename files store
+        const newFileStore: IStringDictionary<IFile> = { };
+        for (const f in FilesStore.List) {
+            const newPath = f.replace(
+                join(WorkSpace.DirPath!, "projects", WorkSpace.GetProjectName()),
+                join(WorkSpace.DirPath!, "projects", name),
+            );
+            newFileStore[newPath] = {
+                path: newPath,
+                name: FilesStore.List[f].name,
+            };
+        }
+
+        FilesStore.List = newFileStore;
 
         const projectName = WorkSpace.GetProjectName();
 
@@ -56,7 +74,7 @@ export class ProjectRenamer {
             try {
                 await rename(sceneFolder, join(WorkSpace.DirPath, "scenes", name));
             } catch (e) {
-                // Catch silently.
+                return this._Rename(editor, originalname, originalname);
             }
         }
 
@@ -67,7 +85,7 @@ export class ProjectRenamer {
             try {
                 await rename(srcFolder, join(WorkSpace.DirPath, "src", "scenes", name));
             } catch (e) {
-                // Catch silently.
+                return this._Rename(editor, originalname, originalname);
             }
         }
 
@@ -93,5 +111,8 @@ export class ProjectRenamer {
         // Update workspace
         WorkSpace.Workspace!.lastOpenedScene = join("projects", name, basename(Project.Path));
         await WorkSpace.WriteWorkspaceFile(Project.Path);
+
+        // Update assets
+        await editor.assets.refresh();
     }
 }
