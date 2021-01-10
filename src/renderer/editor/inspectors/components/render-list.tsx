@@ -3,7 +3,7 @@ import Transfer, { TransferItem } from "antd/lib/transfer";
 
 import { AbstractMesh, RenderTargetTexture } from "babylonjs";
 
-import { Editor } from "../../../editor";
+import { Editor } from "../../editor";
 
 export interface IRenderListProps {
     /**
@@ -14,6 +14,10 @@ export interface IRenderListProps {
      * Defines the reference to the render target
      */
     renderTarget: RenderTargetTexture;
+    /**
+     * Defines the optional callback called on the render list changed.
+     */
+    onChange?: () => void;
 }
 
 export interface IRenderListState {
@@ -108,6 +112,10 @@ export class RenderList extends React.Component<IRenderListProps, IRenderListSta
                     }
                 });
                 break;
+        }
+
+        if (this.props.onChange) {
+            this.props.onChange();
         }
 
         this.setState({

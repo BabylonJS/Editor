@@ -10,7 +10,7 @@ import { AbstractInspector } from "../abstract-inspector";
 
 import { Confirm } from "../../gui/confirm";
 
-import { RenderList } from "./components/render-list";
+import { RenderList } from "../components/render-list";
 
 export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotLight> {
     private _hasShadowGenerator: boolean = false;

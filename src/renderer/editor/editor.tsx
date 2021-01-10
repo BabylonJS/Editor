@@ -83,6 +83,9 @@ import "./inspectors/materials/pbr-material-inspector";
 import "./inspectors/materials/sky-material-inspector";
 import "./inspectors/materials/node-material-inspector";
 import "./inspectors/materials/cell-material-inspector";
+import "./inspectors/materials/fire-material-inspector";
+import "./inspectors/materials/lava-material-inspector";
+import "./inspectors/materials/water-material-inspector";
 
 import "./inspectors/textures/texture-inspector";
 
