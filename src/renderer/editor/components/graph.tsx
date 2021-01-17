@@ -1,3 +1,5 @@
+import { join } from "path";
+
 import * as React from "react";
 import Tree from "antd/lib/tree/Tree";
 import {
@@ -27,6 +29,7 @@ import { SceneSettings } from "../scene/settings";
 import { SceneTools } from "../scene/tools";
 
 import { SoundAssets } from "../assets/sounds";
+import { IAssetComponentItem } from "../assets/abstract-assets";
 
 export interface IGraphProps {
     /**
@@ -69,6 +72,15 @@ export interface IGraphState {
      * Defines wether or not the lights should be shown in the graph.
      */
     showLights: boolean;
+}
+
+interface _ITreeDropInfo {
+    event: React.MouseEvent;
+    node: any;
+    dragNode: any;
+    dragNodesKeys: (string | number)[];
+    dropPosition: number;
+    dropToGap: boolean;
 }
 
 export class Graph extends React.Component<IGraphProps, IGraphState> {
@@ -939,8 +951,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Called on a node is dropped in the graph.
      */
-    private _handleDrop(info: any): void {
+    private _handleDrop(info: _ITreeDropInfo): void {
         if (!this.state.selectedNodeIds) { return; }
+        if (!info.dragNode) { return this._handleDropAsset(info); }
 
         const source = this._getNodeById(info.dragNode.key);
         if (!source) { return; }
@@ -993,6 +1006,41 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         }
 
         this.refresh();
+    }
+
+    /**
+     * Called on an asset has been dropped on the node.
+     */
+    private _handleDropAsset(info: _ITreeDropInfo): void {
+        const ev = info.event as unknown as DragEvent;
+        if (!ev.dataTransfer) { return; }
+
+        const target = this._getNodeById(info.node.key);
+        if (!(target instanceof Node)) { return; }
+
+        let nodes = [target];
+        if (this.state.selectedNodeIds) {
+            nodes = this.state.selectedNodeIds
+                        .map((s) => this._getNodeById(s))
+                        .filter((n) => n instanceof Node && nodes.indexOf(n) === -1)
+                        .concat(nodes) as Node[];
+        }
+
+        // Script
+        try {
+            const data = JSON.parse(ev.dataTransfer.getData("application/script-asset")) as IAssetComponentItem;
+            const path = join("src", "scenes", data.key);
+
+            nodes.forEach((n) => {
+                n.metadata ??= { };
+                n.metadata.script ??= { };
+                n.metadata.script.name = path;
+            });
+
+            return this.refresh();
+        } catch (e) {
+            // Catch silently.
+        }
     }
 
     /**

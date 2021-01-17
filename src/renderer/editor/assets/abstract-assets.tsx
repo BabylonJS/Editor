@@ -102,6 +102,10 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      * Defines the size of assets to be drawn in the panel. Default is 100x100 pixels.
      */
     protected size: number = 100;
+    /**
+     * Defines the type of the data transfer data when drag'n'dropping asset.
+     */
+    protected dragAndDropType: string = "text/plain";
 
     /**
      * Stores the current list of nodes drawn in the panel..
@@ -299,7 +303,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                         onDoubleClick={(e) => this.onDoubleClick(item, e.target as HTMLImageElement)}
                         onContextMenu={(e) => this.onContextMenu(item, e)}
                         onDragStart={(e) => this.dragStart(e, item)}
-                        onDragEnd={() => this.dragEnd()}
+                        onDragEnd={(e) => this.dragEnd(e)}
                         onDrop={() => this._itemBeingDragged && this.dropOver(item, this.itemBeingDragged!)}
                         onDragEnter={() => this._itemBeingDragged && this.dragEnter(item)}
                         onDragLeave={() => this._itemBeingDragged && this.dragLeave(item)}
@@ -339,9 +343,14 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
     /**
      * Called on the user starts dragging the asset.
      */
-    protected dragStart(_: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
+    protected dragStart(e: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
         this._dropListener = this._getDropListener(item);
         this._itemBeingDragged = item;
+
+        e.dataTransfer.setData(this.dragAndDropType, JSON.stringify({
+            id: item.id,
+            key: item.key,
+        }));
 
         this.editor.engine!.getRenderingCanvas()?.addEventListener("drop", this._dropListener);
     }
@@ -373,8 +382,11 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
 
     /**
      * Called on the user ends dragging the asset.
+     * @param e defines the reference to the drag'n'drop event.
      */
-    protected dragEnd(): void {
+    protected dragEnd(e: React.DragEvent<HTMLImageElement>): void {
+        e.dataTransfer?.clearData();
+
         this.editor.engine!.getRenderingCanvas()?.removeEventListener("drop", this._dropListener!);
         this._dropListener = null;
         this._itemBeingDragged = null;

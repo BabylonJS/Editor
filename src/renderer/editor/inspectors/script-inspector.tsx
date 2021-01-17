@@ -22,10 +22,12 @@ import { Inspector } from "../components/inspector";
 import { AbstractInspector } from "./abstract-inspector";
 
 import { ScriptAssets } from "../assets/scripts";
+import { IAssetComponentItem } from "../assets/abstract-assets";
 
 export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T> {
     private _selectedScript: string = "";
 
+    private _scriptFolder: Nullable<GUI> = null;
     private _scriptControllers: GUIController[] = [];
     private _scriptFolders: GUI[] = [];
 
@@ -59,8 +61,8 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
     protected async addScript(): Promise<void> {
         if (!WorkSpace.HasWorkspace()) { return; }
 
-        const script = this.tool!.addFolder("Script");
-        script.open();
+        this._scriptFolder ??= this.tool!.addFolder("Script");
+        this._scriptFolder.open();
 
         // Check metadata
         this.selectedObject.metadata = this.selectedObject.metadata ?? { };
@@ -68,52 +70,79 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
 
         // Add suggest
         this._selectedScript = this.selectedObject.metadata.script.name ?? "None";
-        script.addSuggest(this, "_selectedScript", ["None"], {
+        this._scriptFolder.addSuggest(this, "_selectedScript", ["None"], {
             onUpdate: async () => ["None"].concat((await ScriptAssets.GetAllScripts()).filter((s) => s.indexOf("src/scenes/scene/graphs/") === -1)),
         }).name("Script").onChange(() => {
-            this.selectedObject.metadata.script.name = this._selectedScript;
-            this.editor.graph.refresh();
-            
-            if (this._scriptWatcher) {
-                this._scriptWatcher.close();
-                this._scriptWatcher = null;
-            }
-
-            this._clearScriptControllersAndFolders(script);
-
-            if (this._selectedScript === "None") {
-                return;
-            }
-
-            this._updateScriptVisibleProperties(script);
+            this._setScript(this._selectedScript);
         });
-
-        // Refresh
-        script.addButton("Refresh...").onClick(() => this._refreshScript(script));
 
         // Serialized properties.
         if (this._selectedScript !== "None") {
+            // Refresh
+            this._scriptFolder.addButton("Refresh...").onClick(() => this._refreshScript(this._scriptFolder!));
+
             const tsPath = join(WorkSpace.DirPath!, this.selectedObject.metadata.script.name);
 
-            script.addButton("Open Script...").onClick(() => shell.openItem(tsPath));
+            this._scriptFolder.addButton("Open Script...").onClick(() => shell.openItem(tsPath));
 
             // Preview
             readFile(tsPath, { encoding: "utf-8" }).then((c) => {
-                const preview = script.addFolder("Preview");
+                const preview = this._scriptFolder!.addFolder("Preview");
                 preview.addCustom("500px", <Pre style={{ height: "500px" }}>{c}</Pre>);
             });
 
             // Properties
-            const spinner = script.addCustom("35px", <Spinner size={35} />);
+            const spinner = this._scriptFolder.addCustom("35px", <Spinner size={35} />);
 
             try {
-                await this._updateScriptVisibleProperties(script);
+                await this._updateScriptVisibleProperties(this._scriptFolder);
             } catch (e) {
                 // TODO: manage errors.
             }
 
-            script.remove(spinner as any);
+            this._scriptFolder.remove(spinner as any);
+        } else {
+            this._scriptFolder.addCustom("100px", (
+                <div
+                    style={{ width: "calc(100% - 2px)", height: "90px", borderColor: "black", borderStyle: "dashed" }}
+                    onDragOver={(e) => e.currentTarget.style.borderColor = "#2FA1D6"}
+                    onDragLeave={(e) => e.currentTarget.style.borderColor = "black"}
+                    onDrop={async (e) => {
+                        e.currentTarget.style.borderColor = "black";
+
+                        try {
+                            const data = JSON.parse(e.dataTransfer.getData("application/script-asset")) as IAssetComponentItem;
+                            const path = join("src", "scenes", data.key);
+                            this._setScript(path);
+                        } catch (e) {
+                            this.editor.console.logError("Failed to parse data of drag'n'drop event.");
+                        }
+                    }}
+                >
+                    <h3 style={{ textAlign: "center", pointerEvents: "none", lineHeight: "90px", color: "#eee" }}>
+                        Drag'n'drop script here.
+                    </h3>
+                </div>
+            ));
         }
+    }
+
+    /**
+     * Sets the new script selected;
+     */
+    private _setScript(script: string): void {
+        if (!this._scriptFolder) { return; }
+
+        this.selectedObject.metadata.script.name = script;
+        this.editor.graph.refresh();
+        
+        if (this._scriptWatcher) {
+            this._scriptWatcher.close();
+            this._scriptWatcher = null;
+        }
+
+        this.clearFolder(this._scriptFolder);
+        this.addScript();
     }
 
     /**

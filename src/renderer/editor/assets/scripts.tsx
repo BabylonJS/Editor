@@ -28,6 +28,10 @@ export class ScriptAssets extends AbstractAssets {
      * @override
      */
     protected size: number = 50;
+    /**
+     * Defines the type of the data transfer data when drag'n'dropping asset.
+     */
+    protected dragAndDropType: string = "application/script-asset";
 
     private _refreshing: boolean = false;
 
