@@ -22,6 +22,7 @@ import { Inspector } from "../components/inspector";
 import { AbstractInspector } from "./abstract-inspector";
 
 import { ScriptAssets } from "../assets/scripts";
+import { GraphAssets } from "../assets/graphs";
 import { IAssetComponentItem } from "../assets/abstract-assets";
 
 export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T> {
@@ -71,7 +72,7 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
         // Add suggest
         this._selectedScript = this.selectedObject.metadata.script.name ?? "None";
         this._scriptFolder.addSuggest(this, "_selectedScript", ["None"], {
-            onUpdate: async () => ["None"].concat((await ScriptAssets.GetAllScripts()).filter((s) => s.indexOf("src/scenes/scene/graphs/") === -1)),
+            onUpdate: async () => ["None"].concat(await ScriptAssets.GetAllScripts()),
         }).name("Script").onChange(() => {
             this._setScript(this._selectedScript);
         });
@@ -104,7 +105,7 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
         } else {
             this._scriptFolder.addCustom("100px", (
                 <div
-                    style={{ width: "calc(100% - 2px)", height: "90px", borderColor: "black", borderStyle: "dashed" }}
+                    style={{ width: "calc(100% - 2px)", height: "95px", borderColor: "black", borderStyle: "dashed" }}
                     onDragOver={(e) => e.currentTarget.style.borderColor = "#2FA1D6"}
                     onDragLeave={(e) => e.currentTarget.style.borderColor = "black"}
                     onDrop={async (e) => {
@@ -112,14 +113,15 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
 
                         try {
                             const data = JSON.parse(e.dataTransfer.getData("application/script-asset")) as IAssetComponentItem;
-                            const path = join("src", "scenes", data.key);
-                            this._setScript(path);
+                            if (!data.extraData?.scriptPath) { throw new Error("Can't drag'n'drop script, extraData is misisng"); }
+                            
+                            this._setScript(data.extraData.scriptPath as string);
                         } catch (e) {
                             this.editor.console.logError("Failed to parse data of drag'n'drop event.");
                         }
                     }}
                 >
-                    <h3 style={{ textAlign: "center", pointerEvents: "none", lineHeight: "90px", color: "#eee" }}>
+                    <h3 style={{ textAlign: "center", pointerEvents: "none", lineHeight: "95px", color: "#eee" }}>
                         Drag'n'drop script here.
                     </h3>
                 </div>
@@ -140,6 +142,13 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
             this._scriptWatcher.close();
             this._scriptWatcher = null;
         }
+
+        // Refresh assets
+        this.editor.assets.refresh(ScriptAssets);
+        this.editor.assets.refresh(GraphAssets);
+
+        this._scriptControllers = [];
+        this._scriptFolders = [];
 
         this.clearFolder(this._scriptFolder);
         this.addScript();
@@ -298,11 +307,11 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T
      */
     private _clearScriptControllersAndFolders(folder: GUI): void {
         this._scriptControllers.forEach((sc) => {
-            folder.remove(sc);
+            try { folder.remove(sc); } catch (e) { /* Catch silently */ }
         });
 
         this._scriptFolders.forEach((f) => {
-            folder.removeFolder(f);
+            try { folder.removeFolder(f); } catch (e) { /* Catch silently */ }
         });
 
         this._scriptControllers = [];

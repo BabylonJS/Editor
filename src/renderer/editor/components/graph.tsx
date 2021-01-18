@@ -1,5 +1,3 @@
-import { join } from "path";
-
 import * as React from "react";
 import Tree from "antd/lib/tree/Tree";
 import {
@@ -1019,7 +1017,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (!(target instanceof Node)) { return; }
 
         let nodes = [target];
-        if (this.state.selectedNodeIds) {
+        if (this.state.selectedNodeIds && this.state.selectedNodeIds.indexOf(target.id) !== -1) {
             nodes = this.state.selectedNodeIds
                         .map((s) => this._getNodeById(s))
                         .filter((n) => n instanceof Node && nodes.indexOf(n) === -1)
@@ -1029,12 +1027,12 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         // Script
         try {
             const data = JSON.parse(ev.dataTransfer.getData("application/script-asset")) as IAssetComponentItem;
-            const path = join("src", "scenes", data.key);
+            if (!data.extraData?.scriptPath) { throw new Error("Can't drag'n'drop script, extraData is misisng"); }
 
             nodes.forEach((n) => {
                 n.metadata ??= { };
                 n.metadata.script ??= { };
-                n.metadata.script.name = path;
+                n.metadata.script.name = data.extraData!.scriptPath as string;
             });
 
             return this.refresh();

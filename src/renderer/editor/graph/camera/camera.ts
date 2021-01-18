@@ -49,10 +49,14 @@ export class Camera extends GraphNode<{ var_name: string; name: string; }> {
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
+                type: "Camera",
                 value: `this._scene.getCameraByName("${this.properties.name}")`,
             },
             outputsCode: [
                 { thisVariable: true },
+            ],
+            requires: [
+                { module: "@babylonjs/core", classes: ["Camera"] },
             ],
         };
     }

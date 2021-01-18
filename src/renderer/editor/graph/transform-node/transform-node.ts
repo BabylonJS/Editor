@@ -52,8 +52,12 @@ export class TransformNode extends GraphNode<{ var_name: string; name: string; }
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
+                type: "TransformNode",
                 value: `this._scene.getTransformNodeByName("${this.properties.name}")`,
             },
+            requires: [
+                { module: "@babylonjs/core", classes: ["TransformNode"] },
+            ],
         };
     }
 }

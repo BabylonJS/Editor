@@ -44,10 +44,14 @@ export class Light extends GraphNode<{ name: string; var_name: string; }> {
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
+                type: "Light",
                 value: `this._scene.getLightByName("${this.properties.name.replace("\\", "\\\\")}")`,
             },
             outputsCode: [
                 { thisVariable: true },
+            ],
+            requires: [
+                { module: "@babylonjs/core", classes: ["Light"] },
             ],
         };
     }

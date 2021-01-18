@@ -8,7 +8,7 @@ import { Undefinable } from "../../../shared/types";
 import * as React from "react";
 import { ButtonGroup, Button, Classes, Breadcrumbs, Boundary, IBreadcrumbProps, Divider, ContextMenu, Menu, MenuItem, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
-import { Node } from "babylonjs";
+import { Scene, Node } from "babylonjs";
 
 import { WorkSpace } from "../project/workspace";
 import { ProjectExporter } from "../project/project-exporter";
@@ -30,6 +30,7 @@ export class ScriptAssets extends AbstractAssets {
     protected size: number = 50;
     /**
      * Defines the type of the data transfer data when drag'n'dropping asset.
+     * @override
      */
     protected dragAndDropType: string = "application/script-asset";
 
@@ -117,17 +118,25 @@ export class ScriptAssets extends AbstractAssets {
             const files = await readdir(path);
             for (const f of files) {
                 if (ScriptAssets._Path === "" && f === "index.ts") { continue; }
+
+                const key = join(ScriptAssets._Path, f);
                 
                 const infos = await stat(join(path, f));
                 if (infos.isDirectory()) {
-                    this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "../css/svg/folder-open.svg" });
+                    this.items.push({ id: f, key, base64: "../css/svg/folder-open.svg" });
                     continue;
                 }
                 
                 const extension = extname(f).toLowerCase();
                 if (extension !== ".ts") { continue; }
 
-                this.items.push({ id: f, key: join(ScriptAssets._Path, f), base64: "../css/images/ts.png" });
+                this.items.push({ id: f, key, base64: "../css/images/ts.png", extraData: {
+                    scriptPath: join("src", "scenes", key),
+                }, style: {
+                    borderColor: "#2FA1D6",
+                    borderStyle: "solid",
+                    borderWidth: this._isScriptAttached(key) ? "2px" : "0px",
+                } });
             }
         } catch (e) {
             console.error(e);
@@ -417,5 +426,27 @@ export class ScriptAssets extends AbstractAssets {
         await ProjectExporter.GenerateScripts(this.editor);
 
         return this.refresh();
+    }
+
+    /**
+     * Returns wether or not the given script asset item is attached to a node or not.
+     */
+    private _isScriptAttached(key: string): boolean {
+        const nodes: (Node | Scene)[] = [
+            this.editor.scene!,
+            ...this.editor.scene!.meshes,
+            ...this.editor.scene!.cameras,
+            ...this.editor.scene!.lights,
+            ...this.editor.scene!.transformNodes,
+        ];
+        const path = join("src", "scenes", key);
+
+        for (const n of nodes) {
+            if (n.metadata?.script?.name === path) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

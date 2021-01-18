@@ -41,10 +41,14 @@ export class ParticleSystem extends GraphNode<{ name: string; var_name: string; 
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
+                type: "ParticleSystem",
                 value: `this._scene.particleSystems.find((ps) => ps.name === "${this.properties.name.replace("\\", "\\\\")}")`,
             },
             outputsCode: [
                 { thisVariable: true },
+            ],
+            requires: [
+                { module: "@babylonjs/core", classes: ["ParticleSystem"] },
             ],
         };
     }

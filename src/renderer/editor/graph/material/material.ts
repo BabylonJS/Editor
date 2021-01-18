@@ -54,6 +54,7 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
+                type,
                 value: `this._scene.getMaterialByName("${this.properties.name.replace("\\", "\\\\")}") as ${type}`,
             },
             outputsCode: [

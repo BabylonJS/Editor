@@ -52,14 +52,15 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
+                type: "Texture",
                 value: `this._scene.textures.find((texture) => texture.metadata?.editorName === "${this.properties.name.replace("\\", "\\\\")}") as Texture`,
             },
             outputsCode: [
                 { thisVariable: true },
             ],
             requires: [
-                { module: "@babylonjs/core", classes: ["Texture"] }
-            ]
+                { module: "@babylonjs/core", classes: ["Texture"] },
+            ],
         };
     }
 

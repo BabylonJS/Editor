@@ -52,6 +52,12 @@ export interface IAssetComponentItem {
      * Optional style options for the div.
      */
     style?: Undefinable<React.CSSProperties>;
+    /**
+     * Defines the extra data describing the asset item.
+     */
+    extraData?: {
+        [index: string]: number | string | boolean;
+    }
 }
 
 export interface IAssetsComponentState {
@@ -350,6 +356,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
         e.dataTransfer.setData(this.dragAndDropType, JSON.stringify({
             id: item.id,
             key: item.key,
+            extraData: item.extraData,
         }));
 
         this.editor.engine!.getRenderingCanvas()?.addEventListener("drop", this._dropListener);

@@ -56,6 +56,7 @@ export class Mesh extends GraphNode<{ var_name: string; name: string; }> {
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
+                type,
                 value: `this._scene.getMeshByName("${this.properties.name}") as ${type}`,
             },
             outputsCode: [

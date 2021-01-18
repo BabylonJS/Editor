@@ -12,6 +12,11 @@ import { Scene } from "@babylonjs/core";
 export const IsGraph: boolean = true;
 
 /**
+ * Tells wether or not the graph has been attached to at least one node or not.
+ */
+export let IsGraphAttached: boolean = false;
+
+/**
  * Defines the generated class of the graph.
  */
 export default class GraphClass {

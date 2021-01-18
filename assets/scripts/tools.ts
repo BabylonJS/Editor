@@ -16,6 +16,7 @@ export type GraphScriptConstructor = (new (scene: Scene) => any);
 export type ScriptMap = {
     [index: string]: {
         IsGraph?: boolean;
+        IsGraphAttached?: boolean;
         default: (new (...args: any[]) => NodeScriptConstructor | GraphScriptConstructor);
     }
 };
@@ -57,11 +58,18 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: (Node | Scene)[]): 
         const exports = scriptsMap[n.metadata.script.name];
         if (!exports) { continue; }
 
+        const scene = n instanceof Scene ? n : n.getScene();
+
         // Get prototype.
         let prototype = exports.default.prototype;
 
         // Call constructor
-        prototype.constructor.call(n);
+        if (exports.IsGraph) {
+            exports.IsGraphAttached = true;
+            prototype.constructor.call(n, scene);
+        } else {
+            prototype.constructor.call(n);
+        }
 
         // Add prototype
         do {
@@ -195,7 +203,7 @@ export function attachScripts(scriptsMap: ScriptMap, scene: Scene): void {
     // Graphs
     for (const scriptKey in scriptsMap) {
         const script = scriptsMap[scriptKey];
-        if (script.IsGraph) {
+        if (script.IsGraph && !script.IsGraphAttached) {
             const instance = new script.default(scene);
             scene.executeWhenReady(() => instance["onStart"]());
             scene.onBeforeRenderObservable.add(() => instance["onUpdate"]());

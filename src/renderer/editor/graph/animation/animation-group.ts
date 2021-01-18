@@ -46,12 +46,16 @@ export class AnimationGroup extends GraphNode<{ name: string; var_name: string; 
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
+                type: "AnimationGroup",
                 value: `this._scene.getAnimationGroupByName("${this.properties.name.replace("\\", "\\\\")}")`,
             },
             outputsCode: [
                 { thisVariable: true },
                 { thisVariable: true, code: "from" },
                 { thisVariable: true, code: "to" },
+            ],
+            requires: [
+                { module: "@babylonjs/core", classes: ["AnimationGroup"] },
             ],
         };
     }

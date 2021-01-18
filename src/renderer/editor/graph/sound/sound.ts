@@ -44,10 +44,14 @@ export class Sound extends GraphNode<{ name: string; var_name: string; }> {
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.var_name,
+                type: "Sound",
                 value: `this._scene.getSoundByName("${this.properties.name.replace("\\", "\\\\")}")`,
             },
             outputsCode: [
                 { thisVariable: true },
+            ],
+            requires: [
+                { module: "@babylonjs/core", classes: ["Sound"] },
             ],
         };
     }

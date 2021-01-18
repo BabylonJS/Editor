@@ -71,9 +71,17 @@ export interface ICodeGenerationOutput {
          */
         name: string;
         /**
+         * Defines the type of the variable.
+         */
+        type: string;
+        /**
          * Defines the default value of the variable.
          */
         value: string;
+        /**
+         * Defines wether or not the variable is visibile in the inspector.
+         */
+        visibleInInspector?: boolean;
     }
     requires?: {
         /**

@@ -8,8 +8,16 @@ type VariableType = "number" | "string" | "boolean" |
                     "Mesh" | "Camera" | "Light" | "Skeleton" |
                     "Animatable";
 
+const basicTypes: string[] = [
+    "number", "string", "boolean",
+];
+
+const inspectorVisibleTypes: string[] = basicTypes.concat([
+    "Vector2", "Vector3",
+]);
+
 export class Variable extends GraphNode<
-    { name: string, type: VariableType }
+    { name: string; type: VariableType; visibleInInspector?: boolean }
 > {
     /**
      * Defines the list of all available variables in the code.
@@ -35,12 +43,10 @@ export class Variable extends GraphNode<
             this.properties.type = v;
             this._reset();
         }, {
-            values: [
-                "number", "string", "boolean",
-                "Vector3", "Vector3",
+            values: inspectorVisibleTypes.concat([
                 "Mesh", "Camera", "Light", "Skeleton",
                 "Animatable",
-            ],
+            ]),
         });
 
         this._reset();
@@ -77,17 +83,25 @@ export class Variable extends GraphNode<
      * Generates the code of the graph.
      */
     public generateCode(input?: ICodeGenerationOutput): ICodeGenerationOutput {
+        const requires: any[] = [];
+        if (basicTypes.indexOf(this.properties.type) === -1) {
+            requires.push({ module: "@babylonjs/core", classes: ["Vector2", "Vector3", "Mesh", "Camera", "Light"] });
+        }
+        if (inspectorVisibleTypes.indexOf(this.properties.type) !== -1 && this.properties.visibleInInspector) {
+            requires.push({ module: "../../decorators", classes: ["visibleInInspector"] });
+        }
+
         return {
             type: CodeGenerationOutputType.Variable,
             code: this.properties.name,
             executionType: CodeGenerationExecutionType.Properties,
             variable: {
                 name: this.properties.name,
+                type: this.properties.type,
                 value: input?.code ?? this._getOutput(),
+                visibleInInspector: this.properties.visibleInInspector,
             },
-            requires: [
-                { module: "@babylonjs/core", classes: ["Vector2", "Vector3", "Mesh", "Camera", "Light"] },
-            ],
+            requires,
         };
     }
 
@@ -98,7 +112,7 @@ export class Variable extends GraphNode<
         switch (this.properties.type) {
             case "number": return "0";
             case "boolean": return "true";
-            case "string": return "Value";
+            case "string": return `"Value"`;
 
             case "Vector2": return "new Vector2(0, 0)";
             case "Vector3": return "new Vector3(0, 0, 0)";
@@ -123,6 +137,14 @@ export class Variable extends GraphNode<
         };
 
         this._value = undefined;
+        
+        // Decorator?
+        if (inspectorVisibleTypes.indexOf(this.properties.type) !== -1) {
+            this.properties.visibleInInspector = false;
+        } else {
+            delete this.properties.visibleInInspector;
+        }
+
 
         this.addInput(`Default Value (${this.properties.type})`, this.properties.type);
         this.addOutput("Value", this.properties.type);

@@ -162,11 +162,13 @@ export class GraphCodeGenerator {
                     if (count.length > 1) {
                         previous.variable.name = `${previous.variable.name}_${count.length}`;
                     }
-                    
+
                     previous.code = `this.${previous.variable.name}`;
                     previous.code = previous.code!.replace(/ \t\n\r/g, "");
+
+                    const decorator = previous.variable.visibleInInspector ? `@visibleInInspector("${previous.variable.type}", "${previous.variable.name}", ${previous.variable.value.toString()})` : "";
                     output.push({
-                        code: `public ${previous.variable.name} = ${previous.variable.value.toString()};\n`,
+                        code: `${decorator}\npublic ${previous.variable.name}: ${previous.variable.type} = ${previous.variable.value.toString()};\n`,
                         type: executionType,
                     });
                     break;

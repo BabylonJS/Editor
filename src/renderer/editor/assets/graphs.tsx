@@ -7,6 +7,8 @@ import { IPCResponses } from "../../../shared/ipc";
 import * as React from "react";
 import { ButtonGroup, Button, Classes, Menu, MenuItem, Popover, Divider, Position, ContextMenu, Tag, Intent } from "@blueprintjs/core";
 
+import { Scene, Node } from "babylonjs";
+
 import { IFile } from "../project/files";
 import { Project } from "../project/project";
 import { ProjectExporter } from "../project/project-exporter";
@@ -35,6 +37,11 @@ export class GraphAssets extends AbstractAssets {
      * @override
      */
     protected size: number = 100;
+    /**
+     * Defines the type of the data transfer data when drag'n'dropping asset.
+     * @override
+     */
+    protected dragAndDropType: string = "application/script-asset";
 
     /**
      * Registers the component.
@@ -80,9 +87,31 @@ export class GraphAssets extends AbstractAssets {
      */
     public async refresh(): Promise<void> {
         for (const m of GraphAssets.Graphs) {
-            if (this.items.find((i) => i.key === m.path)) { continue; }
-            
-            this.items.push({ id: m.name, key: m.path, base64: "../css/svg/grip-lines.svg", style: { backgroundColor: "#222222" } });
+            const existingItem = this.items.find((i) => i.key === m.path);
+            const item = {
+                ...existingItem ?? {
+                    id: m.name,
+                    key: m.path,
+                    base64: "../css/svg/grip-lines.svg",
+                },
+                extraData: {
+                    scriptPath: join("src", "scenes", WorkSpace.GetProjectName(), "graphs", m.name.replace(".json", ".ts")),
+                },
+                style: {
+                    backgroundColor: "#222222",
+                    borderColor: "#2FA1D6",
+                    borderStyle: "solid",
+                    borderWidth: this._isGraphAttached(m.name.replace(".json", ".ts")) ? "2px" : "0px",
+                }
+            }
+
+            if (!existingItem) {
+                this.items.push(item);
+            } else {
+                const index = this.items.indexOf(existingItem);
+                this.items[index] = item;
+            }
+
             this.updateAssetObservable.notifyObservers();
         }
         
@@ -240,5 +269,27 @@ export class GraphAssets extends AbstractAssets {
                 }
             },
         });
+    }
+
+    /**
+     * Returns wether or not the given graph asset item is attached to a node or not.
+     */
+    private _isGraphAttached(name: string): boolean {
+        const nodes: (Node | Scene)[] = [
+            this.editor.scene!,
+            ...this.editor.scene!.meshes,
+            ...this.editor.scene!.cameras,
+            ...this.editor.scene!.lights,
+            ...this.editor.scene!.transformNodes,
+        ];
+        const path = join("src", "scenes", WorkSpace.GetProjectName(), "graphs", name);
+
+        for (const n of nodes) {
+            if (n.metadata?.script?.name === path) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
