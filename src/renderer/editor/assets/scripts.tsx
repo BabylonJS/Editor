@@ -32,7 +32,7 @@ export class ScriptAssets extends AbstractAssets {
      * Defines the type of the data transfer data when drag'n'dropping asset.
      * @override
      */
-    protected dragAndDropType: string = "application/script-asset";
+    public readonly dragAndDropType: string = "application/script-asset";
 
     private _refreshing: boolean = false;
 
@@ -154,6 +154,25 @@ export class ScriptAssets extends AbstractAssets {
     public async onDoubleClick(item: IAssetComponentItem, img: HTMLImageElement): Promise<void> {
         super.onDoubleClick(item, img);
         return this.openItem(item);
+    }
+
+    /**
+     * Called on an asset item has been drag'n'dropped on graph component.
+     * @param data defines the data of the asset component item being drag'n'dropped.
+     * @param nodes defines the array of nodes having the given item being drag'n'dropped.
+     */
+    public onGraphDropAsset(data: IAssetComponentItem, nodes: (Scene | Node)[]): boolean {
+        super.onGraphDropAsset(data, nodes);
+
+        if (!data.extraData?.scriptPath) { return false; }
+
+        nodes.forEach((n) => {
+            n.metadata ??= { };
+            n.metadata.script ??= { };
+            n.metadata.script.name = data.extraData!.scriptPath as string;
+        });
+
+        return true;
     }
 
     /**

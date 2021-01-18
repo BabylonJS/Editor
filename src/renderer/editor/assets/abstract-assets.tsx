@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Tooltip, Position } from "@blueprintjs/core";
 
-import { PickingInfo, Vector3, Observable } from "babylonjs";
+import { PickingInfo, Vector3, Observable, Node, Scene } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -60,6 +60,13 @@ export interface IAssetComponentItem {
     }
 }
 
+export interface IDragAndDroppedAssetComponentItem extends IAssetComponentItem {
+    /**
+     * Defines the id of the component containing the asset being drag'n'dropped.
+     */
+    assetComponentId: string;
+}
+
 export interface IAssetsComponentState {
     /**
      * Defines all the assets to draw in the panel.
@@ -88,6 +95,12 @@ export interface IAbstractAssets {
      * @param files the list of files being dropped.
      */
     onDropFiles?(files: IFile[]): boolean | Promise<boolean>;
+    /**
+     * Called on an asset item has been drag'n'dropped on graph component.
+     * @param data defines the data of the asset component item being drag'n'dropped.
+     * @param nodes defines the array of nodes having the given item being drag'n'dropped.
+     */
+    onGraphDropAsset?(data: IAssetComponentItem, nodes: (Scene | Node)[]): boolean;
 }
 
 export class AbstractAssets extends React.Component<IAssetsComponentProps, IAssetsComponentState> implements IAbstractAssets {
@@ -111,7 +124,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
     /**
      * Defines the type of the data transfer data when drag'n'dropping asset.
      */
-    protected dragAndDropType: string = "text/plain";
+    public readonly dragAndDropType: string = "text/plain";
 
     /**
      * Stores the current list of nodes drawn in the panel..
@@ -203,6 +216,15 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      */
     public onDeleteAsset(_: IAssetComponentItem): void {
         // Empty for now...
+    }
+
+    /**
+     * Called on an asset item has been drag'n'dropped on graph component.
+     * @param data defines the data of the asset component item being drag'n'dropped.
+     * @param nodes defines the array of nodes having the given item being drag'n'dropped.
+     */
+    public onGraphDropAsset(_: IAssetComponentItem, __: (Scene | Node)[]): boolean {
+        return false;
     }
 
     /**
@@ -357,7 +379,8 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
             id: item.id,
             key: item.key,
             extraData: item.extraData,
-        }));
+            assetComponentId: this.props.id,
+        } as IDragAndDroppedAssetComponentItem));
 
         this.editor.engine!.getRenderingCanvas()?.addEventListener("drop", this._dropListener);
     }

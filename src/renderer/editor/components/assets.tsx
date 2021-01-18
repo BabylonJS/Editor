@@ -260,6 +260,13 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
     }
 
     /**
+     * Returns the list of all assets components.
+     */
+    public getAssetsComponents(): IAssetComponent[] {
+        return Assets._assetComponents;
+    }
+
+    /**
      * Adds the given files to the assets component.
      * @param files the files to add in the assets.
      */

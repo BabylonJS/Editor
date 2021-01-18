@@ -27,7 +27,7 @@ import { SceneSettings } from "../scene/settings";
 import { SceneTools } from "../scene/tools";
 
 import { SoundAssets } from "../assets/sounds";
-import { IAssetComponentItem } from "../assets/abstract-assets";
+import { IDragAndDroppedAssetComponentItem } from "../assets/abstract-assets";
 
 export interface IGraphProps {
     /**
@@ -1024,21 +1024,21 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         .concat(nodes) as Node[];
         }
 
-        // Script
-        try {
-            const data = JSON.parse(ev.dataTransfer.getData("application/script-asset")) as IAssetComponentItem;
-            if (!data.extraData?.scriptPath) { throw new Error("Can't drag'n'drop script, extraData is misisng"); }
+        const components = this._editor.assets.getAssetsComponents();
+        for (const c of components) {
+            if (!c._id || !c._ref?.dragAndDropType) { continue; }
 
-            nodes.forEach((n) => {
-                n.metadata ??= { };
-                n.metadata.script ??= { };
-                n.metadata.script.name = data.extraData!.scriptPath as string;
-            });
+            try {
+                const data = JSON.parse(ev.dataTransfer.getData(c._ref.dragAndDropType)) as IDragAndDroppedAssetComponentItem;
 
-            return this.refresh();
-        } catch (e) {
-            // Catch silently.
+                if (c._id !== data.assetComponentId) { continue; }
+                if (c._ref.onGraphDropAsset(data, nodes)) { break; }
+            } catch (e) {
+                // Catch silently.
+            }
         }
+
+        this.refresh();
     }
 
     /**
