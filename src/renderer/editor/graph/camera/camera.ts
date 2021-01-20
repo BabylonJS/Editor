@@ -13,10 +13,10 @@ export class Camera extends GraphNode<{ var_name: string; name: string; }> {
         super("Camera");
 
         this.addProperty("var_name", "aMesh", "string", (v) => this.properties.name = this.title = v);
-        this.addProperty("name", "None", "string", (v) => this.properties.name = this.title = v);
+        this.addProperty("name", "Self", "string", (v) => this.properties.name = this.title = v);
 
         this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
-            values: () => Camera.Cameras,
+            values: () => ["Self"].concat(Camera.Cameras),
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
@@ -43,6 +43,16 @@ export class Camera extends GraphNode<{ var_name: string; name: string; }> {
      * Generates the code of the graph.
      */
     public generateCode(): ICodeGenerationOutput {
+        if (this.properties.name === "Self") {
+            return {
+                type: CodeGenerationOutputType.Constant,
+                code: "this._attachedObject",
+                outputsCode: [
+                    { code: "this._attachedObject" },
+                ],
+            };
+        }
+
         return {
             type: CodeGenerationOutputType.Variable,
             code: this.properties.var_name,

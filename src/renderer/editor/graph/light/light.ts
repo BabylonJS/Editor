@@ -12,14 +12,14 @@ export class Light extends GraphNode<{ name: string; var_name: string; }> {
     public constructor() {
         super("Light");
 
-        this.addProperty("name", "None", "string");
+        this.addProperty("name", "Self", "string");
         this.addProperty("var_name", "myLight", "string");
 
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
             this.title = `Light (${v})`;
         }, {
-            values: () => Light.Lights,
+            values: () => ["Self"].concat(Light.Lights),
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
@@ -38,6 +38,16 @@ export class Light extends GraphNode<{ name: string; var_name: string; }> {
      * Generates the code of the graph.
      */
     public generateCode(): ICodeGenerationOutput {
+        if (this.properties.name === "Self") {
+            return {
+                type: CodeGenerationOutputType.Constant,
+                code: "this._attachedObject",
+                outputsCode: [
+                    { code: "this._attachedObject" },
+                ],
+            };
+        }
+
         return {
             type: CodeGenerationOutputType.Variable,
             code: this.properties.var_name,

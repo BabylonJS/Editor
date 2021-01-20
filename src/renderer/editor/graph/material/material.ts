@@ -2,6 +2,11 @@ import { Nullable } from "../../../../shared/types";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
 
+const babylonJsMaterials: string[] = [
+    "StandardMaterial", "PBRMaterial",
+    "NodeMaterial",
+]
+
 export class Material extends GraphNode<{ name: string; var_name: string; }> {
     /**
      * Defines the list of all avaialbe materials in the scene.
@@ -47,6 +52,7 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
      */
     public generateCode(): ICodeGenerationOutput {
         const type = this.outputs[0].type.split(",").pop()!;
+        const requireModule = babylonJsMaterials.indexOf(type) !== -1 ? "@babylonjs/core" : "@babylonjs/materials";
 
         return {
             type: CodeGenerationOutputType.Variable,
@@ -61,8 +67,8 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
                 { thisVariable: true },
             ],
             requires: [
-                { module: "@babylonjs/core", classes: [type] }
-            ]
+                { module: requireModule, classes: [type] },
+            ],
         };
     }
 
