@@ -532,6 +532,16 @@ export class ProjectExporter {
         const json = SceneSerializer.SerializeMesh(mesh, withParents, withChildren);
         json.materials = [];
         json.multiMaterials = [];
+
+        // Configure skeletons
+        json.skeletons?.forEach((s) => {
+            s.bones?.forEach((b) => {
+                if (!b.metadata) { return; }
+                b.id = b.metadata.originalId;
+            });
+        });
+
+        // Configure meshes
         json.meshes?.forEach((m) => {
             if (m.metadata) {
                 m.metadata = Tools.CloneObject(m.metadata);
@@ -541,6 +551,7 @@ export class ProjectExporter {
             if (mesh.physicsImpostor) {
                 m.physicsRestitution = mesh.physicsImpostor.getParam("restitution");
             }
+
             m.instances?.forEach((i) => {
                 const instance = mesh._scene.getMeshByID(i.id);
                 if (!instance?.physicsImpostor) { return; }
@@ -670,6 +681,14 @@ export class ProjectExporter {
                     delete i.physicsFriction;
                     delete i.physicsRestitution;
                 }
+            });
+        });
+
+        // Skeletons
+        scene.skeletons?.forEach((s) => {
+            s.bones?.forEach((b) => {
+                if (!b.metadata) { return; }
+                b.id = b.metadata.originalId;
             });
         });
 

@@ -26,7 +26,7 @@ export default class GraphClass {
      * Constructor.
      * @param scene defines the scene where the graph is running.
      */
-    public constructor(private _scene: Scene) {
+    public constructor(private _scene: Scene, private _attachedObject: any) {
 
     }
 
@@ -49,5 +49,12 @@ export default class GraphClass {
      */
     public getScene(): Scene {
         return this._scene;
+    }
+
+    /**
+     * Returns the reference to the object the graph is attached to.
+     */
+    public getAttachedObject<T>(): T {
+        return this._attachedObject;
     }
 }

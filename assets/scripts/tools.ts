@@ -66,7 +66,7 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: (Node | Scene)[]): 
         // Call constructor
         if (exports.IsGraph) {
             exports.IsGraphAttached = true;
-            prototype.constructor.call(n, scene);
+            prototype.constructor.call(n, scene, n);
         } else {
             prototype.constructor.call(n);
         }

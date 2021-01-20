@@ -308,6 +308,13 @@ export class MeshesAssets extends AbstractAssets {
             }
 
             skeleton.id = id as any;
+
+            skeleton.bones.forEach((b) => {
+                b.id = Tools.RandomId();
+
+                b.metadata ??= { };
+                b.metadata.originalId = b.id;
+            });
         });
         
         result.particleSystems.forEach((ps) => ps.id = Tools.RandomId());
