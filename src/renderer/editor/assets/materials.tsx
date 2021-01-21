@@ -11,7 +11,10 @@ import {
     Popover, Position, Tag, Intent, Code,
 } from "@blueprintjs/core";
 
-import { Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools, NodeMaterial, MultiMaterial } from "babylonjs";
+import {
+    Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools,
+    NodeMaterial, MultiMaterial, Scene, Node,
+} from "babylonjs";
 
 import { assetsHelper, OffscreenAssetsHelperMesh } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
 import { Tools } from "../tools/tools";
@@ -30,6 +33,12 @@ import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
 import { Alert } from "../gui/alert";
 
 export class MaterialAssets extends AbstractAssets {
+    /**
+     * Defines the type of the data transfer data when drag'n'dropping asset.
+     * @override
+     */
+    public readonly dragAndDropType: string = "application/material";
+
     private static _NodeMaterialEditors: { id: number; material: NodeMaterial }[] = [];
 
     /**
@@ -287,6 +296,23 @@ export class MaterialAssets extends AbstractAssets {
     public onDeleteAsset(item: IAssetComponentItem): void {
         super.onDeleteAsset(item);
         this._handleRemoveMaterial(item);
+    }
+
+    /**
+     * Called on an asset item has been drag'n'dropped on graph component.
+     * @param data defines the data of the asset component item being drag'n'dropped.
+     * @param nodes defines the array of nodes having the given item being drag'n'dropped.
+     */
+    public onGraphDropAsset(data: IAssetComponentItem, nodes: (Scene | Node)[]): boolean {
+        super.onGraphDropAsset(data, nodes);
+
+        const material = this.editor.scene!.getMaterialByID(data.key);
+        if (!material) { return false; }
+
+        const meshes = nodes.filter((n) => n instanceof Mesh) as Mesh[];
+        meshes.forEach((m) => m.material = material);
+
+        return true;
     }
 
     /**
