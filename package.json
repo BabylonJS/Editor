@@ -53,7 +53,7 @@
     "http-server": "0.11.1"
   },
   "dependencies": {
-    "socket.io": "2.2.0",
+    "socket.io": "2.4.0",
     "babylonjs": "4.1.0-beta.7",
     "babylonjs-gui": "4.1.0-beta.7",
     "babylonjs-loaders": "4.1.0-beta.7",
