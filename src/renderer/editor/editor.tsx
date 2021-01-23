@@ -102,6 +102,9 @@ import { ScriptAssets } from "./assets/scripts";
 import { GraphAssets } from "./assets/graphs";
 import { PrefabAssets } from "./assets/prefabs";
 
+// Extensions
+import { WebpackProgressExtension } from "./extensions/webpack-progress";
+
 export class Editor {
     /**
      * Reference to the Babylon.JS engine used to render the preview scene.
@@ -818,6 +821,9 @@ export class Editor {
         // If has workspace, od workspace stuffs.
         const workspace = WorkSpace.Workspace;
         if (workspace) {
+            // Extensions
+            WebpackProgressExtension.Initialize(this);
+
             // Plugins
             for (const p in workspace.pluginsPreferences ?? { }) {
                 const plugin = Editor.LoadedExternalPlugins[p];
