@@ -30,8 +30,8 @@ export class TransformNode extends GraphNode<{ var_name: string; name: string; }
      * Called on the node is being executed.
      */
     public execute(): void {
-        const mesh = this.getScene().getTransformNodeByName(this.properties.name);
-        this.setOutputData(0, mesh);
+        const transformNode = this.properties.name === "Self" ? this.graph!["attachedNode"] : this.getScene().getTransformNodeByName(this.properties.name);
+        this.setOutputData(0, transformNode);
     }
 
     /**

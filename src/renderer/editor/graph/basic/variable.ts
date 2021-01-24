@@ -1,7 +1,7 @@
 import { Vector2, Vector3 } from "babylonjs";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
-import { LiteGraph } from "litegraph.js";
+import { LiteGraph, SerializedLGraphNode } from "litegraph.js";
 
 type VariableType = "number" | "string" | "boolean" |
                     "Vector2" | "Vector3" |
@@ -49,16 +49,22 @@ export class Variable extends GraphNode<
             ]),
         });
 
-        this._reset();
-
         Variable.Variables.push(this);
+    }
+
+    /**
+     * configure a node from an object containing the serialized info
+     */
+    public configure(info: SerializedLGraphNode): void {
+        super.configure(info);
+        this._resetDefaultValue();
     }
 
     /**
      * Called on the graph is being started.
      */
     public onStart(): void {
-        this._value = this.getInputData(0, true);
+        this._value = this.getInputData(0, true) ?? this._value;
     }
 
     /**
@@ -149,6 +155,10 @@ export class Variable extends GraphNode<
         this.addInput(`Default Value (${this.properties.type})`, this.properties.type);
         this.addOutput("Value", this.properties.type);
 
+        this._resetDefaultValue();
+    }
+
+    private _resetDefaultValue(): void {
         switch (this.properties.type) {
             case "number": this._value = 0; break;
             case "boolean": this._value = true; break;

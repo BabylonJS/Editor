@@ -5,10 +5,8 @@ import { Nullable, Undefinable } from "../../../../shared/types";
 import * as React from "react";
 import { ContextMenu, Menu, Classes, Button, MenuDivider } from "@blueprintjs/core";
 
-import { Scene } from "babylonjs";
+import { Node, Scene } from "babylonjs";
 import { LGraph, LGraphCanvas, LGraphGroup, LiteGraph, LLink } from "litegraph.js";
-
-import { IAssetComponentItem } from "../../../editor/assets/abstract-assets";
 
 import { EditableText } from "../../../editor/gui/editable-text";
 import { Alert } from "../../../editor/gui/alert";
@@ -306,26 +304,9 @@ export class Graph extends React.Component<IGraphProps> {
 
     /**
      * Called on the graph is being started.
-     * @param standalone defines wehter or not only the current graph will be executed.
      */
-    public async start(scene: Scene, standalone: boolean): Promise<void> {
+    public async start(scene: Scene): Promise<void> {
         if (!this.graph || !this.graphCanvas) { return; }
-
-        // Start other graphs?
-        if (!standalone) {
-            const graphs = await IPCTools.ExecuteEditorFunction<IAssetComponentItem[]>("assets.getAssetsOfComponentId", "graphs");
-
-            for (const g of graphs.data) {
-                const path = g.key;
-                if (path === this._editor.graph.jsonPath) { continue; }
-
-                const graphContent = await readJSON(path);
-                const graph = new LGraph();
-                graph.configure(graphContent, false);
-
-                this.startGraph(graph, scene);
-            }
-        }
 
         this.startGraph(this.graph, scene);
     }
@@ -343,13 +324,33 @@ export class Graph extends React.Component<IGraphProps> {
         graph.status = LGraph.STATUS_RUNNING;
         this.getAllNodes(graph).forEach((n) => n.onStart());
 
+        const sceneNodes: (Node | Scene)[] = [
+            scene,
+            ...scene.meshes,
+            ...scene.lights,
+            ...scene.cameras,
+            ...scene.transformNodes,
+        ];
+
+        const attachedSceneNodes = sceneNodes.filter((n) => {
+            return n.metadata?.script?.name === this._editor.linkPath;
+        });
+
         const intervalId = setInterval(() => {
             if (NodeUtils.PausedNode !== this._pausedNode) {
                 this._pausedNode = NodeUtils.PausedNode;
                 this._editor.callStack.refresh();
             }
 
-            if (!graph.hasPaused) { graph.runStep(); }
+            if (graph.hasPaused) { return; }
+            if (!attachedSceneNodes.length) {
+                return graph.runStep();
+            }
+
+            attachedSceneNodes.forEach((n) => {
+                graph["attachedNode"] = n;
+                graph.runStep();
+            });
         }, 0) as any;
 
         this._startedGraphInvervals.push(intervalId);

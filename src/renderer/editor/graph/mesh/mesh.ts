@@ -41,7 +41,7 @@ export class Mesh extends GraphNode<{ var_name: string; name: string; }> {
      * Called on the node is being executed.
      */
     public execute(): void {
-        const mesh = this.getScene().getMeshByName(this.properties.name);
+        const mesh = this.properties.name === "Self" ? this.graph!["attachedNode"] : this.getScene().getMeshByName(this.properties.name);
         this.setOutputData(0, mesh);
         this.setOutputData(1, mesh?.skeleton);
         this.setOutputData(2, mesh?.material);

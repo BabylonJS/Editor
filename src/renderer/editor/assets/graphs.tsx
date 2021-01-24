@@ -128,7 +128,8 @@ export class GraphAssets extends AbstractAssets {
 
         const index = GraphAssets._GraphEditors.findIndex((m) => m.path === item.key);
         const existingId = index !== -1 ? GraphAssets._GraphEditors[index].id : undefined;
-        const popupId = await this.editor.addWindowedPlugin("graph-editor", existingId, item.key);
+        const path = join("src", "scenes", WorkSpace.GetProjectName(), "graphs", item.id).replace(".json", ".ts");
+        const popupId = await this.editor.addWindowedPlugin("graph-editor", existingId, item.key, path);
 
         if (!popupId) { return; }
 

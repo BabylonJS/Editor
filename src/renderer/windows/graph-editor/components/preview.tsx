@@ -151,8 +151,9 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
     /**
      * Resets the preview.
+     * @param standalone defines wehter or not only the current graph will be executed.
      */
-    public async reset(): Promise<void> {
+    public async reset(standalone: boolean): Promise<void> {
         this.setState({ welcome: false, loadingScene: true });
 
         if (!this.canvas) { return; }
@@ -191,7 +192,9 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         this._clearRequireCache();
 
         // Attach scripts
-        this._attachScripts(json.data);
+        if (!standalone) {
+            this._attachScripts(json.data);
+        }
 
         // Run!
         this.engine.runRenderLoop(() => {
@@ -237,15 +240,19 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      */
     private _attachScripts(json: ISceneJsonResult): void {
         try {
+            const scriptsMapPath = join(json.workspacePath, "build/src/scenes/scripts-map.js");
+            const scriptsMap = require(scriptsMapPath);
+
             const sceneUtilsPath = join(json.workspacePath, "build/src/scenes", json.sceneName, "index.js");
             const sceneUtils = require(sceneUtilsPath);
 
+            this._requiredScriptsPaths.push(scriptsMapPath);
             this._requiredScriptsPaths.push(sceneUtilsPath);
 
             // Clear graphs.
-            for (const script in sceneUtils.scriptsMap) {
-                if (sceneUtils.scriptsMap[script].IsGraph) {
-                    delete sceneUtils.scriptsMap[script];
+            for (const script in scriptsMap.scriptsMap) {
+                if (script === this._editor.linkPath) {
+                    delete scriptsMap.scriptsMap[script];
                 } else {
                     const scriptPath = script.replace(join("src/scenes", json.sceneName), "");
                     const extension = extname(scriptPath);

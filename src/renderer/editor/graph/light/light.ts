@@ -30,7 +30,7 @@ export class Light extends GraphNode<{ name: string; var_name: string; }> {
      * Called on the node is being executed.
      */
     public execute(): void {
-        const light = this.getScene().getLightByName(this.properties.name);
+        const light = this.properties.name === "Self" ? this.graph!["attachedNode"] : this.getScene().getLightByName(this.properties.name);
         this.setOutputData(0, light ?? null);
     }
 

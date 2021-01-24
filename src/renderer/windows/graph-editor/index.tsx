@@ -99,6 +99,8 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     };
 
     private _path: Nullable<string> = null;
+    private _linkPath: Nullable<string> = null;
+
     private _components: IStringDictionary<any> = { };
     private _isSaving: boolean = false;
     private _closing: boolean = false;
@@ -295,9 +297,17 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      * Inits the plugin.
      * @param path defines the path of the JSON graph to load.
      */
-    public async init(path: string): Promise<void> {
+    public async init(path: string, linkPath: string): Promise<void> {
         this._path = path;
+        this._linkPath = linkPath;
         document.title = `${document.title} - ${basename(path)}`;
+    }
+
+    /**
+     * Gets the link path of the graph in case it is attached to nodes.
+     */
+    public get linkPath(): Nullable<string> {
+        return this._linkPath;
     }
 
     /**
@@ -353,8 +363,8 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     public async start(standalone: boolean): Promise<void> {
         this.logs.clear();
         
-        await this.preview.reset();
-        await this.graph.start(this.preview.getScene(), standalone);
+        await this.preview.reset(standalone);
+        await this.graph.start(this.preview.getScene());
 
         this.setState({ playing: true, standalone });
     }
