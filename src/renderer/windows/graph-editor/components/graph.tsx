@@ -35,6 +35,9 @@ import { GetMesh } from "../../../editor/graph/mesh/get-mesh";
 import { GetCamera } from "../../../editor/graph/camera/get-camera";
 import { GetLight } from "../../../editor/graph/light/get-light";
 
+import { TickGameEvent } from "../../../editor/graph/events/tick-game-event";
+import { StartGameEvent } from "../../../editor/graph/events/start-game-event";
+
 import { GraphContextMenu } from "../context-menu";
 import { NodeCreator } from "../node-creator";
 import GraphEditorWindow from "../index";
@@ -322,7 +325,9 @@ export class Graph extends React.Component<IGraphProps> {
         graph["scene"] = scene;
 
         graph.status = LGraph.STATUS_RUNNING;
-        this.getAllNodes(graph).forEach((n) => n.onStart());
+
+        const allNodes = this.getAllNodes(graph);
+        allNodes.forEach((n) => n.onStart());
 
         const sceneNodes: (Node | Scene)[] = [
             scene,
@@ -336,21 +341,58 @@ export class Graph extends React.Component<IGraphProps> {
             return n.metadata?.script?.name === this._editor.linkPath;
         });
 
-        const intervalId = setInterval(() => {
+        let running = false;
+        const intervalId = setInterval(async () => {
             if (NodeUtils.PausedNode !== this._pausedNode) {
                 this._pausedNode = NodeUtils.PausedNode;
                 this._editor.callStack.refresh();
             }
 
             if (graph.hasPaused) { return; }
+            if (running) { return; }
+
+            running = true;
+
+            // Update execution order
+            const executionNodes = graph["_nodes_executable"] ? graph["_nodes_executable"] : graph["_nodes"];
+            const startNodes: StartGameEvent[] = [];
+            const tickNodes: TickGameEvent[] = [];
+
+            for (let i = 0; i < executionNodes.length; i++) {
+                const n = executionNodes[i];
+                if (n instanceof StartGameEvent) {
+                    executionNodes.splice(i, 1);
+                    startNodes.push(n);
+                    i--;
+                }
+                if (n instanceof TickGameEvent) {
+                    executionNodes.splice(i, 1);
+                    tickNodes.push(n);
+                    i--;
+                }
+            }
+
+            startNodes.forEach((n) => executionNodes.push(n));
+            tickNodes.forEach((n) => executionNodes.push(n));
+
             if (!attachedSceneNodes.length) {
                 return graph.runStep();
             }
 
-            attachedSceneNodes.forEach((n) => {
-                graph["attachedNode"] = n;
-                graph.runStep();
+            const promises: Promise<void>[] = [];
+            attachedSceneNodes.forEach((n, i) => {
+                promises.push(new Promise<void>((resolve) => {
+                    setTimeout(() => {
+                        graph["attachedNode"] = n;
+                        graph.runStep();
+                        resolve();
+                    }, i);
+                }));
             });
+
+            await Promise.all(promises);
+
+            running = false;
         }, 0) as any;
 
         this._startedGraphInvervals.push(intervalId);

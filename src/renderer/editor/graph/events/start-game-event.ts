@@ -3,7 +3,7 @@ import { LiteGraph } from "litegraph.js";
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
 
 export class StartGameEvent extends GraphNode {
-    private _started: boolean = false;
+    private _computedNodes: any[] = [];
 
     /**
      * Constructor.
@@ -18,17 +18,20 @@ export class StartGameEvent extends GraphNode {
      */
     public onStop(): void {
         super.onStop();
-        this._started = false;
+        this._computedNodes = [];
     }
 
     /**
      * Called on the node is being executed.
      */
-    public async execute(): Promise<void> {
-        if (!this._started) {
-            this._started = true;
-            return this.triggerSlot(0, null);
+    public execute(): Promise<void> {
+        const attachedNode = this.graph!["attachedNode"];
+        if (this._computedNodes.indexOf(attachedNode) !== -1) {
+            return Promise.resolve();
         }
+
+        this._computedNodes.push(attachedNode);
+        return this.triggerSlot(0, null);
     }
 
     /**

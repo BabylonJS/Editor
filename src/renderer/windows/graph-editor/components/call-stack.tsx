@@ -94,7 +94,7 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
         if (!NodeUtils.PausedNode) {
             return this.setState({ nodes });
         }
-
+        
         // Exit locks
         const engine = this._editor.preview.engine;
         if (engine) {
