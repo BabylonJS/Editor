@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "fs-extra": "~4.0.2",
-    "socket.io": "2.2.0",
+    "socket.io": "2.4.0",
     "socket.io-client": "~2.0.4",
     "uuid": "3.3.2"
   },
