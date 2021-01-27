@@ -12,7 +12,7 @@
   "readmeFilename": "README.md",
   "scripts": {},
   "dependencies": {
-    "socket.io": "2.2.0"
+    "socket.io": "2.4.0"
   },
   "devDependencies": {}
 }
