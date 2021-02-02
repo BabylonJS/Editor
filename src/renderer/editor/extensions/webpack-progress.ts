@@ -63,7 +63,7 @@ export class WebpackProgressExtension {
                 this._Task = editor.addTaskFeedback(0, "", -1);
             }
 
-            editor.updateTaskFeedback(this._Task, data.percentage, `Compiling: ${data.percentage >> 0}%`);
+            editor.updateTaskFeedback(this._Task, data.percentage, `Compiling ${this._LastMessage ? `(${this._LastMessage})` : ""}: ${data.percentage >> 0}%`);
 
             if (data.done) {
                 editor.closeTaskFeedback(this._Task, 1000);
