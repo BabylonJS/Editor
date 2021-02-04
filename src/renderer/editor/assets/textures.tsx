@@ -227,6 +227,23 @@ export class TextureAssets extends AbstractAssets {
 
         const platform = os.platform();
         const explorer = platform === "darwin" ? "Finder" : "File Explorer";
+        const extension = extname(texture.name).toLowerCase();
+
+        let setAsEnvironmentTexture: React.ReactNode;
+        if (extension === ".env" || extension === ".dds") {
+            setAsEnvironmentTexture = (
+                <MenuItem text="Set As Environment Texture" icon={texture === this.editor.scene!.environmentTexture ? <Icon src="check.svg" /> : undefined} onClick={() => {
+                    const oldTexture = this.editor.scene!.environmentTexture;
+                    if (oldTexture === texture) { return; }
+                    
+                    undoRedo.push({
+                        common: () => this.editor.inspector.refresh(),
+                        undo: () => this.editor.scene!.environmentTexture = oldTexture,
+                        redo: () => this.editor.scene!.environmentTexture = texture,
+                    });
+                }} />
+            )
+        }
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
@@ -243,6 +260,7 @@ export class TextureAssets extends AbstractAssets {
                     item.style.border = texture.metadata.isLocked ? "solid red": "";
                     super.refresh();
                 }} />
+                {setAsEnvironmentTexture}
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._removeTexture(item, texture)} />
             </Menu>,

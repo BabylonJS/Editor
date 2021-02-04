@@ -82,15 +82,15 @@ export class SceneGizmo {
             case GizmoType.Position:
                 this._currentGizmo = this._positionGizmo = new PositionGizmo(this._gizmosLayer);
                 this._positionGizmo.planarGizmoEnabled = true;
-                this._currentGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("position"));
+                this._positionGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("position"));
                 break;
             case GizmoType.Rotation:
                 this._currentGizmo = this._rotationGizmo = new RotationGizmo(this._gizmosLayer, undefined, false);
-                this._currentGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("rotationQuaternion"));
+                this._rotationGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("rotationQuaternion"));
                 break;
             case GizmoType.Scaling:
                 this._currentGizmo = this._scalingGizmo = new ScaleGizmo(this._gizmosLayer);
-                this._currentGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("scaling"));
+                this._scalingGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("scaling"));
                 break;
         }
 

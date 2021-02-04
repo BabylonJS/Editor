@@ -413,6 +413,7 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
 
                 if (c.object === this) { return; }
                 for (const thing in this) {
+                    if (this[thing] === this.selectedObject as any) { continue; }
                     if (this[thing] === c.object) { return; }
                 }
 
@@ -432,6 +433,7 @@ export abstract class AbstractInspector<T> extends React.Component<IObjectInspec
 
                 if (c.object === this) { return; }
                 for (const thing in this) {
+                    if (this[thing] === this.selectedObject as any) { continue; }
                     if (this[thing] === c.object) { return; }
                 }
                 

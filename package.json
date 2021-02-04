@@ -17,6 +17,7 @@
     "clean": "rimraf build && rimraf declaration && rimraf electron-packages",
     "compile": "tsc -p .",
     "test": "npm run prepare-tests && mocha ./build/src/test/index.js",
+    "unit-test": "mocha ./build/src/test/unit-tests/index.js",
     "prepare-tests": "node ./script/remove-tests.js",
     "build": "npm run compile && npm run bundle",
     "rebuild": "npm run clean && npm run build",

@@ -13,6 +13,7 @@ import { Editor } from "../editor";
 
 import { Tools } from "../tools/tools";
 import { ExecTools } from "../tools/exec";
+import { undoRedo } from "../tools/undo-redo";
 import { EditorPlayMode } from "../tools/types";
 import { EditorUpdater } from "../tools/updater";
 
@@ -250,6 +251,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "project:export:glb": SceneTools.ExportSceneToGLTF(this._editor, "glb"); break;
 
             // Edit
+            case "edit:undo": undoRedo.undo(); break;
+            case "edit:redo": undoRedo.redo(); break;
+
             case "edit:editor-camera": this._editor.inspector.setSelectedObject(SceneSettings.Camera); break;
 
             case "edit:refresh-assets": this._editor.assets.forceRefresh(); break;
