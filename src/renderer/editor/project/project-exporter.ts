@@ -1046,11 +1046,11 @@ export class ProjectExporter {
             if (geometry.matricesIndices) {
                 const matricesIndices: number[] = [];
 
-                for (let i = 0; i < geometry.matricesIndices.length; i += 4) {
+                for (let i = 0; i < geometry.matricesIndices.length; i++) {
                     matricesIndices.push(geometry.matricesIndices[i]);
                 }
 
-                m._binaryInfo.matricesIndicesAttrDesc = { count: matricesIndices.length, stride: 1, offset, dataType: 0 };
+                m._binaryInfo.matricesIndicesAttrDesc = { count: matricesIndices.length, stride: 1, offset, dataType: 0, isExpanded: true };
                 stream.write(Buffer.from(new Int32Array(matricesIndices).buffer));
 
                 m.matricesIndices = null;
