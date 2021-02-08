@@ -1046,11 +1046,18 @@ export class ProjectExporter {
             if (geometry.matricesIndices) {
                 const matricesIndices: number[] = [];
 
-                for (let i = 0; i < geometry.matricesIndices.length; i++) {
-                    matricesIndices.push(geometry.matricesIndices[i]);
+                for (let i = 0; i < geometry.matricesIndices.length; i += 4) {
+                    const bone: number[] = [
+                        geometry.matricesIndices[i],
+                        geometry.matricesIndices[i + 1],
+                        geometry.matricesIndices[i + 2],
+                        geometry.matricesIndices[i + 3],
+                    ];
+
+                    matricesIndices.push((bone[3] << 24) | (bone[2] << 16) | (bone[1] << 8) | bone[0]);
                 }
 
-                m._binaryInfo.matricesIndicesAttrDesc = { count: matricesIndices.length, stride: 1, offset, dataType: 0, isExpanded: true };
+                m._binaryInfo.matricesIndicesAttrDesc = { count: matricesIndices.length, stride: 1, offset, dataType: 0 };
                 stream.write(Buffer.from(new Int32Array(matricesIndices).buffer));
 
                 m.matricesIndices = null;

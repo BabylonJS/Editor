@@ -55,7 +55,6 @@ import { Console } from "./components/console";
 
 // Augmentations
 import "./gui/augmentations/index";
-import "./augmentations/babylonjs-geometry";
 
 // Inspectors
 import "./inspectors/scene-inspector";
