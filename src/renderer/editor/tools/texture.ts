@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, remove, rmdir } from "fs-extra";
 
 import { Nullable } from "../../../shared/types";
 
-import { BaseTexture, Tools as BabylonTools } from "babylonjs";
+import { BaseTexture, Engine, Tools as BabylonTools } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -40,17 +40,18 @@ export class TextureTools {
             diffusePixels[i + 3] = opacityPixels[i];
         }
 
-        return this._ConvertPixelsToTextureFile(editor, diffuse, opacity, diffusePixels);
+        const name = `${basename(diffuse.name).split(".")[0]}_${basename(opacity.name).split(".")[0]}.png`;
+        return this._ConvertPixelsToTextureFile(editor, name, diffuse, diffusePixels);
     }
 
     /**
      * Converts the given pixels to a texture file.
      */
-    private static async _ConvertPixelsToTextureFile(editor: Editor, textureA: BaseTexture, textureB: BaseTexture, pixels: Uint8ClampedArray): Promise<Nullable<string>> {
+    private static async _ConvertPixelsToTextureFile(editor: Editor, name: string, texture: BaseTexture, pixels: Uint8ClampedArray): Promise<Nullable<string>> {
         // Base canvas
         const canvas = document.createElement("canvas");
-        canvas.width = textureA.getBaseSize().width;
-        canvas.height = textureA.getBaseSize().height;
+        canvas.width = texture.getBaseSize().width;
+        canvas.height = texture.getBaseSize().height;
 
         const context = canvas.getContext("2d");
         if (!context) { return null; }
@@ -60,16 +61,15 @@ export class TextureTools {
 
         // Final canvas
         const finalCanvas = document.createElement("canvas");
-        finalCanvas.width = textureA.getBaseSize().width;
-        finalCanvas.height = textureA.getBaseSize().height;
+        finalCanvas.width = texture.getBaseSize().width;
+        finalCanvas.height = texture.getBaseSize().height;
 
         const finalContext = finalCanvas.getContext("2d");
         if (!finalContext) { return null; }
         finalContext.transform(1, 0, 0, -1, 0, canvas.height);
         finalContext.drawImage(canvas, 0, 0);
 
-        const name = `${basename(textureA.name).split(".")[0]}_${basename(textureB.name).split(".")[0]}.png`;
-        const blob = await this._CanvasToBlob(finalCanvas);
+        const blob = await this.CanvasToBlob(finalCanvas);
 
         context.restore();
         finalContext.restore();
@@ -104,9 +104,41 @@ export class TextureTools {
     /**
      * Converts the given canvas data to blob.
      */
-    private static async _CanvasToBlob (canvas: HTMLCanvasElement): Promise<Nullable<Blob>> {
+    public static async CanvasToBlob (canvas: HTMLCanvasElement): Promise<Nullable<Blob>> {
         return new Promise<Nullable<Blob>>((resolve) => {
             BabylonTools.ToBlob(canvas, b => resolve(b));
         });
+    }
+
+    /**
+     * Converts the given texture into an array buffer as image/png.
+     * @param texture defines the reference to the texture to convert to array buffer.
+     */
+    public static async ConvertTextureToBuffer(texture: BaseTexture): Promise<Nullable<ArrayBuffer>> {
+        // Get pixels
+        const pixels =
+            texture.textureType === Engine.TEXTURETYPE_UNSIGNED_INT ?
+            texture.readPixels() as Uint8Array :
+            texture.readPixels() as Float32Array;
+
+        // Get dimensions.
+        const dimensions = texture.getBaseSize();
+        if (!dimensions.width || !dimensions.height) { return null; }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = texture.getBaseSize().width;
+        canvas.height = texture.getBaseSize().height;
+
+        const imageData = new ImageData(new Uint8ClampedArray(pixels.buffer), dimensions.width, dimensions.height);
+
+        const context = canvas.getContext("2d");
+        if (!context) { return null; }
+        context.putImageData(imageData, 0, 0);
+
+        const blob = await this.CanvasToBlob(canvas);
+        if (!blob) { return null; }
+
+        const buffer = await Tools.ReadFileAsArrayBuffer(blob);
+        return buffer;
     }
 }

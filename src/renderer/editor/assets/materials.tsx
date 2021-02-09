@@ -412,6 +412,9 @@ export class MaterialAssets extends AbstractAssets {
         });
 
         const material = Material.Parse(json, this.editor.scene!, Project.DirPath!);
+        if (material instanceof NodeMaterial) {
+            material.build(true);
+        }
 
         return material;
     }
@@ -454,6 +457,7 @@ export class MaterialAssets extends AbstractAssets {
 
         if (material instanceof NodeMaterial) {
             material.setToDefault();
+            material.build(true);
         }
 
         this.refresh();

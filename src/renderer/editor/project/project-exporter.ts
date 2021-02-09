@@ -1,7 +1,10 @@
 import { mkdir, pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove, createWriteStream } from "fs-extra";
 import { join, normalize, basename, dirname, extname } from "path";
 
-import { SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial } from "babylonjs";
+import {
+    SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture,
+    MultiMaterial, Texture, Scene,
+} from "babylonjs";
 import { LGraph } from "litegraph.js";
 
 import filenamify from "filenamify";
@@ -12,6 +15,7 @@ import { GraphAssets } from "../assets/graphs";
 
 import { Editor } from "../editor";
 import { Tools } from "../tools/tools";
+import { TextureTools } from "../tools/texture";
 
 import { Assets } from "../components/assets";
 import { ScriptAssets } from "../assets/scripts";
@@ -798,6 +802,8 @@ export class ProjectExporter {
         editor.updateTaskFeedback(task, 50);
         editor.beforeGenerateSceneObservable.notifyObservers(scenePath);
 
+        const extraFiles: string[] = [];
+
         // Handle incremental loading
         const geometriesPath = join(scenePath, "geometries");
         const incrementalFolderExists = await pathExists(geometriesPath);
@@ -827,8 +833,15 @@ export class ProjectExporter {
         }
 
         // Handle node material textures
+        editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");;
+        const tempScene = new Scene(editor.engine!);
+
+        let nodeMaterialTextureIndex = 0;
+        const nodeMaterialPromises: Promise<void>[] = [];
+
         for (const m of scene.materials ?? []) {
             if (m?.customType !== "BABYLON.NodeMaterial") { continue; }
+
             for (const b of m.blocks ?? []) {
                 if ((b?.customType !== "BABYLON.TextureBlock" && b?.customType !== "BABYLON.ReflectionTextureBlock") || !b.texture?.name) { continue; }
                 if (b.texture.name.indexOf("data:") !== 0) { continue; }
@@ -836,12 +849,34 @@ export class ProjectExporter {
                 if (b.customType === "BABYLON.TextureBlock") {
                     b.texture.url = b.texture.name;
                     b.texture.name = b.texture.metadata?.editorName ?? Tools.RandomId();
+
+                    nodeMaterialPromises.push(new Promise<void>((resolve) => {
+                        const texture = new Texture(b.texture.url, tempScene, b.texture.noMipmap ?? true, b.texture.invertY, undefined, async () => {
+                            const buffer = await TextureTools.ConvertTextureToBuffer(texture);
+                            if (!buffer) { return; }
+
+                            const extractedTextureName = filenamify(`${m.name}-${m.id}-${nodeMaterialTextureIndex++}.png`);
+                            await writeFile(join(scenePath, "files", extractedTextureName), new Buffer(buffer));
+                            extraFiles.push(extractedTextureName);
+
+                            b.texture.url = b.texture.name = join("files", extractedTextureName);
+
+                            texture.dispose();
+                            resolve();
+                        }, () => {
+                            resolve();
+                        });
+                    }));
                 } else {
                     b.texture.url = `data:${Tools.RandomId()}`;
                 }
             }
         }
 
+        await Promise.all(nodeMaterialPromises);
+        tempScene.dispose();
+
+        // Write scene
         editor.updateTaskFeedback(task, 50, "Writing scene...");
         await writeJSON(join(scenePath, "scene.babylon"), scene);
 
@@ -872,7 +907,7 @@ export class ProjectExporter {
         try {
             const existingFiles = await readdir(destFilesDir);
             for (const existingFile of existingFiles) {
-                if (FilesStore.GetFileFromBaseName(existingFile)) {
+                if (FilesStore.GetFileFromBaseName(existingFile) || extraFiles.indexOf(existingFile) !== -1) {
                     continue;
                 }
 
