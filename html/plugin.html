@@ -60,7 +60,7 @@
 		img.onload = () => {
 			setTimeout(() => {
 				// Require modules hack for development mode.
-				require('../build/src/src/renderer/module.js');
+				require('../build/src/renderer/module.js');
 				const path = require('path');
 
 				// Configure monaco editor embedded loader
@@ -83,7 +83,7 @@
 				amdRequire(['vs/editor/editor.main'], function () {
 					window.monaco = monaco;
 
-					const plugin = require("../build/src/src/renderer/windows/index.js");
+					const plugin = require("../build/src/renderer/windows/index.js");
 					window.plugin = new plugin.default();
 				});
 			}, 100);

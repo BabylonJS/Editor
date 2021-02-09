@@ -35,7 +35,7 @@ export class OffscreenAssetsHelper {
 
         const offscreen = this.canvas.transferControlToOffscreen();
 
-        this._worker = new Worker("../build/src/src/renderer/editor/tools/offscreen-assets-helper/index.js");
+        this._worker = new Worker("../build/src/renderer/editor/tools/offscreen-assets-helper/index.js");
         return this._getPromise("init", { canvas: offscreen }, [offscreen]);
     }
 

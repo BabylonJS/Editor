@@ -31,7 +31,7 @@ export class PhotoshopExtension {
         const loggerManager = new GeneratorLogging.LoggerManager(GeneratorLogging.LOG_LEVEL_INFO);
         this._GeneratorProcess = GeneratorCore.createGenerator(loggerManager);
 
-        const extensionPath = join(__dirname, "../../../../../../", "photoshop-extension");
+        const extensionPath = join(__dirname, "../../../../../", "photoshop-extension");
         editor.updateTaskFeedback(task, 50);
 
         try {

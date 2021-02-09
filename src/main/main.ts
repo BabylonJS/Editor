@@ -89,7 +89,7 @@ export default class EditorApp {
 					allowRunningInsecureContent: false,
 				},
 			},
-			url: "file://" + __dirname + "/../../../../html/editor.html",
+			url: "file://" + __dirname + "/../../../html/editor.html",
 			autofocus: true,
 		});
 		this.Window.maximize();

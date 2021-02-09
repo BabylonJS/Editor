@@ -51,10 +51,10 @@
 		img.onload = () => {
 			setTimeout(() => {
 				// Require modules hack for development mode.
-				require('../build/src/src/renderer/module.js');
+				require('../build/src/renderer/module.js');
 				
 				const path = require('path');
-				const Editor = require('../build/src/src/renderer/editor/index.js');
+				const Editor = require('../build/src/renderer/editor/index.js');
 
 				// Configure monaco editor embedded loader
 				const amdLoader = require('../node_modules/monaco-editor/min/vs/loader.js');

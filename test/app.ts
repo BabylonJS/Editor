@@ -8,7 +8,7 @@ export class TestApp {
     /**
      * Defines the absolute path of the App.
      */
-    public readonly appPath: string = join(__dirname, "..", "..", "..");
+    public readonly appPath: string = join(__dirname, "..", "..");
     /**
      * Defines the absolute path to the workspace directory.
      */
