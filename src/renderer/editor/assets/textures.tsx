@@ -101,6 +101,8 @@ export class TextureAssets extends AbstractAssets {
                 texture.metadata.editorId = Tools.RandomId();
             }
 
+            if (texture.name.indexOf("data:") === 0) { continue; }
+
             const name = basename(texture.name);
             const file = FilesStore.GetFileFromBaseName(name);
             if (!file && !isDyamicTexture) {

@@ -141,4 +141,15 @@ export class TextureTools {
         const buffer = await Tools.ReadFileAsArrayBuffer(blob);
         return buffer;
     }
+
+    /**
+     * Converts the given octet-stream to buffer.
+     * @param stream defines the reference to the stream string.
+     */
+    public static ConvertOctetStreamToBuffer(stream: string): Buffer {
+        const data = stream.indexOf("data:") === 0 ? stream.split(",")[1] : stream;
+        const buffer = Buffer.alloc(data.length, data, "base64");
+
+        return buffer;
+    }
 }

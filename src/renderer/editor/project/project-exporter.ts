@@ -833,7 +833,7 @@ export class ProjectExporter {
         }
 
         // Handle node material textures
-        editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");;
+        editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");
         const tempScene = new Scene(editor.engine!);
 
         let nodeMaterialTextureIndex = 0;
@@ -843,7 +843,7 @@ export class ProjectExporter {
             if (m?.customType !== "BABYLON.NodeMaterial") { continue; }
 
             for (const b of m.blocks ?? []) {
-                if ((b?.customType !== "BABYLON.TextureBlock" && b?.customType !== "BABYLON.ReflectionTextureBlock") || !b.texture?.name) { continue; }
+                if ((b?.customType !== "BABYLON.TextureBlock" && b?.customType !== "BABYLON.ReflectionBlock" && b?.customType !== "BABYLON.ReflectionTextureBlock") || !b.texture?.name) { continue; }
                 if (b.texture.name.indexOf("data:") !== 0) { continue; }
 
                 if (b.customType === "BABYLON.TextureBlock") {
@@ -853,7 +853,7 @@ export class ProjectExporter {
                     nodeMaterialPromises.push(new Promise<void>((resolve) => {
                         const texture = new Texture(b.texture.url, tempScene, b.texture.noMipmap ?? true, b.texture.invertY, undefined, async () => {
                             const buffer = await TextureTools.ConvertTextureToBuffer(texture);
-                            if (!buffer) { return; }
+                            if (!buffer) { return resolve(); }
 
                             const extractedTextureName = filenamify(`${m.name}-${m.id}-${nodeMaterialTextureIndex++}.png`);
                             await writeFile(join(scenePath, "files", extractedTextureName), new Buffer(buffer));
@@ -868,7 +868,20 @@ export class ProjectExporter {
                         });
                     }));
                 } else {
-                    b.texture.url = `data:${Tools.RandomId()}`;
+                    if (!b.texture.forcedExtension) {
+                        b.texture.url = `data:${Tools.RandomId()}`;
+                    } else {
+                        nodeMaterialPromises.push(new Promise<void>(async (resolve) => {
+                            const buffer = TextureTools.ConvertOctetStreamToBuffer(b.texture.name);
+                            const extractedTextureName = filenamify(`${m.name}-${m.id}-${nodeMaterialTextureIndex++}${b.texture.forcedExtension}`);
+
+                            await writeFile(join(scenePath, "files", extractedTextureName), buffer);
+                            extraFiles.push(extractedTextureName);
+
+                            b.texture.url = b.texture.name = join("files", extractedTextureName);
+                            resolve();
+                        }));
+                    }
                 }
             }
         }
