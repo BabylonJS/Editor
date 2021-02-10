@@ -104,7 +104,7 @@ export class TextureTools {
     /**
      * Converts the given canvas data to blob.
      */
-    public static async CanvasToBlob (canvas: HTMLCanvasElement): Promise<Nullable<Blob>> {
+    public static async CanvasToBlob(canvas: HTMLCanvasElement): Promise<Nullable<Blob>> {
         return new Promise<Nullable<Blob>>((resolve) => {
             BabylonTools.ToBlob(canvas, b => resolve(b));
         });

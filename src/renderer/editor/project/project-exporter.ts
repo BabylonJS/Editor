@@ -3,7 +3,7 @@ import { join, normalize, basename, dirname, extname } from "path";
 
 import {
     SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture,
-    MultiMaterial, Texture, Scene,
+    MultiMaterial,
 } from "babylonjs";
 import { LGraph } from "litegraph.js";
 
@@ -15,7 +15,7 @@ import { GraphAssets } from "../assets/graphs";
 
 import { Editor } from "../editor";
 import { Tools } from "../tools/tools";
-import { TextureTools } from "../tools/texture";
+import { MaterialTools } from "../tools/material";
 
 import { Assets } from "../components/assets";
 import { ScriptAssets } from "../assets/scripts";
@@ -802,8 +802,6 @@ export class ProjectExporter {
         editor.updateTaskFeedback(task, 50);
         editor.beforeGenerateSceneObservable.notifyObservers(scenePath);
 
-        const extraFiles: string[] = [];
-
         // Handle incremental loading
         const geometriesPath = join(scenePath, "geometries");
         const incrementalFolderExists = await pathExists(geometriesPath);
@@ -834,60 +832,7 @@ export class ProjectExporter {
 
         // Handle node material textures
         editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");
-        const tempScene = new Scene(editor.engine!);
-
-        let nodeMaterialTextureIndex = 0;
-        const nodeMaterialPromises: Promise<void>[] = [];
-
-        for (const m of scene.materials ?? []) {
-            if (m?.customType !== "BABYLON.NodeMaterial") { continue; }
-
-            for (const b of m.blocks ?? []) {
-                if ((b?.customType !== "BABYLON.TextureBlock" && b?.customType !== "BABYLON.ReflectionBlock" && b?.customType !== "BABYLON.ReflectionTextureBlock") || !b.texture?.name) { continue; }
-                if (b.texture.name.indexOf("data:") !== 0) { continue; }
-
-                if (b.customType === "BABYLON.TextureBlock") {
-                    b.texture.url = b.texture.name;
-                    b.texture.name = b.texture.metadata?.editorName ?? Tools.RandomId();
-
-                    nodeMaterialPromises.push(new Promise<void>((resolve) => {
-                        const texture = new Texture(b.texture.url, tempScene, b.texture.noMipmap ?? true, b.texture.invertY, undefined, async () => {
-                            const buffer = await TextureTools.ConvertTextureToBuffer(texture);
-                            if (!buffer) { return resolve(); }
-
-                            const extractedTextureName = filenamify(`${m.name}-${m.id}-${nodeMaterialTextureIndex++}.png`);
-                            await writeFile(join(scenePath, "files", extractedTextureName), new Buffer(buffer));
-                            extraFiles.push(extractedTextureName);
-
-                            b.texture.url = b.texture.name = join("files", extractedTextureName);
-
-                            texture.dispose();
-                            resolve();
-                        }, () => {
-                            resolve();
-                        });
-                    }));
-                } else {
-                    if (!b.texture.forcedExtension) {
-                        b.texture.url = `data:${Tools.RandomId()}`;
-                    } else {
-                        nodeMaterialPromises.push(new Promise<void>(async (resolve) => {
-                            const buffer = TextureTools.ConvertOctetStreamToBuffer(b.texture.name);
-                            const extractedTextureName = filenamify(`${m.name}-${m.id}-${nodeMaterialTextureIndex++}${b.texture.forcedExtension}`);
-
-                            await writeFile(join(scenePath, "files", extractedTextureName), buffer);
-                            extraFiles.push(extractedTextureName);
-
-                            b.texture.url = b.texture.name = join("files", extractedTextureName);
-                            resolve();
-                        }));
-                    }
-                }
-            }
-        }
-
-        await Promise.all(nodeMaterialPromises);
-        tempScene.dispose();
+        const extraFiles = await MaterialTools.ExportSerializedNodeMaterialsTextures(editor, scene.materials, scenePath);
 
         // Write scene
         editor.updateTaskFeedback(task, 50, "Writing scene...");
