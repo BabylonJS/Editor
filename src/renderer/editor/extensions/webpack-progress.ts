@@ -34,7 +34,7 @@ export class WebpackProgressExtension {
         try {
             createServer((socket) => this._OnGotSocket(socket, editor)).listen(6969, "localhost");
         } catch (e) {
-            editor.console.logInfo("Failed to create notifications server for Webpack");
+            editor.console.logError("Failed to create notifications server for Webpack");
         }
     }
 

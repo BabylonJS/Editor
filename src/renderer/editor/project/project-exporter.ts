@@ -79,6 +79,7 @@ export class ProjectExporter {
             return editor.notifyMessage("Can't save when Isolated Mode is enabled.", 2000, "error");
         }
 
+        editor.console.logSection("Exporting Project");
         editor.console.logInfo(`Exporting project to: ${Project.DirPath}`);
         editor.beforeSaveProjectObservable.notifyObservers(Project.DirPath!);
         
@@ -788,6 +789,8 @@ export class ProjectExporter {
         if (editor.preview.state.isIsolatedMode) {
             return editor.notifyMessage("Can't export when Isolated Mode is enabled.", 2000, "error");
         }
+
+        editor.console.logSection("Exporting Final Scene");
 
         task = task ?? editor.addTaskFeedback(0, "Generating Final Scene");
         editor.updateTaskFeedback(task, 0, "Generating Final Scene");

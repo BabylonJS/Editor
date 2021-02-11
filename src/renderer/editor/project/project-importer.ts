@@ -45,6 +45,9 @@ export class ProjectImporter {
      * Imports the project located at the given path.
      */
     private static async _ImportProject(editor: Editor, path: string): Promise<void> {
+        // Log
+        editor.console.logSection("Loading Project");
+        
         // Prepare overlay
         Overlay.Show("Importing Project...", true);
 

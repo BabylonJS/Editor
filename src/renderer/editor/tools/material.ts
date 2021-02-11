@@ -35,7 +35,7 @@ export class MaterialTools {
                     b.texture.url = b.texture.name;
                     b.texture.name = b.texture.metadata?.editorName ?? Tools.RandomId();
 
-                    promises.push(this._ExportSerializedTexture(m, b, scene, textureIndex++, path, files));
+                    promises.push(this._ExportSerializedTexture(editor, m, b, scene, textureIndex++, path, files));
                     continue;
                 }
                 
@@ -44,7 +44,7 @@ export class MaterialTools {
                     continue;
                 }
 
-                promises.push(this._ExportSerializedCubeTexture(m, b, textureIndex++, path, files));
+                promises.push(this._ExportSerializedCubeTexture(editor, m, b, textureIndex++, path, files));
             }
         }
 
@@ -57,7 +57,7 @@ export class MaterialTools {
     /**
      * Exports the given serialized texture.
      */
-    private static _ExportSerializedTexture(material: any, block: any, scene: Scene, index: number, path: string, files: string[]): Promise<void> {
+    private static _ExportSerializedTexture(editor: Editor, material: any, block: any, scene: Scene, index: number, path: string, files: string[]): Promise<void> {
         return new Promise<void>((resolve) => {
             const texture = new Texture(block.texture.url, scene, block.texture.noMipmap ?? true, block.texture.invertY, undefined, async () => {
                 const buffer = await TextureTools.ConvertTextureToBuffer(texture);
@@ -70,6 +70,8 @@ export class MaterialTools {
                 block.texture.url = block.texture.name = join("files", extractedTextureName);
 
                 texture.dispose();
+                editor.console.logInfo(`Generated NodeMaterial texture for "${material.name}" at ${extractedTextureName}`);
+
                 resolve();
             }, () => {
                 resolve();
@@ -80,7 +82,7 @@ export class MaterialTools {
     /**
      * Exports the given serialized cube texture.
      */
-    private static async _ExportSerializedCubeTexture(material: any, block: any, index: number, path: string, files: string[]): Promise<void> {
+    private static async _ExportSerializedCubeTexture(editor: Editor, material: any, block: any, index: number, path: string, files: string[]): Promise<void> {
         const buffer = TextureTools.ConvertOctetStreamToBuffer(block.texture.name);
         const extractedTextureName = filenamify(`${material.name}-${material.id}-${index++}${block.texture.forcedExtension}`);
 
@@ -88,5 +90,6 @@ export class MaterialTools {
         files.push(extractedTextureName);
 
         block.texture.url = block.texture.name = join("files", extractedTextureName);
+        editor.console.logInfo(`Generated NodeMaterial texture for "${material.name}" at ${extractedTextureName}`);
     }
 }

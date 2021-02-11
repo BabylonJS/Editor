@@ -81,6 +81,10 @@ export interface IConsoleLog {
      * Defines the layer where to write the message (log).
      */
     layer?: ConsoleLayer;
+    /**
+     * Defines wether or not a separator should be drawn.
+     */
+    separator?: boolean;
 }
 
 export class Console extends React.Component<IConsoleProps, IConsoleState> {
@@ -254,6 +258,14 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     }
 
     /**
+     * Logs the given message using separators. Allows to create sections in logs.
+     * @param message defines the message to log directly.
+     */
+    public logSection(message: string): void {
+        this._addLog({ type: ConsoleLogType.Info, message, separator: true });
+    }
+
+    /**
      * Sets the newly active tab.
      * @param tabId defines the id of the tab to set as active.
      */
@@ -287,6 +299,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
             const p = document.createElement("p");
             p.style.marginBottom = "0px";
             p.style.whiteSpace = "nowrap";
+
+            if (log.separator) { this._commonDiv.appendChild(document.createElement("hr")); }
             
             switch (log.type) {
                 case ConsoleLogType.Info:
@@ -304,8 +318,10 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                     console.warn(log.message);
                     break;
             }
-
+            
             this._commonDiv.appendChild(p);
+            if (log.separator) { this._commonDiv.appendChild(document.createElement("hr")); }
+
             this._commonDiv.scrollTop = this._commonDiv.scrollHeight + 25;
 
             return;
