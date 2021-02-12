@@ -229,6 +229,8 @@ export class MaterialAssets extends AbstractAssets {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
+                <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this.refresh(material)} />
+                <MenuDivider />
                 <MenuItem text="Save Material Preset..." icon={<Icon src="save.svg" />} onClick={() => this._handleSaveMaterialPreset(item)} />
                 <MenuDivider />
                 <MenuItem text="Clone..." onClick={async () => {
