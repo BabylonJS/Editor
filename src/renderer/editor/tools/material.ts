@@ -2,7 +2,7 @@ import { join } from "path";
 import filenamify from "filenamify";
 import { writeFile } from "fs-extra";
 
-import { Scene, Texture } from "babylonjs";
+import { Texture, NodeMaterial, TextureBlock } from "babylonjs";
 
 import { Tools } from "./tools";
 import { TextureTools } from "./texture";
@@ -17,8 +17,6 @@ export class MaterialTools {
      * @param path defines the path where the scene has been saved.
      */
     public static async ExportSerializedNodeMaterialsTextures(editor: Editor, materials: any[], path: string): Promise<string[]> {
-        const scene = new Scene(editor.engine!);
-
         const files: string[] = [];
         const promises: Promise<void>[] = [];
 
@@ -27,15 +25,21 @@ export class MaterialTools {
         for (const m of materials ?? []) {
             if (m?.customType !== "BABYLON.NodeMaterial") { continue; }
 
+            const material = editor.scene!.getMaterialByID(m.id) as NodeMaterial;
+            if (!material || !(material instanceof NodeMaterial)) { continue; }
+
             for (const b of m.blocks ?? []) {
                 if ((b?.customType !== "BABYLON.TextureBlock" && b?.customType !== "BABYLON.ReflectionBlock" && b?.customType !== "BABYLON.ReflectionTextureBlock") || !b.texture?.name) { continue; }
                 if (b.texture.name.indexOf("data:") !== 0) { continue; }
 
                 if (b.customType === "BABYLON.TextureBlock") {
+                    const block = material.getTextureBlocks().find((tb) => tb.uniqueId === b.id);
+                    if (!block || !(block instanceof TextureBlock) || !block.texture) { continue; }
+
                     b.texture.url = b.texture.name;
                     b.texture.name = b.texture.metadata?.editorName ?? Tools.RandomId();
 
-                    promises.push(this._ExportSerializedTexture(editor, m, b, scene, textureIndex++, path, files));
+                    promises.push(this._ExportSerializedTexture(editor, m, b, block.texture, textureIndex++, path, files));
                     continue;
                 }
                 
@@ -49,7 +53,6 @@ export class MaterialTools {
         }
 
         await Promise.all(promises);
-        scene.dispose();
 
         return files;
     }
@@ -57,26 +60,17 @@ export class MaterialTools {
     /**
      * Exports the given serialized texture.
      */
-    private static _ExportSerializedTexture(editor: Editor, material: any, block: any, scene: Scene, index: number, path: string, files: string[]): Promise<void> {
-        return new Promise<void>((resolve) => {
-            const texture = new Texture(block.texture.url, scene, block.texture.noMipmap ?? true, block.texture.invertY, undefined, async () => {
-                const buffer = await TextureTools.ConvertTextureToBuffer(texture);
-                if (!buffer) { return resolve(); }
+    private static async _ExportSerializedTexture(editor: Editor, material: any, block: any, texture: Texture, index: number, path: string, files: string[]): Promise<void> {
+        const buffer = await TextureTools.ConvertTextureToBuffer(texture);
+        if (!buffer) { return; }
 
-                const extractedTextureName = filenamify(`${material.name}-${material.id}-${index++}.png`);
-                await writeFile(join(path, "files", extractedTextureName), new Buffer(buffer));
-                files.push(extractedTextureName);
+        const extractedTextureName = filenamify(`${material.name}-${material.id}-${index++}.png`);
+        await writeFile(join(path, "files", extractedTextureName), new Buffer(buffer));
+        files.push(extractedTextureName);
 
-                block.texture.url = block.texture.name = join("files", extractedTextureName);
+        block.texture.url = block.texture.name = join("files", extractedTextureName);
 
-                texture.dispose();
-                editor.console.logInfo(`Generated NodeMaterial texture for "${material.name}" at ${extractedTextureName}`);
-
-                resolve();
-            }, () => {
-                resolve();
-            });
-        });
+        editor.console.logInfo(`Generated NodeMaterial texture for "${material.name}" at ${extractedTextureName}`);
     }
 
     /**

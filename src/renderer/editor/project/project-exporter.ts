@@ -833,6 +833,8 @@ export class ProjectExporter {
             this._WriteIncrementalGeometryFiles(editor, geometriesPath, scene, true, task);
         }
 
+        if (!(await pathExists(destFilesDir))) { await mkdir(destFilesDir); }
+        
         // Handle node material textures
         editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");
         const extraFiles = await MaterialTools.ExportSerializedNodeMaterialsTextures(editor, scene.materials, scenePath);
@@ -844,8 +846,6 @@ export class ProjectExporter {
         // Copy files
         const step = FilesStore.GetFilesCount() / 50;
         let progress = 50;
-
-        if (!(await pathExists(destFilesDir))) { await mkdir(destFilesDir); }
 
         for (const f in FilesStore.List) {
             const file = FilesStore.List[f];
