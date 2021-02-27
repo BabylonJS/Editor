@@ -4,10 +4,10 @@ import { writeFile } from "fs-extra";
 
 import { Texture, NodeMaterial, TextureBlock } from "babylonjs";
 
-import { Tools } from "./tools";
+import { Tools } from "../tools";
 import { TextureTools } from "./texture";
 
-import { Editor } from "../editor";
+import { Editor } from "../../editor";
 
 export class MaterialTools {
     /**

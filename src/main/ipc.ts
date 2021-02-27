@@ -1,4 +1,4 @@
-import { ipcMain, dialog, IpcMainEvent, BrowserWindow } from "electron";
+import { ipcMain, dialog, IpcMainEvent, BrowserWindow, TouchBar } from "electron";
 
 import EditorApp from "./main";
 import { Settings } from "./settings";
@@ -37,6 +37,8 @@ export class IPC {
 
 		ipcMain.on(IPCRequests.EnableDevTools, IPC.OnEnableDevTools);
 		ipcMain.on(IPCRequests.OpenDevTools, IPC.OnOpenDevTools);
+
+		ipcMain.on(IPCRequests.SetTouchBar, IPC.SetTouchBarElements);
 	}
 
 	/**
@@ -165,5 +167,21 @@ export class IPC {
 		if (window) {
 			window.webContents?.openDevTools({ mode: "detach" });
 		}
+	}
+
+	/**
+	 * Sets the new touch bar elements for the calling window.
+	 */
+	public static async SetTouchBarElements(event: IpcMainEvent, elements: any[]): Promise<void> {
+		const window = WindowController.GetWindowByWebContentsId(event.sender.id);
+		if (!window) { return; }
+
+		window.setTouchBar(new TouchBar({
+			items: elements.map((e) => new TouchBar.TouchBarButton({
+				label: e.label,
+				iconPosition: e.iconPosition,
+				click: () => window.webContents?.send(e.eventName),
+			})),
+		}));
 	}
 }

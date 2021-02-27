@@ -6,7 +6,7 @@ import { GUI } from "dat.gui";
 import { TextureAssets } from "../../assets/textures";
 import { MaterialAssets } from "../../assets/materials";
 
-import { TextureTools } from "../../tools/texture";
+import { TextureTools } from "../../tools/components/texture";
 
 import { Inspector } from "../../components/inspector";
 import { MaterialInspector } from "./material-inspector";

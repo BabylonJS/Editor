@@ -7,6 +7,7 @@ import * as React from "react";
 import { Classes, ButtonGroup, Button } from "@blueprintjs/core";
 
 import { IPCTools } from "../../editor/tools/ipc";
+import { TouchBarHelper } from "../../editor/tools/touch-bar";
 
 import { IWorkSpace } from "../../editor/project/typings";
 
@@ -60,7 +61,20 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
      * Called on the component did mount.
      */
     public async componentDidMount(): Promise<void> {
-        // Nothing to at the moment.
+        TouchBarHelper.SetTouchBarElements([
+            {
+                label: "Open In My Browser...",
+                click: () => this._handleOpenInBrowser(),
+            },
+            {
+                label: "Refresh",
+                click: () => this._handleRefresh(),
+            },
+            {
+                label: "Open Devtools",
+                click: () => this._handleOpenDevTools(),
+            },
+        ])
     }
 
     /**

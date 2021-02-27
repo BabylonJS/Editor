@@ -2,15 +2,15 @@ import { tmpdir } from "os";
 import { basename, join } from "path";
 import { mkdtemp, writeFile, remove, rmdir } from "fs-extra";
 
-import { Nullable } from "../../../shared/types";
+import { Nullable } from "../../../../shared/types";
 
 import { BaseTexture, Engine, Tools as BabylonTools } from "babylonjs";
 
-import { Editor } from "../editor";
+import { Editor } from "../../editor";
 
-import { Tools } from "./tools";
+import { Tools } from "../tools";
 
-import { TextureAssets } from "../assets/textures";
+import { TextureAssets } from "../../assets/textures";
 
 export class TextureTools {
     /**

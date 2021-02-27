@@ -15,7 +15,7 @@ import { GraphAssets } from "../assets/graphs";
 
 import { Editor } from "../editor";
 import { Tools } from "../tools/tools";
-import { MaterialTools } from "../tools/material";
+import { MaterialTools } from "../tools/components/material";
 
 import { Assets } from "../components/assets";
 import { ScriptAssets } from "../assets/scripts";

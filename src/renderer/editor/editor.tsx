@@ -26,7 +26,8 @@ import { IObjectModified, IEditorPreferences, EditorPlayMode } from "./tools/typ
 import { undoRedo } from "./tools/undo-redo";
 import { AbstractEditorPlugin } from "./tools/plugin";
 import { LayoutUtils } from "./tools/layout-utils";
-import { EditorUpdater } from "./tools/updater";
+import { EditorUpdater } from "./tools/update/updater";
+import { TouchBarHelper } from "./tools/touch-bar";
 
 import { IFile } from "./project/files";
 import { WorkSpace } from "./project/workspace";
@@ -821,6 +822,9 @@ export class Editor {
         // If has workspace, od workspace stuffs.
         const workspace = WorkSpace.Workspace;
         if (workspace) {
+            // Set editor touch bar
+            this._setTouchBar();
+
             // Extensions
             WebpackProgressExtension.Initialize(this);
 
@@ -1097,6 +1101,27 @@ export class Editor {
             // Processes
             if (WorkSpace.HasWorkspace()) { WorkSpace.KillAllProcesses(); }
         });
+    }
+
+    /**
+     * Sets the editor touch bar for Mac OS systems.
+     */
+    private _setTouchBar(): void {
+        // Touch bar
+        TouchBarHelper.SetTouchBarElements([
+            {
+                label: "Build Project...",
+                click: "build-project",
+            },
+            {
+                label: "Generate Scene...",
+                click: "generate-project",
+            },
+            {
+                label: "Run Project...",
+                click: "run-project",
+            },
+        ]);
     }
 
     /**

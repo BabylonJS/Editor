@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, TouchBar } from "electron";
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu } from "electron";
 import { extname } from "path";
 import * as os from "os";
 
@@ -32,7 +32,6 @@ export default class EditorApp {
 
 		// Create short cuts and touch bar
 		this.CreateShortcutsAndMenu();
-		this.CreateTouchBar();
 	}
 
 	/**
@@ -106,30 +105,6 @@ export default class EditorApp {
 			
 			if (this._forceQuit) { app.quit(); }
 		});
-	}
-
-	/**
-	 * Creates the touch bar in case of a Mac OS X system.
-	 */
-	public static CreateTouchBar(): void {
-		if (os.platform() !== "darwin") { return; }
-
-		this.Window.setTouchBar(new TouchBar({
-			items: [
-				new TouchBar.TouchBarButton({
-					label: "Run Project...",
-					icon: `${__dirname}/../../../css/images/play.png`,
-					iconPosition: "left",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("run-project"),
-				}),
-				new TouchBar.TouchBarButton({
-					label: "Build Project...",
-					icon: `${__dirname}/../../../css/images/ts.png`,
-					iconPosition: "left",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("build-project"),
-				}),
-			],
-		}));
 	}
 	
     /**

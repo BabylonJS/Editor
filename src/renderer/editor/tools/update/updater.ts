@@ -5,9 +5,9 @@ import { join, basename, dirname } from "path";
 
 import { Intent, Classes } from "@blueprintjs/core";
 
-import { Tools } from "./tools";
+import { Tools } from "../tools";
 
-import { Editor } from "../editor";
+import { Editor } from "../../editor";
 
 export class EditorUpdater {
     private static _Updating: boolean = false;

@@ -15,7 +15,7 @@ import { Tools } from "../tools/tools";
 import { ExecTools } from "../tools/exec";
 import { undoRedo } from "../tools/undo-redo";
 import { EditorPlayMode } from "../tools/types";
-import { EditorUpdater } from "../tools/updater";
+import { EditorUpdater } from "../tools/update/updater";
 
 import { Icon } from "../gui/icon";
 import { Confirm } from "../gui/confirm";

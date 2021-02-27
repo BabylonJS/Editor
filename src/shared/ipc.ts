@@ -19,6 +19,8 @@ export enum IPCRequests {
 
 	EnableDevTools = "enabledevtools",
 	OpenDevTools = "opendevtools",
+
+	SetTouchBar = "settouchbar",
 }
 
 export enum IPCResponses {
