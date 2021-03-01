@@ -19,6 +19,7 @@ import { Tools } from "../../editor/tools/tools";
 import { IPCTools } from "../../editor/tools/ipc";
 import { undoRedo } from "../../editor/tools/undo-redo";
 import { LayoutUtils } from "../../editor/tools/layout-utils";
+import { TouchBarHelper, ITouchBarButton } from "../../editor/tools/touch-bar";
 
 import { GraphCode } from "../../editor/graph/graph";
 import { GraphCodeGenerator } from "../../editor/graph/generate";
@@ -291,6 +292,24 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         // Init templates
         await this._loadTemplates();
+    }
+
+    /**
+     * Called on the component did update.
+     */
+    public componentDidUpdate(): void {
+        const buttons: ITouchBarButton[] = [];
+        if (!this.state.playing) {
+            buttons.push({ label: "Play", click: () => this.start(false) });
+        } else {
+            buttons.push({ label: "Stop", click: () => this.stop() });
+            buttons.push({ label: "Restart", click: () => {
+                this.stop();
+                this.start(this.state.standalone);
+            } });
+        }
+
+        TouchBarHelper.SetTouchBarElements(buttons);
     }
 
     /**

@@ -74,7 +74,7 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
                 label: "Open Devtools",
                 click: () => this._handleOpenDevTools(),
             },
-        ])
+        ]);
     }
 
     /**

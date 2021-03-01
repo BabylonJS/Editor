@@ -5,9 +5,11 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 import { ButtonGroup, Button, Tabs, Tab, Navbar, Alignment, TabId } from "@blueprintjs/core";
 
-import { IWorkSpace } from "../../editor/project/typings";
 import { IPCTools } from "../../editor/tools/ipc";
 import { IEditorPreferences } from "../../editor/tools/types";
+import { TouchBarHelper } from "../../editor/tools/touch-bar";
+
+import { IWorkSpace } from "../../editor/project/typings";
 
 import { WorkspaceSettings } from "./workspace";
 import { CommonSettings } from "./common";
@@ -88,7 +90,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
                 <div style={{ width: "100%", height: "30px", background: "#333333" }}>
                     <ButtonGroup>
                         <Button text="Apply" onClick={() => this._handleApply()} />
-                        <Button text="Cancel" onClick={() => window.close()} />
+                        <Button text="Cancel" onClick={() => this._handleCancel()} />
                     </ButtonGroup>
                 </div>
             </>
@@ -104,6 +106,29 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
 
         const json = await readJSON(path, { encoding: "utf-8" });
         this.setState({ workspacePath: path, ...json });
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public async componentDidMount(): Promise<void> {
+        TouchBarHelper.SetTouchBarElements([
+            {
+                label: "Apply",
+                click: () => this._handleApply(),
+            },
+            {
+                label: "Cancel",
+                click: () => this._handleCancel(),
+            },
+        ]);
+    }
+
+    /**
+     * Called once the user cancels preferences.
+     */
+    private _handleCancel(): void {
+        window.close();
     }
 
     /**
