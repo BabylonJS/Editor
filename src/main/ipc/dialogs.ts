@@ -1,7 +1,7 @@
 import { BrowserWindow, dialog, IpcMainEvent } from "electron";
 
 import { IIPCHandler } from "../ipc";
-import { WindowController } from "../window";
+import { WindowsHandler } from "../window";
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
 
 export class OpenDirectoryDialogIPC implements IIPCHandler {
@@ -25,7 +25,7 @@ export class OpenDirectoryDialogIPC implements IIPCHandler {
      * @param defaultPath defines the path opened once the dialog opens.
 	 */
 	public async handler(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
-        const window = WindowController.GetWindowByWebContentsId(event.sender.id) ?? this._window;
+        const window = WindowsHandler.GetWindowByWebContentsId(event.sender.id) ?? this._window;
 		const result = await dialog.showOpenDialog(window, { title, defaultPath, properties: ["openDirectory"] });
 
 		if (!result || !result.filePaths.length) { return event.sender.send(IPCResponses.CancelOpenFileDialog); }
@@ -54,7 +54,7 @@ export class OpenFileDialogIPC implements IIPCHandler {
      * @param defaultPath defines the path opened once the dialog opens.
 	 */
 	public async handler(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
-        const window = WindowController.GetWindowByWebContentsId(event.sender.id) ?? this._window;
+        const window = WindowsHandler.GetWindowByWebContentsId(event.sender.id) ?? this._window;
 		const result = await dialog.showOpenDialog(window, { title, defaultPath, properties: ["openFile"] });
 
 		if (!result || !result.filePaths.length) { return event.sender.send(IPCResponses.CancelOpenFileDialog); }
@@ -83,7 +83,7 @@ export class SaveFileDialogIPC implements IIPCHandler {
      * @param defaultPath defines the path opened once the dialog opens.
 	 */
 	public async handler(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
-        const window = WindowController.GetWindowByWebContentsId(event.sender.id) ?? this._window;
+        const window = WindowsHandler.GetWindowByWebContentsId(event.sender.id) ?? this._window;
 		const result = await dialog.showSaveDialog(window, { title, defaultPath, properties: [] });
 
 		if (!result || !result.filePath) { return event.sender.send(IPCResponses.CancelSaveFileDialog); }

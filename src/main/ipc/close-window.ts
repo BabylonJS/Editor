@@ -1,7 +1,7 @@
 import { IpcMainEvent } from "electron";
 
 import { IIPCHandler } from "../ipc";
-import { WindowController } from "../window";
+import { WindowsHandler } from "../window";
 import { IPCRequests } from "../../shared/ipc";
 
 export class CloseWindowIPC implements IIPCHandler {
@@ -15,6 +15,6 @@ export class CloseWindowIPC implements IIPCHandler {
 	 * @param windowId defines the id of the window to close.
 	 */
 	public handler(_: IpcMainEvent, windowId: number): void {
-		WindowController.CloseWindow(windowId);
+		WindowsHandler.CloseWindow(windowId);
 	}
 }

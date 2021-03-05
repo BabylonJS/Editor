@@ -1,7 +1,7 @@
 import { IpcMainEvent } from "electron";
 
 import { IIPCHandler } from "../ipc";
-import { WindowController } from "../window";
+import { WindowsHandler } from "../window";
 import { IPCRequests } from "../../shared/ipc";
 
 export class OpenDevToolsIPC implements IIPCHandler {
@@ -15,7 +15,7 @@ export class OpenDevToolsIPC implements IIPCHandler {
 	 * @param args defines the args sent from the renderer process.
 	 */
 	public handler(event: IpcMainEvent): void {
-		const window = WindowController.GetWindowByWebContentsId(event.sender.id);
+		const window = WindowsHandler.GetWindowByWebContentsId(event.sender.id);
 		if (window) {
 			window.webContents?.openDevTools({ mode: "detach" });
 		}

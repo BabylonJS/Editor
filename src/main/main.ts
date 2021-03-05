@@ -6,7 +6,7 @@ import { Undefinable } from "../shared/types";
 
 import { IPCHandler } from "./ipc";
 import { Settings } from "./settings";
-import { WindowController } from "./window";
+import { WindowsHandler } from "./window";
 
 export default class EditorApp {
     /**
@@ -75,7 +75,7 @@ export default class EditorApp {
 		// Save the opened file from the OS file explorer
 		this.ConfigureSettings(this.GetFilePathArgument(process.argv));
 		
-		this.Window = await WindowController.WindowOnDemand({
+		this.Window = await WindowsHandler.CreateWindowOnDemand({
 			options: {
 				width: 800,
 				height: 600,

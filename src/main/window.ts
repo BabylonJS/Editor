@@ -7,16 +7,16 @@ export interface IWindowDefinition {
 	autofocus: boolean;
 }
 
-export class WindowController {
+export class WindowsHandler {
 	private static _Windows: BrowserWindow[] = [];
 
 	/**
-	 * Creates a new window on demand.
-	 * @param definition the definition object that describes the new window being created.
+	 * Creates a new window on demand taking the following definition.
+	 * @param definition defines the definition of the window (page url, dimensiosn, etc.)
 	 */
-	public static async WindowOnDemand(definition: IWindowDefinition): Promise<BrowserWindow> {
-		const window = this._createWindow(definition.options);
-		await this._setWindowURL(window, definition.url);
+	public static async CreateWindowOnDemand(definition: IWindowDefinition): Promise<BrowserWindow> {
+		const window = this._CreateWindow(definition.options);
+		await this._SetWindowURL(window, definition.url);
 
 		if (process.env.DEBUG) {
 			window.webContents.openDevTools();
@@ -32,7 +32,7 @@ export class WindowController {
 	}
 
 	/**
-	 * Finds the window according to the given id.
+	 * Finds the window according to the given id and returns its reference.
 	 * @param id defines the id of the window to find.
 	 */
 	public static GetWindowById(id: number): Undefinable<BrowserWindow> {
@@ -40,7 +40,7 @@ export class WindowController {
 	}
 
 	/**
-	 * Finds the window according to the given web contents id.
+	 * Finds the window according to the given web contents id and returns its reference.
 	 * @param id defines the id of the webcontents to find.
 	 */
 	public static GetWindowByWebContentsId(id: number): Undefinable<BrowserWindow> {
@@ -49,7 +49,7 @@ export class WindowController {
 
 	/**
 	 * Closes the window identified by the given id.
-	 * @param id the id of the window to close.
+	 * @param id defines the id of the window to close.
 	 */
 	public static CloseWindow(id: number): void {
 		const index = this._Windows.findIndex((w) => w.id === id);
@@ -59,21 +59,30 @@ export class WindowController {
 		this._Windows.splice(index, 1);
 	}
 
-	private static _setWindowURL(window: BrowserWindow, url: string): Promise<void> {
+	/**
+	 * Sets the Url of the given window and waits until it finished loading.
+	 */
+	private static _SetWindowURL(window: BrowserWindow, url: string): Promise<void> {
 		window.loadURL(url);
 		return new Promise((resolve) => window.webContents.once("did-finish-load", resolve));
 	}
 
-	private static _createWindow(options: BrowserWindowConstructorOptions): BrowserWindow {
+	/**
+	 * Creates a new window according to the given options/definitions.
+	 */
+	private static _CreateWindow(options: BrowserWindowConstructorOptions): BrowserWindow {
 		let window = new BrowserWindow(options);
 		this._Windows.push(window);
 
-		window.on("closed", () => this._removeWindow(window));
+		window.on("closed", () => this._RemoveWindow(window));
 
 		return window;
 	}
 
-	private static _removeWindow(window: BrowserWindow): void {
+	/**
+	 * Removes the given window from the existing opened windows.
+	 */
+	private static _RemoveWindow(window: BrowserWindow): void {
 		const index = this._Windows.findIndex((e) => e === window);
 		this._Windows.splice(index, 1);
 	}

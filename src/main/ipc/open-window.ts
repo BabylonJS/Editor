@@ -2,7 +2,7 @@ import { IpcMainEvent } from "electron";
 
 import { IIPCHandler } from "../ipc";
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
-import { IWindowDefinition, WindowController } from "../window";
+import { IWindowDefinition, WindowsHandler } from "../window";
 
 export class OpenWindowIPC implements IIPCHandler {
 	/**
@@ -16,7 +16,7 @@ export class OpenWindowIPC implements IIPCHandler {
 	 */
 	public async handler(event: IpcMainEvent, definition: IWindowDefinition): Promise<void> {
 		definition.url = `file://${__dirname}/../../../../html/${definition.url}`;
-		const window = await WindowController.WindowOnDemand(definition);
+		const window = await WindowsHandler.CreateWindowOnDemand(definition);
 		event.sender.send(IPCResponses.OpenWindowOnDemand, window.id);
 	}
 }

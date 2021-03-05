@@ -1,7 +1,7 @@
 import { IpcMainEvent } from "electron";
 
 import { IIPCHandler } from "../ipc";
-import { WindowController } from "../window";
+import { WindowsHandler } from "../window";
 import { IPCRequests } from "../../shared/ipc";
 
 export class FocusWindowIPC implements IIPCHandler {
@@ -15,7 +15,7 @@ export class FocusWindowIPC implements IIPCHandler {
 	 * @param windowId defines the id of the window to focus.
 	 */
 	public handler(_: IpcMainEvent, windowId: number): void {
-		const window = WindowController.GetWindowById(windowId);
+		const window = WindowsHandler.GetWindowById(windowId);
 		if (window) {
 			if (window.isMinimized()) { window.restore(); }
 			window.focus();

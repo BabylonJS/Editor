@@ -1,7 +1,7 @@
 import { IpcMainEvent, TouchBar } from "electron";
 
 import { IIPCHandler } from "../ipc";
-import { WindowController } from "../window";
+import { WindowsHandler } from "../window";
 import { IPCRequests } from "../../shared/ipc";
 
 export class ToucharIPC implements IIPCHandler {
@@ -15,7 +15,7 @@ export class ToucharIPC implements IIPCHandler {
 	 * @param args defines the args sent from the renderer process.
 	 */
 	public handler(event: IpcMainEvent, elements: any[]): void {
-		const window = WindowController.GetWindowByWebContentsId(event.sender.id);
+		const window = WindowsHandler.GetWindowByWebContentsId(event.sender.id);
 		if (!window) { return; }
 
 		window.setTouchBar(new TouchBar({

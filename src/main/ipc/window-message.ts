@@ -1,7 +1,7 @@
 import { BrowserWindow, IpcMainEvent } from "electron";
 
 import { IIPCHandler } from "../ipc";
-import { WindowController } from "../window";
+import { WindowsHandler } from "../window";
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
 
 export class SendWindowMessageIPC implements IIPCHandler {
@@ -25,7 +25,7 @@ export class SendWindowMessageIPC implements IIPCHandler {
      * @param data defines the data sent to the given window id.
 	 */
 	public handler(_: IpcMainEvent, windowId: number, data: any): void {
-		const window = WindowController.GetWindowById(windowId);
+		const window = WindowsHandler.GetWindowById(windowId);
 		if (!window) {
 			return this._window.webContents.send(IPCResponses.SendWindowMessage, data);
 		}
