@@ -1,7 +1,7 @@
 import { IpcMainEvent, TouchBar } from "electron";
 
-import { IIPCHandler } from "../ipc";
-import { WindowsHandler } from "../window";
+import { IIPCHandler } from "../handlers/ipc";
+import { WindowsHandler } from "../handlers/window";
 import { IPCRequests } from "../../shared/ipc";
 
 export class ToucharIPC implements IIPCHandler {

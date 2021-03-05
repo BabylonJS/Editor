@@ -1,7 +1,7 @@
 import { BrowserWindow, dialog, IpcMainEvent } from "electron";
 
-import { IIPCHandler } from "../ipc";
-import { WindowsHandler } from "../window";
+import { IIPCHandler } from "../handlers/ipc";
+import { WindowsHandler } from "../handlers/window";
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
 
 export class OpenDirectoryDialogIPC implements IIPCHandler {

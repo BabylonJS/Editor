@@ -1,8 +1,8 @@
 import { IpcMainEvent } from "electron";
 
-import { IIPCHandler } from "../ipc";
+import { IIPCHandler } from "../handlers/ipc";
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
-import { IWindowDefinition, WindowsHandler } from "../window";
+import { IWindowDefinition, WindowsHandler } from "../handlers/window";
 
 export class OpenWindowIPC implements IIPCHandler {
 	/**

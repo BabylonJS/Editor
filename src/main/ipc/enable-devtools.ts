@@ -1,7 +1,7 @@
 import { IpcMainEvent } from "electron";
 
-import { IIPCHandler } from "../ipc";
-import { DevTools } from "../devtools";
+import { IIPCHandler } from "../handlers/ipc";
+import { DevTools } from "../tools/devtools";
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
 
 export class EnableDevToolsIPC implements IIPCHandler {

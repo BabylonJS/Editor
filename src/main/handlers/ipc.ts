@@ -1,22 +1,22 @@
 import { ipcMain, IpcMainEvent, BrowserWindow } from "electron";
 
-import { OpenWindowIPC } from "./ipc/open-window";
+import { OpenWindowIPC } from "../ipc/open-window";
 
-import { SetProjectPathIPC, GetProjectPathIPC } from "./ipc/project";
-import { GetWorkspacePathIPC, SetWorkspacePathIPC } from "./ipc/workspace";
+import { SetProjectPathIPC, GetProjectPathIPC } from "../ipc/project";
+import { GetWorkspacePathIPC, SetWorkspacePathIPC } from "../ipc/workspace";
 
-import { OpenDirectoryDialogIPC, OpenFileDialogIPC, SaveFileDialogIPC } from "./ipc/dialogs";
+import { OpenDirectoryDialogIPC, OpenFileDialogIPC, SaveFileDialogIPC } from "../ipc/dialogs";
 
-import { StartWebServerIPC } from "./ipc/webserver";
-import { SendWindowMessageIPC } from "./ipc/window-message";
+import { StartWebServerIPC } from "../ipc/webserver";
+import { SendWindowMessageIPC } from "../ipc/window-message";
 
-import { CloseWindowIPC } from "./ipc/close-window";
-import { FocusWindowIPC } from "./ipc/focus-window";
+import { CloseWindowIPC } from "../ipc/close-window";
+import { FocusWindowIPC } from "../ipc/focus-window";
 
-import { EnableDevToolsIPC } from "./ipc/enable-devtools";
-import { OpenDevToolsIPC } from "./ipc/open-devtools";
+import { EnableDevToolsIPC } from "../ipc/enable-devtools";
+import { OpenDevToolsIPC } from "../ipc/open-devtools";
 
-import { ToucharIPC } from "./ipc/touchbar";
+import { ToucharIPC } from "../ipc/touchbar";
 
 export interface IIPCHandler {
 	/**

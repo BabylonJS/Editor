@@ -1,5 +1,5 @@
 import { BrowserWindowConstructorOptions, BrowserWindow } from "electron";
-import { Undefinable } from "../shared/types";
+import { Undefinable } from "../../shared/types";
 
 export interface IWindowDefinition {
 	options: BrowserWindowConstructorOptions;

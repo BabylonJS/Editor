@@ -1,7 +1,7 @@
 import { IpcMainEvent } from "electron";
 
-import { IIPCHandler } from "../ipc";
-import { GameServer } from "../game/server";
+import { IIPCHandler } from "../handlers/ipc";
+import { GameServer } from "../tools/server";
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
 
 export class StartWebServerIPC implements IIPCHandler {

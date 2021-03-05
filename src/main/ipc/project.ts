@@ -1,6 +1,6 @@
 import { IpcMainEvent } from "electron";
 
-import { IIPCHandler } from "../ipc";
+import { IIPCHandler } from "../handlers/ipc";
 import { Settings } from "../settings";
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
 

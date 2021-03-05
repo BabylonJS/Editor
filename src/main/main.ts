@@ -4,9 +4,9 @@ import * as os from "os";
 
 import { Undefinable } from "../shared/types";
 
-import { IPCHandler } from "./ipc";
+import { IPCHandler } from "./handlers/ipc";
 import { Settings } from "./settings";
-import { WindowsHandler } from "./window";
+import { WindowsHandler } from "./handlers/window";
 
 export default class EditorApp {
     /**
