@@ -1,8 +1,12 @@
 import { IpcMainEvent, TouchBar } from "electron";
 
+import { join } from "path";
+
+import { PathTools } from "../tools/path";
+import { IPCRequests } from "../../shared/ipc";
+
 import { IIPCHandler } from "../handlers/ipc";
 import { WindowsHandler } from "../handlers/window";
-import { IPCRequests } from "../../shared/ipc";
 
 export class ToucharIPC implements IIPCHandler {
 	/**
@@ -19,11 +23,22 @@ export class ToucharIPC implements IIPCHandler {
 		if (!window) { return; }
 
 		window.setTouchBar(new TouchBar({
-			items: elements.map((e) => new TouchBar.TouchBarButton({
-				label: e.label,
-				iconPosition: e.iconPosition,
-				click: () => window.webContents?.send(e.eventName),
-			})),
+			items: elements.map((e) => {
+				if (e.icon && !e.iconPosition) {
+					e.iconPosition = "left";
+				}
+
+				if (e.separator) {
+					return new TouchBar.TouchBarSpacer({ });
+				}
+
+				return new TouchBar.TouchBarButton({
+					label: e.label,
+					iconPosition: e.iconPosition,
+					icon: e.icon ? join(PathTools.GetAppPath(), e.icon) : undefined,
+					click: () => window.webContents?.send(e.eventName),
+				});
+			}),
 		}));
 	}
 }

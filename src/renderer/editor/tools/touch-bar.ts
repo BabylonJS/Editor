@@ -17,6 +17,10 @@ export interface ITouchBarButton {
      */
     icon?: string;
     /**
+     * Defines wether or not the element is a separator.
+     */
+    separator?: boolean;
+    /**
      * Defines the position of the icon on the button.
      */
     iconPosition?: "left" | "overlay" | "right";
@@ -63,6 +67,7 @@ export class TouchBarHelper {
                 eventName,
                 icon: e.icon,
                 label: e.label,
+                separator: e.separator,
                 iconPosition: e.iconPosition,
             };
         });

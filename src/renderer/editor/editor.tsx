@@ -1110,16 +1110,20 @@ export class Editor {
         // Touch bar
         TouchBarHelper.SetTouchBarElements([
             {
-                label: "Build Project...",
+                label: "Build...",
                 click: "build-project",
             },
             {
-                label: "Generate Scene...",
+                label: "Generate...",
                 click: "generate-project",
             },
             {
-                label: "Run Project...",
+                separator: true,
+            },
+            {
+                label: "Play...",
                 click: "run-project",
+                icon: "assets/extras/play.png",
             },
         ]);
     }

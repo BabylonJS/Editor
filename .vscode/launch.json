@@ -61,7 +61,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "args": [
-                "${workspaceRoot}/build/src/test/index.js"
+                "${workspaceRoot}/build/test/index.js"
             ],
             "preLaunchTask": "clean-tests",
             "presentation": {
