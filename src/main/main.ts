@@ -4,21 +4,21 @@ import * as os from "os";
 
 import { Undefinable } from "../shared/types";
 
+import { IPCHandler } from "./ipc";
 import { Settings } from "./settings";
-import { IPC } from "./ipc";
 import { WindowController } from "./window";
 
 export default class EditorApp {
     /**
-	 * The main editor's window reference (electron)
+	 * Defines the reference to the main editor's window (electron)
 	 */
 	public static Window: BrowserWindow;
 	/**
-	 * Reference to the IPC handler.
+	 * Defines the reference to the IPC handler.
 	 */
-	public static IPCHandler: IPC;
+	public static IPCHandler: IPCHandler;
 
-	private static _forceQuit: boolean = false;
+	private static _ForceQuit: boolean = false;
 
     /**
      * Creates a new Electron window
@@ -28,7 +28,7 @@ export default class EditorApp {
 		await this.CreateWindow();
 
 		// Instantiate IPC handler
-		this.IPCHandler = new IPC(this.Window);
+		this.IPCHandler = new IPCHandler(this.Window);
 
 		// Create short cuts and touch bar
 		this.CreateShortcutsAndMenu();
@@ -95,15 +95,15 @@ export default class EditorApp {
 		this.Window.maximize();
 		this.Window.on("closed", () => app.quit());
 		this.Window.on("close", async (e) => {
-			if (this._forceQuit) { return; }
+			if (this._ForceQuit) { return; }
 			
 			e.preventDefault();
-			this._forceQuit = await new Promise<boolean>((resolve) => {
+			this._ForceQuit = await new Promise<boolean>((resolve) => {
 				ipcMain.on("quit", (_, shouldQuit) => resolve(shouldQuit));
 				this.Window.webContents.send("quit");
 			});
 			
-			if (this._forceQuit) { app.quit(); }
+			if (this._ForceQuit) { app.quit(); }
 		});
 	}
 	

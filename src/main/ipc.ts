@@ -1,187 +1,80 @@
-import { ipcMain, dialog, IpcMainEvent, BrowserWindow, TouchBar } from "electron";
+import { ipcMain, IpcMainEvent, BrowserWindow } from "electron";
 
-import EditorApp from "./main";
-import { Settings } from "./settings";
-import { DevTools } from "./devtools";
-import { WindowController, IWindowDefinition } from "./window";
+import { OpenWindowIPC } from "./ipc/open-window";
 
-import { GameServer } from "./game/server";
-import { IPCRequests, IPCResponses } from "../shared/ipc";
+import { SetProjectPathIPC, GetProjectPathIPC } from "./ipc/project";
+import { GetWorkspacePathIPC, SetWorkspacePathIPC } from "./ipc/workspace";
 
-export class IPC {
-	public static Window: BrowserWindow;
+import { OpenDirectoryDialogIPC, OpenFileDialogIPC, SaveFileDialogIPC } from "./ipc/dialogs";
+
+import { StartWebServerIPC } from "./ipc/webserver";
+import { SendWindowMessageIPC } from "./ipc/window-message";
+
+import { CloseWindowIPC } from "./ipc/close-window";
+import { FocusWindowIPC } from "./ipc/focus-window";
+
+import { EnableDevToolsIPC } from "./ipc/enable-devtools";
+import { OpenDevToolsIPC } from "./ipc/open-devtools";
+
+import { ToucharIPC } from "./ipc/touchbar";
+
+export interface IIPCHandler {
+	/**
+	 * Defines the name of the channel to listen.
+	 */
+	channel: string;
+	/**
+	 * Defines the handler called on the channel receives a message from the renderer process.
+	 * @param event defines the reference to the IPC event.
+	 * @param args defines the args sent from the renderer process.
+	 */
+	handler(event: IpcMainEvent, ...args: any[]): void | Promise<void>;
+}
+
+export class IPCHandler {
+	private _handlers: IIPCHandler[] = [];
 
 	/**
 	 * Constructor.
+	 * @param window defines the reference to the main window.
 	 */
 	public constructor(window: BrowserWindow) {
-		IPC.Window = window;
+		this.registerHandler(new OpenWindowIPC());
 
-		ipcMain.on(IPCRequests.OpenWindowOnDemand, IPC.OnOpenWindowOnDemand);
+		this.registerHandler(new OpenDirectoryDialogIPC(window));
+		this.registerHandler(new OpenFileDialogIPC(window));
+		this.registerHandler(new SaveFileDialogIPC(window));
 
-		ipcMain.on(IPCRequests.OpenDirectoryDialog, IPC.OnOpenDirectoryDialog);
-		ipcMain.on(IPCRequests.OpenFileDialog, IPC.OnOpenFileDialog);
-		ipcMain.on(IPCRequests.SaveFileDialog, IPC.OnSaveFileDialog);
+		this.registerHandler(new GetProjectPathIPC());
+		this.registerHandler(new SetProjectPathIPC());
 
-		ipcMain.on(IPCRequests.GetProjectPath, IPC.OnGetProjectPath);
-		ipcMain.on(IPCRequests.SetProjectPath, IPC.OnSetProjectPath);
+		this.registerHandler(new GetWorkspacePathIPC());
+		this.registerHandler(new SetWorkspacePathIPC());
 
-		ipcMain.on(IPCRequests.GetWorkspacePath, IPC.OnGetWorkspacePath);
-		ipcMain.on(IPCRequests.SetWorkspacePath, IPC.OnSetWorkspacePath);
+		this.registerHandler(new StartWebServerIPC());
 
-		ipcMain.on(IPCRequests.StartGameServer, IPC.StartWebServer);
+		this.registerHandler(new SendWindowMessageIPC(window));
 
-		ipcMain.on(IPCRequests.SendWindowMessage, IPC.SendWindowMessage);
-		ipcMain.on(IPCRequests.FocusWindow, IPC.FocusWindow);
-		ipcMain.on(IPCRequests.CloseWindow, IPC.CloseWindow);
+		this.registerHandler(new FocusWindowIPC());
+		this.registerHandler(new CloseWindowIPC());
 
-		ipcMain.on(IPCRequests.EnableDevTools, IPC.OnEnableDevTools);
-		ipcMain.on(IPCRequests.OpenDevTools, IPC.OnOpenDevTools);
-
-		ipcMain.on(IPCRequests.SetTouchBar, IPC.SetTouchBarElements);
+		this.registerHandler(new EnableDevToolsIPC());
+		this.registerHandler(new OpenDevToolsIPC());
+		
+		this.registerHandler(new ToucharIPC());
 	}
 
 	/**
-	 * Starts debugging the game.
+	 * Registers the given handler to the IPC messages handlers.
+	 * @param handler defines the reference to the handler to register.
 	 */
-	public static async OnOpenWindowOnDemand(event: IpcMainEvent, definition: IWindowDefinition): Promise<void> {
-		definition.url = `file://${__dirname}/../../../html/${definition.url}`;
-		const window = await WindowController.WindowOnDemand(definition);
-		event.sender.send(IPCResponses.OpenWindowOnDemand, window.id);
-	}
-
-	/**
-	 * The user wants to show the open file dialog.
-	 */
-	public static async OnOpenDirectoryDialog(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
-		const window = WindowController.GetWindowByWebContentsId(event.sender.id) ?? EditorApp.Window;
-		const result = await dialog.showOpenDialog(window, { title, defaultPath, properties: ["openDirectory"] });
-
-		if (!result || !result.filePaths.length) { return event.sender.send(IPCResponses.CancelOpenFileDialog); }
-		event.sender.send(IPCResponses.OpenDirectoryDialog, result.filePaths[0]);
-	}
-
-	/**
-	 * The user wants to show the open file dialog.
-	 */
-	public static async OnOpenFileDialog(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
-		const window = WindowController.GetWindowByWebContentsId(event.sender.id) ?? EditorApp.Window;
-		const result = await dialog.showOpenDialog(window, { title, defaultPath, properties: ["openFile"] });
-
-		if (!result || !result.filePaths.length) { return event.sender.send(IPCResponses.CancelOpenFileDialog); }
-		event.sender.send(IPCResponses.OpenFileDialog, result.filePaths[0]);
-	}
-
-	/**
-	 * The user wants to show a save file dialog.
-	 */
-	public static async OnSaveFileDialog(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
-		const window = WindowController.GetWindowByWebContentsId(event.sender.id) ?? EditorApp.Window;
-		const result = await dialog.showSaveDialog(window, { title, defaultPath, properties: [] });
-
-		if (!result || !result.filePath) { return event.sender.send(IPCResponses.CancelSaveFileDialog); }
-		event.sender.send(IPCResponses.SaveFileDialog, result.filePath);
-	}
-
-	/**
-	 * The user wants to know what is the opened project file from the OS file explorer.
-	 */
-	public static OnGetProjectPath(event: IpcMainEvent): void {
-		event.sender.send(IPCResponses.GetProjectPath, Settings.OpenedFile);
-	}
-
-	/**
-	 * The user wants to set the new project path.
-	 */
-	public static OnSetProjectPath(event: IpcMainEvent, path: string): void {
-		Settings.OpenedFile = path;
-		event.sender.send(IPCResponses.SetProjectPath);
-	}
-
-	/**
-	 * The user wants to know what is the opened project file from the OS file explorer.
-	 */
-	public static OnGetWorkspacePath(event: IpcMainEvent): void {
-		event.sender.send(IPCResponses.GetWorkspacePath, Settings.WorkspacePath);
-	}
-
-	/**
-	 * The user wants to set the new project path.
-	 */
-	public static OnSetWorkspacePath(event: IpcMainEvent, path: string): void {
-		Settings.WorkspacePath = path;
-		event.sender.send(IPCResponses.SetWorkspacePath);
-	}
-
-	/**
-	 * The user wants to set the new project path.
-	 */
-	public static StartWebServer(event: IpcMainEvent, path: string, port: number): void {
-		GameServer.RunServer(path, port);
-		event.sender.send(IPCResponses.StartGameServer);
-	}
-
-	/**
-	 * The user opened a new window and the window is requiring things.
-	 */
-	public static SendWindowMessage(_: IpcMainEvent, windowId: number, data: any): void {
-		const window = WindowController.GetWindowById(windowId);
-		if (!window) {
-			return IPC.Window.webContents.send(IPCResponses.SendWindowMessage, data);
+	public registerHandler(handler: IIPCHandler): void {
+		const exists = this._handlers.find((h) => h.channel === handler.channel);
+		if (exists) {
+			throw new Error(`A handler with channel "${handler.channel} already exists."`);
 		}
 
-		window.webContents.send(IPCResponses.SendWindowMessage, data);
-	}
-
-	/**
-	 * Focuses the window identified by the given id.
-	 */
-	public static FocusWindow(_: IpcMainEvent, windowId: number): void {
-		const window = WindowController.GetWindowById(windowId);
-		if (window) {
-			if (window.isMinimized()) { window.restore(); }
-			window.focus();
-		}
-	}
-
-	/**
-	 * Closes the window identified by the given id.
-	 */
-	public static CloseWindow(_: IpcMainEvent, windowId: number): void{
-		WindowController.CloseWindow(windowId);
-	}
-
-	/**
-	 * Enables the devtools. Typically used when developing a plugin for the Editor.
-	 */
-	public static async OnEnableDevTools(event: IpcMainEvent, enabled: boolean): Promise<void> {
-		await DevTools.Apply(enabled, event.sender);
-		event.sender.send(IPCResponses.EnableDevTools);
-	}
-
-	/**
-	 * Enables the devtools. Typically used when developing a plugin for the Editor.
-	 */
-	public static async OnOpenDevTools(event: IpcMainEvent): Promise<void> {
-		const window = WindowController.GetWindowByWebContentsId(event.sender.id);
-		if (window) {
-			window.webContents?.openDevTools({ mode: "detach" });
-		}
-	}
-
-	/**
-	 * Sets the new touch bar elements for the calling window.
-	 */
-	public static async SetTouchBarElements(event: IpcMainEvent, elements: any[]): Promise<void> {
-		const window = WindowController.GetWindowByWebContentsId(event.sender.id);
-		if (!window) { return; }
-
-		window.setTouchBar(new TouchBar({
-			items: elements.map((e) => new TouchBar.TouchBarButton({
-				label: e.label,
-				iconPosition: e.iconPosition,
-				click: () => window.webContents?.send(e.eventName),
-			})),
-		}));
+		this._handlers.push(handler);
+		ipcMain.on(handler.channel, handler.handler.bind(handler));
 	}
 }
