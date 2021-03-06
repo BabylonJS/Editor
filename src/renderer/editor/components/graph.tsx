@@ -10,7 +10,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 
 import {
     Node, Scene, Mesh, Light, Camera, TransformNode, InstancedMesh, AbstractMesh,
-    MultiMaterial, IParticleSystem, ParticleSystem, Sound, SubMesh
+    MultiMaterial, IParticleSystem, ParticleSystem, Sound, SubMesh,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -85,6 +85,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     private _editor: Editor;
     private _firstUpdate: boolean = true;
     private _filter: string = "";
+
+    private _copiedTransform: Nullable<AbstractMesh | Light | Camera> = null;
 
     /**
      * Defines the last selected node in the graph.
@@ -722,7 +724,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         const name = node.name ?? Tools.GetConstructorName(node);
 
-        const subMeshesItems: JSX.Element[] = [];
+        const subMeshesItems: React.ReactNode[] = [];
         if (node instanceof Mesh && node.subMeshes?.length && node.subMeshes.length > 1) {
             const multiMaterial = node.material && node.material instanceof MultiMaterial ? node.material : null;
 
@@ -795,6 +797,56 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             }
         }
 
+        // Copy paste
+        let copyPasteTransform: React.ReactNode;
+        if (node instanceof AbstractMesh || node instanceof Light || node instanceof Camera) {
+            const copyTransform = (property: string) => {
+                if (this._copiedTransform?.[property]) {
+                    const base = node![property]?.clone();
+                    const target = this._copiedTransform[property].clone();
+
+                    undoRedo.push({
+                        common: () => this._editor.inspector.refreshDisplay(),
+                        undo: () => node![property] = base,
+                        redo: () => node![property] = target,
+                    });
+                }
+
+                this._editor.inspector.refreshDisplay();
+            };
+
+            copyPasteTransform = (
+                <>
+                    <MenuItem text="Copy Transform" onClick={() => this._copiedTransform = node as any} />
+                    <MenuItem text="Paste Transform" label={`(${this._copiedTransform?.name ?? "None"})`} disabled={this._copiedTransform === null}>
+                        <MenuItem text="All" onClick={() => {
+                            copyTransform("position");
+                            copyTransform("rotationQuaternion");
+                            copyTransform("rotation");
+                            copyTransform("scaling");
+                            copyTransform("direction");
+                        }} />
+                        <MenuDivider />
+                        <MenuItem text="Position" disabled={(this._copiedTransform?.["position"] ?? null) === null} onClick={() => {
+                            copyTransform("position");
+                        }} />
+                        <MenuItem text="Rotation" disabled={((this._copiedTransform?.["rotationQuaternion"] ?? null) || (this._copiedTransform?.["rotation"] ?? null)) === null} onClick={() => {
+                            copyTransform("rotationQuaternion");
+                            copyTransform("rotation");
+                        }} />
+                        <MenuItem text="Scaling" disabled={(this._copiedTransform?.["scaling"] ?? null) === null} onClick={() => {
+                            copyTransform("scaling");
+                        }} />
+                        <MenuDivider />
+                        <MenuItem text="Direction" disabled={(this._copiedTransform?.["direction"] ?? null) === null} onClick={() => {
+                            copyTransform("direction");
+                        }} />
+                    </MenuItem>
+                    <MenuDivider />
+                </>
+            );
+        }
+
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <Pre>
@@ -822,6 +874,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 <MenuDivider />
                 <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, false)} />
                 <MenuDivider />
+                {copyPasteTransform}
                 <MenuItem text="Prefab">
                     <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, false)} />
                     <MenuItem text="Create Prefab As..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, true)} />
