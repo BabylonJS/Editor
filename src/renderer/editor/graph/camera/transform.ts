@@ -17,6 +17,8 @@ export class TransformCamera extends GraphNode {
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("Camera", "Node,Camera");
         this.addOutput("Position", "Vector3");
+        this.addOutput("Global Position", "Vector3");
+        this.addOutput("Absolute Rotation", "Vector3");
     }
 
     /**
@@ -28,6 +30,8 @@ export class TransformCamera extends GraphNode {
 
         this.setOutputData(1, camera);
         this.setOutputData(2, camera.position);
+        this.setOutputData(3, camera.globalPosition);
+        this.setOutputData(4, camera.absoluteRotation);
 
         return this.triggerSlot(0, null);
     }
@@ -45,6 +49,8 @@ export class TransformCamera extends GraphNode {
                 { code: undefined },
                 { code: camera.code },
                 { code: `${camera.code}.position` },
+                { code: `${camera.code}.globalPosition` },
+                { code: `${camera.code}.absoluteRotation` },
             ],
         };
     }
