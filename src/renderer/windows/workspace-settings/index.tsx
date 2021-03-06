@@ -3,7 +3,7 @@ import { readJSON, writeJSON } from "fs-extra";
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Tabs, Tab, Navbar, Alignment, TabId } from "@blueprintjs/core";
+import { ButtonGroup, Button, Tabs, Tab, Navbar, Alignment, TabId, Intent } from "@blueprintjs/core";
 
 import { IPCTools } from "../../editor/tools/ipc";
 import { IEditorPreferences } from "../../editor/tools/types";
@@ -58,7 +58,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
     public render(): React.ReactNode {
         return (
             <>
-                <div style={{ width: "100%", height: "calc(100% - 30px)", background: "#333333", overflow: "auto" }}>
+                <div style={{ width: "100%", height: "calc(100% - 45px)", background: "#333333", overflow: "auto" }}>
                     <Navbar>
                         <Navbar.Group>
                             <Navbar.Heading>
@@ -87,10 +87,10 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
                     {this.state.navbarTabId === "plugins" ? <PluginsSettings settings={this} /> : undefined}
                     {this.state.navbarTabId === "developers" ? <DeveloperSettings settings={this} /> : undefined}
                 </div>
-                <div style={{ width: "100%", height: "30px", background: "#333333" }}>
-                    <ButtonGroup>
-                        <Button text="Apply" onClick={() => this._handleApply()} />
-                        <Button text="Cancel" onClick={() => this._handleCancel()} />
+                <div style={{ width: "100%", height: "45px", background: "#333333" }}>
+                    <ButtonGroup style={{ marginLeft: "10px" }}>
+                        <Button text="Apply" intent={Intent.SUCCESS} onClick={() => this._handleApply()} />
+                        <Button text="Cancel" style={{ left: "10px" }} intent={Intent.WARNING} onClick={() => this._handleCancel()} />
                     </ButtonGroup>
                 </div>
             </>

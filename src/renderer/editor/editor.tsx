@@ -323,6 +323,9 @@ export class Editor {
             document.getElementById("BABYLON-EDITOR-ACTIVITY-INDICATOR"),
         );
 
+        // Empty touchbar
+        TouchBarHelper.SetTouchBarElements([]);
+
         // Init!
         this.init();
     }

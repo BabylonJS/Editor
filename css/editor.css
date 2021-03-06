@@ -93,6 +93,14 @@ html, body {
     background-color: #394b59 !important;
 }
 
+.bp3-button.bp3-intent-success {
+    background-color: #0d8050 !important;
+}
+
+.bp3-button.bp3-intent-warning {
+    background-color: #a66321 !important;
+}
+
 .bp3-tree-node-label {
     margin-left: 10px;
 }

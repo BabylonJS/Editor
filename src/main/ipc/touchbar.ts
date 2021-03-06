@@ -22,23 +22,43 @@ export class ToucharIPC implements IIPCHandler {
 		const window = WindowsHandler.GetWindowByWebContentsId(event.sender.id);
 		if (!window) { return; }
 
+		const items = elements.map((e) => {
+			if (e.icon && !e.iconPosition) {
+				e.iconPosition = "left";
+			}
+
+			if (e.separator) {
+				return new TouchBar.TouchBarSpacer({ });
+			}
+
+			return new TouchBar.TouchBarButton({
+				label: e.label,
+				iconPosition: e.iconPosition,
+				icon: e.icon ? join(PathTools.GetAppPath(), e.icon) : undefined,
+				click: () => window.webContents?.send(e.eventName),
+			});
+		});
+
+		if (process.env.DEBUG) {
+			// Add shortcuts for debug
+			items.push.apply(items, [
+				new TouchBar.TouchBarButton({
+					label: "F8",
+					click: () => window.webContents?.devToolsWebContents?.sendInputEvent({ type: "keyDown", keyCode: "F8", modifiers: [] }),
+				}),
+				new TouchBar.TouchBarButton({
+					label: "F10",
+					click: () => window.webContents?.devToolsWebContents?.sendInputEvent({ type: "keyDown", keyCode: "F10", modifiers: [] }),
+				}),
+				new TouchBar.TouchBarButton({
+					label: "F11",
+					click: () => window.webContents?.devToolsWebContents?.sendInputEvent({ type: "keyDown", keyCode: "F11", modifiers: [] }),
+				}),
+			]);
+		}
+
 		window.setTouchBar(new TouchBar({
-			items: elements.map((e) => {
-				if (e.icon && !e.iconPosition) {
-					e.iconPosition = "left";
-				}
-
-				if (e.separator) {
-					return new TouchBar.TouchBarSpacer({ });
-				}
-
-				return new TouchBar.TouchBarButton({
-					label: e.label,
-					iconPosition: e.iconPosition,
-					icon: e.icon ? join(PathTools.GetAppPath(), e.icon) : undefined,
-					click: () => window.webContents?.send(e.eventName),
-				});
-			}),
+			items,
 		}));
 	}
 }
