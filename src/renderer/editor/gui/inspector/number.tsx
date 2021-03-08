@@ -33,6 +33,11 @@ export interface IInspectorNumberProps {
     max?: number;
 
     /**
+     * Defines wether or not the slider should be visible in case of a min and a max value.
+     */
+    noSlider?: boolean;
+
+    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -104,7 +109,7 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
      */
     public render(): React.ReactNode {
         let sliderNode: React.ReactNode;
-        if (this.props.min !== undefined && this.props.max !== undefined) {
+        if (this.props.min !== undefined && this.props.max !== undefined && !this.props.noSlider) {
             sliderNode = (
                 <div style={{ width: "40%", float: "left", padding: "0px 5px", marginTop: "0px" }}>
                     <Slider
