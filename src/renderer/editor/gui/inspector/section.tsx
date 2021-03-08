@@ -61,6 +61,8 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
         const dividedChildren: React.ReactNode[] = [];
     
         children.forEach((c, index) => {
+            if (!c) { return; }
+
             dividedChildren.push(c);
             dividedChildren.push(<Divider key={`section-field-divider-${index}`} />);
         });
@@ -80,9 +82,10 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
                     title={this.props.title}
                     icon={icon}
                     style={{
+                        zoom: "0.9",
                         height: this.state.collapsed ? "35px" : undefined,
                         paddingLeft: "35px",
-                        // background: "#3C3C3C",
+                        // backgroundColor: "rgba(30, 30, 30, 0.2)",
                     }}
                 >
                     <div style={{ width: "100%", height: "5px" }}></div>

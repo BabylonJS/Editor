@@ -10,7 +10,7 @@ import { Tools } from "../tools/tools";
 import { Nullable, Undefinable } from "../../../shared/types";
 
 export interface IObjectInspector {
-    ctor: (new (props: IObjectInspectorProps) => AbstractInspectorLegacy<any> | AbstractInspector<any>);
+    ctor: (new (props: IObjectInspectorProps) => AbstractInspectorLegacy<any> | AbstractInspector<any, any>);
     ctorNames: string[];
     title: string;
     isSupported?: Undefinable<(obj: any) => boolean>;

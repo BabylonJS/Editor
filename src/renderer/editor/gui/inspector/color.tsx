@@ -1,8 +1,25 @@
 import * as React from "react";
 
-import { Color3, Color4 } from "babylonjs";
-
 import { InspectorNumber } from "./number";
+
+export interface IColor4Like {
+    /**
+     * Defines the value of the red channel.
+     */
+    r: number;
+    /**
+     * Defines the value of the green channel.
+     */
+    g: number;
+    /**
+     * Defines the value of the blue channel.
+     */
+    b: number;
+    /**
+     * Defines the value of the alpha channel.
+     */
+    a?: number;
+}
 
 export interface IInspectorColorProps {
     /**
@@ -26,19 +43,19 @@ export interface IInspectorColorProps {
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
-    onChange?: (value: Color3 | Color4) => void;
+    onChange?: (value: IColor4Like) => void;
     /**
      * Defines the optional callack called on the value finished changes.
      * @param value defines the new value of the object's property.
      */
-    onFinishChange?: (value: Color3 | Color4) => void;
+    onFinishChange?: (value: IColor4Like) => void;
 }
 
 export interface IInspectorColorState {
     /**
      * Defines the current value of the input.
      */
-    value: Color3 | Color4;
+    value: IColor4Like;
 }
 
 export class InspectorColor extends React.Component<IInspectorColorProps, IInspectorColorState> {
@@ -50,8 +67,8 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
         super(props);
 
         const value = props.object[props.property];
-        if (!(value instanceof Color3) && !(value instanceof Color4)) {
-            throw new Error("Only Vector3 from BabylonJS are supported for InspectorColor.");
+        if (value.r === undefined || value.g === undefined || value.b === undefined) {
+            throw new Error("Only Color4 (r, g, b, a?) are supported for InspectorColor.");
         }
 
         this.state = { value };
@@ -62,13 +79,13 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
      */
     public render(): React.ReactNode {
         let alpha: React.ReactNode;
-        if (this.state.value instanceof Color4) {
+        if (this.state.value.a !== undefined) {
             alpha = (
                 <InspectorNumber
                     key="alpha-number"
                     object={this.state.value}
                     property="a"
-                    label= "Alpha"
+                    label="Alpha"
                     step={this.props.step}
                     min={0}
                     max={1}
@@ -87,7 +104,7 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
                     <InspectorNumber
                         object={this.state.value}
                         property="r"
-                        label= "R"
+                        label="R"
                         step={this.props.step}
                         min={0}
                         max={1}
@@ -100,7 +117,7 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
                     <InspectorNumber
                         object={this.state.value}
                         property="g"
-                        label= "G"
+                        label="G"
                         step={this.props.step}
                         min={0}
                         max={1}
@@ -113,7 +130,7 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
                     <InspectorNumber
                         object={this.state.value}
                         property="b"
-                        label= "B"
+                        label="B"
                         step={this.props.step}
                         min={0}
                         max={1}

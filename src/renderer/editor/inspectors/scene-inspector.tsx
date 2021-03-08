@@ -4,8 +4,6 @@ import { Scene } from "babylonjs";
 
 import { Inspector } from "../components/inspector";
 
-import { AbstractInspector } from "./abstract-inspector";
-
 import { InspectorList } from "../gui/inspector/list";
 import { InspectorColor } from "../gui/inspector/color";
 import { InspectorNumber } from "../gui/inspector/number";
@@ -17,7 +15,9 @@ import { InspectorColorPicker } from "../gui/inspector/color-picker";
 import { Project } from "../project/project";
 import { WorkSpace } from "../project/workspace";
 
-export class SceneInspector extends AbstractInspector<Scene> {
+import { IScriptInspectorState, ScriptInspector } from "./script-inspector";
+
+export class SceneInspector extends ScriptInspector<Scene, IScriptInspectorState> {
     private _fogModes: string[] = ["FOGMODE_NONE", "FOGMODE_LINEAR", "FOGMODE_EXP", "FOGMODE_EXP2"];
 
     /**
@@ -35,6 +35,8 @@ export class SceneInspector extends AbstractInspector<Scene> {
                     <InspectorColor object={this.selectedObject} property="ambientColor" label="RGB Color" step={0.01} />
                     <InspectorColorPicker object={this.selectedObject} property="ambientColor" label="Hex Color" />
                 </InspectorSection>
+
+                {super.renderContent()}
 
                 <InspectorSection title="Image Processing">
                     <InspectorNumber object={this.selectedObject.imageProcessingConfiguration} property="exposure" label="Exposure" step={0.01} />

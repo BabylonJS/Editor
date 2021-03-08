@@ -6,50 +6,100 @@ import { transpile, ModuleKind, ScriptTarget } from "typescript";
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Spinner, Pre } from "@blueprintjs/core";
+import { Spinner } from "@blueprintjs/core";
 
-import { Node, Scene, Color3, Color4 } from "babylonjs";
-import { GUI, GUIController } from "dat.gui";
+import { Scene, Node, Vector3, Color4 } from "babylonjs";
+
+import { IObjectInspectorProps } from "../components/inspector";
+
+import { InspectorList, IInspectorListItem } from "../gui/inspector/list";
+import { InspectorColor } from "../gui/inspector/color";
+import { InspectorNumber } from "../gui/inspector/number";
+import { InspectorButton } from "../gui/inspector/button";
+import { InspectorString } from "../gui/inspector/string";
+import { InspectorBoolean } from "../gui/inspector/boolean";
+import { InspectorSection } from "../gui/inspector/section";
+import { InspectorVector3 } from "../gui/inspector/vector3";
 
 import { WorkSpace } from "../project/workspace";
 
 import { Tools } from "../tools/tools";
-import { IAttachedScriptMetadata } from "../tools/types";
 
-import { SandboxMain } from "../../sandbox/main";
-
-import { Inspector } from "../components/inspector";
-import { AbstractInspectorLegacy } from "./abstract-inspector-legacy";
+import { SandboxMain, IExportedInspectorValue } from "../../sandbox/main";
 
 import { ScriptAssets } from "../assets/scripts";
-import { GraphAssets } from "../assets/graphs";
-import { IAssetComponentItem } from "../assets/abstract-assets";
 
-export class ScriptInspector<T extends Node | Scene> extends AbstractInspectorLegacy<T> {
-    private _selectedScript: string = "";
+import { AbstractInspector } from "./abstract-inspector";
 
-    private _scriptFolder: Nullable<GUI> = null;
-    private _scriptControllers: GUIController[] = [];
-    private _scriptFolders: GUI[] = [];
+export interface IScriptInspectorState {
+    /**
+     * Defines wether or not the script is being refreshing.
+     */
+    refresing: boolean;
+    /**
+     * Defines the list of all available sripts.
+     */
+    scripts: string[];
+    /**
+     * Defines the list of all decorated inspector values.
+     */
+    inspectorValues: IExportedInspectorValue[];
+}
 
-    private _refreshingScripts: boolean = false;
-
+export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspectorState> extends AbstractInspector<T, S> {
     private _scriptWatcher: Nullable<FSWatcher> = null;
 
     /**
-     * Called on the component did moubnt.
-     * @override
+     * Constructor.
+     * @param props defines the component's props.
      */
-    public onUpdate(): void {
-        this.addScript();
+    public constructor(props: IObjectInspectorProps) {
+        super(props);
+
+        this.state = {
+            ...this.state,
+            scripts: [],
+            refresing: false,
+            inspectorValues: [],
+        };
+    }
+
+    /**
+     * Renders the content of the inspector.
+     */
+    public renderContent(): React.ReactNode {
+        // Check workspace
+        if (!WorkSpace.HasWorkspace()) { return null; }
+
+        // Check metadata
+        this.selectedObject.metadata ??= { };
+        this.selectedObject.metadata.script ??= { };
+        this.selectedObject.metadata.script.name ??= "None";
+
+        return (
+            <InspectorSection title="Script">
+                {this._getScriptsList()}
+                {this._getOpenButton()}
+                {this._getSpinner()}
+                {this._getInspectorValues()}
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        super.componentDidMount?.();
+
+        this.refreshAvailableScripts();
     }
 
     /**
      * Called on the component will unmount.
-     * @override
      */
     public componentWillUnmount(): void {
-        super.componentWillUnmount();
+        super.componentWillUnmount?.();
 
         if (this._scriptWatcher) {
             this._scriptWatcher.close();
@@ -57,117 +107,148 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspectorLe
     }
 
     /**
-     * Adds the script editable properties.
+     * Returns the list of available items for the list.
      */
-    protected async addScript(): Promise<void> {
-        if (!WorkSpace.HasWorkspace()) { return; }
+    protected getScriptsListItems(): IInspectorListItem<string>[] {
+        return [{ label: "None", data: "None" }].concat(this.state.scripts.map((s) => ({
+            label: s,
+            data: s,
+            icon: <img src="../css/images/ts.png" style={{ width: "30px", height: "30px" }}></img>,
+        })));
+    }
 
-        this._scriptFolder ??= this.tool!.addFolder("Script");
-        this._scriptFolder.open();
+    /**
+     * Refreshes the list of all available scripts.
+     */
+    protected async refreshAvailableScripts(): Promise<void> {
+        const scripts = await ScriptAssets.GetAllScripts();
 
-        // Check metadata
-        this.selectedObject.metadata = this.selectedObject.metadata ?? { };
-        this.selectedObject.metadata.script = this.selectedObject.metadata.script ?? { };
+        this.setState({ scripts });
+        this._updateScriptVisibleProperties();
+    }
 
-        // Add suggest
-        this._selectedScript = this.selectedObject.metadata.script.name ?? "None";
-        this._scriptFolder.addSuggest(this, "_selectedScript", ["None"], {
-            onUpdate: async () => ["None"].concat(await ScriptAssets.GetAllScripts()),
-        }).name("Script").onChange(() => {
-            this._setScript(this._selectedScript);
+    /**
+     * In case of existing scripts, it returns the list of all avaiable scripts to be attached.
+     */
+    private _getScriptsList(): React.ReactNode {
+        if (!this.state.scripts.length) {
+            return undefined;
+        }
+
+        return (
+            <InspectorList object={this.selectedObject.metadata.script} property="name" label="Path" items={this.getScriptsListItems()} onChange={() => {
+                this._updateScriptVisibleProperties();
+            }} />
+        )
+    }
+
+    /**
+     * In case of a script set, it returns the button component to open the script.
+     */
+    private _getOpenButton(): React.ReactNode {
+        if (this.selectedObject.metadata.script.name === "None") {
+            return undefined;
+        }
+
+        const tsPath = join(WorkSpace.DirPath!, this.selectedObject.metadata.script.name);
+        return <InspectorButton label="Open..." onClick={() => shell.openItem(tsPath)} />
+    }
+
+    /**
+     * Returns the spinner shown in case of refreshing.
+     */
+    private _getSpinner(): React.ReactNode {
+        if (!this.state.refresing) {
+            return undefined;
+        }
+
+        return <Spinner size={35} />;
+    }
+
+    /**
+     * Returns the list of all exported values.
+     */
+    private _getInspectorValues(): React.ReactNode {
+        if (this.selectedObject.metadata.script.name === "None" || !this.state.inspectorValues.length) {
+            return undefined;
+        }
+
+        this.selectedObject.metadata.script.properties ??= { };
+
+        const children: React.ReactNode[] = [];
+        const properties = this.selectedObject.metadata.script.properties;
+
+        this.state.inspectorValues.forEach((iv) => {
+            const label = iv.name ?? iv.propertyKey;
+
+            switch (iv.type) {
+                case "number":
+                    properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? iv.defaultValue ?? 0;
+                    children.push(
+                        <InspectorNumber object={properties} property={iv.propertyKey} label={label} step={0.01} />
+                    );
+                    break;
+
+                case "string":
+                    properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? iv.defaultValue ?? "";
+                    children.push(
+                        <InspectorString object={properties} property={iv.propertyKey} label={label} />
+                    );
+                    break;
+
+                case "boolean":
+                    properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? iv.defaultValue ?? false;
+                    children.push(
+                        <InspectorBoolean object={properties} property={iv.propertyKey} label={label} />
+                    );
+                    break;
+
+                case "Vector3":
+                    if (iv.defaultValue) {
+                        const defaultValue = iv.defaultValue as Vector3;
+                        properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? { x: defaultValue._x, y: defaultValue._y, z: defaultValue._z };
+                    } else {
+                        properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? { x: 0, y: 0, z: 0 };
+                    }
+                    children.push(
+                        <InspectorVector3 object={properties} property={iv.propertyKey} label={label} step={0.01} />
+                    );
+                    break;
+
+                case "Color3":
+                case "Color4":
+                    if (iv.defaultValue) {
+                        const defaultValue = iv.defaultValue as Color4;
+                        properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? { r: defaultValue.r, g: defaultValue.g, b: defaultValue.b, a: defaultValue.a };
+                    } else {
+                        properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? { r: 0, g: 0, b: 0, a: iv.type === "Color4" ? 1 : undefined };
+                    }
+                    children.push(
+                        <InspectorColor object={properties} property={iv.propertyKey} label={label} step={0.01} />
+                    );
+                    break;
+            }
         });
 
-        // Serialized properties.
-        if (this._selectedScript !== "None") {
-            // Refresh
-            this._scriptFolder.addButton("Refresh...").onClick(() => this._refreshScript(this._scriptFolder!));
-
-            const tsPath = join(WorkSpace.DirPath!, this.selectedObject.metadata.script.name);
-
-            this._scriptFolder.addButton("Open Script...").onClick(() => shell.openItem(tsPath));
-
-            // Preview
-            readFile(tsPath, { encoding: "utf-8" }).then((c) => {
-                const preview = this._scriptFolder!.addFolder("Preview");
-                preview.addCustom("500px", <Pre style={{ height: "500px" }}>{c}</Pre>);
-            });
-
-            // Properties
-            const spinner = this._scriptFolder.addCustom("35px", <Spinner size={35} />);
-
-            try {
-                await this._updateScriptVisibleProperties(this._scriptFolder);
-            } catch (e) {
-                // TODO: manage errors.
-            }
-
-            this._scriptFolder.remove(spinner as any);
-        } else {
-            this._scriptFolder.addCustom("100px", (
-                <div
-                    style={{ width: "calc(100% - 2px)", height: "95px", borderColor: "black", borderStyle: "dashed" }}
-                    onDragOver={(e) => e.currentTarget.style.borderColor = "#2FA1D6"}
-                    onDragLeave={(e) => e.currentTarget.style.borderColor = "black"}
-                    onDrop={async (e) => {
-                        e.currentTarget.style.borderColor = "black";
-
-                        try {
-                            const data = JSON.parse(e.dataTransfer.getData("application/script-asset")) as IAssetComponentItem;
-                            if (!data.extraData?.scriptPath) { throw new Error("Can't drag'n'drop script, extraData is misisng"); }
-                            
-                            this._setScript(data.extraData.scriptPath as string);
-                        } catch (e) {
-                            this.editor.console.logError("Failed to parse data of drag'n'drop event.");
-                        }
-                    }}
-                >
-                    <h3 style={{ textAlign: "center", pointerEvents: "none", lineHeight: "95px", color: "#eee" }}>
-                        Drag'n'drop script here.
-                    </h3>
-                </div>
-            ));
-        }
+        return (
+            <InspectorSection title="Exported Values" children={children} />
+        )
     }
 
     /**
-     * Sets the new script selected;
+     * Updates the visible properties from the script currently set.
      */
-    private _setScript(script: string): void {
-        if (!this._scriptFolder) { return; }
+    private async _updateScriptVisibleProperties(): Promise<void> {
+        // Stop watcher
+        this._scriptWatcher?.close();
+        this._scriptWatcher = null;
 
-        this.selectedObject.metadata.script.name = script;
-        this.editor.graph.refresh();
-        
-        if (this._scriptWatcher) {
-            this._scriptWatcher.close();
-            this._scriptWatcher = null;
+        // Check
+        if (this.selectedObject.metadata.script.name === "None") {
+            return this.forceUpdate();
         }
 
-        // Refresh assets
-        this.editor.assets.refresh(ScriptAssets);
-        this.editor.assets.refresh(GraphAssets);
-
-        this._scriptControllers = [];
-        this._scriptFolders = [];
-
-        this.clearFolder(this._scriptFolder);
-        this.addScript();
-    }
-
-    /**
-     * Refreshes the script.
-     */
-    private async _refreshScript(folder: GUI): Promise<void> {
-        if (this._refreshingScripts) { return; }
-        this._refreshingScripts = true;
-        await this._updateScriptVisibleProperties(folder);
-        this._refreshingScripts = false;
-    }
-
-    /**
-     * Updates the attached script.
-     */
-    private async _updateScriptVisibleProperties(folder: GUI): Promise<void> {
+        this.setState({ refresing: true });
         await this._refreshDecorators();
 
         const name = this.selectedObject.metadata.script.name as string;
@@ -188,139 +269,23 @@ export class ScriptInspector<T extends Node | Scene> extends AbstractInspectorLe
 
             this._scriptWatcher = watch(jsPath, { encoding: "utf-8" }, (ev) => {
                 if (ev === "change") {
-                    this._refreshScript(folder);
+                    this._updateScriptVisibleProperties();
                 }
             });
         }
 
         const inspectorValues = await SandboxMain.GetInspectorValues(jsPath) ?? [];
 
-        // Manage properties
-        const script = this.selectedObject.metadata.script as IAttachedScriptMetadata;
-        script.properties = script.properties ?? { };
-
-        const computedValues: string[] = [];
-        inspectorValues.forEach((v) => {
-            script.properties![v.propertyKey] = script.properties![v.propertyKey] ?? { type: v.type };
-
-            const defaultValue = v.defaultValue;
-            switch (v.type) {
-                case "number": script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? defaultValue ?? 0; break;
-                case "string": script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? defaultValue ?? ""; break;
-                case "boolean": script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? defaultValue ?? false; break;
-                case "KeyMap": script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? defaultValue ?? 0; break;
-
-                case "Vector2":
-                    var { x, y } = defaultValue;
-                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { x, y } : null) ?? { x: 0, y: 0 };
-                    break;
-                case "Vector3":
-                    var { _x, _y, _z } = defaultValue;
-                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { x: _x, y: _y, z: _z } : null) ?? { x: 0, y: 0, z: 0 };
-                    break;
-                case "Vector4":
-                    var { x, y, z, w } = defaultValue;
-                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { x, y, z, w } : null) ?? { x: 0, y: 0, z: 0, w: 0 };
-                    break;
-
-                case "Color3":
-                    var { r, g, b } = defaultValue;
-                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { r, g, b } : null) ?? { r: 0, g: 0, b: 0 };
-                    break;
-                case "Color4":
-                    var { r, g, b, a } = defaultValue;
-                    script.properties![v.propertyKey].value = script.properties![v.propertyKey].value ?? (defaultValue ? { r, g, b, a } : null) ?? { r: 0, g: 0, b: 0, a: 1 };
-                    break;
-            }
-
-            computedValues.push(v.propertyKey);
-        });
-
-        // Clean properties
-        for (const key in script.properties) {
-            if (computedValues.indexOf(key) === -1) { delete script.properties[key]; }
-        }
-
-        this._clearScriptControllersAndFolders(folder);
-
-        // Add all editable values
-        inspectorValues.forEach((v) => {
-            let controller: Nullable<any> = null;
-            let color: Nullable<any> = null;
-
-            const property = script.properties![v.propertyKey];
-            const value = property.value as any;
-
-            switch (v.type) {
-                case "number":
-                case "string":
-                case "boolean":
-                    controller = folder.add(property, "value").name(v.name);
-                    break;
-
-                case "KeyMap":
-                    controller = folder.addKeyMapper(property, "value").name(v.name);
-                    break;
-
-                case "Vector2":
-                case "Vector3":
-                case "Vector4":
-                    controller = folder.addVector(v.name, value);
-                    break;
-
-                case "Color3":
-                    const color3 = new Color3(value.r, value.g, value.b);
-                    color = this.addColor(folder, v.name, { value: color3 }, "value", (c: Color3) => {
-                        value.r = c.r;
-                        value.g = c.g;
-                        value.b = c.b;
-                    });
-                    break;
-                case "Color4":
-                    const color4 = new Color4(value.r, value.g, value.b, value.a);
-                    color = this.addColor(folder, v.name, { value: color4 }, "value", (c: Color4) => {
-                        value.r = c.r;
-                        value.g = c.g;
-                        value.b = c.b;
-                        value.a = c.a;
-                    });
-                    break;
-            }
-
-            if (controller) { this._scriptControllers.push(controller); }
-            if (color) { this._scriptFolders.push(color); }
-        });
+        this.setState({ refresing: false, inspectorValues });
     }
 
-    /**
+     /**
      * Refreshes the decorators functions that are used in the project.
      */
-    private async _refreshDecorators(): Promise<void> {
+      private async _refreshDecorators(): Promise<void> {
         const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
         const transpiledScript = transpile(decorators, { module: ModuleKind.None, target: ScriptTarget.ES5, experimentalDecorators: true });
 
        await SandboxMain.ExecuteCode(transpiledScript, "__editor__decorators__.js");
     }
-
-    /**
-     * Clears all controllers and folders for script.
-     */
-    private _clearScriptControllersAndFolders(folder: GUI): void {
-        this._scriptControllers.forEach((sc) => {
-            try { folder.remove(sc); } catch (e) { /* Catch silently */ }
-        });
-
-        this._scriptFolders.forEach((f) => {
-            try { folder.removeFolder(f); } catch (e) { /* Catch silently */ }
-        });
-
-        this._scriptControllers = [];
-        this._scriptFolders = [];
-    }
 }
-
-Inspector.RegisterObjectInspector({
-    ctor: ScriptInspector,
-    ctorNames: ["Node"],
-    title: "Node",
-});

@@ -1,8 +1,21 @@
 import * as React from "react";
 
-import { Vector3 } from "babylonjs";
-
 import { InspectorNumber } from "./number";
+
+export interface IVector3Like {
+    /**
+     * Defines the value of the X axis.
+     */
+    x: number;
+    /**
+     * Defines the value of the Y axis.
+     */
+    y: number;
+    /**
+     * Defines the value on the Z axis.
+     */
+    z: number;
+}
 
 export interface IInspectorVector3Props {
     /**
@@ -26,19 +39,19 @@ export interface IInspectorVector3Props {
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
-    onChange?: (value: Vector3) => void;
+    onChange?: (value: IVector3Like) => void;
     /**
      * Defines the optional callack called on the value finished changes.
      * @param value defines the new value of the object's property.
      */
-    onFinishChange?: (value: Vector3) => void;
+    onFinishChange?: (value: IVector3Like) => void;
 }
 
 export interface IInspectorVector3State {
     /**
      * Defines the current value of the input.
      */
-    value: Vector3;
+    value: IVector3Like;
 }
 
 export class InspectorVector3 extends React.Component<IInspectorVector3Props, IInspectorVector3State> {
@@ -50,8 +63,8 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
         super(props);
 
         const value = props.object[props.property];
-        if (!(value instanceof Vector3)) {
-            throw new Error("Only Vector3 from BabylonJS are supported for InspectorVector3.");
+        if (value.x === undefined || value.y === undefined || value.z === undefined) {
+            throw new Error("Only Vector3 (x, y, z) are supported for InspectorVector3.");
         }
 
         this.state = { value };

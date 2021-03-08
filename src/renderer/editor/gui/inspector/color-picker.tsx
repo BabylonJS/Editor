@@ -54,8 +54,8 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
         super(props);
 
         const value = props.object[props.property];
-        if (!(value instanceof Color3) && !(value instanceof Color4)) {
-            throw new Error("Only Vector3 from BabylonJS are supported for InspectorColor.");
+        if (value.r === undefined || value.g === undefined || value.b === undefined) {
+            throw new Error("Only Color4 (r, g, b, a?) are supported for InspectorColorPicker.");
         }
 
         this.state = { value, hex: value.toHexString(), textColor: "grey" };

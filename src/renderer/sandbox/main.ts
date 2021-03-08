@@ -1,6 +1,27 @@
 import { Nullable } from "../../shared/types";
 
+import { Vector2, Vector3, Vector4, Color3, Color4 } from "babylonjs"
+
 import { Tools } from "../editor/tools/tools";
+
+export interface IExportedInspectorValue {
+    /**
+     * Defines the key in the class that has been decorated by @fromEditor.
+     */
+    propertyKey: string;
+    /**
+     * Defines the name of the property in the editor's inspector.
+     */
+    name: string;
+    /**
+     * Defines the default value of the decorated property.
+     */
+    defaultValue: number | string | boolean | Vector2 | Vector3 | Vector4 | Color3 | Color4;
+    /**
+     * Defines the type of the decorated property.
+     */
+    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4";
+}
 
 /**
  * Defines the main sandbox class used in the editor's renderer process.
@@ -61,7 +82,7 @@ export class SandboxMain {
      * Requires the given file and returns all its decorator attributes.
      * @param path the path of the file to require.
      */
-    public static GetInspectorValues(path: string): Promise<any> {
+    public static GetInspectorValues(path: string): Promise<IExportedInspectorValue[]> {
         return this._CallFunction("GetInspectorValues", path);
     }
 

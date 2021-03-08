@@ -1,40 +1,58 @@
+import * as React from "react";
+
 import { Node } from "babylonjs";
-import { GUI } from "dat.gui";
 
-import { Inspector } from "../components/inspector";
-import { ScriptInspector } from "./script-inspector";
+import { IObjectInspectorProps } from "../components/inspector";
 
-export class NodeInspector extends ScriptInspector<Node> {
-    private _enabled: boolean = false;
+import { InspectorBoolean } from "../gui/inspector/boolean";
+import { InspectorSection } from "../gui/inspector/section";
+import { InspectorString } from "../gui/inspector/string";
 
+import { IScriptInspectorState, ScriptInspector } from "./script-inspector";
+
+export interface INodeInspectorState extends IScriptInspectorState {
     /**
-     * Called on the component did moubnt.
-     * @override
+     * Defines weher or not the node is enabled.
      */
-    public onUpdate(): void {
-        this.addCommon();
-        this.addScript();
-    }
-
-    /**
-     * Adds the common editable properties.
-     */
-    protected addCommon(): GUI {
-        const common = this.tool!.addFolder("Common");
-        common.open();
-        common.add(this.selectedObject, 'name').name('Name');
-
-        this._enabled = this.selectedObject.isEnabled(false);
-        common.add(this, "_enabled").name("Enabled").onChange(() => {
-            this.selectedObject.setEnabled(this._enabled);
-        });
-
-        return common;
-    }
+    enabled: boolean;
 }
 
-Inspector.RegisterObjectInspector({
-    ctor: NodeInspector,
-    ctorNames: ["Node"],
-    title: "Node",
-});
+export class NodeInspector<T extends Node, S extends INodeInspectorState> extends ScriptInspector<T, S> {
+    /**
+     * Constructor.
+     * @param props defines the component's props.
+     */
+     public constructor(props: IObjectInspectorProps) {
+        super(props);
+
+        this.state = {
+            ...this.state,
+            enabled: this.selectedObject.isEnabled(),
+        }
+    }
+
+    /**
+     * Renders the content of the inspector.
+     */
+    public renderContent(): React.ReactNode {
+        return (
+            <>
+                <InspectorSection title="Common">
+                    <InspectorString object={this.selectedObject} property="name" label="Name" />
+                    <InspectorBoolean object={this.state} property="enabled" label="Enabled" onChange={(v) => this._handleEnabledChange(v)} />
+                </InspectorSection>
+
+                {super.renderContent()}
+            </>
+        );
+    }
+
+    /**
+     * Called on the node is set to enabled/disabled.
+     */
+    private _handleEnabledChange(enabled: boolean): void {
+        this.setState({ enabled });
+
+        this.selectedObject.setEnabled(enabled);
+    }
+}

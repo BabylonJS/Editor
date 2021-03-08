@@ -122,7 +122,7 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
                                     key={key}
                                     icon={i.icon}
                                     text={<span style={{ lineHeight: "30px" }}>{i.label}</span>}
-                                    labelElement={<span style={{ lineHeight: "30px" }}>{i.description ?? i.label}</span>}
+                                    labelElement={<span style={{ lineHeight: "30px" }}>{i.description}</span>}
                                     onClick={props.handleClick}
                                     active={props.modifiers.active}
                                     disabled={props.modifiers.disabled}

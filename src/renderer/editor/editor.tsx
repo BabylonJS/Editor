@@ -59,40 +59,40 @@ import "./gui/augmentations/index";
 
 // Inspectors
 import "./inspectors/scene-inspector";
-import "./inspectors/rendering-inspector";
+// import "./inspectors/rendering-inspector";
 
 import "./inspectors/node-inspector";
 import "./inspectors/mesh-inspector";
-import "./inspectors/transform-node-inspector";
-import "./inspectors/instanced-mesh-inspector";
-import "./inspectors/sub-mesh-inspector";
-import "./inspectors/ground-inspector";
+// import "./inspectors/transform-node-inspector";
+// import "./inspectors/instanced-mesh-inspector";
+// import "./inspectors/sub-mesh-inspector";
+// import "./inspectors/ground-inspector";
 
-import "./inspectors/lights/light-inspector";
-import "./inspectors/lights/directional-light-inspector";
-import "./inspectors/lights/spot-light-inspector";
-import "./inspectors/lights/point-light-inspector";
-import "./inspectors/lights/hemispheric-inspector";
-import "./inspectors/lights/shadows-inspector";
+// import "./inspectors/lights/light-inspector";
+// import "./inspectors/lights/directional-light-inspector";
+// import "./inspectors/lights/spot-light-inspector";
+// import "./inspectors/lights/point-light-inspector";
+// import "./inspectors/lights/hemispheric-inspector";
+// import "./inspectors/lights/shadows-inspector";
 
-import "./inspectors/cameras/camera-inspector";
-import "./inspectors/cameras/free-camera-inspector";
-import "./inspectors/cameras/arc-rotate-camera-inspector";
+// import "./inspectors/cameras/camera-inspector";
+// import "./inspectors/cameras/free-camera-inspector";
+// import "./inspectors/cameras/arc-rotate-camera-inspector";
 
-import "./inspectors/materials/standard-material-inspector";
-import "./inspectors/materials/pbr-material-inspector";
-import "./inspectors/materials/sky-material-inspector";
-import "./inspectors/materials/node-material-inspector";
-import "./inspectors/materials/cell-material-inspector";
-import "./inspectors/materials/fire-material-inspector";
-import "./inspectors/materials/lava-material-inspector";
-import "./inspectors/materials/water-material-inspector";
+// import "./inspectors/materials/standard-material-inspector";
+// import "./inspectors/materials/pbr-material-inspector";
+// import "./inspectors/materials/sky-material-inspector";
+// import "./inspectors/materials/node-material-inspector";
+// import "./inspectors/materials/cell-material-inspector";
+// import "./inspectors/materials/fire-material-inspector";
+// import "./inspectors/materials/lava-material-inspector";
+// import "./inspectors/materials/water-material-inspector";
 
-import "./inspectors/textures/texture-inspector";
+// import "./inspectors/textures/texture-inspector";
 
-import "./inspectors/particle-systems/particle-system-inspector";
+// import "./inspectors/particle-systems/particle-system-inspector";
 
-import "./inspectors/sound-inspector";
+// import "./inspectors/sound-inspector";
 
 // Assets
 import { MeshesAssets } from "./assets/meshes";
