@@ -44,7 +44,7 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
         // Create icon
         const icon = (
             <div
-                style={{ width: "16px", height: "16px", position: "absolute", left: "10px", top: "8px", cursor: "grab" }}
+                style={{ width: "16px", height: "16px", position: "absolute", left: "10px", top: "8px", cursor: "pointer" }}
                 onClick={() => this._handleCollapse()}
             >
                 {this.props.icon ?? <Icon icon="info-sign" />}
