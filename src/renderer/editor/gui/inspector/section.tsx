@@ -44,6 +44,7 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
         // Create icon
         const icon = (
             <div
+                key="section-icon"
                 style={{ width: "16px", height: "16px", position: "absolute", left: "10px", top: "8px", cursor: "pointer" }}
                 onClick={() => this._handleCollapse()}
             >
@@ -55,15 +56,15 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
         const children = this.props.children as React.ReactNode[];
         const dividedChildren: React.ReactNode[] = [];
         
-        children.forEach((c) => {
+        children.forEach((c, index) => {
             dividedChildren.push(c);
-            dividedChildren.push(<Divider />);
+            dividedChildren.push(<Divider key={`section-field-divider-${index}`} />);
         });
 
         // Get content
         const content = (
             <>
-                <Divider />
+                <Divider key="section-title-divider" />
                 {dividedChildren}
             </>
         )

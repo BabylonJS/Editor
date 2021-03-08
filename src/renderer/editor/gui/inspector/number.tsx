@@ -113,6 +113,7 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
             sliderNode = (
                 <div style={{ width: "40%", float: "left", padding: "0px 5px", marginTop: "0px" }}>
                     <Slider
+                        key="min-max-slider"
                         value={parseFloat(this.state.value)}
                         min={this.props.min}
                         max={this.props.max}

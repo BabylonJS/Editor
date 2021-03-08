@@ -65,6 +65,7 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
         if (this.state.value instanceof Color4) {
             alpha = (
                 <InspectorNumber
+                    key="alpha-number"
                     object={this.state.value}
                     property="a"
                     label= "Alpha"
