@@ -11,11 +11,11 @@ import { undoRedo } from "../../../editor/tools/undo-redo";
 import "../../../editor/gui/augmentations/index";
 
 import { IObjectInspectorProps } from "../../../editor/components/inspector";
-import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
+import { AbstractInspectorLegacy } from "../../../editor/inspectors/abstract-inspector-legacy";
 
 import GraphEditorWindow from "../index";
 
-export class Inspector extends AbstractInspector<GraphNode | LGraphGroup> {
+export class Inspector extends AbstractInspectorLegacy<GraphNode | LGraphGroup> {
     /**
      * Defines the reference to the graph editor's window.
      */

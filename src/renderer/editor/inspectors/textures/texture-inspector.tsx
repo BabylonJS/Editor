@@ -12,9 +12,9 @@ import { TextureAssets } from "../../assets/textures";
 import { FilesStore } from "../../project/files";
 
 import { Inspector } from "../../components/inspector";
-import { AbstractInspector } from "../abstract-inspector";
+import { AbstractInspectorLegacy } from "../abstract-inspector-legacy";
 
-export class TextureInspector extends AbstractInspector<Texture> {
+export class TextureInspector extends AbstractInspectorLegacy<Texture> {
     private _coordinatesMode: string = "";
     private _samplingMode: string = "";
 

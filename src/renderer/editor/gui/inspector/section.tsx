@@ -48,14 +48,18 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
                 style={{ width: "16px", height: "16px", position: "absolute", left: "10px", top: "8px", cursor: "pointer" }}
                 onClick={() => this._handleCollapse()}
             >
-                {this.props.icon ?? <Icon icon="info-sign" />}
+                {this.props.icon ?? <Icon icon={this.state.collapsed ? "add" : "minus"} />}
             </div>
         );
 
         // Add dividers
-        const children = this.props.children as React.ReactNode[];
+        let children = this.props.children as React.ReactNode[] ?? [];
+        if (children && !Array.isArray(children)) {
+            children = [children];
+        }
+
         const dividedChildren: React.ReactNode[] = [];
-        
+    
         children.forEach((c, index) => {
             dividedChildren.push(c);
             dividedChildren.push(<Divider key={`section-field-divider-${index}`} />);
@@ -70,16 +74,21 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
         )
 
         return (
-            <Callout
-                title={this.props.title}
-                icon={icon}
-                style={{
-                    height: this.state.collapsed ? "35px" : undefined,
-                    paddingLeft: "35px",
-                }}
-            >
-                {this.state.collapsed ? undefined : content}
-            </Callout>
+            <>
+                <Divider />
+                <Callout
+                    title={this.props.title}
+                    icon={icon}
+                    style={{
+                        height: this.state.collapsed ? "35px" : undefined,
+                        paddingLeft: "35px",
+                        // background: "#3C3C3C",
+                    }}
+                >
+                    <div style={{ width: "100%", height: "5px" }}></div>
+                    {this.state.collapsed ? undefined : content}
+                </Callout>
+            </>
         );
     }
 

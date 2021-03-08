@@ -9,9 +9,9 @@ import { GUI } from "dat.gui";
 import { Tools } from "../../tools/tools";
 
 import { Inspector } from "../../components/inspector";
-import { AbstractInspector } from "../abstract-inspector";
+import { AbstractInspectorLegacy } from "../abstract-inspector-legacy";
 
-export class ParticleSystemInspector extends AbstractInspector<ParticleSystem> {
+export class ParticleSystemInspector extends AbstractInspectorLegacy<ParticleSystem> {
     private static _EmitterTypes: string[] = [
         "PointParticleEmitter",
         "BoxParticleEmitter",

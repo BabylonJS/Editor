@@ -6,9 +6,9 @@ import { Dialog } from "../gui/dialog";
 import { Tools } from "../tools/tools";
 
 import { Inspector } from "../components/inspector";
-import { AbstractInspector } from "./abstract-inspector";
+import { AbstractInspectorLegacy } from "./abstract-inspector-legacy";
 
-export class SubMeshInspector extends AbstractInspector<SubMesh> {
+export class SubMeshInspector extends AbstractInspectorLegacy<SubMesh> {
     private _material: Nullable<Material> = null;
 
     /**

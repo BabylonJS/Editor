@@ -6,9 +6,9 @@ import { GUI } from "dat.gui";
 import { SceneSettings } from "../scene/settings";
 
 import { Inspector } from "../components/inspector";
-import { AbstractInspector } from "./abstract-inspector";
+import { AbstractInspectorLegacy } from "./abstract-inspector-legacy";
 
-export class RenderingInspector extends AbstractInspector<Scene> {
+export class RenderingInspector extends AbstractInspectorLegacy<Scene> {
     private _ssrEnabled: boolean = false;
     private _ssaoEnabled: boolean = false;
     private _defaultEnabled: boolean = false;

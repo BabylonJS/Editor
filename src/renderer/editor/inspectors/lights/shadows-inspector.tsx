@@ -6,13 +6,13 @@ import { DirectionalLight, SpotLight, PointLight, CascadedShadowGenerator, Shado
 import { GUI } from "dat.gui";
 
 import { Inspector } from "../../components/inspector";
-import { AbstractInspector } from "../abstract-inspector";
+import { AbstractInspectorLegacy } from "../abstract-inspector-legacy";
 
 import { Confirm } from "../../gui/confirm";
 
 import { RenderList } from "../components/render-list";
 
-export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotLight> {
+export class ShadowsInspector extends AbstractInspectorLegacy<DirectionalLight | SpotLight> {
     private _hasShadowGenerator: boolean = false;
     private _shadowsDarkness: number = 0;
     private _cascadeFilter: string = "";

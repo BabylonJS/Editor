@@ -1,14 +1,15 @@
 import { Nullable } from "../../../shared/types";
 
+import { GUI } from "dat.gui";
+
 import { Sound, Observer } from "babylonjs";
 
 import { SliderController } from "../gui/augmentations/slider";
 
 import { Inspector } from "../components/inspector";
-import { AbstractInspector } from "./abstract-inspector";
-import { GUI } from "dat.gui";
+import { AbstractInspectorLegacy } from "./abstract-inspector-legacy";
 
-export class SoundInspector extends AbstractInspector<Sound> {
+export class SoundInspector extends AbstractInspectorLegacy<Sound> {
     private _volume: number = 0;
     private _playbackRate: number = 0;
     private _rolloffFactor: number = 0;

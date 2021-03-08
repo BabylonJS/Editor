@@ -1,8 +1,8 @@
 import { ISize } from "babylonjs";
 
-import { AbstractInspector } from "../../editor/inspectors/abstract-inspector";
+import { AbstractInspectorLegacy } from "../../editor/inspectors/abstract-inspector-legacy";
 
-export abstract class PaintingInspector<T> extends AbstractInspector<T> {
+export abstract class PaintingInspector<T> extends AbstractInspectorLegacy<T> {
     /**
      * Resizes the edition tool.
      * @param size defines the size of the panel.

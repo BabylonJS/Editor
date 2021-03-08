@@ -11,11 +11,11 @@ import { Tools } from "../../../editor/tools/tools";
 import { AnimationObject } from "../tools/animation-object";
 
 import { Inspector } from "../../../editor/components/inspector";
-import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
+import { AbstractInspectorLegacy } from "../../../editor/inspectors/abstract-inspector-legacy";
 
 import { AnimationRanges } from "./animation-ranges";
 
-export class AnimationObjectInspector extends AbstractInspector<AnimationObject> {
+export class AnimationObjectInspector extends AbstractInspectorLegacy<AnimationObject> {
     private _loopMode: string = "";
 
     private _easingFolder: Nullable<GUI> = null;

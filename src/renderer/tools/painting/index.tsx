@@ -2,7 +2,7 @@ import * as React from "react";
 import { Tabs, Tab, TabId } from "@blueprintjs/core";
 
 import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plugin";
-import { AbstractInspector } from "../../editor/inspectors/abstract-inspector";
+import { AbstractInspectorLegacy } from "../../editor/inspectors/abstract-inspector-legacy";
 
 import { DecalsPainterInspector } from "./decals/inspector";
 // import { FoliagePainterInspector } from "./foliage/inspector";
@@ -21,7 +21,7 @@ export interface IPaintingTools {
 }
 
 export default class PreviewPlugin extends AbstractEditorPlugin<IPaintingTools> {
-    private _tools: AbstractInspector<any>[] = [];
+    private _tools: AbstractInspectorLegacy<any>[] = [];
     private _refHandler = {
         getTool: (ref: any) => {
             if (!ref) { return; }

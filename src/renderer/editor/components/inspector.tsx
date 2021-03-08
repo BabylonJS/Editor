@@ -2,13 +2,15 @@ import * as React from "react";
 import { Tabs, Tab, TabId } from "@blueprintjs/core";
 
 import { Editor } from "../editor";
+
 import { AbstractInspector } from "../inspectors/abstract-inspector";
+import { AbstractInspectorLegacy } from "../inspectors/abstract-inspector-legacy";
 
 import { Tools } from "../tools/tools";
 import { Nullable, Undefinable } from "../../../shared/types";
 
 export interface IObjectInspector {
-    ctor: (new (props: IObjectInspectorProps) => AbstractInspector<any>);
+    ctor: (new (props: IObjectInspectorProps) => AbstractInspectorLegacy<any> | AbstractInspector<any>);
     ctorNames: string[];
     title: string;
     isSupported?: Undefinable<(obj: any) => boolean>;
@@ -16,7 +18,7 @@ export interface IObjectInspector {
      * The reference to the inspector.
      * @hidden
      */
-    _ref?: Undefinable<AbstractInspector<any>>;
+    _ref?: Undefinable<AbstractInspectorLegacy<any>>;
     /**
      * @hidden
      */
@@ -68,7 +70,7 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
     private _activeTabId: Nullable<TabId> = null;
 
     private _refHandler = {
-        getInspector: (ref: AbstractInspector<any>) => ref && (Inspector._ObjectInspectorsConfigurations.find((a) => a._id === ref.props.toolId)!._ref = ref),
+        getInspector: (ref: AbstractInspectorLegacy<any>) => ref && (Inspector._ObjectInspectorsConfigurations.find((a) => a._id === ref.props.toolId)!._ref = ref),
     };
 
     private static _ObjectInspectorsConfigurations: IObjectInspector[] = [];
@@ -183,14 +185,14 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
      * Refreshes the current display of the current inspector.
      */
     public refreshDisplay(): void {
-        Inspector._ObjectInspectorsConfigurations.forEach((i) => i._ref?.refreshDisplay());
+        Inspector._ObjectInspectorsConfigurations.forEach((i) => i._ref?.refreshDisplay?.());
     }
 
     /**
      * Resizes the inspector.
      */
     public resize(): void {
-        Inspector._ObjectInspectorsConfigurations.forEach((i) => i._ref?.resize());
+        Inspector._ObjectInspectorsConfigurations.forEach((i) => i._ref?.resize?.());
     }
 
     /**

@@ -24,7 +24,7 @@ export { GraphAssets } from "./renderer/editor/assets/graphs";
 
 // Inspectors
 export { Inspector, IInspectorProps, IInspectorState, IObjectInspector, IObjectInspectorProps } from "./renderer/editor/components/inspector";
-export { AbstractInspector } from "./renderer/editor/inspectors/abstract-inspector";
+export { AbstractInspectorLegacy as AbstractInspector } from "./renderer/editor/inspectors/abstract-inspector-legacy";
 export { MaterialInspector } from "./renderer/editor/inspectors/materials/material-inspector";
 
 // Project

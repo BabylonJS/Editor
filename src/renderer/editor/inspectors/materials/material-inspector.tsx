@@ -3,9 +3,9 @@ import { GUI } from "dat.gui";
 
 import { MaterialAssets } from "../../assets/materials";
 
-import { AbstractInspector } from "../abstract-inspector";
+import { AbstractInspectorLegacy } from "../abstract-inspector-legacy";
 
-export class MaterialInspector<T extends Material> extends AbstractInspector<Mesh | SubMesh | Material> {
+export class MaterialInspector<T extends Material> extends AbstractInspectorLegacy<Mesh | SubMesh | Material> {
     /**
      * Defines the material reference.
      */

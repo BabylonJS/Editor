@@ -61,7 +61,7 @@ export class InspectorBoolean extends React.Component<IInspectorBooleanProps, II
     public render(): React.ReactNode {
         return (
             <div
-                style={{ width: "100%", height: "30px", background: this.state._overColor }}
+                style={{ width: "95%", height: "30px", background: this.state._overColor }}
                 onMouseEnter={() => this.setState({ _overColor: "rgba(0, 0, 0, 0.2)" })}
                 onMouseLeave={() => this.setState({ _overColor: "rgba(0, 0, 0, 0)" })}
             >

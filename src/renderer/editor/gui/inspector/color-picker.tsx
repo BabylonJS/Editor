@@ -68,7 +68,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
         return (
             <div style={{ width: "100%", height: "30px" }}>
                 <div style={{ width: "30%", height: "30px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
-                    <span style={{ lineHeight: "33px", textAlign: "center" }}>{this.props.label}</span>
+                    <span style={{ lineHeight: "33px", textAlign: "center", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{this.props.label}</span>
                 </div>
                 <div style={{ width: "70%", height: "30px", float: "left", marginTop: "3px" }}>
                     <Popover

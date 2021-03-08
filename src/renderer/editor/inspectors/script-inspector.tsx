@@ -19,13 +19,13 @@ import { IAttachedScriptMetadata } from "../tools/types";
 import { SandboxMain } from "../../sandbox/main";
 
 import { Inspector } from "../components/inspector";
-import { AbstractInspector } from "./abstract-inspector";
+import { AbstractInspectorLegacy } from "./abstract-inspector-legacy";
 
 import { ScriptAssets } from "../assets/scripts";
 import { GraphAssets } from "../assets/graphs";
 import { IAssetComponentItem } from "../assets/abstract-assets";
 
-export class ScriptInspector<T extends Node | Scene> extends AbstractInspector<T> {
+export class ScriptInspector<T extends Node | Scene> extends AbstractInspectorLegacy<T> {
     private _selectedScript: string = "";
 
     private _scriptFolder: Nullable<GUI> = null;

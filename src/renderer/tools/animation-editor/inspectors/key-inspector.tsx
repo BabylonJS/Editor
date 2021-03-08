@@ -1,10 +1,10 @@
 import { Animation } from "babylonjs";
 import { Inspector } from "../../../editor/components/inspector";
-import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
+import { AbstractInspectorLegacy } from "../../../editor/inspectors/abstract-inspector-legacy";
 
 import { AnimationKeyObject } from "../tools/animation-key-object";
 
-export class AnimationKeyInspector extends AbstractInspector<AnimationKeyObject> {
+export class AnimationKeyInspector extends AbstractInspectorLegacy<AnimationKeyObject> {
     /**
      * Called on a controller finished changes.
      * @override
