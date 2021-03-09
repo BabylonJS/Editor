@@ -179,39 +179,42 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         const properties = this.selectedObject.metadata.script.properties;
 
         this.state.inspectorValues.forEach((iv) => {
+            properties[iv.propertyKey] ??= { type: iv.type };
+
             const label = iv.name ?? iv.propertyKey;
+            const property = properties[iv.propertyKey];
 
             switch (iv.type) {
                 case "number":
-                    properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? iv.defaultValue ?? 0;
+                    property.value ??= property.value ?? iv.defaultValue ?? 0;
                     children.push(
-                        <InspectorNumber object={properties} property={iv.propertyKey} label={label} step={0.01} />
+                        <InspectorNumber object={property} property="value" label={label} step={0.01} />
                     );
                     break;
 
                 case "string":
-                    properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? iv.defaultValue ?? "";
+                    property.value ??= property.value ?? iv.defaultValue ?? "";
                     children.push(
-                        <InspectorString object={properties} property={iv.propertyKey} label={label} />
+                        <InspectorString object={property} property="value" label={label} />
                     );
                     break;
 
                 case "boolean":
-                    properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? iv.defaultValue ?? false;
+                    property.value ??= property.value ?? iv.defaultValue ?? false;
                     children.push(
-                        <InspectorBoolean object={properties} property={iv.propertyKey} label={label} />
+                        <InspectorBoolean object={property} property="value" label={label} />
                     );
                     break;
 
                 case "Vector3":
                     if (iv.defaultValue) {
                         const defaultValue = iv.defaultValue as Vector3;
-                        properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? { x: defaultValue._x, y: defaultValue._y, z: defaultValue._z };
+                        property.value ??= property.value ?? { x: defaultValue._x, y: defaultValue._y, z: defaultValue._z };
                     } else {
-                        properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? { x: 0, y: 0, z: 0 };
+                        property.value ??= property.value ?? { x: 0, y: 0, z: 0 };
                     }
                     children.push(
-                        <InspectorVector3 object={properties} property={iv.propertyKey} label={label} step={0.01} />
+                        <InspectorVector3 object={property} property="value" label={label} step={0.01} />
                     );
                     break;
 
@@ -219,12 +222,12 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                 case "Color4":
                     if (iv.defaultValue) {
                         const defaultValue = iv.defaultValue as Color4;
-                        properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? { r: defaultValue.r, g: defaultValue.g, b: defaultValue.b, a: defaultValue.a };
+                        property.value ??= property.value ?? { r: defaultValue.r, g: defaultValue.g, b: defaultValue.b, a: defaultValue.a };
                     } else {
-                        properties[iv.propertyKey] ??= properties[iv.propertyKey] ?? { r: 0, g: 0, b: 0, a: iv.type === "Color4" ? 1 : undefined };
+                        property.value ??= property.value ?? { r: 0, g: 0, b: 0, a: iv.type === "Color4" ? 1 : undefined };
                     }
                     children.push(
-                        <InspectorColor object={properties} property={iv.propertyKey} label={label} step={0.01} />
+                        <InspectorColor object={property} property="value" label={label} step={0.01} />
                     );
                     break;
             }

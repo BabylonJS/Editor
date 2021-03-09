@@ -18,7 +18,7 @@ import { WorkSpace } from "../project/workspace";
 import { IScriptInspectorState, ScriptInspector } from "./script-inspector";
 
 export class SceneInspector extends ScriptInspector<Scene, IScriptInspectorState> {
-    private _fogModes: string[] = ["FOGMODE_NONE", "FOGMODE_LINEAR", "FOGMODE_EXP", "FOGMODE_EXP2"];
+    private static _FogModes: string[] = ["FOGMODE_NONE", "FOGMODE_LINEAR", "FOGMODE_EXP", "FOGMODE_EXP2"];
 
     /**
      * Renders the content of the inspector.
@@ -50,7 +50,7 @@ export class SceneInspector extends ScriptInspector<Scene, IScriptInspectorState
                 </InspectorSection>
 
                 <InspectorSection title="Fog">
-                    <InspectorList object={this.selectedObject} property="fogMode" label="Mode" items={this._fogModes.map((fm) => ({ label: fm, data: Scene[fm] }))} />
+                    <InspectorList object={this.selectedObject} property="fogMode" label="Mode" items={SceneInspector._FogModes.map((fm) => ({ label: fm, data: Scene[fm] }))} />
                     <InspectorBoolean object={this.selectedObject} property="fogEnabled" label="Enabled" />
                     <InspectorNumber object={this.selectedObject} property="fogStart" label="Start" step={0.01} />
                     <InspectorNumber object={this.selectedObject} property="fogEnd" label="End" step={0.01} />

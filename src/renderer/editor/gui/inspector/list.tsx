@@ -64,7 +64,7 @@ export interface IInspectorListState<T> {
     /**
      * Defines the reference to the selected item.
      */
-    selectedItem: IInspectorListItem<T>;
+    selectedItem: Nullable<IInspectorListItem<T>>;
 }
 
 export class InspectorList<T> extends React.Component<IInspectorListProps<T>, IInspectorListState<T>> {
@@ -81,10 +81,6 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
         super(props);
 
         const selectedItem = this._getCurrentItem();
-        if (!selectedItem) {
-            throw new Error("Can't find the current value in the provided items list.");
-        }
-
         this.state = { selectedItem };
     }
 
@@ -95,21 +91,25 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
         return (
             <div style={{ width: "100%", height: "30px" }}>
                 <div style={{ width: "30%", height: "30px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
-                    <span style={{ lineHeight: "33px", textAlign: "center" }}>{this.props.label}</span>
+                    <span style={{ lineHeight: "33px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                 </div>
                 <div style={{ width: "65%", height: "30px", float: "left", marginTop: "3px" }}>
                     <div style={{ position: "absolute", width: "30px", height: "30px", right: "calc(5% + 15px)" }}>
-                        {this.state.selectedItem.icon}
+                        {this.state.selectedItem?.icon}
                     </div>
                     <InspectorList.ListSuggest
                         fill={true}
                         items={this.props.items}
-                        selectedItem={this.state.selectedItem}
+                        selectedItem={this.state.selectedItem ?? { label: "Undefined", data: undefined }}
                         inputValueRenderer={(i) => i.label}
                         noResults={<MenuItem disabled={true} text="No results." />}
                         itemPredicate={(query, i) => i.label.toLowerCase().indexOf(query.toLowerCase()) !== -1}
                         itemsEqual={(a, b) => a.label.toLowerCase() === b.label.toLowerCase()}
                         onItemSelect={(i) => this._handleValueChange(i)}
+                        inputProps={{
+                            small: false,
+                            large: false,
+                        }}
                         itemRenderer={(i, props) => {
                             if (!props.modifiers.matchesPredicate) {
                                 return null;

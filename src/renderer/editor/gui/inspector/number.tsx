@@ -111,7 +111,7 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
         let sliderNode: React.ReactNode;
         if (this.props.min !== undefined && this.props.max !== undefined && !this.props.noSlider) {
             sliderNode = (
-                <div style={{ width: "40%", float: "left", padding: "0px 5px", marginTop: "0px" }}>
+                <div style={{ width: "55%", float: "left", padding: "0px 5px", marginTop: "0px" }}>
                     <Slider
                         key="min-max-slider"
                         value={parseFloat(this.state.value)}
@@ -128,10 +128,10 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
         return (
             <div style={{ width: "100%", height: "30px" }}>
                 <div style={{ width: "30%", height: "30px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
-                    <span style={{ lineHeight: "33px", textAlign: "center" }}>{this.props.label}</span>
+                    <span style={{ lineHeight: "33px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                 </div>
                 {sliderNode}
-                <div style={{ width: sliderNode ? "30%" : "65%", height: "30px", float: "left", marginTop: "3px" }}>
+                <div style={{ width: sliderNode ? "15%" : "65%", height: "30px", float: "left", marginTop: "3px" }}>
                     <InputGroup
                         small={true}
                         fill={true}

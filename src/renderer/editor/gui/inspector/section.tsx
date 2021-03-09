@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Callout, Divider, MaybeElement, Icon } from "@blueprintjs/core";
+import { Callout, Divider, MaybeElement, Icon, H4 } from "@blueprintjs/core";
 
 export interface IInspectorSectionProps {
     /**
@@ -45,7 +45,7 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
         const icon = (
             <div
                 key="section-icon"
-                style={{ width: "16px", height: "16px", position: "absolute", left: "10px", top: "8px", cursor: "pointer" }}
+                style={{ width: "16px", height: "16px", zIndex: 1, position: "absolute", left: "10px", top: "8px", cursor: "pointer" }}
                 onClick={() => this._handleCollapse()}
             >
                 {this.props.icon ?? <Icon icon={this.state.collapsed ? "add" : "minus"} />}
@@ -79,16 +79,29 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
             <>
                 <Divider />
                 <Callout
-                    title={this.props.title}
                     icon={icon}
                     style={{
                         zoom: "0.9",
                         height: this.state.collapsed ? "35px" : undefined,
                         paddingLeft: "35px",
-                        // backgroundColor: "rgba(30, 30, 30, 0.2)",
+                        backgroundColor: "rgba(138, 155, 168, 0.1)",
                     }}
                 >
+                    <div
+                        style={{
+                            position: "absolute", 
+                            width: "100%",
+                            height: "25px",
+                            backgroundColor: "#333333",
+                            marginTop: "-3px",
+                            borderRadius: "15px",
+                            left: "0px",
+                        }}
+                    ></div>
+
+                    <H4 style={{ position: "relative", margin: "0px 0px 0px 10px" }}>{this.props.title}</H4>
                     <div style={{ width: "100%", height: "5px" }}></div>
+
                     {this.state.collapsed ? undefined : content}
                 </Callout>
             </>

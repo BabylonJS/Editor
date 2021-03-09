@@ -71,7 +71,7 @@ export class InspectorBoolean extends React.Component<IInspectorBooleanProps, II
                     label={this.props.label}
                     alignIndicator={Alignment.RIGHT}
                     onChange={(e) => this._handleValueChanged((e.target as HTMLInputElement).checked)}
-                    style={{ paddingTop: "5px", borderLeft: "3px solid #806787", paddingLeft: "5px", fontSize: "14px" }}
+                    style={{ paddingTop: "5px", borderLeft: "3px solid #806787", paddingLeft: "5px", fontSize: "14px", height: "30px" }}
                 />
             </div>
         );
