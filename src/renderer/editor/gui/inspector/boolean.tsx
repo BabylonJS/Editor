@@ -1,11 +1,11 @@
 import * as React from "react";
 import { Alignment, Switch } from "@blueprintjs/core";
 
-export interface IInspectorBooleanProps {
+export interface IInspectorBooleanProps<T> {
     /**
      * Defines the reference to the object to modify.
      */
-    object: any;
+    object: T;
     /**
      * Defines the property to edit in the object.
      */
@@ -36,12 +36,12 @@ export interface IInspectorBooleanState {
     _overColor: string;
 }
 
-export class InspectorBoolean extends React.Component<IInspectorBooleanProps, IInspectorBooleanState> {
+export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<T>, IInspectorBooleanState> {
     /**
      * Constructor.
      * @param props defines the component's props.
      */
-    public constructor(props: IInspectorBooleanProps) {
+    public constructor(props: IInspectorBooleanProps<T>) {
         super(props);
 
         const value = props.object[props.property];

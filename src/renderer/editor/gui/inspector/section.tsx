@@ -95,7 +95,7 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
                             height: "25px",
                             backgroundColor: "#333333",
                             marginTop: "-3px",
-                            borderRadius: "15px",
+                            borderRadius: "6px",
                             left: "0px",
                         }}
                     ></div>

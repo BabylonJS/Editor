@@ -8,7 +8,7 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 import { Spinner } from "@blueprintjs/core";
 
-import { Scene, Node, Vector3, Color4 } from "babylonjs";
+import { Scene, Node, Vector2, Vector3, Color4 } from "babylonjs";
 
 import { IObjectInspectorProps } from "../components/inspector";
 
@@ -20,6 +20,7 @@ import { InspectorString } from "../gui/inspector/string";
 import { InspectorBoolean } from "../gui/inspector/boolean";
 import { InspectorSection } from "../gui/inspector/section";
 import { InspectorVector3 } from "../gui/inspector/vector3";
+import { InspectorVector2 } from "../gui/inspector/vector2";
 
 import { WorkSpace } from "../project/workspace";
 
@@ -206,6 +207,17 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                     );
                     break;
 
+                case "Vector2":
+                    if (iv.defaultValue) {
+                        const defaultValue = iv.defaultValue as Vector2;
+                        property.value ??= property.value ?? { x: defaultValue.x, y: defaultValue.y };
+                    } else {
+                        property.value ??= property.value ?? { x: 0, y: 0 };
+                    }
+                    children.push(
+                        <InspectorVector2 object={property} property="value" label={label} step={0.01} />
+                    );
+                    break;
                 case "Vector3":
                     if (iv.defaultValue) {
                         const defaultValue = iv.defaultValue as Vector3;
