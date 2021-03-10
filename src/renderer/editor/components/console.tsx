@@ -305,7 +305,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
             switch (log.type) {
                 case ConsoleLogType.Info:
                     p.innerText = `[INFO]: ${log.message}`;
-                    console.info(log.message);
+                    // console.info(log.message);
                     break;
                 case ConsoleLogType.Warning:
                     p.innerText = `[WARN]: ${log.message}`;
@@ -334,7 +334,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
         switch (log.type) {
             case ConsoleLogType.Info:
                 terminal.writeln(`[INFO]: ${log.message}`);
-                console.info(log.message);
+                // console.info(log.message);
                 break;
             case ConsoleLogType.Warning:
                 terminal.writeln(`[WARN]: ${log.message}`);
@@ -346,7 +346,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                 break;
             case ConsoleLogType.Raw:
                 terminal.write(log.message);
-                console.log(log.message.trim());
+                // console.log(log.message.trim());
                 break;
         }
     }

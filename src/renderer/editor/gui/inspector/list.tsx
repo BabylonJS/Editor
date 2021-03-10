@@ -41,7 +41,7 @@ export interface IInspectorListProps<T> {
     /**
      * Defines the list of items drawn in the suggest.
      */
-    items: IInspectorListItem<T>[];
+    items: IInspectorListItem<T>[] | (() => IInspectorListItem<T>[] | Promise<IInspectorListItem<T>[]>);
 
     /**
      * Defines the optional 
@@ -62,6 +62,10 @@ export interface IInspectorListProps<T> {
 
 export interface IInspectorListState<T> {
     /**
+     * Defines the list of all items available in the popover.
+     */
+    items: IInspectorListItem<T>[];
+    /**
      * Defines the reference to the selected item.
      */
     selectedItem: Nullable<IInspectorListItem<T>>;
@@ -80,8 +84,10 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
     public constructor(props: IInspectorListProps<T>) {
         super(props);
 
-        const selectedItem = this._getCurrentItem();
-        this.state = { selectedItem };
+        this.state = {
+            items: [],
+            selectedItem: null,
+        };
     }
 
     /**
@@ -99,7 +105,7 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
                     </div>
                     <InspectorList.ListSuggest
                         fill={true}
-                        items={this.props.items}
+                        items={this.state.items}
                         selectedItem={this.state.selectedItem ?? { label: "Undefined", data: undefined }}
                         inputValueRenderer={(i) => i.label}
                         noResults={<MenuItem disabled={true} text="No results." />}
@@ -131,11 +137,30 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
                         }}
                         popoverProps={{
                             position: Position.RIGHT,
+                            onOpening: async () => this.setState({ items: await this._getItems() }),
                         }}
                     ></InspectorList.ListSuggest>
                 </div>
             </div>
         );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public async componentDidMount(): Promise<void> {
+        this.setState({ selectedItem: await this._getCurrentItem() })
+    }
+
+    /**
+     * Returns the current list of items.
+     */
+    private async _getItems(): Promise<IInspectorListItem<T>[]> {
+        if (typeof(this.props.items) === "function") {
+            return this.props.items();
+        }
+
+        return this.props.items;
     }
 
     /**
@@ -153,13 +178,14 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
     /**
      * Returns the item currently set on the object.
      */
-    private _getCurrentItem(): Nullable<IInspectorListItem<T>> {
+    private async _getCurrentItem(): Promise<Nullable<IInspectorListItem<T>>> {
         const value = this.props.object[this.props.property];
+        const items = await this._getItems();
 
         if (this.props.dataPropertyPath) {
-            return this.props.items.find((i) => i.data[this.props.dataPropertyPath!] === value[this.props.dataPropertyPath!]) ?? null;
+            return items.find((i) => i.data[this.props.dataPropertyPath!] === value[this.props.dataPropertyPath!]) ?? null;
         }
 
-        return this.props.items.find((i) => i.data === value) ?? null;
+        return items.find((i) => i.data === value) ?? null;
     }
 }

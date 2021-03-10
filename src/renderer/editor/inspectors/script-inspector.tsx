@@ -132,14 +132,17 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
      * In case of existing scripts, it returns the list of all avaiable scripts to be attached.
      */
     private _getScriptsList(): React.ReactNode {
-        if (!this.state.scripts.length) {
-            return undefined;
-        }
-
         return (
-            <InspectorList object={this.selectedObject.metadata.script} property="name" label="Path" items={this.getScriptsListItems()} onChange={() => {
-                this._updateScriptVisibleProperties();
-            }} />
+            <InspectorList
+                object={this.selectedObject.metadata.script}
+                property="name"
+                label="Path"
+                items={async () => {
+                    await this.refreshAvailableScripts();
+                    return this.getScriptsListItems();
+                }}
+                onChange={() => this._updateScriptVisibleProperties()}
+            />
         )
     }
 

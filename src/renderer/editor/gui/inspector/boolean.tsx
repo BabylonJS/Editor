@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Alignment, Switch } from "@blueprintjs/core";
 
+import { InspectorNotifier } from "./notifier";
+
 export interface IInspectorBooleanProps<T> {
     /**
      * Defines the reference to the object to modify.
@@ -75,6 +77,22 @@ export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<
                 />
             </div>
         );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+     public componentDidMount(): void {
+        InspectorNotifier.Register(this, this.props.object, () => {
+            this.setState({ value: this.props.object[this.props.property] });
+        });
+    }
+
+    /**
+     * Called on the component will unmount.
+     */
+    public componentWillUnmount(): void {
+        InspectorNotifier.Unregister(this);
     }
 
     /**

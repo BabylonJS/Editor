@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { InspectorNumber } from "./number";
+import { InspectorNotifier } from "./notifier";
 
 export interface IVector3Like {
     /**
@@ -111,5 +112,21 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
                 </div>
             </div>
         );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        InspectorNotifier.Register(this, this.props.object, () => {
+            this.setState({ value: this.props.object[this.props.property] });
+        });
+    }
+
+    /**
+     * Called on the component will unmount.
+     */
+    public componentWillUnmount(): void {
+        InspectorNotifier.Unregister(this);
     }
 }

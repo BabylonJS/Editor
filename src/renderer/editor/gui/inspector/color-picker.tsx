@@ -4,6 +4,8 @@ import { Popover } from "@blueprintjs/core";
 
 import { Color3, Color4, IColor4Like } from "babylonjs";
 
+import { InspectorNotifier } from "./notifier";
+
 export interface IInspectorColorPickerProps {
     /**
      * Defines the reference to the object to modify.
@@ -103,6 +105,22 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
                 </div>
             </div>
         );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+     public componentDidMount(): void {
+        InspectorNotifier.Register(this, this.props.object, () => {
+            this.setState({ value: this.props.object[this.props.property] });
+        });
+    }
+
+    /**
+     * Called on the component will unmount.
+     */
+    public componentWillUnmount(): void {
+        InspectorNotifier.Unregister(this);
     }
 
     /**

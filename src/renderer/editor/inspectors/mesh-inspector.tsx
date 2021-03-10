@@ -11,12 +11,13 @@ import {
 
 import { Inspector, IObjectInspectorProps } from "../components/inspector";
 
-import { IInspectorListItem, InspectorList } from "../gui/inspector/list";
 import { InspectorNumber } from "../gui/inspector/number";
 import { InspectorButton } from "../gui/inspector/button";
 import { InspectorSection } from "../gui/inspector/section";
 import { InspectorBoolean } from "../gui/inspector/boolean";
 import { InspectorVector3 } from "../gui/inspector/vector3";
+import { InspectorNotifier } from "../gui/inspector/notifier";
+import { IInspectorListItem, InspectorList } from "../gui/inspector/list";
 
 import { Tools } from "../tools/tools";
 
@@ -32,9 +33,9 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
     private static _PhysicsImpostors: string[] = ["NoImpostor", "SphereImpostor", "BoxImpostor", "CylinderImpostor"];
 
     private _renderingGroupId: string = "";
-    private _rotation: Vector3 = Vector3.Zero();
-
     private _physicsImpostor: string = "";
+
+    private _rotation: Vector3 = Vector3.Zero();
 
     /**
      * Defines the reference to the selected mesh.
@@ -56,6 +57,30 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
         } else {
             this.selectedMesh = this.selectedObject;
         }
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        super.componentDidMount?.();
+
+        InspectorNotifier.Register(this, () => this.selectedObject.rotation, () => {
+            InspectorNotifier.NotifyChange(this._getRotationVector());
+        });
+
+        InspectorNotifier.Register(this, this.selectedObject.rotationQuaternion, () => {
+            InspectorNotifier.NotifyChange(this._getRotationVector());
+        });
+    }
+
+    /**
+     * Called on the component will unmount.
+     */
+    public componentWillUnmount(): void {
+        super.componentWillUnmount?.();
+
+        InspectorNotifier.Unregister(this);
     }
 
     /**
@@ -132,7 +157,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
                     <InspectorBoolean object={this.selectedMesh} property="applyFog" label="Apply Fog" />
                     <InspectorBoolean object={this.selectedMesh} property="infiniteDistance" label="Infinite Distance" />
                     <InspectorNumber object={this.selectedMesh} property="visibility" label="Visibility" min={0} max={1} step={0.01} />
-                    <InspectorList object={this.selectedMesh} property="material" label="Material" items={this.getMaterialsList()} />
+                    <InspectorList object={this.selectedMesh} property="material" label="Material" items={() => this.getMaterialsList()} />
                     <InspectorList object={this.selectedMesh} property="billboardMode" label="Billboard" items={MeshInspector._BillboardModes.map((bm) => ({ label: bm, data: Mesh[bm] }))} />
                     <InspectorList object={this} property="_renderingGroupId" label="Rendering Group" items={renderingGroupIds.map((rgid) => ({ label: rgid, data: rgid }))} onChange={() => {
                         this.selectedMesh.metadata.renderingGroupId = parseInt(this._renderingGroupId);
@@ -155,11 +180,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Returns the rotation inspector that handles both vector 3d and quaternion.
      */
     private _getRotationInspector(): React.ReactNode {
-        if (this.selectedMesh.rotationQuaternion) {
-            this._rotation.copyFrom(this.selectedMesh.rotationQuaternion.toEulerAngles());
-        } else {
-            this._rotation.copyFrom(this.selectedMesh.rotation);
-        }
+        this._getRotationVector();
 
         return <InspectorVector3 object={this} property="_rotation" label={`Rotation ${this.selectedMesh.rotationQuaternion ? "(Quaternion)" : ""}`} step={0.01} onChange={() => {
             if (this.selectedMesh.rotationQuaternion) {
@@ -168,6 +189,19 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
                 this.selectedMesh.rotation.copyFrom(this._rotation);
             }
         }} />
+    }
+
+    /**
+     * Updates the rotation vector.
+     */
+    private _getRotationVector(): Vector3 {
+        if (this.selectedMesh.rotationQuaternion) {
+            this._rotation.copyFrom(this.selectedMesh.rotationQuaternion.toEulerAngles());
+        } else {
+            this._rotation.copyFrom(this.selectedMesh.rotation);
+        }
+
+        return this._rotation;
     }
 
     /**

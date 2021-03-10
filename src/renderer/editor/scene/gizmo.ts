@@ -9,6 +9,8 @@ import { Nullable } from "../../../shared/types";
 
 import { undoRedo } from "../tools/undo-redo";
 
+import { InspectorNotifier } from "../gui/inspector/notifier";
+
 import { Editor } from "../editor";
 
 export enum GizmoType {
@@ -86,7 +88,13 @@ export class SceneGizmo {
                 break;
             case GizmoType.Rotation:
                 this._currentGizmo = this._rotationGizmo = new RotationGizmo(this._gizmosLayer, undefined, false);
-                this._rotationGizmo.onDragEndObservable.add(() => this._notifyGizmoEndDrag("rotationQuaternion"));
+                this._rotationGizmo.onDragEndObservable.add(() => {
+                    if (this._currentGizmo?.attachedMesh?.rotationQuaternion) {
+                        this._notifyGizmoEndDrag("rotationQuaternion");
+                    } else {
+                        this._notifyGizmoEndDrag("rotation");
+                    }
+                });
                 break;
             case GizmoType.Scaling:
                 this._currentGizmo = this._scalingGizmo = new ScaleGizmo(this._gizmosLayer);
@@ -273,7 +281,7 @@ export class SceneGizmo {
     private _notifyGizmoDrag(): void {
         if (!this._currentGizmo) { return; }
         
-        this._editor.inspector.refreshDisplay();
+        // Nothing to do for now...
     }
 
     /**
@@ -293,7 +301,7 @@ export class SceneGizmo {
         const endValue = property.clone();
 
         undoRedo.push({
-            common: () => this._editor.inspector.refreshDisplay(),
+            common: () => InspectorNotifier.NotifyChange(attachedMesh[propertyPath]),
             redo: () => attachedMesh[propertyPath].copyFrom(endValue),
             undo: () => attachedMesh[propertyPath].copyFrom(initialValue),
         });

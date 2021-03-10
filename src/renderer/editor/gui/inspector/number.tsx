@@ -4,7 +4,10 @@ import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 import { InputGroup } from "@blueprintjs/core";
+
 import Slider from "antd/lib/slider";
+
+import { InspectorNotifier } from "./notifier";
 
 export interface IInspectorNumberProps {
     /**
@@ -142,6 +145,22 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
                 </div>
             </div>
         );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        InspectorNotifier.Register(this, this.props.object, () => {
+            this.setState({ value: this.props.object[this.props.property] });
+        });
+    }
+
+    /**
+     * Called on the component will unmount.
+     */
+    public componentWillUnmount(): void {
+        InspectorNotifier.Unregister(this);
     }
 
     /**
