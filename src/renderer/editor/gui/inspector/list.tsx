@@ -89,12 +89,12 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
      */
     public render(): React.ReactNode {
         return (
-            <div style={{ width: "100%", height: "30px" }}>
-                <div style={{ width: "30%", height: "30px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
-                    <span style={{ lineHeight: "33px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
+            <div style={{ width: "100%", height: "25px" }}>
+                <div style={{ width: "30%", height: "25px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
+                    <span style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                 </div>
-                <div style={{ width: "65%", height: "30px", float: "left", marginTop: "3px" }}>
-                    <div style={{ position: "absolute", width: "30px", height: "30px", right: "calc(5% + 15px)" }}>
+                <div style={{ width: "65%", height: "25px", float: "left", marginTop: "2px" }}>
+                    <div style={{ position: "absolute", width: "30px", height: "25px", right: "calc(5% + 15px)" }}>
                         {this.state.selectedItem?.icon}
                     </div>
                     <InspectorList.ListSuggest
@@ -107,7 +107,7 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
                         itemsEqual={(a, b) => a.label.toLowerCase() === b.label.toLowerCase()}
                         onItemSelect={(i) => this._handleValueChange(i)}
                         inputProps={{
-                            small: false,
+                            small: true,
                             large: false,
                         }}
                         itemRenderer={(i, props) => {
@@ -121,8 +121,8 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
                                 <MenuItem
                                     key={key}
                                     icon={i.icon}
-                                    text={<span style={{ lineHeight: "30px" }}>{i.label}</span>}
-                                    labelElement={<span style={{ lineHeight: "30px" }}>{i.description}</span>}
+                                    text={<span style={{ lineHeight: "25px" }}>{i.label}</span>}
+                                    labelElement={<span style={{ lineHeight: "25px" }}>{i.description}</span>}
                                     onClick={props.handleClick}
                                     active={props.modifiers.active}
                                     disabled={props.modifiers.disabled}

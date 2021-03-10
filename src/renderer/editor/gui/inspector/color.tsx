@@ -96,7 +96,7 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
         }
 
         return (
-            <div style={{ width: "100%", height: alpha ? "80px" : "50px" }}>
+            <div style={{ width: "100%", height: alpha ? "75px" : "45px" }}>
                 <div style={{ width: "100%", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
                     <span>{this.props.label}</span>
                 </div>

@@ -59,13 +59,12 @@ import "./gui/augmentations/index";
 
 // Inspectors
 import "./inspectors/scene-inspector";
-// import "./inspectors/rendering-inspector";
+import "./inspectors/rendering-inspector";
 
 import "./inspectors/node-inspector";
 import "./inspectors/mesh-inspector";
-// import "./inspectors/transform-node-inspector";
-// import "./inspectors/instanced-mesh-inspector";
-// import "./inspectors/sub-mesh-inspector";
+import "./inspectors/transform-node-inspector";
+import "./inspectors/sub-mesh-inspector";
 // import "./inspectors/ground-inspector";
 
 // import "./inspectors/lights/light-inspector";

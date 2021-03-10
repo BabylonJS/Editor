@@ -61,7 +61,7 @@ export class InspectorBoolean extends React.Component<IInspectorBooleanProps, II
     public render(): React.ReactNode {
         return (
             <div
-                style={{ width: "95%", height: "30px", background: this.state._overColor }}
+                style={{ width: "95%", height: "25px", background: this.state._overColor }}
                 onMouseEnter={() => this.setState({ _overColor: "rgba(0, 0, 0, 0.2)" })}
                 onMouseLeave={() => this.setState({ _overColor: "rgba(0, 0, 0, 0)" })}
             >
@@ -71,7 +71,7 @@ export class InspectorBoolean extends React.Component<IInspectorBooleanProps, II
                     label={this.props.label}
                     alignIndicator={Alignment.RIGHT}
                     onChange={(e) => this._handleValueChanged((e.target as HTMLInputElement).checked)}
-                    style={{ paddingTop: "5px", borderLeft: "3px solid #806787", paddingLeft: "5px", fontSize: "14px", height: "30px" }}
+                    style={{ paddingTop: "3px", borderLeft: "3px solid #806787", paddingLeft: "5px", fontSize: "14px", height: "25px" }}
                 />
             </div>
         );

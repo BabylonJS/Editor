@@ -58,9 +58,9 @@ export class InspectorString extends React.Component<IInspectorStringProps, IIns
      */
     public render(): React.ReactNode {
         return (
-            <div style={{ width: "100%", height: "30px" }}>
+            <div style={{ width: "100%", height: "25px" }}>
                 <div style={{ width: "30%", float: "left", borderLeft: "3px solid #1ed36f", padding: "0 4px 0 5px" }}>
-                    <span style={{ lineHeight: "33px", textAlign: "center" }}>{this.props.label}</span>
+                    <span style={{ lineHeight: "30px", textAlign: "center" }}>{this.props.label}</span>
                 </div>
                 <div style={{ width: "70%", float: "left", marginTop: "3px" }}>
                     <InputGroup

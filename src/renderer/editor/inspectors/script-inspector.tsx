@@ -113,7 +113,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         return [{ label: "None", data: "None" }].concat(this.state.scripts.map((s) => ({
             label: s,
             data: s,
-            icon: <img src="../css/images/ts.png" style={{ width: "30px", height: "30px" }}></img>,
+            icon: <img src="../css/images/ts.png" style={{ width: "24px", height: "24px" }}></img>,
         })));
     }
 

@@ -66,11 +66,11 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
      */
     public render(): React.ReactNode {
         return (
-            <div style={{ width: "100%", height: "30px" }}>
-                <div style={{ width: "30%", height: "30px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
-                    <span style={{ lineHeight: "33px", textAlign: "center", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{this.props.label}</span>
+            <div style={{ width: "100%", height: "25px" }}>
+                <div style={{ width: "30%", height: "25px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
+                    <span style={{ lineHeight: "30px", textAlign: "center", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{this.props.label}</span>
                 </div>
-                <div style={{ width: "70%", height: "30px", float: "left", marginTop: "3px" }}>
+                <div style={{ width: "70%", height: "25px", float: "left", marginTop: "3px" }}>
                     <Popover
                         interactionKind="click"
                         usePortal={true}
@@ -88,13 +88,13 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
                         <div
                             style={{
                                 width: "100%", 
-                                height: "25px",
+                                height: "20px",
                                 backgroundColor: this.state.hex,
                                 cursor: "pointer",
                             }}
                         >
                             <h5
-                                style={{ textAlign: "center", lineHeight: "25px", color: this.state.textColor }}
+                                style={{ textAlign: "center", lineHeight: "20px", color: this.state.textColor }}
                             >
                                 {this.state.hex}
                             </h5>

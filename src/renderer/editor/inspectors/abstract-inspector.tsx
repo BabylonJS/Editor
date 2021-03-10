@@ -113,7 +113,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
 
         return [empty].concat(assets.map((a) => {
             const data = (this.editor.scene!.textures.find((t) => t.metadata?.editorId === a.key) ?? null) as Nullable<Texture>;
-            const icon = a.base64 ? <img src={a.base64} style={{ width: 30, height: 30 }}></img> : undefined;
+            const icon = a.base64 ? <img src={a.base64} style={{ width: "24px", height: "24px" }}></img> : undefined;
             return { label: a.id, data, icon, description: data?.name };
         }));
     }
@@ -127,7 +127,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
 
         return [empty].concat(assets.map((a) => {
             const data = (this.editor.scene!.materials.find((m) => m.id === a.key) ?? null) as Nullable<Material>;
-            const icon = a.base64 ? <img src={a.base64} style={{ width: 30, height: 30 }}></img> : undefined;
+            const icon = a.base64 ? <img src={a.base64} style={{ width: "24px", height: "24px" }}></img> : undefined;
             return { label: a.id, data, icon, description: data?.name };
         }));
     }
