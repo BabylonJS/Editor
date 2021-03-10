@@ -217,8 +217,12 @@ html, body {
     background-color: rgba(138, 155, 168, 0.15);
 }
 
-.ant-transfer-list-body-search-wrapper {
-    width: calc(100% - 55px);
+.ant-transfer-list-content-item {
+    color: white;
+}
+
+.ant-transfer-list-content-item-checked {
+    color: black;
 }
 
 .ant-transfer-list-content-item-text {

@@ -149,7 +149,10 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
      * Called on the component did mount.
      */
     public async componentDidMount(): Promise<void> {
-        this.setState({ selectedItem: await this._getCurrentItem() })
+        this.setState({
+            items: await this._getItems(),
+            selectedItem: await this._getCurrentItem(),
+        });
     }
 
     /**

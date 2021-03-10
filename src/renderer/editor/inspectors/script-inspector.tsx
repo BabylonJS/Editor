@@ -270,6 +270,8 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         await this._refreshDecorators();
 
         const name = this.selectedObject.metadata.script.name as string;
+        if (!name) { return; }
+        
         const extension = extname(name);
         const extensionIndex = name.lastIndexOf(extension);
 
