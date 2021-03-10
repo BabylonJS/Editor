@@ -817,8 +817,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
             copyPasteTransform = (
                 <>
-                    <MenuItem text="Copy Transform" onClick={() => this._copiedTransform = node as any} />
-                    <MenuItem text="Paste Transform" label={`(${this._copiedTransform?.name ?? "None"})`} disabled={this._copiedTransform === null}>
+                    <MenuItem text="Copy Transform" icon="duplicate" onClick={() => this._copiedTransform = node as any} />
+                    <MenuItem text="Paste Transform" icon="clipboard" label={`(${this._copiedTransform?.name ?? "None"})`} disabled={this._copiedTransform === null}>
                         <MenuItem text="All" onClick={() => {
                             copyTransform("position");
                             copyTransform("rotationQuaternion");
