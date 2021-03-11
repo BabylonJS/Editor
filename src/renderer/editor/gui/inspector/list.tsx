@@ -44,11 +44,6 @@ export interface IInspectorListProps<T> {
     items: IInspectorListItem<T>[] | (() => IInspectorListItem<T>[] | Promise<IInspectorListItem<T>[]>);
 
     /**
-     * Defines the optional 
-     */
-    dataPropertyPath?: string;
-
-    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -105,45 +100,55 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
                     <div style={{ position: "absolute", width: "30px", height: "25px", right: "calc(5% + 15px)" }}>
                         {this.state.selectedItem?.icon}
                     </div>
-                    <InspectorList.ListSuggest
-                        fill={true}
-                        items={this.state.items}
-                        selectedItem={this.state.selectedItem ?? { label: "Undefined", data: undefined }}
-                        inputValueRenderer={(i) => i.label}
-                        noResults={<MenuItem disabled={true} text="No results." />}
-                        itemPredicate={(query, i) => i.label.toLowerCase().indexOf(query.toLowerCase()) !== -1}
-                        itemsEqual={(a, b) => a.label.toLowerCase() === b.label.toLowerCase()}
-                        onItemSelect={(i) => this._handleValueChange(i)}
-                        inputProps={{
-                            small: true,
-                            large: false,
-                        }}
-                        itemRenderer={(i, props) => {
-                            if (!props.modifiers.matchesPredicate) {
-                                return null;
-                            }
-
-                            const key = `${i.label}_${props.index}`;
-
-                            return (
-                                <MenuItem
-                                    key={key}
-                                    icon={i.icon}
-                                    text={<span style={{ lineHeight: "25px" }}>{i.label}</span>}
-                                    labelElement={<span style={{ lineHeight: "25px" }}>{i.description}</span>}
-                                    onClick={props.handleClick}
-                                    active={props.modifiers.active}
-                                    disabled={props.modifiers.disabled}
-                                />
-                            );
-                        }}
-                        popoverProps={{
-                            position: Position.RIGHT,
-                            onOpening: async () => this.setState({ items: await this._getItems() }),
-                        }}
-                    ></InspectorList.ListSuggest>
+                    {this._getSuggestComponent()}
                 </div>
             </div>
+        );
+    }
+
+    /**
+     * Returns the suggest component.
+     */
+    private _getSuggestComponent(): React.ReactNode {
+        return (
+            <InspectorList.ListSuggest
+                fill={true}
+                items={this.state.items}
+                selectedItem={this.state.selectedItem ?? { label: "Undefined", data: undefined }}
+                activeItem={this.state.selectedItem}
+                inputValueRenderer={(i) => i.label}
+                noResults={<MenuItem disabled={true} text="No results." />}
+                itemPredicate={(query, i) => i.label.toLowerCase().indexOf(query.toLowerCase()) !== -1}
+                itemsEqual={(a, b) => a.label.toLowerCase() === b.label.toLowerCase()}
+                onItemSelect={(i) => this._handleValueChange(i)}
+                inputProps={{
+                    small: true,
+                    large: false,
+                }}
+                itemRenderer={(i, props) => {
+                    if (!props.modifiers.matchesPredicate) {
+                        return null;
+                    }
+
+                    const key = `${i.label}_${props.index}`;
+
+                    return (
+                        <MenuItem
+                            key={key}
+                            icon={i.icon}
+                            text={<span style={{ lineHeight: "25px" }}>{i.label}</span>}
+                            labelElement={<span style={{ lineHeight: "25px" }}>{i.description}</span>}
+                            onClick={props.handleClick}
+                            active={props.modifiers.active}
+                            disabled={props.modifiers.disabled}
+                        />
+                    );
+                }}
+                popoverProps={{
+                    position: Position.RIGHT,
+                    onOpening: () => this._refreshItems(),
+                }}
+            ></InspectorList.ListSuggest>
         );
     }
 
@@ -155,6 +160,16 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
             items: await this._getItems(),
             selectedItem: await this._getCurrentItem(),
         });
+    }
+
+    /**
+     * Refreshes the list of available items.
+     */
+    private async _refreshItems(): Promise<void> {
+        const items = await this._getItems();
+        const selectedItem = await this._getCurrentItem();
+
+        this.setState({ items, selectedItem });
     }
 
     /**
@@ -183,12 +198,11 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
     /**
      * Returns the item currently set on the object.
      */
-    private async _getCurrentItem(): Promise<Nullable<IInspectorListItem<T>>> {
+    private async _getCurrentItem(items?: IInspectorListItem<T>[]): Promise<Nullable<IInspectorListItem<T>>> {
         const value = this.props.object[this.props.property];
-        const items = await this._getItems();
 
-        if (this.props.dataPropertyPath) {
-            return items.find((i) => i.data[this.props.dataPropertyPath!] === value[this.props.dataPropertyPath!]) ?? null;
+        if (!items) {
+            items = await this._getItems();
         }
 
         return items.find((i) => i.data === value) ?? null;

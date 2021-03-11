@@ -87,7 +87,7 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
                     object={this.state.value}
                     property="a"
                     label="Alpha"
-                    step={this.props.step}
+                    step={this.props.step ?? 0.01}
                     min={0}
                     max={1}
                     onChange={() => this.props.onChange?.(this.state.value)}

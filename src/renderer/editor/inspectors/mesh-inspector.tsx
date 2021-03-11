@@ -362,7 +362,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
         });
 
         return (
-            <InspectorSection title="LOD">
+            <InspectorSection key="lod" title="LOD">
                 <InspectorButton label="Add LOD..." onClick={() => this._handleAddLOD()} />
                 {noLod}
                 {sections}
@@ -378,27 +378,36 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
             return;
         }
 
-        const hasNullLod = this.selectedMesh.getLODLevels().find((lod) => !lod.mesh);
+        const mesh = this.selectedMesh as Mesh;
+
+        const hasNullLod = mesh.getLODLevels().find((lod) => !lod.mesh);
         if (hasNullLod) { return; }
 
-        this.selectedMesh.addLODLevel(100, null);
-        this.forceUpdate();
+        mesh.addLODLevel(100, null);
+
+        this.forceUpdate(() => {
+            mesh.getLODLevels().forEach((lod) => InspectorNotifier.NotifyChange(lod));
+        });
     }
 
     /**
      * Called on the user wants to remove a LOD.
      */
-    private _handleRemoveLOD(mesh: Nullable<Mesh>): void {
+    private _handleRemoveLOD(lodMesh: Nullable<Mesh>): void {
         if (this.selectedMesh instanceof InstancedMesh) {
             return;
         }
 
-        this.selectedMesh.removeLODLevel(mesh!);
-        if (mesh) {
-            mesh.dispose(true, false);
+        const mesh = this.selectedMesh as Mesh;
+
+        mesh.removeLODLevel(lodMesh!);
+        if (lodMesh) {
+            lodMesh.dispose(true, false);
         }
 
-        this.forceUpdate();
+        this.forceUpdate(() => {
+            mesh.getLODLevels().forEach((lod) => InspectorNotifier.NotifyChange(lod));
+        });
     }
 
     /**

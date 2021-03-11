@@ -78,8 +78,8 @@ import "./inspectors/lights/shadows-inspector";
 // import "./inspectors/cameras/free-camera-inspector";
 // import "./inspectors/cameras/arc-rotate-camera-inspector";
 
-// import "./inspectors/materials/standard-material-inspector";
-// import "./inspectors/materials/pbr-material-inspector";
+import "./inspectors/materials/standard-inspector";
+import "./inspectors/materials/pbr-inspector";
 // import "./inspectors/materials/sky-material-inspector";
 // import "./inspectors/materials/node-material-inspector";
 // import "./inspectors/materials/cell-material-inspector";
