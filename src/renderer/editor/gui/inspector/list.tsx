@@ -3,7 +3,7 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 
 import { Suggest } from "@blueprintjs/select";
-import { MaybeElement, MenuItem, Position } from "@blueprintjs/core";
+import { MaybeElement, MenuItem, Position, Tooltip } from "@blueprintjs/core";
 
 export interface IInspectorListItem<T> {
     /**
@@ -96,8 +96,10 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
     public render(): React.ReactNode {
         return (
             <div style={{ width: "100%", height: "25px" }}>
-                <div style={{ width: "30%", height: "25px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
-                    <span style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
+                <div style={{ width: "30%", height: "25px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px", overflow: "hidden" }}>
+                    <Tooltip content={this.props.label}>
+                        <span style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
+                    </Tooltip>
                 </div>
                 <div style={{ width: "65%", height: "25px", float: "left", marginTop: "2px" }}>
                     <div style={{ position: "absolute", width: "30px", height: "25px", right: "calc(5% + 15px)" }}>

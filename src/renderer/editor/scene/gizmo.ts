@@ -123,7 +123,7 @@ export class SceneGizmo {
                 this._positionGizmo.xPlaneGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
                 this._positionGizmo.yPlaneGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
                 this._positionGizmo.zPlaneGizmo.dragBehavior.onDragObservable.add(() => this._notifyGizmoDrag());
-                
+
                 // A bit of hacking.
                 this._positionGizmo.xPlaneGizmo["_coloredMaterial"].alpha = 0.3;
                 this._positionGizmo.xPlaneGizmo["_hoverMaterial"].alpha = 1;
@@ -245,7 +245,7 @@ export class SceneGizmo {
         if (!this._cameraGizmo) {
             this._cameraGizmo = new CameraGizmo(this._gizmosLayer);
         }
-        
+
         this._cameraGizmo.camera = camera;
         this._cameraGizmo.displayFrustum = true;
 
@@ -280,7 +280,7 @@ export class SceneGizmo {
      */
     private _notifyGizmoDrag(): void {
         if (!this._currentGizmo) { return; }
-        
+
         // Nothing to do for now...
     }
 
@@ -300,8 +300,11 @@ export class SceneGizmo {
         const initialValue = this._initialValue.clone();
         const endValue = property.clone();
 
+        const attachedLight = this._lightGizmo?.light;
+        const attachedCamera = this._cameraGizmo?.camera;
+
         undoRedo.push({
-            common: () => InspectorNotifier.NotifyChange(attachedMesh[propertyPath]),
+            common: () => InspectorNotifier.NotifyChange((attachedLight ?? attachedCamera ?? attachedMesh)[propertyPath]),
             redo: () => attachedMesh[propertyPath].copyFrom(endValue),
             undo: () => attachedMesh[propertyPath].copyFrom(initialValue),
         });
