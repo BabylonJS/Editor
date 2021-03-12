@@ -28,9 +28,9 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
     private _isMounted: boolean = false;
 
     /**
-    * Constructor.
-    * @param props the component's props.
-    */
+     * Constructor.
+     * @param props the component's props.
+     */
     public constructor(props: IObjectInspectorProps) {
         super(props);
 

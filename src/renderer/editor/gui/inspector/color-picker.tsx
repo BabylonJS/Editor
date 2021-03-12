@@ -77,6 +77,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
                         interactionKind="click"
                         usePortal={true}
                         fill={true}
+                        hasBackdrop={true}
                         content={
                             <div style={{ color: "black" }}>
                                 <SketchPicker
@@ -111,8 +112,11 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
      * Called on the component did mount.
      */
      public componentDidMount(): void {
-        InspectorNotifier.Register(this, this.props.object, () => {
-            this.setState({ value: this.props.object[this.props.property] });
+        InspectorNotifier.Register(this, this.props.object[this.props.property], () => {
+            this.setState({
+                value: this.props.object[this.props.property],
+                hex: this.props.object[this.props.property].toHexString(),
+            });
         });
     }
 
@@ -147,6 +151,8 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
         }
 
         this.props.onChange?.(this.props.object);
+
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], this);
     }
 
     /**

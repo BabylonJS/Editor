@@ -73,7 +73,16 @@ export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<
                     label={this.props.label}
                     alignIndicator={Alignment.RIGHT}
                     onChange={(e) => this._handleValueChanged((e.target as HTMLInputElement).checked)}
-                    style={{ paddingTop: "3px", borderLeft: "3px solid #806787", paddingLeft: "5px", fontSize: "14px", height: "25px" }}
+                    style={{
+                        paddingTop: "3px",
+                        borderLeft: "3px solid #806787",
+                        paddingLeft: "5px",
+                        fontSize: "14px",
+                        height: "25px",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                    }}
                 />
             </div>
         );

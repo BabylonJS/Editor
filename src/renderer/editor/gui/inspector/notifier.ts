@@ -22,9 +22,14 @@ export class InspectorNotifier {
     /**
      * Notifies the inspectors that the given object has been notified.
      * @param object defines the reference to the object that has been changed.
+     * @param caller defines the caller that notifies the change. This is typically used to don't listen themselves;
      */
-    public static NotifyChange<T>(object: T): void {
+    public static NotifyChange<T>(object: T, caller?: any): void {
         this._Notifications.forEach((n) => {
+            if (n.caller === caller) {
+                return;
+            }
+
             let effectiveObject = n.object;
 
             if (typeof(n.object) === "function") {

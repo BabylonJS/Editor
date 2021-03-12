@@ -4,7 +4,7 @@ import { Material, Mesh, SubMesh, Constants } from "babylonjs";
 
 import { InspectorSection } from "../../gui/inspector/section";
 
-import { Inspector } from "../../components/inspector";
+import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 import { InspectorString } from "../../gui/inspector/string";
 import { InspectorNumber } from "../../gui/inspector/number";
 
@@ -40,9 +40,12 @@ export class MaterialInspector<T extends Material, S = {}> extends AbstractInspe
     protected material: T;
 
     /**
-     * Renders the content of the inspector.
+     * Constructor.
+     * @param props defines the component's props.
      */
-    public renderContent(): React.ReactNode {
+     public constructor(props: IObjectInspectorProps) {
+        super(props);
+
         if (this.selectedObject instanceof Material) {
             this.material = this.selectedObject as T;
         } else if (this.selectedObject instanceof Mesh) {
@@ -50,7 +53,12 @@ export class MaterialInspector<T extends Material, S = {}> extends AbstractInspe
         } else if (this.selectedObject instanceof SubMesh) {
             this.material = this.selectedObject.getMaterial() as T;
         }
+    }
 
+    /**
+     * Renders the content of the inspector.
+     */
+    public renderContent(): React.ReactNode {
         return (
             <InspectorSection title="Common">
                 <InspectorString object={this.material} property="name" label="Name" />

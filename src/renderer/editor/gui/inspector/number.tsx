@@ -141,6 +141,8 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
                         small={true}
                         fill={true}
                         value={this.state.value}
+                        type="number"
+                        step={this.props.step}
                         onChange={(e) => this._handleValueChanged(e.target.value, false)}
                         onMouseDown={(ev) => this._handleInputClicked(ev)}
                     />
@@ -195,6 +197,8 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
 
         // Callback
         this.props.onChange?.(parsedValue);
+
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], this);
     }
 
     /**

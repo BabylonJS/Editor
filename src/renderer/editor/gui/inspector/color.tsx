@@ -110,8 +110,8 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
                         min={0}
                         max={1}
                         noSlider={true}
-                        onChange={() => this.props.onChange?.(this.state.value)}
-                        onFinishChange={() => this.props.onFinishChange?.(this.state.value)}
+                        onChange={() => this._onColorChange()}
+                        onFinishChange={() => this._onColorFinishChange()}
                     />
                 </div>
                 <div style={{ float: "left", width: "33%", height: "30px" }}>
@@ -123,8 +123,8 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
                         min={0}
                         max={1}
                         noSlider={true}
-                        onChange={() => this.props.onChange?.(this.state.value)}
-                        onFinishChange={() => this.props.onFinishChange?.(this.state.value)}
+                        onChange={() => this._onColorChange()}
+                        onFinishChange={() => this._onColorFinishChange()}
                     />
                 </div>
                 <div style={{ float: "left", width: "33%", height: "30px" }}>
@@ -136,8 +136,8 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
                         min={0}
                         max={1}
                         noSlider={true}
-                        onChange={() => this.props.onChange?.(this.state.value)}
-                        onFinishChange={() => this.props.onFinishChange?.(this.state.value)}
+                        onChange={() => this._onColorChange()}
+                        onFinishChange={() => this._onColorFinishChange()}
                     />
                 </div>
                 {alpha}
@@ -149,7 +149,7 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
      * Called on the component did mount.
      */
      public componentDidMount(): void {
-        InspectorNotifier.Register(this, this.props.object, () => {
+        InspectorNotifier.Register(this, this.props.object[this.props.property], () => {
             this.setState({ value: this.props.object[this.props.property] });
         });
     }
@@ -159,5 +159,23 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
      */
     public componentWillUnmount(): void {
         InspectorNotifier.Unregister(this);
+    }
+
+    /**
+     * Called on the color changed.
+     */
+    private _onColorChange(): void {
+        this.props.onChange?.(this.state.value);
+
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], this);
+    }
+
+    /**
+     * Called on the color finished changed.
+     */
+    private _onColorFinishChange(): void {
+        this.props.onFinishChange?.(this.state.value);
+
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], this);
     }
 }
