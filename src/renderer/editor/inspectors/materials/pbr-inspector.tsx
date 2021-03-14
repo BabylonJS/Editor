@@ -9,6 +9,7 @@ import { InspectorColor } from "../../gui/inspector/color";
 import { InspectorNumber } from "../../gui/inspector/number";
 import { InspectorBoolean } from "../../gui/inspector/boolean";
 import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorVector2 } from "../../gui/inspector/vector2";
 import { InspectorColorPicker } from "../../gui/inspector/color-picker";
 
 import { MaterialInspector } from "./material-inspector";
@@ -26,6 +27,18 @@ export interface IPBRMaterialInspectorState {
      * Defines wether or not clear coat is enabled.
      */
     clearCoatEnabled: boolean;
+    /**
+     * Defines wether or not anisotropy is enabled.
+     */
+    anisotropyEnabled: boolean;
+    /**
+     * Defines wether or not sheen is enabled.
+     */
+    sheenEnabled: boolean;
+    /**
+     * Defines wether or not roughness is used by sheen.
+     */
+    useSheenRoughness: boolean;
 }
 
 export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMaterialInspectorState> {
@@ -40,6 +53,9 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
             useMetallic: (this.material.metallic ?? null) !== null,
             useRoughness: (this.material.roughness ?? null) !== null,
             clearCoatEnabled: this.material.clearCoat.isEnabled,
+            anisotropyEnabled: this.material.anisotropy.isEnabled,
+            sheenEnabled: this.material.sheen.isEnabled,
+            useSheenRoughness: (this.material.sheen.roughness ?? null) !== null,
         };
     }
 
@@ -53,6 +69,11 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 {this.getMaterialFlagsInspector()}
                 {this.getAdvancedOptionsInspector()}
                 {this.getMapsInspector()}
+
+                <InspectorSection title="Options">
+                    <InspectorBoolean object={this.material} property="usePhysicalLightFalloff" label= "Use Physical Light Falloff" />
+                    <InspectorBoolean object={this.material} property="forceIrradianceInFragment" label= "Force Irradiance In Fragment" />
+                </InspectorSection>
 
                 <InspectorSection title="Albedo">
                     <InspectorBoolean object={this.material} property="useAlphaFromAlbedoTexture" label= "Use Alpha From Albedo Texture" />
@@ -109,6 +130,8 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 </InspectorSection>
 
                 {this._getClearCoatInspector()}
+                {this._getAnisotropyInspector()}
+                {this._getSheenInspector()}
             </>
         );
     }
@@ -226,6 +249,86 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     <InspectorNumber object={this.material.clearCoat} property="tintColorAtDistance" label="Color At Distance" step={0.01} />
                     <InspectorNumber object={this.material.clearCoat} property="tintThickness" label="Thickness" step={0.01} />
                 </InspectorSection>
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the anisotropy inspector used to configure the anisotropy values
+     * of the PBR material.
+     */
+    private _getAnisotropyInspector(): React.ReactNode {
+        if (!this.state.anisotropyEnabled) {
+            return (
+                <InspectorSection title="Anisotropy">
+                    <InspectorBoolean object={this.material.anisotropy} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ anisotropyEnabled: v })} />
+                </InspectorSection>
+            );
+        }
+
+        return (
+            <InspectorSection title="Anisotropy">
+                <InspectorBoolean object={this.material.anisotropy} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ anisotropyEnabled: v })} />
+                <InspectorList object={this.material.anisotropy} property="texture" label="Texture" items={() => this.getTexturesList()} />
+                <InspectorNumber object={this.material.anisotropy} property="intensity" label="Intensity" step={0.01} />
+                <InspectorVector2 object={this.material.anisotropy} property="direction" label="Direction" step={0.01} />
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the sheen inspector used to configure the sheen values
+     * of the PBR material.
+     */
+    private _getSheenInspector(): React.ReactNode {
+        if (!this.state.sheenEnabled) {
+            return (
+                <InspectorSection title="Sheen">
+                    <InspectorBoolean object={this.material.sheen} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ sheenEnabled: v })} />
+                </InspectorSection>
+            );
+        }
+
+        return (
+            <InspectorSection title="Sheen">
+                <InspectorBoolean object={this.material.sheen} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ sheenEnabled: v })} />
+                <InspectorList object={this.material.sheen} property="texture" label="Texture" items={() => this.getTexturesList()} />
+                <InspectorBoolean object={this.material.sheen} property="linkSheenWithAlbedo" label= "Link Sheen With Albedo" />
+                <InspectorBoolean object={this.material.sheen} property="albedoScaling" label= "Albedo Scaling" />
+                <InspectorBoolean object={this.material.sheen} property="useRoughnessFromMainTexture" label= "Use Roughness From Main Texture" />
+
+                {this._getSheenRoughnessInspector()}
+
+                <InspectorNumber object={this.material.sheen} property="intensity" label="Intensity" step={0.01} />
+                <InspectorColor object={this.material.sheen} property="color" label="Color" step={0.01} />
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the roughness inspector to edit the roughness values of the sheen
+     * PBR material.
+     */
+    private _getSheenRoughnessInspector(): React.ReactNode {
+        if (!this.state.useSheenRoughness) {
+            return (
+                <InspectorSection title="Roughness">
+                    <InspectorBoolean object={this.state} property="useSheenRoughness" label="Enabled" onChange={(v) => {
+                        this.material.sheen.roughness = 0;
+                        this.setState({ useSheenRoughness: v });
+                    }} />
+                </InspectorSection>
+            );
+        }
+
+        return (
+            <InspectorSection title="Roughness">
+                <InspectorBoolean object={this.state} property="useSheenRoughness" label="Enabled" onChange={(v) => {
+                    this.material.sheen.roughness = null;
+                    this.setState({ useSheenRoughness: v });
+                }} />
+                <InspectorList object={this.material.sheen} property="textureRoughness" label="Roughness" items={() => this.getTexturesList()} />
+                <InspectorNumber object={this.material.sheen} property="roughness" label="Roughness" step={0.01} />
             </InspectorSection>
         );
     }
