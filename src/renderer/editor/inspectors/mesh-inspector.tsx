@@ -5,11 +5,11 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 
 import {
-    Mesh, InstancedMesh, SubMesh, RenderingManager, Vector3, Quaternion,
+    Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion,
     PhysicsImpostor, SceneLoader, MeshLODLevel,
 } from "babylonjs";
 
-import { Inspector, IObjectInspectorProps } from "../components/inspector";
+import { Inspector } from "../components/inspector";
 
 import { InspectorNumber } from "../gui/inspector/number";
 import { InspectorButton } from "../gui/inspector/button";
@@ -36,28 +36,6 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
     private _physicsImpostor: string = "";
 
     private _rotation: Vector3 = Vector3.Zero();
-
-    /**
-     * Defines the reference to the selected mesh.
-     */
-    protected selectedMesh: Mesh | InstancedMesh;
-
-    /**
-     * Constructor.
-     * @param props defines the component's props.
-     */
-    public constructor(props: IObjectInspectorProps) {
-        super({
-            ...props,
-            _objectRef: props._objectRef instanceof SubMesh ? props._objectRef.getMesh() : props._objectRef,
-        });
-
-        if (this.selectedObject instanceof SubMesh) {
-            this.selectedMesh = this.selectedObject = (this.selectedObject as SubMesh).getMesh() as Mesh;
-        } else {
-            this.selectedMesh = this.selectedObject;
-        }
-    }
 
     /**
      * Called on the component did mount.
@@ -88,11 +66,11 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      */
     public renderContent(): React.ReactNode {
         // Distance
-        this.selectedMesh.infiniteDistance ??= false;
+        this.selectedObject.infiniteDistance ??= false;
 
         // Physics
-        if (this.selectedMesh.physicsImpostor) {
-            this._physicsImpostor = MeshInspector._PhysicsImpostors.find((i) => this.selectedMesh.physicsImpostor!.type === PhysicsImpostor[i]) ?? MeshInspector._PhysicsImpostors[0];
+        if (this.selectedObject.physicsImpostor) {
+            this._physicsImpostor = MeshInspector._PhysicsImpostors.find((i) => this.selectedObject.physicsImpostor!.type === PhysicsImpostor[i]) ?? MeshInspector._PhysicsImpostors[0];
         } else {
             this._physicsImpostor = MeshInspector._PhysicsImpostors[0];
         }
@@ -102,23 +80,23 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
                 {super.renderContent()}
 
                 <InspectorSection title="Mesh">
-                    <InspectorBoolean object={this.selectedMesh} property="isVisible" label="Visible" />
-                    <InspectorBoolean object={this.selectedMesh} property="isPickable" label="Pickable" />
+                    <InspectorBoolean object={this.selectedObject} property="isVisible" label="Visible" />
+                    <InspectorBoolean object={this.selectedObject} property="isPickable" label="Pickable" />
                 </InspectorSection>
 
                 {this._getRenderingInspector()}
 
                 <InspectorSection title="Transforms">
-                    <InspectorVector3 object={this.selectedMesh} property="position" label="Position" step={0.01} />
+                    <InspectorVector3 object={this.selectedObject} property="position" label="Position" step={0.01} />
                     {this._getRotationInspector()}
-                    <InspectorVector3 object={this.selectedMesh} property="scaling" label="Scaling" step={0.01} />
+                    <InspectorVector3 object={this.selectedObject} property="scaling" label="Scaling" step={0.01} />
                 </InspectorSection>
 
                 <InspectorSection title="Collisions">
-                    <InspectorBoolean object={this.selectedMesh} property="checkCollisions" label="Check Collisions" />
-                    <InspectorNumber object={this.selectedMesh} property="collisionMask" label="Mask" step={1} />
-                    <InspectorVector3 object={this.selectedMesh} property="ellipsoid" label="Ellipsoid" step={0.01} />
-                    <InspectorVector3 object={this.selectedMesh} property="ellipsoidOffset" label="Ellipsoid Offset" step={0.01} />
+                    <InspectorBoolean object={this.selectedObject} property="checkCollisions" label="Check Collisions" />
+                    <InspectorNumber object={this.selectedObject} property="collisionMask" label="Mask" step={1} />
+                    <InspectorVector3 object={this.selectedObject} property="ellipsoid" label="Ellipsoid" step={0.01} />
+                    <InspectorVector3 object={this.selectedObject} property="ellipsoidOffset" label="Ellipsoid Offset" step={0.01} />
                 </InspectorSection>
 
                 <InspectorSection title="Physics">
@@ -140,27 +118,27 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      */
     private _getRenderingInspector(): React.ReactNode {
         // Rendering groups
-        this.selectedMesh.metadata ??= {};
-        this.selectedMesh.metadata.renderingGroupId ??= this.selectedMesh.renderingGroupId;
+        this.selectedObject.metadata ??= {};
+        this.selectedObject.metadata.renderingGroupId ??= this.selectedObject.renderingGroupId;
 
         const renderingGroupIds: string[] = [];
         for (let i = RenderingManager.MIN_RENDERINGGROUPS; i <= RenderingManager.MAX_RENDERINGGROUPS; i++) {
             renderingGroupIds.push(i.toString());
         }
 
-        this._renderingGroupId = this.selectedMesh.renderingGroupId.toString();
+        this._renderingGroupId = this.selectedObject.renderingGroupId.toString();
 
-        if (this.selectedMesh instanceof Mesh) {
+        if (this.selectedObject instanceof Mesh) {
             return (
                 <InspectorSection title="Rendering">
-                    <InspectorBoolean object={this.selectedMesh} property="receiveShadows" label="Receive Shadows" />
-                    <InspectorBoolean object={this.selectedMesh} property="applyFog" label="Apply Fog" />
-                    <InspectorBoolean object={this.selectedMesh} property="infiniteDistance" label="Infinite Distance" />
-                    <InspectorNumber object={this.selectedMesh} property="visibility" label="Visibility" min={0} max={1} step={0.01} />
-                    <InspectorList object={this.selectedMesh} property="material" label="Material" items={() => this.getMaterialsList()} />
-                    <InspectorList object={this.selectedMesh} property="billboardMode" label="Billboard" items={MeshInspector._BillboardModes.map((bm) => ({ label: bm, data: Mesh[bm] }))} />
+                    <InspectorBoolean object={this.selectedObject} property="receiveShadows" label="Receive Shadows" />
+                    <InspectorBoolean object={this.selectedObject} property="applyFog" label="Apply Fog" />
+                    <InspectorBoolean object={this.selectedObject} property="infiniteDistance" label="Infinite Distance" />
+                    <InspectorNumber object={this.selectedObject} property="visibility" label="Visibility" min={0} max={1} step={0.01} />
+                    <InspectorList object={this.selectedObject} property="material" label="Material" items={() => this.getMaterialsList()} />
+                    <InspectorList object={this.selectedObject} property="billboardMode" label="Billboard" items={MeshInspector._BillboardModes.map((bm) => ({ label: bm, data: Mesh[bm] }))} />
                     <InspectorList object={this} property="_renderingGroupId" label="Rendering Group" items={renderingGroupIds.map((rgid) => ({ label: rgid, data: rgid }))} onChange={() => {
-                        this.selectedMesh.metadata.renderingGroupId = parseInt(this._renderingGroupId);
+                        this.selectedObject.metadata.renderingGroupId = parseInt(this._renderingGroupId);
                     }} />
                 </InspectorSection>
             );
@@ -168,9 +146,9 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
 
         return (
             <InspectorSection title="Rendering">
-                <InspectorList object={this.selectedMesh} property="billboardMode" label="Billboard" items={MeshInspector._BillboardModes.map((bm) => ({ label: bm, data: Mesh[bm] }))} />
+                <InspectorList object={this.selectedObject} property="billboardMode" label="Billboard" items={MeshInspector._BillboardModes.map((bm) => ({ label: bm, data: Mesh[bm] }))} />
                 <InspectorList object={this} property="_renderingGroupId" label="Rendering Group" items={renderingGroupIds.map((rgid) => ({ label: rgid, data: rgid }))} onChange={() => {
-                    this.selectedMesh.metadata.renderingGroupId = parseInt(this._renderingGroupId);
+                    this.selectedObject.metadata.renderingGroupId = parseInt(this._renderingGroupId);
                 }} />
             </InspectorSection>
         );
@@ -182,11 +160,11 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
     private _getRotationInspector(): React.ReactNode {
         this._getRotationVector();
 
-        return <InspectorVector3 object={this} property="_rotation" label={`Rotation ${this.selectedMesh.rotationQuaternion ? "(Quaternion)" : ""}`} step={0.01} onChange={() => {
-            if (this.selectedMesh.rotationQuaternion) {
-                this.selectedMesh.rotationQuaternion.copyFrom(Quaternion.FromEulerVector(this._rotation));
+        return <InspectorVector3 object={this} property="_rotation" label={`Rotation ${this.selectedObject.rotationQuaternion ? "(Quaternion)" : ""}`} step={0.01} onChange={() => {
+            if (this.selectedObject.rotationQuaternion) {
+                this.selectedObject.rotationQuaternion.copyFrom(Quaternion.FromEulerVector(this._rotation));
             } else {
-                this.selectedMesh.rotation.copyFrom(this._rotation);
+                this.selectedObject.rotation.copyFrom(this._rotation);
             }
         }} />
     }
@@ -195,10 +173,10 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Updates the rotation vector.
      */
     private _getRotationVector(): Vector3 {
-        if (this.selectedMesh.rotationQuaternion) {
-            this._rotation.copyFrom(this.selectedMesh.rotationQuaternion.toEulerAngles());
+        if (this.selectedObject.rotationQuaternion) {
+            this._rotation.copyFrom(this.selectedObject.rotationQuaternion.toEulerAngles());
         } else {
-            this._rotation.copyFrom(this.selectedMesh.rotation);
+            this._rotation.copyFrom(this.selectedObject.rotation);
         }
 
         return this._rotation;
@@ -208,20 +186,20 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Returns the physics inspector used to edit physics properties.
      */
     private _getPhysicsInspector(): React.ReactNode {
-        if (!this.selectedMesh.physicsImpostor || this.selectedMesh.physicsImpostor.type === PhysicsImpostor.NoImpostor) {
+        if (!this.selectedObject.physicsImpostor || this.selectedObject.physicsImpostor.type === PhysicsImpostor.NoImpostor) {
             return undefined;
         }
 
         const onPropertyChanged = (param: string, value: number) => {
-            this.selectedMesh.physicsImpostor!["_bodyUpdateRequired"] = false;
-            this.selectedMesh.physicsImpostor!.setParam(param, value);
+            this.selectedObject.physicsImpostor!["_bodyUpdateRequired"] = false;
+            this.selectedObject.physicsImpostor!.setParam(param, value);
         };
 
         return (
             <>
-                <InspectorNumber object={this.selectedMesh.physicsImpostor} property="mass" label="Mass" min={0} step={0.01} onChange={() => onPropertyChanged("mass", this.selectedMesh.physicsImpostor!.mass)} />
-                <InspectorNumber object={this.selectedMesh.physicsImpostor} property="restitution" label="Restitution" min={0} step={0.01} onChange={() => onPropertyChanged("restitution", this.selectedMesh.physicsImpostor!.restitution)} />
-                <InspectorNumber object={this.selectedMesh.physicsImpostor} property="friction" label="Friction" min={0} step={0.01} onChange={() => onPropertyChanged("friction", this.selectedMesh.physicsImpostor!.friction)} />
+                <InspectorNumber object={this.selectedObject.physicsImpostor} property="mass" label="Mass" min={0} step={0.01} onChange={() => onPropertyChanged("mass", this.selectedObject.physicsImpostor!.mass)} />
+                <InspectorNumber object={this.selectedObject.physicsImpostor} property="restitution" label="Restitution" min={0} step={0.01} onChange={() => onPropertyChanged("restitution", this.selectedObject.physicsImpostor!.restitution)} />
+                <InspectorNumber object={this.selectedObject.physicsImpostor} property="friction" label="Friction" min={0} step={0.01} onChange={() => onPropertyChanged("friction", this.selectedObject.physicsImpostor!.friction)} />
             </>
         );
     }
@@ -231,20 +209,20 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      */
     private _handlePhysicsImpostorChanged(): void {
         // Changed?
-        if (this.selectedMesh.physicsImpostor?.type === PhysicsImpostor[this._physicsImpostor]) {
+        if (this.selectedObject.physicsImpostor?.type === PhysicsImpostor[this._physicsImpostor]) {
             return;
         }
 
         try {
-            this.selectedMesh.physicsImpostor = new PhysicsImpostor(this.selectedMesh, PhysicsImpostor[this._physicsImpostor], {
+            this.selectedObject.physicsImpostor = new PhysicsImpostor(this.selectedObject, PhysicsImpostor[this._physicsImpostor], {
                 mass: 1,
             });
 
-            if (this.selectedMesh.parent) {
-                this.selectedMesh.physicsImpostor.forceUpdate();
+            if (this.selectedObject.parent) {
+                this.selectedObject.physicsImpostor.forceUpdate();
             }
 
-            this.selectedMesh.physicsImpostor.sleep();
+            this.selectedObject.physicsImpostor.sleep();
         } catch (e) {
             // Catch silently   
         }
@@ -256,18 +234,18 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Returns the skeleton inspector used to edit the skeleton's properties.
      */
     private _getSkeletonInspector(): React.ReactNode {
-        if (!this.selectedMesh.skeleton) {
+        if (!this.selectedObject.skeleton) {
             return undefined;
         }
 
-        this.selectedMesh.skeleton.needInitialSkinMatrix ??= false;
+        this.selectedObject.skeleton.needInitialSkinMatrix ??= false;
 
         return (
             <InspectorSection title="Skeleton">
-                <InspectorBoolean object={this.selectedMesh.skeleton} property="needInitialSkinMatrix" label="Need Initial Skin Matrix" />
-                <InspectorBoolean object={this.selectedMesh.skeleton} property="useTextureToStoreBoneMatrices" label="Use Texture To Store Bone Matrices" />
-                <InspectorNumber object={this.selectedMesh} property="numBoneInfluencers" label="Num Bone Influencers" min={0} max={8} step={1} onChange={() => {
-                    this.selectedMesh.numBoneInfluencers = this.selectedMesh.numBoneInfluencers >> 0;
+                <InspectorBoolean object={this.selectedObject.skeleton} property="needInitialSkinMatrix" label="Need Initial Skin Matrix" />
+                <InspectorBoolean object={this.selectedObject.skeleton} property="useTextureToStoreBoneMatrices" label="Use Texture To Store Bone Matrices" />
+                <InspectorNumber object={this.selectedObject} property="numBoneInfluencers" label="Num Bone Influencers" min={0} max={8} step={1} onChange={() => {
+                    this.selectedObject.numBoneInfluencers = this.selectedObject.numBoneInfluencers >> 0;
                 }} />
 
                 {this._getSkeletonAnimationRangesInspector()}
@@ -279,15 +257,15 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Returns the skeleton animation ranges inspector used to play the animations.
      */
     private _getSkeletonAnimationRangesInspector(): React.ReactNode {
-        const ranges = this.selectedMesh.skeleton?.getAnimationRanges();
+        const ranges = this.selectedObject.skeleton?.getAnimationRanges();
         if (!ranges?.length) {
             return undefined;
         }
 
         const buttons = ranges.filter((r) => r?.name).map((r) => (
             <InspectorButton label={r!.name} onClick={() => {
-                this.selectedMesh._scene.stopAnimation(this.selectedMesh.skeleton);
-                this.selectedMesh.skeleton?.beginAnimation(r!.name, true, 1.0);
+                this.selectedObject._scene.stopAnimation(this.selectedObject.skeleton);
+                this.selectedObject.skeleton?.beginAnimation(r!.name, true, 1.0);
             }} />
         ));
 
@@ -302,13 +280,13 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Returns the morph targets inspector to preview and modify morph targets manager.
      */
     private _getMorphTargetsInspector(): React.ReactNode {
-        if (this.selectedMesh instanceof InstancedMesh || !this.selectedMesh.morphTargetManager) {
+        if (this.selectedObject instanceof InstancedMesh || !this.selectedObject.morphTargetManager) {
             return undefined;
         }
 
         const sliders: React.ReactNode[] = [];
-        for (let i = 0; i < this.selectedMesh.morphTargetManager.numTargets; i++) {
-            const target = this.selectedMesh.morphTargetManager.getTarget(i);
+        for (let i = 0; i < this.selectedObject.morphTargetManager.numTargets; i++) {
+            const target = this.selectedObject.morphTargetManager.getTarget(i);
             target.name ??= `morphTarget${i}`;
             target.id ??= Tools.RandomId();
 
@@ -328,11 +306,11 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Returns the LOD inspector used to configure/add/remove LODs.
      */
     private _getLodsInspector(): React.ReactNode {
-        if (this.selectedMesh instanceof InstancedMesh || this.selectedMesh._masterMesh) {
+        if (this.selectedObject instanceof InstancedMesh || this.selectedObject._masterMesh) {
             return undefined;
         }
 
-        const lods = this.selectedMesh.getLODLevels();
+        const lods = this.selectedObject.getLODLevels();
         const assets = this.editor.assets.getAssetsOf(MeshesAssets) ?? [];
 
         const noLod = lods.length ? undefined : <h2 style={{ color: "white", textAlign: "center" }}>No LOD available.</h2>;
@@ -356,7 +334,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
                 <InspectorSection key={`lod-${index}`} title={lod.mesh?.name ?? "Unnamed LOD Mesh"}>
                     <InspectorNumber key={`lod-distance-${index}`} object={lod} property="distance" label="Distance" min={0} step={0.01} />
                     <InspectorList key={`lod-source-${index}`} object={o} property="assetId" label="Source" items={items} onChange={(v) => this._handleSelectedLOD(lod, v)} />
-                    <InspectorButton key={`lod-remove-${index}`} label="Remove" onClick={() => this._handleRemoveLOD(lod.mesh)} />
+                    <InspectorButton key={`lod-remove-${index}`} small={true} label="Remove" onClick={() => this._handleRemoveLOD(lod.mesh)} />
                 </InspectorSection>
             );
         });
@@ -374,11 +352,11 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Called on the user wants to add a new LOD.
      */
     private _handleAddLOD(): void {
-        if (this.selectedMesh instanceof InstancedMesh) {
+        if (this.selectedObject instanceof InstancedMesh) {
             return;
         }
 
-        const mesh = this.selectedMesh as Mesh;
+        const mesh = this.selectedObject as Mesh;
 
         const hasNullLod = mesh.getLODLevels().find((lod) => !lod.mesh);
         if (hasNullLod) { return; }
@@ -394,11 +372,11 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Called on the user wants to remove a LOD.
      */
     private _handleRemoveLOD(lodMesh: Nullable<Mesh>): void {
-        if (this.selectedMesh instanceof InstancedMesh) {
+        if (this.selectedObject instanceof InstancedMesh) {
             return;
         }
 
-        const mesh = this.selectedMesh as Mesh;
+        const mesh = this.selectedObject as Mesh;
 
         mesh.removeLODLevel(lodMesh!);
         if (lodMesh) {
@@ -414,7 +392,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
      * Called on the user selected a LOD.
      */
     private async _handleSelectedLOD(lod: MeshLODLevel, lodId: Nullable<string>): Promise<void> {
-        if (this.selectedMesh instanceof InstancedMesh) {
+        if (this.selectedObject instanceof InstancedMesh) {
             return;
         }
 
@@ -434,14 +412,14 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
 
         mesh.id = Tools.RandomId();
         mesh.name = asset.id;
-        mesh.material = this.selectedMesh.material;
-        mesh.skeleton = this.selectedMesh.skeleton;
+        mesh.material = this.selectedObject.material;
+        mesh.skeleton = this.selectedObject.skeleton;
         mesh.position.set(0, 0, 0);
 
-        this.selectedMesh.removeLODLevel(lod.mesh!);
+        this.selectedObject.removeLODLevel(lod.mesh!);
         if (lod.mesh) { lod.mesh.dispose(true, false); }
 
-        this.selectedMesh.addLODLevel(lod.distance, mesh);
+        this.selectedObject.addLODLevel(lod.distance, mesh);
 
         this.forceUpdate();
     }
@@ -449,6 +427,6 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
 
 Inspector.RegisterObjectInspector({
     ctor: MeshInspector,
-    ctorNames: ["Mesh", "InstancedMesh", "SubMesh"],
+    ctorNames: ["Mesh", "InstancedMesh"],
     title: "Mesh",
 });

@@ -8,6 +8,10 @@ export interface IInspectorButtonProps {
     label: string;
 
     /**
+     * Defines wether or not the button will be small.
+     */
+    small?: boolean;
+    /**
      * Defines the optional callback called on the button is clicked.
      */
     onClick?: () => void;
@@ -26,6 +30,6 @@ export class InspectorButton extends React.Component<IInspectorButtonProps> {
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return <Button fill={true} onClick={() => this.props.onClick?.()}>{this.props.label}</Button>
+        return <Button fill={true} small={this.props.small} onClick={() => this.props.onClick?.()}>{this.props.label}</Button>
     }
 }

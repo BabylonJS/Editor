@@ -104,6 +104,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
 
         if (this._scriptWatcher) {
             this._scriptWatcher.close();
+            this._scriptWatcher = null;
         }
     }
 
@@ -260,6 +261,8 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         // Stop watcher
         this._scriptWatcher?.close();
         this._scriptWatcher = null;
+
+        if (!this.isMounted) { return; }
 
         // Check
         if (this.selectedObject.metadata.script.name === "None") {

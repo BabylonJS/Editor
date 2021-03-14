@@ -64,6 +64,7 @@ import "./inspectors/rendering-inspector";
 import "./inspectors/node-inspector";
 import "./inspectors/mesh-inspector";
 import "./inspectors/transform-node-inspector";
+import "./inspectors/sub-mesh-proxy-inspector";
 import "./inspectors/sub-mesh-inspector";
 // import "./inspectors/ground-inspector";
 
