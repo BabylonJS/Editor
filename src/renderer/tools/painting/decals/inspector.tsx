@@ -1,78 +1,111 @@
+import { Nullable } from "../../../../shared/types";
+
 import * as React from "react";
+import { H4 } from "@blueprintjs/core";
+
+import { Material } from "babylonjs";
 
 import { MaterialAssets } from "../../../editor/assets/materials";
-import { IAssetComponentItem } from "../../../editor/assets/abstract-assets";
+import { IAssetComponentItem, IDragAndDroppedAssetComponentItem } from "../../../editor/assets/abstract-assets";
+
+import { IObjectInspectorProps } from "../../../editor/components/inspector";
+import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
+
+import { InspectorList } from "../../../editor/gui/inspector/list";
+import { InspectorNumber } from "../../../editor/gui/inspector/number";
+import { InspectorSection } from "../../../editor/gui/inspector/section";
+import { InspectorBoolean } from "../../../editor/gui/inspector/boolean";
+import { InspectorNotifier } from "../../../editor/gui/inspector/notifier";
 
 import { DecalsPainter } from "../../../editor/painting/decals/decals";
 
-import { PaintingInspector } from "../painting-inspector";
+export interface IDecalPainterInspectorState {
+    /**
+     * Defines the reference to the selected material asset component item.
+     */
+    selectedMaterialAsset: Nullable<IAssetComponentItem>;
+}
 
-export class DecalsPainterInspector extends PaintingInspector<DecalsPainter> {
-    private _materialName: string = "";
+export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDecalPainterInspectorState> {
+    /**
+     * Constructor.
+     * @param props defines the component's props.
+     */
+    public constructor(props: IObjectInspectorProps) {
+        super(props);
+
+        this.selectedObject = new DecalsPainter(this.editor);
+
+        this.state = {
+            selectedMaterialAsset: null,
+        };
+    }
 
     /**
-     * Called on the component did mount.
-     * @override
+     * Renders the content of the inspector.
      */
-    public onUpdate(): void {
-        this.selectedObject = new DecalsPainter(this.editor);
-        this.addOptions();
+     public renderContent(): React.ReactNode {
+        return (
+            <>
+                <InspectorSection title="Material">
+                    <div style={{ width: "100%", height: "100px" }}>
+                        <div style={{ width: "35%", height: "100px", float: "left" }}>
+                            <img
+                                src={this.state.selectedMaterialAsset?.base64 ?? "../css/svg/magic.svg"}
+                                style={{ border: "dashed black 1px", objectFit: "contain", width: "100%", height: "100%" }}
+                                onDragEnter={(e) => (e.target as HTMLImageElement).style.border = "dashed red 1px"}
+                                onDragLeave={(e) => (e.target as HTMLImageElement).style.border = "dashed black 1px"}
+                                onDrop={(e) => this._handleMaterialDropped(e)}
+                            ></img>
+                        </div>
+                        <div style={{ width: "65%", height: "100px", float: "left" }}>
+                            <H4 style={{ lineHeight: "100px", textAlign: "center" }}>{this.state.selectedMaterialAsset?.id ?? "None Selected"}</H4>
+                        </div>
+                    </div>
+                    <InspectorList object={this.selectedObject} property="material" label="Material" items={() => this.getMaterialsList()} onChange={(m: Nullable<Material>) => {
+                        const asset = this.editor.assets.getAssetsOf(MaterialAssets)?.find((a) => a.key === m?.id) ?? null;
+                        this.setState({ selectedMaterialAsset: asset });
+                    }} />
+                </InspectorSection>
+                <InspectorSection title="Options">
+                    <InspectorNumber object={this.selectedObject} property="angle" label="Angle" min={-Math.PI} max={Math.PI} step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="size" label="Size" min={0} step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="width" label="Width" min={0} step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="height" label="Height" min={0} step={0.01} />
+                    <InspectorBoolean object={this.selectedObject} property="receiveShadows" label="Receive Shadows" />
+                </InspectorSection>
+            </>
+        );
     }
 
     /**
      * Called on the component will unmount.
-     * @override
      */
     public componentWillUnmount(): void {
         super.componentWillUnmount();
+
         this.selectedObject?.dispose();
     }
 
     /**
-     * Adds the common editable properties.
+     * Called on the user dropped a material in the material box.
      */
-    protected addOptions(): void {
-        const options = this.tool!.addFolder("Options");
-        options.open();
+    private _handleMaterialDropped(e: React.DragEvent<HTMLImageElement>): void {
+        (e.target as HTMLImageElement).style.border = "dashed black 1px";
+        if (!e.dataTransfer) { return; }
 
-        // Add options
-        options.add(this.selectedObject, "angle").min(-Math.PI).max(Math.PI).step(0.01).name("Angle");
-        options.add(this.selectedObject, "size").min(0).step(0.01).name("Size");
-        options.add(this.selectedObject, "width").min(0).step(0.01).name("Width");
-        options.add(this.selectedObject, "height").min(0).step(0.01).name("Height");
-        options.add(this.selectedObject, "receiveShadows").name("Receive Shadows");
+        try {
+            const data = JSON.parse(e.dataTransfer.getData("application/material")) as IDragAndDroppedAssetComponentItem;
+            const asset = this.editor.assets.getAssetsOf(MaterialAssets)?.find((a) => a.key === data.key) ?? null;
 
-        // Add suggest material
-        let assets: IAssetComponentItem[];
-
-        this._materialName = this.selectedObject.material?.name ?? "None";
-        options.addSuggest(this, "_materialName", undefined, {
-            onShowIcon: (i) => {
-                const asset = assets?.find((a) => a.id === i);
-                if (!asset) { return undefined; }
-                
-                return <img src={asset.base64} style={{ width: 20, height: 20 }}></img>;
-            },
-            onShowTooltip: (i) => {
-                const asset = assets?.find((a) => a.id === i);
-                if (!asset) { return undefined; }
-                
-                return <img src={asset.base64} style={{ maxWidth: "100%", width: 100, maxHeight: "100%", height: 100 }}></img>;
-            },
-            onUpdate: () => ["None"].concat((assets = this.editor.assets.getAssetsOf(MaterialAssets)!).map((a) => a.id)),
-        }).name("Material").onChange(() => {
-            if (this._materialName === "None") {
-                this.selectedObject!.material = null;
-                return;
+            if (asset) {
+                this.selectedObject.material = this.editor.scene!.getMaterialByID(asset.key);
             }
-
-            const asset = assets?.find((a) => a.id === this._materialName);
-            if (!asset) { return; }
-
-            const material = this.editor.scene!.getMaterialByID(asset.key);
-            if (!material) { return; }
-
-            this.selectedObject!.material = material;
-        });
+            this.setState({ selectedMaterialAsset: asset }, () => {
+                InspectorNotifier.NotifyChange(this.selectedObject);
+            });
+        } catch (e) {
+            // Catch silently;
+        }
     }
 }

@@ -24,8 +24,21 @@ export { GraphAssets } from "./renderer/editor/assets/graphs";
 
 // Inspectors
 export { Inspector, IInspectorProps, IInspectorState, IObjectInspector, IObjectInspectorProps } from "./renderer/editor/components/inspector";
-export { AbstractInspectorLegacy as AbstractInspector } from "./renderer/editor/inspectors/abstract-inspector-legacy";
-// export { MaterialInspector } from "./renderer/editor/inspectors/materials/material-inspector";
+export { AbstractInspectorLegacy } from "./renderer/editor/inspectors/abstract-inspector-legacy";
+export { AbstractInspector } from "./renderer/editor/inspectors/abstract-inspector";
+export { MaterialInspector } from "./renderer/editor/inspectors/materials/material-inspector";
+
+export { InspectorColor } from "./renderer/editor/gui/inspector/color";
+export { InspectorButton } from "./renderer/editor/gui/inspector/button";
+export { InspectorNumber } from "./renderer/editor/gui/inspector/number";
+export { InspectorString } from "./renderer/editor/gui/inspector/string";
+export { InspectorBoolean } from "./renderer/editor/gui/inspector/boolean";
+export { InspectorSection } from "./renderer/editor/gui/inspector/section";
+export { InspectorVector2 } from "./renderer/editor/gui/inspector/vector2";
+export { InspectorVector3 } from "./renderer/editor/gui/inspector/vector3";
+export { InspectorNotifier } from "./renderer/editor/gui/inspector/notifier";
+export { InspectorColorPicker } from "./renderer/editor/gui/inspector/color-picker";
+export { InspectorList, IInspectorListItem } from "./renderer/editor/gui/inspector/list";
 
 // Project
 export { FilesStore, IContentFile, IFile } from "./renderer/editor/project/files";

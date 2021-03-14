@@ -6,6 +6,8 @@ import { Editor } from "../../editor";
 
 import { SceneSettings } from "../../scene/settings";
 
+import { InspectorNotifier } from "../../gui/inspector/notifier";
+
 import { PreviewCanvasEventType } from "../../components/preview";
 
 import { Tools } from "../../tools/tools";
@@ -200,6 +202,8 @@ export class DecalsPainter {
         }
 
         this._updateDecalWithLastPickInfo();
+
+        InspectorNotifier.NotifyChange(this._decal);
     }
 
     /**
@@ -208,6 +212,8 @@ export class DecalsPainter {
     private _rotateDecal(delta: number): void {
         this._decal.angle += delta;
         this._updateDecalWithLastPickInfo();
+
+        InspectorNotifier.NotifyChange(this._decal);
     }
 
     /**

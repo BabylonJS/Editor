@@ -2,10 +2,9 @@ import * as React from "react";
 import { Tabs, Tab, TabId } from "@blueprintjs/core";
 
 import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plugin";
-import { AbstractInspectorLegacy } from "../../editor/inspectors/abstract-inspector-legacy";
+import { AbstractInspector } from "../../editor/inspectors/abstract-inspector";
 
 import { DecalsPainterInspector } from "./decals/inspector";
-// import { FoliagePainterInspector } from "./foliage/inspector";
 
 export const title = "Painting Tools";
 
@@ -21,7 +20,7 @@ export interface IPaintingTools {
 }
 
 export default class PreviewPlugin extends AbstractEditorPlugin<IPaintingTools> {
-    private _tools: AbstractInspectorLegacy<any>[] = [];
+    private _tools: AbstractInspector<any, any>[] = [];
     private _refHandler = {
         getTool: (ref: any) => {
             if (!ref) { return; }
@@ -56,7 +55,6 @@ export default class PreviewPlugin extends AbstractEditorPlugin<IPaintingTools> 
 
         const tabs = [
             <Tab id="decals" title="Decals" key="decals" panel={<DecalsPainterInspector ref={this._refHandler.getTool} toolId={"decals"} editor={this.editor} _objectRef={null} />} />,
-            // <Tab id="foliage" title="Foliage" key="foliage" panel={<FoliagePainterInspector ref={this._refHandler.getTool} toolId={"foliage"} editor={this.editor} _objectRef={null} />} />
         ];
 
         return (
