@@ -88,7 +88,7 @@ import "./inspectors/materials/pbr-inspector";
 // import "./inspectors/materials/lava-material-inspector";
 // import "./inspectors/materials/water-material-inspector";
 
-// import "./inspectors/textures/texture-inspector";
+import "./inspectors/textures/texture-inspector";
 
 // import "./inspectors/particle-systems/particle-system-inspector";
 
