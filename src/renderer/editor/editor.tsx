@@ -70,14 +70,14 @@ import "./inspectors/sub-mesh-inspector";
 
 import "./inspectors/lights/light-inspector";
 import "./inspectors/lights/directional-light-inspector";
-// import "./inspectors/lights/spot-light-inspector";
-// import "./inspectors/lights/point-light-inspector";
-// import "./inspectors/lights/hemispheric-inspector";
+import "./inspectors/lights/spot-light-inspector";
+import "./inspectors/lights/point-light-inspector";
+import "./inspectors/lights/hemispheric-light-inspector";
 import "./inspectors/lights/shadows-inspector";
 
-// import "./inspectors/cameras/camera-inspector";
-// import "./inspectors/cameras/free-camera-inspector";
-// import "./inspectors/cameras/arc-rotate-camera-inspector";
+import "./inspectors/cameras/camera-inspector";
+import "./inspectors/cameras/free-camera-inspector";
+import "./inspectors/cameras/arc-rotate-camera-inspector";
 
 import "./inspectors/materials/standard-inspector";
 import "./inspectors/materials/pbr-inspector";

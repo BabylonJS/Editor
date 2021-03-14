@@ -38,7 +38,7 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
         super(props);
 
         this.state = {
-            enabled: this.selectedObject.getShadowGenerator() !== null,
+            enabled: (this.selectedObject.getShadowGenerator() ?? null) !== null,
         };
     }
 
@@ -107,7 +107,11 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
             return this.getCascadedShadowsInspector();
         }
 
-        return this.getShadowsCommonInspector();
+        if (this.shadowGenerator instanceof ShadowGenerator) {
+            return this.getShadowsCommonInspector();
+        }
+
+        return undefined;
     }
 
     /**

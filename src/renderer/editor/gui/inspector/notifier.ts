@@ -1,3 +1,5 @@
+import { Nullable } from "../../../../shared/types";
+
 interface _InspectorNotification {
     /**
      * Defines the reference to the object to listen changes.
@@ -13,6 +15,11 @@ interface _InspectorNotification {
      * @hidden
      */
     caller: any;
+
+    /**
+     * @hidden
+     */
+     _timeoutId: Nullable<number>;
 }
 
 export class InspectorNotifier {
@@ -24,7 +31,7 @@ export class InspectorNotifier {
      * @param object defines the reference to the object that has been changed.
      * @param caller defines the caller that notifies the change. This is typically used to don't listen themselves;
      */
-    public static NotifyChange<T>(object: T, caller?: any): void {
+    public static NotifyChange<T>(object: T, caller?: any, waitMs?: number): void {
         this._Notifications.forEach((n) => {
             if (n.caller === caller) {
                 return;
@@ -36,7 +43,18 @@ export class InspectorNotifier {
                 effectiveObject = n.object();
             }
 
-            if (effectiveObject === object) {
+            if (effectiveObject !== object) {
+                return;
+            }
+
+            if (waitMs && waitMs > 0) {
+                if (n._timeoutId !== null) {
+                    clearTimeout(n._timeoutId);
+                    n._timeoutId = null;
+                }
+
+                n._timeoutId = setTimeout(() => n.callback(), waitMs) as any;
+            } else {
                 n.callback();
             }
         })
@@ -51,7 +69,7 @@ export class InspectorNotifier {
     public static Register<T>(caller: any, object: T | (() => void), callback: () => void): number {
         this._NotificationId++;
 
-        this._Notifications.push({ object, callback, caller: caller });
+        this._Notifications.push({ object, callback, caller: caller, _timeoutId: null });
         return this._NotificationId;
     }
 

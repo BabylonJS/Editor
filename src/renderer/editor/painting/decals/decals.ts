@@ -203,7 +203,7 @@ export class DecalsPainter {
 
         this._updateDecalWithLastPickInfo();
 
-        InspectorNotifier.NotifyChange(this._decal);
+        InspectorNotifier.NotifyChange(this, this, 100);
     }
 
     /**
@@ -213,7 +213,7 @@ export class DecalsPainter {
         this._decal.angle += delta;
         this._updateDecalWithLastPickInfo();
 
-        InspectorNotifier.NotifyChange(this._decal);
+        InspectorNotifier.NotifyChange(this, this, 100);
     }
 
     /**

@@ -5,6 +5,8 @@ import * as React from "react";
 import { Suggest } from "@blueprintjs/select";
 import { MaybeElement, MenuItem, Position, Tooltip } from "@blueprintjs/core";
 
+import { InspectorNotifier } from "./notifier";
+
 export interface IInspectorListItem<T> {
     /**
      * Defines the label of the item.
@@ -160,6 +162,17 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
             items: await this._getItems(),
             selectedItem: await this._getCurrentItem(),
         });
+
+        InspectorNotifier.Register(this, this.props.object, async () => {
+            this.setState({ selectedItem: await this._getCurrentItem() });
+        });
+    }
+
+    /**
+     * Called on the component will unmount.
+     */
+    public componentWillUnmount(): void {
+        InspectorNotifier.Unregister(this);
     }
 
     /**
