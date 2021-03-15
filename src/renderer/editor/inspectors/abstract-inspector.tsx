@@ -47,7 +47,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         return (
             <>
                 <div style={{ width: "100%", height: "35px" }}>
-                    <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={() => { debugger; }} />
+                    <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={() => { }} />
                 </div>
                 <div ref={(ref) => this._inspectorDiv = ref} style={{ width: "100%", height: "100%", overflow: "auto" }}>
                     {content}

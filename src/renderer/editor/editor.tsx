@@ -66,7 +66,7 @@ import "./inspectors/mesh-inspector";
 import "./inspectors/transform-node-inspector";
 import "./inspectors/sub-mesh-proxy-inspector";
 import "./inspectors/sub-mesh-inspector";
-// import "./inspectors/ground-inspector";
+import "./inspectors/ground-inspector";
 
 import "./inspectors/lights/light-inspector";
 import "./inspectors/lights/directional-light-inspector";
@@ -82,10 +82,10 @@ import "./inspectors/cameras/arc-rotate-camera-inspector";
 import "./inspectors/materials/standard-inspector";
 import "./inspectors/materials/pbr-inspector";
 import "./inspectors/materials/sky-inspector";
-// import "./inspectors/materials/node-material-inspector";
-// import "./inspectors/materials/cell-material-inspector";
-// import "./inspectors/materials/fire-material-inspector";
-// import "./inspectors/materials/lava-material-inspector";
+import "./inspectors/materials/node-inspector";
+import "./inspectors/materials/cell-inspector";
+import "./inspectors/materials/fire-inspector";
+import "./inspectors/materials/lava-inspector";
 // import "./inspectors/materials/water-material-inspector";
 
 import "./inspectors/textures/texture-inspector";

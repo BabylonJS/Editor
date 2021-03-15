@@ -158,59 +158,7 @@ export class MaterialAssets extends AbstractAssets {
         const material = this.editor.scene!.getMaterialByID(item.key);
         if (!material) { return; }
 
-        if (material instanceof NodeMaterial) {
-            const index = MaterialAssets._NodeMaterialEditors.findIndex((m) => m.material === material);
-            const existingId = index !== -1 ? MaterialAssets._NodeMaterialEditors[index].id : undefined;
-            const popupId = await this.editor.addWindowedPlugin("node-material-editor", existingId, {
-                json: material.serialize(),
-                lights: material.getScene().lights.map((l) => l.serialize()),
-                editorData: material.editorData,
-            });
-            if (!popupId) { return; }
-
-            if (index === -1) {
-                MaterialAssets._NodeMaterialEditors.push({ id: popupId, material });
-            } else {
-                MaterialAssets._NodeMaterialEditors[index].id = popupId;
-            }
-
-            let callback: (...args: any[]) => void;
-            ipcRenderer.on(IPCResponses.SendWindowMessage, callback = (_, message) => {
-                if (message.id !== "node-material-json") { return; }
-                if (message.data.json && message.data.json.id !== material.id) { return; }
-
-                if (message.data.closed) {
-                    ipcRenderer.removeListener(IPCResponses.SendWindowMessage, callback);
-
-                    const windowIndex = MaterialAssets._NodeMaterialEditors.findIndex((m) => m.id === popupId);
-                    if (windowIndex !== -1) {
-                        MaterialAssets._NodeMaterialEditors.splice(windowIndex, 1);
-                    }
-                }
-
-                if (message.data.json) {
-                    try {
-                        // Clear textures
-                        material.getTextureBlocks().forEach((block) => block.texture?.dispose());
-
-                        material.editorData = message.data.editorData;
-                        material.loadFromSerialization(message.data.json);
-                        material.build();
-
-                        IPCTools.SendWindowMessage(popupId, "node-material-json");
-                    } catch (e) {
-                        IPCTools.SendWindowMessage(popupId, "graph-json", { error: true });
-                    }
-                    this.refresh(material);
-                }
-            });
-        } else {
-            await this.editor.addWindowedPlugin("material-viewer", undefined, {
-                rootUrl: join(Project.DirPath!),
-                json: material.serialize(),
-                environmentTexture: this.editor.scene!.environmentTexture?.serialize(),
-            });
-        }
+        this.openMaterial(material);
     }
 
     /**
@@ -419,6 +367,66 @@ export class MaterialAssets extends AbstractAssets {
         }
 
         return material;
+    }
+
+    /**
+     * Opens the given material in a separated window.
+     * @param material defines the reference to the material to open.
+     */
+    public async openMaterial(material: Material): Promise<void> {
+        if (material instanceof NodeMaterial) {
+            const index = MaterialAssets._NodeMaterialEditors.findIndex((m) => m.material === material);
+            const existingId = index !== -1 ? MaterialAssets._NodeMaterialEditors[index].id : undefined;
+            const popupId = await this.editor.addWindowedPlugin("node-material-editor", existingId, {
+                json: material.serialize(),
+                lights: material.getScene().lights.map((l) => l.serialize()),
+                editorData: material.editorData,
+            });
+            if (!popupId) { return; }
+
+            if (index === -1) {
+                MaterialAssets._NodeMaterialEditors.push({ id: popupId, material });
+            } else {
+                MaterialAssets._NodeMaterialEditors[index].id = popupId;
+            }
+
+            let callback: (...args: any[]) => void;
+            ipcRenderer.on(IPCResponses.SendWindowMessage, callback = (_, message) => {
+                if (message.id !== "node-material-json") { return; }
+                if (message.data.json && message.data.json.id !== material.id) { return; }
+
+                if (message.data.closed) {
+                    ipcRenderer.removeListener(IPCResponses.SendWindowMessage, callback);
+
+                    const windowIndex = MaterialAssets._NodeMaterialEditors.findIndex((m) => m.id === popupId);
+                    if (windowIndex !== -1) {
+                        MaterialAssets._NodeMaterialEditors.splice(windowIndex, 1);
+                    }
+                }
+
+                if (message.data.json) {
+                    try {
+                        // Clear textures
+                        material.getTextureBlocks().forEach((block) => block.texture?.dispose());
+
+                        material.editorData = message.data.editorData;
+                        material.loadFromSerialization(message.data.json);
+                        material.build();
+
+                        IPCTools.SendWindowMessage(popupId, "node-material-json");
+                    } catch (e) {
+                        IPCTools.SendWindowMessage(popupId, "graph-json", { error: true });
+                    }
+                    this.refresh(material);
+                }
+            });
+        } else {
+            await this.editor.addWindowedPlugin("material-viewer", undefined, {
+                rootUrl: join(Project.DirPath!),
+                json: material.serialize(),
+                environmentTexture: this.editor.scene!.environmentTexture?.serialize(),
+            });
+        }
     }
 
     /**

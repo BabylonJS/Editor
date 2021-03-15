@@ -6,7 +6,7 @@ import * as React from "react";
 
 import {
     Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion,
-    PhysicsImpostor, SceneLoader, MeshLODLevel,
+    PhysicsImpostor, SceneLoader, MeshLODLevel, GroundMesh,
 } from "babylonjs";
 
 import { Inspector } from "../components/inspector";
@@ -25,7 +25,7 @@ import { MeshesAssets } from "../assets/meshes";
 
 import { INodeInspectorState, NodeInspector } from "./node-inspector";
 
-export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInspectorState> {
+export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMesh, INodeInspectorState> {
     private static _BillboardModes: string[] = [
         "BILLBOARDMODE_NONE", "BILLBOARDMODE_X", "BILLBOARDMODE_Y",
         "BILLBOARDMODE_Z", "BILLBOARDMODE_ALL", "BILLBOARDMODE_USE_POSITION"
@@ -427,6 +427,6 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh, INodeInsp
 
 Inspector.RegisterObjectInspector({
     ctor: MeshInspector,
-    ctorNames: ["Mesh", "InstancedMesh"],
+    ctorNames: ["Mesh", "InstancedMesh", "GroundMesh"],
     title: "Mesh",
 });
