@@ -3,9 +3,8 @@
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { InputGroup, Tooltip } from "@blueprintjs/core";
-
 import Slider from "antd/lib/slider";
+import { InputGroup, Tooltip } from "@blueprintjs/core";
 
 import { InspectorNotifier } from "./notifier";
 

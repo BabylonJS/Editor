@@ -81,7 +81,7 @@ import "./inspectors/cameras/arc-rotate-camera-inspector";
 
 import "./inspectors/materials/standard-inspector";
 import "./inspectors/materials/pbr-inspector";
-// import "./inspectors/materials/sky-material-inspector";
+import "./inspectors/materials/sky-inspector";
 // import "./inspectors/materials/node-material-inspector";
 // import "./inspectors/materials/cell-material-inspector";
 // import "./inspectors/materials/fire-material-inspector";
@@ -92,7 +92,7 @@ import "./inspectors/textures/texture-inspector";
 
 // import "./inspectors/particle-systems/particle-system-inspector";
 
-// import "./inspectors/sound-inspector";
+import "./inspectors/sound-inspector";
 
 // Assets
 import { MeshesAssets } from "./assets/meshes";
