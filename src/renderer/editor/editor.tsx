@@ -90,7 +90,7 @@ import "./inspectors/materials/lava-inspector";
 
 import "./inspectors/textures/texture-inspector";
 
-// import "./inspectors/particle-systems/particle-system-inspector";
+import "./inspectors/particle-systems/particle-system-inspector";
 
 import "./inspectors/sound-inspector";
 
