@@ -10,10 +10,12 @@ import { Inspector, IObjectInspectorProps } from "../components/inspector";
 
 import { AbstractInspector } from "./abstract-inspector";
 
+import { InspectorList } from "../gui/inspector/list";
 import { InspectorNumber } from "../gui/inspector/number";
 import { InspectorButton } from "../gui/inspector/button";
 import { InspectorSection } from "../gui/inspector/section";
 import { InspectorBoolean } from "../gui/inspector/boolean";
+
 import { Project } from "../project/project";
 
 export interface ISoundInspectorState {
@@ -78,6 +80,8 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
                         this.selectedObject.updateOptions({ rolloffFactor: v });
                     }} />
                 </InspectorSection>
+
+                {this._getSpatialInspector()}
             </>
         );
     }
@@ -127,6 +131,31 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
             <InspectorSection title="Actions">
                 <InspectorButton label="Stop" onClick={() => this._handleStop()} />
                 <audio src={path} style={{ width: "100%" }} controls={true} autoPlay={true}></audio>
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the inspector used to configure the spatial properties of the sound.
+     */
+    private _getSpatialInspector(): React.ReactNode {
+        if (!this.selectedObject.spatialSound) {
+            return undefined;
+        }
+
+        return (
+            <InspectorSection title="Spatial">
+                <InspectorList object={this.selectedObject} property="distanceModel" label="Distance Model" items={[
+                    { label: "Linear", data: "linear" },
+                    { label: "Exponential", data: "exponential" },
+                    { label: "Inverse", data: "inverse" },
+                ]} onChange={(v) => {
+                    this.selectedObject.updateOptions({ distanceModel: v });
+                }} />
+
+                <InspectorNumber object={this.selectedObject} property="maxDistance" label="Max Distance" min={0} step={0.01} onChange={(v) => {
+                    this.selectedObject.updateOptions({ maxDistance: v });
+                }} />
             </InspectorSection>
         );
     }

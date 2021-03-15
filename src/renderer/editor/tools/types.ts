@@ -185,6 +185,43 @@ export interface ITransformNodeMetadata extends ICommonMetadata {
     originalSourceFile?: IOriginalSourceFileMetadata;
 }
 
+export interface IGroundMetadata {
+    /**
+     * Defines the options available when the ground is associated to a height map.
+     */
+    heightMap?: {
+        /**
+         * Defines the buffer used to store the texture's pixels.
+         */
+        texture?: number[];
+        /**
+         * Defines the width of the texture.
+         */
+        textureWidth?: number;
+        /**
+         * Defines the height of the texture.
+         */
+        textureHeight?: number;
+        /**
+         * Defines the options passed to the height map generator of Babylon.JS.
+         */
+        options?: {
+            /**
+             * Defines the minimum height applied on the height map.
+             */
+            minHeight: number;
+            /**
+             * Defines the maximum height applied on the height map.
+             */
+            maxHeight: number;
+            /**
+             * Defines the color filter applied on the height map.
+             */
+            colorFilter: number[];
+        };
+    }
+}
+
 export interface IMaterialMetadata {
     /**
      * Defines the original data of the source file.
