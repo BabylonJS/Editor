@@ -413,6 +413,9 @@ export class MaterialAssets extends AbstractAssets {
                         material.loadFromSerialization(message.data.json);
                         material.build();
 
+                        material.metadata ??= { };
+                        material.metadata.shouldExportTextures = true;
+
                         IPCTools.SendWindowMessage(popupId, "node-material-json");
                     } catch (e) {
                         IPCTools.SendWindowMessage(popupId, "graph-json", { error: true });

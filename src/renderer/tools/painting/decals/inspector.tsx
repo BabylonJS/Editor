@@ -53,8 +53,8 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
                             <img
                                 src={this.state.selectedMaterialAsset?.base64 ?? "../css/svg/magic.svg"}
                                 style={{ border: "dashed black 1px", objectFit: "contain", width: "100%", height: "100%" }}
-                                onDragEnter={(e) => (e.target as HTMLImageElement).style.border = "dashed red 1px"}
-                                onDragLeave={(e) => (e.target as HTMLImageElement).style.border = "dashed black 1px"}
+                                onDragEnter={(e) => (e.currentTarget as HTMLImageElement).style.border = "dashed red 1px"}
+                                onDragLeave={(e) => (e.currentTarget as HTMLImageElement).style.border = "dashed black 1px"}
                                 onDrop={(e) => this._handleMaterialDropped(e)}
                             ></img>
                         </div>
@@ -91,7 +91,7 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
      * Called on the user dropped a material in the material box.
      */
     private _handleMaterialDropped(e: React.DragEvent<HTMLImageElement>): void {
-        (e.target as HTMLImageElement).style.border = "dashed black 1px";
+        (e.currentTarget as HTMLImageElement).style.border = "dashed black 1px";
         if (!e.dataTransfer) { return; }
 
         try {

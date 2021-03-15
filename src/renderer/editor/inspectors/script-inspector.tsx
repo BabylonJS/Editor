@@ -29,6 +29,7 @@ import { Tools } from "../tools/tools";
 import { SandboxMain, IExportedInspectorValue } from "../../sandbox/main";
 
 import { ScriptAssets } from "../assets/scripts";
+import { IAssetComponentItem } from "../assets/abstract-assets";
 
 import { AbstractInspector } from "./abstract-inspector";
 
@@ -79,6 +80,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
 
         return (
             <InspectorSection title="Script">
+                {this._getDragAndDropZone()}
                 {this._getScriptsList()}
                 {this._getOpenButton()}
                 {this._getSpinner()}
@@ -145,6 +147,38 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                 onChange={() => this._updateScriptVisibleProperties()}
             />
         )
+    }
+
+    /**
+     * In case of no script, draws a zone that supports drag'n'drop for scripts.
+     */
+    private _getDragAndDropZone(): React.ReactNode {
+        if (this.selectedObject.metadata.script.name !== "None") {
+            return undefined;
+        }
+
+        return (
+            <div
+                style={{ width: "100%", height: "50px", border: "1px dashed black" }}
+                onDragEnter={(e) => (e.currentTarget as HTMLDivElement).style.border = "dashed red 1px"}
+                onDragLeave={(e) => (e.currentTarget as HTMLDivElement).style.border = "dashed black 1px"}
+                onDrop={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.border = "dashed black 1px";
+
+                    try {
+                        const data = JSON.parse(e.dataTransfer.getData("application/script-asset")) as IAssetComponentItem;
+                        if (!data.extraData?.scriptPath) { throw new Error("Can't drag'n'drop script, extraData is misisng"); }
+                        
+                        this.selectedObject.metadata.script.name = data.extraData.scriptPath;
+                        this._updateScriptVisibleProperties();
+                    } catch (e) {
+                        this.editor.console.logError("Failed to parse data of drag'n'drop event.");
+                    }
+                }}
+            >
+                <h2 style={{ textAlign: "center", color: "white", lineHeight: "50px", userSelect: "none" }}>Drag'n'drop script here.</h2>
+            </div>
+        );
     }
 
     /**
