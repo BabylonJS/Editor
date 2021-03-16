@@ -38,6 +38,10 @@ export interface IInspectorNumberProps {
      * Defines wether or not the slider should be visible in case of a min and a max value.
      */
     noSlider?: boolean;
+    /**
+     * Defines wether or not the label should be hidden.
+     */
+    noLabel?: boolean;
 
     /**
      * Defines the optional callback called on the value changes.
@@ -127,15 +131,31 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
             );
         }
 
-        return (
-            <div style={{ width: "100%", height: "25px" }}>
+        let label: React.ReactNode;
+        if (!this.props.noLabel) {
+            label = (
                 <div style={{ width: "30%", height: "25px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px", overflow: "hidden" }}>
                     <Tooltip content={this.props.label}>
                         <span style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                     </Tooltip>
                 </div>
+            );
+        }
+
+        let widthPercent = "100%";
+        if (sliderNode && label) {
+            widthPercent = "15%";
+        } else if (!sliderNode && label) {
+            widthPercent = "65%";
+        } else if (sliderNode && !label) {
+            widthPercent = "45%";
+        }
+
+        return (
+            <div style={{ width: "100%", height: "25px" }}>
+                {label}
                 {sliderNode}
-                <div style={{ width: sliderNode ? "15%" : "65%", height: "25px", float: "left", marginTop: "3px" }}>
+                <div style={{ width: widthPercent, height: "25px", float: "left", marginTop: "3px" }}>
                     <InputGroup
                         small={true}
                         fill={true}

@@ -7,6 +7,7 @@ import * as React from "react";
 import {
     Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion,
     PhysicsImpostor, SceneLoader, MeshLODLevel, GroundMesh,
+    Material,
 } from "babylonjs";
 
 import { Inspector } from "../components/inspector";
@@ -135,7 +136,10 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundM
                     <InspectorBoolean object={this.selectedObject} property="applyFog" label="Apply Fog" />
                     <InspectorBoolean object={this.selectedObject} property="infiniteDistance" label="Infinite Distance" />
                     <InspectorNumber object={this.selectedObject} property="visibility" label="Visibility" min={0} max={1} step={0.01} />
-                    <InspectorList object={this.selectedObject} property="material" label="Material" items={() => this.getMaterialsList()} />
+                    <InspectorList object={this.selectedObject} property="material" label="Material" items={() => this.getMaterialsList()} onChange={(v) => {
+                        const lods = (this.selectedObject as Mesh).getLODLevels();
+                        lods?.forEach((lod) => lod.mesh && (lod.mesh.material = v as Material));
+                    }} />
                     <InspectorList object={this.selectedObject} property="billboardMode" label="Billboard" items={MeshInspector._BillboardModes.map((bm) => ({ label: bm, data: Mesh[bm] }))} />
                     <InspectorList object={this} property="_renderingGroupId" label="Rendering Group" items={renderingGroupIds.map((rgid) => ({ label: rgid, data: rgid }))} onChange={() => {
                         this.selectedObject.metadata.renderingGroupId = parseInt(this._renderingGroupId);

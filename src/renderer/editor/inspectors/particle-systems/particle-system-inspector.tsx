@@ -11,18 +11,20 @@ import {
 import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
 import { InspectorList } from "../../gui/inspector/list";
+import { InspectorColor } from "../../gui/inspector/color";
 import { InspectorString } from "../../gui/inspector/string";
 import { InspectorButton } from "../../gui/inspector/button";
 import { InspectorNumber } from "../../gui/inspector/number";
 import { InspectorSection } from "../../gui/inspector/section";
 import { InspectorBoolean } from "../../gui/inspector/boolean";
 import { InspectorVector3 } from "../../gui/inspector/vector3";
+import { InspectorColorPicker } from "../../gui/inspector/color-picker";
 
 import { Tools } from "../../tools/tools";
 
 import { AbstractInspector } from "../abstract-inspector";
 
-export interface IGroundInspectorState {
+export interface IParticleSystemInspectorState {
     /**
      * Defines the reference to the current emitter of the particle system.
      */
@@ -33,7 +35,7 @@ export interface IGroundInspectorState {
     emitterTypeName: string;
 }
 
-export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, IGroundInspectorState> {
+export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, IParticleSystemInspectorState> {
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -95,6 +97,58 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
                         this._handleParticleEmitterTypeChanged(v);
                     }} />
                     {this.getParticleEmitterTypeInspector()}
+                </InspectorSection>
+
+                <InspectorSection title="Emission">
+                    <InspectorNumber object={this.selectedObject} property="emitRate" label="Emit Rate" min={0} step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="minEmitPower" label="Min Emit Power" min={0} step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="maxEmitPower" label="Max Emit Porwer" min={0} step={0.01} />
+                </InspectorSection>
+
+                <InspectorSection title="Size">
+                    <InspectorNumber object={this.selectedObject} property="minSize" label="Min Size" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="maxSize" label="Max Size" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="minScaleX" label="Min Scale X" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="maxScaleX" label="Max Scale X" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="minScaleY" label="Min Scale Y" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="maxScaleY" label="Max Scale Y" step={0.01} />
+                </InspectorSection>
+
+                <InspectorSection title="Life Time">
+                    <InspectorNumber object={this.selectedObject} property="minLifeTime" label="Min Life Time" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="maxLifeTime" label="Max Life Time" step={0.01} />
+                </InspectorSection>
+
+                <InspectorSection title="Colors">
+                    <InspectorSection title="Color 1">
+                        <InspectorColor object={this.selectedObject} property="color1" label="Color" step={0.01} />
+                        <InspectorColorPicker object={this.selectedObject} property="color1" label="Hex Color" />
+                    </InspectorSection>
+                    <InspectorSection title="Color 2">
+                        <InspectorColor object={this.selectedObject} property="color2" label="Color" step={0.01} />
+                        <InspectorColorPicker object={this.selectedObject} property="color2" label="Hex Color" />
+                    </InspectorSection>
+                    <InspectorSection title="Color Dead">
+                        <InspectorColor object={this.selectedObject} property="colorDead" label="Color" step={0.01} />
+                        <InspectorColorPicker object={this.selectedObject} property="colorDead" label="Hex Color" />
+                    </InspectorSection>
+                </InspectorSection>
+
+                <InspectorSection title="Rotation">
+                    <InspectorNumber object={this.selectedObject} property="minAngularSpeed" label="Min Angular Speed" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="maxAngularSpeed" label="Max Angular Speed" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="minInitialRotation" label="Min Initial Rotation" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="maxInitialRotation" label="Max Initial Rotation" step={0.01} />
+                </InspectorSection>
+
+                <InspectorSection title="Spritesheet">
+                    <InspectorBoolean object={this.selectedObject} property="isAnimationSheetEnabled" label="nimation Sheet Enabled" />
+                    <InspectorBoolean object={this.selectedObject} property="spriteRandomStartCell" label="Random Start Cell Index" />
+                    <InspectorNumber object={this.selectedObject} property="startSpriteCellID" label="First Sprite Index" step={1} />
+                    <InspectorNumber object={this.selectedObject} property="endSpriteCellID" label="Last Sprite Index" step={1} />
+                    <InspectorNumber object={this.selectedObject} property="spriteCellWidth" label="Cell Width" step={1} />
+                    <InspectorNumber object={this.selectedObject} property="spriteCellHeight" label="Cell Height" step={1} />
+                    <InspectorNumber object={this.selectedObject} property="spriteCellChangeSpeed" label="Cell Change Speed" step={0.01} />
                 </InspectorSection>
             </>
         );
