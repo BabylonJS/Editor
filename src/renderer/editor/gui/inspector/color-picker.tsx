@@ -21,6 +21,11 @@ export interface IInspectorColorPickerProps {
     label: string;
 
     /**
+     * Defines wether or not the label should be hidden.
+     */
+     noLabel?: boolean;
+
+    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -55,24 +60,34 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
     public constructor(props: IInspectorColorPickerProps) {
         super(props);
 
-        const value = props.object[props.property];
+        const value = props.object[props.property] as Color3 | Color4;
         if (value.r === undefined || value.g === undefined || value.b === undefined) {
             throw new Error("Only Color4 (r, g, b, a?) are supported for InspectorColorPicker.");
         }
 
-        this.state = { value, hex: value.toHexString(), textColor: "grey" };
+        this.state = {
+            value,
+            hex: value.toHexString(false).toLowerCase(),
+            textColor: this._getTextColor(this._getHSVFromColor(value)),
+        };
     }
 
     /**
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return (
-            <div style={{ width: "100%", height: "25px" }}>
+        let label: React.ReactNode;
+        if (!this.props.noLabel) {
+            label = (
                 <div style={{ width: "30%", height: "25px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
                     <span style={{ lineHeight: "30px", textAlign: "center", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{this.props.label}</span>
                 </div>
-                <div style={{ width: "70%", height: "25px", float: "left", marginTop: "3px" }}>
+            );
+        }
+        return (
+            <div style={{ width: "100%", height: "25px" }}>
+                {label}
+                <div style={{ width: label ? "70%" : "100%", height: "25px", float: "left", marginTop: "3px" }}>
                     <Popover
                         interactionKind="click"
                         usePortal={true}
@@ -135,7 +150,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
             r: color.rgb.r / 255,
             g: color.rgb.g / 255,
             b: color.rgb.b / 255,
-            a: (color.rgb.a ?? 255) / 255,
+            a: (color.rgb.a ?? 1),
         };
 
         const textColor = (color.hsv.v < 0.5 || color.hsv.s > 0.5) ? "white" : "black";
@@ -162,5 +177,21 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
         this._handleColorChange(color);
 
         this.props.onFinishChange?.(this.props.object);
+    }
+
+    /**
+     * Returns the text color according to the current HSV values.
+     */
+    private _getTextColor(hsvColor: Color3): string {
+        return (hsvColor.b < 0.5 || hsvColor.g > 0.5) ? "white" : "black";
+    }
+
+    /**
+     * Returns the given color as HSV color.
+     * Returns a new reference of Color3.
+     */
+    private _getHSVFromColor(color: Color3 | Color4): Color3 {
+        const color3 = new Color3(color.r, color.g, color.b);
+        return color3.toHSV();
     }
 }

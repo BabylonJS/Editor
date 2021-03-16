@@ -55,10 +55,13 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
     public renderContent(): React.ReactNode {
         return (
             <>
-                <InspectorSection title="Common">
-                    <InspectorString object={this.selectedObject} property="name" label="Name" />
+                <InspectorSection title="Controls">
                     <InspectorButton label="Start" small={true} onClick={() => this.selectedObject.start()} />
                     <InspectorButton label="Stop" small={true} onClick={() => this.selectedObject.stop()} />
+                </InspectorSection>
+                
+                <InspectorSection title="Common">
+                    <InspectorString object={this.selectedObject} property="name" label="Name" />
                     <InspectorVector3 object={this.selectedObject} property="gravity" label="Gravity" step={0.01} />
                     <InspectorVector3 object={this.selectedObject} property="worldOffset" label="World Offset" step={0.01} />
                 </InspectorSection>

@@ -2,11 +2,11 @@ import * as React from "react";
 import Slider from "antd/lib/slider";
 import { Button } from "@blueprintjs/core";
 
-import { ParticleSystem, FactorGradient } from "babylonjs";
+import { ParticleSystem, ColorGradient } from "babylonjs";
 
-import { InspectorNumber } from "../../gui/inspector/number";
+import { InspectorColorPicker } from "../../gui/inspector/color-picker";
 
-export interface IParticleSystemFactorGradientProps {
+export interface IParticleSystemColorGradientProps {
     /**
      * Defines the reference to the particle system.
      */
@@ -14,7 +14,7 @@ export interface IParticleSystemFactorGradientProps {
     /**
      * Defines the reference to the gradient.
      */
-    gradient: FactorGradient;
+    gradient: ColorGradient;
     /**
      * Defines the index of the gradient
      */
@@ -30,19 +30,19 @@ export interface IParticleSystemFactorGradientProps {
     onFinishChangeGradient: () => void;
 }
 
-export interface IParticleSystemFactorState {
+export interface IParticleSystemColorState {
     /**
      * Defines the current gradient value.
      */
     gradient: number;
 }
 
-export class ParticleSystemFactorGradient extends React.Component<IParticleSystemFactorGradientProps, IParticleSystemFactorState> {
+export class ParticleSystemColorGradient extends React.Component<IParticleSystemColorGradientProps, IParticleSystemColorState> {
     /**
      * Constructor.
      * @param props defines the component's props.
      */
-    public constructor(props: IParticleSystemFactorGradientProps) {
+    public constructor(props: IParticleSystemColorGradientProps) {
         super(props);
 
         this.state = {
@@ -60,11 +60,11 @@ export class ParticleSystemFactorGradient extends React.Component<IParticleSyste
                     #{this.props.index}
                 </span>
 
-                <div style={{ width: "20%", height: "30px", float: "left", marginLeft: "5px" }}>
-                    <InspectorNumber object={this.props.gradient} property="factor1" label="Factor 1" noLabel={true} />
+                <div style={{ width: "20%", height: "30px", float: "left", paddingTop: "3px", marginLeft: "5px" }}>
+                    <InspectorColorPicker object={this.props.gradient} property="color1" label="Factor 1" noLabel={true} />
                 </div>
-                <div style={{ width: "20%", height: "30px", float: "left", marginLeft: "5px" }}>
-                    <InspectorNumber object={this.props.gradient} property="factor2" label="Factor 2" noLabel={true} />
+                <div style={{ width: "20%", height: "30px", float: "left", paddingTop: "3px", marginLeft: "5px" }}>
+                    <InspectorColorPicker object={this.props.gradient} property="color2" label="Factor 2" noLabel={true} />
                 </div>
 
                 <div style={{ width: "calc(55% - 24px)", height: "30px", float: "left", padding: "0px 5px", marginTop: "0px" }}>
