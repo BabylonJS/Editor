@@ -167,7 +167,7 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
     private _onColorChange(): void {
         this.props.onChange?.(this.state.value);
 
-        InspectorNotifier.NotifyChange(this.props.object[this.props.property], this);
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], { caller: this });
     }
 
     /**
@@ -176,6 +176,6 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
     private _onColorFinishChange(): void {
         this.props.onFinishChange?.(this.state.value);
 
-        InspectorNotifier.NotifyChange(this.props.object[this.props.property], this);
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], { caller: this });
     }
 }

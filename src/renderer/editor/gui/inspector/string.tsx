@@ -3,6 +3,8 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { InputGroup, Tooltip } from "@blueprintjs/core";
 
+import { InspectorNotifier } from "./notifier";
+
 export interface IInspectorStringProps {
     /**
      * Defines the reference to the object to modify.
@@ -39,6 +41,8 @@ export interface IInspectorStringState {
 export class InspectorString extends React.Component<IInspectorStringProps, IInspectorStringState> {
     private _input: Nullable<HTMLInputElement> = null;
 
+    private _initialValue: string;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -50,6 +54,8 @@ export class InspectorString extends React.Component<IInspectorStringProps, IIns
         if (typeof (value) !== "string") {
             throw new Error("Only strings are supported for InspectorString components.");
         }
+
+        this._initialValue = value;
 
         this.state = { value };
     }
@@ -86,6 +92,7 @@ export class InspectorString extends React.Component<IInspectorStringProps, IIns
     private _handleValueChanged(value: string): void {
         this.setState({ value });
 
+        this.props.object[this.props.property] = value;
         this.props.onChange?.(value);
     }
 
@@ -93,7 +100,24 @@ export class InspectorString extends React.Component<IInspectorStringProps, IIns
      * Called on the value did finish change.
      */
     private _handleValueFinishChanged(): void {
+        if (this.state.value === this._initialValue) {
+            return;
+        }
+
         this._input?.blur();
+
+        this.props.object[this.props.property] = this.state.value;
         this.props.onFinishChange?.(this.state.value);
+
+        // Undo/redo
+        InspectorNotifier.NotifyChange(this.props.object, {
+            caller: this,
+            property: this.props.property,
+            oldValue: this._initialValue,
+            newValue: this.state.value,
+            onUndoRedo: () => this.setState({ value: this.props.object[this.props.property] }),
+        });
+
+        this._initialValue = this.state.value;
     }
 }

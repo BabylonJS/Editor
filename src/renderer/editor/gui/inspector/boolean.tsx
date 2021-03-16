@@ -39,6 +39,8 @@ export interface IInspectorBooleanState {
 }
 
 export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<T>, IInspectorBooleanState> {
+    private _initialValue: boolean;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -50,6 +52,8 @@ export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<
         if (typeof (value) !== "boolean") {
             throw new Error("Only booleans are supported for InspectorBoolean components.");
         }
+
+        this._initialValue = value;
 
         this.state = {
             value,
@@ -114,5 +118,16 @@ export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<
 
         this.props.onChange?.(value);
         this.props.onFinishChange?.(value);
+
+        // Undo/redo
+        InspectorNotifier.NotifyChange(this.props.object, {
+            caller: this,
+            property: this.props.property,
+            oldValue: this._initialValue,
+            newValue: value,
+            onUndoRedo: () => this.setState({ value: this.props.object[this.props.property] }),
+        });
+
+        this._initialValue = value;
     }
 }

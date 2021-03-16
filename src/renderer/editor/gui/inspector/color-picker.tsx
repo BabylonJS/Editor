@@ -167,7 +167,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
 
         this.props.onChange?.(this.props.object);
 
-        InspectorNotifier.NotifyChange(this.props.object[this.props.property], this);
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], { caller: this });
     }
 
     /**

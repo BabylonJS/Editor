@@ -74,6 +74,8 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
      */
     public static readonly ListSuggest = Suggest.ofType<IInspectorListItem<any>>();
 
+    private _initialValue: T;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -85,6 +87,8 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
             items: [],
             selectedItem: null,
         };
+
+        this._initialValue = this.props.object[this.props.property];
     }
 
     /**
@@ -206,6 +210,19 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
 
         this.props.onChange?.(this.props.object[this.props.property]);
         this.props.onFinishChange?.(this.props.object[this.props.property]);
+
+        // Undo/redo
+        InspectorNotifier.NotifyChange(this.props.object, {
+            caller: this,
+            property: this.props.property,
+            oldValue: this._initialValue,
+            newValue: item.data,
+            onUndoRedo: async () => {
+                this.setState({ selectedItem: await this._getCurrentItem() });
+            },
+        });
+
+        this._initialValue = item.data;
     }
 
     /**

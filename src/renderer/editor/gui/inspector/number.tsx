@@ -71,6 +71,8 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
 
     private _lastMousePosition: number = 0;
 
+    private _initialValue: number;
+
     private static _NumDecimals(value: number): number {
         const valueString = value.toString();
         const dotIndex = valueString.indexOf(".");
@@ -106,6 +108,7 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
         }
 
         this._precision = InspectorNumber._NumDecimals(this._impliedStep);
+        this._initialValue = value;
 
         this.state = { value: value.toString() };
     }
@@ -162,6 +165,8 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
                         value={this.state.value}
                         type="number"
                         step={this.props.step}
+                        onBlur={() => this._handleValueFinishChanged()}
+                        onKeyDown={(e) => e.key === "Enter" && this._handleValueFinishChanged()}
                         onChange={(e) => this._handleValueChanged(e.target.value, false)}
                         onMouseDown={(ev) => this._handleInputClicked(ev)}
                     />
@@ -217,7 +222,7 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
         // Callback
         this.props.onChange?.(parsedValue);
 
-        InspectorNotifier.NotifyChange(this.props.object[this.props.property], this);
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], { caller: this });
     }
 
     /**
@@ -262,6 +267,28 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
         this._mouseMoveListener = null;
         this._mouseUpListener = null;
 
-        this.props.onFinishChange?.(this.props.object[this.props.property]);
+        this._handleValueFinishChanged();
+    }
+    
+    /**
+     * Called on the value finished change.
+     */
+    private _handleValueFinishChanged(): void {
+        const value = this.props.object[this.props.property];
+        if (value === this._initialValue) {
+            return;
+        }
+
+        this.props.onFinishChange?.(value);
+
+        InspectorNotifier.NotifyChange(this.props.object, {
+            caller: this,
+            property: this.props.property,
+            oldValue: this._initialValue,
+            newValue: value,
+            onUndoRedo: () => this.setState({ value: this.props.object[this.props.property] }),
+        });
+
+        this._initialValue = value;
     }
 }

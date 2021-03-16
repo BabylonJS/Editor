@@ -38,7 +38,7 @@ export class NodeInspector<T extends Node, S extends INodeInspectorState> extend
         return (
             <>
                 <InspectorSection title="Common">
-                    <InspectorString object={this.selectedObject} property="name" label="Name" />
+                    <InspectorString object={this.selectedObject} property="name" label="Name" onFinishChange={() => this.editor.graph.refresh()} />
                     <InspectorBoolean object={this.state} property="enabled" label="Enabled" onChange={(v) => this._handleEnabledChange(v)} />
                 </InspectorSection>
 
