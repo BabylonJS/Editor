@@ -3,7 +3,7 @@ import Transfer, { TransferItem } from "antd/lib/transfer";
 
 import { AbstractMesh } from "babylonjs";
 
-import { Editor } from "../../../editor";
+import { Editor } from "../../editor";
 
 export interface IMeshTransferProps {
     /**
@@ -14,6 +14,11 @@ export interface IMeshTransferProps {
      * Defines the array where the scene's meshes should be transfered/removed.
      */
     targetArray: AbstractMesh[];
+
+    /**
+     * Defines the callback called on the transfer changed.
+     */
+    onChanged?: () => void;
 }
 
 export interface IMeshTransferState {
@@ -62,9 +67,10 @@ export class MeshTransferComponent extends React.Component<IMeshTransferProps, I
                 showSearch={true}
                 style={{
                     marginLeft: "-35px",
+                    marginRight: "-10px",
                 }}
                 listStyle={{
-                    width: "calc(50% - 10px)",
+                    width: "50%",
                     height: "490px",
                 }}
             />
@@ -137,5 +143,7 @@ export class MeshTransferComponent extends React.Component<IMeshTransferProps, I
             excludedMeshes: this._getExcludedMeshes(),
             includedMeshes: this._getIncludedMeshes(),
         });
+
+        this.props.onChanged?.();
     }
 }

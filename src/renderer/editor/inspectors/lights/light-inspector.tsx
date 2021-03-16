@@ -12,7 +12,7 @@ import { Inspector } from "../../components/inspector";
 
 import { INodeInspectorState, NodeInspector } from "../node-inspector";
 
-import { MeshTransferComponent } from "./tools/transfer-mesh";
+import { MeshTransferComponent } from "../tools/transfer-mesh";
 
 export class LightInspector<T extends Light, S extends INodeInspectorState> extends NodeInspector<T, S> {
     private static _Modes: string[] = [

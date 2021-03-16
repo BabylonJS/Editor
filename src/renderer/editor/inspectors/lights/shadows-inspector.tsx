@@ -15,7 +15,7 @@ import { Confirm } from "../../gui/confirm";
 
 import { AbstractInspector } from "../abstract-inspector";
 
-import { MeshTransferComponent } from "./tools/transfer-mesh";
+import { MeshTransferComponent } from "../tools/transfer-mesh";
 
 export interface IShadowInspectorState {
     /**

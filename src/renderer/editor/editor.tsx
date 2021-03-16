@@ -86,7 +86,7 @@ import "./inspectors/materials/node-inspector";
 import "./inspectors/materials/cell-inspector";
 import "./inspectors/materials/fire-inspector";
 import "./inspectors/materials/lava-inspector";
-// import "./inspectors/materials/water-material-inspector";
+import "./inspectors/materials/water-inspector";
 
 import "./inspectors/textures/texture-inspector";
 
