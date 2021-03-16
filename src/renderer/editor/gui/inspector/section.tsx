@@ -1,5 +1,9 @@
+import { Nullable } from "../../../../shared/types";
+
 import * as React from "react";
 import { Callout, Divider, MaybeElement, Icon, H4 } from "@blueprintjs/core";
+
+import { InspectorPreferences } from "./preferences";
 
 export interface IInspectorSectionProps {
     /**
@@ -25,6 +29,8 @@ export interface IInspectorSectionState {
 }
 
 export class InspectorSection extends React.Component<IInspectorSectionProps, IInspectorSectionState> {
+    private _inspectorName: Nullable<string> = null;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -120,9 +126,22 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
     }
 
     /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        this._inspectorName = InspectorPreferences.CurrentInspectorName;
+
+        this.setState({
+            collapsed: InspectorPreferences.IsSectionCollapsed(this.props.title),
+        });
+    }
+
+    /**
      * Called on the user wants to collapse.
      */
     private _handleCollapse(): void {
         this.setState({ collapsed: !this.state.collapsed });
+
+        InspectorPreferences.SetSectionCollapsed(this.props.title, !this.state.collapsed, this._inspectorName);
     }
 }

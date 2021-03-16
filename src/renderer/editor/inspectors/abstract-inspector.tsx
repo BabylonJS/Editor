@@ -11,6 +11,7 @@ import { TextureAssets } from "../assets/textures";
 import { MaterialAssets } from "../assets/materials";
 
 import { IInspectorListItem } from "../gui/inspector/list";
+import { InspectorPreferences } from "../gui/inspector/preferences";
 
 import { Editor } from "../editor";
 
@@ -36,6 +37,8 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
 
         this.editor = props.editor;
         this.selectedObject = props._objectRef;
+
+        InspectorPreferences.SetCurrentInspector(this);
     }
 
     /**
