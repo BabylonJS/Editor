@@ -8,6 +8,8 @@ import { InspectorBoolean } from "../gui/inspector/boolean";
 import { InspectorSection } from "../gui/inspector/section";
 import { InspectorString } from "../gui/inspector/string";
 
+import { undoRedo } from "../tools/undo-redo";
+
 import { IScriptInspectorState, ScriptInspector } from "./script-inspector";
 
 export interface INodeInspectorState extends IScriptInspectorState {
@@ -39,7 +41,7 @@ export class NodeInspector<T extends Node, S extends INodeInspectorState> extend
             <>
                 <InspectorSection title="Common">
                     <InspectorString object={this.selectedObject} property="name" label="Name" onFinishChange={() => this.editor.graph.refresh()} />
-                    <InspectorBoolean object={this.state} property="enabled" label="Enabled" onChange={(v) => this._handleEnabledChange(v)} />
+                    <InspectorBoolean object={this.state} property="enabled" label="Enabled" noUndoRedo={true} onFinishChange={(v, o) => this._handleEnabledChange(v, o)} />
                 </InspectorSection>
 
                 {super.renderContent()}
@@ -50,9 +52,11 @@ export class NodeInspector<T extends Node, S extends INodeInspectorState> extend
     /**
      * Called on the node is set to enabled/disabled.
      */
-    private _handleEnabledChange(enabled: boolean): void {
-        this.setState({ enabled });
-
-        this.selectedObject.setEnabled(enabled);
+    private _handleEnabledChange(enabled: boolean, wasEnabled: boolean): void {
+        undoRedo.push({
+            common: () => this.isMounted && this.setState({ enabled: this.selectedObject.isEnabled() }),
+            undo: () => this.selectedObject.setEnabled(wasEnabled),
+            redo: () => this.selectedObject.setEnabled(enabled),
+        });
     }
 }

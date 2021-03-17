@@ -7,6 +7,7 @@ import Slider from "antd/lib/slider";
 import { InputGroup, Tooltip } from "@blueprintjs/core";
 
 import { InspectorNotifier } from "./notifier";
+import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorNumberProps {
     /**
@@ -51,8 +52,9 @@ export interface IInspectorNumberProps {
     /**
      * Defines the optional callack called on the value finished changes.
      * @param value defines the new value of the object's property.
+     * @param oldValue defines the old value of the property before it has been changed.
      */
-    onFinishChange?: (value: number) => void;
+    onFinishChange?: (value: number, oldValue: number) => void;
 }
 
 export interface IInspectorNumberState {
@@ -62,7 +64,7 @@ export interface IInspectorNumberState {
     value: string;
 }
 
-export class InspectorNumber extends React.Component<IInspectorNumberProps, IInspectorNumberState> {
+export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProps, IInspectorNumberState> {
     private _mouseMoveListener: Nullable<(ev: MouseEvent) => any> = null;
     private _mouseUpListener: Nullable<(ev: MouseEvent) => any> = null;
 
@@ -139,7 +141,7 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
             label = (
                 <div style={{ width: "30%", height: "25px", float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px", overflow: "hidden" }}>
                     <Tooltip content={this.props.label}>
-                        <span style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
+                        <span tabIndex={-1} style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                     </Tooltip>
                 </div>
             );
@@ -179,6 +181,8 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
      * Called on the component did mount.
      */
     public componentDidMount(): void {
+        super.componentDidMount?.();
+
         InspectorNotifier.Register(this, this.props.object, () => {
             this.setState({ value: this.props.object[this.props.property] });
         });
@@ -188,6 +192,8 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
      * Called on the component will unmount.
      */
     public componentWillUnmount(): void {
+        super.componentWillUnmount?.();
+
         InspectorNotifier.Unregister(this);
     }
 
@@ -279,14 +285,14 @@ export class InspectorNumber extends React.Component<IInspectorNumberProps, IIns
             return;
         }
 
-        this.props.onFinishChange?.(value);
+        this.props.onFinishChange?.(value, this._initialValue);
 
         InspectorNotifier.NotifyChange(this.props.object, {
             caller: this,
-            property: this.props.property,
-            oldValue: this._initialValue,
             newValue: value,
-            onUndoRedo: () => this.setState({ value: this.props.object[this.props.property] }),
+            oldValue: this._initialValue,
+            property: this.props.property,
+            onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
         });
 
         this._initialValue = value;

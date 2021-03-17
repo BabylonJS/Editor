@@ -65,9 +65,11 @@ export class InspectorNotifier {
         // Undo / redo?
         if (options.property && options.oldValue !== undefined && options.newValue !== undefined) {
             undoRedo.push({
-                common: () => {
-                    this.NotifyChange(object, { caller: this });
-                    options.onUndoRedo?.();
+                common: (step) => {
+                    if (step !== "push") {
+                        this.NotifyChange(object);
+                        options.onUndoRedo?.();
+                    }
                 },
                 undo: () => object[options.property!] = options.oldValue,
                 redo: () => object[options.property!] = options.newValue,

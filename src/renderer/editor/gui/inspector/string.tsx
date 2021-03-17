@@ -4,6 +4,7 @@ import * as React from "react";
 import { InputGroup, Tooltip } from "@blueprintjs/core";
 
 import { InspectorNotifier } from "./notifier";
+import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorStringProps {
     /**
@@ -38,9 +39,8 @@ export interface IInspectorStringState {
     value: string;
 }
 
-export class InspectorString extends React.Component<IInspectorStringProps, IInspectorStringState> {
+export class InspectorString extends AbstractFieldComponent<IInspectorStringProps, IInspectorStringState> {
     private _input: Nullable<HTMLInputElement> = null;
-
     private _initialValue: string;
 
     /**
@@ -115,7 +115,7 @@ export class InspectorString extends React.Component<IInspectorStringProps, IIns
             property: this.props.property,
             oldValue: this._initialValue,
             newValue: this.state.value,
-            onUndoRedo: () => this.setState({ value: this.props.object[this.props.property] }),
+            onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
         });
 
         this._initialValue = this.state.value;

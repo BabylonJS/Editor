@@ -4,7 +4,7 @@ export interface IUndoRedoAction {
     /**
      * Called on the user redoes or undoes an action.
      */
-    common?: () => any | Promise<any>;
+    common?: (step: "push" | "undo" | "redo") => any | Promise<any>;
     /**
      * Called on the user wants to redo an action.
      */
@@ -65,7 +65,7 @@ export class UndoRedo {
         await action.redo();
 
         if (action.common) {
-            await action.common();
+            await action.common("push");
         }
 
         this._asyncQueue.delete(action);
@@ -86,7 +86,7 @@ export class UndoRedo {
         await action.undo();
 
         if (action.common) {
-            await action.common();
+            await action.common("undo");
         }
 
         this._asyncQueue.delete(action);
@@ -107,7 +107,7 @@ export class UndoRedo {
         await action.redo();
 
         if (action.common) {
-            await action.common();
+            await action.common("redo");
         }
 
         this._asyncQueue.delete(action);

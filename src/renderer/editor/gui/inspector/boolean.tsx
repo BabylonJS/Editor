@@ -1,7 +1,10 @@
+import { Nullable } from "../../../../shared/types";
+
 import * as React from "react";
 import { Alignment, Switch } from "@blueprintjs/core";
 
 import { InspectorNotifier } from "./notifier";
+import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorBooleanProps<T> {
     /**
@@ -18,6 +21,11 @@ export interface IInspectorBooleanProps<T> {
     label: string;
 
     /**
+     * Defines wether or not automatic undo/redo should be skipped.
+     */
+    noUndoRedo?: boolean;
+
+    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -25,8 +33,9 @@ export interface IInspectorBooleanProps<T> {
     /**
      * Defines the optional callack called on the value finished changes.
      * @param value defines the new value of the object's property.
+     * @param oldValue defines the old value of the property before it has been changed.
      */
-    onFinishChange?: (value: boolean) => void;
+    onFinishChange?: (value: boolean, oldValue: boolean) => void;
 }
 
 export interface IInspectorBooleanState {
@@ -34,11 +43,14 @@ export interface IInspectorBooleanState {
      * Defines the current value of the input.
      */
     value: boolean;
-
-    _overColor: string;
+    /**
+     * Defines the color of the div on the mouse is over/out the switch.
+     */
+    overColor: string;
 }
 
-export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<T>, IInspectorBooleanState> {
+export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBooleanProps<T>, IInspectorBooleanState> {
+    private _input: Nullable<HTMLInputElement> = null;
     private _initialValue: boolean;
 
     /**
@@ -57,7 +69,7 @@ export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<
 
         this.state = {
             value,
-            _overColor: "rgba(0, 0, 0, 0)",
+            overColor: "rgba(0, 0, 0, 0)",
         };
     }
 
@@ -67,11 +79,12 @@ export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<
     public render(): React.ReactNode {
         return (
             <div
-                style={{ width: "95%", height: "25px", background: this.state._overColor }}
-                onMouseEnter={() => this.setState({ _overColor: "rgba(0, 0, 0, 0.2)" })}
-                onMouseLeave={() => this.setState({ _overColor: "rgba(0, 0, 0, 0)" })}
+                style={{ width: "95%", height: "25px", background: this.state.overColor }}
+                onMouseEnter={() => this.setState({ overColor: "rgba(0, 0, 0, 0.2)" })}
+                onMouseLeave={() => this.setState({ overColor: "rgba(0, 0, 0, 0)" })}
             >
                 <Switch
+                    inputRef={(ref) => this._input = ref}
                     checked={this.state.value}
                     large={true}
                     label={this.props.label}
@@ -95,7 +108,9 @@ export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<
     /**
      * Called on the component did mount.
      */
-     public componentDidMount(): void {
+    public componentDidMount(): void {
+        super.componentDidMount?.();
+
         InspectorNotifier.Register(this, this.props.object, () => {
             this.setState({ value: this.props.object[this.props.property] });
         });
@@ -105,6 +120,8 @@ export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<
      * Called on the component will unmount.
      */
     public componentWillUnmount(): void {
+        super.componentWillUnmount?.();
+
         InspectorNotifier.Unregister(this);
     }
 
@@ -114,19 +131,23 @@ export class InspectorBoolean<T> extends React.Component<IInspectorBooleanProps<
     private _handleValueChanged(value: boolean): void {
         this.setState({ value });
 
+        this._input?.blur();
+
         this.props.object[this.props.property] = value;
 
         this.props.onChange?.(value);
-        this.props.onFinishChange?.(value);
+        this.props.onFinishChange?.(value, this._initialValue);
 
         // Undo/redo
-        InspectorNotifier.NotifyChange(this.props.object, {
-            caller: this,
-            property: this.props.property,
-            oldValue: this._initialValue,
-            newValue: value,
-            onUndoRedo: () => this.setState({ value: this.props.object[this.props.property] }),
-        });
+        if (!this.props.noUndoRedo) {
+            InspectorNotifier.NotifyChange(this.props.object, {
+                caller: this,
+                newValue: value,
+                oldValue: this._initialValue,
+                property: this.props.property,
+                onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
+            });
+        }
 
         this._initialValue = value;
     }

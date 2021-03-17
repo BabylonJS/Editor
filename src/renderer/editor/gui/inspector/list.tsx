@@ -6,6 +6,7 @@ import { Suggest } from "@blueprintjs/select";
 import { MaybeElement, MenuItem, Position, Tooltip } from "@blueprintjs/core";
 
 import { InspectorNotifier } from "./notifier";
+import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorListItem<T> {
     /**
@@ -53,8 +54,9 @@ export interface IInspectorListProps<T> {
     /**
      * Defines the optional callack called on the value finished changes.
      * @param value defines the new value of the object's property.
+     * @param oldValue defines the old value of the property before it has been changed.
      */
-    onFinishChange?: (value: T | string) => void;
+    onFinishChange?: (value: T, oldValue: T) => void;
 }
 
 export interface IInspectorListState<T> {
@@ -68,7 +70,7 @@ export interface IInspectorListState<T> {
     selectedItem: Nullable<IInspectorListItem<T>>;
 }
 
-export class InspectorList<T> extends React.Component<IInspectorListProps<T>, IInspectorListState<T>> {
+export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps<T>, IInspectorListState<T>> {
     /**
      * Defines the type of suggest used by the inspector list component.
      */
@@ -162,6 +164,8 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
      * Called on the component did mount.
      */
     public async componentDidMount(): Promise<void> {
+        super.componentDidMount?.();
+
         this.setState({
             items: await this._getItems(),
             selectedItem: await this._getCurrentItem(),
@@ -176,6 +180,8 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
      * Called on the component will unmount.
      */
     public componentWillUnmount(): void {
+        super.componentWillUnmount?.();
+
         InspectorNotifier.Unregister(this);
     }
 
@@ -209,17 +215,15 @@ export class InspectorList<T> extends React.Component<IInspectorListProps<T>, II
         this.props.object[this.props.property] = item.data;
 
         this.props.onChange?.(this.props.object[this.props.property]);
-        this.props.onFinishChange?.(this.props.object[this.props.property]);
+        this.props.onFinishChange?.(this.props.object[this.props.property], this._initialValue);
 
         // Undo/redo
         InspectorNotifier.NotifyChange(this.props.object, {
             caller: this,
-            property: this.props.property,
-            oldValue: this._initialValue,
             newValue: item.data,
-            onUndoRedo: async () => {
-                this.setState({ selectedItem: await this._getCurrentItem() });
-            },
+            oldValue: this._initialValue,
+            property: this.props.property,
+            onUndoRedo: async () => this.isMounted && this.setState({ selectedItem: await this._getCurrentItem() }),
         });
 
         this._initialValue = item.data;
