@@ -11,7 +11,7 @@ import { TextureAssets } from "../assets/textures";
 import { MaterialAssets } from "../assets/materials";
 
 import { IInspectorListItem } from "../gui/inspector/list";
-import { InspectorPreferences } from "../gui/inspector/preferences";
+import { InspectorUtils } from "../gui/inspector/preferences";
 
 import { Editor } from "../editor";
 
@@ -28,6 +28,8 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
     private _inspectorDiv: Nullable<HTMLDivElement> = null;
     private _isMounted: boolean = false;
 
+    private readonly _inspectorName: string;
+
     /**
      * Constructor.
      * @param props the component's props.
@@ -38,7 +40,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         this.editor = props.editor;
         this.selectedObject = props._objectRef;
 
-        InspectorPreferences.SetCurrentInspector(this);
+        this._inspectorName = InspectorUtils.SetCurrentInspector(this);
     }
 
     /**
@@ -50,7 +52,9 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         return (
             <>
                 <div style={{ width: "100%", height: "35px" }}>
-                    <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={() => { }} />
+                    <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={(e) => {
+                        InspectorUtils.FilterComponents(e.target.value, this._inspectorName);
+                    }} />
                 </div>
                 <div ref={(ref) => this._inspectorDiv = ref} style={{ width: "100%", height: "100%", overflow: "auto" }}>
                     {content}

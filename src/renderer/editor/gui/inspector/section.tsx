@@ -3,7 +3,7 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { Callout, Divider, MaybeElement, Icon, H4 } from "@blueprintjs/core";
 
-import { InspectorPreferences } from "./preferences";
+import { InspectorUtils } from "./preferences";
 
 export interface IInspectorSectionProps {
     /**
@@ -26,6 +26,10 @@ export interface IInspectorSectionState {
      * Defines the current height of the callout.
      */
     collapsed: boolean;
+    /**
+     * Defines wether or not the section is visible.
+     */
+    visible: boolean;
 }
 
 export class InspectorSection extends React.Component<IInspectorSectionProps, IInspectorSectionState> {
@@ -40,6 +44,7 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
 
         this.state = {
             collapsed: props.collapsed ?? false,
+            visible: true,
         };
     }
 
@@ -79,16 +84,16 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
                 <Divider key="section-title-divider" />
                 {dividedChildren}
             </>
-        )
+        );
 
         return (
             <>
                 <Divider />
                 <Callout
                     icon={icon}
+                    hidden={!this.state.visible}
                     style={{
                         // zoom: "0.9",
-                        // transform: "scale(0.9)",
                         height: this.state.collapsed ? "35px" : undefined,
                         paddingLeft: "35px",
                         backgroundColor: "rgba(138, 155, 168, 0.1)",
@@ -129,10 +134,14 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
      * Called on the component did mount.
      */
     public componentDidMount(): void {
-        this._inspectorName = InspectorPreferences.CurrentInspectorName;
+        this._inspectorName = InspectorUtils.CurrentInspectorName;
+
+        InspectorUtils.RegisterFilterableComponent(this.props.title, this._inspectorName!, (v) => {
+            this.setState({ visible: v });
+        });
 
         this.setState({
-            collapsed: InspectorPreferences.IsSectionCollapsed(this.props.title),
+            collapsed: InspectorUtils.IsSectionCollapsed(this.props.title),
         });
     }
 
@@ -142,6 +151,6 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
     private _handleCollapse(): void {
         this.setState({ collapsed: !this.state.collapsed });
 
-        InspectorPreferences.SetSectionCollapsed(this.props.title, !this.state.collapsed, this._inspectorName);
+        InspectorUtils.SetSectionCollapsed(this.props.title, !this.state.collapsed, this._inspectorName);
     }
 }
