@@ -1,10 +1,11 @@
 import * as React from "react";
 
-import { Scene, DepthOfFieldEffectBlurLevel } from "babylonjs";
+import { Scene, DepthOfFieldEffectBlurLevel, ImageProcessingConfiguration } from "babylonjs";
 
 import { Inspector, IObjectInspectorProps } from "../components/inspector";
 
 import { InspectorList } from "../gui/inspector/list";
+import { InspectorColor } from "../gui/inspector/color";
 import { InspectorNumber } from "../gui/inspector/number";
 import { InspectorSection } from "../gui/inspector/section";
 import { InspectorBoolean } from "../gui/inspector/boolean";
@@ -63,6 +64,10 @@ export interface IRendererInspectorState {
          * Defines wether or not glow is enabled.
          */
         glowEnabled: boolean;
+        /**
+         * Defines wether or not vignette is enabled.
+         */
+        vignetteEnabled: boolean;
     };
 }
 
@@ -311,6 +316,23 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
             </InspectorSection>
         );
 
+        const vignetteEnabled = <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="vignetteEnabled" label="Enabled" onChange={() => this._updateDefaultState()} />;
+        const vignette = this.state.default.vignetteEnabled ? (
+            <InspectorSection title="Vignette">
+                {vignetteEnabled}
+                <InspectorList object={SceneSettings.DefaultPipeline.imageProcessing} property="vignetteBlendMode" label="Blend Mode" items={[
+                    { label: "Multiply", data: ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY },
+                    { label: "Opaque", data: ImageProcessingConfiguration.VIGNETTEMODE_OPAQUE },
+                ]} />
+                <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing} property="vignetteWeight" label="Weight" step={0.01} />
+                <InspectorColor object={SceneSettings.DefaultPipeline.imageProcessing} property="vignetteColor" label="Color" step={0.01} />
+            </InspectorSection>
+        ) : (
+            <InspectorSection title="Vignette">
+                {vignetteEnabled}
+            </InspectorSection>
+        );
+
         return (
             <InspectorSection title="Default Pipeline">
                 {enable}
@@ -327,6 +349,7 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
                 {sharpen}
                 {depthOfField}
                 {chromaticAberraction}
+                {vignette}
                 {grain}
                 {glow}
             </InspectorSection>
@@ -346,6 +369,7 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
             chromaticAberrationEnabled: SceneSettings.DefaultPipeline?.chromaticAberrationEnabled ?? false,
             grainEnabled: SceneSettings.DefaultPipeline?.grainEnabled ?? false,
             glowEnabled: SceneSettings.DefaultPipeline?.glowLayerEnabled ?? false,
+            vignetteEnabled: SceneSettings.DefaultPipeline?.imageProcessing.vignetteEnabled ?? false,
         }
     }
 
