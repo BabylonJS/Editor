@@ -69,6 +69,10 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
     public componentDidMount(): void {
         this._isMounted = true;
 
+        // Scroll
+        const scrollTop = InspectorUtils.GetInspectorScroll(this._inspectorName);
+        setTimeout(() => this._inspectorDiv?.scroll({ top: scrollTop, behavior: "smooth" }), 0);
+
         this.resize();
     }
 
@@ -77,6 +81,8 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
      */
     public componentWillUnmount(): void {
         this._isMounted = false;
+
+        InspectorUtils.RegisterInspectorScroll(this._inspectorName, this._inspectorDiv?.scrollTop ?? 0);
     }
 
     /**
@@ -95,15 +101,6 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
 
         size = size ?? this.editor.getPanelSize("inspector");
         this._inspectorDiv.style.height = `${size.height - 80}px`;
-    }
-
-    /**
-     * Refreshes the edition tool.
-     */
-    public refreshDisplay(): void {
-        if (this.isMounted) {
-            // Call refresh
-        }
     }
 
     /**

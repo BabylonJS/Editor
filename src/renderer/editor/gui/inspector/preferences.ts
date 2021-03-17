@@ -40,6 +40,7 @@ export class InspectorUtils {
 
     private static _InspectorConfigurations: IStringDictionary<IInspectorPreferences> = InspectorUtils.GetPreferencesFromLocalStorage();
     private static _InspectorFilters: IStringDictionary<IInspectorComponentSearch[]> = { };
+    private static _InspectorScrolls: IStringDictionary<number> = { };
 
     /**
      * Sets the current inspector being mounted.
@@ -98,6 +99,24 @@ export class InspectorUtils {
         }
 
         sections.push({ title, callback });
+    }
+
+    /**
+     * Saves the scroll value of the given inspector.
+     * @param inspectorName defines the name of the inspector to save its scroll value.
+     * @param scrollTop defines the value of the scrollTop property of the inspector.
+     */
+    public static RegisterInspectorScroll(inspectorName: string, scrollTop: number): void {
+        this._InspectorScrolls[inspectorName] ??= 0;
+        this._InspectorScrolls[inspectorName] = scrollTop;
+    }
+
+    /**
+     * Returns the value of the scroll for the given inspector in order to re-apply.
+     * @param inspectorName defines the name of the inspector to retrieve its scroll value.
+     */
+    public static GetInspectorScroll(inspectorName: string): number {
+        return this._InspectorScrolls[inspectorName] ?? 0;
     }
 
     /**

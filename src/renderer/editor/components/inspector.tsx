@@ -69,6 +69,8 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
     private _firstTabId: TabId = "";
     private _activeTabId: Nullable<TabId> = null;
 
+    private _forceUpdateId: number = 0;
+
     private _refHandler = {
         getInspector: (ref: AbstractInspectorLegacy<any>) => ref && (Inspector._ObjectInspectorsConfigurations.find((a) => a._id === ref.props.toolId)!._ref = ref),
     };
@@ -134,8 +136,8 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
                 this._firstTabId = tabId;
             }
 
-            const key = this.state.selectedObject.id ?? this.state.selectedObject._id ?? this.state.selectedObject.uniqueId ?? this.state.selectedObject.name;
-            const objectInspector = <i.ctor key={key} editor={this._editor} _objectRef={this.state.selectedObject} toolId={i._id!} ref={this._refHandler.getInspector} />;
+            const key = this.state.selectedObject.id ?? this.state.selectedObject._id ?? this.state.selectedObject.uniqueId ?? this.state.selectedObject.name ?? "";
+            const objectInspector = <i.ctor key={key.toString() + this._forceUpdateId} editor={this._editor} _objectRef={this.state.selectedObject} toolId={i._id!} ref={this._refHandler.getInspector} />;
             const tab = <Tab id={tabId} title={i.title} key={i._id!} panel={objectInspector} />;
 
             tabs.push(tab);
@@ -161,6 +163,16 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
                 selectedTabId={this._activeTabId || this._firstTabId}
             ></Tabs>
         );
+    }
+
+    /**
+     * Forces the update of the component.
+     * @param callback defines the callback called on the update is done.
+     */
+    public forceUpdate(callback?: (() => void) | undefined): void {
+        this._forceUpdateId++;
+
+        super.forceUpdate(callback);
     }
 
     /**
@@ -200,6 +212,6 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
      */
     private _handleActiveTabChanged(tabId: TabId): void {
         this._activeTabId = tabId;
-        this.forceUpdate();
+        super.forceUpdate();
     }
 }
