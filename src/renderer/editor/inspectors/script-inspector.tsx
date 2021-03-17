@@ -12,7 +12,6 @@ import { Scene, Node, Vector2, Vector3, Color4 } from "babylonjs";
 
 import { IObjectInspectorProps } from "../components/inspector";
 
-import { InspectorList, IInspectorListItem } from "../gui/inspector/list";
 import { InspectorColor } from "../gui/inspector/color";
 import { InspectorNumber } from "../gui/inspector/number";
 import { InspectorButton } from "../gui/inspector/button";
@@ -21,6 +20,8 @@ import { InspectorBoolean } from "../gui/inspector/boolean";
 import { InspectorSection } from "../gui/inspector/section";
 import { InspectorVector3 } from "../gui/inspector/vector3";
 import { InspectorVector2 } from "../gui/inspector/vector2";
+import { InspectorKeyMapButton } from "../gui/inspector/keymap-button";
+import { InspectorList, IInspectorListItem } from "../gui/inspector/list";
 
 import { WorkSpace } from "../project/workspace";
 
@@ -245,6 +246,13 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                     );
                     break;
 
+                case "KeyMap":
+                    property.value ??= property.value ?? iv.defaultValue ?? 0;
+                    children.push(
+                        <InspectorKeyMapButton object={property} property="value" label={label} />
+                    );
+                    break;
+
                 case "Vector2":
                     if (iv.defaultValue) {
                         const defaultValue = iv.defaultValue as Vector2;
@@ -300,7 +308,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
 
         // Check
         if (this.selectedObject.metadata.script.name === "None") {
-            return this.forceUpdate();
+            return this.isMounted && this.forceUpdate();
         }
 
         this.setState({ refresing: true });

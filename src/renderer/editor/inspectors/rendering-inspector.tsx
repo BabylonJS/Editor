@@ -55,6 +55,14 @@ export interface IRendererInspectorState {
          * Defines wether or not Chromatic Aberration is enabled.
          */
         chromaticAberrationEnabled: boolean;
+        /**
+         * Defines wether or not grain is enabled.
+         */
+        grainEnabled: boolean;
+        /**
+         * Defines wether or not glow is enabled.
+         */
+        glowEnabled: boolean;
     };
 }
 
@@ -63,7 +71,7 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
      * Constructor.
      * @param props defines the component's props.
      */
-     public constructor(props: IObjectInspectorProps) {
+    public constructor(props: IObjectInspectorProps) {
         super(props);
 
         this.state = {
@@ -97,7 +105,7 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
             this.setState({ ssao2Enabled: v });
         }} />
 
-        if (!this.state.ssao2Enabled || !SceneSettings.SSAOPipeline) {
+        if (!this.state.ssao2Enabled || !SceneSettings.SSAOPipeline) {
             return (
                 <InspectorSection title="SSAO 2">
                     {enable}
@@ -112,7 +120,7 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
                 <InspectorNumber object={SceneSettings.SSAOPipeline} property="totalStrength" label="Strength" step={0.01} />
                 <InspectorNumber object={SceneSettings.SSAOPipeline} property="samples" label="Samples" step={1} min={1} max={32} />
                 <InspectorNumber object={SceneSettings.SSAOPipeline} property="maxZ" label="Max Z" step={0.01} />
-                <InspectorBoolean object={SceneSettings.SSAOPipeline} property="expensiveBlur" label="Expansive Blur"/>
+                <InspectorBoolean object={SceneSettings.SSAOPipeline} property="expensiveBlur" label="Expansive Blur" />
             </InspectorSection>
         );
     }
@@ -139,7 +147,7 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
                 {enable}
                 <InspectorNumber object={SceneSettings.MotionBlurPostProcess} property="motionStrength" label="Strength" step={0.01} />
                 <InspectorNumber object={SceneSettings.MotionBlurPostProcess} property="motionBlurSamples" label="Samples" step={1} min={1} max={64} />
-                <InspectorBoolean object={SceneSettings.MotionBlurPostProcess} property="isObjectBased" label="Object Based"/>
+                <InspectorBoolean object={SceneSettings.MotionBlurPostProcess} property="isObjectBased" label="Object Based" />
             </InspectorSection>
         );
     }
@@ -262,8 +270,8 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
             </InspectorSection>
         );
 
-       const chromaticAberrationEnable = <InspectorBoolean object={SceneSettings.DefaultPipeline} property="chromaticAberrationEnabled" label="Enabled" onChange={() => this._updateDefaultState()} />;
-       const chromaticAberraction = this.state.default.chromaticAberrationEnabled ? (
+        const chromaticAberrationEnable = <InspectorBoolean object={SceneSettings.DefaultPipeline} property="chromaticAberrationEnabled" label="Enabled" onChange={() => this._updateDefaultState()} />;
+        const chromaticAberraction = this.state.default.chromaticAberrationEnabled ? (
             <InspectorSection title="Chromatic Aberration">
                 {chromaticAberrationEnable}
                 <InspectorNumber object={SceneSettings.DefaultPipeline.chromaticAberration} property="aberrationAmount" label="Amount" step={0.01} />
@@ -271,19 +279,47 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
                 <InspectorVector2 object={SceneSettings.DefaultPipeline.chromaticAberration} property="direction" label="Direction" step={0.01} />
                 <InspectorVector2 object={SceneSettings.DefaultPipeline.chromaticAberration} property="centerPosition" label="Center" step={0.01} />
             </InspectorSection>
-       ) : (
+        ) : (
             <InspectorSection title="Chromatic Aberration">
                 {chromaticAberrationEnable}
             </InspectorSection>
-       );
+        );
+
+        const grainEnabled = <InspectorBoolean object={SceneSettings.DefaultPipeline} property="grainEnabled" label="Enabled" onChange={() => this._updateDefaultState()} />;
+        const grain = this.state.default.grainEnabled ? (
+            <InspectorSection title="Grain">
+                {grainEnabled}
+                <InspectorNumber object={SceneSettings.DefaultPipeline.grain} property="intensity" label="Intensity" min={0} step={0.01} />
+                <InspectorBoolean object={SceneSettings.DefaultPipeline.grain} property="animated" label="Animated" />
+            </InspectorSection>
+        ) : (
+            <InspectorSection title="Grain">
+                {grainEnabled}
+            </InspectorSection>
+        );
+
+        const glowLayerEnabled = <InspectorBoolean object={SceneSettings.DefaultPipeline} property="glowLayerEnabled" label="Enabled" onChange={() => this._updateDefaultState()} />;
+        const glow = this.state.default.glowEnabled ? (
+            <InspectorSection title="Glow Layer">
+                {glowLayerEnabled}
+                <InspectorNumber object={SceneSettings.DefaultPipeline.glowLayer} property="blurKernelSize" label="Blur Kernel Size" min={1} max={512} step={1} />
+                <InspectorNumber object={SceneSettings.DefaultPipeline.glowLayer} property="intensity" label="Intensity" min={0} step={0.01} />
+            </InspectorSection>
+        ) : (
+            <InspectorSection title="Glow Layer">
+                {glowLayerEnabled}
+            </InspectorSection>
+        );
 
         return (
             <InspectorSection title="Default Pipeline">
                 {enable}
 
+                <InspectorNumber object={SceneSettings.DefaultPipeline} property="samples" label="Samples" step={1} min={1} max={32} />
+
                 <InspectorSection title="Anti Aliasing">
                     <InspectorBoolean object={SceneSettings.DefaultPipeline} property="fxaaEnabled" label="FXAA Enabled" />
-                    <InspectorNumber object={SceneSettings.DefaultPipeline} property="samples" label="Samples" step={1} min={1} max={32} />
+                    <InspectorNumber object={SceneSettings.DefaultPipeline.fxaa} property="samples" label="Samples" step={1} min={1} max={32} />
                 </InspectorSection>
 
                 {imageProcessing}
@@ -291,6 +327,8 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
                 {sharpen}
                 {depthOfField}
                 {chromaticAberraction}
+                {grain}
+                {glow}
             </InspectorSection>
         );
     }
@@ -306,9 +344,11 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
             sharpenEnabled: SceneSettings.DefaultPipeline?.sharpenEnabled ?? false,
             depthOfFieldEnabled: SceneSettings.DefaultPipeline?.depthOfFieldEnabled ?? false,
             chromaticAberrationEnabled: SceneSettings.DefaultPipeline?.chromaticAberrationEnabled ?? false,
+            grainEnabled: SceneSettings.DefaultPipeline?.grainEnabled ?? false,
+            glowEnabled: SceneSettings.DefaultPipeline?.glowLayerEnabled ?? false,
         }
     }
-    
+
     /**
      * Updates the default rendering pipeline state.
      */

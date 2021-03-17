@@ -8,6 +8,9 @@ import { InspectorNumber } from "../../gui/inspector/number";
 import { InspectorSection } from "../../gui/inspector/section";
 import { InspectorVector3 } from "../../gui/inspector/vector3";
 import { InspectorBoolean } from "../../gui/inspector/boolean";
+import { InspectorKeyMapButton } from "../../gui/inspector/keymap-button";
+
+import { undoRedo } from "../../tools/undo-redo";
 
 import { INodeInspectorState } from "../node-inspector";
 
@@ -38,7 +41,33 @@ export class FreeCameraInspector extends CameraInspector<FreeCamera | Universal
                     <InspectorVector3 object={this.selectedObject} property="ellipsoid" label="Ellipsoid" step={0.01} />
                     <InspectorVector3 object={this.selectedObject} property="ellipsoidOffset" label="Ellipsoid Offset" step={0.01} />
                 </InspectorSection>
+
+                <InspectorSection title="Keys">
+                    {this._getKeyMapButtonInspector("keysUp", "Forward")}
+                    {this._getKeyMapButtonInspector("keysDown", "Backward")}
+                    {this._getKeyMapButtonInspector("keysLeft", "Left")}
+                    {this._getKeyMapButtonInspector("keysRight", "Right")}
+                </InspectorSection>
             </>
+        );
+    }
+
+    /**
+     * Returns the inspector used to configure the keymap of the given property for
+     * the current camera.
+     */
+    private _getKeyMapButtonInspector(property: string, label: string): React.ReactNode {
+        const value = this.selectedObject[property][0];
+        const o = { value };
+
+        return (
+            <InspectorKeyMapButton object={o} property="value" label={label} onChange={(c) => {
+                undoRedo.push({
+                    common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+                    undo:() => this.selectedObject[property] = [value],
+                    redo: () => this.selectedObject[property] = [c],
+                });
+            }} />
         );
     }
 }
