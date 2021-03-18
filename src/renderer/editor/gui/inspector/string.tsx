@@ -21,6 +21,11 @@ export interface IInspectorStringProps {
     label: string;
 
     /**
+     * Defines wether or not automatic undo/redo should be skipped.
+     */
+     noUndoRedo?: boolean;
+
+    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -28,8 +33,9 @@ export interface IInspectorStringProps {
     /**
      * Defines the optional callack called on the value finished changes.
      * @param value defines the new value of the object's property.
+     * @param oldValue defines the old value of the edited string property.
      */
-    onFinishChange?: (value: string) => void;
+    onFinishChange?: (value: string, oldValue: string) => void;
 }
 
 export interface IInspectorStringState {
@@ -107,16 +113,18 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
         this._input?.blur();
 
         this.props.object[this.props.property] = this.state.value;
-        this.props.onFinishChange?.(this.state.value);
+        this.props.onFinishChange?.(this.state.value, this._initialValue);
 
         // Undo/redo
-        InspectorNotifier.NotifyChange(this.props.object, {
-            caller: this,
-            property: this.props.property,
-            oldValue: this._initialValue,
-            newValue: this.state.value,
-            onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
-        });
+        if (!this.props.noUndoRedo) {
+            InspectorNotifier.NotifyChange(this.props.object, {
+                caller: this,
+                property: this.props.property,
+                oldValue: this._initialValue,
+                newValue: this.state.value,
+                onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
+            });
+        }
 
         this._initialValue = this.state.value;
     }

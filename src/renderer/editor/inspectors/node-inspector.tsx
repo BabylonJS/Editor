@@ -40,13 +40,28 @@ export class NodeInspector<T extends Node, S extends INodeInspectorState> extend
         return (
             <>
                 <InspectorSection title="Common">
-                    <InspectorString object={this.selectedObject} property="name" label="Name" onFinishChange={() => this.editor.graph.refresh()} />
+                    <InspectorString object={this.selectedObject} property="name" label="Name" noUndoRedo={true} onFinishChange={(v, o) => this._handleNameChanged(v, o)} />
                     <InspectorBoolean object={this.state} property="enabled" label="Enabled" noUndoRedo={true} onFinishChange={(v, o) => this._handleEnabledChange(v, o)} />
                 </InspectorSection>
 
                 {super.renderContent()}
             </>
         );
+    }
+
+    /**
+     * Called on the user changed the name of the node.
+     */
+    private _handleNameChanged(name: string, oldName: string): void {
+        undoRedo.push({
+            common: () => {
+                this.forceUpdate();
+                this.editor.graph.refresh();
+            },
+            undo: () => this.selectedObject.name = oldName,
+            redo: () => this.selectedObject.name = name,
+        })
+        this.editor.graph.refresh();
     }
 
     /**
