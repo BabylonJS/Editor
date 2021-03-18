@@ -47,6 +47,11 @@ export interface IInspectorListProps<T> {
     items: IInspectorListItem<T>[] | (() => IInspectorListItem<T>[] | Promise<IInspectorListItem<T>[]>);
 
     /**
+     * Defines wether or not automatic undo/redo should be skipped.
+     */
+     noUndoRedo?: boolean;
+
+    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -218,13 +223,15 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
         this.props.onFinishChange?.(this.props.object[this.props.property], this._initialValue);
 
         // Undo/redo
-        InspectorNotifier.NotifyChange(this.props.object, {
-            caller: this,
-            newValue: item.data,
-            oldValue: this._initialValue,
-            property: this.props.property,
-            onUndoRedo: async () => this.isMounted && this.setState({ selectedItem: await this._getCurrentItem() }),
-        });
+        if (!this.props.noUndoRedo) {
+            InspectorNotifier.NotifyChange(this.props.object, {
+                caller: this,
+                newValue: item.data,
+                oldValue: this._initialValue,
+                property: this.props.property,
+                onUndoRedo: async () => this.isMounted && this.setState({ selectedItem: await this._getCurrentItem() }),
+            });
+        }
 
         this._initialValue = item.data;
     }

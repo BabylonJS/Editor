@@ -45,6 +45,11 @@ export interface IInspectorNumberProps {
     noLabel?: boolean;
 
     /**
+     * Defines wether or not automatic undo/redo should be skipped.
+     */
+     noUndoRedo?: boolean;
+
+    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -287,13 +292,15 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
 
         this.props.onFinishChange?.(value, this._initialValue);
 
-        InspectorNotifier.NotifyChange(this.props.object, {
-            caller: this,
-            newValue: value,
-            oldValue: this._initialValue,
-            property: this.props.property,
-            onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
-        });
+        if (!this.props.noUndoRedo) {
+            InspectorNotifier.NotifyChange(this.props.object, {
+                caller: this,
+                newValue: value,
+                oldValue: this._initialValue,
+                property: this.props.property,
+                onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
+            });
+        }
 
         this._initialValue = value;
     }

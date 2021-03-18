@@ -7,6 +7,7 @@ import { SubMesh, MultiMaterial, Material } from "babylonjs";
 import { Inspector, IObjectInspectorProps } from "../components/inspector";
 
 import { Tools } from "../tools/tools";
+import { undoRedo } from "../tools/undo-redo";
 
 import { Dialog } from "../gui/dialog";
 
@@ -57,7 +58,7 @@ export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
         return (
             <>
                 <h2 style={{ color: "white", textAlign: "center" }}>Selected SubMesh N°{this.selectedObject.materialIndex}</h2>
-                <InspectorList object={this} property="_material" label="Material" items={this.getMaterialsList()} onChange={() => this._handleMaterialChanged()} />
+                <InspectorList object={this} property="_material" label="Material" items={this.getMaterialsList()} noUndoRedo={true} onFinishChange={() => this._handleMaterialChanged()} />
             </>
         );
     }
@@ -75,7 +76,13 @@ export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
             material.subMaterials.push(this.editor.scene!.defaultMaterial);
         }
 
-        mesh.material = material;
+        const oldMaterial = mesh.material;
+        await undoRedo.push({
+            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+            undo: () => mesh.material = oldMaterial,
+            redo: () => mesh.material = material,
+        });
+
         this.forceUpdate();
     }
 
@@ -92,7 +99,14 @@ export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
             return;
         }
 
-        mesh.material.subMaterials[this.selectedObject.materialIndex] = this._material;
+        const material = this._material;
+        const oldMaterial = mesh.material.subMaterials[this.selectedObject.materialIndex];
+
+        undoRedo.push({
+            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+            undo: () => (mesh.material as MultiMaterial).subMaterials[this.selectedObject.materialIndex] = oldMaterial,
+            redo: () => (mesh.material as MultiMaterial).subMaterials[this.selectedObject.materialIndex] = material,
+        });
     }
 }
 

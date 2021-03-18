@@ -37,6 +37,11 @@ export interface IInspectorVector3Props {
     step?: number;
 
     /**
+     * Defines wether or not automatic undo/redo should be skipped.
+     */
+     noUndoRedo?: boolean;
+
+    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -86,6 +91,7 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
                         property="x"
                         label= "X"
                         step={this.props.step}
+                        noUndoRedo={this.props.noUndoRedo}
                         onChange={() => this.props.onChange?.(this.state.value)}
                         onFinishChange={() => this.props.onFinishChange?.(this.state.value)}
                     />
@@ -96,6 +102,7 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
                         property="y"
                         label= "Y"
                         step={this.props.step}
+                        noUndoRedo={this.props.noUndoRedo}
                         onChange={() => this.props.onChange?.(this.state.value)}
                         onFinishChange={() => this.props.onFinishChange?.(this.state.value)}
                     />
@@ -106,6 +113,7 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
                         property="z"
                         label= "Z"
                         step={this.props.step}
+                        noUndoRedo={this.props.noUndoRedo}
                         onChange={() => this.props.onChange?.(this.state.value)}
                         onFinishChange={() => this.props.onFinishChange?.(this.state.value)}
                     />

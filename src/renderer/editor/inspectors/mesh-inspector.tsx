@@ -7,7 +7,7 @@ import * as React from "react";
 import {
     Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion,
     PhysicsImpostor, SceneLoader, MeshLODLevel, GroundMesh,
-    Material,
+    Material, Tools as BabylonTools,
 } from "babylonjs";
 
 import { Inspector } from "../components/inspector";
@@ -26,7 +26,7 @@ import { MeshesAssets } from "../assets/meshes";
 
 import { INodeInspectorState, NodeInspector } from "./node-inspector";
 
-export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMesh, INodeInspectorState> {
+export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMesh, INodeInspectorState> {
     private static _BillboardModes: string[] = [
         "BILLBOARDMODE_NONE", "BILLBOARDMODE_X", "BILLBOARDMODE_Y",
         "BILLBOARDMODE_Z", "BILLBOARDMODE_ALL", "BILLBOARDMODE_USE_POSITION"
@@ -48,7 +48,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundM
             InspectorNotifier.NotifyChange(this._getRotationVector());
         });
 
-        InspectorNotifier.Register(this, this.selectedObject.rotationQuaternion, () => {
+        InspectorNotifier.Register(this, () => this.selectedObject.rotationQuaternion, () => {
             InspectorNotifier.NotifyChange(this._getRotationVector());
         });
     }
@@ -164,13 +164,22 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundM
     private _getRotationInspector(): React.ReactNode {
         this._getRotationVector();
 
-        return <InspectorVector3 object={this} property="_rotation" label={`Rotation ${this.selectedObject.rotationQuaternion ? "(Quaternion)" : ""}`} step={0.01} onChange={() => {
-            if (this.selectedObject.rotationQuaternion) {
-                this.selectedObject.rotationQuaternion.copyFrom(Quaternion.FromEulerVector(this._rotation));
-            } else {
-                this.selectedObject.rotation.copyFrom(this._rotation);
-            }
+        return <InspectorVector3 object={this} property="_rotation" label={`Rotation (Degrees) ${this.selectedObject.rotationQuaternion ? "(Quaternion)" : ""}`} step={0.01} onChange={() => {
+            this._applyRotationVector();
         }} />
+    }
+
+    /**
+     * Applies the rotation vector on the mesh handling both vector and quaternion.
+     */
+    private _applyRotationVector(): void {
+        const rotationRadians = this._getRotationRadians(this._rotation.clone());
+
+        if (this.selectedObject.rotationQuaternion) {
+            this.selectedObject.rotationQuaternion.copyFrom(Quaternion.FromEulerVector(rotationRadians));
+        } else {
+            this.selectedObject.rotation.copyFrom(rotationRadians);
+        }
     }
 
     /**
@@ -183,7 +192,29 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundM
             this._rotation.copyFrom(this.selectedObject.rotation);
         }
 
-        return this._rotation;
+        return this._getRotationDegrees(this._rotation);
+    }
+
+    /**
+     * Converts the given vector3 from radians to degrees.
+     */
+    private _getRotationDegrees(rot: Vector3): Vector3 {
+        rot.x = BabylonTools.ToDegrees(rot.x);
+        rot.y = BabylonTools.ToDegrees(rot.y);
+        rot.z = BabylonTools.ToDegrees(rot.z);
+
+        return rot;
+    }
+
+    /**
+     * Converts the given vector3 from degrees to radians.
+     */
+    private _getRotationRadians(rot: Vector3): Vector3 {
+        rot.x = BabylonTools.ToRadians(rot.x);
+        rot.y = BabylonTools.ToRadians(rot.y);
+        rot.z = BabylonTools.ToRadians(rot.z);
+
+        return rot;
     }
 
     /**

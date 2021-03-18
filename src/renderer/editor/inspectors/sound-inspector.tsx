@@ -18,6 +18,8 @@ import { InspectorBoolean } from "../gui/inspector/boolean";
 
 import { Project } from "../project/project";
 
+import { undoRedo } from "../tools/undo-redo";
+
 export interface ISoundInspectorState {
     /**
      * Defines the current volume of the sound
@@ -70,14 +72,34 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
                 {this._getReaderInspector()}
 
                 <InspectorSection title="Controls">
-                    <InspectorNumber object={this.state} property="volume" label="Volume" min={0} max={1} step={0.01} onChange={(v) => {
+                    <InspectorNumber object={this.state} property="volume" label="Volume" noUndoRedo={true} min={0} max={1} step={0.01} onChange={(v) => {
                         this.selectedObject.setVolume(v);
+                    }} onFinishChange={(v, o) => {
+                        undoRedo.push({
+                            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+                            undo: () => this.selectedObject.setVolume(o),
+                            redo: () => this.selectedObject.setVolume(v),
+                        });
                     }} />
-                    <InspectorNumber object={this.state} property="playbackRate" label="Playback Rate" min={0} max={1} step={0.01} onChange={(v) => {
+
+                    <InspectorNumber object={this.state} property="playbackRate" label="Playback Rate" noUndoRedo={true} min={0} max={1} step={0.01} onChange={(v) => {
                         this.selectedObject.setPlaybackRate(v);
+                    }} onFinishChange={(v, o) => {
+                        undoRedo.push({
+                            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+                            undo: () => this.selectedObject.setPlaybackRate(o),
+                            redo: () => this.selectedObject.setPlaybackRate(v),
+                        });
                     }} />
-                    <InspectorNumber object={this.state} property="rolloffFactor" label="Rolloff Factor" min={0} max={1} step={0.01} onChange={(v) => {
+
+                    <InspectorNumber object={this.state} property="rolloffFactor" label="Rolloff Factor" noUndoRedo={true} min={0} max={1} step={0.01} onChange={(v) => {
                         this.selectedObject.updateOptions({ rolloffFactor: v });
+                    }} onFinishChange={(v, o) => {
+                        undoRedo.push({
+                            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+                            undo: () => this.selectedObject.updateOptions({ rolloffFactor: o }),
+                            redo: () => this.selectedObject.updateOptions({ rolloffFactor: v }),
+                        });
                     }} />
                 </InspectorSection>
 

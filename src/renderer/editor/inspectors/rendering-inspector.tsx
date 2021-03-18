@@ -337,11 +337,9 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
             <InspectorSection title="Default Pipeline">
                 {enable}
 
-                <InspectorNumber object={SceneSettings.DefaultPipeline} property="samples" label="Samples" step={1} min={1} max={32} />
-
                 <InspectorSection title="Anti Aliasing">
                     <InspectorBoolean object={SceneSettings.DefaultPipeline} property="fxaaEnabled" label="FXAA Enabled" />
-                    <InspectorNumber object={SceneSettings.DefaultPipeline.fxaa} property="samples" label="Samples" step={1} min={1} max={32} />
+                    <InspectorNumber object={SceneSettings.DefaultPipeline} property="samples" label="Samples" step={1} min={1} max={32} />
                 </InspectorSection>
 
                 {imageProcessing}
