@@ -86,6 +86,18 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
     }
 
     /**
+     * Forces the update of the component.
+     * @param callback defines the callback called on the update is done.
+     */
+    public forceUpdate(callback?: (() => void) | undefined): void {
+        if (this._isMounted) {
+            super.forceUpdate(callback);
+        } else {
+            this.editor.inspector.forceUpdate(callback);
+        }
+    }
+
+    /**
      * Gets wether or not the component is mounted.
      */
     public get isMounted(): boolean {

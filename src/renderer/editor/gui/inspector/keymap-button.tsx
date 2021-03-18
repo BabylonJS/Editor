@@ -1,7 +1,7 @@
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { Button } from "@blueprintjs/core";
+import { Button, Tooltip } from "@blueprintjs/core";
 
 import { InspectorNotifier } from "./notifier";
 import { AbstractFieldComponent } from "./abstract-field";
@@ -71,15 +71,26 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
      */
     public render(): React.ReactNode {
         const value = this.props.object[this.props.property];
+        const height = this.props.small ? "25px" : "35px";
 
         return (
-            <Button
-                fill={true}
-                small={this.props.small}
-                onClick={() => this._handleButtonClicked()}
-            >
-                {this.state.settingKey ? "Press the key to set" : `${this.props.label}: ${value}(${String.fromCharCode(value)})`}
-            </Button>
+            <div style={{ width: "100%", height }}>
+                <div style={{ width: "30%", height, float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px", overflow: "hidden" }}>
+                    <Tooltip content={this.props.label}>
+                        <span style={{ lineHeight: height, textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
+                    </Tooltip>
+                </div>
+
+                <div style={{ width: "70%", height, float: "left", marginTop: "2px" }}>
+                    <Button
+                        fill={true}
+                        small={this.props.small}
+                        onClick={() => this._handleButtonClicked()}
+                    >
+                        {this.state.settingKey ? "Press the key to set" : `${value} (${String.fromCharCode(value)})`}
+                    </Button>
+                </div>
+            </div>
         );
     }
 

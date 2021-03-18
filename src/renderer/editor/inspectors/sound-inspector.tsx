@@ -76,7 +76,7 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
                         this.selectedObject.setVolume(v);
                     }} onFinishChange={(v, o) => {
                         undoRedo.push({
-                            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+                            common: () => this.forceUpdate(),
                             undo: () => this.selectedObject.setVolume(o),
                             redo: () => this.selectedObject.setVolume(v),
                         });
@@ -86,7 +86,7 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
                         this.selectedObject.setPlaybackRate(v);
                     }} onFinishChange={(v, o) => {
                         undoRedo.push({
-                            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+                            common: () => this.forceUpdate(),
                             undo: () => this.selectedObject.setPlaybackRate(o),
                             redo: () => this.selectedObject.setPlaybackRate(v),
                         });
@@ -96,7 +96,7 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
                         this.selectedObject.updateOptions({ rolloffFactor: v });
                     }} onFinishChange={(v, o) => {
                         undoRedo.push({
-                            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+                            common: () => this.forceUpdate(),
                             undo: () => this.selectedObject.updateOptions({ rolloffFactor: o }),
                             redo: () => this.selectedObject.updateOptions({ rolloffFactor: v }),
                         });

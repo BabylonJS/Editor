@@ -54,7 +54,7 @@ export class NodeInspector<T extends Node, S extends INodeInspectorState> extend
      */
     private _handleEnabledChange(enabled: boolean, wasEnabled: boolean): void {
         undoRedo.push({
-            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+            common: () => this.forceUpdate(),
             undo: () => this.selectedObject.setEnabled(wasEnabled),
             redo: () => this.selectedObject.setEnabled(enabled),
         });

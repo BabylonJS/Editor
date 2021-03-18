@@ -78,12 +78,10 @@ export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
 
         const oldMaterial = mesh.material;
         await undoRedo.push({
-            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+            common: () => this.forceUpdate(),
             undo: () => mesh.material = oldMaterial,
             redo: () => mesh.material = material,
         });
-
-        this.forceUpdate();
     }
 
     /**
@@ -103,7 +101,7 @@ export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
         const oldMaterial = mesh.material.subMaterials[this.selectedObject.materialIndex];
 
         undoRedo.push({
-            common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+            common: () => this.forceUpdate(),
             undo: () => (mesh.material as MultiMaterial).subMaterials[this.selectedObject.materialIndex] = oldMaterial,
             redo: () => (mesh.material as MultiMaterial).subMaterials[this.selectedObject.materialIndex] = material,
         });

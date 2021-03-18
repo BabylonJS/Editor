@@ -63,7 +63,7 @@ export class FreeCameraInspector extends CameraInspector<FreeCamera | Universal
         return (
             <InspectorKeyMapButton object={o} property="value" label={label} onChange={(c) => {
                 undoRedo.push({
-                    common: (step) => step !== "push" && this.editor.inspector.forceUpdate(),
+                    common: () => this.forceUpdate(),
                     undo:() => this.selectedObject[property] = [value],
                     redo: () => this.selectedObject[property] = [c],
                 });

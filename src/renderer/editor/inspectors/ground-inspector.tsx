@@ -152,15 +152,16 @@ export class GroundInspector extends AbstractInspector<GroundMesh, IGroundInspec
         const metadata = this._getGroundMetadata().heightMap;
 
         undoRedo.push({
+            common: () => this.forceUpdate(),
             undo: () => {
                 this.selectedObject.metadata.heightMap = metadata;
                 this._applyGeometry();
-                this.setState({ hasHeightMap: true });
+                this.isMounted && this.setState({ hasHeightMap: true });
             },
             redo: () => {
                 delete this.selectedObject.metadata.heightMap;
                 this._applyGeometry();
-                this.setState({ hasHeightMap: false });
+                this.isMounted && this.setState({ hasHeightMap: false });
             },
         });
     }
