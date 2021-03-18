@@ -338,11 +338,7 @@ export class TextureAssets extends AbstractAssets {
 
             loadPromises.push(new Promise<void>((resolve) => {
                 texture.onLoadObservable.addOnce(() => {
-                    const path = join("files", basename(texture.name));
-
-                    texture.name = path;
-                    if (texture.url) { texture.url = path; }
-
+                    this.configureTexturePath(texture);
                     resolve();
                 });
             }));
@@ -353,6 +349,17 @@ export class TextureAssets extends AbstractAssets {
         }
 
         await Promise.all(loadPromises);
+    }
+
+    /**
+     * Configures the paths of the given texture.
+     * @param texture defines the reference to the texture to configure.
+     */
+    public configureTexturePath(texture: Texture | CubeTexture): void {
+        const path = join("files", basename(texture.name));
+
+        texture.name = path;
+        if (texture.url) { texture.url = path; }
     }
 
     /**
