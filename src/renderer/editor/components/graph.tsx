@@ -359,9 +359,12 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 if (node instanceof InstancedMesh) { node.sourceMesh.removeInstance(node); }
 
                 if (node instanceof Mesh) {
+                    node.doNotSerialize = true;
+                    
                     lods.forEach((lod) => {
                         node.removeLODLevel(lod.mesh!);
                         if (lod.mesh) {
+                            lod.mesh.doNotSerialize = true;
                             this._editor.scene!.removeMesh(lod.mesh);
                         }
                     });
@@ -396,8 +399,13 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 addFunc?.call(caller, node);
 
                 if (node instanceof Mesh) {
+                    node.doNotSerialize = false;
+
                     lods.forEach((lod) => {
-                        if (lod.mesh) { this._editor.scene!.addMesh(lod.mesh); }
+                        if (lod.mesh) {
+                            lod.mesh.doNotSerialize = false;
+                            this._editor.scene!.addMesh(lod.mesh);
+                        }
                         node.addLODLevel(lod.distance, lod.mesh);
                     });
                 }
