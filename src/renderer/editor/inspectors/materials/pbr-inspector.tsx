@@ -120,6 +120,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     <InspectorBoolean object={this.material} property="useMetallnessFromMetallicTextureBlue" label= "Use Metallness From Metallic Texture Blue" />
                     <InspectorBoolean object={this.material} property="useRoughnessFromMetallicTextureAlpha" label= "Use Roughness From Metallic Texture Alpha" />
                     <InspectorBoolean object={this.material} property="useRoughnessFromMetallicTextureGreen" label= "Use Roughness From Metallic Texture Green" />
+                    <InspectorBoolean object={this.material} property="useAmbientOcclusionFromMetallicTextureRed" label= "Use Ambient Occlusion From Metallic Texture Red" />
                     {this._getMetallicWorkflowInspector()}
                     {this._getRoughnessWorkflowInspector()}
                 </InspectorSection>

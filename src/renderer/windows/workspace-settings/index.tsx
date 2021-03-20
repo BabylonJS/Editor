@@ -156,7 +156,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
         preferences.terminalPath = this.state.terminalPath;
         preferences.zoom = this.state.zoom;
         preferences.scalingLevel = this.state.scalingLevel;
-        preferences.positionGizmoSnapping = this.state.positionGizmoSnapping;
+        preferences.positionGizmoSnapping = this.state.positionGizmoSnapping?.slice().sort((a, b) => a - b);
         preferences.plugins = this.state.plugins ?? [];
         preferences.developerMode = this.state.developerMode ?? false;
 

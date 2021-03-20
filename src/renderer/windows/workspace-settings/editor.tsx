@@ -28,7 +28,12 @@ export class EditorSettings extends React.Component<IEditorSettingsProps, IEdito
                         {positionGizmoSnapping.map((p, index) => (
                             <>
                                 <InputGroup key={`position-snapping-${index}`} type="number" style={{ float: "left", width: "calc(100% - 30px)" }} min={0} value={p.toString()} step={0.1} onChange={(e) => {
-                                    positionGizmoSnapping[index] = parseFloat(e.currentTarget.value);
+                                    const value = parseFloat(e.currentTarget.value);
+                                    if (isNaN(value)) {
+                                        return;
+                                    }
+
+                                    positionGizmoSnapping[index] = value;
                                     this.setState({ positionGizmoSnapping });
                                 }} />
                                 <Button key={`remove-snapping-${index}`} text="" icon="remove" style={{ float: "left" }} onClick={() => this._handleRemoveStep(positionGizmoSnapping, index)} />
