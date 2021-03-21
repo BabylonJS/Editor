@@ -105,6 +105,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
 
                 <InspectorSection title="Ambient">
                     <InspectorBoolean object={this.material} property="useAmbientInGrayScale" label= "Use Ambient In Gray Scale" />
+                    <InspectorBoolean object={this.material} property="useAmbientOcclusionFromMetallicTextureRed" label= "Use Ambient Occlusion From Metallic Texture Red" />
                     <InspectorNumber object={this.material} property="ambientTextureStrength" label="Strength" step={0.01} />
                     <InspectorColor object={this.material} property="ambientColor" label="Color" step={0.01} />
                     <InspectorColorPicker object={this.material} property="ambientColor" label="Hex Color" />
@@ -120,7 +121,8 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     <InspectorBoolean object={this.material} property="useMetallnessFromMetallicTextureBlue" label= "Use Metallness From Metallic Texture Blue" />
                     <InspectorBoolean object={this.material} property="useRoughnessFromMetallicTextureAlpha" label= "Use Roughness From Metallic Texture Alpha" />
                     <InspectorBoolean object={this.material} property="useRoughnessFromMetallicTextureGreen" label= "Use Roughness From Metallic Texture Green" />
-                    <InspectorBoolean object={this.material} property="useAmbientOcclusionFromMetallicTextureRed" label= "Use Ambient Occlusion From Metallic Texture Red" />
+                    <InspectorNumber object={this.material} property="indexOfRefraction" label= "Index Of Refraction" min={1} max={3} step={0.01} />
+                    <InspectorNumber object={this.material} property="metallicF0Factor" label= "Metallic F0 Factor" min={0} max={1} step={0.01} />
                     {this._getMetallicWorkflowInspector()}
                     {this._getRoughnessWorkflowInspector()}
                 </InspectorSection>
@@ -188,7 +190,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     this.material.metallic = null;
                     this.setState({ useMetallic: v });
                 }} />
-                <InspectorNumber object={this.material} property="metallic" label="Metallic" step={0.01} />
+                <InspectorNumber object={this.material} property="metallic" label="Metallic" min={0} max={1} step={0.01} />
             </InspectorSection>
         );
     }
@@ -215,7 +217,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     this.material.roughness = null;
                     this.setState({ useRoughness: v });
                 }} />
-                <InspectorNumber object={this.material} property="roughness" label="Roughness" step={0.01} />
+                <InspectorNumber object={this.material} property="roughness" label="Roughness" min={0} max={1} step={0.01} />
             </InspectorSection>
         );
     }

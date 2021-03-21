@@ -1,3 +1,5 @@
+import { Nullable } from "../../../../shared/types";
+
 import * as React from "react";
 
 import { Material, Mesh, SubMesh, Constants } from "babylonjs";
@@ -26,6 +28,21 @@ export class MaterialInspector<T extends Material, S = {}> extends AbstractInspe
         if (o instanceof SubMesh && o.getMaterial() instanceof materialCtor) { return true; }
 
         return false;
+    }
+
+    /**
+     * Returns the material of the given object (material, mesh, sub mesh, etc;).
+     * @param o defines the reference to the object to get its material.
+     */
+    public static GetMaterialOfObject(o: any): Nullable<Material> {
+        // Selected a mterial.
+        if (o instanceof Material) { return o; }
+        // Selected a mesh
+        if (o instanceof Mesh && o.material instanceof Material) { return o.material; }
+        // Selected a submesh
+        if (o instanceof SubMesh && o.getMaterial() instanceof Material) { return o.getMaterial(); }
+
+        return null;
     }
 
     private static _AlphaModes: string[] = [
