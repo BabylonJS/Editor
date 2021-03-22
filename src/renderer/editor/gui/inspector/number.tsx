@@ -6,7 +6,9 @@ import * as React from "react";
 import Slider from "antd/lib/slider";
 import { InputGroup, Tooltip } from "@blueprintjs/core";
 
+import { InspectorUtils } from "./utils";
 import { InspectorNotifier } from "./notifier";
+
 import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorNumberProps {
@@ -72,6 +74,9 @@ export interface IInspectorNumberState {
 export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProps, IInspectorNumberState> {
     private _mouseMoveListener: Nullable<(ev: MouseEvent) => any> = null;
     private _mouseUpListener: Nullable<(ev: MouseEvent) => any> = null;
+
+    private _inspectorName: Nullable<string> = null;
+    private _input: Nullable<HTMLInputElement> = null;
 
     private _impliedStep: number;
     private _precision: number;
@@ -173,9 +178,10 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
                         type="number"
                         step={this.props.step}
                         onBlur={() => this._handleValueFinishChanged()}
-                        onKeyDown={(e) => e.key === "Enter" && this._handleValueFinishChanged()}
+                        onKeyDown={(e) => e.key === "Enter" && this._handleEnterKeyPressed()}
                         onChange={(e) => this._handleValueChanged(e.target.value, false)}
                         onMouseDown={(ev) => this._handleInputClicked(ev)}
+                        inputRef={(ref) => this._input = ref}
                     />
                 </div>
             </div>
@@ -187,6 +193,8 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
      */
     public componentDidMount(): void {
         super.componentDidMount?.();
+
+        this._inspectorName = InspectorUtils.CurrentInspectorName;
 
         InspectorNotifier.Register(this, this.props.object, () => {
             this.setState({ value: this.props.object[this.props.property] });
@@ -298,10 +306,25 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
                 newValue: value,
                 oldValue: this._initialValue,
                 property: this.props.property,
-                onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
+                onUndoRedo: () => {
+                    this.isMounted && this.setState({ value: this.props.object[this.props.property] });
+                    InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+                },
             });
+
         }
 
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+
         this._initialValue = value;
+    }
+
+    /**
+     * Called on the user presses the enter key.
+     */
+    private _handleEnterKeyPressed(): void {
+        this._input?.blur();
+
+        this._handleValueFinishChanged();
     }
 }

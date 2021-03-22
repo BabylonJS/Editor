@@ -41,6 +41,7 @@ export class InspectorUtils {
     private static _InspectorConfigurations: IStringDictionary<IInspectorPreferences> = InspectorUtils.GetPreferencesFromLocalStorage();
     private static _InspectorFilters: IStringDictionary<IInspectorComponentSearch[]> = { };
     private static _InspectorScrolls: IStringDictionary<number> = { };
+    private static _InspectorChangedListeners: IStringDictionary<() => void> = { };
 
     /**
      * Sets the current inspector being mounted.
@@ -194,5 +195,34 @@ export class InspectorUtils {
             // Catch silently.
             return { };
         }
+    }
+
+    /**
+     * Registers the given callback called on a property ot the selected object changed.
+     * @param inspectorName defines the name of the inspector to register.
+     * @param callback defines the callback called on a property changed on the selected object.
+     */
+    public static RegisterInspectorChangedListener(inspectorName: string, callback: () => void): void {
+        this.UnregisterInspectorChangedListener(inspectorName);
+        this._InspectorChangedListeners[inspectorName] = callback;
+    }
+
+    /**
+     * Unregisters the callback of the given listener previously used to get notified when a property
+     * of the selected object changed.
+     * @param inspectorName defines the name of the inspector to remove its listener.
+     */
+    public static UnregisterInspectorChangedListener(inspectorName: string): void {
+        if (this._InspectorChangedListeners[inspectorName]) {
+            delete this._InspectorChangedListeners[inspectorName];
+        }
+    }
+
+    /**
+     * Notifies the given inspector that the selected object has changed.
+     * @param inspectorName defines the name of the inspector to notify.
+     */
+    public static NotifyInspectorChanged(inspectorName: string): void {
+        this._InspectorChangedListeners[inspectorName]?.();
     }
 }

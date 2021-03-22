@@ -2,20 +2,20 @@ import * as React from "react";
 
 import { Scene } from "babylonjs";
 
-import { Inspector } from "../components/inspector";
+import { Inspector } from "../../components/inspector";
 
-import { InspectorList } from "../gui/inspector/list";
-import { InspectorColor } from "../gui/inspector/color";
-import { InspectorNumber } from "../gui/inspector/number";
-import { InspectorBoolean } from "../gui/inspector/boolean";
-import { InspectorSection } from "../gui/inspector/section";
-import { InspectorVector3 } from "../gui/inspector/vector3";
-import { InspectorColorPicker } from "../gui/inspector/color-picker";
+import { InspectorList } from "../../gui/inspector/list";
+import { InspectorColor } from "../../gui/inspector/color";
+import { InspectorNumber } from "../../gui/inspector/number";
+import { InspectorBoolean } from "../../gui/inspector/boolean";
+import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorVector3 } from "../../gui/inspector/vector3";
+import { InspectorColorPicker } from "../../gui/inspector/color-picker";
 
-import { Project } from "../project/project";
-import { WorkSpace } from "../project/workspace";
+import { Project } from "../../project/project";
+import { WorkSpace } from "../../project/workspace";
 
-import { IScriptInspectorState, ScriptInspector } from "./script-inspector";
+import { IScriptInspectorState, ScriptInspector } from "../script-inspector";
 
 export class SceneInspector extends ScriptInspector<Scene, IScriptInspectorState> {
     private static _FogModes: string[] = ["FOGMODE_NONE", "FOGMODE_LINEAR", "FOGMODE_EXP", "FOGMODE_EXP2"];

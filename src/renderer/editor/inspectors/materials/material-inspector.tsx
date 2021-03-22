@@ -6,13 +6,16 @@ import { Material, Mesh, SubMesh, Constants } from "babylonjs";
 
 import { InspectorSection } from "../../gui/inspector/section";
 
+import { MaterialAssets } from "../../assets/materials";
+
 import { Inspector, IObjectInspectorProps } from "../../components/inspector";
+
+import { InspectorList } from "../../gui/inspector/list";
 import { InspectorString } from "../../gui/inspector/string";
 import { InspectorNumber } from "../../gui/inspector/number";
+import { InspectorBoolean } from "../../gui/inspector/boolean";
 
 import { AbstractInspector } from "../abstract-inspector";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
-import { InspectorList } from "../../gui/inspector/list";
 
 export class MaterialInspector<T extends Material, S = {}> extends AbstractInspector<Material | Mesh | SubMesh, S> {
     /**
@@ -70,6 +73,15 @@ export class MaterialInspector<T extends Material, S = {}> extends AbstractInspe
         } else if (this.selectedObject instanceof SubMesh) {
             this.material = this.selectedObject.getMaterial() as T;
         }
+    }
+
+    /**
+     * Called on a property of the selected object has changed.
+     */
+    public onPropertyChanged(): void {
+        super.onPropertyChanged();
+
+        this.editor.assets.refresh(MaterialAssets, this.material);
     }
 
     /**

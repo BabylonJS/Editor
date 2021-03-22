@@ -1,24 +1,24 @@
 import { join } from "path";
 
-import { Nullable } from "../../../shared/types";
+import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
 import { Sound } from "babylonjs";
 
-import { Inspector, IObjectInspectorProps } from "../components/inspector";
+import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { AbstractInspector } from "./abstract-inspector";
+import { AbstractInspector } from "../abstract-inspector";
 
-import { InspectorList } from "../gui/inspector/list";
-import { InspectorNumber } from "../gui/inspector/number";
-import { InspectorButton } from "../gui/inspector/button";
-import { InspectorSection } from "../gui/inspector/section";
-import { InspectorBoolean } from "../gui/inspector/boolean";
+import { InspectorList } from "../../gui/inspector/list";
+import { InspectorNumber } from "../../gui/inspector/number";
+import { InspectorButton } from "../../gui/inspector/button";
+import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorBoolean } from "../../gui/inspector/boolean";
 
-import { Project } from "../project/project";
+import { Project } from "../../project/project";
 
-import { undoRedo } from "../tools/undo-redo";
+import { undoRedo } from "../../tools/undo-redo";
 
 export interface ISoundInspectorState {
     /**

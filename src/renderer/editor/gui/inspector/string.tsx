@@ -3,7 +3,9 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { InputGroup, Tooltip } from "@blueprintjs/core";
 
+import { InspectorUtils } from "./utils";
 import { InspectorNotifier } from "./notifier";
+
 import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorStringProps {
@@ -49,6 +51,8 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
     private _input: Nullable<HTMLInputElement> = null;
     private _initialValue: string;
 
+    private _inspectorName: Nullable<string> = null;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -93,6 +97,15 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
     }
 
     /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        super.componentDidMount?.();
+
+        this._inspectorName = InspectorUtils.CurrentInspectorName;
+    }
+
+    /**
      * Called on the value changed in the input.
      */
     private _handleValueChanged(value: string): void {
@@ -122,9 +135,14 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
                 property: this.props.property,
                 oldValue: this._initialValue,
                 newValue: this.state.value,
-                onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
+                onUndoRedo: () => {
+                    this.isMounted && this.setState({ value: this.props.object[this.props.property] });
+                    InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+                },
             });
         }
+
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
 
         this._initialValue = this.state.value;
     }

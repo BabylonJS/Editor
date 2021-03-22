@@ -3,7 +3,9 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { Alignment, Switch } from "@blueprintjs/core";
 
+import { InspectorUtils } from "./utils";
 import { InspectorNotifier } from "./notifier";
+
 import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorBooleanProps<T> {
@@ -52,6 +54,8 @@ export interface IInspectorBooleanState {
 export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBooleanProps<T>, IInspectorBooleanState> {
     private _input: Nullable<HTMLInputElement> = null;
     private _initialValue: boolean;
+
+    private _inspectorName: Nullable<string> = null;
 
     /**
      * Constructor.
@@ -111,6 +115,8 @@ export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBoolea
     public componentDidMount(): void {
         super.componentDidMount?.();
 
+        this._inspectorName = InspectorUtils.CurrentInspectorName;
+
         InspectorNotifier.Register(this, this.props.object, () => {
             this.setState({ value: this.props.object[this.props.property] });
         });
@@ -145,9 +151,14 @@ export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBoolea
                 newValue: value,
                 oldValue: this._initialValue,
                 property: this.props.property,
-                onUndoRedo: () => this.isMounted && this.setState({ value: this.props.object[this.props.property] }),
+                onUndoRedo: () => {
+                    this.isMounted && this.setState({ value: this.props.object[this.props.property] });
+                    InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+                },
             });
         }
+
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
 
         this._initialValue = value;
     }

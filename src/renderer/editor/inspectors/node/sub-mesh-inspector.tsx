@@ -1,21 +1,21 @@
-import { Nullable } from "../../../shared/types";
+import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
 import { SubMesh, MultiMaterial, Material } from "babylonjs";
 
-import { Inspector, IObjectInspectorProps } from "../components/inspector";
+import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { Tools } from "../tools/tools";
-import { undoRedo } from "../tools/undo-redo";
+import { Tools } from "../../tools/tools";
+import { undoRedo } from "../../tools/undo-redo";
 
-import { Dialog } from "../gui/dialog";
+import { Dialog } from "../../gui/dialog";
 
-import { InspectorList } from "../gui/inspector/list";
-import { InspectorButton } from "../gui/inspector/button";
-import { InspectorSection } from "../gui/inspector/section";
+import { InspectorList } from "../../gui/inspector/list";
+import { InspectorButton } from "../../gui/inspector/button";
+import { InspectorSection } from "../../gui/inspector/section";
 
-import { AbstractInspector } from "./abstract-inspector";
+import { AbstractInspector } from "../abstract-inspector";
 
 export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
     private _material: Nullable<Material> = null;

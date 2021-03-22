@@ -3,7 +3,9 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { Button, Tooltip } from "@blueprintjs/core";
 
+import { InspectorUtils } from "./utils";
 import { InspectorNotifier } from "./notifier";
+
 import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorKeyMapButtonProps<T> {
@@ -46,6 +48,7 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
     private _mouseDownListener: Nullable<(ev: MouseEvent) => any> = null;
 
     private _initialValue: number;
+    private _inspectorName: Nullable<string> = null;
 
     /**
      * Constructor.
@@ -100,6 +103,8 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
     public componentDidMount(): void {
         super.componentDidMount();
 
+        this._inspectorName = InspectorUtils.CurrentInspectorName;
+
         InspectorNotifier.Register(this, this.props.object, () => {
             this.forceUpdate();
         });
@@ -151,11 +156,16 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
                 newValue: code,
                 oldValue: this._initialValue,
                 property: this.props.property,
-                onUndoRedo: () => this.isMounted && this.forceUpdate(),
+                onUndoRedo: () => {
+                    this.isMounted && this.forceUpdate();
+                    InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+                },
             });
         }
 
         this._initialValue = code;
+
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
 
         this.setState({ settingKey: false });
     }

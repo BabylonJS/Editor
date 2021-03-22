@@ -1,9 +1,12 @@
+import { Nullable } from "../../../../shared/types";
+
 import * as React from "react";
 import { SketchPicker } from "react-color";
 import { Popover } from "@blueprintjs/core";
 
 import { Color3, Color4, IColor4Like } from "babylonjs";
 
+import { InspectorUtils } from "./utils";
 import { InspectorNotifier } from "./notifier";
 
 export interface IInspectorColorPickerProps {
@@ -53,6 +56,8 @@ export interface IInspectorColorPickerState {
 }
 
 export class InspectorColorPicker extends React.Component<IInspectorColorPickerProps, IInspectorColorPickerState> {
+    private _inspectorName: Nullable<string> = null;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -127,6 +132,8 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
      * Called on the component did mount.
      */
      public componentDidMount(): void {
+        this._inspectorName = InspectorUtils.CurrentInspectorName;
+
         InspectorNotifier.Register(this, this.props.object[this.props.property], () => {
             this.setState({
                 value: this.props.object[this.props.property],
@@ -177,6 +184,8 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
         this._handleColorChange(color);
 
         this.props.onFinishChange?.(this.props.object);
+
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
     }
 
     /**

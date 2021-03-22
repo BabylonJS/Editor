@@ -2,18 +2,18 @@ import * as React from "react";
 
 import { Scene, DepthOfFieldEffectBlurLevel, ImageProcessingConfiguration } from "babylonjs";
 
-import { Inspector, IObjectInspectorProps } from "../components/inspector";
+import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { InspectorList } from "../gui/inspector/list";
-import { InspectorColor } from "../gui/inspector/color";
-import { InspectorNumber } from "../gui/inspector/number";
-import { InspectorSection } from "../gui/inspector/section";
-import { InspectorBoolean } from "../gui/inspector/boolean";
-import { InspectorVector2 } from "../gui/inspector/vector2";
+import { InspectorList } from "../../gui/inspector/list";
+import { InspectorColor } from "../../gui/inspector/color";
+import { InspectorNumber } from "../../gui/inspector/number";
+import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorBoolean } from "../../gui/inspector/boolean";
+import { InspectorVector2 } from "../../gui/inspector/vector2";
 
-import { SceneSettings } from "../scene/settings";
+import { SceneSettings } from "../../scene/settings";
 
-import { AbstractInspector } from "./abstract-inspector";
+import { AbstractInspector } from "../abstract-inspector";
 
 export interface IRendererInspectorState {
     /**

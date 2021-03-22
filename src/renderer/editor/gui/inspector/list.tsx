@@ -5,7 +5,9 @@ import * as React from "react";
 import { Suggest } from "@blueprintjs/select";
 import { MaybeElement, MenuItem, Position, Tooltip } from "@blueprintjs/core";
 
+import { InspectorUtils } from "./utils";
 import { InspectorNotifier } from "./notifier";
+
 import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorListItem<T> {
@@ -82,6 +84,7 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
     public static readonly ListSuggest = Suggest.ofType<IInspectorListItem<any>>();
 
     private _initialValue: T;
+    private _inspectorName: Nullable<string> = null;
 
     /**
      * Constructor.
@@ -176,6 +179,8 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
             selectedItem: await this._getCurrentItem(),
         });
 
+        this._inspectorName = InspectorUtils.CurrentInspectorName;
+
         InspectorNotifier.Register(this, this.props.object, async () => {
             this.setState({ selectedItem: await this._getCurrentItem() });
         });
@@ -229,9 +234,14 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
                 newValue: item.data,
                 oldValue: this._initialValue,
                 property: this.props.property,
-                onUndoRedo: async () => this.isMounted && this.setState({ selectedItem: await this._getCurrentItem() }),
+                onUndoRedo: async () => {
+                    this.isMounted && this.setState({ selectedItem: await this._getCurrentItem() });
+                    InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+                },
             });
         }
+
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
 
         this._initialValue = item.data;
     }

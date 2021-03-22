@@ -1,6 +1,6 @@
 import { join, dirname } from "path";
 
-import { Nullable } from "../../../shared/types";
+import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
@@ -10,21 +10,21 @@ import {
     Material, Tools as BabylonTools,
 } from "babylonjs";
 
-import { Inspector } from "../components/inspector";
+import { Inspector } from "../../components/inspector";
 
-import { InspectorNumber } from "../gui/inspector/number";
-import { InspectorButton } from "../gui/inspector/button";
-import { InspectorSection } from "../gui/inspector/section";
-import { InspectorBoolean } from "../gui/inspector/boolean";
-import { InspectorVector3 } from "../gui/inspector/vector3";
-import { InspectorNotifier } from "../gui/inspector/notifier";
-import { IInspectorListItem, InspectorList } from "../gui/inspector/list";
+import { InspectorNumber } from "../../gui/inspector/number";
+import { InspectorButton } from "../../gui/inspector/button";
+import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorBoolean } from "../../gui/inspector/boolean";
+import { InspectorVector3 } from "../../gui/inspector/vector3";
+import { InspectorNotifier } from "../../gui/inspector/notifier";
+import { IInspectorListItem, InspectorList } from "../../gui/inspector/list";
 
-import { Tools } from "../tools/tools";
+import { Tools } from "../../tools/tools";
 
-import { MeshesAssets } from "../assets/meshes";
+import { MeshesAssets } from "../../assets/meshes";
 
-import { INodeInspectorState, NodeInspector } from "./node-inspector";
+import { INodeInspectorState, NodeInspector } from "../node-inspector";
 
 export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMesh, INodeInspectorState> {
     private static _BillboardModes: string[] = [

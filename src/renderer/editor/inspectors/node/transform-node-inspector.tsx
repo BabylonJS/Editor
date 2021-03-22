@@ -2,12 +2,12 @@ import * as React from "react";
 
 import { TransformNode } from "babylonjs";
 
-import { Inspector, IObjectInspectorProps } from "../components/inspector";
+import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { InspectorSection } from "../gui/inspector/section";
-import { InspectorVector3 } from "../gui/inspector/vector3";
+import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorVector3 } from "../../gui/inspector/vector3";
 
-import { INodeInspectorState, NodeInspector } from "./node-inspector";
+import { INodeInspectorState, NodeInspector } from "../node-inspector";
 
 export class TransformNodeInspector extends NodeInspector<TransformNode, INodeInspectorState> {
     /**

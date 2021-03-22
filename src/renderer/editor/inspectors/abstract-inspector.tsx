@@ -11,7 +11,7 @@ import { TextureAssets } from "../assets/textures";
 import { MaterialAssets } from "../assets/materials";
 
 import { IInspectorListItem } from "../gui/inspector/list";
-import { InspectorUtils } from "../gui/inspector/preferences";
+import { InspectorUtils } from "../gui/inspector/utils";
 
 import { Editor } from "../editor";
 
@@ -73,6 +73,11 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         const scrollTop = InspectorUtils.GetInspectorScroll(this._inspectorName);
         setTimeout(() => this._inspectorDiv?.scroll({ top: scrollTop, behavior: "smooth" }), 0);
 
+        // Listen to events
+        InspectorUtils.RegisterInspectorChangedListener(this._inspectorName, () => {
+            this.onPropertyChanged();
+        });
+
         this.resize();
     }
 
@@ -83,6 +88,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         this._isMounted = false;
 
         InspectorUtils.RegisterInspectorScroll(this._inspectorName, this._inspectorDiv?.scrollTop ?? 0);
+        InspectorUtils.UnregisterInspectorChangedListener(this._inspectorName);
     }
 
     /**
@@ -119,6 +125,13 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
      * Renders the content of the inspector.
      */
     public abstract renderContent(): React.ReactNode;
+
+    /**
+     * Called on a property of the selected object has changed.
+     */
+    public onPropertyChanged(): void {
+
+    }
 
     /**
      * Returns the list of available textures in the assets to be drawn.

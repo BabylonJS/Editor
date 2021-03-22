@@ -2,7 +2,9 @@ import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
-import { DirectionalLight, SpotLight, PointLight, ShadowGenerator, CascadedShadowGenerator } from "babylonjs";
+import {
+    DirectionalLight, SpotLight, PointLight, ShadowGenerator, CascadedShadowGenerator,
+} from "babylonjs";
 
 import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
@@ -22,6 +24,10 @@ export interface IShadowInspectorState {
      * Defines wether or not shadows are enabled.
      */
     enabled: boolean;
+    /**
+     * Defines the current size of the shadow map.
+     */
+    shadowMapSize: Nullable<number>;
 }
 
 export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotLight | PointLight, IShadowInspectorState> {
@@ -39,6 +45,7 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
 
         this.state = {
             enabled: (this.selectedObject.getShadowGenerator() ?? null) !== null,
+            shadowMapSize: this.selectedObject.getShadowGenerator()?.getShadowMap()?.getSize()?.width ?? null,
         };
     }
 
@@ -76,6 +83,16 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
                 <InspectorBoolean object={this.shadowGenerator} property="enableSoftTransparentShadow" label="Enable Soft Transparent Shadow" />
                 <InspectorBoolean object={this.shadowGenerator} property="transparencyShadow" label="Enable Transparency Shadow" />
                 <InspectorNumber object={this.shadowGenerator.getShadowMap()} property="refreshRate" label="Refresh Rate" min={0} step={1} />
+                <InspectorList object={this.state} property="shadowMapSize" label="Size" items={[
+                    { label: "256", data: 256 },
+                    { label: "512", data: 512 },
+                    { label: "1024", data: 1024 },
+                    { label: "2048", data: 2048 },
+                    { label: "4096", data: 4096 },
+                ]} onChange={(v: number) => {
+                    this.shadowGenerator?.getShadowMap()?.resize(v);
+                    this.setState({ shadowMapSize: v });
+                }} />
             </InspectorSection>
         );
     }

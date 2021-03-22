@@ -1,26 +1,26 @@
 import { extname } from "path";
 
-import { Nullable } from "../../../shared/types";
+import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
 import { GroundMesh, VertexData, Texture, Color3 } from "babylonjs";
 
-import { Inspector, IObjectInspectorProps } from "../components/inspector";
+import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { Alert } from "../gui/alert";
+import { Alert } from "../../gui/alert";
 
-import { InspectorColor } from "../gui/inspector/color";
-import { InspectorNumber } from "../gui/inspector/number";
-import { InspectorButton } from "../gui/inspector/button";
-import { InspectorSection } from "../gui/inspector/section";
+import { InspectorColor } from "../../gui/inspector/color";
+import { InspectorNumber } from "../../gui/inspector/number";
+import { InspectorButton } from "../../gui/inspector/button";
+import { InspectorSection } from "../../gui/inspector/section";
 
-import { Tools } from "../tools/tools";
-import { undoRedo } from "../tools/undo-redo";
-import { IGroundMetadata } from "../tools/types";
+import { Tools } from "../../tools/tools";
+import { undoRedo } from "../../tools/undo-redo";
+import { IGroundMetadata } from "../../tools/types";
 
-import { AbstractInspector } from "./abstract-inspector";
-import { InspectorColorPicker } from "../gui/inspector/color-picker";
+import { AbstractInspector } from "../abstract-inspector";
+import { InspectorColorPicker } from "../../gui/inspector/color-picker";
 
 export interface IGroundInspectorState {
     /**

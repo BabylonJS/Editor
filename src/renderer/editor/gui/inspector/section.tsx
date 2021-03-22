@@ -3,7 +3,7 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { Callout, Divider, MaybeElement, Icon, H4 } from "@blueprintjs/core";
 
-import { InspectorUtils } from "./preferences";
+import { InspectorUtils } from "./utils";
 
 export interface IInspectorSectionProps {
     /**

@@ -58,15 +58,15 @@ import { Console } from "./components/console";
 import "./gui/augmentations/index";
 
 // Inspectors
-import "./inspectors/scene-inspector";
-import "./inspectors/rendering-inspector";
+import "./inspectors/scene/scene-inspector";
+import "./inspectors/scene/rendering-inspector";
 
 import "./inspectors/node-inspector";
-import "./inspectors/mesh-inspector";
-import "./inspectors/transform-node-inspector";
-import "./inspectors/sub-mesh-proxy-inspector";
-import "./inspectors/sub-mesh-inspector";
-import "./inspectors/ground-inspector";
+import "./inspectors/node/mesh-inspector";
+import "./inspectors/node/transform-node-inspector";
+import "./inspectors/node/sub-mesh-proxy-inspector";
+import "./inspectors/node/sub-mesh-inspector";
+import "./inspectors/node/ground-inspector";
 
 import "./inspectors/lights/light-inspector";
 import "./inspectors/lights/directional-light-inspector";
@@ -93,7 +93,7 @@ import "./inspectors/textures/texture-inspector";
 import "./inspectors/particle-systems/particle-system-inspector";
 import "./inspectors/particle-systems/particle-system-gradients-inspector";
 
-import "./inspectors/sound-inspector";
+import "./inspectors/sound/sound-inspector";
 
 // Assets
 import { MeshesAssets } from "./assets/meshes";

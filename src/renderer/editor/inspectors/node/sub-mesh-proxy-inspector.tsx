@@ -2,11 +2,11 @@ import * as React from "react";
 
 import { SubMesh } from "babylonjs";
 
-import { Inspector } from "../components/inspector";
+import { Inspector } from "../../components/inspector";
 
-import { Tools } from "../tools/tools";
+import { Tools } from "../../tools/tools";
 
-import { AbstractInspector } from "./abstract-inspector";
+import { AbstractInspector } from "../abstract-inspector";
 import { MeshInspector } from "./mesh-inspector";
 
 export class SubMeshProxyInspector extends AbstractInspector<SubMesh, { }> {
