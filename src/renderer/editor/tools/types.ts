@@ -34,6 +34,12 @@ export interface IEditorPreferences {
      */
     positionGizmoSnapping?: number[];
     /**
+     * Defines wether or not an overlay should be drawn on the user puts his mouse
+     * over an element in the preview.
+     */
+    noOverlayOnDrawElement?: boolean;
+
+    /**
      * Defines the list of all registered plugins for the editor.
      */
     plugins?: Undefinable<IRegisteredPlugin[]>;

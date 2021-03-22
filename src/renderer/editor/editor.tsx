@@ -285,6 +285,8 @@ export class Editor {
     private _closing: boolean = false;
     private _pluginWindows: number[] = [];
 
+    private _preferences: Nullable<IEditorPreferences> = null;
+
     /**
      * Defines the current version of the layout.
      */
@@ -684,7 +686,7 @@ export class Editor {
      * Returns the current settings of the editor.
      */
     public getPreferences(): IEditorPreferences {
-        return Tools.GetEditorPreferences();
+        return this._preferences ?? Tools.GetEditorPreferences();
     }
 
     /**
@@ -936,7 +938,7 @@ export class Editor {
             this.inspector.setSelectedObject(o);
             this.preview.gizmo.setAttachedNode(o);
             
-            if (ev.target !== this.graph) { this.graph.setSelected(o); }
+            if (ev.target !== this.graph) { this.graph.setSelected(o, ev.userInfo.ctrlDown); }
         });
         this.selectedSubMeshObservable.add((o, ev) => {
             this.inspector.setSelectedObject(o);
@@ -1178,18 +1180,24 @@ export class Editor {
      * @hidden
      */
     public async _applyPreferences(): Promise<void> {
-        const preferences = this.getPreferences();
+        this._preferences = null;
+        this._preferences = this.getPreferences();
 
-        remote.getCurrentWebContents()?.setZoomFactor(parseFloat(preferences.zoom ?? "1"));
-        this.engine?.setHardwareScalingLevel(preferences.scalingLevel ?? 1);
+        remote.getCurrentWebContents()?.setZoomFactor(parseFloat(this._preferences.zoom ?? "1"));
+        this.engine?.setHardwareScalingLevel(this._preferences.scalingLevel ?? 1);
 
         // Gizmo steps
-        if (preferences.positionGizmoSnapping) {
-            this.preview?.setState({ availableGizmoSteps: preferences.positionGizmoSnapping });
+        if (this._preferences.positionGizmoSnapping) {
+            this.preview?.setState({ availableGizmoSteps: this._preferences.positionGizmoSnapping });
+        }
+
+        // Picker
+        if (this.preview?.picker) {
+            this.preview.picker.drawOverlayOnOverElement = !this._preferences.noOverlayOnDrawElement;
         }
 
         // Plugins
-        const plugins = preferences.plugins ?? [];
+        const plugins = this._preferences.plugins ?? [];
         const pluginToolbars: IPluginToolbar[] = [];
 
         for (const p in Editor.LoadedExternalPlugins) {
@@ -1243,7 +1251,7 @@ export class Editor {
         // Devtools
         await new Promise<void>((resolve) => {
             ipcRenderer.once(IPCResponses.EnableDevTools, () => resolve());
-            ipcRenderer.send(IPCRequests.EnableDevTools, preferences.developerMode);
+            ipcRenderer.send(IPCRequests.EnableDevTools, this._preferences!.developerMode);
         });
     }
 }

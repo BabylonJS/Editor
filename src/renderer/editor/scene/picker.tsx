@@ -23,6 +23,10 @@ export class ScenePicker {
      * Defines the reference to the scene icons.
      */
     public icons: SceneIcons;
+    /**
+     * Defines wether or not an overlay is drawn on the elements over the user's mouse.
+     */
+    public drawOverlayOnOverElement: boolean = true;
     
     private _editor: Editor;
 
@@ -36,6 +40,8 @@ export class ScenePicker {
     public constructor(editor: Editor) {
         this._editor = editor;
         this.icons = new SceneIcons(editor);
+
+        this.drawOverlayOnOverElement = !(editor.getPreferences().noOverlayOnDrawElement ?? false);
 
         this._bindCanvasEvents();
     }
@@ -142,7 +148,9 @@ export class ScenePicker {
                 }
 
                 if (object instanceof Node) {
-                    this._editor.selectedNodeObservable.notifyObservers(object);
+                    this._editor.selectedNodeObservable.notifyObservers(object, undefined, undefined, undefined, {
+                        ctrlDown: ev.ctrlKey || ev.metaKey,
+                    });
                 } else if (object instanceof Sound) {
                     this._editor.selectedSoundObservable.notifyObservers(object);
                 } else if (object instanceof ParticleSystem) {
@@ -236,8 +244,12 @@ export class ScenePicker {
         if (object instanceof AbstractMesh) {
             object.showBoundingBox = true;
             object.showSubMeshesBoundingBox = true;
-            object.renderOverlay = true;
-            object.overlayAlpha = 0.3;
+
+            if (this.drawOverlayOnOverElement) {
+                object.renderOverlay = true;
+                object.overlayAlpha = 0.3;
+            }
+
             this._lastSelectedNode = object;
         }
 

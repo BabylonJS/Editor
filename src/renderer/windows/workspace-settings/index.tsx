@@ -159,6 +159,7 @@ export default class WorkspaceSettingsWindow extends React.Component<{ }, IWorks
         preferences.positionGizmoSnapping = this.state.positionGizmoSnapping?.slice().sort((a, b) => a - b);
         preferences.plugins = this.state.plugins ?? [];
         preferences.developerMode = this.state.developerMode ?? false;
+        preferences.noOverlayOnDrawElement = this.state.noOverlayOnDrawElement ?? false;
 
         localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(preferences));
 

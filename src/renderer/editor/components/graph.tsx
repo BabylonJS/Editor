@@ -189,8 +189,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Selecs the given node in the graph.
      * @param node the node to select in the graph.
+     * @param appendToSelected defines wether or not the selected node should be appended to the currently selected nodes.
      */
-    public setSelected(node: Node | IParticleSystem | Sound): void {
+    public setSelected(node: Node | IParticleSystem | Sound, appendToSelected?: boolean): void {
         let expanded = this.state.expandedNodeIds?.slice();
         if (expanded) {
             let parent: Nullable<Node>;
@@ -212,8 +213,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         this.lastSelectedObject = node;
 
+        const id = node instanceof Sound ? node.metadata?.id : node.id;
+
         this.setState({
-            selectedNodeIds: [node instanceof Sound ? node.metadata?.id : node.id],
+            selectedNodeIds: (appendToSelected ? (this.state.selectedNodeIds ?? []) : []).concat([id]),
             expandedNodeIds: expanded ?? [],
         });
     }
@@ -226,6 +229,22 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         this.refresh(() => {
             setTimeout(() => this.setSelected(node));
         });
+    }
+
+    /**
+     * Returns the list of all selected nodes (node, particle system, sound).
+     */
+    public getAllSelected(): (Node | IParticleSystem | Sound)[] {
+        const result:(Node | IParticleSystem | Sound)[] = [];
+        const selectedIds = this.state.selectedNodeIds ?? [];
+        selectedIds.forEach((sid) => {
+            const node = this._getNodeById(sid);
+            if (node) {
+                result.push(node);
+            }
+        });
+
+        return result;
     }
 
     /**
