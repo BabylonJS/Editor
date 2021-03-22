@@ -5,7 +5,7 @@ import "../../../module";
 
 import {
     Engine, Scene, TargetCamera, Vector3, Color4, HemisphericLight, Mesh, Nullable,
-    Material, SceneLoader, Tools, SerializationHelper,
+    Material, SceneLoader, Tools, SerializationHelper, CubeTexture,
 } from "babylonjs";
 
 import "babylonjs-materials";
@@ -98,6 +98,9 @@ class OffscreenAssets {
         this.camera.minZ = 0.1;
         
         this.light = new HemisphericLight("AssetsHelperLight", new Vector3(0, 1, 0), this.scene);
+
+        const texture = CubeTexture.CreateFromPrefilteredData("../../../../../../assets/textures/studio.env", this.scene);
+        this.scene.environmentTexture = texture;
     }
 
     /**

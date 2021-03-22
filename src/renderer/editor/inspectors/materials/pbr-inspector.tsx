@@ -39,6 +39,14 @@ export interface IPBRMaterialInspectorState {
      * Defines wether or not roughness is used by sheen.
      */
     useSheenRoughness: boolean;
+    /**
+     * Defines wether or not sub surface translucency is enabled.
+     */
+    subSurfaceTranslucencyEnabled: boolean;
+    /**
+     * Defines wether or not sub surface refaction is enabled.
+     */
+    subSurfaceRefractionEnabled: boolean;
 }
 
 export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMaterialInspectorState> {
@@ -56,6 +64,8 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
             anisotropyEnabled: this.material.anisotropy.isEnabled,
             sheenEnabled: this.material.sheen.isEnabled,
             useSheenRoughness: (this.material.sheen.roughness ?? null) !== null,
+            subSurfaceTranslucencyEnabled: this.material.subSurface.isTranslucencyEnabled,
+            subSurfaceRefractionEnabled: this.material.subSurface.isRefractionEnabled,
         };
     }
 
@@ -135,6 +145,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 {this._getClearCoatInspector()}
                 {this._getAnisotropyInspector()}
                 {this._getSheenInspector()}
+                {this._getSubSurfaceInspector()}
             </>
         );
     }
@@ -332,6 +343,91 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 }} />
                 <InspectorList object={this.material.sheen} property="textureRoughness" label="Roughness" items={() => this.getTexturesList()} />
                 <InspectorNumber object={this.material.sheen} property="roughness" label="Roughness" step={0.01} />
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the inspector used to 
+     */
+    private _getSubSurfaceInspector(): React.ReactNode {
+        const translucencyInspector = this._getSubSurfaceTranslucencyInspector();
+        const refractionInspector = this._getSubSurfaceRefractionInspector();
+
+        if (this.state.subSurfaceTranslucencyEnabled || this.state.subSurfaceRefractionEnabled) {
+            return (
+                <InspectorSection title="Sub Surface">
+                    <InspectorList object={this.material.subSurface} property="thicknessTexture" label="Thickness Texture" items={() => this.getTexturesList()} />
+                    <InspectorList object={this.material.subSurface} property="refractionTexture" label="Refraction Texture" items={() => this.getTexturesList()} />
+                    
+                    <InspectorColor object={this.material.subSurface} property="tintColor" label="Tint Color" step={0.01} />
+                    <InspectorColorPicker object={this.material.subSurface} property="tintColor" label="Hex Color" />
+                    <InspectorBoolean object={this.material.subSurface} property="useMaskFromThicknessTexture" label="Use Mask From Thickness Texture" />
+
+                    {translucencyInspector}
+                    {refractionInspector}
+                </InspectorSection>
+            );
+        }
+
+        return (
+            <InspectorSection title="Sub Surface">
+                {translucencyInspector}
+                {refractionInspector}
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the inspector used to configure the sub surface translucency propeties
+     * of the PBR material.
+     */
+    private _getSubSurfaceTranslucencyInspector(): React.ReactNode {
+        if (!this.state.subSurfaceTranslucencyEnabled) {
+            return (
+                <InspectorSection title="Translucency">
+                    <InspectorBoolean object={this.state} property="subSurfaceTranslucencyEnabled" label="Enabled" onChange={(v) => {
+                        this.material.subSurface.isTranslucencyEnabled = true;
+                        this.setState({ subSurfaceTranslucencyEnabled: v });
+                    }} />
+                </InspectorSection>
+            );
+        }
+        
+        return (
+            <InspectorSection title="Translucency">
+                <InspectorBoolean object={this.state} property="subSurfaceTranslucencyEnabled" label="Enabled" onChange={(v) => {
+                    this.material.subSurface.isTranslucencyEnabled = false;
+                    this.setState({ subSurfaceTranslucencyEnabled: v });
+                }} />
+                <InspectorNumber object={this.material.subSurface} property="translucencyIntensity" label="Intensity" step={0.01} />
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the inspector used to configure the sub surface refraction properties
+     * of the PBR material.
+     */
+    private _getSubSurfaceRefractionInspector(): React.ReactNode {
+        if (!this.state.subSurfaceRefractionEnabled) {
+            return (
+                <InspectorSection title="Refraction">
+                    <InspectorBoolean object={this.state} property="subSurfaceRefractionEnabled" label="Enabled" onChange={(v) => {
+                        this.material.subSurface.isRefractionEnabled = true;
+                        this.setState({ subSurfaceRefractionEnabled: v });
+                    }} />
+                </InspectorSection>
+            );
+        }
+
+        return (
+            <InspectorSection title="Refraction">
+                <InspectorBoolean object={this.state} property="subSurfaceRefractionEnabled" label="Enabled" onChange={(v) => {
+                    this.material.subSurface.isRefractionEnabled = false;
+                    this.setState({ subSurfaceRefractionEnabled: v });
+                }} />
+                <InspectorNumber object={this.material.subSurface} property="indexOfRefraction" label="Index Of Refraction" step={0.01} />
             </InspectorSection>
         );
     }
