@@ -135,7 +135,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                     animate={true}
                     key="console-tabs"
                     renderActiveTabPanelOnly={false}
-                    vertical={true}
+                    vertical={false}
                     children={[
                         <Tab id="common"     title="Common"     key="common"     panel={<div ref={this._refHandler.getCommonDiv} key="common-div" className="bp3-code-block" style={{ width: this.state.width, height: this.state.height, marginTop: "6px", overflow: "auto" }}></div>} />,
                         <Tab id="typescript" title="TypeScript" key="typescript" panel={<div ref={this._refHandler.getTypeScriptDiv} key="typescript-div" style={{ width: "100%", height: "100%", marginTop: "6px" }}></div>} />,
@@ -182,18 +182,18 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
             const size = this.props.editor.getPanelSize("console");
 
             if (this._terminalTypeScriptDiv) {
-                this._terminalTypeScriptDiv.style.width = `${size.width - 130}px`;
-                this._terminalTypeScriptDiv.style.height = `${size.height - 40}px`;
+                this._terminalTypeScriptDiv.style.width = `${size.width}px`;
+                this._terminalTypeScriptDiv.style.height = `${size.height - 80}px`;
             }
 
             if (this._terminalWebPackDiv) {
-                this._terminalWebPackDiv.style.width = `${size.width - 130}px`;
-                this._terminalWebPackDiv.style.height = `${size.height - 40}px`;
+                this._terminalWebPackDiv.style.width = `${size.width}px`;
+                this._terminalWebPackDiv.style.height = `${size.height - 80}px`;
             }
             
             switch (this.state.tabId) {
                 case "common":
-                    this.setState({ width: size.width - 130, height: size.height - 40 });
+                    this.setState({ width: size.width, height: size.height - 80 });
                     break;
                 case "typescript":
                     this._terminalTypeScript?.resize(1, 1);
