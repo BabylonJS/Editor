@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { InspectorNumber } from "./number";
-import { InspectorNotifier } from "./notifier";
+import { InspectorNotifier } from "../notifier";
 
 export interface IColor4Like {
     /**

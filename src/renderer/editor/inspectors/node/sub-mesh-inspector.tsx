@@ -11,9 +11,9 @@ import { undoRedo } from "../../tools/undo-redo";
 
 import { Dialog } from "../../gui/dialog";
 
-import { InspectorList } from "../../gui/inspector/list";
-import { InspectorButton } from "../../gui/inspector/button";
-import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorButton } from "../../gui/inspector/fields/button";
+import { InspectorSection } from "../../gui/inspector/fields/section";
 
 import { AbstractInspector } from "../abstract-inspector";
 

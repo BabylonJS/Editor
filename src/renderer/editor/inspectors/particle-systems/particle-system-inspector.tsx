@@ -10,15 +10,15 @@ import {
 
 import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { InspectorList } from "../../gui/inspector/list";
-import { InspectorColor } from "../../gui/inspector/color";
-import { InspectorString } from "../../gui/inspector/string";
-import { InspectorButton } from "../../gui/inspector/button";
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
-import { InspectorVector3 } from "../../gui/inspector/vector3";
-import { InspectorColorPicker } from "../../gui/inspector/color-picker";
+import { InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorColor } from "../../gui/inspector/fields/color";
+import { InspectorString } from "../../gui/inspector/fields/string";
+import { InspectorButton } from "../../gui/inspector/fields/button";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
+import { InspectorVector3 } from "../../gui/inspector/fields/vector3";
+import { InspectorColorPicker } from "../../gui/inspector/fields/color-picker";
 
 import { Tools } from "../../tools/tools";
 

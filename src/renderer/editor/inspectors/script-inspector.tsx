@@ -12,16 +12,16 @@ import { Scene, Node, Vector2, Vector3, Color4 } from "babylonjs";
 
 import { IObjectInspectorProps } from "../components/inspector";
 
-import { InspectorColor } from "../gui/inspector/color";
-import { InspectorNumber } from "../gui/inspector/number";
-import { InspectorButton } from "../gui/inspector/button";
-import { InspectorString } from "../gui/inspector/string";
-import { InspectorBoolean } from "../gui/inspector/boolean";
-import { InspectorSection } from "../gui/inspector/section";
-import { InspectorVector3 } from "../gui/inspector/vector3";
-import { InspectorVector2 } from "../gui/inspector/vector2";
-import { InspectorKeyMapButton } from "../gui/inspector/keymap-button";
-import { InspectorList, IInspectorListItem } from "../gui/inspector/list";
+import { InspectorColor } from "../gui/inspector/fields/color";
+import { InspectorNumber } from "../gui/inspector/fields/number";
+import { InspectorButton } from "../gui/inspector/fields/button";
+import { InspectorString } from "../gui/inspector/fields/string";
+import { InspectorBoolean } from "../gui/inspector/fields/boolean";
+import { InspectorSection } from "../gui/inspector/fields/section";
+import { InspectorVector3 } from "../gui/inspector/fields/vector3";
+import { InspectorVector2 } from "../gui/inspector/fields/vector2";
+import { InspectorKeyMapButton } from "../gui/inspector/fields/keymap-button";
+import { InspectorList, IInspectorListItem } from "../gui/inspector/fields/list";
 
 import { WorkSpace } from "../project/workspace";
 

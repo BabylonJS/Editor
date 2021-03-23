@@ -11,10 +11,10 @@ import { IAssetComponentItem, IDragAndDroppedAssetComponentItem } from "../../..
 import { IObjectInspectorProps } from "../../../editor/components/inspector";
 import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
 
-import { InspectorList } from "../../../editor/gui/inspector/list";
-import { InspectorNumber } from "../../../editor/gui/inspector/number";
-import { InspectorSection } from "../../../editor/gui/inspector/section";
-import { InspectorBoolean } from "../../../editor/gui/inspector/boolean";
+import { InspectorList } from "../../../editor/gui/inspector/fields/list";
+import { InspectorNumber } from "../../../editor/gui/inspector/fields/number";
+import { InspectorSection } from "../../../editor/gui/inspector/fields/section";
+import { InspectorBoolean } from "../../../editor/gui/inspector/fields/boolean";
 import { InspectorNotifier } from "../../../editor/gui/inspector/notifier";
 
 import { DecalsPainter } from "../../../editor/painting/decals/decals";

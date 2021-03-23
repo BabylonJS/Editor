@@ -6,12 +6,12 @@ import { Texture, CubeTexture } from "babylonjs";
 
 import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { InspectorList } from "../../gui/inspector/list";
+import { InspectorList } from "../../gui/inspector/fields/list";
 import { AbstractInspector } from "../abstract-inspector";
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorString } from "../../gui/inspector/string";
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorString } from "../../gui/inspector/fields/string";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
 
 import { Project } from "../../project/project";
 

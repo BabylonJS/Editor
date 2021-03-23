@@ -8,10 +8,10 @@ import {
 
 import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { InspectorList } from "../../gui/inspector/list";
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
+import { InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
 
 import { Confirm } from "../../gui/confirm";
 

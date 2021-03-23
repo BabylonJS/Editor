@@ -4,13 +4,13 @@ import { SpotLight } from "babylonjs";
 
 import { Inspector } from "../../components/inspector";
 
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorVector3 } from "../../gui/inspector/vector3";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorVector3 } from "../../gui/inspector/fields/vector3";
 
 import { INodeInspectorState } from "../node-inspector";
 
 import { LightInspector } from "./light-inspector";
-import { InspectorNumber } from "../../gui/inspector/number";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
 
 export class SpotLightInspector extends LightInspector<SpotLight, INodeInspectorState> {
     /**

@@ -1,13 +1,13 @@
 // Shamely inspered by https://github.com/dataarts/dat.gui/blob/master/src/dat/controllers/NumberController.js
 
-import { Nullable } from "../../../../shared/types";
+import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
 import Slider from "antd/lib/slider";
 import { InputGroup, Tooltip } from "@blueprintjs/core";
 
-import { InspectorUtils } from "./utils";
-import { InspectorNotifier } from "./notifier";
+import { InspectorUtils } from "../utils";
+import { InspectorNotifier } from "../notifier";
 
 import { AbstractFieldComponent } from "./abstract-field";
 

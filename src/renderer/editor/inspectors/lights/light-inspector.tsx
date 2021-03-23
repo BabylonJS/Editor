@@ -2,11 +2,11 @@ import * as React from "react";
 
 import { Light } from "babylonjs";
 
-import { InspectorList } from "../../gui/inspector/list";
-import { InspectorColor } from "../../gui/inspector/color";
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorColorPicker } from "../../gui/inspector/color-picker";
+import { InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorColor } from "../../gui/inspector/fields/color";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorColorPicker } from "../../gui/inspector/fields/color-picker";
 
 import { Inspector } from "../../components/inspector";
 

@@ -4,9 +4,9 @@ import { Node } from "babylonjs";
 
 import { IObjectInspectorProps } from "../components/inspector";
 
-import { InspectorBoolean } from "../gui/inspector/boolean";
-import { InspectorSection } from "../gui/inspector/section";
-import { InspectorString } from "../gui/inspector/string";
+import { InspectorBoolean } from "../gui/inspector/fields/boolean";
+import { InspectorSection } from "../gui/inspector/fields/section";
+import { InspectorString } from "../gui/inspector/fields/string";
 
 import { undoRedo } from "../tools/undo-redo";
 

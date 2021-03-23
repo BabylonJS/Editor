@@ -4,8 +4,8 @@ import { NodeMaterial } from "babylonjs";
 
 import { Inspector } from "../../components/inspector";
 
-import { InspectorButton } from "../../gui/inspector/button";
-import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorButton } from "../../gui/inspector/fields/button";
+import { InspectorSection } from "../../gui/inspector/fields/section";
 
 import { MaterialAssets } from "../../assets/materials";
 

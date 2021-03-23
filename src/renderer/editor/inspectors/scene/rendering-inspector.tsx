@@ -4,12 +4,12 @@ import { Scene, DepthOfFieldEffectBlurLevel, ImageProcessingConfiguration } from
 
 import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { InspectorList } from "../../gui/inspector/list";
-import { InspectorColor } from "../../gui/inspector/color";
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
-import { InspectorVector2 } from "../../gui/inspector/vector2";
+import { InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorColor } from "../../gui/inspector/fields/color";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
+import { InspectorVector2 } from "../../gui/inspector/fields/vector2";
 
 import { SceneSettings } from "../../scene/settings";
 

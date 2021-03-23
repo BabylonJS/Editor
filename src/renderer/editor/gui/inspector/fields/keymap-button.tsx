@@ -1,10 +1,10 @@
-import { Nullable } from "../../../../shared/types";
+import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
 import { Button, Tooltip } from "@blueprintjs/core";
 
-import { InspectorUtils } from "./utils";
-import { InspectorNotifier } from "./notifier";
+import { InspectorUtils } from "../utils";
+import { InspectorNotifier } from "../notifier";
 
 import { AbstractFieldComponent } from "./abstract-field";
 

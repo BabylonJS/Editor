@@ -4,9 +4,9 @@ import { FireMaterial } from "babylonjs-materials";
 
 import { Inspector } from "../../components/inspector";
 
-import { InspectorList } from "../../gui/inspector/list";
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorSection } from "../../gui/inspector/fields/section";
 
 import { MaterialInspector } from "./material-inspector";
 

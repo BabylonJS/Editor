@@ -4,11 +4,11 @@ import { CellMaterial } from "babylonjs-materials";
 
 import { Inspector } from "../../components/inspector";
 
-import { InspectorList } from "../../gui/inspector/list";
-import { InspectorColor } from "../../gui/inspector/color";
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
-import { InspectorColorPicker } from "../../gui/inspector/color-picker";
+import { InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorColor } from "../../gui/inspector/fields/color";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
+import { InspectorColorPicker } from "../../gui/inspector/fields/color-picker";
 
 import { MaterialInspector } from "./material-inspector";
 

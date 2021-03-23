@@ -4,7 +4,7 @@ import { Button } from "@blueprintjs/core";
 
 import { ParticleSystem, FactorGradient } from "babylonjs";
 
-import { InspectorNumber } from "../../gui/inspector/number";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
 
 export interface IParticleSystemFactorGradientProps {
     /**

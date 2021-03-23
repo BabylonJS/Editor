@@ -1,4 +1,4 @@
-import { Nullable } from "../../../../shared/types";
+import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
 import { SketchPicker } from "react-color";
@@ -6,8 +6,8 @@ import { Popover } from "@blueprintjs/core";
 
 import { Color3, Color4, IColor4Like } from "babylonjs";
 
-import { InspectorUtils } from "./utils";
-import { InspectorNotifier } from "./notifier";
+import { InspectorUtils } from "../utils";
+import { InspectorNotifier } from "../notifier";
 
 export interface IInspectorColorPickerProps {
     /**

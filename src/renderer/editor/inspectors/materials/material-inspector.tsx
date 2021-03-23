@@ -4,16 +4,16 @@ import * as React from "react";
 
 import { Material, Mesh, SubMesh, Constants } from "babylonjs";
 
-import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorSection } from "../../gui/inspector/fields/section";
 
 import { MaterialAssets } from "../../assets/materials";
 
 import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { InspectorList } from "../../gui/inspector/list";
-import { InspectorString } from "../../gui/inspector/string";
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
+import { InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorString } from "../../gui/inspector/fields/string";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
 
 import { AbstractInspector } from "../abstract-inspector";
 

@@ -10,7 +10,7 @@ import { IObjectInspectorProps } from "../components/inspector";
 import { TextureAssets } from "../assets/textures";
 import { MaterialAssets } from "../assets/materials";
 
-import { IInspectorListItem } from "../gui/inspector/list";
+import { IInspectorListItem } from "../gui/inspector/fields/list";
 import { InspectorUtils } from "../gui/inspector/utils";
 
 import { Editor } from "../editor";

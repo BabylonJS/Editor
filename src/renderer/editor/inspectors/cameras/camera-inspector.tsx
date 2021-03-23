@@ -4,8 +4,8 @@ import { Camera } from "babylonjs";
 
 import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorSection } from "../../gui/inspector/fields/section";
 
 import { INodeInspectorState, NodeInspector } from "../node-inspector";
 

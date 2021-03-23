@@ -10,17 +10,17 @@ import { Inspector, IObjectInspectorProps } from "../../components/inspector";
 
 import { Alert } from "../../gui/alert";
 
-import { InspectorColor } from "../../gui/inspector/color";
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorButton } from "../../gui/inspector/button";
-import { InspectorSection } from "../../gui/inspector/section";
+import { InspectorColor } from "../../gui/inspector/fields/color";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorButton } from "../../gui/inspector/fields/button";
+import { InspectorSection } from "../../gui/inspector/fields/section";
 
 import { Tools } from "../../tools/tools";
 import { undoRedo } from "../../tools/undo-redo";
 import { IGroundMetadata } from "../../tools/types";
 
 import { AbstractInspector } from "../abstract-inspector";
-import { InspectorColorPicker } from "../../gui/inspector/color-picker";
+import { InspectorColorPicker } from "../../gui/inspector/fields/color-picker";
 
 export interface IGroundInspectorState {
     /**

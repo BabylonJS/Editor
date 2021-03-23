@@ -4,10 +4,10 @@ import { ArcRotateCamera } from "babylonjs";
 
 import { Inspector } from "../../components/inspector";
 
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorVector3 } from "../../gui/inspector/vector3";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorVector3 } from "../../gui/inspector/fields/vector3";
+import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
 
 import { INodeInspectorState } from "../node-inspector";
 

@@ -4,10 +4,10 @@ import { SkyMaterial } from "babylonjs-materials";
 
 import { Inspector } from "../../components/inspector";
 
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
-import { InspectorVector3 } from "../../gui/inspector/vector3";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
+import { InspectorVector3 } from "../../gui/inspector/fields/vector3";
 
 import { MaterialInspector } from "./material-inspector";
 

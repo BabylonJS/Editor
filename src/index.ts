@@ -28,17 +28,17 @@ export { AbstractInspectorLegacy } from "./renderer/editor/inspectors/abstract-i
 export { AbstractInspector } from "./renderer/editor/inspectors/abstract-inspector";
 export { MaterialInspector } from "./renderer/editor/inspectors/materials/material-inspector";
 
-export { InspectorColor } from "./renderer/editor/gui/inspector/color";
-export { InspectorButton } from "./renderer/editor/gui/inspector/button";
-export { InspectorNumber } from "./renderer/editor/gui/inspector/number";
-export { InspectorString } from "./renderer/editor/gui/inspector/string";
-export { InspectorBoolean } from "./renderer/editor/gui/inspector/boolean";
-export { InspectorSection } from "./renderer/editor/gui/inspector/section";
-export { InspectorVector2 } from "./renderer/editor/gui/inspector/vector2";
-export { InspectorVector3 } from "./renderer/editor/gui/inspector/vector3";
+export { InspectorColor } from "./renderer/editor/gui/inspector/fields/color";
+export { InspectorButton } from "./renderer/editor/gui/inspector/fields/button";
+export { InspectorNumber } from "./renderer/editor/gui/inspector/fields/number";
+export { InspectorString } from "./renderer/editor/gui/inspector/fields/string";
+export { InspectorBoolean } from "./renderer/editor/gui/inspector/fields/boolean";
+export { InspectorSection } from "./renderer/editor/gui/inspector/fields/section";
+export { InspectorVector2 } from "./renderer/editor/gui/inspector/fields/vector2";
+export { InspectorVector3 } from "./renderer/editor/gui/inspector/fields/vector3";
 export { InspectorNotifier } from "./renderer/editor/gui/inspector/notifier";
-export { InspectorColorPicker } from "./renderer/editor/gui/inspector/color-picker";
-export { InspectorList, IInspectorListItem } from "./renderer/editor/gui/inspector/list";
+export { InspectorColorPicker } from "./renderer/editor/gui/inspector/fields/color-picker";
+export { InspectorList, IInspectorListItem } from "./renderer/editor/gui/inspector/fields/list";
 
 // Project
 export { FilesStore, IContentFile, IFile } from "./renderer/editor/project/files";

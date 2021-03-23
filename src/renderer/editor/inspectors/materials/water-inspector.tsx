@@ -4,13 +4,13 @@ import { WaterMaterial } from "babylonjs-materials";
 
 import { Inspector } from "../../components/inspector";
 
-import { InspectorList } from "../../gui/inspector/list";
-import { InspectorColor } from "../../gui/inspector/color";
-import { InspectorNumber } from "../../gui/inspector/number";
-import { InspectorSection } from "../../gui/inspector/section";
-import { InspectorVector2 } from "../../gui/inspector/vector2";
-import { InspectorBoolean } from "../../gui/inspector/boolean";
-import { InspectorColorPicker } from "../../gui/inspector/color-picker";
+import { InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorColor } from "../../gui/inspector/fields/color";
+import { InspectorNumber } from "../../gui/inspector/fields/number";
+import { InspectorSection } from "../../gui/inspector/fields/section";
+import { InspectorVector2 } from "../../gui/inspector/fields/vector2";
+import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
+import { InspectorColorPicker } from "../../gui/inspector/fields/color-picker";
 
 import { MeshTransferComponent } from "../tools/transfer-mesh";
 

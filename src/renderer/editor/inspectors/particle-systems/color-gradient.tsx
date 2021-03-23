@@ -4,7 +4,7 @@ import { Button } from "@blueprintjs/core";
 
 import { ParticleSystem, ColorGradient } from "babylonjs";
 
-import { InspectorColorPicker } from "../../gui/inspector/color-picker";
+import { InspectorColorPicker } from "../../gui/inspector/fields/color-picker";
 
 export interface IParticleSystemColorGradientProps {
     /**
