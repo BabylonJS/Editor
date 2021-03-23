@@ -834,19 +834,8 @@ export class Editor {
         // Now initialized!
         this._isInitialized = true;
         
-        // Notify!
-        this.editorInitializedObservable.notifyObservers();
-        this.selectedSceneObservable.notifyObservers(this.scene!);
-
-        // If has workspace, od workspace stuffs.
         const workspace = WorkSpace.Workspace;
         if (workspace) {
-            // Set editor touch bar
-            this._setTouchBar();
-
-            // Extensions
-            WebpackProgressExtension.Initialize(this);
-
             // Plugins
             for (const p in workspace.pluginsPreferences ?? { }) {
                 const plugin = Editor.LoadedExternalPlugins[p];
@@ -860,6 +849,19 @@ export class Editor {
                     console.error(e);
                 }
             }
+        }
+    
+        // Notify!
+        this.editorInitializedObservable.notifyObservers();
+        this.selectedSceneObservable.notifyObservers(this.scene!);
+
+        // If has workspace, od workspace stuffs.
+        if (workspace) {
+            // Set editor touch bar
+            this._setTouchBar();
+
+            // Extensions
+            WebpackProgressExtension.Initialize(this);
 
             // First load?
             if (!(await pathExists(join(WorkSpace.DirPath!, "scenes", WorkSpace.GetProjectName())))) {
