@@ -294,7 +294,7 @@ export class Editor {
     /**
      * Defines the dictionary of all loaded plugins in the editor.
      */
-    public static LoadedPlugins: IStringDictionary<{ name: string }> = { };
+    public static LoadedPlugins: IStringDictionary<{ name: string; fullPath?: boolean; }> = { };
     /**
      * Defines the dictionary of all loaded external plugins in the editor.
      */
@@ -413,16 +413,18 @@ export class Editor {
         this.layout.registerComponent("console", Console);
 
         // Retrieve preview layout state for plugins.
-        const loadedPluginsItem = localStorage.getItem("babylonjs-editor-loaded-plugins");
-        if (loadedPluginsItem) {
-            Editor.LoadedPlugins = JSON.parse(loadedPluginsItem);
-            for (const key in Editor.LoadedPlugins) {
-                const plugin = require(`../tools/${Editor.LoadedPlugins[key].name}`);
-                this.layout.registerComponent(key, plugin.default);
-            }
-        }
-
         try {
+            const loadedPluginsItem = localStorage.getItem("babylonjs-editor-loaded-plugins");
+            if (loadedPluginsItem) {
+                Editor.LoadedPlugins = JSON.parse(loadedPluginsItem);
+                for (const key in Editor.LoadedPlugins) {
+                    const name = Editor.LoadedPlugins[key].name;
+                    const plugin = Editor.LoadedPlugins[key].fullPath ? require(name) : require(`../tools/${name}`);
+
+                    this.layout.registerComponent(key, plugin.default);
+                }
+            }
+
             this.layout.init();
         } catch (e) {
             this._resetEditor();
@@ -433,7 +435,9 @@ export class Editor {
             const item = this.layout.root.getItemsById(key)[0];
             if (!item) { continue; }
 
-            const plugin = require(`../tools/${Editor.LoadedPlugins[key].name}`);
+            const name = Editor.LoadedPlugins[key].name;
+            const plugin = Editor.LoadedPlugins[key].fullPath ? require(name) : require(`../tools/${name}`);
+
             this._bindPluginEvents(item["container"], plugin);
         }
 
@@ -548,9 +552,18 @@ export class Editor {
      * Adds a new plugin to the layout.
      * @param name the name of the plugin to laod.
      */
-    public addPlugin(name: string): void {
+    public addBuiltInPlugin(name: string): void {
         const plugin = require(`../tools/${name}`);
-        this._addPlugin(plugin, name);
+        this._addPlugin(plugin, name, false);
+    }
+
+    /**
+     * Adds the given plugin to the editor's layout.
+     * @param path defines the path of the plugin.
+     */
+    public addPluginFromPath(path: string): void {
+        const plugin = require(path);
+        this._addPlugin(plugin, path, true);
     }
 
     /**
@@ -636,7 +649,7 @@ export class Editor {
             default: preview.default,
         };
 
-        this._addPlugin(plugin, "preview");
+        this._addPlugin(plugin, "preview", false);
     }
 
     /**
@@ -657,7 +670,7 @@ export class Editor {
 
         switch (mode) {
             case EditorPlayMode.EditorPanelBrowser:
-                this.addPlugin("play");
+                this.addBuiltInPlugin("play");
                 break;
             case EditorPlayMode.IntegratedBrowser:
                 this.addWindowedPlugin("play", undefined, workspace);
@@ -692,7 +705,7 @@ export class Editor {
     /**
      * Adds the given plugin into the layout.
      */
-    private _addPlugin(plugin: any, name: string): void {
+    private _addPlugin(plugin: any, name: string, fullPath: boolean): void {
         // Existing or register.
         try {
             this.layout.getComponent(plugin.title);
@@ -719,7 +732,7 @@ export class Editor {
         });
 
         // Register plugin
-        Editor.LoadedPlugins[plugin.title] = { name };
+        Editor.LoadedPlugins[plugin.title] = { name, fullPath };
 
         // Listen to events
         const container = stack?.getActiveContentItem()["container"];

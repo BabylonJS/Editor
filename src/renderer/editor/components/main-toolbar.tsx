@@ -264,7 +264,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "edit:reset-typescript-watcher": WorkSpace.RestartTypeScriptWatcher(this._editor); break;
 
             // Help
-            case "help:documentation": this._editor.addPlugin("doc"); break;
+            case "help:documentation": this._editor.addBuiltInPlugin("doc"); break;
             case "help:report": shell.openExternal("https://github.com/BabylonJS/Editor/issues"); break;
             case "help:welcome": WelcomeDialog.Show(this._editor, true); break;
             case "help:check-for-updates": EditorUpdater.CheckForUpdates(this._editor, true); break;
@@ -282,8 +282,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 case "create-screenshot": this._handleCreateScreenshot(); break;
 
                 case "console": this._editor.revealPanel("console"); break;
-                case "terminal": this._editor.addPlugin("terminal"); break;
-                case "stats": this._editor.addPlugin("stats"); break;
+                case "terminal": this._editor.addBuiltInPlugin("terminal"); break;
+                case "stats": this._editor.addBuiltInPlugin("stats"); break;
                 default: break;
             }
 
@@ -346,9 +346,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         // Tools
         if (family === "tools") {
             switch (action) {
-                case "animation-editor": this._editor.addPlugin("animation-editor"); break;
+                case "animation-editor": this._editor.addBuiltInPlugin("animation-editor"); break;
 
-                case "painting-tools": this._editor.addPlugin("painting"); break;
+                case "painting-tools": this._editor.addBuiltInPlugin("painting"); break;
 
                 case "photoshop": this._handleTogglePhotoshop(); break;
             }
