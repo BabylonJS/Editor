@@ -268,6 +268,7 @@ export class SceneSettings {
             } catch (e) {
                 this._DisposePipeline(editor, this.SSAOPipeline);
                 editor.console.logError("Failed to attach SSAO rendering pipeline to camera.");
+                editor.console.logError(e.message);
             }
         }
 
@@ -297,6 +298,7 @@ export class SceneSettings {
             } catch (e) {
                 this._DisposePipeline(editor, this.DefaultPipeline);
                 editor.console.logError("Failed to attach default rendering pipeline to camera.");
+                editor.console.logError(e.message);
             }
         }
 

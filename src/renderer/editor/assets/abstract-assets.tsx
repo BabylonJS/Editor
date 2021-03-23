@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Tooltip, Position } from "@blueprintjs/core";
+import { Popover } from "@blueprintjs/core";
 
 import { PickingInfo, Vector3, Observable, Node, Scene } from "babylonjs";
 
@@ -312,7 +312,11 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      * Returns the jsx element according to the given component item.
      */
     private _getItemNode(item: IAssetComponentItem): JSX.Element {
-        const tooltipContent = this.getItemTooltipContent(item) ?? item.id;
+        const popoverContent = (
+            <div style={{ padding: "15px" }}>
+                {this.getItemTooltipContent(item) ?? item.id}
+            </div>
+        );
 
         return (
             <div key={item.key} ref={(ref) => item.ref = ref} style={{
@@ -323,7 +327,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                 margin: "10px",
                 borderRadius: "10px",
             }}>
-                <Tooltip content={tooltipContent} usePortal={true} interactionKind="hover" position={Position.TOP} hoverOpenDelay={1000} hoverCloseDelay={250} lazy={true} autoFocus={true} enforceFocus={true}>
+                <Popover content={popoverContent} usePortal={true} interactionKind="click" autoFocus={true} enforceFocus={true} canEscapeKeyClose={true} boundary="window">
                     <img
                         src={item.base64}
                         style={{ width: `${this.size}px`, height: `${this.size}px`, borderRadius: "15px", objectFit: "contain", ...item.style ?? { } }}
@@ -337,7 +341,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                         onDragLeave={() => this._itemBeingDragged && this.dragLeave(item)}
                         onKeyDown={(ev) => ev.keyCode === 46 && this.onDeleteAsset(item)}
                     ></img>
-                </Tooltip>
+                </Popover>
                 <small style={{
                     float: "left",
                     width: `${this.size}px`,

@@ -142,6 +142,15 @@ html, body {
     fill: #222222;
 }
 
+.bp3-popover.bp3-dark .bp3-popover-content, .bp3-dark .bp3-popover .bp3-popover-content {
+    background: #222222;
+    color: white;
+}
+
+.bp3-popover.bp3-dark .bp3-popover-arrow-fill, .bp3-dark .bp3-popover .bp3-popover-arrow-fill {
+    fill: #222222;
+}
+
 .bp3-tag.bp3-intent-primary {
     background-color: #555555;
     color: white;

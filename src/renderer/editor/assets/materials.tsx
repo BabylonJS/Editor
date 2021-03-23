@@ -273,7 +273,7 @@ export class MaterialAssets extends AbstractAssets {
         const material = this.editor.scene!.getMaterialByID(item.key);
         if (!material) { return undefined; }
 
-        const binded = material.getBindedMeshes();
+        const binded = material.getBindedMeshes().filter((m) => !m._masterMesh);
         const attachedEllement = binded.length > 0 ? (
             <>
                 <Divider />
