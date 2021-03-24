@@ -1,13 +1,16 @@
 import * as React from "react";
-import { Editor, IPlugin } from "babylonjs-editor";
+import { Editor, IPlugin, IPluginConfiguration } from "babylonjs-editor";
 
 import { Toolbar } from "./toolbar";
 
 /**
  * Registers the plugin by returning the IPlugin content.
  * @param editor defines the main reference to the editor.
+ * @param configuration defines the configuration of the plugin: its path, etc.).
  */
-export const registerEditorPlugin = (editor: Editor): IPlugin => {
+export const registerEditorPlugin = (editor: Editor, configuration: IPluginConfiguration): IPlugin => {
+    console.log("Plugin's absolute path: ", configuration.pluginAbsolutePath);
+
     return {
         /**
          * Defines the list of all toolbar elements to add when the plugin has been loaded.

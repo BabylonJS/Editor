@@ -1,5 +1,5 @@
 import * as React from "react";
-import { IconName } from "@blueprintjs/core";
+import { IconName, MaybeElement } from "@blueprintjs/core";
 
 export interface IPluginToolbar {
     /**
@@ -9,7 +9,7 @@ export interface IPluginToolbar {
     /**
      * Defines the name of the icon for the plugin.
      */
-    buttonIcon: IconName;
+    buttonIcon: IconName | MaybeElement;
     /**
      * Defines the content of the menu in the toolbar.
      * @example

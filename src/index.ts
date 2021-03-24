@@ -1,6 +1,6 @@
 // Plugins
 export { IPluginToolbar } from "./renderer/editor/plugins/toolbar";
-export { IPlugin } from "./renderer/editor/plugins/plugin";
+export { IPlugin, IPluginConfiguration } from "./renderer/editor/plugins/plugin";
 
 export { AbstractEditorPlugin, IEditorPluginProps } from "./renderer/editor/tools/plugin";
 
@@ -51,5 +51,6 @@ export { WorkSpace } from "./renderer/editor/project/workspace";
 export { Alert, IAlertProps } from "./renderer/editor/gui/alert";
 export { Dialog, IDialogProps } from "./renderer/editor/gui/dialog";
 export { Confirm, IConfirmProps } from "./renderer/editor/gui/confirm";
+export { Icon } from "./renderer/editor/gui/icon";
 
 import "./renderer/editor/gui/augmentations/index";

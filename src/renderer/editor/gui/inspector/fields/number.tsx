@@ -81,6 +81,8 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
     private _impliedStep: number;
     private _precision: number;
 
+    private _isFocused: boolean = false;
+
     private _lastMousePosition: number = 0;
 
     private _initialValue: number;
@@ -177,7 +179,8 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
                         value={this.state.value}
                         type="number"
                         step={this.props.step}
-                        onBlur={() => this._handleValueFinishChanged()}
+                        onFocus={() => this._handleInputFocused()}
+                        onBlur={() => this._handleInputBlurred()}
                         onKeyDown={(e) => e.key === "Enter" && this._handleEnterKeyPressed()}
                         onChange={(e) => this._handleValueChanged(e.target.value, false)}
                         onMouseDown={(ev) => this._handleInputClicked(ev)}
@@ -208,6 +211,21 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
         super.componentWillUnmount?.();
 
         InspectorNotifier.Unregister(this);
+    }
+
+    /**
+     * Called on the input is focused.
+     */
+     private _handleInputFocused(): void {
+        this._isFocused = true;
+    }
+
+    /**
+     * Called on the input is blurred.
+     */
+    private _handleInputBlurred(): void {
+        this._isFocused = false;
+        this._handleValueFinishChanged();
     }
 
     /**
@@ -255,6 +273,10 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
      * Called on the user clicked on the input.
      */
     private _handleInputClicked(ev: React.MouseEvent<HTMLInputElement, MouseEvent>): void {
+        if (!this._isFocused) {
+            return;
+        }
+
         this._lastMousePosition = ev.pageY;
 
         document.addEventListener("mousemove", this._mouseMoveListener = (ev) => {

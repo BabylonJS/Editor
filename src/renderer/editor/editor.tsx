@@ -42,7 +42,7 @@ import { SceneUtils } from "./scene/utils";
 
 import { SandboxMain } from "../sandbox/main";
 
-import { IPlugin } from "./plugins/plugin";
+import { IPlugin, IPluginConfiguration } from "./plugins/plugin";
 import { IPluginToolbar } from "./plugins/toolbar";
 
 // Components
@@ -1242,7 +1242,9 @@ export class Editor {
 
             try {
                 const exports = require(p.path);
-                const plugin = exports.registerEditorPlugin(this) as IPlugin;
+                const plugin = exports.registerEditorPlugin(this, {
+                    pluginAbsolutePath: p.path,
+                } as IPluginConfiguration) as IPlugin;
 
                 Editor.LoadedExternalPlugins[p.name] = plugin;
 

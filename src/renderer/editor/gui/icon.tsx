@@ -1,3 +1,5 @@
+import { isAbsolute } from "path";
+
 import * as React from "react";
 
 import { Undefinable } from "../../../shared/types";
@@ -52,10 +54,12 @@ export class Icon extends React.Component<IIconProps, IIconState> {
      * Renders the icon component.
      */
     public render(): React.ReactNode {
+        const src = isAbsolute(this.props.src) ? this.props.src : `../css/svg/${this.props.src}`;
+        
         return (
             <img
                 id={this.props.id}
-                src={`../css/svg/${this.props.src}`}
+                src={src}
                 style={{ width: "16px", height: "16px", filter: "invert(1.0)", ...this.props.style, ...this.state.style }}
                 onClick={this.props.onClick}
                 onContextMenu={this.props.onClick}

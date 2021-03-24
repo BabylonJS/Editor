@@ -13,7 +13,7 @@
     "url": "https://medium.com/@Luaacro"
   },
   "scripts": {
-    "postinstall": "electron-rebuild && electron-builder install-app-deps && cd module && npm i && cd ../sample-plugin && cd ../website && npm i && cd ../webpack-extension && npm i && cd ..",
+    "postinstall": "electron-rebuild && electron-builder install-app-deps && cd module && npm i && cd ../sample-plugin && npm i && cd ../website && npm i && cd ../webpack-extension && npm i && cd ..",
     "clean": "rimraf build && rimraf declaration && rimraf electron-packages",
     "compile": "tsc -p .",
     "test": "npm run prepare-tests && mocha ./build/test/index.js",

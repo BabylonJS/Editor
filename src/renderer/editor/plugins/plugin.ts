@@ -6,6 +6,13 @@ import { Editor } from "../editor";
 
 import { IPluginToolbar } from "./toolbar";
 
+export interface IPluginConfiguration {
+    /**
+     * Defines the absolute path of the plugin.
+     */
+    pluginAbsolutePath: string;
+}
+
 export interface IPlugin {
     /**
      * Defines the list of all toolbar elements to add when the plugin has been loaded.
@@ -40,4 +47,4 @@ export interface IPlugin {
 /**
  * Defines the signature of the function that is exported by the editor's plugin.
  */
-export type registerEditorPlugin = (editor: Editor) => IPlugin;
+export type registerEditorPlugin = (editor: Editor, configuration: IPluginConfiguration) => IPlugin;
