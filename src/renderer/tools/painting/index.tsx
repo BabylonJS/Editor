@@ -1,3 +1,5 @@
+import { IStringDictionary } from "../../../shared/types";
+
 import * as React from "react";
 import { Tabs, Tab, TabId } from "@blueprintjs/core";
 
@@ -5,6 +7,7 @@ import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plu
 import { AbstractInspector } from "../../editor/inspectors/abstract-inspector";
 
 import { DecalsPainterInspector } from "./decals/inspector";
+import { MaterialPainterInspector } from "./material/inspector";
 
 export const title = "Painting Tools";
 
@@ -14,20 +17,17 @@ export interface IPaintingTools {
      */
     isReady: boolean;
     /**
+     * Defines the height of the panel.
+     */
+    height: number;
+    /**
      * Defines the Id of the 
      */
     tabId: TabId;
 }
 
-export default class PreviewPlugin extends AbstractEditorPlugin<IPaintingTools> {
-    private _tools: AbstractInspector<any, any>[] = [];
-    private _refHandler = {
-        getTool: (ref: any) => {
-            if (!ref) { return; }
-            const index = this._tools.indexOf(ref);
-            if (index === -1) { this._tools.push(ref); }
-        },
-    };
+export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingTools> {
+    private _tools:IStringDictionary<AbstractInspector<any, any>> = {};
 
     /**
      * Constructor.
@@ -37,7 +37,11 @@ export default class PreviewPlugin extends AbstractEditorPlugin<IPaintingTools> 
         super(props);
 
         // State
-        this.state = { isReady: this.editor.isInitialized, tabId: "decals" };
+        this.state = {
+            height: 0,
+            tabId: "decals",
+            isReady: this.editor.isInitialized,
+        };
         
         // Register
         if (!this.editor.isInitialized) {
@@ -51,10 +55,13 @@ export default class PreviewPlugin extends AbstractEditorPlugin<IPaintingTools> 
      * Renders the component.
      */
     public render(): React.ReactNode {
-        if (!this.state.isReady) { return null; }
+        if (!this.state.isReady) {
+            return null;
+        }
 
         const tabs = [
-            <Tab id="decals" title="Decals" key="decals" panel={<DecalsPainterInspector ref={this._refHandler.getTool} toolId={"decals"} editor={this.editor} _objectRef={null} />} />,
+            this._createTabComponent("Decals", <DecalsPainterInspector ref={(ref) => this._getTool("decals", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
+            this._createTabComponent("Material", <MaterialPainterInspector ref={(ref) => this._getTool("material", ref)} toolId={"material"} editor={this.editor} _objectRef={null} />),
         ];
 
         return (
@@ -90,7 +97,29 @@ export default class PreviewPlugin extends AbstractEditorPlugin<IPaintingTools> 
     public resize(): void {
         const size = this.editor.getPanelSize(title);
         if (size) {
-            this._tools.forEach((t) => t?.resize(size));
+            this.setState({ height: size.height }, () => {
+                for (const tool in this._tools) {
+                    this._tools[tool]?.resize(size);
+                }
+            });
         }
+    }
+
+    /**
+     * Returns a new tab element containing the given component.
+     */
+    private _createTabComponent(title: string, component: React.ReactElement): React.ReactNode {
+        const id = title.toLowerCase();
+
+        return (
+            <Tab id={id} title={title} key={id} panel={component} />
+        );
+    }
+
+    /**
+     * Registers the given tool reference to the tools dictionary.
+     */
+    private _getTool(title: string, ref: any): void {
+        this._tools[title] = ref;
     }
 }

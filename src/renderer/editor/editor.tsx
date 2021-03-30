@@ -45,6 +45,8 @@ import { SandboxMain } from "../sandbox/main";
 import { IPlugin, IPluginConfiguration } from "./plugins/plugin";
 import { IPluginToolbar } from "./plugins/toolbar";
 
+import "./painting/material-mixer/material";
+
 // Components
 import { Inspector } from "./components/inspector";
 import { Graph } from "./components/graph";

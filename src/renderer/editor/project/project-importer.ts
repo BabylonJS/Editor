@@ -4,7 +4,7 @@ import { readJSON, pathExists } from "fs-extra";
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
-    AnimationGroup, Constants, MorphTargetManager,
+    AnimationGroup, Constants, MorphTargetManager, Matrix,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -460,6 +460,11 @@ export class ProjectImporter {
 
         result.meshes.forEach((mesh, index) => {
             if (!(mesh instanceof Mesh)) { return; }
+
+            if (mesh.skeleton && mesh.metadata?.basePoseMatrix) {
+                mesh.updatePoseMatrix(Matrix.FromArray(mesh.metadata.basePoseMatrix));
+            }
+
             if (mesh.delayLoadState && mesh.delayLoadState !== Constants.DELAYLOADSTATE_LOADED) {
                 mesh._checkDelayState();
             }

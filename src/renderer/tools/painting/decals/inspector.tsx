@@ -42,6 +42,18 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
     }
 
     /**
+     * Renders the component.
+     */
+    public render(): React.ReactNode {
+        return (
+            <>
+                <H4 style={{ textAlign: "center" }}>Decals Painter</H4>
+                {super.render()}
+            </>
+        );
+    }
+
+    /**
      * Renders the content of the inspector.
      */
      public renderContent(): React.ReactNode {
