@@ -6,7 +6,9 @@ import * as os from "os";
 import * as React from "react";
 import { ContextMenu, Menu, MenuItem, Classes, ButtonGroup, Button, Divider, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
-import { SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture, Mesh, AbstractMesh, SubMesh } from "babylonjs";
+import {
+    SceneLoader, PickingInfo, Material, MultiMaterial, CubeTexture, Texture, Mesh, AbstractMesh, SubMesh,
+} from "babylonjs";
 import "babylonjs-loaders";
 
 import { assetsHelper } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
@@ -225,6 +227,11 @@ export class MeshesAssets extends AbstractAssets {
 
         for (const mesh of result.meshes) {
             if (!update || !this._updateImportedMeshGeometry(mesh, item.id, forceUpdate)) {
+                // Store the pose matrix of the mesh.
+                mesh.metadata ??= { };
+                mesh.metadata.basePoseMatrix = mesh.getPoseMatrix().asArray();
+
+                // Place mesh
                 if (!mesh.parent && pickInfo?.pickedPoint) {
                     mesh.position.addInPlace(pickInfo.pickedPoint);
                 }
@@ -235,7 +242,7 @@ export class MeshesAssets extends AbstractAssets {
                         id: mesh.id,
                         name: mesh.name,
                         sceneFileName: item.id,
-                    };  
+                    };
 
                     if (mesh.geometry) {
                         mesh.geometry.id = Tools.RandomId();

@@ -6,7 +6,7 @@ import {
     Color3, Color4,
     SerializationHelper,
     Scene, Node, AbstractMesh, Mesh,
-    Vector2, Vector3, Vector4,
+    Vector2, Vector3, Vector4, Matrix,
     SSAO2RenderingPipeline, DefaultRenderingPipeline, ScreenSpaceReflectionPostProcess, MotionBlurPostProcess,
     Nullable,
 } from "@babylonjs/core";
@@ -220,6 +220,21 @@ export function setupRenderingGroups(scene: Scene): void {
         if (!m.metadata || !(m instanceof Mesh)) { return; }
         m.renderingGroupId = m.metadata.renderingGroupId ?? m.renderingGroupId;
     });
+}
+
+/**
+ * Meshes using pose matrices with skeletons can't be parsed directly as the pose matrix is
+ * missing from the serialzied data of meshes. These matrices are stored in the meshes metadata
+ * instead and can be applied by calling this function.
+ * @param scene defines the scene containing the meshes to configure their pose matrix.
+ */
+export function applyMeshesPoseMatrices(scene: Scene): void {
+    scene.meshes.forEach((m) => {
+        if (m.skeleton && m.metadata?.basePoseMatrix) {
+            m.updatePoseMatrix(Matrix.FromArray(m.metadata.basePoseMatrix));
+            delete m.metadata.basePoseMatrix;
+        }
+    })
 }
 
 /**

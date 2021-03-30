@@ -6,6 +6,7 @@ import { Node, Scene } from "@babylonjs/core";
 import {
     attachScripts, attachScriptToNodeAtRumtine,
     configurePostProcesses, setupRenderingGroups,
+    applyMeshesPoseMatrices,
 } from "../tools";
 
 import { scriptsMap } from "../scripts-map";
@@ -24,6 +25,9 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
 
     // Rendering groups
     setupRenderingGroups(scene);
+
+    // Pose matrices
+    applyMeshesPoseMatrices(scene);
 }
 
 /**
