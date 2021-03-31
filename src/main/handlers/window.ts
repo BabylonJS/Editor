@@ -71,6 +71,8 @@ export class WindowsHandler {
 	 * Creates a new window according to the given options/definitions.
 	 */
 	private static _CreateWindow(options: BrowserWindowConstructorOptions): BrowserWindow {
+		options.backgroundColor = "#fff";
+
 		let window = new BrowserWindow(options);
 		this._Windows.push(window);
 
