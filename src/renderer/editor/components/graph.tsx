@@ -20,6 +20,7 @@ import { EditableText } from "../gui/editable-text";
 
 import { Tools } from "../tools/tools";
 import { undoRedo } from "../tools/undo-redo";
+import { IMeshMetadata } from "../tools/types";
 
 import { Prefab } from "../prefab/prefab";
 
@@ -255,12 +256,21 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         let clone: Nullable<Node | IParticleSystem> = null;
         
         if (node instanceof Mesh) {
-            clone = node.clone(node.name, node.parent, false, true);
+            const clonedMesh = node.clone(node.name, node.parent, false, true);
 
-            if (clone.parent) {
-                (clone as Mesh).physicsImpostor?.forceUpdate();
+            if (node.skeleton) {
+                let id = 0;
+                while (this._editor.scene!.getSkeletonById(id as any)) {
+                    id++;
+                }
+
+                clonedMesh.skeleton = node.skeleton.clone(node.skeleton.name, id as any);
             }
-            (clone as Mesh).physicsImpostor?.sleep();
+
+            if (clonedMesh.parent) { clonedMesh.physicsImpostor?.forceUpdate(); }
+            clonedMesh.physicsImpostor?.sleep();
+
+            clone = clonedMesh;
         }
         else if (node instanceof Light) { clone = node.clone(node.name); }
         else if (node instanceof Camera) { clone = node.clone(node.name); }
@@ -271,7 +281,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             clone.id = Tools.RandomId();
 
             if (clone instanceof Node) {
-                clone.metadata = Tools.CloneObject(clone.metadata);
+                const metadata = { ...clone.metadata } as IMeshMetadata;
+                delete metadata._waitingUpdatedReferences;
+
+                clone.metadata = Tools.CloneObject(metadata);
 
                 const descendants = clone.getDescendants(false);
                 descendants.forEach((d) => {

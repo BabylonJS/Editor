@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Tabs, Tab, TabId } from "@blueprintjs/core";
 
+import { Scene, SubMesh } from "babylonjs";
+
 import { Editor } from "../editor";
 
 import { AbstractInspector } from "../inspectors/abstract-inspector";
@@ -70,6 +72,7 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
     private _activeTabId: Nullable<TabId> = null;
 
     private _forceUpdateId: number = 0;
+    private _sceneInspectorKey: string = Tools.RandomId();
 
     private _refHandler = {
         getInspector: (ref: AbstractInspectorLegacy<any>) => ref && (Inspector._ObjectInspectorsConfigurations.find((a) => a._id === ref.props.toolId)!._ref = ref),
@@ -136,7 +139,13 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
                 this._firstTabId = tabId;
             }
 
-            const key = this.state.selectedObject.id ?? this.state.selectedObject._id ?? this.state.selectedObject.uniqueId ?? this.state.selectedObject.name ?? "";
+            let key = this.state.selectedObject.id ?? this.state.selectedObject._id ?? this.state.selectedObject.uniqueId ?? this.state.selectedObject.name ?? "";
+            if (this.state.selectedObject instanceof Scene) {
+                key = this._sceneInspectorKey;
+            } else if (this.state.selectedObject instanceof SubMesh) {
+                key = `${this.state.selectedObject.getMesh().id}_${this.state.selectedObject._id}`;
+            }
+
             const objectInspector = <i.ctor key={key.toString() + this._forceUpdateId} editor={this._editor} _objectRef={this.state.selectedObject} toolId={i._id!} ref={this._refHandler.getInspector} />;
             const tab = <Tab id={tabId} title={i.title} key={i._id!} panel={objectInspector} />;
 
