@@ -101,7 +101,7 @@ export class DecalsPainter {
         this._decal.size.y = height;
         this._updateDecalWithLastPickInfo();
     }
-    
+
     /**
      * Gets the current angle for decal.
      */
@@ -233,7 +233,7 @@ export class DecalsPainter {
 
         if (keepInScene) {
             this._decal.disposeMesh();
-            
+
             const clonedPickingInfo = this._lastPickingInfo;
             let decal: Nullable<Mesh> = null;
 
@@ -245,7 +245,7 @@ export class DecalsPainter {
                         decal.name = this.material?.name ?? "new decal";
                         decal.id = Tools.RandomId();
                         decal.metadata = { isDecal: true };
-        
+
                         decal.receiveShadows = this.receiveShadows;
 
                         if (clonedPickingInfo.pickedMesh && !clonedPickingInfo.pickedMesh.isDisposed()) {

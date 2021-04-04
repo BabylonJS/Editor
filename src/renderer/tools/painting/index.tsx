@@ -7,7 +7,8 @@ import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plu
 import { AbstractInspector } from "../../editor/inspectors/abstract-inspector";
 
 import { DecalsPainterInspector } from "./decals/inspector";
-import { MaterialPainterInspector } from "./material/inspector";
+import { ThinInstancePainterInspector } from "./thin-instances/inspector";
+// import { MaterialPainterInspector } from "./material/inspector";
 
 export const title = "Painting Tools";
 
@@ -61,7 +62,8 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
 
         const tabs = [
             this._createTabComponent("Decals", <DecalsPainterInspector ref={(ref) => this._getTool("decals", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
-            this._createTabComponent("Material", <MaterialPainterInspector ref={(ref) => this._getTool("material", ref)} toolId={"material"} editor={this.editor} _objectRef={null} />),
+            this._createTabComponent("Thin Instances", <ThinInstancePainterInspector ref={(ref) => this._getTool("thin-instances", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
+            // this._createTabComponent("Material", <MaterialPainterInspector ref={(ref) => this._getTool("material", ref)} toolId={"material"} editor={this.editor} _objectRef={null} />),
         ];
 
         return (

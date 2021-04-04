@@ -21,7 +21,7 @@ export class MaterialPainterInspector extends AbstractInspector<DecalsPainter, I
         this.selectedObject = new DecalsPainter(this.editor);
 
         this.state = {
-            selectedMaterialAsset: null,
+            
         };
     }
 

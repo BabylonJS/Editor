@@ -1037,6 +1037,13 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 this.setState({ selectedNodeIds: [draggedNodeId] });
             }
         }
+
+        const event = info.event.nativeEvent as DragEvent;
+        if (event) {
+            event.dataTransfer?.setData("graph/node", JSON.stringify({
+                nodeId: draggedNodeId,
+            }));
+        }
     }
 
     /**

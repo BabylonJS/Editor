@@ -433,6 +433,14 @@ export class MaterialAssets extends AbstractAssets {
     }
 
     /**
+     * Returns, if found, the item in assets related to the given material.
+     * @param material defines the reference to the material to retrieve its asset item.
+     */
+    public getAssetFromMaterial(material: Material): Nullable<IAssetComponentItem> {
+        return this.items.find((i) => i.key === material.id) ?? null;
+    }
+
+    /**
      * Called on the user wants to remove a material.
      */
     private _handleRemoveMaterial(item: IAssetComponentItem): void {

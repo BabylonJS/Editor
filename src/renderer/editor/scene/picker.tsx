@@ -8,10 +8,13 @@ import {
     ParticleSystem, Mesh, MultiMaterial,
 } from "babylonjs";
 
-import { Editor } from "../editor";
 import { Icon } from "../gui/icon";
 
+import { Editor } from "../editor";
+
 import { SceneIcons } from "./icons";
+import { SceneSettings } from "./settings";
+
 import { Tools } from "../tools/tools";
 
 export class ScenePicker {
@@ -126,6 +129,10 @@ export class ScenePicker {
      * Called on the pointer is up on the canvas.
      */
     private _onCanvasUp(ev: MouseEvent, byPassDistance: boolean = false): void {
+        if (SceneSettings.IsCameraLocked) {
+            return;
+        }
+
         if (!byPassDistance) {
             const distance = Vector2.Distance(this._downMousePosition, new Vector2(ev.offsetX, ev.offsetY));
             if (distance > 2) { return; }
