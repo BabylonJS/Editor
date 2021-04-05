@@ -1,7 +1,7 @@
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { H4 } from "@blueprintjs/core";
+import { Divider, H4 } from "@blueprintjs/core";
 
 import { Material } from "babylonjs";
 
@@ -42,23 +42,13 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
     }
 
     /**
-     * Renders the component.
-     */
-    public render(): React.ReactNode {
-        return (
-            <>
-                <H4 style={{ textAlign: "center" }}>Decals Painter</H4>
-                {super.render()}
-            </>
-        );
-    }
-
-    /**
      * Renders the content of the inspector.
      */
      public renderContent(): React.ReactNode {
         return (
             <>
+                <Divider />
+                <H4 style={{ textAlign: "center" }}>Decals Painter</H4>
                 <InspectorSection title="Material">
                     <div style={{ width: "100%", height: "100px" }}>
                         <div style={{ width: "35%", height: "100px", float: "left" }}>

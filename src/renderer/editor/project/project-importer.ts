@@ -4,7 +4,7 @@ import { readJSON, pathExists } from "fs-extra";
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
-    AnimationGroup, Constants, MorphTargetManager, Matrix,
+    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -453,9 +453,11 @@ export class ProjectImporter {
      * @param filename the name of the mesh file to load.
      */
     public static async ImportMesh(editor: Editor, name: string, json: any, rootUrl: string, filename: string): Promise<ReturnType<typeof SceneLoader.ImportMeshAsync>> {
+        SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
+        
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, filename, editor.scene, null, ".babylon");
         editor.console.logInfo(`Parsed mesh "${name}"`);
-        
+
         const allMeshes: { mesh: Mesh; geometryId: string; parentId?: string; instances?: string[]; }[] = [];
 
         result.meshes.forEach((mesh, index) => {
@@ -463,10 +465,6 @@ export class ProjectImporter {
 
             if (mesh.skeleton && mesh.metadata?.basePoseMatrix) {
                 mesh.updatePoseMatrix(Matrix.FromArray(mesh.metadata.basePoseMatrix));
-            }
-
-            if (mesh.delayLoadState && mesh.delayLoadState !== Constants.DELAYLOADSTATE_LOADED) {
-                mesh._checkDelayState();
             }
 
             allMeshes.push({
@@ -480,17 +478,14 @@ export class ProjectImporter {
         // Lods
         for (const lod of json.lods) {
             try {
+                lod.mesh.meshes[0].delayLoadingFile = join(Project.DirPath!, lod.mesh.meshes[0].delayLoadingFile);
+
                 const blob = new Blob([JSON.stringify(lod.mesh)]);
                 const url = URL.createObjectURL(blob);
 
                 const lodResult = await SceneLoader.ImportMeshAsync("", "", url, editor.scene, null, ".babylon");
                 const mesh = lodResult.meshes[0];
                 if (!mesh || !(mesh instanceof Mesh)) { continue; }
-
-                if (mesh.delayLoadState && mesh.delayLoadState !== Constants.DELAYLOADSTATE_LOADED) {
-                    mesh.delayLoadingFile = join(Project.DirPath!, mesh.delayLoadingFile);
-                    mesh._checkDelayState();
-                }
 
                 allMeshes.push({ mesh, geometryId: lod.mesh.meshes[0].geometryId });
 

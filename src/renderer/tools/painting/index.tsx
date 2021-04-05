@@ -73,7 +73,7 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
                 renderActiveTabPanelOnly={true}
                 vertical={false}
                 children={tabs}
-                onChange={(id) => this.setState({ tabId: id })}
+                onChange={(id) => this._handleTabChanged(id)}
                 selectedTabId={this.state.tabId}
             ></Tabs>
         );
@@ -105,6 +105,15 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
                 }
             });
         }
+    }
+
+    /**
+     * Called on the user changes the active tab.
+     */
+    private _handleTabChanged(tabId: TabId): void {
+        this.setState({ tabId }, () => {
+            this.resize();
+        });
     }
 
     /**

@@ -1,7 +1,7 @@
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { H4 } from "@blueprintjs/core";
+import { Divider, H4 } from "@blueprintjs/core";
 
 import { Mesh } from "babylonjs";
 
@@ -41,18 +41,6 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
     }
 
     /**
-     * Renders the component.
-     */
-    public render(): React.ReactNode {
-        return (
-            <>
-                <H4 style={{ textAlign: "center" }}>Thin Instances Painter</H4>
-                {super.render()}
-            </>
-        );
-    }
-
-    /**
      * Renders the content of the inspector.
      */
     public renderContent(): React.ReactNode {
@@ -61,6 +49,8 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
 
         return (
             <>
+                <Divider />
+                <H4 style={{ textAlign: "center" }}>Thin Instances Painter</H4>
                 <InspectorSection title="Material">
                     <div style={{ width: "100%", height: "100px" }}>
                         <div style={{ width: "35%", height: "100px", float: "left" }}>
@@ -78,9 +68,14 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
                     </div>
                 </InspectorSection>
 
-                <InspectorSection title="Transforms">
+                <InspectorSection title="Random Rotation">
                     <InspectorVector3 object={this.selectedObject} property="randomRotationMin" label="Random Min Rotation" step={0.01} />
                     <InspectorVector3 object={this.selectedObject} property="randomRotationMax" label="Random Max Rotation" step={0.01} />
+                </InspectorSection>
+
+                <InspectorSection title="Random Scaling">
+                    <InspectorVector3 object={this.selectedObject} property="randomScalingMin" label="Random Min Scaling" step={0.01} />
+                    <InspectorVector3 object={this.selectedObject} property="randomScalingMax" label="Random Max Scaling" step={0.01} />
                 </InspectorSection>
 
                 <InspectorSection title="Painting">

@@ -1,6 +1,6 @@
 import { Nullable } from "../../../../shared/types";
 
-import { UtilityLayerRenderer, Scene, Mesh, PickingInfo, MeshBuilder, Vector3, Material } from "babylonjs";
+import { UtilityLayerRenderer, Mesh, PickingInfo, MeshBuilder, Vector3, Material } from "babylonjs";
 
 export class Decal {
     private _mesh: Nullable<Mesh> = null;
@@ -24,11 +24,10 @@ export class Decal {
 
     /**
      * Constructor.
-     * @param scene defines the scene where to draw the decal.
+     * @param layer defines the reference to the layer scene where to draw the decal.
      */
-    public constructor(scene: Scene) {
-        this.layer = new UtilityLayerRenderer(scene);
-        this.layer.utilityLayerScene.postProcessesEnabled = false;
+    public constructor(layer: UtilityLayerRenderer) {
+        this.layer = layer;
     }
 
     /**
@@ -36,6 +35,7 @@ export class Decal {
      */
     public dispose(): void {
         this.disposeMesh();
+        
         this.layer.dispose();
     }
 
@@ -66,6 +66,7 @@ export class Decal {
             size: new Vector3(this.size.x * this.size.z, this.size.y * this.size.z, this.size.z),
             angle: this.angle,
         });
+        mesh.isPickable = false;
         mesh.material = this.material;
 
         if (this.material?.zOffset === 0) {
