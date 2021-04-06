@@ -541,6 +541,7 @@ export class TextureAssets extends AbstractAssets {
 
             // Not found, remove.
             texture.dispose();
+            this.editor.console.logInfo(`Removed unused texture "${texture.metadata?.editorName ?? texture.name}"`);
 
             const itemIndex = this.items.findIndex((i) => i.key === texture.uid);
             if (itemIndex) {
@@ -561,8 +562,18 @@ export class TextureAssets extends AbstractAssets {
         // Check materials
         for (const m of this.editor.scene!.materials) {
             for (const thing in m) {
-                if (m[thing] === texture) {
+                const value = m[thing];
+
+                if (value === texture) {
                     result.push({ object: m, property: thing });
+                }
+
+                // In case of PBR materials.
+                for (const thing2 in value) {
+                    const value2 = value[thing2];
+                    if (value2 === texture) {
+                        result.push({ object: m, property: `${thing}.${thing2}` });
+                    }
                 }
             }
         }

@@ -189,32 +189,32 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         return (
             <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
-                <Popover content={project} position={Position.BOTTOM_LEFT} hasBackdrop>
+                <Popover content={project} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
                     <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="File" id="toolbar-files" />
                 </Popover>
-                <Popover content={edit} position={Position.BOTTOM_LEFT} hasBackdrop>
+                <Popover content={edit} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
                     <Button icon={<Icon src="edit.svg"/>} rightIcon="caret-down" text="Edit"/>
                 </Popover>
-                <Popover content={view} position={Position.BOTTOM_LEFT} hasBackdrop>
+                <Popover content={view} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
                     <Button icon={<Icon src="eye.svg"/>} rightIcon="caret-down" text="View"/>
                 </Popover>
-                <Popover content={add} position={Position.BOTTOM_LEFT} hasBackdrop>
+                <Popover content={add} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
                     <Button icon={<Icon src="plus.svg"/>} rightIcon="caret-down" text="Add"/>
                 </Popover>
-                <Popover content={addMesh} position={Position.BOTTOM_LEFT} hasBackdrop>
+                <Popover content={addMesh} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
                     <Button icon={<Icon src="plus.svg"/>} rightIcon="caret-down" text="Add Mesh"/>
                 </Popover>
-                <Popover content={tools} position={Position.BOTTOM_LEFT} hasBackdrop>
+                <Popover content={tools} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
                     <Button icon={<Icon src="wrench.svg"/>} rightIcon="caret-down" text="Tools"/>
                 </Popover>
 
                 {this.state.plugins?.map((p) => (
-                    <Popover content={p.content} position={Position.BOTTOM_LEFT} hasBackdrop>
+                    <Popover content={p.content} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
                         <Button icon={p.buttonIcon} rightIcon="caret-down" text={p.buttonLabel}/>
                     </Popover>
                 ))}
 
-                <Popover content={help} position={Position.BOTTOM_LEFT} hasBackdrop>
+                <Popover content={help} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
                     <Button icon={<Icon src="dog.svg"/>} rightIcon="caret-down" text="Help"/>
                 </Popover>
             </ButtonGroup>

@@ -566,6 +566,7 @@ export class MaterialAssets extends AbstractAssets {
 
             // Not used, remove material.
             material.dispose(true, false);
+            this.editor.console.logInfo(`Removed unused material "${material.name}"`);
 
             const itemIndex = this.items.findIndex((i) => i.key === material.id);
             if (itemIndex !== -1) {

@@ -23,9 +23,15 @@ export interface IThinInstancePainterState {
      * thin instances.
      */
     selectedMesh: Nullable<Mesh>;
+    /**
+     * Defines the number of active instances
+     */
+    instancesCount: number;
 }
 
 export class ThinInstancePainterInspector extends AbstractInspector<ThinInstancePainter, IThinInstancePainterState> {
+    private _intervalId: NodeJS.Timeout;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -37,6 +43,7 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
 
         this.state = {
             selectedMesh: null,
+            instancesCount: 0,
         };
     }
 
@@ -52,7 +59,7 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
                 <Divider />
                 <H4 style={{ textAlign: "center" }}>Thin Instances Painter</H4>
                 <InspectorSection title="Material">
-                    <div style={{ width: "100%", height: "100px" }}>
+                    <div style={{ width: "100%", height: "120px" }}>
                         <div style={{ width: "35%", height: "100px", float: "left" }}>
                             <img
                                 src={this.state.selectedMesh && materialAsset ? materialAsset.base64 : "../css/svg/plus.svg"}
@@ -65,6 +72,7 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
                         <div style={{ width: "65%", height: "100px", float: "left" }}>
                             <H4 style={{ lineHeight: "100px", textAlign: "center" }}>{this.state.selectedMesh?.name ?? "None Selected"}</H4>
                         </div>
+                        <span>Intances Count: {this.state.instancesCount}</span>
                     </div>
                 </InspectorSection>
 
@@ -87,12 +95,36 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
     }
 
     /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        super.componentDidMount();
+
+        this._intervalId = setInterval(() => {
+            this.setState({
+                instancesCount: this.state.selectedMesh?.thinInstanceCount ?? 0,
+            });
+        }, 500);
+    }
+
+    /**
      * Called on the component will unmount.
      */
     public componentWillUnmount(): void {
         super.componentWillUnmount();
 
+        clearInterval(this._intervalId);
+
         this.selectedObject.dispose();
+    }
+
+    /**
+     * Called on a property of the selected object has changed.
+     */
+    public onPropertyChanged(): void {
+        if (this.state.selectedMesh) {
+            this.setState({ instancesCount: this.state.selectedMesh.thinInstanceCount });
+        }
     }
 
     /**
@@ -101,7 +133,7 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
     private _handleNodeDropped(e: React.DragEvent<HTMLImageElement>): void {
         (e.currentTarget as HTMLImageElement).style.border = "dashed black 1px";
         if (!e.dataTransfer) { return; }
-        
+
         const data = e.dataTransfer.getData("graph/node");
         if (!data) { return; }
 
@@ -111,7 +143,7 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
 
             if (node && node instanceof Mesh) {
                 this.selectedObject.setMesh(node);
-                this.setState({ selectedMesh: node });
+                this.setState({ selectedMesh: node, instancesCount: node.thinInstanceCount });
             }
         } catch (e) {
             // Catch silently.

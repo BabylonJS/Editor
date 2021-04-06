@@ -234,6 +234,10 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 		if (!this.holdToPaint) {
 			this._paint();
 		}
+
+		if (this._selectedMesh?.thinInstanceCount) {
+			this._selectedMesh.thinInstanceRefreshBoundingInfo(true);
+		}
 	}
 
 	/**
@@ -272,7 +276,8 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 		// Search for existing thin instance under the set distance
 		const matrices = this._selectedMesh.thinInstanceGetWorldMatrices();
 
-		const averageScale = (this._selectedMesh.scaling.x + this._selectedMesh.scaling.y + this._selectedMesh.scaling.z) / 3;
+		const extendsSize = this._cloneMesh.getBoundingInfo().boundingBox.extendSizeWorld;
+		const averageScale = (extendsSize.x + extendsSize.y + extendsSize.z) / 3;
 		const scaledDistance = this.paintDistance / averageScale;
 
 		for (let i = 0; i < matrices.length; i++) {
@@ -280,9 +285,8 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 			const distance = Vector3.Distance(transformedTranslation, m.getTranslation());
 
 			if (distance < scaledDistance) {
-				if (!this._removing || i === 0) {
-					return;
-				}
+				if (!this._removing) { return; }
+				if (i === 0) { continue; }
 
 				matrices.splice(i, 1);
 				i--;
@@ -299,6 +303,14 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 			this._selectedMesh.getLODLevels().forEach((lod) => {
 				lod.mesh?.thinInstanceSetBuffer("matrix", buffer, 16, false);
 			});
+
+			if (this._selectedMesh.thinInstanceCount === 1) {
+				this._selectedMesh.thinInstanceSetBuffer("matrix", null, 16, false);
+				this._selectedMesh.getLODLevels().forEach((lod) => {
+					lod.mesh?.thinInstanceSetBuffer("matrix", null, 16, false);
+				});
+			}
+			
 			return;
 		}
 
@@ -317,7 +329,7 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 		this._selectedMesh.thinInstanceAdd(matrix, true);
 		this._selectedMesh.getLODLevels().forEach((lod) => {
 			lod.mesh?.thinInstanceAdd(matrix, true);
-		})
+		});
 	}
 
 	/**

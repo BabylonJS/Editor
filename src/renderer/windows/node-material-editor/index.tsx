@@ -120,6 +120,13 @@ export default class NodeMaterialEditorWindow extends React.Component {
     private async _saveMaterial(nodeMaterial: Nullable<NodeMaterial>, closed: boolean = false): Promise<void> {
         if (!nodeMaterial) { return; }
 
+        try {
+            nodeMaterial.build(false);
+        } catch (e) {
+            this._toaster?.show({ message: `An error occured: ${e.message}`, intent: Intent.DANGER, timeout: 3000 });
+            return;
+        }
+
         const result = await IPCTools.SendWindowMessage<{ error: Boolean; }>(-1, "node-material-json", {
             json: nodeMaterial.serialize(),
             editorData: nodeMaterial.editorData,
