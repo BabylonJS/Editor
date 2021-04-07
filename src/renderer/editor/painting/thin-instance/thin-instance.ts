@@ -2,7 +2,7 @@ import { Nullable } from "../../../../shared/types";
 
 import {
 	Mesh, PointerInfo, PointerEventTypes, Matrix, Vector3, Quaternion,
-	AbstractMesh, StandardMaterial, DynamicTexture,
+	AbstractMesh, StandardMaterial, DynamicTexture, Epsilon,
 } from "babylonjs";
 
 import { Editor } from "../../editor";
@@ -78,7 +78,7 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 	 */
 	public set paintDistance(distance: number) {
 		this._paintDistance = distance;
-		this._decal.size.setAll(distance);
+		this._decal.size.z = distance;
 	}
 
 	/**
@@ -191,10 +191,10 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 				if (pick.pickedPoint) {
 					this._cloneMesh.setAbsolutePosition(pick.pickedPoint);
 	
-					// const normal = pick.getNormal(true, true);
-					// if (normal) {
-					// 	this._cloneMesh.lookAt(pick.pickedPoint.subtract(normal.negate()));
-					// }
+					const normal = pick.getNormal(true, true);
+					if (normal) {
+						this._cloneMesh.lookAt(pick.pickedPoint.subtract(normal.negate()));
+					}
 				}
 	
 				if (this._isPointerDown && this.holdToPaint) {
@@ -214,7 +214,7 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 		if (info.event.altKey) {
 			this._cloneMesh?.scaling.addInPlaceFromFloats(delta, delta, delta);
 		} else {
-			const distance = Math.max(0, this._paintDistance + delta);
+			const distance = Math.max(Epsilon, this._paintDistance + delta);
 			this.paintDistance = distance;
 			this._handlePointerMove();
 
@@ -233,10 +233,6 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 
 		if (!this.holdToPaint) {
 			this._paint();
-		}
-
-		if (this._selectedMesh?.thinInstanceCount) {
-			this._selectedMesh.thinInstanceRefreshBoundingInfo(true);
 		}
 	}
 
@@ -261,13 +257,18 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 		}
 
 		// Get rotation
-		const randomRotation = new Vector3(
+		const randomRotation = Quaternion.FromEulerAngles(
 			Math.random() * (this.randomRotationMax.x - this.randomRotationMin.x) + this.randomRotationMin.x,
 			Math.random() * (this.randomRotationMax.y - this.randomRotationMin.y) + this.randomRotationMin.y,
 			Math.random() * (this.randomRotationMax.z - this.randomRotationMin.z) + this.randomRotationMin.z,
 		);
 
-		this._selectedMesh.absoluteRotationQuaternion.toRotationMatrix(this._rotationMatrix);
+		const absoluteRotation = this._cloneMesh.absoluteRotationQuaternion;
+		const sourceAbsoluteRotation = this._selectedMesh.absoluteRotationQuaternion;
+
+		const rotation = Quaternion.Inverse(sourceAbsoluteRotation).multiply(absoluteRotation).multiply(randomRotation);
+
+		sourceAbsoluteRotation.toRotationMatrix(this._rotationMatrix);
 
 		// Transform translation
 		const translation = absolutePosition.subtract(sourceAbsolutePosition).divide(this._selectedMesh.scaling);
@@ -275,16 +276,16 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 
 		// Search for existing thin instance under the set distance
 		const matrices = this._selectedMesh.thinInstanceGetWorldMatrices();
-
-		const extendsSize = this._cloneMesh.getBoundingInfo().boundingBox.extendSizeWorld;
-		const averageScale = (extendsSize.x + extendsSize.y + extendsSize.z) / 3;
-		const scaledDistance = this.paintDistance / averageScale;
+		const paintDistance = this._paintDistance / this._decal.size.normalizeToNew().z;
 
 		for (let i = 0; i < matrices.length; i++) {
 			const m = matrices[i];
-			const distance = Vector3.Distance(transformedTranslation, m.getTranslation());
+			const distance = Vector3.Distance(
+				m.getTranslation().multiply(this._selectedMesh.scaling),
+				transformedTranslation.multiply(this._selectedMesh.scaling),
+			);
 
-			if (distance < scaledDistance) {
+			if (distance < paintDistance) {
 				if (!this._removing) { return; }
 				if (i === 0) { continue; }
 
@@ -324,12 +325,17 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 		const scaling = randomScaling.divide(this._selectedMesh.scaling);
 
 		// Compose matrix and add instance
-		const matrix = Matrix.Compose(scaling, Quaternion.FromEulerVector(randomRotation), transformedTranslation);
+		const matrix = Matrix.Compose(scaling, rotation, transformedTranslation);
 
 		this._selectedMesh.thinInstanceAdd(matrix, true);
 		this._selectedMesh.getLODLevels().forEach((lod) => {
 			lod.mesh?.thinInstanceAdd(matrix, true);
 		});
+
+		// Refresh bounding info.
+		if (this._selectedMesh?.thinInstanceCount) {
+			this._selectedMesh.thinInstanceRefreshBoundingInfo(true);
+		}
 	}
 
 	/**
