@@ -73,6 +73,7 @@ export class MaterialAssets extends AbstractAssets {
                 <MenuItem key="add-fire-material" text="Add Fire Material..." onClick={() => this._addMaterial("FireMaterial")} />
                 <MenuItem key="add-lava-material" text="Add Lava Material..." onClick={() => this._addMaterial("LavaMaterial")} />
                 <MenuItem key="add-water-material" text="Add Water Material..." onClick={() => this._addMaterial("WaterMaterial")} />
+                <MenuItem key="add-tri-planar-material" text="Add Tri Planar Material..." onClick={() => this._addMaterial("TriPlanarMaterial")} />
             </Menu>;
 
         return (
