@@ -30,6 +30,8 @@ export interface IThinInstancePainterState {
 }
 
 export class ThinInstancePainterInspector extends AbstractInspector<ThinInstancePainter, IThinInstancePainterState> {
+    private static _serializedConfiguration: Nullable<any> = null;
+
     private _intervalId: NodeJS.Timeout;
 
     /**
@@ -40,9 +42,12 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
         super(props);
 
         this.selectedObject = new ThinInstancePainter(this.editor);
+        if (ThinInstancePainterInspector._serializedConfiguration) {
+            this.selectedObject.parse(ThinInstancePainterInspector._serializedConfiguration);
+        }
 
         this.state = {
-            selectedMesh: null,
+            selectedMesh: this.selectedObject._selectedMesh,
             instancesCount: 0,
         };
     }
@@ -114,7 +119,7 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
         super.componentWillUnmount();
 
         clearInterval(this._intervalId);
-
+        ThinInstancePainterInspector._serializedConfiguration = this.selectedObject.serialize();
         this.selectedObject.dispose();
     }
 

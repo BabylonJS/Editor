@@ -40,9 +40,12 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 	 */
 	public holdToPaint: boolean = true;
 
+	/**
+	 * @hidden
+	 */
+	public _selectedMesh: Nullable<Mesh> = null;
 	private _cloneMesh: Nullable<Mesh> = null;
-	private _selectedMesh: Nullable<Mesh> = null;
-
+	
 	private _targetMesh: Nullable<AbstractMesh> = null;
 
 	private _decal: Decal;
@@ -361,5 +364,37 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 
 		this._decal = new Decal(this.layerScene);
 		this._decal.material = material;
+	}
+
+	/**
+	 * Serializes the painting tool.
+	 */
+	public serialize(): any {
+		return {
+			meshId: this._selectedMesh?.id ?? null,
+			randomRotationMin: this.randomRotationMin.asArray(),
+            randomRotationMax: this.randomRotationMax.asArray(),
+            randomScalingMin: this.randomScalingMin.asArray(),
+            randomScalingMax: this.randomScalingMax.asArray(),
+            holdToPaint: this.holdToPaint,
+            paintDistance: this.paintDistance,
+		}
+	}
+
+	/**
+	 * Parses the painting tool taking the given configuration.
+	 */
+	public parse(config: any): void {
+		const mesh = config.meshId ? this.editor.scene!.getMeshByID(config.meshId) : null;
+		if (mesh && mesh instanceof Mesh) {
+			this.setMesh(mesh);
+		}
+
+		this.randomRotationMin = Vector3.FromArray(config.randomRotationMin);
+		this.randomRotationMax = Vector3.FromArray(config.randomRotationMax);
+		this.randomScalingMin = Vector3.FromArray(config.randomScalingMin);
+		this.randomScalingMax = Vector3.FromArray(config.randomScalingMax);
+		this.holdToPaint = config.holdToPaint;
+		this.paintDistance = config.paintDistance;
 	}
 }

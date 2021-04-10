@@ -27,6 +27,8 @@ export interface IDecalPainterInspectorState {
 }
 
 export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDecalPainterInspectorState> {
+    private static _serializedConfiguration: Nullable<any> = null;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -35,9 +37,15 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
         super(props);
 
         this.selectedObject = new DecalsPainter(this.editor);
+        if (DecalsPainterInspector._serializedConfiguration) {
+            this.selectedObject.parse(DecalsPainterInspector._serializedConfiguration);
+        }
+
+        const assets = this.editor.assets.getComponent(MaterialAssets);
+        const selectedMaterialAsset = this.selectedObject.material ? assets?.getAssetFromMaterial(this.selectedObject.material) ?? null : null;
 
         this.state = {
-            selectedMaterialAsset: null,
+            selectedMaterialAsset,
         };
     }
 
@@ -86,6 +94,7 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
     public componentWillUnmount(): void {
         super.componentWillUnmount();
 
+        DecalsPainterInspector._serializedConfiguration = this.selectedObject.serialize();
         this.selectedObject?.dispose();
     }
 

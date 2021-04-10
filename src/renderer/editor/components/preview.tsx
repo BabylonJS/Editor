@@ -14,6 +14,7 @@ import { SceneSettings } from "../scene/settings";
 import { Tools } from "../tools/tools";
 
 import { Icon } from "../gui/icon";
+import { Alert } from "../gui/alert";
 import { Omnibar, IOmnibarItem } from "../gui/omni-bar";
 
 import { WorkSpace } from "../project/workspace";
@@ -342,6 +343,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         } else if (this._copiedNode instanceof Camera) {
             clone = this._copiedNode.clone(this._copiedNode.name);
         } else if (this._copiedNode instanceof Mesh) {
+            if (this._copiedNode.hasThinInstances) {
+                Alert.Show("Can't create mesh instance", "The mesh to paste contains Thin Instances. Please use Thin Instances painting tool instead to create copies.");
+                return;
+            }
             const instance = clone = this._copiedNode.createInstance(`${this._copiedNode.name} (Mesh Instance)`);
             instance.position.copyFrom(this._copiedNode.position);
             instance.rotation.copyFrom(this._copiedNode.rotation);

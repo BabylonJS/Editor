@@ -64,8 +64,8 @@ export class DecalsPainter extends AbstractPaintingTool {
 		}
 
 		if (info.type === PointerEventTypes.POINTERUP) {
-            return this._updateDecal(true);
-        }
+			return this._updateDecal(true);
+		}
 	}
 
 	/**
@@ -255,5 +255,35 @@ export class DecalsPainter extends AbstractPaintingTool {
 		if (this._lastPickingInfo) {
 			this._decal.updateDecal(this._lastPickingInfo);
 		}
+	}
+
+	/**
+	 * Serializes the painting tool.
+	 */
+	public serialize(): any {
+		return {
+			materialId: this.material?.id ?? null,
+			angle: this.angle,
+			size: this.size,
+			width: this.width,
+			height: this.height,
+			receiveShadows: this.receiveShadows,
+		}
+	}
+
+	/**
+	 * Parses the painting tool taking the given configuration.
+	 */
+	public parse(config: any): void {
+		const material = config.materialId ? this.editor.scene!.getMaterialByID(config.materialId) : null;
+		if (material) {
+			this.material = material;
+		}
+
+		this.angle = config.angle;
+		this.size = config.size;
+		this.width = config.width;
+		this.height = config.height;
+		this.receiveShadows = config.receiveShadows;
 	}
 }
