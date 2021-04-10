@@ -22,6 +22,10 @@ export interface IToolbarState {
      * Defines wether or not project has a workspace loaded.
      */
     hasWorkspace: boolean;
+    /**
+     * Defines wether or not the user is playing the scene.
+     */
+    isPlaying: boolean;
 }
 
 export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> {
@@ -37,7 +41,10 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
         this._editor = props.editor;
         this._editor.toolsToolbar = this;
 
-        this.state = { hasWorkspace: false };
+        this.state = {
+            isPlaying: false,
+            hasWorkspace: false,
+        };
     }
 
     /**
@@ -45,10 +52,17 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
      */
     public render(): React.ReactNode {
         return (
-            <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
-                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("play-integrated")} id="play-game" />
-                <Button disabled={!this.state.hasWorkspace} icon={<Icon src="generate.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} id="generate-scene" />
-            </ButtonGroup>
+            <div style={{ width: "100%" }}>
+                <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
+                    <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("play-integrated")} id="play-game" />
+                    <Button disabled={!this.state.hasWorkspace} icon={<Icon src="generate.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} id="generate-scene" />
+                </ButtonGroup>
+
+                <ButtonGroup large={false} style={{ zIndex: 1, left: "50%", position: "absolute", transform: "translate(-50%)" }}>
+                    <Button style={{ width: "50px" }} icon={this.state.isPlaying ? "stop" : "play"} onClick={() => this._buttonClicked("play-scene")} />
+                    <Button style={{ width: "50px" }} disabled={!this.state.isPlaying} icon="reset" onClick={() => this._buttonClicked("restart-play-scene")} />
+                </ButtonGroup>
+            </div>
         );
     }
 
@@ -66,6 +80,9 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             case "generate-as": ProjectExporter.ExportFinalSceneAs(this._editor); break;
             case "generate-only-geometries": ProjectExporter.ExportFinalSceneOnlyGeometries(this._editor); break;
             case "build-project": WorkSpace.BuildProject(this._editor); break;
+
+            case "play-scene": this._handlePlay(); break;
+            case "restart-play-scene": this._editor.preview.restartPlay(); break;
             default: break;
         }
     }
@@ -99,5 +116,15 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             </Menu>,
             { left: e.clientX, top: e.clientY },
         );
+    }
+
+    /**
+     * Called on the user wants to play or stop the test of the scene.
+     */
+    private _handlePlay(): void {
+        const isPlaying = !this.state.isPlaying;
+        this.setState({ isPlaying });
+
+        this._editor.preview.playOrStop();
     }
 }

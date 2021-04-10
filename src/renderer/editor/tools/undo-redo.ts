@@ -48,8 +48,8 @@ export class UndoRedo {
      * @param action the action to push in the undo/redo stack.
      */
     public async push(action: IUndoRedoAction): Promise<void> {
-		while ((this.stack.length - 1) > this._position) {
-			this.stack.pop();
+		if (this._position < this.stack.length - 1) {
+			this.stack.splice(this._position + 1);
 		}
 
 		this.stack.push(action);

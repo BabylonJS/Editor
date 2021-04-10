@@ -60,6 +60,11 @@ export interface IPreviewState {
      * Defines wether or not the preview is in isolated mode.
      */
     isIsolatedMode: boolean;
+
+    /**
+     * Defines wether or not the user is playing the scene.
+     */
+    isPlaying: boolean;
 }
 
 export enum PreviewCanvasEventType {
@@ -96,8 +101,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     private _isolationBaseMeshesArray: Nullable<AbstractMesh[]> = null;
 
     private _searchBar: Omnibar;
+    private _playIframe: HTMLIFrameElement;
     private _refHandler = {
         getSearchBar: (ref: Omnibar) => this._searchBar = ref,
+        getPlayIframe: (ref: HTMLIFrameElement) => this._playIframe = ref,
     };
 
     /**
@@ -121,6 +128,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             forceWireframe: false,
             showIcons: true,
             isIsolatedMode: false,
+            isPlaying: false,
         };
     }
 
@@ -155,12 +163,16 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             </Pre>
         ) : undefined;
 
+        const playIframe = this.state.isPlaying ? (
+            <iframe ref={this._refHandler.getPlayIframe} src="./play.html" onLoad={(ev) => this._handlePlay(ev.nativeEvent.target as HTMLIFrameElement)} style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", border: "none" }}></iframe>
+        ) : undefined;
+
         return (
             <>
                 <div id="preview-toolbar" style={{ width: "100%", height: "25px" }}>
                     <ButtonGroup key="preview-buttons" large={false} style={{ height: "20px", marginTop: "auto", marginBottom: "auto" }}>
                         <Popover key="cameras-popover" content={cameras} position={Position.BOTTOM_LEFT}>
-                            <AnchorButton key="cameras-button" small={true} icon={<Icon src="camera.svg" />} rightIcon="caret-down" text="Cameras"/>
+                            <AnchorButton key="cameras-button" small={true} icon={<Icon src="camera.svg" />} rightIcon="caret-down" text="Cameras" />
                         </Popover>
 
                         <Divider />
@@ -197,13 +209,33 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                     </ButtonGroup>
                 </div>
                 <div style={{ height: "calc(100% - 25px)" }}>
-                    <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none" }}></canvas>
+                    <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", display: this.state.isPlaying ? "none" : "block" }}></canvas>
+                    {playIframe}
                     {isolatedMode}
                     <Tag key="preview-tag" round={true} large={true} style={{ visibility: (this.state.canvasFocused ? "visible" : "hidden"), position: "absolute", left: "50%", top: "calc(100% - 15px)", transform: "translate(-50%, -50%)" }} >{this.state.overNodeName}</Tag>
                     <Omnibar ref={this._refHandler.getSearchBar} onChange={(i) => this._handleSearchBarChanged(i)} />
                 </div>
             </>
         );
+    }
+
+    /**
+     * Called on the user wants to play or stop the scene.
+     */
+    public playOrStop(): void {
+        const isPlaying = !this.state.isPlaying;
+        this.setState({ isPlaying });
+
+        this._editor.runRenderLoop(!isPlaying);
+    }
+
+    /**
+     * In case the user is playing the test scene, it restarts the iframe.
+     */
+    public restartPlay(): void {
+        if (this._playIframe) {
+            this._playIframe.src = this._playIframe.src;
+        }
     }
 
     /**
@@ -295,11 +327,11 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      */
     public showSearchBar(): void {
         this._searchBar.show([
-                { id: "__editor__separator__", name: "Scene Nodes" }
-            ].concat(this._editor.sceneUtils.getAllNodes()).concat([
-                { id: "__editor__separator__", name: "Commands" },
-                { id: "__command__build__project__", name: "Build Project..." },
-                { id: "__command__generate_scene__", name: "Generate Scene..." },
+            { id: "__editor__separator__", name: "Scene Nodes" }
+        ].concat(this._editor.sceneUtils.getAllNodes()).concat([
+            { id: "__editor__separator__", name: "Commands" },
+            { id: "__command__build__project__", name: "Build Project..." },
+            { id: "__command__generate_scene__", name: "Generate Scene..." },
         ]));
     }
 
@@ -440,7 +472,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         this._editor.scene!.stopAnimation(camera);
 
         let translation = Vector3.Zero();
-        
+
         const scaling = Vector3.Zero();
         (node as Node).getWorldMatrix().decompose(scaling, undefined, translation);
 
@@ -448,7 +480,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             node.refreshBoundingInfo(true);
             translation = node.getBoundingInfo()?.boundingBox?.centerWorld?.clone() ?? translation;
         }
-        
+
         if (camera["target"]) {
             const a = new Animation("FocusTargetAnimation", "target", 60, Animation.ANIMATIONTYPE_VECTOR3);
             a.setKeys([{ frame: 0, value: camera.getTarget() }, { frame: 60, value: translation }]);
@@ -479,9 +511,9 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         const positionAnimation = new Animation("RestorePositionAnimation", "position", 60, Animation.ANIMATIONTYPE_VECTOR3);
         positionAnimation.setKeys([{ frame: 0, value: camera.position.clone() }, { frame: 60, value: this._cameraPositionBeforeIsolation.clone() }]);
-        
+
         this._cameraPositionBeforeIsolation = null;
-        
+
         const animations = [positionAnimation];
 
         if (camera instanceof TargetCamera && this._cameraTargetBeforeIsolation) {
@@ -511,6 +543,17 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         if (!node) { return; }
 
         this._focusNode(node, false);
+    }
+
+    /**
+     * Called on the play iframe has been loaded.
+     */
+    private _handlePlay(ref: HTMLIFrameElement): void {
+        ref.contentWindow?.postMessage({
+            id: "init",
+            workspaceDir: WorkSpace.DirPath!,
+            projectName: WorkSpace.GetProjectName(),
+        }, undefined!);
     }
 
     /**

@@ -157,7 +157,7 @@ export class Editor {
     /**
      * Defines the dictionary of all avaiable loaded plugins in the editor.
      */
-    public plugins: IStringDictionary<AbstractEditorPlugin<any>> = { };
+    public plugins: IStringDictionary<AbstractEditorPlugin<any>> = {};
 
     /**
      * Reference to the scene utils.
@@ -252,12 +252,12 @@ export class Editor {
      * Notifies observers that the scene has been generated.
      */
     public afterGenerateSceneObservable: Observable<string> = new Observable<string>();
-    
+
     /**
      * Defines the current editor version.
      * @hidden
      */
-    public _packageJson: any = { };
+    public _packageJson: any = {};
     /**
      * @hidden
      */
@@ -267,14 +267,14 @@ export class Editor {
      */
     public _toaster: Nullable<Toaster> = null;
 
-    private _components: IStringDictionary<any> = { };
-    private _stacks: IStringDictionary<any> = { };
+    private _components: IStringDictionary<any> = {};
+    private _stacks: IStringDictionary<any> = {};
 
     private _taskFeedbacks: IStringDictionary<{
         message: string;
         amount: number;
         timeout: number;
-    }> = { };
+    }> = {};
 
     private _activityIndicator: Nullable<ActivityIndicator> = null;
     private _refHandlers = {
@@ -297,11 +297,11 @@ export class Editor {
     /**
      * Defines the dictionary of all loaded plugins in the editor.
      */
-    public static LoadedPlugins: IStringDictionary<{ name: string; fullPath?: boolean; }> = { };
+    public static LoadedPlugins: IStringDictionary<{ name: string; fullPath?: boolean; }> = {};
     /**
      * Defines the dictionary of all loaded external plugins in the editor.
      */
-    public static LoadedExternalPlugins: IStringDictionary<IPlugin> = { };
+    public static LoadedExternalPlugins: IStringDictionary<IPlugin> = {};
 
     /**
      * Constructor.
@@ -321,7 +321,7 @@ export class Editor {
         ReactDOM.render(<ToolsToolbar editor={this} />, document.getElementById("BABYLON-EDITOR-TOOLS-TOOLBAR"));
 
         // Toaster
-        ReactDOM.render(<Toaster canEscapeKeyClear={true} position={Position.TOP} ref={this._refHandlers.getToaster}></Toaster>, document.getElementById("BABYLON-EDITOR-TOASTS"));
+        ReactDOM.render(<Toaster canEscapeKeyClear={true} position={Position.BOTTOM_LEFT} ref={this._refHandlers.getToaster}></Toaster>, document.getElementById("BABYLON-EDITOR-TOASTS"));
 
         // Activity Indicator
         ReactDOM.render(
@@ -371,27 +371,43 @@ export class Editor {
             },
             content: [{
                 type: "row", content: [
-                    { type: "react-component", id: "inspector", component: "inspector", componentName: "Inspector", title: "Inspector", width: 20, isClosable: false, props: {
-                        editor: this,
-                    } },
-                    { type: "column", content: [
-                        { type: "react-component", id: "preview", component: "preview", componentName: "Preview", title: "Preview", isClosable: false, props: {
+                    {
+                        type: "react-component", id: "inspector", component: "inspector", componentName: "Inspector", title: "Inspector", width: 20, isClosable: false, props: {
                             editor: this,
-                        } },
-                        { type: "stack", id: "edit-panel", componentName: "edit-panel", content: [
-                            { type: "react-component", id: "assets", component: "assets", componentName: "Assets", title: "Assets", width: 10, isClosable: false, props: {
-                                editor: this,
-                            } },
-                            { type: "react-component", id: "console", component: "console", componentName: "Console", title: "Console", width: 10, isClosable: false, props: {
-                                editor: this,
-                            } }
-                        ] },
-                    ] },
-                    { type: "stack", content: [
-                        { type: "react-component", id: "graph", component: "graph", componentName: "Graph", title: "Graph", width: 2, isClosable: false, props: {
-                            editor: this,
-                        } },
-                    ] }
+                        }
+                    },
+                    {
+                        type: "column", content: [
+                            {
+                                type: "react-component", id: "preview", component: "preview", componentName: "Preview", title: "Preview", isClosable: false, props: {
+                                    editor: this,
+                                }
+                            },
+                            {
+                                type: "stack", id: "edit-panel", componentName: "edit-panel", content: [
+                                    {
+                                        type: "react-component", id: "assets", component: "assets", componentName: "Assets", title: "Assets", width: 10, isClosable: false, props: {
+                                            editor: this,
+                                        }
+                                    },
+                                    {
+                                        type: "react-component", id: "console", component: "console", componentName: "Console", title: "Console", width: 10, isClosable: false, props: {
+                                            editor: this,
+                                        }
+                                    }
+                                ]
+                            },
+                        ]
+                    },
+                    {
+                        type: "stack", content: [
+                            {
+                                type: "react-component", id: "graph", component: "graph", componentName: "Graph", title: "Graph", width: 2, isClosable: false, props: {
+                                    editor: this,
+                                }
+                            },
+                        ]
+                    }
                 ]
             }],
         }, jQuery("#BABYLON-EDITOR"));
@@ -456,7 +472,7 @@ export class Editor {
         this.inspector.resize();
         this.assets.resize();
         this.console.resize();
-        
+
         for (const p in this.plugins) {
             const panel = this.getPanelSize(p);
             this.plugins[p].resize(panel.width, panel.height);
@@ -693,7 +709,7 @@ export class Editor {
         if (!item) { return; }
 
         const stack = item.parent;
-        if (!stack) { return ;}
+        if (!stack) { return; }
 
         try { stack.setActiveContentItem(item); } catch (e) { /* Catch silently */ }
     }
@@ -703,6 +719,18 @@ export class Editor {
      */
     public getPreferences(): IEditorPreferences {
         return this._preferences ?? Tools.GetEditorPreferences();
+    }
+
+    /**
+     * Sets wether or not the editor's scene should be rendered.
+     * @param render defines wether or not the render loop should render the editor's scene.
+     */
+    public runRenderLoop(render: boolean): void {
+        if (!render) {
+            this.engine?.stopRenderLoop();
+        } else {
+            this.engine?.runRenderLoop(() => this.scene!.render());
+        }
     }
 
     /**
@@ -775,14 +803,14 @@ export class Editor {
             preserveDrawingBuffer: true,
             stencil: true,
         }, true);
-        
+
         this.scene = new Scene(this.engine);
 
-        this.engine.runRenderLoop(() => this.scene!.render());
+        this.runRenderLoop(true);
 
         // Camera
         this.scene.activeCamera = SceneSettings.Camera ?? SceneSettings.GetArcRotateCamera(this);
-        
+
         // Post-processes
         SceneSettings.GetSSAORenderingPipeline(this);
         SceneSettings.GetDefaultRenderingPipeline(this);
@@ -817,7 +845,7 @@ export class Editor {
             await WorkSpace.ReadWorkSpaceFile(workspacePath);
             await WorkSpace.RefreshAvailableProjects();
         }
-        
+
         // Get opening project
         const projectPath = workspacePath ? WorkSpace.GetProjectPath() : await Project.GetOpeningProject();
         if (projectPath) {
@@ -829,23 +857,23 @@ export class Editor {
 
         // Console
         this.console.overrideLogger();
-        
+
         // Refresh
         this.mainToolbar.setState({ hasWorkspace: workspacePath !== null });
         this.toolsToolbar.setState({ hasWorkspace: WorkSpace.HasWorkspace() });
 
         // Now initialized!
         this._isInitialized = true;
-        
+
         const workspace = WorkSpace.Workspace;
         if (workspace) {
             // Plugins
-            for (const p in workspace.pluginsPreferences ?? { }) {
+            for (const p in workspace.pluginsPreferences ?? {}) {
                 const plugin = Editor.LoadedExternalPlugins[p];
                 if (!plugin?.setWorkspacePreferences) { continue; }
 
                 const preferences = workspace.pluginsPreferences![p];
-                
+
                 try {
                     plugin.setWorkspacePreferences(preferences);
                 } catch (e) {
@@ -853,7 +881,7 @@ export class Editor {
                 }
             }
         }
-    
+
         // Notify!
         this.editorInitializedObservable.notifyObservers();
         this.selectedSceneObservable.notifyObservers(this.scene!);
@@ -870,7 +898,7 @@ export class Editor {
             if (!(await pathExists(join(WorkSpace.DirPath!, "scenes", WorkSpace.GetProjectName())))) {
                 await ProjectExporter.ExportFinalScene(this);
             }
-            
+
             const hasNodeModules = await pathExists(join(WorkSpace.DirPath!, "node_modules"));
             const hasPackageJson = await pathExists(join(WorkSpace.DirPath!, "package.json"));
             if (!hasNodeModules && hasPackageJson) {
@@ -955,7 +983,7 @@ export class Editor {
         this.selectedNodeObservable.add((o, ev) => {
             this.inspector.setSelectedObject(o);
             this.preview.gizmo.setAttachedNode(o);
-            
+
             if (ev.target !== this.graph) { this.graph.setSelected(o, ev.userInfo?.ctrlDown); }
         });
         this.selectedSubMeshObservable.add((o, ev) => {
@@ -980,7 +1008,7 @@ export class Editor {
 
             if (ev.target !== this.graph) { this.graph.setSelected(o); }
         });
-        
+
         this.selectedSceneObservable.add((s) => this.inspector.setSelectedObject(s));
         this.selectedTextureObservable.add((t) => this.inspector.setSelectedObject(t));
         this.selectedMaterialObservable.add((m) => this.inspector.setSelectedObject(m));
@@ -1024,7 +1052,7 @@ export class Editor {
         // Save
         ipcRenderer.on("save", () => ProjectExporter.Save(this));
         // ipcRenderer.on("save-as", () => ProjectExporter.SaveAs(this));
-        
+
         // Undo / Redo
         ipcRenderer.on("undo", () => !(document.activeElement instanceof HTMLInputElement) && undoRedo.undo());
         ipcRenderer.on("redo", () => !(document.activeElement instanceof HTMLInputElement) && undoRedo.redo());
@@ -1075,7 +1103,7 @@ export class Editor {
                 if (ev.key === "f") { return this.preview.focusSelectedNode(true); }
                 if (ev.key === "F") { return this.preview.focusSelectedNode(false); }
                 if (ev.key === "i") { return this.preview.toggleIsolatedMode(); }
-                
+
                 if (ev.keyCode === 46) { return this.preview.removeSelectedNode(); }
 
                 if (ev.keyCode === 27) {
@@ -1102,7 +1130,7 @@ export class Editor {
                     input.detachControl();
                 }
 
-                SceneSettings.Camera.metadata = SceneSettings.Camera.metadata ?? { };
+                SceneSettings.Camera.metadata = SceneSettings.Camera.metadata ?? {};
                 SceneSettings.Camera.metadata.detached = true;
             }
         });
