@@ -42,7 +42,16 @@ export default class Play {
 				sceneTools.runScene(this._scene, rootUrl);
 
 				// Render.
-				this._engine.runRenderLoop(() => this._scene.render());
+				this._engine.runRenderLoop(() => {
+					try {
+						this._scene.render();
+					} catch (e) {
+						console.error(e);
+						parent.postMessage({ error: e.message }, undefined!);
+						
+						this._engine.stopRenderLoop();
+					}
+				});
 			});
 		}, undefined, (_, message) => {
 			console.error(message);

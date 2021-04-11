@@ -107,6 +107,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         getPlayIframe: (ref: HTMLIFrameElement) => this._playIframe = ref,
     };
 
+    private _playMessageEventListener: Nullable<(ev: MessageEvent) => void> = null;
+
     /**
      * Constructor.
      * @param props the component's props.
@@ -164,7 +166,13 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         ) : undefined;
 
         const playIframe = this.state.isPlaying ? (
-            <iframe ref={this._refHandler.getPlayIframe} src="./play.html" onLoad={(ev) => this._handlePlay(ev.nativeEvent.target as HTMLIFrameElement)} style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", border: "none" }}></iframe>
+            <iframe
+                src="./play.html"
+                key={Tools.RandomId()}
+                ref={this._refHandler.getPlayIframe}
+                onLoad={(ev) => this._handlePlay(ev.nativeEvent.target as HTMLIFrameElement)}
+                style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", border: "none" }}
+            ></iframe>
         ) : undefined;
 
         return (
@@ -222,9 +230,21 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     /**
      * Called on the user wants to play or stop the scene.
      */
-    public playOrStop(): void {
+    public async playOrStop(): Promise<void> {
         const isPlaying = !this.state.isPlaying;
+
+        if (isPlaying) {
+            await ProjectExporter.ExportFinalScene(this._editor);
+        }
+
         this.setState({ isPlaying });
+
+        if (!isPlaying) {
+            if (this._playMessageEventListener) {
+                window.removeEventListener("message", this._playMessageEventListener);
+            }
+            this._playMessageEventListener = null;
+        }
 
         this._editor.runRenderLoop(!isPlaying);
     }
@@ -554,6 +574,15 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             workspaceDir: WorkSpace.DirPath!,
             projectName: WorkSpace.GetProjectName(),
         }, undefined!);
+
+        window.addEventListener("message", this._playMessageEventListener = (ev) => {
+            if (ev.data?.error) {
+                this._editor.notifyMessage(ev.data.error, 5000, "notifications", "danger");
+
+                window.removeEventListener("message", this._playMessageEventListener!);
+                this._playMessageEventListener = null;
+            }
+        });
     }
 
     /**

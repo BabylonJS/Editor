@@ -52,7 +52,7 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
                         <Button key="open-devtools" small={true} icon="code-block" text="Open DevTools..." onClick={() => this._handleOpenDevTools()} />
                     </ButtonGroup>
                 </div>
-                <iframe ref={this._refHandler.getIFrame} src={iframeUrl} style={{ width: "100%", height: "calc(100% - 25px)" }}></iframe>
+                <iframe ref={this._refHandler.getIFrame} src={iframeUrl} style={{ border: "none", width: "100%", height: "calc(100% - 25px)" }}></iframe>
             </>
         );
     }

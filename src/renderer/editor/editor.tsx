@@ -554,16 +554,18 @@ export class Editor {
 
     /**
      * Notifies the user the given message.
-     * @param message the message to notify.
-     * @param timeout the time in ms before hidding the notification.
-     * @param icon optional icon to show in the toast.
+     * @param message defines the message to notify.
+     * @param timeout defines the time in ms before hidding the notification.
+     * @param icon odefines the ptional icon to show in the toast.
+     * @param intent defines the visual intent color.
      */
-    public notifyMessage(message: string, timeout: number = 1000, icon: IconName | MaybeElement = "notifications"): void {
+    public notifyMessage(message: string, timeout: number = 1000, icon: IconName | MaybeElement = "notifications", intent: Intent = "none"): void {
         this._toaster?.show({
             message,
             timeout,
             className: Classes.DARK,
             icon,
+            intent,
         }, message);
     }
 
