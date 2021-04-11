@@ -517,6 +517,10 @@ export class ProjectImporter {
                     i.metadata._waitingParentId = m.instances![instanceIndex];
                 });
             }
+
+            if (m.mesh.hasThinInstances) {
+                m.mesh.thinInstanceRefreshBoundingInfo(true);
+            }
         });
 
         return result as any;

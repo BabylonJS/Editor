@@ -1,5 +1,8 @@
 import * as React from "react";
-import { ButtonGroup, Button, ContextMenu, Classes, Menu, MenuItem, MenuDivider, Tag, Intent } from "@blueprintjs/core";
+import {
+    ButtonGroup, Button, ContextMenu, Classes, Menu, MenuItem, MenuDivider,
+    Tag, Intent, Spinner,
+} from "@blueprintjs/core";
 
 import { Editor } from "../editor";
 
@@ -22,10 +25,20 @@ export interface IToolbarState {
      * Defines wether or not project has a workspace loaded.
      */
     hasWorkspace: boolean;
+    
     /**
      * Defines wether or not the user is playing the scene.
      */
-    isPlaying: boolean;
+    playing: {
+        /**
+         * Defines wether or not the user is playing.
+         */
+        isPlaying: boolean;
+        /**
+         * Defines wether or not the play is loading.
+         */
+        isLoading: boolean;
+    };
 }
 
 export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> {
@@ -42,8 +55,11 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
         this._editor.toolsToolbar = this;
 
         this.state = {
-            isPlaying: false,
             hasWorkspace: false,
+            playing: {
+                isPlaying: false,
+                isLoading: false,
+            }
         };
     }
 
@@ -51,16 +67,22 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
      * Renders the component.
      */
     public render(): React.ReactNode {
+        const playIcon = this.state.playing.isLoading ? (
+            <Spinner size={20} />
+        ) : (
+            <Icon src={this.state.playing.isPlaying ? "square-full.svg" : "play.svg"} />
+        );
+
         return (
             <div style={{ width: "100%" }}>
                 <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
-                    <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("play-integrated")} id="play-game" />
+                    <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Run..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("run-integrated")} id="play-game" />
                     <Button disabled={!this.state.hasWorkspace} icon={<Icon src="generate.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} id="generate-scene" />
                 </ButtonGroup>
 
                 <ButtonGroup large={false} style={{ zIndex: 1, left: "50%", position: "absolute", transform: "translate(-50%)" }}>
-                    <Button style={{ width: "50px" }} icon={this.state.isPlaying ? "stop" : "play"} onClick={() => this._buttonClicked("play-scene")} />
-                    <Button style={{ width: "50px" }} disabled={!this.state.isPlaying} icon="reset" onClick={() => this._buttonClicked("restart-play-scene")} />
+                    <Button style={{ width: "50px" }} disabled={this.state.playing.isLoading} icon={playIcon} onClick={() => this._buttonClicked("play-scene")} />
+                    <Button style={{ width: "50px" }} disabled={!this.state.playing.isPlaying || this.state.playing.isLoading} icon="reset" onClick={() => this._buttonClicked("restart-play-scene")} />
                 </ButtonGroup>
             </div>
         );
@@ -71,10 +93,10 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
      */
     private async _buttonClicked(id: string): Promise<void> {
         switch (id) {
-            case "play": this._editor.runProject(EditorPlayMode.EditorPanelBrowser); break;
-            case "play-integrated": this._editor.runProject(EditorPlayMode.IntegratedBrowser); break;
-            case "play-my-browser": this._editor.runProject(EditorPlayMode.ExternalBrowser); break;
-            case "play-editor": this._editor.runProject(EditorPlayMode.EditorPanelBrowser); break;
+            case "run": this._editor.runProject(EditorPlayMode.EditorPanelBrowser); break;
+            case "run-integrated": this._editor.runProject(EditorPlayMode.IntegratedBrowser); break;
+            case "run-my-browser": this._editor.runProject(EditorPlayMode.ExternalBrowser); break;
+            case "run-editor": this._editor.runProject(EditorPlayMode.EditorPanelBrowser); break;
 
             case "generate": ProjectExporter.ExportFinalScene(this._editor); break;
             case "generate-as": ProjectExporter.ExportFinalSceneAs(this._editor); break;
@@ -93,9 +115,9 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     private _handlePlayContextMenu(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Play In Integrated Browser" onClick={() => this._buttonClicked("play-integrated")} />
-                <MenuItem text="Play In My Browser" onClick={() => this._buttonClicked("play-my-browser")} />
-                <MenuItem text="Play In Editor" onClick={() => this._buttonClicked("play-editor")} />
+                <MenuItem text="Run In Integrated Browser" onClick={() => this._buttonClicked("run-integrated")} />
+                <MenuItem text="Run In My Browser" onClick={() => this._buttonClicked("run-my-browser")} />
+                <MenuItem text="Run In Editor" onClick={() => this._buttonClicked("run-editor")} />
             </Menu>,
             { left: e.clientX, top: e.clientY },
         );
@@ -121,10 +143,12 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     /**
      * Called on the user wants to play or stop the test of the scene.
      */
-    private _handlePlay(): void {
-        const isPlaying = !this.state.isPlaying;
-        this.setState({ isPlaying });
+    private async _handlePlay(): Promise<void> {
+        const isPlaying = !this.state.playing.isPlaying;
+        this.setState({ playing: { isPlaying, isLoading: true } });
 
-        this._editor.preview.playOrStop();
+        await this._editor.preview.playOrStop();
+
+        this.setState({ playing: { ...this.state.playing, isLoading: false } });
     }
 }

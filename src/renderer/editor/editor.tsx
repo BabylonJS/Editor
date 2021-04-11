@@ -1175,7 +1175,7 @@ export class Editor {
                 separator: true,
             },
             {
-                label: "Play...",
+                label: "Run...",
                 click: "run-project",
                 icon: "assets/extras/play.png",
             },

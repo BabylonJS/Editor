@@ -573,6 +573,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             id: "init",
             workspaceDir: WorkSpace.DirPath!,
             projectName: WorkSpace.GetProjectName(),
+            physicsEngine: WorkSpace.Workspace!.physicsEngine,
         }, undefined!);
 
         window.addEventListener("message", this._playMessageEventListener = (ev) => {

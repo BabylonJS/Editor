@@ -5,8 +5,6 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>Babylon.JS Editor Play</title>
 
-	<script src="../node_modules/cannon/build/cannon.js" type="text/javascript"></script>
-
 	<style rel="stylesheet" type="text/css">
 		html,
 		body {
@@ -37,7 +35,7 @@
 		window.addEventListener("message", function (ev) {
 			if (ev.data && ev.data.id === "init") {
 				const play = require("../build/src/renderer/play/index.js");
-				const game = new play.default(ev.data.workspaceDir, ev.data.projectName);
+				const game = new play.default(ev.data.workspaceDir, ev.data.projectName, ev.data.physicsEngine);
 			}
 		});
 	</script>

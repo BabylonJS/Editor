@@ -31,7 +31,12 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         "BILLBOARDMODE_NONE", "BILLBOARDMODE_X", "BILLBOARDMODE_Y",
         "BILLBOARDMODE_Z", "BILLBOARDMODE_ALL", "BILLBOARDMODE_USE_POSITION"
     ];
-    private static _PhysicsImpostors: string[] = ["NoImpostor", "SphereImpostor", "BoxImpostor", "CylinderImpostor"];
+
+    private static _PhysicsImpostors: string[] = [
+        "NoImpostor", "SphereImpostor", "BoxImpostor",
+        "CylinderImpostor", "CapsuleImpostor",
+        // "HeightmapImpostor", "MeshImpostor",
+    ];
 
     private _renderingGroupId: string = "";
     private _physicsImpostor: string = "";
@@ -231,11 +236,11 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         };
 
         return (
-            <>
+            <InspectorSection title="Properties">
                 <InspectorNumber object={this.selectedObject.physicsImpostor} property="mass" label="Mass" min={0} step={0.01} onChange={() => onPropertyChanged("mass", this.selectedObject.physicsImpostor!.mass)} />
                 <InspectorNumber object={this.selectedObject.physicsImpostor} property="restitution" label="Restitution" min={0} step={0.01} onChange={() => onPropertyChanged("restitution", this.selectedObject.physicsImpostor!.restitution)} />
                 <InspectorNumber object={this.selectedObject.physicsImpostor} property="friction" label="Friction" min={0} step={0.01} onChange={() => onPropertyChanged("friction", this.selectedObject.physicsImpostor!.friction)} />
-            </>
+            </InspectorSection>
         );
     }
 
