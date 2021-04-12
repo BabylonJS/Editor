@@ -691,10 +691,10 @@ export class Editor {
 
         switch (mode) {
             case EditorPlayMode.EditorPanelBrowser:
-                this.addBuiltInPlugin("play");
+                this.addBuiltInPlugin("run");
                 break;
             case EditorPlayMode.IntegratedBrowser:
-                this.addWindowedPlugin("play", undefined, workspace);
+                this.addWindowedPlugin("run", undefined, workspace);
                 break;
             case EditorPlayMode.ExternalBrowser:
                 shell.openExternal(`http://localhost:${workspace.serverPort}`);
