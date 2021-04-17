@@ -15,6 +15,10 @@ import { IPCTools } from "../../editor/tools/ipc";
 import { Icon } from "../../editor/gui/icon";
 import { Tools } from "../../editor/tools/tools";
 
+import "../../editor/assets/materials/augmentations";
+
+const { NodeEditor } = require("babylonjs-node-editor");
+
 export const title = "Node Material Editor";
 
 export default class NodeMaterialEditorWindow extends React.Component {
@@ -22,7 +26,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
     private _engine: Engine;
     private _scene: Scene;
     private _material: NodeMaterial;
-    
+
     private _editorDiv: Nullable<HTMLDivElement> = null;
     private _toaster: Nullable<Toaster> = null;
     private _refHandler = {
@@ -32,7 +36,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
 
     public constructor(props: any) {
         super(props);
-        
+
         // Babylon.JS stuff
         this._canvas = document.createElement("canvas");
         this._canvas.style.visibility = "hidden";
@@ -59,7 +63,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
                 <div className="bp3-dark" style={{ width: "100%", height: "35px", backgroundColor: "#444444" }}>
                     <ButtonGroup style={{ paddingTop: "4px" }}>
                         <Popover content={file} position={Position.BOTTOM_LEFT}>
-                            <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="File"/>
+                            <Button icon={<Icon src="folder-open.svg" />} rightIcon="caret-down" text="File" />
                         </Popover>
                     </ButtonGroup>
                 </div>
@@ -106,8 +110,9 @@ export default class NodeMaterialEditorWindow extends React.Component {
         json.editorData = editorData;
         this._material = NodeMaterial.Parse(json, this._scene);
 
+        document.title = `Node Material Editor - ${this._material.name}`;
+        
         // Create node material editor.
-        const { NodeEditor } = require("babylonjs-node-editor");
         NodeEditor.Show({
             hostElement: this._editorDiv,
             nodeMaterial: this._material,
@@ -126,6 +131,8 @@ export default class NodeMaterialEditorWindow extends React.Component {
             this._toaster?.show({ message: `An error occured: ${e.message}`, intent: Intent.DANGER, timeout: 3000 });
             return;
         }
+
+        NodeEditor._CurrentState.onRebuildRequiredObservable.notifyObservers();
 
         const result = await IPCTools.SendWindowMessage<{ error: Boolean; }>(-1, "node-material-json", {
             json: nodeMaterial.serialize(),

@@ -79,7 +79,7 @@ export class SaveFileDialogIPC implements IIPCHandler {
 	/**
 	 * Defines the handler called on the channel receives a message from the renderer process.
 	 * @param event defines the reference to the IPC event.
-	 * @param title defines the title of the directory open dialog.
+	 * @param title defines the title of the directory save dialog.
      * @param defaultPath defines the path opened once the dialog opens.
 	 */
 	public async handler(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {

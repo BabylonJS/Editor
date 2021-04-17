@@ -22,6 +22,7 @@ import { undoRedo } from "../tools/undo-redo";
 import { IPCTools } from "../tools/ipc";
 
 import { Icon } from "../gui/icon";
+import { Alert } from "../gui/alert";
 import { Dialog } from "../gui/dialog";
 import { Overlay } from "../gui/overlay";
 
@@ -30,7 +31,8 @@ import { FilesStore } from "../project/files";
 
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
-import { Alert } from "../gui/alert";
+
+import "./materials/augmentations";
 
 export class MaterialAssets extends AbstractAssets {
     /**
@@ -409,7 +411,7 @@ export class MaterialAssets extends AbstractAssets {
                     try {
                         // Clear textures
                         material.getTextureBlocks().forEach((block) => block.texture?.dispose());
-
+                        
                         material.editorData = message.data.editorData;
                         material.loadFromSerialization(message.data.json);
                         material.build();
