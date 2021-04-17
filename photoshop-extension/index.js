@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const extension = require('../build/src/photoshop-extension/src/document');
+    const extension = require('../build/photoshop-extension/src/document');
     const document = new extension.Document();
 
     exports.init = (generator, config) => {
