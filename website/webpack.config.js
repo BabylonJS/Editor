@@ -47,8 +47,9 @@ module.exports = (_, argv) => {
 			]),
 		],
 		optimization: {
-			minimize: false,
-			usedExports: true,
+			minimize: argv.mode === "production",
+			usedExports: argv.mode === "production",
+			sideEffects: argv.mode === "production",
 		},
 		devServer: {
 			contentBase: path.join(__dirname, "dist"),

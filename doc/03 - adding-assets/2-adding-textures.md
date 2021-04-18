@@ -16,16 +16,16 @@ As for meshes, textures can be added by browsing files and drag'n'dopping files.
 ### Browsing for files
 Simply go to the "Assets" panel of the Editor and click "Add...". A dialog opens to select the files:
 
-![Browse](./browse.gif)
+![Browse](./textures/browse.gif)
 
 ### Drag'n'dropping files
 
-![DragAndDrop](./draganddrop.gif)
+![DragAndDrop](./textures/draganddrop.gif)
 
 ## Examining the asset
 As for meshes and materials, a texture can be examined. On an assets is `double clicked` a window appears showing the texture. For cube textures (.dds or .env files) the sphere is created having the texture mapped on with the Babylon.JS Inspector opened and focused on the cube texture.
 
-![Examining](./examining.gif)
+![Examining](./textures/examining.gif)
 
 ## Assiging textures to material
 Once all required textures have been added to the project's assets. We can now assign textures to materials.
@@ -37,7 +37,7 @@ In some cases, textures must be edited as well. Typically, for a large terrain, 
 
 For example, a standard material applied to the ground, we apply the `amiga.jpg` texture as the diffuse texture:
 
-![Assigning](./assigning.gif)
+![Assigning](./textures/assigning.gif)
 
 ## Cloning a texture
 In some cases, the same texture is needed but with distinct properties. For example, our texture `amiga.jpg` should be available with a UV scale of (30, 30) to be applied on the ground, but also with a UV scale of (1, 1) to be applied to the cube.
@@ -48,4 +48,4 @@ A dialog appears to ask the name of the new texture. Once done, a new texture ha
 As the texture is a clone, all properties are the exact same as the original texture. Just edit the desired properties.
 
 Example with the cube:
-![Cloning](./cloning.gif)
+![Cloning](./textures/cloning.gif)
