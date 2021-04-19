@@ -21,6 +21,7 @@ import { InspectorNotifier } from "../../gui/inspector/notifier";
 import { IInspectorListItem, InspectorList } from "../../gui/inspector/fields/list";
 
 import { Tools } from "../../tools/tools";
+import { undoRedo } from "../../tools/undo-redo";
 
 import { MeshesAssets } from "../../assets/meshes";
 
@@ -169,16 +170,40 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
     private _getRotationInspector(): React.ReactNode {
         this._getRotationVector();
 
-        return <InspectorVector3 object={this} property="_rotation" label={`Rotation (Degrees) ${this.selectedObject.rotationQuaternion ? "(Quaternion)" : ""}`} step={0.01} onChange={() => {
-            this._applyRotationVector();
+        const rotationCopy = this._rotation.clone();
+
+        return <InspectorVector3 object={this} property="_rotation" label={`Rotation (Degrees) ${this.selectedObject.rotationQuaternion ? "(Quaternion)" : ""}`} step={0.01} noUndoRedo onChange={() => {
+            this._applyRotationVector(this._rotation);
+        }} onFinishChange={() => {
+            const oldRotation = rotationCopy.clone();
+            const newRotation = this._rotation.clone();
+
+            rotationCopy.copyFrom(this._rotation);
+            
+            if (oldRotation.equalsWithEpsilon(newRotation)) {
+                return;
+            }
+
+            undoRedo.push({
+                common:() => {
+                    InspectorNotifier.NotifyChange(this.selectedObject.rotation);
+                    InspectorNotifier.NotifyChange(this.selectedObject.rotationQuaternion);
+                },
+                undo: () => {
+                    this._applyRotationVector(oldRotation);
+                },
+                redo: () => {
+                    this._applyRotationVector(newRotation);
+                },
+            });
         }} />
     }
 
     /**
      * Applies the rotation vector on the mesh handling both vector and quaternion.
      */
-    private _applyRotationVector(): void {
-        const rotationRadians = this._getRotationRadians(this._rotation.clone());
+    private _applyRotationVector(rotationVector: Vector3): void {
+        const rotationRadians = this._getRotationRadians(rotationVector.clone());
 
         if (this.selectedObject.rotationQuaternion) {
             this.selectedObject.rotationQuaternion.copyFrom(Quaternion.FromEulerVector(rotationRadians));

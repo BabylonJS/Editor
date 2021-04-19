@@ -134,7 +134,7 @@ export class Tools {
      * @param array defines the array containing the elements to sort alphabetically.
      * @param property in case of an array of objects, this property will be used to get the right value to sort.
      */
-    public static SortAlphabetically(array: any[], property?: string): void {
+    public static SortAlphabetically(array: any[], property?: string): any[] {
         array.sort((a, b) => {
             a = property ? a[property] : a;
             b = property ? b[property] : b;
@@ -144,6 +144,8 @@ export class Tools {
 
             return (a < b) ? -1 : (a > b) ? 1 : 0;
         });
+
+        return array;
     }
 
     /**

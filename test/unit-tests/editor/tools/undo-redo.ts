@@ -22,8 +22,6 @@ describe("editor/tools/undo-redo", function() {
         stackId: Tools.RandomId(),
     } as IUndoRedoAction);
 
-    const wait = () => new Promise<void>((resolve) => setTimeout(() => resolve(), 0));
-
     beforeEach(function() {
         undoRedo.clear();
 
@@ -68,84 +66,5 @@ describe("editor/tools/undo-redo", function() {
 
         assert.equal(redoCalled, 1);
         assert.equal(undoCalled, 1);
-    });
-
-    it("should undo/redo a full stack linearly", async function() {
-        this.timeout(5000);
-
-        undoRedo.push(createAction());
-        undoRedo.push(createAsyncAction());
-        undoRedo.push(createAction());
-
-        await wait();
-        await undoRedo._waitForPromise();
-        assert.equal(redoCalled, 3);
-        
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.undo();
-        await wait();
-        await undoRedo._waitForPromise();
-        assert.equal(undoRedo._position, -1);
-        
-        undoRedo.undo();
-        await wait();
-        await undoRedo._waitForPromise();
-        assert.equal(undoCalled, 3);
-        assert.equal(undoRedo._position, -1);
-        
-        undoRedo.redo();
-        undoRedo.redo();
-        await wait();
-        await undoRedo._waitForPromise();
-        assert.equal(redoCalled, 5);
-        assert.equal(undoRedo._position, 1);
-
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.undo();
-        await wait();
-        await undoRedo._waitForPromise();
-        assert.equal(undoRedo._position, -1);
-    });
-
-    it("should undo/redo modifying the stack on the fly", async function() {
-        this.timeout(5000);
-
-        undoRedo.push(createAction());
-        undoRedo.push(createAsyncAction());
-        undoRedo.push(createAction());
-
-        await wait();
-        await undoRedo._waitForPromise();
-
-        undoRedo.undo();
-        undoRedo.undo();
-        await wait();
-        await undoRedo._waitForPromise();
-
-        assert.equal(undoCalled, 2);
-        assert.equal(undoRedo._position, 0);
-        assert.equal(undoRedo.stack.length, 3);
-
-        await undoRedo.push(createAction());
-        assert.equal(undoRedo._position, 1);
-        assert.equal(undoRedo.stack.length, 2);
-
-        undoRedo.undo();
-        undoRedo.undo();
-        undoRedo.push(createAction());
-        await wait();
-        await undoRedo._waitForPromise();
-
-        assert.equal(undoRedo._position, 0);
-        assert.equal(undoRedo.stack.length, 1);
     });
 });

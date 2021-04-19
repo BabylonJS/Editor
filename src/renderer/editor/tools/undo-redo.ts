@@ -1,154 +1,130 @@
 import { shell } from "electron";
 
+/**
+ * Defines the type used to define the return type of undo/redo actions.
+ */
+export type UndoRedoReturnType<T> = (T | void) | (Promise<T> | Promise<void>);
+
 export interface IUndoRedoAction {
-    /**
-     * Called on the user redoes or undoes an action.
-     */
-    common?: (step: "push" | "undo" | "redo") => any | Promise<any>;
-    /**
-     * Called on the user wants to redo an action.
-     */
-    redo: () => any | Promise<any>;
-    /**
-     * Called on the user wants to undo an action.
-     */
-    undo: () => any | Promise<any>;
-    /**
-     * Defines the optional id of the action in the stack. Typically used bu the plugins.
-     */
-    stackId?: string;
+	/**
+	 * Defines the description of the undo/redo-able action that has been performed.
+	 */
+	description?: string;
+	/**
+	 * Defines the callback called on an undo or redo action has been performed. This
+	 * is typically used to perform an action in both cases (undo and redo).
+	 */
+	common?: (step: "push" | "redo" | "undo") => UndoRedoReturnType<unknown>;
+	/**
+	 * Defines the callback called on an action should be undone.
+	 */
+	undo: () => UndoRedoReturnType<unknown>;
+	/**
+	 * Defines the callback called on an action should be redone.
+	 * Calling undoRedo.push(...) will automatically call this callback.
+	 */
+	redo: () => UndoRedoReturnType<unknown>;
 }
 
 export class UndoRedo {
-    /**
-     * Defines the limit of undo/redo steps in the stack.
-     */
-    public static stackLimit: number = 1000;
+	public _position: number = -1;
+	private _stack: IUndoRedoAction[] = [];
 
-    /**
-     * Defines the current stake of undo/redo actions.
-     */
-    public stack: IUndoRedoAction[] = [];
-    /**
-     * @hidden
-     */
-    public _position: number = -1;
-    
-    private _asyncQueue: Set<IUndoRedoAction> = new Set();
+	/**
+	 * Gets the reference to the current stack of actions.
+	 */
+	public get stack(): ReadonlyArray<IUndoRedoAction> {
+		return this._stack;
+	}
 
-    /**
-     * Constructor.
-     */
-    public constructor() {
-        // Empty for now.
-    }
-
-    /**
-     * Pushes the given action to the undo/redo stack and calls the .redo function in it.
-     * @param action the action to push in the undo/redo stack.
-     */
-    public async push(action: IUndoRedoAction): Promise<void> {
-		if (this._position < this.stack.length - 1) {
-			this.stack.splice(this._position + 1);
+	/**
+	 * Pushes the given element to the current undo/redo stack. If the current action index
+	 * is inferior to the stack size then the stack will be broken.
+	 * @param element defines the reference to the element to push in the undo/redo stack.
+	 */
+	public push<T>(element: IUndoRedoAction): UndoRedoReturnType<T> {
+		// Check index
+		if (this._position < this._stack.length - 1) {
+			this._stack.splice(this._position + 1);
 		}
 
-		this.stack.push(action);
-        if (this.stack.length > UndoRedo.stackLimit) {
-            this.stack.shift();
-        }
+		// Push element and call the redo function
+		this._stack.push(element);
+		return this._redo("push");
+	}
 
-		this._position = this.stack.length - 1;
+	/**
+	 * Undoes the action located at the current index of the stack.
+	 * If the action is asynchronous, its promise is returned.
+	 */
+	public undo<T>(): UndoRedoReturnType<T> {
+		return this._undo();
+	}
 
-        await this._waitForPromise();
-        this._asyncQueue.add(action);
+	/**
+	 * Redoes the current action located at the current index of the stack.
+	 * If the action is asynchronous, its promise is returned.
+	 */
+	public redo<T>(): UndoRedoReturnType<T> {
+		return this._redo("redo");
+	}
 
-        await action.redo();
+	/**
+	 * Called on an undo action should be performed.
+	 */
+	private _undo<T>(): UndoRedoReturnType<T> {
+		if (this._position < 0) {
+			return shell.beep();
+		}
 
-        if (action.common) {
-            await action.common("push");
-        }
+		const element = this._stack[this._position];
 
-        this._asyncQueue.delete(action);
-    }
+		const possiblePromise = element.undo();
+		if (possiblePromise instanceof Promise) {
+			possiblePromise.then(() => {
+				element.common?.("undo");
+			});
+		} else {
+			element.common?.("undo");
+		}
 
-    /**
-     * Undoes the current action in the undo/redo stack.
-     */
-    public async undo(): Promise<void> {
-        const action = this.stack[this._position];
-        if (!action) { return shell?.beep(); }
+		this._position--;
+		return possiblePromise as UndoRedoReturnType<T>;
+	}
 
-        this._position--;
+	/**
+	 * Called on a redo action should be performed.
+	 */
+	private _redo<T>(step: "push" | "redo"): UndoRedoReturnType<T> {
+		if (this._position >= this._stack.length - 1) {
+			return shell.beep();
+		}
 
-        await this._waitForPromise();
-        this._asyncQueue.add(action);
+		this._position++;
 
-        await action.undo();
+		const element = this._stack[this._position];
+		const possiblePromise = element.redo();
+		if (possiblePromise instanceof Promise) {
+			possiblePromise.then(() => {
+				element.common?.(step);
+			});
+		} else {
+			element.common?.(step);
+		}
 
-        if (action.common) {
-            await action.common("undo");
-        }
-
-        this._asyncQueue.delete(action);
-    }
-    
-    /**
-     * Redoes the current action in the undo/redo stack.
-     */
-    public async redo(): Promise<void> {
-        const action = this.stack[this._position + 1];
-        if (!action) { return shell.beep(); }
-        
-        this._position++;
-        
-        await this._waitForPromise();
-        this._asyncQueue.add(action);
-        
-        await action.redo();
-
-        if (action.common) {
-            await action.common("redo");
-        }
-
-        this._asyncQueue.delete(action);
-    }
-
-    /**
-     * Clears the stack using the given actions id.
-     * @param stackId the id of the stack to clear.
-     */
-    public clear(stackId?: string): void {
-        if (!stackId) {
-            this.stack = [];
-            this._position = -1;
-            this._asyncQueue.clear();
-            return;
-        }
-
-        for (let i = 0; i < this.stack.length; i++) {
-            const action = this.stack[i];
-            if (action.stackId === stackId) {
-                this.stack.splice(i, 1);
-                this._position--;
-                i--;
-            }
-        }
-    }
+		return possiblePromise as UndoRedoReturnType<T>;
+	}
 
     /**
-     * Waits for the actions promises to be resolved.
-     * @hidden
+     * Clears the current undo/redo stack.
      */
-    public async _waitForPromise(): Promise<void> {
-        while (this._asyncQueue.size > 0) {
-            await new Promise<void>((resolve) => {
-                setTimeout(() => resolve(), 16);
-            });
-        }
+    public clear(): void {
+        this._stack = [];
+        this._position = -1;
     }
 }
 
 /**
- * Default undo/redo instance. Should be used for the overall
+ * Defines the shared instance of undo/redo stack.
  */
 export const undoRedo = new UndoRedo();

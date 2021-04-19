@@ -1,10 +1,12 @@
-import { Nullable } from "../../../../shared/types";
+import { IStringDictionary, Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
-import { NodeMaterial, NodeMaterialBlockConnectionPointTypes, Observer } from "babylonjs";
+import { NodeMaterial, NodeMaterialBlockConnectionPointTypes, Observer, InputBlock } from "babylonjs";
 
 import { Inspector } from "../../components/inspector";
+
+import { Tools } from "../../tools/tools";
 
 import { InspectorColor } from "../../gui/inspector/fields/color";
 import { InspectorButton } from "../../gui/inspector/fields/button";
@@ -80,29 +82,51 @@ export class NodeMaterialInspector extends MaterialInspector<NodeMaterial> {
             ];
         }
 
-        const nodes = uniforms.map((u) => {
-            const hasMinMax = u.min !== u.max;
-            const min = hasMinMax ? u.min : undefined;
-            const max = hasMinMax ? u.max : undefined;
-
-            switch (u.type) {
-                case NodeMaterialBlockConnectionPointTypes.Float:
-                    return <InspectorNumber key={u.name} object={u} property="value" label={u.name} min={min} max={max} step={0.01} />;
-                case NodeMaterialBlockConnectionPointTypes.Int:
-                    return <InspectorNumber key={u.name} object={u} property="value" label={u.name} min={min} max={max} step={1} />;
-
-                case NodeMaterialBlockConnectionPointTypes.Vector2:
-                    return <InspectorVector2 key={u.name} object={u} property="value" label={u.name} step={0.01} />;
-                case NodeMaterialBlockConnectionPointTypes.Vector3:
-                    return <InspectorVector3 key={u.name} object={u} property="value" label={u.name} step={0.01} />;
-
-                case NodeMaterialBlockConnectionPointTypes.Color3:
-                case NodeMaterialBlockConnectionPointTypes.Color4:
-                    return <InspectorColor key={u.name} object={u} property="value" label={u.name} step={0.01} />;
+        // Create groups dictionary
+        const groups: IStringDictionary<InputBlock[]> = { };
+        uniforms.forEach((u) => {
+            const g = u.groupInInspector ?? "";
+            if (!groups[g]) {
+                groups[g] = [];
             }
+
+            groups[g].push(u);
         });
 
-        return nodes;
+        // For each group, create sections
+        const keys = Tools.SortAlphabetically(Object.keys(groups));
+
+        const sections = keys.map((k) => {
+            const blocks = groups[k].map((b) => {
+                const hasMinMax = b.min !== b.max;
+                const min = hasMinMax ? b.min : undefined;
+                const max = hasMinMax ? b.max : undefined;
+
+                switch (b.type) {
+                    case NodeMaterialBlockConnectionPointTypes.Float:
+                        return <InspectorNumber key={b.name} object={b} property="value" label={b.name} min={min} max={max} step={0.01} />;
+                    case NodeMaterialBlockConnectionPointTypes.Int:
+                        return <InspectorNumber key={b.name} object={b} property="value" label={b.name} min={min} max={max} step={1} />;
+
+                    case NodeMaterialBlockConnectionPointTypes.Vector2:
+                        return <InspectorVector2 key={b.name} object={b} property="value" label={b.name} step={0.01} />;
+                    case NodeMaterialBlockConnectionPointTypes.Vector3:
+                        return <InspectorVector3 key={b.name} object={b} property="value" label={b.name} step={0.01} />;
+
+                    case NodeMaterialBlockConnectionPointTypes.Color3:
+                    case NodeMaterialBlockConnectionPointTypes.Color4:
+                        return <InspectorColor key={b.name} object={b} property="value" label={b.name} step={0.01} />;
+                }
+            });
+
+            return (
+                <InspectorSection title={k || "No Group"}>
+                    {blocks}
+                </InspectorSection>
+            );
+        });
+
+        return sections;
     }
 }
 
