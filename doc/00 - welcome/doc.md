@@ -6,8 +6,8 @@ Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are 
 * Workspace
   * [Creating a new workspace](../01%20-%20create-workspace/create-new-workspace.md)
 * Running the scene
-  * [Running application/game](../02%20-%20running-project/running-project.md)
-  * [Playing scene](../02%20-%20running-project/playing-scene.md)
+  * [Running application/game](../02%20-%20running-project/0-running-project.md)
+  * [Playing scene](../02%20-%20running-project/1-playing-scene.md)
 * Adding assets
   * [Adding meshes](../03%20-%20adding-assets/0-adding-meshes.md)
   * [Adding materials](../03%20-%20adding-assets/1-adding-materials.md)
