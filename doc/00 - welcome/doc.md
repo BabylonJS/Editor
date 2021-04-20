@@ -3,14 +3,20 @@
 Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are available to understand the basics of the Editor. It is recommanded to read the tutorials before starting with the Editor.
 
 ## Tutorials
-* [Creating a new workspace](../01%20-%20create-workspace/doc.md)
-* [Running application/game](../02%20-%20running-project/doc.md)
-* [Adding meshes](../03%20-%20adding-meshes/doc.md)
-* [Adding materials](../04%20-%20adding-materials/doc.md)
-* [Adding textures](../05%20-%20adding-textures/doc.md)
-* [Adding sounds](../06%20-%20adding-sounds/doc.md)
-* [Attaching scripts](../07%20-%20attaching-scripts/doc.md)
-* [Using physics](../08%20-%20using-physics/doc.md)
+* Workspace
+  * [Creating a new workspace](../01%20-%20create-workspace/create-new-workspace.md)
+* Running the scene
+  * [Running application/game](../02%20-%20running-project/running-project.md)
+  * [Playing scene](../02%20-%20running-project/playing-scene.md)
+* Adding assets
+  * [Adding meshes](../03%20-%20adding-assets/0-adding-meshes.md)
+  * [Adding materials](../03%20-%20adding-assets/1-adding-materials.md)
+  * [Adding textures](../03%20-%20adding-assets/2-adding-textures.md)
+  * [Adding sounds](../03%20-%20adding-assets/3-adding-sounds.md)
+* Scripting
+  * [Attaching scripts](../04%20-%20attaching-scripts/attaching-scripts.md)
+* Physics
+  * [Using physics](../05%20-%20using-physics/using-physics.md)
 
 ## External tutorials
 

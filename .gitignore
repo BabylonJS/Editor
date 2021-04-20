@@ -134,6 +134,7 @@ dist
 photoshop-extension/.build
 photoshop-extension/.declaration
 module/index.d.ts
+website/_doc
 
 # Tests
 testOutput
