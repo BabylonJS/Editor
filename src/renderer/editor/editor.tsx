@@ -12,6 +12,7 @@ import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName,
 import {
     Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin,
     SubMesh, Animation, AbstractMesh, IParticleSystem, Sound, KeyboardInfo, KeyboardEventTypes,
+    Color4
 } from "babylonjs";
 
 import GoldenLayout from "golden-layout";
@@ -730,6 +731,7 @@ export class Editor {
     public runRenderLoop(render: boolean): void {
         if (!render) {
             this.engine?.stopRenderLoop();
+            this.engine?.clear(new Color4(0, 0, 0, 1), true, true, true);
         } else {
             this.engine?.runRenderLoop(() => this.scene!.render());
         }

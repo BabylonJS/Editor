@@ -147,7 +147,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
         const isPlaying = !this.state.playing.isPlaying;
         this.setState({ playing: { isPlaying, isLoading: true } });
 
-        await this._editor.preview.playOrStop();
+        await this._editor.preview.playOrStop(false);
 
         this.setState({ playing: { ...this.state.playing, isLoading: false } });
     }

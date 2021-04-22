@@ -1,9 +1,14 @@
+import { join } from "path";
+
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { Position, ButtonGroup, Popover, Menu, MenuItem, Divider, Tag, Tooltip, Pre, AnchorButton } from "@blueprintjs/core";
+import { Position, ButtonGroup, Popover, Menu, MenuItem, Divider, Tag, Tooltip, Pre, AnchorButton, ProgressBar } from "@blueprintjs/core";
 
-import { Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable } from "babylonjs";
+import {
+    Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem,
+    ParticleSystem, AbstractMesh, Sound, Observable,
+} from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -19,6 +24,7 @@ import { Omnibar, IOmnibarItem } from "../gui/omni-bar";
 
 import { WorkSpace } from "../project/workspace";
 import { ProjectExporter } from "../project/project-exporter";
+import { ScenePlayer } from "../../play/inline-play";
 
 export interface IPreviewProps {
     /**
@@ -65,6 +71,14 @@ export interface IPreviewState {
      * Defines wether or not the user is playing the scene.
      */
     isPlaying: boolean;
+    /**
+     * Defines wether or not the user is playing the scene in a dedicated iframe.
+     */
+    isPlayingInIframe: boolean;
+    /**
+     * Defines the current play loading progress.
+     */
+    playLoadingProgress: number;
 }
 
 export enum PreviewCanvasEventType {
@@ -95,6 +109,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     private _editor: Editor;
     private _copiedNode: Nullable<Node | IParticleSystem> = null;
 
+    private _scenePlayer: ScenePlayer;
+
     private _isolatedObject: Nullable<AbstractMesh | IParticleSystem> = null;
     private _cameraPositionBeforeIsolation: Nullable<Vector3> = null;
     private _cameraTargetBeforeIsolation: Nullable<Vector3> = null;
@@ -121,6 +137,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         this._editor.preview = this;
         this._editor.editorInitializedObservable.addOnce(() => this._createPicker());
 
+        this._scenePlayer = new ScenePlayer(this._editor);
+
         this.state = {
             canvasFocused: false,
             overNodeName: "",
@@ -131,6 +149,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             showIcons: true,
             isIsolatedMode: false,
             isPlaying: false,
+            isPlayingInIframe: false,
+            playLoadingProgress: 1,
         };
     }
 
@@ -165,7 +185,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             </Pre>
         ) : undefined;
 
-        const playIframe = this.state.isPlaying ? (
+        const displayPlayIframe = this.state.isPlaying && this.state.isPlayingInIframe;
+        const playIframe = displayPlayIframe ? (
             <iframe
                 src="./play.html"
                 key={Tools.RandomId()}
@@ -173,6 +194,10 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 onLoad={(ev) => this._handlePlay(ev.nativeEvent.target as HTMLIFrameElement)}
                 style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", border: "none" }}
             ></iframe>
+        ) : undefined;
+
+        const loadingProgress = this.state.isPlaying && !this.state.isPlayingInIframe && this.state.playLoadingProgress < 1 ? (
+            <ProgressBar animate value={this.state.playLoadingProgress * 100} />
         ) : undefined;
 
         return (
@@ -217,11 +242,14 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                     </ButtonGroup>
                 </div>
                 <div style={{ height: "calc(100% - 25px)" }}>
-                    <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", display: this.state.isPlaying ? "none" : "block" }}></canvas>
+                    <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", display: displayPlayIframe ? "none" : "block" }}></canvas>
                     {playIframe}
                     {isolatedMode}
-                    <Tag key="preview-tag" round={true} large={true} style={{ visibility: (this.state.canvasFocused ? "visible" : "hidden"), position: "absolute", left: "50%", top: "calc(100% - 15px)", transform: "translate(-50%, -50%)" }} >{this.state.overNodeName}</Tag>
+                    <Tag key="preview-tag" round={true} large={true} style={{ visibility: (this.state.canvasFocused && !this.state.isPlaying ? "visible" : "hidden"), position: "absolute", left: "50%", top: "calc(100% - 15px)", transform: "translate(-50%, -50%)" }} >{this.state.overNodeName}</Tag>
                     <Omnibar ref={this._refHandler.getSearchBar} onChange={(i) => this._handleSearchBarChanged(i)} />
+                    <div style={{ position: "absolute", top: "50%", left: "25%", width: "50%" }}>
+                        {loadingProgress}
+                    </div>
                 </div>
             </>
         );
@@ -230,14 +258,22 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     /**
      * Called on the user wants to play or stop the scene.
      */
-    public async playOrStop(): Promise<void> {
+    public async playOrStop(isPlayingInIframe: boolean): Promise<void> {
         const isPlaying = !this.state.isPlaying;
 
         if (isPlaying) {
-            await ProjectExporter.ExportFinalScene(this._editor);
+            this._editor.runRenderLoop(false);
+
+            if (!isPlayingInIframe) {
+                this.setState({ isPlaying, isPlayingInIframe, playLoadingProgress: 0.5 });
+            }
+
+            await ProjectExporter.ExportFinalScene(this._editor, undefined, {
+                geometryRootPath: this.state.isPlayingInIframe ? undefined : join("../../scenes", WorkSpace.GetProjectName(), "/"),
+            });
         }
 
-        this.setState({ isPlaying });
+        this.setState({ isPlaying, isPlayingInIframe });
 
         if (!isPlaying) {
             if (this._playMessageEventListener) {
@@ -246,7 +282,30 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             this._playMessageEventListener = null;
         }
 
-        this._editor.runRenderLoop(!isPlaying);
+        if (!isPlayingInIframe) {
+            if (isPlaying) {
+                this._editor.engine!.loadingScreen = {
+                    displayLoadingUI: () => { },
+                    hideLoadingUI: () => { },
+                    loadingUIText: "",
+                    loadingUIBackgroundColor: "",
+                }
+
+                try {
+                    await this._scenePlayer.start((p) => this.setState({ playLoadingProgress: p }));
+                } catch (e) {
+                    this.playOrStop(isPlayingInIframe);
+
+                    this._editor.console.logSection("Failed to start playing scene");
+                    this._editor.console.logError(e.message);
+                }
+            } else {
+                this._scenePlayer.dispose();
+                this._editor.runRenderLoop(true);
+            }
+        } else {
+            this._editor.runRenderLoop(!isPlaying);
+        }
     }
 
     /**

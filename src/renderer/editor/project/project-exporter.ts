@@ -32,6 +32,17 @@ import { FilesStore } from "./files";
 import { IProject } from "./typings";
 import { ProjectHelpers } from "./helpers";
 
+export interface IExportFinalSceneOptions {
+    /**
+     * defines the optional path where to save to final scene.
+     */
+    destPath?: string;
+    /**
+     * Defines the root path applied on geometries in .babylon file in case of incremental loading.
+     */
+    geometryRootPath?: string;
+}
+
 export class ProjectExporter {
     private static _IsSaving: boolean = false;
 
@@ -333,13 +344,13 @@ export class ProjectExporter {
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = this.ExportMesh(mesh);
 
-                exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, json, false));
+                exportedGeometries.push.apply(exportedGeometries, await this._WriteIncrementalGeometryFiles(editor, geometriesDir, json, false));
 
-                json.lods.forEach((lod) => {
+                for (const lod of json.lods) {
                     if (lod.mesh) {
-                        exportedGeometries.push.apply(exportedGeometries, this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh, false));
+                        exportedGeometries.push.apply(exportedGeometries, await this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh, false));
                     }
-                });
+                };
 
                 const dest = `${normalize(`${basename(filenamify(mesh.name))}-${mesh.id}`)}.json`;
 
@@ -773,7 +784,7 @@ export class ProjectExporter {
         const destPath = await Tools.ShowSaveDialog();
         if (!destPath) { return; }
 
-        return this.ExportFinalScene(editor, undefined, destPath);
+        return this.ExportFinalScene(editor, undefined, { destPath });
     }
 
     /**
@@ -782,7 +793,7 @@ export class ProjectExporter {
      * @param task defines the already existing task feedback to reuse.
      * @param destPath defines the optional path where to save to final scene.
      */
-    public static async ExportFinalScene(editor: Editor, task?: string, destPath?: string): Promise<void> {
+    public static async ExportFinalScene(editor: Editor, task?: string, options?: IExportFinalSceneOptions): Promise<void> {
         if (!WorkSpace.HasWorkspace()) { return; }
 
         // Check is isolated mode
@@ -798,7 +809,7 @@ export class ProjectExporter {
         editor.console.logInfo("Serializing scene...");
         const scene = this.GetFinalSceneJson(editor);
 
-        const scenePath = destPath ?? this.GetExportedSceneLocation();
+        const scenePath = options?.destPath ?? this.GetExportedSceneLocation();
         if (!(await pathExists(scenePath))) { await mkdir(scenePath); }
         const destFilesDir = join(scenePath, "files");
 
@@ -830,7 +841,7 @@ export class ProjectExporter {
                 await mkdir(geometriesPath);
             }
 
-            this._WriteIncrementalGeometryFiles(editor, geometriesPath, scene, true, task);
+            await this._WriteIncrementalGeometryFiles(editor, geometriesPath, scene, true, task, options?.geometryRootPath);
         }
 
         if (!(await pathExists(destFilesDir))) { await mkdir(destFilesDir); }
@@ -963,23 +974,25 @@ export class ProjectExporter {
     /**
      * When using incremental export, write all the .babylonbinarymesh files into the "geometries" output folder.
      */
-    private static _WriteIncrementalGeometryFiles(editor: Editor, path: string, scene: any, finalExport: boolean, task?: string): string[] {
+    private static async _WriteIncrementalGeometryFiles(editor: Editor, path: string, scene: any, finalExport: boolean, task?: string, overridePath?: string): Promise<string[]> {
         if (task) {
             editor.updateTaskFeedback(task, 0, "Exporting incremental files...");
         }
 
         const result: string[] = [];
+        const promises: Promise<void>[] = [];
 
-        scene.meshes?.forEach((m, index) => {
-            if (!m.geometryId || (finalExport && m.metadata?.keepGeometryInline)) { return; }
+        let index = 0;
+        for (const m of scene.meshes ?? []) {
+            if (!m.geometryId || (finalExport && m.metadata?.keepGeometryInline)) { continue; }
 
             const geometry = scene.geometries?.vertexData?.find((v) => v.id === m.geometryId);
-            if (!geometry) { return; }
+            if (!geometry) { continue; }
 
             const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
             const originMesh = editor.scene!.getMeshByID(m.id);
 
-            m.delayLoadingFile = `geometries/${geometryFileName}`;
+            m.delayLoadingFile = `${overridePath ?? ""}geometries/${geometryFileName}`;
             m.boundingBoxMaximum = originMesh?.getBoundingInfo()?.maximum?.asArray() ?? [0, 0, 0];
             m.boundingBoxMinimum = originMesh?.getBoundingInfo()?.minimum?.asArray() ?? [0, 0, 0];
             m._binaryInfo = { };
@@ -1091,6 +1104,10 @@ export class ProjectExporter {
                 offset += subMeshesData.length * Int32Array.BYTES_PER_ELEMENT;
             }
 
+            promises.push(new Promise<void>((resolve) => {
+                stream.once("close", () => resolve());
+            }));
+
             stream.end();
             stream.close();
 
@@ -1104,11 +1121,15 @@ export class ProjectExporter {
             if (geometryIndex !== -1) {
                 scene.geometries.vertexData.splice(geometryIndex, 1);
             }
-        });
+
+            index++;
+        };
 
         if (scene.geometries?.vertexData?.length === 0) {
             delete scene.geometries;
         }
+
+        await Promise.all(promises);
 
         return result;
     }
