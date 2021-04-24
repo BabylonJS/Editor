@@ -104,6 +104,7 @@ export class ScenePlayer {
         // Stop render and dispose play scene.
         engine.stopRenderLoop();
         this._scene?.dispose();
+        this._scene = null;
         engine.wipeCaches(true);
     }
 }

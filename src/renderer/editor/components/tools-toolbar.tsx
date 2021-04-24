@@ -104,7 +104,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             case "build-project": WorkSpace.BuildProject(this._editor); break;
 
             case "play-scene": this._handlePlay(); break;
-            case "restart-play-scene": this._editor.preview.restartPlay(); break;
+            case "restart-play-scene": this._handleRestart(); break;
             default: break;
         }
     }
@@ -149,6 +149,15 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
 
         await this._editor.preview.playOrStop(false);
 
+        this.setState({ playing: { ...this.state.playing, isLoading: false } });
+    }
+
+    /**
+     * Called on the user wants to restart the scene being played in the editor.
+     */
+    private async _handleRestart(): Promise<void> {
+        this.setState({ playing: { ...this.state.playing, isLoading: true } });
+        await this._editor.preview.restartPlay();
         this.setState({ playing: { ...this.state.playing, isLoading: false } });
     }
 }

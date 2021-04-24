@@ -257,63 +257,90 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
     /**
      * Called on the user wants to play or stop the scene.
+     * @param isPlayingInIframe defines wether or not the game is played in an isolated context using an iFrame.
      */
     public async playOrStop(isPlayingInIframe: boolean): Promise<void> {
         const isPlaying = !this.state.isPlaying;
 
         if (isPlaying) {
-            this._editor.runRenderLoop(false);
-
-            if (!isPlayingInIframe) {
-                this.setState({ isPlaying, isPlayingInIframe, playLoadingProgress: 0.5 });
-            }
-
-            await ProjectExporter.ExportFinalScene(this._editor, undefined, {
-                geometryRootPath: this.state.isPlayingInIframe ? undefined : join("../../scenes", WorkSpace.GetProjectName(), "/"),
-            });
+            await this.startPlayScene(isPlayingInIframe);
+        } else {
+            await this.stopPlayingScene(isPlayingInIframe);
         }
+    }
 
-        this.setState({ isPlaying, isPlayingInIframe });
-
-        if (!isPlaying) {
-            if (this._playMessageEventListener) {
-                window.removeEventListener("message", this._playMessageEventListener);
-            }
-            this._playMessageEventListener = null;
-        }
+    /**
+     * Starts playing the scene in the editor.
+     * @param isPlayingInIframe defines wether or not the game is played in an isolated context using an iFrame.
+     */
+    public async startPlayScene(isPlayingInIframe: boolean): Promise<void> {
+        this._editor.runRenderLoop(false);
 
         if (!isPlayingInIframe) {
-            if (isPlaying) {
-                this._editor.engine!.loadingScreen = {
-                    displayLoadingUI: () => { },
-                    hideLoadingUI: () => { },
-                    loadingUIText: "",
-                    loadingUIBackgroundColor: "",
-                }
-
-                try {
-                    await this._scenePlayer.start((p) => this.setState({ playLoadingProgress: p }));
-                } catch (e) {
-                    this.playOrStop(isPlayingInIframe);
-
-                    this._editor.console.logSection("Failed to start playing scene");
-                    this._editor.console.logError(e.message);
-                }
-            } else {
-                this._scenePlayer.dispose();
-                this._editor.runRenderLoop(true);
-            }
-        } else {
-            this._editor.runRenderLoop(!isPlaying);
+            this.setState({ isPlaying: true, isPlayingInIframe, playLoadingProgress: 0.5 });
         }
+
+        await ProjectExporter.ExportFinalScene(this._editor, undefined, {
+            geometryRootPath: this.state.isPlayingInIframe ? undefined : join("../../scenes", WorkSpace.GetProjectName(), "/"),
+        });
+
+        if (isPlayingInIframe) {
+            return this.setState({ isPlaying: true, isPlayingInIframe });
+        }
+
+        this._editor.engine!.loadingScreen = {
+            displayLoadingUI: () => { },
+            hideLoadingUI: () => { },
+            loadingUIText: "",
+            loadingUIBackgroundColor: "",
+        }
+
+        try {
+            await this._scenePlayer.start((p) => this.setState({ playLoadingProgress: p }));
+        } catch (e) {
+            this.playOrStop(isPlayingInIframe);
+
+            this._editor.console.logSection("Failed to start playing scene");
+            this._editor.console.logError(e.message);
+        }
+    }
+
+    /**
+     * Stops the game that is runnning in the editor.
+     * @param isPlayingInIframe defines wether or not the game is played in an isolated context using an iFrame.
+     */
+    public async stopPlayingScene(isPlayingInIframe: boolean): Promise<void> {
+        if (!this.state.isPlaying) {
+            return;
+        }
+
+        if (this._playMessageEventListener) {
+            window.removeEventListener("message", this._playMessageEventListener);
+        }
+        this._playMessageEventListener = null;
+
+        if (!isPlayingInIframe) {
+            this._scenePlayer.dispose();
+        }
+
+        this.setState({ isPlaying: false });
+
+        this._editor.runRenderLoop(true);
     }
 
     /**
      * In case the user is playing the test scene, it restarts the iframe.
      */
-    public restartPlay(): void {
+    public async restartPlay(): Promise<void> {
         if (this._playIframe) {
             this._playIframe.src = this._playIframe.src;
+        } else {
+            try {
+                this._scenePlayer.dispose();
+                await this._scenePlayer.start((p) => this.setState({ playLoadingProgress: p }));
+            } catch (e) {
+                this._editor.console.logError(`Failed to restart: ${e.message}`);
+            }
         }
     }
 
