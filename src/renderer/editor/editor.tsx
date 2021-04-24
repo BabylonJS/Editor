@@ -393,6 +393,17 @@ export class Editor {
             node.setEventListener("close", () => {
                 setTimeout(() => this.closePlugin(componentName), 0);
             });
+
+            node.setEventListener("visibility", (p) => {
+                const plugin = this.plugins[node.getName()];
+                if (!plugin) { return; }
+
+                if (p.visible) {
+                    plugin.onShow();
+                } else {
+                    plugin.onHide();
+                }
+            });
         }
 
         return component;
