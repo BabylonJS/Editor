@@ -87,6 +87,7 @@
     "generator-core": "3.11.5",
     "glob": "7.1.6",
     "golden-layout": "1.5.9",
+    "flexlayout-react": "0.5.6",
     "http-server": "0.12.3",
     "jquery": "3.5.0",
     "js-beautify": "1.11.0",

@@ -125,7 +125,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      */
     public render(): React.ReactNode {
         return (
-            <div style={{ width: "100%", height: "100%" }}>
+            <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
                 <div className={Classes.FILL} key="materials-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="clear" icon={<Icon src="recycle.svg" />} small={true} text="Clear" onClick={() => this.clear(this.state.tabId)} />

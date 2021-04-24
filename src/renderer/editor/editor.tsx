@@ -8,14 +8,13 @@ import { IStringDictionary, Nullable, Undefinable } from "../../shared/types";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName, MaybeElement } from "@blueprintjs/core";
+import { Layout, Model, TabNode, Rect, Actions } from "flexlayout-react";
 
 import {
     Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin,
     SubMesh, Animation, AbstractMesh, IParticleSystem, Sound, KeyboardInfo, KeyboardEventTypes,
     Color4
 } from "babylonjs";
-
-import GoldenLayout from "golden-layout";
 
 import { Overlay } from "./gui/overlay";
 import { ActivityIndicator } from "./gui/acitivity-indicator";
@@ -111,6 +110,24 @@ import { PrefabAssets } from "./assets/prefabs";
 // Extensions
 import { WebpackProgressExtension } from "./extensions/webpack-progress";
 
+// Json
+import layoutConfiguration from "./layout.json";
+
+export interface ILayoutTabNodeConfiguration {
+    /**
+     * Defines the name of the layout tab node.
+     */
+    componentName: "preview" | "inspector" | "console" | "assets" | "graph" | string;
+    /**
+     * Defines the id of the layout tab node.
+     */
+    componentId: string;
+    /**
+     * Defines the id of the tab node in the layout.
+     */
+    rect: Rect;
+}
+
 export class Editor {
     /**
      * Reference to the Babylon.JS engine used to render the preview scene.
@@ -124,7 +141,7 @@ export class Editor {
     /**
      * Reference to the layout used to create the editor's sections.
      */
-    public layout: GoldenLayout;
+    public layout: Layout;
 
     /**
      * Reference to the inspector tool used to edit objects in the scene.
@@ -268,8 +285,14 @@ export class Editor {
      */
     public _toaster: Nullable<Toaster> = null;
 
-    private _components: IStringDictionary<any> = {};
-    private _stacks: IStringDictionary<any> = {};
+    /**
+     * Defines the dictionary of all configurations for all tab nodes. This configuration is updated each time a node
+     * event is triggered, like "resize".
+     * @hidden
+     */
+    public readonly _layoutTabNodesConfigurations: Record<string, ILayoutTabNodeConfiguration> = {};
+
+    private _components: IStringDictionary<React.ReactNode> = {};
 
     private _taskFeedbacks: IStringDictionary<{
         message: string;
@@ -294,7 +317,7 @@ export class Editor {
     /**
      * Defines the current version of the layout.
      */
-    public static readonly LayoutVersion = "3.0.0";
+    public static readonly LayoutVersion = "4.0.0";
     /**
      * Defines the dictionary of all loaded plugins in the editor.
      */
@@ -338,6 +361,44 @@ export class Editor {
     }
 
     /**
+     * Called each time a FlexLayout.TabNode is mounted by React.
+     */
+    private _layoutFactory(node: TabNode): React.ReactNode {
+        const componentName = node.getComponent();
+        if (!componentName) {
+            this.console.logError("Can't mount layout node without component name.");
+            return <div>Error, see console...</div>;
+        }
+
+        const component = this._components[componentName];
+        if (!component) {
+            this.console.logError(`No react component available for "${componentName}".`);
+            return <div>Error, see console...</div>;
+        }
+
+        this._layoutTabNodesConfigurations[componentName] ??= {
+            componentName,
+            rect: node.getRect(),
+            componentId: node.getId(),
+        };
+
+        node.setEventListener("resize", (ev: { rect: Rect }) => {
+            const configuration = this._layoutTabNodesConfigurations[componentName];
+            configuration.rect = ev.rect;
+
+            setTimeout(() => this.resize(), 0);
+        });
+
+        if (Editor.LoadedPlugins[componentName]) {
+            node.setEventListener("close", () => {
+                setTimeout(() => this.closePlugin(componentName), 0);
+            });
+        }
+
+        return component;
+    }
+
+    /**
      * Called on the component did mount.
      */
     public async init(): Promise<void> {
@@ -348,89 +409,12 @@ export class Editor {
         this._packageJson = JSON.parse(await Tools.LoadFile("../package.json", false));
         document.title = `Babylon.JS Editor v${this._packageJson.version}`;
 
-        // Create default layout
-        const layoutVersion = localStorage.getItem('babylonjs-editor-layout-version');
-        const layoutStateItem = (layoutVersion === Editor.LayoutVersion) ? localStorage.getItem('babylonjs-editor-layout-state') : null;
-        const layoutState = layoutStateItem ? JSON.parse(layoutStateItem) : null;
-
-        if (layoutState) { LayoutUtils.ConfigureLayoutContent(this, layoutState.content); }
-
-        this.layout = new GoldenLayout(layoutState ?? {
-            settings: {
-                showPopoutIcon: false,
-                showCloseIcon: false,
-                showMaximiseIcon: true
-            },
-            dimensions: {
-                minItemWidth: 240,
-                minItemHeight: 50
-            },
-            labels: {
-                close: "Close",
-                maximise: "Maximize",
-                minimise: "Minimize"
-            },
-            content: [{
-                type: "row", content: [
-                    {
-                        type: "react-component", id: "inspector", component: "inspector", componentName: "Inspector", title: "Inspector", width: 20, isClosable: false, props: {
-                            editor: this,
-                        }
-                    },
-                    {
-                        type: "column", content: [
-                            {
-                                type: "react-component", id: "preview", component: "preview", componentName: "Preview", title: "Preview", isClosable: false, props: {
-                                    editor: this,
-                                }
-                            },
-                            {
-                                type: "stack", id: "edit-panel", componentName: "edit-panel", content: [
-                                    {
-                                        type: "react-component", id: "assets", component: "assets", componentName: "Assets", title: "Assets", width: 10, isClosable: false, props: {
-                                            editor: this,
-                                        }
-                                    },
-                                    {
-                                        type: "react-component", id: "console", component: "console", componentName: "Console", title: "Console", width: 10, isClosable: false, props: {
-                                            editor: this,
-                                        }
-                                    }
-                                ]
-                            },
-                        ]
-                    },
-                    {
-                        type: "stack", content: [
-                            {
-                                type: "react-component", id: "graph", component: "graph", componentName: "Graph", title: "Graph", width: 2, isClosable: false, props: {
-                                    editor: this,
-                                }
-                            },
-                        ]
-                    }
-                ]
-            }],
-        }, jQuery("#BABYLON-EDITOR"));
-
-        // Register layout events
-        this.layout.on("componentCreated", (c) => {
-            this._components[c.config.component] = c;
-            c.container.on("resize", () => this.resize());
-            c.container.on("show", () => this.resize());
-        });
-        this.layout.on("stackCreated", (s) => {
-            if (s.config?.componentName) {
-                this._stacks[s.config.componentName] = s;
-            }
-        });
-
-        // Register components
-        this.layout.registerComponent("inspector", Inspector);
-        this.layout.registerComponent("preview", Preview);
-        this.layout.registerComponent("assets", Assets);
-        this.layout.registerComponent("graph", Graph);
-        this.layout.registerComponent("console", Console);
+        // Register default components
+        this._components["preview"] = <Preview editor={this} />;
+        this._components["inspector"] = <Inspector editor={this} />;
+        this._components["assets"] = <Assets editor={this} />;
+        this._components["graph"] = <Graph editor={this} />;
+        this._components["console"] = <Console editor={this} />;
 
         // Retrieve preview layout state for plugins.
         try {
@@ -441,28 +425,25 @@ export class Editor {
                     const name = Editor.LoadedPlugins[key].name;
                     const plugin = Editor.LoadedPlugins[key].fullPath ? require(name) : require(`../tools/${name}`);
 
-                    this.layout.registerComponent(key, plugin.default);
+                    this._components[name] = <plugin.default editor={this} id={plugin.title} />;
                 }
             }
-
-            this.layout.init();
         } catch (e) {
             this._resetEditor();
         }
 
-        // Don't forget to listen closing plugins
-        for (const key in Editor.LoadedPlugins) {
-            const item = this.layout.root.getItemsById(key)[0];
-            if (!item) { continue; }
+        // Mount layout
+        const layoutVersion = localStorage.getItem('babylonjs-editor-layout-version');
+        const layoutStateItem = (layoutVersion === Editor.LayoutVersion) ? localStorage.getItem('babylonjs-editor-layout-state') : null;
+        const layoutState = layoutStateItem ? JSON.parse(layoutStateItem) : layoutConfiguration;
 
-            const name = Editor.LoadedPlugins[key].name;
-            const plugin = Editor.LoadedPlugins[key].fullPath ? require(name) : require(`../tools/${name}`);
+        const layoutModel = Model.fromJson(layoutState);
 
-            this._bindPluginEvents(item["container"], plugin);
-        }
-
-        // Init!
-        setTimeout(() => this._init(), 0);
+        ReactDOM.render((
+            <Layout ref={(r) => this.layout = r!} model={layoutModel} factory={(n) => this._layoutFactory(n)} />
+        ), document.getElementById("BABYLON-EDITOR"), () => {
+            setTimeout(() => this._init(), 0);
+        });
     }
 
     /**
@@ -473,6 +454,8 @@ export class Editor {
         this.inspector.resize();
         this.assets.resize();
         this.console.resize();
+
+        this.engine?.resize();
 
         for (const p in this.plugins) {
             const panel = this.getPanelSize(p);
@@ -501,12 +484,12 @@ export class Editor {
      * @param panelId the id of the panel to retrieve its size.
      */
     public getPanelSize(panelId: string): ISize {
-        const panel = this._components[panelId];
-        if (!panel) {
+        const configuration = this._layoutTabNodesConfigurations[panelId];
+        if (!configuration) {
             return { width: 0, height: 0 };
         }
 
-        return { width: panel.container.width, height: panel.container.height };
+        return { width: configuration.rect.width, height: configuration.rect.height };
     }
 
     /**
@@ -592,23 +575,9 @@ export class Editor {
      * Closes the plugin identified by the given name.
      * @param pluginName the name of the plugin to close.
      */
-    public closePlugin(pluginName: string): void {
-        const container = this._components[pluginName]?.container;
-        if (!container) { return; }
-
-        // Close plugin
-        container.emit("destroy");
-
-        // Close container
-        container.off("show");
-        container.off("resize");
-        container.off("destroy");
-
-        try {
-            container.close();
-        } catch (e) {
-            // Catch silently.
-        }
+    public closePlugin(pluginName: string): void {        
+        delete this._components[pluginName];
+        delete Editor.LoadedPlugins[pluginName];
 
         this.resize();
     }
@@ -708,13 +677,7 @@ export class Editor {
      * @param panelId the id of the panel to reveal.
      */
     public revealPanel(panelId: string): void {
-        const item = this.layout.root.getItemsById(panelId)[0];
-        if (!item) { return; }
-
-        const stack = item.parent;
-        if (!stack) { return; }
-
-        try { stack.setActiveContentItem(item); } catch (e) { /* Catch silently */ }
+        this.layout.props.model.doAction(Actions.selectTab(panelId));
     }
 
     /**
@@ -741,55 +704,17 @@ export class Editor {
      * Adds the given plugin into the layout.
      */
     private _addPlugin(plugin: any, name: string, fullPath: boolean): void {
-        // Existing or register.
-        try {
-            this.layout.getComponent(plugin.title);
-        } catch (e) {
-            this.layout.registerComponent(plugin.title, plugin.default);
+        if (this._components[name]) {
+            this.layout.props.model.doAction(Actions.selectTab(name));
+            return;
         }
-
-        // Plugin already loaded?
-        if (Editor.LoadedPlugins[plugin.title]) {
-            return this.revealPanel(plugin.title);
-        }
-
-        const stack = this._stacks["edit-panel"] ?? this.layout.root.getItemsByType("stack").find((s) => s.config.id === "edit-panel" || s.config.id?.indexOf("edit-panel") !== -1);
-        stack?.addChild({
-            type: "react-component",
-            id: plugin.title,
-            componentName: plugin.title,
-            component: plugin.title,
-            title: plugin.title,
-            props: {
-                editor: this,
-                id: plugin.title,
-            },
-        });
 
         // Register plugin
-        Editor.LoadedPlugins[plugin.title] = { name, fullPath };
+        Editor.LoadedPlugins[name] = { name, fullPath };
 
-        // Listen to events
-        const container = stack?.getActiveContentItem()["container"];
-        this._bindPluginEvents(container, plugin);
-
-        // Resize
-        this.resize();
-    }
-
-    /**
-     * Binds the plugin's events. 
-     */
-    private _bindPluginEvents(container: any, plugin: any): void {
-        container?.on("destroy", () => delete Editor.LoadedPlugins[plugin.title]);
-        container?.on("show", () => {
-            const pluginSize = this.getPanelSize(plugin.title);
-            if (!pluginSize) { return; }
-            this.plugins[plugin.title]?.resize(pluginSize.width, pluginSize.height);
-        });
-
-        container?.on("show", () => this.plugins[plugin.title]?.onShow());
-        container?.on("hide", () => this.plugins[plugin.title]?.onHide());
+        // Add component
+        this._components[name] = <plugin.default editor={this} id={plugin.title} />;
+        this.layout.addTabToTabSet("modules-tabset", { type: "tab", name: plugin.title, component: name, id: name });
     }
 
     /**
@@ -1037,7 +962,6 @@ export class Editor {
 
         // Resize
         window.addEventListener("resize", () => {
-            this.layout.updateSize();
             this.resize();
         });
 
@@ -1189,7 +1113,7 @@ export class Editor {
      * @hidden
      */
     public _saveEditorConfig(): void {
-        const config = this.layout.toConfig();
+        const config = this.layout.props.model.toJson();
         LayoutUtils.ClearLayoutContent(this, config.content);
 
         localStorage.setItem("babylonjs-editor-layout-state", JSON.stringify(config));
@@ -1298,7 +1222,7 @@ export class Editor {
         }
 
         this.mainToolbar?.setState({ plugins: pluginToolbars });
-        this.layout.updateSize();
+        this.resize();
 
         // Devtools
         await new Promise<void>((resolve) => {

@@ -133,9 +133,9 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
         tabs.push(<Tabs.Expander />);
 
         return (
-            <>
+            <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
                 <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={(e) => this._handleSearchChanged(e)} />
-                <div id="EDITOR-ASSETS" ref={this._refHandler.getParentDiv} style={{ width: "100%", height: "100%" }}>
+                <div id="EDITOR-ASSETS" ref={this._refHandler.getParentDiv} style={{ width: "100%", height: "100%", overflow: "hidden" }}>
                     <Tabs
                         ref={this._refHandler.getTabs}
                         animate={true}
@@ -147,7 +147,7 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
                         children={tabs}
                     ></Tabs>
                 </div>
-            </>
+            </div>
         );
     }
 

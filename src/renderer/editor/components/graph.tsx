@@ -117,7 +117,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (!this.state.nodes.length) { return null!; }
 
         return (
-            <>
+            <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
                 <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={(e) => this._handleFilterChanged(e.target.value)}></InputGroup>
                 <Popover
                     fill={true}
@@ -139,7 +139,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         <Button text="Options..." onClick={() => this.setState({ showOptions: true })} />
                     </ButtonGroup>
                 </Popover>
-                <div style={{ width: "100%", height: "calc(100% - 55px)", overflow: "auto" }}>
+                <div style={{ width: "100%", height: "calc(100% - 60px)", overflow: "auto" }}>
                     <Tree.DirectoryTree
                         className="draggable-tree"
                         draggable={true}
@@ -163,7 +163,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         {this.state.nodes}
                     </Tree.DirectoryTree>
                 </div>
-            </>
+            </div>
         );
     }
 

@@ -95,7 +95,7 @@ export class InspectorSection extends React.Component<IInspectorSectionProps, II
                     style={{
                         // zoom: "0.9",
                         height: this.state.collapsed ? "35px" : undefined,
-                        paddingLeft: "35px",
+                        paddingLeft: "25px",
                         backgroundColor: "rgba(138, 155, 168, 0.1)",
                     }}
                 >

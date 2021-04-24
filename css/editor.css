@@ -56,6 +56,20 @@ html, body {
     border-radius: 0px !important;
 }
 
+/* FLEX LAYOUT */
+.flexlayout__layout {
+    top: 63px;
+}
+
+.flexlayout__tabset-selected {
+    background-image: unset;
+    background-color: #111111;
+}
+
+.flexlayout__tab {
+    background-color: #444444;
+}
+
 /* EDITOR */
 .searchBar {
     left: calc(50% - 200px);
