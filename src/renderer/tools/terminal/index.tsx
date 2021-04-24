@@ -3,7 +3,6 @@ import * as os from "os";
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Classes } from "@blueprintjs/core";
 
 import { spawn, IPty } from "node-pty";
 import { Terminal } from "xterm";
@@ -31,7 +30,13 @@ export default class TerminalPlugin extends AbstractEditorPlugin<{ }> {
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return <div ref={this._refHandler.getTerminalDiv} className={Classes.FILL} key="terminal" style={{ width: "100%", height: "100%" }}></div>;
+        return (
+            <div
+                key="terminal"
+                ref={this._refHandler.getTerminalDiv}
+                style={{ width: "100%", height: "100%", background: "black" }}
+            ></div>
+        );
     }
 
     /**

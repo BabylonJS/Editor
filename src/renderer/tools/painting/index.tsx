@@ -67,15 +67,17 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
         ];
 
         return (
-            <Tabs
-                animate={true}
-                key="painting-tabs"
-                renderActiveTabPanelOnly={true}
-                vertical={false}
-                children={tabs}
-                onChange={(id) => this._handleTabChanged(id)}
-                selectedTabId={this.state.tabId}
-            ></Tabs>
+            <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+                <Tabs
+                    animate={true}
+                    key="painting-tabs"
+                    renderActiveTabPanelOnly={true}
+                    vertical={false}
+                    children={tabs}
+                    onChange={(id) => this._handleTabChanged(id)}
+                    selectedTabId={this.state.tabId}
+                ></Tabs>
+            </div>
         );
     }
 

@@ -70,6 +70,18 @@ html, body {
     background-color: #444444;
 }
 
+.flexlayout__tabset_tabbar_outer {
+    background-color: #222222;
+}
+
+.flexlayout__tab_button--selected {
+    background-color: #333333;
+}
+
+.flexlayout__tab_button--unselected {
+    background-color: #111111;
+}
+
 /* EDITOR */
 .searchBar {
     left: calc(50% - 200px);

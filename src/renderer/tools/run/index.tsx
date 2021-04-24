@@ -70,7 +70,7 @@ export default class PlayPlugin extends AbstractEditorPlugin<IPlayPlugin> {
         }
 
         return (
-            <>
+            <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
                 <div className={Classes.FILL} key="documentation-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="refresh" small={true} icon="refresh" text="" onClick={() => this._handleRefresh()} />
@@ -80,7 +80,7 @@ export default class PlayPlugin extends AbstractEditorPlugin<IPlayPlugin> {
                     </ButtonGroup>
                 </div>
                 {content}
-            </>
+            </div>
         );
     }
 

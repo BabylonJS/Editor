@@ -119,9 +119,13 @@ export interface ILayoutTabNodeConfiguration {
      */
     componentName: "preview" | "inspector" | "console" | "assets" | "graph" | string;
     /**
+     * Defines the name of the tab component.
+     */
+    name: string;
+    /**
      * Defines the id of the layout tab node.
      */
-    componentId: string;
+    id: string;
     /**
      * Defines the id of the tab node in the layout.
      */
@@ -378,8 +382,9 @@ export class Editor {
 
         this._layoutTabNodesConfigurations[componentName] ??= {
             componentName,
+            id: node.getId(),
+            name: node.getName(),
             rect: node.getRect(),
-            componentId: node.getId(),
         };
 
         node.setEventListener("resize", (ev: { rect: Rect }) => {
@@ -495,7 +500,13 @@ export class Editor {
      * @param panelId the id of the panel to retrieve its size.
      */
     public getPanelSize(panelId: string): ISize {
-        const configuration = this._layoutTabNodesConfigurations[panelId];
+        let configuration: Nullable<ILayoutTabNodeConfiguration> = null; // = this._layoutTabNodesConfigurations[panelId];
+        for (const key in this._layoutTabNodesConfigurations) {
+            if (key === panelId || this._layoutTabNodesConfigurations[key].name === panelId) {
+                configuration = this._layoutTabNodesConfigurations[key];
+            }
+        }
+
         if (!configuration) {
             return { width: 0, height: 0 };
         }
@@ -586,9 +597,19 @@ export class Editor {
      * Closes the plugin identified by the given name.
      * @param pluginName the name of the plugin to close.
      */
-    public closePlugin(pluginName: string): void {        
-        delete this._components[pluginName];
-        delete Editor.LoadedPlugins[pluginName];
+    public closePlugin(pluginName: string): void {
+        let effectiveKey = pluginName;
+        for (const key in this._layoutTabNodesConfigurations) {
+            if (this._layoutTabNodesConfigurations[key].name === pluginName) {
+                effectiveKey = this._layoutTabNodesConfigurations[key].componentName;
+                break;
+            }
+        }
+
+        this.layout.props.model.doAction(Actions.deleteTab(effectiveKey));
+
+        delete this._components[effectiveKey];
+        delete Editor.LoadedPlugins[effectiveKey];
 
         this.resize();
     }
@@ -725,7 +746,8 @@ export class Editor {
 
         // Add component
         this._components[name] = <plugin.default editor={this} id={plugin.title} />;
-        this.layout.addTabToTabSet("modules-tabset", { type: "tab", name: plugin.title, component: name, id: name });
+        // this.layout.addTabToTabSet("modules-tabset", { type: "tab", name: plugin.title, component: name, id: name });
+        this.layout.addTabToActiveTabSet({ type: "tab", name: plugin.title, component: name, id: name });
     }
 
     /**
