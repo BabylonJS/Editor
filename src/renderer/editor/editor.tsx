@@ -25,7 +25,6 @@ import { IPCTools } from "./tools/ipc";
 import { IObjectModified, IEditorPreferences, EditorPlayMode } from "./tools/types";
 import { undoRedo } from "./tools/undo-redo";
 import { AbstractEditorPlugin } from "./tools/plugin";
-import { LayoutUtils } from "./tools/layout-utils";
 import { EditorUpdater } from "./tools/update/updater";
 import { TouchBarHelper } from "./tools/touch-bar";
 
@@ -1147,7 +1146,6 @@ export class Editor {
      */
     public _saveEditorConfig(): void {
         const config = this.layout.props.model.toJson();
-        LayoutUtils.ClearLayoutContent(this, config.content);
 
         localStorage.setItem("babylonjs-editor-layout-state", JSON.stringify(config));
         localStorage.setItem("babylonjs-editor-layout-version", Editor.LayoutVersion);

@@ -3,6 +3,7 @@ import { Nullable } from "../../../shared/types";
 export class LayoutUtils {
     /**
      * Clears the contents of the serialized layout.
+     * @deprecated
      */
     public static ClearLayoutContent(editor: any, content: Nullable<any[]>): void {
         if (!content) { return; }
@@ -16,6 +17,7 @@ export class LayoutUtils {
 
     /**
      * Configures the contents of the serialized layout.
+     * @deprecated
      */
     public static ConfigureLayoutContent(editor: any, content: Nullable<any[]>): void {
         if (!content) { return; }
