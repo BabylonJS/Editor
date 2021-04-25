@@ -249,7 +249,7 @@ export class ProjectExporter {
 
         for (const texture of editor.scene!.textures) {
             if (texture instanceof RenderTargetTexture || texture instanceof DynamicTexture) { continue; }
-            if (texture.name.indexOf("data:") === 0) { continue; }
+            if (texture.name.indexOf("data:") === 0 || texture === editor.scene!.environmentBRDFTexture) { continue; }
 
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = texture.serialize();

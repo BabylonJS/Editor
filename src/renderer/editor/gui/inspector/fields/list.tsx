@@ -57,7 +57,7 @@ export interface IInspectorListProps<T> {
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
-    onChange?: (value: T | string) => void;
+    onChange?: (value: T) => void;
     /**
      * Defines the optional callack called on the value finished changes.
      * @param value defines the new value of the object's property.

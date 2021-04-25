@@ -142,6 +142,11 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     <InspectorColorPicker object={this.material} property="emissiveColor" label="Hex Color" />
                 </InspectorSection>
 
+                <InspectorSection title="BRDF">
+                    <InspectorBoolean object={this.material.brdf} property="useEnergyConservation" label="Use Energy Conservation" />
+                    <InspectorBoolean object={this.material.brdf} property="useSpecularGlossinessInputEnergyConservation" label="Use Specular Glossiness Input Energy Conservation" />
+                </InspectorSection>
+
                 {this._getClearCoatInspector()}
                 {this._getAnisotropyInspector()}
                 {this._getSheenInspector()}
