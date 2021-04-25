@@ -34,14 +34,38 @@ export interface IInspectorComponentSearch {
     callback: (visible: boolean) => void;
 }
 
+export interface IInspectorNotifierUndoRedo<T> {
+    /**
+     * Defines the reference to the object that has been modified.
+     */
+    object: T;
+    /**
+     * Defines the name of the property that has been changed.
+     */
+    property: string;
+    /**
+     * Defines the old value of the property.
+     */
+    oldValue: any;
+    /**
+     * Defines the new value of the property.
+     */
+    newValue: any;
+
+    /**
+	 * Defines wether or not the inspector is tagged as "no undo/redo".
+	 */
+	noUndoRedo: boolean;
+}
+
 export class InspectorUtils {
     private static _CurrentInspector: Nullable<AbstractInspector<any, any>> = null;
     private static _CurrentInspectorName: Nullable<string> = null;
 
     private static _InspectorConfigurations: IStringDictionary<IInspectorPreferences> = InspectorUtils.GetPreferencesFromLocalStorage();
-    private static _InspectorFilters: IStringDictionary<IInspectorComponentSearch[]> = { };
-    private static _InspectorScrolls: IStringDictionary<number> = { };
-    private static _InspectorChangedListeners: IStringDictionary<() => void> = { };
+    private static _InspectorFilters: IStringDictionary<IInspectorComponentSearch[]> = {};
+    private static _InspectorScrolls: IStringDictionary<number> = {};
+    private static _InspectorChangedListeners: IStringDictionary<(configuration: IInspectorNotifierUndoRedo<unknown>) => void> = {};
 
     /**
      * Sets the current inspector being mounted.
@@ -187,13 +211,13 @@ export class InspectorUtils {
         try {
             const item = localStorage.getItem("babylonjs-editor-inspector-preferences");
             if (!item) {
-                return { };
+                return {};
             }
 
             return JSON.parse(item);
         } catch (e) {
             // Catch silently.
-            return { };
+            return {};
         }
     }
 
@@ -202,7 +226,7 @@ export class InspectorUtils {
      * @param inspectorName defines the name of the inspector to register.
      * @param callback defines the callback called on a property changed on the selected object.
      */
-    public static RegisterInspectorChangedListener(inspectorName: string, callback: () => void): void {
+    public static RegisterInspectorChangedListener(inspectorName: string, callback: (configuration: IInspectorNotifierUndoRedo<unknown>) => void): void {
         this.UnregisterInspectorChangedListener(inspectorName);
         this._InspectorChangedListeners[inspectorName] = callback;
     }
@@ -221,8 +245,9 @@ export class InspectorUtils {
     /**
      * Notifies the given inspector that the selected object has changed.
      * @param inspectorName defines the name of the inspector to notify.
+     * @param configuration defines the reference to the undo/redo configuration.
      */
-    public static NotifyInspectorChanged(inspectorName: string): void {
-        this._InspectorChangedListeners[inspectorName]?.();
+    public static NotifyInspectorChanged(inspectorName: string, configuration: IInspectorNotifierUndoRedo<unknown>): void {
+        this._InspectorChangedListeners[inspectorName]?.(configuration);
     }
 }

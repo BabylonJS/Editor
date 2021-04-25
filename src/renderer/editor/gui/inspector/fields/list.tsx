@@ -51,13 +51,13 @@ export interface IInspectorListProps<T> {
     /**
      * Defines wether or not automatic undo/redo should be skipped.
      */
-     noUndoRedo?: boolean;
+    noUndoRedo?: boolean;
 
     /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
-    onChange?: (value: T | string) => void;
+    onChange?: (value: T | string) => void;
     /**
      * Defines the optional callack called on the value finished changes.
      * @param value defines the new value of the object's property.
@@ -112,8 +112,8 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
                         <span style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                     </Tooltip>
                 </div>
-                <div style={{ width: "65%", height: "25px", float: "left", marginTop: "2px" }}>
-                    <div style={{ position: "absolute", width: "30px", height: "25px", right: "calc(5% + 15px)" }}>
+                <div style={{ width: "70%", height: "25px", float: "left", marginTop: "2px" }}>
+                    <div style={{ position: "absolute", width: "30px", height: "25px", right: "5%" }}>
                         {this.state.selectedItem?.icon}
                     </div>
                     {this._getSuggestComponent()}
@@ -209,7 +209,7 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
      * Returns the current list of items.
      */
     private async _getItems(): Promise<IInspectorListItem<T>[]> {
-        if (typeof(this.props.items) === "function") {
+        if (typeof (this.props.items) === "function") {
             return this.props.items();
         }
 
@@ -231,17 +231,16 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
         if (!this.props.noUndoRedo) {
             InspectorNotifier.NotifyChange(this.props.object, {
                 caller: this,
-                newValue: item.data,
-                oldValue: this._initialValue,
-                property: this.props.property,
-                onUndoRedo: async () => {
-                    this.isMounted && this.setState({ selectedItem: await this._getCurrentItem() });
-                    InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
-                },
             });
         }
 
-        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!, {
+            newValue: item.data,
+            object: this.props.object,
+            oldValue: this._initialValue,
+            property: this.props.property,
+            noUndoRedo: this.props.noUndoRedo ?? false,
+        });
 
         this._initialValue = item.data;
     }

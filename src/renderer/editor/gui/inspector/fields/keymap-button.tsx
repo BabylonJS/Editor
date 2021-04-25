@@ -153,19 +153,18 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
         if (!this.props.noUndoRedo) {
             InspectorNotifier.NotifyChange(this.props.object, {
                 caller: this,
-                newValue: code,
-                oldValue: this._initialValue,
-                property: this.props.property,
-                onUndoRedo: () => {
-                    this.isMounted && this.forceUpdate();
-                    InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
-                },
             });
         }
 
         this._initialValue = code;
 
-        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!, {
+            newValue: code,
+            object: this.props.object,
+            oldValue: this._initialValue,
+            property: this.props.property,
+            noUndoRedo: this.props.noUndoRedo ?? false,
+        });
 
         this.setState({ settingKey: false });
     }

@@ -7,11 +7,14 @@ import { Texture, Material, ISize } from "babylonjs";
 
 import { IObjectInspectorProps } from "../components/inspector";
 
+import { undoRedo } from "../tools/undo-redo";
+
 import { TextureAssets } from "../assets/textures";
 import { MaterialAssets } from "../assets/materials";
 
+import { InspectorNotifier } from "../gui/inspector/notifier";
 import { IInspectorListItem } from "../gui/inspector/fields/list";
-import { InspectorUtils } from "../gui/inspector/utils";
+import { IInspectorNotifierUndoRedo, InspectorUtils } from "../gui/inspector/utils";
 
 import { Editor } from "../editor";
 
@@ -74,7 +77,8 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         setTimeout(() => this._inspectorDiv?.scroll({ top: scrollTop, behavior: "smooth" }), 0);
 
         // Listen to events
-        InspectorUtils.RegisterInspectorChangedListener(this._inspectorName, () => {
+        InspectorUtils.RegisterInspectorChangedListener(this._inspectorName, (c) => {
+            this._handleUndoRedo(c);
             this.onPropertyChanged();
         });
 
@@ -159,5 +163,33 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
             const icon = a.base64 ? <img src={a.base64} style={{ width: "24px", height: "24px" }}></img> : undefined;
             return { label: a.id, data, icon, description: data?.name };
         }));
+    }
+
+    /**
+     * Called on an action finished to handle undo/redo.
+     */
+    private _handleUndoRedo(configuration: IInspectorNotifierUndoRedo<any>): void {
+        if (configuration.noUndoRedo || configuration.newValue === configuration.oldValue) {
+            return;
+        }
+
+        if (configuration.object === this || configuration.object === this.state) {
+            return;
+        }
+
+        undoRedo.push({
+            description: `Changed property named "${configuration.property}" of object "${configuration.object.name}" from ${configuration.oldValue} to ${configuration.newValue}`,
+            common: () => {
+                InspectorNotifier.NotifyChange(configuration.object, {
+                    caller: this,
+                });
+            },
+            undo: () => {
+                configuration.object[configuration.property] = configuration.oldValue;
+            },
+            redo: () => {
+                configuration.object[configuration.property] = configuration.newValue;
+            },
+        });
     }
 }

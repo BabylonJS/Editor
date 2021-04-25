@@ -1,7 +1,5 @@
 import { Nullable } from "../../../../shared/types";
 
-import { undoRedo } from "../../tools/undo-redo";
-
 interface _InspectorNotification {
     /**
      * Defines the reference to the object to listen changes.
@@ -21,27 +19,10 @@ interface _InspectorNotification {
     /**
      * @hidden
      */
-     _timeoutId: Nullable<number>;
+    _timeoutId: Nullable<number>;
 }
 
 export interface IInspectorNotifierChangeOptions {
-    /**
-     * Defines the name of the property that has been changed.
-     */
-    property?: string;
-    /**
-     * Defines the old value of the property.
-     */
-    oldValue?: any;
-    /**
-     * Defines the new value of the property.
-     */
-    newValue?: any;
-    /**
-     * Defines the callback called on the undo/redo is called.
-     */
-    onUndoRedo?: () => void;
-
     /**
      * Defines the caller that notifies the change. This is typically used to don't listen themselves.
      */
@@ -61,21 +42,7 @@ export class InspectorNotifier {
      * @param object defines the reference to the object that has been changed.
      * @param caller defines the caller that notifies the change. This is typically used to don't listen themselves;
      */
-    public static NotifyChange<T>(object: T, options: IInspectorNotifierChangeOptions = { }): void {
-        // Undo / redo?
-        if (options.property && options.oldValue !== undefined && options.newValue !== undefined) {
-            undoRedo.push({
-                common: (step) => {
-                    if (step !== "push") {
-                        this.NotifyChange(object);
-                        options.onUndoRedo?.();
-                    }
-                },
-                undo: () => object[options.property!] = options.oldValue,
-                redo: () => object[options.property!] = options.newValue,
-            });
-        }
-
+    public static NotifyChange<T>(object: T, options: IInspectorNotifierChangeOptions = {}): void {
         // Do not call ourself
         if (options.caller === this) {
             return;
@@ -89,7 +56,7 @@ export class InspectorNotifier {
 
             let effectiveObject = n.object;
 
-            if (typeof(n.object) === "function") {
+            if (typeof (n.object) === "function") {
                 effectiveObject = n.object();
             }
 

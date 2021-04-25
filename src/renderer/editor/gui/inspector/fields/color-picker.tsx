@@ -26,25 +26,25 @@ export interface IInspectorColorPickerProps {
     /**
      * Defines wether or not the label should be hidden.
      */
-     noLabel?: boolean;
+    noLabel?: boolean;
 
     /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
-    onChange?: (value: Color3 | Color4) => void;
+    onChange?: (value: Color3 | Color4) => void;
     /**
      * Defines the optional callack called on the value finished changes.
      * @param value defines the new value of the object's property.
      */
-    onFinishChange?: (value: Color3 | Color4) => void;
+    onFinishChange?: (value: Color3 | Color4) => void;
 }
 
 export interface IInspectorColorPickerState {
     /**
      * Defines the current value of the input.
      */
-    value: Color3 | Color4;
+    value: Color3 | Color4;
     /**
      * Defines the color in hexadecimal way.
      */
@@ -57,6 +57,7 @@ export interface IInspectorColorPickerState {
 
 export class InspectorColorPicker extends React.Component<IInspectorColorPickerProps, IInspectorColorPickerState> {
     private _inspectorName: Nullable<string> = null;
+    private _initialValue: Color3 | Color4;
 
     /**
      * Constructor.
@@ -65,10 +66,12 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
     public constructor(props: IInspectorColorPickerProps) {
         super(props);
 
-        const value = props.object[props.property] as Color3 | Color4;
-        if (value.r === undefined || value.g === undefined || value.b === undefined) {
+        const value = props.object[props.property] as Color3 | Color4;
+        if (value.r === undefined || value.g === undefined || value.b === undefined) {
             throw new Error("Only Color4 (r, g, b, a?) are supported for InspectorColorPicker.");
         }
+
+        this._initialValue = value.clone();
 
         this.state = {
             value,
@@ -110,7 +113,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
                     >
                         <div
                             style={{
-                                width: "100%", 
+                                width: "100%",
                                 height: "20px",
                                 backgroundColor: this.state.hex,
                                 cursor: "pointer",
@@ -131,7 +134,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
     /**
      * Called on the component did mount.
      */
-     public componentDidMount(): void {
+    public componentDidMount(): void {
         this._inspectorName = InspectorUtils.CurrentInspectorName;
 
         InspectorNotifier.Register(this, this.props.object[this.props.property], () => {
@@ -174,7 +177,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
 
         this.props.onChange?.(this.props.object);
 
-        InspectorNotifier.NotifyChange(this.props.object[this.props.property], { caller: this });
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], { caller: this });
     }
 
     /**
@@ -185,7 +188,13 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
 
         this.props.onFinishChange?.(this.props.object);
 
-        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!, {
+            object: this.props.object,
+            property: this.props.property,
+            newValue: this.state.value.clone(),
+            oldValue: this._initialValue.clone(),
+            noUndoRedo: false,
+        });
     }
 
     /**
@@ -199,7 +208,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
      * Returns the given color as HSV color.
      * Returns a new reference of Color3.
      */
-    private _getHSVFromColor(color: Color3 | Color4): Color3 {
+    private _getHSVFromColor(color: Color3 | Color4): Color3 {
         const color3 = new Color3(color.r, color.g, color.b);
         return color3.toHSV();
     }

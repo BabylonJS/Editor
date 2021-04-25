@@ -132,17 +132,16 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
         if (!this.props.noUndoRedo) {
             InspectorNotifier.NotifyChange(this.props.object, {
                 caller: this,
-                property: this.props.property,
-                oldValue: this._initialValue,
-                newValue: this.state.value,
-                onUndoRedo: () => {
-                    this.isMounted && this.setState({ value: this.props.object[this.props.property] });
-                    InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
-                },
             });
         }
 
-        InspectorUtils.NotifyInspectorChanged(this._inspectorName!);
+        InspectorUtils.NotifyInspectorChanged(this._inspectorName!, {
+            object: this.props.object,
+            newValue: this.state.value,
+            oldValue: this._initialValue,
+            property: this.props.property,
+            noUndoRedo: this.props.noUndoRedo ?? false,
+        });
 
         this._initialValue = this.state.value;
     }
