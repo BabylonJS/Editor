@@ -99,7 +99,8 @@ export class ScenePlayer {
         }
 
         if (this._lastEditorCamera) {
-            SceneSettings.SetActiveCamera(this._editor, this._lastEditorCamera);
+            this._editor.scene!.activeCamera = this._lastEditorCamera;
+            SceneSettings.AttachControl(this._editor, this._lastEditorCamera);
         }
         this._lastEditorCamera = null;
 

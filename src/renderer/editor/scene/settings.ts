@@ -78,18 +78,29 @@ export class SceneSettings {
 
     /**
      * Sets the new camera as active.
-     * @param camera the camera to set as active camera.
+     * @param editor defines the reference to the editor.
+     * @param camera defines the reference to the camera to set as active camera.
      */
     public static SetActiveCamera(editor: Editor, camera: Camera): void {
         const scene = camera.getScene();
         if (camera === scene.activeCamera) { return; }
 
-        const canvas = scene.getEngine().getRenderingCanvas();
-        if (!canvas) { return; }
-
-        if (scene.activeCamera)  { scene.activeCamera.detachControl(canvas); }
+        if (scene.activeCamera)  { scene.activeCamera.detachControl(); }
 
         scene.activeCamera = camera;
+
+        this.AttachControl(editor, camera);
+        this.ResetPipelines(editor);
+    }
+
+    /**
+     * Attachs the controls of the given camera to the editor's scene.
+     * @param editor defines the reference to the editor.
+     * @param camera defines the reference to the camera to attach control.
+     */
+    public static AttachControl(editor: Editor, camera: Camera): void {
+        const canvas = editor.scene!.getEngine().getRenderingCanvas();
+        if (!canvas) { return; }
 
         if (camera instanceof ArcRotateCamera) {
             camera.attachControl(canvas, true, false);
@@ -98,8 +109,6 @@ export class SceneSettings {
         } else {
             debugger;
         }
-
-        this.ResetPipelines(editor);
     }
 
     /**
