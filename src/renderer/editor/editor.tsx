@@ -364,56 +364,6 @@ export class Editor {
     }
 
     /**
-     * Called each time a FlexLayout.TabNode is mounted by React.
-     */
-    private _layoutFactory(node: TabNode): React.ReactNode {
-        const componentName = node.getComponent();
-        if (!componentName) {
-            this.console.logError("Can't mount layout node without component name.");
-            return <div>Error, see console...</div>;
-        }
-
-        const component = this._components[componentName];
-        if (!component) {
-            this.console.logError(`No react component available for "${componentName}".`);
-            return <div>Error, see console...</div>;
-        }
-
-        this._layoutTabNodesConfigurations[componentName] ??= {
-            componentName,
-            id: node.getId(),
-            name: node.getName(),
-            rect: node.getRect(),
-        };
-
-        node.setEventListener("resize", (ev: { rect: Rect }) => {
-            const configuration = this._layoutTabNodesConfigurations[componentName];
-            configuration.rect = ev.rect;
-
-            setTimeout(() => this.resize(), 0);
-        });
-
-        if (Editor.LoadedPlugins[componentName]) {
-            node.setEventListener("close", () => {
-                setTimeout(() => this.closePlugin(componentName), 0);
-            });
-
-            node.setEventListener("visibility", (p) => {
-                const plugin = this.plugins[node.getName()];
-                if (!plugin) { return; }
-
-                if (p.visible) {
-                    plugin.onShow();
-                } else {
-                    plugin.onHide();
-                }
-            });
-        }
-
-        return component;
-    }
-
-    /**
      * Called on the component did mount.
      */
     public async init(): Promise<void> {
@@ -459,6 +409,54 @@ export class Editor {
         ), document.getElementById("BABYLON-EDITOR"), () => {
             setTimeout(() => this._init(), 0);
         });
+    }
+
+    /**
+     * Called each time a FlexLayout.TabNode is mounted by React.
+     */
+    private _layoutFactory(node: TabNode): React.ReactNode {
+        const componentName = node.getComponent();
+        if (!componentName) {
+            this.console.logError("Can't mount layout node without component name.");
+            return <div>Error, see console...</div>;
+        }
+
+        const component = this._components[componentName];
+        if (!component) {
+            this.console.logError(`No react component available for "${componentName}".`);
+            return <div>Error, see console...</div>;
+        }
+
+        this._layoutTabNodesConfigurations[componentName] ??= {
+            componentName,
+            id: node.getId(),
+            name: node.getName(),
+            rect: node.getRect(),
+        };
+
+        node.setEventListener("resize", (ev: { rect: Rect }) => {
+            const configuration = this._layoutTabNodesConfigurations[componentName];
+            configuration.rect = ev.rect;
+
+            setTimeout(() => this.resize(), 0);
+        });
+
+        if (Editor.LoadedPlugins[componentName]) {
+            node.setEventListener("close", () => {
+                setTimeout(() => this.closePlugin(componentName), 0);
+            });
+
+            node.setEventListener("visibility", (p) => {
+                const plugin = this.plugins[node.getName()];
+                if (p.visible) {
+                    plugin?.onShow();
+                } else {
+                    plugin?.onHide();
+                }
+            });
+        }
+
+        return component;
     }
 
     /**

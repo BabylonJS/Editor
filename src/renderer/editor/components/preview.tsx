@@ -272,6 +272,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     /**
      * Starts playing the scene in the editor.
      * @param isPlayingInIframe defines wether or not the game is played in an isolated context using an iFrame.
+     * @throws
      */
     public async startPlayScene(isPlayingInIframe: boolean): Promise<void> {
         this._editor.runRenderLoop(false);
@@ -298,10 +299,12 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         try {
             await this._scenePlayer.start((p) => this.setState({ playLoadingProgress: p }));
         } catch (e) {
-            this.playOrStop(isPlayingInIframe);
+            await this.stopPlayingScene(isPlayingInIframe);
 
             this._editor.console.logSection("Failed to start playing scene");
-            this._editor.console.logError(e.message);
+            this._editor.console.logError(`An error happened: ${e.message}`);
+
+            throw e;
         }
     }
 
@@ -323,7 +326,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             this._scenePlayer.dispose();
         }
 
-        this.setState({ isPlaying: false });
+        this.setState({ isPlaying: false, playLoadingProgress: 1 });
 
         this._editor.runRenderLoop(true);
     }
