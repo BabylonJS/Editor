@@ -58,12 +58,14 @@ export class TerminalComponent extends React.Component<ITerminalComponentProps> 
             },
         });
 
-        this.props.program.onData((e) => terminal.write(e));
         terminal.onResize(() => {
             this.props.program.resize(terminal.cols, terminal.rows);
         });
         terminal.loadAddon(this._fitAddon);
         terminal.open(this._terminalDiv);
+        
+        this.props.program.onData((e) => terminal.write(e));
+        terminal.onData((d) => this.props.program.write(d));
 
         this._fitAddon.fit();
     }
@@ -74,5 +76,12 @@ export class TerminalComponent extends React.Component<ITerminalComponentProps> 
     public componentWillUnmount(): void {
         if (this._terminal) { this._terminal.dispose(); }
         if (this._fitAddon) { this._fitAddon.dispose(); }
+    }
+
+    /**
+     * Focuses the terminal
+     */
+    public focus(): void {
+        this._terminal?.focus();
     }
 }

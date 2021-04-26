@@ -1,4 +1,5 @@
 import { join } from "path";
+import { platform } from "os";
 import { readJSON } from "fs-extra";
 import { execSync } from "child_process";
 
@@ -91,10 +92,11 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
         let alertRef: Nullable<Alert> = null;
 
         try {
-            const program = ExecTools.ExecCommand(`npm i -g ${moduleName}`);
+            const sudo = platform() === "win32" ? "" : "sudo ";
+            const program = ExecTools.ExecCommand(`${sudo}npm i -g ${moduleName} && exit`);
 
             Alert.Show("Installing...", `Installing "${moduleName}"...`, undefined,
-                <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />,
+                <TerminalComponent ref={(ref) => ref?.focus()} program={program.process} style={{ width: "450px", height: "500px" }} />,
                 {
                     canOutsideClickClose: false,
                     isCloseButtonShown: false,
@@ -106,7 +108,6 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
             await program.promise;
 
             const globalNodeModules = execSync("npm root -g").toString().trim();
-            
             this.props.settings.setState({ plugins: plugins.concat([{
                 name: moduleName,
                 path: join(globalNodeModules, moduleName),
@@ -116,7 +117,7 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
                 this._applyPluginsPreferences();
             });
         } catch (e) {
-            Alert.Show("Failed To Install Plugin From NPM", e?.message);
+            Alert.Show("Failed To Install Plugin From NPM", e?.message ?? e);
         }
 
         alertRef!.close();
@@ -134,7 +135,8 @@ export class PluginsSettings extends React.Component<IPluginsSettingsProps, IPlu
             let alertRef: Nullable<Alert> = null;
 
             try {
-                const program = ExecTools.ExecCommand(`npm uninstall -g ${plugin.name}`);
+                const sudo = platform() === "win32" ? "" : "sudo ";
+                const program = ExecTools.ExecCommand(`${sudo}npm uninstall -g ${plugin.name} && exit`);
                 
                 Alert.Show("Uninstalling...", `Uninstalling "${plugin.name}"...`, undefined,
                     <TerminalComponent program={program.process} style={{ width: "450px", height: "500px" }} />,
