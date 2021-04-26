@@ -23,6 +23,10 @@ export interface IInspectorBooleanProps<T> {
     label: string;
 
     /**
+     * Defines the default value in case of possible undefined/null value.
+     */
+    defaultValue?: boolean;
+    /**
      * Defines wether or not automatic undo/redo should be skipped.
      */
     noUndoRedo?: boolean;
@@ -64,7 +68,7 @@ export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBoolea
     public constructor(props: IInspectorBooleanProps<T>) {
         super(props);
 
-        const value = props.object[props.property];
+        const value = props.object[props.property] ?? props.defaultValue;
         if (typeof (value) !== "boolean") {
             throw new Error("Only booleans are supported for InspectorBoolean components.");
         }
@@ -83,7 +87,7 @@ export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBoolea
     public render(): React.ReactNode {
         return (
             <div
-                style={{ width: "95%", height: "25px", background: this.state.overColor }}
+                style={{ width: "100%", height: "25px", background: this.state.overColor }}
                 onMouseEnter={() => this.setState({ overColor: "rgba(0, 0, 0, 0.2)" })}
                 onMouseLeave={() => this.setState({ overColor: "rgba(0, 0, 0, 0)" })}
             >

@@ -390,7 +390,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
      * Called on the user wants to show the workspace settings.
      */
     private async _handleWorkspaceSettings(): Promise<void> {
-        const popupId = await this._editor.addWindowedPlugin("workspace-settings", undefined, WorkSpace.Path);
+        const popupId = await this._editor.addWindowedPlugin("preferences", undefined, WorkSpace.Path);
         if (!popupId) { return; }
     }
 
