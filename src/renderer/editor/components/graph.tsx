@@ -312,6 +312,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         const actions = descendants.map((d) => this._removeObject(d));
 
         undoRedo.push({
+            description: `Removed objects from graph: [${descendants.map((d) => d.name).join(", ")}]`,
             common: () => {
                 this.refresh();
             },
@@ -846,6 +847,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     const target = this._copiedTransform[property].clone();
 
                     undoRedo.push({
+                        description: `Changed transform information of object "${node?.["name"] ?? "undefiend"}" from "${base.toString()}" to "${target.toString()}"`,
                         common: () => this._editor.inspector.refreshDisplay(),
                         undo: () => node![property] = base,
                         redo: () => node![property] = target,
@@ -902,6 +904,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         onConfirm={(v) => {
                             const oldName = node!.name;
                             undoRedo.push({
+                                description: `Changed name of node "${node?.name ?? "undefined"}" from "${oldName}" to "${v}"`,
                                 common: () => this.refresh(),
                                 redo: () => node!.name = v,
                                 undo: () => node!.name = oldName,

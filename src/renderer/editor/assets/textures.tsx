@@ -239,6 +239,7 @@ export class TextureAssets extends AbstractAssets {
                     if (oldTexture === texture) { return; }
                     
                     undoRedo.push({
+                        description: `Set texture "${texture?.name ?? "undefined"}" as environment texture instead of "${oldTexture?.name ?? "undefined"}"`,
                         common: () => this.editor.inspector.refresh(),
                         undo: () => this.editor.scene!.environmentTexture = oldTexture,
                         redo: () => this.editor.scene!.environmentTexture = texture,
@@ -290,6 +291,7 @@ export class TextureAssets extends AbstractAssets {
         if (material instanceof StandardMaterial) {
             const oldTexture = material.diffuseTexture;
             undoRedo.push({
+                description: `Set "${texture.name}" as diffuse texture for material "${material.name}" instead of "${oldTexture?.name ?? "undefined"}"`,
                 redo: () => material!.diffuseTexture = texture,
                 undo: () => material!.diffuseTexture = oldTexture,
             });
@@ -299,6 +301,7 @@ export class TextureAssets extends AbstractAssets {
         if (material instanceof PBRMaterial) {
             const oldTexture = material.albedoTexture;
             undoRedo.push({
+                description: `Set "${texture.name}" as diffuse texture for material "${material.name}" instead of "${oldTexture?.name ?? "undefined"}"`,
                 redo: () => material!.albedoTexture = texture,
                 undo: () => material!.albedoTexture = oldTexture,
             });

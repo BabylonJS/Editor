@@ -453,6 +453,7 @@ export class MaterialAssets extends AbstractAssets {
         const bindedMeshes = material.getBindedMeshes();
 
         undoRedo.push({
+            description: `Removed material "${item.id}" from assets`,
             common: () => this.refresh(),
             redo: () => {
                 this.editor.scene!.removeMaterial(material);

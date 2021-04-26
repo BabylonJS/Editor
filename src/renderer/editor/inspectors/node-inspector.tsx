@@ -54,6 +54,7 @@ export class NodeInspector<T extends Node, S extends INodeInspectorState> extend
      */
     private _handleNameChanged(name: string, oldName: string): void {
         undoRedo.push({
+            description: `Renamed node from "${oldName}" to "${name}"`,
             common: () => {
                 this.forceUpdate();
                 this.editor.graph.refresh();
@@ -69,6 +70,7 @@ export class NodeInspector<T extends Node, S extends INodeInspectorState> extend
      */
     private _handleEnabledChange(enabled: boolean, wasEnabled: boolean): void {
         undoRedo.push({
+            description: `Set node enabled from "${wasEnabled}" to "${enabled}"`,
             common: () => this.forceUpdate(),
             undo: () => this.selectedObject.setEnabled(wasEnabled),
             redo: () => this.selectedObject.setEnabled(enabled),

@@ -152,6 +152,10 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
         InspectorNotifier.Register(this, this.props.object[this.props.property], () => {
             this.setState({ value: this.props.object[this.props.property] });
         });
+
+        InspectorNotifier.Register(this, this.props.object, () => {
+            this.setState({ value: this.props.object[this.props.property] });
+        });
     }
 
     /**

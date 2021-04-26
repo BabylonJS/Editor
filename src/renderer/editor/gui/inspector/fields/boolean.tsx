@@ -145,11 +145,9 @@ export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBoolea
         this.props.onFinishChange?.(value, this._initialValue);
 
         // Undo/redo
-        if (!this.props.noUndoRedo) {
-            InspectorNotifier.NotifyChange(this.props.object, {
-                caller: this,
-            });
-        }
+        InspectorNotifier.NotifyChange(this.props.object, {
+            caller: this,
+        });
 
         InspectorUtils.NotifyInspectorChanged(this._inspectorName!, {
             newValue: value,

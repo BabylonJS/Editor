@@ -508,6 +508,7 @@ export class MeshesAssets extends AbstractAssets {
      */
     private _handleRemoveMesh(item: IAssetComponentItem): void {
         undoRedo.push({
+            description: `Removed mesh asset "${item.id}" at path "${item.key}"`,
             common: () => this.refresh(),
             redo: () => {
                 const meshIndex = MeshesAssets.Meshes.findIndex((m) => m.path === item.key);

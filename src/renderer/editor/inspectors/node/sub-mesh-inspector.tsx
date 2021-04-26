@@ -78,6 +78,7 @@ export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
 
         const oldMaterial = mesh.material;
         await undoRedo.push({
+            description: `Changed multimesh material from "${oldMaterial?.name ?? "undefined"}" to multi material`,
             common: () => this.forceUpdate(),
             undo: () => mesh.material = oldMaterial,
             redo: () => mesh.material = material,
@@ -101,6 +102,7 @@ export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
         const oldMaterial = mesh.material.subMaterials[this.selectedObject.materialIndex];
 
         undoRedo.push({
+            description: `Changed submesh at index ${this.selectedObject.materialIndex} from "${oldMaterial?.name ?? "undefined"}" to "${material?.name ?? "undefined"}"`,
             common: () => this.forceUpdate(),
             undo: () => (mesh.material as MultiMaterial).subMaterials[this.selectedObject.materialIndex] = oldMaterial,
             redo: () => (mesh.material as MultiMaterial).subMaterials[this.selectedObject.materialIndex] = material,

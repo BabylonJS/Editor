@@ -49,7 +49,7 @@ export interface IInspectorNumberProps {
     /**
      * Defines wether or not automatic undo/redo should be skipped.
      */
-     noUndoRedo?: boolean;
+    noUndoRedo?: boolean;
 
     /**
      * Defines the optional callback called on the value changes.
@@ -216,7 +216,7 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
     /**
      * Called on the input is focused.
      */
-     private _handleInputFocused(): void {
+    private _handleInputFocused(): void {
         this._isFocused = true;
     }
 
@@ -310,7 +310,7 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
 
         this._handleValueFinishChanged();
     }
-    
+
     /**
      * Called on the value finished change.
      */
@@ -322,12 +322,9 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
 
         this.props.onFinishChange?.(value, this._initialValue);
 
-        if (!this.props.noUndoRedo) {
-            InspectorNotifier.NotifyChange(this.props.object, {
-                caller: this,
-            });
-
-        }
+        InspectorNotifier.NotifyChange(this.props.object, {
+            caller: this,
+        });
 
         InspectorUtils.NotifyInspectorChanged(this._inspectorName!, {
             newValue: value,

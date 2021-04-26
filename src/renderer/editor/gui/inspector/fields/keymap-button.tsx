@@ -150,11 +150,9 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
         this.props.object[this.props.property] = code;
         this.props.onChange?.(code, String.fromCharCode(code));
 
-        if (!this.props.noUndoRedo) {
-            InspectorNotifier.NotifyChange(this.props.object, {
-                caller: this,
-            });
-        }
+        InspectorNotifier.NotifyChange(this.props.object, {
+            caller: this,
+        });
 
         this._initialValue = code;
 

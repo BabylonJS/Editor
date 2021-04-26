@@ -29,6 +29,11 @@ export interface IInspectorColorPickerProps {
     noLabel?: boolean;
 
     /**
+     * Defines wether or not automatic undo/redo should be skipped.
+     */
+    noUndoRedo?: boolean;
+
+    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -57,7 +62,7 @@ export interface IInspectorColorPickerState {
 
 export class InspectorColorPicker extends React.Component<IInspectorColorPickerProps, IInspectorColorPickerState> {
     private _inspectorName: Nullable<string> = null;
-    private _initialValue: Color3 | Color4;
+    private _initialValue: Color3 | Color4;
 
     /**
      * Constructor.
@@ -138,10 +143,11 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
         this._inspectorName = InspectorUtils.CurrentInspectorName;
 
         InspectorNotifier.Register(this, this.props.object[this.props.property], () => {
-            this.setState({
-                value: this.props.object[this.props.property],
-                hex: this.props.object[this.props.property].toHexString(),
-            });
+            this._updateColorState();
+        });
+
+        InspectorNotifier.Register(this, this.props.object, () => {
+            this._updateColorState();
         });
     }
 
@@ -188,12 +194,32 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
 
         this.props.onFinishChange?.(this.props.object);
 
+        const newValue = this.props.object[this.props.property];
+
+        InspectorNotifier.NotifyChange(this.props.object[this.props.property], {
+            caller: this,
+        });
+
         InspectorUtils.NotifyInspectorChanged(this._inspectorName!, {
             object: this.props.object,
+            newValue: newValue.clone(),
             property: this.props.property,
-            newValue: this.state.value.clone(),
             oldValue: this._initialValue.clone(),
             noUndoRedo: false,
+        });
+
+        this._initialValue = newValue.clone();
+    }
+
+    /**
+     * Updates the state according to the current color value.
+     */
+    private _updateColorState(): void {
+        const value = this.props.object[this.props.property];
+        this.setState({
+            value,
+            hex: this.props.object[this.props.property].toHexString(),
+            textColor: this._getTextColor(this._getHSVFromColor(value)),
         });
     }
 

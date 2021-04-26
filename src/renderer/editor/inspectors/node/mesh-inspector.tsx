@@ -185,6 +185,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
             }
 
             undoRedo.push({
+                description: `Changed rotation of mesh "${this.selectedObject.name}" from "${oldRotation.toString()}" to "${newRotation.toString()}"`,
                 common:() => {
                     InspectorNotifier.NotifyChange(this.selectedObject.rotation);
                     InspectorNotifier.NotifyChange(this.selectedObject.rotationQuaternion);

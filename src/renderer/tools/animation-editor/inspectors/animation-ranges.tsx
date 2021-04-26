@@ -154,6 +154,7 @@ export class AnimationRanges extends React.Component<IAnimationRangesProps, IAni
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => {
                     const range = node.nodeData!;
                     undoRedo.push({
+                        description: `Removed animation range "${range.name}"`,
                         common: () => {
                             if (this._mounted) {
                                 this.setState({ ranges: this._getRanges() }, () => {

@@ -304,6 +304,7 @@ export class SceneGizmo {
         const attachedCamera = this._cameraGizmo?.camera;
 
         undoRedo.push({
+            description: `Changed object transform "${attachedMesh.name}" from "${endValue.toString()}" to "${initialValue.toString()}"`,
             common: () => InspectorNotifier.NotifyChange((attachedLight ?? attachedCamera ?? attachedMesh)[propertyPath]),
             redo: () => attachedMesh[propertyPath].copyFrom(endValue),
             undo: () => attachedMesh[propertyPath].copyFrom(initialValue),

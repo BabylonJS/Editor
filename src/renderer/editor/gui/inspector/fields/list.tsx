@@ -228,11 +228,9 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
         this.props.onFinishChange?.(this.props.object[this.props.property], this._initialValue);
 
         // Undo/redo
-        if (!this.props.noUndoRedo) {
-            InspectorNotifier.NotifyChange(this.props.object, {
-                caller: this,
-            });
-        }
+        InspectorNotifier.NotifyChange(this.props.object, {
+            caller: this,
+        });
 
         InspectorUtils.NotifyInspectorChanged(this._inspectorName!, {
             newValue: item.data,

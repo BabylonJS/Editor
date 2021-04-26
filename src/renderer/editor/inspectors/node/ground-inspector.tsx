@@ -152,6 +152,7 @@ export class GroundInspector extends AbstractInspector<GroundMesh, IGroundInspec
         const metadata = this._getGroundMetadata().heightMap;
 
         undoRedo.push({
+            description: `Removed height map from mesh "${this.selectedObject.name}"`,
             common: () => this.forceUpdate(),
             undo: () => {
                 this.selectedObject.metadata.heightMap = metadata;

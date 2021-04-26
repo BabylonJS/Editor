@@ -3,7 +3,7 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 import { Classes, InputGroup } from "@blueprintjs/core";
 
-import { Texture, Material, ISize } from "babylonjs";
+import { Texture, Material, ISize, Color3, Color4, Vector2, Vector3, Vector4 } from "babylonjs";
 
 import { IObjectInspectorProps } from "../components/inspector";
 
@@ -180,15 +180,24 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         undoRedo.push({
             description: `Changed property named "${configuration.property}" of object "${configuration.object.name}" from ${configuration.oldValue} to ${configuration.newValue}`,
             common: () => {
-                InspectorNotifier.NotifyChange(configuration.object, {
-                    caller: this,
-                });
+                InspectorNotifier.NotifyChange(configuration.object, { caller: this });
+                InspectorNotifier.NotifyChange(configuration.object[configuration.property], { caller: this });
             },
             undo: () => {
-                configuration.object[configuration.property] = configuration.oldValue;
+                const target = configuration.object[configuration.property];
+                if (target instanceof Color3 || target instanceof Color4 || target instanceof Vector2 || target instanceof Vector3 || target instanceof Vector4) {
+                    target.copyFrom(configuration.oldValue);
+                } else {
+                    configuration.object[configuration.property] = configuration.oldValue;
+                }
             },
             redo: () => {
-                configuration.object[configuration.property] = configuration.newValue;
+                const target = configuration.object[configuration.property];
+                if (target instanceof Color3 || target instanceof Color4 || target instanceof Vector2 || target instanceof Vector3 || target instanceof Vector4) {
+                    target.copyFrom(configuration.newValue);
+                } else {
+                    configuration.object[configuration.property] = configuration.newValue;
+                }
             },
         });
     }

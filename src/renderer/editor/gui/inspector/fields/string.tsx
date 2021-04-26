@@ -25,7 +25,7 @@ export interface IInspectorStringProps {
     /**
      * Defines wether or not automatic undo/redo should be skipped.
      */
-     noUndoRedo?: boolean;
+    noUndoRedo?: boolean;
 
     /**
      * Defines the optional callback called on the value changes.
@@ -129,11 +129,9 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
         this.props.onFinishChange?.(this.state.value, this._initialValue);
 
         // Undo/redo
-        if (!this.props.noUndoRedo) {
-            InspectorNotifier.NotifyChange(this.props.object, {
-                caller: this,
-            });
-        }
+        InspectorNotifier.NotifyChange(this.props.object, {
+            caller: this,
+        });
 
         InspectorUtils.NotifyInspectorChanged(this._inspectorName!, {
             object: this.props.object,

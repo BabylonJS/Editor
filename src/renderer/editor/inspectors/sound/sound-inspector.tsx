@@ -76,6 +76,7 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
                         this.selectedObject.setVolume(v);
                     }} onFinishChange={(v, o) => {
                         undoRedo.push({
+                            description: `Changed sound volue "${this.selectedObject.name}" from ${v} to ${o}`,
                             common: () => this.forceUpdate(),
                             undo: () => this.selectedObject.setVolume(o),
                             redo: () => this.selectedObject.setVolume(v),
@@ -86,6 +87,7 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
                         this.selectedObject.setPlaybackRate(v);
                     }} onFinishChange={(v, o) => {
                         undoRedo.push({
+                            description: `Changed sound playback rate "${this.selectedObject.name}" from ${v} to ${o}`,
                             common: () => this.forceUpdate(),
                             undo: () => this.selectedObject.setPlaybackRate(o),
                             redo: () => this.selectedObject.setPlaybackRate(v),
@@ -96,6 +98,7 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
                         this.selectedObject.updateOptions({ rolloffFactor: v });
                     }} onFinishChange={(v, o) => {
                         undoRedo.push({
+                            description: `Changed sound rolloff factor "${this.selectedObject.name}" from ${v} to ${o}`,
                             common: () => this.forceUpdate(),
                             undo: () => this.selectedObject.updateOptions({ rolloffFactor: o }),
                             redo: () => this.selectedObject.updateOptions({ rolloffFactor: v }),
