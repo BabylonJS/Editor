@@ -33,15 +33,17 @@ export class ScenePlayer {
         const rootUrl = join(Project.DirPath!, "/");
         const filename = join("../../scenes", WorkSpace.GetProjectName(), "scene.babylon");
 
+        this._requirePhysicsEngine();
+
         await SceneLoader.AppendAsync(rootUrl, filename, this._scene, (ev) => {
             progress(ev.loaded / ev.total);
         }, ".babylon");
 
         // Attach camera
-		if (!this._scene.activeCamera) {
-			throw new Error("No camera defined in the scene. Please add at least one camera in the project or create one yourself in the code.");
-		}
-		this._scene.activeCamera.attachControl(this._editor.engine!.getRenderingCanvas(), false);
+        if (!this._scene.activeCamera) {
+            throw new Error("No camera defined in the scene. Please add at least one camera in the project or create one yourself in the code.");
+        }
+        this._scene.activeCamera.attachControl(this._editor.engine!.getRenderingCanvas(), false);
 
         this._lastEditorCamera = this._editor.scene!.activeCamera;
 
@@ -50,7 +52,7 @@ export class ScenePlayer {
 
         // Run scene's tools
         const sceneTools = require(join(WorkSpace.DirPath!, "build/src/scenes", WorkSpace.GetProjectName(), "index.js"));
-		sceneTools.runScene(this._scene, rootUrl);
+        sceneTools.runScene(this._scene, rootUrl);
 
         this.runRenderLoop();
 
@@ -70,7 +72,7 @@ export class ScenePlayer {
                 } catch (e) {
                     this._editor.console.logSection("Play Error");
                     this._editor.console.logError(e.message);
-    
+
                     engine.stopRenderLoop();
                     engine.wipeCaches(true);
                 }
@@ -106,5 +108,22 @@ export class ScenePlayer {
         this._scene?.dispose();
         this._scene = null;
         engine.wipeCaches(true);
+    }
+
+    /**
+     * Requries the intended physics engine.
+     */
+    private _requirePhysicsEngine(): void {
+        switch (WorkSpace.Workspace!.physicsEngine) {
+            case "cannon":
+                window["CANNON"] = require("cannon");
+                break;
+            case "oimo":
+                window["OIMO"] = require("babylonjs/Oimo.js");
+                break;
+            case "ammo":
+                window["Ammo"] = require(join(__dirname, "../../../../html/libs/ammo.js"));
+                break;
+        }
     }
 }

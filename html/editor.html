@@ -12,9 +12,7 @@
 	<script src="../node_modules/jquery/dist/jquery.js" type="text/javascript"></script>
 	<script>
 		if (window.module) module = window.module;
-		</script>
-
-	<script src="../node_modules/cannon/build/cannon.js" type="text/javascript"></script>
+	</script>
 
 	<link rel="stylesheet" type="text/css" href="../node_modules/antd/dist/antd.css" />
 	<link rel="stylesheet" type="text/css" href="../node_modules/golden-layout/src/css/goldenlayout-base.css" />
@@ -53,7 +51,9 @@
 			setTimeout(() => {
 				// Require modules hack for development mode.
 				require('../build/src/renderer/module.js');
-				
+
+				window["CANNON"] = require("cannon");
+
 				const path = require('path');
 				const Editor = require('../build/src/renderer/editor/index.js');
 
