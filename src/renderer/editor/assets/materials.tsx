@@ -60,7 +60,7 @@ export class MaterialAssets extends AbstractAssets {
     public render(): React.ReactNode {
         const node = super.render();
 
-        const add = 
+        const add =
             <Menu>
                 <MenuItem key="add-standard-material" text="Standard Material..." onClick={() => this._addMaterial("StandardMaterial")} />
                 <MenuItem key="add-pbr-material" text="PBR Material..." onClick={() => this._addMaterial("PBRMaterial")} />
@@ -85,7 +85,7 @@ export class MaterialAssets extends AbstractAssets {
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
                         <Divider />
                         <Popover key="add-popover" content={add} position={Position.BOTTOM_LEFT}>
-                            <Button key="add" icon={<Icon src="plus.svg"/>} rightIcon="caret-down" small={true} text="Add"/>
+                            <Button key="add" icon={<Icon src="plus.svg" />} rightIcon="caret-down" small={true} text="Add" />
                         </Popover>
                         <Divider />
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedMaterials()} />
@@ -103,11 +103,11 @@ export class MaterialAssets extends AbstractAssets {
     public async refresh(object?: Material): Promise<void> {
         await assetsHelper.init();
         await assetsHelper.createMesh(OffscreenAssetsHelperMesh.Sphere);
-        
+
         for (const material of this.editor.scene!.materials) {
             if (material === this.editor.scene!.defaultMaterial || material instanceof ShaderMaterial || material.doNotSerialize) { continue; }
             if (object && object !== material) { continue; }
-            
+
             const item = this.items.find((i) => i.key === material.id);
             if (!object && item) { continue; }
 
@@ -175,7 +175,7 @@ export class MaterialAssets extends AbstractAssets {
         const material = this.editor.scene!.getMaterialByID(item.key);
         if (!material) { return; }
 
-        material.metadata = material.metadata ?? { };
+        material.metadata = material.metadata ?? {};
         material.metadata.isLocked = material.metadata.isLocked ?? false;
 
         ContextMenu.show(
@@ -204,8 +204,8 @@ export class MaterialAssets extends AbstractAssets {
                 }} />
                 <MenuItem text="Locked" icon={material.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
                     material.metadata.isLocked = !material.metadata.isLocked;
-                    item.style = item.style ?? { };
-                    item.style.border = material.metadata.isLocked ? "solid red": "";
+                    item.style = item.style ?? {};
+                    item.style.border = material.metadata.isLocked ? "solid red" : "";
                     super.refresh();
                 }} />
                 <MenuDivider />
@@ -232,14 +232,37 @@ export class MaterialAssets extends AbstractAssets {
 
         const subMeshId = pickInfo.subMeshId ?? null;
         if (mesh.material && mesh.material instanceof MultiMaterial && subMeshId) {
-            mesh.material.subMaterials[subMeshId] = material;
-            mesh.getLODLevels().forEach((lod) => lod.mesh && lod.mesh.material instanceof MultiMaterial && (lod.mesh.material.subMaterials[subMeshId] = material));
-        } else {
-            mesh.material = material;
-            mesh.getLODLevels().forEach((lod) => lod.mesh && (lod.mesh.material = material));
-        }
+            const oldMaterial = mesh.material.subMaterials[subMeshId];
 
-        this.editor.inspector.refresh();
+            undoRedo.push({
+                common: () => this.editor.inspector.refresh(),
+                undo: () => {
+                    if (mesh.material instanceof MultiMaterial) {
+                        mesh.material.subMaterials[subMeshId] = oldMaterial;
+                    }
+                    mesh.getLODLevels().forEach((lod) => lod.mesh && lod.mesh.material instanceof MultiMaterial && (lod.mesh.material.subMaterials[subMeshId] = oldMaterial));
+                },
+                redo: () => {
+                    if (mesh.material instanceof MultiMaterial) {
+                        mesh.material.subMaterials[subMeshId] = material;
+                    }
+                    mesh.getLODLevels().forEach((lod) => lod.mesh && lod.mesh.material instanceof MultiMaterial && (lod.mesh.material.subMaterials[subMeshId] = material));
+                },
+            });
+        } else {
+            const oldMaterial = mesh.material;
+            undoRedo.push({
+                common: () => this.editor.inspector.refresh(),
+                undo: () => {
+                    mesh.material = oldMaterial;
+                    mesh.getLODLevels().forEach((lod) => lod.mesh && (lod.mesh.material = oldMaterial));
+                },
+                redo: () => {
+                    mesh.material = material;
+                    mesh.getLODLevels().forEach((lod) => lod.mesh && (lod.mesh.material = material));
+                },
+            });
+        }
     }
 
     /**
@@ -355,7 +378,7 @@ export class MaterialAssets extends AbstractAssets {
 
         const jsonEntry = entries.find((e) => e.entryName === "material.json");
         if (!jsonEntry) { return null; }
-        
+
         const json = JSON.parse(zip.readAsText(jsonEntry));
 
         entries.forEach((e) => {
@@ -411,12 +434,12 @@ export class MaterialAssets extends AbstractAssets {
                     try {
                         // Clear textures
                         material.getTextureBlocks().forEach((block) => block.texture?.dispose());
-                        
+
                         material.editorData = message.data.editorData;
                         material.loadFromSerialization(message.data.json);
                         material.build();
 
-                        material.metadata ??= { };
+                        material.metadata ??= {};
                         material.metadata.shouldExportTextures = true;
 
                         IPCTools.SendWindowMessage(popupId, "node-material-json");
@@ -475,7 +498,7 @@ export class MaterialAssets extends AbstractAssets {
      */
     private async _addMaterial(type: string): Promise<void> {
         const name = await Dialog.Show("Material Name", "Please provide a name for the new material to created.");
-        
+
         const ctor = BabylonTools.Instantiate(`BABYLON.${type}`);
         const material = new ctor(name, this.editor.scene!);
         material.id = Tools.RandomId();
@@ -513,7 +536,7 @@ export class MaterialAssets extends AbstractAssets {
     private async _handleSaveMaterialPreset(item: IAssetComponentItem): Promise<void> {
         const zip = this.getZippedMaterial(item.key);
         if (!zip) { return; }
-        
+
         let destination = await Tools.ShowSaveFileDialog("Save Material Preset");
         const task = this.editor.addTaskFeedback(0, "Saving Material...");
 

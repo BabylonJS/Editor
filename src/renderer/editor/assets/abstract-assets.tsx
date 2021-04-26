@@ -53,6 +53,14 @@ export interface IAssetComponentItem {
      */
     style?: Undefinable<React.CSSProperties>;
     /**
+     * Defines wether or not the item is selected.
+     */
+    isSelected?: Undefinable<boolean>;
+    /**
+     * Defines wether or not popover is enabled.
+     */
+    popoverEnabled?: Undefinable<boolean>;
+    /**
      * Defines the extra data describing the asset item.
      */
     extraData?: {
@@ -134,7 +142,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
 
     private _filter: string = "";
     private _dropListener: Nullable<(ev: DragEvent) => void> = null;
-    private _itemBeingDragged: Nullable<IAssetComponentItem> = null; 
+    private _itemBeingDragged: Nullable<IAssetComponentItem> = null;
 
     /**
      * Constructor.
@@ -235,7 +243,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
         const filter = this._filter.toLowerCase();
         if (filter !== "") {
             this._itemsNodes = this.state.items.filter((i) => i.id.toLowerCase().indexOf(filter) !== -1)
-                                         .map((i) => this._getItemNode(i));
+                .map((i) => this._getItemNode(i));
         } else {
             this._itemsNodes = this.state.items.map((i) => this._getItemNode(i));
         }
@@ -263,9 +271,13 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
 
         return (
             <div
-                onContextMenu={(e) => this.onComponentContextMenu(e)}
                 style={{ width: "100%", height: size.height - 60, overflow: "auto", ...this.props.style }}
                 children={this._itemsNodes}
+                onContextMenu={(e) => this.onComponentContextMenu(e)}
+                onClick={() => {
+                    this.state.items.forEach((i) => i.isSelected = false);
+                    this.setState({ items: this.state.items });
+                }}
             ></div>
         );
     }
@@ -319,19 +331,36 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
         );
 
         return (
-            <div key={item.key} ref={(ref) => item.ref = ref} style={{
-                position: "relative",
-                width: `${this.size}px`,
-                height: `${this.size + 15}px`,
-                float: "left",
-                margin: "10px",
-                borderRadius: "10px",
-            }}>
-                <Popover content={popoverContent} usePortal={true} interactionKind="click" autoFocus={true} enforceFocus={true} canEscapeKeyClose={true} boundary="window">
+            <div
+                key={item.key}
+                ref={(ref) => item.ref = ref}
+                style={{
+                    float: "left",
+                    margin: "10px",
+                    borderRadius: "10px",
+                    position: "relative",
+                    width: `${this.size}px`,
+                    height: `${this.size + 15}px`,
+                    outlineStyle: item.isSelected ? "groove" : undefined,
+                    outlineColor: "#48aff0",
+                    outlineWidth: "3px",
+                }}
+                onMouseOver={() => item.ref && (item.ref.style.outlineStyle = "groove")}
+                onMouseLeave={() => item.ref && !item.isSelected && (item.ref.style.outlineStyle = "unset")}
+            >
+                <Popover content={popoverContent} usePortal interactionKind="hover" isOpen={item.popoverEnabled ? undefined : item.popoverEnabled} hoverOpenDelay={1000} minimal autoFocus enforceFocus canEscapeKeyClose boundary="window">
                     <img
                         src={item.base64}
-                        style={{ width: `${this.size}px`, height: `${this.size}px`, borderRadius: "15px", objectFit: "contain", ...item.style ?? { } }}
-                        onClick={(e) => this.onClick(item, e.target as HTMLImageElement)}
+                        style={{
+                            outlineWidth: "2px",
+                            borderRadius: "15px",
+                            objectFit: "contain",
+                            width: `${this.size}px`,
+                            outlineColor: "#48aff0",
+                            height: `${this.size}px`,
+                            ...item.style ?? {},
+                        }}
+                        onClick={(e) => this._handleClick(item, e)}
                         onDoubleClick={(e) => this.onDoubleClick(item, e.target as HTMLImageElement)}
                         onContextMenu={(e) => this.onContextMenu(item, e)}
                         onDragStart={(e) => this.dragStart(e, item)}
@@ -355,6 +384,22 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                 }}>{item.id}</small>
             </div>
         );
+    }
+
+    /**
+     * Called on the user clicks on the asset.
+     */
+    private _handleClick(item: IAssetComponentItem, ev: React.MouseEvent<HTMLImageElement, MouseEvent>): void {
+        ev.stopPropagation();
+
+        this.items.forEach((i) => {
+            i.isSelected = false;
+        });
+        item.isSelected = true;
+
+        this.setState({ items: this.state.items });
+
+        this.onClick(item, ev.target as HTMLImageElement);
     }
 
     /**
@@ -387,6 +432,13 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
         } as IDragAndDroppedAssetComponentItem));
 
         this.editor.engine!.getRenderingCanvas()?.addEventListener("drop", this._dropListener);
+
+        this.items.forEach((i) => {
+            i.isSelected = false;
+            i.popoverEnabled = false;
+        });
+        item.isSelected = true;
+        this.setState({ items: this.state.items });
     }
 
     /**
@@ -424,6 +476,9 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
         this.editor.engine!.getRenderingCanvas()?.removeEventListener("drop", this._dropListener!);
         this._dropListener = null;
         this._itemBeingDragged = null;
+
+        this.items.forEach((i) => i.popoverEnabled = true);
+        this.setState({ items: this.state.items });
     }
 
     /**
