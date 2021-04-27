@@ -17,7 +17,7 @@ export class WorkspacePreferencesPanel extends React.Component<IPreferencesPanel
 		}
 
 		return (
-			<div style={{ width: "100%", height: "100%" }}>
+			<div style={{ width: "50%", height: "100%", margin: "auto" }}>
 				<InspectorSection title="Project">
 					<InspectorBoolean object={workspace} property="generateSceneOnSave" label="Generate Scene On Save" defaultValue={true} />
 					<InspectorBoolean object={workspace} property="useIncrementalLoading" label="Save Scene As Binary File (Incremental Loading)" defaultValue={false} />

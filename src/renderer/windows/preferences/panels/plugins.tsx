@@ -30,7 +30,7 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 	 */
 	public render(): React.ReactNode {
 		return (
-			<div style={{ width: "100%", height: "100%" }}>
+			<div style={{ width: "50%", height: "100%", margin: "auto" }}>
 				<InspectorSection title="Actions">
 					<InspectorButton label="Add..." onClick={() => this._handleAddPluginFromFileSystem()} />
 					<InspectorButton label="Add From NPM..." onClick={() => this._handleAddOrRemovePluginFromNpm()} />
