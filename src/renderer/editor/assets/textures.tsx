@@ -533,6 +533,10 @@ export class TextureAssets extends AbstractAssets {
      * Clears the unused textures in the project.
      */
     private _clearUnusedTextures(): void {
+        if (this.editor.preview.state.isIsolatedMode) {
+            return;
+        }
+        
         const toRemove = this.items.map((i) => this._getTexture(i.key));
 
         toRemove.forEach((texture) => {

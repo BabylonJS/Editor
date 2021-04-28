@@ -577,6 +577,10 @@ export class MaterialAssets extends AbstractAssets {
      * Clears the unused textures in the project.
      */
     private _clearUnusedMaterials(): void {
+        if (this.editor.preview.state.isIsolatedMode) {
+            return;
+        }
+
         const toRemove = this.editor.scene!.materials.concat(this.editor.scene!.multiMaterials).filter((m) => m !== this.editor.scene!.defaultMaterial && !(m instanceof ShaderMaterial));
 
         toRemove.forEach((material) => {
