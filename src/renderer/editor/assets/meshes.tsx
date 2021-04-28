@@ -11,10 +11,10 @@ import {
 } from "babylonjs";
 import "babylonjs-loaders";
 
-import { assetsHelper } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
 import { Tools } from "../tools/tools";
 import { GLTFTools } from "../tools/gltf";
 import { undoRedo } from "../tools/undo-redo";
+import { assetsHelper } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
 
 import { Overlay } from "../gui/overlay";
 import { Icon } from "../gui/icon";

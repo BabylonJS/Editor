@@ -119,6 +119,10 @@ export class WorkSpace {
             watchProject: this.Workspace!.watchProject,
             physicsEngine: this.Workspace!.physicsEngine,
             pluginsPreferences,
+            ktx2CompressedTextures: {
+                enabled: this.Workspace!.ktx2CompressedTextures?.enabled ?? false,
+                pvrTexToolCliPath: this.Workspace!.ktx2CompressedTextures?.pvrTexToolCliPath ?? "",
+            },
         } as IWorkSpace, {
             encoding: "utf-8",
             spaces: "\t",

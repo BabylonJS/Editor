@@ -1,5 +1,5 @@
-import { mkdir, pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove, createWriteStream } from "fs-extra";
 import { join, normalize, basename, dirname, extname } from "path";
+import { mkdir, pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove, createWriteStream } from "fs-extra";
 
 import {
     SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture,
@@ -9,16 +9,17 @@ import { LGraph } from "litegraph.js";
 
 import filenamify from "filenamify";
 
+import { GraphAssets } from "../assets/graphs";
 import { MeshesAssets } from "../assets/meshes";
 import { PrefabAssets } from "../assets/prefabs";
-import { GraphAssets } from "../assets/graphs";
+import { ScriptAssets } from "../assets/scripts";
 
 import { Editor } from "../editor";
 import { Tools } from "../tools/tools";
+import { KTXTools, KTXToolsType } from "../tools/ktx";
 import { MaterialTools } from "../tools/components/material";
 
 import { Assets } from "../components/assets";
-import { ScriptAssets } from "../assets/scripts";
 
 import { SceneSettings } from "../scene/settings";
 import { SceneExportOptimzer } from "../scene/export-optimizer";
@@ -26,10 +27,10 @@ import { SceneExportOptimzer } from "../scene/export-optimizer";
 import { GraphCode } from "../graph/graph";
 import { GraphCodeGenerator } from "../graph/generate";
 
-import { WorkSpace } from "./workspace";
 import { Project } from "./project";
 import { FilesStore } from "./files";
 import { IProject } from "./typings";
+import { WorkSpace } from "./workspace";
 import { ProjectHelpers } from "./helpers";
 
 export interface IExportFinalSceneOptions {
@@ -41,6 +42,16 @@ export interface IExportFinalSceneOptions {
      * Defines the root path applied on geometries in .babylon file in case of incremental loading.
      */
     geometryRootPath?: string;
+
+    /**
+     * Defines wether or not files are forced to be re-generated.
+     */
+    forceRegenerateFiles?: boolean;
+    /**
+     * Defines wether or not all compressed texture formats should be generated.
+     * Typically used when exporting final scene version.
+     */
+    generateAllCompressedTextureFormats?: boolean;
 }
 
 export class ProjectExporter {
@@ -93,7 +104,7 @@ export class ProjectExporter {
         editor.console.logSection("Exporting Project");
         editor.console.logInfo(`Exporting project to: ${Project.DirPath}`);
         editor.beforeSaveProjectObservable.notifyObservers(Project.DirPath!);
-        
+
         const task = editor.addTaskFeedback(0, "Saving Files...");
         await Tools.Wait(500);
 
@@ -249,7 +260,7 @@ export class ProjectExporter {
 
         for (const texture of editor.scene!.textures) {
             if (texture instanceof RenderTargetTexture || texture instanceof DynamicTexture) { continue; }
-            if (texture.name.indexOf("data:") === 0 || texture === editor.scene!.environmentBRDFTexture) { continue; }
+            if (texture.name.indexOf("data:") === 0 || texture === editor.scene!.environmentBRDFTexture) { continue; }
 
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = texture.serialize();
@@ -259,7 +270,7 @@ export class ProjectExporter {
                     // Replace Urls
                     json.files = json.files.map((f) => join("files", basename(f)));
                 }
-                
+
                 json.name = join("./", "files", basename(texture.name));
                 json.url = join("./", "files", basename(texture.name));
 
@@ -340,7 +351,7 @@ export class ProjectExporter {
 
         for (const mesh of editor.scene!.meshes) {
             if (!(mesh instanceof Mesh) || mesh._masterMesh || mesh.doNotSerialize) { continue; }
-            
+
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = this.ExportMesh(mesh);
 
@@ -390,7 +401,7 @@ export class ProjectExporter {
             const shadowJson = light.getShadowGenerator()?.serialize();
             if (shadowJson) {
                 const shadowDest = `${normalize(`${basename(filenamify(light.name))}-${light.id}`)}.json`;
-                
+
                 await writeFile(join(shadowsDir, shadowDest), JSON.stringify(shadowJson, null, "\t"), { encoding: "utf-8" });
 
                 project.lights.push({ json: lightDest, shadowGenerator: shadowDest });
@@ -468,7 +479,7 @@ export class ProjectExporter {
         for (const s of editor.scene!.mainSoundTrack.soundCollection) {
             const json = s.serialize();
             json.url = basename(json.name);
-            
+
             const dest = `${normalize(`${basename(filenamify(s.name))}`)}.json`;
 
             await writeFile(join(soundsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
@@ -537,7 +548,7 @@ export class ProjectExporter {
         if (mesh.metadata?.isPickable) {
             mesh.isPickable = mesh.metadata.isPickable;
         }
-        
+
         const meshMetadata = Tools.GetMeshMetadata(mesh);
         const waitingUpdatedReferences = meshMetadata._waitingUpdatedReferences;
 
@@ -620,7 +631,7 @@ export class ProjectExporter {
         });
 
         const scene = SceneSerializer.Serialize(editor.scene!);
-        scene.metadata = scene.metadata ?? { };
+        scene.metadata = scene.metadata ?? {};
         scene.metadata.postProcesses = {
             ssao: { enabled: SceneSettings.IsSSAOEnabled(), json: SceneSettings.SSAOPipeline?.serialize() },
             screenSpaceReflections: { enabled: SceneSettings.IsScreenSpaceReflectionsEnabled(), json: SceneSettings.ScreenSpaceReflectionsPostProcess?.serialize() },
@@ -638,7 +649,7 @@ export class ProjectExporter {
 
         // Active camera
         scene.activeCameraID = scene.cameras[0]?.id;
-        
+
         // LODs
         scene.meshes?.forEach((m) => {
             if (!m) { return; }
@@ -845,7 +856,7 @@ export class ProjectExporter {
         }
 
         if (!(await pathExists(destFilesDir))) { await mkdir(destFilesDir); }
-        
+
         // Handle node material textures
         editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");
         const extraFiles = await MaterialTools.ExportSerializedNodeMaterialsTextures(editor, scene.materials, scenePath);
@@ -862,7 +873,7 @@ export class ProjectExporter {
             const file = FilesStore.List[f];
             const dest = join(destFilesDir, file.name);
 
-            if ((await pathExists(dest))) {
+            if (!options?.forceRegenerateFiles && await pathExists(dest)) {
                 continue;
             }
 
@@ -873,6 +884,46 @@ export class ProjectExporter {
                 editor.console.logError(`Failed to copy resource file "${file.path}" to "${dest}"`);
             }
             editor.updateTaskFeedback(task, progress += step);
+        }
+
+        // Create ktx compressed textures
+        const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures;
+        const supportedTextureFormat = editor.engine!.texturesSupported[0] as KTXToolsType;
+
+        if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.pvrTexToolCliPath) {
+            const promises: Promise<void | void[]>[] = [];
+
+            for (const f in FilesStore.List) {
+                const file = FilesStore.List[f];
+                const dest = join(destFilesDir, file.name);
+
+                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-astc.ktx")));
+                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-dxt.ktx")));
+                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-pvrtc.ktx")));
+                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-etc1.ktx")));
+                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-etc2.ktx")));
+
+                if (options?.generateAllCompressedTextureFormats) {
+                    await Promise.all([
+                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-astc.ktx"),
+                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-dxt.ktx"),
+                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-pvrtc.ktx"),
+                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-etc1.ktx"),
+                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-etc2.ktx"),
+                    ]);
+                } else {
+                    const ktxFilename = KTXTools.GetKtxFileName(dest, supportedTextureFormat);
+                    if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
+                        continue;
+                    }
+
+                    promises.push(KTXTools.CompressTexture(editor, file.path, destFilesDir, supportedTextureFormat));
+                }
+            }
+
+            if (promises.length) {
+                await Promise.all(promises);
+            }
         }
 
         // Clean unused files
@@ -920,7 +971,7 @@ export class ProjectExporter {
 
         const tools = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
         const finalTools = tools// .replace("// ${decorators}", decorators)
-                                .replace("${editor-version}", editor._packageJson.version);
+            .replace("${editor-version}", editor._packageJson.version);
 
         await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "tools.ts"), finalTools, { encoding: "utf-8" });
 
@@ -995,7 +1046,7 @@ export class ProjectExporter {
             m.delayLoadingFile = `${overridePath ?? ""}geometries/${geometryFileName}`;
             m.boundingBoxMaximum = originMesh?.getBoundingInfo()?.maximum?.asArray() ?? [0, 0, 0];
             m.boundingBoxMinimum = originMesh?.getBoundingInfo()?.minimum?.asArray() ?? [0, 0, 0];
-            m._binaryInfo = { };
+            m._binaryInfo = {};
 
             const geometryPath = join(path, geometryFileName);
             const stream = createWriteStream(geometryPath);
@@ -1094,7 +1145,7 @@ export class ProjectExporter {
             if (m.subMeshes?.length > 0) {
                 const subMeshesData: number[] = [];
                 m.subMeshes.forEach((sm) => {
-                    subMeshesData.push( sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount);
+                    subMeshesData.push(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount);
                 });
 
                 m._binaryInfo.subMeshesAttrDesc = { count: m.subMeshes.length, stride: 5, offset, dataType: 0 };

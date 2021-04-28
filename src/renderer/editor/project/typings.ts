@@ -39,6 +39,20 @@ export interface IWorkSpace {
      * Defines the dictionary that contains the preferences of external plugins in the editor.
      */
     pluginsPreferences?: Undefinable<IStringDictionary<any>>;
+
+    /**
+     * Defines the options of the KTX2 compression tool.
+     */
+    ktx2CompressedTextures?: {
+        /**
+         * Defines wether or not ktx2 compressed texture is enabled or not.
+         */
+        enabled?: boolean;
+        /**
+         * Defines the path to the PVRTexToolCLI program executed to 
+         */
+        pvrTexToolCliPath?: string;
+    };
 }
 
 export interface IProject {

@@ -35,7 +35,7 @@ export class EditorPreferencesPanel extends React.Component<IPreferencesPanelPro
 							{ label: "Regular Quality", data: 1 },
 							{ label: "High Quality", data: 0.5 },
 						]} />
-						<InspectorBoolean object={this.props.preferences.state.editor} property="noOverlayOnDrawElement" label="No Selected Node Overlay" />
+						<InspectorBoolean object={this.props.preferences.state.editor} property="noOverlayOnDrawElement" label="No Selected Node Overlay" defaultValue={false} />
 					</InspectorSection>
 					<InspectorSection title="Gizmos">
 						{this._getSnappingValues()}
@@ -118,10 +118,10 @@ export class EditorPreferencesPanel extends React.Component<IPreferencesPanelPro
 	 * Called on the user changes the terminal path to use in the editor.
 	 */
 	private _handleTerminalPathChanged(e: React.FormEvent<HTMLInputElement>): void {
-		debugger;
 		const files = (e.target as HTMLInputElement).files;
         if (!files?.length) { return; }
 
         this.props.preferences.setState({ editor: { ...this.props.preferences.state.editor, terminalPath: files.item(0)!.path } });
+		this.forceUpdate();
 	}
 }
