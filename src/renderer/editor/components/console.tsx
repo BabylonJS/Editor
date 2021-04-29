@@ -226,8 +226,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * @param message defines the message to log as info.
      * @param layer defines the layer where to draw the output.
      */
-    public logInfo(message: string, layer?: ConsoleLayer): void {
-        this._addLog({ type: ConsoleLogType.Info, message, layer });
+    public logInfo(message: string, layer?: ConsoleLayer): Nullable<HTMLParagraphElement> {
+        return this._addLog({ type: ConsoleLogType.Info, message, layer });
     }
 
     /**
@@ -235,8 +235,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * @param message the message to log as warning.
      * @param layer defines the layer where to draw the output.
      */
-    public logWarning(message: string, layer?: ConsoleLayer): void {
-        this._addLog({ type: ConsoleLogType.Warning, message, layer });
+    public logWarning(message: string, layer?: ConsoleLayer): Nullable<HTMLParagraphElement> {
+        return this._addLog({ type: ConsoleLogType.Warning, message, layer });
     }
 
     /**
@@ -244,8 +244,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * @param message the message to log as error.
      * @param layer defines the layer where to draw the output.
      */
-    public logError(message: string, layer?: ConsoleLayer): void {
-        this._addLog({ type: ConsoleLogType.Error, message, layer });
+    public logError(message: string, layer?: ConsoleLayer): Nullable<HTMLParagraphElement> {
+        return this._addLog({ type: ConsoleLogType.Error, message, layer });
     }
 
     /**
@@ -289,12 +289,12 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     /**
      * Adds the given log to the editor.
      */
-    private _addLog(log: IConsoleLog): void {
+    private _addLog(log: IConsoleLog): Nullable<HTMLParagraphElement> {
         log.layer = log.layer ?? ConsoleLayer.Common;
 
         // Common
         if (log.layer === ConsoleLayer.Common) {
-            if (!this._commonDiv) { return; }
+            if (!this._commonDiv) { return null; }
 
             const p = document.createElement("p");
             p.style.marginBottom = "0px";
@@ -324,12 +324,12 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
 
             this._commonDiv.scrollTop = this._commonDiv.scrollHeight + 25;
 
-            return;
+            return p;
         }
 
         // Terminal
         const terminal = log.layer === ConsoleLayer.TypeScript ? this._terminalTypeScript : this._terminalWebPack;
-        if (!terminal) { return; }
+        if (!terminal) { return null; }
 
         switch (log.type) {
             case ConsoleLogType.Info:
@@ -349,6 +349,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                 // console.log(log.message.trim());
                 break;
         }
+
+        return null;
     }
 
     /**

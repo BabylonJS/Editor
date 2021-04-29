@@ -859,19 +859,24 @@ export class ProjectExporter {
 
         // Handle node material textures
         editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");
-        const extraFiles = await MaterialTools.ExportSerializedNodeMaterialsTextures(editor, scene.materials, scenePath);
+
+        const copiedFiles: string[] = [
+            ...await MaterialTools.ExportSerializedNodeMaterialsTextures(editor, scene.materials, scenePath),
+        ];
 
         // Write scene
         editor.updateTaskFeedback(task, 50, "Writing scene...");
         await writeJSON(join(scenePath, "scene.babylon"), scene);
 
         // Copy files
-        const step = FilesStore.GetFilesCount() / 50;
+        let step = FilesStore.GetFilesCount() / 50;
         let progress = 50;
 
         for (const f in FilesStore.List) {
             const file = FilesStore.List[f];
             const dest = join(destFilesDir, file.name);
+
+            copiedFiles.push(file.name);
 
             if (!options?.forceRegenerateFiles && await pathExists(dest)) {
                 continue;
@@ -883,41 +888,58 @@ export class ProjectExporter {
             } catch (e) {
                 editor.console.logError(`Failed to copy resource file "${file.path}" to "${dest}"`);
             }
+
             editor.updateTaskFeedback(task, progress += step);
         }
 
         // Create ktx compressed textures
         const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures;
-        const supportedTextureFormat = editor.engine!.texturesSupported[0] as KTXToolsType;
+
+        const forcedFormat = ktx2CompressedTextures?.forcedFormat ?? "automatic";
+        const supportedTextureFormat = (forcedFormat !== "automatic" ? forcedFormat : editor.engine!.texturesSupported[0]) as KTXToolsType;
 
         if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.pvrTexToolCliPath) {
+            const filesToCompress = copiedFiles.slice();
             const promises: Promise<void | void[]>[] = [];
+            
+            step = filesToCompress.length / 100;
+            progress = 0;
 
-            for (const f in FilesStore.List) {
-                const file = FilesStore.List[f];
-                const dest = join(destFilesDir, file.name);
+            editor.updateTaskFeedback(task, 0, "Compressing Textures...");
 
-                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-astc.ktx")));
-                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-dxt.ktx")));
-                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-pvrtc.ktx")));
-                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-etc1.ktx")));
-                extraFiles.push(basename(KTXTools.GetKtxFileName(dest, "-etc2.ktx")));
+            for (const f of filesToCompress) {
+                const dest = join(destFilesDir, f);
+
+                copiedFiles.push(basename(KTXTools.GetKtxFileName(dest, "-astc.ktx")));
+                copiedFiles.push(basename(KTXTools.GetKtxFileName(dest, "-dxt.ktx")));
+                copiedFiles.push(basename(KTXTools.GetKtxFileName(dest, "-pvrtc.ktx")));
+                copiedFiles.push(basename(KTXTools.GetKtxFileName(dest, "-etc1.ktx")));
+                copiedFiles.push(basename(KTXTools.GetKtxFileName(dest, "-etc2.ktx")));
 
                 if (options?.generateAllCompressedTextureFormats) {
-                    await Promise.all([
-                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-astc.ktx"),
-                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-dxt.ktx"),
-                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-pvrtc.ktx"),
-                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-etc1.ktx"),
-                        KTXTools.CompressTexture(editor, file.path, destFilesDir, "-etc2.ktx"),
-                    ]);
+                    if (promises.length >= 5) {
+                        await Promise.all(promises);
+                        promises.splice(0);
+                    }
+
+                    promises.push(Promise.all([
+                        KTXTools.CompressTexture(editor, dest, destFilesDir, "-astc.ktx"),
+                        KTXTools.CompressTexture(editor, dest, destFilesDir, "-dxt.ktx"),
+                        KTXTools.CompressTexture(editor, dest, destFilesDir, "-pvrtc.ktx"),
+                        KTXTools.CompressTexture(editor, dest, destFilesDir, "-etc1.ktx"),
+                        KTXTools.CompressTexture(editor, dest, destFilesDir, "-etc2.ktx"),
+                    ]).then(() => {
+                        editor.updateTaskFeedback(task!, progress += step);
+                    }));
                 } else {
                     const ktxFilename = KTXTools.GetKtxFileName(dest, supportedTextureFormat);
                     if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
                         continue;
                     }
 
-                    promises.push(KTXTools.CompressTexture(editor, file.path, destFilesDir, supportedTextureFormat));
+                    promises.push(KTXTools.CompressTexture(editor, dest, destFilesDir, supportedTextureFormat).then(() => {
+                        editor.updateTaskFeedback(task!, progress += step);
+                    }));
                 }
             }
 
@@ -930,7 +952,7 @@ export class ProjectExporter {
         try {
             const existingFiles = await readdir(destFilesDir);
             for (const existingFile of existingFiles) {
-                if (FilesStore.GetFileFromBaseName(existingFile) || extraFiles.indexOf(existingFile) !== -1) {
+                if (copiedFiles.indexOf(existingFile) !== -1) {
                     continue;
                 }
 

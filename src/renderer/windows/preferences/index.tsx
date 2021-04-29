@@ -16,6 +16,9 @@ import { EditorPreferencesPanel } from "./panels/editor";
 import { PluginsPreferencesPanel } from "./panels/plugins";
 import { WorkspacePreferencesPanel } from "./panels/workspace";
 
+import { AssetsTexturesPreferencesPanel } from "./panels/assets/textures";
+import { AssetsGeometriesPreferencesPanel } from "./panels/assets/geometries";
+
 export const title = "Preferences";
 
 export interface IPreferencesPanelProps {
@@ -51,6 +54,9 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 		"workspace": WorkspacePreferencesPanel,
 		"editor": EditorPreferencesPanel,
 		"plugins": PluginsPreferencesPanel,
+
+		"assets/geometries": AssetsGeometriesPreferencesPanel,
+		"assets/textures": AssetsTexturesPreferencesPanel,
 	};
 
 	/**
@@ -85,6 +91,10 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 				{ id: "workspace", label: "Workspace", disabled: this._workspacePath === null },
 				{ id: "editor", label: "Editor", isSelected: true },
 				{ id: "plugins", label: "Plugins" },
+				{ id: "assets", label: "Assets", isExpanded: true, childNodes: [
+					{ id: "assets/geometries", label: "Geometries" },
+					{ id: "assets/textures", label: "Textures" },
+				] }
 			],
 		});
 	}
@@ -101,11 +111,13 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 					<Tree
 						contents={this.state.categories}
 						onNodeClick={(n) => this._handleCategoryClick(n)}
+						onNodeExpand={(n) => this._handleCategoryExpanded(n)}
+						onNodeCollapse={(n) => this._handleCategoryCollapsed(n)}
 					/>
 
 					<ButtonGroup style={{ marginLeft: "10px", width: "295px", position: "absolute", bottom: "15px" }}>
 						<Button text="Apply" style={{ width: "calc(50% - 10px)" }} intent={Intent.SUCCESS} onClick={() => this._handleApply()} />
-						<Button text="Cancel" style={{ left: "10px", width: "calc(50% - 20px)" }} intent={Intent.WARNING} onClick={() => this._handleCancel()} />
+						<Button text="Close" style={{ left: "10px", width: "calc(50% - 20px)" }} intent={Intent.WARNING} onClick={() => this._handleClose()} />
 					</ButtonGroup>
 				</div>
 				<div style={{ width: "calc(100% - 300px)", height: "100%", float: "left", backgroundColor: "#444444" }}>
@@ -122,10 +134,36 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 	 */
 	private _handleCategoryClick(node: ITreeNode<{}>): void {
 		const categories = this.state.categories.slice();
-		categories.forEach((n) => n.isSelected = false);
+		categories.forEach((n) => {
+			n.isSelected = false;
+
+			// Only 2 levels here, keep it this way :)
+			n.childNodes?.forEach((n) => n.isSelected = false);
+		});
 
 		node.isSelected = true;
-		this.setState({ categories, activePanel: this._panels[node.id] });
+		this.setState({ categories });
+
+		const activePanel = this._panels[node.id];
+		if (activePanel) {
+			this.setState({ activePanel });
+		}
+	}
+
+	/**
+	 * Called on the user expands a node.
+	 */
+	private _handleCategoryExpanded(node: ITreeNode<{}>): void {
+		node.isExpanded = true;
+		this.setState({ categories: this.state.categories });
+	}
+
+	/**
+	 * Called on the user collapses a node.
+	 */
+	private _handleCategoryCollapsed(node: ITreeNode<{}>): void {
+		node.isExpanded = false;
+		this.setState({ categories: this.state.categories });
 	}
 
 	/**
@@ -141,14 +179,12 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 		// Preferences
 		localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(this.state.editor));
 		await IPCTools.ExecuteEditorFunction("_applyPreferences");
-
-		window.close();
 	}
 
 	/**
 	 * Called once the user cancels preferences.
 	 */
-	private _handleCancel(): void {
+	private _handleClose(): void {
 		window.close();
 	}
 }

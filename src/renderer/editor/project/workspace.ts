@@ -122,6 +122,21 @@ export class WorkSpace {
             ktx2CompressedTextures: {
                 enabled: this.Workspace!.ktx2CompressedTextures?.enabled ?? false,
                 pvrTexToolCliPath: this.Workspace!.ktx2CompressedTextures?.pvrTexToolCliPath ?? "",
+                forcedFormat: this.Workspace!.ktx2CompressedTextures?.forcedFormat ?? "automatic",
+                astcOptions: this.Workspace!.ktx2CompressedTextures?.astcOptions ?? {
+                    quality: "astcveryfast",
+                },
+                pvrtcOptions: this.Workspace!.ktx2CompressedTextures?.pvrtcOptions ?? {
+                    quality: "pvrtcfastest",
+                },
+                ect1Options: this.Workspace!.ktx2CompressedTextures?.ect1Options ?? {
+                    enabled: false,
+                    quality: "etcfast",
+                },
+                ect2Options: this.Workspace!.ktx2CompressedTextures?.ect2Options ?? {
+                    enabled: false,
+                    quality: "etcfast",
+                },
             },
         } as IWorkSpace, {
             encoding: "utf-8",

@@ -1,5 +1,7 @@
 import { Undefinable, IStringDictionary } from "../../../shared/types";
 
+import { KTXToolsType } from "../tools/ktx";
+
 /**
  * Defines the type the possible values of the physics engine type string
  * store in the workspace JSON file.
@@ -52,6 +54,58 @@ export interface IWorkSpace {
          * Defines the path to the PVRTexToolCLI program executed to 
          */
         pvrTexToolCliPath?: string;
+        /**
+         * Defines the optional format forced to be used when exporting the scene.
+         */
+        forcedFormat?: "automatic" | KTXToolsType;
+
+        /**
+         * Defines the options of the ASTC format.
+         */
+        astcOptions?: {
+            /**
+             * Defines the quality of the ASTC generated textures.
+             */
+            quality?: "astcveryfast" | "astcfast" | "astcmedium" | "astcthorough" | "astcexhaustive";
+        };
+
+        /**
+         * Defines the options of the PVRTC format.
+         */
+        pvrtcOptions?: {
+            /**
+             * Defines the quality of the PVRTC generated textures.
+             */
+            quality?: "pvrtcfastest" | "pvrtcfast" | "pvrtclow" | "pvrtcnormal" | "pvrtchigh" | "pvrtcveryhigh" | "pvrtcthorough" | "pvrtcbest";
+        };
+
+        /**
+         * Defines the options of the ETC1 format
+         */
+        ect1Options?: {
+            /**
+             * Defines wether or not ETC1 is enabled.
+             */
+            enabled?: boolean;
+            /**
+             * Defines the quality of the ETC1 generated textures.
+             */
+            quality: "etcfast" | "etcnormal" | "etcslow";
+        };
+
+        /**
+         * Defines the options of the ETC2 format
+         */
+        ect2Options?: {
+            /**
+             * Defines wether or not ETC2 is enabled.
+             */
+            enabled?: boolean;
+            /**
+             * Defines the quality of the ETC2 generated textures.
+             */
+            quality: "etcfast" | "etcnormal" | "etcslow";
+        };
     };
 }
 

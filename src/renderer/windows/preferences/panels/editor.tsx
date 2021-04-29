@@ -21,7 +21,7 @@ export class EditorPreferencesPanel extends React.Component<IPreferencesPanelPro
 		this._zoom = parseFloat(this.props.preferences.state.editor.zoom ?? "1.0");
 
 		return (
-			<div style={{ width: "50%", height: "100%", margin: "auto" }}>
+			<div style={{ width: "70%", height: "100%", margin: "auto" }}>
 				<InspectorSection title="User Interface">
 					<InspectorNumber object={this} property="_zoom" label="Size" min={0.5} max={2} step={0.1} onFinishChange={() => {
 						this.props.preferences.setState({ editor: { ...this.props.preferences.state.editor, zoom: this._zoom.toString() } })
