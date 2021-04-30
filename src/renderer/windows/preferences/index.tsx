@@ -122,8 +122,8 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 						<Button text="Close" style={{ left: "10px", width: "calc(50% - 20px)" }} intent={Intent.WARNING} onClick={() => this._handleClose()} />
 					</ButtonGroup>
 				</div>
-				<div style={{ width: "calc(100% - 300px)", height: "100%", float: "left", backgroundColor: "#444444" }}>
-					<H3 style={{ textAlign: "center", lineHeight: "45px" }}>{this.state.categories.find((c) => c.isSelected)?.label}</H3>
+				<div style={{ width: "calc(100% - 300px)", height: "100%", float: "left", backgroundColor: "#444444", overflow: "auto" }}>
+					<H3 style={{ textAlign: "center", lineHeight: "45px" }}>{this.state.categories.find((c) => c.isSelected || c.childNodes?.find((c) => c.isSelected))?.label}</H3>
 					<Divider />
 					<this.state.activePanel preferences={this} />
 				</div>

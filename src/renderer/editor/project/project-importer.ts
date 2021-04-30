@@ -440,6 +440,9 @@ export class ProjectImporter {
             }
         });
 
+        // Notify
+        editor.console.logInfo(`Imported project located at ${path}`);
+
         // Refresh
         this._RefreshEditor(editor);
     }
