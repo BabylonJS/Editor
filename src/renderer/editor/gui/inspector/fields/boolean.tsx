@@ -1,7 +1,7 @@
 import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
-import { Alignment, Switch } from "@blueprintjs/core";
+import { Alignment, Switch, Tooltip } from "@blueprintjs/core";
 
 import { InspectorUtils } from "../utils";
 import { InspectorNotifier } from "../notifier";
@@ -91,24 +91,26 @@ export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBoolea
                 onMouseEnter={() => this.setState({ overColor: "rgba(0, 0, 0, 0.2)" })}
                 onMouseLeave={() => this.setState({ overColor: "rgba(0, 0, 0, 0)" })}
             >
-                <Switch
-                    inputRef={(ref) => this._input = ref}
-                    checked={this.state.value}
-                    large={true}
-                    label={this.props.label}
-                    alignIndicator={Alignment.RIGHT}
-                    onChange={(e) => this._handleValueChanged((e.target as HTMLInputElement).checked)}
-                    style={{
-                        paddingTop: "3px",
-                        borderLeft: "3px solid #806787",
-                        paddingLeft: "5px",
-                        fontSize: "14px",
-                        height: "25px",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                    }}
-                />
+                <Tooltip content={this.props.label} targetProps={{ style: { width: "100%" } }}>
+                    <Switch
+                        inputRef={(ref) => this._input = ref}
+                        checked={this.state.value}
+                        large={true}
+                        label={this.props.label}
+                        alignIndicator={Alignment.RIGHT}
+                        onChange={(e) => this._handleValueChanged((e.target as HTMLInputElement).checked)}
+                        style={{
+                            paddingTop: "3px",
+                            borderLeft: "3px solid #806787",
+                            paddingLeft: "5px",
+                            fontSize: "14px",
+                            height: "25px",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                        }}
+                    />
+                </Tooltip>
             </div>
         );
     }

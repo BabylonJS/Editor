@@ -1,9 +1,9 @@
 import * as React from "react";
-import { FileInput } from "@blueprintjs/core";
 
+import { InspectorList } from "../../../../editor/gui/inspector/fields/list";
 import { InspectorSection } from "../../../../editor/gui/inspector/fields/section";
 import { InspectorBoolean } from "../../../../editor/gui/inspector/fields/boolean";
-import { InspectorList } from "../../../../editor/gui/inspector/fields/list";
+import { InspectorFileInput } from "../../../../editor/gui/inspector/fields/file-input";
 
 import { IPreferencesPanelProps } from "../../index";
 
@@ -38,7 +38,7 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 			<div style={{ width: "70%", height: "100%", margin: "auto" }}>
 				<InspectorSection title="KTX2 Compression">
 					<InspectorBoolean object={workspace.ktx2CompressedTextures} property="enabled" label="Enabled" defaultValue={false} />
-					<FileInput text={workspace.ktx2CompressedTextures?.pvrTexToolCliPath || "None"} fill={true} buttonText="Browse" onInputChange={(e) => this._handlePVRTexToolCLIPathChanged(e)} />
+					<InspectorFileInput object={workspace.ktx2CompressedTextures} property="pvrTexToolCliPath" label="PVRTexToolCLI Path" />
 					<InspectorList object={workspace.ktx2CompressedTextures} property="forcedFormat" label="Forced Format" items={[
 						{ label: "Automatic", data: "automatic" },
 						{ label: "ASTC", data: "-astc.ktx" },
@@ -91,16 +91,5 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 				</InspectorSection>
 			</div>
 		);
-	}
-
-	/**
-	 * Called on the user changes the terminal path to use in the editor.
-	 */
-	private _handlePVRTexToolCLIPathChanged(e: React.FormEvent<HTMLInputElement>): void {
-		const files = (e.target as HTMLInputElement).files;
-		if (!files?.length) { return; }
-
-		this.props.preferences.state.workspace!.ktx2CompressedTextures!.pvrTexToolCliPath = files.item(0)!.path;
-		this.forceUpdate();
 	}
 }

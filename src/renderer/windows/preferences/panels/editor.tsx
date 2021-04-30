@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, FileInput } from "@blueprintjs/core";
+import { Button } from "@blueprintjs/core";
 
 import { Tools } from "../../../editor/tools/tools";
 
@@ -8,6 +8,7 @@ import { InspectorNumber } from "../../../editor/gui/inspector/fields/number";
 import { InspectorButton } from "../../../editor/gui/inspector/fields/button";
 import { InspectorBoolean } from "../../../editor/gui/inspector/fields/boolean";
 import { InspectorSection } from "../../../editor/gui/inspector/fields/section";
+import { InspectorFileInput } from "../../../editor/gui/inspector/fields/file-input";
 
 import { IPreferencesPanelProps } from "../index";
 
@@ -44,7 +45,7 @@ export class EditorPreferencesPanel extends React.Component<IPreferencesPanelPro
 				</InspectorSection>
 
 				<InspectorSection title="Terminal">
-					<FileInput text={this.props.preferences.state.editor.terminalPath ?? "Default"} fill={true} buttonText="Browse" onInputChange={(e) => this._handleTerminalPathChanged(e)} />
+					<InspectorFileInput object={this.props.preferences.state.editor} property="terminalPath" label="Terminal path" />
 				</InspectorSection>
 
 				<InspectorSection title="Developers">
@@ -111,17 +112,6 @@ export class EditorPreferencesPanel extends React.Component<IPreferencesPanelPro
 		}
 
 		steps.push(steps[steps.length - 1] + 1);
-		this.forceUpdate();
-	}
-
-	/**
-	 * Called on the user changes the terminal path to use in the editor.
-	 */
-	private _handleTerminalPathChanged(e: React.FormEvent<HTMLInputElement>): void {
-		const files = (e.target as HTMLInputElement).files;
-        if (!files?.length) { return; }
-
-        this.props.preferences.setState({ editor: { ...this.props.preferences.state.editor, terminalPath: files.item(0)!.path } });
 		this.forceUpdate();
 	}
 }

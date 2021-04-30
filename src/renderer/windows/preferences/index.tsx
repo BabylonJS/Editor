@@ -3,7 +3,7 @@ import { readJSON, writeJSON } from "fs-extra";
 import { IStringDictionary, Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Button, ButtonGroup, Divider, H3, Intent, ITreeNode, Tree } from "@blueprintjs/core";
+import { Button, ButtonGroup, Divider, H3, Intent, ITreeNode, Tree, Toaster } from "@blueprintjs/core";
 
 import { IWorkSpace } from "../../editor/project/typings";
 
@@ -58,6 +58,8 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 		"assets/geometries": AssetsGeometriesPreferencesPanel,
 		"assets/textures": AssetsTexturesPreferencesPanel,
 	};
+
+	private _toaster: Nullable<Toaster> = null;
 
 	/**
 	 * Constructor.
@@ -125,6 +127,7 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 					<Divider />
 					<this.state.activePanel preferences={this} />
 				</div>
+				<Toaster ref={(ref) => this._toaster = ref} position="top-right" usePortal={true} />
 			</div>
 		);
 	}
@@ -170,15 +173,29 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 	 * Saves the preferences.
 	 */
 	private async _handleApply(): Promise<void> {
-		// Workspace
-		if (this._workspacePath && this.state.workspace) {
-			await writeJSON(this._workspacePath, this.state.workspace, { encoding: "utf-8", spaces: "\t" });
-			await IPCTools.ExecuteEditorFunction("_refreshWorkSpace");
-		}
+		try {
+			// Workspace
+			if (this._workspacePath && this.state.workspace) {
+				await writeJSON(this._workspacePath, this.state.workspace, { encoding: "utf-8", spaces: "\t" });
+				await IPCTools.ExecuteEditorFunction("_refreshWorkSpace");
+			}
 
-		// Preferences
-		localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(this.state.editor));
-		await IPCTools.ExecuteEditorFunction("_applyPreferences");
+			// Preferences
+			localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(this.state.editor));
+			await IPCTools.ExecuteEditorFunction("_applyPreferences");
+
+			this._toaster?.show({
+				timeout: 1000,
+				intent:"success",
+				message: "Preferences Applied",
+			});
+		} catch (e) {
+			this._toaster?.show({
+				timeout: 3000,
+				intent: "danger",
+				message: `Failed: ${e.message}`,
+			});
+		}
 	}
 
 	/**
