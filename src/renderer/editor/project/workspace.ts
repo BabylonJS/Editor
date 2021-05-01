@@ -119,6 +119,9 @@ export class WorkSpace {
             watchProject: this.Workspace!.watchProject,
             physicsEngine: this.Workspace!.physicsEngine,
             pluginsPreferences,
+            https: this.Workspace!.https ?? {
+                enabled: false,
+            },
             ktx2CompressedTextures: {
                 enabled: this.Workspace!.ktx2CompressedTextures?.enabled ?? false,
                 pvrTexToolCliPath: this.Workspace!.ktx2CompressedTextures?.pvrTexToolCliPath ?? "",

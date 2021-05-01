@@ -934,6 +934,7 @@ export class ProjectExporter {
                 } else {
                     const ktxFilename = KTXTools.GetKtxFileName(dest, supportedTextureFormat);
                     if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
+                        editor.updateTaskFeedback(task!, progress += step);
                         continue;
                     }
 

@@ -3,6 +3,21 @@ import { Server } from "http";
 
 import { Nullable } from "../../shared/types";
 
+export interface IServerHttpsOptions {
+    /**
+     * Defines wether or not HTTPS server is enabled.
+     */
+    enabled: boolean;
+    /**
+     * Defines the path to the certificate file.
+     */
+    certPath?: string;
+    /**
+     * Defines the path to the key file.
+     */
+    keyPath?: string;
+}
+
 export class GameServer {
     /**
      * Defines the current absolute path of the web server.
@@ -17,11 +32,24 @@ export class GameServer {
      * Runs the server.
      * @param root the root url where to start the server and serve files.
      * @param port defines the port to listen.
+     * @param https defines the option HTTPS options to set when HTTPS is enabled in the workspace.
      */
-    public static RunServer(root: string, port: number): void {
-        if (this.Server) { this.StopServer(); }
+    public static RunServer(root: string, port: number, https?: IServerHttpsOptions): void {
+        if (this.Server) {
+            this.StopServer();
+        }
 
-        this.Server = createServer({ root, cache: -1 });
+        if (https?.enabled) {
+            this.Server = createServer({
+                root, cache: -1, https: {
+                    cert: https.certPath,
+                    key: https.keyPath,
+                }
+            });
+        } else {
+            this.Server = createServer({ root, cache: -1 });
+        }
+
         this.Server.listen(port/*, "localhost*/);
 
         this.Path = root;
@@ -30,15 +58,8 @@ export class GameServer {
     /**
      * Stops the server
      */
-    public static async StopServer(): Promise<void> {
-        if (!this.Server) { return; }
-
-        await new Promise<void>((resolve, reject) => {
-            this.Server!.close((err) => {
-                if (err) { return reject(); }
-                resolve();
-            })
-        });
+    public static StopServer(): void {
+        this.Server?.close();
 
         this.Path = null;
         this.Server = null;

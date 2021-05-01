@@ -677,16 +677,21 @@ export class Editor {
      * @param integratedBrowser defines wether or not the integrated browser should be used to run the project.
      */
     public async runProject(mode: EditorPlayMode): Promise<void> {
-        // await ProjectExporter.Save(this, true);
         await ProjectExporter.ExportFinalScene(this);
 
         const task = this.addTaskFeedback(0, "Running Server");
         const workspace = WorkSpace.Workspace!;
 
-        await IPCTools.CallWithPromise(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort);
+        const serverResult = await IPCTools.CallWithPromise<{ error?: string }>(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort, workspace.https);
 
         this.updateTaskFeedback(task, 100);
         this.closeTaskFeedback(task, 500);
+
+        if (serverResult?.error) {
+            return this.notifyMessage(`Failed to run server: ${serverResult.error}`, 3000, null, "danger");
+        }
+
+        const protocol = workspace.https?.enabled ? "https" : "http";
 
         switch (mode) {
             case EditorPlayMode.EditorPanelBrowser:
@@ -696,7 +701,7 @@ export class Editor {
                 this.addWindowedPlugin("run", undefined, workspace);
                 break;
             case EditorPlayMode.ExternalBrowser:
-                shell.openExternal(`http://localhost:${workspace.serverPort}`);
+                shell.openExternal(`${protocol}://localhost:${workspace.serverPort}`);
                 break;
         }
     }
@@ -1177,6 +1182,8 @@ export class Editor {
         } else if (!workspace.watchProject && WorkSpace.IsWatchingProject) {
             WorkSpace.StopWatchingProject();
         }
+
+        this.toolsToolbar?.forceUpdate();
     }
 
     /**

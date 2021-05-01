@@ -1,8 +1,8 @@
 import { IpcMainEvent } from "electron";
 
 import { IIPCHandler } from "../handlers/ipc";
-import { GameServer } from "../tools/server";
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
+import { GameServer, IServerHttpsOptions } from "../tools/server";
 
 export class StartWebServerIPC implements IIPCHandler {
 	/**
@@ -15,8 +15,12 @@ export class StartWebServerIPC implements IIPCHandler {
      * @param path defines the path of the web server to serve files.
      * @param port defines the port of the server to listen.
 	 */
-	public handler(event: IpcMainEvent, path: string, port: number): void {
-		GameServer.RunServer(path, port);
-		event.sender.send(IPCResponses.StartGameServer);
+	public async handler(event: IpcMainEvent, path: string, port: number, https?: IServerHttpsOptions): Promise<void> {
+		try {
+			GameServer.RunServer(path, port, https);
+			event.sender.send(IPCResponses.StartGameServer);
+		} catch (e) {
+			event.sender.send(IPCResponses.StartGameServer, { error: e.message });
+		}
 	}
 }

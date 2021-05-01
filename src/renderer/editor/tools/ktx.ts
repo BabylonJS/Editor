@@ -1,4 +1,4 @@
-import { open, read } from "fs-extra";
+import { open, read, close } from "fs-extra";
 import { basename, dirname, extname, join } from "path";
 
 import { Nullable } from "../../../shared/types";
@@ -64,9 +64,12 @@ export class KTXTools {
 
 		let hasAlpha = type !== "-etc1.ktx" && extension === ".png";
 		if (hasAlpha) {
+			
+			let fd: Nullable<number> = null;
 			try {
+				fd = await open(texturePath, "r");
+
 				const buffer = new Buffer(1);
-				const fd = await open(texturePath, "r");
 				const readResult = await read(fd, buffer, 0, 1, 25);
 
 				if (readResult.buffer[0] !== 6) {
@@ -74,6 +77,10 @@ export class KTXTools {
 				}
 			} catch (e) {
 				editor.console.logWarning(`Failed to determine alpha used by texture "${texturePath}"`);
+			}
+
+			if (fd !== null) {
+				await close(fd);
 			}
 		}
 

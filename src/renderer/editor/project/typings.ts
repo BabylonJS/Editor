@@ -43,6 +43,24 @@ export interface IWorkSpace {
     pluginsPreferences?: Undefinable<IStringDictionary<any>>;
 
     /**
+     * Defines the options set when the user wants to use HTTPS server.
+     */
+    https?: {
+        /**
+         * Defines wether or not HTTPS server is enabled.
+         */
+        enabled: boolean;
+        /**
+         * Defines the path to the certificate file.
+         */
+        certPath?: string;
+        /**
+         * Defines the path to the key file.
+         */
+        keyPath?: string;
+    };
+
+    /**
      * Defines the options of the KTX2 compression tool.
      */
     ktx2CompressedTextures?: {
