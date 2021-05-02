@@ -72,6 +72,13 @@ export interface IWorkSpace {
          * Defines the path to the PVRTexToolCLI program executed to 
          */
         pvrTexToolCliPath?: string;
+
+        /**
+         * Defines wether or not the Editor automatically generates compressed textures
+         * to be used in the Editor's preview scene.
+         */
+        enabledInPreview?: boolean;
+
         /**
          * Defines the optional format forced to be used when exporting the scene.
          */

@@ -39,14 +39,18 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 				<InspectorSection title="KTX2 Compression">
 					<InspectorBoolean object={workspace.ktx2CompressedTextures} property="enabled" label="Enabled" defaultValue={false} />
 					<InspectorFileInput object={workspace.ktx2CompressedTextures} property="pvrTexToolCliPath" label="PVRTexToolCLI Path" />
-					<InspectorList object={workspace.ktx2CompressedTextures} property="forcedFormat" label="Forced Format" items={[
-						{ label: "Automatic", data: "automatic" },
-						{ label: "ASTC", data: "-astc.ktx" },
-						{ label: "DXT", data: "-dxt.ktx" },
-						{ label: "PVRTC", data: "-pvrtc.ktx" },
-						{ label: "ETC1", data: "-etc1.ktx" },
-						{ label: "ETC2", data: "-etc2.ktx" },
-					]} />
+
+					<InspectorSection title="Development">
+						<InspectorBoolean object={workspace.ktx2CompressedTextures} property="enabledInPreview" label="Enabled In Preview" defaultValue={false} />
+						<InspectorList object={workspace.ktx2CompressedTextures} property="forcedFormat" label="Forced Format" items={[
+							{ label: "Automatic", data: "automatic" },
+							{ label: "ASTC", data: "-astc.ktx" },
+							{ label: "DXT", data: "-dxt.ktx" },
+							{ label: "PVRTC", data: "-pvrtc.ktx" },
+							{ label: "ETC1", data: "-etc1.ktx" },
+							{ label: "ETC2", data: "-etc2.ktx" },
+						]} />
+					</InspectorSection>
 
 					<InspectorSection title="ASCT">
 						<InspectorList object={workspace.ktx2CompressedTextures.astcOptions} property="quality" label="Quality" items={[
@@ -81,7 +85,7 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 					</InspectorSection>
 
 					<InspectorSection title="ETC2">
-					<InspectorBoolean object={workspace.ktx2CompressedTextures.ect2Options} property="enabled" label="Enabled" defaultValue={false} />
+						<InspectorBoolean object={workspace.ktx2CompressedTextures.ect2Options} property="enabled" label="Enabled" defaultValue={false} />
 						<InspectorList object={workspace.ktx2CompressedTextures.ect2Options} property="quality" label="Quality" items={[
 							{ label: "Fast", data: "etcfast" },
 							{ label: "Normal", data: "etcnormal" },

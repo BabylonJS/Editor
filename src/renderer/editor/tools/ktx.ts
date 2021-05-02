@@ -1,7 +1,10 @@
-import { open, read, close } from "fs-extra";
+import { createReadStream } from "fs";
 import { basename, dirname, extname, join } from "path";
 
 import { Nullable } from "../../../shared/types";
+
+import { PNG } from "pngjs";
+import { Engine } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -17,6 +20,18 @@ export type KTXToolsType = "-astc.ktx" | "-dxt.ktx" | "-pvrtc.ktx" | "-etc1.ktx"
 export class KTXTools {
 	private static _SupportedExtensions: string[] = [".png", ".jpg", ".jpeg"];
 
+	/**
+	 * Returns the format of the currently supported Ktx format.
+	 */
+	public static GetSupportedKtxFormat(engine: Engine): Nullable<KTXToolsType> {
+		return engine.texturesSupported[0] as KTXToolsType ?? null;
+	}
+
+	/**
+	 * Returns the of the given texture path by applying the ktx extension to it.
+	 * @param texturePath defines the path to the texture to gets its Ktx name.
+	 * @param type defines the type of ktx file to use.
+	 */
 	public static GetKtxFileName(texturePath: string, type: KTXToolsType): string {
 		const name = basename(texturePath);
 		const dir = dirname(texturePath);
@@ -61,27 +76,10 @@ export class KTXTools {
 		const destination = join(destinationFolder, filename);
 
 		const log = editor.console.logInfo(`Compressing texture ${name} ${type} - `);
-
+		
 		let hasAlpha = type !== "-etc1.ktx" && extension === ".png";
 		if (hasAlpha) {
-			
-			let fd: Nullable<number> = null;
-			try {
-				fd = await open(texturePath, "r");
-
-				const buffer = new Buffer(1);
-				const readResult = await read(fd, buffer, 0, 1, 25);
-
-				if (readResult.buffer[0] !== 6) {
-					hasAlpha = false;
-				}
-			} catch (e) {
-				editor.console.logWarning(`Failed to determine alpha used by texture "${texturePath}"`);
-			}
-
-			if (fd !== null) {
-				await close(fd);
-			}
+			hasAlpha = await this._PNGHasAlpha(texturePath);
 		}
 
 		const exePath = ktx2CompressedTextures.pvrTexToolCliPath;
@@ -123,5 +121,23 @@ export class KTXTools {
 		} catch (e) {
 			log!.innerHTML += `<span style="color: red;"> Failed</span>`;
 		}
+	}
+
+	/**
+	 * Returns wether or not the given png texture has alpha.
+	 */
+	private static _PNGHasAlpha(texturePath: string): Promise<boolean> {
+		return new Promise<boolean>((resolve, reject) => {
+			const stream = createReadStream(texturePath);
+			stream.pipe(new PNG())
+				.on("metadata", (m) => {
+					resolve(m.alpha === true);
+					stream.close();
+				})
+				.on("error", (err) => {
+					reject(err);
+					stream.close();
+				});
+		});
 	}
 }

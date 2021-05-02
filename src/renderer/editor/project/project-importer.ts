@@ -1,10 +1,12 @@
 import { dirname, join, basename } from "path";
-import { readJSON, pathExists } from "fs-extra";
+import { readJSON, pathExists, pathExistsSync } from "fs-extra";
+
+import { Nullable } from "../../../shared/types";
 
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
-    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags,
+    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture,
 } from "babylonjs";
 
 import { MeshesAssets } from "../assets/meshes";
@@ -16,12 +18,14 @@ import { Editor } from "../editor";
 import { Overlay } from "../gui/overlay";
 
 import { Tools } from "../tools/tools";
+import { KTXTools } from "../tools/ktx";
 
 import { SceneSettings } from "../scene/settings";
 
 import { Project } from "./project";
 import { IProject } from "./typings";
 import { FilesStore } from "./files";
+import { WorkSpace } from "./workspace";
 import { ProjectHelpers } from "./helpers";
 
 import { Assets } from "../components/assets";
@@ -68,7 +72,30 @@ export class ProjectImporter {
                 }
             }
 
-            const texture = textureParser(source, scene, rootUrl);
+            let texture: Nullable<BaseTexture> = null;
+
+            const supportedFormat = KTXTools.GetSupportedKtxFormat(scene.getEngine());
+            const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
+
+            if (supportedFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures?.enabledInPreview) {
+                const ktxTextureName = basename(KTXTools.GetKtxFileName(source.name, supportedFormat));
+                const ktxFileExists = pathExistsSync(join(Project.DirPath!, "files/compressed_textures", ktxTextureName));
+
+                if (ktxFileExists) {
+                    const oldName = source.name;
+
+                    source.name = join("files/compressed_textures", ktxTextureName);
+                    texture = textureParser(source, scene, rootUrl);
+
+                    if (texture) {
+                        texture.name = oldName;
+                    }
+                }
+            }
+            
+            if (!texture) {
+                texture = textureParser(source, scene, rootUrl);
+            }
 
             if (source.metadata?.editorName && source.metadata?.isPureCube) {
                 // Cube texture?

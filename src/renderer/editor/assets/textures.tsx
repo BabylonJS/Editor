@@ -1,7 +1,7 @@
+import * as os from "os";
 import { shell } from "electron";
 import { extname, basename, join } from "path";
-import { copy, readdir, remove } from "fs-extra";
-import * as os from "os";
+import { copy, pathExists, readdir, remove } from "fs-extra";
 
 import { Nullable, Undefinable } from "../../../shared/types";
 
@@ -10,11 +10,14 @@ import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Pop
 
 import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, DynamicTexture, BaseTexture } from "babylonjs";
 
+import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
+import { KTXTools } from "../tools/ktx";
 import { undoRedo } from "../tools/undo-redo";
 
-import { FilesStore, IFile } from "../project/files";
 import { Project } from "../project/project";
+import { WorkSpace } from "../project/workspace";
+import { FilesStore, IFile } from "../project/files";
 
 import { Icon } from "../gui/icon";
 import { Dialog } from "../gui/dialog";
@@ -131,6 +134,8 @@ export class TextureAssets extends AbstractAssets {
 
             this.updateAssetObservable.notifyObservers();
         }
+
+        await this.refreshCompressedTexturesFiles();
 
         return super.refresh();
     }
@@ -378,6 +383,10 @@ export class TextureAssets extends AbstractAssets {
         this._removeTexture(item, texture);
     }
 
+    /**
+     * Returns the last reference of the texture identified by the given name.
+     * @param name defines the name of the texture to find.
+     */
     public getLastTextureByName<T extends Texture>(name: string): Nullable<T> {
         let texture: Nullable<T> = null;
 
@@ -388,6 +397,64 @@ export class TextureAssets extends AbstractAssets {
         }
 
         return texture;
+    }
+
+    /**
+     * In case of using compressed textures, refreshes the associoated compressed textures
+     * files for each existing texture in the project.
+     */
+    public async refreshCompressedTexturesFiles(): Promise<void> {
+        const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
+        if (!ktx2CompressedTextures) {
+            return;
+        }
+
+        if (!ktx2CompressedTextures.enabled || !ktx2CompressedTextures.enabledInPreview) {
+            return;
+        }
+
+        const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
+        if (!ktxFormat) {
+            return;
+        }
+
+        const compressedTextures: string[] = [];
+        const compressedTexturesDest = join(Project.DirPath!, "files/compressed_textures");
+
+        await FSTools.CreateDirectory(compressedTexturesDest);
+
+        for (const texture of this.editor.scene!.textures) {
+            if (!texture.name || !(texture instanceof Texture)) {
+                continue;
+            }
+
+            const file = FilesStore.GetFileFromBaseName(basename(texture.name));
+            if (!file) {
+                continue;
+            }
+
+            const previousUrl = texture.url;
+            const ktxTexturePath = KTXTools.GetKtxFileName(file.name, ktxFormat);
+
+            compressedTextures.push(basename(ktxTexturePath));
+
+            if (!await pathExists(join(compressedTexturesDest, ktxTexturePath))) {
+                await KTXTools.CompressTexture(this.editor, file.path, compressedTexturesDest, ktxFormat);
+                
+                // Update Url
+                texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
+                texture.url = previousUrl;
+            }
+
+        }
+
+        // Remove old useless textures
+        const dir = await readdir(compressedTexturesDest);
+        for (const f of dir) {
+            if (compressedTextures.indexOf(f) === -1) {
+                await remove(join(compressedTexturesDest, f));
+            }
+        }
     }
 
     /**

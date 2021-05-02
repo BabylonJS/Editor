@@ -1,5 +1,5 @@
 import { join, normalize, basename, dirname, extname } from "path";
-import { mkdir, pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove, createWriteStream } from "fs-extra";
+import { pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove, createWriteStream } from "fs-extra";
 
 import {
     SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture,
@@ -15,6 +15,7 @@ import { PrefabAssets } from "../assets/prefabs";
 import { ScriptAssets } from "../assets/scripts";
 
 import { Editor } from "../editor";
+import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
 import { KTXTools, KTXToolsType } from "../tools/ktx";
 import { MaterialTools } from "../tools/components/material";
@@ -154,7 +155,7 @@ export class ProjectExporter {
 
         // Write all files
         const filesDir = join(Project.DirPath!, "files");
-        if (!(await pathExists(filesDir))) { await mkdir(filesDir); }
+        await FSTools.CreateDirectory(filesDir);
 
         let progressValue = 0;
         let progressCount = 100 / FilesStore.GetFilesCount();
@@ -204,7 +205,7 @@ export class ProjectExporter {
             progressValue = 0;
             progressCount = 100 / morphTargets.length ?? 1;
 
-            if (!(await pathExists(morphTargetsDir))) { await mkdir(morphTargetsDir); }
+            await FSTools.CreateDirectory(morphTargetsDir);
 
             for (const mtm of morphTargets) {
                 const morphTargetManagerDest = `${mtm.id}.json`;
@@ -233,7 +234,7 @@ export class ProjectExporter {
         progressCount = 100 / editor.scene!.cameras.length;
 
         const camerasDir = join(Project.DirPath!, "cameras");
-        if (!(await pathExists(camerasDir))) { await mkdir(camerasDir); }
+        await FSTools.CreateDirectory(camerasDir);
 
         for (const camera of editor.scene!.cameras) {
             if (camera.doNotSerialize) { continue; }
@@ -256,7 +257,7 @@ export class ProjectExporter {
         progressCount = 100 / editor.scene!.textures.length;
 
         const texturesDir = join(Project.DirPath!, "textures");
-        if (!(await pathExists(texturesDir))) { await mkdir(texturesDir); }
+        await FSTools.CreateDirectory(texturesDir);
 
         for (const texture of editor.scene!.textures) {
             if (texture instanceof RenderTargetTexture || texture instanceof DynamicTexture) { continue; }
@@ -297,7 +298,7 @@ export class ProjectExporter {
         progressCount = 100 / (editor.scene!.materials.length + editor.scene!.multiMaterials.length);
 
         const materialsDir = join(Project.DirPath!, "materials");
-        if (!(await pathExists(materialsDir))) { await mkdir(materialsDir); }
+        await FSTools.CreateDirectory(materialsDir);
 
         const materials = editor.scene!.materials.concat(editor.scene!.multiMaterials);
 
@@ -344,10 +345,10 @@ export class ProjectExporter {
         progressCount = 100 / editor.scene!.meshes.length;
 
         const meshesDir = join(Project.DirPath!, "meshes");
-        if (!(await pathExists(meshesDir))) { await mkdir(meshesDir); }
+        await FSTools.CreateDirectory(meshesDir);
 
         const geometriesDir = join(Project.DirPath!, "geometries");
-        if (!(await pathExists(geometriesDir))) { await mkdir(geometriesDir); }
+        await FSTools.CreateDirectory(geometriesDir);
 
         for (const mesh of editor.scene!.meshes) {
             if (!(mesh instanceof Mesh) || mesh._masterMesh || mesh.doNotSerialize) { continue; }
@@ -387,10 +388,10 @@ export class ProjectExporter {
         progressCount = 100 / editor.scene!.lights.length;
 
         const lightsDir = join(Project.DirPath!, "lights");
-        if (!(await pathExists(lightsDir))) { await mkdir(lightsDir); }
+        await FSTools.CreateDirectory(lightsDir);
 
         const shadowsDir = join(Project.DirPath!, "shadows");
-        if (!(await pathExists(shadowsDir))) { await mkdir(shadowsDir); }
+        await FSTools.CreateDirectory(shadowsDir);
 
         for (const light of editor.scene!.lights) {
             const lightJson = light.serialize();
@@ -423,7 +424,7 @@ export class ProjectExporter {
         progressCount = 100 / editor.scene!.transformNodes.length;
 
         const transformNodesDir = join(Project.DirPath!, "transform");
-        if (!(await pathExists(transformNodesDir))) { await mkdir(transformNodesDir); }
+        await FSTools.CreateDirectory(transformNodesDir);
 
         for (const transform of editor.scene!.transformNodes) {
             savePromises.push(new Promise<void>(async (resolve) => {
@@ -452,7 +453,7 @@ export class ProjectExporter {
         progressCount = 100 / editor.scene!.particleSystems.length;
 
         const particleSystemsDir = join(Project.DirPath!, "particleSystems");
-        if (!(await pathExists(particleSystemsDir))) { await mkdir(particleSystemsDir); }
+        await FSTools.CreateDirectory(particleSystemsDir);
 
         for (const ps of editor.scene!.particleSystems) {
             const json = ps.serialize(true);
@@ -474,7 +475,7 @@ export class ProjectExporter {
         progressCount = 100 / editor.scene!.mainSoundTrack.soundCollection.length;
 
         const soundsDir = join(Project.DirPath!, "sounds");
-        if (!(await pathExists(soundsDir))) { await mkdir(soundsDir); }
+        await FSTools.CreateDirectory(soundsDir);
 
         for (const s of editor.scene!.mainSoundTrack.soundCollection) {
             const json = s.serialize();
@@ -493,7 +494,7 @@ export class ProjectExporter {
 
         // Write assets cache
         const assetsPath = join(Project.DirPath!, "assets");
-        if (!(await pathExists(assetsPath))) { await mkdir(assetsPath); }
+        await FSTools.CreateDirectory(assetsPath);
         await writeFile(join(Project.DirPath!, "assets", "cache.json"), JSON.stringify(Assets.GetCachedData(), null, "\t"), { encoding: "utf-8" });
 
         // Write project!
@@ -821,7 +822,8 @@ export class ProjectExporter {
         const scene = this.GetFinalSceneJson(editor);
 
         const scenePath = options?.destPath ?? this.GetExportedSceneLocation();
-        if (!(await pathExists(scenePath))) { await mkdir(scenePath); }
+        await FSTools.CreateDirectory(scenePath);
+
         const destFilesDir = join(scenePath, "files");
 
         editor.updateTaskFeedback(task, 50);
@@ -849,13 +851,13 @@ export class ProjectExporter {
             }
         } else {
             if (!incrementalFolderExists) {
-                await mkdir(geometriesPath);
+                await FSTools.CreateDirectory(geometriesPath);
             }
 
             await this._WriteIncrementalGeometryFiles(editor, geometriesPath, scene, true, task, options?.geometryRootPath);
         }
 
-        if (!(await pathExists(destFilesDir))) { await mkdir(destFilesDir); }
+        await FSTools.CreateDirectory(destFilesDir);
 
         // Handle node material textures
         editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");
@@ -1009,7 +1011,8 @@ export class ProjectExporter {
         const scriptsContent = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "scene", "index.ts"), { encoding: "utf-8" });
 
         const indexPath = join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName());
-        if (!(await pathExists(indexPath))) { await mkdir(indexPath); }
+
+        await FSTools.CreateDirectory(indexPath);
 
         await writeFile(join(indexPath, "index.ts"), scriptsContent, { encoding: "utf-8" });
     }
@@ -1021,9 +1024,8 @@ export class ProjectExporter {
     public static async ExportGraphs(editor: Editor): Promise<void> {
         // Write all graphs
         const destGraphs = join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName(), "graphs");
-        if (!(await pathExists(destGraphs))) {
-            await mkdir(destGraphs);
-        }
+
+        await FSTools.CreateDirectory(destGraphs);
 
         const graphs = editor.assets.getAssetsOf(GraphAssets);
         if (graphs?.length) {

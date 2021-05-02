@@ -814,6 +814,9 @@ export class Editor {
         const projectPath = workspacePath ? WorkSpace.GetProjectPath() : await Project.GetOpeningProject();
         if (projectPath) {
             await ProjectImporter.ImportProject(this, projectPath);
+
+            // Assets
+            this.assets.getComponent(TextureAssets)?.refreshCompressedTexturesFiles();
         } else {
             this.graph.refresh();
             WelcomeDialog.Show(this, false);
@@ -1265,5 +1268,8 @@ export class Editor {
             ipcRenderer.once(IPCResponses.EnableDevTools, () => resolve());
             ipcRenderer.send(IPCRequests.EnableDevTools, this._preferences!.developerMode);
         });
+
+        // Assets
+        this.assets.getComponent(TextureAssets)?.refreshCompressedTexturesFiles();
     }
 }
