@@ -404,6 +404,10 @@ export class TextureAssets extends AbstractAssets {
      * files for each existing texture in the project.
      */
     public async refreshCompressedTexturesFiles(): Promise<void> {
+        if (!WorkSpace.HasWorkspace()) {
+            return;
+        }
+        
         const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
         const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
 

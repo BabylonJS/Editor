@@ -93,9 +93,9 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 				{ id: "workspace", label: "Workspace", disabled: this._workspacePath === null },
 				{ id: "editor", label: "Editor", isSelected: true },
 				{ id: "plugins", label: "Plugins" },
-				{ id: "assets", label: "Assets", isExpanded: true, childNodes: [
-					{ id: "assets/geometries", label: "Geometries" },
-					{ id: "assets/textures", label: "Textures" },
+				{ id: "assets", label: "Assets", isExpanded: true, disabled: this._workspacePath === null, childNodes: [
+					{ id: "assets/geometries", label: "Geometries", disabled: this._workspacePath === null },
+					{ id: "assets/textures", label: "Textures", disabled: this._workspacePath === null },
 				] }
 			],
 		});
@@ -117,8 +117,12 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 						onNodeCollapse={(n) => this._handleCategoryCollapsed(n)}
 					/>
 
+					<ButtonGroup style={{ marginLeft: "10px", width: "295px", position: "absolute", bottom: "60px" }}>
+						<Button text="Apply" style={{ width: "calc(100% - 20px)" }} intent={Intent.PRIMARY} onClick={() => this._handleApply()} />
+					</ButtonGroup>
+					
 					<ButtonGroup style={{ marginLeft: "10px", width: "295px", position: "absolute", bottom: "15px" }}>
-						<Button text="Apply" style={{ width: "calc(50% - 10px)" }} intent={Intent.SUCCESS} onClick={() => this._handleApply()} />
+						<Button text="Ok" style={{ width: "calc(50% - 10px)" }} intent={Intent.SUCCESS} onClick={() => this._handleOk()} />
 						<Button text="Close" style={{ left: "10px", width: "calc(50% - 20px)" }} intent={Intent.WARNING} onClick={() => this._handleClose()} />
 					</ButtonGroup>
 				</div>
@@ -170,7 +174,7 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 	}
 
 	/**
-	 * Saves the preferences.
+	 * Called on the user clicks on the "Apply" button. Saves the preferences.
 	 */
 	private async _handleApply(): Promise<void> {
 		try {
@@ -196,6 +200,15 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 				message: `Failed: ${e.message}`,
 			});
 		}
+	}
+
+	/**
+	 * Called on the user clicks on the "Ok" button. Saves the preferences and closes
+	 * the window.
+	 */
+	private async _handleOk(): Promise<void> {
+		await this._handleApply();
+		this._handleClose();
 	}
 
 	/**
