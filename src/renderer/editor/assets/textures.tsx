@@ -405,18 +405,7 @@ export class TextureAssets extends AbstractAssets {
      */
     public async refreshCompressedTexturesFiles(): Promise<void> {
         const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
-        if (!ktx2CompressedTextures) {
-            return;
-        }
-
-        if (!ktx2CompressedTextures.enabled || !ktx2CompressedTextures.enabledInPreview) {
-            return;
-        }
-
         const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
-        if (!ktxFormat) {
-            return;
-        }
 
         const compressedTextures: string[] = [];
         const compressedTexturesDest = join(Project.DirPath!, "files/compressed_textures");
@@ -433,19 +422,22 @@ export class TextureAssets extends AbstractAssets {
                 continue;
             }
 
-            const previousUrl = texture.url;
-            const ktxTexturePath = KTXTools.GetKtxFileName(file.name, ktxFormat);
+            if (ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
+                const previousUrl = texture.url;
+                const ktxTexturePath = KTXTools.GetKtxFileName(file.name, ktxFormat);
 
-            compressedTextures.push(basename(ktxTexturePath));
+                compressedTextures.push(basename(ktxTexturePath));
 
-            if (!await pathExists(join(compressedTexturesDest, ktxTexturePath))) {
-                await KTXTools.CompressTexture(this.editor, file.path, compressedTexturesDest, ktxFormat);
-                
-                // Update Url
-                texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
-                texture.url = previousUrl;
+                if (!await pathExists(join(compressedTexturesDest, ktxTexturePath))) {
+                    await KTXTools.CompressTexture(this.editor, file.path, compressedTexturesDest, ktxFormat);
+                    
+                    // Update Url
+                    texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
+                    texture.url = previousUrl;
+                }
+            } else {
+                texture.updateURL(join(Project.DirPath!, texture.name));
             }
-
         }
 
         // Remove old useless textures
