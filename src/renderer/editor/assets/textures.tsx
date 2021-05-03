@@ -407,6 +407,11 @@ export class TextureAssets extends AbstractAssets {
         if (!WorkSpace.HasWorkspace()) {
             return;
         }
+
+        const task = this.editor.addTaskFeedback(0, "Updating compressed textures...");
+        const step = 100 / this.editor.scene!.textures.length;
+
+        let progress = 0;
         
         const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
         const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
@@ -418,11 +423,13 @@ export class TextureAssets extends AbstractAssets {
 
         for (const texture of this.editor.scene!.textures) {
             if (!texture.name || !(texture instanceof Texture)) {
+                this.editor.updateTaskFeedback(task, progress += step);
                 continue;
             }
 
             const file = FilesStore.GetFileFromBaseName(basename(texture.name));
             if (!file) {
+                this.editor.updateTaskFeedback(task, progress += step);
                 continue;
             }
 
@@ -442,6 +449,8 @@ export class TextureAssets extends AbstractAssets {
             } else {
                 texture.updateURL(join(Project.DirPath!, texture.name));
             }
+
+            this.editor.updateTaskFeedback(task, progress += step);
         }
 
         // Remove old useless textures
@@ -451,6 +460,8 @@ export class TextureAssets extends AbstractAssets {
                 await remove(join(compressedTexturesDest, f));
             }
         }
+
+        this.editor.closeTaskFeedback(task, 1000);
     }
 
     /**
