@@ -89,13 +89,24 @@ export class ProjectImporter {
 
                     if (texture) {
                         texture.name = oldName;
+                        
+                        texture.metadata ??= { };
+                        texture.metadata.ktx2CompressedTextures ??= { };
+                        texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = true;
                     }
                 }
             }
             
             if (!texture) {
                 texture = textureParser(source, scene, rootUrl);
+
+                if (texture) {
+                    texture.metadata ??= { };
+                    texture.metadata.ktx2CompressedTextures ??= { };
+                    texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;
+                }
             }
+
 
             if (source.metadata?.editorName && source.metadata?.isPureCube) {
                 // Cube texture?

@@ -433,6 +433,11 @@ export class TextureAssets extends AbstractAssets {
                 continue;
             }
 
+            texture.metadata ??= { };
+            texture.metadata.ktx2CompressedTextures ??= { };
+
+            const isUsingCompressedTexture = texture.metadata?.ktx2CompressedTextures?.isUsingCompressedTexture ?? false;
+
             if (ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
                 const previousUrl = texture.url;
                 const ktxTexturePath = KTXTools.GetKtxFileName(file.name, ktxFormat);
@@ -446,8 +451,14 @@ export class TextureAssets extends AbstractAssets {
                     texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
                     texture.url = previousUrl;
                 }
+                
+                texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = true;
             } else {
-                texture.updateURL(join(Project.DirPath!, texture.name));
+                if (isUsingCompressedTexture) {
+                    texture.updateURL(join(Project.DirPath!, texture.name));
+                }
+
+                texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;
             }
 
             this.editor.updateTaskFeedback(task, progress += step);
