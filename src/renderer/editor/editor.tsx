@@ -675,14 +675,16 @@ export class Editor {
     /**
      * Runs the project.
      * @param integratedBrowser defines wether or not the integrated browser should be used to run the project.
+     * @param https defines wether or not an HTTPS server should be used to serve the project.
      */
-    public async runProject(mode: EditorPlayMode): Promise<void> {
+    public async runProject(mode: EditorPlayMode, https: boolean): Promise<void> {
         await ProjectExporter.ExportFinalScene(this);
 
         const task = this.addTaskFeedback(0, "Running Server");
         const workspace = WorkSpace.Workspace!;
 
-        const serverResult = await IPCTools.CallWithPromise<{ error?: string }>(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort, workspace.https);
+        const httpsConfig = https ? workspace.https : undefined;
+        const serverResult = await IPCTools.CallWithPromise<{ error?: string }>(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort, httpsConfig);
 
         this.updateTaskFeedback(task, 100);
         this.closeTaskFeedback(task, 500);
@@ -691,7 +693,7 @@ export class Editor {
             return this.notifyMessage(`Failed to run server: ${serverResult.error}`, 3000, null, "danger");
         }
 
-        const protocol = workspace.https?.enabled ? "https" : "http";
+        const protocol = https ? "https" : "http";
 
         switch (mode) {
             case EditorPlayMode.EditorPanelBrowser:
@@ -1038,9 +1040,9 @@ export class Editor {
         ipcRenderer.on("build-project", () => WorkSpace.BuildProject(this));
         ipcRenderer.on("build-and-run-project", async () => {
             await WorkSpace.BuildProject(this);
-            this.runProject(EditorPlayMode.IntegratedBrowser);
+            this.runProject(EditorPlayMode.IntegratedBrowser, false);
         });
-        ipcRenderer.on("run-project", () => this.runProject(EditorPlayMode.IntegratedBrowser));
+        ipcRenderer.on("run-project", () => this.runProject(EditorPlayMode.IntegratedBrowser, false));
         ipcRenderer.on("generate-project", () => ProjectExporter.ExportFinalScene(this));
 
         // Drag'n'drop

@@ -98,10 +98,10 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text={<div>Build Project... <Tag intent={Intent.PRIMARY}>(CTRL+b)</Tag></div>} onClick={() => WorkSpace.BuildProject(this._editor)} id="toolbar-build-project" />
                 <MenuItem text={<div>Build & Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={async () => {
                     await WorkSpace.BuildProject(this._editor);
-                    this._editor.runProject(EditorPlayMode.IntegratedBrowser);
+                    this._editor.runProject(EditorPlayMode.IntegratedBrowser, false);
                 }} id="toolbar-build-and-run-project" />
                 <MenuDivider />
-                <MenuItem text={<div>Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={() => this._editor.runProject(EditorPlayMode.IntegratedBrowser)} />
+                <MenuItem text={<div>Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={() => this._editor.runProject(EditorPlayMode.IntegratedBrowser, false)} />
                 <MenuDivider />
                 <MenuItem text="Open Visual Studio Code..." icon={<Icon src="vscode.svg" style={{ filter: "none" }} />} onClick={() => this._handleOpenVSCode()} />
                 <MenuDivider />
