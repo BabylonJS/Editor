@@ -48,6 +48,8 @@ export class FreeCameraInspector extends CameraInspector<FreeCamera | Universal
                     {this._getKeyMapButtonInspector("keysLeft", "Left")}
                     {this._getKeyMapButtonInspector("keysRight", "Right")}
                 </InspectorSection>
+
+                {this.getAnimationRangeInspector()}
             </>
         );
     }

@@ -102,7 +102,7 @@ export class Alert extends React.Component<IAlertProps, { }> {
         const footer = this.props.noFooter ? undefined : (
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    <Button onClick={() => this.close()}>Ok</Button>
+                    <Button style={{ width: "100px" }} onClick={() => this.close()}>Ok</Button>
                 </div>
             </div>
         );

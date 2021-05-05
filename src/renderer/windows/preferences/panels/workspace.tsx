@@ -36,7 +36,7 @@ export class WorkspacePreferencesPanel extends React.Component<IPreferencesPanel
 					<InspectorSection title="HTTPS">
 						<InspectorBoolean object={workspace.https} property="enabled" label="Enabled" defaultValue={false} />
 						<InspectorFileInput object={workspace.https} property="certPath" label="Certificate" />
-						<InspectorFileInput object={workspace.https} property="keyPath" label="Key" />
+						<InspectorFileInput object={workspace.https} property="keyPath" label="Private Key" />
 					</InspectorSection>
 				</InspectorSection>
 			</div>

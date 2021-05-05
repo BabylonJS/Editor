@@ -38,7 +38,8 @@ export class SpotLightInspector extends LightInspector<SpotLight, INodeInspector
                     <InspectorVector3 object={this.selectedObject} property="direction" label="Direction" step={0.01} />
                 </InspectorSection>
 
-                {super.getExcludedMeshesInspector()}
+                {this.getAnimationRangeInspector()}
+                {this.getExcludedMeshesInspector()}
             </>
         );
     }

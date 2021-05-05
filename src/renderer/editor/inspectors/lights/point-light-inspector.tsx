@@ -24,7 +24,8 @@ export class PointLightInspector extends LightInspector<PointLight, INodeInspect
                     <InspectorVector3 object={this.selectedObject} property="position" label="Position" step={0.01} />
                 </InspectorSection>
 
-                {super.getExcludedMeshesInspector()}
+                {this.getAnimationRangeInspector()}
+                {this.getExcludedMeshesInspector()}
             </>
         );
     }

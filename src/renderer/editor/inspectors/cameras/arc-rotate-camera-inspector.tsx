@@ -41,6 +41,8 @@ export class ArcRotateCameraInspector extends CameraInspector<ArcRotateCamera, I
                     <InspectorBoolean object={this.selectedObject} property="checkCollisions" label="Check Collisions" />
                     <InspectorVector3 object={this.selectedObject} property="collisionRadius" label="Collision Radius" step={0.01} />
                 </InspectorSection>
+
+                {this.getAnimationRangeInspector()}
             </>
         );
     }
