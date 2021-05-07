@@ -57,6 +57,7 @@ export interface IExportFinalSceneOptions {
 
 export class ProjectExporter {
     private static _IsSaving: boolean = false;
+    private static _IsExporting: boolean = false;
 
     /**
      * Asks the user where to export the project and exports the project in the selected folder.
@@ -86,9 +87,33 @@ export class ProjectExporter {
             await this._Save(editor, skipGenerateScene);
         } catch (e) {
             console.error(e);
+            editor.console.logError(e.message);
         }
 
         this._IsSaving = false;
+    }
+
+    /**
+     * Eports the final scene.
+     * @param editor the editor reference.
+     * @param task defines the already existing task feedback to reuse.
+     * @param destPath defines the optional path where to save to final scene.
+     */
+    public static async ExportFinalScene(editor: Editor, task?: string, options?: IExportFinalSceneOptions): Promise<void> {
+        if (this._IsExporting) {
+            return;
+        }
+
+        this._IsExporting = true;
+
+        try {
+            await this._ExportFinalScene(editor, task, options);
+        } catch (e) {
+            console.error(e);
+            editor.console.logError(e.message);
+        }
+
+        this._IsExporting = false;
     }
 
     /**
@@ -801,11 +826,8 @@ export class ProjectExporter {
 
     /**
      * Eports the final scene.
-     * @param editor the editor reference.
-     * @param task defines the already existing task feedback to reuse.
-     * @param destPath defines the optional path where to save to final scene.
      */
-    public static async ExportFinalScene(editor: Editor, task?: string, options?: IExportFinalSceneOptions): Promise<void> {
+    private static async _ExportFinalScene(editor: Editor, task?: string, options?: IExportFinalSceneOptions): Promise<void> {
         if (!WorkSpace.HasWorkspace()) { return; }
 
         // Check is isolated mode
@@ -820,6 +842,8 @@ export class ProjectExporter {
 
         editor.console.logInfo("Serializing scene...");
         const scene = this.GetFinalSceneJson(editor);
+
+        await FSTools.CreateDirectory(join(WorkSpace.DirPath!, "scenes"));
 
         const scenePath = options?.destPath ?? this.GetExportedSceneLocation();
         await FSTools.CreateDirectory(scenePath);
@@ -903,7 +927,7 @@ export class ProjectExporter {
         if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.pvrTexToolCliPath) {
             const filesToCompress = copiedFiles.slice();
             const promises: Promise<void | void[]>[] = [];
-            
+
             step = filesToCompress.length / 100;
             progress = 0;
 

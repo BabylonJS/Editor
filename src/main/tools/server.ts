@@ -1,5 +1,6 @@
-import { createServer } from "http-server";
 import { Server } from "http";
+import { networkInterfaces } from "os";
+import { createServer } from "http-server";
 
 import { Nullable } from "../../shared/types";
 
@@ -63,5 +64,23 @@ export class GameServer {
 
         this.Path = null;
         this.Server = null;
+    }
+
+    /**
+     * Returns the list of all listenable Ips.
+     */
+    public static GetIps(): string[] {
+        const interfaces = networkInterfaces();
+		const ips: string[] = [];
+
+		Object.keys(interfaces).forEach((name) => {
+			interfaces[name].map((i) => {
+				if (i.address.match(/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/)) {
+					ips.push(i.address);
+				}
+			});
+		});
+
+		return ips;
     }
 }

@@ -18,7 +18,7 @@ export class StartWebServerIPC implements IIPCHandler {
 	public async handler(event: IpcMainEvent, path: string, port: number, https?: IServerHttpsOptions): Promise<void> {
 		try {
 			GameServer.RunServer(path, port, https);
-			event.sender.send(IPCResponses.StartGameServer);
+			event.sender.send(IPCResponses.StartGameServer, { ips: GameServer.GetIps() });
 		} catch (e) {
 			event.sender.send(IPCResponses.StartGameServer, { error: e.message });
 		}

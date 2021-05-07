@@ -684,7 +684,7 @@ export class Editor {
         const workspace = WorkSpace.Workspace!;
 
         const httpsConfig = https ? workspace.https : undefined;
-        const serverResult = await IPCTools.CallWithPromise<{ error?: string }>(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort, httpsConfig);
+        const serverResult = await IPCTools.CallWithPromise<{ ips?: string[]; error?: string }>(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort, httpsConfig);
 
         this.updateTaskFeedback(task, 100);
         this.closeTaskFeedback(task, 500);
@@ -694,6 +694,21 @@ export class Editor {
         }
 
         const protocol = https ? "https" : "http";
+
+        this.console.logSection("Running Game Server");
+
+        if (serverResult.ips) {
+            const log = this.console.logInfo("");
+            if (log) {
+                log.innerHTML = `
+                    Server is running:
+                    <ul>${serverResult.ips.map((ip) => `<li>${protocol}://${ip}:${workspace.serverPort}</li>`).join("")}</ul>
+                `;
+                log.style.color = "green";
+            }
+        }
+        
+        this.console.logInfo("Server is running.");
 
         switch (mode) {
             case EditorPlayMode.EditorPanelBrowser:
