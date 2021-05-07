@@ -105,7 +105,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             case "generate-only-geometries": ProjectExporter.ExportFinalSceneOnlyGeometries(this._editor); break;
             case "build-project": WorkSpace.BuildProject(this._editor); break;
 
-            case "play-scene": this._handlePlay(); break;
+            case "play-scene": this.handlePlay(); break;
             case "restart-play-scene": this._handleRestart(); break;
             default: break;
         }
@@ -151,12 +151,16 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     /**
      * Called on the user wants to play or stop the test of the scene.
      */
-    private async _handlePlay(): Promise<void> {
+    public async handlePlay(): Promise<void> {
+        if (this.state.playing?.isLoading) {
+            return;
+        }
+        
         const isPlaying = !this.state.playing.isPlaying;
         this.setState({ playing: { isPlaying, isLoading: true } });
 
         try {
-            await this._editor.preview.playOrStop(false);
+            await this._editor.preview.playOrStop(WorkSpace.Workspace?.playProjectInIFrame ?? false);
             this.setState({ playing: { ...this.state.playing, isLoading: false } });
         } catch (e) {
             this.setState({ playing: { isPlaying: false, isLoading: false } });

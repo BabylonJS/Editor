@@ -651,7 +651,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         const node = this._editor.scene!.getNodeByID(item.id);
         if (!node) { return; }
 
-        this._focusNode(node, false);
+        // this._focusNode(node, false);
+        this._editor.selectedNodeObservable.notifyObservers(node);
     }
 
     /**

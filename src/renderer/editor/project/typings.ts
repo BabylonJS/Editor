@@ -43,6 +43,13 @@ export interface IWorkSpace {
     pluginsPreferences?: Undefinable<IStringDictionary<any>>;
 
     /**
+     * Defines wether or not the project should be played in an isolated iFrame in the preview
+     * panel when the user clicks the "play button". This is typically useful to avoid conflicts between
+     * the version of Babylon.JS loaded in the editor and the one used in the project.
+     */
+    playProjectInIFrame?: boolean;
+
+    /**
      * Defines the options set when the user wants to use HTTPS server.
      */
     https?: {

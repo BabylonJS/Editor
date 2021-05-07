@@ -219,6 +219,14 @@ export default class EditorApp {
 						accelerator: "CommandOrControl+G",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("generate-project"),
 					},
+					{
+						type: "separator",
+					},
+					{
+						label: "Play Project...",
+						accelerator: "CommandOrControl+T",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("play-project"),
+					}
 				],
 			},
 			{

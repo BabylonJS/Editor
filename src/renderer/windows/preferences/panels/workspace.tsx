@@ -25,6 +25,7 @@ export class WorkspacePreferencesPanel extends React.Component<IPreferencesPanel
 			<div style={{ width: "70%", height: "100%", margin: "auto" }}>
 				<InspectorSection title="Project">
 					<InspectorBoolean object={workspace} property="generateSceneOnSave" label="Generate Scene On Save" defaultValue={true} />
+					<InspectorBoolean object={workspace} property="playProjectInIFrame" label="Use Isolated IFrame When Playing Project" defaultValue={false} />
 				</InspectorSection>
 
 				<InspectorSection title="WebPack">

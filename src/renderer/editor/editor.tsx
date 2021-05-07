@@ -1057,8 +1057,11 @@ export class Editor {
             await WorkSpace.BuildProject(this);
             this.runProject(EditorPlayMode.IntegratedBrowser, false);
         });
+        
         ipcRenderer.on("run-project", () => this.runProject(EditorPlayMode.IntegratedBrowser, false));
         ipcRenderer.on("generate-project", () => ProjectExporter.ExportFinalScene(this));
+
+        ipcRenderer.on("play-project", () => this.toolsToolbar.handlePlay());
 
         // Drag'n'drop
         document.addEventListener("dragover", (ev) => ev.preventDefault());

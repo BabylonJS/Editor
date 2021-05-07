@@ -119,6 +119,7 @@ export class WorkSpace {
             watchProject: this.Workspace!.watchProject,
             physicsEngine: this.Workspace!.physicsEngine,
             pluginsPreferences,
+            playProjectInIFrame: this.Workspace!.playProjectInIFrame,
             https: this.Workspace!.https ?? {
                 enabled: false,
             },
