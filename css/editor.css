@@ -361,3 +361,29 @@ html, body {
 .dg .cr {
     border-top: 1px solid #3f3f3f;
 }
+
+/* SPLIT PANE */
+.Resizer {
+    background: black;
+    opacity: 0.2;
+    z-index: 1;
+    box-sizing: border-box;
+    background-clip: padding-box;
+}
+
+.Resizer:hover {
+    transition: all 2s ease;
+}
+
+.Resizer.vertical {
+    width: 20px;
+    margin: 0 -5px;
+    border-left: 5px solid rgba(255, 255, 255, 0);
+    border-right: 5px solid rgba(255, 255, 255, 0);
+    cursor: col-resize;
+}
+
+.Resizer.vertical:hover {
+    border-left: 5px solid rgba(0, 0, 0, 0.5);
+    border-right: 5px solid rgba(0, 0, 0, 0.5);
+}

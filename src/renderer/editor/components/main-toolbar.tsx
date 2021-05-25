@@ -347,7 +347,6 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         if (family === "tools") {
             switch (action) {
                 case "animation-editor": this._editor.addBuiltInPlugin("animation-editor"); break;
-
                 case "painting-tools": this._editor.addBuiltInPlugin("painting"); break;
 
                 case "photoshop": this._handleTogglePhotoshop(); break;

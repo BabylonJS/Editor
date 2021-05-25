@@ -104,7 +104,7 @@ export default class AnimationEditorPlugin extends AbstractEditorPlugin<IAnimati
         }
 
         return (
-            <div style={{ width: "100%", height: "100%" }}>
+            <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
                 {noAnimatable}
                 <div className={Classes.FILL} key="documentation-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px", visibility: (this.state.selectedAnimatable ? "visible" : "hidden") }}>
                     <ButtonGroup className={Classes.DARK}>

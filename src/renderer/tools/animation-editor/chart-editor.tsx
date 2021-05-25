@@ -151,9 +151,9 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
             options: {
                 dragData: true,
                 dragX: true,
-                onDragStart: () => this._handleDragPointStart(),
-                onDrag: (e, di, i, v) => this._handleDragPoint(e, di, i, v),
-                onDragEnd: (e, di, i, v) => this._handleDragPointEnd(e, di, i, v),
+                onDragStart: (e) => e.button === 0 && this._handleDragPointStart(),
+                onDrag: (e, di, i, v) => e.button === 0 && this._handleDragPoint(e, di, i, v),
+                onDragEnd: (e, di, i, v) => e.button === 0 && this._handleDragPointEnd(e, di, i, v),
                 onClick: (e, elements) => this._handleChartClick(e, elements),
                 showLines: false,
                 responsive: true,
@@ -401,7 +401,7 @@ export class ChartEditor extends React.Component<IChartEditorProps, IChartEditor
     private _handleKeyboardEvent(infos: KeyboardInfo): void {
         this._selection?.keyboardEvent(infos);
 
-        if (infos.event.keyCode === 32) {
+        if (infos.event.key === " ") {
             if (this.chart?.config.options) {
                 this.chart.config.options.dragX = infos.type === KeyboardEventTypes.KEYUP;
             }

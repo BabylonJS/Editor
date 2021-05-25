@@ -1,14 +1,15 @@
 import { IStringDictionary } from "../../../shared/types";
 
 import * as React from "react";
-import { Tabs, Tab, TabId } from "@blueprintjs/core";
+import { Tabs, Tab, TabId, Tooltip } from "@blueprintjs/core";
 
-import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plugin";
+import { Icon } from "../../editor/gui/icon";
+
 import { AbstractInspector } from "../../editor/inspectors/abstract-inspector";
+import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plugin";
 
 import { DecalsPainterInspector } from "./decals/inspector";
-import { ThinInstancePainterInspector } from "./thin-instances/inspector";
-// import { MaterialPainterInspector } from "./material/inspector";
+import { ThinInstancePainterInspector } from "./thin-instances/inspector";
 
 export const title = "Painting Tools";
 
@@ -28,7 +29,7 @@ export interface IPaintingTools {
 }
 
 export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingTools> {
-    private _tools:IStringDictionary<AbstractInspector<any, any>> = {};
+    private _tools: IStringDictionary<AbstractInspector<any, any>> = {};
 
     /**
      * Constructor.
@@ -43,7 +44,7 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
             tabId: "decals",
             isReady: this.editor.isInitialized,
         };
-        
+
         // Register
         if (!this.editor.isInitialized) {
             this.editor.editorInitializedObservable.addOnce(() => {
@@ -61,21 +62,20 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
         }
 
         const tabs = [
-            this._createTabComponent("Decals", <DecalsPainterInspector ref={(ref) => this._getTool("decals", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
-            this._createTabComponent("Thin Instances", <ThinInstancePainterInspector ref={(ref) => this._getTool("thin-instances", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
-            // this._createTabComponent("Material", <MaterialPainterInspector ref={(ref) => this._getTool("material", ref)} toolId={"material"} editor={this.editor} _objectRef={null} />),
+            this._createTabComponent("Decals", "cylinder.svg", <DecalsPainterInspector ref={(ref) => this._getTool("decals", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
+            this._createTabComponent("Thin Instances", "grass.svg", <ThinInstancePainterInspector ref={(ref) => this._getTool("thin-instances", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
         ];
 
         return (
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
                 <Tabs
-                    animate={true}
+                    animate
+                    vertical
+                    children={tabs}
                     key="painting-tabs"
                     renderActiveTabPanelOnly={true}
-                    vertical={false}
-                    children={tabs}
-                    onChange={(id) => this._handleTabChanged(id)}
                     selectedTabId={this.state.tabId}
+                    onChange={(id) => this._handleTabChanged(id)}
                 ></Tabs>
             </div>
         );
@@ -102,6 +102,8 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
         const size = this.editor.getPanelSize(title);
         if (size) {
             this.setState({ height: size.height }, () => {
+                size.height += 45;
+
                 for (const tool in this._tools) {
                     this._tools[tool]?.resize(size);
                 }
@@ -121,11 +123,23 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
     /**
      * Returns a new tab element containing the given component.
      */
-    private _createTabComponent(title: string, component: React.ReactElement): React.ReactNode {
+    private _createTabComponent(title: string, icon: string, component: React.ReactElement): React.ReactNode {
         const id = title.toLowerCase();
 
+        const tabTitle = (
+            <Tooltip content={title} usePortal>
+                <Icon src={icon} />
+            </Tooltip>
+        );
+
+        const panel = (
+            <div style={{ marginLeft: "-35px", borderLeftColor: "grey", borderLeftWidth: "2px", borderLeftStyle: "groove" }}>
+                {component}
+            </div>
+        )
+
         return (
-            <Tab id={id} title={title} key={id} panel={component} />
+            <Tab id={id} title={tabTitle} key={id} panel={panel} style={{ width: "42px" }} />
         );
     }
 

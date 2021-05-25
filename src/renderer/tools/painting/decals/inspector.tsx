@@ -52,14 +52,14 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
     /**
      * Renders the content of the inspector.
      */
-     public renderContent(): React.ReactNode {
+    public renderContent(): React.ReactNode {
         return (
             <>
                 <Divider />
                 <H4 style={{ textAlign: "center" }}>Decals Painter</H4>
                 <InspectorSection title="Material">
-                    <div style={{ width: "100%", height: "100px" }}>
-                        <div style={{ width: "35%", height: "100px", float: "left" }}>
+                    <div style={{ width: "100%", height: "140px" }}>
+                        <div style={{ height: "100px", margin: "auto" }}>
                             <img
                                 src={this.state.selectedMaterialAsset?.base64 ?? "../css/svg/magic.svg"}
                                 style={{ border: "dashed black 1px", objectFit: "contain", width: "100%", height: "100%" }}
@@ -68,9 +68,7 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
                                 onDrop={(e) => this._handleMaterialDropped(e)}
                             ></img>
                         </div>
-                        <div style={{ width: "65%", height: "100px", float: "left" }}>
-                            <H4 style={{ lineHeight: "100px", textAlign: "center" }}>{this.state.selectedMaterialAsset?.id ?? "None Selected"}</H4>
-                        </div>
+                        <H4 style={{ lineHeight: "50px", textAlign: "center" }}>{this.state.selectedMaterialAsset?.id ?? "None Selected"}</H4>
                     </div>
                     <InspectorList object={this.selectedObject} property="material" label="Material" items={() => this.getMaterialsList()} onChange={(m: Nullable<Material>) => {
                         const asset = this.editor.assets.getAssetsOf(MaterialAssets)?.find((a) => a.key === m?.id) ?? null;

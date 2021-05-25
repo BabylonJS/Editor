@@ -64,8 +64,8 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
                 <Divider />
                 <H4 style={{ textAlign: "center" }}>Thin Instances Painter</H4>
                 <InspectorSection title="Material">
-                    <div style={{ width: "100%", height: "120px" }}>
-                        <div style={{ width: "35%", height: "100px", float: "left" }}>
+                    <div style={{ width: "100%", height: "170px" }}>
+                        <div style={{  height: "100px" }}>
                             <img
                                 src={this.state.selectedMesh && materialAsset ? materialAsset.base64 : "../css/svg/plus.svg"}
                                 style={{ border: "dashed black 1px", objectFit: "contain", width: "100%", height: "100%" }}
@@ -74,9 +74,7 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
                                 onDrop={(e) => this._handleNodeDropped(e)}
                             ></img>
                         </div>
-                        <div style={{ width: "65%", height: "100px", float: "left" }}>
-                            <H4 style={{ lineHeight: "100px", textAlign: "center" }}>{this.state.selectedMesh?.name ?? "None Selected"}</H4>
-                        </div>
+                        <H4 style={{ lineHeight: "40px", textAlign: "center" }}>{this.state.selectedMesh?.name ?? "None Selected"}</H4>
                         <span>Intances Count: {this.state.instancesCount}</span>
                     </div>
                 </InspectorSection>
