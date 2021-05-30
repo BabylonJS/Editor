@@ -2,6 +2,8 @@ import { Engine, Scene, ArcRotateCamera, Vector3, SceneLoader, PointLight, Mesh,
 import { GridMaterial } from "babylonjs-materials";
 import "babylonjs-loaders";
 
+import { FBXLoader } from "../../editor/loaders/fbx/loader";
+
 import * as React from "react";
 
 export const title = "Mesh Viewer";
@@ -53,6 +55,9 @@ export default class MeshViewerWindow extends React.Component {
      * @param data the initialization data containing the mesh to load etc.
      */
     public init(data: { rootUrl: string, name: string }): void {
+        // Register loaders
+        SceneLoader.RegisterPlugin(new FBXLoader());
+        
         this._loadMesh(data.rootUrl, data.name);
     }
 

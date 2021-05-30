@@ -83,6 +83,7 @@
     "dat.gui": "0.7.6",
     "earcut": "2.2.2",
     "electron-devtools-installer": "3.1.1",
+    "fbx-parser": "2.1.3",
     "fs-extra": "8.1.0",
     "generator-core": "3.11.5",
     "glob": "7.1.6",

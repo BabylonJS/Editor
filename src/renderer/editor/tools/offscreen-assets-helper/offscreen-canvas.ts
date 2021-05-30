@@ -11,6 +11,8 @@ import {
 import "babylonjs-materials";
 import "babylonjs-loaders";
 
+import { FBXLoader } from "../../loaders/fbx/loader";
+
 class OffscreenAssets {
     /**
      * The canvas used to render elements.
@@ -64,6 +66,9 @@ class OffscreenAssets {
         if (!Engine.audioEngine) {
             Engine.audioEngine = { } as any;
         }
+
+        // Loaders
+        SceneLoader.RegisterPlugin(new FBXLoader());
 
         // Configure serialization helper
         const textureParser = SerializationHelper._TextureParser;

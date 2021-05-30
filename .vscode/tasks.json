@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "watch-all",
+            "label": "watch-all-editor",
             "group": "build",
             "problemMatcher": [],
             "dependsOn": ["watch", "watch-sample-plugin"],
@@ -15,6 +15,19 @@
                 "echo": true
             }
         },
+        {
+            "label": "watch-all-website",
+            "group": "build",
+            "problemMatcher": [],
+            "dependsOn": ["watch-website", "serve-website"],
+            "presentation": {
+                "panel": "shared",
+                "group": "build",
+                "showReuseMessage": true,
+                "echo": true
+            }
+        },
+
         {
             "label": "watch",
             "type": "npm",
@@ -32,6 +45,30 @@
             "script": "watch-sample-plugin",
             "group": "build",
             "problemMatcher": [],
+            "presentation": {
+                "panel": "shared",
+                "group": "build"
+            }
+        },
+        {
+            "label": "watch-website",
+            "type": "npm",
+            "script": "watch",
+            "group": "build",
+            "problemMatcher": [],
+            "path": "website/",
+            "presentation": {
+                "panel": "shared",
+                "group": "build"
+            }
+        },
+        {
+            "label": "serve-website",
+            "type": "npm",
+            "script": "webserver",
+            "group": "build",
+            "problemMatcher": [],
+            "path": "website/",
             "presentation": {
                 "panel": "shared",
                 "group": "build"

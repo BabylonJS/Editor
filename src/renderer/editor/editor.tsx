@@ -13,7 +13,7 @@ import { Layout, Model, TabNode, Rect, Actions } from "flexlayout-react";
 import {
     Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin,
     SubMesh, Animation, AbstractMesh, IParticleSystem, Sound, KeyboardInfo, KeyboardEventTypes,
-    Color4
+    Color4, SceneLoader,
 } from "babylonjs";
 
 import { Overlay } from "./gui/overlay";
@@ -45,6 +45,9 @@ import { IPlugin, IPluginConfiguration } from "./plugins/plugin";
 import { IPluginToolbar } from "./plugins/toolbar";
 
 import "./painting/material-mixer/material";
+
+// Loaders
+import { FBXLoader } from "./loaders/fbx/loader";
 
 // Components
 import { Inspector } from "./components/inspector";
@@ -342,6 +345,9 @@ export class Editor {
         ScriptAssets.Register();
         GraphAssets.Register();
         PrefabAssets.Register();
+
+        // Register loaders
+        SceneLoader.RegisterPlugin(new FBXLoader());
 
         // Create toolbar
         ReactDOM.render(<MainToolbar editor={this} />, document.getElementById("BABYLON-EDITOR-MAIN-TOOLBAR"));
