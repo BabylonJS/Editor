@@ -1,6 +1,6 @@
-import { readJSON, readdir, writeJson, stat, mkdir, pathExists, copy } from "fs-extra";
-import { basename, join, extname } from "path";
 import Zip from "adm-zip";
+import { basename, join, extname } from "path";
+import { readJSON, readdir, writeJson, stat, mkdir, pathExists, copy, pathExistsSync } from "fs-extra";
 
 import { Undefinable } from "../../../../shared/types";
 
@@ -138,8 +138,10 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
      * Returns the list of all available projects.
      */
     private _getRecentProjects(): Undefinable<JSX.Element> {
-        const data = JSON.parse(localStorage.getItem("babylonjs-editor-welcome") ?? "[]") as any[];
-        if (!data.length) { return undefined; }
+        let data = (JSON.parse(localStorage.getItem("babylonjs-editor-welcome") ?? "[]") as any[]).filter((d) => pathExistsSync(d.path));
+        if (!data.length) {
+            return undefined;
+        }
         
         return (
             <div style={{ width: "100%", height: "200px" }}>
