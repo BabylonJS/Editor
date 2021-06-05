@@ -71,14 +71,14 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
      * Renders the content of the inspector.
      */
     public renderContent(): React.ReactNode {
-        // Check workspace
-        if (!WorkSpace.HasWorkspace()) { return null; }
-
         // Check metadata
         this.selectedObject.metadata ??= { };
         this.selectedObject.metadata.script ??= { };
         this.selectedObject.metadata.script.name ??= "None";
 
+        // Check workspace
+        if (!WorkSpace.HasWorkspace()) { return null; }
+        
         return (
             <InspectorSection title="Script">
                 {this._getDragAndDropZone()}

@@ -54,7 +54,11 @@ export class ScriptAssets extends AbstractAssets {
      */
     public static GetAllScripts(): Promise<string[]> {
         return new Promise<string[]>((resolve, reject) => {
-            Glob(join(WorkSpace.DirPath!, "src", "scenes", "**", "*.ts"), { }, (err, files) => {
+            if (!WorkSpace.DirPath) {
+                return resolve([]);
+            }
+
+            Glob(join(WorkSpace.DirPath, "src", "scenes", "**", "*.ts"), { }, (err, files) => {
                 if (err) { return reject(err); }
 
                 const excluded = [
