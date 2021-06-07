@@ -446,7 +446,10 @@ export class ProjectImporter {
         // Animation groups
         if (project.scene.animationGroups) {
             for (const g of project.scene.animationGroups) {
-                AnimationGroup.Parse(g, editor.scene!);
+                const animationGroup = AnimationGroup.Parse(g, editor.scene!);
+                animationGroup.play();
+                animationGroup.goToFrame(animationGroup.from);
+                animationGroup.stop();
             }
         }
 

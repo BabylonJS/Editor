@@ -103,6 +103,19 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
         super.componentDidMount?.();
 
         this._inspectorName = InspectorUtils.CurrentInspectorName;
+
+        InspectorNotifier.Register(this, this.props.object, () => {
+            this.setState({ value: this.props.object[this.props.property] });
+        });
+    }
+
+    /**
+     * Called on the component will unmount.
+     */
+    public componentWillUnmount(): void {
+        super.componentWillUnmount?.();
+
+        InspectorNotifier.Unregister(this);
     }
 
     /**
@@ -123,8 +136,6 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
             return;
         }
 
-        this._input?.blur();
-
         this.props.object[this.props.property] = this.state.value;
         this.props.onFinishChange?.(this.state.value, this._initialValue);
 
@@ -142,5 +153,7 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
         });
 
         this._initialValue = this.state.value;
+
+        this._input?.blur();
     }
 }

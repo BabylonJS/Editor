@@ -1,7 +1,7 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Tree, ITreeNode, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
+import { Tree, ITreeNode, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
 
 import { Node, AnimationRange } from "babylonjs";
 
@@ -19,6 +19,7 @@ import { InspectorSection } from "../gui/inspector/fields/section";
 
 import { undoRedo } from "../tools/undo-redo";
 
+import { AnimationGroupComponent } from "./tools/animation-groups";
 import { IScriptInspectorState, ScriptInspector } from "./script-inspector";
 
 export interface INodeInspectorState extends IScriptInspectorState {
@@ -37,7 +38,7 @@ export class NodeInspector<T extends Node, S extends INodeInspectorState> extend
      * Constructor.
      * @param props defines the component's props.
      */
-     public constructor(props: IObjectInspectorProps) {
+    public constructor(props: IObjectInspectorProps) {
         super(props);
 
         this.state = {
@@ -60,6 +61,17 @@ export class NodeInspector<T extends Node, S extends INodeInspectorState> extend
 
                 {super.renderContent()}
             </>
+        );
+    }
+
+    /**
+     * Returns the inspector used to edit the animation groups linked to the node.
+     */
+    protected getAnimationsGroupInspector(): React.ReactNode {
+        return (
+            <InspectorSection title="Animation Groups">
+                <AnimationGroupComponent scene={this.selectedObject.getScene()} node={this.selectedObject} />
+            </InspectorSection>
         );
     }
 

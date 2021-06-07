@@ -13,7 +13,7 @@ import { Layout, Model, TabNode, Rect, Actions } from "flexlayout-react";
 import {
     Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin,
     SubMesh, Animation, AbstractMesh, IParticleSystem, Sound, KeyboardInfo, KeyboardEventTypes,
-    Color4, SceneLoader,
+    Color4, SceneLoader, Skeleton,
 } from "babylonjs";
 
 import { Overlay } from "./gui/overlay";
@@ -232,6 +232,10 @@ export class Editor {
      * Notifies observers that a sound has been selected in the editor (graph, preview).
      */
     public selectedSoundObservable: Observable<Sound> = new Observable<Sound>();
+    /**
+     * Notifies observers that a skeleton has been selected in the editor (graph).
+     */
+    public selectedSkeletonObservable: Observable<Skeleton> = new Observable<Skeleton>();
     /**
      * Notifies observers that a node has been added in the editor.
      */
@@ -1002,6 +1006,7 @@ export class Editor {
         this.selectedSceneObservable.add((s) => this.inspector.setSelectedObject(s));
         this.selectedTextureObservable.add((t) => this.inspector.setSelectedObject(t));
         this.selectedMaterialObservable.add((m) => this.inspector.setSelectedObject(m));
+        this.selectedSkeletonObservable.add((s) => this.inspector.setSelectedObject(s));
 
         this.objectModigyingObservable.add(() => {
             // Nothing to to now...

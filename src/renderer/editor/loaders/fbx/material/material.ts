@@ -166,9 +166,7 @@ export class FBXMaterial {
 
 			FilesStore.AddFile(fileUrl);
 
-			const texture = new Texture(fileUrl, scene, !useMipMap);
-
-			result[id] = texture;
+			result[id] = new Texture(fileUrl, scene, !useMipMap);
 		}
 
 		return result;

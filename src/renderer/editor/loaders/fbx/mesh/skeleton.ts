@@ -108,7 +108,7 @@ export class FBXSkeleton {
 						return;
 					}
 
-					const bone = new Bone(name, skeleton.skeletonInstance);
+					const bone = new Bone(`${skeleton.skeletonInstance.name}-${name}`, skeleton.skeletonInstance);
 					bone.id = model.prop(0, "number")!.toString();
 					bone._index = index;
 					

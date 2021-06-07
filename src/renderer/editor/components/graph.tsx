@@ -591,6 +591,20 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             children = node.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as JSX.Element[];
         }
 
+        // Mesh and skeleton?
+        if (node instanceof AbstractMesh && node.skeleton) {
+            children.splice(0, 0, (
+                <Tree.TreeNode
+                    active
+                    expanded
+                    title={node.skeleton.name}
+                    key={`${node.skeleton.name}-${node.skeleton.id}`}
+                    isLeaf
+                    icon={<Icon src="human-skull.svg" />}
+                />
+            ));
+        }
+
         // Search for particle systems.
         this._editor.scene!.particleSystems.forEach((ps) => {
             if (ps.emitter !== node) { return; }
@@ -991,22 +1005,34 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         this.setState({ selectedNodeIds: keys });
 
         const id = keys[keys.length - 1];
+
+        // Scene?
         if (id === "__editor__scene__") {
             this._editor.selectedSceneObservable.notifyObservers(this._editor.scene!);
             return;
         }
 
+        // Skeleton?
+        const skeleton = this._scene.skeletons.find((s) => id === `${s.name}-${s.id}`);
+        if (skeleton) {
+            this._editor.selectedSkeletonObservable.notifyObservers(skeleton);
+            return;
+        }
+
         // Node
-        const lastSelected = this._getNodeById(id);
-        if (!lastSelected) { return; }
+        let lastSelected = this._getNodeById(id);
+        if (!lastSelected) {
+            return;
+        }
 
         if (lastSelected instanceof Node) {
             this._editor.selectedNodeObservable.notifyObservers(lastSelected, undefined, this);
         } else if (lastSelected instanceof Sound) {
             this._editor.selectedSoundObservable.notifyObservers(lastSelected, undefined, this);
-        } else {
+        } else if (lastSelected instanceof ParticleSystem) {
             this._editor.selectedParticleSystemObservable.notifyObservers(lastSelected, undefined, this);
         }
+
         this.lastSelectedObject = lastSelected;
     }
 

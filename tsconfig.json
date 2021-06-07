@@ -21,6 +21,7 @@
     "experimentalDecorators": true,
     "skipLibCheck": true,
     "types": [
+      "babylonjs",
       "jquery",
       "monaco-editor",
       "typescript",

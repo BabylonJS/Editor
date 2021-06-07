@@ -117,6 +117,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
                 {this._getMorphTargetsInspector()}
                 {this._getLodsInspector()}
                 {this.getAnimationRangeInspector()}
+                {this.getAnimationsGroupInspector()}
             </>
         );
     }

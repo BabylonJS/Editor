@@ -93,8 +93,8 @@ export class MeshesAssets extends AbstractAssets {
             const importSuccess = await assetsHelper.importMesh(rootUrl, name);
 
             const base64 = (importSuccess ? await assetsHelper.getScreenshot() : "../css/svg/times.svg");
-            const style = (importSuccess ? { } : { background: "darkred" });
-            
+            const style = (importSuccess ? {} : { background: "darkred" });
+
             const item = this.items.find((i) => i.key === m.path);
 
             if (item) {
@@ -109,7 +109,7 @@ export class MeshesAssets extends AbstractAssets {
             await assetsHelper.reset();
             this.updateAssetObservable.notifyObservers();
         }
-        
+
         return super.refresh();
     }
 
@@ -174,19 +174,6 @@ export class MeshesAssets extends AbstractAssets {
         );
     }
 
-    private async _refreshMeshPreview(name: string, path: string): Promise<void> {
-        const task = this.editor.addTaskFeedback(50, `Refresing "${name}"`);
-
-        try {
-            await this.editor.assets.refresh(MeshesAssets, path);
-            this.editor.updateTaskFeedback(task, 100, "Done");
-        } catch (e) {
-            this.editor.updateTaskFeedback(task, 0, "Failed");
-        }
-
-        this.editor.closeTaskFeedback(task, 500);
-    }
-
     /**
      * Called on the user drops an asset in editor. (typically the preview canvas).
      * @param item the item being dropped.
@@ -228,14 +215,14 @@ export class MeshesAssets extends AbstractAssets {
         for (const mesh of result.meshes) {
             if (!update || !this._updateImportedMeshGeometry(mesh, item.id, forceUpdate)) {
                 // Store the pose matrix of the mesh.
-                mesh.metadata ??= { };
+                mesh.metadata ??= {};
                 mesh.metadata.basePoseMatrix = mesh.getPoseMatrix().asArray();
 
                 // Place mesh
                 if (!mesh.parent && pickInfo?.pickedPoint) {
                     mesh.position.addInPlace(pickInfo.pickedPoint);
                 }
-                
+
                 if (mesh instanceof Mesh) {
                     const meshMetadata = Tools.GetMeshMetadata(mesh);
                     meshMetadata.originalSourceFile = {
@@ -275,9 +262,9 @@ export class MeshesAssets extends AbstractAssets {
                             name: m.name,
                             sceneFileName: item.id,
                         };
-                        
+
                         m.id = Tools.RandomId();
-                        
+
                         if (isGltf) {
                             await this._configureGltfMaterial(m, onTextureDone);
                         }
@@ -319,11 +306,11 @@ export class MeshesAssets extends AbstractAssets {
             skeleton.bones.forEach((b) => {
                 b.id = Tools.RandomId();
 
-                b.metadata ??= { };
+                b.metadata ??= {};
                 b.metadata.originalId = b.id;
             });
         });
-        
+
         result.particleSystems.forEach((ps) => ps.id = Tools.RandomId());
 
         this.editor.assets.refresh();
@@ -403,6 +390,22 @@ export class MeshesAssets extends AbstractAssets {
     }
 
     /**
+     * Called on the user wants to refresh preview of a mesh.
+     */
+    private async _refreshMeshPreview(name: string, path: string): Promise<void> {
+        const task = this.editor.addTaskFeedback(50, `Refresing "${name}"`);
+
+        try {
+            await this.editor.assets.refresh(MeshesAssets, path);
+            this.editor.updateTaskFeedback(task, 100, "Done");
+        } catch (e) {
+            this.editor.updateTaskFeedback(task, 0, "Failed");
+        }
+
+        this.editor.closeTaskFeedback(task, 500);
+    }
+
+    /**
      * Called on the user wants to add textures.
      */
     private async _addMeshes(): Promise<void> {
@@ -434,8 +437,8 @@ export class MeshesAssets extends AbstractAssets {
             }
 
             if (meshMetadata.originalSourceFile.id === mesh.id) {
-                meshMetadata._waitingUpdatedReferences = { };
-                
+                meshMetadata._waitingUpdatedReferences = {};
+
                 meshMetadata._waitingUpdatedReferences!.geometry = {
                     geometry: mesh.geometry,
                     skeleton: mesh.skeleton,
