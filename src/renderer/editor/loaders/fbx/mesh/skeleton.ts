@@ -108,8 +108,15 @@ export class FBXSkeleton {
 						return;
 					}
 
-					const bone = new Bone(`${skeleton.skeletonInstance.name}-${name}`, skeleton.skeletonInstance);
-					bone.id = model.prop(0, "number")!.toString();
+					const boneId = model.prop(0, "number")!.toString();
+					const boneName = `${skeleton.skeletonInstance.name}-${name}`;
+
+					if (skeleton.skeletonInstance.bones.find((b) => b.name === boneName)) {
+						return;
+					}
+
+					const bone = new Bone(boneName, skeleton.skeletonInstance);
+					bone.id = boneId;
 					bone._index = index;
 					
 					// Bones can be shared, let's parse transform here.
@@ -160,7 +167,7 @@ export class FBXSkeleton {
 						b.setParent(parentBone);
 					}
 				});
-
+				
 				const transformData = FBXTransform.GetTransformData(b);
 				FBXTransform.ApplyTransform(b);
 
@@ -190,11 +197,13 @@ export class FBXSkeleton {
 					if (model && model instanceof AbstractMesh) {
 						const poseMatrix = poseMatrices[p.id];
 						if (poseMatrix) {
-							model.updatePoseMatrix(poseMatrix.invert());
+							model.updatePoseMatrix(poseMatrix);
 							skeleton.skeletonInstance.needInitialSkinMatrix = true;
 						}
 						
 						model.skeleton = skeleton.skeletonInstance;
+
+						model.skeleton.sortBones();
 						model.skeleton.returnToRest();
 					}
 				});

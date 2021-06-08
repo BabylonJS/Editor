@@ -61,6 +61,15 @@ export class SceneSettings {
     }
 
     /**
+     * Updates the panning sensibility according to the current radius.
+     */
+    public static UpdateArcRotateCameraPanning(): void {
+        if (this.Camera) {
+            this.Camera.panningSensibility = 1000 / this.Camera.radius;
+        }
+    }
+
+    /**
      * Configures the editor from according to the given JSON representation of the saved camera.
      * @param json the JSON representation of the save camera.
      * @param editor the editor reference.

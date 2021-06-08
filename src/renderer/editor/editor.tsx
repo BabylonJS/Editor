@@ -757,7 +757,10 @@ export class Editor {
             this.engine?.stopRenderLoop();
             this.engine?.clear(new Color4(0, 0, 0, 1), true, true, true);
         } else {
-            this.engine?.runRenderLoop(() => this.scene!.render());
+            this.engine?.runRenderLoop(() => {
+                this.scene!.render();
+                SceneSettings.UpdateArcRotateCameraPanning();
+            });
         }
     }
 

@@ -150,7 +150,7 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
                 label: (
                     <div style={{ width: "100%" }}>
                         <div style={{ width: "calc(50% - 10px)", float: "left" }}>
-                            {t.target.name ?? "Unnamed target"}
+                            {t.target ? (t.target.name ?? "Unnamed target") : "Undefined target"}
                         </div>
                         <div style={{ width: "20px", float: "left" }}>
                             <BPIcon icon="arrow-right" />

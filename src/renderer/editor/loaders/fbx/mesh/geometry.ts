@@ -242,9 +242,7 @@ export class FBXGeometry {
                     matricesWeights[i + j] *= mweight;
                 }
             } else {
-                if (firstZeroWeight >= 4) {
-                    
-                } else {
+                if (firstZeroWeight < 4) {
                     matricesWeights[i + firstZeroWeight] = 1.0 - weight;
                     matricesIndices[i + firstZeroWeight] = noInfluenceBoneIndex;
                 }
@@ -265,8 +263,8 @@ export class FBXGeometry {
             matricesWeights: [],
         };
 
-        let polygonIndex = 0;
         let faceLength = 0;
+        let polygonIndex = 0;
 
         // these will hold data for a single face
         let faceUVs: number[] = [];
@@ -321,7 +319,7 @@ export class FBXGeometry {
                         let currentWeight = weight;
                         let currentIndex = weightIndices[weightIndex];
 
-                        weights2.forEach(function (comparedWeight, comparedWeightIndex, comparedWeightArray) {
+                        weights2.forEach((comparedWeight, comparedWeightIndex, comparedWeightArray) => {
                             if (currentWeight > comparedWeight) {
                                 comparedWeightArray[comparedWeightIndex] = currentWeight;
                                 currentWeight = comparedWeight;
