@@ -4,7 +4,10 @@ import { join, dirname, basename } from "path";
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { ContextMenu, Icon as BPIcon, ITreeNode, Menu, MenuDivider, MenuItem, Tree } from "@blueprintjs/core";
+import {
+    Classes, ContextMenu, Divider, Icon as BPIcon, InputGroup, ITreeNode, Menu,
+    MenuDivider, MenuItem, Tree,
+} from "@blueprintjs/core";
 
 import { Scene, AnimationGroup, TargetedAnimation, Node, SceneLoader, SceneLoaderAnimationGroupLoadingMode } from "babylonjs";
 
@@ -27,9 +30,17 @@ export interface IAnimationGroupProps {
      * Defines the optional reference of the node to display only animation groups
      */
     node?: Node;
+    /**
+     * Defines the height of the list component.
+     */
+    height?: string;
 }
 
 export interface IAnimationGroupState {
+    /**
+     * Defines the current filter applied to filter animation groups.
+     */
+    filter: string;
     /**
      * Defines the list of nodes displayed in the tree.
      */
@@ -52,6 +63,7 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
         super(props);
 
         this.state = {
+            filter: "",
             nodes: this._getAnimationGroupsItems(),
         };
     }
@@ -60,14 +72,26 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
      * Renders the component.
      */
     public render(): React.ReactNode {
-        if (!this.state.nodes.length) {
+        if (this.props.node && !this.state.nodes.length) {
             return <h2 style={{ color: "white", textAlign: "center" }}>No animation group linked to the object.</h2>;
         }
 
         return (
             <>
                 <InspectorButton label="Import From File..." onClick={() => this._handleImportAnimationGroupsFromFile()} />
-                <div style={{ width: "100%", height: "200px", overflow: "auto", backgroundColor: "#222222" }}>
+               
+                <Divider />
+                
+                <div style={{ width: "100%", height: "35px" }}>
+                    <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Filter..." onChange={(e) => {
+                        this.setState({
+                            filter: e.target.value,
+                            nodes: this._getAnimationGroupsItems(e.target.value),
+                        });
+                    }} />
+                </div>
+
+                <div style={{ width: "100%", height: this.props.height ?? "200px", overflow: "auto", backgroundColor: "#222222" }}>
                     <Tree
                         contents={this.state.nodes}
                         onNodeClick={(n) => this._handleNodeClicked(n)}
@@ -134,10 +158,14 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
     /**
      * Returns the list of all available animation groups.
      */
-    private _getAnimationGroupsItems(): ITreeNode<AnimationGroup | TargetedAnimation>[] {
+    private _getAnimationGroupsItems(filter: string = ""): ITreeNode<AnimationGroup | TargetedAnimation>[] {
         let animationGroups = this.props.scene.animationGroups;
         if (this.props.node) {
             animationGroups = animationGroups.filter((a) => a.targetedAnimations.find((t) => t.target === this.props.node));
+        }
+
+        if (filter) {
+            animationGroups = animationGroups.filter((a) => a.name.toLowerCase().indexOf(filter) !== -1);
         }
 
         return animationGroups.map((a, index) => ({

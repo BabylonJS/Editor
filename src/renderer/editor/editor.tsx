@@ -64,6 +64,7 @@ import "./gui/augmentations/index";
 // Inspectors
 import "./inspectors/scene/scene-inspector";
 import "./inspectors/scene/rendering-inspector";
+import "./inspectors/scene/animation-groups-inspector";
 
 import "./inspectors/node-inspector";
 import "./inspectors/node/mesh-inspector";
