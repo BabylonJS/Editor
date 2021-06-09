@@ -6,6 +6,8 @@ import "babylonjs-loaders";
 import "babylonjs-materials";
 import "babylonjs-procedural-textures";
 
+import { PlayOverride } from "./override";
+
 export default class Play {
 	private _engine: Engine;
 	private _scene: Scene;
@@ -26,6 +28,8 @@ export default class Play {
 	* Loads the first scene.
 	*/
 	private _load(): void {
+		PlayOverride.OverrideEngineFunctions(this.workspaceDir);
+
 		const rootUrl = join(this.workspaceDir, "scenes", this.projectName, "/");
 
 		switch (this.physicsEngine) {

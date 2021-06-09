@@ -10,6 +10,8 @@ import { Project } from "../editor/project/project";
 import { WorkSpace } from "../editor/project/workspace";
 import { SceneSettings } from "../editor/scene/settings";
 
+import { PlayOverride } from "./override";
+
 export class ScenePlayer {
     private _editor: Editor;
     private _scene: Nullable<Scene> = null;
@@ -28,6 +30,8 @@ export class ScenePlayer {
      * Starts playing the scene in the editor: load the scene, apply attached scripts and return the reference to the scene.
      */
     public async start(progress: (p: number) => void): Promise<Scene> {
+        PlayOverride.OverrideEngineFunctions(WorkSpace.DirPath!);
+
         this._scene = new Scene(this._editor.engine!);
 
         const rootUrl = join(Project.DirPath!, "/");
@@ -85,6 +89,8 @@ export class ScenePlayer {
      * and reset the engine's cache.
      */
     public dispose(): void {
+        PlayOverride.RestoreOverridenFunctions();
+
         const engine = this._editor.engine!;
 
         // Clear require cache for project        

@@ -99,12 +99,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
                     <InspectorVector3 object={this.selectedObject} property="scaling" label="Scaling" step={0.01} />
                 </InspectorSection>
 
-                <InspectorSection title="Collisions">
-                    <InspectorBoolean object={this.selectedObject} property="checkCollisions" label="Check Collisions" />
-                    <InspectorNumber object={this.selectedObject} property="collisionMask" label="Mask" step={1} />
-                    <InspectorVector3 object={this.selectedObject} property="ellipsoid" label="Ellipsoid" step={0.01} />
-                    <InspectorVector3 object={this.selectedObject} property="ellipsoidOffset" label="Ellipsoid Offset" step={0.01} />
-                </InspectorSection>
+                {this._getCollisionsInspector()}
 
                 <InspectorSection title="Physics">
                     <InspectorList object={this} property="_physicsImpostor" label="Impostor Type" items={MeshInspector._PhysicsImpostors.map((pi) => ({ label: pi, data: pi }))} onChange={() => {
@@ -167,6 +162,22 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
     }
 
     /**
+     * Returns the inspector used to edit the collisions properties of the mesh.
+     */
+     private _getCollisionsInspector(): React.ReactNode {
+        const objectEdit = this.selectedObject;
+
+        return (
+            <InspectorSection title="Collisions">
+                <InspectorBoolean object={objectEdit} property="checkCollisions" label="Check Collisions" />
+                <InspectorNumber object={objectEdit} property="collisionMask" label="Mask" step={1} />
+                <InspectorVector3 object={objectEdit} property="ellipsoid" label="Ellipsoid" step={0.01} />
+                <InspectorVector3 object={objectEdit} property="ellipsoidOffset" label="Ellipsoid Offset" step={0.01} />
+            </InspectorSection>
+        );
+    }
+
+    /**
      * Returns the rotation inspector that handles both vector 3d and quaternion.
      */
     private _getRotationInspector(): React.ReactNode {
@@ -181,14 +192,14 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
             const newRotation = this._rotation.clone();
 
             rotationCopy.copyFrom(this._rotation);
-            
+
             if (oldRotation.equalsWithEpsilon(newRotation)) {
                 return;
             }
 
             undoRedo.push({
                 description: `Changed rotation of mesh "${this.selectedObject.name}" from "${oldRotation.toString()}" to "${newRotation.toString()}"`,
-                common:() => {
+                common: () => {
                     InspectorNotifier.NotifyChange(this.selectedObject.rotation);
                     InspectorNotifier.NotifyChange(this.selectedObject.rotationQuaternion);
                 },
