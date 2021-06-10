@@ -8,10 +8,12 @@ import { GLTF2Export } from 'babylonjs-serializers';
 import { Alert } from "../gui/alert";
 import { Dialog } from "../gui/dialog";
 
-import { Project } from "../project/project";
-import { ProjectExporter } from "../project/project-exporter";
-
 import { Tools } from "../tools/tools";
+
+import { Project } from "../project/project";
+
+import { MeshExporter } from "../export/mesh";
+
 
 import { Editor } from "../editor";
 
@@ -48,7 +50,7 @@ export class SceneTools {
 
         try {
             // Serialize and clear
-            const serializedMesh = ProjectExporter.ExportMesh(mesh, false, false);
+            const serializedMesh = MeshExporter.ExportMesh(mesh, false, false);
             serializedMesh.meshes?.forEach((m) => m.instances = []);
             delete serializedMesh.lods;
 

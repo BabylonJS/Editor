@@ -1,23 +1,26 @@
 import { join, extname, basename } from "path";
+import { readFile, mkdtemp, remove, rmdir } from "fs-extra";
 import { tmpdir } from "os";
 
 import Zip from "adm-zip";
+
+import { Undefinable } from "../../../shared/types";
 
 import { Mesh, Light, SceneLoader } from "babylonjs";
 
 import { Editor } from "../editor";
 
+import { Dialog } from "../gui/dialog";
+
 import { Tools } from "../tools/tools";
 
+import { MeshExporter } from "../export/mesh";
+
 import { ProjectImporter } from "../project/project-importer";
-import { ProjectExporter } from "../project/project-exporter";
 import { IBabylonFileNode, IBabylonFile } from "../project/typings";
 
-import { MaterialAssets } from "../assets/materials";
-import { readFile, mkdtemp, remove, rmdir } from "fs-extra";
 import { PrefabAssets } from "../assets/prefabs";
-import { Dialog } from "../gui/dialog";
-import { Undefinable } from "../../../shared/types";
+import { MaterialAssets } from "../assets/materials";
 
 export class Prefab {
     /**
@@ -34,7 +37,7 @@ export class Prefab {
         const prefabId = Tools.RandomId();
 
         // Create JSON
-        const json = ProjectExporter.ExportMesh(mesh, false, true) as IBabylonFile;
+        const json = MeshExporter.ExportMesh(mesh, false, true) as IBabylonFile;
         json.lights = [];
         json.particleSystems = [];
         json.meshes.forEach((m) => {

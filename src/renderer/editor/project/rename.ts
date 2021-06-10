@@ -78,16 +78,16 @@ export class ProjectRenamer {
             }
         }
 
-        // Rename scr's folder
-        const srcFolder = join(WorkSpace.DirPath, "src", "scenes", projectName);
-        const srcFolderExists = await pathExists(srcFolder);
-        if (srcFolderExists) {
-            try {
-                await rename(srcFolder, join(WorkSpace.DirPath, "src", "scenes", name));
-            } catch (e) {
-                return this._Rename(editor, originalname, originalname);
-            }
-        }
+        // Rename src's folder
+        // const srcFolder = join(WorkSpace.DirPath, "src", "scenes", projectName);
+        // const srcFolderExists = await pathExists(srcFolder);
+        // if (srcFolderExists) {
+        //     try {
+        //         await rename(srcFolder, join(WorkSpace.DirPath, "src", "scenes", name));
+        //     } catch (e) {
+        //         return this._Rename(editor, originalname, originalname);
+        //     }
+        // }
 
         // Rename all nodes metadatas
         const nodes = (editor.scene!.meshes as Node[])

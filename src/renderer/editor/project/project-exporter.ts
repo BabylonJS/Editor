@@ -1,5 +1,5 @@
 import { join, normalize, basename, dirname, extname } from "path";
-import { pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove, createWriteStream } from "fs-extra";
+import { pathExists, copy, writeFile, writeJSON, readFile, readJSON, readdir, remove } from "fs-extra";
 
 import {
     SceneSerializer, ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture,
@@ -33,6 +33,9 @@ import { FilesStore } from "./files";
 import { IProject } from "./typings";
 import { WorkSpace } from "./workspace";
 import { ProjectHelpers } from "./helpers";
+
+import { MeshExporter } from "../export/mesh";
+import { GeometryExporter } from "../export/geometry";
 
 export interface IExportFinalSceneOptions {
     /**
@@ -379,13 +382,14 @@ export class ProjectExporter {
             if (!(mesh instanceof Mesh) || mesh._masterMesh || mesh.doNotSerialize) { continue; }
 
             savePromises.push(new Promise<void>(async (resolve) => {
-                const json = this.ExportMesh(mesh);
+                const json = MeshExporter.ExportMesh(mesh);
 
-                exportedGeometries.push.apply(exportedGeometries, await this._WriteIncrementalGeometryFiles(editor, geometriesDir, json, false));
+                exportedGeometries.push.apply(exportedGeometries, await GeometryExporter.ExportIncrementalGeometries(editor, geometriesDir, json, false));
+
 
                 for (const lod of json.lods) {
                     if (lod.mesh) {
-                        exportedGeometries.push.apply(exportedGeometries, await this._WriteIncrementalGeometryFiles(editor, geometriesDir, lod.mesh, false));
+                        exportedGeometries.push.apply(exportedGeometries, await GeometryExporter.ExportIncrementalGeometries(editor, geometriesDir, lod.mesh, false));
                     }
                 };
 
@@ -562,77 +566,6 @@ export class ProjectExporter {
 
         // Update recent projects to be shown in welcome wizard
         this._UpdateWelcomeRecentProjects(editor);
-    }
-
-    /**
-     * Exports the given mesh.
-     * @param mesh the mesh reference to export.
-     * @param withParents defines if parents must be serialized as well
-     * @param withChildren defines if children must be serialized as well
-     */
-    public static ExportMesh(mesh: Mesh, withParents: boolean = false, withChildren: boolean = false): any {
-        if (mesh.metadata?.isPickable) {
-            mesh.isPickable = mesh.metadata.isPickable;
-        }
-
-        const meshMetadata = Tools.GetMeshMetadata(mesh);
-        const waitingUpdatedReferences = meshMetadata._waitingUpdatedReferences;
-
-        if (waitingUpdatedReferences) {
-            delete meshMetadata._waitingUpdatedReferences;
-        }
-
-        const json = SceneSerializer.SerializeMesh(mesh, withParents, withChildren);
-        json.materials = [];
-        json.multiMaterials = [];
-
-        // Configure skeletons
-        json.skeletons?.forEach((s) => {
-            s.bones?.forEach((b) => {
-                if (!b.metadata) { return; }
-                b.id = b.metadata.originalId;
-            });
-        });
-
-        // Configure meshes
-        json.meshes?.forEach((m) => {
-            if (m.metadata) {
-                m.metadata = Tools.CloneObject(m.metadata);
-            }
-
-            // TODO: fix in babylonjs where restitution is equal to mass when serializing mesh.
-            if (mesh.physicsImpostor) {
-                m.physicsRestitution = mesh.physicsImpostor.getParam("restitution");
-            }
-
-            m.instances?.forEach((i) => {
-                const instance = mesh._scene.getMeshByID(i.id);
-                if (!instance?.physicsImpostor) { return; }
-
-                i.physicsRestitution = instance.physicsImpostor.getParam("restitution");
-            });
-
-            delete m.renderOverlay;
-        });
-
-        if (mesh.metadata?.isPickable) {
-            mesh.isPickable = true;
-        }
-
-        json.lods = [];
-        for (const lod of mesh.getLODLevels()) {
-            const lodJson = { distance: lod.distance, mesh: null as any };
-            if (lod.mesh) {
-                lodJson.mesh = SceneSerializer.SerializeMesh(lod.mesh, false, false);
-                lodJson.mesh!.materials = [];
-            }
-
-            json.lods.push(lodJson);
-        }
-
-        meshMetadata._waitingUpdatedReferences = waitingUpdatedReferences;
-
-        return json;
     }
 
     /**
@@ -878,7 +811,7 @@ export class ProjectExporter {
                 await FSTools.CreateDirectory(geometriesPath);
             }
 
-            await this._WriteIncrementalGeometryFiles(editor, geometriesPath, scene, true, task, options?.geometryRootPath);
+            await GeometryExporter.ExportIncrementalGeometries(editor, geometriesPath, scene, true, options?.geometryRootPath, task);
         }
 
         await FSTools.CreateDirectory(destFilesDir);
@@ -1069,169 +1002,6 @@ export class ProjectExporter {
                 console.error(e);
             }
         }
-    }
-
-    /**
-     * When using incremental export, write all the .babylonbinarymesh files into the "geometries" output folder.
-     */
-    private static async _WriteIncrementalGeometryFiles(editor: Editor, path: string, scene: any, finalExport: boolean, task?: string, overridePath?: string): Promise<string[]> {
-        if (task) {
-            editor.updateTaskFeedback(task, 0, "Exporting incremental files...");
-        }
-
-        const result: string[] = [];
-        const promises: Promise<void>[] = [];
-
-        let index = 0;
-        for (const m of scene.meshes ?? []) {
-            if (!m.geometryId || (finalExport && m.metadata?.keepGeometryInline)) { continue; }
-
-            const geometry = scene.geometries?.vertexData?.find((v) => v.id === m.geometryId);
-            if (!geometry) { continue; }
-
-            const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
-            const originMesh = editor.scene!.getMeshByID(m.id);
-
-            m.delayLoadingFile = `${overridePath ?? ""}geometries/${geometryFileName}`;
-            m.boundingBoxMaximum = originMesh?.getBoundingInfo()?.maximum?.asArray() ?? [0, 0, 0];
-            m.boundingBoxMinimum = originMesh?.getBoundingInfo()?.minimum?.asArray() ?? [0, 0, 0];
-            m._binaryInfo = {};
-
-            const geometryPath = join(path, geometryFileName);
-            const stream = createWriteStream(geometryPath);
-
-            let offset = 0;
-
-            if (geometry.positions) {
-                m._binaryInfo.positionsAttrDesc = { count: geometry.positions.length, stride: 3, offset, dataType: 1 };
-                stream.write(Buffer.from(new Float32Array(geometry.positions).buffer));
-
-                m.positions = null;
-                offset += geometry.positions.length * Float32Array.BYTES_PER_ELEMENT;
-            }
-
-            if (geometry.normals) {
-                m._binaryInfo.normalsAttrDesc = { count: geometry.normals.length, stride: 3, offset, dataType: 1 };
-                stream.write(Buffer.from(new Float32Array(geometry.normals).buffer));
-
-                m.normals = null;
-                offset += geometry.normals.length * Float32Array.BYTES_PER_ELEMENT;
-            }
-
-            if (geometry.uvs) {
-                m._binaryInfo.uvsAttrDesc = { count: geometry.uvs.length, stride: 2, offset, dataType: 1 };
-                stream.write(Buffer.from(new Float32Array(geometry.uvs).buffer));
-
-                m.uvs = null;
-                m.hasUVs = true;
-                offset += geometry.uvs.length * Float32Array.BYTES_PER_ELEMENT;
-            }
-
-            if (geometry.uv2s) {
-                m._binaryInfo.uvs2AttrDesc = { count: geometry.uv2s.length, stride: 2, offset, dataType: 1 };
-                stream.write(Buffer.from(new Float32Array(geometry.uv2s).buffer));
-
-                m.uv2s = null;
-                m.hasUVs2 = true;
-                offset += geometry.uv2s.length * Float32Array.BYTES_PER_ELEMENT;
-            }
-
-            if (geometry.tangents) {
-                m._binaryInfo.tangetsAttrDesc = { count: geometry.tangents.length, stride: 3, offset, dataType: 1 };
-                stream.write(Buffer.from(new Float32Array(geometry.tangents).buffer));
-
-                m.tangents = null;
-                offset += geometry.tangents.length * Float32Array.BYTES_PER_ELEMENT;
-            }
-
-            if (geometry.colors) {
-                m._binaryInfo.colorsAttrDesc = { count: geometry.colors.length, stride: 4, offset, dataType: 1 };
-                stream.write(Buffer.from(new Float32Array(geometry.colors).buffer));
-
-                m.colors = null;
-                offset += geometry.colors.length * Float32Array.BYTES_PER_ELEMENT;
-            }
-
-            if (geometry.matricesIndices) {
-                const matricesIndices: number[] = [];
-
-                for (let i = 0; i < geometry.matricesIndices.length; i += 4) {
-                    const bone: number[] = [
-                        geometry.matricesIndices[i],
-                        geometry.matricesIndices[i + 1],
-                        geometry.matricesIndices[i + 2],
-                        geometry.matricesIndices[i + 3],
-                    ];
-
-                    matricesIndices.push((bone[3] << 24) | (bone[2] << 16) | (bone[1] << 8) | bone[0]);
-                }
-
-                m._binaryInfo.matricesIndicesAttrDesc = { count: matricesIndices.length, stride: 1, offset, dataType: 0 };
-                stream.write(Buffer.from(new Int32Array(matricesIndices).buffer));
-
-                m.matricesIndices = null;
-                m.hasMatricesIndices = true;
-                offset += matricesIndices.length * Int32Array.BYTES_PER_ELEMENT;
-            }
-
-            if (geometry.matricesWeights) {
-                m._binaryInfo.matricesWeightsAttrDesc = { count: geometry.matricesWeights.length, stride: 2, offset, dataType: 1 };
-                stream.write(Buffer.from(new Float32Array(geometry.matricesWeights).buffer));
-
-                m.matricesWeights = null;
-                m.hasMatricesWeights = true;
-                offset += geometry.matricesWeights.length * Float32Array.BYTES_PER_ELEMENT;
-            }
-
-            if (geometry.indices) {
-                m._binaryInfo.indicesAttrDesc = { count: geometry.indices.length, stride: 1, offset, dataType: 0 };
-                stream.write(Buffer.from(new Int32Array(geometry.indices).buffer));
-
-                m.indices = null;
-                offset += geometry.indices.length * Int32Array.BYTES_PER_ELEMENT;
-            }
-
-            if (m.subMeshes?.length > 0) {
-                const subMeshesData: number[] = [];
-                m.subMeshes.forEach((sm) => {
-                    subMeshesData.push(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount);
-                });
-
-                m._binaryInfo.subMeshesAttrDesc = { count: m.subMeshes.length, stride: 5, offset, dataType: 0 };
-                m.subMeshes = null;
-
-                stream.write(Buffer.from(new Int32Array(subMeshesData).buffer));
-                offset += subMeshesData.length * Int32Array.BYTES_PER_ELEMENT;
-            }
-
-            promises.push(new Promise<void>((resolve) => {
-                stream.once("close", () => resolve());
-            }));
-
-            stream.end();
-            stream.close();
-
-            if (task) {
-                editor.updateTaskFeedback(task, 100 * (index / scene.meshes.length));
-            }
-
-            result.push(geometryPath);
-
-            const geometryIndex = scene.geometries.vertexData.findIndex((g) => g.id === m.geometryId);
-            if (geometryIndex !== -1) {
-                scene.geometries.vertexData.splice(geometryIndex, 1);
-            }
-
-            index++;
-        };
-
-        if (scene.geometries?.vertexData?.length === 0) {
-            delete scene.geometries;
-        }
-
-        await Promise.all(promises);
-
-        return result;
     }
 
     /**

@@ -1,4 +1,4 @@
-import { Scene, Mesh, BoundingInfo, Quaternion } from "babylonjs";
+import { Scene, Mesh, BoundingInfo, Quaternion, Vector3 } from "babylonjs";
 
 export class ColliderCreator {
 	/**
@@ -36,16 +36,19 @@ export class ColliderCreator {
 	 * @returns the reference to the capsule collider.
 	 */
 	public static CreateCapsule(scene: Scene, boundingInfo: BoundingInfo): Mesh {
+		const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingSphere.minimum);
+
 		const colliderMesh = Mesh.CreateCapsule("capsuleCollider", {
-			height: 1,
-			radius: 1,
-			subdivisions: 32,
-			tessellation: 32,
+			height: Math.abs(size.y),
+			radius: boundingInfo.boundingSphere.radius,
+			
+			subdivisions: 16,
+			tessellation: 16,
 			capSubdivisions: 12,
 			topCapSubdivisions: 12,
+			orientation: Vector3.Up(),
 		}, scene);
 		colliderMesh.position.copyFrom(boundingInfo.boundingBox.center);
-		colliderMesh.scaling.copyFrom(boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum));
 
 		return colliderMesh;
 	}

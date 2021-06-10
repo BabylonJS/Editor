@@ -1,7 +1,7 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Divider, Overlay, Spinner } from "@blueprintjs/core";
+import { Divider, Overlay, Spinner, Tag } from "@blueprintjs/core";
 
 import { Mesh, AbstractMesh, InstancedMesh } from "babylonjs";
 
@@ -79,12 +79,13 @@ export default class CollisionsTool extends AbstractEditorPlugin<ICollisionsTool
                 onMouseEnter={() => this._handleMouseEnter()}
             >
                 <InspectorSection title="Collider">
+                    <Tag fill interactive onClick={() => this.editor.preview.focusNode(this.state.sourceMesh, true)}>Mesh: {this.state.sourceMesh.name}</Tag>
                     <InspectorList object={this.state} property="colliderType" label="Type" noUndoRedo items={[
                         { label: "None", data: "None" },
                         { label: "Self", data: "Self" },
                         { label: "Cube", data: "Cube" },
                         { label: "Sphere", data: "Sphere" },
-                        { label: "Capsule", data: "Capsule" },
+                        // { label: "Capsule", data: "Capsule" },
                         { label: "LOD", data: "LOD" },
                     ]} onFinishChange={() => {
                         this._handleColliderChanged();

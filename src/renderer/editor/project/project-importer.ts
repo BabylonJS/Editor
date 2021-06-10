@@ -51,76 +51,12 @@ export class ProjectImporter {
     private static async _ImportProject(editor: Editor, path: string): Promise<void> {
         // Log
         editor.console.logSection("Loading Project");
-        
+
         // Prepare overlay
         Overlay.Show("Importing Project...", true);
 
         // Configure Serialization Helper
-        const textureParser = SerializationHelper._TextureParser;
-        SerializationHelper._TextureParser = (source, scene, rootUrl) => {
-            if (source.metadata?.editorName) {
-                const texture = scene.textures.find((t) => t.metadata && t.metadata.editorName === source.metadata.editorName);
-                if (texture) { return texture; }
-
-                // Cube texture?
-                if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
-                    // Replace Urls for files in case of pure cube texture
-                    source.files.forEach((f, index) => {
-                        if (f.indexOf("files") !== 0) { return; }
-                        source.files[index] = join(Project.DirPath!, f);
-                    });
-                }
-            }
-
-            let texture: Nullable<BaseTexture> = null;
-
-            const supportedFormat = KTXTools.GetSupportedKtxFormat(scene.getEngine());
-            const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
-
-            if (supportedFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures?.enabledInPreview) {
-                const ktxTextureName = basename(KTXTools.GetKtxFileName(source.name, supportedFormat));
-                const ktxFileExists = pathExistsSync(join(Project.DirPath!, "files/compressed_textures", ktxTextureName));
-
-                if (ktxFileExists) {
-                    const oldName = source.name;
-
-                    source.name = join("files/compressed_textures", ktxTextureName);
-                    texture = textureParser(source, scene, rootUrl);
-
-                    if (texture) {
-                        texture.name = oldName;
-                        
-                        texture.metadata ??= { };
-                        texture.metadata.ktx2CompressedTextures ??= { };
-                        texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = true;
-                    }
-                }
-            }
-            
-            if (!texture) {
-                texture = textureParser(source, scene, rootUrl);
-
-                if (texture) {
-                    texture.metadata ??= { };
-                    texture.metadata.ktx2CompressedTextures ??= { };
-                    texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;
-                }
-            }
-
-
-            if (source.metadata?.editorName && source.metadata?.isPureCube) {
-                // Cube texture?
-                if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
-                    // Restore Urls for files in case of pure cube texture
-                    source.files.forEach((f, index) => {
-                        if (f.indexOf("files") === 0) { return; }
-                        source.files[index] = join("files", basename(f));
-                    });
-                }
-            }
-
-            return texture;
-        };
+        this._OverrideTextureParser();
 
         // Configure editor project
         Project.Path = path;
@@ -132,10 +68,10 @@ export class ProjectImporter {
 
         Overlay.SetSpinnervalue(0);
         const spinnerStep = 1 / (
-                                    project.textures.length + project.materials.length + project.meshes.length + project.lights.length +
-                                    project.cameras.length + (project.particleSystems?.length ?? 0) + (project.sounds?.length ?? 0) +
-                                    (project.transformNodes?.length ?? 0) + (project.scene.morphTargetManagers?.length ?? 0)
-                                );
+            project.textures.length + project.materials.length + project.meshes.length + project.lights.length +
+            project.cameras.length + (project.particleSystems?.length ?? 0) + (project.sounds?.length ?? 0) +
+            (project.transformNodes?.length ?? 0) + (project.scene.morphTargetManagers?.length ?? 0)
+        );
         let spinnerValue = 0;
 
         let loadPromises: Promise<void>[] = [];
@@ -157,7 +93,7 @@ export class ProjectImporter {
 
         // Configure scene
         ProjectHelpers.ImportSceneSettings(editor.scene!, project.scene, rootUrl);
-        
+
         const physicsEngine = editor.scene!.getPhysicsEngine();
         if (physicsEngine) {
             // Remove physics engine steps
@@ -239,7 +175,7 @@ export class ProjectImporter {
                     const json = await readJSON(join(Project.DirPath!, "transform", t));
                     const transform = TransformNode.Parse(json, editor.scene!, rootUrl);
 
-                    transform.metadata = transform.metadata ?? { };
+                    transform.metadata = transform.metadata ?? {};
                     transform.metadata._waitingParentId = json.parentId;
                 } catch (e) {
                     editor.console.logError(`Failed to load transform node "${t}"`);
@@ -324,7 +260,7 @@ export class ProjectImporter {
                     const json = await readJSON(join(Project.DirPath!, "lights", l.json));
                     const light = Light.Parse(json, editor.scene!)!;
 
-                    light.metadata = light.metadata ?? { };
+                    light.metadata = light.metadata ?? {};
                     light.metadata._waitingParentId = json.parentId;
 
                     editor.console.logInfo(`Parsed light "${l.json}"`);
@@ -336,7 +272,7 @@ export class ProjectImporter {
                         } else {
                             ShadowGenerator.Parse(json, editor.scene!);
                         }
-                        
+
                         editor.console.logInfo(`Parsed shadows for light "${l.json}"`);
                     }
 
@@ -377,7 +313,7 @@ export class ProjectImporter {
                 const json = await readJSON(join(Project.DirPath, "cameras", c));
                 const camera = Camera.Parse(json, editor.scene!);
 
-                camera.metadata = camera.metadata ?? { };
+                camera.metadata = camera.metadata ?? {};
                 camera.metadata._waitingParentId = json.parentId;
 
                 editor.console.logInfo(`Parsed camera "${c}"`);
@@ -498,7 +434,7 @@ export class ProjectImporter {
      */
     public static async ImportMesh(editor: Editor, name: string, json: any, rootUrl: string, filename: string): Promise<ReturnType<typeof SceneLoader.ImportMeshAsync>> {
         SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
-        
+
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, filename, editor.scene, null, ".babylon");
         editor.console.logInfo(`Parsed mesh "${name}"`);
 
@@ -550,14 +486,14 @@ export class ProjectImporter {
 
         // Parent
         allMeshes.forEach((m) => {
-            m.mesh.metadata = m.mesh.metadata ?? { };
+            m.mesh.metadata = m.mesh.metadata ?? {};
             m.mesh.metadata._waitingParentId = m.parentId;
             m.mesh.metadata._waitingGeometryId = m.geometryId;
             m.mesh.renderingGroupId = m.mesh.metadata.renderingGroupId ?? m.mesh.renderingGroupId;
 
             if (m.instances) {
                 m.mesh.instances?.forEach((i, instanceIndex) => {
-                    i.metadata = i.metadata ?? { };
+                    i.metadata = i.metadata ?? {};
                     i.metadata._waitingParentId = m.instances![instanceIndex];
                 });
             }
@@ -590,5 +526,76 @@ export class ProjectImporter {
         editor.graph.refresh();
 
         Overlay.Hide();
+    }
+
+    /**
+     * Overrides the current texture parser available in Babylon.JS Scene Loader.
+     */
+    private static _OverrideTextureParser(): void {
+        const textureParser = SerializationHelper._TextureParser;
+        SerializationHelper._TextureParser = (source, scene, rootUrl) => {
+            if (source.metadata?.editorName) {
+                const texture = scene.textures.find((t) => t.metadata && t.metadata.editorName === source.metadata.editorName);
+                if (texture) { return texture; }
+
+                // Cube texture?
+                if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
+                    // Replace Urls for files in case of pure cube texture
+                    source.files.forEach((f, index) => {
+                        if (f.indexOf("files") !== 0) { return; }
+                        source.files[index] = join(Project.DirPath!, f);
+                    });
+                }
+            }
+
+            let texture: Nullable<BaseTexture> = null;
+
+            const supportedFormat = KTXTools.GetSupportedKtxFormat(scene.getEngine());
+            const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
+
+            if (supportedFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures?.enabledInPreview) {
+                const ktxTextureName = basename(KTXTools.GetKtxFileName(source.name, supportedFormat));
+                const ktxFileExists = pathExistsSync(join(Project.DirPath!, "files/compressed_textures", ktxTextureName));
+
+                if (ktxFileExists) {
+                    const oldName = source.name;
+
+                    source.name = join("files/compressed_textures", ktxTextureName);
+                    texture = textureParser(source, scene, rootUrl);
+
+                    if (texture) {
+                        texture.name = oldName;
+
+                        texture.metadata ??= {};
+                        texture.metadata.ktx2CompressedTextures ??= {};
+                        texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = true;
+                    }
+                }
+            }
+
+            if (!texture) {
+                texture = textureParser(source, scene, rootUrl);
+
+                if (texture) {
+                    texture.metadata ??= {};
+                    texture.metadata.ktx2CompressedTextures ??= {};
+                    texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;
+                }
+            }
+
+
+            if (source.metadata?.editorName && source.metadata?.isPureCube) {
+                // Cube texture?
+                if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
+                    // Restore Urls for files in case of pure cube texture
+                    source.files.forEach((f, index) => {
+                        if (f.indexOf("files") === 0) { return; }
+                        source.files[index] = join("files", basename(f));
+                    });
+                }
+            }
+
+            return texture;
+        };
     }
 }
