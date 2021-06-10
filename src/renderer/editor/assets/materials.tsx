@@ -1,4 +1,4 @@
-import { ipcRenderer } from "electron";
+import { clipboard, ipcRenderer } from "electron";
 import { join, extname } from "path";
 import Zip from "adm-zip";
 
@@ -180,6 +180,8 @@ export class MaterialAssets extends AbstractAssets {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
+                <MenuItem text="Copy Name" icon="clipboard" onClick={() => clipboard.writeText(material.name, "clipboard")} />
+                <MenuDivider />
                 <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this.refresh(material)} />
                 <MenuDivider />
                 <MenuItem text="Save Material Preset..." icon={<Icon src="save.svg" />} onClick={() => this._handleSaveMaterialPreset(item)} />

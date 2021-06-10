@@ -39,8 +39,8 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         // "HeightmapImpostor", "MeshImpostor",
     ];
 
-    private _renderingGroupId: string = "";
     private _physicsImpostor: string = "";
+    private _renderingGroupId: string = "";
 
     private _rotation: Vector3 = Vector3.Zero();
 
@@ -164,15 +164,24 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
     /**
      * Returns the inspector used to edit the collisions properties of the mesh.
      */
-     private _getCollisionsInspector(): React.ReactNode {
-        const objectEdit = this.selectedObject;
-
+    private _getCollisionsInspector(): React.ReactNode {
         return (
             <InspectorSection title="Collisions">
-                <InspectorBoolean object={objectEdit} property="checkCollisions" label="Check Collisions" />
-                <InspectorNumber object={objectEdit} property="collisionMask" label="Mask" step={1} />
-                <InspectorVector3 object={objectEdit} property="ellipsoid" label="Ellipsoid" step={0.01} />
-                <InspectorVector3 object={objectEdit} property="ellipsoidOffset" label="Ellipsoid Offset" step={0.01} />
+                <InspectorBoolean object={this.selectedObject} property="checkCollisions" label="Check Collisions" onFinishChange={() => {
+                    this.forceUpdate();
+                }} />
+
+                <InspectorButton label="Edit Advanced Collisions..." small={true} onClick={() => {
+                    if (this.editor.plugins.Collisions) {
+                        this.editor.plugins.Collisions["setMesh"](this.selectedObject);
+                    }
+
+                    this.editor.addBuiltInPlugin("collisions", { mesh: this.selectedObject });
+                }} />
+
+                <InspectorNumber object={this.selectedObject} property="collisionMask" label="Mask" step={1} />
+                <InspectorVector3 object={this.selectedObject} property="ellipsoid" label="Ellipsoid" step={0.01} />
+                <InspectorVector3 object={this.selectedObject} property="ellipsoidOffset" label="Ellipsoid Offset" step={0.01} />
             </InspectorSection>
         );
     }

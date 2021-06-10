@@ -174,7 +174,7 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: (Node | Scene)[]): 
                 
                 if (!event.keys.length) { return n[event.propertyKey](e); }
 
-                if (event.keys.indexOf(e.event.keyCode) !== -1) {
+                if (event.keys.indexOf(e.event.keyCode) !== -1 || event.keys.indexOf(e.event.key) !== -1) {
                     n[event.propertyKey](e);
                 }
             });
@@ -187,6 +187,27 @@ function requireScriptForNodes(scriptsMap: ScriptMap, nodes: (Node | Scene)[]): 
 
         delete n.metadata.script;
     }
+}
+
+/**
+ * Works as an helper, this will:
+ * = attach scripts on objects.
+ * @param scene the scene to attach scripts, etc.
+ */
+export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
+    const scriptsMap = require("./scripts-map").scriptsMap;
+
+    // Attach scripts to objects in scene.
+    attachScripts(scriptsMap, scene);
+
+    // Configure post-processes
+    configurePostProcesses(scene, rootUrl);
+
+    // Rendering groups
+    setupRenderingGroups(scene);
+
+    // Pose matrices
+    applyMeshesPoseMatrices(scene);
 }
 
 /**
@@ -238,15 +259,16 @@ export function applyMeshesPoseMatrices(scene: Scene): void {
 }
 
 /**
- * Attaches the given script (according to its path in the given script map) to the given object.
- * @param scriptsMap defines the map containing all exported scripts of an Editor project.
- * @param scriptsKey defines the key in the scripts map of the script to attach to the given object.
- * @param object defines the reference to the object that the script must be attached to.
+ * Attaches the a script at runtime to the given node according to the given script's path.
+ * @param scriptPath defines the path to the script to attach (available as a key in the exported "scriptsMap" map).
+ * @param object defines the reference to the object (node or scene) to attach the script to.
  */
-export function attachScriptToNodeAtRumtine(scriptsMap: ScriptMap, scriptsKey: string, object: Node | Scene): any {
+ export function attachScriptToNodeAtRuntime(scriptPath: string, object: Node | Scene): any {
+    const scriptsMap = require("./scripts-map").scriptsMap;
+
     object.metadata = object.metadata ?? { };
     object.metadata.script = object.metadata.script ?? { };
-    object.metadata.script.name = scriptsKey;
+    object.metadata.script.name = scriptPath;
 
     requireScriptForNodes(scriptsMap, [object]);
 }

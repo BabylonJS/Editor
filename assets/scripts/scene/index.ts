@@ -4,7 +4,7 @@
 
 import { Node, Scene } from "@babylonjs/core";
 import {
-    attachScripts, attachScriptToNodeAtRumtine,
+    attachScripts, attachScriptToNodeAtRuntime,
     configurePostProcesses, setupRenderingGroups,
     applyMeshesPoseMatrices,
 } from "../tools";
@@ -36,5 +36,5 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
  * @param object defines the reference to the object (node or scene) to attach the script to.
  */
 export function attachScriptToObjectImmediately(scriptPath: string, object: Node | Scene): void {
-    attachScriptToNodeAtRumtine(scriptsMap, scriptPath, object);
+    attachScriptToNodeAtRuntime(scriptPath, object);
 }

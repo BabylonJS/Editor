@@ -543,10 +543,14 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (node instanceof Mesh && node._masterMesh) { return null; }
         if (node === SceneSettings.Camera) { return null; }
 
+        let disabled = false;
+
         node.metadata = node.metadata ?? { };
         if (node instanceof AbstractMesh) {
-            node.metadata.isPickable = node.metadata.isPickable ?? node.isPickable;
-            node.isPickable = true;
+            disabled = (node.metadata?.collider ?? null) !== null;
+
+            node.metadata.isPickable = disabled ? false : node.metadata.isPickable ?? node.isPickable;
+            node.isPickable = !disabled;
 
             node.subMeshes?.forEach((sm) => sm._id = sm._id ?? Tools.RandomId());
         }
@@ -573,6 +577,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         if (node.metadata.script?.name && node.metadata.script.name !== "None") {
             style.color = "#48aff0";
+        }
+
+        if (disabled) {
+            style.color = "grey";
         }
 
         if (node.metadata?.editorGraphStyles) {
@@ -734,6 +742,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         return (
             <Tree.TreeNode
                 active={true}
+                disabled={disabled}
                 expanded={true}
                 title={
                     <Tooltip
@@ -768,10 +777,14 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
     /**
      * Called on the user right-clicks on a node.
-     * @param graphNode the node being right-clicked in the tree.
      * @param e the event object coming from react.
+     * @param graphNode the node being right-clicked in the tree.
      */
     private _handleNodeContextMenu(e: React.MouseEvent, graphNode: any): void {
+        if (graphNode.disabled) {
+            return;
+        }
+
         let node = this._getNodeById(graphNode.key);
 
         if (!node || node === SceneSettings.Camera) { return; }

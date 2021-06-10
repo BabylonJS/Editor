@@ -1,5 +1,5 @@
 import * as os from "os";
-import { shell } from "electron";
+import { clipboard, shell } from "electron";
 import { extname, basename, join } from "path";
 import { copy, pathExists, readdir, remove } from "fs-extra";
 
@@ -255,11 +255,15 @@ export class TextureAssets extends AbstractAssets {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
+                <MenuItem text="Copy Name" icon="clipboard" onClick={() => clipboard.writeText(texture.name, "clipboard")} />
+                <MenuItem text="Copy Path" icon="clipboard" onClick={() => clipboard.writeText(`./scenes/${WorkSpace.GetProjectName()}/${texture.name}`, "clipboard")} />
+                <MenuDivider />
                 <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {
                     const name = basename(texture.name);
                     const file = FilesStore.GetFileFromBaseName(name);
                     if (file) { shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(file.path)); }
                 }} />
+                <MenuDivider />
                 <MenuItem text="Clone..." icon={<Icon src="clone.svg" />} onClick={() => this._cloneTexture(texture)} />
                 <MenuDivider />
                 <MenuItem text="Locked" icon={texture.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {

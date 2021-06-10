@@ -11,6 +11,11 @@ export interface IEditorPluginProps {
      * Defines the id of the plugin.
      */
     id: string;
+
+    /**
+     * Defines the optional reference to the opening parameters.
+     */
+    openParameters?: any;
 }
 
 export abstract class AbstractEditorPlugin<T> extends React.Component<IEditorPluginProps, T> {

@@ -586,19 +586,21 @@ export class Editor {
     /**
      * Adds a new plugin to the layout.
      * @param name the name of the plugin to laod.
+     * @param openParameters defines the optional reference to the opening parameters.
      */
-    public addBuiltInPlugin(name: string): void {
+    public addBuiltInPlugin(name: string, openParameters: any = {}): void {
         const plugin = require(`../tools/${name}`);
-        this._addPlugin(plugin, name, false);
+        this._addPlugin(plugin, name, false, openParameters);
     }
 
     /**
      * Adds the given plugin to the editor's layout.
      * @param path defines the path of the plugin.
+     * @param openParameters defines the optional reference to the opening parameters.
      */
-    public addPluginFromPath(path: string): void {
+    public addPluginFromPath(path: string, openParameters: any = {}): void {
         const plugin = require(path);
-        this._addPlugin(plugin, path, true);
+        this._addPlugin(plugin, path, true, openParameters);
     }
 
     /**
@@ -615,6 +617,11 @@ export class Editor {
         }
 
         this.layout.props.model.doAction(Actions.deleteTab(effectiveKey));
+
+        const configuration = this._layoutTabNodesConfigurations[pluginName];
+        if (configuration && this.plugins[configuration.name]) {
+            delete this.plugins[configuration.name];
+        }
 
         delete this._components[effectiveKey];
         delete Editor.LoadedPlugins[effectiveKey];
@@ -768,7 +775,7 @@ export class Editor {
     /**
      * Adds the given plugin into the layout.
      */
-    private _addPlugin(plugin: any, name: string, fullPath: boolean): void {
+    private _addPlugin(plugin: any, name: string, fullPath: boolean, openParameters: any = {}): void {
         if (this._components[name]) {
             this.layout.props.model.doAction(Actions.selectTab(name));
             return;
@@ -778,8 +785,7 @@ export class Editor {
         Editor.LoadedPlugins[name] = { name, fullPath };
 
         // Add component
-        this._components[name] = <plugin.default editor={this} id={plugin.title} />;
-        // this.layout.addTabToTabSet("modules-tabset", { type: "tab", name: plugin.title, component: name, id: name });
+        this._components[name] = <plugin.default editor={this} id={plugin.title} openParameters={openParameters} />;
         this.layout.addTabToActiveTabSet({ type: "tab", name: plugin.title, component: name, id: name });
     }
 

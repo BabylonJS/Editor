@@ -488,13 +488,16 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 Alert.Show("Can't create mesh instance", "The mesh to paste contains Thin Instances. Please use Thin Instances painting tool instead to create copies.");
                 return;
             }
+
             const instance = clone = this._copiedNode.createInstance(`${this._copiedNode.name} (Mesh Instance)`);
+            
             instance.position.copyFrom(this._copiedNode.position);
             instance.rotation.copyFrom(this._copiedNode.rotation);
             if (this._copiedNode.rotationQuaternion) {
                 instance.rotationQuaternion = this._copiedNode.rotationQuaternion.clone();
             }
             instance.scaling.copyFrom(this._copiedNode.scaling);
+            instance.checkCollisions = this._copiedNode.checkCollisions;
         } else if (this._copiedNode instanceof InstancedMesh) {
             const instance = clone = this._copiedNode.sourceMesh.createInstance(`${this._copiedNode.sourceMesh.name} (Mesh Instance)`);
             instance.position.copyFrom(this._copiedNode.position);
@@ -503,6 +506,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 instance.rotationQuaternion = this._copiedNode.rotationQuaternion.clone();
             }
             instance.scaling.copyFrom(this._copiedNode.scaling);
+            instance.checkCollisions = this._copiedNode.checkCollisions;
         } else if (this._copiedNode instanceof ParticleSystem) {
             clone = this._copiedNode.clone(this._copiedNode.name, this._copiedNode.emitter);
         }
@@ -510,6 +514,28 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         if (clone) {
             if (clone instanceof Node && this._copiedNode instanceof Node) {
                 clone.parent = this._copiedNode.parent;
+            }
+
+            if (this._copiedNode instanceof AbstractMesh) {
+                const collider = this._copiedNode.getChildMeshes(true).find((m) => m.metadata?.collider);
+                if (collider) {
+                    let colliderInstance: Nullable<AbstractMesh> = null;
+                    if (collider instanceof Mesh) {
+                        colliderInstance = collider.createInstance(`${collider.name} (Mesh Instance)`);
+                    } else if (collider instanceof InstancedMesh) {
+                        colliderInstance = collider.sourceMesh.createInstance(collider.name);
+                    }
+
+                    if (colliderInstance && clone instanceof Node) {
+                        colliderInstance.parent = clone;
+                        colliderInstance.checkCollisions = collider.checkCollisions;
+                        colliderInstance.metadata = {
+                            collider: Tools.CloneObject(collider.metadata.collider),
+                        };
+
+                        colliderInstance.id = Tools.RandomId();
+                    }
+                }
             }
 
             clone.id = Tools.RandomId();

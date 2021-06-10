@@ -95,7 +95,7 @@ export function onPointerEvent(type: PointerEventTypes, onlyWhenMeshPicked: bool
  * Sets the decorated member function to be called on the given keyboard key(s) is/are pressed.
  * @param key the key or array of key to listen to execute the decorated function.
  */
-export function onKeyboardEvent(key: number | number[], type?: KeyboardEventTypes): any {
+export function onKeyboardEvent(key: number | number[] | string | string[], type?: KeyboardEventTypes): any {
     return (target: any, propertyKey: string | symbol) => {
         if (typeof(target[propertyKey]) !== "function") {
             throw new Error(`Decorated propery "${propertyKey.toString()}" in class "${target.constructor.name}" must be a function.`);
