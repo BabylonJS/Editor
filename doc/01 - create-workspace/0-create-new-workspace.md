@@ -15,7 +15,7 @@ Let's create a new Empty workspace. This will ask for:
 
 Finally, let's select and empty folder where to create the workspace and the Editor will load the newly created workspace:
 
-![CreatingEmptyWorkspace](./create-workspace.gif)
+![CreatingEmptyWorkspace](./create-workspace/create-workspace.gif)
 
 ## Understanding the first launch of a workspace
 By default, a newly created workspace contains only basic files (assets, source files, etc.). But, to be able to build the project and compile the source files, the dependencies must be installed using npm.
@@ -24,7 +24,7 @@ At the first launch of a workspace, the editor will install the dependencies (Ty
 
 ## Understanding the workspace architecture
 
-![WorkspaceArchitecture](./architecture.png)
+![WorkspaceArchitecture](./create-workspace/architecture.png)
 
 The architecture of a workspace follows basics of Web projects:
 * `package.json` describes the workspace and enumerates its dependencies

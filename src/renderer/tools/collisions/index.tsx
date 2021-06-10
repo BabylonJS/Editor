@@ -208,7 +208,6 @@ export default class CollisionsTool extends AbstractEditorPlugin<ICollisionsTool
      * Called on the collider type changed.
      */
     private _handleColliderChanged(): void {
-        debugger;
         // Existing collider mesh
         this.state.sourceMesh.instances.forEach((i) => {
             const instancedCollider = this._getColliderMesh(i);

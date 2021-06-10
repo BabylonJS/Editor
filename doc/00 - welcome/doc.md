@@ -4,7 +4,9 @@ Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are 
 
 ## Tutorials
 * Workspace
-  * [Creating a new workspace](../01%20-%20create-workspace/create-new-workspace.md)
+  * [Creating a new workspace](../01%20-%20create-workspace/0-create-new-workspace.md)
+  * [Creating a new project](../01%20-%20create-workspace/1-creating-new-project.md)
+  * [Renaming a project](../01%20-%20create-workspace/2-renaming-project.md)
 * Running the scene
   * [Running application/game](../02%20-%20running-project/0-running-project.md)
   * [Playing scene](../02%20-%20running-project/1-playing-scene.md)
@@ -18,9 +20,17 @@ Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are 
 * Physics
   * [Using physics](../05%20-%20using-physics/using-physics.md)
 
+## Troubleshoothing
+* [Blurred UI](../troubleshooting/blurred-ui.md)
+* [Can't start editor](../troubleshooting/startup.md)
+
 ## External tutorials
 
 * [Introduction to the Babylon.JS Editor v4](https://www.crossroad-tech.com/entry/babylonjs-editor-v4-introduction-en) by [@Limes2018](https://gist.github.com/flushpot1125)
+
+## External examples
+
+* [Using WebXR with Babylon.JS Editor v4](https://github.com/flushpot1125/WebXR_VRController_Editor_template) by [@Limes2018](https://gist.github.com/flushpot1125)
 
 ## Useful shortcuts
 
