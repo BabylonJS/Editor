@@ -19,6 +19,9 @@ Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are 
   * [Attaching scripts](../04%20-%20attaching-scripts/attaching-scripts.md)
 * Physics
   * [Using physics](../05%20-%20using-physics/using-physics.md)
+* Collisions
+  * [Basic collisions](../06%20-%20setting-collisions/basic.md)
+  * [Advanced collisions](../06%20-%20setting-collisions/advanced.md)
 
 ## Troubleshoothing
 * [Blurred UI](../troubleshooting/blurred-ui.md)
