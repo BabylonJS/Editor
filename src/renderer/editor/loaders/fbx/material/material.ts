@@ -1,4 +1,4 @@
-import { basename, join } from "path";
+import { basename, extname, join } from "path";
 import { pathExistsSync, writeFileSync } from "fs-extra";
 
 import { INumberDictionary, Undefinable } from "../../../../../shared/types";
@@ -12,6 +12,8 @@ import { IFBXConnections } from "../connections";
 import { FilesStore } from "../../../project/files";
 
 export class FBXMaterial {
+	private static _SupportedTextureTypes: string[] = [".png", ".jpg", ".jpeg", ".bmp"];
+
 	/**
 	 * Parses all available materials in the FBX file.
 	 * @param runtime defines the reference to the current FBX runtime.
@@ -142,6 +144,11 @@ export class FBXMaterial {
 			}
 
 			filePath = filePath.replace(/\\/g, "/");
+
+			const extension = extname(filePath).toLowerCase();
+			if (this._SupportedTextureTypes.indexOf(extension) === -1) {
+				continue;
+			}
 
 			const id = v.prop(0, "number")!;
 			const useMipMap = v.node("UseMipMap")?.prop(0) ?? 0;

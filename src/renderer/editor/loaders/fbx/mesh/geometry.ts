@@ -81,7 +81,7 @@ export class FBXGeometry {
 
             let importedGeometry = runtime.cachedGeometries[geometryId];
             if (!importedGeometry) {
-                importedGeometry = FBXGeometry.Import(g, runtime.scene, skeleton, model);
+                importedGeometry = this.Import(g, runtime.scene, skeleton, model);
 
                 runtime.result.geometries.push(importedGeometry);
                 runtime.cachedGeometries[geometryId] = importedGeometry;
@@ -132,14 +132,23 @@ export class FBXGeometry {
         vertexData.indices = buffers.indices;
         vertexData.positions = buffers.positions;
 
-        vertexData.uvs = buffers.uvs;
-        vertexData.normals = buffers.normals;
+        if (buffers.uvs.length) {
+            vertexData.uvs = buffers.uvs;
+        }
 
-        vertexData.matricesIndices = buffers.matricesIndices;
-        vertexData.matricesWeights = buffers.matricesWeights;
+        if (buffers.normals.length) {
+            vertexData.normals = buffers.normals;
+        }
 
-        if (skeleton) {
-            this._CleanWeights(skeleton, vertexData.matricesIndices, vertexData.matricesWeights);
+        if (buffers.matricesIndices.length) {
+            vertexData.matricesIndices = buffers.matricesIndices;
+        }
+        if (buffers.matricesWeights.length) {
+            vertexData.matricesWeights = buffers.matricesWeights;
+        }
+
+        if (skeleton && vertexData.matricesIndices && vertexData.matricesWeights) {
+            this._CleanWeights(skeleton, vertexData.matricesIndices as number[], vertexData.matricesWeights as number[]);
 
             this._NormalizeWeights(vertexData.matricesWeights);
             this._NormalizeWeights(vertexData.matricesWeightsExtra);
