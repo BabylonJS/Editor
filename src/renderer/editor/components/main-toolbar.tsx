@@ -171,9 +171,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         const tools =
             <Menu>
-                <MenuItem text="Animation Editor" icon={<Icon src="film.svg" />} onClick={() => this._menuItemClicked("tools:animation-editor")} />
+                {/* <MenuItem text="Animation Editor" icon={<Icon src="film.svg" />} onClick={() => this._menuItemClicked("tools:animation-editor")} />
                 <MenuItem text="Painting Tools..." icon={<Icon src="paint-brush.svg" />} onClick={() => this._menuItemClicked("tools:painting-tools")} />
-                <MenuDivider />
+                <MenuDivider /> */}
                 <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
             </Menu>;
 
@@ -264,7 +264,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "edit:reset-typescript-watcher": WorkSpace.RestartTypeScriptWatcher(this._editor); break;
 
             // Help
-            case "help:documentation": this._editor.addBuiltInPlugin("doc"); break;
+            case "help:documentation": shell.openExternal("https://github.com/BabylonJS/Editor/blob/master/doc/00%20-%20welcome/doc.md"); break; // this._editor.addBuiltInPlugin("doc"); break;
             case "help:report": shell.openExternal("https://github.com/BabylonJS/Editor/issues"); break;
             case "help:welcome": WelcomeDialog.Show(this._editor, true); break;
             case "help:check-for-updates": EditorUpdater.CheckForUpdates(this._editor, true); break;
