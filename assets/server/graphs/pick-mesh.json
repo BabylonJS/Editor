@@ -1,0 +1,217 @@
+{
+	"last_node_id": 10,
+	"last_link_id": 7,
+	"nodes": [
+		{
+			"id": 7,
+			"type": "events/pointer_event",
+			"pos": {
+				"0": 120,
+				"1": 100,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 210,
+				"1": 78
+			},
+			"flags": {},
+			"order": 0,
+			"mode": 0,
+			"inputs": [],
+			"outputs": [
+				{
+					"name": "",
+					"type": -1,
+					"links": [
+						5
+					]
+				},
+				{
+					"name": "Pick Infos",
+					"type": "PickInfo",
+					"links": null
+				}
+			],
+			"title": "Pointer Event",
+			"properties": {
+				"type": "POINTERTAP"
+			},
+			"bgcolor": "#353535",
+			"boxcolor": "#666",
+			"shape": 2
+		},
+		{
+			"id": 9,
+			"type": "basics/log",
+			"pos": {
+				"0": 780,
+				"1": 100,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 210,
+				"1": 78
+			},
+			"flags": {},
+			"order": 2,
+			"mode": 3,
+			"inputs": [
+				{
+					"name": "",
+					"type": -1,
+					"link": 6
+				},
+				{
+					"name": "Message",
+					"type": 0,
+					"link": 7
+				}
+			],
+			"outputs": [
+				{
+					"name": "",
+					"type": -1,
+					"links": null
+				}
+			],
+			"properties": {
+				"message": "message"
+			},
+			"color": "#151",
+			"bgcolor": "#353535",
+			"boxcolor": "#666",
+			"shape": 2
+		},
+		{
+			"id": 8,
+			"type": "mesh/pick_mesh",
+			"pos": {
+				"0": 440,
+				"1": 100,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 210,
+				"1": 142
+			},
+			"flags": {},
+			"order": 1,
+			"mode": 3,
+			"inputs": [
+				{
+					"name": "",
+					"type": -1,
+					"link": 5
+				},
+				{
+					"name": "x",
+					"type": "number",
+					"link": null
+				},
+				{
+					"name": "y",
+					"type": "number",
+					"link": null
+				}
+			],
+			"outputs": [
+				{
+					"name": "",
+					"type": -1,
+					"links": [
+						6
+					]
+				},
+				{
+					"name": "Pick Infos",
+					"type": "PickInfo",
+					"links": null
+				},
+				{
+					"name": "mesh",
+					"type": "Node,TransformNode,AbstractMesh",
+					"links": [
+						7
+					]
+				},
+				{
+					"name": "point",
+					"type": "Vector3",
+					"links": null
+				}
+			],
+			"title": "Pick",
+			"properties": {
+				"fast_check": false,
+				"check_result": true
+			},
+			"color": "#151",
+			"bgcolor": "#353535",
+			"boxcolor": "#666",
+			"shape": 2
+		}
+	],
+	"links": [
+		[
+			5,
+			7,
+			0,
+			8,
+			0,
+			-1
+		],
+		[
+			6,
+			8,
+			0,
+			9,
+			0,
+			-1
+		],
+		[
+			7,
+			8,
+			2,
+			9,
+			1,
+			0
+		]
+	],
+	"groups": [
+		{
+			"title": "pick-mesh.json",
+			"bounding": [
+				83,
+				22,
+				969,
+				256
+			],
+			"color": "#3f789e"
+		}
+	],
+	"config": {
+		"align_to_grid": true
+	},
+	"version": 0.4
+}

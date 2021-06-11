@@ -1,100 +1,56 @@
-import Editor from './editor/editor';
+// Plugins
+export { IPluginToolbar } from "./renderer/editor/plugins/toolbar";
+export { IPlugin, IPluginConfiguration } from "./renderer/editor/plugins/plugin";
 
-import Tools from './editor/tools/tools';
-import Request from './editor/tools/request';
-import UndoRedo from './editor/tools/undo-redo';
-import ThemeSwitcher, { ThemeType } from './editor/tools/theme';
-import GraphicsTools from './editor/tools/graphics-tools';
+export { AbstractEditorPlugin, IEditorPluginProps } from "./renderer/editor/tools/plugin";
 
-import { ConsoleLevel } from './editor/components/console';
+// Editor
+export { Editor } from "./renderer/editor/editor";
 
-import Layout from './editor/gui/layout';
-import Toolbar from './editor/gui/toolbar';
-import List from './editor/gui/list';
-import Grid, { GridRow } from './editor/gui/grid';
-import Picker from './editor/gui/picker';
-import Graph, { GraphNode } from './editor/gui/graph';
-import Window from './editor/gui/window';
-import CodeEditor, { TranspilationOutput } from './editor/gui/code';
-import Form from './editor/gui/form';
-import Edition from './editor/gui/edition';
-import Tree, { TreeContextMenuItem, TreeNode } from './editor/gui/tree';
-import Dialog from './editor/gui/dialog';
-import ContextMenu, { ContextMenuItem } from './editor/gui/context-menu';
-import ResizableLayout, { ComponentConfig, ItemConfigType } from './editor/gui/resizable-layout';
+// Tools
+export { Tools } from "./renderer/editor/tools/tools";
+export { IPCTools } from "./renderer/editor/tools/ipc";
 
-import AbstractEditionTool, { IEditionTool } from './editor/edition-tools/edition-tool';
+// Assets
+export { Assets, IAssetComponent, IAssetsProps, IAssetsState } from "./renderer/editor/components/assets";
+export { AbstractAssets, IAbstractAssets, IAssetComponentItem, IAssetsComponentProps, IAssetsComponentState } from "./renderer/editor/assets/abstract-assets";
 
-import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
-import { EditorPlugin } from './editor/typings/plugin';
+export { MeshesAssets } from "./renderer/editor/assets/meshes";
+export { MaterialAssets } from "./renderer/editor/assets/materials";
+export { TextureAssets } from "./renderer/editor/assets/textures";
+export { SoundAssets } from "./renderer/editor/assets/sounds";
+export { PrefabAssets } from "./renderer/editor/assets/prefabs";
+export { GraphAssets } from "./renderer/editor/assets/graphs";
 
-import { ProjectRoot } from './editor/typings/project';
-import CodeProjectEditorFactory from './editor/project/project-code-editor';
+// Inspectors
+export { Inspector, IInspectorProps, IInspectorState, IObjectInspector, IObjectInspectorProps } from "./renderer/editor/components/inspector";
+export { AbstractInspectorLegacy } from "./renderer/editor/inspectors/abstract-inspector-legacy";
+export { AbstractInspector } from "./renderer/editor/inspectors/abstract-inspector";
+export { MaterialInspector } from "./renderer/editor/inspectors/materials/material-inspector";
 
-import SceneManager from './editor/scene/scene-manager';
-import SceneFactory from './editor/scene/scene-factory';
-import ScenePreview from './editor/scene/scene-preview';
-import ScenePicker from './editor/scene/scene-picker';
+export { InspectorColor } from "./renderer/editor/gui/inspector/fields/color";
+export { InspectorButton } from "./renderer/editor/gui/inspector/fields/button";
+export { InspectorNumber } from "./renderer/editor/gui/inspector/fields/number";
+export { InspectorString } from "./renderer/editor/gui/inspector/fields/string";
+export { InspectorBoolean } from "./renderer/editor/gui/inspector/fields/boolean";
+export { InspectorSection } from "./renderer/editor/gui/inspector/fields/section";
+export { InspectorVector2 } from "./renderer/editor/gui/inspector/fields/vector2";
+export { InspectorVector3 } from "./renderer/editor/gui/inspector/fields/vector3";
+export { InspectorNotifier } from "./renderer/editor/gui/inspector/notifier";
+export { InspectorColorPicker } from "./renderer/editor/gui/inspector/fields/color-picker";
+export { InspectorList, IInspectorListItem } from "./renderer/editor/gui/inspector/fields/list";
 
-import PrefabAssetComponent from './editor/prefabs/asset-component';
-import { Prefab, PrefabNodeType } from './editor/prefabs/prefab';
+// Project
+export { FilesStore, IContentFile, IFile } from "./renderer/editor/project/files";
+export { IBabylonFile, IBabylonFileNode, IProject, IWorkSpace } from "./renderer/editor/project/typings";
+export { ProjectExporter } from "./renderer/editor/project/project-exporter";
+export { Project } from "./renderer/editor/project/project";
+export { WorkSpace } from "./renderer/editor/project/workspace";
 
-import ParticlesCreatorExtension, { ParticlesCreatorMetadata } from './editor/particles/asset-component';
+// GUI
+export { Alert, IAlertProps } from "./renderer/editor/gui/alert";
+export { Dialog, IDialogProps } from "./renderer/editor/gui/dialog";
+export { Confirm, IConfirmProps } from "./renderer/editor/gui/confirm";
+export { Icon } from "./renderer/editor/gui/icon";
 
-import Storage from './editor/storage/storage';
-
-import VSCodeSocket from './editor/extensions/vscode-socket';
-
-export default Editor;
-export {
-    Editor,
-    
-    Tools,
-    Request,
-    UndoRedo,
-    ThemeSwitcher, ThemeType,
-    GraphicsTools,
-
-    ConsoleLevel,
-
-    IStringDictionary,
-    INumberDictionary,
-    IDisposable,
-    
-    EditorPlugin,
-
-    Layout,
-    Toolbar,
-    List,
-    Grid, GridRow,
-    Picker,
-    Graph, GraphNode,
-    Window,
-    CodeEditor, TranspilationOutput,
-    Form,
-    Edition,
-    Tree, TreeContextMenuItem, TreeNode,
-    Dialog,
-    ContextMenu, ContextMenuItem,
-    ResizableLayout, ComponentConfig, ItemConfigType,
-
-    AbstractEditionTool, IEditionTool,
-
-    ProjectRoot,
-    CodeProjectEditorFactory,
-
-    SceneManager,
-    SceneFactory,
-    ScenePreview,
-    ScenePicker,
-
-    PrefabAssetComponent,
-    Prefab, PrefabNodeType,
-
-    ParticlesCreatorExtension,
-    ParticlesCreatorMetadata,
-
-    Storage,
-
-    VSCodeSocket
-}
+import "./renderer/editor/gui/augmentations/index";

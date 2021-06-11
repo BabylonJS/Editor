@@ -1,0 +1,1 @@
+require("./offscreen-canvas.js");

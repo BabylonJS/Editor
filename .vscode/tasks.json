@@ -4,10 +4,10 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "watch-all",
+            "label": "watch-all-editor",
             "group": "build",
             "problemMatcher": [],
-            "dependsOn": ["watch", "watch-vscode-extension", "watch-electron", "watch-photoshop-extension"],
+            "dependsOn": ["watch", "watch-sample-plugin"],
             "presentation": {
                 "panel": "shared",
                 "group": "build",
@@ -15,6 +15,19 @@
                 "echo": true
             }
         },
+        {
+            "label": "watch-all-website",
+            "group": "build",
+            "problemMatcher": [],
+            "dependsOn": ["watch-website", "serve-website"],
+            "presentation": {
+                "panel": "shared",
+                "group": "build",
+                "showReuseMessage": true,
+                "echo": true
+            }
+        },
+
         {
             "label": "watch",
             "type": "npm",
@@ -27,9 +40,9 @@
             }
         },
         {
-            "label": "watch-electron",
+            "label": "watch-sample-plugin",
             "type": "npm",
-            "script": "watch-electron",
+            "script": "watch-sample-plugin",
             "group": "build",
             "problemMatcher": [],
             "presentation": {
@@ -38,50 +51,47 @@
             }
         },
         {
-            "label": "watch-vscode-extension",
+            "label": "watch-website",
             "type": "npm",
-            "script": "watch-vscode-extension",
+            "script": "watch",
             "group": "build",
             "problemMatcher": [],
+            "path": "website/",
             "presentation": {
                 "panel": "shared",
                 "group": "build"
             }
         },
         {
-            "label": "watch-photoshop-extension",
+            "label": "serve-website",
             "type": "npm",
-            "script": "watch-photoshop-extension",
+            "script": "webserver",
             "group": "build",
             "problemMatcher": [],
+            "path": "website/",
             "presentation": {
                 "panel": "shared",
                 "group": "build"
             }
         },
         {
+            "label": "clean-tests",
             "type": "npm",
-            "script": "compile",
-            "problemMatcher": []
-        },
-        {
-            "type": "npm",
-            "script": "build",
-            "problemMatcher": []
+            "script": "prepare-tests",
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "group": "test",
+                "showReuseMessage": false,
+                "clear": false
+            }
         },
         {
             "type": "npm",
             "script": "rebuild",
-            "problemMatcher": []
-        },
-        {
-            "type": "npm",
-            "script": "dts",
-            "problemMatcher": []
-        },
-        {
-            "type": "npm",
-            "script": "bundle-js",
             "problemMatcher": []
         }
     ]

@@ -131,12 +131,10 @@ build
 declaration
 electron-packages
 dist
-vscode-extension/.build
-vscode-extension/.declaration
-vscode-extension/*.vsix
 photoshop-extension/.build
 photoshop-extension/.declaration
+module/index.d.ts
+website/_doc
 
-# Files
-babylonjs-editor-extensions.d.ts
-css/editor.bundle.css
+# Tests
+testOutput

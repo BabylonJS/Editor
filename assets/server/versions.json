@@ -1,0 +1,99 @@
+{
+    "2.5.2": {
+        "win32": "electron/2.5.2/BabylonJS Editor Setup 2.5.2.exe",
+        "darwin": "electron/2.5.2/BabylonJS Editor-2.5.2.dmg"
+    },
+    "3.0.0": {
+        "win32": "electron/3.0.0/BabylonJS Editor Setup 3.0.0.exe",
+        "darwin": "electron/3.0.0/BabylonJS Editor-3.0.0.dmg"
+    },
+    "3.1.0": {
+        "win32": "electron/3.1.0/BabylonJS Editor Setup 3.1.0.exe",
+        "darwin": "electron/3.1.0/BabylonJS Editor-3.1.0.dmg"
+    },
+    "3.1.1": {
+        "win32": "electron/3.1.1/BabylonJS Editor Setup 3.1.1.exe",
+        "darwin": "electron/3.1.1/BabylonJS Editor-3.1.1.dmg"
+    },
+    "3.1.2": {
+        "win32": "electron/3.1.2/BabylonJS Editor Setup 3.1.2.exe",
+        "darwin": "electron/3.1.2/BabylonJS Editor-3.1.2.dmg"
+    },
+    "3.1.3": {
+        "win32": "electron/3.1.3/BabylonJS Editor Setup 3.1.3.exe",
+        "darwin": "electron/3.1.3/BabylonJS Editor-3.1.3.dmg"
+    },
+    "3.2.0": {
+        "win32": "electron/3.2.0/BabylonJS Editor Setup 3.2.0.exe",
+        "darwin": "electron/3.2.0/BabylonJS Editor-3.2.0.dmg"
+    },
+
+    "4.0.0-beta.0": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.0.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.0.dmg"
+    },
+    "4.0.0-beta.1": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.1.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.1.dmg"
+    },
+    "4.0.0-beta.2": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.2.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.2.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.2.AppImage"
+    },
+    "4.0.0-beta.3": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.3.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.3.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.3.AppImage"
+    },
+    "4.0.0-beta.4": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.4.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.4.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.4.AppImage"
+    },
+    "4.0.0-beta.5": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.5.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.5.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.5.AppImage"
+    },
+    "4.0.0-beta.6": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.6.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.6.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.6.AppImage"
+    },
+    "4.0.0-beta.7": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.7.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.7.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.7.AppImage"
+    },
+    "4.0.0-beta.8": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.8.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.8.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.8.AppImage"
+    },
+    "4.0.0-beta.9": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-beta.9.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.9.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-beta.9.AppImage"
+    },
+    "4.0.0-rc.0": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-rc.0.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-rc.0.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-rc.0.AppImage"
+    },
+    "4.0.0-rc.1": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-rc.1.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-rc.1.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-rc.1.AppImage"
+    },
+    "4.0.0-rc.2": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-rc.2.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-rc.2.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-rc.2.AppImage"
+    },
+    "4.0.0-rc.3": {
+        "win32": "electron/4.0.0/BabylonJS Editor Setup 4.0.0-rc.3.exe",
+        "darwin": "electron/4.0.0/BabylonJS Editor-4.0.0-rc.3.dmg",
+        "linux": "electron/4.0.0/BabylonJS Editor-4.0.0-rc.3.AppImage"
+    }
+}

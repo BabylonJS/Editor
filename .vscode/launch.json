@@ -2,24 +2,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Chrome Launch (source maps)",
-            "type": "chrome",
-            "request": "launch",
-            "url": "http://localhost:1338/index-local.html",
-            "webRoot": "${workspaceRoot}/",
-            "sourceMaps": true,
-            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
-        },
-        {
-            "name": "Chrome Launch (without source maps)",
-            "type": "chrome",
-            "request": "launch",
-            "url": "http://localhost:1338/index-local.html",
-            "webRoot": "${workspaceRoot}/",
-            "sourceMaps": false,
-            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
-        },
-        {
             "name": "Electron With Devtools",
             "type": "node",
             "request": "launch",
@@ -29,7 +11,8 @@
                 "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
             },
             "env": {
-                "DEBUG": "true"
+                "DEBUG": "true",
+                "ONE_WINDOW_AT_A_TIME": "false"
             },
             "args": [
                 "--remote-debugging-port=9223",
@@ -48,9 +31,9 @@
             "sourceMaps": true,
             "port": 9223,
             "sourceMapPathOverrides": {
-				"file://*": "${workspaceRoot}/src/*",
-				"file://./*": "${workspaceRoot}/src/*",
-			}
+                "file://*": "${workspaceRoot}/src/*",
+                "file://./*": "${workspaceRoot}/src/*",
+            }
         },
         {
             "name": "Electron",
@@ -71,27 +54,36 @@
             "sourceMaps": true
         },
         {
-            "name": "VSCode Extension",
-            "type": "extensionHost",
+            "name": "Run Tests",
+            "type": "node",
             "request": "launch",
-            "runtimeExecutable": "${execPath}",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,
+            "sourceMaps": true,
             "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension"
-            ]
+                "${workspaceRoot}/build/test/index.js"
+            ],
+            "preLaunchTask": "clean-tests",
+            "presentation": {
+                "hidden": false,
+                "group": "test",
+                "order": 1
+            },
+            "console": "internalConsole",
+            "cwd": "${workspaceRoot}",
+            "runtimeExecutable": null,
+            "env": {
+                "NODE_ENV": "development"
+            },
         }
     ],
     "compounds": [
         {
             "name": "Editor",
-            "configurations": ["Electron", "Attach Electron Renderer"],
-        },
-        {
-            "name": "Electron & VSCode Extension",
-            "configurations": ["Electron With Devtools", "VSCode Extension"]
-        },
-        {
-            "name": "All",
-            "configurations": ["Electron", "Attach Electron Renderer", "VSCode Extension", "Photoshop Extension"]
+            "configurations": [
+                "Electron",
+                "Attach Electron Renderer"
+            ],
         }
     ]
 }

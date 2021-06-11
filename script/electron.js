@@ -1,6 +1,6 @@
-const Builder = require('electron-builder');
+const Builder = require("electron-builder");
 
-const yargs = require('yargs');
+const yargs = require("yargs");
 const args = yargs.argv;
 
 console.log(`
@@ -8,54 +8,48 @@ console.log(`
 ELECTRON BUILD
 -------------------------------------------------------------
 `);
-console.log('\nBuilding Electron...');
+console.log("\nBuilding Electron...");
 
 // Build
 Builder.build({
-    arch: args.arch || 'x64',
+    x64: true,
     config: {
-        fileAssociations: {
-            ext: 'editorproject',
-            name: 'Babylon.js Editor Project'
-        },
-        appId: 'editor.babylonjs.com',
-        productName: 'BabylonJS Editor',
-        icon: './css/icons/babylonjs_icon',
+        fileAssociations: [{
+            ext: "editorproject",
+            name: "Babylon.js Editor Project"
+        }, {
+            ext: "editorworkspace",
+            name: "Babylon.js Editor Workspace"
+        }],
+        appId: "editor.babylonjs.com",
+        productName: "BabylonJS Editor",
+        icon: "./css/icons/babylonjs_icon",
         directories: {
-            output: './electron-packages/'
+            output: "./electron-packages/"
         },
         nsis: {
             oneClick: false
         },
         asar: true,
-        compression: 'store',
+        compression: "store",
         extraFiles: [
-            'photoshop-extension/**',
-            'photoshop-extension/node_modules/**'
+            "assets/wizard/**",
+            "assets/project/**",
+            "assets/scripts/**",
+            "assets/graphs/**",
+            "assets/extras/**",
         ],
         files: [
-            'src/**',
-            'electron/**',
+            "src/**",
 
-            'build/**',
-            'declaration/**',
-            'dist/**',
+            "build/**",
+            "declaration/**",
 
-            'node_modules/babylonjs/babylon.d.ts',
+            "assets/**",
+            "css/**",
+            "html/**",
 
-            'assets/**',
-            'css/**',
-
-            'babylonjs-editor.d.ts',
-            'babylonjs-editor-extensions.d.ts',
-
-            'index-local.html',
-            'redirect.html',
-            'preview.html',
-            'spectorjs.html',
-            'code-editor-debug.html',
-
-            'photoshop-extension/**'
+            "photoshop-extension/**"
         ]
     }
 });

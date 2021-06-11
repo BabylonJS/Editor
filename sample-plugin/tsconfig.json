@@ -1,0 +1,37 @@
+{
+    "compilerOptions": {
+      "target": "es5",
+      "module": "CommonJS",
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "declaration": true,
+      "outDir": "./build/src",
+      "declarationDir": "./declaration/src",
+      "jsx": "react",
+      "strictNullChecks": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "typeRoots": [
+        "node_modules/@types",
+        "node_modules/babylonjs-editor"
+      ],
+      "downlevelIteration": true,
+      "experimentalDecorators": true,
+      "skipLibCheck": true,
+      "types": [
+      ],
+      "lib": [
+        "es2015.promise",
+        "es2015",
+        "dom"
+      ]
+    },
+    "exclude": [
+      "./node_modules",
+      "./build",
+      "./declaration",
+    ]
+  }
+  

@@ -1,69 +1,47 @@
-Babylon.js Editor v3
+Babylon.js Editor v4
 ======
 
 The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
 
-The editor is available online at http://editor.babylonjs.com/
-
-The Documentation is available here: http://doc.babylonjs.com/resources/
-
-Some more articles/tutorials are available here: https://medium.com/babylon-js/
+The online documentation is available here: https://github.com/BabylonJS/Editor/blob/release/4.0.0/doc/00%20-%20welcome/doc.md
 
 ## Features
+* Workspace based to manage multiple projects
+* Import and edit meshes
+* Create and edit materials
+* Import and edit textures
+* Import and edit sounds
 * Create and edit particle systems
-* Create and edit animations
-* Create and edit lens flares systems
-* Create and edit physics states on meshes
-* Create and edit materials (including materials library)
-* Add and edit sounds
-* Add and edit textures (including render target textures & procedural textures)
-* Save projects on OneDrive / local with Electron
-* Deploy project template on OneDrive / local with Electron
-* Scene graph view
-* Create and edit custom post-process
-* Create and edit custom materials
-* Attach custom scripts (JavaScript and TypeScript) to your objects
-* Test your scenes with debug support
+* Attach scripts written in TypeScript to nodes in scene
+* Develop scripts written using the Graph Editor to nodes in the scene
+* Uses ES6 modules of @babylonjs
+* Contains pre-built templates
 
 ## Installing
-Installing dependencies
+For Windows users, follow this tutorial to install the windows build tools: https://github.com/felixrieseberg/windows-build-tools
+This is mandatory for native modules used in the Editor.
 
+Then, just install the dependencies:
 ```bash
-node ./script/install.js
+npm install
 ```
 
 ## Building
-Building Editor (front + electron)
+Just type the following command:
 
 ```bash
 npm run build
 ```
 
+This will transpile all the TypeScript files to JavaScript and build the Electron version of the Editor.
+
 ## Developing
-To develop the editor, or for the editor, just watch your TypeScript files and run a local webserver.
-Then, access to http://localhost:1338/index-local.html
+To contribute to the editor, using VSCode, just watch TypeScript files and run the launch setting "Electron With Devtools". This allows to debug the main part in VSCode and have the devtools opened in the renderer part.
 
 Watching TypeScript (front)
 ```bash
 npm run watch
 ```
-
-Watching TypeScript (Electron)
-```bash
-npm run watch-electron
-```
-
-Running the web server
-```bash
-npm run webserver
-```
-
-## Using VSCode
-CTRL+SHIFT+B then select "watch-all".
-
-Now you can launch and debug the native app using F5 and selecting "Electron With Devtools" in the debug sidebar in VSCode.
-
-That's all!
 
 Licence
 ======

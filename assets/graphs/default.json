@@ -1,0 +1,318 @@
+{
+	"last_node_id": 6,
+	"last_link_id": 4,
+	"nodes": [
+		{
+			"id": 3,
+			"type": "basics/string",
+			"pos": {
+				"0": 115,
+				"1": 239,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 210,
+				"1": 58
+			},
+			"flags": {},
+			"order": 0,
+			"mode": 0,
+			"inputs": [],
+			"outputs": [
+				{
+					"name": "",
+					"type": "string",
+					"links": [
+						2
+					]
+				}
+			],
+			"properties": {
+				"value": "game started!"
+			},
+			"bgcolor": "#353535",
+			"boxcolor": "#666",
+			"shape": 2
+		},
+		{
+			"id": 1,
+			"type": "events/start_game_event",
+			"pos": {
+				"0": 170,
+				"1": 110,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 140,
+				"1": 26
+			},
+			"flags": {},
+			"order": 1,
+			"mode": 0,
+			"inputs": [],
+			"outputs": [
+				{
+					"name": "",
+					"type": -1,
+					"links": [
+						1
+					]
+				}
+			],
+			"title": "Start Game",
+			"properties": {},
+			"bgcolor": "#3c5caa",
+			"boxcolor": "#ffffff",
+			"shape": 3
+		},
+		{
+			"id": 6,
+			"type": "basics/string",
+			"pos": {
+				"0": 740,
+				"1": 260,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 210,
+				"1": 58
+			},
+			"flags": {},
+			"order": 3,
+			"mode": 0,
+			"inputs": [],
+			"outputs": [
+				{
+					"name": "",
+					"type": "string",
+					"links": [
+						4
+					]
+				}
+			],
+			"properties": {
+				"value": "got a frame!"
+			},
+			"bgcolor": "#353535",
+			"boxcolor": "#666",
+			"shape": 2
+		},
+		{
+			"id": 2,
+			"type": "basics/log",
+			"pos": {
+				"0": 410,
+				"1": 110,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 210,
+				"1": 78
+			},
+			"flags": {},
+			"order": 4,
+			"mode": 3,
+			"inputs": [
+				{
+					"name": "",
+					"type": -1,
+					"link": 1
+				},
+				{
+					"name": "Message",
+					"type": 0,
+					"link": 2
+				}
+			],
+			"outputs": [
+				{
+					"name": "",
+					"type": -1,
+					"links": null
+				}
+			],
+			"properties": {
+				"message": "message"
+			},
+			"color": "#151",
+			"bgcolor": "#353535",
+			"boxcolor": "#666",
+			"shape": 2
+		},
+		{
+			"id": 5,
+			"type": "basics/log",
+			"pos": {
+				"0": 1000,
+				"1": 120,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 210,
+				"1": 78
+			},
+			"flags": {},
+			"order": 5,
+			"mode": 3,
+			"inputs": [
+				{
+					"name": "",
+					"type": -1,
+					"link": 3
+				},
+				{
+					"name": "Message",
+					"type": 0,
+					"link": 4
+				}
+			],
+			"outputs": [
+				{
+					"name": "",
+					"type": -1,
+					"links": null
+				}
+			],
+			"properties": {
+				"message": "message"
+			},
+			"color": "#151",
+			"bgcolor": "#353535",
+			"boxcolor": "#666",
+			"shape": 2
+		},
+		{
+			"id": 4,
+			"type": "events/tick_game_event",
+			"pos": {
+				"0": 720,
+				"1": 120,
+				"2": 0,
+				"3": 0,
+				"4": 0,
+				"5": 0,
+				"6": 0,
+				"7": 0,
+				"8": 0,
+				"9": 0
+			},
+			"size": {
+				"0": 140,
+				"1": 26
+			},
+			"flags": {},
+			"order": 2,
+			"mode": 0,
+			"inputs": [],
+			"outputs": [
+				{
+					"name": "",
+					"type": -1,
+					"links": [
+						3
+					]
+				}
+			],
+			"title": "Tick Event",
+			"properties": {},
+			"bgcolor": "#894040",
+			"boxcolor": "#ffffff",
+			"shape": 3
+		}
+	],
+	"links": [
+		[
+			1,
+			1,
+			0,
+			2,
+			0,
+			-1
+		],
+		[
+			2,
+			3,
+			0,
+			2,
+			1,
+			0
+		],
+		[
+			3,
+			4,
+			0,
+			5,
+			0,
+			-1
+		],
+		[
+			4,
+			6,
+			0,
+			5,
+			1,
+			0
+		]
+	],
+	"groups": [
+		{
+			"title": "Start",
+			"bounding": [
+				83,
+				22,
+				576,
+				328
+			],
+			"color": "#3f789e"
+		},
+		{
+			"title": "Update",
+			"bounding": [
+				686,
+				26,
+				579,
+				326
+			],
+			"color": "#3f789e"
+		}
+	],
+	"config": {
+		"align_to_grid": true
+	},
+	"version": 0.4
+}

@@ -1,49 +1,63 @@
-import { IGenerator } from "./types";
-import Socket from "./socket";
-import SocketHelper from "./socket";
+import { Observable } from "babylonjs";
+import { IGenerator, IPixMap } from "./types";
 
-export default class Document {
-    private static _PendingModifications: number[] = [];
+export interface IDocument extends IPixMap {
+    /**
+     * Defines the name of the document.
+     */
+    name: string;
+}
+
+export class Document {
+    /**
+     * Notifies the listeners that a document changed.
+     */
+    public onDocumentChangedObservable: Observable<IDocument> = new Observable<IDocument>();
+
+    private _generator: IGenerator;
 
     /**
-     * Inits all documents to send the existing/opened documents.
-     * @param generator the generator reference.
+     * Inits the plugin.
      */
-    public static async Init (generator: IGenerator): Promise<void> {
-        const ids = await generator.getOpenDocumentIDs();
-        ids.forEach(id => this._SendPixMap(generator, id));
+    public async init(generator: IGenerator): Promise<void> {
+        this._generator = generator;
+        this._generator.onPhotoshopEvent("imageChanged", () => this._onDocumentChanged());
     }
 
     /**
-     * Called on a photoshop document changed.
-     * @param generator the generator reference.
+     * Closes the plugin.
      */
-    public static async OnDocumentChanged (generator: IGenerator): Promise<void> {
-        // Get infos
-        const id = await generator.evaluateJSXString<number>("app.activeDocument.id");
-        if (!id)
-            return;
-
-        // Pending
-        if (this._PendingModifications.indexOf(id) !== -1)
-            return;
-
-        this._PendingModifications.push(id);
-        
-        // Send!
-        await this._SendPixMap(generator, id);
+    public close(): void {
+        this.onDocumentChangedObservable.clear();
     }
 
     /**
-     * Sends the pixmap.
-     * @param generator the generator reference.
-     * @param id the id of the pixmap.
+     * Syncs Photoshop and the editor.
      */
-    private static async _SendPixMap (generator: IGenerator, id: number): Promise<void> {
+    public async sync(): Promise<void> {
+        const documentIds = await this._generator.getOpenDocumentIDs();
+        documentIds.forEach((id) => this._sendPixMap(id));
+    }
+
+    /**
+     * Called on a document changed in Photoshop.
+     */
+    private async _onDocumentChanged(): Promise<void> {
+        const id = await this._generator.evaluateJSXString<number>("app.activeDocument.id");
+        if (!id) { return; }
+
+        this._sendPixMap(id);
+    }
+
+    /**
+     * Sends the mixmap to the editor or the given document.
+     */
+    private async _sendPixMap(id: number): Promise<void> {
         // Get pixmap
-        const pixmap = await generator.getDocumentPixmap(id, { });
-        if (!pixmap)
+        const pixmap = await this._generator.getDocumentPixmap(id, { });
+        if (!pixmap) {
             return;
+        }
 
         // Set pixels order
         for (var i=0; i < pixmap.pixels.length; i += pixmap.channelCount) {
@@ -58,24 +72,14 @@ export default class Document {
             pixmap.pixels[i + 3] = a;
         }
 
-        const infos = await generator.getDocumentInfo(id);
-        if (!infos)
-            return;
+        // Get infos
+        const infos = await this._generator.getDocumentInfo(id);
+        if (!infos) { return; }
 
-        // Free pending
-        this._PendingModifications.splice(this._PendingModifications.indexOf(id), 1);
-
-        // Send
-        SocketHelper.Server.emit('document', {
+        // Notify!
+        this.onDocumentChangedObservable.notifyObservers({
             name: infos.file,
-            width: pixmap.width,
-            height: pixmap.height,
-            pixels: pixmap.pixels
+            ...pixmap,
         });
-
-        // Other pending.
-        let index = 0;
-        while ((index = this._PendingModifications.pop()))
-            await this._SendPixMap(generator, index);
     }
 }
