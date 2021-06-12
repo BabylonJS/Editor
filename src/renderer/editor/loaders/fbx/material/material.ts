@@ -19,7 +19,7 @@ export class FBXMaterial {
 	 * @param runtime defines the reference to the current FBX runtime.
 	 */
 	public static ParseMaterials(runtime: IFBXLoaderRuntime): void {
-		const videos = this._ParseVideos(runtime.scene, runtime.objects, runtime.rootUrl);
+		const videos = this._ParseVideos(runtime.scene, runtime.objects, runtime.rootUrl, runtime.writeTextures);
 		const textures = this._ParseTextures(runtime.objects, runtime.connections, videos);
 
 		const materials = runtime.objects.nodes("Material");
@@ -133,7 +133,7 @@ export class FBXMaterial {
 	/**
 	 * Parses all the available Video FBX nodes and returns the created textures dictionary.
 	 */
-	private static _ParseVideos(scene: Scene, objects: FBXReaderNode, rootUrl: string): INumberDictionary<Texture> {
+	private static _ParseVideos(scene: Scene, objects: FBXReaderNode, rootUrl: string, writeTextures: boolean): INumberDictionary<Texture> {
 		const videos = objects.nodes("Video");
 		const result: INumberDictionary<Texture> = {};
 
@@ -154,7 +154,7 @@ export class FBXMaterial {
 			const useMipMap = v.node("UseMipMap")?.prop(0) ?? 0;
 
 			const fileName = basename(filePath);
-			const fileUrl = join(rootUrl, fileName);
+			let fileUrl = join(rootUrl, fileName);
 
 			const content = v.node("Content")?.prop(0) as Undefinable<string | number[]>;
 			if (!Array.isArray(content)) {
@@ -168,12 +168,23 @@ export class FBXMaterial {
 			}
 
 			if (content.length) {
-				writeFileSync(fileUrl, Buffer.from(content), { encoding: "binary" });
+				if (writeTextures) {
+					writeFileSync(fileUrl, Buffer.from(content), { encoding: "binary" });
+				} else {
+					const blob = new Blob([Buffer.from(content)]);
+					fileUrl = URL.createObjectURL(blob);
+				}
+			}
+			
+			const texture = new Texture(fileUrl, scene, !useMipMap);
+			
+			if (!writeTextures) {
+				texture.onLoadObservable.addOnce(() => URL.revokeObjectURL(fileUrl));
+			} else {
+				FilesStore.AddFile(fileUrl);
 			}
 
-			FilesStore.AddFile(fileUrl);
-
-			result[id] = new Texture(fileUrl, scene, !useMipMap);
+			result[id] = texture;
 		}
 
 		return result;
