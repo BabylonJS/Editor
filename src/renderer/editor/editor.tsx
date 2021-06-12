@@ -1,5 +1,5 @@
 import { ipcRenderer, remote, shell } from "electron";
-import { join } from "path";
+import { dirname, join } from "path";
 import { pathExists } from "fs-extra";
 
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
@@ -53,6 +53,7 @@ import { FBXLoader } from "./loaders/fbx/loader";
 import { Inspector } from "./components/inspector";
 import { Graph } from "./components/graph";
 import { Assets } from "./components/assets";
+import { AssetsBrowser } from "./components/assets-browser";
 import { Preview } from "./components/preview";
 import { MainToolbar } from "./components/main-toolbar";
 import { ToolsToolbar } from "./components/tools-toolbar";
@@ -178,6 +179,10 @@ export class Editor {
      * Reference to the console.
      */
     public console: Console;
+    /**
+     * Defines the reference to the assets browser component.
+     */
+    public assetsBrowser: AssetsBrowser;
 
     /**
      * Defines the dictionary of all avaiable loaded plugins in the editor.
@@ -328,7 +333,7 @@ export class Editor {
     /**
      * Defines the current version of the layout.
      */
-    public static readonly LayoutVersion = "4.0.0";
+    public static readonly LayoutVersion = "4.1.0";
     /**
      * Defines the dictionary of all loaded plugins in the editor.
      */
@@ -391,6 +396,7 @@ export class Editor {
         this._components["assets"] = <Assets editor={this} />;
         this._components["graph"] = <Graph editor={this} />;
         this._components["console"] = <Console editor={this} />;
+        this._components["assets-browser"] = <AssetsBrowser editor={this} />;
 
         // Retrieve preview layout state for plugins.
         try {
@@ -845,6 +851,12 @@ export class Editor {
         if (workspacePath) {
             await WorkSpace.ReadWorkSpaceFile(workspacePath);
             await WorkSpace.RefreshAvailableProjects();
+        }
+
+        // Initialize assets browser
+        if (workspacePath) {
+            await AssetsBrowser.Init();
+            this.assetsBrowser.setWorkspaceDirectoryPath(dirname(workspacePath));
         }
 
         // Get opening project

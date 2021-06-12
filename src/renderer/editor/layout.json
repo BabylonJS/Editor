@@ -65,6 +65,14 @@
                             },
                             {
                                 "type": "tab",
+                                "id": "assets-browser",
+                                "name": "Assets Browser",
+                                "component": "assets-browser",
+                                "enableClose": false,
+                                "enableRenderOnDemand": false
+                            },
+                            {
+                                "type": "tab",
                                 "id": "console",
                                 "name": "Console",
                                 "component": "console",

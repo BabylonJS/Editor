@@ -35,6 +35,8 @@ export interface IFBXLoaderRuntime {
 
     connections: Map<number, IFBXConnections>;
 
+    writeTextures: boolean;
+
     cachedModels: INumberDictionary<TransformNode | Bone>;
     cachedGeometries: INumberDictionary<Geometry>;
     cachedSkeletons: INumberDictionary<IFBXSkeleton>;
@@ -55,6 +57,14 @@ export class FBXLoader implements ISceneLoaderPluginAsync {
             isBinary: true,
         },
     };
+
+    /**
+     * Constructor.
+     * @param writeTextures definess wether or not texture should be written on disk or converted as blob Urls.
+     */
+    public constructor(public writeTextures: boolean = true) {
+        // Empty for now...
+    }
 
     /**
      * Import meshes into a scene.
@@ -165,6 +175,8 @@ export class FBXLoader implements ISceneLoaderPluginAsync {
             objects,
             deformers,
             geometries,
+
+            writeTextures: this.writeTextures,
 
             cachedModels: {},
             cachedSkeletons: {},
