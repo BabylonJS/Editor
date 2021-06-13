@@ -26,8 +26,8 @@ export class GLTFTools {
 
             const pixels =
                 texture.textureType === Engine.TEXTURETYPE_UNSIGNED_INT ?
-                texture.readPixels() as Uint8Array :
-                texture.readPixels() as Float32Array;
+                    texture.readPixels() as Uint8Array :
+                    texture.readPixels() as Float32Array;
 
             const canvas = document.createElement("canvas");
             canvas.width = dimensions.width;

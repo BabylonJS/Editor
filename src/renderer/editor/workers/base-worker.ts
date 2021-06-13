@@ -29,7 +29,7 @@ self.addEventListener("message", async (ev) => {
 		self.postMessage({ messageId: ev.data.messageId, randomId: ev.data.randomId, result }, undefined!);
 	} catch (e) {
 		console.error(e);
-		self.postMessage({ messageId: ev.data.messageId, randomId: ev.data.randomId, error: e.message }, undefined!);
+		self.postMessage({ messageId: ev.data.messageId, randomId: ev.data.randomId, error: e?.message }, undefined!);
 	}
 });
 
