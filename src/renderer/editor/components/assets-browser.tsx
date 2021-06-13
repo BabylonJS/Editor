@@ -43,8 +43,12 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		await FSTools.CreateDirectory(join(WorkSpace.DirPath, "assets"));
 	}
 
-	private _editor: Editor;
+	/**
+	 * Defines the absolute path to the assets directory.
+	 */
+	public assetsDirectory: string = "";
 
+	private _editor: Editor;
 	private _files: Nullable<AssetsBrowserFiles> = null;
 
 	/**
@@ -91,7 +95,18 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	public setWorkspaceDirectoryPath(workspacePath: string): void {
 		const browsedPath = join(workspacePath, "assets");
 
+		if (!this.assetsDirectory) {
+			this.assetsDirectory = browsedPath;
+		}
+
 		this.setState({ browsedPath });
 		this._files?.setDirectory(browsedPath);
+	}
+
+	/**
+	 * Refreshes the current directory.
+	 */
+	public async refresh(): Promise<void> {
+		await this._files?.refresh();
 	}
 }

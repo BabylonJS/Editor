@@ -112,7 +112,7 @@ export class MaterialAssets extends AbstractAssets {
             if (!object && item) { continue; }
 
             const copy = material.serialize();
-            await assetsHelper.setMaterial(copy, material instanceof NodeMaterial ? undefined : join(Project.DirPath!, "/"));
+            await assetsHelper.setMaterial(copy, material instanceof NodeMaterial ? undefined : join(this.editor.assetsBrowser.assetsDirectory, "/"));
 
             const base64 = await assetsHelper.getScreenshot();
 

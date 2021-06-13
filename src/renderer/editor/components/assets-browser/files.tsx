@@ -25,6 +25,10 @@ export interface IAssetsBrowserFilesState {
 	 * Defines the current stack of opened folders.
 	 */
 	pathStack: string[];
+	/**
+	 * Defines the absolute path to the working directory.
+	 */
+	currentDirectory: string;
 
 	/**
 	 * Defines the list of all items drawn in the view.
@@ -45,6 +49,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		this.state = {
 			items: [],
 			pathStack: [],
+			currentDirectory: "",
 		};
 	}
 
@@ -112,7 +117,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	public async setDirectory(directoryPath: string): Promise<void> {
 		if (!this._assetsDirectory) {
 			this._assetsDirectory = directoryPath;
-			this.setState({ pathStack: [directoryPath] });
+			this.setState({
+				pathStack: [directoryPath],
+				currentDirectory: directoryPath,
+			});
 		}
 
 		// Get files and filter
@@ -132,6 +140,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					editor={this.props.editor}
 					absolutePath={absolutePath}
 					type={fStats.isDirectory() ? "directory" : "file"}
+					relativePath={absolutePath.replace(join(this._assetsDirectory, "/"), "")}
 					onDoubleClick={() => this._handleItemDoubleClicked(directoryPath, f, fStats)}
 				/>
 			);
@@ -141,14 +150,22 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	}
 
 	/**
+	 * Refreshes the current list of files.
+	 */
+	public refresh(): Promise<void> {
+		return this.setDirectory(this.state.currentDirectory);
+	}
+
+	/**
 	 * Called on the user double clicks on an item.
 	 */
 	private async _handleItemDoubleClicked(directoryPath: string, file: string, stats: Stats): Promise<void> {
 		if (stats.isDirectory()) {
+			const currentDirectory = join(directoryPath, file);
 			const pathStack = this.state.pathStack.concat([file]);
-			this.setState({ pathStack });
 
-			return this.setDirectory(join(directoryPath, file));
+			this.setState({ pathStack, currentDirectory });
+			return this.setDirectory(currentDirectory);
 		}
 	}
 

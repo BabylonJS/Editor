@@ -7,11 +7,12 @@ import { Position, Tooltip } from "@blueprintjs/core";
 
 import { Editor } from "../../../editor";
 
-import { AssetsBrowserItemHandler, IItemHandler, IItemHandlerProps } from "./item-handler";
+import { AssetsBrowserItemHandler, IItemHandler, IAssetsBrowserItemHandlerProps } from "./item-handler";
 
 import { FileItemHandler } from "./handlers/file";
 import { MeshItemHandler } from "./handlers/mesh";
 import { ImageItemHandler } from "./handlers/image";
+import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
 
 export interface IAssetsBrowserItemProps {
@@ -23,6 +24,10 @@ export interface IAssetsBrowserItemProps {
 	 * Defines the title of the item.
 	 */
 	title: string;
+	/**
+	 * Defines the relative path to the item.
+	 */
+	relativePath: string;
 	/**
 	 * Defines the absolute path to the item.
 	 */
@@ -75,6 +80,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".obj", ctor: MeshItemHandler });
 		this.RegisterItemHandler({ extension: ".gltf", ctor: MeshItemHandler });
 		this.RegisterItemHandler({ extension: ".glb", ctor: MeshItemHandler });
+
+		this.RegisterItemHandler({ extension: ".material", ctor: MaterialItemHandler });
 	}
 
 	private _mainDiv: Nullable<HTMLDivElement> = null;
@@ -147,7 +154,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 	 * Called on the component did mount.
 	 */
 	public componentDidMount(): void {
-		let handler: { itemHandler?: (new (props: IItemHandlerProps) => AssetsBrowserItemHandler); } = {
+		let handler: { itemHandler?: (new (props: IAssetsBrowserItemHandlerProps) => AssetsBrowserItemHandler); } = {
 			itemHandler: undefined,
 		};
 
@@ -166,6 +173,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 			itemHandler: (
 				<handler.itemHandler
 					editor={this.props.editor}
+					relativePath={this.props.relativePath}
 					absolutePath={this.props.absolutePath}
 				/>
 			)

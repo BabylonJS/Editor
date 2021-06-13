@@ -171,7 +171,6 @@ export class ProjectExporter {
         const exportedLights: string[] = [];
         const exportedShadows: string[] = [];
         const exportedCameras: string[] = [];
-        const exportedMaterials: string[] = [];
         const exportedTextures: string[] = [];
         const exportedGeometries: string[] = [];
         const exportedSounds: string[] = [];
@@ -331,7 +330,13 @@ export class ProjectExporter {
         const materials = editor.scene!.materials.concat(editor.scene!.multiMaterials);
 
         for (const material of materials) {
-            if (material instanceof ShaderMaterial || material === editor.scene!.defaultMaterial || material.doNotSerialize) { continue; }
+            if (material instanceof ShaderMaterial || material === editor.scene!.defaultMaterial || material.doNotSerialize) {
+                continue;
+            }
+
+            if (!material.metadata?.editorPath) {
+                continue;
+            }
 
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = material.serialize();
@@ -339,24 +344,21 @@ export class ProjectExporter {
                 if (json.customType === "BABYLON.PBRMaterial" && json.environmentBRDFTexture) {
                     delete json.environmentBRDFTexture;
                 }
-
-                if (material.metadata) {
-                    try {
-                        json.metadata = Tools.CloneObject(material.metadata);
-                    } catch (e) {
-                        // Catch silently.
-                    }
+                
+                try {
+                    json.metadata = Tools.CloneObject(material.metadata);
+                } catch (e) {
+                    // Catch silently.
                 }
 
-                const dest = `${normalize(`${basename(filenamify(material.name))}-${material.id}`)}.json`;
-                await writeFile(join(materialsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+                const dest = join(editor.assetsBrowser.assetsDirectory, material.metadata.editorPath);
+                await writeFile(dest, JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
                 project.materials.push({
                     bindedMeshes: material.getBindedMeshes().map((m) => m.id),
-                    json: dest,
+                    json: material.metadata.editorPath,
                     isMultiMaterial: material instanceof MultiMaterial,
                 });
-                exportedMaterials.push(dest);
 
                 editor.updateTaskFeedback(task, progressValue += progressCount);
                 editor.console.logInfo(`Saved material configuration "${material.name}"`);
@@ -560,7 +562,6 @@ export class ProjectExporter {
         this._CleanOutputDir(camerasDir, exportedCameras);
         this._CleanOutputDir(geometriesDir, exportedGeometries);
         this._CleanOutputDir(lightsDir, exportedLights);
-        this._CleanOutputDir(materialsDir, exportedMaterials);
         this._CleanOutputDir(meshesDir, exportedMeshes);
         this._CleanOutputDir(shadowsDir, exportedShadows);
         this._CleanOutputDir(texturesDir, exportedTextures);
