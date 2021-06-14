@@ -8,7 +8,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 import * as React from "react";
 import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
-import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, DynamicTexture, BaseTexture, BasisTools } from "babylonjs";
+import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, BaseTexture, BasisTools } from "babylonjs";
 
 import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
@@ -60,11 +60,11 @@ export class TextureAssets extends AbstractAssets {
      * Renders the component.
      */
     public render(): React.ReactNode {
-        const add = 
+        const add =
             <Menu>
                 <MenuItem key="add-pure-cube" text="Pur Cube Texture..." onClick={() => this._addPureCubeTexture()} />
             </Menu>;
-        
+
         return (
             <>
                 <div className={Classes.FILL} key="materials-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
@@ -72,7 +72,7 @@ export class TextureAssets extends AbstractAssets {
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
                         <Divider />
                         <Popover content={add} position={Position.BOTTOM_LEFT}>
-                            <Button icon={<Icon src="plus.svg"/>} rightIcon="caret-down" small={true} text="Add"/>
+                            <Button icon={<Icon src="plus.svg" />} rightIcon="caret-down" small={true} text="Add" />
                         </Popover>
                         <Divider />
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedTextures()} />
@@ -87,8 +87,9 @@ export class TextureAssets extends AbstractAssets {
      * Refreshes the component.
      * @override
      */
-    public async refresh(object?: Texture): Promise<void> {
+    public async refresh(): Promise<void> {
         for (const texture of this.editor.scene!.textures) {
+            /*
             const isDyamicTexture = texture instanceof DynamicTexture;
 
             if (!(texture instanceof Texture) && !(texture instanceof CubeTexture) && !isDyamicTexture) { continue; }
@@ -139,6 +140,46 @@ export class TextureAssets extends AbstractAssets {
                 if (index !== -1) { this.items[index] = itemData; }
             } else {
                 this.items.push(itemData);
+            }
+
+            this.updateAssetObservable.notifyObservers();
+            */
+           
+            if (!texture.name) {
+                continue;
+            }
+            
+            const filePath = join(this.editor.assetsBrowser.assetsDirectory, texture.name);
+            const exists = await pathExists(filePath);
+
+            if (exists) {
+                texture.metadata = texture.metadata ?? {};
+                if (!texture.metadata.editorName) {
+                    texture.metadata.editorName = basename(texture.name);
+                }
+                if (!texture.metadata.editorId) {
+                    texture.metadata.editorId = Tools.RandomId();
+                }
+
+                const base64 = texture.isCube ? "../css/svg/dds.svg" : filePath ?? "";
+
+                const itemData: IAssetComponentItem = {
+                    base64,
+                    key: texture.metadata.editorId,
+                    id: texture.metadata.editorName,
+                };
+
+                if (texture.metadata?.isLocked) {
+                    itemData.style = { border: "solid red" };
+                }
+
+                const existingItemIndex = this.items.findIndex((i) => i.key === texture.metadata?.editorId);
+                if (existingItemIndex !== -1) {
+                    this.items[existingItemIndex] = itemData;
+                } else {
+                    this.items.push(itemData);
+                }
+
             }
 
             this.updateAssetObservable.notifyObservers();
@@ -238,7 +279,7 @@ export class TextureAssets extends AbstractAssets {
         const texture = this._getTexture(item.key);
         if (!texture || (!(texture instanceof Texture) && !(texture instanceof CubeTexture))) { return; }
 
-        texture.metadata = texture.metadata ?? { };
+        texture.metadata = texture.metadata ?? {};
         texture.metadata.isLocked = texture.metadata.isLocked ?? false;
 
         const platform = os.platform();
@@ -251,7 +292,7 @@ export class TextureAssets extends AbstractAssets {
                 <MenuItem text="Set As Environment Texture" icon={texture === this.editor.scene!.environmentTexture ? <Icon src="check.svg" /> : undefined} onClick={() => {
                     const oldTexture = this.editor.scene!.environmentTexture;
                     if (oldTexture === texture) { return; }
-                    
+
                     undoRedo.push({
                         description: `Set texture "${texture?.name ?? "undefined"}" as environment texture instead of "${oldTexture?.name ?? "undefined"}"`,
                         common: () => this.editor.inspector.refresh(),
@@ -277,8 +318,8 @@ export class TextureAssets extends AbstractAssets {
                 <MenuDivider />
                 <MenuItem text="Locked" icon={texture.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
                     texture.metadata.isLocked = !texture.metadata.isLocked;
-                    item.style = item.style ?? { };
-                    item.style.border = texture.metadata.isLocked ? "solid red": "";
+                    item.style = item.style ?? {};
+                    item.style.border = texture.metadata.isLocked ? "solid red" : "";
                     super.refresh();
                 }} />
                 {setAsEnvironmentTexture}
@@ -331,7 +372,7 @@ export class TextureAssets extends AbstractAssets {
      * Configures the paths of the given texture.
      * @param texture defines the reference to the texture to configure.
      */
-    public configureTexturePath(texture: Texture | CubeTexture): void {
+    public configureTexturePath(texture: Texture | CubeTexture): void {
         const path = join("files", basename(texture.name));
 
         texture.name = path;
@@ -347,7 +388,7 @@ export class TextureAssets extends AbstractAssets {
 
         const texture = this._getTexture(item.key);
         if (!texture || (!(texture instanceof Texture) && !(texture instanceof CubeTexture))) { return; }
-        
+
         this._removeTexture(item, texture);
     }
 
@@ -380,7 +421,7 @@ export class TextureAssets extends AbstractAssets {
         const step = 100 / this.editor.scene!.textures.length;
 
         let progress = 0;
-        
+
         const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
         const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
 
@@ -390,7 +431,7 @@ export class TextureAssets extends AbstractAssets {
         await FSTools.CreateDirectory(compressedTexturesDest);
 
         for (const texture of this.editor.scene!.textures) {
-            if (!texture.name || !(texture instanceof Texture)) {
+            if (!texture.name || !(texture instanceof Texture)) {
                 this.editor.updateTaskFeedback(task, progress += step);
                 continue;
             }
@@ -401,8 +442,8 @@ export class TextureAssets extends AbstractAssets {
                 continue;
             }
 
-            texture.metadata ??= { };
-            texture.metadata.ktx2CompressedTextures ??= { };
+            texture.metadata ??= {};
+            texture.metadata.ktx2CompressedTextures ??= {};
 
             const isUsingCompressedTexture = texture.metadata?.ktx2CompressedTextures?.isUsingCompressedTexture ?? false;
 
@@ -414,12 +455,12 @@ export class TextureAssets extends AbstractAssets {
 
                 if (!await pathExists(join(compressedTexturesDest, ktxTexturePath))) {
                     await KTXTools.CompressTexture(this.editor, file.path, compressedTexturesDest, ktxFormat);
-                    
+
                     // Update Url
                     texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
                     texture.url = previousUrl;
                 }
-                
+
                 texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = true;
             } else {
                 if (isUsingCompressedTexture) {
@@ -499,7 +540,7 @@ export class TextureAssets extends AbstractAssets {
         // Copy files
         for (let i = 0; i < files.length; i++) {
             const f = files[i];
-            
+
             // Copy assets
             const dest = join(Project.DirPath!, "files", basename(f));
             if (dest) { await copy(f, dest); }
@@ -579,7 +620,7 @@ export class TextureAssets extends AbstractAssets {
         if (this.editor.preview.state.isIsolatedMode) {
             return;
         }
-        
+
         const toRemove = this.items.map((i) => this._getTexture(i.key));
 
         toRemove.forEach((texture) => {

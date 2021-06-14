@@ -104,7 +104,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 	public render(): React.ReactNode {
 		return (
 			<div
-				ref={(ref) => this._mainDiv = ref}
+				ref={(r) => this._mainDiv = r}
+				onDrop={(ev) => this._handleDrop(ev)}
 				onMouseOver={() => this._handleMouseOver()}
 				onMouseLeave={() => this._handleMouseLeave()}
 				onDoubleClick={() => this.props.onDoubleClick()}
@@ -195,6 +196,18 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 	private _handleMouseLeave(): void {
 		if (this._mainDiv) {
 			this._mainDiv.style.outlineStyle = "unset";
+		}
+	}
+
+	/**
+	 * Called on the user drops something on the item.
+	 */
+	private _handleDrop(ev: React.DragEvent<HTMLDivElement>): void {
+		debugger;
+		console.log(ev);
+
+		if (this.props.type !== "directory") {
+			return;
 		}
 	}
 }

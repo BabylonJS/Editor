@@ -230,6 +230,7 @@ export class ProjectImporter {
         for (const t of project.textures) {
             try {
                 const json = await readJSON(join(Project.DirPath, "textures", t));
+                const textureRootUrl = join(editor.assetsBrowser.assetsDirectory, "/");
 
                 const existing = editor.scene!.textures.find((t) => {
                     return t.metadata && json.metadata && t.metadata.editorId === json.metadata.editorId;
@@ -240,13 +241,13 @@ export class ProjectImporter {
                 if (json.isCube && !json.isRenderTarget && json.files && json.metadata?.isPureCube) {
                     // Replace Urls
                     json.files.forEach((f, index) => {
-                        json.files[index] = join(Project.DirPath!, f);
+                        json.files[index] = join(textureRootUrl, f);
                     });
 
-                    const cube = CubeTexture.Parse(json, editor.scene!, rootUrl);
+                    const cube = CubeTexture.Parse(json, editor.scene!, textureRootUrl);
                     cube.name = cube.url = basename(cube.name);
                 } else {
-                    Texture.Parse(json, editor.scene!, rootUrl);
+                    Texture.Parse(json, editor.scene!, textureRootUrl);
                 }
                 editor.console.logInfo(`Parsed texture "${t}"`);
             } catch (e) {

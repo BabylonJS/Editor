@@ -149,9 +149,9 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	private _handleDragStart(ev: React.DragEvent<HTMLDivElement>): void {
 		this.onDragStart(ev);
 
-		this.props.editor.engine?.getRenderingCanvas()?.addEventListener("drop", this._dropListener = () => {
+		this.props.editor.engine?.getRenderingCanvas()?.addEventListener("drop", this._dropListener = (dropEv) => {
 			const scene = this.props.editor.scene!;
-			const pick = scene.pick(scene.pointerX, scene.pointerY) ?? new PickingInfo();
+			const pick = scene.pick(dropEv.offsetX, dropEv.offsetY) ?? new PickingInfo();
 
 			this.onDropInPreview(ev, pick);
 		});
