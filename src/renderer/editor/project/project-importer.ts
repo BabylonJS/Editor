@@ -9,7 +9,6 @@ import {
     AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture,
 } from "babylonjs";
 
-import { MeshesAssets } from "../assets/meshes";
 import { PrefabAssets } from "../assets/prefabs";
 import { GraphAssets } from "../assets/graphs";
 
@@ -83,7 +82,6 @@ export class ProjectImporter {
         });
 
         // Configure assets
-        project.assets.meshes.forEach((m) => MeshesAssets.Meshes.push({ name: m, path: join(Project.DirPath!, "assets", "meshes", m) }));
         if (project.assets.prefabs) {
             project.assets.prefabs.forEach((p) => PrefabAssets.Prefabs.push({ name: p, path: join(Project.DirPath!, "prefabs", p) }));
         }

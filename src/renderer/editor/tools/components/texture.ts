@@ -86,7 +86,6 @@ export class TextureTools {
 
         // Add to assets
         editor.assets.selectTab(TextureAssets);
-        await editor.assets.addFilesToAssets([{ path: textureDest, name }]);
         
         // Remove temp stuff
         try {

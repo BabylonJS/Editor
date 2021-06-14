@@ -81,6 +81,7 @@
     "chartjs-plugin-annotation": "0.5.7",
     "chartjs-plugin-dragzone": "0.1.1",
     "dat.gui": "0.7.6",
+    "directory-tree": "2.2.9",
     "earcut": "2.2.2",
     "electron-devtools-installer": "3.1.1",
     "fbx-parser": "2.1.3",

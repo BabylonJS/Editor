@@ -10,7 +10,6 @@ import { LGraph } from "litegraph.js";
 import filenamify from "filenamify";
 
 import { GraphAssets } from "../assets/graphs";
-import { MeshesAssets } from "../assets/meshes";
 import { PrefabAssets } from "../assets/prefabs";
 import { ScriptAssets } from "../assets/scripts";
 
@@ -151,7 +150,7 @@ export class ProjectExporter {
             morphTargetManagers: [],
             scene: ProjectHelpers.ExportSceneSettings(editor.scene!),
             assets: {
-                meshes: MeshesAssets.Meshes.map((m) => m.name),
+                meshes: [],
                 prefabs: PrefabAssets.Prefabs.map((p) => p.name),
                 graphs: GraphAssets.Graphs.map((g) => g.name),
             },

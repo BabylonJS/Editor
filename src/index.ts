@@ -15,7 +15,6 @@ export { IPCTools } from "./renderer/editor/tools/ipc";
 export { Assets, IAssetComponent, IAssetsProps, IAssetsState } from "./renderer/editor/components/assets";
 export { AbstractAssets, IAbstractAssets, IAssetComponentItem, IAssetsComponentProps, IAssetsComponentState } from "./renderer/editor/assets/abstract-assets";
 
-export { MeshesAssets } from "./renderer/editor/assets/meshes";
 export { MaterialAssets } from "./renderer/editor/assets/materials";
 export { TextureAssets } from "./renderer/editor/assets/textures";
 export { SoundAssets } from "./renderer/editor/assets/sounds";

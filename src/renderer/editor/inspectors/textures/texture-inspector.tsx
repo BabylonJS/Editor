@@ -72,7 +72,7 @@ export class TextureInspector<T extends Texture | CubeTexture, S extends ITextu
         }
 
         const path = this.selectedObject instanceof Texture ?
-                        join(Project.DirPath, this.selectedObject.name) :
+                        join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name) :
                         "../css/svg/dds.svg";
 
         return (

@@ -49,6 +49,8 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	public assetsDirectory: string = "";
 
 	private _editor: Editor;
+
+	private _tree: Nullable<AssetsBrowserTree> = null;
 	private _files: Nullable<AssetsBrowserFiles> = null;
 
 	/**
@@ -82,8 +84,15 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 				// onChange={(r) => this.setState({ paneWidth: r })}
 				// pane2Style={{ width: `${layoutSize.width - this.state.paneWidth}px` }}
 			>
-				<AssetsBrowserTree />
-				<AssetsBrowserFiles ref={(r) => this._files = r} editor={this._editor} />
+				<AssetsBrowserTree
+					ref={(r) => this._tree = r}
+					onDirectorySelected={(p) => this._files?.setDirectory(p)}
+				/>
+				<AssetsBrowserFiles
+					editor={this._editor}
+					ref={(r) => this._files = r}
+					onDirectorySelected={(p) => this._tree?.setDirectory(p)}
+				/>
 			</SplitPane>
 		);
 	}
@@ -100,6 +109,8 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		}
 
 		this.setState({ browsedPath });
+
+		this._tree?.setDirectory(browsedPath);
 		this._files?.setDirectory(browsedPath);
 	}
 

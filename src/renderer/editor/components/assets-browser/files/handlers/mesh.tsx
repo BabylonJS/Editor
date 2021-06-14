@@ -29,7 +29,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 		this._computePreview();
 
 		return (
-			<div style={{ width: "100%", height: "100%" }}>
+			<div style={{ width: "100%", height: "100%", outlineWidth: "3px", outlineStyle: "groove", outlineColor: "#FFFF00", }}>
 				<Icon src="logo-babylon.svg" style={{ width: "100%", height: "100%", filter: "unset" }} />
 				<div style={{ position: "absolute", top: "0", left: "0" }}>
 					<Spinner size={24} />
@@ -55,6 +55,10 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	 */
 	public onDragStart(ev: React.DragEvent<HTMLDivElement>): void {
 		ev.dataTransfer.setData("text", this.props.absolutePath);
+		ev.dataTransfer.setData("asset/mesh", JSON.stringify({
+			absolutePath: this.props.absolutePath,
+			relativePath: this.props.relativePath,
+		}));
 	}
 
 	/**
@@ -73,6 +77,9 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 				style={{
 					width: "100%",
 					height: "100%",
+					outlineWidth: "3px",
+					outlineStyle: "groove",
+					outlineColor: "#FFFF00",
 				}}
 			/>
 		);

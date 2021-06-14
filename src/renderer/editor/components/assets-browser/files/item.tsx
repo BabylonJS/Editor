@@ -105,18 +105,18 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		return (
 			<div
 				ref={(ref) => this._mainDiv = ref}
-				onMouseEnter={() => this._handleMouseEnter()}
+				onMouseOver={() => this._handleMouseOver()}
 				onMouseLeave={() => this._handleMouseLeave()}
 				onDoubleClick={() => this.props.onDoubleClick()}
 				style={{
 					width: "100px",
 					height: "100px",
-					backgroundColor: "#222222",
 					margin: "10px 10px",
 					textAlign: "center",
+					outlineWidth: "3px",
 					position: "relative",
-					outlineWidth: "2px",
 					outlineColor: "#48aff0",
+					backgroundColor: "#222222",
 				}}
 			>
 				<div
@@ -183,7 +183,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 	/**
 	 * Called on the mouse pointer enters over the item.
 	 */
-	private _handleMouseEnter(): void {
+	private _handleMouseOver(): void {
 		if (this._mainDiv) {
 			this._mainDiv.style.outlineStyle = "groove";
 		}

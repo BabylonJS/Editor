@@ -17,7 +17,7 @@ import { undoRedo } from "../tools/undo-redo";
 
 import { Project } from "../project/project";
 import { WorkSpace } from "../project/workspace";
-import { FilesStore, IFile } from "../project/files";
+import { FilesStore } from "../project/files";
 
 import { Icon } from "../gui/icon";
 import { Dialog } from "../gui/dialog";
@@ -62,7 +62,6 @@ export class TextureAssets extends AbstractAssets {
     public render(): React.ReactNode {
         const add = 
             <Menu>
-                <MenuItem key="add-from-files" text="From Files..." onClick={() => this._addTextures()} />
                 <MenuItem key="add-pure-cube" text="Pur Cube Texture..." onClick={() => this._addPureCubeTexture()} />
             </Menu>;
         
@@ -329,51 +328,6 @@ export class TextureAssets extends AbstractAssets {
     }
 
     /**
-     * Called on the user drops files in the assets component and returns true if the files have been computed.
-     * @param files the list of files being dropped.
-     */
-    public async onDropFiles(files: IFile[]): Promise<void> {
-        const loadPromises: Promise<void>[] = [];
-
-        for (const file of files) {
-            const extension = extname(file.name).toLowerCase();
-            if (this._extensions.indexOf(extension) === -1) { continue; }
-
-            // Get file
-            if (!FilesStore.GetFileFromBaseName(file.name)) {
-                // Register file
-                const path = join(Project.DirPath!, "files", file.name);
-                FilesStore.List[path] = { path, name: file.name };
-            }
-
-            // Create texture
-            let texture: Texture | CubeTexture;
-            switch (extension) {
-                case ".dds":
-                case ".env":
-                    texture = CubeTexture.CreateFromPrefilteredData(file.path, this.editor.scene!);
-                    break;
-                default:
-                    texture = new Texture(file.path, this.editor.scene!);
-                    break;
-            }
-
-            loadPromises.push(new Promise<void>((resolve) => {
-                texture.onLoadObservable.addOnce(() => {
-                    this.configureTexturePath(texture);
-                    resolve();
-                });
-            }));
-
-            // Copy assets
-            const dest = join(Project.DirPath!, "files", file.name);
-            if (dest) { await copy(file.path, dest); }
-        }
-
-        await Promise.all(loadPromises);
-    }
-
-    /**
      * Configures the paths of the given texture.
      * @param texture defines the reference to the texture to configure.
      */
@@ -531,16 +485,6 @@ export class TextureAssets extends AbstractAssets {
         }
 
         return null;
-    }
-
-    /**
-     * Called on the user wants to add textures.
-     */
-    private async _addTextures(): Promise<void> {
-        const files = await Tools.ShowNativeOpenMultipleFileDialog();
-        await this.onDropFiles(files.map((f) => f));
-
-        return this.refresh();
     }
 
     /**
