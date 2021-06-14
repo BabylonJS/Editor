@@ -2,7 +2,10 @@ import { basename, join } from "path";
 import { readdir, stat, Stats } from "fs-extra";
 
 import * as React from "react";
-import { Boundary, Breadcrumbs, Classes, IBreadcrumbProps, Intent } from "@blueprintjs/core";
+import {
+	Boundary, Breadcrumbs, Button, ButtonGroup, Classes, IBreadcrumbProps, Intent, Menu,
+	MenuDivider, MenuItem, Popover, Code,
+} from "@blueprintjs/core";
 
 import { Editor } from "../../editor";
 
@@ -18,6 +21,10 @@ export interface IAssetsBrowserFilesProps {
 	 * Defines the reference to the editor.
 	 */
 	editor: Editor;
+	/**
+	 * Defines the callback called on a directory has been clicked in the tree.
+	 */
+	onDirectorySelected: (path: string) => void;
 }
 
 export interface IAssetsBrowserFilesState {
@@ -38,7 +45,7 @@ export interface IAssetsBrowserFilesState {
 
 export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps, IAssetsBrowserFilesState> {
 	private _assetsDirectory: string;
-	
+
 	/**
 	 * Constructor.
 	 * @param props defines the component's props.
@@ -57,6 +64,24 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Renders the component.
 	 */
 	public render(): React.ReactNode {
+		const addContent = (
+			<Menu>
+				<MenuItem text="Material">
+					<MenuItem text="Standard Material..." />
+					<MenuItem text="PBR Material..." />
+					<MenuItem text="Node Material..." />
+					<MenuDivider />
+					<Code>Materials Library</Code>
+					<MenuItem text="Cel Material..." />
+					<MenuItem text="Fire Material..." />
+				</MenuItem>
+
+				<MenuItem text="Particles System">
+					<MenuItem text="Particles System..." />
+				</MenuItem>
+			</Menu>
+		);
+
 		return (
 			<div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
 				{/* Toolbar */}
@@ -67,6 +92,11 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					borderRadius: "10px",
 					marginTop: "5px"
 				}}>
+					<ButtonGroup>
+						<Popover key="add-popover" position="bottom-left" content={addContent}>
+							<Button text="Add" small icon={<Icon src="plus.svg" />} rightIcon="caret-down" />
+						</Popover>
+					</ButtonGroup>
 				</div>
 
 				{/* Path stack */}
@@ -146,6 +176,21 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 			);
 		}
 
+		// Refresh path stack
+		const split = directoryPath.split(this._assetsDirectory)[1];
+		if (split) {
+			const pathStack: string[] = [this._assetsDirectory];
+			const directories = split.split("/");
+
+			directories.forEach((d) => {
+				if (d) {
+					pathStack.push(d);
+				}
+			});
+
+			this.setState({ pathStack });
+		}
+
 		this.setState({ items });
 	}
 
@@ -163,6 +208,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		if (stats.isDirectory()) {
 			const currentDirectory = join(directoryPath, file);
 			const pathStack = this.state.pathStack.concat([file]);
+
+			this.props.onDirectorySelected(currentDirectory);
 
 			this.setState({ pathStack, currentDirectory });
 			return this.setDirectory(currentDirectory);
@@ -185,7 +232,6 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				icon: <Icon src="folder-open.svg" />,
 				intent: Intent.NONE,
 				onClick: () => {
-					this.setState({ pathStack: itemStack });
 					this.setDirectory(itemStack.join("/"));
 				},
 			});

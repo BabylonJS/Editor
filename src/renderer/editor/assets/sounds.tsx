@@ -1,17 +1,17 @@
 import { shell } from "electron";
 import { join, extname, basename, dirname } from "path";
-import { copy, readdir, remove } from "fs-extra";
+import { readdir, remove } from "fs-extra";
 import * as os from "os";
 
 import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, Divider, ContextMenu, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
 
 import { Sound, PickingInfo, Vector3 } from "babylonjs";
 
 import { Project } from "../project/project";
-import { IFile, FilesStore } from "../project/files";
+import { FilesStore } from "../project/files";
 
 import { Icon } from "../gui/icon";
 
@@ -51,9 +51,6 @@ export class SoundAssets extends AbstractAssets {
                 <div className={Classes.FILL} key="sounds-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
-                        <Divider />
-                        <Button key="add-meshes" icon={<Icon src="plus.svg" />} small={true} text="Add..." onClick={() => this._addSounds()} />
-                        <Divider />
                     </ButtonGroup>
                 </div>
                 {node}
@@ -119,27 +116,27 @@ export class SoundAssets extends AbstractAssets {
      * Called on the user drops files in the assets component and returns true if the files have been computed.
      * @param files the list of files being dropped.
      */
-    public async onDropFiles(files: IFile[]): Promise<void> {
-        for (const file of files) {
-            const extension = extname(file.name).toLowerCase();
-            if (this._extensions.indexOf(extension) === -1) { continue; }
+    // public async onDropFiles(files: IFile[]): Promise<void> {
+    //     for (const file of files) {
+    //         const extension = extname(file.name).toLowerCase();
+    //         if (this._extensions.indexOf(extension) === -1) { continue; }
 
-            // Register file
-            const path = join(Project.DirPath!, "files", file.name);
-            FilesStore.List[path] = { path, name: file.name };
+    //         // Register file
+    //         const path = join(Project.DirPath!, "files", file.name);
+    //         FilesStore.List[path] = { path, name: file.name };
 
-            // Create sound
-            const sound = new Sound(file.name, file.path, this.editor.scene!, () => {
-                sound.name = join("files", basename(file.name));
-            }, {
-                autoplay: false,
-            });
+    //         // Create sound
+    //         const sound = new Sound(file.name, file.path, this.editor.scene!, () => {
+    //             sound.name = join("files", basename(file.name));
+    //         }, {
+    //             autoplay: false,
+    //         });
 
-            // Copy assets
-            const dest = join(Project.DirPath!, "files", file.name);
-            if (dest) { await copy(file.path, dest); }
-        }
-    }
+    //         // Copy assets
+    //         const dest = join(Project.DirPath!, "files", file.name);
+    //         if (dest) { await copy(file.path, dest); }
+    //     }
+    // }
 
     /**
      * Called on the user drops an asset in editor. (typically the preview canvas).
@@ -218,15 +215,6 @@ export class SoundAssets extends AbstractAssets {
         if (sound) {
             this._removeSound(item, sound);
         }
-    }
-
-    /**
-     * Called on the user wants to add textures.
-     */
-    private async _addSounds(): Promise<void> {
-        const files = await Tools.ShowNativeOpenMultipleFileDialog();
-        await this.onDropFiles(files);
-        return this.refresh();
     }
 
     /**

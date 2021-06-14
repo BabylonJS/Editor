@@ -103,7 +103,6 @@ import "./inspectors/particle-systems/particle-system-gradients-inspector";
 import "./inspectors/sound/sound-inspector";
 
 // Assets
-import { MeshesAssets } from "./assets/meshes";
 import { MaterialAssets } from "./assets/materials";
 import { TextureAssets } from "./assets/textures";
 import { SoundAssets } from "./assets/sounds";
@@ -348,7 +347,6 @@ export class Editor {
      */
     public constructor() {
         // Register assets
-        MeshesAssets.Register();
         MaterialAssets.Register();
         TextureAssets.Register();
         SoundAssets.Register();
@@ -1105,10 +1103,14 @@ export class Editor {
             const sources = ev.dataTransfer.files;
             for (let i = 0; i < sources.length; i++) {
                 const file = sources.item(i);
-                if (file) { files.push({ path: file.path, name: file.name } as IFile); }
+                if (file) {
+                    files.push({ path: file.path, name: file.name } as IFile);
+                }
             }
 
-            if (files.length) { this.assets.addDroppedFiles(ev, files); }
+            if (files.length) {
+                // TODO: this.assets.addDroppedFiles(ev, files);
+            }
         });
 
         // Shortcuts

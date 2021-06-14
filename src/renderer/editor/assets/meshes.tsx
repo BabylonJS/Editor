@@ -1,6 +1,6 @@
 import { shell } from "electron";
 import { join, extname, basename } from "path";
-import { copy, readdir, remove } from "fs-extra";
+import { readdir, remove } from "fs-extra";
 import * as os from "os";
 
 import * as React from "react";
@@ -65,9 +65,6 @@ export class MeshesAssets extends AbstractAssets {
                 <div className={Classes.FILL} key="meshes-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
-                        <Divider />
-                        <Button key="add-meshes" icon={<Icon src="plus.svg" />} small={true} text="Add..." onClick={() => this._addMeshes()} />
-                        <Divider />
                     </ButtonGroup>
                 </div>
                 {super.render()}
@@ -325,35 +322,35 @@ export class MeshesAssets extends AbstractAssets {
      * Called on the user drops files in the assets component and returns true if the files have been computed.
      * @param files the list of files being dropped.
      */
-    public async onDropFiles(files: IFile[]): Promise<void> {
-        for (const file of files) {
-            const extension = extname(file.name).toLowerCase();
-            if (extension === ".bin") {
-                // For GLTF files.
-                await copy(file.path, join(Project.DirPath!, "files", file.name));
-            }
+    // public async onDropFiles(files: IFile[]): Promise<void> {
+    //     for (const file of files) {
+    //         const extension = extname(file.name).toLowerCase();
+    //         if (extension === ".bin") {
+    //             // For GLTF files.
+    //             await copy(file.path, join(Project.DirPath!, "files", file.name));
+    //         }
 
-            if (this.extensions.indexOf(extension) === -1) { continue; }
+    //         if (this.extensions.indexOf(extension) === -1) { continue; }
 
-            const existing = MeshesAssets.Meshes.find((m) => m.name === file.name);
+    //         const existing = MeshesAssets.Meshes.find((m) => m.name === file.name);
 
-            // Copy assets
-            const dest = join(Project.DirPath!, "assets", "meshes", file.name);
-            if (dest) {
-                try {
-                    await copy(file.path, dest);
-                } catch (e) {
-                    this.editor.console.logError(e.message);
-                }
-            }
+    //         // Copy assets
+    //         const dest = join(Project.DirPath!, "assets", "meshes", file.name);
+    //         if (dest) {
+    //             try {
+    //                 await copy(file.path, dest);
+    //             } catch (e) {
+    //                 this.editor.console.logError(e.message);
+    //             }
+    //         }
 
-            if (!existing) {
-                MeshesAssets.Meshes.push({ name: file.name, path: dest });
-            } else {
-                this.editor.assets.refresh(MeshesAssets, existing.path);
-            }
-        }
-    }
+    //         if (!existing) {
+    //             MeshesAssets.Meshes.push({ name: file.name, path: dest });
+    //         } else {
+    //             this.editor.assets.refresh(MeshesAssets, existing.path);
+    //         }
+    //     }
+    // }
 
     /**
      * Called on the user pressed the delete key on the asset.
@@ -404,17 +401,7 @@ export class MeshesAssets extends AbstractAssets {
 
         this.editor.closeTaskFeedback(task, 500);
     }
-
-    /**
-     * Called on the user wants to add textures.
-     */
-    private async _addMeshes(): Promise<void> {
-        const files = await Tools.ShowNativeOpenMultipleFileDialog();
-
-        // Meshes can be scenes. Textures, sounds, etc. should be selected as well.
-        return this.editor.assets.addFilesToAssets(files);
-    }
-
+    
     /**
      * Updates the existing meshes in scene with the given mesh's geometry.
      */

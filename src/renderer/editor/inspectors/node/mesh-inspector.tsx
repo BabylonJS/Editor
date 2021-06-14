@@ -1,12 +1,8 @@
-import { join, dirname } from "path";
-
-import { Nullable } from "../../../../shared/types";
-
 import * as React from "react";
 
 import {
     Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion,
-    PhysicsImpostor, SceneLoader, MeshLODLevel, GroundMesh,
+    PhysicsImpostor, GroundMesh,
     Material, Tools as BabylonTools,
 } from "babylonjs";
 
@@ -18,12 +14,10 @@ import { InspectorSection } from "../../gui/inspector/fields/section";
 import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
 import { InspectorVector3 } from "../../gui/inspector/fields/vector3";
 import { InspectorNotifier } from "../../gui/inspector/notifier";
-import { IInspectorListItem, InspectorList } from "../../gui/inspector/fields/list";
+import { InspectorList } from "../../gui/inspector/fields/list";
 
 import { Tools } from "../../tools/tools";
 import { undoRedo } from "../../tools/undo-redo";
-
-import { MeshesAssets } from "../../assets/meshes";
 
 import { INodeInspectorState, NodeInspector } from "../node-inspector";
 
@@ -110,7 +104,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
 
                 {this._getSkeletonInspector()}
                 {this._getMorphTargetsInspector()}
-                {this._getLodsInspector()}
+                {/* {this._getLodsInspector()} */}
                 {this.getAnimationRangeInspector()}
                 {this.getAnimationsGroupInspector()}
             </>
@@ -393,124 +387,124 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
     /**
      * Returns the LOD inspector used to configure/add/remove LODs.
      */
-    private _getLodsInspector(): React.ReactNode {
-        if (this.selectedObject instanceof InstancedMesh || this.selectedObject._masterMesh) {
-            return undefined;
-        }
+    // private _getLodsInspector(): React.ReactNode {
+    //     if (this.selectedObject instanceof InstancedMesh || this.selectedObject._masterMesh) {
+    //         return undefined;
+    //     }
 
-        const lods = this.selectedObject.getLODLevels();
-        const assets = this.editor.assets.getAssetsOf(MeshesAssets) ?? [];
+    //     const lods = this.selectedObject.getLODLevels();
+    //     const assets = this.editor.assets.getAssetsOf(MeshesAssets) ?? [];
 
-        const noLod = lods.length ? undefined : <h2 style={{ color: "white", textAlign: "center" }}>No LOD available.</h2>;
-        const sections: React.ReactNode[] = [];
+    //     const noLod = lods.length ? undefined : <h2 style={{ color: "white", textAlign: "center" }}>No LOD available.</h2>;
+    //     const sections: React.ReactNode[] = [];
 
-        lods.forEach((lod, index) => {
-            const o = {
-                assetId: lod.mesh?.name ?? null,
-            };
+    //     lods.forEach((lod, index) => {
+    //         const o = {
+    //             assetId: lod.mesh?.name ?? null,
+    //         };
 
-            const items: IInspectorListItem<Nullable<string>>[] = [
-                { label: "None", data: null },
-                ...assets.map((a) => ({
-                    label: a.id,
-                    data: a.id,
-                    icon: <img src={a.base64} style={{ width: "24px", height: "24px" }}></img>
-                })),
-            ];
+    //         const items: IInspectorListItem<Nullable<string>>[] = [
+    //             { label: "None", data: null },
+    //             ...assets.map((a) => ({
+    //                 label: a.id,
+    //                 data: a.id,
+    //                 icon: <img src={a.base64} style={{ width: "24px", height: "24px" }}></img>
+    //             })),
+    //         ];
 
-            sections.push(
-                <InspectorSection key={`lod-${index}`} title={lod.mesh?.name ?? "Unnamed LOD Mesh"}>
-                    <InspectorNumber key={`lod-distance-${index}`} object={lod} property="distance" label="Distance" min={0} step={0.01} />
-                    <InspectorList key={`lod-source-${index}`} object={o} property="assetId" label="Source" items={items} onChange={(v) => this._handleSelectedLOD(lod, v)} />
-                    <InspectorButton key={`lod-remove-${index}`} small={true} label="Remove" onClick={() => this._handleRemoveLOD(lod.mesh)} />
-                </InspectorSection>
-            );
-        });
+    //         sections.push(
+    //             <InspectorSection key={`lod-${index}`} title={lod.mesh?.name ?? "Unnamed LOD Mesh"}>
+    //                 <InspectorNumber key={`lod-distance-${index}`} object={lod} property="distance" label="Distance" min={0} step={0.01} />
+    //                 <InspectorList key={`lod-source-${index}`} object={o} property="assetId" label="Source" items={items} onChange={(v) => this._handleSelectedLOD(lod, v)} />
+    //                 <InspectorButton key={`lod-remove-${index}`} small={true} label="Remove" onClick={() => this._handleRemoveLOD(lod.mesh)} />
+    //             </InspectorSection>
+    //         );
+    //     });
 
-        return (
-            <InspectorSection key="lod" title="LOD">
-                <InspectorButton label="Add LOD..." onClick={() => this._handleAddLOD()} />
-                {noLod}
-                {sections}
-            </InspectorSection>
-        );
-    }
+    //     return (
+    //         <InspectorSection key="lod" title="LOD">
+    //             <InspectorButton label="Add LOD..." onClick={() => this._handleAddLOD()} />
+    //             {noLod}
+    //             {sections}
+    //         </InspectorSection>
+    //     );
+    // }
 
     /**
      * Called on the user wants to add a new LOD.
      */
-    private _handleAddLOD(): void {
-        if (this.selectedObject instanceof InstancedMesh) {
-            return;
-        }
+    // private _handleAddLOD(): void {
+    //     if (this.selectedObject instanceof InstancedMesh) {
+    //         return;
+    //     }
 
-        const mesh = this.selectedObject as Mesh;
+    //     const mesh = this.selectedObject as Mesh;
 
-        const hasNullLod = mesh.getLODLevels().find((lod) => !lod.mesh);
-        if (hasNullLod) { return; }
+    //     const hasNullLod = mesh.getLODLevels().find((lod) => !lod.mesh);
+    //     if (hasNullLod) { return; }
 
-        mesh.addLODLevel(100, null);
+    //     mesh.addLODLevel(100, null);
 
-        this.forceUpdate(() => {
-            mesh.getLODLevels().forEach((lod) => InspectorNotifier.NotifyChange(lod));
-        });
-    }
+    //     this.forceUpdate(() => {
+    //         mesh.getLODLevels().forEach((lod) => InspectorNotifier.NotifyChange(lod));
+    //     });
+    // }
 
     /**
      * Called on the user wants to remove a LOD.
      */
-    private _handleRemoveLOD(lodMesh: Nullable<Mesh>): void {
-        if (this.selectedObject instanceof InstancedMesh) {
-            return;
-        }
+    // private _handleRemoveLOD(lodMesh: Nullable<Mesh>): void {
+    //     if (this.selectedObject instanceof InstancedMesh) {
+    //         return;
+    //     }
 
-        const mesh = this.selectedObject as Mesh;
+    //     const mesh = this.selectedObject as Mesh;
 
-        mesh.removeLODLevel(lodMesh!);
-        if (lodMesh) {
-            lodMesh.dispose(true, false);
-        }
+    //     mesh.removeLODLevel(lodMesh!);
+    //     if (lodMesh) {
+    //         lodMesh.dispose(true, false);
+    //     }
 
-        this.forceUpdate(() => {
-            mesh.getLODLevels().forEach((lod) => InspectorNotifier.NotifyChange(lod));
-        });
-    }
+    //     this.forceUpdate(() => {
+    //         mesh.getLODLevels().forEach((lod) => InspectorNotifier.NotifyChange(lod));
+    //     });
+    // }
 
     /**
      * Called on the user selected a LOD.
      */
-    private async _handleSelectedLOD(lod: MeshLODLevel, lodId: Nullable<string>): Promise<void> {
-        if (this.selectedObject instanceof InstancedMesh) {
-            return;
-        }
+    // private async _handleSelectedLOD(lod: MeshLODLevel, lodId: Nullable<string>): Promise<void> {
+    //     if (this.selectedObject instanceof InstancedMesh) {
+    //         return;
+    //     }
 
-        const assets = this.editor.assets.getAssetsOf(MeshesAssets) ?? [];
-        const asset = assets?.find((a) => a.id === lodId);
-        if (!asset) { return; }
+    //     const assets = this.editor.assets.getAssetsOf(MeshesAssets) ?? [];
+    //     const asset = assets?.find((a) => a.id === lodId);
+    //     if (!asset) { return; }
 
-        const rootUrl = join(dirname(asset.key), "/");
+    //     const rootUrl = join(dirname(asset.key), "/");
 
-        const result = await SceneLoader.ImportMeshAsync("", rootUrl, asset.id, this.editor.scene!);
-        result.meshes.forEach((m) => m.material && m.material.dispose(true, true));
-        result.particleSystems.forEach((ps) => ps.dispose(true));
-        result.skeletons.forEach((s) => s.dispose());
+    //     const result = await SceneLoader.ImportMeshAsync("", rootUrl, asset.id, this.editor.scene!);
+    //     result.meshes.forEach((m) => m.material && m.material.dispose(true, true));
+    //     result.particleSystems.forEach((ps) => ps.dispose(true));
+    //     result.skeletons.forEach((s) => s.dispose());
 
-        const mesh = result.meshes[0];
-        if (!mesh || !(mesh instanceof Mesh)) { return; }
+    //     const mesh = result.meshes[0];
+    //     if (!mesh || !(mesh instanceof Mesh)) { return; }
 
-        mesh.id = Tools.RandomId();
-        mesh.name = asset.id;
-        mesh.material = this.selectedObject.material;
-        mesh.skeleton = this.selectedObject.skeleton;
-        mesh.position.set(0, 0, 0);
+    //     mesh.id = Tools.RandomId();
+    //     mesh.name = asset.id;
+    //     mesh.material = this.selectedObject.material;
+    //     mesh.skeleton = this.selectedObject.skeleton;
+    //     mesh.position.set(0, 0, 0);
 
-        this.selectedObject.removeLODLevel(lod.mesh!);
-        if (lod.mesh) { lod.mesh.dispose(true, false); }
+    //     this.selectedObject.removeLODLevel(lod.mesh!);
+    //     if (lod.mesh) { lod.mesh.dispose(true, false); }
 
-        this.selectedObject.addLODLevel(lod.distance, mesh);
+    //     this.selectedObject.addLODLevel(lod.distance, mesh);
 
-        this.forceUpdate();
-    }
+    //     this.forceUpdate();
+    // }
 }
 
 Inspector.RegisterObjectInspector({

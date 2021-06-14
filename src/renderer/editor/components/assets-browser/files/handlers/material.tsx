@@ -21,7 +21,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		this._computePreview();
 
 		return (
-			<div style={{ width: "100%", height: "100%" }}>
+			<div style={{ width: "100%", height: "100%", outlineColor: "#00FF00", outlineWidth: "1px", outlineStyle: "groove" }}>
 				<Icon src="logo-babylon.svg" style={{ width: "100%", height: "100%", filter: "unset" }} />
 				<div style={{ position: "absolute", top: "0", left: "0" }}>
 					<Spinner size={24} />
@@ -40,6 +40,18 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 			json: await readJSON(this.props.absolutePath, { encoding: "utf-8" }),
 			environmentTexture: this.props.editor.scene!.environmentTexture?.serialize(),
 		});
+	}
+
+	/**
+	 * Called on the user starts dragging the item.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onDragStart(ev: React.DragEvent<HTMLDivElement>): void {
+		ev.dataTransfer.setData("text", this.props.absolutePath);
+		ev.dataTransfer.setData("asset/material", JSON.stringify({
+			absolutePath: this.props.absolutePath,
+			relativePath: this.props.relativePath,
+		}));
 	}
 
 	/**
@@ -84,6 +96,9 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 				style={{
 					width: "100%",
 					height: "100%",
+					outlineWidth: "1px",
+					outlineStyle: "groove",
+					outlineColor: "#00FF00",
 				}}
 			/>
 		);

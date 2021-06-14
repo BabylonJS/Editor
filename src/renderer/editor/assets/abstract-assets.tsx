@@ -6,7 +6,6 @@ import { PickingInfo, Vector3, Observable, Node, Scene } from "babylonjs";
 import { Editor } from "../editor";
 
 import { Nullable, Undefinable } from "../../../shared/types";
-import { IFile } from "../project/files";
 
 export interface IAssetsComponentProps {
     /**
@@ -98,11 +97,6 @@ export interface IAbstractAssets {
      * @param pickInfo the pick info generated on the drop event.
      */
     onDropAsset(item: IAssetComponentItem, pickInfo: PickingInfo): void;
-    /**
-     * Called on the user drops files in the assets component and returns true if the files have been computed.
-     * @param files the list of files being dropped.
-     */
-    onDropFiles?(files: IFile[]): boolean | Promise<boolean>;
     /**
      * Called on an asset item has been drag'n'dropped on graph component.
      * @param data defines the data of the asset component item being drag'n'dropped.

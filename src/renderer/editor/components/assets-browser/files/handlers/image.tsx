@@ -25,4 +25,16 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	public onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		this.props.editor.addWindowedPlugin("texture-viewer", undefined, this.props.absolutePath);
 	}
+
+	/**
+	 * Called on the user starts dragging the item.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onDragStart(ev: React.DragEvent<HTMLDivElement>): void {
+		ev.dataTransfer.setData("text", this.props.absolutePath);
+		ev.dataTransfer.setData("asset/texture", JSON.stringify({
+			absolutePath: this.props.absolutePath,
+			relativePath: this.props.relativePath,
+		}));
+	}
 }
