@@ -15,7 +15,6 @@ import { InspectorColorPicker } from "../../gui/inspector/fields/color-picker";
 import { Project } from "../../project/project";
 import { WorkSpace } from "../../project/workspace";
 
-import { AnimationGroupComponent } from "../tools/animation-groups";
 import { IScriptInspectorState, ScriptInspector } from "../script-inspector";
 
 export class SceneInspector extends ScriptInspector<Scene, IScriptInspectorState> {
@@ -66,10 +65,6 @@ export class SceneInspector extends ScriptInspector<Scene, IScriptInspectorState
                 </InspectorSection>
 
                 {this.getPhysicsFields()}
-
-                <InspectorSection title="Animation Groups">
-                    <AnimationGroupComponent scene={this.selectedObject} />
-                </InspectorSection>
             </>
         );
     }

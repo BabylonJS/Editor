@@ -288,7 +288,7 @@ export class ProjectExporter {
         for (const texture of editor.scene!.textures) {
             if (texture instanceof RenderTargetTexture || texture instanceof DynamicTexture) { continue; }
             if (texture.name.indexOf("data:") === 0 || texture === editor.scene!.environmentBRDFTexture) { continue; }
-
+            
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = texture.serialize();
                 if (!json) { return resolve(); }
@@ -297,9 +297,6 @@ export class ProjectExporter {
                     // Replace Urls
                     json.files = json.files.map((f) => join("files", basename(f)));
                 }
-
-                json.name = join("./", "files", basename(texture.name));
-                json.url = join("./", "files", basename(texture.name));
 
                 const dest = `${normalize(`${filenamify(basename(texture.name))}-${texture.uniqueId.toString()}`)}.json`;
                 await writeFile(join(texturesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });

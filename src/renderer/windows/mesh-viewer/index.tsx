@@ -56,7 +56,7 @@ export default class MeshViewerWindow extends React.Component {
      */
     public init(data: { rootUrl: string, name: string }): void {
         // Register loaders
-        SceneLoader.RegisterPlugin(new FBXLoader());
+        SceneLoader.RegisterPlugin(new FBXLoader(false));
         
         this._loadMesh(data.rootUrl, data.name);
     }
