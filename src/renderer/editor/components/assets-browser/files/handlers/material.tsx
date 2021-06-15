@@ -1,6 +1,8 @@
 import { join } from "path";
 import { readJSON } from "fs-extra";
 
+import { Nullable } from "../../../../../../shared/types";
+
 import * as React from "react";
 import { Spinner } from "@blueprintjs/core";
 
@@ -47,11 +49,11 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public onDragStart(ev: React.DragEvent<HTMLDivElement>): void {
-		ev.dataTransfer.setData("text", this.props.absolutePath);
 		ev.dataTransfer.setData("asset/material", JSON.stringify({
 			absolutePath: this.props.absolutePath,
 			relativePath: this.props.relativePath,
 		}));
+		ev.dataTransfer.setData("plain/text", this.props.absolutePath);
 	}
 
 	/**
@@ -77,6 +79,39 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		}
 
 		pick.pickedMesh.material = material;
+	}
+
+	/**
+	 * Called on the user drops the asset in a supported inspector field.
+	 * @param ev defiens the reference to the event object.
+	 * @param object defines the reference to the object being modified in the inspector.
+	 * @param property defines the property of the object to assign the asset instance.
+	 */
+	public async onDropInInspector(_: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
+		let material = this.props.editor.scene?.materials.find((m) => m.metadata?.editorPath === this.props.relativePath) ?? null;
+		if (!material) {
+			material = await this._readAndParseMaterialFile();
+		}
+
+		if (material) {
+			object[property] = material;
+		}
+
+		await this.props.editor.assets.refresh();
+	}
+
+	/**
+	 * Reads the parses the material file.
+	 */
+	private async _readAndParseMaterialFile(): Promise<Nullable<Material>> {
+		try {
+			const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
+			return Material.Parse(json, this.props.editor.scene!, join(this.props.editor.assetsBrowser.assetsDirectory, "/"));
+		} catch (e) {
+			this.props.editor.console.logError(`Failed to load material "${this.props.relativePath}":`);
+			this.props.editor.console.logError(e?.message ?? "Unknown error.");
+			return null;
+		}
 	}
 
 	/**

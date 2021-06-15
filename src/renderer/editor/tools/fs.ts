@@ -1,4 +1,5 @@
-import { mkdir, pathExists } from "fs-extra"
+import Glob from "glob";
+import { mkdir, pathExists } from "fs-extra";
 
 export class FSTools {
 	/**
@@ -11,5 +12,22 @@ export class FSTools {
 		}
 
 		await mkdir(path);
+	}
+
+	/**
+	 * Flattens the list of files available (recursively) in the given directory path.
+	 * @param directoryPath defines the path to the directory to recursively get its files.
+	 * @returns the list of all files located (recursively) in the given directory path.
+	 */
+	public static GetGlobFiles(directoryPath: string): Promise<string[]> {
+		return new Promise<string[]>((resolve, reject) => {
+			Glob(directoryPath, { }, (err, files) => {
+				if (err) {
+					return reject(err);
+				}
+
+				resolve(files);
+			});
+		});
 	}
 }

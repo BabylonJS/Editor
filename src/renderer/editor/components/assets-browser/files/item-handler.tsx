@@ -21,6 +21,11 @@ export interface IAssetsBrowserItemHandlerProps {
 	 * Defines the absolute path to the item.
 	 */
 	absolutePath: string;
+
+	/**
+	 * Defines the callback called on the item is starts being dragged.
+	 */
+	onDragStart: (ev: React.DragEvent<HTMLDivElement>) => void;
 }
 
 export interface IAssetsBrowserItemHandlerState {
@@ -47,6 +52,11 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	 * Defines the reference to the assets worker.
 	 */
 	public static AssetWorker: IWorkerConfiguration;
+	/**
+	 * Defines the reference to the drag'n'dropped item.
+	 * @hidden
+	 */
+	public static _DragAndDroppedItem: Nullable<AssetsBrowserItemHandler> = null;
 
 	/**
 	 * Initialzes the item handler.
@@ -139,8 +149,18 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	 * @param ev defines the reference to the event object.
 	 * @param pick defines the picking info generated while dropping in the preview.
 	 */
-	public onDropInPreview(_: React.DragEvent<HTMLDivElement>, __: PickingInfo): void {
+	public onDropInPreview(_1: React.DragEvent<HTMLElement>, _2: PickingInfo): void {
 		// Empty by default...
+	}
+
+	/**
+	 * Called on the user drops the asset in a supported inspector field.
+	 * @param ev defiens the reference to the event object.
+	 * @param object defines the reference to the object being modified in the inspector.
+	 * @param property defines the property of the object to assign the asset instance.
+	 */
+	public onDropInInspector(_1: React.DragEvent<HTMLElement>, _2: any, _3: string): Promise<void> {
+		return Promise.resolve();
 	}
 
 	/**
@@ -149,23 +169,27 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	private _handleDragStart(ev: React.DragEvent<HTMLDivElement>): void {
 		this.onDragStart(ev);
 
+		AssetsBrowserItemHandler._DragAndDroppedItem = this;
+
 		this.props.editor.engine?.getRenderingCanvas()?.addEventListener("drop", this._dropListener = (dropEv) => {
 			const scene = this.props.editor.scene!;
 			const pick = scene.pick(dropEv.offsetX, dropEv.offsetY) ?? new PickingInfo();
 
 			this.onDropInPreview(ev, pick);
 		});
+
+		this.props.onDragStart(ev);
 	}
 
 	/**
 	 * Called on the user ended dragging the item.
 	 */
-	private _handleDragEnd(ev: React.DragEvent<HTMLDivElement>): void {
+	private _handleDragEnd(_: React.DragEvent<HTMLDivElement>): void {
+		AssetsBrowserItemHandler._DragAndDroppedItem = null;
+
 		if (this._dropListener) {
 			this.props.editor.engine!.getRenderingCanvas()?.removeEventListener("drop", this._dropListener);
 			this._dropListener = null;
 		}
-
-		ev.dataTransfer.clearData();
 	}
 }

@@ -1,5 +1,9 @@
 import { Nullable } from "../../../../shared/types";
 
+import * as React from "react";
+
+import { AssetsBrowserItemHandler } from "../../components/assets-browser/files/item-handler";
+
 interface _InspectorNotification {
     /**
      * Defines the reference to the object to listen changes.
@@ -99,6 +103,18 @@ export class InspectorNotifier {
 
         while ((index = this._Notifications.findIndex((n) => n.caller === caller)) !== -1) {
             this._Notifications.splice(index, 1);
+        }
+    }
+
+    /**
+     * Called on the user drops the asset in a supported inspector field.
+	 * @param ev defiens the reference to the event object.
+	 * @param object defines the reference to the object being modified in the inspector.
+	 * @param property defines the property of the object to assign the asset instance.
+     */
+    public static async NotifyOnDrop(ev: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
+        if (AssetsBrowserItemHandler._DragAndDroppedItem) {
+            await AssetsBrowserItemHandler._DragAndDroppedItem.onDropInInspector(ev, object, property);
         }
     }
 }

@@ -1,13 +1,19 @@
+import { join } from "path";
 import { pathExists } from "fs-extra";
 import directoryTree, { DirectoryTree } from "directory-tree";
 
 import * as React from "react";
 import { Classes, InputGroup, Tree, ITreeNode } from "@blueprintjs/core";
 
+import { Editor } from "../../editor";
+
 import { Icon } from "../../gui/icon";
-import { join } from "path";
 
 export interface IAssetsBrowserTreeProps {
+	/**
+	 * Defines the reference to the editor.
+	 */
+	editor: Editor;
 	/**
 	 * Defines the callback called on a directory has been clicked in the tree.
 	 */
@@ -101,6 +107,13 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 	}
 
 	/**
+	 * Refreshes the current tree.
+	 */
+	public refresh(): void {
+		this.setState({ nodes: [this._refreshTree()] });
+	}
+
+	/**
 	 * Called on the user changes the filter.
 	 */
 	private _handleFilterChanged(filter: string): void {
@@ -160,10 +173,10 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 		root ??= {
 			id: tree.path,
 			childNodes: [],
-			label: tree.name,
 			isExpanded: true,
 			nodeData: tree.path,
-			icon: <Icon src="folder-open.svg" />
+			icon: <Icon src="folder-open.svg" />,
+			label: this._getTreeNodeLabel(tree.name, tree.path),
 		};
 
 		const filter = this._filter.toLowerCase();
@@ -175,19 +188,19 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 
 			const child = this._refreshTree(t, {
 				id: t.path,
-				label: t.name,
 				childNodes: [],
 				nodeData: t.path,
 				icon: <Icon src="folder.svg" />,
 				isSelected: this._activeDirectory === t.path,
-				isExpanded: this._expandedPaths.indexOf(t.path) !== -1 || this._filter !== "",
+				label: this._getTreeNodeLabel(t.name, t.path),
+				isExpanded: this._expandedPaths.indexOf(t.path) !== -1 || this._filter !== "",
 			});
 
 			const matches = t.name.toLowerCase().indexOf(filter) !== -1;
 			if (matches) {
 				// root?.childNodes?.push(child);
 			}
-			
+
 			root?.childNodes?.push(child);
 		});
 
@@ -196,5 +209,25 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 		}
 
 		return root;
+	}
+
+	/**
+	 * Returns the label element rendered as a tree node label.
+	 */
+	private _getTreeNodeLabel(name: string, path: string): JSX.Element {
+		return (
+			<span
+				onDragOver={(ev) => (ev.target as HTMLSpanElement).style.backgroundColor = "black"}
+				onDragLeave={(ev) => (ev.target as HTMLSpanElement).style.backgroundColor = ""}
+				onDrop={(ev) => {
+					ev.stopPropagation();
+
+					(ev.target as HTMLSpanElement).style.backgroundColor = "";
+					this.props.editor.assetsBrowser.moveSelectedItems(path);
+				}}
+			>
+				{name}
+			</span>
+		)
 	}
 }

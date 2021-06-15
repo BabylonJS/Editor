@@ -133,7 +133,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
                     <InspectorBoolean object={this.selectedObject} property="applyFog" label="Apply Fog" />
                     <InspectorBoolean object={this.selectedObject} property="infiniteDistance" label="Infinite Distance" defaultValue={false} />
                     <InspectorNumber object={this.selectedObject} property="visibility" label="Visibility" min={0} max={1} step={0.01} />
-                    <InspectorList object={this.selectedObject} property="material" label="Material" items={() => this.getMaterialsList()} onChange={(v) => {
+                    <InspectorList object={this.selectedObject} property="material" label="Material" items={() => this.getMaterialsList()} dndHandledTypes={["asset/material"]} onChange={(v) => {
                         const lods = (this.selectedObject as Mesh).getLODLevels();
                         lods?.forEach((lod) => lod.mesh && (lod.mesh.material = v as Material));
                     }} />

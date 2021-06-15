@@ -54,6 +54,11 @@ export interface IInspectorListProps<T> {
     noUndoRedo?: boolean;
 
     /**
+     * Defines the optional list of all available drag'n'droppable types.
+     */
+    dndHandledTypes?: string[];
+
+    /**
      * Defines the optional callback called on the value changes.
      * @param value defines the new value of the object's property.
      */
@@ -86,6 +91,8 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
     private _initialValue: T;
     private _inspectorName: Nullable<string> = null;
 
+    private _suggestDiv: Nullable<HTMLDivElement> = null;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -112,7 +119,13 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
                         <span style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                     </Tooltip>
                 </div>
-                <div style={{ width: "70%", height: "25px", float: "left", marginTop: "2px" }}>
+                <div
+                    ref={(r) => this._suggestDiv = r}
+                    onDrop={(ev) => this._handleDrop(ev)}
+                    onDragOver={(ev) => this._handleDragOver(ev)}
+                    onDragLeave={(ev) => this._handleDragLeave(ev)}
+                    style={{ width: "70%", height: "25px", float: "left", marginTop: "2px" }}
+                >
                     <div style={{ position: "absolute", width: "30px", height: "25px", right: "5%" }}>
                         {this.state.selectedItem?.icon}
                     </div>
@@ -254,5 +267,51 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
         }
 
         return items.find((i) => i.data === value) ?? null;
+    }
+
+    /**
+     * Called on the user drops an object in the list.
+     */
+    private async _handleDrop(ev: React.DragEvent<HTMLDivElement>): Promise<void> {
+        if (!this.props.dndHandledTypes) {
+            return;
+        }
+
+        for (const dndType of this.props.dndHandledTypes) {
+            try {
+                const dataContent = ev.dataTransfer.getData(dndType);
+                const data = JSON.parse(dataContent);
+
+                if (data) {
+                    await InspectorNotifier.NotifyOnDrop(ev, this.props.object, this.props.property);
+                    this._refreshItems();
+                    break;
+                }
+            } catch (e) {
+                // Catch silently.
+            }
+        }
+
+        if (this._suggestDiv) {
+            this._suggestDiv.style.backgroundColor = "";
+        }
+    }
+
+    /**
+     * Called on the user starts dragging an element on the list.
+     */
+    private _handleDragOver(_: React.DragEvent<HTMLDivElement>): void {
+        if (this._suggestDiv) {
+            this._suggestDiv.style.backgroundColor = "black";
+        }
+    }
+
+    /**
+     * Called on the user ends dragging an object on the list.
+     */
+    private _handleDragLeave(_: React.DragEvent<HTMLDivElement>): void {
+        if (this._suggestDiv) {
+            this._suggestDiv.style.backgroundColor = "";
+        }
     }
 }

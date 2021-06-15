@@ -2,32 +2,26 @@ import { basename, dirname, join } from "path";
 
 import * as React from "react";
 
-import { Texture } from "babylonjs";
+import { CubeTexture } from "babylonjs";
+
+import { Icon } from "../../../../gui/icon";
 
 import { AssetsBrowserItemHandler } from "../item-handler";
 
-export class ImageItemHandler extends AssetsBrowserItemHandler {
+export class EnvDdsItemHandler extends AssetsBrowserItemHandler {
 	/**
 	 * Computes the image to render.
 	 */
 	public computePreview(): React.ReactNode {
 		return (
-			<img
-				src={this.props.absolutePath}
+			<Icon
+				src="dds.svg"
 				style={{
 					width: "100%",
 					height: "100%",
 				}}
 			/>
 		);
-	}
-
-	/**
-	 * Called on the user double clicks on the item.
-	 * @param ev defines the reference to the event object.
-	 */
-	public onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-		this.props.editor.addWindowedPlugin("texture-viewer", undefined, this.props.absolutePath);
 	}
 
 	/**
@@ -49,13 +43,12 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 * @param property defines the property of the object to assign the asset instance.
 	 */
 	public async onDropInInspector(_: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
-		debugger;
 		let texture = this.props.editor.scene!.textures.find((tex) => tex.name === this.props.relativePath);
 		if (!texture) {
-			texture = new Texture(this.props.absolutePath, this.props.editor.scene!);
+			texture = CubeTexture.CreateFromPrefilteredData(this.props.absolutePath, this.props.editor.scene!);
 			texture.name = join(dirname(this.props.relativePath), basename(this.props.absolutePath));
 
-			(texture as Texture).url = texture.name;
+			(texture as CubeTexture).url = texture.name;
 		}
 
 		object[property] = texture;
