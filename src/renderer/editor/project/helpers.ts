@@ -1,5 +1,3 @@
-import { join, basename } from "path";
-
 import {
     Scene, SerializationHelper, SceneLoader,
     Color4, Color3, Vector3, Texture,
@@ -76,8 +74,6 @@ export class ProjectHelpers {
         // Environment Intensity
         if (scene.environmentTexture) {
             serializationObject.environmentTexture = scene.environmentTexture.serialize();
-            serializationObject.environmentTexture.name = join("./", "files", basename(scene.environmentTexture.name));
-            serializationObject.environmentTexture.url = join("./", "files", basename(scene.environmentTexture.name));
         }
         serializationObject.environmentIntensity = scene.environmentIntensity;
 
@@ -158,8 +154,13 @@ export class ProjectHelpers {
         }
 
         // Environment
-        if (parsedData.environmentIntensity !== undefined) { scene.environmentIntensity = parsedData.environmentIntensity; }
-        if (parsedData.environmentTexture !== undefined) { scene.environmentTexture = Texture.Parse(parsedData.environmentTexture, scene, rootUrl); }
+        if (parsedData.environmentIntensity !== undefined) {
+            scene.environmentIntensity = parsedData.environmentIntensity;
+        }
+
+        if (parsedData.environmentTexture !== undefined) {
+            scene.environmentTexture = Texture.Parse(parsedData.environmentTexture, scene, rootUrl);
+        }
 
         // Collisions, if defined. otherwise, default is true
         if (parsedData.collisionsEnabled !== undefined && parsedData.collisionsEnabled !== null) {

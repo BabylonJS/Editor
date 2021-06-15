@@ -1,19 +1,26 @@
-import { extname } from "path";
+import { join, dirname, extname } from "path";
 
 import { IStringDictionary, Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
-import { Position, Tooltip } from "@blueprintjs/core";
+import { Classes, Position, Tooltip } from "@blueprintjs/core";
 
 import { Editor } from "../../../editor";
+
+import { EditableText } from "../../../gui/editable-text";
 
 import { AssetsBrowserItemHandler, IItemHandler, IAssetsBrowserItemHandlerProps } from "./item-handler";
 
 import { FileItemHandler } from "./handlers/file";
 import { MeshItemHandler } from "./handlers/mesh";
+import { EnvDdsItemHandler } from "./handlers/env";
 import { ImageItemHandler } from "./handlers/image";
 import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
+
+import { AssetsBrowserMoveHandler } from "./move/move-handler";
+import { AssetsBrowserTextureMoveHandler } from "./move/texture";
+import { AssetsBrowserMaterialMoveHandler } from "./move/material";
 
 export interface IAssetsBrowserItemProps {
 	/**
@@ -38,12 +45,28 @@ export interface IAssetsBrowserItemProps {
 	type: "file" | "directory";
 
 	/**
+	 * Defines the callback called each time the item is clicked.
+	 */
+	onClick: (item: AssetsBrowserItem, ev: React.MouseEvent<HTMLDivElement>) => void;
+	/**
 	 * Callback called on the user double clicks an item.
 	 */
 	onDoubleClick: () => void;
+	/**
+	 * Defines the callback called on the item is starts being dragged.
+	 */
+	onDragStart: (item: AssetsBrowserItem, ev: React.DragEvent<HTMLDivElement>) => void;
 }
 
 export interface IAssetsBrowserItemState {
+	/**
+	 * Defines wether or not the item is selected.
+	 */
+	isSelected: boolean;
+	/**
+	 * Defines wether or not the file is being renamed.
+	 */
+	isRenaming: boolean;
 	/**
 	 * Defines the reference to the item handler.
 	 */
@@ -51,7 +74,14 @@ export interface IAssetsBrowserItemState {
 }
 
 export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, IAssetsBrowserItemState> {
-	private static _ItemHandlers: IStringDictionary<IItemHandler> = {};
+	/**
+	 * @hidden
+	 */
+	public static _ItemHandlers: IStringDictionary<IItemHandler> = {};
+	/**
+	 * @hidden
+	 */
+	public static _ItemMoveHandlers: AssetsBrowserMoveHandler[] = [];
 
 	/**
 	 * Registers the given item handler.
@@ -66,9 +96,22 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 	}
 
 	/**
+	 * Registers the given item move handler.
+	 * @param itemMoveHandler defines the reference to the item move handler.
+	 */
+	public static RegisterItemMoveHandler(itemMoveHandler: AssetsBrowserMoveHandler): void {
+		if (this._ItemMoveHandlers.indexOf(itemMoveHandler) !== -1) {
+			return;
+		}
+
+		this._ItemMoveHandlers.push(itemMoveHandler);
+	}
+
+	/**
 	 * Initializes the item renderer.
 	 */
-	public static Init(): void {
+	public static Init(editor: Editor): void {
+		// Item handlers
 		this.RegisterItemHandler({ extension: ".png", ctor: ImageItemHandler });
 		this.RegisterItemHandler({ extension: ".bmp", ctor: ImageItemHandler });
 		this.RegisterItemHandler({ extension: ".jpg", ctor: ImageItemHandler });
@@ -82,6 +125,13 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".glb", ctor: MeshItemHandler });
 
 		this.RegisterItemHandler({ extension: ".material", ctor: MaterialItemHandler });
+
+		this.RegisterItemHandler({ extension: ".env", ctor: EnvDdsItemHandler });
+		this.RegisterItemHandler({ extension: ".dds", ctor: EnvDdsItemHandler });
+
+		// Move handlers
+		this.RegisterItemMoveHandler(new AssetsBrowserTextureMoveHandler(editor));
+		this.RegisterItemMoveHandler(new AssetsBrowserMaterialMoveHandler(editor));
 	}
 
 	private _mainDiv: Nullable<HTMLDivElement> = null;
@@ -94,6 +144,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		super(props);
 
 		this.state = {
+			isSelected: false,
+			isRenaming: false,
 			itemHandler: null,
 		};
 	}
@@ -108,7 +160,12 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 				onDrop={(ev) => this._handleDrop(ev)}
 				onMouseOver={() => this._handleMouseOver()}
 				onMouseLeave={() => this._handleMouseLeave()}
+				onDragOver={(ev) => this._handleDragOver(ev)}
+				onDragLeave={(ev) => this._handleDragLeave(ev)}
+
+				onClick={(ev) => this.props.onClick(this, ev)}
 				onDoubleClick={() => this.props.onDoubleClick()}
+
 				style={{
 					width: "100px",
 					height: "100px",
@@ -118,6 +175,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 					position: "relative",
 					outlineColor: "#48aff0",
 					backgroundColor: "#222222",
+					outlineStyle: this.state.isSelected ? "groove" : "unset",
 				}}
 			>
 				<div
@@ -131,21 +189,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 					{this.state.itemHandler}
 				</div>
 				<Tooltip key="item-tooltip" content={this.props.title} usePortal={true} position={Position.TOP}>
-					<small
-						key="item-title"
-						style={{
-							left: "0px",
-							bottom: "0px",
-							width: "100px",
-							overflow: "hidden",
-							userSelect: "none",
-							whiteSpace: "nowrap",
-							position: "absolute",
-							textOverflow: "ellipsis",
-						}}
-					>
-						{this.props.title}
-					</small>
+					{this.state.isRenaming ? this._getTitleEditableText() : this._getTitle()}
 				</Tooltip>
 			</div>
 		);
@@ -176,9 +220,18 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 					editor={this.props.editor}
 					relativePath={this.props.relativePath}
 					absolutePath={this.props.absolutePath}
+					onDragStart={(ev) => this.props.onDragStart(this, ev)}
 				/>
 			)
 		});
+	}
+
+	/**
+	 * Sets wether or not the item is selected.
+	 * @param isSelected defines wether or not the item is selected.
+	 */
+	public setSelected(isSelected: boolean): void {
+		this.setState({ isSelected });
 	}
 
 	/**
@@ -194,20 +247,109 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 	 * Called on the mouse pointer is not over the item anymore.
 	 */
 	private _handleMouseLeave(): void {
-		if (this._mainDiv) {
+		if (!this.state.isSelected && this._mainDiv) {
 			this._mainDiv.style.outlineStyle = "unset";
+		}
+	}
+
+	/**
+	 * Called on the user drag's an object over the item.
+	 */
+	private _handleDragOver(_: React.DragEvent<HTMLDivElement>): void {
+		if (this.props.type !== "directory") {
+			return;
+		}
+
+		if (this._mainDiv) {
+			this._mainDiv.style.backgroundColor = "rgba(0, 0, 0, 1)";
+		}
+	}
+
+	/**
+	 * Called on the user stopped dragging an object over the item.
+	 */
+	private _handleDragLeave(_: React.DragEvent<HTMLDivElement>): void {
+		if (this.props.type !== "directory") {
+			return;
+		}
+
+		if (this._mainDiv) {
+			this._mainDiv.style.backgroundColor = "#222222";
 		}
 	}
 
 	/**
 	 * Called on the user drops something on the item.
 	 */
-	private _handleDrop(ev: React.DragEvent<HTMLDivElement>): void {
-		debugger;
-		console.log(ev);
-
+	private async _handleDrop(_: React.DragEvent<HTMLDivElement>): Promise<void> {
 		if (this.props.type !== "directory") {
 			return;
 		}
+
+		if (this._mainDiv) {
+			this._mainDiv.style.backgroundColor = "#222222";
+		}
+
+		this.props.editor.assetsBrowser.moveSelectedItems(this.props.absolutePath);
+	}
+
+
+	/**
+	 * Returns the title node for the item.
+	 */
+	private _getTitle(): React.ReactNode {
+		return (
+			<small
+				key="item-title"
+				style={{
+					left: "0px",
+					bottom: "0px",
+					width: "100px",
+					overflow: "hidden",
+					userSelect: "none",
+					whiteSpace: "nowrap",
+					position: "absolute",
+					textOverflow: "ellipsis",
+				}}
+				onDoubleClick={(ev) => {
+					ev.stopPropagation();
+					this.setState({ isRenaming: true });
+				}}
+			>
+				{this.props.title}
+			</small>
+		);
+	}
+
+	/**
+	 * Returns the editable text node used to rename file or folder.
+	 */
+	private _getTitleEditableText(): React.ReactNode {
+		return (
+			<EditableText
+				intent="primary"
+				confirmOnEnterKey
+				selectAllOnFocus
+				multiline={false}
+				ref={(r) => r?.focus()}
+				className={Classes.FILL}
+				value={this.props.title}
+				onConfirm={(v) => {
+					this.setState({ isRenaming: false });
+					if (v === this.props.title) {
+						return;
+					}
+
+					debugger;
+					if (this.props.type === "directory") {
+						const destination = dirname(join(dirname(this.props.absolutePath), v));
+						const renamingFolder = this.props.type === "directory" ? v : undefined;
+						this.props.editor.assetsBrowser.moveSelectedItems(destination, [this.props.absolutePath], renamingFolder);
+					} else {
+						this.props.editor.assetsBrowser.renameFile(this.props.absolutePath, v);
+					}
+				}}
+			/>
+		);
 	}
 }

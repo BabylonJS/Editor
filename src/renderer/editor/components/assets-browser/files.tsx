@@ -44,7 +44,13 @@ export interface IAssetsBrowserFilesState {
 }
 
 export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps, IAssetsBrowserFilesState> {
+	/**
+	 * Defines the list of all selected items.
+	 */
+	public selectedItems: string[] = [];
+
 	private _assetsDirectory: string;
+	private _items: AssetsBrowserItem[] = [];
 
 	/**
 	 * Constructor.
@@ -136,7 +142,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Called on the component did mount.
 	 */
 	public async componentDidMount(): Promise<void> {
-		AssetsBrowserItem.Init();
+		AssetsBrowserItem.Init(this.props.editor);
 		await AssetsBrowserItemHandler.Init();
 	}
 
@@ -145,6 +151,9 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * @param directoryPath defines the absolute path to the directory to show in the view.
 	 */
 	public async setDirectory(directoryPath: string): Promise<void> {
+		this._items = [];
+		this.selectedItems = [];
+
 		if (!this._assetsDirectory) {
 			this._assetsDirectory = directoryPath;
 			this.setState({
@@ -165,13 +174,21 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 			items.push(
 				<AssetsBrowserItem
+					ref={(r) => {
+						if (r && !this._items.find((i) => i.props.absolutePath === r.props.absolutePath)) {
+							this._items.push(r);
+						}
+					}}
 					title={f}
 					key={Tools.RandomId()}
 					editor={this.props.editor}
 					absolutePath={absolutePath}
 					type={fStats.isDirectory() ? "directory" : "file"}
 					relativePath={absolutePath.replace(join(this._assetsDirectory, "/"), "")}
+
+					onClick={(i, ev) => this._handleAssetSelected(i, ev)}
 					onDoubleClick={() => this._handleItemDoubleClicked(directoryPath, f, fStats)}
+					onDragStart={(i, ev) => this._handleAssetSelected(i, ev)}
 				/>
 			);
 		}
@@ -199,6 +216,32 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 */
 	public refresh(): Promise<void> {
 		return this.setDirectory(this.state.currentDirectory);
+	}
+
+	/**
+	 * Called on the user clicks on the item.
+	 */
+	private _handleAssetSelected(item: AssetsBrowserItem, ev: React.MouseEvent<HTMLDivElement>): void {
+		if (ev.ctrlKey || ev.metaKey) {
+			const isSelected = !item.state.isSelected;
+			if (!isSelected) {
+				const index = this.selectedItems.indexOf(item.props.absolutePath);
+				if (index !== -1) {
+					this.selectedItems.splice(index, 1);
+				}
+			} else {
+				this.selectedItems.push(item.props.absolutePath);
+			}
+
+			item.setSelected(isSelected);
+		} else if (!item.state.isSelected) {
+			this._items.forEach((i) => i.setSelected(false));
+			
+			item.setSelected(true);
+			
+			this.selectedItems = [];
+			this.selectedItems.push(item.props.absolutePath);
+		}
 	}
 
 	/**

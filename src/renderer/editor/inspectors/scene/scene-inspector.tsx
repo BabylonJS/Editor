@@ -46,7 +46,7 @@ export class SceneInspector extends ScriptInspector<Scene, IScriptInspectorState
 
                 <InspectorSection title="Environment">
                     <InspectorNumber object={this.selectedObject} property="environmentIntensity" label="Intensity" step={0.01} />
-                    <InspectorList object={this.selectedObject} property="environmentTexture" label="Texture" items={() => this.getTexturesList()} />
+                    <InspectorList object={this.selectedObject} property="environmentTexture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 </InspectorSection>
 
                 <InspectorSection title="Fog">

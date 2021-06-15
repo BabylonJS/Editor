@@ -1,4 +1,5 @@
-import { join } from "path";
+import { move, pathExists, stat } from "fs-extra";
+import { basename, dirname, extname, join } from "path";
 
 import { Nullable } from "../../../shared/types";
 
@@ -13,6 +14,7 @@ import { WorkSpace } from "../project/workspace";
 
 import { AssetsBrowserTree } from "./assets-browser/tree";
 import { AssetsBrowserFiles } from "./assets-browser/files";
+import { AssetsBrowserItem } from "./assets-browser/files/item";
 
 export interface IAssetsBrowserProps {
 	/**
@@ -85,6 +87,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 				// pane2Style={{ width: `${layoutSize.width - this.state.paneWidth}px` }}
 			>
 				<AssetsBrowserTree
+					editor={this._editor}
 					ref={(r) => this._tree = r}
 					onDirectorySelected={(p) => this._files?.setDirectory(p)}
 				/>
@@ -118,6 +121,91 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	 * Refreshes the current directory.
 	 */
 	public async refresh(): Promise<void> {
+		this._tree?.refresh();
 		await this._files?.refresh();
+	}
+
+	/**
+	 * Renames the given file by updating all known references.
+	 * @param absolutePath defines the absolute path to the file to rename.
+	 * @param newName defines the new name of the file to apply.
+	 */
+	public async renameFile(absolutePath: string, newName: string): Promise<void> {
+		const destination = join(dirname(absolutePath), newName);
+
+		if ((await pathExists(destination))) {
+			return;
+		}
+
+		const extension = extname(absolutePath).toLowerCase();
+		const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
+		if (handler) {
+			await handler.moveFile(absolutePath, destination);
+		}
+
+		await move(absolutePath, destination);
+
+		this.refresh();
+	}
+
+	/**
+	 * Moves the currently selected items to the given destination folder (to)
+	 * @param to defines the absolute path to the folder where to move the asset.
+	 * @param items defines the optional list of items to move.
+	 */
+	public async moveSelectedItems(to: string, items?: string[], renamedFolder?: string): Promise<void> {
+		const selectedItems = items ?? this._files?.selectedItems;
+		if (!selectedItems?.length) {
+			return;
+		}
+
+		const promises: Promise<void>[] = [];
+
+		for (const item of selectedItems) {
+			const iStats = await stat(item);
+			
+			if (iStats.isDirectory()) {
+				const directoryPromises: Promise<void>[] = [];
+				const filesToMove = await FSTools.GetGlobFiles(join(item, "**", "*.*"));
+
+				for (const f of filesToMove) {
+					const destination = renamedFolder ?
+							dirname(f.replace(item, join(to, renamedFolder))) :
+							dirname(f.replace(dirname(item), to));
+
+					directoryPromises.push(this._moveFile(f, destination, false));
+				}
+
+				promises.push(new Promise<void>(async (resolve) => {
+					await Promise.all(directoryPromises);
+					await move(item, join(to, renamedFolder ?? basename(item)));
+
+					resolve();
+				}));
+			} else {
+				promises.push(this._moveFile(item, to, true));
+			}
+		}
+
+		await Promise.all(promises);
+		this.refresh();
+	}
+
+	/**
+	 * Moves the given file to the given destination. When moving a folder (specific case) the given file
+	 * will not be moved as "physicallyMove" will be set to false.
+	 */
+	private async _moveFile(absolutePath: string, to: string, physicallyMove: boolean): Promise<void> {
+		const extension = extname(absolutePath).toLowerCase();
+		const destination = join(to, basename(absolutePath));
+
+		const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
+		if (handler) {
+			await handler.moveFile(absolutePath, destination);
+		}
+
+		if (physicallyMove && !(await pathExists(destination))) {
+			await move(absolutePath, destination);
+		}
 	}
 }
