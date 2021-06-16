@@ -138,9 +138,10 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
     private _getScriptsList(): React.ReactNode {
         return (
             <InspectorList
-                object={this.selectedObject.metadata.script}
-                property="name"
                 label="Path"
+                property="name"
+                dndHandledTypes={["asset/typescript"]}
+                object={this.selectedObject.metadata.script}
                 items={async () => {
                     await this.refreshAvailableScripts();
                     return this.getScriptsListItems();

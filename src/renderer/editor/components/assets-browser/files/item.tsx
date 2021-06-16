@@ -15,10 +15,12 @@ import { FileItemHandler } from "./handlers/file";
 import { MeshItemHandler } from "./handlers/mesh";
 import { EnvDdsItemHandler } from "./handlers/env";
 import { ImageItemHandler } from "./handlers/image";
+import { TypeScriptItemHandler } from "./handlers/ts";
 import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
 
 import { AssetsBrowserMoveHandler } from "./move/move-handler";
+import { AssetsBrowserTypeScriptMoveHandler } from "./move/ts";
 import { AssetsBrowserTextureMoveHandler } from "./move/texture";
 import { AssetsBrowserMaterialMoveHandler } from "./move/material";
 
@@ -129,9 +131,12 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".env", ctor: EnvDdsItemHandler });
 		this.RegisterItemHandler({ extension: ".dds", ctor: EnvDdsItemHandler });
 
+		this.RegisterItemHandler({ extension: ".ts", ctor: TypeScriptItemHandler });
+
 		// Move handlers
 		this.RegisterItemMoveHandler(new AssetsBrowserTextureMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserMaterialMoveHandler(editor));
+		this.RegisterItemMoveHandler(new AssetsBrowserTypeScriptMoveHandler(editor));
 	}
 
 	private _mainDiv: Nullable<HTMLDivElement> = null;
@@ -165,6 +170,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 
 				onClick={(ev) => this.props.onClick(this, ev)}
 				onDoubleClick={() => this.props.onDoubleClick()}
+
+				onContextMenu={(ev) => ev.stopPropagation()}
 
 				style={{
 					width: "100px",

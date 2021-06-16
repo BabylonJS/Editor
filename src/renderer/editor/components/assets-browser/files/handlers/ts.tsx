@@ -1,22 +1,26 @@
-import { basename, dirname, join } from "path";
+import { join } from "path";
+import { shell } from "electron";
 
 import * as React from "react";
 
-import { Texture } from "babylonjs";
+import { Icon } from "../../../../gui/icon";
+
+import { WorkSpace } from "../../../../project/workspace";
 
 import { AssetsBrowserItemHandler } from "../item-handler";
 
-export class ImageItemHandler extends AssetsBrowserItemHandler {
+export class TypeScriptItemHandler extends AssetsBrowserItemHandler {
 	/**
 	 * Computes the image to render.
 	 */
 	public computePreview(): React.ReactNode {
 		return (
-			<img
-				src={this.props.absolutePath}
+			<Icon
+				src="../images/ts.png"
 				style={{
 					width: "100%",
 					height: "100%",
+					filter: "none",
 				}}
 			/>
 		);
@@ -27,7 +31,7 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-		this.props.editor.addWindowedPlugin("texture-viewer", undefined, this.props.absolutePath);
+		shell.openItem(this.props.absolutePath);
 	}
 
 	/**
@@ -35,7 +39,7 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public onDragStart(ev: React.DragEvent<HTMLDivElement>): void {
-		ev.dataTransfer.setData("asset/texture", JSON.stringify({
+		ev.dataTransfer.setData("asset/typescript", JSON.stringify({
 			absolutePath: this.props.absolutePath,
 			relativePath: this.props.relativePath,
 		}));
@@ -49,16 +53,6 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 * @param property defines the property of the object to assign the asset instance.
 	 */
 	public async onDropInInspector(_: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
-		let texture = this.props.editor.scene!.textures.find((tex) => tex.name === this.props.relativePath);
-		if (!texture) {
-			texture = new Texture(this.props.absolutePath, this.props.editor.scene!);
-			texture.name = join(dirname(this.props.relativePath), basename(this.props.absolutePath));
-
-			(texture as Texture).url = texture.name;
-		}
-
-		object[property] = texture;
-
-		await this.props.editor.assets.refresh();
+		object[property] = this.props.absolutePath.replace(join(WorkSpace.DirPath!, "/"), "");
 	}
 }

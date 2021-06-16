@@ -1,15 +1,17 @@
 import { basename, join } from "path";
-import { readdir, stat, Stats } from "fs-extra";
+import { copyFile, mkdir, pathExists, readdir, stat, Stats } from "fs-extra";
 
 import * as React from "react";
 import {
 	Boundary, Breadcrumbs, Button, ButtonGroup, Classes, IBreadcrumbProps, Intent, Menu,
-	MenuDivider, MenuItem, Popover, Code,
+	MenuDivider, MenuItem, Popover, Code, Divider, ContextMenu,
 } from "@blueprintjs/core";
 
 import { Editor } from "../../editor";
 
 import { Icon } from "../../gui/icon";
+import { Alert } from "../../gui/alert";
+import { Dialog } from "../../gui/dialog";
 
 import { Tools } from "../../tools/tools";
 
@@ -99,6 +101,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					marginTop: "5px"
 				}}>
 					<ButtonGroup>
+						<Button text="Import..." icon="import" intent="primary" small style={{ minWidth: "120px" }} onClick={() => this._handleImportFiles()} />
+						<Divider />
 						<Popover key="add-popover" position="bottom-left" content={addContent}>
 							<Button text="Add" small icon={<Icon src="plus.svg" />} rightIcon="caret-down" />
 						</Popover>
@@ -131,6 +135,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 						gridTemplateRows: "repeat(auto-fill, 120px)",
 						gridTemplateColumns: "repeat(auto-fill, 120px)",
 					}}
+					onContextMenu={(ev) => this._handleContextMenu(ev)}
 				>
 					{this.state.items}
 				</div>
@@ -208,7 +213,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 			this.setState({ pathStack });
 		}
 
-		this.setState({ items });
+		this.setState({ items, currentDirectory: directoryPath });
 	}
 
 	/**
@@ -283,5 +288,64 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		}
 
 		return items;
+	}
+
+	/**
+	 * Called on the user wants to import files to the currently browser directory.
+	 */
+	private async _handleImportFiles(): Promise<void> {
+		if (!this.state.currentDirectory) {
+			return;
+		}
+
+		const files = await Tools.ShowNativeOpenMultipleFileDialog();
+		if (!files.length) {
+			return;
+		}
+
+		const promises: Promise<void>[] = [];
+
+		for (const f of files) {
+			const path = f.path;
+			promises.push(copyFile(path, join(this.state.currentDirectory, basename(path))));	
+		}
+
+		await Promise.all(promises);
+		await this.props.editor.assetsBrowser.refresh();
+	}
+
+	/**
+	 * Caleld on the user right clicks on an empty area of the files browser.
+	 */
+	private _handleContextMenu(ev: React.MouseEvent<HTMLDivElement>): void {
+		ContextMenu.show((
+			<Menu>
+				<MenuItem text="Refresh" icon={<Icon src="recycle.svg" />} onClick={() => this.props.editor.assetsBrowser.refresh()} />
+				<MenuDivider />
+				<MenuItem text="New Directory..." icon={<Icon src="plus.svg" />} onClick={() => this._handleCreateNewDirectory()} />
+			</Menu>
+		), {
+			top: ev.clientY,
+			left: ev.clientX,
+		})
+	}
+
+	/**
+	 * Called on the user wants to create a new directory.
+	 */
+	private async _handleCreateNewDirectory(): Promise<void> {
+		const name = await Dialog.Show("Directory Name", "Please provide the name of the new directory");
+		if (!name) {
+			return;
+		}
+
+		const directoryPath = join(this.state.currentDirectory, name);
+
+		if (await pathExists(directoryPath)) {
+			return Alert.Show("Can't Create Directory", `A directory named "${name}" already exists.`);
+		}
+
+		await mkdir(directoryPath);
+		await this.props.editor.assetsBrowser.refresh();
 	}
 }
