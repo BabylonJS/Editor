@@ -23,7 +23,8 @@ import { Alert } from "../gui/alert";
 import { Omnibar, IOmnibarItem } from "../gui/omni-bar";
 
 import { WorkSpace } from "../project/workspace";
-import { ProjectExporter } from "../project/project-exporter";
+import { SceneExporter } from "../project/scene-exporter";
+
 import { ScenePlayer } from "../../play/inline-play";
 
 export interface IPreviewProps {
@@ -281,7 +282,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             this.setState({ isPlaying: true, isPlayingInIframe, playLoadingProgress: 0.5 });
         }
 
-        await ProjectExporter.ExportFinalScene(this._editor, undefined, {
+        await SceneExporter.ExportFinalScene(this._editor, undefined, {
             geometryRootPath: this.state.isPlayingInIframe ? undefined : join("../../scenes", WorkSpace.GetProjectName(), "/"),
         });
 
@@ -671,7 +672,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         switch (item.id) {
             case "__command__build__project__": return WorkSpace.BuildProject(this._editor);
-            case "__command__generate_scene__": return ProjectExporter.ExportFinalScene(this._editor);
+            case "__command__generate_scene__": return SceneExporter.ExportFinalScene(this._editor);
         }
 
         const node = this._editor.scene!.getNodeByID(item.id);

@@ -25,6 +25,10 @@ export interface IAssetsBrowserProps {
 
 export interface IAssetsBrowserState {
 	/**
+	 * Defines width in pixels of the pane.
+	 */
+	paneWidth: number;
+	/**
 	 * Defines the current absolute path being browsed.
 	 */
 	browsedPath: string;
@@ -67,6 +71,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 
 		this.state = {
 			browsedPath: "",
+			paneWidth: AssetsBrowser._SplitMinSize,
 		};
 	}
 
@@ -80,11 +85,11 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 
 		return (
 			<SplitPane
+				size="75%"
 				split="vertical"
-				// size={this.state.paneWidth}
 				minSize={AssetsBrowser._SplitMinSize}
-				// onChange={(r) => this.setState({ paneWidth: r })}
-				// pane2Style={{ width: `${layoutSize.width - this.state.paneWidth}px` }}
+				onChange={(r) => this.setState({ paneWidth: r })}
+				primary="second"
 			>
 				<AssetsBrowserTree
 					editor={this._editor}
@@ -163,15 +168,15 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 
 		for (const item of selectedItems) {
 			const iStats = await stat(item);
-			
+
 			if (iStats.isDirectory()) {
 				const directoryPromises: Promise<void>[] = [];
 				const filesToMove = await FSTools.GetGlobFiles(join(item, "**", "*.*"));
 
 				for (const f of filesToMove) {
 					const destination = renamedFolder ?
-							dirname(f.replace(item, join(to, renamedFolder))) :
-							dirname(f.replace(dirname(item), to));
+						dirname(f.replace(item, join(to, renamedFolder))) :
+						dirname(f.replace(dirname(item), to));
 
 					directoryPromises.push(this._moveFile(f, destination, false));
 				}

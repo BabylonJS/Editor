@@ -34,6 +34,7 @@ import { Project } from "./project/project";
 import { ProjectImporter } from "./project/project-importer";
 import { ProjectExporter } from "./project/project-exporter";
 import { WelcomeDialog } from "./project/welcome/welcome";
+import { SceneExporter } from "./project/scene-exporter";
 
 import { SceneSettings } from "./scene/settings";
 import { GizmoType } from "./scene/gizmo";
@@ -41,8 +42,8 @@ import { SceneUtils } from "./scene/utils";
 
 import { SandboxMain } from "../sandbox/main";
 
-import { IPlugin, IPluginConfiguration } from "./plugins/plugin";
 import { IPluginToolbar } from "./plugins/toolbar";
+import { IPlugin, IPluginConfiguration } from "./plugins/plugin";
 
 import "./painting/material-mixer/material";
 
@@ -700,7 +701,7 @@ export class Editor {
      * @param https defines wether or not an HTTPS server should be used to serve the project.
      */
     public async runProject(mode: EditorPlayMode, https: boolean): Promise<void> {
-        await ProjectExporter.ExportFinalScene(this);
+        await SceneExporter.ExportFinalScene(this);
 
         const task = this.addTaskFeedback(0, "Running Server");
         const workspace = WorkSpace.Workspace!;
@@ -910,7 +911,7 @@ export class Editor {
 
             // First load?
             if (!(await pathExists(join(WorkSpace.DirPath!, "scenes", WorkSpace.GetProjectName())))) {
-                await ProjectExporter.ExportFinalScene(this);
+                await SceneExporter.ExportFinalScene(this);
             }
 
             const hasNodeModules = await pathExists(join(WorkSpace.DirPath!, "node_modules"));
@@ -1090,7 +1091,7 @@ export class Editor {
         });
         
         ipcRenderer.on("run-project", () => this.runProject(EditorPlayMode.IntegratedBrowser, false));
-        ipcRenderer.on("generate-project", () => ProjectExporter.ExportFinalScene(this));
+        ipcRenderer.on("generate-project", () => SceneExporter.ExportFinalScene(this));
 
         ipcRenderer.on("play-project", () => this.toolsToolbar.handlePlay());
 

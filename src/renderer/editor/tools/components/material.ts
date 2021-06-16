@@ -1,5 +1,5 @@
-import { join } from "path";
 import filenamify from "filenamify";
+import { dirname, join } from "path";
 import { pathExists, writeFile } from "fs-extra";
 
 import { Texture, NodeMaterial, TextureBlock } from "babylonjs";
@@ -14,9 +14,9 @@ export class MaterialTools {
      * Exports the given serialized node materials textures to real files.
      * @param editor defines the reference to the editor.
      * @param materials defines the array containing the serialized materials.
-     * @param path defines the path where the scene has been saved.
+     * @param assetsPath defines the path where the scene has been saved.
      */
-    public static async ExportSerializedNodeMaterialsTextures(editor: Editor, materials: any[], path: string): Promise<string[]> {
+    public static async ExportSerializedNodeMaterialsTextures(editor: Editor, materials: any[], assetsPath: string, outputPath: string): Promise<string[]> {
         const files: string[] = [];
         const promises: Promise<void>[] = [];
 
@@ -27,6 +27,7 @@ export class MaterialTools {
 
             const material = editor.scene!.getMaterialByID(m.id) as NodeMaterial;
             if (!material || !(material instanceof NodeMaterial)) { continue; }
+            if (!material.metadata?.editorPath) { continue; }
 
             const forceExportTextures = (material.metadata?.shouldExportTextures ?? true) === true;
             
@@ -44,6 +45,7 @@ export class MaterialTools {
                     b.texture.url = b.texture.name;
                     b.texture.name = b.texture.metadata?.editorName ?? Tools.RandomId();
 
+                    const path = join(outputPath, dirname(material.metadata.editorPath));
                     promises.push(this._ExportSerializedTexture(editor, m, b, block.texture, textureIndex++, path, files, forceExportTextures));
                     continue;
                 }
@@ -53,7 +55,7 @@ export class MaterialTools {
                     continue;
                 }
 
-                promises.push(this._ExportSerializedCubeTexture(editor, m, b, textureIndex++, path, files, forceExportTextures));
+                promises.push(this._ExportSerializedCubeTexture(editor, m, b, textureIndex++, assetsPath, files, forceExportTextures));
             }
         }
 
@@ -65,9 +67,9 @@ export class MaterialTools {
     /**
      * Exports the given serialized texture.
      */
-    private static async _ExportSerializedTexture(editor: Editor, material: any, block: any, texture: Texture, index: number, path: string, files: string[], forceExportTexture: boolean): Promise<void> {
+    private static async _ExportSerializedTexture(editor: Editor, material: any, block: any, texture: Texture, index: number, path: string, files: string[], forceExportTexture: boolean): Promise<void> {        
         const extractedTextureName = filenamify(`${material.name}-${material.id}-${index++}.png`);
-        const destination = join(path, "files", extractedTextureName);
+        const destination = join(path, extractedTextureName);
 
         if (!forceExportTexture && await pathExists(destination)) {
             editor.console.logInfo(`NodeMaterial texture named "${extractedTextureName}" already generated.`);

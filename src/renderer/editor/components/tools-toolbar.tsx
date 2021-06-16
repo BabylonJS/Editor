@@ -10,8 +10,8 @@ import { Icon } from "../gui/icon";
 
 import { EditorPlayMode } from "../tools/types";
 
-import { ProjectExporter } from "../project/project-exporter";
 import { WorkSpace } from "../project/workspace";
+import { SceneExporter } from "../project/scene-exporter";
 
 export interface IToolbarProps {
     /**
@@ -99,10 +99,10 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             case "run-my-browser": this._editor.runProject(EditorPlayMode.ExternalBrowser, false); break;
             case "run-my-browser-https": this._editor.runProject(EditorPlayMode.ExternalBrowser, true); break;
 
-            case "generate": ProjectExporter.ExportFinalScene(this._editor); break;
-            case "generate-final": ProjectExporter.ExportFinalScene(this._editor, undefined, { forceRegenerateFiles: true, generateAllCompressedTextureFormats: true }); break;
-            case "generate-as": ProjectExporter.ExportFinalSceneAs(this._editor); break;
-            case "generate-only-geometries": ProjectExporter.ExportFinalSceneOnlyGeometries(this._editor); break;
+            case "generate": SceneExporter.ExportFinalScene(this._editor); break;
+            case "generate-final": SceneExporter.ExportFinalScene(this._editor, undefined, { forceRegenerateFiles: true, generateAllCompressedTextureFormats: true }); break;
+            case "generate-as": SceneExporter.ExportFinalSceneAs(this._editor); break;
+            case "generate-only-geometries": SceneExporter.ExportFinalSceneOnlyGeometries(this._editor); break;
             case "build-project": WorkSpace.BuildProject(this._editor); break;
 
             case "play-scene": this.handlePlay(); break;
