@@ -215,7 +215,9 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
         const items = await this._getItems();
         const selectedItem = await this._getCurrentItem();
 
-        this.setState({ items, selectedItem });
+        return new Promise<void>((resolve) => {
+            this.setState({ items, selectedItem }, () => resolve());
+        });
     }
 
     /**
@@ -283,8 +285,14 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
                 const data = JSON.parse(dataContent);
 
                 if (data) {
-                    await InspectorNotifier.NotifyOnDrop(ev, this.props.object, this.props.property);
-                    this._refreshItems();
+                    const handled = await InspectorNotifier.NotifyOnDrop(ev, this.props.object, this.props.property);
+                    if (handled) {
+                        await this._refreshItems();
+
+                        if (this.state.selectedItem) {
+                            this._handleValueChange(this.state.selectedItem);
+                        }
+                    }
                     break;
                 }
             } catch (e) {

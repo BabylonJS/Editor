@@ -112,9 +112,12 @@ export class InspectorNotifier {
 	 * @param object defines the reference to the object being modified in the inspector.
 	 * @param property defines the property of the object to assign the asset instance.
      */
-    public static async NotifyOnDrop(ev: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
+    public static async NotifyOnDrop(ev: React.DragEvent<HTMLElement>, object: any, property: string): Promise<boolean> {
         if (AssetsBrowserItemHandler._DragAndDroppedItem) {
             await AssetsBrowserItemHandler._DragAndDroppedItem.onDropInInspector(ev, object, property);
+            return true;
         }
+
+        return false;
     }
 }

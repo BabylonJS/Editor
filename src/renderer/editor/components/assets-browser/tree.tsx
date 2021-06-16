@@ -103,14 +103,19 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 		}
 
 		this._activeDirectory = directoryPath;
-		this.setState({ nodes: [this._refreshTree()] });
+		this.refresh();
 	}
 
 	/**
 	 * Refreshes the current tree.
 	 */
 	public refresh(): void {
-		this.setState({ nodes: [this._refreshTree()] });
+		const assets = this._refreshTree(this._assetsDirectory);
+		const sources = this._refreshTree(join(this._assetsDirectory, "../src"));
+
+		this.setState({
+			nodes: [sources, assets],
+		});
 	}
 
 	/**
@@ -118,7 +123,7 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 	 */
 	private _handleFilterChanged(filter: string): void {
 		this._filter = filter;
-		this.setState({ nodes: [this._refreshTree()] });
+		this.refresh();
 	}
 
 	/**
@@ -168,8 +173,8 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 	/**
 	 * Refreshes the current list of nodes available in the tree.
 	 */
-	private _refreshTree(tree?: DirectoryTree, root?: ITreeNode<string>): ITreeNode<string> {
-		tree ??= directoryTree(this._assetsDirectory);
+	private _refreshTree(rootDirectory: string, tree?: DirectoryTree, root?: ITreeNode<string>): ITreeNode<string> {
+		tree ??= directoryTree(rootDirectory);
 		root ??= {
 			id: tree.path,
 			childNodes: [],
@@ -186,7 +191,7 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 				return;
 			}
 
-			const child = this._refreshTree(t, {
+			const child = this._refreshTree(rootDirectory, t, {
 				id: t.path,
 				childNodes: [],
 				nodeData: t.path,
