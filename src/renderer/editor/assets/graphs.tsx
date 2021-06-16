@@ -11,8 +11,8 @@ import { Scene, Node } from "babylonjs";
 
 import { IFile } from "../project/files";
 import { Project } from "../project/project";
-import { ProjectExporter } from "../project/project-exporter";
 import { WorkSpace } from "../project/workspace";
+import { SceneExporter } from "../project/scene-exporter";
 
 import { Icon } from "../gui/icon";
 import { Dialog } from "../gui/dialog";
@@ -164,7 +164,7 @@ export class GraphAssets extends AbstractAssets {
                 item.base64 = message.data.preview;
                 this.setState({ items: this.items });
 
-                await ProjectExporter.ExportGraphs(this.editor);
+                await SceneExporter.ExportGraphs(this.editor);
             }
         });
     }
@@ -285,7 +285,7 @@ export class GraphAssets extends AbstractAssets {
                 this.items.push(item);
 
                 if (scriptExists) {
-                    await ProjectExporter.ExportGraphs(this.editor);
+                    await SceneExporter.ExportGraphs(this.editor);
                 }
             },
         });

@@ -6,7 +6,7 @@ import { Classes, ButtonGroup, Button, Divider, NonIdealState } from "@blueprint
 import { Icon } from "../../editor/gui/icon";
 
 import { WorkSpace } from "../../editor/project/workspace";
-import { ProjectExporter } from "../../editor/project/project-exporter";
+import { SceneExporter } from "../../editor/project/scene-exporter";
 
 import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plugin";
 
@@ -113,7 +113,7 @@ export default class PlayPlugin extends AbstractEditorPlugin<IPlayPlugin> {
      * Called on the user wants to refresh.
      */
     private async _handleRestart(): Promise<void> {
-        await ProjectExporter.ExportFinalScene(this.editor);
+        await SceneExporter.ExportFinalScene(this.editor);
         this._handleRefresh();
     }
 

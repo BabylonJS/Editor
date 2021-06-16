@@ -1,11 +1,15 @@
-import { basename, join } from "path";
-import { copyFile, mkdir, pathExists, readdir, stat, Stats } from "fs-extra";
+import { platform } from "os";
+import { shell } from "electron";
+import { basename, extname, join } from "path";
+import { copyFile, mkdir, pathExists, readdir, stat, Stats, writeJSON } from "fs-extra";
 
 import * as React from "react";
 import {
 	Boundary, Breadcrumbs, Button, ButtonGroup, Classes, IBreadcrumbProps, Intent, Menu,
-	MenuDivider, MenuItem, Popover, Code, Divider, ContextMenu,
+	MenuDivider, MenuItem, Popover, Code, Divider, ContextMenu, Icon as BPIcon,
 } from "@blueprintjs/core";
+
+import { Tools as BabylonTools, NodeMaterial } from "babylonjs";
 
 import { Editor } from "../../editor";
 
@@ -75,9 +79,9 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		const addContent = (
 			<Menu>
 				<MenuItem text="Material">
-					<MenuItem text="Standard Material..." />
-					<MenuItem text="PBR Material..." />
-					<MenuItem text="Node Material..." />
+					<MenuItem text="Standard Material..." onClick={() => this._handleCreateMaterial("StandardMaterial")} />
+					<MenuItem text="PBR Material..." onClick={() => this._handleCreateMaterial("PBRMaterial")} />
+					<MenuItem text="Node Material..." onClick={() => this._handleCreateMaterial("NodeMaterial")} />
 					<MenuDivider />
 					<Code>Materials Library</Code>
 					<MenuItem text="Cel Material..." />
@@ -318,9 +322,16 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Caleld on the user right clicks on an empty area of the files browser.
 	 */
 	private _handleContextMenu(ev: React.MouseEvent<HTMLDivElement>): void {
+		const isMacOs = platform() === "darwin";
+
 		ContextMenu.show((
 			<Menu>
 				<MenuItem text="Refresh" icon={<Icon src="recycle.svg" />} onClick={() => this.props.editor.assetsBrowser.refresh()} />
+				<MenuItem
+					icon={<BPIcon icon="document-open" color="white" />}
+					text={`Reveal in ${isMacOs ? "Finder" : "Explorer"}`}
+					onClick={() => shell.openItem(Tools.NormalizePathForCurrentPlatform(this.state.currentDirectory))}
+				/>
 				<MenuDivider />
 				<MenuItem text="New Directory..." icon={<Icon src="plus.svg" />} onClick={() => this._handleCreateNewDirectory()} />
 			</Menu>
@@ -347,5 +358,41 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		await mkdir(directoryPath);
 		await this.props.editor.assetsBrowser.refresh();
+	}
+
+	/**
+	 * Called on the user wants to add a new material asset.
+	 */
+	private async _handleCreateMaterial(type: string): Promise<void> {
+		let name = await Dialog.Show("Material Name", "Please provide a name for the new material to created.");
+
+		const ctor = BabylonTools.Instantiate(`BABYLON.${type}`);
+        const material = new ctor(name, this.props.editor.scene!);
+		const relativePath = this.state.currentDirectory.replace(join(this._assetsDirectory, "/"), "");
+
+        material.id = Tools.RandomId();
+
+        if (material instanceof NodeMaterial) {
+            material.setToDefault();
+            material.build(true);
+        }
+
+		const extension = extname(name);
+		if (extension !== ".material") {
+			name += ".material";
+		}
+
+		material.metadata ??= {};
+		material.metadata.editorPath = join(relativePath, name);
+
+		await writeJSON(join(this.state.currentDirectory, name), {
+			...material.serialize(),
+			metadata: Tools.CloneObject(material.metadata),
+		}, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		await this.refresh();
 	}
 }

@@ -4,7 +4,7 @@ import { Scene, Node } from "babylonjs";
 
 import { Project } from "../project/project";
 import { WorkSpace } from "../project/workspace";
-import { ProjectExporter } from "../project/project-exporter";
+import { SceneExporter } from "../project/scene-exporter";
 
 import { TextureAssets } from "../assets/textures";
 import { MaterialAssets } from "../assets/materials";
@@ -177,7 +177,7 @@ export class SceneUtils {
             rootUrl: join(Project.DirPath!),
             workspacePath: WorkSpace.DirPath!,
             sceneName: WorkSpace.GetProjectName(),
-            scene: ProjectExporter.GetFinalSceneJson(this._editor),
+            scene: SceneExporter.GetFinalSceneJson(this._editor),
         };
     }
 }

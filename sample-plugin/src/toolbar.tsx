@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
 
-import { Editor, Alert, ProjectExporter } from "babylonjs-editor";
+import { Editor, Alert, ProjectExporter, SceneExporter } from "babylonjs-editor";
 
 export interface IToolbarProps {
     /**
@@ -39,10 +39,10 @@ export class Toolbar extends React.Component<IToolbarProps> {
         await ProjectExporter.Save(this.props.editor, false);
 
         // Get directory where the exported scene is located.
-        console.log(ProjectExporter.GetExportedSceneLocation());
+        console.log(SceneExporter.GetExportedSceneLocation());
 
         // Get the final scene Json and do whatever we want with.
-        const sceneJson = ProjectExporter.GetFinalSceneJson(this.props.editor);
+        const sceneJson = SceneExporter.GetFinalSceneJson(this.props.editor);
         console.log(sceneJson);
     }
 }

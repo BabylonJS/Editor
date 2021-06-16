@@ -45,6 +45,7 @@ export { IBabylonFile, IBabylonFileNode, IProject, IWorkSpace } from "./renderer
 export { ProjectExporter } from "./renderer/editor/project/project-exporter";
 export { Project } from "./renderer/editor/project/project";
 export { WorkSpace } from "./renderer/editor/project/workspace";
+export { SceneExporter } from "./renderer/editor/project/scene-exporter";
 
 // GUI
 export { Alert, IAlertProps } from "./renderer/editor/gui/alert";

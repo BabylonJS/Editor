@@ -90,6 +90,10 @@ export default class AssetsWorker {
 		this._isBusy = true;
 
 		const parsedData = await readJSON(absolutePath, { encoding: "utf-8" });
+		if (parsedData.customType === "BABYLON.NodeMaterial") {
+			rootUrl = undefined!;
+		}
+
 		const material = Material.Parse(parsedData, this._scene, rootUrl);
 
 		const sphere = Mesh.CreateSphere("AssetsWorkerSphere", 32, 10, this._scene, false);

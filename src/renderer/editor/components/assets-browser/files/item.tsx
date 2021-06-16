@@ -19,6 +19,7 @@ import { TypeScriptItemHandler } from "./handlers/ts";
 import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
 
+import { AssetsBrowserMeshMoveHandler } from "./move/mesh";
 import { AssetsBrowserMoveHandler } from "./move/move-handler";
 import { AssetsBrowserTypeScriptMoveHandler } from "./move/ts";
 import { AssetsBrowserTextureMoveHandler } from "./move/texture";
@@ -134,6 +135,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".ts", ctor: TypeScriptItemHandler });
 
 		// Move handlers
+		this.RegisterItemMoveHandler(new AssetsBrowserMeshMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTextureMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserMaterialMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTypeScriptMoveHandler(editor));
@@ -347,7 +349,6 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 						return;
 					}
 
-					debugger;
 					if (this.props.type === "directory") {
 						const destination = dirname(join(dirname(this.props.absolutePath), v));
 						const renamingFolder = this.props.type === "directory" ? v : undefined;
