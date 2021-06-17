@@ -30,7 +30,7 @@ export default class Play {
 	private _load(): void {
 		PlayOverride.OverrideEngineFunctions(this.workspaceDir);
 
-		const rootUrl = join(this.workspaceDir, "scenes", this.projectName, "/");
+		const rootUrl = join(this.workspaceDir, "assets/");
 
 		switch (this.physicsEngine) {
 			case "cannon":
@@ -46,7 +46,7 @@ export default class Play {
 
 		SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 
-		SceneLoader.Append(rootUrl, "scene.babylon", this._scene, () => {
+		SceneLoader.Append(rootUrl, `../scenes/${this.projectName}/scene.babylon`, this._scene, () => {
 			this._scene.executeWhenReady(() => {
 				this._run(rootUrl);
 			});

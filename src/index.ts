@@ -10,6 +10,7 @@ export { Editor } from "./renderer/editor/editor";
 // Tools
 export { Tools } from "./renderer/editor/tools/tools";
 export { IPCTools } from "./renderer/editor/tools/ipc";
+export { FSTools } from "./renderer/editor/tools/fs";
 
 // Assets
 export { Assets, IAssetComponent, IAssetsProps, IAssetsState } from "./renderer/editor/components/assets";
@@ -46,6 +47,10 @@ export { ProjectExporter } from "./renderer/editor/project/project-exporter";
 export { Project } from "./renderer/editor/project/project";
 export { WorkSpace } from "./renderer/editor/project/workspace";
 export { SceneExporter } from "./renderer/editor/project/scene-exporter";
+
+// Exporter
+export { MeshExporter } from "./renderer/editor/export/mesh";
+export { GeometryExporter } from "./renderer/editor/export/geometry";
 
 // GUI
 export { Alert, IAlertProps } from "./renderer/editor/gui/alert";

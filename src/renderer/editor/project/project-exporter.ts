@@ -336,7 +336,6 @@ export class ProjectExporter {
 
                 exportedGeometries.push.apply(exportedGeometries, await GeometryExporter.ExportIncrementalGeometries(editor, geometriesDir, json, false));
 
-
                 for (const lod of json.lods) {
                     if (lod.mesh) {
                         exportedGeometries.push.apply(exportedGeometries, await GeometryExporter.ExportIncrementalGeometries(editor, geometriesDir, lod.mesh, false));

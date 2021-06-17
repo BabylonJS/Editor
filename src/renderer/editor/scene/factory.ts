@@ -1,4 +1,6 @@
-import { extname } from "path";
+import { extname, join } from "path";
+import { writeJSON } from "fs-extra";
+import filenamify from "filenamify/filenamify";
 
 import {
     Mesh,
@@ -11,6 +13,8 @@ import {
 import { SkyMaterial } from "babylonjs-materials";
 
 import { Alert } from "../gui/alert";
+import { Dialog } from "../gui/dialog";
+
 import { Tools } from "../tools/tools";
 
 import { Editor } from "../editor";
@@ -161,13 +165,35 @@ export class SceneFactory {
     }
 
     /**
-     * Adds a new sky to the scene.
-     * @param editor the editor reference.
+     * Adds a new sky mesh & material to the scene. The material file will be added
+     * to the currently selected assets path.
+     * @param editor defines the editor reference.
      */
-    public static AddSky(editor: Editor): Mesh {
+    public static async AddSky(editor: Editor): Promise<Mesh> {
+        const name = await Dialog.Show("Material Name", "Please provide a name for the Sky Material");
+        if (!name) {
+            throw new Error("Can't create sky material with empty name");
+        }
+
+        const jsonName = join(editor.assetsBrowser.state.browsedPath, `${filenamify(name)}.material`);
+
+        const material = new SkyMaterial(name, editor.scene!);
+        material.id = Tools.RandomId();
+        material.metadata = {
+            editorPath: jsonName.replace(join(editor.assetsBrowser.assetsDirectory, "/"), ""),
+        };
+
+        const json = material.serialize();
+        await writeJSON(jsonName, {
+            ...json,
+            metadata: material.metadata,
+        }, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
+
         const skybox = Mesh.CreateBox("Sky", 5000, editor.scene!, false, Mesh.BACKSIDE);
-        skybox.material = new SkyMaterial("sky", editor.scene!);
-        skybox.material.id = Tools.RandomId();
+        skybox.material = material;
 
         return this._ConfigureNode(skybox);
     }
