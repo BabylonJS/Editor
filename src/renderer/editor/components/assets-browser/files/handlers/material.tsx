@@ -89,7 +89,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 
 		let material = this.props.editor.scene?.materials.find((m) => m.id === json.id) ?? null;
 		if (!material) {
-			material = Material.Parse(json, this.props.editor.scene!, join(this.props.editor.assetsBrowser.assetsDirectory, "/"));
+			material = await this._readAndParseMaterialFile();
 		}
 
 		pick.pickedMesh.material = material;
@@ -123,7 +123,13 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	private async _readAndParseMaterialFile(): Promise<Nullable<Material>> {
 		try {
 			const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
-			return Material.Parse(json, this.props.editor.scene!, join(this.props.editor.assetsBrowser.assetsDirectory, "/"));
+			const material = Material.Parse(json, this.props.editor.scene!, join(this.props.editor.assetsBrowser.assetsDirectory, "/"));
+
+			if (material) {
+				material.metadata = json.metadata;
+			}
+
+			return material;
 		} catch (e) {
 			this.props.editor.console.logError(`Failed to load material "${this.props.relativePath}":`);
 			this.props.editor.console.logError(e?.message ?? "Unknown error.");
