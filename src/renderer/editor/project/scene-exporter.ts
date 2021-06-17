@@ -1,6 +1,6 @@
 import { basename, dirname, extname, join } from "path";
 import directoryTree, { DirectoryTree } from "directory-tree";
-import { copy, mkdir, pathExists, readdir, readFile, readJSON, remove, writeFile, writeJSON } from "fs-extra";
+import { copy, pathExists, readdir, readFile, readJSON, remove, writeFile, writeJSON } from "fs-extra";
 
 import { LGraph } from "litegraph.js";
 import { SceneSerializer, Mesh } from "babylonjs";
@@ -324,9 +324,10 @@ export class SceneExporter {
 
 		// Copy assets files
 		const assetsTree = directoryTree(editor.assetsBrowser.assetsDirectory);
-		await Promise.all((assetsTree.children ?? []).map((c) => {
-			return this._RecursivelyWriteAssets(editor, c, editor.assetsBrowser.assetsDirectory, assetsPath, options);
-		}));
+		// await Promise.all((assetsTree.children ?? []).map((c) => {
+		// 	return this._RecursivelyWriteAssets(editor, c, editor.assetsBrowser.assetsDirectory, assetsPath, options);
+		// }));
+		await this._RecursivelyWriteAssets(editor, assetsTree, editor.assetsBrowser.assetsDirectory, assetsPath, options);
 
 		// Handle node material textures
 		editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");
@@ -350,68 +351,66 @@ export class SceneExporter {
 	 * Recursively re-creates the assets structure in the output folder and copies the supported files.
 	 */
 	private static async _RecursivelyWriteAssets(editor: Editor, directoryTree: DirectoryTree, assetsPath: string, outputPath: string, options?: IExportFinalSceneOptions): Promise<void> {
-		const path = directoryTree.path.replace(assetsPath, outputPath);
-
 		if (directoryTree.type === "directory" && directoryTree.children?.length) {
+			const path = directoryTree.path.replace(assetsPath, outputPath);
+			await FSTools.CreateDirectory(path);
+		}
+		
+		const promises: Promise<void>[] = [];
+
+		for (const child of directoryTree.children ?? []) {
+			if (child.type !== "file") {
+				continue;
+			}
+
+			const path = child.path.replace(assetsPath, outputPath);
+			
+			const extension = extname(child.name).toLowerCase();
+			if (this.CopyAbleAssetsTypes.indexOf(extension) === -1) {
+				continue;
+			}
+	
 			if (!(await pathExists(path))) {
-				await mkdir(path);
+				await copy(child.path, path);
+				editor.console.logInfo(`Copied asset file at: ${path}`);
 			}
 
-			await Promise.all((directoryTree.children ?? []).map((c) => {
-				return this._RecursivelyWriteAssets(editor, c, assetsPath, outputPath, options);
-			}));
-
-			return;
-		}
-
-		const extension = extname(directoryTree.name).toLowerCase();
-		if (this.CopyAbleAssetsTypes.indexOf(extension) === -1) {
-			return;
-		}
-
-		await copy(directoryTree.path, path, {
-			overwrite: options?.forceRegenerateFiles ?? false,
-		});
-
-		// KTX
-		if (this.CopyAbleImageTypes.indexOf(extension) === -1) {
-			return;
-		}
-
-		const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures;
-
-		const forcedFormat = ktx2CompressedTextures?.forcedFormat ?? "automatic";
-		const supportedTextureFormat = (forcedFormat !== "automatic" ? forcedFormat : editor.engine!.texturesSupported[0]) as KTXToolsType;
-
-		if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.pvrTexToolCliPath) {
-			const destFilesDir = dirname(path);
-			const promises: Promise<void | void[]>[] = [];
-
-			if (options?.generateAllCompressedTextureFormats) {
-				if (promises.length >= 5) {
-					await Promise.all(promises);
-					promises.splice(0);
+			// KTX
+			if (this.CopyAbleImageTypes.indexOf(extension) === -1) {
+				continue;
+			}
+	
+			const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures;
+	
+			const forcedFormat = ktx2CompressedTextures?.forcedFormat ?? "automatic";
+			const supportedTextureFormat = (forcedFormat !== "automatic" ? forcedFormat : editor.engine!.texturesSupported[0]) as KTXToolsType;
+	
+			if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.pvrTexToolCliPath) {
+				const destFilesDir = dirname(path);
+	
+				if (options?.generateAllCompressedTextureFormats) {
+					await Promise.all([
+						KTXTools.CompressTexture(editor, path, destFilesDir, "-astc.ktx"),
+						KTXTools.CompressTexture(editor, path, destFilesDir, "-dxt.ktx"),
+						KTXTools.CompressTexture(editor, path, destFilesDir, "-pvrtc.ktx"),
+						KTXTools.CompressTexture(editor, path, destFilesDir, "-etc1.ktx"),
+						KTXTools.CompressTexture(editor, path, destFilesDir, "-etc2.ktx"),
+					]);
+				} else {
+					const ktxFilename = KTXTools.GetKtxFileName(path, supportedTextureFormat);
+					if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
+						continue;
+					}
+	
+					promises.push(KTXTools.CompressTexture(editor, path, destFilesDir, supportedTextureFormat));
 				}
-
-				promises.push(Promise.all([
-					KTXTools.CompressTexture(editor, path, destFilesDir, "-astc.ktx"),
-					KTXTools.CompressTexture(editor, path, destFilesDir, "-dxt.ktx"),
-					KTXTools.CompressTexture(editor, path, destFilesDir, "-pvrtc.ktx"),
-					KTXTools.CompressTexture(editor, path, destFilesDir, "-etc1.ktx"),
-					KTXTools.CompressTexture(editor, path, destFilesDir, "-etc2.ktx"),
-				]));
-			} else {
-				const ktxFilename = KTXTools.GetKtxFileName(path, supportedTextureFormat);
-				if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
-					return;
-				}
-
-				promises.push(KTXTools.CompressTexture(editor, path, destFilesDir, supportedTextureFormat));
 			}
+		}
 
-			if (promises.length) {
-				await Promise.all(promises);
-			}
+		await Promise.all(promises);
+
+		for (const child of directoryTree.children ?? []) {
+			await this._RecursivelyWriteAssets(editor, child, assetsPath, outputPath, options);
 		}
 	}
 

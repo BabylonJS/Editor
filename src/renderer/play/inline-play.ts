@@ -6,7 +6,6 @@ import { Scene, SceneLoader, Camera } from "babylonjs";
 
 import Editor from "../editor";
 
-import { Project } from "../editor/project/project";
 import { WorkSpace } from "../editor/project/workspace";
 import { SceneSettings } from "../editor/scene/settings";
 
@@ -34,8 +33,8 @@ export class ScenePlayer {
 
         this._scene = new Scene(this._editor.engine!);
 
-        const rootUrl = join(Project.DirPath!, "/");
-        const filename = join("../../scenes", WorkSpace.GetProjectName(), "scene.babylon");
+        const rootUrl = join(WorkSpace.DirPath!, "assets/");
+        const filename = join("../scenes", WorkSpace.GetProjectName(), "scene.babylon");
 
         this._requirePhysicsEngine();
 

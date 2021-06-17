@@ -63,6 +63,10 @@ export interface IAssetsBrowserItemProps {
 
 export interface IAssetsBrowserItemState {
 	/**
+	 * Defines the color applied on the title.
+	 */
+	titleColor: string;
+	/**
 	 * Defines wether or not the item is selected.
 	 */
 	isSelected: boolean;
@@ -154,6 +158,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 			isSelected: false,
 			isRenaming: false,
 			itemHandler: null,
+			titleColor: "#ffffff",
 		};
 	}
 
@@ -187,19 +192,19 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 					outlineStyle: this.state.isSelected ? "groove" : "unset",
 				}}
 			>
-				<div
-					key="render-image"
-					style={{
-						margin: "auto",
-						width: "calc(100% - 20px)",
-						height: "calc(100% - 20px)",
-					}}
-				>
-					{this.state.itemHandler}
-				</div>
 				<Tooltip key="item-tooltip" content={this.props.title} usePortal={true} position={Position.TOP}>
-					{this.state.isRenaming ? this._getTitleEditableText() : this._getTitle()}
+					<div
+						key="render-image"
+						style={{
+							margin: "auto",
+							width: "calc(100% - 20px)",
+							height: "calc(100% - 20px)",
+						}}
+					>
+						{this.state.itemHandler}
+					</div>
 				</Tooltip>
+				{this.state.isRenaming ? this._getTitleEditableText() : this._getTitle()}
 			</div>
 		);
 	}
@@ -230,6 +235,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 					relativePath={this.props.relativePath}
 					absolutePath={this.props.absolutePath}
 					onDragStart={(ev) => this.props.onDragStart(this, ev)}
+					onSetTitleColor={(c) => this.setState({ titleColor: c })}
 				/>
 			)
 		});
@@ -319,6 +325,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 					whiteSpace: "nowrap",
 					position: "absolute",
 					textOverflow: "ellipsis",
+					color: this.state.titleColor,
 				}}
 				onDoubleClick={(ev) => {
 					ev.stopPropagation();

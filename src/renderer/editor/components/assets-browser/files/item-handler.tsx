@@ -26,6 +26,11 @@ export interface IAssetsBrowserItemHandlerProps {
 	 * Defines the callback called on the item is starts being dragged.
 	 */
 	onDragStart: (ev: React.DragEvent<HTMLDivElement>) => void;
+	/**
+	 * Defines the callback caleld on the item handler wants to change the color of the title.
+	 * This is useful to target assets types.
+	 */
+	onSetTitleColor: (color: string) => void;
 }
 
 export interface IAssetsBrowserItemHandlerState {

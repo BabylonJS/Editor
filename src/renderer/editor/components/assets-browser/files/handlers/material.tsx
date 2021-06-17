@@ -34,8 +34,10 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	public computePreview(): React.ReactNode {
 		this._computePreview();
 
+		this.props.onSetTitleColor("#00FF00");
+
 		return (
-			<div style={{ width: "100%", height: "100%", outlineColor: "#00FF00", outlineWidth: "1px", outlineStyle: "groove" }}>
+			<div style={{ width: "100%", height: "100%" }}>
 				<Icon src="logo-babylon.svg" style={{ width: "100%", height: "100%", filter: "unset" }} />
 				<div style={{ position: "absolute", top: "0", left: "0" }}>
 					<Spinner size={24} />
@@ -146,9 +148,6 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 				style={{
 					width: "100%",
 					height: "100%",
-					outlineWidth: "1px",
-					outlineStyle: "groove",
-					outlineColor: "#00FF00",
 				}}
 			/>
 		);

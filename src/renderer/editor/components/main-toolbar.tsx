@@ -304,7 +304,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 case "camera": node = SceneFactory.AddFreeCamera(this._editor); break;
                 case "arc-rotate-camera": node = SceneFactory.AddArcRotateCamera(this._editor); break;
 
-                case "sky": node = SceneFactory.AddSky(this._editor); break;
+                case "sky": node = await SceneFactory.AddSky(this._editor); break;
 
                 case "dummy": node = SceneFactory.AddDummy(this._editor); break;
 

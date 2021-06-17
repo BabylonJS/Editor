@@ -36,14 +36,22 @@ export default class AssetsWorker {
 	 */
 	public constructor(canvas: HTMLCanvasElement) {
 		this._engine = new Engine(canvas, true, {
+            stencil: true,
+			antialias: true,
 			audioEngine: false,
+            preserveDrawingBuffer: true,
+            disableWebGL2Support: false,
+            useHighPrecisionFloats: true,
 			powerPreference: "high-performance",
+			failIfMajorPerformanceCaveat: false,
 		});
 
 		this._scene = new Scene(this._engine);
+		this._scene.ambientColor.set(1, 1, 1);
 		this._scene.clearColor.set(0, 0, 0, 1);
 
 		this._camera = new TargetCamera("AssetsWorkerCamera", Vector3.Zero(), this._scene, true);
+		this._camera.minZ = 0.1;
 
 		// Light
 		this._light = new DirectionalLight("AssetsWorkerDirectionalLight", Vector3.Zero(), this._scene);
@@ -159,7 +167,6 @@ export default class AssetsWorker {
 
 			container.removeAllFromScene();
 			container.dispose();
-
 		} catch (e) {
 			// Catch silently.
 		}
@@ -177,7 +184,7 @@ export default class AssetsWorker {
 	 */
 	private async _waitQueue(): Promise<void> {
 		while (this._isBusy) {
-			await Tools.Wait(500);
+			await Tools.Wait(100);
 		}
 	}
 
@@ -191,12 +198,13 @@ export default class AssetsWorker {
 			}, 10000);
 
 			while (this._scene._pendingData.length) {
-				await Tools.Wait(150);
+				await Tools.Wait(100);
 			}
 
-			clearTimeout(timeoutId);
-
-			resolve();
+			this._scene.executeWhenReady(() => {
+				clearTimeout(timeoutId);
+				resolve();
+			});
 		});
 	}
 
@@ -232,7 +240,7 @@ export default class AssetsWorker {
 		const center = Vector3.Center(minimum, maximum);
 		const distance = Vector3.Distance(minimum, maximum) * 0.5;
 
-		this._camera.position = center.add(new Vector3(distance, distance, distance));
+		this._camera.position = center.add(new Vector3(distance, distance * 0.5, distance));
 		this._camera.setTarget(center);
 
 		this._light.position.copyFrom(maximum);
