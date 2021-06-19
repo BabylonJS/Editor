@@ -1,5 +1,5 @@
 import { dirname, join, basename } from "path";
-import { readJSON, pathExists, pathExistsSync } from "fs-extra";
+import { readJSON, pathExistsSync } from "fs-extra";
 
 import { Nullable } from "../../../shared/types";
 
@@ -26,7 +26,9 @@ import { IProject } from "./typings";
 import { WorkSpace } from "./workspace";
 import { ProjectHelpers } from "./helpers";
 
-import { Assets } from "../components/assets";
+import { Workers } from "../workers/workers";
+import AssetsWorker from "../workers/workers/assets";
+import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
 export class ProjectImporter {
     /**
@@ -193,9 +195,9 @@ export class ProjectImporter {
                 }
 
                 const material = m.isMultiMaterial ?
-                        MultiMaterial.ParseMultiMaterial(json, editor.scene!) :
-                        Material.Parse(json, editor.scene!, materialRootUrl!);
-                
+                    MultiMaterial.ParseMultiMaterial(json, editor.scene!) :
+                    Material.Parse(json, editor.scene!, materialRootUrl!);
+
                 if (material && json.metadata) {
                     material.metadata = json.metadata;
                 }
@@ -327,8 +329,10 @@ export class ProjectImporter {
 
         for (const ps of project.particleSystems ?? []) {
             try {
-                const json = await readJSON(join(Project.DirPath, "particleSystems", ps));
-                ParticleSystem.Parse(json, editor.scene!, rootUrl);
+                const json = await readJSON(join(editor.assetsBrowser.assetsDirectory, ps));
+
+                const system = ParticleSystem.Parse(json, editor.scene!, rootUrl);
+                system["metadata"] = json.metadata;
             } catch (e) {
                 editor.console.logError(`Failed to parse particle system "${ps}"`);
             }
@@ -393,9 +397,11 @@ export class ProjectImporter {
 
         // Update cache
         Overlay.SetMessage("Loading Cache...");
-        const assetsCachePath = join(Project.DirPath, "assets", "cache.json");
-        if ((await pathExists(assetsCachePath))) {
-            Assets.SetCachedData(await readJSON(assetsCachePath));
+        try {
+            const assetsCache = await readJSON(join(Project.DirPath!, "../cache.json"), { encoding: "utf-8" });
+            await Workers.ExecuteFunction<AssetsWorker, "setCache">(AssetsBrowserItemHandler.AssetWorker, "setCache", assetsCache);
+        } catch (e) {
+            // Catch silently.
         }
 
         // Parent Ids

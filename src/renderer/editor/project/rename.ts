@@ -1,10 +1,6 @@
 import { readdir, rename, pathExists } from "fs-extra";
 import { join, basename, resolve } from "path";
 
-import { IStringDictionary } from "../../../shared/types";
-
-import { Node } from "babylonjs";
-
 import { Editor } from "../editor";
 
 import { Dialog } from "../gui/dialog";
@@ -13,7 +9,6 @@ import { Overlay } from "../gui/overlay";
 
 import { Project } from "./project";
 import { WorkSpace } from "./workspace";
-import { FilesStore, IFile } from "./files";
 
 export class ProjectRenamer {
     /**
@@ -47,21 +42,6 @@ export class ProjectRenamer {
             return Alert.Show("Can't Rename Project", `A project named "${name}" already exists. Please provide another name.`);
         }
 
-        // Rename files store
-        const newFileStore: IStringDictionary<IFile> = { };
-        for (const f in FilesStore.List) {
-            const newPath = f.replace(
-                join(WorkSpace.DirPath!, "projects", WorkSpace.GetProjectName()),
-                join(WorkSpace.DirPath!, "projects", name),
-            );
-            newFileStore[newPath] = {
-                path: newPath,
-                name: FilesStore.List[f].name,
-            };
-        }
-
-        FilesStore.List = newFileStore;
-
         const projectName = WorkSpace.GetProjectName();
 
         // Rename project's folder
@@ -77,32 +57,6 @@ export class ProjectRenamer {
                 return this._Rename(editor, originalname, originalname);
             }
         }
-
-        // Rename src's folder
-        // const srcFolder = join(WorkSpace.DirPath, "src", "scenes", projectName);
-        // const srcFolderExists = await pathExists(srcFolder);
-        // if (srcFolderExists) {
-        //     try {
-        //         await rename(srcFolder, join(WorkSpace.DirPath, "src", "scenes", name));
-        //     } catch (e) {
-        //         return this._Rename(editor, originalname, originalname);
-        //     }
-        // }
-
-        // Rename all nodes metadatas
-        const nodes = (editor.scene!.meshes as Node[])
-                        .concat(editor.scene!.lights)
-                        .concat(editor.scene!.cameras)
-                        .concat(editor.scene!.transformNodes) as Node[];
-
-        nodes.forEach((n) => {
-            if (!n.metadata) { return; }
-
-            // Attached script.
-            if (n.metadata.script && n.metadata.script.name && n.metadata.script.name !== "None") {
-                n.metadata.script.name = n.metadata.script.name.replace(`src/scenes/${projectName}`, `src/scenes/${name}`);
-            }
-        });
 
         // Update project and workspace
         Project.DirPath = resolve(Project.DirPath, "..", name);

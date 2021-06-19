@@ -7,16 +7,14 @@ import { IPCResponses } from "../../../shared/ipc";
 
 import * as React from "react";
 import {
-    ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, MenuDivider, Divider,
-    Popover, Position, Tag, Intent, Code,
+    ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, MenuDivider, Divider, Tag, Intent,
 } from "@blueprintjs/core";
 
 import {
-    Material, Mesh, ShaderMaterial, PickingInfo, Tools as BabylonTools,
+    Material, Mesh, ShaderMaterial, PickingInfo,
     NodeMaterial, MultiMaterial, Scene, Node,
 } from "babylonjs";
 
-import { assetsHelper, OffscreenAssetsHelperMesh } from "../tools/offscreen-assets-helper/offscreen-asset-helper";
 import { Tools } from "../tools/tools";
 import { undoRedo } from "../tools/undo-redo";
 import { IPCTools } from "../tools/ipc";
@@ -24,13 +22,16 @@ import { IPCTools } from "../tools/ipc";
 import { Icon } from "../gui/icon";
 import { Alert } from "../gui/alert";
 import { Dialog } from "../gui/dialog";
-import { Overlay } from "../gui/overlay";
 
 import { Project } from "../project/project";
 import { FilesStore } from "../project/files";
 
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
+
+import { Workers } from "../workers/workers";
+import AssetsWorker from "../workers/workers/assets";
+import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
 import "./materials/augmentations";
 
@@ -60,33 +61,11 @@ export class MaterialAssets extends AbstractAssets {
     public render(): React.ReactNode {
         const node = super.render();
 
-        const add =
-            <Menu>
-                <MenuItem key="add-standard-material" text="Standard Material..." onClick={() => this._addMaterial("StandardMaterial")} />
-                <MenuItem key="add-pbr-material" text="PBR Material..." onClick={() => this._addMaterial("PBRMaterial")} />
-                <MenuItem key="add-node-material" text="Node Material..." onClick={() => this._addMaterial("NodeMaterial")} />
-                <MenuDivider />
-                <MenuItem key="add-node-material-from-snippet" text="Node Material From Snippet..." onClick={() => this._addNodeMaterialFromWeb()} />
-                <MenuDivider />
-                <MenuItem key="add-material-from-preset" icon={<Icon src="search.svg" />} text="From Preset..." onClick={() => this._handleLoadFromPreset()} />
-                <MenuDivider />
-                <Code>Materials Library</Code>
-                <MenuItem key="add-cell-material" text="Add Cell Material..." onClick={() => this._addMaterial("CellMaterial")} />
-                <MenuItem key="add-fire-material" text="Add Fire Material..." onClick={() => this._addMaterial("FireMaterial")} />
-                <MenuItem key="add-lava-material" text="Add Lava Material..." onClick={() => this._addMaterial("LavaMaterial")} />
-                <MenuItem key="add-water-material" text="Add Water Material..." onClick={() => this._addMaterial("WaterMaterial")} />
-                <MenuItem key="add-tri-planar-material" text="Add Tri Planar Material..." onClick={() => this._addMaterial("TriPlanarMaterial")} />
-            </Menu>;
-
         return (
             <>
                 <div className={Classes.FILL} key="materials-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
-                        <Divider />
-                        <Popover key="add-popover" content={add} position={Position.BOTTOM_LEFT}>
-                            <Button key="add" icon={<Icon src="plus.svg" />} rightIcon="caret-down" small={true} text="Add" />
-                        </Popover>
                         <Divider />
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedMaterials()} />
                     </ButtonGroup>
@@ -100,41 +79,41 @@ export class MaterialAssets extends AbstractAssets {
      * Refreshes the component.
      * @override
      */
-    public async refresh(object?: Material): Promise<void> {
-        await assetsHelper.init();
-        await assetsHelper.createMesh(OffscreenAssetsHelperMesh.Sphere);
-
+    public async refresh(): Promise<void> {
         for (const material of this.editor.scene!.materials) {
-            if (material === this.editor.scene!.defaultMaterial || material instanceof ShaderMaterial || material.doNotSerialize) { continue; }
-            if (object && object !== material) { continue; }
-
-            const item = this.items.find((i) => i.key === material.id);
-            if (!object && item) { continue; }
-
-            const copy = material.serialize();
-            await assetsHelper.setMaterial(copy, material instanceof NodeMaterial ? undefined : join(this.editor.assetsBrowser.assetsDirectory, "/"));
-
-            const base64 = await assetsHelper.getScreenshot();
-
-            const itemData: IAssetComponentItem = { id: material.name, key: material.id, base64 };
-            if (material.metadata?.isLocked) {
-                itemData.style = { border: "solid red" };
+            const editorPath = material.metadata?.editorPath;
+            if (!editorPath) {
+                continue;
             }
 
+            const base64 = await Workers.ExecuteFunction<AssetsWorker, "createMaterialPreview">(
+                AssetsBrowserItemHandler.AssetWorker,
+                "createMaterialPreview",
+                editorPath,
+                join(this.editor.assetsBrowser.assetsDirectory, editorPath),
+                join(this.props.editor.assetsBrowser.assetsDirectory, "/"),
+            );
+
+            const itemData: IAssetComponentItem = {
+                base64,
+                key: material.id,
+                id: material.name,
+            };
+
+            const item = this.items.find((i) => i.key === material.id);
             if (item) {
                 const index = this.items.indexOf(item);
-                if (index !== -1) { this.items[index] = itemData; }
+                if (index !== -1) {
+                    this.items[index] = itemData;
+                }
             } else {
                 this.items.push(itemData);
             }
 
             this.updateAssetThumbnail(material.id, base64);
-            await assetsHelper.disposeMaterial();
-
             this.updateAssetObservable.notifyObservers();
         }
 
-        await assetsHelper.reset();
         return super.refresh();
     }
 
@@ -182,7 +161,7 @@ export class MaterialAssets extends AbstractAssets {
             <Menu className={Classes.DARK}>
                 <MenuItem text="Copy Name" icon="clipboard" onClick={() => clipboard.writeText(material.name, "clipboard")} />
                 <MenuDivider />
-                <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this.refresh(material)} />
+                <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this.refresh()} />
                 <MenuDivider />
                 <MenuItem text="Save Material Preset..." icon={<Icon src="save.svg" />} onClick={() => this._handleSaveMaterialPreset(item)} />
                 <MenuDivider />
@@ -448,7 +427,7 @@ export class MaterialAssets extends AbstractAssets {
                     } catch (e) {
                         IPCTools.SendWindowMessage(popupId, "graph-json", { error: true });
                     }
-                    this.refresh(material);
+                    this.refresh();
                 }
             });
         } else {
@@ -496,42 +475,6 @@ export class MaterialAssets extends AbstractAssets {
     }
 
     /**
-     * Adds a new material on the user clicks on the "Add Material..." button in the toolbar.
-     */
-    private async _addMaterial(type: string): Promise<void> {
-        const name = await Dialog.Show("Material Name", "Please provide a name for the new material to created.");
-
-        const ctor = BabylonTools.Instantiate(`BABYLON.${type}`);
-        const material = new ctor(name, this.editor.scene!);
-        material.id = Tools.RandomId();
-
-        if (material instanceof NodeMaterial) {
-            material.setToDefault();
-            material.build(true);
-        }
-
-        this.refresh();
-    }
-
-    /**
-     * Adds a new Node Material from the given snippet Id.
-     */
-    private async _addNodeMaterialFromWeb(): Promise<void> {
-        const snippetId = await Dialog.Show("Snippet Id", "Please provide the Id of the snippet.");
-
-        Overlay.Show("Loading From Snippet...", true);
-        try {
-            const material = await NodeMaterial.ParseFromSnippetAsync(snippetId, this.editor.scene!);
-            material.id = Tools.RandomId();
-        } catch (e) {
-            Alert.Show("Failed to load from snippet", e.message);
-        }
-        Overlay.Hide();
-
-        this.refresh();
-    }
-
-    /**
      * Called on the user wants to save the material.
      * @param item the item select when the user wants to save a material.
      */
@@ -549,30 +492,6 @@ export class MaterialAssets extends AbstractAssets {
         zip.writeZip(destination);
         this.editor.updateTaskFeedback(task, 100, "Done");
         this.editor.closeTaskFeedback(task, 500);
-    }
-
-    /**
-     * Called when the user wants to load a material from a preset.
-     */
-    private async _handleLoadFromPreset(): Promise<void> {
-        const files = await Tools.ShowNativeOpenMultipleFileDialog();
-        const task = this.editor.addTaskFeedback(0, "Loading presets...");
-
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-
-            const material = this.loadMaterialFromZip(file.path);
-            if (material) {
-                material.id = Tools.RandomId();
-            }
-
-            this.editor.updateTaskFeedback(task, (i / files.length) * 100, `Loaded preset "${material?.name}"`);
-            await Tools.Wait(500);
-        };
-
-        this.editor.updateTaskFeedback(task, 100, "Done");
-        this.editor.closeTaskFeedback(task, 1000);
-        this.editor.assets.refresh();
     }
 
     /**

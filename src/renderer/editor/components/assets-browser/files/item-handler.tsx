@@ -150,7 +150,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	}
 
 	/**
-	 * Called on the 
+	 * Called on the user drops the asset in the editor's preview canvas.
 	 * @param ev defines the reference to the event object.
 	 * @param pick defines the picking info generated while dropping in the preview.
 	 */

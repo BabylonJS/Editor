@@ -15,8 +15,8 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 			<img
 				src={this.props.absolutePath}
 				style={{
-					width: "80%",
-					height: "80%",
+					width: "100%",
+					height: "100%",
 				}}
 			/>
 		);

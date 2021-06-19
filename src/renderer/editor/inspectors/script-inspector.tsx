@@ -29,7 +29,6 @@ import { Tools } from "../tools/tools";
 
 import { SandboxMain, IExportedInspectorValue } from "../../sandbox/main";
 
-import { ScriptAssets } from "../assets/scripts";
 import { IAssetComponentItem } from "../assets/abstract-assets";
 
 import { AbstractInspector } from "./abstract-inspector";
@@ -126,7 +125,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
      * Refreshes the list of all available scripts.
      */
     protected async refreshAvailableScripts(): Promise<void> {
-        const scripts = await ScriptAssets.GetAllScripts();
+        const scripts = await this.editor.assetsBrowser.getAllScripts();
 
         this.setState({ scripts });
         this._updateScriptVisibleProperties();

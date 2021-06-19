@@ -1,12 +1,12 @@
 import { join } from "path";
-import { readJSON, writeJSON } from "fs-extra";
 import { ipcRenderer } from "electron";
+import { readJSON, writeJSON } from "fs-extra";
 
 import { IPCResponses } from "../../../../../../shared/ipc";
 import { Nullable, Undefinable } from "../../../../../../shared/types";
 
 import * as React from "react";
-import { Spinner } from "@blueprintjs/core";
+import { Spinner, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
 
 import { PickingInfo, Mesh, Material, NodeMaterial } from "babylonjs";
 
@@ -61,6 +61,33 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 			json: await readJSON(this.props.absolutePath, { encoding: "utf-8" }),
 			environmentTexture: this.props.editor.scene!.environmentTexture?.serialize(),
 		});
+	}
+
+	/**
+	 * Called on the user right clicks on the item.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		ContextMenu.show((
+			<Menu>
+				<MenuItem text="Refresh Preview" icon="refresh" onClick={() => this._handleRefreshPreview()} />
+			</Menu>
+		), {
+			top: ev.clientY,
+			left: ev.clientX,
+		});
+	}
+
+	/**
+	 * Called on the user wants to refresh the preview of the material.
+	 */
+	private async _handleRefreshPreview(): Promise<void> {
+		await Workers.ExecuteFunction<AssetsWorker, "deleteFromCache">(
+			AssetsBrowserItemHandler.AssetWorker,
+			"deleteFromCache",
+			this.props.relativePath,
+		);
+		this._computePreview();
 	}
 
 	/**
@@ -144,6 +171,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		const path = await Workers.ExecuteFunction<AssetsWorker, "createMaterialPreview">(
 			AssetsBrowserItemHandler.AssetWorker,
 			"createMaterialPreview",
+			this.props.relativePath,
 			this.props.absolutePath,
 			join(this.props.editor.assetsBrowser.assetsDirectory, "/"),
 		);

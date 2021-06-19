@@ -19,6 +19,7 @@ import { ImageItemHandler } from "./handlers/image";
 import { TypeScriptItemHandler } from "./handlers/ts";
 import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
+import { ParticlesSystemItemHandler } from "./handlers/particles-system";
 
 import { AssetsBrowserMeshMoveHandler } from "./move/mesh";
 import { AssetsBrowserSoundMoveHandler } from "./move/sound";
@@ -144,6 +145,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".wav", ctor: SoundItemHandler });
 		this.RegisterItemHandler({ extension: ".wave", ctor: SoundItemHandler });
 		this.RegisterItemHandler({ extension: ".ogg", ctor: SoundItemHandler });
+
+		this.RegisterItemHandler({ extension: ".ps", ctor: ParticlesSystemItemHandler });
 
 		// Move handlers
 		this.RegisterItemMoveHandler(new AssetsBrowserMeshMoveHandler(editor));

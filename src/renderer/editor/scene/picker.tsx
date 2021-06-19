@@ -218,7 +218,7 @@ export class ScenePicker {
                     "{node.name}" <b style={{ color: "grey" }}>({Tools.GetConstructorName(node)})</b>
                 </Pre>
                 <MenuDivider />
-                <MenuItem text="Clone" icon={<Icon src="clone.svg" />} onClick={() => {
+                <MenuItem text="Clone" disabled={node instanceof Sound || node instanceof ParticleSystem} icon={<Icon src="clone.svg" />} onClick={() => {
                     this._editor.graph.cloneObject(node!);
                     this._editor.graph.refresh();
                 }} />
