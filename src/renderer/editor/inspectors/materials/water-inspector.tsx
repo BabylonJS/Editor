@@ -62,7 +62,7 @@ export class WaterMaterialInspector extends MaterialInspector<WaterMaterial> {
 
                 <InspectorSection title="Bump">
                     <InspectorNumber object={this.material} property="bumpHeight" label="Height" step={0.01} />
-                    <InspectorList object={this.material} property="bumpTexture" label="Texture" items={() => this.getTexturesList()} />
+                    <InspectorList object={this.material} property="bumpTexture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 </InspectorSection>
 
                 <InspectorSection title="Waves">

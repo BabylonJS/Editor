@@ -29,6 +29,8 @@ export interface IAssetsBrowserTreeState {
 
 export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, IAssetsBrowserTreeState> {
 	private _assetsDirectory: string;
+	private _sourcesDirectory: string;
+
 	private _activeDirectory: string;
 
 	private _expandedPaths: string[] = [];
@@ -79,9 +81,17 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 	public async setDirectory(directoryPath: string): Promise<void> {
 		if (!this._assetsDirectory) {
 			this._assetsDirectory = directoryPath;
+			this._sourcesDirectory = join(directoryPath, "../src");
 		}
 
-		const split = directoryPath.split(this._assetsDirectory)[1];
+		let rootDirectory = this._assetsDirectory;
+		let split = directoryPath.split(this._assetsDirectory)[1] ?? null;
+
+		if (split === null) {
+			rootDirectory = this._sourcesDirectory;
+			split = directoryPath.split(this._sourcesDirectory)[1] ?? null;
+		}
+
 		if (split) {
 			const directories = split.split("/");
 
@@ -92,7 +102,7 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 					return;
 				}
 
-				const path = join(this._assetsDirectory, stack);
+				const path = join(rootDirectory, stack);
 				const index = this._expandedPaths.indexOf(path);
 				if (index === -1) {
 					this._expandedPaths.push(path);

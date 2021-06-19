@@ -10,6 +10,11 @@ export type PhysicsEngineType = "cannon" | "oimo" | "ammo";
 
 export interface IWorkSpace {
     /**
+     * Defines the version of the Editor that handled the project.
+     */
+    editorVersion?: string;
+
+    /**
      * Defines the local path to the latest opened project.
      */
     lastOpenedScene: string;

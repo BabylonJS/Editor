@@ -259,8 +259,8 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 <InspectorNumber object={this.material.clearCoat} property="indexOfRefraction" label="Index Of Refraction" step={0.01} />
 
                 <InspectorSection title="Textures">
-                    <InspectorList object={this.material.clearCoat} property="texture" label="Texture" items={() => this.getTexturesList()} />
-                    <InspectorList object={this.material.clearCoat} property="bumpTexture" label="Bump Texture" items={() => this.getTexturesList()} />
+                    <InspectorList object={this.material.clearCoat} property="texture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                    <InspectorList object={this.material.clearCoat} property="bumpTexture" label="Bump Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 </InspectorSection>
 
                 <InspectorSection title="Tint">
@@ -288,7 +288,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
         return (
             <InspectorSection title="Anisotropy">
                 <InspectorBoolean object={this.material.anisotropy} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ anisotropyEnabled: v })} />
-                <InspectorList object={this.material.anisotropy} property="texture" label="Texture" items={() => this.getTexturesList()} />
+                <InspectorList object={this.material.anisotropy} property="texture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorNumber object={this.material.anisotropy} property="intensity" label="Intensity" step={0.01} />
                 <InspectorVector2 object={this.material.anisotropy} property="direction" label="Direction" step={0.01} />
             </InspectorSection>
@@ -311,7 +311,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
         return (
             <InspectorSection title="Sheen">
                 <InspectorBoolean object={this.material.sheen} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ sheenEnabled: v })} />
-                <InspectorList object={this.material.sheen} property="texture" label="Texture" items={() => this.getTexturesList()} />
+                <InspectorList object={this.material.sheen} property="texture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorBoolean object={this.material.sheen} property="linkSheenWithAlbedo" label= "Link Sheen With Albedo" />
                 <InspectorBoolean object={this.material.sheen} property="albedoScaling" label= "Albedo Scaling" />
                 <InspectorBoolean object={this.material.sheen} property="useRoughnessFromMainTexture" label= "Use Roughness From Main Texture" />
@@ -346,7 +346,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     this.material.sheen.roughness = null;
                     this.setState({ useSheenRoughness: v });
                 }} />
-                <InspectorList object={this.material.sheen} property="textureRoughness" label="Roughness" items={() => this.getTexturesList()} />
+                <InspectorList object={this.material.sheen} property="textureRoughness" label="Roughness" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorNumber object={this.material.sheen} property="roughness" label="Roughness" step={0.01} />
             </InspectorSection>
         );
@@ -362,8 +362,8 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
         if (this.state.subSurfaceTranslucencyEnabled || this.state.subSurfaceRefractionEnabled) {
             return (
                 <InspectorSection title="Sub Surface">
-                    <InspectorList object={this.material.subSurface} property="thicknessTexture" label="Thickness Texture" items={() => this.getTexturesList()} />
-                    <InspectorList object={this.material.subSurface} property="refractionTexture" label="Refraction Texture" items={() => this.getTexturesList()} />
+                    <InspectorList object={this.material.subSurface} property="thicknessTexture" label="Thickness Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                    <InspectorList object={this.material.subSurface} property="refractionTexture" label="Refraction Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                     
                     <InspectorColor object={this.material.subSurface} property="tintColor" label="Tint Color" step={0.01} />
                     <InspectorColorPicker object={this.material.subSurface} property="tintColor" label="Hex Color" />

@@ -324,9 +324,6 @@ export class SceneExporter {
 
 		// Copy assets files
 		const assetsTree = directoryTree(editor.assetsBrowser.assetsDirectory);
-		// await Promise.all((assetsTree.children ?? []).map((c) => {
-		// 	return this._RecursivelyWriteAssets(editor, c, editor.assetsBrowser.assetsDirectory, assetsPath, options);
-		// }));
 		await this._RecursivelyWriteAssets(editor, assetsTree, editor.assetsBrowser.assetsDirectory, assetsPath, options);
 
 		// Handle node material textures

@@ -56,6 +56,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	public selectedItems: string[] = [];
 
 	private _assetsDirectory: string;
+	private _sourcesDirectory: string;
+
 	private _items: AssetsBrowserItem[] = [];
 
 	/**
@@ -166,6 +168,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		if (!this._assetsDirectory) {
 			this._assetsDirectory = directoryPath;
+			this._sourcesDirectory = join(directoryPath, "../src");
+
 			this.setState({
 				pathStack: [directoryPath],
 				currentDirectory: directoryPath,
@@ -204,9 +208,16 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		}
 
 		// Refresh path stack
-		const split = directoryPath.split(this._assetsDirectory)[1];
+		let rootDirectory = this._assetsDirectory;
+		let split = directoryPath.split(this._assetsDirectory)[1] ?? null;
+
+		if (split === null) {
+			rootDirectory = this._sourcesDirectory;
+			split = directoryPath.split(this._sourcesDirectory)[1] ?? null;
+		}
+
 		if (split) {
-			const pathStack: string[] = [this._assetsDirectory];
+			const pathStack: string[] = [rootDirectory];
 			const directories = split.split("/");
 
 			directories.forEach((d) => {
