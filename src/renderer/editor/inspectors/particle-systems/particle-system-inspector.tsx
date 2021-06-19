@@ -76,8 +76,8 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
                 </InspectorSection>
 
                 <InspectorSection title="Textures">
-                    <InspectorList object={this.selectedObject} property="particleTexture" label="Texture" items={this.getTexturesList()} />
-                    <InspectorList object={this.selectedObject} property="textureMask" label="Mask" items={this.getTexturesList()} />
+                    <InspectorList object={this.selectedObject} property="particleTexture" label="Texture" items={this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                    <InspectorList object={this.selectedObject} property="textureMask" label="Mask" items={this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                     <InspectorList object={this.selectedObject} property="blendMode" label="Blend Mode" items={[
                         { label: "One One", data: ParticleSystem.BLENDMODE_ONEONE },
                         { label: "Standard", data: ParticleSystem.BLENDMODE_STANDARD },

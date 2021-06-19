@@ -26,14 +26,14 @@ export class TriPlanarMaterialInspector extends MaterialInspector<TriPlanarMater
                 <InspectorSection title="Tri Planar">
                     <InspectorNumber object={this.material} property="tileSize" label="Tile Size" step={0.01} />
                     <InspectorSection title="Diffuse Textures">
-                        <InspectorList object={this.material} property="diffuseTextureX" label="Texture X" items={() => this.getTexturesList()} />
-                        <InspectorList object={this.material} property="diffuseTextureY" label="Texture Y" items={() => this.getTexturesList()} />
-                        <InspectorList object={this.material} property="diffuseTextureZ" label="Texture Z" items={() => this.getTexturesList()} />
+                        <InspectorList object={this.material} property="diffuseTextureX" label="Texture X" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                        <InspectorList object={this.material} property="diffuseTextureY" label="Texture Y" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                        <InspectorList object={this.material} property="diffuseTextureZ" label="Texture Z" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                     </InspectorSection>
                     <InspectorSection title="Normal Textures">
-                        <InspectorList object={this.material} property="normalTextureX" label="Normal X" items={() => this.getTexturesList()} />
-                        <InspectorList object={this.material} property="normalTextureY" label="Normal Y" items={() => this.getTexturesList()} />
-                        <InspectorList object={this.material} property="normalTextureZ" label="Normal Z" items={() => this.getTexturesList()} />
+                        <InspectorList object={this.material} property="normalTextureX" label="Normal X" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                        <InspectorList object={this.material} property="normalTextureY" label="Normal Y" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                        <InspectorList object={this.material} property="normalTextureZ" label="Normal Z" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                     </InspectorSection>
                 </InspectorSection>
             </>

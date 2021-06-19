@@ -23,9 +23,9 @@ export class FireMaterialInspector extends MaterialInspector<FireMaterial> {
 
                 <InspectorSection title="Fire">
                     <InspectorNumber object={this.material} property="speed" label="Speed" step={0.01} />
-                    <InspectorList object={this.material} property="diffuseTexture" label="Diffuse Texture" items={() => this.getTexturesList()} />
-                    <InspectorList object={this.material} property="distortionTexture" label="Distortion Texture" items={() => this.getTexturesList()} />
-                    <InspectorList object={this.material} property="opacityTexture" label="Opacity Texture" items={() => this.getTexturesList()} />
+                    <InspectorList object={this.material} property="diffuseTexture" label="Diffuse Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                    <InspectorList object={this.material} property="distortionTexture" label="Distortion Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                    <InspectorList object={this.material} property="opacityTexture" label="Opacity Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 </InspectorSection>
             </>
         );

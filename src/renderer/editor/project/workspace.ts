@@ -111,6 +111,7 @@ export class WorkSpace {
         }
 
         return writeJSON(this.Path, {
+            editorVersion: this.Workspace!.editorVersion,
             lastOpenedScene: projectPath.replace(this.DirPath!, ""),
             serverPort: this.Workspace!.serverPort,
             generateSceneOnSave: this.Workspace!.generateSceneOnSave,

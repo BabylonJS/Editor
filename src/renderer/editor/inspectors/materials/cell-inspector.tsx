@@ -25,7 +25,7 @@ export class CellMaterialInspector extends MaterialInspector<CellMaterial> {
 
                 <InspectorSection title="Cell">
                     <InspectorBoolean object={this.material} property="computeHighLevel" label="Compute High Level" />
-                    <InspectorList object={this.material} property="diffuseTexture" label="Texture" items={() => this.getTexturesList()} />
+                    <InspectorList object={this.material} property="diffuseTexture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                     <InspectorColor object={this.material} property="diffuseColor" label="Diffuse Color" step={0.01} />
                     <InspectorColorPicker object={this.material} property="diffuseColor" label="Hex Color" />
                 </InspectorSection>

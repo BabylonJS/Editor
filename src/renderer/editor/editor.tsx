@@ -35,6 +35,7 @@ import { ProjectImporter } from "./project/project-importer";
 import { ProjectExporter } from "./project/project-exporter";
 import { WelcomeDialog } from "./project/welcome/welcome";
 import { SceneExporter } from "./project/scene-exporter";
+import { WorkspaceConverter } from "./project/converter/converter";
 
 import { SceneSettings } from "./scene/settings";
 import { GizmoType } from "./scene/gizmo";
@@ -848,6 +849,11 @@ export class Editor {
         // Check workspace
         const workspacePath = await WorkSpace.GetOpeningWorkspace();
         if (workspacePath) {
+            const needsUpdate = await WorkspaceConverter.NeedsConversion(workspacePath);
+            if (needsUpdate) {
+                await WorkspaceConverter.Convert(this, workspacePath);
+            }
+
             await WorkSpace.ReadWorkSpaceFile(workspacePath);
             await WorkSpace.RefreshAvailableProjects();
         }

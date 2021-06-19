@@ -29,8 +29,8 @@ export class FireMaterialInspector extends MaterialInspector<LavaMaterial> {
                     <InspectorNumber object={this.material} property="fogDensity" label="Fog Density" step={0.01} />
                     <InspectorBoolean object={this.material} property="unlit" label="Unlit" />
 
-                    <InspectorList object={this.material} property="diffuseTexture" label="Diffuse Texture" items={() => this.getTexturesList()} />
-                    <InspectorList object={this.material} property="noiseTexture" label="Noise Texture" items={() => this.getTexturesList()} />
+                    <InspectorList object={this.material} property="diffuseTexture" label="Diffuse Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                    <InspectorList object={this.material} property="noiseTexture" label="Noise Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 </InspectorSection>
             </>
         );
