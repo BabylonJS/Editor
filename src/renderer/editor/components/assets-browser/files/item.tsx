@@ -13,6 +13,7 @@ import { AssetsBrowserItemHandler, IItemHandler, IAssetsBrowserItemHandlerProps 
 
 import { FileItemHandler } from "./handlers/file";
 import { MeshItemHandler } from "./handlers/mesh";
+import { SoundItemHandler } from "./handlers/mp3";
 import { EnvDdsItemHandler } from "./handlers/env";
 import { ImageItemHandler } from "./handlers/image";
 import { TypeScriptItemHandler } from "./handlers/ts";
@@ -20,6 +21,7 @@ import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
 
 import { AssetsBrowserMeshMoveHandler } from "./move/mesh";
+import { AssetsBrowserSoundMoveHandler } from "./move/sound";
 import { AssetsBrowserMoveHandler } from "./move/move-handler";
 import { AssetsBrowserTypeScriptMoveHandler } from "./move/ts";
 import { AssetsBrowserTextureMoveHandler } from "./move/texture";
@@ -138,8 +140,14 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 
 		this.RegisterItemHandler({ extension: ".ts", ctor: TypeScriptItemHandler });
 
+		this.RegisterItemHandler({ extension: ".mp3", ctor: SoundItemHandler });
+		this.RegisterItemHandler({ extension: ".wav", ctor: SoundItemHandler });
+		this.RegisterItemHandler({ extension: ".wave", ctor: SoundItemHandler });
+		this.RegisterItemHandler({ extension: ".ogg", ctor: SoundItemHandler });
+
 		// Move handlers
 		this.RegisterItemMoveHandler(new AssetsBrowserMeshMoveHandler(editor));
+		this.RegisterItemMoveHandler(new AssetsBrowserSoundMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTextureMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserMaterialMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTypeScriptMoveHandler(editor));
