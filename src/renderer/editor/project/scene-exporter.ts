@@ -19,7 +19,6 @@ import { Project } from "./project";
 import { WorkSpace } from "./workspace";
 
 import { GraphAssets } from "../assets/graphs";
-import { ScriptAssets } from "../assets/scripts";
 
 import { GraphCode } from "../graph/graph";
 import { GraphCodeGenerator } from "../graph/generate";
@@ -483,7 +482,7 @@ export class SceneExporter {
 		await this.ExportGraphs(editor);
 
 		// Export scripts.
-		const all = await ScriptAssets.GetAllScripts();
+		const all = await editor.assetsBrowser.getAllScripts();
 		return scriptsContent.replace("${editor-version}", editor._packageJson.version).replace("// ${scripts}", all.map((s) => {
 			const toReplace = `src/scenes/`;
 			const extension = extname(s);

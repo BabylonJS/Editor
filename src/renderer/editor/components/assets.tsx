@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Tabs, Tab, InputGroup, Classes, TabId } from "@blueprintjs/core";
 
-import { Nullable, Undefinable, IStringDictionary } from "../../../shared/types";
+import { Nullable, Undefinable } from "../../../shared/types";
 
 import { Editor } from "../editor";
 import { AbstractAssets, IAbstractAssets, IAssetComponentItem } from "../assets/abstract-assets";
@@ -65,43 +65,6 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
     public static addAssetComponent(component: IAssetComponent): void {
         component._id = Tools.RandomId();
         this._assetComponents.push(component);
-    }
-
-    /**
-     * Returns all cached data of the asset components.
-     */
-    public static GetCachedData(): IStringDictionary<IAssetComponentItem[]> {
-        const result = { };
-        this._assetComponents.forEach((ac) => result[ac.title] = ac._ref?.items.map((i) => ({
-            id: i.id,
-            key: i.key,
-            base64: i.base64,
-            style: i.style,
-        })));
-
-        return result;
-    }
-
-    /**
-     * Sets the cached data of asset components. Typically used when loading a project.
-     * @param data the previously saved cached data.
-     */
-    public static SetCachedData(data: IStringDictionary<IAssetComponentItem[]>) {
-        for (const a in data) {
-            const ac = this._assetComponents.find((ac) => ac.title === a);
-            if (!ac || !ac._ref) { continue; }
-
-            ac._ref.items = data[a];
-        }
-    }
-
-    /**
-     * Cleans the assets. Typically removes the unused files.
-     */
-    public static async Clean(): Promise<void> {
-        for (const a of this._assetComponents) {
-            await a._ref?.clean();
-        }
     }
 
     private _editor: Editor;

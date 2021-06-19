@@ -5,7 +5,7 @@ import { pathExists, readJSON, writeJSON } from "fs-extra";
 import { Nullable } from "../../../../../../shared/types";
 
 import * as React from "react";
-import { Spinner } from "@blueprintjs/core";
+import { Spinner, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
 
 import {
 	PickingInfo, SceneLoader, Mesh, MultiMaterial, Material, Texture,
@@ -66,12 +66,40 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	}
 
 	/**
+	 * Called on the user right clicks on the item.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		ContextMenu.show((
+			<Menu>
+				<MenuItem text="Refresh Preview" icon="refresh" onClick={() => this._handleRefreshPreview()} />
+			</Menu>
+		), {
+			top: ev.clientY,
+			left: ev.clientX,
+		});
+	}
+
+	/**
+	 * Called on the user wants to refresh the preview of the material.
+	 */
+	private async _handleRefreshPreview(): Promise<void> {
+		await Workers.ExecuteFunction<AssetsWorker, "deleteFromCache">(
+			AssetsBrowserItemHandler.AssetWorker,
+			"deleteFromCache",
+			this.props.relativePath,
+		);
+		this._computePreview();
+	}
+
+	/**
 	 * Computes the preview image of the object.
 	 */
 	private async _computePreview(): Promise<void> {
 		const path = await Workers.ExecuteFunction<AssetsWorker, "createScenePreview">(
 			AssetsBrowserItemHandler.AssetWorker,
 			"createScenePreview",
+			this.props.relativePath,
 			this.props.absolutePath,
 		);
 
@@ -222,7 +250,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 				if (!m) {
 					continue;
 				}
-				
+
 				this._configureMaterialTextures(m, isGltf);
 
 				const instantiatedMaterial = await this._createMaterialFile(m);
@@ -286,7 +314,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 
 			return instantiatedMaterial;
 		}
-		
+
 		await writeJSON(materialPath, material.serialize(), {
 			spaces: "\t",
 			encoding: "utf-8",
@@ -307,13 +335,13 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 			textures.forEach((tex: Texture) => {
 				tex.metadata ??= {};
 				tex.metadata.editorDone = true;
-	
+
 				const mimeType = tex["_mimeType"];
 				if (mimeType) {
 					const existingExtension = extname(tex.name);
 					const targetExtension = Tools.GetExtensionFromMimeType(mimeType);
 					const relativePath = join(dirname(this.props.relativePath), basename(tex.name));
-	
+
 					if (existingExtension !== targetExtension) {
 						tex.name = `${relativePath}${targetExtension}`;
 					} else {
@@ -322,12 +350,12 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 				} else {
 					tex.name = join(dirname(this.props.relativePath), basename(tex.url ?? tex.name));
 				}
-	
+
 				if (tex.url) {
 					tex.url = tex.name;
 				}
 			});
-	
+
 			await GLTFTools.TexturesToFiles(dirname(this.props.absolutePath), textures);
 			await this.props.editor.assetsBrowser.refresh();
 		} else {

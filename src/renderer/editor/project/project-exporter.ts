@@ -14,19 +14,20 @@ import { Editor } from "../editor";
 import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
 
-import { Assets } from "../components/assets";
-
 import { SceneExporter } from "./scene-exporter";
 import { SceneSettings } from "../scene/settings";
 
 import { Project } from "./project";
-import { FilesStore } from "./files";
 import { IProject } from "./typings";
 import { WorkSpace } from "./workspace";
 import { ProjectHelpers } from "./helpers";
 
 import { MeshExporter } from "../export/mesh";
 import { GeometryExporter } from "../export/geometry";
+
+import { Workers } from "../workers/workers";
+import AssetsWorker from "../workers/workers/assets";
+import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
 export class ProjectExporter {
     private static _IsSaving: boolean = false;
@@ -120,13 +121,12 @@ export class ProjectExporter {
         const exportedGeometries: string[] = [];
         const exportedSounds: string[] = [];
         const exportedTransformNodes: string[] = [];
-        const exportedParticleSystems: string[] = [];
         const exportedMorphTargets: string[] = [];
 
         let savePromises: Promise<void>[] = [];
 
         let progressValue = 0;
-        let progressCount = 100 / FilesStore.GetFilesCount();
+        let progressCount = 0;
 
         // Write all morph target managers
         const morphTargets: any[] = [];
@@ -403,13 +403,20 @@ export class ProjectExporter {
         await FSTools.CreateDirectory(particleSystemsDir);
 
         for (const ps of editor.scene!.particleSystems) {
-            const json = ps.serialize(true);
-            const dest = `${normalize(`${basename(filenamify(ps.name))}-${ps.id}`)}.json`;
+            const editorPath = ps["metadata"]?.editorPath;
+            if (!editorPath) {
+                continue;
+            }
 
-            await writeFile(join(particleSystemsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+            const json = {
+                ...ps.serialize(true),
+                metadata: ps["metadata"],
+            };
+            const dest = join(editor.assetsBrowser.assetsDirectory, editorPath);
 
-            project.particleSystems!.push(dest);
-            exportedParticleSystems.push(dest);
+            await writeFile(dest, JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+
+            project.particleSystems!.push(editorPath);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved particle system configuration "${ps.name}"`);
@@ -440,9 +447,11 @@ export class ProjectExporter {
         }
 
         // Write assets cache
-        const assetsPath = join(Project.DirPath!, "assets");
-        await FSTools.CreateDirectory(assetsPath);
-        await writeFile(join(Project.DirPath!, "assets", "cache.json"), JSON.stringify(Assets.GetCachedData(), null, "\t"), { encoding: "utf-8" });
+        const assetsCache = await Workers.ExecuteFunction<AssetsWorker, "getCache">(AssetsBrowserItemHandler.AssetWorker, "getCache");
+        await writeJSON(join(Project.DirPath!, "../cache.json"), assetsCache, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
 
         // Write project!
         await writeFile(join(Project.DirPath!, "scene.editorproject"), JSON.stringify(project, null, "\t"), { encoding: "utf-8" });
@@ -477,7 +486,6 @@ export class ProjectExporter {
         this._CleanOutputDir(shadowsDir, exportedShadows);
         this._CleanOutputDir(texturesDir, exportedTextures);
         this._CleanOutputDir(soundsDir, exportedSounds);
-        this._CleanOutputDir(particleSystemsDir, exportedParticleSystems);
         this._CleanOutputDir(transformNodesDir, exportedTransformNodes);
         this._CleanOutputDir(morphTargetsDir, exportedMorphTargets);
 

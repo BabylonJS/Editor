@@ -1,7 +1,7 @@
-import { platform } from "os";
+import { platform } from "os";
 import { shell } from "electron";
 import { basename, extname, join } from "path";
-import { copyFile, mkdir, pathExists, readdir, stat, Stats, writeJSON } from "fs-extra";
+import { copyFile, mkdir, pathExists, readdir, readFile, stat, Stats, writeFile, writeJSON } from "fs-extra";
 
 import * as React from "react";
 import {
@@ -9,7 +9,7 @@ import {
 	MenuDivider, MenuItem, Popover, Code, Divider, ContextMenu, Icon as BPIcon,
 } from "@blueprintjs/core";
 
-import { Tools as BabylonTools, NodeMaterial } from "babylonjs";
+import { Tools as BabylonTools, Material, NodeMaterial, ParticleSystem, Mesh } from "babylonjs";
 
 import { Editor } from "../../editor";
 
@@ -18,6 +18,8 @@ import { Alert } from "../../gui/alert";
 import { Dialog } from "../../gui/dialog";
 
 import { Tools } from "../../tools/tools";
+
+import { SceneExporter } from "../../project/scene-exporter";
 
 import { AssetsBrowserItem } from "./files/item";
 import { AssetsBrowserItemHandler } from "./files/item-handler";
@@ -80,20 +82,29 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	public render(): React.ReactNode {
 		const addContent = (
 			<Menu>
-				<MenuItem text="Material">
+				<MenuItem text="Material" icon={<Icon src="circle.svg" />}>
 					<MenuItem text="Standard Material..." onClick={() => this._handleCreateMaterial("StandardMaterial")} />
 					<MenuItem text="PBR Material..." onClick={() => this._handleCreateMaterial("PBRMaterial")} />
 					<MenuItem text="Node Material..." onClick={() => this._handleCreateMaterial("NodeMaterial")} />
+					<MenuDivider />
+					<MenuItem text="Node Material From Snippet..." onClick={() => this._handleAddNodeMaterialFromWeb()} />
 					<MenuDivider />
 					<Code>Materials Library</Code>
 					<MenuItem text="Sky Material..." onClick={() => this._handleCreateMaterial("SkyMaterial")} />
 					<MenuItem text="Cel Material..." onClick={() => this._handleCreateMaterial("CellMaterial")} />
 					<MenuItem text="Fire Material..." onClick={() => this._handleCreateMaterial("FireMaterial")} />
+					<MenuItem key="add-lava-material" text="Add Lava Material..." onClick={() => this._handleCreateMaterial("LavaMaterial")} />
+					<MenuItem key="add-water-material" text="Add Water Material..." onClick={() => this._handleCreateMaterial("WaterMaterial")} />
+					<MenuItem key="add-tri-planar-material" text="Add Tri Planar Material..." onClick={() => this._handleCreateMaterial("TriPlanarMaterial")} />
 				</MenuItem>
 
-				<MenuItem text="Particles System">
-					<MenuItem text="Particles System..." />
+				<MenuItem text="Particles System" icon={<Icon src="wind.svg" />}>
+					<MenuItem text="Particles System..." onClick={() => this._handleCreateParticlesSystem()} />
 				</MenuItem>
+
+				<MenuDivider />
+
+				<MenuItem text="TS Script..." icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
 			</Menu>
 		);
 
@@ -243,7 +254,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Called on the user clicks on the item.
 	 */
 	private _handleAssetSelected(item: AssetsBrowserItem, ev: React.MouseEvent<HTMLDivElement>): void {
-		if (ev.ctrlKey || ev.metaKey) {
+		if (ev.ctrlKey || ev.metaKey) {
 			const isSelected = !item.state.isSelected;
 			if (!isSelected) {
 				const index = this.selectedItems.indexOf(item.props.absolutePath);
@@ -257,9 +268,9 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 			item.setSelected(isSelected);
 		} else if (!item.state.isSelected) {
 			this._items.forEach((i) => i.setSelected(false));
-			
+
 			item.setSelected(true);
-			
+
 			this.selectedItems = [];
 			this.selectedItems.push(item.props.absolutePath);
 		}
@@ -323,7 +334,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		for (const f of files) {
 			const path = f.path;
-			promises.push(copyFile(path, join(this.state.currentDirectory, basename(path))));	
+			promises.push(copyFile(path, join(this.state.currentDirectory, basename(path))));
 		}
 
 		await Promise.all(promises);
@@ -373,21 +384,105 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	}
 
 	/**
+	 * Called on the user wants to create a new particles system.
+	 */
+	private async _handleCreateParticlesSystem(): Promise<void> {
+		let name = await Dialog.Show("Particles System Name", "Please provide a name for the new particles system to created.");
+		
+		const emitter = new Mesh(name, this.props.editor.scene!);
+		emitter.id = Tools.RandomId();
+
+		const ps = new ParticleSystem(name, 1000, this.props.editor.scene!);
+		ps.emitter = emitter;
+		ps.id = Tools.RandomId();
+
+		const extension = extname(name).toLowerCase();
+		if (extension !== ".ps") {
+			name += ".ps";
+		}
+
+		const relativePath = this.state.currentDirectory.replace(join(this._assetsDirectory, "/"), "");
+
+		ps["metadata"] ??= {};
+		ps["metadata"].editorPath = join(relativePath, name);
+
+		await writeJSON(join(this.state.currentDirectory, name), {
+			...ps.serialize(true),
+			metadata: Tools.CloneObject(ps["metadata"]),
+		}, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		this.props.editor.graph.refresh();
+
+		await this.refresh();
+	}
+
+	/**
+	 * Called on the user wants to add a new TypeScript script.
+	 */
+	private async _handleAddScript(): Promise<void> {
+		let name = await Dialog.Show("Script Name", "Please provide a name for the new TypeScript script.");
+
+		const extension = extname(name).toLowerCase();
+		if (extension !== ".ts") {
+			name += ".ts";
+		}
+
+		const dest = join(this.state.currentDirectory, name);
+		if (await pathExists(dest)) {
+			return Alert.Show("Can't Create Script", `A script named "${name}" already exists.`);
+		}
+
+		const skeleton = await readFile(join(Tools.GetAppPath(), `assets/scripts/script.ts`), { encoding: "utf-8" });
+		await writeFile(dest, skeleton);
+
+		await SceneExporter.GenerateScripts(this.props.editor);
+
+		await this.refresh();
+	}
+
+	/**
 	 * Called on the user wants to add a new material asset.
 	 */
 	private async _handleCreateMaterial(type: string): Promise<void> {
 		let name = await Dialog.Show("Material Name", "Please provide a name for the new material to created.");
 
 		const ctor = BabylonTools.Instantiate(`BABYLON.${type}`);
-        const material = new ctor(name, this.props.editor.scene!);
+		const material = new ctor(name, this.props.editor.scene!);
+
+		material.id = Tools.RandomId();
+
+		if (material instanceof NodeMaterial) {
+			material.setToDefault();
+			material.build(true);
+		}
+
+		this._configureNewMaterial(name, material);
+	}
+
+	/**
+	* Called on the user wants to add a new Node Material from the given snippet Id.
+	*/
+	private async _handleAddNodeMaterialFromWeb(): Promise<void> {
+		const snippetId = await Dialog.Show("Snippet Id", "Please provide the Id of the snippet.");
+
+		try {
+			const material = await NodeMaterial.ParseFromSnippetAsync(snippetId, this.props.editor.scene!);
+			material.id = Tools.RandomId();
+
+			await this._configureNewMaterial(snippetId, material);
+		} catch (e) {
+			Alert.Show("Failed to load from snippet", e.message);
+		}
+	}
+
+	/**
+	 * Configures the newly created material.
+	 */
+	private async _configureNewMaterial(name: string, material: Material): Promise<void> {
 		const relativePath = this.state.currentDirectory.replace(join(this._assetsDirectory, "/"), "");
-
-        material.id = Tools.RandomId();
-
-        if (material instanceof NodeMaterial) {
-            material.setToDefault();
-            material.build(true);
-        }
 
 		const extension = extname(name);
 		if (extension !== ".material") {
@@ -405,6 +500,6 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 			encoding: "utf-8",
 		});
 
-		await this.refresh();
+		await Promise.all([this.refresh(), this.props.editor.assets.refresh()]);
 	}
 }

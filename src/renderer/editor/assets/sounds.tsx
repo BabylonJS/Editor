@@ -1,19 +1,9 @@
-import { shell } from "electron";
-import { join, extname, basename, dirname } from "path";
-import { readdir, remove } from "fs-extra";
-import * as os from "os";
-
 import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes } from "@blueprintjs/core";
 
 import { Sound, PickingInfo, Vector3 } from "babylonjs";
-
-import { Project } from "../project/project";
-import { FilesStore } from "../project/files";
-
-import { Icon } from "../gui/icon";
 
 import { Tools } from "../tools/tools";
 
@@ -26,8 +16,6 @@ export class SoundAssets extends AbstractAssets {
      * @override
      */
     protected size: number = 50;
-
-    private _extensions: string[] = [".mp3", ".wav", ".wave"];
 
     /**
      * Registers the component.
@@ -85,42 +73,6 @@ export class SoundAssets extends AbstractAssets {
     }
 
     /**
-     * Called once a project has been loaded, this function is used to clean up
-     * unused assets files automatically.
-     */
-    public async clean(): Promise<void> {
-        if (!Project.DirPath) { return; }
-
-        const usedSounds: string[] = [];
-        const existingFiles = (await readdir(join(Project.DirPath, "files"))).filter((f) => this._extensions.indexOf(extname(f).toLowerCase()) !== -1);
-        const soundtracks = (this.editor.scene!.soundTracks ?? []).concat([this.editor.scene!.mainSoundTrack]).filter((st) => st);
-
-        for (const soundtrack of soundtracks) {
-            for (const sound of soundtrack.soundCollection) {
-                const name = basename(sound.name);
-                const existingIndex = usedSounds.indexOf(name);
-                if (existingIndex === -1) {
-                    usedSounds.push(name);
-                }
-            }
-        }
-
-        for (const file of existingFiles) {
-            const index = usedSounds.indexOf(file);
-            if (index === -1) {
-                try {
-                    await remove(join(Project.DirPath!, "files", file));
-                } finally {
-                    const fileRef = FilesStore.GetFileFromBaseName(file);
-                    if (fileRef) {
-                        FilesStore.RemoveFileFromPath(fileRef.path);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Called on the user drops an asset in editor. (typically the preview canvas).
      * @param item the item being dropped.
      * @param pickInfo the pick info generated on the drop event.
@@ -156,34 +108,6 @@ export class SoundAssets extends AbstractAssets {
         if (!sound) { return; }
 
         this.editor.inspector.setSelectedObject(sound);
-    }
-
-    /**
-     * Called on the user right-clicks on an item.
-     * @param item the item being right-clicked.
-     * @param event the original mouse event.
-     */
-    public onContextMenu(item: IAssetComponentItem, e: React.MouseEvent<HTMLImageElement, MouseEvent>): void {
-        super.onContextMenu(item, e);
-
-        const sound = this._getSound(item);
-        if (!sound) { return; }
-
-        const platform = os.platform();
-        const explorer = platform === "darwin" ? "Finder" : "File Explorer";
-
-        ContextMenu.show(
-            <Menu className={Classes.DARK}>
-                <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {
-                    const name = basename(sound.name);
-                    const file = FilesStore.GetFileFromBaseName(name);
-                    if (file) { shell.openItem(dirname(file.path)); }
-                }} />
-                <MenuDivider />
-                <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._removeSound(item, sound)} />
-            </Menu>,
-            { left: e.clientX, top: e.clientY },
-        );
     }
 
     /**

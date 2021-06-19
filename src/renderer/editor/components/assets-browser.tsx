@@ -1,3 +1,4 @@
+import Glob from "glob";
 import { move, pathExists, stat } from "fs-extra";
 import { basename, dirname, extname, join } from "path";
 
@@ -131,18 +132,51 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	}
 
 	/**
+	 * Returns the list of all available scripts.
+	 */
+	public async getAllScripts(): Promise<string[]> {
+		if (!WorkSpace.DirPath) {
+			return [];
+		}
+
+		const files = await new Promise<string[]>((resolve, reject) => {
+			Glob(join(WorkSpace.DirPath!, "src", "scenes", "**", "*.ts"), {}, (err, files) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(files);
+				}
+			});
+		});
+
+		const excluded = [
+			"src/scenes/decorators.ts",
+			"src/scenes/scripts-map.ts",
+			"src/scenes/tools.ts",
+		];
+		
+		return files.filter((f) => f.indexOf("index.ts") === -1)
+			.map((f) => f.replace(/\\/g, "/").replace(WorkSpace.DirPath!.replace(/\\/g, "/"), ""))
+			.filter((f) => excluded.indexOf(f) === -1);
+	}
+
+	/**
 	 * Renames the given file by updating all known references.
 	 * @param absolutePath defines the absolute path to the file to rename.
 	 * @param newName defines the new name of the file to apply.
 	 */
 	public async renameFile(absolutePath: string, newName: string): Promise<void> {
-		const destination = join(dirname(absolutePath), newName);
+		const extension = extname(absolutePath).toLowerCase();
 
+		if (extname(newName).toLowerCase() !== extension) {
+			newName += extension;
+		}
+
+		const destination = join(dirname(absolutePath), newName);
 		if ((await pathExists(destination))) {
 			return;
 		}
 
-		const extension = extname(absolutePath).toLowerCase();
 		const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
 		if (handler) {
 			await handler.moveFile(absolutePath, destination);

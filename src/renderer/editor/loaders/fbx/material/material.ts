@@ -9,8 +9,6 @@ import { Texture, Scene, StandardMaterial, Color3 } from "babylonjs";
 import { IFBXLoaderRuntime } from "../loader";
 import { IFBXConnections } from "../connections";
 
-import { FilesStore } from "../../../project/files";
-
 export class FBXMaterial {
 	private static _SupportedTextureTypes: string[] = [".png", ".jpg", ".jpeg", ".bmp"];
 
@@ -180,8 +178,6 @@ export class FBXMaterial {
 			
 			if (!writeTextures) {
 				texture.onLoadObservable.addOnce(() => URL.revokeObjectURL(fileUrl));
-			} else {
-				FilesStore.AddFile(fileUrl);
 			}
 
 			result[id] = texture;

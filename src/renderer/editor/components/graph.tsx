@@ -275,7 +275,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         else if (node instanceof Light) { clone = node.clone(node.name); }
         else if (node instanceof Camera) { clone = node.clone(node.name); }
         else if (node instanceof TransformNode) { clone = node.clone(node.name, node.parent, false); }
-        else if (node instanceof ParticleSystem) { clone = node.clone(node.name, node.emitter); }
+        // else if (node instanceof ParticleSystem) { clone = node.clone(node.name, node.emitter); }
 
         if (clone) {
             clone.id = Tools.RandomId();
@@ -294,10 +294,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
                 // Notify
                 this._editor.selectedNodeObservable.notifyObservers(clone);
-            } else if (clone instanceof ParticleSystem) {
+            }/* else if (clone instanceof ParticleSystem) {
                 // Notify
                 this._editor.selectedParticleSystemObservable.notifyObservers(clone);
-            }
+            }*/
         }
 
         return clone;
@@ -946,7 +946,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     />
                 </Pre>
                 <MenuDivider />
-                <MenuItem text="Clone" disabled={node instanceof Sound} icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneObject()} />
+                <MenuItem text="Clone" disabled={node instanceof Sound || node instanceof ParticleSystem} icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneObject()} />
                 <MenuDivider />
                 <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, false)} />
                 <MenuDivider />

@@ -4,7 +4,7 @@ import { IStringDictionary } from "../../../../shared/types";
 
 import {
 	Engine, Scene, SceneLoader, TargetCamera, Vector3, CubeTexture,
-	DirectionalLight, ShadowGenerator, Mesh, Material,
+	DirectionalLight, ShadowGenerator, Mesh, Material, Tools as BabylonTools,
 } from "babylonjs";
 
 import { GridMaterial } from "babylonjs-materials";
@@ -80,19 +80,45 @@ export default class AssetsWorker {
 	}
 
 	/**
+	 * Returns the current cache JSON data.
+	 */
+	public getCache(): IStringDictionary<string> {
+		return this._cachedPreviews;
+	}
+
+	/**
+	 * Sets the previously saved cache JSON representation.
+	 * @param cache defines the reference to the previously saved cache.
+	 */
+	public setCache(cache: IStringDictionary<string>): void {
+		this._cachedPreviews = cache;
+	}
+
+	/**
+	 * Deletes the given key from the cache.
+	 * @param key defines the key in the cache to delete.
+	 */
+	public deleteFromCache(key: string): void {
+		if (this._cachedPreviews[key]) {
+			delete this._cachedPreviews[key];
+		}
+	}
+
+	/**
 	 * Loads the material located at the given absolute path and returns its preview image.
+	 * @param relativePath defines the relative path to the material file.
 	 * @param absolutePath defines the absolute path to the material file.
 	 * @param rootUrl defines the rootUrl the files are relative to.
 	 */
-	public async createMaterialPreview(absolutePath: string, rootUrl: string): Promise<string> {
-		if (this._cachedPreviews[absolutePath]) {
-			return this._cachedPreviews[absolutePath];
+	public async createMaterialPreview(relativePath: string, absolutePath: string, rootUrl: string): Promise<string> {
+		if (this._cachedPreviews[relativePath]) {
+			return this._cachedPreviews[relativePath];
 		}
 
 		await this._waitQueue();
 
-		if (this._cachedPreviews[absolutePath]) {
-			return this._cachedPreviews[absolutePath];
+		if (this._cachedPreviews[relativePath]) {
+			return this._cachedPreviews[relativePath];
 		}
 
 		this._isBusy = true;
@@ -122,24 +148,25 @@ export default class AssetsWorker {
 		const result = await this._convertCanvasToBase64();
 
 		this._isBusy = false;
-		this._cachedPreviews[absolutePath] = result;
+		this._cachedPreviews[relativePath] = result;
 
 		return result;
 	}
 
 	/**
 	 * Loads the scene located at the given absolute path and returns its preview image.
+	 * @param relativePath defines the relative path to the scene file.
 	 * @param absolutePath defines the absolute path to the scene file.
 	 */
-	public async createScenePreview(absolutePath: string): Promise<string> {
-		if (this._cachedPreviews[absolutePath]) {
-			return this._cachedPreviews[absolutePath];
+	public async createScenePreview(relativePath: string, absolutePath: string): Promise<string> {
+		if (this._cachedPreviews[relativePath]) {
+			return this._cachedPreviews[relativePath];
 		}
 
 		await this._waitQueue();
 
-		if (this._cachedPreviews[absolutePath]) {
-			return this._cachedPreviews[absolutePath];
+		if (this._cachedPreviews[relativePath]) {
+			return this._cachedPreviews[relativePath];
 		}
 
 		this._isBusy = true;
@@ -174,7 +201,7 @@ export default class AssetsWorker {
 		const result = await this._convertCanvasToBase64();
 
 		this._isBusy = false;
-		this._cachedPreviews[absolutePath] = result;
+		this._cachedPreviews[relativePath] = result;
 
 		return result;
 	}
@@ -262,6 +289,8 @@ export default class AssetsWorker {
 		const canvas = this._engine.getRenderingCanvas() as unknown as OffscreenCanvas;
 
 		const blob = await canvas.convertToBlob({ type: "image/png" });
-		return URL.createObjectURL(blob);
+		return new Promise<string>((resolve) => {
+			BabylonTools.ReadFileAsDataURL(blob, (d) => resolve(d), null!);
+		});
 	}
 }
