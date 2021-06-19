@@ -150,7 +150,7 @@ export class SoundInspector extends AbstractInspector<Sound, ISoundInspectorStat
             );
         }
 
-        const path = join(Project.DirPath, this.selectedObject.name);
+        const path = join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name);
 
         return (
             <InspectorSection title="Actions">

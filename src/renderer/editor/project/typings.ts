@@ -150,7 +150,7 @@ export interface IProject {
     /**
      * Defines the list of the files associated to the project.
      */
-    filesList: string[];
+    filesList?: string[];
 
     /**
      * Defines the list of scene's cameras.

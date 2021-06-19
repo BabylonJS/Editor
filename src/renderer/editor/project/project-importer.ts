@@ -23,7 +23,6 @@ import { SceneSettings } from "../scene/settings";
 
 import { Project } from "./project";
 import { IProject } from "./typings";
-import { FilesStore } from "./files";
 import { WorkSpace } from "./workspace";
 import { ProjectHelpers } from "./helpers";
 
@@ -74,12 +73,6 @@ export class ProjectImporter {
         let spinnerValue = 0;
 
         let loadPromises: Promise<void>[] = [];
-
-        // Register files
-        project.filesList.forEach((f) => {
-            const path = join(Project.DirPath!, "files", f);
-            FilesStore.List[path] = { path, name: basename(f) };
-        });
 
         // Configure assets
         if (project.assets.prefabs) {
@@ -349,7 +342,7 @@ export class ProjectImporter {
         for (const s of project.sounds ?? []) {
             try {
                 const json = await readJSON(join(Project.DirPath, "sounds", s));
-                Sound.Parse(json, editor.scene!, join(rootUrl, "files", "/"));
+                Sound.Parse(json, editor.scene!, rootUrl);
             } catch (e) {
                 editor.console.logError(`Failed to parse sound "${s}"`);
             }

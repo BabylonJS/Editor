@@ -64,13 +64,21 @@ export class SoundAssets extends AbstractAssets {
      */
     public async refresh(): Promise<void> {
         for (const s of this.editor.scene!.mainSoundTrack.soundCollection) {
-            s.metadata = s.metadata ?? { };
-            if (!s.metadata.id) { s.metadata.id = Tools.RandomId(); }
+            s.metadata = s.metadata ?? {};
+            if (!s.metadata.id) {
+                s.metadata.id = Tools.RandomId();
+            }
 
             const item = this.items.find((i) => i.key === s.metadata.id);
-            if (item) { continue; }
+            if (item) {
+                continue;
+            }
 
-            this.items.push({ key: s.metadata.id, id: s.name, base64: "../css/svg/volume-up.svg" });
+            this.items.push({
+                id: s.name,
+                key: s.metadata.id,
+                base64: "../css/svg/volume-up.svg",
+            });
         }
 
         return super.refresh();
@@ -113,32 +121,6 @@ export class SoundAssets extends AbstractAssets {
     }
 
     /**
-     * Called on the user drops files in the assets component and returns true if the files have been computed.
-     * @param files the list of files being dropped.
-     */
-    // public async onDropFiles(files: IFile[]): Promise<void> {
-    //     for (const file of files) {
-    //         const extension = extname(file.name).toLowerCase();
-    //         if (this._extensions.indexOf(extension) === -1) { continue; }
-
-    //         // Register file
-    //         const path = join(Project.DirPath!, "files", file.name);
-    //         FilesStore.List[path] = { path, name: file.name };
-
-    //         // Create sound
-    //         const sound = new Sound(file.name, file.path, this.editor.scene!, () => {
-    //             sound.name = join("files", basename(file.name));
-    //         }, {
-    //             autoplay: false,
-    //         });
-
-    //         // Copy assets
-    //         const dest = join(Project.DirPath!, "files", file.name);
-    //         if (dest) { await copy(file.path, dest); }
-    //     }
-    // }
-
-    /**
      * Called on the user drops an asset in editor. (typically the preview canvas).
      * @param item the item being dropped.
      * @param pickInfo the pick info generated on the drop event.
@@ -158,7 +140,7 @@ export class SoundAssets extends AbstractAssets {
         sound.attachToMesh(pickInfo.pickedMesh);
         sound.setPosition(Vector3.Zero());
         sound.spatialSound = true;
-        
+
         this.editor.graph.refresh();
     }
 

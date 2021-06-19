@@ -77,7 +77,7 @@ export class WorkspaceConverter {
             const project = await readJSON(projectPath, { encoding: "utf-8" }) as IProject;
 
             // Copy files
-            await Promise.all(project.filesList.map((f) => {
+            await Promise.all((project.filesList ?? []).map((f) => {
                 return copyFile(join(projectRootUrl, f), join(projectAssetsDirectory, f));
             }));
 

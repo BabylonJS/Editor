@@ -1,5 +1,5 @@
 import { join, normalize, basename, dirname } from "path";
-import { pathExists, copy, writeFile, writeJSON, readdir, remove } from "fs-extra";
+import { writeFile, writeJSON, readdir, remove } from "fs-extra";
 
 import {
     ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial,
@@ -85,7 +85,6 @@ export class ProjectExporter {
 
         // Create project
         const project: IProject = {
-            filesList: [],
             cameras: [],
             materials: [],
             textures: [],
@@ -126,38 +125,8 @@ export class ProjectExporter {
 
         let savePromises: Promise<void>[] = [];
 
-        // Write all files
-        const filesDir = join(Project.DirPath!, "files");
-        await FSTools.CreateDirectory(filesDir);
-
         let progressValue = 0;
         let progressCount = 100 / FilesStore.GetFilesCount();
-
-        for (const f in FilesStore.List) {
-            const file = FilesStore.List[f];
-
-            // Check if file still exists.
-            if (!await pathExists(file.path)) {
-                FilesStore.RemoveFileFromPath(file.path);
-                continue;
-            }
-
-            const dest = join(filesDir, file.name);
-
-            project.filesList.push(file.name);
-            if ((await pathExists(dest))) {
-                continue;
-            }
-
-            try {
-                await copy(file.path, dest);
-                editor.console.logInfo(`Copied resource file "${dest}"`);
-            } catch (e) {
-                editor.console.logError(`Failed to copy resource file "${file.path}" to "${dest}"`)
-                throw e;
-            }
-            editor.updateTaskFeedback(task, progressValue += progressCount);
-        }
 
         // Write all morph target managers
         const morphTargets: any[] = [];
@@ -457,7 +426,7 @@ export class ProjectExporter {
 
         for (const s of editor.scene!.mainSoundTrack.soundCollection) {
             const json = s.serialize();
-            json.url = basename(json.name);
+            json.url = json.name;
 
             const dest = `${normalize(`${basename(filenamify(s.name))}`)}.json`;
 
