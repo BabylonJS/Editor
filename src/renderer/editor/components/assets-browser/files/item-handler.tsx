@@ -1,10 +1,16 @@
+import { platform } from "os";
+import { shell } from "electron";
+
 import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
+import { MenuItem, Icon as BPIcon } from "@blueprintjs/core";
 
 import { PickingInfo } from "babylonjs";
 
 import { Editor } from "../../../editor";
+
+import { Tools } from "../../../tools/tools";
 
 import { IWorkerConfiguration, Workers } from "../../../workers/workers";
 
@@ -166,6 +172,21 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	 */
 	public onDropInInspector(_1: React.DragEvent<HTMLElement>, _2: any, _3: string): Promise<void> {
 		return Promise.resolve();
+	}
+
+	/**
+	 * Returns the list of all common context menu items.
+	 */
+	protected getCommonContextMenuItems(): React.ReactNode[] {
+		const isMacOs = platform() === "darwin";
+
+		return [
+			<MenuItem
+				icon={<BPIcon icon="document-open" color="white" />}
+				text={`Reveal in ${isMacOs ? "Finder" : "Explorer"}`}
+				onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(this.props.absolutePath))}
+			/>
+		];
 	}
 
 	/**

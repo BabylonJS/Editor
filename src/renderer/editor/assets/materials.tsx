@@ -20,8 +20,6 @@ import { undoRedo } from "../tools/undo-redo";
 import { IPCTools } from "../tools/ipc";
 
 import { Icon } from "../gui/icon";
-import { Alert } from "../gui/alert";
-import { Dialog } from "../gui/dialog";
 
 import { Project } from "../project/project";
 import { FilesStore } from "../project/files";
@@ -161,28 +159,6 @@ export class MaterialAssets extends AbstractAssets {
             <Menu className={Classes.DARK}>
                 <MenuItem text="Copy Name" icon="clipboard" onClick={() => clipboard.writeText(material.name, "clipboard")} />
                 <MenuDivider />
-                <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this.refresh()} />
-                <MenuDivider />
-                <MenuItem text="Save Material Preset..." icon={<Icon src="save.svg" />} onClick={() => this._handleSaveMaterialPreset(item)} />
-                <MenuDivider />
-                <MenuItem text="Clone..." onClick={async () => {
-                    const name = await Dialog.Show("Material Name?", "Please provide a name for the cloned material");
-
-                    const existing = this.editor.scene!.materials.find((m) => m.name === name);
-                    if (existing) {
-                        return Alert.Show("Can't clone material", `A material named "${name}" already exists.`);
-                    }
-
-                    const clone = material.clone(name);
-                    if (!clone) {
-                        return Alert.Show("Failed to clone", "An error occured while clonig the material. The returned refenrence is equal to null.");
-                    }
-
-                    clone.uniqueId = this.editor.scene!.getUniqueId();
-                    clone.id = Tools.RandomId();
-
-                    this.refresh();
-                }} />
                 <MenuItem text="Locked" icon={material.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
                     material.metadata.isLocked = !material.metadata.isLocked;
                     item.style = item.style ?? {};
@@ -478,7 +454,7 @@ export class MaterialAssets extends AbstractAssets {
      * Called on the user wants to save the material.
      * @param item the item select when the user wants to save a material.
      */
-    private async _handleSaveMaterialPreset(item: IAssetComponentItem): Promise<void> {
+    public async _handleSaveMaterialPreset(item: IAssetComponentItem): Promise<void> {
         const zip = this.getZippedMaterial(item.key);
         if (!zip) { return; }
 
