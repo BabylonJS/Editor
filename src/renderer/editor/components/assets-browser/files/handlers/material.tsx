@@ -6,7 +6,7 @@ import { IPCResponses } from "../../../../../../shared/ipc";
 import { Nullable, Undefinable } from "../../../../../../shared/types";
 
 import * as React from "react";
-import { Spinner, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
+import { Spinner, ContextMenu, Menu, MenuItem, MenuDivider, Icon as BPIcon } from "@blueprintjs/core";
 
 import { PickingInfo, Mesh, Material, NodeMaterial } from "babylonjs";
 
@@ -70,7 +70,9 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		ContextMenu.show((
 			<Menu>
-				<MenuItem text="Refresh Preview" icon="refresh" onClick={() => this._handleRefreshPreview()} />
+				{this.getCommonContextMenuItems()}
+				<MenuDivider />
+				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => this._handleRefreshPreview()} />
 			</Menu>
 		), {
 			top: ev.clientY,

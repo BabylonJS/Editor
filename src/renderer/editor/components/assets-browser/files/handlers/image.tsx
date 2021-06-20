@@ -1,6 +1,7 @@
 import { basename, dirname, join } from "path";
 
 import * as React from "react";
+import { ContextMenu, Menu } from "@blueprintjs/core";
 
 import { Texture } from "babylonjs";
 
@@ -28,6 +29,21 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 */
 	public onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		this.props.editor.addWindowedPlugin("texture-viewer", undefined, this.props.absolutePath);
+	}
+
+	/**
+	 * Called on the user right clicks on the item.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		ContextMenu.show((
+			<Menu>
+				{this.getCommonContextMenuItems()}
+			</Menu>
+		), {
+			top: ev.clientY,
+			left: ev.clientX,
+		});
 	}
 
 	/**

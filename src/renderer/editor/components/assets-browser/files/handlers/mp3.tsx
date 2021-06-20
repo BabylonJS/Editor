@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Popover } from "@blueprintjs/core";
+import { ContextMenu, Menu, Popover } from "@blueprintjs/core";
 
 import { PickingInfo, Sound, Vector3 } from "babylonjs";
 
@@ -39,6 +39,21 @@ export class SoundItemHandler extends AssetsBrowserItemHandler {
                 <audio src={this.props.absolutePath} controls />
             </div>
         )
+    }
+
+    /**
+     * Called on the user right clicks on the item.
+     * @param ev defines the reference to the event object.
+     */
+    public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+        ContextMenu.show((
+            <Menu>
+                {this.getCommonContextMenuItems()}
+            </Menu>
+        ), {
+            top: ev.clientY,
+            left: ev.clientX,
+        });
     }
 
     /**

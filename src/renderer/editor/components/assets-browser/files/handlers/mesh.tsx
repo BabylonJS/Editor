@@ -5,7 +5,7 @@ import { pathExists, readJSON, writeJSON } from "fs-extra";
 import { Nullable } from "../../../../../../shared/types";
 
 import * as React from "react";
-import { Spinner, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
+import { Spinner, ContextMenu, Menu, MenuItem, MenuDivider, Icon as BPIcon } from "@blueprintjs/core";
 
 import {
 	PickingInfo, SceneLoader, Mesh, MultiMaterial, Material, Texture,
@@ -72,7 +72,9 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		ContextMenu.show((
 			<Menu>
-				<MenuItem text="Refresh Preview" icon="refresh" onClick={() => this._handleRefreshPreview()} />
+				{this.getCommonContextMenuItems()}
+				<MenuDivider />
+				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => this._handleRefreshPreview()} />
 			</Menu>
 		), {
 			top: ev.clientY,

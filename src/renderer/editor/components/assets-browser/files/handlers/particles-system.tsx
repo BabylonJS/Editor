@@ -2,6 +2,7 @@ import { join } from "path";
 import { readJSON } from "fs-extra";
 
 import * as React from "react";
+import { ContextMenu, Menu } from "@blueprintjs/core";
 
 import { PickingInfo, Mesh, Vector3, ParticleSystem } from "babylonjs";
 
@@ -16,6 +17,8 @@ export class ParticlesSystemItemHandler extends AssetsBrowserItemHandler {
      * Computes the image to render.
      */
     public computePreview(): React.ReactNode {
+        this.props.onSetTitleColor("#48aff0");
+
         return (
             <Icon
                 src="wind.svg"
@@ -25,6 +28,21 @@ export class ParticlesSystemItemHandler extends AssetsBrowserItemHandler {
                 }}
             />
         );
+    }
+
+    /**
+     * Called on the user right clicks on the item.
+     * @param ev defines the reference to the event object.
+     */
+    public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+        ContextMenu.show((
+            <Menu>
+                {this.getCommonContextMenuItems()}
+            </Menu>
+        ), {
+            top: ev.clientY,
+            left: ev.clientX,
+        });
     }
 
     /**
@@ -40,7 +58,7 @@ export class ParticlesSystemItemHandler extends AssetsBrowserItemHandler {
         }
 
         const emitter = new Mesh(json.name, this.props.editor.scene!);
-		emitter.id = Tools.RandomId();
+        emitter.id = Tools.RandomId();
         emitter.position.copyFrom(pick.pickedPoint ?? Vector3.Zero());
 
         const ps = ParticleSystem.Parse(json, this.props.editor.scene!, join(this.props.editor.assetsBrowser.assetsDirectory, "/"));

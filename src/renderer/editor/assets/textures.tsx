@@ -1,4 +1,3 @@
-import * as os from "os";
 import { clipboard, shell } from "electron";
 import { extname, basename, join } from "path";
 import { copy, pathExists, readdir, remove } from "fs-extra";
@@ -6,7 +5,7 @@ import { copy, pathExists, readdir, remove } from "fs-extra";
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position, MenuDivider, Tag, Intent } from "@blueprintjs/core";
+import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
 import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, BaseTexture, BasisTools } from "babylonjs";
 
@@ -40,8 +39,6 @@ export class TextureAssets extends AbstractAssets {
      */
     protected size: number = 50;
 
-    private _extensions: string[] = [".png", ".jpg", ".jpeg", ".dds", ".env", ".basis"];
-
     /**
      * Registers the component.
      */
@@ -60,10 +57,10 @@ export class TextureAssets extends AbstractAssets {
      * Renders the component.
      */
     public render(): React.ReactNode {
-        const add =
-            <Menu>
-                <MenuItem key="add-pure-cube" text="Pur Cube Texture..." onClick={() => this._addPureCubeTexture()} />
-            </Menu>;
+        // const add =
+        //     <Menu>
+        //         <MenuItem key="add-pure-cube" text="Pur Cube Texture..." onClick={() => this._addPureCubeTexture()} />
+        //     </Menu>;
 
         return (
             <>
@@ -71,10 +68,10 @@ export class TextureAssets extends AbstractAssets {
                     <ButtonGroup>
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
                         <Divider />
-                        <Popover content={add} position={Position.BOTTOM_LEFT}>
+                        {/* <Popover content={add} position={Position.BOTTOM_LEFT}>
                             <Button icon={<Icon src="plus.svg" />} rightIcon="caret-down" small={true} text="Add" />
                         </Popover>
-                        <Divider />
+                        <Divider /> */}
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedTextures()} />
                     </ButtonGroup>
                 </div>
@@ -88,8 +85,8 @@ export class TextureAssets extends AbstractAssets {
      * @override
      */
     public async refresh(): Promise<void> {
+        /*
         for (const texture of this.editor.scene!.textures) {
-            /*
             const isDyamicTexture = texture instanceof DynamicTexture;
 
             if (!(texture instanceof Texture) && !(texture instanceof CubeTexture) && !isDyamicTexture) { continue; }
@@ -143,8 +140,10 @@ export class TextureAssets extends AbstractAssets {
             }
 
             this.updateAssetObservable.notifyObservers();
-            */
-           
+        }
+        */
+
+        for (const texture of this.editor.scene!.textures) {
             if (!texture.name || texture.name.indexOf("data:") === 0) {
                 continue;
             }
@@ -188,52 +187,6 @@ export class TextureAssets extends AbstractAssets {
         await this.refreshCompressedTexturesFiles();
 
         return super.refresh();
-    }
-
-    /**
-     * Called once a project has been loaded, this function is used to clean up
-     * unused assets files automatically.
-     */
-    public async clean(): Promise<void> {
-        const files = await readdir(join(Project.DirPath!, "files"));
-        const textures = files.filter((f) => this._extensions.indexOf(extname(f).toLowerCase()) !== -1);
-
-        this.editor.scene!.textures.forEach((texture) => {
-            let files: string[] = [texture.name];
-            if (texture.isCube && !texture.isRenderTarget && texture.metadata?.isPureCube && texture["_files"]) {
-                files = texture["_files"];
-            }
-
-            files.forEach((f) => {
-                const extension = extname(f).toLowerCase();
-                if (!extension || this._extensions.indexOf(extension) === -1) { return; }
-
-                const index = textures.indexOf(basename(f));
-                if (index !== -1) {
-                    textures.splice(index, 1);
-                }
-            });
-        });
-
-        if (!textures.length) { return; }
-
-        // Remove!
-        const step = 100 / textures.length;
-        let amount = 0;
-
-        const task = this.editor.addTaskFeedback(0, "Cleaning Textures Files...");
-
-        for (const name of textures) {
-            const path = join(Project.DirPath!, "files", name);
-            try {
-                await remove(path);
-            } finally {
-                this.editor.updateTaskFeedback(task, amount += step);
-            }
-        }
-
-        this.editor.updateTaskFeedback(task, 100, "Done");
-        this.editor.closeTaskFeedback(task, 1000);
     }
 
     /**
@@ -282,8 +235,6 @@ export class TextureAssets extends AbstractAssets {
         texture.metadata = texture.metadata ?? {};
         texture.metadata.isLocked = texture.metadata.isLocked ?? false;
 
-        const platform = os.platform();
-        const explorer = platform === "darwin" ? "Finder" : "File Explorer";
         const extension = extname(texture.name).toLowerCase();
 
         let setAsEnvironmentTexture: React.ReactNode;
@@ -308,12 +259,12 @@ export class TextureAssets extends AbstractAssets {
                 <MenuItem text="Copy Name" icon="clipboard" onClick={() => clipboard.writeText(texture.name, "clipboard")} />
                 <MenuItem text="Copy Path" icon="clipboard" onClick={() => clipboard.writeText(`./scenes/${WorkSpace.GetProjectName()}/${texture.name}`, "clipboard")} />
                 <MenuDivider />
-                <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {
+                {/* <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {
                     const name = basename(texture.name);
                     const file = FilesStore.GetFileFromBaseName(name);
                     if (file) { shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(file.path)); }
                 }} />
-                <MenuDivider />
+                <MenuDivider /> */}
                 <MenuItem text="Clone..." icon={<Icon src="clone.svg" />} onClick={() => this._cloneTexture(texture)} />
                 <MenuDivider />
                 <MenuItem text="Locked" icon={texture.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
@@ -531,7 +482,7 @@ export class TextureAssets extends AbstractAssets {
     /**
      * Called on the user wants to add a pure cube texture.
      */
-    private async _addPureCubeTexture(): Promise<void> {
+    public async _addPureCubeTexture(): Promise<void> {
         const texture = await PureCubeDialog.Show(this.editor);
         if (!texture) { return; }
 

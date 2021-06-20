@@ -190,6 +190,10 @@ html, body {
     background: #444444;
 }
 
+.bp3-popover .bp3-popover-content {
+    background-color: black;
+}
+
 /* ANTD */
 
 .ant-tree {
