@@ -56,7 +56,7 @@ export class ProjectImporter {
         Overlay.Show("Importing Project...", true);
 
         // Configure Serialization Helper
-        this._OverrideTextureParser();
+        this._OverrideTextureParser(editor);
 
         // Configure editor project
         Project.Path = path;
@@ -535,7 +535,7 @@ export class ProjectImporter {
     /**
      * Overrides the current texture parser available in Babylon.JS Scene Loader.
      */
-    private static _OverrideTextureParser(): void {
+    private static _OverrideTextureParser(editor: Editor): void {
         const textureParser = SerializationHelper._TextureParser;
         SerializationHelper._TextureParser = (source, scene, rootUrl) => {
             if (source.metadata?.editorName) {
@@ -559,12 +559,12 @@ export class ProjectImporter {
 
             if (supportedFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures?.enabledInPreview) {
                 const ktxTextureName = basename(KTXTools.GetKtxFileName(source.name, supportedFormat));
-                const ktxFileExists = pathExistsSync(join(Project.DirPath!, "files/compressed_textures", ktxTextureName));
+                const ktxFileExists = pathExistsSync(join(editor.assetsBrowser.assetsDirectory, dirname(source.name), ktxTextureName));
 
                 if (ktxFileExists) {
                     const oldName = source.name;
 
-                    source.name = join("files/compressed_textures", ktxTextureName);
+                    source.name = join(dirname(source.name), ktxTextureName);
                     texture = textureParser(source, scene, rootUrl);
 
                     if (texture) {

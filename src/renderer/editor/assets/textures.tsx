@@ -1,6 +1,6 @@
 import { clipboard, shell } from "electron";
-import { extname, basename, join } from "path";
-import { copy, pathExists, readdir, remove } from "fs-extra";
+import { copy, pathExists } from "fs-extra";
+import { extname, basename, join, dirname } from "path";
 
 import { Nullable, Undefinable } from "../../../shared/types";
 
@@ -9,7 +9,6 @@ import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Men
 
 import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, BaseTexture, BasisTools } from "babylonjs";
 
-import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
 import { KTXTools } from "../tools/ktx";
 import { undoRedo } from "../tools/undo-redo";
@@ -144,10 +143,10 @@ export class TextureAssets extends AbstractAssets {
         */
 
         for (const texture of this.editor.scene!.textures) {
-            if (!texture.name || texture.name.indexOf("data:") === 0) {
+            if (!texture.name || texture.name.indexOf("data:") === 0) {
                 continue;
             }
-            
+
             const filePath = join(this.editor.assetsBrowser.assetsDirectory, texture.name);
             const exists = await pathExists(filePath);
 
@@ -376,19 +375,9 @@ export class TextureAssets extends AbstractAssets {
         const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
         const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
 
-        const compressedTextures: string[] = [];
-        const compressedTexturesDest = join(Project.DirPath!, "files/compressed_textures");
-
-        await FSTools.CreateDirectory(compressedTexturesDest);
-
         for (const texture of this.editor.scene!.textures) {
-            if (!texture.name || !(texture instanceof Texture)) {
-                this.editor.updateTaskFeedback(task, progress += step);
-                continue;
-            }
-
-            const file = FilesStore.GetFileFromBaseName(basename(texture.name));
-            if (!file) {
+            const extension = extname(texture.name);
+            if (!extension || !texture.name || texture.name.indexOf("data:") === 0 || !(texture instanceof Texture)) {
                 this.editor.updateTaskFeedback(task, progress += step);
                 continue;
             }
@@ -399,15 +388,21 @@ export class TextureAssets extends AbstractAssets {
             const isUsingCompressedTexture = texture.metadata?.ktx2CompressedTextures?.isUsingCompressedTexture ?? false;
 
             if (ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
+                const compressedTexturesDest = join(this.editor.assetsBrowser.assetsDirectory, dirname(texture.name));
+                if (!(await pathExists(compressedTexturesDest))) {
+                    continue;
+                }
+
                 const previousUrl = texture.url;
-                const ktxTexturePath = KTXTools.GetKtxFileName(file.name, ktxFormat);
+                const ktxTexturePath = KTXTools.GetKtxFileName(texture.name, ktxFormat);
 
-                compressedTextures.push(basename(ktxTexturePath));
+                if (!(await pathExists(join(compressedTexturesDest, basename(ktxTexturePath))))) {
+                    const texturePath = join(this.editor.assetsBrowser.assetsDirectory, texture.name);
+                    await KTXTools.CompressTexture(this.editor, texturePath, compressedTexturesDest, ktxFormat);
+                }
 
-                if (!await pathExists(join(compressedTexturesDest, ktxTexturePath))) {
-                    await KTXTools.CompressTexture(this.editor, file.path, compressedTexturesDest, ktxFormat);
-
-                    // Update Url
+                // Update Url
+                if (!texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture) {
                     texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
                     texture.url = previousUrl;
                 }
@@ -415,21 +410,13 @@ export class TextureAssets extends AbstractAssets {
                 texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = true;
             } else {
                 if (isUsingCompressedTexture) {
-                    texture.updateURL(join(Project.DirPath!, texture.name));
+                    texture.updateURL(join(this.editor.assetsBrowser.assetsDirectory, texture.name));
                 }
 
                 texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;
             }
 
             this.editor.updateTaskFeedback(task, progress += step);
-        }
-
-        // Remove old useless textures
-        const dir = await readdir(compressedTexturesDest);
-        for (const f of dir) {
-            if (compressedTextures.indexOf(f) === -1) {
-                await remove(join(compressedTexturesDest, f));
-            }
         }
 
         this.editor.closeTaskFeedback(task, 1000);
