@@ -11,6 +11,7 @@ import { EditableText } from "../../../gui/editable-text";
 
 import { AssetsBrowserItemHandler, IItemHandler, IAssetsBrowserItemHandlerProps } from "./item-handler";
 
+import { KTXItemHandler } from "./handlers/ktx";
 import { FileItemHandler } from "./handlers/file";
 import { MeshItemHandler } from "./handlers/mesh";
 import { SoundItemHandler } from "./handlers/mp3";
@@ -126,6 +127,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".bmp", ctor: ImageItemHandler });
 		this.RegisterItemHandler({ extension: ".jpg", ctor: ImageItemHandler });
 		this.RegisterItemHandler({ extension: ".jpeg", ctor: ImageItemHandler });
+
+		this.RegisterItemHandler({ extension: ".ktx", ctor: KTXItemHandler });
 
 		this.RegisterItemHandler({ extension: ".fbx", ctor: MeshItemHandler });
 		this.RegisterItemHandler({ extension: ".babylon", ctor: MeshItemHandler });
