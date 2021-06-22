@@ -204,6 +204,11 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			const iStats = await stat(item);
 
 			if (iStats.isDirectory()) {
+				// Check directory dropped on itself
+				if (join(item, "/") === join(to, "/")) {
+					continue;
+				}
+
 				const directoryPromises: Promise<void>[] = [];
 				const filesToMove = await FSTools.GetGlobFiles(join(item, "**", "*.*"));
 
