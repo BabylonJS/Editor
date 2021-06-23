@@ -326,7 +326,6 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.props.editor.assetsBrowser.moveSelectedItems(this.props.absolutePath);
 	}
 
-
 	/**
 	 * Returns the title node for the item.
 	 */

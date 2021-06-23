@@ -1,3 +1,5 @@
+import { join } from "path";
+
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
@@ -23,6 +25,7 @@ import { InspectorColorPicker } from "../../gui/inspector/fields/color-picker";
 import { Tools } from "../../tools/tools";
 
 import { AbstractInspector } from "../abstract-inspector";
+import Editor from "../..";
 
 export interface IParticleSystemInspectorState {
     /**
@@ -36,6 +39,43 @@ export interface IParticleSystemInspectorState {
 }
 
 export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, IParticleSystemInspectorState> {
+    /**
+     * Updates all the instantiated particle systems.
+     * @param editor defines the reference to the editor.
+     * @param particleSystem defines the reference to the selected object in the inspector.
+     */
+    public static UpdateParticleSystems(editor: Editor, particleSystem: ParticleSystem): void {
+        const pss = editor.scene!.particleSystems
+            .filter((ps) => ps !== particleSystem && ps["metadata"]?.editorPath)
+            .filter((ps) => ps["metadata"].editorPath === particleSystem["metadata"]?.editorPath);
+
+        const serializationData = particleSystem.serialize(true);
+        const rootUrl = join(editor.assetsBrowser.assetsDirectory, "/");
+
+        pss.forEach((ps: ParticleSystem) => {
+            const savedId = ps.id;
+            const savedName = ps.name;
+            const savedEmitter = ps.emitter;
+
+            ps.dispose(false);
+            ps = ParticleSystem.Parse(serializationData, editor.scene!, rootUrl, !ps.isStarted());
+            
+            ps.particleTexture?.dispose();
+            ps.particleTexture = particleSystem.particleTexture;
+
+            ps.noiseTexture?.dispose();
+            ps.noiseTexture = particleSystem.noiseTexture;
+
+            ps["metadata"] = particleSystem["metadata"];
+
+            ps.id = savedId;
+            ps.name = savedName;
+            ps.emitter = savedEmitter;
+        });
+
+        editor.graph.refresh();
+    }
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -59,7 +99,7 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
                     <InspectorButton label="Start" small={true} onClick={() => this.selectedObject.start()} />
                     <InspectorButton label="Stop" small={true} onClick={() => this.selectedObject.stop()} />
                 </InspectorSection>
-                
+
                 <InspectorSection title="Common">
                     <InspectorString object={this.selectedObject} property="name" label="Name" />
                     <InspectorVector3 object={this.selectedObject} property="gravity" label="Gravity" step={0.01} />
@@ -76,8 +116,8 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
                 </InspectorSection>
 
                 <InspectorSection title="Textures">
-                    <InspectorList object={this.selectedObject} property="particleTexture" label="Texture" items={this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
-                    <InspectorList object={this.selectedObject} property="textureMask" label="Mask" items={this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                    <InspectorList object={this.selectedObject} property="particleTexture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                    {/* <InspectorList object={this.selectedObject} property="textureMask" label="Mask" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} /> */}
                     <InspectorList object={this.selectedObject} property="blendMode" label="Blend Mode" items={[
                         { label: "One One", data: ParticleSystem.BLENDMODE_ONEONE },
                         { label: "Standard", data: ParticleSystem.BLENDMODE_STANDARD },
@@ -155,6 +195,14 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
                 </InspectorSection>
             </>
         );
+    }
+
+    /**
+     * Called on a property of the selected object has changed.
+     */
+    public onPropertyChanged(): void {
+        super.onPropertyChanged();
+        ParticleSystemInspector.UpdateParticleSystems(this.editor, this.selectedObject);
     }
 
     /**

@@ -333,10 +333,16 @@ export class ProjectImporter {
 
         for (const ps of project.particleSystems ?? []) {
             try {
-                const json = await readJSON(join(editor.assetsBrowser.assetsDirectory, ps));
+                const json = await readJSON(join(editor.assetsBrowser.assetsDirectory, ps.json));
 
                 const system = ParticleSystem.Parse(json, editor.scene!, rootUrl);
                 system["metadata"] = json.metadata;
+
+                system.id = ps.id;
+                system.name = ps.name;
+                if (ps.emitterId) {
+                    system.emitter = editor.scene!.getMeshByID(ps.emitterId);
+                }
             } catch (e) {
                 editor.console.logError(`Failed to parse particle system "${ps}"`);
             }

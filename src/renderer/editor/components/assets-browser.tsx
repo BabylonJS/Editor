@@ -162,7 +162,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			"src/scenes/scripts-map.ts",
 			"src/scenes/tools.ts",
 		];
-		
+
 		return files.filter((f) => f.indexOf("index.ts") === -1)
 			.map((f) => f.replace(/\\/g, "/").replace(WorkSpace.DirPath!.replace(/\\/g, "/"), ""))
 			.filter((f) => excluded.indexOf(f) === -1);
@@ -206,17 +206,17 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 
 		const failed: string[] = [];
 
-		for (const i of this._files.selectedItems) {
+		await Promise.all(this._files.selectedItems.map(async (i) => {
 			const fStat = await stat(i);
 			if (fStat.isDirectory()) {
-				continue;
+				return;
 			}
 
 			const result = shell.moveItemToTrash(i, deleteOnFail);
 			if (!result) {
 				failed.push(i);
 			}
-		}
+		}));
 
 		return failed;
 	}

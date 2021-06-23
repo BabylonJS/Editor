@@ -1,6 +1,6 @@
 import { basename, dirname, extname, join } from "path";
 import directoryTree, { DirectoryTree } from "directory-tree";
-import { copy, pathExists, readdir, readFile, readJSON, remove, writeFile, writeJSON } from "fs-extra";
+import { copyFile, pathExists, readdir, readFile, readJSON, remove, writeFile, writeJSON } from "fs-extra";
 
 import { LGraph } from "litegraph.js";
 import { SceneSerializer, Mesh } from "babylonjs";
@@ -367,7 +367,7 @@ export class SceneExporter {
 			}
 	
 			if (!(await pathExists(path))) {
-				await copy(child.path, path);
+				promises.push(copyFile(child.path, path));
 				editor.console.logInfo(`Copied asset file at: ${path}`);
 			}
 
@@ -398,7 +398,7 @@ export class SceneExporter {
 						continue;
 					}
 	
-					promises.push(KTXTools.CompressTexture(editor, path, destFilesDir, supportedTextureFormat));
+					promises.push(KTXTools.CompressTexture(editor, child.path, destFilesDir, supportedTextureFormat));
 				}
 			}
 		}
