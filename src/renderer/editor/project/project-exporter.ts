@@ -335,6 +335,11 @@ export class ProjectExporter {
 
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = material.serialize();
+
+                if (json.customType === "BABYLON.PBRMaterial" && json.environmentBRDFTexture) {
+                    delete json.environmentBRDFTexture;
+                }
+
                 if (material.metadata) {
                     try {
                         json.metadata = Tools.CloneObject(material.metadata);
@@ -676,6 +681,13 @@ export class ProjectExporter {
                 if (!b.metadata) { return; }
                 b.id = b.metadata.originalId;
             });
+        });
+
+        // PBR materials
+        scene.materials?.forEach((m) => {
+            if (m.customType === "BABYLON.PBRMaterial" && m.environmentBRDFTexture) {
+                delete m.environmentBRDFTexture;
+            }
         });
 
         // Clean
