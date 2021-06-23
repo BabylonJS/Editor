@@ -1,4 +1,5 @@
 import Glob from "glob";
+import { shell } from "electron";
 import { move, pathExists, stat } from "fs-extra";
 import { basename, dirname, extname, join } from "path";
 
@@ -132,6 +133,13 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	}
 
 	/**
+	 * Returns the list of all selected items.
+	 */
+	public get selectedFiles(): string[] {
+		return this._files?.selectedItems ?? [];
+	}
+
+	/**
 	 * Returns the list of all available scripts.
 	 */
 	public async getAllScripts(): Promise<string[]> {
@@ -185,6 +193,32 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		await move(absolutePath, destination);
 
 		this.refresh();
+	}
+
+	/**
+	 * Moves all the selected items to trash and returns the list of failed items.
+	 * @param deleteOnFail defines wether or not the file should be deleted if failed to move to trash.
+	 */
+	public async moveSelectedItemsToTrash(deleteOnFail: boolean): Promise<string[]> {
+		if (!this._files?.selectedItems.length) {
+			return [];
+		}
+
+		const failed: string[] = [];
+
+		for (const i of this._files.selectedItems) {
+			const fStat = await stat(i);
+			if (fStat.isDirectory()) {
+				continue;
+			}
+
+			const result = shell.moveItemToTrash(i, deleteOnFail);
+			if (!result) {
+				failed.push(i);
+			}
+		}
+
+		return failed;
 	}
 
 	/**

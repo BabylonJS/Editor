@@ -192,7 +192,10 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 				onClick={(ev) => this.props.onClick(this, ev)}
 				onDoubleClick={() => this.props.onDoubleClick()}
 
-				onContextMenu={(ev) => ev.stopPropagation()}
+				onContextMenu={(ev) => {
+					ev.stopPropagation();
+					this.props.onClick(this, ev);
+				}}
 
 				style={{
 					width: "100px",
@@ -245,6 +248,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.setState({
 			itemHandler: (
 				<handler.itemHandler
+					type={this.props.type}
 					editor={this.props.editor}
 					relativePath={this.props.relativePath}
 					absolutePath={this.props.absolutePath}
