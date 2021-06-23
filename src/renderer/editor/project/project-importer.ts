@@ -187,7 +187,11 @@ export class ProjectImporter {
 
         for (const m of project.materials) {
             try {
-                const json = await readJSON(join(editor.assetsBrowser.assetsDirectory, m.json));
+                const materialJsonPath = m.isMultiMaterial ?
+                        join(Project.DirPath, "materials", m.json) :
+                        join(editor.assetsBrowser.assetsDirectory, m.json);
+                
+                const json = await readJSON(materialJsonPath);
 
                 let materialRootUrl = join(editor.assetsBrowser.assetsDirectory, "/");
                 if (json.customType === "BABYLON.NodeMaterial") {

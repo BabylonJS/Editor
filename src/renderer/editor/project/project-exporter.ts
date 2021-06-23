@@ -246,7 +246,7 @@ export class ProjectExporter {
                 continue;
             }
 
-            if (!material.metadata?.editorPath) {
+            if (!material.metadata?.editorPath && !(material instanceof MultiMaterial)) {
                 continue;
             }
 
@@ -263,13 +263,17 @@ export class ProjectExporter {
                     // Catch silently.
                 }
 
-                const dest = join(editor.assetsBrowser.assetsDirectory, material.metadata.editorPath);
+                const isMultiMaterial = material instanceof MultiMaterial;
+                const dest = isMultiMaterial ?
+                        join(materialsDir, `${normalize(`${basename(filenamify(material.name))}-${material.id}`)}.json`) :
+                        join(editor.assetsBrowser.assetsDirectory, material.metadata.editorPath);
+                
                 await writeFile(dest, JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
 
                 project.materials.push({
+                    isMultiMaterial,
                     bindedMeshes: material.getBindedMeshes().map((m) => m.id),
-                    json: material.metadata.editorPath,
-                    isMultiMaterial: material instanceof MultiMaterial,
+                    json: isMultiMaterial ? basename(dest) : material.metadata.editorPath,
                 });
 
                 editor.updateTaskFeedback(task, progressValue += progressCount);

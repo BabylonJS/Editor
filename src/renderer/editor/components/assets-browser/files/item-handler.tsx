@@ -1,16 +1,20 @@
 import { platform } from "os";
+import { basename } from "path";
 import { shell } from "electron";
 
 import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
-import { MenuItem, Icon as BPIcon } from "@blueprintjs/core";
+import { MenuItem, Icon as BPIcon, MenuDivider } from "@blueprintjs/core";
 
 import { PickingInfo } from "babylonjs";
 
 import { Editor } from "../../../editor";
 
 import { Tools } from "../../../tools/tools";
+
+import { Alert } from "../../../gui/alert";
+import { Confirm } from "../../../gui/confirm";
 
 import { IWorkerConfiguration, Workers } from "../../../workers/workers";
 
@@ -27,6 +31,10 @@ export interface IAssetsBrowserItemHandlerProps {
 	 * Defines the absolute path to the item.
 	 */
 	absolutePath: string;
+	/**
+	 * Defines the type of the item (directory or file).
+	 */
+	type: "file" | "directory";
 
 	/**
 	 * Defines the callback called on the item is starts being dragged.
@@ -185,8 +193,37 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 				icon={<BPIcon icon="document-open" color="white" />}
 				text={`Reveal in ${isMacOs ? "Finder" : "Explorer"}`}
 				onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(this.props.absolutePath))}
-			/>
+			/>,
+			<MenuDivider />,
+			<MenuItem
+				disabled={this.props.type === "directory"}
+				icon={<BPIcon icon="trash" color="white" />}
+				onClick={() => this._handleMoveToTrash()}
+				text={`Move ${this.props.editor.assetsBrowser.selectedFiles.length > 1 ? "Selected Assets" : "Asset"} To Trash...`}
+			/>,
 		];
+	}
+
+	/**
+	 * Called on the user wants to move the item to trash.
+	 */
+	private async _handleMoveToTrash(): Promise<void> {
+		const multipleFiles = this.props.editor.assetsBrowser.selectedFiles.length > 1;
+
+		const confirm = await Confirm.Show(
+			`Move ${multipleFiles ? "Selected Assets" : "Asset"} To Trash?`,
+			`Are you sure to move the ${multipleFiles ? "selected assets" : `asset "${basename(this.props.relativePath)}"`} to trash? If yes, all linked elements in the scene will be reset`,
+		);
+		if (!confirm) {
+			return;
+		}
+
+		const result = await this.props.editor.assetsBrowser.moveSelectedItemsToTrash(false);
+		if (result.length) {
+			Alert.Show("Failed To Move Asset(s) To Trash", `Failed to move some assets to trash.`);
+		}
+
+		await this.props.editor.assetsBrowser.refresh();
 	}
 
 	/**

@@ -58,7 +58,7 @@ export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
         return (
             <>
                 <h2 style={{ color: "white", textAlign: "center" }}>Selected SubMesh N°{this.selectedObject.materialIndex}</h2>
-                <InspectorList object={this} property="_material" label="Material" items={this.getMaterialsList()} noUndoRedo={true} onFinishChange={() => this._handleMaterialChanged()} />
+                <InspectorList object={this} property="_material" label="Material" items={() => this.getMaterialsList()} noUndoRedo={true} onFinishChange={() => this._handleMaterialChanged()} dndHandledTypes={["asset/material"]} />
             </>
         );
     }
