@@ -188,7 +188,24 @@ export interface IProject {
     /**
      * Defines the list of scene's particle systems.
      */
-    particleSystems?: string[];
+    particleSystems?: {
+        /**
+         * Defines the id of the particle system.
+         */
+        id: string;
+        /**
+         * Defines the name of the particle system.
+         */
+        name: string;
+        /**
+         * Defines the path the JSON representation of the particle system.
+         */
+        json: string;
+        /**
+         * Defines the id of the emitter attached to the particle system.
+         */
+        emitterId?: string;
+    }[];
     /**
      * Defines the list of scene's lights
      */

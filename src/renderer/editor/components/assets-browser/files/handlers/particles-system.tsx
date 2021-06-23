@@ -53,10 +53,6 @@ export class ParticlesSystemItemHandler extends AssetsBrowserItemHandler {
     public async onDropInPreview(_: React.DragEvent<HTMLElement>, pick: PickingInfo): Promise<void> {
         const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
 
-        if (this.props.editor.scene!.particleSystems.find((ps) => ps["metadata"]?.editorPath === this.props.relativePath)) {
-            return;
-        }
-
         const emitter = new Mesh(json.name, this.props.editor.scene!);
         emitter.id = Tools.RandomId();
         emitter.position.copyFrom(pick.pickedPoint ?? Vector3.Zero());

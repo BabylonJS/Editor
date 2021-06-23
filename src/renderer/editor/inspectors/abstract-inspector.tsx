@@ -134,7 +134,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
      * Called on a property of the selected object has changed.
      */
     public onPropertyChanged(): void {
-
+        // Empty at the moment...
     }
 
     /**

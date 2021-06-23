@@ -1,8 +1,11 @@
 import { join, normalize, basename, dirname } from "path";
-import { writeFile, writeJSON, readdir, remove } from "fs-extra";
+import { writeJSON, readdir, remove, pathExists } from "fs-extra";
+
+import { Nullable } from "../../../shared/types";
 
 import {
     ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial,
+    AbstractMesh,
 } from "babylonjs";
 
 import filenamify from "filenamify";
@@ -25,12 +28,15 @@ import { ProjectHelpers } from "./helpers";
 import { MeshExporter } from "../export/mesh";
 import { GeometryExporter } from "../export/geometry";
 
-import { Workers } from "../workers/workers";
+import SaveWorker from "../workers/workers/save";
 import AssetsWorker from "../workers/workers/assets";
+import { IWorkerConfiguration, Workers } from "../workers/workers";
+
 import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
 export class ProjectExporter {
     private static _IsSaving: boolean = false;
+    private static _Worker: Nullable<IWorkerConfiguration> = null;
 
     /**
      * Asks the user where to export the project and exports the project in the selected folder.
@@ -70,7 +76,11 @@ export class ProjectExporter {
      * Saves the project
      */
     private static async _Save(editor: Editor, skipGenerateScene: boolean): Promise<void> {
-        if (!Project.Path) { return this.SaveAs(editor); }
+        if (!Project.Path) {
+            return this.SaveAs(editor);
+        }
+
+        this._Worker = this._Worker ?? await Workers.LoadWorker("save.js");
 
         // Check is isolated mode
         if (editor.preview.state.isIsolatedMode) {
@@ -183,7 +193,7 @@ export class ProjectExporter {
 
             const json = camera.serialize();
             const dest = `${normalize(`${basename(filenamify(camera.name))}-${camera.id}`)}.json`;
-            await writeFile(join(camerasDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(camerasDir, dest), json);
 
             project.cameras.push(dest);
             exportedCameras.push(dest);
@@ -215,7 +225,7 @@ export class ProjectExporter {
                 }
 
                 const dest = `${normalize(`${filenamify(basename(texture.name))}-${texture.uniqueId.toString()}`)}.json`;
-                await writeFile(join(texturesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(texturesDir, dest), json);
 
                 project.textures.push(dest);
                 exportedTextures.push(dest);
@@ -267,8 +277,12 @@ export class ProjectExporter {
                 const dest = isMultiMaterial ?
                         join(materialsDir, `${normalize(`${basename(filenamify(material.name))}-${material.id}`)}.json`) :
                         join(editor.assetsBrowser.assetsDirectory, material.metadata.editorPath);
+
+                if (!(await pathExists(dirname(dest)))) {
+                    return resolve();
+                }
                 
-                await writeFile(dest, JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", dest, json);
 
                 project.materials.push({
                     isMultiMaterial,
@@ -317,7 +331,7 @@ export class ProjectExporter {
 
                 const dest = `${normalize(`${basename(filenamify(mesh.name))}-${mesh.id}`)}.json`;
 
-                await writeFile(join(meshesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(meshesDir, dest), json);
 
                 project.meshes.push(dest);
                 exportedMeshes.push(dest);
@@ -348,13 +362,13 @@ export class ProjectExporter {
             const lightJson = light.serialize();
             const lightDest = `${normalize(`${basename(filenamify(light.name))}-${light.id}`)}.json`;
 
-            await writeFile(join(lightsDir, lightDest), JSON.stringify(lightJson, null, "\t"), { encoding: "utf-8" });
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(lightsDir, lightDest), lightJson);
 
             const shadowJson = light.getShadowGenerator()?.serialize();
             if (shadowJson) {
                 const shadowDest = `${normalize(`${basename(filenamify(light.name))}-${light.id}`)}.json`;
 
-                await writeFile(join(shadowsDir, shadowDest), JSON.stringify(shadowJson, null, "\t"), { encoding: "utf-8" });
+                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(shadowsDir, shadowDest), shadowJson);
 
                 project.lights.push({ json: lightDest, shadowGenerator: shadowDest });
                 exportedShadows.push(shadowDest);
@@ -382,7 +396,7 @@ export class ProjectExporter {
                 const json = transform.serialize();
                 const dest = `${normalize(`${filenamify(basename(transform.name))}-${transform.id}`)}.json`;
 
-                await writeFile(join(transformNodesDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(transformNodesDir, dest), json);
 
                 project.transformNodes.push(dest);
                 exportedTransformNodes.push(dest);
@@ -416,11 +430,16 @@ export class ProjectExporter {
                 ...ps.serialize(true),
                 metadata: ps["metadata"],
             };
+
             const dest = join(editor.assetsBrowser.assetsDirectory, editorPath);
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", dest, json);
 
-            await writeFile(dest, JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
-
-            project.particleSystems!.push(editorPath);
+            project.particleSystems!.push({
+                id: ps.id,
+                name: ps.name,
+                json: editorPath,
+                emitterId: (ps.emitter as AbstractMesh)?.id ?? undefined,
+            });
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved particle system configuration "${ps.name}"`);
@@ -441,7 +460,7 @@ export class ProjectExporter {
 
             const dest = `${normalize(`${basename(filenamify(s.name))}`)}.json`;
 
-            await writeFile(join(soundsDir, dest), JSON.stringify(json, null, "\t"), { encoding: "utf-8" });
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(soundsDir, dest), json);
 
             project.sounds!.push(dest);
             exportedSounds.push(dest);
@@ -452,13 +471,10 @@ export class ProjectExporter {
 
         // Write assets cache
         const assetsCache = await Workers.ExecuteFunction<AssetsWorker, "getCache">(AssetsBrowserItemHandler.AssetWorker, "getCache");
-        await writeJSON(join(Project.DirPath!, "../cache.json"), assetsCache, {
-            spaces: "\t",
-            encoding: "utf-8",
-        });
+        await Workers.ExecuteFunction<SaveWorker, "writeJSON">(this._Worker!, "writeJSON", join(Project.DirPath!, "../cache.json"), assetsCache);
 
         // Write project!
-        await writeFile(join(Project.DirPath!, "scene.editorproject"), JSON.stringify(project, null, "\t"), { encoding: "utf-8" });
+        await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(Project.DirPath!, "scene.editorproject"), project);
 
         // Update worksapce
         if (WorkSpace.HasWorkspace()) {

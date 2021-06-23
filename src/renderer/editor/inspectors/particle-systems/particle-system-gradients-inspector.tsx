@@ -16,6 +16,7 @@ import { AbstractInspector } from "../abstract-inspector";
 
 import { ParticleSystemColorGradient } from "./color-gradient";
 import { ParticleSystemFactorGradient } from "./factor-gradient";
+import { ParticleSystemInspector } from "./particle-system-inspector";
 
 export interface IParticleGradientInspectorState {
     /**
@@ -109,7 +110,7 @@ export class ParticleSystemGradientsInspector extends AbstractInspector<Particle
                     onRemove: (g) => this.selectedObject.removeSizeGradient(g.gradient),
                 })}
 
-                {this.getFactorGradientInspector({
+                {/* {this.getFactorGradientInspector({
                     title: "Lifetime",
                     useString: "Use Lifetime Gradients",
                     addString: "Add Lifetime Gradient",
@@ -117,7 +118,7 @@ export class ParticleSystemGradientsInspector extends AbstractInspector<Particle
                     getGradients: () => this.selectedObject.getLifeTimeGradients(),
                     onAdd: () => this.selectedObject.addLifeTimeGradient(1, 1, 1),
                     onRemove: (g) => this.selectedObject.removeLifeTimeGradient(g.gradient),
-                })}
+                })} */}
 
                 {this.getFactorGradientInspector({
                     title: "Velocity",
@@ -153,6 +154,14 @@ export class ParticleSystemGradientsInspector extends AbstractInspector<Particle
     }
 
     /**
+     * Called on a property of the selected object has changed.
+     */
+    public onPropertyChanged(): void {
+        super.onPropertyChanged();
+        ParticleSystemInspector.UpdateParticleSystems(this.editor, this.selectedObject);
+    }
+
+    /**
      * Returns the inspector used to configure the given factor gradients.
      * @param configuration defines the reference to the configuration of the gradient inspector.
      */
@@ -164,7 +173,9 @@ export class ParticleSystemGradientsInspector extends AbstractInspector<Particle
                 <InspectorSection title={configuration.title}>
                     <InspectorButton label={configuration.useString} small={true} onClick={() => {
                         configuration.onAdd();
+
                         this._updateGradientState(configuration);
+                        this.onPropertyChanged();
                     }} />
                 </InspectorSection>
             );
@@ -175,18 +186,26 @@ export class ParticleSystemGradientsInspector extends AbstractInspector<Particle
                 {gradients.map((g, index) => (
                     <ParticleSystemFactorGradient key={`${configuration.stateKey}-${index}-${g.gradient}`} index={index} particleSystem={this.selectedObject} gradient={g} onRemove={() => {
                         configuration.onRemove(g);
+
                         this._updateGradientState(configuration);
+                        this.onPropertyChanged();
                     }} onFinishChangeGradient={() => {
-                        if (!gradients) { return; }
+                        if (!gradients) {
+                            return;
+                        }
 
                         gradients.sort((a, b) => a.gradient - b.gradient);
+
                         this._updateGradientState(configuration);
+                        this.onPropertyChanged();
                     }} />
                 ))}
 
                 <InspectorButton label={configuration.addString} small={true} onClick={() => {
                     configuration.onAdd();
+
                     this._updateGradientState(configuration);
+                    this.onPropertyChanged();
                 }} />
             </InspectorSection>
         );
@@ -203,7 +222,9 @@ export class ParticleSystemGradientsInspector extends AbstractInspector<Particle
                 <InspectorSection title={configuration.title}>
                     <InspectorButton label={configuration.useString} small={true} onClick={() => {
                         configuration.onAdd();
+
                         this._updateGradientState(configuration);
+                        this.onPropertyChanged();
                     }} />
                 </InspectorSection>
             );
@@ -214,18 +235,26 @@ export class ParticleSystemGradientsInspector extends AbstractInspector<Particle
                 {gradients.map((g, index) => (
                     <ParticleSystemColorGradient key={`${configuration.stateKey}-${index}-${g.gradient}`} index={index} particleSystem={this.selectedObject} gradient={g} onRemove={() => {
                         configuration.onRemove(g);
+
                         this._updateGradientState(configuration);
+                        this.onPropertyChanged();
                     }} onFinishChangeGradient={() => {
-                        if (!gradients) { return; }
+                        if (!gradients) {
+                            return;
+                        }
 
                         gradients.sort((a, b) => a.gradient - b.gradient);
+
                         this._updateGradientState(configuration);
+                        this.onPropertyChanged();
                     }} />
                 ))}
 
                 <InspectorButton label={configuration.addString} small={true} onClick={() => {
                     configuration.onAdd();
+
                     this._updateGradientState(configuration);
+                    this.onPropertyChanged();
                 }} />
             </InspectorSection>
         );
@@ -234,7 +263,7 @@ export class ParticleSystemGradientsInspector extends AbstractInspector<Particle
     /**
      * Updates the given factor state using its configuration.
      */
-    private _updateGradientState(configuration: IGradientCreator<FactorGradient | ColorGradient>): void {
+    private _updateGradientState(configuration: IGradientCreator<FactorGradient | ColorGradient>): void {
         this.setState({ [configuration.stateKey]: this._getNullableGradient(configuration.getGradients()) } as any);
     }
 
