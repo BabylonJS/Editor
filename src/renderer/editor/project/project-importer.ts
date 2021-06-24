@@ -1,5 +1,5 @@
 import { dirname, join, basename } from "path";
-import { readJSON, pathExistsSync } from "fs-extra";
+import { readJSON, pathExistsSync, pathExists } from "fs-extra";
 
 import { Nullable } from "../../../shared/types";
 
@@ -245,7 +245,11 @@ export class ProjectImporter {
                     const cube = CubeTexture.Parse(json, editor.scene!, rootUrl);
                     cube.name = cube.url = basename(cube.name);
                 } else {
-                    Texture.Parse(json, editor.scene!, rootUrl);
+                    if (await pathExists(join(editor.assetsBrowser.assetsDirectory, json.name))) {
+                        Texture.Parse(json, editor.scene!, rootUrl) as Texture;
+                    } else {
+                        editor.console.logError(`Failed to parse texture "${t}": path to the texture file doesn't exists: "${json.name}"`);
+                    }
                 }
                 editor.console.logInfo(`Parsed texture "${t}"`);
             } catch (e) {
@@ -344,7 +348,7 @@ export class ProjectImporter {
                     system.emitter = editor.scene!.getMeshByID(ps.emitterId);
                 }
             } catch (e) {
-                editor.console.logError(`Failed to parse particle system "${ps}"`);
+                editor.console.logError(`Failed to parse particle system "${ps.name}" from path "${ps.json}"`);
             }
 
             Overlay.SetSpinnervalue(spinnerValue += spinnerStep);

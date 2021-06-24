@@ -229,12 +229,12 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	 */
 	private async _configureMaterial(material: Material, isGltf: boolean): Promise<Material> {
 		if (!(material instanceof MultiMaterial)) {
-			this._configureMaterialTextures(material, isGltf);
-
 			const instantiatedMaterial = await this._createMaterialFile(material);
 			if (instantiatedMaterial) {
 				return instantiatedMaterial;
 			}
+
+			this._configureMaterialTextures(material, isGltf);
 		}
 
 		const materialMetadata = Tools.GetMaterialMetadata(material);
@@ -253,13 +253,13 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 					continue;
 				}
 
-				this._configureMaterialTextures(m, isGltf);
-
 				const instantiatedMaterial = await this._createMaterialFile(m);
 				if (instantiatedMaterial) {
 					material.subMaterials[i] = instantiatedMaterial;
 					continue;
 				}
+
+				this._configureMaterialTextures(m, isGltf);
 
 				const subMaterialMetadata = Tools.GetMaterialMetadata(m);
 				subMaterialMetadata.originalSourceFile = subMaterialMetadata.originalSourceFile ?? {

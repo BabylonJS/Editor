@@ -4,7 +4,7 @@ import { copyFile, pathExists, readdir, readJSON, stat, writeJSON } from "fs-ext
 
 import { Nullable } from "../../../../shared/types";
 
-import { Scene, Material, Texture } from "babylonjs";
+import { Scene, Material, Texture, CubeTexture } from "babylonjs";
 
 import { FSTools } from "../../tools/fs";
 
@@ -77,7 +77,8 @@ export class WorkspaceConverter {
             const project = await readJSON(projectPath, { encoding: "utf-8" }) as IProject;
 
             // Copy files
-            await Promise.all((project.filesList ?? []).map((f) => {
+            project.filesList ??= [];
+            await Promise.all(project.filesList.map((f) => {
                 return copyFile(join(projectRootUrl, f), join(projectAssetsDirectory, f));
             }));
 
@@ -86,7 +87,8 @@ export class WorkspaceConverter {
             }));
 
             // Materials
-            await Promise.all((project.materials ?? []).map(async (m) => {
+            project.materials ??= [];
+            await Promise.all(project.materials.map(async (m) => {
                 const materialPath = await this._ConvertMaterial(m, scene, p, projectDirectory, projectRootUrl, projectAssetsDirectory);
                 if (materialPath) {
                     m.json = materialPath;
@@ -95,6 +97,16 @@ export class WorkspaceConverter {
 
             // Textures
             await Promise.all((project.textures ?? []).map((t) => this._ConvertTexture(t, p, projectDirectory)));
+
+            // Particle systems
+            project.particleSystems ??= [];
+            await Promise.all(project.particleSystems.map(async (ps, index) => {
+                project.particleSystems![index] = await this._ConvertParticlesSystem(p, ps as any, projectDirectory, projectAssetsDirectory);
+            }));
+
+            // Sounds
+            project.sounds ??= [];
+            await Promise.all(project.sounds.map((s) => this._ConvertSound(s, p, projectDirectory)));
 
             // Scene
             if (project.scene.environmentTexture) {
@@ -119,6 +131,49 @@ export class WorkspaceConverter {
         Overlay.Hide();
     }
 
+    /**
+     * Converts the given sound.
+     */
+    private static async _ConvertSound(s: string, p: string, projectDirectory: string): Promise<void> {
+        const json = await readJSON(join(projectDirectory, "sounds", s), { encoding: "utf-8" });
+        json.name = join(p, basename(json.name));
+
+        await writeJSON(join(projectDirectory, "sounds", s), json, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
+    }
+
+    /**
+     * Converts the given particles system.
+     */
+    private static async _ConvertParticlesSystem(p: string, ps: string, projectDirectory: string, projectAssetsDirectory: string): Promise<any> {
+        const json = await readJSON(join(projectDirectory, "particleSystems", ps as any), { encoding: "utf-8" });
+
+        const editorPath = join(p, filenamify(`${json.name}-${json.id}.ps`));
+
+        json.metadata = { editorPath };
+
+        if (json.texture) {
+            json.texture.name = json.texture.url = join(p, basename(json.texture.name));
+        }
+
+        await writeJSON(join(projectAssetsDirectory, basename(editorPath)), json, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
+
+        return {
+            id: json.id,
+            name: json.name,
+            emitterId: json.emitterId,
+            json: editorPath,
+        };
+    }
+
+    /**
+     * Converts the given texture.
+     */
     private static async _ConvertTexture(t: string, p: string, projectDirectory: string): Promise<void> {
         const textureJson = await readJSON(join(projectDirectory, "textures", t), { encoding: "utf-8" });
         if (textureJson.name.indexOf("data:") === 0) {
@@ -146,8 +201,9 @@ export class WorkspaceConverter {
         }
 
         const textures = material.getActiveTextures();
+
         for (const texture of textures) {
-            if (!(texture instanceof Texture) || !texture.name || !texture.url || texture.name.indexOf("data:") === 0) {
+            if ((!(texture instanceof Texture) && !(texture instanceof CubeTexture)) || !texture.name || !texture.url || texture.name.indexOf("data:") === 0) {
                 continue;
             }
 
