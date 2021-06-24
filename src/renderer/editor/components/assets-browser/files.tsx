@@ -63,6 +63,15 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	private _items: AssetsBrowserItem[] = [];
 
 	/**
+	 * Initializes the files component.
+	 * @param editor defines the reference to the editor.
+	 */
+	public static async Init(editor: Editor): Promise<void> {
+		AssetsBrowserItem.Init(editor);
+		await AssetsBrowserItemHandler.Init();
+	}
+
+	/**
 	 * Constructor.
 	 * @param props defines the component's props.
 	 */
@@ -159,14 +168,6 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				</div>
 			</div>
 		)
-	}
-
-	/**
-	 * Called on the component did mount.
-	 */
-	public async componentDidMount(): Promise<void> {
-		AssetsBrowserItem.Init(this.props.editor);
-		await AssetsBrowserItemHandler.Init();
 	}
 
 	/**

@@ -42,13 +42,15 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	/**
 	 * Initializes the assets browser. Will typically create the "assets" folder
 	 * located in the root directory of the loaded workspace.
+	 * @param editor defines the reference to the editor.
 	 */
-	public static async Init(): Promise<void> {
+	public static async Init(editor: Editor): Promise<void> {
 		if (!WorkSpace.DirPath) {
 			return;
 		}
 
 		await FSTools.CreateDirectory(join(WorkSpace.DirPath, "assets"));
+		await AssetsBrowserFiles.Init(editor);
 	}
 
 	/**

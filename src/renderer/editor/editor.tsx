@@ -856,7 +856,7 @@ export class Editor {
 
         // Initialize assets browser
         if (workspacePath) {
-            await AssetsBrowser.Init();
+            await AssetsBrowser.Init(this);
             this.assetsBrowser.setWorkspaceDirectoryPath(dirname(workspacePath));
         }
 
