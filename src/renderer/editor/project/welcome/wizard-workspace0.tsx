@@ -90,7 +90,7 @@ export class WorkspaceWizard0 extends React.Component<IWelcomeWizard0Props, IWor
         const emptyTemplate = { name: "Empty", file: "workspace.zip" } as IWorkspaceTemplate;
 
         try {
-            const data = await Tools.LoadFile<string>(`http://editor.babylonjs.com/templates/templates.json?${Date.now()}`, false);
+            const data = await Tools.LoadFile<string>(`http://editor.babylonjs.com/templates/4.1.0/templates.json?${Date.now()}`, false);
             const templates = JSON.parse(data) as IWorkspaceTemplate[];
 
             this.setState({  selectedTemplate: emptyTemplate, availableProjects: [emptyTemplate].concat(templates) });
