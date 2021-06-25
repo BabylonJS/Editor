@@ -36,7 +36,7 @@ export class TextureTools {
         const diffusePixels = new Uint8ClampedArray(diffuseBuffer);
         const opacityPixels = new Uint8ClampedArray(opacityBuffer);
 
-        for (let i = 0; i < diffusePixels.length; i+= 4) {
+        for (let i = 0; i < diffusePixels.length; i += 4) {
             diffusePixels[i + 3] = opacityPixels[i];
         }
 
@@ -86,7 +86,7 @@ export class TextureTools {
 
         // Add to assets
         editor.assets.selectTab(TextureAssets);
-        
+
         // Remove temp stuff
         try {
             await remove(textureDest);
@@ -94,7 +94,7 @@ export class TextureTools {
         } catch (e) {
             console.error("Failed to remove tmp dir", e);
         }
-        
+
         editor.inspector.refreshDisplay();
 
         return name;
@@ -117,13 +117,14 @@ export class TextureTools {
         // Get pixels
         const pixels =
             texture.textureType === Engine.TEXTURETYPE_UNSIGNED_INT ?
-            texture.readPixels() as Uint8Array :
-            texture.readPixels() as Float32Array;
+                texture.readPixels() as Uint8Array :
+                texture.readPixels() as Float32Array;
 
         // Get dimensions.
         const dimensions = texture.getBaseSize();
         if (!dimensions.width || !dimensions.height) { return null; }
 
+        // Canvas
         const canvas = document.createElement("canvas");
         canvas.width = texture.getBaseSize().width;
         canvas.height = texture.getBaseSize().height;
@@ -134,7 +135,18 @@ export class TextureTools {
         if (!context) { return null; }
         context.putImageData(imageData, 0, 0);
 
-        const blob = await this.CanvasToBlob(canvas);
+        // Final canvas
+        const finalCanvas = document.createElement("canvas");
+        finalCanvas.width = texture.getBaseSize().width;
+        finalCanvas.height = texture.getBaseSize().height;
+
+        const finalContext = finalCanvas.getContext("2d");
+        if (!finalContext) { return null; }
+        finalContext.transform(1, 0, 0, -1, 0, canvas.height);
+        finalContext.drawImage(canvas, 0, 0);
+
+        // Return image buffer
+        const blob = await this.CanvasToBlob(finalCanvas);
         if (!blob) { return null; }
 
         const buffer = await Tools.ReadFileAsArrayBuffer(blob);
