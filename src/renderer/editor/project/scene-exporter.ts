@@ -1,3 +1,4 @@
+import filenamify from "filenamify/filenamify";
 import { basename, dirname, extname, join } from "path";
 import directoryTree, { DirectoryTree } from "directory-tree";
 import { copyFile, pathExists, readdir, readFile, readJSON, remove, writeFile, writeJSON } from "fs-extra";
@@ -17,8 +18,6 @@ import { SceneExportOptimzer } from "../scene/export-optimizer";
 
 import { Project } from "./project";
 import { WorkSpace } from "./workspace";
-
-import { GraphAssets } from "../assets/graphs";
 
 import { GraphCode } from "../graph/graph";
 import { GraphCodeGenerator } from "../graph/generate";
@@ -450,24 +449,26 @@ export class SceneExporter {
 	 */
 	public static async ExportGraphs(editor: Editor): Promise<void> {
 		// Write all graphs
-		const destGraphs = join(WorkSpace.DirPath!, "src", "scenes", WorkSpace.GetProjectName(), "graphs");
+		const destGraphs = join(WorkSpace.DirPath!, "src", "scenes", "_graphs");
+		if (await pathExists(destGraphs)) {
+			await FSTools.RemoveDirectory(destGraphs);
+		}
 
 		await FSTools.CreateDirectory(destGraphs);
 
-		const graphs = editor.assets.getAssetsOf(GraphAssets);
+		const graphs = await FSTools.GetGlobFiles(join(editor.assetsBrowser.assetsDirectory, "**", "*.graph"));
 		if (graphs?.length) {
 			GraphCode.Init();
 			await GraphCodeGenerator.Init();
 		}
 
 		for (const g of graphs ?? []) {
-			const extension = extname(g.id);
-			const name = g.id.replace(extension, "");
-			const json = await readJSON(g.key);
+			const name = g.replace(join(editor.assetsBrowser.assetsDirectory, "/"), "").replace(/\//g, "_");
+			const json = await readJSON(g);
 
 			try {
 				const code = GraphCodeGenerator.GenerateCode(new LGraph(json))?.replace("${editor-version}", editor._packageJson.version);
-				await writeFile(join(destGraphs, `${name}.ts`), code);
+				await writeFile(join(destGraphs, filenamify(`${name}.ts`)), code);
 			} catch (e) {
 				console.error(e);
 			}

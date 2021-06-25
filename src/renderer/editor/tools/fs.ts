@@ -1,4 +1,5 @@
 import Glob from "glob";
+import rimraf from "rimraf";
 import { mkdir, pathExists } from "fs-extra";
 
 export class FSTools {
@@ -27,6 +28,22 @@ export class FSTools {
 				}
 
 				resolve(files);
+			});
+		});
+	}
+
+	/**
+	 * Removes the given directory recursively.
+	 * @param directoryPath defines the absolute path to the directory to remove.
+	 */
+	public static RemoveDirectory(directoryPath: string): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			rimraf(directoryPath, (err) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
 			});
 		});
 	}

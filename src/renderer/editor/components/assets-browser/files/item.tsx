@@ -17,6 +17,7 @@ import { MeshItemHandler } from "./handlers/mesh";
 import { SoundItemHandler } from "./handlers/mp3";
 import { EnvDdsItemHandler } from "./handlers/env";
 import { ImageItemHandler } from "./handlers/image";
+import { GraphItemHandler } from "./handlers/graph";
 import { TypeScriptItemHandler } from "./handlers/ts";
 import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
@@ -143,6 +144,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".dds", ctor: EnvDdsItemHandler });
 
 		this.RegisterItemHandler({ extension: ".ts", ctor: TypeScriptItemHandler });
+		this.RegisterItemHandler({ extension: ".graph", ctor: GraphItemHandler });
 
 		this.RegisterItemHandler({ extension: ".mp3", ctor: SoundItemHandler });
 		this.RegisterItemHandler({ extension: ".wav", ctor: SoundItemHandler });
