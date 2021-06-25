@@ -2,7 +2,6 @@ import { join } from "path";
 
 import { Scene, Node } from "babylonjs";
 
-import { Project } from "../project/project";
 import { WorkSpace } from "../project/workspace";
 import { SceneExporter } from "../project/scene-exporter";
 
@@ -174,10 +173,10 @@ export class SceneUtils {
      */
     public getSceneJson(): ISceneJsonResult {
         return {
-            rootUrl: join(Project.DirPath!),
             workspacePath: WorkSpace.DirPath!,
             sceneName: WorkSpace.GetProjectName(),
             scene: SceneExporter.GetFinalSceneJson(this._editor),
+            rootUrl: join(this._editor.assetsBrowser.assetsDirectory, "/"),
         };
     }
 }

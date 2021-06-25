@@ -210,14 +210,14 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         if (!this._layoutDiv) { return; }
 
         // Window configuration
-        const windowDimensions = JSON.parse(localStorage.getItem("babylonjs-editor-graph-window-dimensions") ?? "null");
-        if (windowDimensions) {
-            window.resizeTo(windowDimensions.width, windowDimensions.height);
+        // const windowDimensions = JSON.parse(localStorage.getItem("babylonjs-editor-graph-window-dimensions") ?? "null");
+        // if (windowDimensions) {
+        //     window.resizeTo(windowDimensions.width, windowDimensions.height);
 
-            const x = windowDimensions.x ?? screenLeft;
-            const y = windowDimensions.y ?? screenTop;
-            window.moveTo(x, y);
-        }
+        //     const x = windowDimensions.x ?? screenLeft;
+        //     const y = windowDimensions.y ?? screenTop;
+        //     window.moveTo(x, y);
+        // }
 
         // Layout configuration
         const layoutVersion = localStorage.getItem('babylonjs-editor-graph-layout-version');

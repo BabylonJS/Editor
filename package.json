@@ -49,7 +49,6 @@
     "spectron": "10.0.1",
     "mocha": "8.2.1",
     "spectron-dialog-addon": "1.0.1",
-    "rimraf": "3.0.2",
     "xhr2": "0.2.0"
   },
   "dependencies": {
@@ -101,6 +100,7 @@
     "react": "16.12.0",
     "react-dom": "16.12.0",
     "react-color": "2.19.3",
+    "rimraf": "3.0.2",
     "spectorjs": "0.9.4",
     "typescript": "4.0.5",
     "xterm": "4.8.1",

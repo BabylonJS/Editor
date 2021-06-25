@@ -113,7 +113,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 				<MenuDivider />
 
-				<MenuItem text="TS Script..." icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
+				<MenuItem text="TypeScript File..." icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
+				<MenuItem text="Graph File..." icon={<Icon src="project-diagram.svg" />} onClick={() => this._handleAddGraph()} />
 			</Menu>
 		);
 
@@ -437,6 +438,30 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		}
 
 		const skeleton = await readFile(join(Tools.GetAppPath(), `assets/scripts/script.ts`), { encoding: "utf-8" });
+		await writeFile(dest, skeleton);
+
+		await SceneExporter.GenerateScripts(this.props.editor);
+
+		await this.refresh();
+	}
+
+	/**
+	 * Called on the user wants to add a new graph file.
+	 */
+	private async _handleAddGraph(): Promise<void> {
+		let name = await Dialog.Show("Graph Name", "Please provide a name for the new Graph file.");
+
+		const extension = extname(name).toLowerCase();
+		if (extension !== ".graph") {
+			name += ".graph";
+		}
+
+		const dest = join(this.state.currentDirectory, name);
+		if (await pathExists(dest)) {
+			Alert.Show("Can't Create Graph File", `A graph named "${name}" already exists.`);
+		}
+
+		const skeleton = await readFile(join(Tools.GetAppPath(), `assets/graphs/default.json`), { encoding: "utf-8" });
 		await writeFile(dest, skeleton);
 
 		await SceneExporter.GenerateScripts(this.props.editor);
