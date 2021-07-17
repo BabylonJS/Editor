@@ -5,7 +5,7 @@ import { Tabs, Tab, TabId, Tooltip } from "@blueprintjs/core";
 
 import { Icon } from "../../editor/gui/icon";
 
-import { AbstractInspector } from "../../editor/inspectors/abstract-inspector";
+import { AbstractInspector } from "../../editor/components/inspectors/abstract-inspector";
 import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plugin";
 
 import { DecalsPainterInspector } from "./decals/inspector";

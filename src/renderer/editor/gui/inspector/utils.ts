@@ -2,7 +2,7 @@ import { IStringDictionary, Nullable } from "../../../../shared/types";
 
 import { Tools } from "../../tools/tools";
 
-import { AbstractInspector } from "../../inspectors/abstract-inspector";
+import { AbstractInspector } from "../../components/inspectors/abstract-inspector";
 
 export interface IInspectorSectionPreferences {
     /**
