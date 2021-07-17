@@ -65,44 +65,44 @@ import { Console } from "./components/console";
 import "./gui/augmentations/index";
 
 // Inspectors
-import "./inspectors/scene/scene-inspector";
-import "./inspectors/scene/rendering-inspector";
-import "./inspectors/scene/animation-groups-inspector";
+import "./components/inspectors/scene/scene-inspector";
+import "./components/inspectors/scene/rendering-inspector";
+import "./components/inspectors/scene/animation-groups-inspector";
 
-import "./inspectors/node-inspector";
-import "./inspectors/node/mesh-inspector";
-import "./inspectors/node/transform-node-inspector";
-import "./inspectors/node/sub-mesh-proxy-inspector";
-import "./inspectors/node/sub-mesh-inspector";
-import "./inspectors/node/ground-inspector";
+import "./components/inspectors/node-inspector";
+import "./components/inspectors/node/mesh-inspector";
+import "./components/inspectors/node/transform-node-inspector";
+import "./components/inspectors/node/sub-mesh-proxy-inspector";
+import "./components/inspectors/node/sub-mesh-inspector";
+import "./components/inspectors/node/ground-inspector";
 
-import "./inspectors/lights/light-inspector";
-import "./inspectors/lights/directional-light-inspector";
-import "./inspectors/lights/spot-light-inspector";
-import "./inspectors/lights/point-light-inspector";
-import "./inspectors/lights/hemispheric-light-inspector";
-import "./inspectors/lights/shadows-inspector";
+import "./components/inspectors/lights/light-inspector";
+import "./components/inspectors/lights/directional-light-inspector";
+import "./components/inspectors/lights/spot-light-inspector";
+import "./components/inspectors/lights/point-light-inspector";
+import "./components/inspectors/lights/hemispheric-light-inspector";
+import "./components/inspectors/lights/shadows-inspector";
 
-import "./inspectors/cameras/camera-inspector";
-import "./inspectors/cameras/free-camera-inspector";
-import "./inspectors/cameras/arc-rotate-camera-inspector";
+import "./components/inspectors/cameras/camera-inspector";
+import "./components/inspectors/cameras/free-camera-inspector";
+import "./components/inspectors/cameras/arc-rotate-camera-inspector";
 
-import "./inspectors/materials/standard-inspector";
-import "./inspectors/materials/pbr-inspector";
-import "./inspectors/materials/sky-inspector";
-import "./inspectors/materials/node-inspector";
-import "./inspectors/materials/cell-inspector";
-import "./inspectors/materials/fire-inspector";
-import "./inspectors/materials/lava-inspector";
-import "./inspectors/materials/water-inspector";
-import "./inspectors/materials/tri-planar-inspector";
+import "./components/inspectors/materials/standard-inspector";
+import "./components/inspectors/materials/pbr-inspector";
+import "./components/inspectors/materials/sky-inspector";
+import "./components/inspectors/materials/node-inspector";
+import "./components/inspectors/materials/cell-inspector";
+import "./components/inspectors/materials/fire-inspector";
+import "./components/inspectors/materials/lava-inspector";
+import "./components/inspectors/materials/water-inspector";
+import "./components/inspectors/materials/tri-planar-inspector";
 
-import "./inspectors/textures/texture-inspector";
+import "./components/inspectors/textures/texture-inspector";
 
-import "./inspectors/particle-systems/particle-system-inspector";
-import "./inspectors/particle-systems/particle-system-gradients-inspector";
+import "./components/inspectors/particle-systems/particle-system-inspector";
+import "./components/inspectors/particle-systems/particle-system-gradients-inspector";
 
-import "./inspectors/sound/sound-inspector";
+import "./components/inspectors/sound/sound-inspector";
 
 // Assets
 import { MaterialAssets } from "./assets/materials";
