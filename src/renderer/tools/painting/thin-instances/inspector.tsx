@@ -15,7 +15,7 @@ import { MaterialAssets } from "../../../editor/assets/materials";
 import { ThinInstancePainter } from "../../../editor/painting/thin-instance/thin-instance";
 
 import { IObjectInspectorProps } from "../../../editor/components/inspector";
-import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
+import { AbstractInspector } from "../../../editor/components/inspectors/abstract-inspector";
 
 export interface IThinInstancePainterState {
     /**

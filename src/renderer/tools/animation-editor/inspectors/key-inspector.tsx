@@ -1,6 +1,6 @@
 import { Animation } from "babylonjs";
 import { Inspector } from "../../../editor/components/inspector";
-import { AbstractInspectorLegacy } from "../../../editor/inspectors/abstract-inspector-legacy";
+import { AbstractInspectorLegacy } from "../../../editor/components/inspectors/abstract-inspector-legacy";
 
 import { AnimationKeyObject } from "../tools/animation-key-object";
 

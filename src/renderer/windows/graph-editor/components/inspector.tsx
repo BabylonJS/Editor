@@ -11,7 +11,7 @@ import { undoRedo } from "../../../editor/tools/undo-redo";
 import "../../../editor/gui/augmentations/index";
 
 import { IObjectInspectorProps } from "../../../editor/components/inspector";
-import { AbstractInspectorLegacy } from "../../../editor/inspectors/abstract-inspector-legacy";
+import { AbstractInspectorLegacy } from "../../../editor/components/inspectors/abstract-inspector-legacy";
 
 import GraphEditorWindow from "../index";
 

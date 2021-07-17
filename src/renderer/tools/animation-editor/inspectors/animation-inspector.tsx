@@ -11,7 +11,7 @@ import { Tools } from "../../../editor/tools/tools";
 import { AnimationObject } from "../tools/animation-object";
 
 import { Inspector } from "../../../editor/components/inspector";
-import { AbstractInspectorLegacy } from "../../../editor/inspectors/abstract-inspector-legacy";
+import { AbstractInspectorLegacy } from "../../../editor/components/inspectors/abstract-inspector-legacy";
 
 import { AnimationRanges } from "./animation-ranges";
 

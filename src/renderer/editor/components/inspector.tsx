@@ -5,8 +5,8 @@ import { Scene, SubMesh } from "babylonjs";
 
 import { Editor } from "../editor";
 
-import { AbstractInspector } from "../inspectors/abstract-inspector";
-import { AbstractInspectorLegacy } from "../inspectors/abstract-inspector-legacy";
+import { AbstractInspector } from "./inspectors/abstract-inspector";
+import { AbstractInspectorLegacy } from "./inspectors/abstract-inspector-legacy";
 
 import { Tools } from "../tools/tools";
 import { Nullable, Undefinable } from "../../../shared/types";

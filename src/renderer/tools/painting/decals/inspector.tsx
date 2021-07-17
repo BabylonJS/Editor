@@ -9,7 +9,7 @@ import { MaterialAssets } from "../../../editor/assets/materials";
 import { IAssetComponentItem, IDragAndDroppedAssetComponentItem } from "../../../editor/assets/abstract-assets";
 
 import { IObjectInspectorProps } from "../../../editor/components/inspector";
-import { AbstractInspector } from "../../../editor/inspectors/abstract-inspector";
+import { AbstractInspector } from "../../../editor/components/inspectors/abstract-inspector";
 
 import { InspectorList } from "../../../editor/gui/inspector/fields/list";
 import { InspectorNumber } from "../../../editor/gui/inspector/fields/number";
