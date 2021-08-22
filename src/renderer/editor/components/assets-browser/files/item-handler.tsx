@@ -234,6 +234,8 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 
 		AssetsBrowserItemHandler._DragAndDroppedItem = this;
 
+		ev.dataTransfer.setDragImage(new Image(), 0, 0);
+
 		this.props.editor.engine?.getRenderingCanvas()?.addEventListener("drop", this._dropListener = (dropEv) => {
 			const scene = this.props.editor.scene!;
 			const pick = scene.pick(dropEv.offsetX, dropEv.offsetY) ?? new PickingInfo();
