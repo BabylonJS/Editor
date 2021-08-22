@@ -240,8 +240,8 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			const iStats = await stat(item);
 
 			if (iStats.isDirectory()) {
-				// Check directory dropped on itself
-				if (join(item, "/") === join(to, "/")) {
+				// Check directory dropped on itself or same location
+				if (join(item, "/") === join(to, "/") || (!renamedFolder && dirname(item) === to)) {
 					continue;
 				}
 

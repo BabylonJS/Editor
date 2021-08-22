@@ -211,10 +211,10 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 				isExpanded: this._expandedPaths.indexOf(t.path) !== -1 || this._filter !== "",
 			});
 
-			const matches = t.name.toLowerCase().indexOf(filter) !== -1;
-			if (matches) {
-				// root?.childNodes?.push(child);
-			}
+			const isLeaf = !child.childNodes?.length;
+            if (isLeaf && t.name.toLowerCase().indexOf(filter) === -1) {
+                return;
+            }
 
 			root?.childNodes?.push(child);
 		});

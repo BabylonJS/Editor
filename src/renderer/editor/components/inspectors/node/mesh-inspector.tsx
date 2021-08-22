@@ -104,7 +104,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
 
                 {this._getSkeletonInspector()}
                 {this._getMorphTargetsInspector()}
-                {/* {this._getLodsInspector()} */}
+                {this._getLodsInspector()}
                 {this.getAnimationRangeInspector()}
                 {this.getAnimationsGroupInspector()}
             </>
@@ -380,6 +380,41 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         return (
             <InspectorSection title="Morph Targets">
                 {sliders}
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the LOD inspector used to configure/add/remove LODs.
+     */
+    private _getLodsInspector(): React.ReactNode {
+        if (this.selectedObject instanceof InstancedMesh || this.selectedObject._masterMesh) {
+            return undefined;
+        }
+
+        const sections: React.ReactNode[] = [];
+        const mesh = this.selectedObject as Mesh;
+        const lods = this.selectedObject.getLODLevels();
+
+        lods.forEach((lod) => {
+            sections.push((
+                <InspectorSection title={lod.mesh?.name ?? "Null"}>
+                    <InspectorButton label="Remove" small onClick={() => {
+                        debugger;
+                        mesh.removeLODLevel(lod.mesh!);
+                        this.forceUpdate();
+                    }} />
+                </InspectorSection>
+            ))
+        });
+
+        return (
+            <InspectorSection key="lod" title="LOD">
+                {sections}
+                <InspectorButton label="Add LOD" onClick={() => {
+                    mesh.addLODLevel(100, null);
+                    this.forceUpdate();
+                }} />
             </InspectorSection>
         );
     }
