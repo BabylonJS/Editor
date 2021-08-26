@@ -1,6 +1,6 @@
 # Welcome to the Babylon.JS Editor documentation
 
-Welcome to the documentation of the Babylon.JS Editor. A serie of tutorials are available to understand the basics of the Editor. It is recommanded to read the tutorials before starting with the Editor.
+Welcome to the documentation of the Babylon.JS Editor. A series of tutorials are available to understand the basics of the Editor. It is recommanded to read the tutorials before starting with the Editor.
 
 ## Tutorials
 * Workspace
