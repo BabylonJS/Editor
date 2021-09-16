@@ -7,7 +7,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 import * as React from "react";
 import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
-import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, BaseTexture, BasisTools } from "babylonjs";
+import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, BaseTexture, BasisTools, DynamicTexture } from "babylonjs";
 
 import { Tools } from "../tools/tools";
 import { KTXTools } from "../tools/ktx";
@@ -147,10 +147,15 @@ export class TextureAssets extends AbstractAssets {
                 continue;
             }
 
+            const isDyamicTexture = texture instanceof DynamicTexture;
+            if (isDyamicTexture && !texture.metadata?.photoshop) {
+                continue;
+            }
+
             const filePath = join(this.editor.assetsBrowser.assetsDirectory, texture.name);
             const exists = await pathExists(filePath);
 
-            if (exists) {
+            if (exists || isDyamicTexture) {
                 texture.metadata = texture.metadata ?? {};
                 if (!texture.metadata.editorName) {
                     texture.metadata.editorName = basename(texture.name);
@@ -159,7 +164,16 @@ export class TextureAssets extends AbstractAssets {
                     texture.metadata.editorId = Tools.RandomId();
                 }
 
-                const base64 = texture.isCube ? "../css/svg/dds.svg" : filePath ?? "";
+                let base64 = texture.isCube ? "../css/svg/dds.svg" : filePath ?? "../css/svg/file.svg";
+                if (isDyamicTexture) {
+                    base64 = (texture as DynamicTexture).getContext().canvas.toDataURL("image/png");
+                } else {
+                    const extension = extname(texture.name).toLowerCase();
+                    switch (extension) {
+                        case ".basis": base64 = "../css/images/ktx.png"; break;
+                        default: break;
+                    }
+                }
 
                 const itemData: IAssetComponentItem = {
                     base64,
@@ -177,7 +191,6 @@ export class TextureAssets extends AbstractAssets {
                 } else {
                     this.items.push(itemData);
                 }
-
             }
 
             this.updateAssetObservable.notifyObservers();

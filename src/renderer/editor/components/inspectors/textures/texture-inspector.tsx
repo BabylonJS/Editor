@@ -1,4 +1,4 @@
-import { join } from "path";
+import { join, extname } from "path";
 
 import * as React from "react";
 
@@ -22,7 +22,7 @@ export interface ITextureInspectorState {
     samplingMode?: number;
 }
 
-export class TextureInspector<T extends Texture | CubeTexture, S extends ITextureInspectorState> extends AbstractInspector<T, S> {
+export class TextureInspector<T extends Texture | CubeTexture, S extends ITextureInspectorState> extends AbstractInspector<T, S> {
     private static _CoordinatesModes: string[] = [
         "EXPLICIT_MODE", "SPHERICAL_MODE", "PLANAR_MODE", "CUBIC_MODE",
         "PROJECTION_MODE", "SKYBOX_MODE", "INVCUBIC_MODE", "EQUIRECTANGULAR_MODE",
@@ -47,7 +47,7 @@ export class TextureInspector<T extends Texture | CubeTexture, S extends ITextu
      */
     public renderContent(): React.ReactNode {
         if (!this.selectedObject.metadata?.editorName) {
-            this.selectedObject.metadata ??= { };
+            this.selectedObject.metadata ??= {};
             this.selectedObject.metadata.editorName ??= "";
         }
 
@@ -71,9 +71,12 @@ export class TextureInspector<T extends Texture | CubeTexture, S extends ITextu
             return undefined;
         }
 
-        const path = this.selectedObject instanceof Texture ?
-                        join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name) :
-                        "../css/svg/dds.svg";
+        let path = this.selectedObject.isCube ? "../css/svg/dds.svg" : join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name) ?? "";
+        const extension = extname(this.selectedObject.name).toLowerCase();
+        switch (extension) {
+            case ".basis": path = "../css/images/ktx.png"; break;
+            default: break;
+        }
 
         return (
             <InspectorSection title="Preview">
