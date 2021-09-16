@@ -8,7 +8,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 import * as React from "react";
 import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, Popover, Position, MenuDivider, Tag, Intent } from "@blueprintjs/core";
 
-import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, DynamicTexture, BaseTexture } from "babylonjs";
+import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, DynamicTexture, BaseTexture, BasisTools } from "babylonjs";
 
 import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
@@ -40,12 +40,15 @@ export class TextureAssets extends AbstractAssets {
      */
     protected size: number = 50;
 
-    private _extensions: string[] = [".png", ".jpg", ".jpeg", ".dds", ".env"];
+    private _extensions: string[] = [".png", ".jpg", ".jpeg", ".dds", ".env", ".basis"];
 
     /**
      * Registers the component.
      */
     public static Register(): void {
+        BasisTools.WasmModuleURL = "libs/basis_transcoder.wasm";
+        BasisTools.JSModuleURL = `file://${join(__dirname, "../../../../../html/libs/basis_transcoder.js")}`;
+
         Assets.addAssetComponent({
             title: "Textures",
             identifier: "textures",
@@ -116,8 +119,15 @@ export class TextureAssets extends AbstractAssets {
             }
 
             let base64 = texture.isCube ? "../css/svg/dds.svg" : file?.path ?? "";
+            
             if (isDyamicTexture) {
                 base64 = (texture as DynamicTexture).getContext().canvas.toDataURL("image/png");
+            } else {
+                const extension = extname(texture.name).toLowerCase();
+                switch (extension) {
+                    case ".basis": base64 = "../css/svg/file-archive.svg"; break;
+                    default: break;
+                }
             }
 
             const itemData: IAssetComponentItem = { key: texture.metadata.editorId, id: texture.metadata.editorName, base64 };
