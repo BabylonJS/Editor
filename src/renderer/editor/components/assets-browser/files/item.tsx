@@ -130,6 +130,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".jpeg", ctor: ImageItemHandler });
 
 		this.RegisterItemHandler({ extension: ".ktx", ctor: KTXItemHandler });
+		this.RegisterItemHandler({ extension: ".basis", ctor: KTXItemHandler });
 
 		this.RegisterItemHandler({ extension: ".fbx", ctor: MeshItemHandler });
 		this.RegisterItemHandler({ extension: ".babylon", ctor: MeshItemHandler });
