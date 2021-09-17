@@ -3,12 +3,12 @@ Babylon.js Editor v4
 
 The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
 
-The online documentation is available here: https://github.com/BabylonJS/Editor/blob/release/4.0.0/doc/00%20-%20welcome/doc.md
+The online documentation is available here: https://github.com/BabylonJS/Editor/blob/master/doc/00%20-%20welcome/doc.md
 
-## Download (v4.0.2)
-  * Win32 - [download](http://editor.babylonjs.com/electron/4.0.2/BabylonJS%20Editor%20Setup%204.0.2.exe)
-  * MacOS - [download](http://editor.babylonjs.com/electron/4.0.2/BabylonJS%20Editor-4.0.2.dmg)
-  * Linux - [download](http://editor.babylonjs.com/electron/4.0.2/BabylonJS%20Editor-4.0.2.AppImage)
+## Download (v4.0.3)
+  * Win32 - [download](http://editor.babylonjs.com/electron/4.0.3/BabylonJS%20Editor%20Setup%204.0.3.exe)
+  * MacOS - [download](http://editor.babylonjs.com/electron/4.0.3/BabylonJS%20Editor-4.0.3.dmg)
+  * Linux - [download](http://editor.babylonjs.com/electron/4.0.3/BabylonJS%20Editor-4.0.3.AppImage)
 
 ## Features
 * Workspace based to manage multiple projects
