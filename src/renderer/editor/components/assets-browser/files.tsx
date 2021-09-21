@@ -1,9 +1,10 @@
 import { platform } from "os";
 import { shell } from "electron";
 import { basename, extname, join } from "path";
-import { copyFile, mkdir, pathExists, readdir, readFile, stat, Stats, writeFile, writeJSON } from "fs-extra";
+import { copyFile, mkdir, pathExists, readdir, readFile, readJSON, stat, Stats, writeFile, writeJSON } from "fs-extra";
 
 import * as React from "react";
+import Slider from "antd/lib/slider";
 import {
 	Boundary, Breadcrumbs, Button, ButtonGroup, Classes, IBreadcrumbProps, Intent, Menu,
 	MenuDivider, MenuItem, Popover, Code, Divider, ContextMenu, Icon as BPIcon,
@@ -19,6 +20,7 @@ import { Dialog } from "../../gui/dialog";
 
 import { Tools } from "../../tools/tools";
 
+import { WorkSpace } from "../../project/workspace";
 import { SceneExporter } from "../../project/scene-exporter";
 
 import { AssetsBrowserItem } from "./files/item";
@@ -44,6 +46,11 @@ export interface IAssetsBrowserFilesState {
 	 * Defines the absolute path to the working directory.
 	 */
 	currentDirectory: string;
+
+	/**
+	 * Defines the current size value for the items.
+	 */
+	itemsSize: number;
 
 	/**
 	 * Defines the list of all items drawn in the view.
@@ -80,6 +87,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		this.state = {
 			items: [],
+			itemsSize: 1,
 			pathStack: [],
 			currentDirectory: "",
 		};
@@ -89,9 +97,12 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Renders the component.
 	 */
 	public render(): React.ReactNode {
+		const isMacOs = platform() === "darwin";
+		const isAssetsDirectory = this.state.currentDirectory.indexOf(this._assetsDirectory) === 0;
+
 		const addContent = (
 			<Menu>
-				<MenuItem text="Material" icon={<Icon src="circle.svg" />}>
+				<MenuItem text="Material" disabled={!isAssetsDirectory} icon={<Icon src="circle.svg" />}>
 					<MenuItem text="Standard Material..." onClick={() => this._handleCreateMaterial("StandardMaterial")} />
 					<MenuItem text="PBR Material..." onClick={() => this._handleCreateMaterial("PBRMaterial")} />
 					<MenuItem text="Node Material..." onClick={() => this._handleCreateMaterial("NodeMaterial")} />
@@ -107,14 +118,37 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					<MenuItem key="add-tri-planar-material" text="Add Tri Planar Material..." onClick={() => this._handleCreateMaterial("TriPlanarMaterial")} />
 				</MenuItem>
 
-				<MenuItem text="Particles System" icon={<Icon src="wind.svg" />}>
+				<MenuItem text="Particles System" disabled={!isAssetsDirectory} icon={<Icon src="wind.svg" />}>
 					<MenuItem text="Particles System..." onClick={() => this._handleCreateParticlesSystem()} />
 				</MenuItem>
 
 				<MenuDivider />
 
-				<MenuItem text="TypeScript File..." icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
-				<MenuItem text="Graph File..." icon={<Icon src="project-diagram.svg" />} onClick={() => this._handleAddGraph()} />
+				<MenuItem text="TypeScript File..." disabled={isAssetsDirectory} icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
+				<MenuItem text="Graph File..." disabled={!isAssetsDirectory} icon={<Icon src="project-diagram.svg" />} onClick={() => this._handleAddGraph()} />
+			</Menu>
+		);
+
+		const view = (
+			<Menu>
+				<MenuDivider title="Items Size" />
+				<div style={{ width: "200px", height: "50px" }}>
+					<MenuItem disabled={true} text={
+						<Slider min={0.5} max={1} step={0.01} value={this.state.itemsSize} onChange={(v) => {
+							this.setState({ itemsSize: v }, () => {
+								this._items.forEach((i) => i.setState({ size: v }));
+							});
+						}} />
+					} />
+				</div>
+				<MenuDivider />
+				<MenuItem
+					icon={<BPIcon icon="document-open" color="white" />}
+					text={`Reveal in ${isMacOs ? "Finder" : "Explorer"}`}
+					onClick={() => shell.openItem(Tools.NormalizePathForCurrentPlatform(this.state.currentDirectory))}
+				/>
+				<MenuDivider />
+				<MenuItem text="Refresh" icon={<Icon src="recycle.svg" />} onClick={() => this.props.editor.assetsBrowser.refresh()} />
 			</Menu>
 		);
 
@@ -129,10 +163,14 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					marginTop: "5px"
 				}}>
 					<ButtonGroup>
-						<Button text="Import..." icon="import" intent="primary" small style={{ minWidth: "120px" }} onClick={() => this._handleImportFiles()} />
+						<Button text="Import..." icon="import" disabled={!isAssetsDirectory} intent="primary" small style={{ minWidth: "120px" }} onClick={() => this._handleImportFiles()} />
 						<Divider />
 						<Popover key="add-popover" position="bottom-left" content={addContent}>
 							<Button text="Add" small icon={<Icon src="plus.svg" />} rightIcon="caret-down" />
+						</Popover>
+						<Divider />
+						<Popover key="view-popover" position="bottom-left" content={view}>
+							<Button text="View" small icon={<Icon src="eye.svg" />} rightIcon="caret-down" />
 						</Popover>
 					</ButtonGroup>
 				</div>
@@ -160,8 +198,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 						position: "absolute",
 						height: "calc(100% - 70px)",
 						justifyContent: "space-between",
-						gridTemplateRows: "repeat(auto-fill, 120px)",
-						gridTemplateColumns: "repeat(auto-fill, 120px)",
+						gridTemplateRows: `repeat(auto-fill, ${120 * this.state.itemsSize}px)`,
+						gridTemplateColumns: `repeat(auto-fill, ${120 * this.state.itemsSize}px)`,
 					}}
 					onContextMenu={(ev) => this._handleContextMenu(ev)}
 				>
@@ -210,6 +248,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					key={Tools.RandomId()}
 					editor={this.props.editor}
 					absolutePath={absolutePath}
+					size={this.state.itemsSize}
 					type={fStats.isDirectory() ? "directory" : "file"}
 					relativePath={absolutePath.replace(join(this._assetsDirectory, "/"), "")}
 
@@ -363,7 +402,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		), {
 			top: ev.clientY,
 			left: ev.clientX,
-		})
+		});
 	}
 
 	/**
@@ -390,7 +429,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 */
 	private async _handleCreateParticlesSystem(): Promise<void> {
 		let name = await Dialog.Show("Particles System Name", "Please provide a name for the new particles system to created.");
-		
+
 		const emitter = new Mesh(name, this.props.editor.scene!);
 		emitter.id = Tools.RandomId();
 
@@ -437,7 +476,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 			return Alert.Show("Can't Create Script", `A script named "${name}" already exists.`);
 		}
 
-		const skeleton = await readFile(join(Tools.GetAppPath(), `assets/scripts/script.ts`), { encoding: "utf-8" });
+		const tsConfig = await readJSON(join(WorkSpace.DirPath!, "tsconfig.json"), { encoding: "utf-8" });
+		const isEs5 = (tsConfig.compilerOptions?.target?.toLowerCase() ?? "es5") === "es5";
+
+		const skeleton = await readFile(join(Tools.GetAppPath(), `assets/scripts/${isEs5 ? "script.ts" : "script-es6.ts"}`), { encoding: "utf-8" });
 		await writeFile(dest, skeleton);
 
 		await SceneExporter.GenerateScripts(this.props.editor);
