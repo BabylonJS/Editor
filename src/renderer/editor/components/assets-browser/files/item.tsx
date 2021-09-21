@@ -53,6 +53,11 @@ export interface IAssetsBrowserItemProps {
 	type: "file" | "directory";
 
 	/**
+	 * Defines the size of the item.
+	 */
+	size?: number;
+
+	/**
 	 * Defines the callback called each time the item is clicked.
 	 */
 	onClick: (item: AssetsBrowserItem, ev: React.MouseEvent<HTMLDivElement>) => void;
@@ -83,6 +88,11 @@ export interface IAssetsBrowserItemState {
 	 * Defines the reference to the item handler.
 	 */
 	itemHandler: Nullable<React.ReactNode>;
+
+	/**
+	 * Defines the size of the item.
+	 */
+	size: number;
 }
 
 export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, IAssetsBrowserItemState> {
@@ -176,6 +186,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 			isRenaming: false,
 			itemHandler: null,
 			titleColor: "#ffffff",
+			size: props.size ?? 1,
 		};
 	}
 
@@ -201,8 +212,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 				}}
 
 				style={{
-					width: "100px",
-					height: "100px",
+					width: `${100 * this.state.size}px`,
+					height: `${100 * this.state.size}px`,
 					margin: "10px 10px",
 					textAlign: "center",
 					outlineWidth: "3px",
@@ -339,7 +350,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 				style={{
 					left: "0px",
 					bottom: "0px",
-					width: "100px",
+					width: `${100 * this.state.size}px`,
 					overflow: "hidden",
 					userSelect: "none",
 					whiteSpace: "nowrap",
