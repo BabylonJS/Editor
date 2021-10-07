@@ -37,7 +37,7 @@ export class MeshesAssets extends AbstractAssets {
     /**
      * Defines the list of all supported extensions.
      */
-    public extensions: string[] = [".babylon", ".glb", ".gltf", ".obj", ".fbx"];
+    public extensions: string[] = [".babylon", ".glb", ".gltf", ".obj", ".fbx", ".stl"];
 
     /**
      * Defines the list of all avaiable meshes in the assets component.
