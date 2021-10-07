@@ -41,6 +41,12 @@ export class ArcRotateCameraInspector extends CameraInspector<ArcRotateCamera, I
                     <InspectorNumber object={this.selectedObject} property="angularSensibilityX" label="Angular Sensibility X" step={0.01} />
                     <InspectorNumber object={this.selectedObject} property="angularSensibilityY" label="Angular Sensibility Y" step={0.01} />
 
+                    <InspectorSection title="Radius And Position">
+                        <InspectorNumber object={this.selectedObject} property="radius" label="Radius" min={0} step={0.01} />
+                        <InspectorNumber object={this.selectedObject} property="alpha" label="Alpha" step={0.01} />
+                        <InspectorNumber object={this.selectedObject} property="beta" label="Beta" step={0.01} />
+                    </InspectorSection>
+
                     <InspectorSection title="Panning">
                         <InspectorNumber object={this.selectedObject} property="panningInertia" label="Panning Inertia" step={0.01} />
                         {panningSensibility}
