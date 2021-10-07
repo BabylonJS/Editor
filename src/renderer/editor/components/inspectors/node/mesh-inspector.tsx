@@ -1,20 +1,28 @@
+import { basename, dirname, join } from "path";
+
 import * as React from "react";
+import { ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
 
 import {
-    Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion,
-    PhysicsImpostor, GroundMesh,
-    Material, Tools as BabylonTools,
+    Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion, PhysicsImpostor, GroundMesh,
+    MeshLODLevel, SceneLoader, Material, Tools as BabylonTools,
 } from "babylonjs";
 
 import { Inspector } from "../../inspector";
 
+import { Icon } from "../../../gui/icon";
+
+import { InspectorList } from "../../../gui/inspector/fields/list";
+import { InspectorNotifier } from "../../../gui/inspector/notifier";
 import { InspectorNumber } from "../../../gui/inspector/fields/number";
 import { InspectorButton } from "../../../gui/inspector/fields/button";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorBoolean } from "../../../gui/inspector/fields/boolean";
 import { InspectorVector3 } from "../../../gui/inspector/fields/vector3";
-import { InspectorNotifier } from "../../../gui/inspector/notifier";
-import { InspectorList } from "../../../gui/inspector/fields/list";
+
+import { Workers } from "../../../workers/workers";
+import AssetsWorker from "../../../workers/workers/assets";
+import { AssetsBrowserItemHandler } from "../../assets-browser/files/item-handler";
 
 import { Tools } from "../../../tools/tools";
 import { undoRedo } from "../../../tools/undo-redo";
@@ -396,16 +404,20 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         const mesh = this.selectedObject as Mesh;
         const lods = this.selectedObject.getLODLevels();
 
-        lods.forEach((lod) => {
+        lods.forEach((lod, index) => {
             sections.push((
-                <InspectorSection title={lod.mesh?.name ?? "Null"}>
-                    <InspectorButton label="Remove" small onClick={() => {
-                        debugger;
+                <InspectorSection key={`lod-${index}`} title={lod.mesh?.name ?? "Null"}>
+                    {this._getLodDragAndDropZone(mesh, lod)}
+                    <InspectorNumber key={`lod-distance-${index}`} object={lod} property="distance" label="Distance" min={0} onChange={() => mesh["_sortLODLevels"]()} />
+                    <InspectorButton key={`lod-remove-${index}`} label="Remove" small onClick={() => {
                         mesh.removeLODLevel(lod.mesh!);
+                        lod.mesh?.dispose(true, false);
+
+                        mesh["_sortLODLevels"]();
                         this.forceUpdate();
                     }} />
                 </InspectorSection>
-            ))
+            ));
         });
 
         return (
@@ -417,6 +429,135 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
                 }} />
             </InspectorSection>
         );
+    }
+
+    /**
+     * Returns the react node used to handle drag'n'drop of meshes assets for the given lod level.
+     */
+    private _getLodDragAndDropZone(mesh: Mesh, lodLevel: MeshLODLevel): React.ReactNode {
+        let divContent: React.ReactNode;
+        if (lodLevel.mesh) {
+            const divRef = React.createRef<HTMLDivElement>();
+
+            divContent = (
+                <div ref={divRef} style={{ width: "100%", height: "100%" }}>
+                    <img
+                        style={{ width: "100%", height: "100%", objectFit: "contain", padding: "5px", outlineColor: "#48aff0", outlineWidth: "3px" }}
+                        onMouseOver={(e) => (e.currentTarget as HTMLImageElement).style.outlineStyle = "groove"}
+                        onMouseLeave={(e) => (e.currentTarget as HTMLImageElement).style.outlineStyle = "unset"}
+                        onContextMenu={(e) => {
+                            ContextMenu.show((
+                                <Menu>
+                                    <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveMeshFromLodLevel(mesh, lodLevel)} />
+                                </Menu>
+                            ), {
+                                top: e.clientY,
+                                left: e.clientX,
+                            });
+                        }}
+                        ref={async (r) => {
+                            if (!r) { return; }
+                            await Tools.Wait(0);
+    
+                            const notFoundToolTip = "Source Asset Not Found";
+                            const notFoundImagePath = "../css/svg/question-mark.svg";
+    
+                            const relativePath = lodLevel.mesh?.metadata?.lodMeshPath;
+                            if (!relativePath) {
+                                r.src = notFoundImagePath;
+                                divRef.current?.setAttribute("data-tooltip", notFoundToolTip);
+                                return;
+                            }
+    
+                            const absolutePath = join(this.editor.assetsBrowser.assetsDirectory, relativePath);
+                            const path = await Workers.ExecuteFunction<AssetsWorker, "createScenePreview">(AssetsBrowserItemHandler.AssetWorker, "createScenePreview", relativePath, absolutePath);
+    
+                            if (path) {
+                                r.src = path;
+                            } else {
+                                r.src = notFoundImagePath;
+                                divRef.current?.setAttribute("data-tooltip", notFoundToolTip);
+                            }
+                        }}
+                    />
+                </div>
+            );
+        } else {
+            divContent = (
+                <h2 style={{ textAlign: "center", color: "white", lineHeight: "50px", userSelect: "none" }}>Drag'n'drop mesh here.</h2>
+            );
+        }
+
+        return (
+            <div
+                style={{ width: "100%", height: lodLevel.mesh ? "100px" : "50px", border: "1px dashed black" }}
+                onDragEnter={(e) => (e.currentTarget as HTMLDivElement).style.border = "dashed red 1px"}
+                onDragLeave={(e) => (e.currentTarget as HTMLDivElement).style.border = "dashed black 1px"}
+                onDrop={async (e) => this._handleLodMeshLevelDragAndDrop(mesh, lodLevel, e)}
+            >
+                {divContent}
+            </div>
+        );
+    }
+
+    /**
+     * Called on the user wants to remove the current mesh from the given lod level.
+     */
+    private _handleRemoveMeshFromLodLevel(mesh: Mesh, lodLevel: MeshLODLevel): void {
+        mesh.removeLODLevel(lodLevel.mesh!);
+        lodLevel.mesh?.dispose(true, false);
+        mesh.addLODLevel(lodLevel.distance, null);
+
+        mesh["_sortLODLevels"]();
+        this.forceUpdate();
+    }
+
+    /**
+     * Called on the user drops a mesh asset in the drag'n'drop zone for a mesh Lod inspector.
+     */
+    private async _handleLodMeshLevelDragAndDrop(mesh: Mesh, lodLevel: MeshLODLevel, e: React.DragEvent<HTMLDivElement>): Promise<void> {
+        (e.currentTarget as HTMLDivElement).style.border = "dashed black 1px";
+
+        try {
+            const dataContent = e.dataTransfer.getData("asset/mesh");
+            const data = JSON.parse(dataContent);
+
+            if (!data) { return; }
+
+            // Load lod mesh
+            const meshName = basename(data.absolutePath);
+            const rootUrl = join(dirname(data.absolutePath), "/");
+            const result = await SceneLoader.ImportMeshAsync("", rootUrl, meshName, this.editor.scene!);
+
+            // Clean load result
+            result.skeletons.forEach((s) => s.dispose());
+            result.particleSystems.forEach((ps) => ps.dispose(true));
+            result.meshes.forEach((m) => m.material && m.material.dispose(true, true));
+
+            // Configure lod mesh
+            const lodMesh = result.meshes[0];
+            if (!lodMesh || !(lodMesh instanceof Mesh)) { return; }
+
+            lodMesh.id = Tools.RandomId();
+            lodMesh.name = meshName;
+            lodMesh.material = this.selectedObject.material;
+            lodMesh.skeleton = this.selectedObject.skeleton;
+            lodMesh.position.set(0, 0, 0);
+
+            lodMesh.metadata ??= {};
+            lodMesh.metadata.lodMeshPath = data.relativePath;
+
+            // Replace mesh
+            mesh.removeLODLevel(lodLevel.mesh!);
+            lodLevel.mesh?.dispose(true, false);
+
+            mesh.addLODLevel(lodLevel.distance, lodMesh);
+            mesh["_sortLODLevels"]();
+
+            this.forceUpdate();
+        } catch (e) {
+            // Catch silently.
+        }
     }
 
     /**
