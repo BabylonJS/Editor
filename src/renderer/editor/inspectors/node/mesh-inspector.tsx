@@ -135,9 +135,9 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         if (this.selectedObject instanceof Mesh) {
             return (
                 <InspectorSection title="Rendering">
-                    <InspectorBoolean object={this.selectedObject} property="receiveShadows" label="Receive Shadows" />
+                    <InspectorBoolean object={this.selectedObject} property="receiveShadows" label="Receive Shadows" defaultValue={false} />
                     <InspectorBoolean object={this.selectedObject} property="applyFog" label="Apply Fog" />
-                    <InspectorBoolean object={this.selectedObject} property="infiniteDistance" label="Infinite Distance" />
+                    <InspectorBoolean object={this.selectedObject} property="infiniteDistance" label="Infinite Distance" defaultValue={false} />
                     <InspectorNumber object={this.selectedObject} property="visibility" label="Visibility" min={0} max={1} step={0.01} />
                     <InspectorList object={this.selectedObject} property="material" label="Material" items={() => this.getMaterialsList()} onChange={(v) => {
                         const lods = (this.selectedObject as Mesh).getLODLevels();
@@ -167,7 +167,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
     private _getCollisionsInspector(): React.ReactNode {
         return (
             <InspectorSection title="Collisions">
-                <InspectorBoolean object={this.selectedObject} property="checkCollisions" label="Check Collisions" onFinishChange={() => {
+                <InspectorBoolean object={this.selectedObject} property="checkCollisions" label="Check Collisions" defaultValue={false} onFinishChange={() => {
                     this.forceUpdate();
                 }} />
 
