@@ -391,3 +391,33 @@ html, body {
     border-left: 5px solid rgba(0, 0, 0, 0.5);
     border-right: 5px solid rgba(0, 0, 0, 0.5);
 }
+
+/* DATA TOOLTIP */
+
+[data-tooltip]:before {
+    /* needed - do not touch */
+    opacity: 0;
+    position: absolute;
+    content: attr(data-tooltip);
+    
+    /* customizable */
+    padding: 10px;
+    color: white;
+    border-radius: 10px;
+    transition: all 0.15s ease;
+    box-shadow: 2px 2px 1px #222222;
+}
+
+[data-tooltip]:hover:before {
+    /* needed - do not touch */
+    opacity: 1;
+
+    /* customizable */
+    /* margin-top: -50px;
+    margin-left: 20px; */
+    background: #444444;
+}
+
+[data-tooltip]:not([data-tooltip-persistent]):before {
+    pointer-events: none;
+}
