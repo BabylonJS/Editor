@@ -231,6 +231,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		let files = await readdir(directoryPath);
 		files = files.filter((f) => f.indexOf(".") !== 0);
 
+		const isSrcDirectory = directoryPath.indexOf(this._sourcesDirectory) === 0;
+
 		// Build items
 		const items: React.ReactNode[] = [];
 		for (const f of files) {
@@ -250,7 +252,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					absolutePath={absolutePath}
 					size={this.state.itemsSize}
 					type={fStats.isDirectory() ? "directory" : "file"}
-					relativePath={absolutePath.replace(join(this._assetsDirectory, "/"), "")}
+					relativePath={absolutePath.replace(join(isSrcDirectory ? this._sourcesDirectory : this._assetsDirectory, "/"), "")}
 
 					onClick={(i, ev) => this._handleAssetSelected(i, ev)}
 					onDoubleClick={() => this._handleItemDoubleClicked(directoryPath, f, fStats)}

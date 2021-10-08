@@ -107,10 +107,13 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      */
     public onCanvasEventObservable: Observable<PreviewCanvasEventType> = new Observable<PreviewCanvasEventType>();
 
+    /**
+     * @hidden
+     */
+    public _scenePlayer: ScenePlayer;
+
     private _editor: Editor;
     private _copiedNode: Nullable<Node | IParticleSystem> = null;
-
-    private _scenePlayer: ScenePlayer;
 
     private _isolatedObject: Nullable<AbstractMesh | IParticleSystem> = null;
     private _cameraPositionBeforeIsolation: Nullable<Vector3> = null;

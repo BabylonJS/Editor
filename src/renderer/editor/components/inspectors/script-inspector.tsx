@@ -29,8 +29,6 @@ import { Tools } from "../../tools/tools";
 
 import { SandboxMain, IExportedInspectorValue } from "../../../sandbox/main";
 
-import { IAssetComponentItem } from "../../assets/abstract-assets";
-
 import { AbstractInspector } from "./abstract-inspector";
 
 export interface IScriptInspectorState {
@@ -163,14 +161,15 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                 style={{ width: "100%", height: "50px", border: "1px dashed black" }}
                 onDragEnter={(e) => (e.currentTarget as HTMLDivElement).style.border = "dashed red 1px"}
                 onDragLeave={(e) => (e.currentTarget as HTMLDivElement).style.border = "dashed black 1px"}
+                data-tooltip="No Script Attached."
                 onDrop={(e) => {
                     (e.currentTarget as HTMLDivElement).style.border = "dashed black 1px";
 
                     try {
-                        const data = JSON.parse(e.dataTransfer.getData("application/script-asset")) as IAssetComponentItem;
-                        if (!data.extraData?.scriptPath) { throw new Error("Can't drag'n'drop script, extraData is misisng"); }
-                        
-                        this.selectedObject.metadata.script.name = data.extraData.scriptPath;
+                        const dataContent = e.dataTransfer.getData("asset/typescript");
+                        const data = JSON.parse(dataContent);
+
+                        this.selectedObject.metadata.script.name = join("src", data.relativePath);
                         this._updateScriptVisibleProperties();
                     } catch (e) {
                         this.editor.console.logError("Failed to parse data of drag'n'drop event.");
@@ -206,6 +205,48 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
     }
 
     /**
+     * Applies the given value on the associated node in the scene player if exists.
+     */
+    private _applyExportedValueInScenePlayer(propertyKey: string, propertyType: string, value: any): void {
+        const playScene = this.editor.preview._scenePlayer?._scene;
+        if (!playScene) {
+            return;
+        }
+
+        let target: Nullable<Node | Scene> = null;
+        if (this.selectedObject instanceof Scene) {
+            target = this.selectedObject;
+        } else {
+            target = playScene.getNodeByID(this.selectedObject["id"]);
+        }
+
+        if (!target) {
+            return;
+        }
+
+        switch (propertyType) {
+            case "number":
+            case "string":
+            case "boolean":
+                target[propertyKey] = value;
+                break;
+
+            case "Vector2":
+                target[propertyKey].copyFrom(value);
+                break;
+            case "Vector3":
+                target[propertyKey].copyFrom({ _x: value.x, _y: value.y, _z: value.z });
+                break;
+
+            case "Color3":
+            case "Color4":
+                target[propertyKey].copyFrom(value);
+                break;
+        }
+
+    }
+
+    /**
      * Returns the list of all exported values.
      */
     private _getInspectorValues(): React.ReactNode {
@@ -228,28 +269,28 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                 case "number":
                     property.value ??= property.value ?? iv.defaultValue ?? 0;
                     children.push(
-                        <InspectorNumber object={property} property="value" label={label} step={0.01} />
+                        <InspectorNumber object={property} property="value" label={label} step={0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
 
                 case "string":
                     property.value ??= property.value ?? iv.defaultValue ?? "";
                     children.push(
-                        <InspectorString object={property} property="value" label={label} />
+                        <InspectorString object={property} property="value" label={label} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
 
                 case "boolean":
                     property.value ??= property.value ?? iv.defaultValue ?? false;
                     children.push(
-                        <InspectorBoolean object={property} property="value" label={label} />
+                        <InspectorBoolean object={property} property="value" label={label} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
 
                 case "KeyMap":
                     property.value ??= property.value ?? iv.defaultValue ?? 0;
                     children.push(
-                        <InspectorKeyMapButton object={property} property="value" label={label} />
+                        <InspectorKeyMapButton object={property} property="value" label={label} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
 
@@ -261,7 +302,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                         property.value ??= property.value ?? { x: 0, y: 0 };
                     }
                     children.push(
-                        <InspectorVector2 object={property} property="value" label={label} step={0.01} />
+                        <InspectorVector2 object={property} property="value" label={label} step={0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
                 case "Vector3":
@@ -272,7 +313,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                         property.value ??= property.value ?? { x: 0, y: 0, z: 0 };
                     }
                     children.push(
-                        <InspectorVector3 object={property} property="value" label={label} step={0.01} />
+                        <InspectorVector3 object={property} property="value" label={label} step={0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
 
@@ -285,7 +326,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                         property.value ??= property.value ?? { r: 0, g: 0, b: 0, a: iv.type === "Color4" ? 1 : undefined };
                     }
                     children.push(
-                        <InspectorColor object={property} property="value" label={label} step={0.01} />
+                        <InspectorColor object={property} property="value" label={label} step={0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
             }
@@ -293,7 +334,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
 
         return (
             <InspectorSection title="Exported Values" children={children} />
-        )
+        );
     }
 
     /**

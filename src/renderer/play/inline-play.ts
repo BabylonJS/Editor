@@ -12,9 +12,12 @@ import { SceneSettings } from "../editor/scene/settings";
 import { PlayOverride } from "./override";
 
 export class ScenePlayer {
+    /**
+     * @hidden
+     */
+    public _scene: Nullable<Scene> = null;
+    
     private _editor: Editor;
-    private _scene: Nullable<Scene> = null;
-
     private _lastEditorCamera: Nullable<Camera> = null;
 
     /**
