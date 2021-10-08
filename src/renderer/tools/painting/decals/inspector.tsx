@@ -6,7 +6,7 @@ import { Divider, H4 } from "@blueprintjs/core";
 import { Material } from "babylonjs";
 
 import { MaterialAssets } from "../../../editor/assets/materials";
-import { IAssetComponentItem, IDragAndDroppedAssetComponentItem } from "../../../editor/assets/abstract-assets";
+import { IAssetComponentItem } from "../../../editor/assets/abstract-assets";
 
 import { IObjectInspectorProps } from "../../../editor/components/inspector";
 import { AbstractInspector } from "../../../editor/components/inspectors/abstract-inspector";
@@ -59,9 +59,9 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
                 <H4 style={{ textAlign: "center" }}>Decals Painter</H4>
                 <InspectorSection title="Material">
                     <div style={{ width: "100%", height: "140px" }}>
-                        <div style={{ height: "100px", margin: "auto" }}>
+                        <div data-tooltip={this.state.selectedMaterialAsset ? undefined : "No Material Set."} style={{ height: "100px", margin: "auto" }}>
                             <img
-                                src={this.state.selectedMaterialAsset?.base64 ?? "../css/svg/magic.svg"}
+                                src={this.state.selectedMaterialAsset?.base64 ?? "../css/svg/question-mark.svg"}
                                 style={{ border: "dashed black 1px", objectFit: "contain", width: "100%", height: "100%" }}
                                 onDragEnter={(e) => (e.currentTarget as HTMLImageElement).style.border = "dashed red 1px"}
                                 onDragLeave={(e) => (e.currentTarget as HTMLImageElement).style.border = "dashed black 1px"}
@@ -101,20 +101,28 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
      */
     private _handleMaterialDropped(e: React.DragEvent<HTMLImageElement>): void {
         (e.currentTarget as HTMLImageElement).style.border = "dashed black 1px";
-        if (!e.dataTransfer) { return; }
 
         try {
-            const data = JSON.parse(e.dataTransfer.getData("application/material")) as IDragAndDroppedAssetComponentItem;
-            const asset = this.editor.assets.getAssetsOf(MaterialAssets)?.find((a) => a.key === data.key) ?? null;
+            const dataContent = e.dataTransfer.getData("asset/material");
+            const data = JSON.parse(dataContent);
 
-            if (asset) {
-                this.selectedObject.material = this.editor.scene!.getMaterialByID(asset.key);
+            if (!data.relativePath) {
+                return;
             }
-            this.setState({ selectedMaterialAsset: asset }, () => {
+
+            const material = this.editor.scene!.materials.find((m) => m.metadata?.editorPath === data.relativePath);
+            if (!material) {
+                return;
+            }
+
+            this.selectedObject.material = material;
+
+            const asset = this.editor.assets.getAssetsOf(MaterialAssets)?.find((a) => a.key === material.id);
+            this.setState({ selectedMaterialAsset: asset ?? null }, () => {
                 InspectorNotifier.NotifyChange(this.selectedObject);
             });
         } catch (e) {
-            // Catch silently;
+            /* Catch silently */
         }
     }
 }

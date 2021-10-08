@@ -133,7 +133,7 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
         );
 
         const panel = (
-            <div style={{ marginLeft: "-35px", borderLeftColor: "grey", borderLeftWidth: "2px", borderLeftStyle: "groove" }}>
+            <div style={{ marginLeft: "-40px", marginTop: "5px", borderLeftColor: "#838383", borderLeftWidth: "2px", borderLeftStyle: "groove" }}>
                 {component}
             </div>
         )
