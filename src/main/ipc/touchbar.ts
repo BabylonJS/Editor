@@ -1,12 +1,19 @@
-import { IpcMainEvent, TouchBar } from "electron";
+import { BrowserWindow, IpcMainEvent, TouchBar, TouchBarButton, TouchBarSegmentedControl, TouchBarSpacer } from "electron";
 
 import { join } from "path";
 
 import { PathTools } from "../tools/path";
+import { DevTools } from "../tools/devtools";
+
 import { IPCRequests } from "../../shared/ipc";
 
 import { IIPCHandler } from "../handlers/ipc";
 import { WindowsHandler } from "../handlers/window";
+
+interface _ISegmentedGroup {
+	element: any;
+	touchbar: (TouchBarSpacer | TouchBarButton);
+}
 
 export class ToucharIPC implements IIPCHandler {
 	/**
@@ -22,24 +29,9 @@ export class ToucharIPC implements IIPCHandler {
 		const window = WindowsHandler.GetWindowByWebContentsId(event.sender.id);
 		if (!window) { return; }
 
-		const items = elements.map((e) => {
-			if (e.icon && !e.iconPosition) {
-				e.iconPosition = "left";
-			}
+		const items: (Electron.TouchBarSpacer | Electron.TouchBarButton)[] = [];
 
-			if (e.separator) {
-				return new TouchBar.TouchBarSpacer({ });
-			}
-
-			return new TouchBar.TouchBarButton({
-				label: e.label,
-				iconPosition: e.iconPosition,
-				icon: e.icon ? join(PathTools.GetAppPath(), e.icon) : undefined,
-				click: () => window.webContents?.send(e.eventName),
-			});
-		});
-
-		if (process.env.DEBUG) {
+		if (process.env.DEBUG || DevTools.IsEnabled) {
 			// Add shortcuts for debug
 			items.push.apply(items, [
 				new TouchBar.TouchBarButton({
@@ -57,8 +49,48 @@ export class ToucharIPC implements IIPCHandler {
 			]);
 		}
 
-		window.setTouchBar(new TouchBar({
-			items,
-		}));
+		const group: _ISegmentedGroup[] = [];
+		elements.forEach((e) => {
+			if (e.separator) {
+				items.push(this._createTouchBarSegmentedControl(window, group.slice()));
+				group.splice(0, group.length);
+				return;
+			}
+
+			group.push({ element: e, touchbar: this._getTouchBarElements(window, e) });
+		});
+
+		if (group.length) {
+			items.push(this._createTouchBarSegmentedControl(window, group.slice()));
+		}
+
+		window.setTouchBar(new TouchBar({ items }));
+	}
+
+	/**
+	 * Creates a new touchbar segmented control taking the given group as segments.
+	 */
+	private _createTouchBarSegmentedControl(window: BrowserWindow, group: _ISegmentedGroup[]): TouchBarSegmentedControl {
+		return new TouchBar.TouchBarSegmentedControl({
+			mode: "buttons",
+			segments: group.map((g) => g.touchbar),
+			change: (index) => window.webContents?.send(group[index]?.element.eventName),
+		});
+	}
+
+	/**
+	 * Returns the touchbar element according to the given element configuration (button, spacer, etc.).
+	 */
+	private _getTouchBarElements(window: BrowserWindow, element: any): TouchBarSpacer | TouchBarButton {
+		if (element.icon && !element.iconPosition) {
+			element.iconPosition = "left";
+		}
+
+		return new TouchBar.TouchBarButton({
+			label: element.label,
+			iconPosition: element.iconPosition,
+			click: () => window.webContents?.send(element.eventName),
+			icon: element.icon ? join(PathTools.GetAppPath(), element.icon) : undefined,
+		});
 	}
 }

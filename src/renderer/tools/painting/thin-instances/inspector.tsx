@@ -47,8 +47,8 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
         }
 
         this.state = {
-            selectedMesh: this.selectedObject._selectedMesh,
             instancesCount: 0,
+            selectedMesh: this.selectedObject._selectedMesh,
         };
     }
 
@@ -65,9 +65,9 @@ export class ThinInstancePainterInspector extends AbstractInspector<ThinInstance
                 <H4 style={{ textAlign: "center" }}>Thin Instances Painter</H4>
                 <InspectorSection title="Material">
                     <div style={{ width: "100%", height: "170px" }}>
-                        <div style={{  height: "100px" }}>
+                        <div data-tooltip={this.state.selectedMesh ? undefined : "No Object Selected."} style={{  height: "100px" }}>
                             <img
-                                src={this.state.selectedMesh && materialAsset ? materialAsset.base64 : "../css/svg/plus.svg"}
+                                src={this.state.selectedMesh && materialAsset ? materialAsset.base64 : "../css/svg/question-mark.svg"}
                                 style={{ border: "dashed black 1px", objectFit: "contain", width: "100%", height: "100%" }}
                                 onDragEnter={(e) => (e.currentTarget as HTMLImageElement).style.border = "dashed red 1px"}
                                 onDragLeave={(e) => (e.currentTarget as HTMLImageElement).style.border = "dashed black 1px"}
