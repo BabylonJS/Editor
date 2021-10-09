@@ -334,6 +334,7 @@ export class SceneExporter {
 
 		// Tools
 		await this.GenerateScripts(editor);
+		await this.CopyShaderFiles(editor);
 
 		editor.updateTaskFeedback(task, 100);
 		editor.closeTaskFeedback(task, 1000);
@@ -420,6 +421,8 @@ export class SceneExporter {
 		const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
 		await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "decorators.ts"), decorators, { encoding: "utf-8" });
 
+		await copyFile(join(Tools.GetAppPath(), "assets", "scripts", "fx.ts"), join(WorkSpace.DirPath!, "src", "scenes", "fx.ts"));
+
 		const tools = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
 		const finalTools = tools// .replace("// ${decorators}", decorators)
 			.replace("${editor-version}", editor._packageJson.version);
@@ -441,6 +444,35 @@ export class SceneExporter {
 		await FSTools.CreateDirectory(indexPath);
 
 		await writeFile(join(indexPath, "index.ts"), scriptsContent, { encoding: "utf-8" });
+	}
+
+	/**
+	 * Copies the shader files located in the "src" folder to the output src folder of the typescript build.
+	 * Typescript build folder is located in the "build" folder of the workspace. This is mainly used to allow
+	 * testing the game in the editor as shader files are required using "require" and transformed to raw by webpack
+	 * for the web version.
+	 * @param editor defines the reference to the editor.
+	 */
+	public static async CopyShaderFiles(editor: Editor): Promise<void> {
+		editor.console.logInfo("Copying shader files...");
+
+		const buildFolder = join(WorkSpace.DirPath!, "build");
+		if (!(await pathExists(buildFolder))) {
+			return;
+		}
+
+		const files = await FSTools.GetGlobFiles(join(WorkSpace.DirPath!, "src", "**", "*.fx"));
+		
+		await Promise.all(files.map(async (f) => {
+			const dest = f.replace(join(WorkSpace.DirPath!, "/"), join(WorkSpace.DirPath!, "build", "/"));
+			
+			if (!(await pathExists(dirname(dest)))) {
+				return;
+			}
+
+			await copyFile(f, dest);
+			editor.console.logInfo(`Copied shader file "${f}" to "${dest}"`);
+		}));
 	}
 
 	/**

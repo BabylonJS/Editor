@@ -25,7 +25,9 @@
         "photoshop-extension/.declaration": true,
         "photoshop-extension/node_modules": true
     },
-
+    "files.associations": {
+        "*.fx": "glsl"
+    },
     "editor.quickSuggestionsDelay": 0,
     "typescript.tsdk": "./node_modules/typescript/lib"
 }
