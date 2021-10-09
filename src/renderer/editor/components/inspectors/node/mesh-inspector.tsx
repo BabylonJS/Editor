@@ -5,7 +5,7 @@ import { ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
 
 import {
     Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion, PhysicsImpostor, GroundMesh,
-    MeshLODLevel, SceneLoader, Material, Tools as BabylonTools,
+    MeshLODLevel, SceneLoader, Material, Tools as BabylonTools, VertexData,
 } from "babylonjs";
 
 import { Inspector } from "../../inspector";
@@ -112,6 +112,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
 
                 {this._getSkeletonInspector()}
                 {this._getMorphTargetsInspector()}
+                {this._getGeometryBuilderInspector()}
                 {this._getLodsInspector()}
                 {this.getAnimationRangeInspector()}
                 {this.getAnimationsGroupInspector()}
@@ -393,6 +394,119 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
     }
 
     /**
+     * Returns the editor geometry inspector used to configure basic meshes geometry.
+     */
+    private _getGeometryBuilderInspector(): React.ReactNode {
+        const editorGeometry = this.selectedObject.metadata?.editorGeometry;
+        if (!editorGeometry?.type || !(this.selectedObject instanceof Mesh)) {
+            return undefined;
+        }
+
+        const mesh = this.selectedObject as Mesh;
+
+        switch (editorGeometry.type) {
+            case "Cube":
+                return (
+                    <InspectorSection title="Cube Geometry">
+                        <InspectorNumber
+                            object={editorGeometry} property="size" label="Size" min={0.01} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateBox, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateBox, editorGeometry, { ...editorGeometry, size: o })}
+                        />
+                    </InspectorSection>
+                );
+
+            case "Sphere":
+                return (
+                    <InspectorSection title="Sphere Geometry">
+                        <InspectorNumber
+                            object={editorGeometry} property="segments" label="Segments" min={1} max={128} step={1} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateSphere, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateSphere, editorGeometry, { ...editorGeometry, segments: o })}
+                        />
+                        <InspectorNumber
+                            object={editorGeometry} property="diameter" label="Diameter" min={0.01} step={0.01} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateSphere, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateSphere, editorGeometry, { ...editorGeometry, diameter: o })}
+                        />
+                        <InspectorNumber
+                            object={editorGeometry} property="arc" label="Arc" min={0.01} max={1} step={0.01} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateSphere, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateSphere, editorGeometry, { ...editorGeometry, arc: o })}
+                        />
+                        <InspectorNumber
+                            object={editorGeometry} property="slice" label="Slice" min={0.01} max={1} step={0.01} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateSphere, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateSphere, editorGeometry, { ...editorGeometry, slice: o })}
+                        />
+                    </InspectorSection>
+                );
+
+            case "Cylinder":
+                return (
+                    <InspectorSection title="Cylinder Geometry">
+                        <InspectorNumber
+                            object={editorGeometry} property="height" label="Height" min={0.01} step={0.01} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry, { ...editorGeometry, height: o })}
+                        />
+                        <InspectorNumber
+                            object={editorGeometry} property="diameterTop" label="Diameter Top" min={0.01} step={0.01} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry, { ...editorGeometry, diameterTop: o })}
+                        />
+                        <InspectorNumber
+                            object={editorGeometry} property="diameterBottom" label="Diameter Bottom" min={0.01} step={0.01} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry, { ...editorGeometry, diameterBottom: o })}
+                        />
+                        <InspectorNumber
+                            object={editorGeometry} property="tesselation" label="Tesselation" min={1} step={1} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry, { ...editorGeometry, tesselation: o })}
+                        />
+                        <InspectorNumber
+                            object={editorGeometry} property="subdivisions" label="Subdivisions" min={1} step={1} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry, { ...editorGeometry, subdivisions: o })}
+                        />
+                        <InspectorNumber
+                            object={editorGeometry} property="arc" label="Arc" min={0.01} max={1} step={0.01} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreateCylinder, editorGeometry, { ...editorGeometry, arc: o })}
+                        />
+                    </InspectorSection>
+                );
+            default: return undefined;
+        }
+    }
+
+    /**
+     * Applies the new geometry for the given mesh.
+     */
+    private _applyGeometryBuilderConfiguration(mesh: Mesh, fn: (... args: any[]) => VertexData, editorGeometry: any, oldEditorGeometry?: any): void {
+        if (!oldEditorGeometry) {
+            return mesh.geometry?.setAllVerticesData(fn(editorGeometry), false);
+        }
+
+        const editorGeometryCopy = { ...editorGeometry };
+
+        undoRedo.push({
+            common: () => {
+                InspectorNotifier.NotifyChange(editorGeometry);
+            },
+            undo: () => {
+                Object.assign(editorGeometry, oldEditorGeometry);
+                mesh.geometry?.setAllVerticesData(fn(oldEditorGeometry), false);
+            },
+            redo: () => {
+                Object.assign(editorGeometry, editorGeometryCopy);
+                mesh.geometry?.setAllVerticesData(fn(editorGeometry), false);
+            },
+        });
+    }
+
+    /**
      * Returns the LOD inspector used to configure/add/remove LODs.
      */
     private _getLodsInspector(): React.ReactNode {
@@ -458,20 +572,20 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
                         ref={async (r) => {
                             if (!r) { return; }
                             await Tools.Wait(0);
-    
+
                             const notFoundToolTip = "Source Asset Not Found";
                             const notFoundImagePath = "../css/svg/question-mark.svg";
-    
+
                             const relativePath = lodLevel.mesh?.metadata?.lodMeshPath;
                             if (!relativePath) {
                                 r.src = notFoundImagePath;
                                 divRef.current?.setAttribute("data-tooltip", notFoundToolTip);
                                 return;
                             }
-    
+
                             const absolutePath = join(this.editor.assetsBrowser.assetsDirectory, relativePath);
                             const path = await Workers.ExecuteFunction<AssetsWorker, "createScenePreview">(AssetsBrowserItemHandler.AssetWorker, "createScenePreview", relativePath, absolutePath);
-    
+
                             if (path) {
                                 r.src = path;
                             } else {
