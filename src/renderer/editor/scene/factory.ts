@@ -25,7 +25,9 @@ export class SceneFactory {
      * @param editor the editor reference.
      */
     public static AddCube(editor: Editor): Mesh {
-        return this._ConfigureNode(Mesh.CreateBox("New Cube", 1, editor.scene!, false));
+        const cube = Mesh.CreateBox("New Cube", 1, editor.scene!, false);
+        cube.metadata = { editorGeometry: { type: "Cube", size: 1 } };
+        return this._ConfigureNode(cube);
     }
 
     /**
@@ -33,7 +35,9 @@ export class SceneFactory {
      * @param editor the editor reference.
      */
     public static AddSphere(editor: Editor): Mesh {
-        return this._ConfigureNode(Mesh.CreateSphere("New Sphere", 32, 1, editor.scene!, false));
+        const sphere = Mesh.CreateSphere("New Sphere", 32, 1, editor.scene!, false);
+        sphere.metadata = { editorGeometry: { type: "Sphere", segments: 32, diameter: 1, arc: 1, slice: 1 } };
+        return this._ConfigureNode(sphere);
     }
 
     /**
@@ -41,7 +45,9 @@ export class SceneFactory {
      * @param editor the editor reference.
      */
     public static AddCynlinder(editor: Editor): Mesh {
-        return this._ConfigureNode(Mesh.CreateCylinder("New Cylinder", 1, 1, 1, 16, 1, editor.scene!));
+        const cylinder = Mesh.CreateCylinder("New Cylinder", 1, 1, 1, 16, 1, editor.scene!);
+        cylinder.metadata = { editorGeometry: { type: "Cylinder", height: 1, diameterTop: 1, diameterBottom: 1, tesselation: 16, subdivisions: 1, arc: 1 } };
+        return this._ConfigureNode(cylinder);
     }
 
     /**
@@ -51,6 +57,7 @@ export class SceneFactory {
     public static AddPlane(editor: Editor): Mesh {
         const plane = Mesh.CreatePlane("New Plane", 1, editor.scene!, false);
         plane.rotation.x = Math.PI * 0.5;
+        plane.metadata = { editorGeometry: { type: "Plane", size: 1 } };
         return this._ConfigureNode(plane);
     }
 
