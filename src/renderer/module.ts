@@ -11,7 +11,8 @@
  * 		For example, i18next will not be taken from [...]/babylonjs/node_modules/i18next/index.js but from [...]/babylonjs-editor/node_modules/i18next/index.js
  */
 
-import { join, dirname } from "path";
+import { readFileSync } from "fs";
+import { join, dirname, extname } from "path";
 
 const Module = require("module");
 const cacheMap = {
@@ -36,17 +37,37 @@ const cacheMap = {
 	"@babylonjs/post-processes": join(dirname(Module._resolveFilename("babylonjs-post-process", module, false)), "..", "babylonjs-post-process", "babylonjs.postProcess.js"),
 }
 
-const originalResolveFilename = Module._resolveFilename;
-Module._resolveFilename = function (filename: string, parent: any, isMain: boolean, options: any) {
-	if (cacheMap[filename])
-		return cacheMap[filename];
+const handledExtensions: Record<string, boolean> = {
+	".fx": true,
+};
 
-	return originalResolveFilename(filename, parent, isMain, options);
-}
+const originalResolveFilename = Module._resolveFilename;
+Module._resolveFilename = function (filename: string, parent: any, isMain: boolean) {
+	if (cacheMap[filename]) {
+		return cacheMap[filename];
+	}
+
+	const ext = extname(filename).toLowerCase();
+	if (handledExtensions[ext]) {
+		return join(parent.path, filename);
+	}
+
+	return originalResolveFilename(filename, parent, isMain);
+};
+
+// Native extension for .fx files
+Module._extensions[".fx"] = function (module: any, filename: string): void {
+	const content = readFileSync(filename, "utf8");
+	module.exports = content;
+};
 
 // Globals
-global["React"] = require("react");
-global["ReactDOM"] = require("react-dom");
+try {
+	global["React"] = require("react");
+	global["ReactDOM"] = require("react-dom");
+} catch (e) {
+	/* Catch silently */
+}
 
 // Path
 import path from "path";
