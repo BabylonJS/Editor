@@ -727,7 +727,7 @@ export class Editor {
                 log.style.color = "green";
             }
         }
-        
+
         this.console.logInfo("Server is running.");
 
         switch (mode) {
@@ -1091,7 +1091,7 @@ export class Editor {
             await WorkSpace.BuildProject(this);
             this.runProject(EditorPlayMode.IntegratedBrowser, false);
         });
-        
+
         ipcRenderer.on("run-project", () => this.runProject(EditorPlayMode.IntegratedBrowser, false));
         ipcRenderer.on("generate-project", () => SceneExporter.ExportFinalScene(this));
 
@@ -1186,20 +1186,24 @@ export class Editor {
         // Touch bar
         TouchBarHelper.SetTouchBarElements([
             {
-                label: "Build...",
-                click: "build-project",
+                // label: "Generate...",
+                click: "generate-project",
+                iconPosition: "overlay",
+                icon: "assets/extras/generate.png",
             },
             {
-                label: "Generate...",
-                click: "generate-project",
+                // label: "Run...",
+                // click: "run-project",
+                iconPosition: "overlay",
+                icon: "assets/extras/play.png",
+                click: () => this.toolsToolbar.handlePlay(),
             },
             {
                 separator: true,
             },
             {
-                label: "Run...",
-                click: "run-project",
-                icon: "assets/extras/play.png",
+                label: "Build...",
+                click: "build-project",
             },
         ]);
     }
