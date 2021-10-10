@@ -127,7 +127,11 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				<MenuDivider />
 
 				<MenuItem text="TypeScript File..." disabled={isAssetsDirectory} icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
-				<MenuItem text="Material File..." disabled={isAssetsDirectory} icon={<Icon src="json.svg" style={{ filter: "none" }} />} onClick={() => this._handleAddMaterialScript()} />
+				<MenuItem text="Material File..." disabled={isAssetsDirectory} icon={<Icon src="json.svg" style={{ filter: "none" }} />}>
+					<MenuItem text="Custom Material" onClick={() => this._handleAddMaterialScript("material")} />
+					<MenuDivider />
+					<MenuItem text="PBR Base Material" onClick={() => this._handleAddMaterialScript("pbr-material")} />
+				</MenuItem>
 			</Menu>
 		);
 
@@ -494,7 +498,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	/**
 	 * Called on the user wants to add a new material TypeScript script.
 	 */
-	private async _handleAddMaterialScript(): Promise<void> {
+	private async _handleAddMaterialScript(base: string): Promise<void> {
 		const name = await Dialog.Show("Material Script Name", "Please provide a name for the new TypeScript script.");
 		const capitalizedName = name[0].toUpperCase() + name.substr(1);
 
@@ -506,10 +510,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		await mkdir(destFolder);
 
-		await copyFile(join(Tools.GetAppPath(), "assets/scripts/material/vertex.fx"), join(destFolder, `${name}.vertex.fx`));
-		await copyFile(join(Tools.GetAppPath(), "assets/scripts/material/fragment.fx"), join(destFolder, `${name}.fragment.fx`));
+		await copyFile(join(Tools.GetAppPath(), `assets/scripts/${base}/vertex.fx`), join(destFolder, `${name}.vertex.fx`));
+		await copyFile(join(Tools.GetAppPath(), `assets/scripts/${base}/fragment.fx`), join(destFolder, `${name}.fragment.fx`));
 
-		const tsContent = await readFile(join(Tools.GetAppPath(), "assets/scripts/material/material.ts"), { encoding: "utf-8" });
+		const tsContent = await readFile(join(Tools.GetAppPath(), `assets/scripts/${base}/material.ts`), { encoding: "utf-8" });
 		const finalTsContent = tsContent.replace(/{__shader_name__}/g, name).replace(/\/\*{__shader_class_name__}\*\/A/g, capitalizedName);
 
 		await writeFile(join(destFolder, `${name}.ts`), finalTsContent, { encoding: "utf-8" });

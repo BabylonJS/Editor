@@ -58,9 +58,8 @@ export class /*{__shader_class_name__}*/AMaterial extends PushMaterial {
 
 	/**
 	 * Creates a material instance
-	 * @param name defines the name of the material
-	 * @param scene defines the scene to reference
-	 * @param doNotAdd specifies if the material should be added to the scene
+	 * @param name defines the name of the material.
+	 * @param scene defines the scene to reference.
 	 */
 	public constructor(name: string, scene: Scene) {
 		super(name, scene);
