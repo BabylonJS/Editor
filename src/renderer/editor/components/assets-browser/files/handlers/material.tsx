@@ -47,6 +47,17 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	}
 
 	/**
+	 * Called on the user clicks on the asset.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		const existing = this.props.editor.scene!.materials.find((m) => m.metadata?.editorPath === this.props.relativePath);
+		if (existing) {
+			this.props.editor.inspector.setSelectedObject(existing);
+		}
+	}
+
+	/**
 	 * Called on the user double clicks on the item.
 	 * @param ev defines the reference to the event object.
 	 */

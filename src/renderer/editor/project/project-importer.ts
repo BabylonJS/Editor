@@ -63,8 +63,15 @@ export class ProjectImporter {
         Project.DirPath = `${dirname(path)}/`;
 
         // Read project file
-        const project = await readJSON(path) as IProject;
+        const project = await readJSON(path, { encoding: "utf-8" }) as IProject;
         const rootUrl = join(editor.assetsBrowser.assetsDirectory, "/");
+
+        // Read moved assets links to restore links
+        try {
+			editor.assetsBrowser.movedAssetsDictionary = await readJSON(join(Project.DirPath!, "../links.json"), { encoding: "utf-8" });
+		} catch (e) {
+			/* Catch siently */
+		}
 
         Overlay.SetSpinnervalue(0);
         const spinnerStep = 1 / (
@@ -80,6 +87,7 @@ export class ProjectImporter {
         if (project.assets.prefabs) {
             project.assets.prefabs.forEach((p) => PrefabAssets.Prefabs.push({ name: p, path: join(Project.DirPath!, "prefabs", p) }));
         }
+
         if (project.assets.graphs) {
             project.assets.graphs.forEach((g) => GraphAssets.Graphs.push({ name: g, path: join(Project.DirPath!, "graphs", g) }));
         }
@@ -186,6 +194,8 @@ export class ProjectImporter {
         Overlay.SetMessage("Creating Materials...");
 
         for (const m of project.materials) {
+            m.json = editor.assetsBrowser.movedAssetsDictionary[m.json] ?? m.json;
+
             try {
                 const materialJsonPath = m.isMultiMaterial ?
                         join(Project.DirPath, "materials", m.json) :
@@ -229,6 +239,7 @@ export class ProjectImporter {
         for (const t of project.textures) {
             try {
                 const json = await readJSON(join(Project.DirPath, "textures", t));
+                json.name = editor.assetsBrowser.movedAssetsDictionary[json.name] ?? json.name;
 
                 const existing = editor.scene!.textures.find((t) => {
                     return t.metadata && json.metadata && t.metadata.editorId === json.metadata.editorId;
@@ -337,7 +348,12 @@ export class ProjectImporter {
 
         for (const ps of project.particleSystems ?? []) {
             try {
+                ps.json = editor.assetsBrowser.movedAssetsDictionary[ps.json] ?? ps.json;
                 const json = await readJSON(join(editor.assetsBrowser.assetsDirectory, ps.json));
+
+                if (json.texture) {
+                    json.texture.name = editor.assetsBrowser.movedAssetsDictionary[json.texture.name] ?? json.texture.name;
+                }
 
                 const system = ParticleSystem.Parse(json, editor.scene!, rootUrl);
                 system["metadata"] = json.metadata;
@@ -360,6 +376,8 @@ export class ProjectImporter {
         for (const s of project.sounds ?? []) {
             try {
                 const json = await readJSON(join(Project.DirPath, "sounds", s));
+                json.name = json.url = editor.assetsBrowser.movedAssetsDictionary[json.name] ?? json.name;
+
                 Sound.Parse(json, editor.scene!, rootUrl);
             } catch (e) {
                 editor.console.logError(`Failed to parse sound "${s}"`);
@@ -551,7 +569,12 @@ export class ProjectImporter {
      */
     private static _OverrideTextureParser(editor: Editor): void {
         const textureParser = SerializationHelper._TextureParser;
+
         SerializationHelper._TextureParser = (source, scene, rootUrl) => {
+            // Change name if available in moved files links
+            source.name = editor.assetsBrowser.movedAssetsDictionary[source.name] ?? source.name;
+
+            // Existing texture?
             if (source.metadata?.editorName) {
                 const texture = scene.textures.find((t) => t.metadata && t.metadata.editorName === source.metadata.editorName);
                 if (texture) { return texture; }
@@ -568,6 +591,7 @@ export class ProjectImporter {
 
             let texture: Nullable<BaseTexture> = null;
 
+            // Existing ktx texture?
             const supportedFormat = KTXTools.GetSupportedKtxFormat(scene.getEngine());
             const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
 
@@ -591,6 +615,7 @@ export class ProjectImporter {
                 }
             }
 
+            // Create texture
             if (!texture) {
                 texture = textureParser(source, scene, rootUrl);
 
@@ -601,7 +626,7 @@ export class ProjectImporter {
                 }
             }
 
-
+            // Configure cube
             if (source.metadata?.editorName && source.metadata?.isPureCube) {
                 // Cube texture?
                 if (source.isCube && !source.isRenderTarget && source.files && source.metadata?.isPureCube) {
