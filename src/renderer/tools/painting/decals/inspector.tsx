@@ -12,10 +12,10 @@ import { IObjectInspectorProps } from "../../../editor/components/inspector";
 import { AbstractInspector } from "../../../editor/components/inspectors/abstract-inspector";
 
 import { InspectorList } from "../../../editor/gui/inspector/fields/list";
+import { InspectorNotifier } from "../../../editor/gui/inspector/notifier";
 import { InspectorNumber } from "../../../editor/gui/inspector/fields/number";
 import { InspectorSection } from "../../../editor/gui/inspector/fields/section";
 import { InspectorBoolean } from "../../../editor/gui/inspector/fields/boolean";
-import { InspectorNotifier } from "../../../editor/gui/inspector/notifier";
 
 import { DecalsPainter } from "../../../editor/painting/decals/decals";
 
@@ -99,25 +99,23 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
     /**
      * Called on the user dropped a material in the material box.
      */
-    private _handleMaterialDropped(e: React.DragEvent<HTMLImageElement>): void {
+    private async _handleMaterialDropped(e: React.DragEvent<HTMLImageElement>): Promise<void> {
         (e.currentTarget as HTMLImageElement).style.border = "dashed black 1px";
 
         try {
             const dataContent = e.dataTransfer.getData("asset/material");
             const data = JSON.parse(dataContent);
 
-            if (!data.relativePath) {
+            if (!data) {
                 return;
             }
 
-            const material = this.editor.scene!.materials.find((m) => m.metadata?.editorPath === data.relativePath);
-            if (!material) {
+            const handled = await InspectorNotifier.NotifyOnDrop(e, this.selectedObject, "material");
+            if (!handled || !this.selectedObject.material) {
                 return;
             }
 
-            this.selectedObject.material = material;
-
-            const asset = this.editor.assets.getAssetsOf(MaterialAssets)?.find((a) => a.key === material.id);
+            const asset = this.editor.assets.getAssetsOf(MaterialAssets)?.find((a) => a.key === this.selectedObject.material!.id);
             this.setState({ selectedMaterialAsset: asset ?? null }, () => {
                 InspectorNotifier.NotifyChange(this.selectedObject);
             });
