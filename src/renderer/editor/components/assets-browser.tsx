@@ -1,9 +1,9 @@
 import Glob from "glob";
 import { shell } from "electron";
-import { move, pathExists, stat } from "fs-extra";
 import { basename, dirname, extname, join } from "path";
+import { move, pathExists, stat, writeJSON } from "fs-extra";
 
-import { Nullable } from "../../../shared/types";
+import { IStringDictionary, Nullable } from "../../../shared/types";
 
 import * as React from "react";
 import SplitPane from "react-split-pane";
@@ -12,6 +12,7 @@ import { Editor } from "../editor";
 
 import { FSTools } from "../tools/fs";
 
+import { Project } from "../project/project";
 import { WorkSpace } from "../project/workspace";
 
 import { AssetsBrowserTree } from "./assets-browser/tree";
@@ -57,6 +58,10 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	 * Defines the absolute path to the assets directory.
 	 */
 	public assetsDirectory: string = "";
+	/**
+	 * Defines the reference to the dictionary that stores all the moved assets.
+	 */
+	public movedAssetsDictionary: IStringDictionary<string> = { };
 
 	private _editor: Editor;
 
@@ -268,7 +273,12 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		}
 
 		await Promise.all(promises);
-		this.refresh();
+		await this.refresh();
+
+		await writeJSON(join(Project.DirPath!, "../links.json"), this.movedAssetsDictionary, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
 	}
 
 	/**
@@ -279,6 +289,35 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		const extension = extname(absolutePath).toLowerCase();
 		const destination = join(to, basename(absolutePath));
 
+		const relativePath = absolutePath.replace(join(this.assetsDirectory, "/"), "");
+		const relativeDestination = destination.replace(join(this.assetsDirectory, "/"), "");
+
+		// Manage moving asset
+		let foundMovedAssetPath = false;
+
+		if (this.movedAssetsDictionary[relativeDestination]) {
+			// Come back to original path
+			foundMovedAssetPath = true;
+			delete this.movedAssetsDictionary[relativeDestination];
+		} else {
+			// Check for already moved to another folder
+			for (const key in this.movedAssetsDictionary) {
+				const movedAssetPath = this.movedAssetsDictionary[key];
+				if (movedAssetPath === relativePath) {
+					foundMovedAssetPath = true;
+					this.movedAssetsDictionary[key] = relativeDestination;
+
+					break;
+				}
+			}
+		}
+
+		if (!foundMovedAssetPath) {
+			// First move, add to moved assets
+			this.movedAssetsDictionary[relativePath] = relativeDestination;
+		}
+
+		// Call handlers
 		const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
 		if (handler) {
 			await handler.moveFile(absolutePath, destination);

@@ -5,11 +5,11 @@ import { Editor } from "../../../../editor";
 
 import { AssetsBrowserMoveHandler } from "./move-handler";
 
-export class AssetsBrowserMaterialMoveHandler extends AssetsBrowserMoveHandler {
+export class AssetsBrowserParticlesSystemMoveHandler extends AssetsBrowserMoveHandler {
 	/**
 	 * Defines the list of all extensions handled by the item mover.
 	 */
-	public extensions: string[] = [".material"];
+	public extensions: string[] = [".ps"];
 
 	private _editor: Editor;
 
@@ -29,18 +29,18 @@ export class AssetsBrowserMaterialMoveHandler extends AssetsBrowserMoveHandler {
 	 * @param to defines the new absolute path to the file being moved.
 	 */
 	public async moveFile(from: string, to: string): Promise<void> {
-		const materials = this._editor.scene!.materials;
+		const particlesSystems = this._editor.scene!.particleSystems;
 		const newEditorPath = to.replace(join(this._editor.assetsBrowser.assetsDirectory, "/"), "");
 
-		materials.forEach((mat) => {
-			const editorPath = mat.metadata?.editorPath;
+		particlesSystems.forEach((ps) => {
+			const editorPath = ps["metadata"]?.editorPath;
 			if (!editorPath) {
 				return;
 			}
 
 			const path = join(this._editor.assetsBrowser.assetsDirectory, editorPath);
 			if (path === from) {
-				mat.metadata.editorPath = newEditorPath;
+				ps["metadata"].editorPath = newEditorPath;
 			}
 		});
 

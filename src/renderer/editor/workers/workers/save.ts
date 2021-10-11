@@ -1,6 +1,6 @@
 import "../../../module";
 
-import { writeFile, writeJSON } from "fs-extra";
+import { writeFile, writeJSON, remove, pathExists } from "fs-extra";
 
 export default class SaveWorker {
 	/**
@@ -31,5 +31,15 @@ export default class SaveWorker {
 			spaces: "\t",
 			encoding: "utf-8",
 		});
+	}
+
+	/**
+	 * Removes the given file.
+	 * @param path defines the path to the file to remove.
+	 */
+	public async remove(path: string): Promise<void> {
+		if (await pathExists(path)) {
+			await remove(path);
+		}
 	}
 }

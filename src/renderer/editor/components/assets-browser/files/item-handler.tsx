@@ -110,6 +110,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	public render(): React.ReactNode {
 		return (
 			<div
+				onClick={(ev) => this.onClick(ev)}
 				onDragEnd={(ev) => this._handleDragEnd(ev)}
 				onDoubleClick={(ev) => this.onDoubleClick(ev)}
 				onContextMenu={(ev) => this.onContextMenu(ev)}
@@ -138,6 +139,14 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	 * Computes the image to render as a preview.
 	 */
 	public abstract computePreview(): React.ReactNode | Promise<React.ReactNode>;
+
+	/**
+	 * Called on the user clicks on the asset.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		// Empty by default...
+	}
 
 	/**
 	 * Called on the user double clicks on the item.

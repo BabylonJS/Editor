@@ -29,6 +29,7 @@ import { AssetsBrowserMoveHandler } from "./move/move-handler";
 import { AssetsBrowserTypeScriptMoveHandler } from "./move/ts";
 import { AssetsBrowserTextureMoveHandler } from "./move/texture";
 import { AssetsBrowserMaterialMoveHandler } from "./move/material";
+import { AssetsBrowserParticlesSystemMoveHandler } from "./move/particles-system";
 
 export interface IAssetsBrowserItemProps {
 	/**
@@ -170,6 +171,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemMoveHandler(new AssetsBrowserTextureMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserMaterialMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTypeScriptMoveHandler(editor));
+		this.RegisterItemMoveHandler(new AssetsBrowserParticlesSystemMoveHandler(editor));
 	}
 
 	private _mainDiv: Nullable<HTMLDivElement> = null;
