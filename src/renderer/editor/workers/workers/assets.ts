@@ -1,6 +1,9 @@
 import "../../../module";
 
-import { IStringDictionary } from "../../../../shared/types";
+import { readJSON } from "fs-extra";
+import { basename, dirname, join } from "path";
+
+import { IStringDictionary, Nullable } from "../../../../shared/types";
 
 import {
 	Engine, Scene, SceneLoader, TargetCamera, Vector3, CubeTexture,
@@ -13,8 +16,6 @@ import "babylonjs-loaders";
 import { Tools } from "../../tools/tools";
 
 import { FBXLoader } from "../../loaders/fbx/loader";
-import { basename, dirname, join } from "path";
-import { readJSON } from "fs-extra";
 
 export default class AssetsWorker {
 	private _scene: Scene;
@@ -28,6 +29,7 @@ export default class AssetsWorker {
 
 	private _isBusy: boolean = false;
 
+	private _workspaceDir: Nullable<string> = null;
 	private _cachedPreviews: IStringDictionary<string> = {};
 
 	/**
@@ -95,6 +97,14 @@ export default class AssetsWorker {
 	}
 
 	/**
+	 * Sets the workspace path.
+	 * @param path defines the absolute path to the workspace.
+	 */
+	public setWorkspacePath(path: string): void {
+		this._workspaceDir = path;
+	}
+
+	/**
 	 * Deletes the given key from the cache.
 	 * @param key defines the key in the cache to delete.
 	 */
@@ -128,7 +138,16 @@ export default class AssetsWorker {
 			rootUrl = undefined!;
 		}
 
-		const material = Material.Parse(parsedData, this._scene, rootUrl);
+		let material: Nullable<Material> = null;
+		if (parsedData.metadata?.sourcePath && this._workspaceDir) {
+			const jsPath = Tools.GetSourcePath(this._workspaceDir, parsedData.metadata.sourcePath);
+
+			delete require.cache[jsPath];
+			const exports = require(jsPath);
+			material = exports.default.Parse(parsedData, this._scene, rootUrl);
+		} else {
+			material = Material.Parse(parsedData, this._scene, rootUrl);
+		}
 
 		const sphere = Mesh.CreateSphere("AssetsWorkerSphere", 32, 10, this._scene, false);
 		sphere.material = material;

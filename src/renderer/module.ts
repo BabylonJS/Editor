@@ -58,7 +58,7 @@ Module._resolveFilename = function (filename: string, parent: any, isMain: boole
 // Native extension for .fx files
 Module._extensions[".fx"] = function (module: any, filename: string): void {
 	const content = readFileSync(filename, "utf8");
-	module.exports = content;
+	module.exports = { default: content };
 };
 
 // Globals

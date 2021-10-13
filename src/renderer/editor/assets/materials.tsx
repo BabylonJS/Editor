@@ -1,8 +1,10 @@
 import { clipboard, ipcRenderer } from "electron";
-import { join, extname } from "path";
-import Zip from "adm-zip";
 
-import { Nullable, Undefinable } from "../../../shared/types";
+import Zip from "adm-zip";
+import { join, extname, dirname } from "path";
+import { FSWatcher, readFile, watch } from "fs-extra";
+
+import { IStringDictionary, Nullable, Undefinable } from "../../../shared/types";
 import { IPCResponses } from "../../../shared/ipc";
 
 import * as React from "react";
@@ -12,7 +14,7 @@ import {
 
 import {
     Material, Mesh, ShaderMaterial, PickingInfo,
-    NodeMaterial, MultiMaterial, Scene, Node,
+    NodeMaterial, MultiMaterial, Scene, Node, Effect,
 } from "babylonjs";
 
 import { Tools } from "../tools/tools";
@@ -23,24 +25,29 @@ import { Icon } from "../gui/icon";
 
 import { Project } from "../project/project";
 import { FilesStore } from "../project/files";
+import { WorkSpace } from "../project/workspace";
+import { SceneExporter } from "../project/scene-exporter";
 
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
 
 import { Workers } from "../workers/workers";
 import AssetsWorker from "../workers/workers/assets";
+
 import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
 import "./materials/augmentations";
 
 export class MaterialAssets extends AbstractAssets {
+    private static _NodeMaterialEditors: { id: number; material: NodeMaterial }[] = [];
+
     /**
      * Defines the type of the data transfer data when drag'n'dropping asset.
      * @override
      */
     public readonly dragAndDropType: string = "application/material";
 
-    private static _NodeMaterialEditors: { id: number; material: NodeMaterial }[] = [];
+    private _materialSourcesWatchers: IStringDictionary<FSWatcher[]> = { };
 
     /**
      * Registers the component.
@@ -78,6 +85,8 @@ export class MaterialAssets extends AbstractAssets {
      * @override
      */
     public async refresh(): Promise<void> {
+        this._updateSourcesWatchers();
+
         for (const material of this.editor.scene!.materials) {
             const editorPath = material.metadata?.editorPath;
             if (!editorPath) {
@@ -503,5 +512,104 @@ export class MaterialAssets extends AbstractAssets {
         });
 
         this.refresh();
+    }
+
+    /**
+     * Called on the material source is updated. Applies the new prototype.
+     */
+    private async _updateSourceMaterialPrototype(material: Material, jsPath: string, vertexPath: string, fragmentPath: string): Promise<void> {
+        delete require.cache[jsPath];
+        const exports = require(jsPath);
+
+        Reflect.setPrototypeOf(material, exports.default.prototype);
+
+        try {
+            const clone = new exports.default("dummy", material.getScene());
+            
+            for (const key in clone) {
+                if (!Reflect.has(material, key)) {
+                    material[key] = clone[key];
+                }
+            }
+
+            clone.dispose(true, true);
+
+            await this._rebuildSourceMaterialProgram(material, vertexPath, fragmentPath);
+        } catch (e) {
+            /* Catch silently */
+        }
+    }
+
+    /**
+     * Called on the material vertex or fragment program is updated.
+     */
+    private async _rebuildSourceMaterialProgram(material: Material, vertexPath: string, fragmentPath: string): Promise<void> {
+        const effect = material.getEffect();
+        if (!effect) {
+            return;
+        }
+
+        let storeId = material["_storeId"];
+        if (!storeId) {
+            return;
+        }
+
+        effect.dispose();
+
+        const vertexContent = await readFile(vertexPath, { encoding: "utf-8" });
+        const fragmentContent = await readFile(fragmentPath, { encoding: "utf-8" });
+
+        delete Effect.ShadersStore[`${storeId}VertexShader`];
+        delete Effect.ShadersStore[`${storeId}PixelShader`];
+
+        storeId = material["_storeId"] = Tools.RandomId();
+
+        Effect.ShadersStore[`${storeId}VertexShader`] = vertexContent;
+        Effect.ShadersStore[`${storeId}PixelShader`] = fragmentContent;
+
+        material.markAsDirty(Material.AllDirtyFlag);
+        material.onCompiled = () => this.editor.console.logInfo("Successfully compiled program.");
+
+        await SceneExporter.CopyShaderFiles(this.editor);
+    }
+
+    /**
+     * Updates all the source material watchers (source code and vertex&fragment programs).
+     */
+    private _updateSourcesWatchers(): void {
+        for (const key in this._materialSourcesWatchers) {
+            this._materialSourcesWatchers[key]?.forEach((w) => w?.close());
+        }
+
+        this._materialSourcesWatchers = {};
+
+        this.editor.scene!.materials.forEach((m) => {
+            if (!m.metadata?.sourcePath) {
+                return;
+            }
+
+            try {
+                const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, m.metadata.sourcePath);
+                delete require.cache[jsPath];
+
+                const exports = require(jsPath);
+                const materialConfiguration = exports.materialConfiguration;
+
+                if (!materialConfiguration) {
+                    throw "material configuration is needed.";
+                }
+
+                const vertexPath = join(dirname(join(WorkSpace.DirPath!, m.metadata.sourcePath)), materialConfiguration.vertexShaderContent);
+                const fragmentPath = join(dirname(join(WorkSpace.DirPath!, m.metadata.sourcePath)), materialConfiguration.pixelShaderContent);
+
+                const jsWatcher = watch(jsPath, { encoding: "utf-8" }, (ev) => ev === "change" && this._updateSourceMaterialPrototype(m, jsPath, vertexPath, fragmentPath));
+                const vertexWatcher = watch(vertexPath, { encoding: "utf-8" }, (ev) => ev === "change" && this._rebuildSourceMaterialProgram(m, vertexPath, fragmentPath));
+                const fragementWatcher = watch(fragmentPath, { encoding: "utf-8" }, (ev) => ev === "change" && this._rebuildSourceMaterialProgram(m, vertexPath, fragmentPath));
+
+                this._materialSourcesWatchers[jsPath] = [jsWatcher, vertexWatcher, fragementWatcher];
+            } catch (e) {
+                this.editor.console.logWarning(`Failed to watch material source code: ${m.metadata.sourcePath}: ${e.message}`);
+            }
+        });
     }
 }

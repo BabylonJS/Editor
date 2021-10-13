@@ -28,6 +28,31 @@ export class SandboxIFrame {
     }
 
     /**
+     * Returns the list of all constructors of the default class exported in the following TS file path.
+     * @param path defines the path to the JS file.
+     */
+    public static GetConstructorsList(path: string): string[] {
+        this.ClearCache(path);
+
+        try {
+            const result: string[] = [];
+            const exports = require(path);
+
+            if (!exports.default) { return []; }
+
+            let prototype = exports.default.prototype;
+            while (prototype) {
+                result.push(prototype.constructor.name);
+                prototype = Object.getPrototypeOf(prototype);
+            }
+
+            return result;
+        } catch (e) {
+            return [];
+        }
+    }
+
+    /**
      * Requires the given file and returns all its decorator attributes.
      * @param path the path of the file to require.
      */

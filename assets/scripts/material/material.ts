@@ -169,7 +169,7 @@ export class /*{__shader_class_name__}*/AMaterial extends PushMaterial {
             MaterialHelper.PrepareAttributesForBones(attribs, mesh, defines, fallbacks);
             MaterialHelper.PrepareAttributesForInstances(attribs, defines);
 
-            var shaderName = "simple";
+            var shaderName = this._storeId;
             var join = defines.toString();
             var uniforms = ["world", "view", "viewProjection", "vEyePosition", "vLightsType", "vDiffuseColor",
                 "vFogInfos", "vFogColor", "pointSize",
@@ -330,6 +330,21 @@ export class /*{__shader_class_name__}*/AMaterial extends PushMaterial {
     }
 }
 
+/**
+ * Register the material in the BabylonJS registered types in order to be parsed.
+ */
 _TypeStore.RegisteredTypes["BABYLON./*{__shader_class_name__}*/AMaterial"] = /*{__shader_class_name__}*/AMaterial;
 
+/**
+ * Export the class by default.
+ */
 export default /*{__shader_class_name__}*/AMaterial;
+
+/**
+ * Defines the configuration of the material.
+ */
+export const materialConfiguration = {
+	vertexShaderContent: "./{__shader_name__}.vertex.fx",
+	pixelShaderContent: "./{__shader_name__}.fragment.fx",
+};
+

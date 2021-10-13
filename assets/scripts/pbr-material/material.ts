@@ -113,4 +113,20 @@ export class /*{__shader_class_name__}*/APBRMaterial extends PBRMaterial {
 	}
 }
 
+/**
+ * Register the material in the BabylonJS registered types in order to be parsed.
+ */
 _TypeStore.RegisteredTypes["BABYLON./*{__shader_class_name__}*/APBRMaterial"] = /*{__shader_class_name__}*/APBRMaterial;
+
+/**
+ * Export the class by default.
+ */
+export default /*{__shader_class_name__}*/APBRMaterial;
+
+/**
+ * Defines the configuration of the material.
+ */
+ export const materialConfiguration = {
+	vertexShaderContent: "./{__shader_name__}.vertex.fx",
+	pixelShaderContent: "./{__shader_name__}.fragment.fx",
+}
