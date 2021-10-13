@@ -151,8 +151,6 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Sky" icon={<Icon src="smog.svg" />} onClick={() => this._menuItemClicked("add:sky")} />
                 <MenuDivider />
                 <MenuItem text="Dummy Node" icon={<Icon src="clone.svg" />} onClick={() => this._menuItemClicked("add:dummy")} />
-                <MenuDivider />
-                <MenuItem text="Particle System" icon={<Icon src="wind.svg" />} onClick={() => this._menuItemClicked("add:particle-system")} />
             </Menu>;
 
         const addMesh =
@@ -303,8 +301,6 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 case "sky": node = await SceneFactory.AddSky(this._editor); break;
 
                 case "dummy": node = SceneFactory.AddDummy(this._editor); break;
-
-                case "particle-system": node = SceneFactory.AddParticleSystem(this._editor, false); break;
                 default: break;
             }
 

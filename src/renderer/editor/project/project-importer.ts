@@ -73,6 +73,9 @@ export class ProjectImporter {
 			/* Catch siently */
 		}
 
+        // Set workspace path
+        await Workers.ExecuteFunction<AssetsWorker, "setWorkspacePath">(AssetsBrowserItemHandler.AssetWorker, "setWorkspacePath", WorkSpace.DirPath!);
+
         Overlay.SetSpinnervalue(0);
         const spinnerStep = 1 / (
             project.textures.length + project.materials.length + project.meshes.length + project.lights.length +
@@ -207,6 +210,12 @@ export class ProjectImporter {
                 if (json.customType === "BABYLON.NodeMaterial") {
                     materialRootUrl = undefined!;
                 }
+
+                if (json.metadata?.sourcePath) {
+                    const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, json.metadata.sourcePath);
+                    delete require.cache[jsPath];
+                    require(jsPath);
+                } 
 
                 const material = m.isMultiMaterial ?
                     MultiMaterial.ParseMultiMaterial(json, editor.scene!) :

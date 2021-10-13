@@ -1,6 +1,7 @@
 import { remote, ipcRenderer } from "electron";
-import { join } from "path";
+
 import { platform } from "os";
+import { extname, join, normalize } from "path";
 
 import { IPCResponses, IPCRequests } from "../../../shared/ipc";
 
@@ -76,6 +77,22 @@ export class Tools {
     public static GetMaterialMetadata(material: Material): IMaterialMetadata {
         material.metadata = material.metadata ?? { };
         return material.metadata;
+    }
+
+    /**
+     * Returns the absolute path to the attached JS file or the given TS file.
+     * @param workspaceDir defines the absolute path to the workspace.
+     * @param relativePath defines the relative path of the TS file to get its JS source file path.
+     * @returns the absolute path to the attached JS file.
+     */
+    public static GetSourcePath(workspaceDir: string, relativePath: string): string {
+        const extension = extname(relativePath);
+        const extensionIndex = relativePath.lastIndexOf(extension);
+
+        if (extensionIndex === -1) { return ""; }
+
+        const jsName = normalize(`${relativePath.substr(0, extensionIndex)}.js`);
+        return join(workspaceDir, "build", jsName);
     }
 
     /**

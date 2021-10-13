@@ -69,13 +69,13 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
      */
     public renderContent(): React.ReactNode {
         // Check metadata
-        this.selectedObject.metadata ??= { };
-        this.selectedObject.metadata.script ??= { };
+        this.selectedObject.metadata ??= {};
+        this.selectedObject.metadata.script ??= {};
         this.selectedObject.metadata.script.name ??= "None";
 
         // Check workspace
         if (!WorkSpace.HasWorkspace()) { return null; }
-        
+
         return (
             <InspectorSection title="Script">
                 {this._getDragAndDropZone()}
@@ -213,7 +213,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             return;
         }
 
-        let target: Nullable<Node | Scene> = null;
+        let target: Nullable<Node | Scene> = null;
         if (this.selectedObject instanceof Scene) {
             target = this.selectedObject;
         } else {
@@ -254,7 +254,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             return undefined;
         }
 
-        this.selectedObject.metadata.script.properties ??= { };
+        this.selectedObject.metadata.script.properties ??= {};
 
         const children: React.ReactNode[] = [];
         const properties = this.selectedObject.metadata.script.properties;
@@ -357,7 +357,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
 
         const name = this.selectedObject.metadata.script.name as string;
         if (!name) { return; }
-        
+
         const extension = extname(name);
         const extensionIndex = name.lastIndexOf(extension);
 
@@ -385,13 +385,13 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         this.setState({ refresing: false, inspectorValues });
     }
 
-     /**
+    /**
      * Refreshes the decorators functions that are used in the project.
      */
-      private async _refreshDecorators(): Promise<void> {
+    private async _refreshDecorators(): Promise<void> {
         const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
         const transpiledScript = transpile(decorators, { module: ModuleKind.None, target: ScriptTarget.ES5, experimentalDecorators: true });
 
-       await SandboxMain.ExecuteCode(transpiledScript, "__editor__decorators__.js");
+        await SandboxMain.ExecuteCode(transpiledScript, "__editor__decorators__.js");
     }
 }

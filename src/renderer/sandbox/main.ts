@@ -75,6 +75,17 @@ export class SandboxMain {
      * Clears the require cache.
      */
     public static ClearCache(path: Nullable<string> = null): Promise<void> {
+        if (path) {
+            for (const c in require.cache) {
+                const cachePath = c.replace(/\\/g, "/");
+                if (cachePath.indexOf("node_modules") === -1) {
+                    delete require.cache[c];
+                }
+            }
+
+            delete require.cache[path];
+        }
+
         return this._CallFunction("ClearCache", path);
     }
 
@@ -93,6 +104,14 @@ export class SandboxMain {
      */
     public static ExecuteCode(code: string, name: string): Promise<void> {
         return this._CallFunction("ExecuteCode", code, name);
+    }
+
+    /**
+     * Returns the list of all constructors of the default class exported in the following TS file path.
+     * @param path defines the path to the JS file.
+     */
+    public static GetConstructorsList(path: string): Promise<string[]> {
+        return this._CallFunction("GetConstructorsList", path);
     }
 
     /**

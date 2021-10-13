@@ -3,6 +3,8 @@ import { shell } from "electron";
 import { basename, extname, join } from "path";
 import { copyFile, mkdir, pathExists, readdir, readFile, readJSON, stat, Stats, writeFile, writeJSON } from "fs-extra";
 
+import { Nullable } from "../../../../shared/types";
+
 import * as React from "react";
 import Slider from "antd/lib/slider";
 import {
@@ -11,6 +13,8 @@ import {
 } from "@blueprintjs/core";
 
 import { Tools as BabylonTools, Material, NodeMaterial, ParticleSystem, Mesh } from "babylonjs";
+
+import { SandboxMain } from "../../../sandbox/main";
 
 import { Editor } from "../../editor";
 
@@ -108,6 +112,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					<MenuItem text="Node Material..." onClick={() => this._handleCreateMaterial("NodeMaterial")} />
 					<MenuDivider />
 					<MenuItem text="Node Material From Snippet..." onClick={() => this._handleAddNodeMaterialFromWeb()} />
+					<MenuDivider />
+					<MenuItem text="From Source Code..." onClick={() => this._handleAddMaterialFromSourceCode()} />
 					<MenuDivider />
 					<Code>Materials Library</Code>
 					<MenuItem text="Sky Material..." onClick={() => this._handleCreateMaterial("SkyMaterial")} />
@@ -548,7 +554,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	/**
 	 * Called on the user wants to add a new material asset.
 	 */
-	private async _handleCreateMaterial(type: string): Promise<void> {
+	private async _handleCreateMaterial(type: string, sourcePath?: string): Promise<Material> {
 		let name = await Dialog.Show("Material Name", "Please provide a name for the new material to created.");
 
 		const ctor = BabylonTools.Instantiate(`BABYLON.${type}`);
@@ -561,7 +567,9 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 			material.build(true);
 		}
 
-		this._configureNewMaterial(name, material);
+		this._configureNewMaterial(name, material, sourcePath);
+
+		return material;
 	}
 
 	/**
@@ -583,7 +591,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	/**
 	 * Configures the newly created material.
 	 */
-	private async _configureNewMaterial(name: string, material: Material): Promise<void> {
+	private async _configureNewMaterial(name: string, material: Material, sourcePath?: string): Promise<void> {
 		const relativePath = this.state.currentDirectory.replace(join(this._assetsDirectory, "/"), "");
 
 		const extension = extname(name);
@@ -593,6 +601,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		material.metadata ??= {};
 		material.metadata.editorPath = join(relativePath, name);
+		material.metadata.sourcePath = sourcePath;
 
 		await writeJSON(join(this.state.currentDirectory, name), {
 			...material.serialize(),
@@ -603,5 +612,56 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		});
 
 		await Promise.all([this.refresh(), this.props.editor.assets.refresh()]);
+	}
+
+	/**
+	 * Called on the user wants to add a new material asset from source code.
+	 */
+	private async _handleAddMaterialFromSourceCode(): Promise<void> {
+		const path = await Tools.ShowOpenFileDialog("Material Source Code", this._sourcesDirectory);
+		if (path.indexOf(this._sourcesDirectory) !== 0) {
+			return Alert.Show("Failed To Create Material", `Selected source code is not part of the current workspace.\n${path}`);
+		}
+
+		const relativePath = path.replace(join(WorkSpace.DirPath!, "/"), "");
+		const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, relativePath);
+
+		// show toaster that waits for the JS file to exist.
+		let cancelWait = false;
+		let toasterId: Nullable<string> = null;
+
+		while (!(await pathExists(jsPath)) && !cancelWait) {
+			toasterId ??= this.props.editor._toaster?.show({
+				timeout: -1,
+				intent: Intent.PRIMARY,
+				className: Classes.DARK,
+				message: "Waiting for compiled JS file...",
+				action: {
+					text: "Cancel",
+					onClick: () => cancelWait = true,
+				},
+			}) ?? null;
+
+			await Tools.Wait(500);
+		}
+
+		if (toasterId) {
+			this.props.editor._toaster?.dismiss(toasterId);
+		}
+
+		if (cancelWait) {
+			return;
+		}
+
+		await SceneExporter.CopyShaderFiles(this.props.editor);
+
+		const ctors = await SandboxMain.GetConstructorsList(jsPath);
+		if (ctors.indexOf("Material") === -1) {
+			return Alert.Show("Failed To Create Material", "The selected source code doesn't export any material class as default export.");
+		}
+
+		// Instantiate
+		const exports = require(jsPath);
+		await this._handleCreateMaterial(exports.default.prototype.constructor.name, relativePath);
 	}
 }

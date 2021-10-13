@@ -13,7 +13,10 @@ import { PickingInfo, Mesh, Material, NodeMaterial } from "babylonjs";
 import { Icon } from "../../../../gui/icon";
 import { InspectorNotifier } from "../../../../gui/inspector/notifier";
 
+import { Tools } from "../../../../tools/tools";
 import { IPCTools } from "../../../../tools/ipc";
+
+import { WorkSpace } from "../../../../project/workspace";
 
 import { MaterialAssets } from "../../../../assets/materials";
 
@@ -163,8 +166,16 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	private async _readAndParseMaterialFile(): Promise<Nullable<Material>> {
 		try {
 			const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
-			const material = Material.Parse(json, this.props.editor.scene!, join(this.props.editor.assetsBrowser.assetsDirectory, "/"));
 
+			// Check linked to source
+			if (json.metadata?.sourcePath) {
+				const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, json.metadata.sourcePath);
+
+				delete require.cache[jsPath];
+				require(jsPath);
+			} 
+			
+			const material = Material.Parse(json, this.props.editor.scene!, join(this.props.editor.assetsBrowser.assetsDirectory, "/"));
 			if (material) {
 				material.metadata = json.metadata;
 			}
