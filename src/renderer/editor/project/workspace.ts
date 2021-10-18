@@ -276,8 +276,17 @@ export class WorkSpace {
      * Watchs the project's typescript using tsc. This is used to safely watch attached scripts on nodes.
      * @param editor the editor reference.
      */
-    public static async WatchTypeScript(editor: Editor): Promise<void> {
-        if (this._WatchTypescriptProgram) { return; }
+    public static WatchTypeScript(editor: Editor): Promise<Nullable<IExecProcess>> {
+        return this.CompileTypeScript(editor, true);
+    }
+
+    /**
+     * Compiles the project's typescript using tsc.
+     * @param editor defines the reference to the editor.s
+     * @param watch defines wether or not the TypeScript code should be watched.
+     */
+    public static async CompileTypeScript(editor: Editor, watch: boolean = false): Promise<Nullable<IExecProcess>> {
+        if (watch && this._WatchTypescriptProgram) { return null; }
 
         // Update the tsconfig file
         await copyFile(join(Tools.GetAppPath(), "assets", "scripts", "editor.tsconfig.json"), join(this.DirPath!, "editor.tsconfig.json"));
@@ -286,7 +295,11 @@ export class WorkSpace {
         const isWin32 = platform() === "win32";
         const watchScript = join("node_modules", ".bin", isWin32 ? "tsc.cmd" : "tsc");
 
-        this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, false, ConsoleLayer.TypeScript);
+        if (watch) {
+            return this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, false, ConsoleLayer.TypeScript);
+        } else {
+            return ExecTools.ExecAndGetProgram(editor, `./${watchScript} -p ./editor.tsconfig.json`, this.DirPath!, false, ConsoleLayer.TypeScript);
+        }
     }
 
     /**
@@ -315,7 +328,7 @@ export class WorkSpace {
      * Restarts the TypeScript watcher in case it goes in error.
      * @param editor defines the editor reference.
      */
-    public static RestartTypeScriptWatcher(editor: Editor): Promise<void> {
+    public static RestartTypeScriptWatcher(editor: Editor): Promise<Nullable<IExecProcess>> {
         this.StopWatchingTypeScript();
         return this.WatchTypeScript(editor);
     }

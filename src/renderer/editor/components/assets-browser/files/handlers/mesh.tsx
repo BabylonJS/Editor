@@ -74,6 +74,8 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 			<Menu>
 				{this.getCommonContextMenuItems()}
 				<MenuDivider />
+				<MenuItem text="Update Instantiated References..." onClick={() => this._handleUpdateInstantiatedReferences()} />
+				<MenuDivider />
 				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => this._handleRefreshPreview()} />
 			</Menu>
 		), {
@@ -119,12 +121,19 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	}
 
 	/**
+	 * Prepares handler before the scene is loaded.
+	 */
+	private _prepareLoad(): void {
+		require("babylonjs-loaders");
+	}
+
+	/**
 	 * Called on the 
 	 * @param ev defines the reference to the event object.
 	 * @param pick defines the picking info generated while dropping in the preview.
 	 */
 	public async onDropInPreview(_: React.DragEvent<HTMLDivElement>, pick: PickingInfo): Promise<void> {
-		require("babylonjs-loaders");
+		this._prepareLoad();
 
 		const scene = this.props.editor.scene!;
 
@@ -368,5 +377,49 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 				}
 			});
 		}
+	}
+
+	/**
+	 * Called on the user wants to update the already instantiated meshes. Allows to update per mesh
+	 * which to update and chosse geometry, material, etc.
+	 */
+	private async _handleUpdateInstantiatedReferences(): Promise<void> {
+		this._prepareLoad();
+
+		const scene = this.props.editor.scene!;
+
+		// const extension = extname(this.props.absolutePath).toLowerCase();
+		// const isGltf = extension === ".glb" || extension === ".gltf";
+
+		const container = await SceneLoader.LoadAssetContainerAsync(join(dirname(this.props.absolutePath), "/"), basename(this.props.absolutePath), scene);
+		const instantiatedMeshes = scene.meshes.filter((m) => m.metadata?.originalSourceFile?.sceneFileName === this.props.relativePath);
+
+		container.meshes.forEach((m) => {
+			if (!m.id || !(m instanceof Mesh)) { return; }
+
+			// Find all meshes instantiated with this original id
+			const linkedMeshes = instantiatedMeshes.filter((im) => im.metadata?.originalSourceFile?.id === m.id);
+			linkedMeshes.forEach((im) => {
+				im.metadata ??= {};
+				im.metadata._waitingUpdatedReferences = {};
+
+				im.metadata._waitingUpdatedReferences.geometry = {
+					geometry: m.geometry,
+					skeleton: m.skeleton,
+					subMeshes: m.subMeshes?.slice() ?? [],
+				};
+
+				/*
+				if (m.material) {
+					m.material.metadata ??= {};
+					im.metadata._waitingUpdatedReferences.material = m.material;
+
+					this._configureMaterialTextures(m.material, isGltf);
+				}
+				*/
+			});
+		});
+
+		this.props.editor.graph.refresh();
 	}
 }

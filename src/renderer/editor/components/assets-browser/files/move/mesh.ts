@@ -1,6 +1,9 @@
 import { join } from "path";
+import { readdir, readJSON } from "fs-extra";
 
 import { Editor } from "../../../../editor";
+
+import { Project } from "../../../../project/project";
 
 import { AssetsBrowserMoveHandler } from "./move-handler";
 
@@ -46,5 +49,27 @@ export class AssetsBrowserMeshMoveHandler extends AssetsBrowserMoveHandler {
 				originalSourceFile.sceneFileName = to.replace(join(this._editor.assetsBrowser.assetsDirectory, "/"), "");
 			}
 		});
+
+		const meshesDir = join(Project.DirPath!, "meshes");
+		const meshesFiles = await readdir(meshesDir);
+
+		await Promise.all(meshesFiles.map(async (mf) => {
+			try {
+				const json = await readJSON(join(meshesDir, mf));
+				json.meshes?.forEach((m) => {
+					const originalSourceFile = m.metadata?.originalSourceFile;
+					if (!originalSourceFile?.sceneFileName) {
+						return;
+					}
+
+					const path = join(this._editor.assetsBrowser.assetsDirectory, originalSourceFile.sceneFileName);
+					if (path === from) {
+						originalSourceFile.sceneFileName = to.replace(join(this._editor.assetsBrowser.assetsDirectory, "/"), "");
+					}
+				});
+			} catch (e) {
+				this._editor.console.logError(`Failed to link moved mesh ("${from}") for mesh "${mf}"`);
+			}
+		}));
 	}
 }
