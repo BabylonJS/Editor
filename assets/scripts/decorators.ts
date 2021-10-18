@@ -6,13 +6,21 @@ export type VisiblityPropertyType =
     "Color3" | "Color4" |
     "KeyMap";
 
+export interface IVisibleInInspectorOptions {
+    /**
+     * Defines the section of the inspector.
+     */
+    section?: string;
+}
+
 /**
  * Sets the decorated member visible in the inspector.
  * @param type the property type.
  * @param name optional name to be shown in the editor's inspector.
  * @param defaultValue optional default value set in the TS code.
+ * @param options defines the optional object defining the options of the decorated property.
  */
-export function visibleInInspector(type: VisiblityPropertyType, name?: string, defaultValue?: any): any {
+export function visibleInInspector(type: VisiblityPropertyType, name?: string, defaultValue?: any, options?: IVisibleInInspectorOptions): any {
     return (target: any, propertyKey: string | symbol) => {
         const ctor = target.constructor;
         ctor._InspectorValues = ctor._InspectorValues ?? [];
@@ -21,6 +29,7 @@ export function visibleInInspector(type: VisiblityPropertyType, name?: string, d
             name: name ?? propertyKey.toString(),
             propertyKey: propertyKey.toString(),
             defaultValue,
+            options,
         });
     };
 }

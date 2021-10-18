@@ -25,6 +25,7 @@ import { Project } from "./project";
 import { IProject } from "./typings";
 import { WorkSpace } from "./workspace";
 import { ProjectHelpers } from "./helpers";
+import { SceneExporter } from "./scene-exporter";
 
 import { Workers } from "../workers/workers";
 import AssetsWorker from "../workers/workers/assets";
@@ -213,9 +214,19 @@ export class ProjectImporter {
 
                 if (json.metadata?.sourcePath) {
                     const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, json.metadata.sourcePath);
+                    if (!await pathExists(jsPath)) {
+                        Overlay.SetMessage("Compiling TypeScript...");
+
+                        const tsProcess = await WorkSpace.CompileTypeScript(editor);
+                        if (tsProcess) {
+                            await tsProcess.promise;
+                            await SceneExporter.CopyShaderFiles(editor);
+                        }
+                    }
+
                     delete require.cache[jsPath];
                     require(jsPath);
-                } 
+                }
 
                 const material = m.isMultiMaterial ?
                     MultiMaterial.ParseMultiMaterial(json, editor.scene!) :
