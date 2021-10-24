@@ -435,12 +435,12 @@ export class MeshesAssets extends AbstractAssets {
                 // Material
                 if (mesh.material) {
                     if (!m.material) {
-                        meshMetadata._waitingUpdatedReferences!.material = mesh.material;
+                        meshMetadata._waitingUpdatedReferences!.material = { handler: () => { }, isGltf: false, material: mesh.material };
                     } else {
-                        meshMetadata._waitingUpdatedReferences!.material = mesh.material;
+                        meshMetadata._waitingUpdatedReferences!.material = { handler: () => { }, isGltf: false, material: mesh.material };
                     }
                 } else if (m.material) {
-                    meshMetadata._waitingUpdatedReferences!.material = null;
+                    meshMetadata._waitingUpdatedReferences!.material = { handler: () => { }, isGltf: false, material: null };;
                 }
 
                 // Keep updated mesh metadata.
@@ -467,7 +467,7 @@ export class MeshesAssets extends AbstractAssets {
                     });
                 }
 
-                um.material = umMetadata._waitingUpdatedReferences.material ?? null;
+                um.material = umMetadata._waitingUpdatedReferences.material?.material ?? null;
 
                 delete umMetadata._waitingUpdatedReferences;
             });
