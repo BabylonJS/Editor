@@ -10,13 +10,15 @@ import { Spinner, ContextMenu, Menu, MenuItem, MenuDivider, Icon as BPIcon } fro
 import {
 	PickingInfo, SceneLoader, Mesh, MultiMaterial, Material, Texture,
 	CubeTexture, TransformNode, Skeleton, Scene, IParticleSystem,
-	AbstractMesh,
+	AbstractMesh, SubMesh,
 } from "babylonjs";
 
 import { Tools } from "../../../../tools/tools";
 import { GLTFTools } from "../../../../tools/gltf";
 
 import { Icon } from "../../../../gui/icon";
+import { Confirm } from "../../../../gui/confirm";
+import { Overlay } from "../../../../gui/overlay";
 
 import { Workers } from "../../../../workers/workers";
 import AssetsWorker from "../../../../workers/workers/assets";
@@ -74,7 +76,11 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 			<Menu>
 				{this.getCommonContextMenuItems()}
 				<MenuDivider />
-				<MenuItem text="Update Instantiated References..." onClick={() => this._handleUpdateInstantiatedReferences()} />
+				{/* <MenuItem text="Update Instantiated References..." onClick={() => this._handleUpdateInstantiatedReferences()} /> */}
+				<MenuItem text="Update Instantiated References">
+					<MenuItem text="Force Update" onClick={() => this._handleUpdateInstantiatedReferences(true)} />
+					<MenuItem text="Update Per Object" onClick={() => this._handleUpdateInstantiatedReferences(false)} />
+				</MenuItem>
 				<MenuDivider />
 				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => this._handleRefreshPreview()} />
 			</Menu>
@@ -236,14 +242,20 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	/**
 	 * Configures the given imported material.
 	 */
-	private async _configureMaterial(material: Material, isGltf: boolean): Promise<Material> {
+	private async _configureMaterial(material: Material, isGltf: boolean, force: boolean = false): Promise<Material> {
 		if (!(material instanceof MultiMaterial)) {
-			const instantiatedMaterial = await this._createMaterialFile(material);
+			if (isGltf) {
+				Overlay.Show("Configuring GLTF...");
+			}
+
+			const instantiatedMaterial = await this._createMaterialFile(material, force);
 			if (instantiatedMaterial) {
 				return instantiatedMaterial;
 			}
 
-			this._configureMaterialTextures(material, isGltf);
+			this._configureMaterialTextures(material, isGltf).then(() => {
+				Overlay.Hide();
+			});
 		}
 
 		const materialMetadata = Tools.GetMaterialMetadata(material);
@@ -262,7 +274,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 					continue;
 				}
 
-				const instantiatedMaterial = await this._createMaterialFile(m);
+				const instantiatedMaterial = await this._createMaterialFile(m, force);
 				if (instantiatedMaterial) {
 					material.subMaterials[i] = instantiatedMaterial;
 					continue;
@@ -289,14 +301,14 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	/**
 	 * Creates the given material file.
 	 */
-	private async _createMaterialFile(material: Material): Promise<Nullable<Material>> {
+	private async _createMaterialFile(material: Material, force: boolean = false): Promise<Nullable<Material>> {
 		const materialFilename = filenamify(`${material.name ?? basename(this.props.absolutePath)}-${material.id ?? Tools.RandomId()}.material`);
 		const materialPath = join(dirname(this.props.absolutePath), materialFilename);
 
 		material.metadata ??= {};
 		material.metadata.editorPath = join(dirname(this.props.relativePath), materialFilename);
 
-		const exists = await pathExists(materialPath);
+		const exists = force ? false : await pathExists(materialPath);
 
 		if (exists) {
 			const json = await readJSON(materialPath, { encoding: "utf-8" });
@@ -383,13 +395,17 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	 * Called on the user wants to update the already instantiated meshes. Allows to update per mesh
 	 * which to update and chosse geometry, material, etc.
 	 */
-	private async _handleUpdateInstantiatedReferences(): Promise<void> {
+	private async _handleUpdateInstantiatedReferences(force: boolean): Promise<void> {
+		if (force && !await Confirm.Show("Force Update?", "Are you sure to force update instantiated references?")) {
+			return;
+		}
+
 		this._prepareLoad();
 
 		const scene = this.props.editor.scene!;
 
-		// const extension = extname(this.props.absolutePath).toLowerCase();
-		// const isGltf = extension === ".glb" || extension === ".gltf";
+		const extension = extname(this.props.absolutePath).toLowerCase();
+		const isGltf = extension === ".glb" || extension === ".gltf";
 
 		const container = await SceneLoader.LoadAssetContainerAsync(join(dirname(this.props.absolutePath), "/"), basename(this.props.absolutePath), scene);
 		const instantiatedMeshes = scene.meshes.filter((m) => m.metadata?.originalSourceFile?.sceneFileName === this.props.relativePath);
@@ -400,25 +416,79 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 			// Find all meshes instantiated with this original id
 			const linkedMeshes = instantiatedMeshes.filter((im) => im.metadata?.originalSourceFile?.id === m.id);
 			linkedMeshes.forEach((im) => {
-				im.metadata ??= {};
-				im.metadata._waitingUpdatedReferences = {};
+				if (!(im instanceof Mesh)) {
+					return;
+				}
 
-				im.metadata._waitingUpdatedReferences.geometry = {
+				const metadata = Tools.GetMeshMetadata(im);
+				metadata._waitingUpdatedReferences = {};
+
+				metadata._waitingUpdatedReferences.geometry = {
 					geometry: m.geometry,
 					skeleton: m.skeleton,
 					subMeshes: m.subMeshes?.slice() ?? [],
+					handler: (m) => this._updateInstantiatedGeometryReferences(m),
 				};
 
-				/*
-				if (m.material) {
-					m.material.metadata ??= {};
-					im.metadata._waitingUpdatedReferences.material = m.material;
-
-					this._configureMaterialTextures(m.material, isGltf);
+				if (force) {
+					this._updateInstantiatedGeometryReferences(im);
 				}
-				*/
+
+				const material = m.material;
+				if (material) {
+					metadata._waitingUpdatedReferences.material = {
+						isGltf,
+						material,
+						handler: (m) => this._updateInstantiatedMaterialReferences(m),
+					};
+				}
+
+				if (force) {
+					this._updateInstantiatedMaterialReferences(im);
+				}
 			});
 		});
+
+		this.props.editor.graph.refresh();
+	}
+
+	/**
+	 * Called on the user wants to update the material of the mesh from source file.
+	 */
+	private _updateInstantiatedMaterialReferences(mesh: Mesh): void {
+		const metadata = Tools.GetMeshMetadata(mesh);
+
+		if (metadata._waitingUpdatedReferences?.material) {
+			mesh.material = metadata._waitingUpdatedReferences.material?.material ?? null;
+
+			if (mesh.material) {
+				this.props.editor.scene!.addMaterial(mesh.material);
+				this._configureMaterial(mesh.material, metadata._waitingUpdatedReferences.material.isGltf, true);
+			}
+		}
+
+		delete metadata._waitingUpdatedReferences?.material;
+
+		this.props.editor.graph.refresh();
+	}
+
+	/**
+	 * Called on the user wants to update the geometry of the mesh from source file.
+	 */
+	private _updateInstantiatedGeometryReferences(mesh: Mesh): void {
+		const metadata = Tools.GetMeshMetadata(mesh);
+
+		metadata._waitingUpdatedReferences?.geometry?.geometry?.applyToMesh(mesh);
+		mesh.skeleton = metadata._waitingUpdatedReferences?.geometry?.skeleton ?? null;
+
+		if (metadata._waitingUpdatedReferences?.geometry?.subMeshes) {
+			mesh.subMeshes = [];
+			metadata._waitingUpdatedReferences.geometry.subMeshes.forEach((sm) => {
+				new SubMesh(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount, mesh, mesh, true, true);
+			});
+		}
+
+		delete metadata._waitingUpdatedReferences?.geometry;
 
 		this.props.editor.graph.refresh();
 	}

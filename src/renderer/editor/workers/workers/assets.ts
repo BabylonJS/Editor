@@ -6,7 +6,7 @@ import { basename, dirname, join } from "path";
 import { IStringDictionary, Nullable } from "../../../../shared/types";
 
 import {
-	Engine, Scene, SceneLoader, TargetCamera, Vector3, CubeTexture,
+	Engine, Scene, SceneLoader, TargetCamera, Vector3, CubeTexture, Color3,
 	DirectionalLight, ShadowGenerator, Mesh, Material, Tools as BabylonTools,
 } from "babylonjs";
 
@@ -69,11 +69,12 @@ export default class AssetsWorker {
 
 		// Ground material
 		const groundMaterial = new GridMaterial("AssetsWorkerGridMaterial", this._scene);
+		groundMaterial.opacity = 0.4;
 		groundMaterial.majorUnitFrequency = 6;
 		groundMaterial.minorUnitVisibility = 0.43;
 		groundMaterial.gridRatio = 0.5;
-		groundMaterial.mainColor = new BABYLON.Color3(0.35, 0.35, 0.35);
-		groundMaterial.lineColor = new BABYLON.Color3(1, 1, 1);
+		groundMaterial.mainColor = new Color3(0.35, 0.35, 0.35);
+		groundMaterial.lineColor = new Color3(1, 1, 1);
 		groundMaterial.backFaceCulling = false;
 		this._ground.material = groundMaterial;
 

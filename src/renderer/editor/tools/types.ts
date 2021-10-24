@@ -1,6 +1,6 @@
 import { Undefinable, IStringDictionary, Nullable } from "../../../shared/types";
 
-import { Material, Geometry, Skeleton, SubMesh } from "babylonjs";
+import { Material, Geometry, Skeleton, SubMesh, Mesh } from "babylonjs";
 
 export interface IObjectModified<T> {
     /**
@@ -165,22 +165,39 @@ export interface IMeshMetadata extends ICommonMetadata {
          */
         geometry?: {
             /**
-             * @hidden
+             * Defines the updated geometry reference.
              */
             geometry: Nullable<Geometry>;
             /**
-             * @hidden
+             * Defines the updated skeleton reference.
              */
             skeleton: Nullable<Skeleton>;
             /**
-             * @hidden
+             * Defines the list of new sub-meshes.
              */
             subMeshes: SubMesh[];
+            /**
+             * Defines the handler to call in order to apply the updated material reference.
+             */
+            handler?: (mesh: Mesh) => unknown | Promise<unknown>;
         }
         /**
-         * Defines the reference to the material to update.
+         * Defines the material object containing the component's to update.
          */
-        material?: Nullable<Material>;
+        material?: {
+            /**
+             * Defines wether or not the material comes from a gltf mesh file.
+             */
+            isGltf: boolean;
+            /**
+             * Defines the reference to the material to update.
+             */
+            material: Nullable<Material>;
+            /**
+             * Defines the handler to call in order to apply the updated material reference.
+             */
+            handler?: (mesh: Mesh) => unknown | Promise<unknown>;
+        }
     }
 }
 
