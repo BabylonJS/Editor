@@ -1,7 +1,7 @@
 import { basename, dirname, join } from "path";
 
 import * as React from "react";
-import { ContextMenu, Menu } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, Tag } from "@blueprintjs/core";
 
 import { Texture } from "babylonjs";
 
@@ -21,6 +21,35 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 				}}
 			/>
 		);
+	}
+
+	/**
+	 * Called on the user clicks on the asset.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onClick(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		const existing = this.props.editor.scene!.textures.filter((t) => t.name === this.props.relativePath);
+		if (!existing.length) {
+			return;
+		}
+
+		if (existing.length === 1) {
+			this.props.editor.inspector.setSelectedObject(existing[0]);
+		} else {
+			const items = existing.map((t) => (
+				<MenuItem text={basename(t.name)} onClick={() => this.props.editor.inspector.selectedObject(t)} />
+			));
+
+			ContextMenu.show((
+				<Menu>
+					<Tag>Edit:</Tag>
+					{items}
+				</Menu>
+			), {
+				top: ev.clientY,
+				left: ev.clientX,
+			})
+		}
 	}
 
 	/**

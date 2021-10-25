@@ -775,6 +775,14 @@ export class Editor {
     }
 
     /**
+     * Shows the tag identified by the given name.
+     * @param tabName defines the name of the tab to show.
+     */
+    public showTab(tabName: string): void {
+        this.layout.props.model.doAction(Actions.selectTab(tabName));
+    }
+
+    /**
      * Adds the given plugin into the layout.
      */
     private _addPlugin(plugin: any, name: string, fullPath: boolean, openParameters: any = {}): void {

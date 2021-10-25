@@ -9,7 +9,7 @@ import * as React from "react";
 import Slider from "antd/lib/slider";
 import {
 	Boundary, Breadcrumbs, Button, ButtonGroup, Classes, IBreadcrumbProps, Intent, Menu,
-	MenuDivider, MenuItem, Popover, Code, Divider, ContextMenu, Icon as BPIcon,
+	MenuDivider, MenuItem, Popover, Code, Divider, ContextMenu, Icon as BPIcon, InputGroup,
 } from "@blueprintjs/core";
 
 import { Tools as BabylonTools, Material, NodeMaterial, ParticleSystem, Mesh } from "babylonjs";
@@ -52,6 +52,11 @@ export interface IAssetsBrowserFilesState {
 	currentDirectory: string;
 
 	/**
+	 * Defines the current filter.
+	 */
+	filter: string;
+
+	/**
 	 * Defines the current size value for the items.
 	 */
 	itemsSize: number;
@@ -91,6 +96,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		this.state = {
 			items: [],
+			filter: "",
 			itemsSize: 1,
 			pathStack: [],
 			currentDirectory: "",
@@ -184,6 +190,15 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 						<Popover key="view-popover" position="bottom-left" content={view}>
 							<Button text="View" small icon={<Icon src="eye.svg" />} rightIcon="caret-down" />
 						</Popover>
+						<Divider />
+						<InputGroup
+							type="search"
+							placeholder="Search..."
+							value={this.state.filter}
+							onChange={(e) => this._handleFilterChanged(e.target.value)}
+							style={{ height: "25px", maxWidth: "200px", width: "200px" }}
+							leftIcon={<Icon src="search.svg" style={{ position: "absolute", left: "10px", top: "5px" }} />}
+						></InputGroup>
 					</ButtonGroup>
 				</div>
 
@@ -242,6 +257,11 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		// Get files and filter
 		let files = await readdir(directoryPath);
 		files = files.filter((f) => f.indexOf(".") !== 0);
+
+		if (this.state.filter) {
+			const filter = this.state.filter.toLowerCase();
+			files = files.filter((f) => f.toLowerCase().indexOf(filter) !== -1);
+		}
 
 		const isSrcDirectory = directoryPath.indexOf(this._sourcesDirectory) === 0;
 
@@ -334,15 +354,16 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	/**
 	 * Called on the user double clicks on an item.
 	 */
-	private async _handleItemDoubleClicked(directoryPath: string, file: string, stats: Stats): Promise<void> {
+	private _handleItemDoubleClicked(directoryPath: string, file: string, stats: Stats): void {
 		if (stats.isDirectory()) {
 			const currentDirectory = join(directoryPath, file);
 			const pathStack = this.state.pathStack.concat([file]);
 
 			this.props.onDirectorySelected(currentDirectory);
 
-			this.setState({ pathStack, currentDirectory });
-			return this.setDirectory(currentDirectory);
+			return this.setState({ filter: "", pathStack, currentDirectory }, () => {
+				this.setDirectory(currentDirectory);
+			});
 		}
 	}
 
@@ -370,6 +391,15 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		}
 
 		return items;
+	}
+
+	/**
+	 * Called on the user wants to filter the items.
+	 */
+	private _handleFilterChanged(filter: string): void {
+		this.setState({ filter }, () => {
+			this.setDirectory(this.state.currentDirectory);
+		});
 	}
 
 	/**

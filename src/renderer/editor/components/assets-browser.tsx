@@ -132,6 +132,24 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	}
 
 	/**
+	 * Shows the directory of the given file and makes the file selected.
+	 * @param relativePath defines the path of the file to show relative to the assets directory.
+	 */
+	public async showFile(relativePath: string): Promise<void> {
+		const directory = dirname(relativePath);
+		const absolutePath = join(this.state.browsedPath, directory);
+
+		if (!await pathExists(absolutePath)) {
+			return;
+		}
+
+		await Promise.all([
+			this._tree?.setDirectory(absolutePath),
+			this._files?.setDirectory(absolutePath),
+		]);
+	}
+
+	/**
 	 * Refreshes the current directory.
 	 */
 	public async refresh(): Promise<void> {
