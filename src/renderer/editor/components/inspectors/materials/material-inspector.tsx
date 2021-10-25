@@ -13,6 +13,7 @@ import { Inspector, IObjectInspectorProps } from "../../inspector";
 import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorString } from "../../../gui/inspector/fields/string";
 import { InspectorNumber } from "../../../gui/inspector/fields/number";
+import { InspectorButton } from "../../../gui/inspector/fields/button";
 import { InspectorBoolean } from "../../../gui/inspector/fields/boolean";
 
 import { AbstractInspector } from "../abstract-inspector";
@@ -93,6 +94,13 @@ export class MaterialInspector<T extends Material, S = {}> extends AbstractInspe
                 <InspectorString object={this.material} property="name" label="Name" />
                 <InspectorNumber object={this.material} property="alpha" label="Alpha" min={0} max={1} step={0.01} />
                 <InspectorNumber object={this.material} property="zOffset" label="Z Offset" step={0.01} />
+                <InspectorButton label="Show In Assets Browser" small onClick={() => {
+                    const editorPath = this.material.metadata?.editorPath;
+                    if (!editorPath) { return; }
+
+                    this.editor.showTab("assets-browser");
+                    this.editor.assetsBrowser.showFile(editorPath);
+                }} />
             </InspectorSection>
         );
     }
