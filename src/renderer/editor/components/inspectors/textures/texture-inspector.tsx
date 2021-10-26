@@ -4,16 +4,17 @@ import * as React from "react";
 
 import { Texture, CubeTexture } from "babylonjs";
 
-import { Inspector, IObjectInspectorProps } from "../../inspector";
-
 import { InspectorList } from "../../../gui/inspector/fields/list";
-import { AbstractInspector } from "../abstract-inspector";
+import { InspectorButton } from "../../../gui/inspector/fields/button";
 import { InspectorNumber } from "../../../gui/inspector/fields/number";
 import { InspectorString } from "../../../gui/inspector/fields/string";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorBoolean } from "../../../gui/inspector/fields/boolean";
 
 import { Project } from "../../../project/project";
+
+import { AbstractInspector } from "../abstract-inspector";
+import { Inspector, IObjectInspectorProps } from "../../inspector";
 
 export interface ITextureInspectorState {
     /**
@@ -80,8 +81,9 @@ export class TextureInspector<T extends Texture | CubeTexture, S extends ITextur
 
         return (
             <InspectorSection title="Preview">
-                <h2 style={{ color: "white", textAlign: "center" }}>{this.selectedObject.name}</h2>
+                <a style={{ color: "white", textAlign: "center", wordBreak: "break-all" }} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject.name)}>{this.selectedObject.name}</a>
                 <img src={path} style={{ width: "100%", height: "280px", objectFit: "contain" }}></img>
+                <InspectorButton label="Show In Assets Browser" small icon="link" onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject.name)} />
             </InspectorSection>
         );
     }

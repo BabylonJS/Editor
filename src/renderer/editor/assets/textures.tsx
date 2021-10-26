@@ -5,9 +5,15 @@ import { extname, basename, join, dirname } from "path";
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, MenuDivider, Tag, Intent } from "@blueprintjs/core";
+import {
+    ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, MenuDivider, Tag, Intent,
+    Icon as BPIcon,
+} from "@blueprintjs/core";
 
-import { Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, BaseTexture, BasisTools, DynamicTexture } from "babylonjs";
+import {
+    Texture, PickingInfo, StandardMaterial, PBRMaterial, CubeTexture, BaseTexture, BasisTools,
+    DynamicTexture,
+} from "babylonjs";
 
 import { Tools } from "../tools/tools";
 import { KTXTools } from "../tools/ktx";
@@ -268,8 +274,9 @@ export class TextureAssets extends AbstractAssets {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Copy Name" icon="clipboard" onClick={() => clipboard.writeText(texture.name, "clipboard")} />
-                <MenuItem text="Copy Path" icon="clipboard" onClick={() => clipboard.writeText(`./scenes/${WorkSpace.GetProjectName()}/${texture.name}`, "clipboard")} />
+                <MenuItem text="Copy Name" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(texture.name, "clipboard")} />
+                <MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(`./scenes/${WorkSpace.GetProjectName()}/${texture.name}`, "clipboard")} />
+                <MenuItem text="Show In Assets Browser" icon={<BPIcon icon="document-open" color="white" />} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(texture.name)} />
                 <MenuDivider />
                 {/* <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {
                     const name = basename(texture.name);

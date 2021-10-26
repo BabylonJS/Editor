@@ -10,6 +10,7 @@ import { IPCResponses } from "../../../shared/ipc";
 import * as React from "react";
 import {
     ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, MenuDivider, Divider, Tag, Intent,
+    Icon as BPIcon,
 } from "@blueprintjs/core";
 
 import {
@@ -166,7 +167,8 @@ export class MaterialAssets extends AbstractAssets {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Copy Name" icon="clipboard" onClick={() => clipboard.writeText(material.name, "clipboard")} />
+                <MenuItem text="Copy Name" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(material.name, "clipboard")} />
+                <MenuItem text="Show In Assets Browser" icon={<BPIcon icon="document-open" color="white" />} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(material.metadata?.editorPath)} />
                 <MenuDivider />
                 <MenuItem text="Locked" icon={material.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
                     material.metadata.isLocked = !material.metadata.isLocked;
