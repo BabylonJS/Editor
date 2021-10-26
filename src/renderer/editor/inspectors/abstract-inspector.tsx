@@ -74,7 +74,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
 
         // Scroll
         const scrollTop = InspectorUtils.GetInspectorScroll(this._inspectorName);
-        setTimeout(() => this._inspectorDiv?.scroll({ top: scrollTop, behavior: "smooth" }), 0);
+        requestAnimationFrame(() => this._inspectorDiv?.scroll({ top: scrollTop, behavior: "auto" }));
 
         // Listen to events
         InspectorUtils.RegisterInspectorChangedListener(this._inspectorName, (c) => {
