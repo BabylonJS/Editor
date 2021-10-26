@@ -24,6 +24,15 @@ export class AssetsBrowserMaterialMoveHandler extends AssetsBrowserMoveHandler {
 	}
 
 	/**
+	 * Returns wether or not the asset located at the given path is used in the project.
+	 * @param path defines the absolute path to the file.
+	 */
+	public async isFileUsed(path: string): Promise<boolean> {
+		const relativePath = path.replace(join(this._editor.assetsBrowser.assetsDirectory, "/"), "");
+		return this._editor.scene!.materials.find((m) => m.metadata?.editorPath === relativePath) ? true : false;
+	}
+
+	/**
 	 * Called on the user moves the given file from the previous path to the new path.
 	 * @param from defines the previous absolute path to the file being moved.
 	 * @param to defines the new absolute path to the file being moved.
