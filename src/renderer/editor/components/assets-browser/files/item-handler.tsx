@@ -196,6 +196,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	 */
 	protected getCommonContextMenuItems(): React.ReactNode[] {
 		const isMacOs = platform() === "darwin";
+		const assetType = this.props.type === "directory" ? "directory" : "asset";
 
 		return [
 			<MenuItem
@@ -205,10 +206,9 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 			/>,
 			<MenuDivider />,
 			<MenuItem
-				disabled={this.props.type === "directory"}
 				icon={<BPIcon icon="trash" color="white" />}
 				onClick={() => this._handleMoveToTrash()}
-				text={`Move ${this.props.editor.assetsBrowser.selectedFiles.length > 1 ? "Selected Assets" : "Asset"} To Trash...`}
+				text={`Move ${this.props.editor.assetsBrowser.selectedFiles.length > 1 ? `Selected ${assetType}` : assetType} to trash...`}
 			/>,
 		];
 	}
@@ -223,6 +223,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 			`Move ${multipleFiles ? "Selected Assets" : "Asset"} To Trash?`,
 			`Are you sure to move the ${multipleFiles ? "selected assets" : `asset "${basename(this.props.relativePath)}"`} to trash? If yes, all linked elements in the scene will be reset`,
 		);
+
 		if (!confirm) {
 			return;
 		}

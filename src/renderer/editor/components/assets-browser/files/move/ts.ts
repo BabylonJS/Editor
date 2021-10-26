@@ -29,6 +29,15 @@ export class AssetsBrowserTypeScriptMoveHandler extends AssetsBrowserMoveHandler
 	}
 
 	/**
+	 * Returns wether or not the asset located at the given path is used in the project.
+	 * @param path defines the absolute path to the file.
+	 */
+	public async isFileUsed(path: string): Promise<boolean> {
+		const relativePath = path.replace(join(WorkSpace.DirPath!, "/"), "");
+		return this._getScriptableObjects().find((so) => so.metadata?.script?.name === relativePath) ? true : false;
+	}
+
+	/**
 	 * Called on the user moves the given file from the previous path to the new path.
 	 * @param from defines the previous absolute path to the file being moved.
 	 * @param to defines the new absolute path to the file being moved.
@@ -40,20 +49,27 @@ export class AssetsBrowserTypeScriptMoveHandler extends AssetsBrowserMoveHandler
 	}
 
 	/**
-	 * Updates all the instantiated nodes.
+	 * Returns the list of all scriptable objects.
 	 */
-	private _updateInstantiatedNodes(from: string, to: string): void {
-		from = from.replace(join(WorkSpace.DirPath!, "/"), "");
-		to = to.replace(join(WorkSpace.DirPath!, "/"), "");
-
-		const scriptableObjects: { metadata: any }[] = [
+	private _getScriptableObjects(): { metadata: any }[] {
+		return [
 			this._editor.scene!,
 			...this._editor.scene!.meshes,
 			...this._editor.scene!.lights,
 			...this._editor.scene!.cameras,
 			...this._editor.scene!.transformNodes,
 		];
+	}
 
+	/**
+	 * Updates all the instantiated nodes.
+	 */
+	private _updateInstantiatedNodes(from: string, to: string): void {
+		from = from.replace(join(WorkSpace.DirPath!, "/"), "");
+		to = to.replace(join(WorkSpace.DirPath!, "/"), "");
+
+		const scriptableObjects = this._getScriptableObjects();
+		
 		scriptableObjects.forEach((o) => {
 			const script = o.metadata?.script;
 			if (!script) {

@@ -6,9 +6,12 @@ import { move, pathExists, stat, writeJSON } from "fs-extra";
 import { IStringDictionary, Nullable } from "../../../shared/types";
 
 import * as React from "react";
+import { Pre } from "@blueprintjs/core";
 import SplitPane from "react-split-pane";
 
 import { Editor } from "../editor";
+
+import { Alert } from "../gui/alert";
 
 import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
@@ -249,19 +252,49 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			return [];
 		}
 
-		const failed: string[] = [];
-
-		await Promise.all(this._files.selectedItems.map(async (i) => {
+		const usedFiles: string[] = [];
+		const isUsedCheckResult = await Promise.all(this._files.selectedItems.map(async (i) => {
+			let files = [i];
+			
 			const fStat = await stat(i);
 			if (fStat.isDirectory()) {
-				return;
+				files = await FSTools.GetGlobFiles(join(i, "**", "*.*"));
 			}
 
+			const result = await Promise.all(files.map(async (f) => {
+				const extension = extname(f).toLowerCase();
+				const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
+	
+				const isUsed = await handler?.isFileUsed(f) ?? false;
+				if (isUsed) {
+					usedFiles.push(f);
+				}
+
+				return isUsed;
+			}));
+
+			return result.includes(true);
+		}));
+
+		if (isUsedCheckResult.includes(true)) {
+			Alert.Show("Can't remove file(s)", "Following files are used in the scene:", undefined, (
+				<Pre>
+					<ul>
+						{usedFiles.map((uf) => <li>{uf}</li>)}
+					</ul>
+				</Pre>
+			));
+			return [];
+		}
+
+		const failed: string[] = [];
+
+		this._files.selectedItems.map((i) => {
 			const result = shell.moveItemToTrash(i, deleteOnFail);
 			if (!result) {
 				failed.push(i);
 			}
-		}));
+		});
 
 		return failed;
 	}
