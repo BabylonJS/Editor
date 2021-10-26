@@ -171,6 +171,14 @@ export default class EditorApp {
 						type: "separator",
 					},
 					{
+						label: "Select All",
+						accelerator: "CommandOrControl+A",
+						role: "selectAll",
+					},
+					{
+						type: "separator",
+					},
+					{
 						label: "Copy",
 						accelerator: "CommandOrControl+C",
 						role: "copy",
