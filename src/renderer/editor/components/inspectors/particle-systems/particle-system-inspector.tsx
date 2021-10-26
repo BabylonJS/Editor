@@ -104,6 +104,8 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
                     <InspectorString object={this.selectedObject} property="name" label="Name" />
                     <InspectorVector3 object={this.selectedObject} property="gravity" label="Gravity" step={0.01} />
                     <InspectorVector3 object={this.selectedObject} property="worldOffset" label="World Offset" step={0.01} />
+
+                    <InspectorButton label="Show In Assets Browser" small icon="link" onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject["metadata"]?.editorPath ?? null)} />
                 </InspectorSection>
 
                 <InspectorSection title="Billboard">

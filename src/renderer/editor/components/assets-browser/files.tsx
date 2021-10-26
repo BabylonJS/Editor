@@ -76,7 +76,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	private _assetsDirectory: string;
 	private _sourcesDirectory: string;
 
-	private _items: AssetsBrowserItem[] = [];
+	/**
+	 * @hidden
+	 */
+	public _items: AssetsBrowserItem[] = [];
 
 	/**
 	 * Initializes the files component.

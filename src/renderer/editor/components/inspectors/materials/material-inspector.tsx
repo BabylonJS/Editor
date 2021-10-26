@@ -94,13 +94,7 @@ export class MaterialInspector<T extends Material, S = {}> extends AbstractInspe
                 <InspectorString object={this.material} property="name" label="Name" />
                 <InspectorNumber object={this.material} property="alpha" label="Alpha" min={0} max={1} step={0.01} />
                 <InspectorNumber object={this.material} property="zOffset" label="Z Offset" step={0.01} />
-                <InspectorButton label="Show In Assets Browser" small onClick={() => {
-                    const editorPath = this.material.metadata?.editorPath;
-                    if (!editorPath) { return; }
-
-                    this.editor.showTab("assets-browser");
-                    this.editor.assetsBrowser.showFile(editorPath);
-                }} />
+                <InspectorButton label="Show In Assets Browser" small icon="link" onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.material.metadata?.editorPath)} />
             </InspectorSection>
         );
     }

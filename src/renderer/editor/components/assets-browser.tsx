@@ -11,6 +11,7 @@ import SplitPane from "react-split-pane";
 import { Editor } from "../editor";
 
 import { FSTools } from "../tools/fs";
+import { Tools } from "../tools/tools";
 
 import { Project } from "../project/project";
 import { WorkSpace } from "../project/workspace";
@@ -132,6 +133,19 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	}
 
 	/**
+	 * Reveals the assets-browser panel in the layout, shows the directory of the given file and makes the file selected.
+	 * @param relativePath defines the path of the file to show relative to the assets directory.
+	 */
+	public async revealPanelAndShowFile(relativePath: Nullable<string>): Promise<void> {
+		if (!relativePath) {
+			return;
+		}
+
+		this._editor.showTab("assets-browser");
+		this.showFile(relativePath);
+	}
+
+	/**
 	 * Shows the directory of the given file and makes the file selected.
 	 * @param relativePath defines the path of the file to show relative to the assets directory.
 	 */
@@ -147,6 +161,12 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			this._tree?.setDirectory(absolutePath),
 			this._files?.setDirectory(absolutePath),
 		]);
+
+		await Tools.Wait(0);
+
+		this._files?._items.find((i) => i.props.relativePath === relativePath)?.setState({
+			isSelected: true,
+		});
 	}
 
 	/**
