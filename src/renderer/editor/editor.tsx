@@ -107,7 +107,6 @@ import "./components/inspectors/sound/sound-inspector";
 // Assets
 import { MaterialAssets } from "./assets/materials";
 import { TextureAssets } from "./assets/textures";
-import { GraphAssets } from "./assets/graphs";
 import { PrefabAssets } from "./assets/prefabs";
 
 // Extensions
@@ -349,7 +348,6 @@ export class Editor {
         // Register assets
         MaterialAssets.Register();
         TextureAssets.Register();
-        GraphAssets.Register();
         PrefabAssets.Register();
 
         // Register loaders
