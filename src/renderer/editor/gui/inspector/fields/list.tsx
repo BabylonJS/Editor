@@ -126,7 +126,7 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
                     onDragLeave={(ev) => this._handleDragLeave(ev)}
                     style={{ width: "70%", height: "25px", float: "left", marginTop: "2px" }}
                 >
-                    <div style={{ position: "absolute", width: "30px", height: "25px", right: "5%" }}>
+                    <div style={{ zIndex: 1, position: "absolute", width: "30px", height: "25px", right: "5%" }}>
                         {this.state.selectedItem?.icon}
                     </div>
                     {this._getSuggestComponent()}
