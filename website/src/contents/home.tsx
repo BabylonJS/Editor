@@ -49,13 +49,13 @@ export class HomeContent extends React.Component {
                             title={<strong className="title">Built-in templates</strong>}
                             description={
                                 <p className="content" style={{ maxWidth: "90%" }}>
-                                    The Editor comes with some built-in projects including Third-Personal-Shooter and First-Personal-Shooter
+                                    The Editor comes with some built-in projects including Third-Person-Shooter and First-Person-Shooter
                                     examples. This is perfect to learn by experimenting using these templates.
                                     {/* <Tree
                                         contents={[
-                                            { label: <a href="./examples/tps/" target="blank">Thrid-Personal-Shooter</a> } as ITreeNode,
-                                            { label: <a href="./examples/fps/" target="blank">First-Personal-Shooter</a> } as ITreeNode,
-                                            { label: <a href="./examples/fps_graphs/" target="blank">First-Personal-Shooter using graphs</a> } as ITreeNode,
+                                            { label: <a href="./examples/tps/" target="blank">Thrid-Person-Shooter</a> } as ITreeNode,
+                                            { label: <a href="./examples/fps/" target="blank">First-Person-Shooter</a> } as ITreeNode,
+                                            { label: <a href="./examples/fps_graphs/" target="blank">First-Person-Shooter using graphs</a> } as ITreeNode,
                                         ]}
                                     /> */}
                                 </p>
