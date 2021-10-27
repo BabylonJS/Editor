@@ -1,4 +1,5 @@
 import Glob from "glob";
+import * as os from "os";
 import { shell } from "electron";
 import { basename, dirname, extname, join } from "path";
 import { move, pathExists, stat, writeJSON } from "fs-extra";
@@ -253,7 +254,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		}
 
 		const usedFiles: string[] = [];
-		const isUsedCheckResult = await Promise.all(this._files.selectedItems.map(async (i) => {
+		const isUsedCheckResults = await Promise.all(this._files.selectedItems.map(async (i) => {
 			let files = [i];
 			
 			const fStat = await stat(i);
@@ -276,7 +277,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			return result.includes(true);
 		}));
 
-		if (isUsedCheckResult.includes(true)) {
+		if (isUsedCheckResults.includes(true)) {
 			Alert.Show("Can't remove file(s)", "Following files are used in the scene:", undefined, (
 				<Pre>
 					<ul>
@@ -288,9 +289,11 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		}
 
 		const failed: string[] = [];
+		const platform = os.platform();
 
 		this._files.selectedItems.map((i) => {
-			const result = shell.moveItemToTrash(i, deleteOnFail);
+			const iAbsolute = platform === "win32" ? i.replace(/\//g, "\\") : i;
+			const result = shell.moveItemToTrash(iAbsolute, deleteOnFail);
 			if (!result) {
 				failed.push(i);
 			}
