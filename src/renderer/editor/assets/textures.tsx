@@ -520,8 +520,8 @@ export class TextureAssets extends AbstractAssets {
     private async _cloneTexture(texture: Texture | CubeTexture): Promise<void> {
         let name = await Dialog.Show("New texture name", "Please provide a name for the cloned texture");
 
-        const textureExtension = extname(texture.name);
         const cloneExtension = extname(name);
+        const textureExtension = extname(texture.name);
 
         if (cloneExtension !== textureExtension) {
             name += textureExtension;

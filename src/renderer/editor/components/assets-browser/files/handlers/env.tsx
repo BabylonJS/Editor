@@ -1,7 +1,7 @@
 import { basename, dirname, join } from "path";
 
 import * as React from "react";
-import { ContextMenu, Menu } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuDivider, MenuItem, Tag } from "@blueprintjs/core";
 
 import { CubeTexture } from "babylonjs";
 
@@ -26,6 +26,35 @@ export class EnvDdsItemHandler extends AssetsBrowserItemHandler {
 	}
 
 	/**
+	 * Called on the user clicks on the asset.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onClick(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		const existing = this.props.editor.scene!.textures.filter((t) => t.name === this.props.relativePath);
+		if (!existing.length) {
+			return;
+		}
+
+		if (existing.length === 1) {
+			this.props.editor.inspector.setSelectedObject(existing[0]);
+		} else {
+			const items = existing.map((t) => (
+				<MenuItem text={basename(t.metadata?.editorName ?? t.name)} onClick={() => this.props.editor.inspector.setSelectedObject(t)} />
+			));
+
+			ContextMenu.show((
+				<Menu>
+					<Tag>Edit:</Tag>
+					{items}
+				</Menu>
+			), {
+				top: ev.clientY,
+				left: ev.clientX,
+			});
+		}
+	}
+
+	/**
 	 * Called on the user double clicks on the item.
 	 * @param ev defines the reference to the event object.
 	 */
@@ -40,6 +69,8 @@ export class EnvDdsItemHandler extends AssetsBrowserItemHandler {
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		ContextMenu.show((
 			<Menu>
+				<MenuItem text="Set As Environment Texture" onClick={() => this._applyToObject(this.props.editor.scene, "environmentTexture")} />
+				<MenuDivider />
 				{this.getCommonContextMenuItems()}
 			</Menu>
 		), {
@@ -66,7 +97,14 @@ export class EnvDdsItemHandler extends AssetsBrowserItemHandler {
 	 * @param object defines the reference to the object being modified in the inspector.
 	 * @param property defines the property of the object to assign the asset instance.
 	 */
-	public async onDropInInspector(_: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
+	public onDropInInspector(_: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
+		return this._applyToObject(object, property);
+	}
+
+	/**
+	 * Applies the environement texture to the given property of the given object.
+	 */
+	private _applyToObject(object: any, property: string): Promise<void> {
 		let texture = this.props.editor.scene!.textures.find((tex) => tex.name === this.props.relativePath);
 		if (!texture) {
 			texture = CubeTexture.CreateFromPrefilteredData(this.props.absolutePath, this.props.editor.scene!);
@@ -77,6 +115,7 @@ export class EnvDdsItemHandler extends AssetsBrowserItemHandler {
 
 		object[property] = texture;
 
-		await this.props.editor.assets.refresh();
+		this.props.editor.inspector.refreshDisplay();
+		return this.props.editor.assets.refresh();
 	}
 }
