@@ -84,9 +84,9 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		ContextMenu.show((
 			<Menu>
-				{this.getCommonContextMenuItems()}
-				<MenuDivider />
 				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => this._handleRefreshPreview()} />
+				<MenuDivider />
+				{this.getCommonContextMenuItems()}
 			</Menu>
 		), {
 			top: ev.clientY,

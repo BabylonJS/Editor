@@ -37,7 +37,7 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 			this.props.editor.inspector.setSelectedObject(existing[0]);
 		} else {
 			const items = existing.map((t) => (
-				<MenuItem text={basename(t.name)} onClick={() => this.props.editor.inspector.selectedObject(t)} />
+				<MenuItem text={basename(t.metadata?.editorName ?? t.name)} onClick={() => this.props.editor.inspector.setSelectedObject(t)} />
 			));
 
 			ContextMenu.show((
@@ -48,7 +48,7 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 			), {
 				top: ev.clientY,
 				left: ev.clientX,
-			})
+			});
 		}
 	}
 
