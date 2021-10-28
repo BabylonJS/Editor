@@ -219,7 +219,7 @@ export class ProjectImporter {
 
                         const tsProcess = await WorkSpace.CompileTypeScript(editor);
                         if (tsProcess) {
-                            await tsProcess.promise;
+                            await tsProcess.wait();
                             await SceneExporter.CopyShaderFiles(editor);
                         }
                     }

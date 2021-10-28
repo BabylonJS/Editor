@@ -716,17 +716,15 @@ export class Editor {
         this.console.logSection("Running Game Server");
 
         if (serverResult.ips) {
-            const log = this.console.logInfo("");
-            if (log) {
-                log.innerHTML = `
-                    Server is running:
-                    <ul>${serverResult.ips.map((ip) => `<li>${protocol}://${ip}:${workspace.serverPort}</li>`).join("")}</ul>
-                `;
-                log.style.color = "green";
-            }
+            this.console.logCustom(
+                <>
+                    <span style={{ color: "green" }}>Server is running:</span>
+                    <ul>{serverResult.ips!.map((ip) => <li style={{ color: "green" }}>{protocol}://{ip}:{workspace.serverPort}</li>)}</ul>
+                </>
+            );
+        } else {
+            this.console.logInfo("Server is running.");
         }
-
-        this.console.logInfo("Server is running.");
 
         switch (mode) {
             case EditorPlayMode.EditorPanelBrowser:

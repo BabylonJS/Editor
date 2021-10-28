@@ -5,6 +5,7 @@ import { readdir, writeFile } from "fs-extra";
 import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
+import Image from "antd/lib/image";
 import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent, Tag } from "@blueprintjs/core";
 
 import { AbstractMesh, Node, IParticleSystem } from "babylonjs";
@@ -133,10 +134,14 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Console" icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:console")} />
                 <MenuItem text="Terminal" icon={<Icon src="terminal.svg" />} onClick={() => this._menuItemClicked("view:terminal")} />
+                <MenuDivider />
                 <MenuItem text="Statistics" icon={<Icon src="stats.svg" />} onClick={() => this._menuItemClicked("view:stats")} />
                 <MenuDivider />
                 <MenuItem text={<div>Focus Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(true)} />
                 <MenuItem text={<div>Go To Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(false)} />
+                <MenuDivider />
+                <MenuItem text="Webpack Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:webpack-logs")} />
+                <MenuItem text="TypeScript Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:typescript-logs")} />
             </Menu>;
         const add =
             <Menu>
@@ -278,6 +283,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 case "console": this._editor.revealPanel("console"); break;
                 case "terminal": this._editor.addBuiltInPlugin("terminal"); break;
                 case "stats": this._editor.addBuiltInPlugin("stats"); break;
+
+                case "webpack-logs": this._editor.addBuiltInPlugin("processes/webpack"); break;
+                case "typescript-logs": this._editor.addBuiltInPlugin("processes/typescript"); break;
                 default: break;
             }
 
@@ -390,7 +398,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
      */
     private async _handleOpenVSCode(): Promise<void> {
         try {
-            await ExecTools.ExecAndGetProgram(this._editor, `code "${WorkSpace.DirPath!}"`, undefined, true).promise;
+            await ExecTools.ExecAndGetProgram(this._editor, `code "${WorkSpace.DirPath!}"`, undefined).promise;
         } catch (e) {
             Alert.Show("Failed to open VSCode", `
                 Failed to open Visual Studio Code. Please ensure the command named "code" is available in the "PATH" environment. 
@@ -424,9 +432,10 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
     private async _handleCreateScreenshot(): Promise<void> {
         const b64 = await Tools.CreateScreenshot(this._editor.engine!, this._editor.scene!.activeCamera!);
         const img = (
-            <img
+            <Image
                 src={b64}
-                style={{ objectFit: "contain", width: "100%", height: "100%" }}
+                width="100%"
+                height="100%"
                 onContextMenu={(e) => {
                     ContextMenu.show(
                         <Menu className={Classes.DARK}>
@@ -444,8 +453,13 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                         { left: e.clientX, top: e.clientY }
                     );
                 }}
-            ></img>
+            />
         );
-        Alert.Show("Screenshot", "Result:", <Icon src="eye.svg" />, img);
+        Alert.Show("Screenshot", "Result:", "eye-open", img, {
+            style: {
+                width: "50%",
+                height: "50%",
+            },
+        });
     }
 }
