@@ -2,7 +2,7 @@ import * as React from "react";
 import Tree from "antd/lib/tree/Tree";
 import {
     ContextMenu, Menu, MenuItem, MenuDivider, Classes, Tooltip,
-    Position, InputGroup, FormGroup,
+    Position, InputGroup, FormGroup, Icon as BPIcon,
     Switch, ButtonGroup, Button, Popover, Pre, Intent, Code, Tag,
 } from "@blueprintjs/core";
 
@@ -115,21 +115,28 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Renders the component.
      */
-    public render(): JSX.Element {
-        if (!this.state.nodes.length) { return null!; }
+    public render(): React.ReactNode {
+        if (!this.state.nodes.length) {return null; }
 
         return (
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-                <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={(e) => this._handleFilterChanged(e.target.value)}></InputGroup>
+                <InputGroup
+                    type="search"
+                    placeholder="Search..."
+                    className={Classes.FILL}
+                    style={{ marginTop: "5px", marginBottom: "5px" }}
+                    leftIcon={<BPIcon icon="search" style={{ margin: "12px" }} />}
+                    onChange={(e) => this._handleFilterChanged(e.target.value)}
+                ></InputGroup>
                 <Popover
-                    fill={true}
-                    isOpen={this.state.showOptions}
+                    fill
+                    lazy
+                    usePortal
+                    inheritDarkTheme
                     position={Position.BOTTOM}
+                    isOpen={this.state.showOptions}
                     popoverClassName={Classes.POPOVER_CONTENT_SIZING}
-                    usePortal={true}
-                    inheritDarkTheme={true}
                     onClose={() => this.setState({ showOptions: false })}
-                    lazy={true}
                     content={
                         <FormGroup label="Graph" labelInfo="Options" >
                             <Switch label="Show Instances" checked={this.state.showInstances} onChange={(e) => this.setState({ showInstances: e.currentTarget.checked }, () => this.refresh())} />
@@ -137,30 +144,34 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         </FormGroup>
                     }
                 >
-                    <ButtonGroup fill={true}>
-                        <Button text="Options..." onClick={() => this.setState({ showOptions: true })} />
+                    <ButtonGroup fill style={{ backgroundColor: "#333333" }}>
+                        <Button
+                            text="Options..."
+                            onClick={() => this.setState({ showOptions: true })}
+                            style={{ marginTop: "5px", marginBottom: "5px", paddingLeft: "5px", paddingRight: "5px" }}
+                        />
                     </ButtonGroup>
                 </Popover>
-                <div style={{ width: "100%", height: "calc(100% - 60px)", overflow: "auto" }}>
+                <div style={{ width: "100%", height: "calc(100% - 70px)", overflow: "auto" }}>
                     <Tree.DirectoryTree
-                        className="draggable-tree"
-                        draggable={true}
-                        multiple={true}
-                        showIcon={true}
+                        multiple
+                        showIcon
+                        draggable
+                        blockNode
+                        key="Graph"
                         checkable={false}
-                        key={"Graph"}
-                        style={{ height: "calc(100% - 32px)" }}
-                        blockNode={true}
-                        expandedKeys={this.state.expandedNodeIds ?? []}
-                        onExpand={(k) => this._handleExpandedNode(k as string[])}
-                        onRightClick={(e) => this._handleNodeContextMenu(e.event, e.node)}
-                        onSelect={(k) => this._handleSelectedNodes(k as string[])}
                         autoExpandParent={false}
-                        selectedKeys={this.state.selectedNodeIds ?? []}
                         expandAction="doubleClick"
+                        className="draggable-tree"
+                        style={{ height: "calc(100% - 32px)" }}
+                        expandedKeys={this.state.expandedNodeIds ?? []}
+                        selectedKeys={this.state.selectedNodeIds ?? []}
+                        onDrop={(i) => this._handleDrop(i)}
                         onDragEnter={(n) => this._handleDragEnter(n)}
                         onDragStart={(n) => this._handleDragStart(n)}
-                        onDrop={(i) => this._handleDrop(i)}
+                        onExpand={(k) => this._handleExpandedNode(k as string[])}
+                        onSelect={(k) => this._handleSelectedNodes(k as string[])}
+                        onRightClick={(e) => this._handleNodeContextMenu(e.event, e.node)}
                     >
                         {this.state.nodes}
                     </Tree.DirectoryTree>
