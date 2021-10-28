@@ -1,6 +1,6 @@
 import * as os from "os";
 import { IPty, spawn } from "node-pty";
-import { Terminal, IDisposable } from "xterm";
+import { Terminal, IDisposable } from "xterm";
 
 import { Nullable, Undefinable } from "../../../shared/types";
 
@@ -17,7 +17,7 @@ export interface IEditorProcess {
 	/**
 	 * Defines the reference to the node-pty process that is running.
 	 */
-	process: IPty;
+	program: IPty;
 	/**
 	 * Defines the reference to the terminal that logs the process data.
 	 */
@@ -31,6 +31,12 @@ export interface IEditorProcess {
 	 * Defines the reference to the data listener.s
 	 */
 	onDataListener?: IDisposable;
+
+	/**
+	 * Defines the function that waits until the process has finished.
+	 * This detaches the process from the list of available processes once finished.
+	 */
+	wait: () => Promise<void>;
 }
 
 export interface IEditorProcessOptions {
@@ -42,6 +48,10 @@ export interface IEditorProcessOptions {
 	 * Defines the optional command to write once the process has been created.
 	 */
 	command?: string;
+	/**
+	 * Defines the reference to the terminal that logs the process data.
+	 */
+	terminal?: Terminal;
 	/**
 	 * Defines wether or not the process is readonly mode.
 	 */
@@ -60,7 +70,7 @@ export class EditorProcess {
 	 * @returns the newly created editor process object that contains the terminal, process, etc.
 	 * @example EditorProcess.RegisterProcess(editor, "watch-webpack", { cwd: WorkSpace.DirPath, command: "npm run watch" });
 	 */
-	public static RegisterProces(editor: Editor, id: string, options?: IEditorProcessOptions): Nullable<IEditorProcess> {
+	public static RegisterProcess(editor: Editor, id: string, options?: IEditorProcessOptions): Nullable<IEditorProcess> {
 		// Check existing
 		const existing = this.GetProcessById(id);
 		if (existing) {
@@ -68,52 +78,69 @@ export class EditorProcess {
 		}
 
 		// Create process.
-        const shell = this._GetShell(editor);
+		const shell = this._GetShell(editor);
 		if (!shell) {
-			return null;
+			const message = `Can't execute process "${id}" as no shell environment is available.`;
+			editor.console.logError(message);
+			throw new Error(message);
 		}
 
-		const p = spawn(shell, this._GetArgs(), {
+		const hasBackSlashes = shell.toLowerCase() === process.env["COMSPEC"]?.toLowerCase();
+
+		const program = spawn(shell, this._GetArgs(), {
 			cols: 80,
-            rows: 30,
-            name: "xterm-color",
-            cwd: options?.cwd ?? WorkSpace.DirPath!,
-        });
+			rows: 30,
+			name: "xterm-color",
+			cwd: options?.cwd ?? WorkSpace.DirPath!,
+		});
 
 		// Create terminal
-        const terminal = new Terminal({
-            fontFamily: "Consolas, 'Courier New', monospace",
-            fontSize: 12,
-            fontWeight: "normal",
-            cursorStyle: "block",
-            cursorWidth: 1,
-            drawBoldTextInBrightColors: true,
-            fontWeightBold: "bold",
-            letterSpacing: -4,
-            cols: 80,
-            lineHeight: 1,
-            rendererType: "canvas",
-            allowTransparency: true,
-            theme: {
-                background: "#111111"
-            },
-        });
+		const terminal = options?.terminal ?? this.CreateTerminal();
+		const resizeListener = terminal.onResize(() => {
+			program.resize(terminal.cols, terminal.rows);
+		});
+
+		if (options?.terminal) {
+			program.resize(terminal.cols, terminal.rows);
+		}
 
 		// Events
-		p.onData((d) => terminal.write(d));
+		program.onData((d) => terminal.write(d));
 
 		let onDataListener: Undefinable<IDisposable> = undefined;
 		if (options?.readonly === false) {
-			onDataListener = terminal.onData((d) => p.write(d));
+			onDataListener = terminal.onData((d) => program.write(d));
 		}
 
 		// Write command
 		if (options?.command) {
-			p.write(options.command + "\r\n");
+			if (hasBackSlashes) {
+				program.write(`${options.command.replace(/\//g, "\\")}\n\r`);
+			} else {
+				program.write(`${options.command}\n\r`);
+			}
 		}
 
 		// Register process
-		const result: IEditorProcess = { id, process: p, terminal, onDataListener };
+		const result: IEditorProcess = {
+			id,
+			program,
+			options,
+			terminal,
+			onDataListener,
+			wait: () => {
+				return new Promise<void>((resolve, reject) => {
+					program.onExit((e) => {
+						e?.exitCode === 0 ? resolve() : reject();
+						resizeListener.dispose();
+						this.RemoveProcessById(id);
+					});
+
+					program.write("exit\n\r");
+				});
+			},
+		};
+
 		this._Processes.push(result);
 
 		return result;
@@ -136,25 +163,25 @@ export class EditorProcess {
 			return;
 		}
 
-		editorProcess.process.kill();
-		editorProcess.process = spawn(shell, this._GetArgs(), {
+		editorProcess.program.kill();
+		editorProcess.program = spawn(shell, this._GetArgs(), {
 			cols: 80,
-            rows: 30,
-            name: "xterm-color",
-            cwd: editorProcess.options?.cwd ?? WorkSpace.DirPath!,
-        });
+			rows: 30,
+			name: "xterm-color",
+			cwd: editorProcess.options?.cwd ?? WorkSpace.DirPath!,
+		});
 
 		// Events
-		editorProcess.process.onData((d) => editorProcess.terminal.write(d));
+		editorProcess.program.onData((d) => editorProcess.terminal.write(d));
 
 		if (editorProcess.options?.readonly === false) {
 			editorProcess.onDataListener?.dispose();
-			editorProcess.terminal.onData((d) => editorProcess.process.write(d));
+			editorProcess.terminal.onData((d) => editorProcess.program.write(d));
 		}
 
 		// Write command
 		if (editorProcess.options?.command) {
-			editorProcess.process.write(editorProcess.options.command + "\r\n");
+			editorProcess.program.write(editorProcess.options.command + "\r\n");
 		}
 	}
 
@@ -168,13 +195,39 @@ export class EditorProcess {
 			return;
 		}
 
-		editorProcess.process.kill();
-		editorProcess.terminal.dispose();
+		editorProcess.program.kill();
+
+		if (!editorProcess.options?.terminal) {
+			editorProcess.terminal.dispose();
+		}
 
 		const index = this._Processes.indexOf(editorProcess);
 		if (index !== -1) {
 			this._Processes.splice(index, 1);
 		}
+	}
+
+	/**
+	 * Creates a new terminal and returns its reference.
+	 */
+	public static CreateTerminal(): Terminal {
+		return new Terminal({
+			fontFamily: "Consolas, 'Courier New', monospace",
+			fontSize: 12,
+			fontWeight: "normal",
+			cursorStyle: "block",
+			cursorWidth: 1,
+			drawBoldTextInBrightColors: true,
+			fontWeightBold: "bold",
+			letterSpacing: -4,
+			cols: 80,
+			lineHeight: 1,
+			rendererType: "canvas",
+			allowTransparency: true,
+			theme: {
+				background: "#111111"
+			},
+		});
 	}
 
 	/**
@@ -190,7 +243,7 @@ export class EditorProcess {
 	 * Returns the path to the shell to run.
 	 */
 	private static _GetShell(editor: Editor): Nullable<string> {
-        return editor.getPreferences().terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"] ?? null;
+		return editor.getPreferences().terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"] ?? null;
 	}
 
 	/**
@@ -199,9 +252,9 @@ export class EditorProcess {
 	private static _GetArgs(): string[] {
 		const shellArguments: string[] = [];
 
-        if (os.platform() === "darwin") {
-            shellArguments.push("-l");
-        }
+		if (os.platform() === "darwin") {
+			shellArguments.push("-l");
+		}
 
 		return shellArguments;
 	}

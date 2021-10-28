@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { Dialog, Button, Classes } from "@blueprintjs/core";
+import { Dialog, Button, Classes, IconName, MaybeElement } from "@blueprintjs/core";
 
 import { Undefinable } from "../../../shared/types";
 
@@ -37,7 +37,7 @@ export interface IAlertProps extends IAlertOptions {
     /**
      * The icon to show on top-left of the dialog.
      */
-    icon: Undefinable<JSX.Element>;
+    icon: Undefinable<IconName | MaybeElement>;
     /**
      * Defines the html div element that contains the alert.
      */
@@ -60,7 +60,7 @@ export class Alert extends React.Component<IAlertProps, { }> {
      * @param icon the icon of the dialog to show on top-left.
      * @param body optional body to draw in the alert.
      */
-    public static async Show(title: string, message: string, icon?: Undefinable<JSX.Element>, body?: Undefinable<JSX.Element>, options?: IAlertOptions, ref?: (ref: Alert) => void): Promise<void> {
+    public static async Show(title: string, message: string, icon?: Undefinable<IconName | MaybeElement>, body?: Undefinable<JSX.Element>, options?: IAlertOptions, ref?: (ref: Alert) => void): Promise<void> {
         return new Promise<void>((resolve) => {
             const container = document.createElement("div");
             container.style.position = "absolute";

@@ -1,17 +1,17 @@
-import { ipcRenderer } from "electron";
 import { platform } from "os";
+import { ipcRenderer } from "electron";
 import { join, dirname, extname, basename } from "path";
 import { readdir, readJSON, writeJSON, stat, copyFile } from "fs-extra";
 
-import { Nullable, IStringDictionary } from "../../../shared/types";
 import { IPCRequests, IPCResponses } from "../../../shared/ipc";
+import { Nullable, IStringDictionary } from "../../../shared/types";
+
+import { Terminal } from "xterm";
 
 import { Editor } from "../editor";
 
-import { ConsoleLayer } from "../components/console";
-
 import { Tools } from "../tools/tools";
-import { ExecTools, IExecProcess } from "../tools/exec";
+import { EditorProcess, IEditorProcess } from "../tools/process";
 
 import { Overlay } from "../gui/overlay";
 
@@ -40,8 +40,11 @@ export class WorkSpace {
      */
     public static ServerPort: Nullable<number> = null;
 
-    private static _WatchProjectProgram: Nullable<IExecProcess> = null;
-    private static _WatchTypescriptProgram: Nullable<IExecProcess> = null;
+    private static _WebpackTerminal: Nullable<Terminal> = null;
+    private static _TypeScriptTerminal: Nullable<Terminal> = null;
+
+    private static _WatchProjectProgram: Nullable<IEditorProcess> = null;
+    private static _WatchTypescriptProgram: Nullable<IEditorProcess> = null;
 
     private static _BuildingProject: boolean = false;
 
@@ -95,7 +98,7 @@ export class WorkSpace {
         if (!this.DirPath || !this.Path) { return Promise.resolve(); }
 
         // Get all plugin prefernces
-        const pluginsPreferences: IStringDictionary<any> = { };
+        const pluginsPreferences: IStringDictionary<any> = {};
         for (const p in Editor.LoadedExternalPlugins) {
             const plugin = Editor.LoadedExternalPlugins[p];
             if (!plugin.getWorkspacePreferences) { continue; }
@@ -145,8 +148,8 @@ export class WorkSpace {
                 },
             },
         } as IWorkSpace, {
-            encoding: "utf-8",
             spaces: "\t",
+            encoding: "utf-8",
         });
     }
 
@@ -181,6 +184,20 @@ export class WorkSpace {
     }
 
     /**
+     * Gets the reference to the webpack terminal.
+     */
+    public static get WebpackTerminal(): Terminal {
+        return this._WebpackTerminal ??= EditorProcess.CreateTerminal();
+    }
+
+    /**
+     * Gets the reference to the TypeScript terminal.
+     */
+    public static get TypeScriptTerminal(): Terminal {
+        return this._TypeScriptTerminal ??= EditorProcess.CreateTerminal();
+    }
+
+    /**
      * Opens the file dialog and loads the selected project.
      */
     public static async Browse(): Promise<void> {
@@ -198,13 +215,21 @@ export class WorkSpace {
      */
     public static async InstallAndBuild(editor: Editor): Promise<void> {
         if (!this.Workspace) { return; }
-        
+
         const task = editor.addTaskFeedback(0, "Installing dependencies. Please wait...", 0);
         try {
-            await ExecTools.Exec(editor, "npm install", WorkSpace.DirPath!, false, ConsoleLayer.TypeScript);
+            await EditorProcess.RegisterProcess(editor, "npm install", {
+                command: "npm install",
+                cwd: WorkSpace.DirPath!,
+                terminal: this.WebpackTerminal,
+            })?.wait();
 
             editor.updateTaskFeedback(task, 50, "Building project...");
-            await ExecTools.Exec(editor, "npm run build -- --progress", WorkSpace.DirPath!, false, ConsoleLayer.WebPack);
+            await EditorProcess.RegisterProcess(editor, "npm build", {
+                cwd: WorkSpace.DirPath!,
+                terminal: this.WebpackTerminal,
+                command: "npm run build -- --progress",
+            })?.wait();
             editor.updateTaskFeedback(task, 100, "Done!");
         } catch (e) {
             editor.updateTaskFeedback(task, 0, "Failed");
@@ -226,8 +251,11 @@ export class WorkSpace {
         const task = editor.addTaskFeedback(50, "Building project...");
 
         try {
-            editor.console.setActiveTab("webpack");
-            await ExecTools.Exec(editor, "npm run build -- --progress", WorkSpace.DirPath!, false, ConsoleLayer.WebPack);
+            await EditorProcess.RegisterProcess(editor, "npm build", {
+                cwd: WorkSpace.DirPath!,
+                terminal: this.WebpackTerminal,
+                command: "npm run build -- --progress",
+            })?.wait();
             editor.updateTaskFeedback(task, 100, "Done!");
         } catch (e) {
             editor.updateTaskFeedback(task, 0, "Failed");
@@ -251,7 +279,11 @@ export class WorkSpace {
         const isWin32 = platform() === "win32";
         const watchScript = join("node_modules", ".bin", isWin32 ? packageJson.scripts.watch.replace("webpack", "webpack.cmd") : packageJson.scripts.watch);
 
-        this._WatchProjectProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript}`, this.DirPath!, false, ConsoleLayer.WebPack);
+        this._WatchProjectProgram = EditorProcess.RegisterProcess(editor, "npm webpack watch", {
+            cwd: WorkSpace.DirPath!,
+            command: `./${watchScript}`,
+            terminal: this.WebpackTerminal,
+        });
     }
 
     /**
@@ -266,7 +298,7 @@ export class WorkSpace {
      */
     public static StopWatchingProject(): void {
         if (this._WatchProjectProgram) {
-            this._WatchProjectProgram.process.kill();
+            EditorProcess.RemoveProcessById(this._WatchProjectProgram.id);
         }
 
         this._WatchProjectProgram = null;
@@ -276,7 +308,7 @@ export class WorkSpace {
      * Watchs the project's typescript using tsc. This is used to safely watch attached scripts on nodes.
      * @param editor the editor reference.
      */
-    public static WatchTypeScript(editor: Editor): Promise<Nullable<IExecProcess>> {
+    public static WatchTypeScript(editor: Editor): Promise<Nullable<IEditorProcess>> {
         return this.CompileTypeScript(editor, true);
     }
 
@@ -285,7 +317,7 @@ export class WorkSpace {
      * @param editor defines the reference to the editor.s
      * @param watch defines wether or not the TypeScript code should be watched.
      */
-    public static async CompileTypeScript(editor: Editor, watch: boolean = false): Promise<Nullable<IExecProcess>> {
+    public static async CompileTypeScript(editor: Editor, watch: boolean = false): Promise<Nullable<IEditorProcess>> {
         if (watch && this._WatchTypescriptProgram) { return null; }
 
         // Update the tsconfig file
@@ -296,9 +328,17 @@ export class WorkSpace {
         const watchScript = join("node_modules", ".bin", isWin32 ? "tsc.cmd" : "tsc");
 
         if (watch) {
-            return this._WatchTypescriptProgram = ExecTools.ExecAndGetProgram(editor, `./${watchScript} -p ./editor.tsconfig.json --watch`, this.DirPath!, false, ConsoleLayer.TypeScript);
+            return this._WatchTypescriptProgram = EditorProcess.RegisterProcess(editor, "npm watch", {
+                cwd: WorkSpace.DirPath!,
+                terminal: this.TypeScriptTerminal,
+                command: `./${watchScript} -p ./editor.tsconfig.json --watch`,
+            });
         } else {
-            return ExecTools.ExecAndGetProgram(editor, `./${watchScript} -p ./editor.tsconfig.json`, this.DirPath!, false, ConsoleLayer.TypeScript);
+            return EditorProcess.RegisterProcess(editor, "npm compile", {
+                cwd: WorkSpace.DirPath!,
+                terminal: this.TypeScriptTerminal,
+                command: `./${watchScript} -p ./editor.tsconfig.json`,
+            });
         }
     }
 
@@ -315,7 +355,7 @@ export class WorkSpace {
     public static StopWatchingTypeScript(): void {
         if (this._WatchTypescriptProgram) {
             try {
-                this._WatchTypescriptProgram.process.kill();
+                EditorProcess.RemoveProcessById(this._WatchTypescriptProgram.id);
             } catch (e) {
                 // Catch silently.
             }
@@ -328,9 +368,12 @@ export class WorkSpace {
      * Restarts the TypeScript watcher in case it goes in error.
      * @param editor defines the editor reference.
      */
-    public static RestartTypeScriptWatcher(editor: Editor): Promise<Nullable<IExecProcess>> {
-        this.StopWatchingTypeScript();
-        return this.WatchTypeScript(editor);
+    public static RestartTypeScriptWatcher(editor: Editor): Nullable<IEditorProcess> {
+        if (this._WatchTypescriptProgram) {
+            EditorProcess.RestartProcessById(editor, this._WatchTypescriptProgram.id);
+        }
+
+        return this._WatchTypescriptProgram;
     }
 
     /**

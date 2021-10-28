@@ -60,8 +60,8 @@ export class MeshTransferComponent extends React.Component<IMeshTransferProps, I
                 dataSource={this.state.excludedMeshes.concat(this.state.includedMeshes)}
                 titles={["Included", "Excluded"]}
                 selectedKeys={this.state.selectedKeys}
-                render={(i) => i.title ?? i.key}
-                targetKeys={this.state.excludedMeshes.map((im) => im.key)}
+                render={(i) => i.title ?? i.key ?? null}
+                targetKeys={this.state.excludedMeshes.filter((im) => im.key).map((im) => im.key!)}
                 onSelectChange={(s, t) => this._handleSelectionChange(s, t)}
                 onChange={(t, d, m) => this._handleTransferChange(t, d, m)}
                 showSearch={true}

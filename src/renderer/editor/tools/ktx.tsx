@@ -1,6 +1,9 @@
 import { createReadStream } from "fs";
 import { basename, dirname, extname, join } from "path";
 
+import * as React from "react";
+import { Icon } from "@blueprintjs/core";
+
 import { Nullable } from "../../../shared/types";
 
 import { PNG } from "pngjs";
@@ -75,7 +78,7 @@ export class KTXTools {
 		const filename = `${name.substr(0, name.lastIndexOf("."))}${type}`;
 		const destination = join(destinationFolder, filename);
 
-		const log = editor.console.logInfo(`Compressing texture ${name} ${type} - `);
+		const log = await editor.console.logInfo(`Compressing texture ${name} ${type} - `);
 		
 		let hasAlpha = type !== "-etc1.ktx" && extension === ".png";
 		if (hasAlpha) {
@@ -117,9 +120,18 @@ export class KTXTools {
 
 		try {
 			await ExecTools.Exec(editor, command);
-			log!.innerHTML += `<span style="color: green;"> Done</span> <a style="color: grey;">available at ${destination}</a>`;
+			log.setBody(
+				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+					<Icon icon="endorsed" intent="success" />
+					<a style={{ color: "grey" }}>KTX texture available at {destination}</a>
+				</p>
+			);
 		} catch (e) {
-			log!.innerHTML += `<span style="color: red;"> Failed</span>`;
+			log.setBody(
+				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+					<span style={{ color: "red" }}>Failed to compress texture at {texturePath}</span>
+				</p>
+			);
 		}
 	}
 
