@@ -12,9 +12,9 @@ import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorVector2 } from "../../../gui/inspector/fields/vector2";
 import { InspectorColorPicker } from "../../../gui/inspector/fields/color-picker";
 
-import { MaterialInspector } from "./material-inspector";
+import { IMaterialInspectorState, MaterialInspector } from "./material-inspector";
 
-export interface IPBRMaterialInspectorState {
+export interface IPBRMaterialInspectorState extends IMaterialInspectorState {
     /**
      * Defines wether or not the material is using the metallic workflow.
      */
@@ -78,7 +78,9 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 {super.renderContent()}
                 {this.getMaterialFlagsInspector()}
                 {this.getAdvancedOptionsInspector()}
+
                 {this.getMapsInspector()}
+                {this.getInspectableValuesInspector()}
 
                 <InspectorSection title="Options">
                     <InspectorBoolean object={this.material} property="usePhysicalLightFalloff" label= "Use Physical Light Falloff" />

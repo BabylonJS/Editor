@@ -1,8 +1,15 @@
 import { Nullable } from "../../shared/types";
 
-import { Vector2, Vector3, Vector4, Color3, Color4 } from "babylonjs"
+import { Vector2, Vector3, Vector4, Color3, Color4 } from "babylonjs"
 
 import { Tools } from "../editor/tools/tools";
+
+export interface IExportedInspectorValueOptions {
+    /**
+     * Defines the section of the inspector.
+     */
+    section?: string;
+}
 
 export interface IExportedInspectorValue {
     /**
@@ -16,11 +23,16 @@ export interface IExportedInspectorValue {
     /**
      * Defines the default value of the decorated property.
      */
-    defaultValue: number | string | boolean | Vector2 | Vector3 | Vector4 | Color3 | Color4;
+    defaultValue: number | string | boolean | Vector2 | Vector3 | Vector4 | Color3 | Color4;
     /**
      * Defines the type of the decorated property.
      */
-    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4";
+    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4";
+
+    /**
+     * Defines the optional options available for the exported value.
+     */
+    options?: IExportedInspectorValueOptions;
 }
 
 /**
