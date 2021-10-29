@@ -8,6 +8,9 @@ import { Editor } from "../editor";
 
 import { WorkSpace } from "../project/workspace";
 
+import { Tools } from "./tools";
+import { IEditorPreferences } from "./types";
+
 export interface IEditorProcess {
 	/**
 	 * Defines the id of the process. This id is useful to get a process by id using the EditorProcess Api.
@@ -37,6 +40,10 @@ export interface IEditorProcess {
 	 * This detaches the process from the list of available processes once finished.
 	 */
 	wait: () => Promise<void>;
+	/**
+	 * Kills the process and removes it from the listed editor processes.
+	 */
+	kill: () => void;
 }
 
 export interface IEditorProcessOptions {
@@ -70,7 +77,7 @@ export class EditorProcess {
 	 * @returns the newly created editor process object that contains the terminal, process, etc.
 	 * @example EditorProcess.RegisterProcess(editor, "watch-webpack", { cwd: WorkSpace.DirPath, command: "npm run watch" });
 	 */
-	public static RegisterProcess(editor: Editor, id: string, options?: IEditorProcessOptions): Nullable<IEditorProcess> {
+	public static RegisterProcess(editor: Nullable<Editor>, id: string, options?: IEditorProcessOptions): Nullable<IEditorProcess> {
 		// Check existing
 		const existing = this.GetProcessById(id);
 		if (existing) {
@@ -81,7 +88,7 @@ export class EditorProcess {
 		const shell = this._GetShell(editor);
 		if (!shell) {
 			const message = `Can't execute process "${id}" as no shell environment is available.`;
-			editor.console.logError(message);
+			editor?.console.logError(message);
 			throw new Error(message);
 		}
 
@@ -128,6 +135,7 @@ export class EditorProcess {
 			options,
 			terminal,
 			onDataListener,
+			kill: () => this.RemoveProcessById(id),
 			wait: () => {
 				return new Promise<void>((resolve, reject) => {
 					program.onExit((e) => {
@@ -183,6 +191,19 @@ export class EditorProcess {
 		if (editorProcess.options?.command) {
 			editorProcess.program.write(editorProcess.options.command + "\r\n");
 		}
+	}
+
+	/**
+	 * Executes the given command and returns the reference to the newly created editor process object.
+	 * @param command defines the command to execute in the terminal process.
+	 * @param readonly defines wether or not the terminal process is in read-only.
+	 * @returns the newly created editor process object that contains the terminal, process, etc.
+	 */
+	public static ExecuteCommand(command: string, readonly: boolean = true): Nullable<IEditorProcess> {
+		return this.RegisterProcess(null, Tools.RandomId(), {
+			command,
+			readonly,
+		});
 	}
 
 	/**
@@ -242,8 +263,13 @@ export class EditorProcess {
 	/**
 	 * Returns the path to the shell to run.
 	 */
-	private static _GetShell(editor: Editor): Nullable<string> {
-		return editor.getPreferences().terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"] ?? null;
+	private static _GetShell(editor: Nullable<Editor>): Nullable<string> {
+		if (editor) {
+			return editor.getPreferences().terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"] ?? null;
+		}
+
+		const settings = JSON.parse(localStorage.getItem("babylonjs-editor-preferences") ?? "{ }") as IEditorPreferences;
+		return settings.terminalPath ?? process.env[os.platform() === "win32" ? "COMSPEC" : "SHELL"] ?? null;
 	}
 
 	/**

@@ -8,11 +8,10 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { H3 } from "@blueprintjs/core";
 
-import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 
 import { Tools } from "../../../editor/tools/tools";
-import { ExecTools, IExecProcess } from "../../../editor/tools/exec";
+import { EditorProcess, IEditorProcess } from "../../../editor/tools/process";
 
 import { Alert } from "../../../editor/gui/alert";
 import { Dialog } from "../../../editor/gui/dialog";
@@ -138,12 +137,15 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 		}
 
 		const sudo = platform() === "win32" ? "" : "sudo ";
-		const program = ExecTools.ExecCommand(remove ? `${sudo}npm uninstall -g ${moduleName} && exit` : `${sudo}npm i -g ${moduleName} && exit`);
+		const editorProcess = EditorProcess.ExecuteCommand(remove ? `${sudo}npm uninstall -g ${moduleName} && exit` : `${sudo}npm i -g ${moduleName} && exit`, sudo === "");
+		if (!editorProcess) {
+			return;
+		}
 
-		const alert = await this._createInstallNpmAlert(moduleName, program);
+		const alert = await this._createInstallNpmAlert(moduleName, editorProcess);
 
 		try {
-			await program.promise;
+			await editorProcess?.wait();
 
 			if (!remove) {
 				const globalNodeModules = execSync("npm root -g").toString().trim();
@@ -168,58 +170,37 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 	/**
 	 * Creates the alert used to render the "npm i -g" command in a terminal.
 	 */
-	private async _createInstallNpmAlert(moduleName: string, program: IExecProcess): Promise<Alert> {
+	private async _createInstallNpmAlert(moduleName: string, editorProcess: IEditorProcess): Promise<Alert> {
 		return new Promise<Alert>((resolve) => {
 			Alert.Show("Installing...", `Installing Module "${moduleName}"`, undefined, (
-				<div ref={(ref) => this._createTerminal(ref, program)} style={{ width: "450px", height: "500px" }}></div>
+				<div ref={(ref) => this._createTerminal(ref, editorProcess)} style={{ width: "100%", height: "100%" }}></div>
 			), {
-				canOutsideClickClose: false,
-				isCloseButtonShown: false,
 				noFooter: true,
+				isCloseButtonShown: false,
+				canOutsideClickClose: false,
+				style: { width: "75%", height: "75%" },
 			}, (ref) => {
 				resolve(ref);
-			})
+			});
 		});
 	}
 
 	/**
 	 * Creates the terminal used to render the "npm i -g" process.
 	 */
-	private async _createTerminal(div: Nullable<HTMLDivElement>, program: IExecProcess): Promise<void> {
+	private async _createTerminal(div: Nullable<HTMLDivElement>, editorProcess: IEditorProcess): Promise<void> {
 		if (!div) {
 			return;
 		}
 
-		const terminal = new Terminal({
-			fontFamily: "Consolas, 'Courier New', monospace",
-			fontSize: 12,
-			fontWeight: "normal",
-			cursorStyle: "block",
-			cursorWidth: 1,
-			drawBoldTextInBrightColors: true,
-			fontWeightBold: "bold",
-			letterSpacing: -4,
-			lineHeight: 1,
-			rendererType: "canvas",
-			allowTransparency: true,
-			theme: {
-				background: "#222222",
-			},
-		});
-
 		const fitAddon = new FitAddon();
 
-		terminal.onResize(() => {
-			program.process.resize(terminal.cols, terminal.rows);
+		editorProcess.terminal.loadAddon(fitAddon);
+		editorProcess.terminal.open(div);
+		
+		requestAnimationFrame(() => {
+			editorProcess.terminal.focus();
+			setTimeout(() => fitAddon.fit(), 1000);
 		});
-		terminal.loadAddon(fitAddon);
-		terminal.open(div);
-
-		program.process.onData((e) => terminal.write(e));
-		terminal.onData((d) => program.process.write(d));
-
-		fitAddon.fit();
-
-		setTimeout(() => terminal.focus(), 0);
 	}
 }
