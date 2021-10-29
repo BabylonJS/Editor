@@ -87,8 +87,9 @@ export class ProjectExporter {
             return editor.notifyMessage("Can't save when Isolated Mode is enabled.", 2000, "error");
         }
 
-        editor.console.logSection("Exporting Project");
-        editor.console.logInfo(`Exporting project to: ${Project.DirPath}`);
+        await editor.console.logSection("Exporting Project");
+        await editor.console.logInfo(`Exporting project to: ${Project.DirPath}`);
+        
         editor.beforeSaveProjectObservable.notifyObservers(Project.DirPath!);
 
         const task = editor.addTaskFeedback(0, "Saving Files...");

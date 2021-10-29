@@ -140,8 +140,8 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Logs the given message using separators. Allows to create sections in logs.
      * @param message defines the message to log directly.
      */
-    public logSection(message: string): void {
-        this._addLog({ type: ConsoleLogType.Info, message, separator: true });
+    public logSection(message: string): Promise<ConsoleLog> {
+        return this._addLog({ type: ConsoleLogType.Info, message, separator: true });
     }
 
     /**
