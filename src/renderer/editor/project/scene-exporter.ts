@@ -272,12 +272,12 @@ export class SceneExporter {
 			return editor.notifyMessage("Can't export when Isolated Mode is enabled.", 2000, "error");
 		}
 
-		editor.console.logSection("Exporting Final Scene");
+		await editor.console.logSection("Exporting Final Scene");
 
 		task = task ?? editor.addTaskFeedback(0, "Generating Final Scene");
 		editor.updateTaskFeedback(task, 0, "Generating Final Scene");
 
-		editor.console.logInfo("Serializing scene...");
+		await editor.console.logInfo("Serializing scene...");
 		const scene = SceneExporter.GetFinalSceneJson(editor);
 
 		const assetsPath = join(WorkSpace.DirPath!, "scenes/_assets");
