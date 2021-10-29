@@ -13,9 +13,9 @@ import { AbstractMesh, Node, IParticleSystem } from "babylonjs";
 import { Editor } from "../editor";
 
 import { Tools } from "../tools/tools";
-import { ExecTools } from "../tools/exec";
 import { undoRedo } from "../tools/undo-redo";
 import { EditorPlayMode } from "../tools/types";
+import { EditorProcess } from "../tools/process";
 import { EditorUpdater } from "../tools/update/updater";
 
 import { Icon } from "../gui/icon";
@@ -398,7 +398,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
      */
     private async _handleOpenVSCode(): Promise<void> {
         try {
-            await ExecTools.ExecAndGetProgram(this._editor, `code "${WorkSpace.DirPath!}"`, undefined).promise;
+            await EditorProcess.ExecuteCommand(`code "${WorkSpace.DirPath!}"`)?.wait();
         } catch (e) {
             Alert.Show("Failed to open VSCode", `
                 Failed to open Visual Studio Code. Please ensure the command named "code" is available in the "PATH" environment. 

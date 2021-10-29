@@ -272,15 +272,19 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 						existingMaterial.metadata.shouldExportTextures = true;
 
 						this.props.editor.assets.refresh(MaterialAssets, existingMaterial);
-					} else {
-						await writeJSON(this.props.absolutePath, {
-							...message.data.json,
-							editorData: message.data.editorData,
-						}, {
-							spaces: "\t",
-							encoding: "utf-8",
-						});
 					}
+
+					await writeJSON(this.props.absolutePath, {
+						...message.data.json,
+						editorData: message.data.editorData,
+					}, {
+						spaces: "\t",
+						encoding: "utf-8",
+					});
+
+					this._handleRefreshPreview().then(() => {
+						this.props.editor.assets.refresh(MaterialAssets, existingMaterial);
+					});
 
 					IPCTools.SendWindowMessage(popupId, "node-material-json");
 				} catch (e) {

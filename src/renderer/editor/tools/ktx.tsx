@@ -13,7 +13,7 @@ import { Editor } from "../editor";
 
 import { WorkSpace } from "../project/workspace";
 
-import { ExecTools } from "./exec";
+import { EditorProcess } from "./process";
 
 /**
  * Defines the possibile types of texture to be compressed.
@@ -119,7 +119,7 @@ export class KTXTools {
 		}
 
 		try {
-			await ExecTools.Exec(editor, command);
+			await EditorProcess.ExecuteCommand(command)?.wait();
 			log.setBody(
 				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
 					<Icon icon="endorsed" intent="success" />
@@ -129,7 +129,8 @@ export class KTXTools {
 		} catch (e) {
 			log.setBody(
 				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
-					<span style={{ color: "red" }}>Failed to compress texture at {texturePath}</span>
+					<Icon icon="endorsed" intent="warning" />
+					<a style={{ color: "yellow" }}>Failed to compress texture at {texturePath}</a>
 				</p>
 			);
 		}

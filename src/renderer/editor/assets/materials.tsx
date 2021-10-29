@@ -142,6 +142,7 @@ export class MaterialAssets extends AbstractAssets {
      * @param item the item being double clicked.
      * @param img the double-clicked image element.
      */
+    /*
     public async onDoubleClick(item: IAssetComponentItem, img: HTMLImageElement): Promise<void> {
         super.onDoubleClick(item, img);
 
@@ -150,6 +151,7 @@ export class MaterialAssets extends AbstractAssets {
 
         this.openMaterial(material);
     }
+    */
 
     /**
      * Called on the user right-clicks on an item.
