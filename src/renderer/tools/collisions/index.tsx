@@ -189,7 +189,10 @@ export default class CollisionsTool extends AbstractEditorPlugin<ICollisionsTool
      */
     private _handleMouseEnter(): void {
         if (this.state.colliderMesh) {
-            this.state.colliderMesh.edgesWidth = 30;
+            const extend = this.state.colliderMesh.getBoundingInfo().boundingBox.extendSizeWorld;
+            const extendLength = extend.length();
+
+            this.state.colliderMesh.edgesWidth = extendLength * 0.3;
             this.state.colliderMesh.visibility = 0.01;
             this.state.colliderMesh.enableEdgesRendering();
         }
