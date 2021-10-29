@@ -1,6 +1,7 @@
 import { basename, extname } from "path";
 
 import * as React from "react";
+import Image from "antd/lib/image";
 
 import { Engine, Scene, ArcRotateCamera, Vector3, PBRMaterial, CubeTexture, Mesh } from "babylonjs";
 import "babylonjs-loaders";
@@ -45,10 +46,16 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
         }
 
         return (
-            <>
-                {span}
-                <img src={this.state.path} style={{ width: "100%", height: "100%", objectFit: "contain", background: "black" }}></img>
-            </>
+            <Image
+                width="100%"
+                height="100%"
+                preview={{
+                    visible: true,
+                    title: this.state.path,
+                    onVisibleChange: (v) => !v && window.close(),
+                    src: this.state.path, style: { width: "100%", height: "100%", objectFit: "contain", background: "black" }
+                }}
+            />
         );
     }
 
