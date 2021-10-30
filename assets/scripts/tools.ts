@@ -188,6 +188,13 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node
             n[link.propertyKey] = ps;
         }
 
+        // Check animation groups
+        const animationGroupLinks = (e.default as any)._AnimationGroupValues ?? [];
+        for (const link of animationGroupLinks) {
+            const ag = scene.getAnimationGroupByName(link.animationGroupName);
+            n[link.propertyKey] = ag;
+        }
+
         // Check pointer events
         const pointerEvents = (e.default as any)._PointerValues ?? [];
         for (const event of pointerEvents) {

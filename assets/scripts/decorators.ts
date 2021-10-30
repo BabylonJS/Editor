@@ -26,10 +26,10 @@ export function visibleInInspector(type: VisiblityPropertyType, name?: string, d
         ctor._InspectorValues = ctor._InspectorValues ?? [];
         ctor._InspectorValues.push({
             type,
-            name: name ?? propertyKey.toString(),
-            propertyKey: propertyKey.toString(),
-            defaultValue,
             options,
+            defaultValue,
+            propertyKey: propertyKey.toString(),
+            name: name ?? propertyKey.toString(),
         });
     };
 }
@@ -43,8 +43,8 @@ export function fromChildren(nodeName?: string): any {
         const ctor = target.constructor;
         ctor._ChildrenValues = ctor._ChildrenValues ?? [];
         ctor._ChildrenValues.push({
-            nodeName: nodeName ?? propertyKey.toString(),
             propertyKey: propertyKey.toString(),
+            nodeName: nodeName ?? propertyKey.toString(),
         });
     };
 }
@@ -58,25 +58,41 @@ export function fromScene(nodeName?: string): any {
         const ctor = target.constructor;
         ctor._SceneValues = ctor._SceneValues ?? [];
         ctor._SceneValues.push({
-            nodeName: nodeName ?? propertyKey.toString(),
             propertyKey: propertyKey.toString(),
+            nodeName: nodeName ?? propertyKey.toString(),
         });
-    }
+    };
 }
 
 /**
  * Sets the decorated member linked to a particle system which has the current Mesh attached.
- * @param particleSystemname the name of the attached particle system to retrieve.
+ * @param particleSystemName defines the name of the attached particle system to retrieve.
  */
-export function fromParticleSystems(particleSystemname?: string): any {
+export function fromParticleSystems(particleSystemName?: string): any {
     return (target: any, propertyKey: string | symbol) => {
         const ctor = target.constructor;
         ctor._ParticleSystemValues = ctor._ParticleSystemValues ?? [];
         ctor._ParticleSystemValues.push({
-            particleSystemName: particleSystemname ?? propertyKey.toString(),
             propertyKey: propertyKey.toString(),
+            particleSystemName: particleSystemName ?? propertyKey.toString(),
         });
-    }
+    };
+}
+
+/**
+ * Sets the decorated member linked to an animation group.
+ * @param animationGroupName defines the name of the animation group to retrieve.
+ * @returns 
+ */
+export function fromAnimationGroups(animationGroupName?: string): any {
+    return (target: any, propertyKey: string | symbol) => {
+        const ctor = target.constructor;
+        ctor._AnimationGroupValues = ctor._AnimationGroupValues ?? [];
+        ctor._AnimationGroupValues.push({
+            propertyKey: propertyKey.toString(),
+            animationGroupName: animationGroupName ?? propertyKey.toString(),
+        });
+    };
 }
 
 /**
@@ -114,8 +130,8 @@ export function onKeyboardEvent(key: number | number[] | string | string[], type
         ctor._KeyboardValues = ctor._KeyboardValues ?? [];
         ctor._KeyboardValues.push({
             type,
-            keys: Array.isArray(key) ? key : [key],
             propertyKey: propertyKey.toString(),
+            keys: Array.isArray(key) ? key : [key],
         });
     };
 }
