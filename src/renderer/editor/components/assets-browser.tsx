@@ -293,6 +293,11 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		const platform = os.platform();
 
 		this._files.selectedItems.map((i) => {
+			const extension = extname(i).toLowerCase();
+			const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
+
+			handler?.onRemoveFile(i);
+
 			const iAbsolute = platform === "win32" ? i.replace(/\//g, "\\") : i;
 			const result = shell.moveItemToTrash(iAbsolute, deleteOnFail);
 			if (!result) {

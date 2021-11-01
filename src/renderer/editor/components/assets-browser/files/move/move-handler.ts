@@ -16,4 +16,12 @@ export abstract class AssetsBrowserMoveHandler {
 	 * @param to defines the new absolute path to the file being moved.
 	 */
 	public abstract moveFile(from: string, to: string): void | Promise<void>;
+
+	/**
+	 * Called on the given file is being remvoed.
+	 * @param path defines the absolute path to the file that is being removed.
+	 */
+	public async onRemoveFile(_: string): Promise<void> {
+		// Nothing to do for now...
+	}
 }

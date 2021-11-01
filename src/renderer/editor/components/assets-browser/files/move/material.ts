@@ -29,7 +29,24 @@ export class AssetsBrowserMaterialMoveHandler extends AssetsBrowserMoveHandler {
 	 */
 	public async isFileUsed(path: string): Promise<boolean> {
 		const relativePath = path.replace(join(this._editor.assetsBrowser.assetsDirectory, "/"), "");
-		return this._editor.scene!.materials.find((m) => m.metadata?.editorPath === relativePath) ? true : false;
+		const material = this._editor.scene!.materials.find((m) => m.metadata?.editorPath === relativePath);
+
+		if (material) {
+			return material.getBindedMeshes().length > 0;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Called on the given file is being remvoed.
+	 * @param path defines the absolute path to the file that is being removed.
+	 */
+	public async onRemoveFile(path: string): Promise<void> {
+		const relativePath = path.replace(join(this._editor.assetsBrowser.assetsDirectory, "/"), "");
+		const material = this._editor.scene!.materials.find((m) => m.metadata?.editorPath === relativePath);
+
+		material?.dispose(true, false);
 	}
 
 	/**
