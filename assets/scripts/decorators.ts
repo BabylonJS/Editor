@@ -12,6 +12,19 @@ export interface IVisibleInInspectorOptions {
      * Defines the section of the inspector.
      */
     section?: string;
+
+    /**
+     * In case of numbers, defines the minimum value.
+     */
+    min?: number;
+    /**
+     * In case of numbers, defines the maximum value.
+     */
+    max?: number;
+    /**
+     * In case of numbers, defines the step applied in the editor.
+     */
+    step?: number;
 }
 
 /**

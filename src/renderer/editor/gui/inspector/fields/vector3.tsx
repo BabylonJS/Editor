@@ -31,6 +31,15 @@ export interface IInspectorVector3Props {
      * Defines the label of the field.
      */
     label: string;
+
+    /**
+     * Defines the minimum value of the input.
+     */
+    min?: number;
+    /**
+     * Defines the maximum value of the input.
+     */
+    max?: number;
     /**
      * Defines the step used when dragging the mouse.
      */
@@ -39,7 +48,7 @@ export interface IInspectorVector3Props {
     /**
      * Defines wether or not automatic undo/redo should be skipped.
      */
-     noUndoRedo?: boolean;
+    noUndoRedo?: boolean;
 
     /**
      * Defines the optional callback called on the value changes.
@@ -69,7 +78,7 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
         super(props);
 
         const value = props.object[props.property];
-        if (value.x === undefined || value.y === undefined || value.z === undefined) {
+        if (value.x === undefined || value.y === undefined || value.z === undefined) {
             throw new Error("Only Vector3 (x, y, z) are supported for InspectorVector3.");
         }
 
@@ -89,7 +98,9 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
                     <InspectorNumber
                         object={this.state.value}
                         property="x"
-                        label= "X"
+                        label="X"
+                        min={this.props.min}
+                        max={this.props.max}
                         step={this.props.step}
                         noUndoRedo={this.props.noUndoRedo}
                         onChange={() => this.props.onChange?.(this.state.value)}
@@ -100,7 +111,9 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
                     <InspectorNumber
                         object={this.state.value}
                         property="y"
-                        label= "Y"
+                        label="Y"
+                        min={this.props.min}
+                        max={this.props.max}
                         step={this.props.step}
                         noUndoRedo={this.props.noUndoRedo}
                         onChange={() => this.props.onChange?.(this.state.value)}
@@ -111,7 +124,9 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
                     <InspectorNumber
                         object={this.state.value}
                         property="z"
-                        label= "Z"
+                        label="Z"
+                        min={this.props.min}
+                        max={this.props.max}
                         step={this.props.step}
                         noUndoRedo={this.props.noUndoRedo}
                         onChange={() => this.props.onChange?.(this.state.value)}

@@ -26,6 +26,15 @@ export interface IInspectorVector2Props {
      * Defines the label of the field.
      */
     label: string;
+
+    /**
+     * Defines the minimum value of the input.
+     */
+    min?: number;
+    /**
+     * Defines the maximum value of the input.
+     */
+    max?: number;
     /**
      * Defines the step used when dragging the mouse.
      */
@@ -59,7 +68,7 @@ export class InspectorVector2 extends React.Component<IInspectorVector2Props, II
         super(props);
 
         const value = props.object[props.property];
-        if (value.x === undefined || value.y === undefined) {
+        if (value.x === undefined || value.y === undefined) {
             throw new Error("Only Vector2 (x, y) are supported for InspectorVector2.");
         }
 
@@ -79,7 +88,9 @@ export class InspectorVector2 extends React.Component<IInspectorVector2Props, II
                     <InspectorNumber
                         object={this.state.value}
                         property="x"
-                        label= "X"
+                        label="X"
+                        min={this.props.min}
+                        max={this.props.max}
                         step={this.props.step}
                         onChange={() => this.props.onChange?.(this.state.value)}
                         onFinishChange={() => this.props.onFinishChange?.(this.state.value)}
@@ -89,7 +100,7 @@ export class InspectorVector2 extends React.Component<IInspectorVector2Props, II
                     <InspectorNumber
                         object={this.state.value}
                         property="y"
-                        label= "Y"
+                        label="Y"
                         step={this.props.step}
                         onChange={() => this.props.onChange?.(this.state.value)}
                         onFinishChange={() => this.props.onFinishChange?.(this.state.value)}

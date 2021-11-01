@@ -9,6 +9,19 @@ export interface IExportedInspectorValueOptions {
      * Defines the section of the inspector.
      */
     section?: string;
+
+    /**
+     * In case of numbers, defines the minimum value.
+     */
+    min?: number;
+    /**
+     * In case of numbers, defines the maximum value.
+     */
+    max?: number;
+    /**
+     * In case of numbers, defines the step applied in the editor.
+     */
+    step?: number;
 }
 
 export interface IExportedInspectorValue {
@@ -27,7 +40,7 @@ export interface IExportedInspectorValue {
     /**
      * Defines the type of the decorated property.
      */
-    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4" | "Texture";
+    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4" | "Texture";
 
     /**
      * Defines the optional options available for the exported value.

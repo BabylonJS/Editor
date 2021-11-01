@@ -547,7 +547,7 @@ export class MaterialAssets extends AbstractAssets {
     /**
      * Called on the material vertex or fragment program is updated.
      */
-    private async _rebuildSourceMaterialProgram(material: Material, vertexPath: string, fragmentPath: string): Promise<void> {
+    private async _rebuildSourceMaterialProgram(material: Material, vertexPath: string, fragmentPath: string, includes?: { key: string; path: string }): Promise<void> {
         const effect = material.getEffect();
         if (!effect) {
             return;
@@ -571,10 +571,14 @@ export class MaterialAssets extends AbstractAssets {
         Effect.ShadersStore[`${storeId}VertexShader`] = vertexContent;
         Effect.ShadersStore[`${storeId}PixelShader`] = fragmentContent;
 
+        if (includes) {
+            Effect.IncludesShadersStore[includes.key] = await readFile(includes.path, { encoding: "utf-8" });
+        }
+        
+        await SceneExporter.CopyShaderFiles(this.editor);
+
         material.markAsDirty(Material.AllDirtyFlag);
         material.onCompiled = () => this.editor.console.logInfo("Successfully compiled program.");
-
-        await SceneExporter.CopyShaderFiles(this.editor);
     }
 
     /**
@@ -606,11 +610,15 @@ export class MaterialAssets extends AbstractAssets {
                 const vertexPath = join(dirname(join(WorkSpace.DirPath!, m.metadata.sourcePath)), materialConfiguration.vertexShaderContent);
                 const fragmentPath = join(dirname(join(WorkSpace.DirPath!, m.metadata.sourcePath)), materialConfiguration.pixelShaderContent);
 
-                const jsWatcher = watch(jsPath, { encoding: "utf-8" }, (ev) => ev === "change" && this._updateSourceMaterialPrototype(m, jsPath, vertexPath, fragmentPath));
-                const vertexWatcher = watch(vertexPath, { encoding: "utf-8" }, (ev) => ev === "change" && this._rebuildSourceMaterialProgram(m, vertexPath, fragmentPath));
-                const fragementWatcher = watch(fragmentPath, { encoding: "utf-8" }, (ev) => ev === "change" && this._rebuildSourceMaterialProgram(m, vertexPath, fragmentPath));
-
-                this._materialSourcesWatchers[jsPath] = [jsWatcher, vertexWatcher, fragementWatcher];
+                this._materialSourcesWatchers[jsPath] = [
+                    watch(vertexPath, { encoding: "utf-8" }, (ev) => ev === "change" && this._rebuildSourceMaterialProgram(m, vertexPath, fragmentPath)),
+                    watch(fragmentPath, { encoding: "utf-8" }, (ev) => ev === "change" && this._rebuildSourceMaterialProgram(m, vertexPath, fragmentPath)),
+                    watch(jsPath, { encoding: "utf-8" }, (ev) => ev === "change" && this._updateSourceMaterialPrototype(m, jsPath, vertexPath, fragmentPath)),
+                    ...Object.keys(materialConfiguration.includes ?? { }).map((k) => {
+                        const includePath = join(dirname(join(WorkSpace.DirPath!, m.metadata.sourcePath)), materialConfiguration.includes[k]);
+                        return watch(includePath, { encoding: "utf-8" }, (ev) => ev === "change" && this._rebuildSourceMaterialProgram(m, vertexPath, fragmentPath, { key: k, path: includePath }));
+                    }),
+                ];
             } catch (e) {
                 this.editor.console.logWarning(`Failed to watch material source code: ${m.metadata.sourcePath}: ${e.message}`);
             }
