@@ -225,13 +225,13 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
      */
     private _getExportedValueInspector(value: IExportedInspectorValue): React.ReactNode {
         switch (value.type) {
-            case "Color3": return <InspectorColor object={this.material} property={value.propertyKey} label={value.name} />;
+            case "Color3": return <InspectorColor object={this.material} property={value.propertyKey} label={value.name}  />;
             case "string": return <InspectorString object={this.material} property={value.propertyKey} label={value.name} />;
-            case "number": return <InspectorNumber object={this.material} property={value.propertyKey} label={value.name} />;
             case "boolean": return <InspectorBoolean object={this.material} property={value.propertyKey} label={value.name} />;
-            case "Vector2": return <InspectorVector2 object={this.material} property={value.propertyKey} label={value.name} />;
-            case "Vector3": return <InspectorVector3 object={this.material} property={value.propertyKey} label={value.name} />;
             case "Texture": return <InspectorList object={this.material} property= {value.propertyKey} label={value.name} items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />;
+            case "number": return <InspectorNumber object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
+            case "Vector2": return <InspectorVector2 object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
+            case "Vector3": return <InspectorVector3 object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
             default: return null;
         }
     }
