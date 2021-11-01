@@ -123,12 +123,15 @@ export class ScenePicker {
      */
     private _onCanvasDown(ev: MouseEvent): void {
         this._downMousePosition.set(ev.offsetX, ev.offsetY);
+        this._editor.scene!.meshes.forEach((m) => m.isPickable = false);
     }
 
     /**
      * Called on the pointer is up on the canvas.
      */
     private _onCanvasUp(ev: MouseEvent, byPassDistance: boolean = false): void {
+        this._editor.scene!.meshes.forEach((m) => m.isPickable = true);
+
         if (SceneSettings.IsCameraLocked) {
             return;
         }

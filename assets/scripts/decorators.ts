@@ -4,6 +4,7 @@ export type VisiblityPropertyType =
     "number" | "string" | "boolean" |
     "Vector2" | "Vector3" | "Vector4" |
     "Color3" | "Color4" |
+    "Texture" |
     "KeyMap";
 
 export interface IVisibleInInspectorOptions {
