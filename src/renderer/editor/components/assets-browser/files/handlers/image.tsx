@@ -1,7 +1,8 @@
+import { clipboard } from "electron";
 import { basename, dirname, join } from "path";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem, Tag } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuDivider, MenuItem, Tag, Icon as BPIcon } from "@blueprintjs/core";
 
 import { Texture } from "babylonjs";
 
@@ -67,6 +68,8 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		ContextMenu.show((
 			<Menu>
+				<MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.absolutePath, "clipboard")} />
+				<MenuDivider />
 				{this.getCommonContextMenuItems()}
 			</Menu>
 		), {

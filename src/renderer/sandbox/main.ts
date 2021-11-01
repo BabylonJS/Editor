@@ -27,7 +27,7 @@ export interface IExportedInspectorValue {
     /**
      * Defines the type of the decorated property.
      */
-    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4";
+    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4" | "Texture";
 
     /**
      * Defines the optional options available for the exported value.
