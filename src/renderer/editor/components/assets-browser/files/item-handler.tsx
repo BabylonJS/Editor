@@ -234,6 +234,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 		}
 
 		await this.props.editor.assetsBrowser.refresh();
+		await this.props.editor.assets.forceRefresh();
 	}
 
 	/**
