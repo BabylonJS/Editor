@@ -392,6 +392,8 @@ export class TextureAssets extends AbstractAssets {
 
         let progress = 0;
 
+        const promises: Promise<void>[] = [];
+
         const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
         const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
 
@@ -408,6 +410,11 @@ export class TextureAssets extends AbstractAssets {
             const isUsingCompressedTexture = texture.metadata?.ktx2CompressedTextures?.isUsingCompressedTexture ?? false;
 
             if (ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
+                if (promises.length > 5) {
+                    await Promise.all(promises);
+                    promises.splice(0);
+                }
+
                 const compressedTexturesDest = join(this.editor.assetsBrowser.assetsDirectory, dirname(texture.name));
                 if (!(await pathExists(compressedTexturesDest))) {
                     continue;
@@ -416,18 +423,22 @@ export class TextureAssets extends AbstractAssets {
                 const previousUrl = texture.url;
                 const ktxTexturePath = KTXTools.GetKtxFileName(texture.name, ktxFormat);
 
-                if (!(await pathExists(join(compressedTexturesDest, basename(ktxTexturePath))))) {
-                    const texturePath = join(this.editor.assetsBrowser.assetsDirectory, texture.name);
-                    await KTXTools.CompressTexture(this.editor, texturePath, compressedTexturesDest, ktxFormat);
-                }
+                promises.push(new Promise<void>(async (resolve) => {
+                    if (!(await pathExists(join(compressedTexturesDest, basename(ktxTexturePath))))) {
+                        const texturePath = join(this.editor.assetsBrowser.assetsDirectory, texture.name);
+                        await KTXTools.CompressTexture(this.editor, texturePath, compressedTexturesDest, ktxFormat);
+                    }
+    
+                    // Update Url
+                    if (!texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture) {
+                        texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
+                        texture.url = previousUrl;
+                    }
+    
+                    texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = true;
 
-                // Update Url
-                if (!texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture) {
-                    texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
-                    texture.url = previousUrl;
-                }
-
-                texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = true;
+                    resolve();
+                }));
             } else {
                 if (isUsingCompressedTexture) {
                     texture.updateURL(join(this.editor.assetsBrowser.assetsDirectory, texture.name));
@@ -438,6 +449,8 @@ export class TextureAssets extends AbstractAssets {
 
             this.editor.updateTaskFeedback(task, progress += step);
         }
+
+        await Promise.all(promises);
 
         this.editor.closeTaskFeedback(task, 1000);
     }

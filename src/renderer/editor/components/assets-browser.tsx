@@ -1,8 +1,8 @@
 import Glob from "glob";
 import * as os from "os";
 import { shell } from "electron";
-import { basename, dirname, extname, join } from "path";
 import { move, pathExists, stat, writeJSON } from "fs-extra";
+import { basename, dirname, extname, isAbsolute, join } from "path";
 
 import { IStringDictionary, Nullable } from "../../../shared/types";
 
@@ -186,6 +186,22 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	 */
 	public get selectedFiles(): string[] {
 		return this._files?.selectedItems ?? [];
+	}
+
+	/**
+	 * Returns wether or not the asset located at the given path is used.
+	 * @param path defines the path to the file to check if it's used.
+	 * @returns a boolean indicating if the asset in used in the project.
+	 */
+	public async isAssetUsed(path: string): Promise<boolean> {
+		if (!isAbsolute(path)) {
+			path = join(this.assetsDirectory, path);
+		}
+
+		const extension = extname(path).toLowerCase();
+		const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
+
+		return await handler?.isFileUsed(path) ?? true;
 	}
 
 	/**

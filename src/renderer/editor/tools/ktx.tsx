@@ -2,7 +2,7 @@ import { createReadStream } from "fs";
 import { basename, dirname, extname, join } from "path";
 
 import * as React from "react";
-import { Icon } from "@blueprintjs/core";
+import { Icon, Spinner } from "@blueprintjs/core";
 
 import { Nullable } from "../../../shared/types";
 
@@ -78,7 +78,15 @@ export class KTXTools {
 		const filename = `${name.substr(0, name.lastIndexOf("."))}${type}`;
 		const destination = join(destinationFolder, filename);
 
-		const log = await editor.console.logInfo(`Compressing texture ${name} ${type} - `);
+		const log = await editor.console.logInfo("Compressing texture");
+		log.setBody(
+			<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+				<div style={{ float: "left" }}>
+					<Spinner size={16} />
+				</div>
+				<a style={{ color: "grey" }}>Compressing texture ${name} ${type}</a>
+			</p>
+		);
 		
 		let hasAlpha = type !== "-etc1.ktx" && extension === ".png";
 		if (hasAlpha) {
@@ -115,7 +123,12 @@ export class KTXTools {
 		}
 
 		if (!command) {
-			return;
+			return log.setBody(
+				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+					<Icon icon="endorsed" intent="none" />
+					<a style={{ color: "grey" }}>KTX texture ignored (no command found): {texturePath}</a>
+				</p>
+			);
 		}
 
 		try {
