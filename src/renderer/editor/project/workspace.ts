@@ -210,6 +210,21 @@ export class WorkSpace {
     }
 
     /**
+     * Installs the workspace's dependencies.
+     * @param editor defines the reference to the editor.
+     * @returns the promise resolved on the dependencies have been installed.
+     */
+    public static async InstallDependencies(editor: Editor): Promise<void> {
+        if (!this.Workspace) { return; }
+
+        await EditorProcess.RegisterProcess(editor, "npm install", {
+            command: "npm install",
+            cwd: WorkSpace.DirPath!,
+            terminal: this.WebpackTerminal,
+        })?.wait();
+    }
+
+    /**
      * Installs and builds the project.
      * @param editor the editor reference.
      */
@@ -218,11 +233,7 @@ export class WorkSpace {
 
         const task = editor.addTaskFeedback(0, "Installing dependencies. Please wait...", 0);
         try {
-            await EditorProcess.RegisterProcess(editor, "npm install", {
-                command: "npm install",
-                cwd: WorkSpace.DirPath!,
-                terminal: this.WebpackTerminal,
-            })?.wait();
+            await this.InstallDependencies(editor);
 
             editor.updateTaskFeedback(task, 50, "Building project...");
             await EditorProcess.RegisterProcess(editor, "npm build", {
