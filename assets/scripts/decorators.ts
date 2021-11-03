@@ -96,7 +96,6 @@ export function fromParticleSystems(particleSystemName?: string): any {
 /**
  * Sets the decorated member linked to an animation group.
  * @param animationGroupName defines the name of the animation group to retrieve.
- * @returns 
  */
 export function fromAnimationGroups(animationGroupName?: string): any {
     return (target: any, propertyKey: string | symbol) => {
@@ -105,6 +104,21 @@ export function fromAnimationGroups(animationGroupName?: string): any {
         ctor._AnimationGroupValues.push({
             propertyKey: propertyKey.toString(),
             animationGroupName: animationGroupName ?? propertyKey.toString(),
+        });
+    };
+}
+
+/**
+ * Sets the decorated member linked to a sound.
+ * @param soundName defines the name of the sound to retrieve.
+ */
+export function fromSounds(soundName?: string): any {
+    return (target: any, propertyKey: string | symbol) => {
+        const ctor = target.constructor;
+        ctor._SoundValues = ctor._SoundValues ?? [];
+        ctor._SoundValues.push({
+            propertyKey: propertyKey.toString(),
+            soundName: soundName ?? propertyKey.toString(),
         });
     };
 }

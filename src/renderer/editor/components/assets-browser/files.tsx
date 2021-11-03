@@ -128,9 +128,9 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					<MenuItem text="Sky Material..." onClick={() => this._handleCreateMaterial("SkyMaterial")} />
 					<MenuItem text="Cel Material..." onClick={() => this._handleCreateMaterial("CellMaterial")} />
 					<MenuItem text="Fire Material..." onClick={() => this._handleCreateMaterial("FireMaterial")} />
-					<MenuItem key="add-lava-material" text="Add Lava Material..." onClick={() => this._handleCreateMaterial("LavaMaterial")} />
-					<MenuItem key="add-water-material" text="Add Water Material..." onClick={() => this._handleCreateMaterial("WaterMaterial")} />
-					<MenuItem key="add-tri-planar-material" text="Add Tri Planar Material..." onClick={() => this._handleCreateMaterial("TriPlanarMaterial")} />
+					<MenuItem text="Lava Material..." onClick={() => this._handleCreateMaterial("LavaMaterial")} />
+					<MenuItem text="Water Material..." onClick={() => this._handleCreateMaterial("WaterMaterial")} />
+					<MenuItem text="Tri Planar Material..." onClick={() => this._handleCreateMaterial("TriPlanarMaterial")} />
 				</MenuItem>
 
 				<MenuItem text="Particles System" disabled={!isAssetsDirectory} icon={<Icon src="wind.svg" />}>
@@ -145,7 +145,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				<MenuItem text="Material File..." disabled={isAssetsDirectory} icon={<Icon src="json.svg" style={{ filter: "none" }} />}>
 					<MenuItem text="Custom Material" onClick={() => this._handleAddMaterialScript("material")} />
 					<MenuDivider />
-					<MenuItem text="PBR Base Material" onClick={() => this._handleAddMaterialScript("pbr-material")} />
+					<MenuItem text="PBR Based Material" onClick={() => this._handleAddMaterialScript("pbr-material")} />
+					<MenuItem text="Standard Based Material" onClick={() => this._handleAddMaterialScript("standard-material")} />
 				</MenuItem>
 			</Menu>
 		);

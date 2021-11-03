@@ -1,9 +1,9 @@
 export enum IPCRequests {
 	OpenWindowOnDemand = "openwindowondemand",
 
-	OpenDirectoryDialog = "opendirectorydialog",
 	OpenFileDialog = "openfiledialog",
 	SaveFileDialog = "savefiledialog",
+	OpenDirectoryDialog = "opendirectorydialog",
 
 	GetProjectPath = "getprojectpath",
 	SetProjectPath = "setprojectpath",
@@ -13,12 +13,12 @@ export enum IPCRequests {
 
 	StartGameServer = "startgameserver",
 
-	SendWindowMessage = "sendwindowmessage",
 	FocusWindow = "focuswindow",
 	CloseWindow = "closewindow",
+	SendWindowMessage = "sendwindowmessage",
 
-	EnableDevTools = "enabledevtools",
 	OpenDevTools = "opendevtools",
+	EnableDevTools = "enabledevtools",
 
 	SetTouchBar = "settouchbar",
 }
@@ -26,10 +26,10 @@ export enum IPCRequests {
 export enum IPCResponses {
 	OpenWindowOnDemand = "openwindowondemand",
 
-	CancelOpenFileDialog = "cancelopenfiledialog",
-	OpenDirectoryDialog = "opendirectorydialog",
 	OpenFileDialog = "openfiledialog",
 	SaveFileDialog = "savefiledialog",
+	OpenDirectoryDialog = "opendirectorydialog",
+	CancelOpenFileDialog = "cancelopenfiledialog",
 	CancelSaveFileDialog = "cancelsavefiledialog",
 
 	GetProjectPath = "getprojectpath",

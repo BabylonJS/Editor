@@ -195,6 +195,13 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node
             n[link.propertyKey] = ag;
         }
 
+        // Sounds
+        const soundLinks = (e.default as any)._SoundValues ?? [];
+        for (const link of soundLinks) {
+            const sound = scene.getSoundByName(link.soundName);
+            n[link.propertyKey] = sound;
+        }
+
         // Check pointer events
         const pointerEvents = (e.default as any)._PointerValues ?? [];
         for (const event of pointerEvents) {
