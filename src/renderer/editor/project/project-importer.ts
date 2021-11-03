@@ -249,7 +249,7 @@ export class ProjectImporter {
                     }
                 });
             } catch (e) {
-                editor.console.logError(`Failed to parse material "${m.json}"`);
+                editor.console.logError(`Failed to parse material "${m.json}: ${e.message}`);
             }
 
             Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
