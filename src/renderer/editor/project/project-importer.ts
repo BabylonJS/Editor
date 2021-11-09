@@ -215,7 +215,9 @@ export class ProjectImporter {
                 if (json.metadata?.sourcePath) {
                     const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, json.metadata.sourcePath);
                     if (!await pathExists(jsPath)) {
+                        Overlay.SetSpinnervalue(undefined);
                         Overlay.SetMessage("Installing dependencies...");
+
                         await WorkSpace.InstallDependencies(editor);
                         
                         Overlay.SetMessage("Compiling TypeScript...");
@@ -224,6 +226,8 @@ export class ProjectImporter {
                             await tsProcess.wait();
                             await SceneExporter.CopyShaderFiles(editor);
                         }
+
+                        Overlay.SetSpinnervalue(spinnerValue);
                     }
 
                     delete require.cache[jsPath];
