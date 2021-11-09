@@ -1,5 +1,7 @@
+import { clipboard } from "electron";
+
 import * as React from "react";
-import { ContextMenu, Menu, Popover } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuDivider, MenuItem, Popover, Icon as BPIcon } from "@blueprintjs/core";
 
 import { PickingInfo, Sound, Vector3 } from "babylonjs";
 
@@ -48,6 +50,9 @@ export class SoundItemHandler extends AssetsBrowserItemHandler {
     public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
         ContextMenu.show((
             <Menu>
+                <MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.relativePath, "clipboard")} />
+				<MenuItem text="Copy Absolute Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.absolutePath, "clipboard")} />
+				<MenuDivider />
                 {this.getCommonContextMenuItems()}
             </Menu>
         ), {
