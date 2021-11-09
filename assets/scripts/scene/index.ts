@@ -6,7 +6,7 @@ import { Node, Scene } from "@babylonjs/core";
 import {
     attachScripts, attachScriptToNodeAtRuntime,
     configurePostProcesses, setupRenderingGroups,
-    applyMeshesPoseMatrices,
+    applyMeshesPoseMatrices, applyMeshColliders,
 } from "../tools";
 
 import { scriptsMap } from "../scripts-map";
@@ -28,6 +28,9 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
 
     // Pose matrices
     applyMeshesPoseMatrices(scene);
+
+    // Apply colliders
+    applyMeshColliders(scene);
 }
 
 /**

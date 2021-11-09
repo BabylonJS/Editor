@@ -259,6 +259,9 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
 
     // Pose matrices
     applyMeshesPoseMatrices(scene);
+
+    // Apply colliders
+    applyMeshColliders(scene);
 }
 
 /**
@@ -281,6 +284,18 @@ export function attachScripts(scriptsMap: ScriptMap, scene: Scene): void {
             scene.onBeforeRenderObservable.add(() => instance["onUpdate"]());
         }
     }
+}
+
+/**
+ * Applies the waiting mesh colliders in case the scene is incremental.
+ * @param scene defines the reference to the scene that contains the mesh colliders to apply.
+ */
+export function applyMeshColliders(scene: Scene): void {
+    scene.meshes.forEach((m) => {
+        if (m instanceof Mesh && m.metadata?.collider) {
+            m._checkDelayState();
+        }
+    });
 }
 
 /**

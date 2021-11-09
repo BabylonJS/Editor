@@ -373,11 +373,13 @@ export class SceneExporter {
 				continue;
 			}
 	
+			/*
 			const isUsed = await editor.assetsBrowser.isAssetUsed(child.path);
 			if (!isUsed) {
 				continue;
 			}
-
+			*/
+			
 			if (!(await pathExists(path))) {
 				promises.push(copyFile(child.path, path));
 				editor.console.logInfo(`Copied asset file at: ${path}`);

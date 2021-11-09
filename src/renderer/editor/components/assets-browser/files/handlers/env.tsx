@@ -1,7 +1,8 @@
+import { clipboard } from "electron";
 import { basename, dirname, join } from "path";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuDivider, MenuItem, Tag } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuDivider, MenuItem, Tag, Icon as BPIcon } from "@blueprintjs/core";
 
 import { CubeTexture } from "babylonjs";
 
@@ -69,6 +70,9 @@ export class EnvDdsItemHandler extends AssetsBrowserItemHandler {
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		ContextMenu.show((
 			<Menu>
+				<MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.relativePath, "clipboard")} />
+				<MenuItem text="Copy Absolute Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.absolutePath, "clipboard")} />
+				<MenuDivider />
 				<MenuItem text="Set As Environment Texture" onClick={() => this._applyToObject(this.props.editor.scene, "environmentTexture")} />
 				<MenuDivider />
 				{this.getCommonContextMenuItems()}

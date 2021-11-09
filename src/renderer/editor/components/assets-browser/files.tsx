@@ -387,6 +387,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				icon: <Icon src="folder-open.svg" />,
 				intent: Intent.NONE,
 				onClick: () => {
+					this.setState({ filter: "" });
 					this.setDirectory(itemStack.join("/"));
 				},
 			});
