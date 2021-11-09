@@ -77,7 +77,7 @@ export class Overlay extends React.Component<IOverlayProps, IOverlayState> {
      * Sets the new known value of the spinner.
      * @param spinnerValue the new known value of the spinner.
      */
-    public static SetSpinnervalue(spinnerValue: number): void {
+    public static SetSpinnervalue(spinnerValue?: number): void {
         this._overlay?.setState({ spinner: true, spinnerValue });
     }
 
