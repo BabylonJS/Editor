@@ -627,7 +627,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Configures the newly created material.
 	 */
 	private async _configureNewMaterial(name: string, material: Material, sourcePath?: string): Promise<void> {
-		const relativePath = this.state.currentDirectory.replace(join(this._assetsDirectory, "/"), "");
+		const relativePath = join(this.state.currentDirectory, "/").replace(join(this._assetsDirectory, "/"), "");
 
 		const extension = extname(name);
 		if (extension !== ".material") {
