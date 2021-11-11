@@ -77,17 +77,19 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 
 		let json: any = null;
 		let isNodeMaterial = false;
+		let existingMaterial: Nullable<Material> = null;
 
 		try {
 			json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
 			isNodeMaterial = json.customType === "BABYLON.NodeMaterial";
+			existingMaterial = this.props.editor.scene!.getMaterialByID(json.id);
 		} catch (e) {
 			/* Catch silently */
 		}
-
+		
 		const nodeMaterialEditItems = isNodeMaterial ? (
 			<>
-				<MenuItem text="Edit..." icon={<Icon src="edit.svg" />} onClick={() => { }} />
+				<MenuItem text="Edit..." disabled={/*existingMaterial === null*/ true} icon={<Icon src="edit.svg" />} onClick={() => this._handleEditNodeMaterial(existingMaterial!)} />
 				<MenuItem text="Edit In Node Material Editor..." icon={<Icon src="edit.svg" />} onClick={() => this._handleOpenNodeMaterialEditor(json)} />
 				<MenuDivider />
 			</>
@@ -242,7 +244,20 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	}
 
 	/**
-	 * Called on the user wants to edit a node material.
+	 * Called on the user wants to edit the given node material in the editor's context.
+	 */
+	private async _handleEditNodeMaterial(material: Material): Promise<void> {
+		const plugin = this.props.editor.plugins["Node Material Editor"];
+		if (plugin) {
+			this.props.editor.closePlugin("node-material-editor");
+		}
+
+		await Tools.Wait(0);
+		this.props.editor.addBuiltInPlugin("node-material-editor", material);
+	}
+
+	/**
+	 * Called on the user wants to edit a node material in a separated window.
 	 */
 	private async _handleOpenNodeMaterialEditor(json: any): Promise<void> {
 		const existingMaterial = this.props.editor.scene!.materials.find((m) => {
