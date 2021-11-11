@@ -320,6 +320,10 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 					await writeJSON(this.props.absolutePath, {
 						...message.data.json,
 						editorData: message.data.editorData,
+						metadata: {
+							...message.data.json?.metadata ?? { },
+							...existingMaterial?.metadata ?? { },
+						}
 					}, {
 						spaces: "\t",
 						encoding: "utf-8",
