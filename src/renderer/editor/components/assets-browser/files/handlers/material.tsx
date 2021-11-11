@@ -65,27 +65,39 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public async onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): Promise<void> {
-		const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
-		if (json.customType === "BABYLON.NodeMaterial") {
-			return this._handleOpenNodeMaterialEditor(json);
-		}
-
-		this.props.editor.addWindowedPlugin("material-viewer", undefined, {
-			rootUrl: join(this.props.editor.assetsBrowser.assetsDirectory, "/"),
-			json: await readJSON(this.props.absolutePath, { encoding: "utf-8" }),
-			environmentTexture: this.props.editor.scene!.environmentTexture?.serialize(),
-		});
+		return this._handleOpenMaterialEditorOrViewer();
 	}
 
 	/**
 	 * Called on the user right clicks on the item.
 	 * @param ev defines the reference to the event object.
 	 */
-	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+	public async onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): Promise<void> {
+		ev.persist();
+
+		let json: any = null;
+		let isNodeMaterial = false;
+
+		try {
+			json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
+			isNodeMaterial = json.customType === "BABYLON.NodeMaterial";
+		} catch (e) {
+			/* Catch silently */
+		}
+
+		const nodeMaterialEditItems = isNodeMaterial ? (
+			<>
+				<MenuItem text="Edit..." icon={<Icon src="edit.svg" />} onClick={() => { }} />
+				<MenuItem text="Edit In Node Material Editor..." icon={<Icon src="edit.svg" />} onClick={() => this._handleOpenNodeMaterialEditor(json)} />
+				<MenuDivider />
+			</>
+		) : undefined;
+
 		ContextMenu.show((
 			<Menu>
 				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => this._handleRefreshPreview()} />
 				<MenuDivider />
+				{nodeMaterialEditItems}
 				{this.getCommonContextMenuItems()}
 			</Menu>
 		), {
@@ -173,8 +185,8 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 
 				delete require.cache[jsPath];
 				require(jsPath);
-			} 
-			
+			}
+
 			const material = Material.Parse(json, this.props.editor.scene!, join(this.props.editor.assetsBrowser.assetsDirectory, "/"));
 			if (material) {
 				material.metadata = json.metadata;
@@ -211,6 +223,22 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		);
 
 		this.setState({ previewImage });
+	}
+
+	/**
+	 * Edits the material in the node material editor.
+	 */
+	private async _handleOpenMaterialEditorOrViewer(): Promise<void> {
+		const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
+		if (json.customType === "BABYLON.NodeMaterial") {
+			return this._handleOpenNodeMaterialEditor(json);
+		}
+
+		this.props.editor.addWindowedPlugin("material-viewer", undefined, {
+			rootUrl: join(this.props.editor.assetsBrowser.assetsDirectory, "/"),
+			json: await readJSON(this.props.absolutePath, { encoding: "utf-8" }),
+			environmentTexture: this.props.editor.scene!.environmentTexture?.serialize(),
+		});
 	}
 
 	/**
