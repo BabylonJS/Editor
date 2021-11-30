@@ -1,4 +1,4 @@
-import { basename, dirname, join } from "path";
+import { basename, dirname, extname, join } from "path";
 import filenamify from "filenamify/filenamify";
 import { copyFile, pathExists, readdir, readJSON, stat, writeJSON } from "fs-extra";
 
@@ -85,6 +85,26 @@ export class WorkspaceConverter {
             await Promise.all(project.assets.meshes.map((f) => {
                 return copyFile(join(projectDirectory, "assets/meshes", f), join(projectAssetsDirectory, f));
             }));
+
+            // Graphs
+            if (project.assets.graphs) {
+                // Copy graph jsons
+                await Promise.all(project.assets.graphs.map((g) => {
+                    const extension = extname(g);
+                    return copyFile(join(projectDirectory, "graphs", g), join(projectAssetsDirectory, `${g.replace(extension, ".graph")}`));
+                }));
+
+                // Remove previously generated graph ts files
+                const srcSceneDirectories = await readdir(join(directory, "src/scenes"));
+                await Promise.all(srcSceneDirectories.map(async (d) => {
+                    const srcGraphsPath = join(directory, "src/scenes", d, "graphs");
+                    if (!(await pathExists(srcGraphsPath))) {
+                        return;
+                    }
+
+                    await FSTools.RemoveDirectory(srcGraphsPath);
+                }));
+            }
 
             // Materials
             project.materials ??= [];
