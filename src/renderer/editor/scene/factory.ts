@@ -1,6 +1,6 @@
 import { extname, join } from "path";
 import { writeJSON } from "fs-extra";
-import filenamify from "filenamify/filenamify";
+import filenamify from "filenamify";
 
 import {
     Mesh,

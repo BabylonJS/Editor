@@ -1,4 +1,4 @@
-import { ipcRenderer, remote, shell } from "electron";
+import { ipcRenderer, shell, webFrame } from "electron";
 import { dirname, join } from "path";
 import { pathExists } from "fs-extra";
 
@@ -383,6 +383,9 @@ export class Editor {
     public async init(): Promise<void> {
         document.getElementById("BABYLON-START-IMAGE")?.remove();
         Overlay.Show("Loading Editor...", true);
+
+        // Initialize tools
+        await Tools.Init();
 
         // Get version
         this._packageJson = JSON.parse(await Tools.LoadFile("../package.json", false));
@@ -1276,7 +1279,7 @@ export class Editor {
         this._preferences = null;
         this._preferences = this.getPreferences();
 
-        remote.getCurrentWebContents()?.setZoomFactor(parseFloat(this._preferences.zoom ?? "1"));
+        webFrame.setZoomFactor(parseFloat(this._preferences.zoom ?? "1"));
         this.engine?.setHardwareScalingLevel(this._preferences.scalingLevel ?? 1);
 
         // Gizmo steps

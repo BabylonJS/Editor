@@ -100,7 +100,7 @@ export class EditorUpdater {
                 text: "Install",
                 onClick: () => {
                     // shell.openItem(dest);
-                    shell.openItem(dirname(dest));
+                    shell.openPath(dirname(dest));
                 },
             },
         });

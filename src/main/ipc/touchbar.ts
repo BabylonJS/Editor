@@ -1,4 +1,4 @@
-import { BrowserWindow, IpcMainEvent, TouchBar, TouchBarButton, TouchBarSegmentedControl, TouchBarSpacer } from "electron";
+import { BrowserWindow, IpcMainEvent, TouchBar, TouchBarSegmentedControl, SegmentedControlSegment } from "electron";
 
 import { join } from "path";
 
@@ -12,7 +12,7 @@ import { WindowsHandler } from "../handlers/window";
 
 interface _ISegmentedGroup {
 	element: any;
-	touchbar: (TouchBarSpacer | TouchBarButton);
+	touchbar: SegmentedControlSegment;
 }
 
 export class ToucharIPC implements IIPCHandler {
@@ -29,7 +29,7 @@ export class ToucharIPC implements IIPCHandler {
 		const window = WindowsHandler.GetWindowByWebContentsId(event.sender.id);
 		if (!window) { return; }
 
-		const items: (Electron.TouchBarSpacer | Electron.TouchBarButton)[] = [];
+		const items: TouchBarSegmentedControl[] = [];
 
 		if (process.env.DEBUG || DevTools.IsEnabled) {
 			// Add shortcuts for debug
@@ -81,7 +81,7 @@ export class ToucharIPC implements IIPCHandler {
 	/**
 	 * Returns the touchbar element according to the given element configuration (button, spacer, etc.).
 	 */
-	private _getTouchBarElements(window: BrowserWindow, element: any): TouchBarSpacer | TouchBarButton {
+	private _getTouchBarElements(window: BrowserWindow, element: any): SegmentedControlSegment {
 		if (element.icon && !element.iconPosition) {
 			element.iconPosition = "left";
 		}

@@ -1,5 +1,5 @@
 import { basename, dirname, extname, join } from "path";
-import filenamify from "filenamify/filenamify";
+import filenamify from "filenamify";
 import { copyFile, pathExists, readdir, readJSON, stat, writeJSON } from "fs-extra";
 
 import { Nullable } from "../../../../shared/types";

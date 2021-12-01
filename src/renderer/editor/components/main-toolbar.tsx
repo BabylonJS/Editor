@@ -255,7 +255,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         switch (id) {
             // Project
             case "project:open-workspace": WorkSpace.Browse(); break;
-            case "project:open-worspace-file-explorer": shell.openItem(WorkSpace.DirPath!); break;
+            case "project:open-worspace-file-explorer": shell.openPath(WorkSpace.DirPath!); break;
 
             case "project:reload": this._reloadProject(); break;
             case "project:save": ProjectExporter.Save(this._editor); break;

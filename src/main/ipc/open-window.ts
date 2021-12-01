@@ -17,6 +17,6 @@ export class OpenWindowIPC implements IIPCHandler {
 	public async handler(event: IpcMainEvent, definition: IWindowDefinition): Promise<void> {
 		definition.url = `file://${__dirname}/../../../../html/${definition.url}`;
 		const window = await WindowsHandler.CreateWindowOnDemand(definition);
-		event.sender.send(IPCResponses.OpenWindowOnDemand, window.id);
+		event.sender.send(IPCResponses.OpenWindowOnDemand, window.webContents.id);
 	}
 }

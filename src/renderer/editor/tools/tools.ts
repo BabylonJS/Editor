@@ -1,4 +1,4 @@
-import { remote, ipcRenderer } from "electron";
+import { ipcRenderer } from "electron";
 
 import { platform } from "os";
 import { extname, join, normalize } from "path";
@@ -7,17 +7,24 @@ import { IPCResponses, IPCRequests } from "../../../shared/ipc";
 
 import { Tools as BabylonTools, Engine, Scene, Node, Nullable, Camera, Mesh, Material } from "babylonjs";
 
+import { IPCTools } from "./ipc";
 import { ICommonMetadata, IEditorPreferences, IMaterialMetadata, IMeshMetadata, ITransformNodeMetadata } from "./types";
 
 export class Tools {
+    private static _AppPath: string;
+
+    /**
+     * Initializes the tools.
+     */
+    public static async Init(): Promise<void> {
+        this._AppPath = await IPCTools.CallWithPromise<string>(IPCRequests.GetAppPath);
+    }
+
     /**
      * Returns the current root path of the app.
      */
     public static GetAppPath(): string {
-        if (process.env.DEBUG) { return remote.app.getAppPath(); }
-        if (process.env.DRIVEN_TESTS) { return process.env.DRIVEN_TESTS; }
-
-        return join(remote.app.getAppPath(), "..", "..");
+        return this._AppPath;
     }
 
     /**

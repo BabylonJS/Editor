@@ -89,7 +89,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		
 		const nodeMaterialEditItems = isNodeMaterial ? (
 			<>
-				<MenuItem text="Edit..." disabled={/*existingMaterial === null*/ true} icon={<Icon src="edit.svg" />} onClick={() => this._handleEditNodeMaterial(existingMaterial!)} />
+				<MenuItem text="Edit..." disabled={existingMaterial === null} icon={<Icon src="edit.svg" />} onClick={() => this._handleEditNodeMaterial(existingMaterial!)} />
 				<MenuItem text="Edit In Node Material Editor..." icon={<Icon src="edit.svg" />} onClick={() => this._handleOpenNodeMaterialEditor(json)} />
 				<MenuDivider />
 			</>

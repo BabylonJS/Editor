@@ -167,7 +167,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				<MenuItem
 					icon={<BPIcon icon="document-open" color="white" />}
 					text={`Reveal in ${isMacOs ? "Finder" : "Explorer"}`}
-					onClick={() => shell.openItem(Tools.NormalizePathForCurrentPlatform(this.state.currentDirectory))}
+					onClick={() => shell.openPath(Tools.NormalizePathForCurrentPlatform(this.state.currentDirectory))}
 				/>
 				<MenuDivider />
 				<MenuItem text="Refresh" icon={<Icon src="recycle.svg" />} onClick={() => this.props.editor.assetsBrowser.refresh()} />
@@ -471,7 +471,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				<MenuItem
 					icon={<BPIcon icon="document-open" color="white" />}
 					text={`Reveal in ${isMacOs ? "Finder" : "Explorer"}`}
-					onClick={() => shell.openItem(Tools.NormalizePathForCurrentPlatform(this.state.currentDirectory))}
+					onClick={() => shell.openPath(Tools.NormalizePathForCurrentPlatform(this.state.currentDirectory))}
 				/>
 				<MenuDivider />
 				<MenuItem text="New Directory..." icon={<Icon src="plus.svg" />} onClick={() => this._handleCreateNewDirectory()} />

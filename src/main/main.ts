@@ -266,9 +266,11 @@ if (shouldQuit) {
 	app.quit();
 }
 else {
+	app.allowRendererProcessReuse = false;
+
 	// Enable remote debugging
 	app.commandLine.appendSwitch("remote-debugging-port", "8315");
-
+	
 	// Events
 	app.on("second-instance", (_, argv) => {
 		if (EditorApp.Window) {

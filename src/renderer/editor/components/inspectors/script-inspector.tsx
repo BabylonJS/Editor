@@ -190,7 +190,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         }
 
         const tsPath = join(WorkSpace.DirPath!, this.selectedObject.metadata.script.name);
-        return <InspectorButton label="Open..." onClick={() => shell.openItem(tsPath)} />
+        return <InspectorButton label="Open..." onClick={() => shell.openPath(tsPath)} />
     }
 
     /**
