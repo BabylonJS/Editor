@@ -5,6 +5,9 @@ import { OpenWindowIPC } from "../ipc/open-window";
 import { SetProjectPathIPC, GetProjectPathIPC } from "../ipc/project";
 import { GetWorkspacePathIPC, SetWorkspacePathIPC } from "../ipc/workspace";
 
+import { GetAppPathIPC } from "../ipc/app-path";
+import { GetWindowIdIPC } from "../ipc/window-id";
+
 import { OpenDirectoryDialogIPC, OpenFileDialogIPC, SaveFileDialogIPC } from "../ipc/dialogs";
 
 import { StartWebServerIPC } from "../ipc/webserver";
@@ -50,6 +53,9 @@ export class IPCHandler {
 
 		this.registerHandler(new GetWorkspacePathIPC());
 		this.registerHandler(new SetWorkspacePathIPC());
+
+		this.registerHandler(new GetAppPathIPC());
+		this.registerHandler(new GetWindowIdIPC());
 
 		this.registerHandler(new StartWebServerIPC());
 

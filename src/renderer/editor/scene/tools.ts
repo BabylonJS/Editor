@@ -93,7 +93,7 @@ export class SceneTools {
             const json = SceneSerializer.Serialize(scene);
             await writeJSON(dest, json, { encoding: "utf-8", spaces: "\t" });
 
-            shell.openItem(dirname(dest));
+            shell.openPath(dirname(dest));
         } catch (e) {
 
         }
@@ -138,7 +138,7 @@ export class SceneTools {
                 }
             }
 
-            shell.openItem(dest);
+            shell.openPath(dest);
         } catch (e) {
 
         }
@@ -184,7 +184,7 @@ export class SceneTools {
             editor.updateTaskFeedback(task, 100, "Done");
             editor.closeTaskFeedback(task, 1000);
 
-            shell.openItem(dest);
+            shell.openPath(dest);
         } catch (e) {
             editor.updateTaskFeedback(task, 0, "Error!");
             editor.closeTaskFeedback(task, 1000);

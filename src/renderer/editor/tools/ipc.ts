@@ -1,4 +1,4 @@
-import { ipcRenderer, remote } from "electron";
+import { ipcRenderer } from "electron";
 import { IPCRequests, IPCResponses } from "../../../shared/ipc";
 
 export class IPCTools {
@@ -38,9 +38,9 @@ export class IPCTools {
      */
     public static async ExecuteEditorFunction<T>(functionName: string, ...args: any[]): Promise<{ id: string; data: T; }> {
         return this.SendWindowMessage(-1, "execute-editor-function", {
-            popupId: remote.getCurrentWindow().id,
-            functionName,
             args,
+            functionName,
+            popupId: await this.CallWithPromise<string>(IPCRequests.GetWindowId),
         });
     }
 

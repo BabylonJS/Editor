@@ -197,9 +197,9 @@ export class ScriptAssets extends AbstractAssets {
         const extension = extname(path).toLowerCase();
         if (extension === ".ts") {
             const task = this.editor.addTaskFeedback(0, `Opening "${basename(path)}"`);
-            const success = shell.openItem(path);
+            const success = await shell.openPath(path);
 
-            this.editor.updateTaskFeedback(task, 100, success ? "Done" : "Failed");
+            this.editor.updateTaskFeedback(task, 100, success !== "" ? "Failed" : "Done");
             return this.editor.closeTaskFeedback(task, 500);
         }
     }

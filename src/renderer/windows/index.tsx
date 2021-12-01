@@ -1,4 +1,4 @@
-import { ipcRenderer, remote } from "electron";
+import { ipcRenderer, webFrame } from "electron";
 
 import { IPCResponses, IPCRequests } from "../../shared/ipc";
 import { Undefinable } from "../../shared/types";
@@ -7,6 +7,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import { Tools } from "../editor/tools/tools";
+import { IPCTools } from "../editor/tools/ipc";
 
 export interface IWindowedPluginInitialization {
     /**
@@ -35,18 +36,24 @@ export default class WindowedPlugin {
      * Inits the plugin.
      */
     private async _init(): Promise<void> {
+        // Initialize tools
+        await Tools.Init();
+        
+        // Get current window id
+        const windowId = await IPCTools.CallWithPromise<number>(IPCRequests.GetWindowId);
+
         // Bind event on the window is closing
         window.addEventListener("beforeunload", async (e) => {
             const closed = await this._ref?.onClose?.call(this._ref, e);
             if (closed) {
-                ipcRenderer.send(IPCRequests.SendWindowMessage, -1, { id: "close-window", windowId: remote.getCurrentWindow().id });
+                ipcRenderer.send(IPCRequests.SendWindowMessage, -1, { id: "close-window", windowId });
             }
         });
 
         // Get plugin name
         const result = await new Promise<any>((resolve) => {
             ipcRenderer.once(IPCResponses.SendWindowMessage, (_, data) => data.id === "pluginName" && resolve(data));
-            ipcRenderer.send(IPCRequests.SendWindowMessage, -1, { id: "pluginName", popupId: remote.getCurrentWindow().id });
+            ipcRenderer.send(IPCRequests.SendWindowMessage, -1, { id: "pluginName", popupId: windowId });
         });
 
         // Load plugin!
@@ -66,6 +73,6 @@ export default class WindowedPlugin {
 
         // Apply preferences
         const preferences = Tools.GetEditorPreferences();
-        remote.getCurrentWebContents()?.setZoomFactor(parseFloat(preferences.zoom ?? "1"));
+        webFrame.setZoomFactor(parseFloat(preferences.zoom ?? "1"));
     }
 }

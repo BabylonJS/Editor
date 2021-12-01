@@ -54,7 +54,7 @@ export class PureCubeDialog extends React.Component<IPureCubeDialogProps, IPureC
         });
     }
 
-    public static DefaultImage: string= join(Tools.GetAppPath(), "assets/extras/waitlogo.png");
+    public static DefaultImage: string = "";
 
     private _canvas: Nullable<HTMLCanvasElement> = null;
     private _engine: Nullable<Engine> = null;
@@ -116,6 +116,8 @@ export class PureCubeDialog extends React.Component<IPureCubeDialogProps, IPureC
      * Called on the component did mount.
      */
     public async componentDidMount(): Promise<void> {
+        PureCubeDialog.DefaultImage ||= join(Tools.GetAppPath(), "assets/extras/waitlogo.png");
+
         await Tools.Wait(100);
 
         if (!this._canvas) { return; }

@@ -11,6 +11,9 @@ export enum IPCRequests {
 	GetWorkspacePath = "getworkspacepath",
 	SetWorkspacePath = "setworkspacepath",
 
+	GetAppPath = "getapppath",
+	GetWindowId = "getwindowid",
+
 	StartGameServer = "startgameserver",
 
 	FocusWindow = "focuswindow",
@@ -37,6 +40,9 @@ export enum IPCResponses {
 
 	GetWorkspacePath = "getworkspacepath",
 	SetWorkspacePath = "setworkspacepath",
+
+	GetAppPath = "getapppath",
+	GetWindowId = "getwindowid",
 
 	StartGameServer = "startgameserver",
 

@@ -32,7 +32,7 @@ export class TypeScriptItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-		shell.openItem(this.props.absolutePath);
+		shell.openPath(this.props.absolutePath);
 	}
 
 	/**

@@ -1,4 +1,4 @@
-import filenamify from "filenamify/filenamify";
+import filenamify from "filenamify";
 import { basename, dirname, extname, join } from "path";
 import directoryTree, { DirectoryTree } from "directory-tree";
 import { copyFile, pathExists, readdir, readFile, readJSON, remove, writeFile, writeJSON } from "fs-extra";

@@ -25,7 +25,7 @@ export class SendWindowMessageIPC implements IIPCHandler {
      * @param data defines the data sent to the given window id.
 	 */
 	public handler(_: IpcMainEvent, windowId: number, data: any): void {
-		const window = WindowsHandler.GetWindowById(windowId);
+		const window = WindowsHandler.GetWindowByWebContentsId(windowId);
 		if (!window) {
 			return this._window.webContents.send(IPCResponses.SendWindowMessage, data);
 		}
