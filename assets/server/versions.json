@@ -120,5 +120,10 @@
         "win32": "electron/4.0.4/BabylonJS Editor Setup 4.0.4.exe",
         "darwin": "electron/4.0.4/BabylonJS Editor-4.0.4.dmg",
         "linux": "electron/4.0.4/BabylonJS Editor-4.0.4.AppImage"
+    },
+    "4.0.5": {
+        "win32": "electron/4.0.5/BabylonJS Editor Setup 4.0.5.exe",
+        "darwin": "electron/4.0.5/BabylonJS Editor-4.0.5.dmg",
+        "linux": "electron/4.0.5/BabylonJS Editor-4.0.5.AppImage"
     }
 }
