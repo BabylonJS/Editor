@@ -1,3 +1,4 @@
+import { basename } from "path";
 import { clipboard } from "electron";
 
 import * as React from "react";
@@ -7,8 +8,9 @@ import { PickingInfo, Sound, Vector3 } from "babylonjs";
 
 import { Icon } from "../../../../gui/icon";
 
+import { Tools } from "../../../../tools/tools";
+
 import { AssetsBrowserItemHandler } from "../item-handler";
-import { basename } from "path";
 
 export class SoundItemHandler extends AssetsBrowserItemHandler {
     /**
@@ -48,11 +50,17 @@ export class SoundItemHandler extends AssetsBrowserItemHandler {
      * @param ev defines the reference to the event object.
      */
     public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+        const sounds = this.props.editor.scene!.mainSoundTrack.soundCollection.filter((s) => {
+            return s.name === this.props.relativePath && !s.spatialSound;
+        });
+
         ContextMenu.show((
             <Menu>
+                <MenuItem text={sounds.length ? "Unload" : "Load"} icon={<BPIcon icon={sounds.length ? "remove" : "add"} color="white" />} onClick={() => this._loadOrUnloadSound(sounds)} />
+                <MenuDivider />
                 <MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.relativePath, "clipboard")} />
-				<MenuItem text="Copy Absolute Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.absolutePath, "clipboard")} />
-				<MenuDivider />
+                <MenuItem text="Copy Absolute Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.absolutePath, "clipboard")} />
+                <MenuDivider />
                 {this.getCommonContextMenuItems()}
             </Menu>
         ), {
@@ -80,10 +88,31 @@ export class SoundItemHandler extends AssetsBrowserItemHandler {
             sound.name = this.props.relativePath;
             sound.attachToMesh(pick.pickedMesh!);
             sound.setPosition(Vector3.Zero());
+
+            this.props.editor.graph.refresh();
         }, {
             autoplay: false,
         });
 
-        this.props.editor.graph.refresh();
+        sound.metadata = {
+            id: Tools.RandomId(),
+        };
+    }
+
+    /**
+     * Called on the user wants to load or unload a sound asset in the scene from the context menu.
+     */
+    private _loadOrUnloadSound(sounds: Sound[]): void {
+        if (sounds?.length) {
+            sounds.forEach((s) => this.props.editor.scene!.mainSoundTrack.removeSound(s));
+            return this.props.editor.graph.refresh();
+        }
+
+        const sound = new Sound(basename(this.props.absolutePath), this.props.absolutePath, this.props.editor.scene!, () => {
+            sound!.name = this.props.relativePath;
+            this.props.editor.graph.refresh();
+        }, {
+            autoplay: false,
+        });
     }
 }

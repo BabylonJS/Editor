@@ -111,12 +111,14 @@ export function fromAnimationGroups(animationGroupName?: string): any {
 /**
  * Sets the decorated member linked to a sound.
  * @param soundName defines the name of the sound to retrieve.
+ * @param type defines the type of sound to retrieve. "global" means "not spatial". By default, any sound matching the given name is retrieved.
  */
-export function fromSounds(soundName?: string): any {
+export function fromSounds(soundName?: string, type?: "global" | "spatial"): any {
     return (target: any, propertyKey: string | symbol) => {
         const ctor = target.constructor;
         ctor._SoundValues = ctor._SoundValues ?? [];
         ctor._SoundValues.push({
+            type,
             propertyKey: propertyKey.toString(),
             soundName: soundName ?? propertyKey.toString(),
         });
