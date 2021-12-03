@@ -460,7 +460,7 @@ export class ProjectExporter {
             const json = s.serialize();
             json.url = json.name;
 
-            const dest = `${normalize(`${basename(filenamify(s.name))}`)}.json`;
+            const dest = `${normalize(`${basename(filenamify(s.name))}-${s.metadata?.id}`)}.json`
 
             await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(soundsDir, dest), json);
 

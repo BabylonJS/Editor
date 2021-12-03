@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Tabs, Tab, TabId } from "@blueprintjs/core";
 
-import { Scene, SubMesh } from "babylonjs";
+import { Scene, SubMesh, Sound } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -144,6 +144,8 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
                 key = this._sceneInspectorKey;
             } else if (this.state.selectedObject instanceof SubMesh) {
                 key = `${this.state.selectedObject.getMesh().id}_${this.state.selectedObject._id}`;
+            } else if (this.state.selectedObject instanceof Sound) {
+                key = this.state.selectedObject.metadata?.id;
             }
 
             const objectInspector = <i.ctor key={key.toString() + this._forceUpdateId} editor={this._editor} _objectRef={this.state.selectedObject} toolId={i._id!} ref={this._refHandler.getInspector} />;

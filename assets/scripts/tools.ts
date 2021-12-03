@@ -198,8 +198,11 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node
         // Sounds
         const soundLinks = (e.default as any)._SoundValues ?? [];
         for (const link of soundLinks) {
-            const sound = scene.getSoundByName(link.soundName);
-            n[link.propertyKey] = sound;
+           switch (link.type) {
+               case "global": n[link.propertyKey] = scene.mainSoundTrack.soundCollection.find((s) => s.name === link.soundName && !s.spatialSound); break;
+               case "spatial": n[link.propertyKey] = scene.mainSoundTrack.soundCollection.find((s) => s.name === link.soundName && s.spatialSound); break;
+               default: n[link.propertyKey] = scene.getSoundByName(link.soundName); break;
+           }
         }
 
         // Check pointer events
