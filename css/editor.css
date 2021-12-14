@@ -148,6 +148,7 @@ html, body {
 .bp3-dark .bp3-panel-stack-view {
     height: 100%;
     width: 100%;
+    background-color: #333333;
 }
 
 .bp3-dark .bp3-menu {
@@ -157,6 +158,14 @@ html, body {
 
 .bp3-menu-header > h6 {
     color: grey;
+}
+
+.bp3-dark .bp3-dialog-header {
+    background: #333333;
+}
+
+.bp3-dialog.bp3-dark, .bp3-dark .bp3-dialog {
+    background: #222222;
 }
 
 .bp3-tooltip.bp3-dark .bp3-popover-content, .bp3-dark .bp3-tooltip .bp3-popover-content {
@@ -286,7 +295,47 @@ html, body {
 }
 
 .ant-drawer-body {
-    background: #333333;
+    background: #5e4f4f;
+}
+
+.ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: white;
+}
+
+.ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-description {
+    color: white;
+}
+
+.ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-description {
+    color: white;
+}
+
+.ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: white;
+}
+
+.ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-description {
+    color: rgb(159, 159, 159);
+}
+
+.ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: white;
+}
+
+.ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon {
+    color: black;
+}
+
+.ant-steps-item-finish .ant-steps-item-icon {
+    background: #52c41a;
+}
+
+.ant-result-title {
+    color: white;
+}
+
+.ant-result-subtitle {
+    color: white;
 }
 
 /* GOLDEN LAYOUT */

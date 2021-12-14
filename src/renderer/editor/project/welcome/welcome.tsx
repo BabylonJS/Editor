@@ -6,7 +6,7 @@ import { Undefinable } from "../../../../shared/types";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { Dialog, Classes, Button, Tooltip, Position, Divider, Callout, Intent, ButtonGroup, Alignment, ProgressBar } from "@blueprintjs/core";
+import { Dialog, Classes, Button, Tooltip, Position, Divider, Callout, ButtonGroup, Alignment, ProgressBar } from "@blueprintjs/core";
 
 import { Editor } from "../../editor";
 
@@ -121,12 +121,12 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
                     </Callout>
                     <Divider />
 
-                    <Callout title="Recent projects" intent={Intent.PRIMARY} icon="document-open">
+                    <Callout title="Recent projects" icon="document-open">
                         {this._getRecentProjects() ?? <p><strong>No recent project.</strong></p>}
                     </Callout>
                     <Divider />
 
-                    <Callout title="Create a new workspace" intent={Intent.SUCCESS} icon="new-object">
+                    <Callout title="Create a new workspace" icon="new-object">
                         {wizard}
                     </Callout>
                 </div>

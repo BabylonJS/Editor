@@ -100,7 +100,8 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             case "run-my-browser-https": this._editor.runProject(EditorPlayMode.ExternalBrowser, true); break;
 
             case "generate": SceneExporter.ExportFinalScene(this._editor); break;
-            case "generate-final": SceneExporter.ExportFinalScene(this._editor, undefined, { forceRegenerateFiles: true, generateAllCompressedTextureFormats: true }); break;
+            case "generate-final": SceneExporter.ExportFinalScene(this._editor, undefined, { forceRegenerateFiles: false, generateAllCompressedTextureFormats: true }); break;
+            case "generate-final-force": SceneExporter.ExportFinalScene(this._editor, undefined, { forceRegenerateFiles: true, generateAllCompressedTextureFormats: true }); break;
             case "generate-as": SceneExporter.ExportFinalSceneAs(this._editor); break;
             case "generate-only-geometries": SceneExporter.ExportFinalSceneOnlyGeometries(this._editor); break;
             case "build-project": WorkSpace.BuildProject(this._editor); break;
@@ -136,7 +137,10 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <MenuItem text={<div>Generate Scene... <Tag intent={Intent.PRIMARY}>(CTRL+g)</Tag></div>} onClick={() => this._buttonClicked("generate")} />
-                <MenuItem text="Generate Final Scene..." onClick={() => this._buttonClicked("generate-final")} />
+                <MenuItem text="Generate Final Scene..." onClick={() => this._buttonClicked("generate-final")}>
+                    <MenuItem text="Generate..." onClick={() => this._buttonClicked("generate-final")} />
+                    <MenuItem text="Force Regenerate..." onClick={() => this._buttonClicked("generate-final-force")} />
+                </MenuItem>
                 <MenuDivider />
                 <MenuItem text="Generate Scene As..." onClick={() => this._buttonClicked("generate-as")} />
                 <MenuDivider />

@@ -33,6 +33,7 @@ import { ProjectExporter } from "../project/project-exporter";
 import { WelcomeDialog } from "../project/welcome/welcome";
 import { NewProjectWizard } from "../project/welcome/new-project";
 import { ProjectRenamer } from "../project/rename";
+import { PackerDialog } from "../project/packer/dialog";
 
 import { PhotoshopExtension } from "../extensions/photoshop";
 
@@ -104,13 +105,16 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text={<div>Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={() => this._editor.runProject(EditorPlayMode.IntegratedBrowser, false)} />
                 <MenuDivider />
-                <MenuItem text="Open Visual Studio Code..." icon={<Icon src="vscode.svg" style={{ filter: "none" }} />} onClick={() => this._handleOpenVSCode()} />
-                <MenuDivider />
                 <MenuItem text="Export" icon="more">
                     <MenuItem text="GLTF..." icon={<Icon src="gltf.svg" />} onClick={() => this._menuItemClicked("project:export:gltf")} />
                     <MenuItem text="GLB..." icon={<Icon src="gltf.svg" />} onClick={() => this._menuItemClicked("project:export:glb")} />
                 </MenuItem>
+                <MenuDivider />
+                <MenuItem text="Open Visual Studio Code..." icon={<Icon src="vscode.svg" style={{ filter: "none" }} />} onClick={() => this._handleOpenVSCode()} />
+                <MenuDivider />
+                <MenuItem text="Package..." icon={<Icon src="file-archive.svg" />} onClick={() => PackerDialog.Show(this._editor)} />
             </Menu>;
+
         const edit =
             <Menu>
                 <MenuItem text={<div>Undo <Tag intent={Intent.PRIMARY}>(CTRL+z</Tag></div>} icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("edit:undo")} />
@@ -124,6 +128,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Preferences..." icon={<Icon src="wrench.svg" />} onClick={() => this._handleWorkspaceSettings()} />
             </Menu>;
+
         const view =
             <Menu>
                 {/* <MenuItem text="Add Preview" icon={<Icon src="plus.svg" />} onClick={() => this._menuItemClicked("view:add-preview")} /> */}
@@ -143,6 +148,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Webpack Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:webpack-logs")} />
                 <MenuItem text="TypeScript Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:typescript-logs")} />
             </Menu>;
+
         const add =
             <Menu>
                 <MenuItem text="Point Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:pointlight")} />

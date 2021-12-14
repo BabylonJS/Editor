@@ -2,6 +2,8 @@ import { createServer, Socket } from "net";
 
 import { Nullable } from "../../../shared/types";
 
+import { Observable } from "babylonjs";
+
 import { Editor } from "../editor";
 
 export interface IWebpackProgressData {
@@ -23,6 +25,11 @@ export class WebpackProgressExtension {
     private static _Initialized: boolean = false;
     private static _Task: Nullable<string> = null;
     private static _LastMessage: Nullable<string> = null;
+
+    /**
+     * Defines the reference to the observable used to notify observers that compilation progress has changed.
+     */
+    public static OnProgressChanged: Observable<number> = new Observable<number>();
 
     /**
      * Initializes the webpack progress extension.
@@ -64,6 +71,7 @@ export class WebpackProgressExtension {
             }
 
             editor.updateTaskFeedback(this._Task, data.percentage, `Compiling ${this._LastMessage ? `(${this._LastMessage})` : ""}: ${data.percentage >> 0}%`);
+            this.OnProgressChanged.notifyObservers(data.percentage >> 0);
 
             if (data.done) {
                 editor.closeTaskFeedback(this._Task, 1000);
