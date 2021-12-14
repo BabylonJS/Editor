@@ -2,7 +2,7 @@ import { Nullable } from "../../../shared/types";
 
 import {
     Mesh, UtilityLayerRenderer, Observer, Scene, StandardMaterial, Texture, Vector3,
-    Observable, PointerEventTypes, Vector2, AbstractMesh, ParticleSystem,
+    Observable, PointerEventTypes, Vector2, AbstractMesh, ParticleSystem, IMouseEvent,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -219,18 +219,18 @@ export class SceneIcons {
     /**
      * Called on the pointer is down on the canvas.
      */
-    private _onPointerDown(ev: MouseEvent): void {
+    private _onPointerDown(ev: IMouseEvent): void {
         this._downMousePosition.set(ev.offsetX, ev.offsetY);
     }
 
     /**
      * Called on the pointer is up on the canvas.
      */
-    private _onPointerUp(ev: MouseEvent): void {
+    private _onPointerUp(ev: IMouseEvent): void {
         const distance = Vector2.Distance(this._downMousePosition, new Vector2(ev.offsetX, ev.offsetY));
         if (distance > 2) { return; }
 
-        this.onClickObservable.notifyObservers(ev);
+        this.onClickObservable.notifyObservers(ev as any);
     }
 
     /**

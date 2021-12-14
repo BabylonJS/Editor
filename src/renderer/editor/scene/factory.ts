@@ -96,7 +96,7 @@ export class SceneFactory {
         ground.metadata = ground.metadata ?? { };
         ground.metadata.heightMap = ground.metadata.heightMap ?? { };
         
-        ground.metadata.heightMap.texture = Array.from(new Uint8Array(texture.readPixels()!.buffer));
+        ground.metadata.heightMap.texture = Array.from(new Uint8Array((await texture.readPixels())!.buffer));
         ground.metadata.heightMap.textureWidth = texture.getSize().width;
         ground.metadata.heightMap.textureHeight = texture.getSize().height;
         ground.metadata.heightMap.options = ground.metadata.heightMap.options ?? {

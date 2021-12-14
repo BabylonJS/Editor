@@ -1,4 +1,4 @@
-import { join, normalize, basename, dirname } from "path";
+import { join, normalize, basename, dirname, extname } from "path";
 import { writeJSON, readdir, remove, pathExists } from "fs-extra";
 
 import { Nullable } from "../../../shared/types";
@@ -192,6 +192,8 @@ export class ProjectExporter {
             if (camera.doNotSerialize) { continue; }
 
             const json = camera.serialize();
+            json.parentId = camera.parent?.id;
+
             const dest = `${normalize(`${basename(filenamify(camera.name))}-${camera.id}`)}.json`;
             await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(camerasDir, dest), json);
 
@@ -214,6 +216,7 @@ export class ProjectExporter {
         for (const texture of editor.scene!.textures) {
             if (texture instanceof RenderTargetTexture || texture instanceof DynamicTexture) { continue; }
             if (texture.name.indexOf("data:") === 0 || texture === editor.scene!.environmentBRDFTexture) { continue; }
+            if (!extname(texture.name)) { continue; }
             
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = texture.serialize();
@@ -320,6 +323,12 @@ export class ProjectExporter {
 
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = MeshExporter.ExportMesh(mesh);
+                if (json.meshes?.[0]) {
+                    json.meshes[0].parentId = mesh.parent?.id ?? null;
+                    json.meshes[0].instances?.forEach((i) => {
+                        i.parentId = mesh.instances.find((i2) => i2.id === i.id)?.parent?.id ?? null;
+                    });
+                }
 
                 exportedGeometries.push.apply(exportedGeometries, await GeometryExporter.ExportIncrementalGeometries(editor, geometriesDir, json, false));
 
@@ -360,6 +369,8 @@ export class ProjectExporter {
 
         for (const light of editor.scene!.lights) {
             const lightJson = light.serialize();
+            lightJson.parentId = light.parent?.id ?? null;
+
             const lightDest = `${normalize(`${basename(filenamify(light.name))}-${light.id}`)}.json`;
 
             await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(lightsDir, lightDest), lightJson);
@@ -394,6 +405,8 @@ export class ProjectExporter {
         for (const transform of editor.scene!.transformNodes) {
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = transform.serialize();
+                json.parentId = transform.parent?.id;
+
                 const dest = `${normalize(`${filenamify(basename(transform.name))}-${transform.id}`)}.json`;
 
                 await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(transformNodesDir, dest), json);

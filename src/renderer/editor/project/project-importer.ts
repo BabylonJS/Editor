@@ -565,12 +565,17 @@ export class ProjectImporter {
      * Sets the parent of the given node waiting for it.
      */
     private static _SetWaitingParent(n: Node): void {
-        if (!n.metadata?._waitingParentId) { return; }
+        const parentId = n.metadata?._waitingParentId ?? null;
+        if (parentId === null) {
+            return;
+        }
 
-        n.parent = n.getScene().getNodeByID(n.metadata._waitingParentId) ?? n.getScene().getTransformNodeByID(n.metadata._waitingParentId);
+        const scene = n.getScene();
+        n.parent = scene.getNodeById(parentId) ?? scene.getTransformNodeById(parentId);
+
         if (n.parent instanceof Bone && n instanceof TransformNode) {
             const skeleton = n.parent.getSkeleton();
-            const mesh = n.getScene()!.meshes.find((m) => m.skeleton === skeleton);
+            const mesh = scene.meshes.find((m) => m.skeleton === skeleton);
 
             if (mesh) {
                 n.attachToBone(n.parent, mesh);

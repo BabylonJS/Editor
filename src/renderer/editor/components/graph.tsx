@@ -467,7 +467,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                             lod.mesh.doNotSerialize = false;
                             this._editor.scene!.addMesh(lod.mesh);
                         }
-                        node.addLODLevel(lod.distance, lod.mesh);
+                        node.addLODLevel(lod.distanceOrScreenCoverage, lod.mesh);
                     });
                 }
                 if (node instanceof InstancedMesh) { node.sourceMesh.addInstance(node); }

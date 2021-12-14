@@ -66,7 +66,7 @@ export class MeshExporter {
 
         json.lods = [];
         for (const lod of mesh.getLODLevels()) {
-            const lodJson = { distance: lod.distance, mesh: null as any };
+            const lodJson = { distance: lod.distanceOrScreenCoverage, mesh: null as any };
             if (lod.mesh) {
                 lodJson.mesh = SceneSerializer.SerializeMesh(lod.mesh, false, false);
                 lodJson.mesh!.materials = [];

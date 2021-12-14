@@ -532,7 +532,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
             sections.push((
                 <InspectorSection key={`lod-${index}`} title={lod.mesh?.name ?? "Null"}>
                     {this._getLodDragAndDropZone(mesh, lod)}
-                    <InspectorNumber key={`lod-distance-${index}`} object={lod} property="distance" label="Distance" min={0} onChange={() => mesh["_sortLODLevels"]()} />
+                    <InspectorNumber key={`lod-distance-${index}`} object={lod} property="distanceOrScreenCoverage" label="Distance Or Screen Coverage" min={0} onChange={() => mesh["_sortLODLevels"]()} />
                     <InspectorButton key={`lod-remove-${index}`} label="Remove" small onClick={() => {
                         mesh.removeLODLevel(lod.mesh!);
                         lod.mesh?.dispose(true, false);
@@ -630,7 +630,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
     private _handleRemoveMeshFromLodLevel(mesh: Mesh, lodLevel: MeshLODLevel): void {
         mesh.removeLODLevel(lodLevel.mesh!);
         lodLevel.mesh?.dispose(true, false);
-        mesh.addLODLevel(lodLevel.distance, null);
+        mesh.addLODLevel(lodLevel.distanceOrScreenCoverage, null);
 
         mesh["_sortLODLevels"]();
         this.forceUpdate();
@@ -675,7 +675,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
             mesh.removeLODLevel(lodLevel.mesh!);
             lodLevel.mesh?.dispose(true, false);
 
-            mesh.addLODLevel(lodLevel.distance, lodMesh);
+            mesh.addLODLevel(lodLevel.distanceOrScreenCoverage, lodMesh);
             mesh["_sortLODLevels"]();
 
             this.forceUpdate();

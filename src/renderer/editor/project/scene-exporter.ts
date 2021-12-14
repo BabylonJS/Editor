@@ -153,6 +153,8 @@ export class SceneExporter {
 			motionBlur: { enabled: SceneSettings.IsMotionBlurEnabled(), json: SceneSettings.MotionBlurPostProcess?.serialize() },
 		};
 
+		scene.postProcesses = [];
+
 		// Set producer
 		scene.producer = {
 			file: "scene.babylon",
@@ -199,8 +201,8 @@ export class SceneExporter {
 			if (!lods.length) { return; }
 
 			m.lodMeshIds = lods.map((lod) => lod.mesh?.id);
-			m.lodDistances = lods.map((lod) => lod.distance);
-			m.lodCoverages = lods.map((lod) => lod.distance);
+			m.lodDistances = lods.map((lod) => lod.distanceOrScreenCoverage);
+			m.lodCoverages = lods.map((lod) => lod.distanceOrScreenCoverage);
 		});
 
 		// Bones parenting
@@ -270,6 +272,12 @@ export class SceneExporter {
 				delete m.environmentBRDFTexture;
 			}
 		});
+
+		// Ids
+		scene.meshes?.forEach((m) => m.parentId = editor.scene!.getMeshById(m.id)?.parent?.id);
+		scene.lights?.forEach((l) => l.parentId = editor.scene!.getLightById(l.id)?.parent?.id);
+		scene.cameras?.forEach((c) => c.parentId = editor.scene!.getCameraById(c.id)?.parent?.id);
+		scene.transformNodes?.forEach((tn) => tn.parentId = editor.scene!.getTransformNodeById(tn.id)?.parent?.id);
 
 		// Clean
 		optimizer.clean();

@@ -5,7 +5,7 @@ import { ContextMenu, Menu, MenuItem, Classes } from "@blueprintjs/core";
 
 import {
     Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh, Sound,
-    ParticleSystem,
+    ParticleSystem, IMouseEvent,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -119,7 +119,7 @@ export class ScenePicker {
     /**
      * Called on the pointer is down on the canvas.
      */
-    private _onCanvasDown(ev: MouseEvent): void {
+    private _onCanvasDown(ev: IMouseEvent): void {
         this._downMousePosition.set(ev.offsetX, ev.offsetY);
 
         if (!ev.ctrlKey) {
@@ -130,7 +130,7 @@ export class ScenePicker {
     /**
      * Called on the pointer is up on the canvas.
      */
-    private _onCanvasUp(ev: MouseEvent, byPassDistance: boolean = false): void {
+    private _onCanvasUp(ev: IMouseEvent, byPassDistance: boolean = false): void {
         this._editor.scene!.meshes.forEach((m) => {
             if (!m._masterMesh && !m.metadata?.collider) {
                 m.isPickable = true;
@@ -178,7 +178,7 @@ export class ScenePicker {
     /**
      * Called on the pointer is up with right button on the canvas.
      */
-    private _onCanvasContextMenu(ev: MouseEvent, node: Nullable<Node>): void {
+    private _onCanvasContextMenu(ev: IMouseEvent, node: Nullable<Node>): void {
         // Isolated?
         if (this._editor.preview.state.isIsolatedMode) {
             return ContextMenu.show(
@@ -190,10 +190,10 @@ export class ScenePicker {
         }
 
         if (!node) { return; }
-
-        this._editor.graph.setSelected(node, ev.ctrlKey || ev.metaKey);
         
-        GraphContextMenu.Show(ev, this._editor, node);
+        this._editor.graph.setSelected(node, ev.ctrlKey || ev.metaKey);
+
+        GraphContextMenu.Show(ev as MouseEvent, this._editor, node);
     }
 
     /**

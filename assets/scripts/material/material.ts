@@ -1,7 +1,7 @@
 import {
 	Scene, PushMaterial, MaterialDefines, Effect, Tools, Color3, BaseTexture, SerializationHelper,
 	SubMesh, Matrix, AbstractMesh, Mesh, MaterialHelper, MaterialFlags, EffectFallbacks, VertexBuffer, IAnimatable,
-	_TypeStore, IEffectCreationOptions, Nullable, serialize, serializeAsTexture, expandToProperty, serializeAsColor3,
+	RegisterClass, IEffectCreationOptions, Nullable, serialize, serializeAsTexture, expandToProperty, serializeAsColor3,
 } from "@babylonjs/core";
 
 import vertexShaderContent from "./{__shader_name__}.vertex.fx";
@@ -333,7 +333,7 @@ export class /*{__shader_class_name__}*/AMaterial extends PushMaterial {
 /**
  * Register the material in the BabylonJS registered types in order to be parsed.
  */
-_TypeStore.RegisteredTypes["BABYLON./*{__shader_class_name__}*/AMaterial"] = /*{__shader_class_name__}*/AMaterial;
+RegisterClass("BABYLON./*{__shader_class_name__}*/AMaterial", /*{__shader_class_name__}*/AMaterial);
 
 /**
  * Export the class by default.
