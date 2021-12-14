@@ -164,7 +164,7 @@ export class SceneSettings {
     public static GetSSAORenderingPipeline(editor: Editor): SSAO2RenderingPipeline {
         if (this.SSAOPipeline) { return this.SSAOPipeline; }
 
-        const ssao = new SSAO2RenderingPipeline("ssao", editor.scene!, { ssaoRatio: 0.5, blurRatio: 0.5 }, this._SSAOPipelineEnabled ? [editor.scene!.activeCamera!] : [], true);
+        const ssao = new SSAO2RenderingPipeline("ssao", editor.scene!, { ssaoRatio: 0.5, blurRatio: 0.5 }, this._SSAOPipelineEnabled ? [editor.scene!.activeCamera!] : [], false);
         ssao.radius = 3.5;
         ssao.totalStrength = 1.3;
         ssao.expensiveBlur = true;
@@ -200,7 +200,7 @@ export class SceneSettings {
     public static GetDefaultRenderingPipeline(editor: Editor): DefaultRenderingPipeline {
         if (this.DefaultPipeline) { return this.DefaultPipeline; }
 
-        const pipeline = new DefaultRenderingPipeline("default", true, editor.scene!, this._DefaultPipelineEnabled ? [editor.scene!.activeCamera!] : []);
+        const pipeline = new DefaultRenderingPipeline("default", true, editor.scene!, this._DefaultPipelineEnabled ? [editor.scene!.activeCamera!] : [], true);
         // const curve = new ColorCurves();
         // curve.globalHue = 200;
         // curve.globalDensity = 80;
@@ -371,7 +371,7 @@ export class SceneSettings {
     public static GetMotionBlurPostProcess(editor: Editor): MotionBlurPostProcess {
         if (this.MotionBlurPostProcess) { return this.MotionBlurPostProcess; }
 
-        this.MotionBlurPostProcess = new MotionBlurPostProcess("motionBlur", editor.scene!, 1.0, editor.scene!.activeCamera, undefined, undefined, undefined, undefined, undefined, true);
+        this.MotionBlurPostProcess = new MotionBlurPostProcess("motionBlur", editor.scene!, 1.0, editor.scene!.activeCamera, undefined, undefined, undefined, undefined, undefined, false);
         return this.MotionBlurPostProcess;
     }
 
@@ -400,7 +400,7 @@ export class SceneSettings {
     public static GetScreenSpaceReflectionsPostProcess(editor: Editor): ScreenSpaceReflectionPostProcess {
         if (this.ScreenSpaceReflectionsPostProcess) { return this.ScreenSpaceReflectionsPostProcess; }
 
-        this.ScreenSpaceReflectionsPostProcess = new ScreenSpaceReflectionPostProcess("ssr", editor.scene!, 1.0, editor.scene!.activeCamera!, undefined, undefined, undefined, undefined, undefined, true);
+        this.ScreenSpaceReflectionsPostProcess = new ScreenSpaceReflectionPostProcess("ssr", editor.scene!, 1.0, editor.scene!.activeCamera!, undefined, undefined, undefined, undefined, undefined, false);
         return this.ScreenSpaceReflectionsPostProcess;
     }
 

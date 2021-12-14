@@ -317,8 +317,14 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             await this.stopPlayingScene(isPlayingInIframe);
 
             this._editor.console.logSection("Failed to start playing scene");
-            this._editor.console.logError(`An error happened: ${e.message}`);
+            this._editor.console.logError(`An error happened: ${e?.message}`);
 
+            if (e?.stack) {
+                this._editor.console.logError(e.stack);
+            }
+
+            console.error(e);
+            
             throw e;
         }
     }
@@ -566,9 +572,9 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             camera.setTarget(translation);
         }
 
-        if (node instanceof AbstractMesh && node._boundingInfo) {
+        if (node instanceof AbstractMesh && node.getBoundingInfo()) {
             const distance = (mode & PreviewFocusMode.Position) ?
-                Vector3.Distance(node._boundingInfo.minimum.multiply(scaling), node._boundingInfo.maximum.multiply(scaling)) :
+                Vector3.Distance(node.getBoundingInfo().minimum.multiply(scaling), node.getBoundingInfo().maximum.multiply(scaling)) :
                 Vector3.Distance(node.getAbsolutePosition(), camera.globalPosition);
 
             const startFrame = { frame: 0, value: camera.position.clone() };

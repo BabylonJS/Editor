@@ -1,6 +1,6 @@
 import {
 	PBRMaterial, AbstractMesh, SubMesh, PBRMaterialDefines, Effect, Scene, Tools, Matrix,
-	Mesh, _TypeStore, SerializationHelper,
+	Mesh, RegisterClass, SerializationHelper,
 } from "@babylonjs/core";
 
 import { ICustomShaderNameResolveOptions } from "@babylonjs/core/Materials/material";
@@ -123,7 +123,7 @@ export class /*{__shader_class_name__}*/APBRMaterial extends PBRMaterial {
 /**
  * Register the material in the BabylonJS registered types in order to be parsed.
  */
-_TypeStore.RegisteredTypes["BABYLON./*{__shader_class_name__}*/APBRMaterial"] = /*{__shader_class_name__}*/APBRMaterial;
+RegisterClass("BABYLON./*{__shader_class_name__}*/APBRMaterial", /*{__shader_class_name__}*/APBRMaterial);
 
 /**
  * Export the class by default.

@@ -7,13 +7,13 @@ export class FBXUtils {
      * @param eulerOrder defines the order of the euler angles.
      * @returns the reference to the result quaternion.
      */
-    public static GetRotationQuaternion(rotation: Quaternion, eulerOrder: string): Quaternion {
+    public static GetRotationQuaternion(rotation: Quaternion, _: string): Quaternion {
         const r = rotation.toEulerAngles();
 
 		const x = Quaternion.RotationAxis(Vector3.Left(), r.x);
 		const y = Quaternion.RotationAxis(Vector3.Up(), r.y);
 		const z = Quaternion.RotationAxis(Vector3.Forward(), r.z);
-		const q = Quaternion.Inverse(x.multiply(y).multiply(z)).toEulerAngles(eulerOrder).toQuaternion();
+		const q = Quaternion.Inverse(x.multiply(y).multiply(z)).toEulerAngles(/*eulerOrder*/).toQuaternion();
 
         return q;
     }
@@ -24,11 +24,11 @@ export class FBXUtils {
      * @param eulerOrder defines the order of the euler angles.
      * @returns the reference to the result quaternion.
      */
-     public static GetRotationQuaternionFromVector(rotation: Vector3, eulerOrder: string): Quaternion {
+     public static GetRotationQuaternionFromVector(rotation: Vector3, _: string): Quaternion {
 		const x = Quaternion.RotationAxis(Vector3.Left(), rotation.x);
 		const y = Quaternion.RotationAxis(Vector3.Up(), rotation.y);
 		const z = Quaternion.RotationAxis(Vector3.Forward(), rotation.z);
-		const q = Quaternion.Inverse(x.multiply(y).multiply(z)).toEulerAngles(eulerOrder).toQuaternion();
+		const q = Quaternion.Inverse(x.multiply(y).multiply(z)).toEulerAngles(/*eulerOrder*/).toQuaternion();
 
         return q;
     }

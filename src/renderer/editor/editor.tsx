@@ -1136,7 +1136,7 @@ export class Editor {
 
         // Shortcuts
         window.addEventListener("keyup", (ev) => {
-            this.keyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYUP, ev));
+            this.keyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYUP, ev as any));
 
             if (this.preview.canvasFocused) {
                 if (ev.key === "t") { return this.preview.setGizmoType(GizmoType.Position); }
@@ -1174,7 +1174,7 @@ export class Editor {
         });
 
         window.addEventListener("keydown", (ev) => {
-            this.keyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYDOWN, ev));
+            this.keyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYDOWN, ev as any));
 
             if (ev.ctrlKey && SceneSettings.Camera) {
                 for (const i in SceneSettings.Camera.inputs.attached) {

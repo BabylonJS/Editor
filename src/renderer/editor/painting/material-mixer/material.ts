@@ -1,6 +1,6 @@
 import {
     PBRMaterial, DynamicTexture, serializeAsTexture, Nullable,
-    SerializationHelper, Scene, _TypeStore,
+    SerializationHelper, Scene, RegisterClass,
 } from "babylonjs";
 
 /**
@@ -55,4 +55,4 @@ export class MixedMaterial extends PBRMaterial {
     }
 }
 
-_TypeStore.RegisteredTypes["BABYLON.MixedMaterial"] = MixedMaterial;
+RegisterClass("BABYLON.MixedMaterial", MixedMaterial);

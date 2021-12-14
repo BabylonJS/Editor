@@ -27,10 +27,10 @@ export class TextureTools {
             return null;
         }
 
-        const diffuseBuffer = diffuse.readPixels()?.buffer;
+        const diffuseBuffer = (await diffuse.readPixels())?.buffer;
         if (!diffuseBuffer) { return null; }
 
-        const opacityBuffer = opacity.readPixels()?.buffer;
+        const opacityBuffer = (await opacity.readPixels())?.buffer;
         if (!opacityBuffer) { return null; }
 
         const diffusePixels = new Uint8ClampedArray(diffuseBuffer);
@@ -117,8 +117,8 @@ export class TextureTools {
         // Get pixels
         const pixels =
             texture.textureType === Engine.TEXTURETYPE_UNSIGNED_INT ?
-                texture.readPixels() as Uint8Array :
-                texture.readPixels() as Float32Array;
+                await texture.readPixels() as Uint8Array :
+                await texture.readPixels() as Float32Array;
 
         // Get dimensions.
         const dimensions = texture.getBaseSize();

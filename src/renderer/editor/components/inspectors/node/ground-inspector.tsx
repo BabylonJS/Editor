@@ -126,7 +126,7 @@ export class GroundInspector extends AbstractInspector<GroundMesh, IGroundInspec
         });
         if (!texture) { return; }
 
-        const pixels = texture.readPixels();
+        const pixels = await texture.readPixels();
         if (!pixels) { return; }
 
         // Save metadata

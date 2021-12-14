@@ -74,7 +74,7 @@ export default class MeshViewerWindow extends React.Component {
             const maximum = new Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
 
             this._scene.meshes.forEach(d => {
-                const b = d._boundingInfo;
+                const b = d.getBoundingInfo();
                 if (!b) { return; }
                 maximum.x = Math.max(b.maximum.x, maximum.x);
                 maximum.y = Math.max(b.maximum.y, maximum.y);
