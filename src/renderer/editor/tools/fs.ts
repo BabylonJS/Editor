@@ -1,6 +1,7 @@
 import Glob from "glob";
 import rimraf from "rimraf";
 import { mkdir, pathExists } from "fs-extra";
+import directoryTree, { DirectoryTree } from "directory-tree";
 
 export class FSTools {
 	/**
@@ -18,11 +19,12 @@ export class FSTools {
 	/**
 	 * Flattens the list of files available (recursively) in the given directory path.
 	 * @param directoryPath defines the path to the directory to recursively get its files.
+	 * @param ignore defines the array of folders/files to ignore.
 	 * @returns the list of all files located (recursively) in the given directory path.
 	 */
-	public static GetGlobFiles(directoryPath: string): Promise<string[]> {
+	public static GetGlobFiles(directoryPath: string, ignore?: string[]): Promise<string[]> {
 		return new Promise<string[]>((resolve, reject) => {
-			Glob(directoryPath, { }, (err, files) => {
+			Glob(directoryPath, { ignore }, (err, files) => {
 				if (err) {
 					return reject(err);
 				}
@@ -30,6 +32,15 @@ export class FSTools {
 				resolve(files);
 			});
 		});
+	}
+
+	/**
+	 * Returns the tree of all available directories and files in the given directory path.
+	 * @param directoryPath defines the absolute path to the directory to get its tree.
+	 * @returns the tree of all available directories and files in the given directory path.
+	 */
+	public static GetDirectoryTree(directoryPath: string): DirectoryTree {
+		return directoryTree(directoryPath);
 	}
 
 	/**

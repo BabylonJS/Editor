@@ -56,4 +56,7 @@ export { Dialog, IDialogProps } from "./renderer/editor/gui/dialog";
 export { Confirm, IConfirmProps } from "./renderer/editor/gui/confirm";
 export { Icon } from "./renderer/editor/gui/icon";
 
+// Packer
+export { Packer, IPackerOptions, PackerStatus } from "./renderer/editor/project/packer/packer";
+
 import "./renderer/editor/gui/augmentations/index";

@@ -6,8 +6,8 @@ import { Icon, Spinner } from "@blueprintjs/core";
 
 import { Nullable } from "../../../shared/types";
 
-import { PNG } from "pngjs";
-import { Engine } from "babylonjs";
+import { PNG } from "pngjs";
+import { Engine } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -28,6 +28,13 @@ export class KTXTools {
 	 */
 	public static GetSupportedKtxFormat(engine: Engine): Nullable<KTXToolsType> {
 		return engine.texturesSupported[0] as KTXToolsType ?? null;
+	}
+
+	/**
+	 * Returns the list of all support Ktx formats.
+	 */
+	public static GetAllKtxFormats(): KTXToolsType[] {
+		return ["-astc.ktx", "-dxt.ktx", "-pvrtc.ktx", "-etc1.ktx", "-etc2.ktx"];
 	}
 
 	/**

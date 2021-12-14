@@ -321,12 +321,19 @@ export class SceneExporter {
 		}
 
 		// Copy assets files
-		const assetsTree = directoryTree(editor.assetsBrowser.assetsDirectory);
+		let assetsTree = directoryTree(editor.assetsBrowser.assetsDirectory);
 		await this._RecursivelyWriteAssets(editor, assetsTree, editor.assetsBrowser.assetsDirectory, assetsPath, options);
 
 		// Handle node material textures
 		editor.updateTaskFeedback(task, 70, "Generating Node Material textures...");
 		await MaterialTools.ExportSerializedNodeMaterialsTextures(editor, scene.materials, editor.assetsBrowser.assetsDirectory, assetsPath);
+
+		// Second write assets pass for generated textures
+		assetsTree = directoryTree(editor.assetsBrowser.assetsDirectory);
+		await this._RecursivelyWriteAssets(editor, assetsTree, editor.assetsBrowser.assetsDirectory, assetsPath, {
+			...options,
+			forceRegenerateFiles: false,
+		});
 
 		// Write scene
 		editor.updateTaskFeedback(task, 50, "Writing scene...");
@@ -380,7 +387,7 @@ export class SceneExporter {
 			}
 			*/
 			
-			if (!(await pathExists(path))) {
+			if (options?.forceRegenerateFiles || !(await pathExists(path))) {
 				promises.push(copyFile(child.path, path));
 				editor.console.logInfo(`Copied asset file at: ${path}`);
 			}
@@ -404,15 +411,19 @@ export class SceneExporter {
 				const destFilesDir = dirname(path);
 	
 				if (options?.generateAllCompressedTextureFormats) {
-					promises.push(new Promise<void>(async (resolve) => {
-						await Promise.all([
-							KTXTools.CompressTexture(editor, path, destFilesDir, "-astc.ktx"),
-							KTXTools.CompressTexture(editor, path, destFilesDir, "-dxt.ktx"),
-							KTXTools.CompressTexture(editor, path, destFilesDir, "-pvrtc.ktx"),
-							KTXTools.CompressTexture(editor, path, destFilesDir, "-etc1.ktx"),
-							KTXTools.CompressTexture(editor, path, destFilesDir, "-etc2.ktx"),
-						]);
+					const allKtxPromises: Promise<void>[] = [];
 
+					for (const type of KTXTools.GetAllKtxFormats()) {
+						const ktxFilename = KTXTools.GetKtxFileName(path, type);
+						if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
+							continue;
+						}
+
+						allKtxPromises.push(KTXTools.CompressTexture(editor, path, destFilesDir, type));
+					}
+
+					promises.push(new Promise<void>(async (resolve) => {
+						await Promise.all(allKtxPromises);
 						resolve();
 					}));
 				} else {
