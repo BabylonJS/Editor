@@ -36,6 +36,11 @@ export interface IEditorProcess {
 	onDataListener?: IDisposable;
 
 	/**
+	 * Defines wether or not the process has been killed.
+	 */
+	killed: boolean;
+
+	/**
 	 * Defines the function that waits until the process has finished.
 	 * This detaches the process from the list of available processes once finished.
 	 */
@@ -135,11 +140,15 @@ export class EditorProcess {
 			options,
 			terminal,
 			onDataListener,
-			kill: () => this.RemoveProcessById(id),
+			killed: false,
+			kill: () => {
+				result.killed = true;
+				this.RemoveProcessById(id);
+			},
 			wait: () => {
 				return new Promise<void>((resolve, reject) => {
 					program.onExit((e) => {
-						e?.exitCode === 0 ? resolve() : reject();
+						e?.exitCode === 0 && !result.killed ? resolve() : reject();
 						resizeListener.dispose();
 						this.RemoveProcessById(id);
 					});

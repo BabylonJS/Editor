@@ -6,6 +6,12 @@ import { ContextMenu, Menu, MenuDivider, MenuItem, Tag, Icon as BPIcon } from "@
 
 import { Texture } from "babylonjs";
 
+import { Icon } from "../../../../gui/icon";
+
+import { WorkSpace } from "../../../../project/workspace";
+
+import { KTXTools, KTXToolsType } from "../../../../tools/ktx";
+
 import { AssetsBrowserItemHandler } from "../item-handler";
 
 export class ImageItemHandler extends AssetsBrowserItemHandler {
@@ -66,17 +72,53 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		const ktxMenus: React.ReactNode[] = [<MenuDivider />];
+		if (WorkSpace.Workspace?.ktx2CompressedTextures?.enabled) {
+			ktxMenus.push.apply(ktxMenus, [
+				<MenuItem text="KTX Texture" icon={<Icon src="../images/ktx.png" style={{ filter: "none" }} />}>
+					<MenuItem text="Refresh KTX Texture" onClick={() => this._handleRefreshKtx(false)} />
+					<MenuItem text="Refresh All KTX Texture" onClick={() => this._handleRefreshKtx(true)} />
+				</MenuItem>,
+				<MenuDivider />,
+			]);
+		}
+
 		ContextMenu.show((
 			<Menu>
 				<MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.relativePath, "clipboard")} />
 				<MenuItem text="Copy Absolute Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.absolutePath, "clipboard")} />
-				<MenuDivider />
+				{ktxMenus}
 				{this.getCommonContextMenuItems()}
 			</Menu>
 		), {
 			top: ev.clientY,
 			left: ev.clientX,
 		});
+	}
+
+	/**
+	 * Called on the user wants to refresh the KTX texture(s).
+	 */
+	private async _handleRefreshKtx(allFormats: boolean): Promise<void> {
+		const destination = dirname(this.props.absolutePath);
+
+		if (!allFormats) {
+			const forcedFormat = WorkSpace.Workspace?.ktx2CompressedTextures?.forcedFormat ?? "automatic";
+			const supportedTextureFormat = (forcedFormat !== "automatic" ? forcedFormat : this.props.editor.engine!.texturesSupported[0]) as KTXToolsType;
+
+			await KTXTools.CompressTexture(this.props.editor, this.props.absolutePath, destination, supportedTextureFormat);
+		} else {
+			// Regenerate all supported formats
+			const allKtxPromises: Promise<void>[] = [];
+	
+			for (const type of KTXTools.GetAllKtxFormats()) {
+				allKtxPromises.push(KTXTools.CompressTexture(this.props.editor, this.props.absolutePath, destination, type));
+			}
+	
+			await Promise.all(allKtxPromises);
+		}
+
+		return this.props.editor.assetsBrowser.refresh();
 	}
 
 	/**

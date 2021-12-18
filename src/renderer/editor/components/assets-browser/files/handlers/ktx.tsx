@@ -1,4 +1,5 @@
 import * as React from "react";
+import { ContextMenu, Menu } from "@blueprintjs/core";
 
 import { Icon } from "../../../../gui/icon";
 
@@ -20,5 +21,20 @@ export class KTXItemHandler extends AssetsBrowserItemHandler {
 				}}
 			/>
 		);
+	}
+
+	/**
+	 * Called on the user right clicks on the item.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		ContextMenu.show((
+			<Menu>
+				{this.getCommonContextMenuItems()}
+			</Menu>
+		), {
+			top: ev.clientY,
+			left: ev.clientX,
+		});
 	}
 }

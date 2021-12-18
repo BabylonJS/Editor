@@ -1,4 +1,4 @@
-import { createReadStream } from "fs";
+import { shell } from "electron";
 import { basename, dirname, extname, join } from "path";
 
 import * as React from "react";
@@ -6,14 +6,18 @@ import { Icon, Spinner } from "@blueprintjs/core";
 
 import { Nullable } from "../../../shared/types";
 
-import { PNG } from "pngjs";
 import { Engine } from "babylonjs";
 
 import { Editor } from "../editor";
 
 import { WorkSpace } from "../project/workspace";
 
-import { EditorProcess } from "./process";
+import { Workers } from "../workers/workers";
+import AssetsWorker from "../workers/workers/assets";
+
+import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
+
+import { EditorProcess, IEditorProcess } from "./process";
 
 /**
  * Defines the possibile types of texture to be compressed.
@@ -82,6 +86,8 @@ export class KTXTools {
 			return;
 		}
 
+		let editorProcess: Nullable<IEditorProcess> = null;
+
 		const filename = `${name.substr(0, name.lastIndexOf("."))}${type}`;
 		const destination = join(destinationFolder, filename);
 
@@ -91,13 +97,15 @@ export class KTXTools {
 				<div style={{ float: "left" }}>
 					<Spinner size={16} />
 				</div>
-				<a style={{ color: "grey" }}>Compressing texture ${name} ${type}</a>
+				<Icon icon="stop" intent="danger" onClick={() => editorProcess?.kill()} />
+				<span>Compressing texture </span>
+				<a style={{ color: "grey" }}>{name} {type}</a>
 			</p>
 		);
-		
+
 		let hasAlpha = type !== "-etc1.ktx" && extension === ".png";
 		if (hasAlpha) {
-			hasAlpha = await this._PNGHasAlpha(texturePath);
+			hasAlpha = await Workers.ExecuteFunction<AssetsWorker, "textureHasAlpha">(AssetsBrowserItemHandler.AssetWorker, "textureHasAlpha", texturePath);
 		}
 
 		const exePath = ktx2CompressedTextures.pvrTexToolCliPath;
@@ -133,44 +141,31 @@ export class KTXTools {
 			return log.setBody(
 				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
 					<Icon icon="endorsed" intent="none" />
-					<a style={{ color: "grey" }}>KTX texture ignored (no command found): {texturePath}</a>
+					<span>KTX texture ignored (no command found): </span>
+					<a style={{ color: "grey" }} onClick={() => shell.showItemInFolder(texturePath)}>{texturePath}</a>
 				</p>
 			);
 		}
 
 		try {
-			await EditorProcess.ExecuteCommand(command)?.wait();
+			editorProcess = EditorProcess.ExecuteCommand(command);
+			await editorProcess?.wait();
+
 			log.setBody(
 				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
 					<Icon icon="endorsed" intent="success" />
-					<a style={{ color: "grey" }}>KTX texture available at {destination}</a>
+					<span>KTX texture available at </span>
+					<a style={{ color: "grey" }}>{destination}</a>
 				</p>
 			);
 		} catch (e) {
 			log.setBody(
 				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
 					<Icon icon="endorsed" intent="warning" />
-					<a style={{ color: "yellow" }}>Failed to compress texture at {texturePath}</a>
+					<span style={{ color: "yellow" }}>Failed to compress texture at </span>
+					<a style={{ color: "grey" }} onClick={() => shell.showItemInFolder(dirname(texturePath))}>{texturePath}</a>
 				</p>
 			);
 		}
-	}
-
-	/**
-	 * Returns wether or not the given png texture has alpha.
-	 */
-	private static _PNGHasAlpha(texturePath: string): Promise<boolean> {
-		return new Promise<boolean>((resolve, reject) => {
-			const stream = createReadStream(texturePath);
-			stream.pipe(new PNG())
-				.on("metadata", (m) => {
-					resolve(m.alpha === true);
-					stream.close();
-				})
-				.on("error", (err) => {
-					reject(err);
-					stream.close();
-				});
-		});
 	}
 }
