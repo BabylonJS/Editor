@@ -1,7 +1,7 @@
 import "../../../module";
 
-import { readJSON } from "fs-extra";
 import { basename, dirname, join } from "path";
+import { createReadStream, readJSON } from "fs-extra";
 
 import { IStringDictionary, Nullable } from "../../../../shared/types";
 
@@ -38,12 +38,12 @@ export default class AssetsWorker {
 	 */
 	public constructor(canvas: HTMLCanvasElement) {
 		this._engine = new Engine(canvas, true, {
-            stencil: true,
+			stencil: true,
 			antialias: true,
 			audioEngine: false,
-            preserveDrawingBuffer: true,
-            disableWebGL2Support: false,
-            useHighPrecisionFloats: true,
+			preserveDrawingBuffer: true,
+			disableWebGL2Support: false,
+			useHighPrecisionFloats: true,
 			powerPreference: "high-performance",
 			failIfMajorPerformanceCaveat: false,
 		});
@@ -224,6 +224,26 @@ export default class AssetsWorker {
 		this._cachedPreviews[relativePath] = result;
 
 		return result;
+	}
+
+	/**
+	 * Checks wether or not the given texture has alpha channel and distinct alpha values.
+	 * @param texturePath defines the absolute path to the texture to check.
+	 */
+	public textureHasAlpha(texturePath: string): Promise<boolean> {
+		const { PNG } = require("pngjs");
+		return new Promise<boolean>((resolve, reject) => {
+			const stream = createReadStream(texturePath);
+			stream.pipe(new PNG())
+				.on("metadata", (m) => {
+					resolve(m.alpha === true);
+					stream.close();
+				})
+				.on("error", (err) => {
+					reject(err);
+					stream.close();
+				});
+		});
 	}
 
 	/**
