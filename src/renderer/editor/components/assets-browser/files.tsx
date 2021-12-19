@@ -653,7 +653,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Called on the user wants to add a new material asset from source code.
 	 */
 	private async _handleAddMaterialFromSourceCode(): Promise<void> {
-		const path = await Tools.ShowOpenFileDialog("Material Source Code", this._sourcesDirectory);
+		let path = join(await Tools.ShowOpenFileDialog("Material Source Code", this._sourcesDirectory));
+		
 		if (path.indexOf(this._sourcesDirectory) !== 0) {
 			return Alert.Show("Failed To Create Material", `Selected source code is not part of the current workspace.\n${path}`);
 		}
