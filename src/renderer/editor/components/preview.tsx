@@ -27,6 +27,17 @@ import { SceneExporter } from "../project/scene-exporter";
 
 import { ScenePlayer } from "../../play/inline-play";
 
+export enum PreviewFocusMode {
+    Target = 1,
+    Position = 1 << 1,
+    Bottom = 1 << 2,
+    Top = 1 << 3,
+    Left = 1 << 4,
+    Right = 1 << 5,
+    Front = 1 << 6,
+    Back = 1 << 7,
+}
+
 export interface IPreviewProps {
     /**
      * The editor reference.
@@ -386,7 +397,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             }
 
             this._editor.inspector.setSelectedObject(object);
-            this._focusNode(object, false, camera);
+            this._focusNode(object, PreviewFocusMode.Position | PreviewFocusMode.Target, camera);
             this.setState({ isIsolatedMode: true });
         }
     }
@@ -450,19 +461,19 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
     /**
      * Focuses the currently selected node.
-     * @param onlyCameraTarget defines wether or not only camera's target should focus (no position animation).
+     * @param mode defines the focus mode (animate target, position, etc.).
      */
-    public focusSelectedNode(onlyCameraTarget: boolean): void {
-        this._focusNode(this._editor.graph.lastSelectedObject, onlyCameraTarget);
+    public focusSelectedNode(mode: PreviewFocusMode): void {
+        this._focusNode(this._editor.graph.lastSelectedObject, mode);
     }
 
     /**
      * Focuses the given node.
      * @param node defines the reference to the node to focus.
-     * @param onlyCameraTarget defines wether or not only camera's target should focus (no position animation).
+     * @param mode defines the focus mode (animate target, position, etc.).
      */
-    public focusNode(node: Node | IParticleSystem | Sound, onlyCameraTarget: boolean): void {
-        this._focusNode(node, onlyCameraTarget);
+    public focusNode(node: Node | IParticleSystem | Sound, mode: PreviewFocusMode): void {
+        this._focusNode(node, mode);
     }
 
     /**
@@ -594,7 +605,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     /**
      * Focuses on the given node.
      */
-    private _focusNode(node: Nullable<Node | IParticleSystem | Sound>, onlyCameraTarget: boolean, camera?: Nullable<Camera>): void {
+    private _focusNode(node: Nullable<Node | IParticleSystem | Sound>, mode: PreviewFocusMode, camera?: Nullable<Camera>): void {
         if (!node) { return; }
 
         if (node instanceof ParticleSystem) { node = node.emitter as AbstractMesh; }
@@ -629,14 +640,31 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             camera.setTarget(translation);
         }
 
-        if (!onlyCameraTarget && node instanceof AbstractMesh && node._boundingInfo) {
-            const distance = Vector3.Distance(
-                node._boundingInfo.minimum.multiply(scaling),
-                node._boundingInfo.maximum.multiply(scaling),
-            );
+        if (node instanceof AbstractMesh && node._boundingInfo) {
+            const distance = (mode & PreviewFocusMode.Position) ?
+                Vector3.Distance(node._boundingInfo.minimum.multiply(scaling), node._boundingInfo.maximum.multiply(scaling)) :
+                Vector3.Distance(node.getAbsolutePosition(), camera.globalPosition);
 
+            const startFrame = { frame: 0, value: camera.position.clone() };
             const a = new Animation("FocusPositionAnimation", "position", 60, Animation.ANIMATIONTYPE_VECTOR3);
-            a.setKeys([{ frame: 0, value: camera.position.clone() }, { frame: 60, value: translation.add(new Vector3(distance, distance, distance)) }]);
+
+            if (mode & PreviewFocusMode.Position) {
+                a.setKeys([startFrame, { frame: 60, value: translation.add(new Vector3(distance, distance, distance)) }]);
+            } else if (mode & PreviewFocusMode.Bottom) {
+                a.setKeys([startFrame, { frame: 60, value: translation.add(new Vector3(0, -distance, 0)) }]);
+            } else if (mode & PreviewFocusMode.Top) {
+                a.setKeys([startFrame, { frame: 60, value: translation.add(new Vector3(0, distance, 0)) }]);
+            } else if (mode & PreviewFocusMode.Left) {
+                a.setKeys([startFrame, { frame: 60, value: translation.add(new Vector3(-distance, 0, 0)) }]);
+            } else if (mode & PreviewFocusMode.Right) {
+                a.setKeys([startFrame, { frame: 60, value: translation.add(new Vector3(distance, 0, 0)) }]);
+            } else if (mode & PreviewFocusMode.Back) {
+                a.setKeys([startFrame, { frame: 60, value: translation.add(new Vector3(0, 0, distance)) }]);
+            } else if (mode & PreviewFocusMode.Front) {
+                a.setKeys([startFrame, { frame: 60, value: translation.add(new Vector3(0, 0, -distance)) }]);
+            } else {
+                return;
+            }
 
             this._editor.scene!.beginDirectAnimation(camera, [a], 0, 60, false, 3);
         }

@@ -56,3 +56,10 @@ Welcome to the documentation of the Babylon.JS Editor. A series of tutorials are
 * `suppr.`: remove the selected node
 * `Ctrl+c` or `Command+c`: copy the selected node
 * `Ctrl+v` or `Command+v`: past previously copied node. In case of a mesh, a new instance will be created instead of a real clone of the mesh.
+
+* `Ctrl+0`: focus the selected node and go to the `bottom` of the node
+* `Ctrl+5`: focus the selected node and go to the `top` of the node
+* `Ctrl+4`: focus the selected node and go to the `left` of the node
+* `Ctrl+6`: focus the selected node and go to the `right` of the node
+* `Ctrl+8`: focus the selected node and go to the `back` of the node
+* `Ctrl+2`: focus the selected node and go to the `front` of the node

@@ -35,6 +35,8 @@ import { NewProjectWizard } from "../project/welcome/new-project";
 import { ProjectRenamer } from "../project/rename";
 import { PackerDialog } from "../project/packer/dialog";
 
+import { PreviewFocusMode } from "./preview";
+
 import { PhotoshopExtension } from "../extensions/photoshop";
 
 import { IPluginToolbar } from "../plugins/toolbar";
@@ -142,8 +144,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Statistics" icon={<Icon src="stats.svg" />} onClick={() => this._menuItemClicked("view:stats")} />
                 <MenuDivider />
-                <MenuItem text={<div>Focus Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(true)} />
-                <MenuItem text={<div>Go To Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(false)} />
+                <MenuItem text={<div>Focus Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target)} />
+                <MenuItem text={<div>Go To Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Position)} />
                 <MenuDivider />
                 <MenuItem text="Webpack Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:webpack-logs")} />
                 <MenuItem text="TypeScript Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:typescript-logs")} />

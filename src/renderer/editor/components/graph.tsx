@@ -27,6 +27,8 @@ import { Prefab } from "../prefab/prefab";
 import { SceneSettings } from "../scene/settings";
 import { SceneTools } from "../scene/tools";
 
+import { PreviewFocusMode } from "./preview";
+
 import { SoundAssets } from "../assets/sounds";
 import { IDragAndDroppedAssetComponentItem } from "../assets/abstract-assets";
 
@@ -899,7 +901,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 <MenuDivider />
                 <MenuItem text="Clone" disabled={node instanceof Sound || node instanceof ParticleSystem} icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneObject()} />
                 <MenuDivider />
-                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, false)} />
+                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Position)} />
                 <MenuDivider />
                 {copyPasteTransform}
                 <MenuItem text="Prefab">
