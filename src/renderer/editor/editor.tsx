@@ -56,7 +56,7 @@ import { Inspector } from "./components/inspector";
 import { Graph } from "./components/graph";
 import { Assets } from "./components/assets";
 import { AssetsBrowser } from "./components/assets-browser";
-import { Preview } from "./components/preview";
+import { Preview, PreviewFocusMode } from "./components/preview";
 import { MainToolbar } from "./components/main-toolbar";
 import { ToolsToolbar } from "./components/tools-toolbar";
 import { Console } from "./components/console";
@@ -1128,14 +1128,24 @@ export class Editor {
                 if (ev.key === "t") { return this.preview.setGizmoType(GizmoType.Position); }
                 if (ev.key === "r") { return this.preview.setGizmoType(GizmoType.Rotation); }
                 if (ev.key === "w") { return this.preview.setGizmoType(GizmoType.Scaling); }
-                if (ev.key === "f") { return this.preview.focusSelectedNode(true); }
-                if (ev.key === "F") { return this.preview.focusSelectedNode(false); }
+                if (ev.key === "f") { return this.preview.focusSelectedNode(PreviewFocusMode.Target); }
+                if (ev.key === "F") { return this.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Position); }
                 if (ev.key === "i") { return this.preview.toggleIsolatedMode(); }
 
-                if (ev.keyCode === 46) { return this.preview.removeSelectedNode(); }
+                if (ev.key === "Delete") { return this.preview.removeSelectedNode(); }
 
-                if (ev.keyCode === 27) {
+                if (ev.key === "Escape") {
                     if (this.preview.state.isIsolatedMode) { return this.preview.toggleIsolatedMode(); }
+                }
+
+                // Zoom
+                if (ev.ctrlKey) {
+                    if (ev.key === "0") { return this.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Bottom); }
+                    if (ev.key === "5") { return this.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Top); }
+                    if (ev.key === "4") { return this.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Left); }
+                    if (ev.key === "6") { return this.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Right); }
+                    if (ev.key === "8") { return this.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Back); }
+                    if (ev.key === "2") { return this.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Front); }
                 }
             }
 

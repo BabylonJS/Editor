@@ -15,6 +15,8 @@ import { Editor } from "../editor";
 import { SceneIcons } from "./icons";
 import { SceneSettings } from "./settings";
 
+import { PreviewFocusMode } from "../components/preview";
+
 import { Tools } from "../tools/tools";
 
 export class ScenePicker {
@@ -230,7 +232,7 @@ export class ScenePicker {
                     this._editor.graph.refresh();
                 }} />
                 {isolatedMode}
-                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, false)} />
+                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Position)} />
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => {
                     this._editor.graph.removeObject(node!);

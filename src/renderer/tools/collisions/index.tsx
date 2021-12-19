@@ -11,6 +11,8 @@ import { InspectorList } from "../../editor/gui/inspector/fields/list";
 import { InspectorButton } from "../../editor/gui/inspector/fields/button";
 import { InspectorSection } from "../../editor/gui/inspector/fields/section";
 
+import { PreviewFocusMode } from "../../editor/components/preview";
+
 import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plugin";
 
 import { ColliderCreator } from "./creator";
@@ -79,7 +81,7 @@ export default class CollisionsTool extends AbstractEditorPlugin<ICollisionsTool
                 onMouseEnter={() => this._handleMouseEnter()}
             >
                 <InspectorSection title="Collider">
-                    <Tag fill interactive onClick={() => this.editor.preview.focusNode(this.state.sourceMesh, true)}>Mesh: {this.state.sourceMesh.name}</Tag>
+                    <Tag fill interactive onClick={() => this.editor.preview.focusNode(this.state.sourceMesh, PreviewFocusMode.Target)}>Mesh: {this.state.sourceMesh.name}</Tag>
                     <InspectorList object={this.state} property="colliderType" label="Type" noUndoRedo items={[
                         { label: "None", data: "None" },
                         { label: "Self", data: "Self" },

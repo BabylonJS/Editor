@@ -30,6 +30,8 @@ import { WorkSpace } from "../project/workspace";
 import { SceneExporter } from "../project/scene-exporter";
 
 import { Assets } from "../components/assets";
+import { PreviewFocusMode } from "../components/preview";
+
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
 
 import { Workers } from "../workers/workers";
@@ -277,7 +279,7 @@ export class MaterialAssets extends AbstractAssets {
                 <ul>
                     {binded.map((b) => <li key={`${b.id}-li`}><Tag interactive={true} fill={true} key={`${b.id}-tag`} intent={Intent.PRIMARY} onClick={() => {
                         this.editor.selectedNodeObservable.notifyObservers(b);
-                        this.editor.preview.focusSelectedNode(false);
+                        this.editor.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Position);
                     }}>{b.name}</Tag></li>)}
                 </ul>
             </>

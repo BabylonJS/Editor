@@ -20,6 +20,8 @@ import { Dialog } from "../gui/dialog";
 import { Tools } from "../tools/tools";
 
 import { Assets } from "../components/assets";
+import { PreviewFocusMode } from "../components/preview";
+
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
 
 export class ScriptAssets extends AbstractAssets {
@@ -305,7 +307,7 @@ export class ScriptAssets extends AbstractAssets {
                 <ul>
                     {attached.map((b) => <li key={`${b.id}-li`}><Tag interactive={true} key={`${b.id}-tag`} fill={true} intent={Intent.PRIMARY} onClick={() => {
                         this.editor.selectedNodeObservable.notifyObservers(b);
-                        this.editor.preview.focusSelectedNode(false);
+                        this.editor.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Position);
                     }}>{b.name}</Tag></li>)}
                 </ul>
                 <Divider />
