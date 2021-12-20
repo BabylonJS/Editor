@@ -451,7 +451,7 @@ export class SceneExporter {
 	 */
 	public static async GenerateScripts(editor: Editor): Promise<void> {
 		// Copy tools
-		editor.console.logInfo("Copyging tools...");
+		editor.console.logInfo("Copying tools...");
 
 		const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
 		await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "decorators.ts"), decorators, { encoding: "utf-8" });
