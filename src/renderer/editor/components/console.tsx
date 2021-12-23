@@ -145,6 +145,13 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     }
 
     /**
+     * Creates an empty log of type "Info" and returns its reference.
+     */
+    public createLog(): Promise<ConsoleLog> {
+        return this._addLog({ type: ConsoleLogType.Info, message: "" });
+    }
+
+    /**
      * Logs the given custom react component.
      * @param log defines the reference to the custom react component instance.
      */
@@ -169,7 +176,7 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
                 this.state.logs.push(
                     <>
                         <hr />
-                            <ConsoleLog ref={(r) => r && resolve(r)} message={log.message} type={log.type} />
+                        <ConsoleLog ref={(r) => r && resolve(r)} message={log.message} type={log.type} />
                         <hr />
                     </>
                 );
