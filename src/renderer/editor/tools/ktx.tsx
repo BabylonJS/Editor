@@ -91,16 +91,16 @@ export class KTXTools {
 		const filename = `${name.substr(0, name.lastIndexOf("."))}${type}`;
 		const destination = join(destinationFolder, filename);
 
-		const log = await editor.console.logInfo("Compressing texture");
+		const log = await editor.console.createLog();
 		log.setBody(
-			<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+			<div style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
 				<div style={{ float: "left" }}>
 					<Spinner size={16} />
 				</div>
 				<Icon icon="stop" intent="danger" onClick={() => editorProcess?.kill()} />
 				<span>Compressing texture </span>
 				<a style={{ color: "grey" }}>{name} {type}</a>
-			</p>
+			</div>
 		);
 
 		let hasAlpha = type !== "-etc1.ktx" && extension === ".png";
@@ -152,19 +152,19 @@ export class KTXTools {
 			await editorProcess?.wait();
 
 			log.setBody(
-				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+				<div style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
 					<Icon icon="endorsed" intent="success" />
 					<span>KTX texture available at </span>
 					<a style={{ color: "grey" }}>{destination}</a>
-				</p>
+				</div>
 			);
 		} catch (e) {
 			log.setBody(
-				<p style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+				<div style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
 					<Icon icon="endorsed" intent="warning" />
 					<span style={{ color: "yellow" }}>Failed to compress texture at </span>
 					<a style={{ color: "grey" }} onClick={() => shell.showItemInFolder(dirname(texturePath))}>{texturePath}</a>
-				</p>
+				</div>
 			);
 		}
 	}
