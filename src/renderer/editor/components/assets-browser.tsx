@@ -7,7 +7,7 @@ import { basename, dirname, extname, isAbsolute, join } from "path";
 import { IStringDictionary, Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Pre } from "@blueprintjs/core";
+import { Pre } from "@blueprintjs/core";
 import SplitPane from "react-split-pane";
 
 import { Editor } from "../editor";

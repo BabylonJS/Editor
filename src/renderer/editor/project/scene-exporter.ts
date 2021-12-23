@@ -234,11 +234,11 @@ export class SceneExporter {
 		});
 
 		// PBR materials
-        scene.materials?.forEach((m) => {
-            if (m.customType === "BABYLON.PBRMaterial" && m.environmentBRDFTexture) {
-                delete m.environmentBRDFTexture;
-            }
-        });
+		scene.materials?.forEach((m) => {
+			if (m.customType === "BABYLON.PBRMaterial" && m.environmentBRDFTexture) {
+				delete m.environmentBRDFTexture;
+			}
+		});
 
 		// Clean
 		optimizer.clean();
@@ -342,6 +342,7 @@ export class SceneExporter {
 		// Tools
 		await this.GenerateScripts(editor);
 		await this.CopyShaderFiles(editor);
+		await this.GenerateProjectConfiguration(editor);
 
 		editor.updateTaskFeedback(task, 100);
 		editor.closeTaskFeedback(task, 1000);
@@ -364,7 +365,7 @@ export class SceneExporter {
 			const path = directoryTree.path.replace(assetsPath, outputPath);
 			await FSTools.CreateDirectory(path);
 		}
-		
+
 		const promises: Promise<void>[] = [];
 		const ktxPromises: Promise<void>[] = [];
 
@@ -374,19 +375,19 @@ export class SceneExporter {
 			}
 
 			const path = child.path.replace(assetsPath, outputPath);
-			
+
 			const extension = extname(child.name).toLowerCase();
 			if (this.CopyAbleAssetsTypes.indexOf(extension) === -1) {
 				continue;
 			}
-	
+
 			/*
 			const isUsed = await editor.assetsBrowser.isAssetUsed(child.path);
 			if (!isUsed) {
 				continue;
 			}
 			*/
-			
+
 			if (options?.forceRegenerateFiles || !(await pathExists(path))) {
 				promises.push(copyFile(child.path, path));
 				editor.console.logInfo(`Copied asset file at: ${path}`);
@@ -396,12 +397,12 @@ export class SceneExporter {
 			if (this.CopyAbleImageTypes.indexOf(extension) === -1) {
 				continue;
 			}
-	
+
 			const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures;
-	
+
 			const forcedFormat = ktx2CompressedTextures?.forcedFormat ?? "automatic";
 			const supportedTextureFormat = (forcedFormat !== "automatic" ? forcedFormat : editor.engine!.texturesSupported[0]) as KTXToolsType;
-	
+
 			if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.pvrTexToolCliPath) {
 				if (ktxPromises.length > 3) {
 					await Promise.all(ktxPromises);
@@ -409,7 +410,7 @@ export class SceneExporter {
 				}
 
 				const destFilesDir = dirname(path);
-	
+
 				if (options?.generateAllCompressedTextureFormats) {
 					const allKtxPromises: Promise<void>[] = [];
 
@@ -431,7 +432,7 @@ export class SceneExporter {
 					if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
 						continue;
 					}
-	
+
 					promises.push(KTXTools.CompressTexture(editor, child.path, destFilesDir, supportedTextureFormat));
 				}
 			}
@@ -471,6 +472,7 @@ export class SceneExporter {
 		await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "scripts-map.ts"), newScriptsMap, { encoding: "utf-8" });
 
 		// Export scene content
+		/*
 		editor.console.logInfo("Configuring scene entry point...");
 		const scriptsContent = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "scene", "index.ts"), { encoding: "utf-8" });
 
@@ -479,6 +481,7 @@ export class SceneExporter {
 		await FSTools.CreateDirectory(indexPath);
 
 		await writeFile(join(indexPath, "index.ts"), scriptsContent, { encoding: "utf-8" });
+		*/
 	}
 
 	/**
@@ -497,10 +500,10 @@ export class SceneExporter {
 		}
 
 		const files = await FSTools.GetGlobFiles(join(WorkSpace.DirPath!, "src", "**", "*.fx"));
-		
+
 		await Promise.all(files.map(async (f) => {
 			const dest = f.replace(join(WorkSpace.DirPath!, "/"), join(WorkSpace.DirPath!, "build", "/"));
-			
+
 			if (!(await pathExists(dirname(dest)))) {
 				return;
 			}
@@ -508,6 +511,41 @@ export class SceneExporter {
 			await copyFile(f, dest);
 			editor.console.logInfo(`Copied shader file "${f}" to "${dest}"`);
 		}));
+	}
+
+	/**
+	 * Copies the current project configuration as a Json file.
+	 * @param editor defines the editor reference.
+	 */
+	public static async GenerateProjectConfiguration(editor: Editor): Promise<void> {
+		if (!WorkSpace.Workspace) {
+			return;
+		}
+
+		editor.console.logInfo("Copying configuration...");
+
+		const projectConfiguration = {
+			compressedTextures: {
+				supportedFormats: [] as string[],
+			},
+		};
+
+		// Compressed Textures
+		if (WorkSpace.Workspace?.ktx2CompressedTextures?.enabled) {
+			projectConfiguration.compressedTextures.supportedFormats.push("-dxt.ktx");
+			projectConfiguration.compressedTextures.supportedFormats.push("-astc.ktx");
+			projectConfiguration.compressedTextures.supportedFormats.push("-pvrtc.ktx");
+
+			if (WorkSpace.Workspace.ktx2CompressedTextures.ect1Options?.enabled) {
+				projectConfiguration.compressedTextures.supportedFormats.push("-etc1.ktx");
+			}
+
+			if (WorkSpace.Workspace.ktx2CompressedTextures.ect2Options?.enabled) {
+				projectConfiguration.compressedTextures.supportedFormats.push("-etc2.ktx");
+			}
+		}
+
+		await writeJSON(join(WorkSpace.DirPath!, "src", "scenes", "configuration.json"), projectConfiguration, { encoding: "utf-8" });
 	}
 
 	/**
@@ -521,13 +559,15 @@ export class SceneExporter {
 			await FSTools.RemoveDirectory(destGraphs);
 		}
 
-		await FSTools.CreateDirectory(destGraphs);
-
 		const graphs = await FSTools.GetGlobFiles(join(editor.assetsBrowser.assetsDirectory, "**", "*.graph"));
 		if (graphs?.length) {
 			GraphCode.Init();
 			await GraphCodeGenerator.Init();
+		} else {
+			return;
 		}
+
+		await FSTools.CreateDirectory(destGraphs);
 
 		for (const g of graphs ?? []) {
 			const name = g.replace(join(editor.assetsBrowser.assetsDirectory, "/"), "").replace(/\//g, "_");
