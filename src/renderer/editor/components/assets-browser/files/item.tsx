@@ -16,6 +16,7 @@ import { FileItemHandler } from "./handlers/file";
 import { MeshItemHandler } from "./handlers/mesh";
 import { SoundItemHandler } from "./handlers/mp3";
 import { EnvDdsItemHandler } from "./handlers/env";
+import { JsonItemHandler } from "./handlers/json";
 import { ImageItemHandler } from "./handlers/image";
 import { GraphItemHandler } from "./handlers/graph";
 import { TypeScriptItemHandler } from "./handlers/ts";
@@ -164,6 +165,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".ogg", ctor: SoundItemHandler });
 
 		this.RegisterItemHandler({ extension: ".ps", ctor: ParticlesSystemItemHandler });
+
+		this.RegisterItemHandler({ extension: ".json", ctor: JsonItemHandler });
 
 		// Move handlers
 		this.RegisterItemMoveHandler(new AssetsBrowserMeshMoveHandler(editor));
