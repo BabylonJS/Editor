@@ -32,7 +32,7 @@ export class ScenePicker {
      * Defines wether or not an overlay is drawn on the elements over the user's mouse.
      */
     public drawOverlayOnOverElement: boolean = true;
-    
+
     private _editor: Editor;
 
     private _downMousePosition: Vector2 = Vector2.Zero();
@@ -87,7 +87,7 @@ export class ScenePicker {
         x = scene.pointerX / (parseFloat(document.body.style.zoom ?? "") || 1);
         y = scene.pointerY / (parseFloat(document.body.style.zoom ?? "") || 1);
         pick = scene.pick(x, y, undefined, fastCheck);
-        
+
         if (!pick) { return null; }
         if (pick.pickedMesh?.metadata?.isLocked) { return null; }
 
@@ -111,7 +111,7 @@ export class ScenePicker {
         // Scene
         this._editor.scene!.onPointerObservable.add(ev => {
             if (!this._editor.scene!.activeCamera) { return; }
-            
+
             switch (ev.type) {
                 case PointerEventTypes.POINTERDOWN: this._onCanvasDown(ev.event); break;
                 case PointerEventTypes.POINTERUP: this._onCanvasUp(ev.event); break;
@@ -148,7 +148,7 @@ export class ScenePicker {
         }
 
         let object = this.getObjectUnderPointer(false);
-        
+
         if (ev.button === 2) {
             if (object instanceof SubMesh) { object = object.getMesh(); }
             if (object?._scene === this.icons._layer.utilityLayerScene) { object = object.metadata.node as Node; }
@@ -189,7 +189,7 @@ export class ScenePicker {
                 { left: ev.clientX, top: ev.clientY }
             );
         }
-        
+
         if (!node) { return; }
 
         const subMeshesItems: JSX.Element[] = [];
@@ -260,7 +260,7 @@ export class ScenePicker {
         }
 
         if (!object) { return; }
-        
+
         if (object instanceof SubMesh) { object = object.getMesh(); }
 
         if (object instanceof AbstractMesh) {
