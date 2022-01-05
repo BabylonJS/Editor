@@ -1,21 +1,44 @@
 import { Nullable } from "../../../../shared/types";
 
+import * as React from "react";
 import { LGraphGroup, LiteGraph } from "litegraph.js";
-import { GUI, GUIParams, GUIController } from "dat.gui";
+
+import { Color3, ISize } from "babylonjs";
 
 import { GraphNode } from "../../../editor/graph/node";
 
 import { Tools } from "../../../editor/tools/tools";
 import { undoRedo } from "../../../editor/tools/undo-redo";
 
-import "../../../editor/gui/augmentations/index";
-
 import { IObjectInspectorProps } from "../../../editor/components/inspector";
-import { AbstractInspectorLegacy } from "../../../editor/components/inspectors/abstract-inspector-legacy";
+import { AbstractInspector } from "../../../editor/components/inspectors/abstract-inspector";
+
+import { InspectorList } from "../../../editor/gui/inspector/fields/list";
+import { InspectorColor } from "../../../editor/gui/inspector/fields/color";
+import { InspectorString } from "../../../editor/gui/inspector/fields/string";
+import { InspectorNumber } from "../../../editor/gui/inspector/fields/number";
+import { InspectorButton } from "../../../editor/gui/inspector/fields/button";
+import { InspectorBoolean } from "../../../editor/gui/inspector/fields/boolean";
+import { InspectorSection } from "../../../editor/gui/inspector/fields/section";
+import { InspectorVector2 } from "../../../editor/gui/inspector/fields/vector2";
+import { InspectorVector3 } from "../../../editor/gui/inspector/fields/vector3";
+import { IInspectorNotifierUndoRedo } from "../../../editor/gui/inspector/utils";
+import { InspectorColorPicker } from "../../../editor/gui/inspector/fields/color-picker";
 
 import GraphEditorWindow from "../index";
 
-export class Inspector extends AbstractInspectorLegacy<GraphNode | LGraphGroup> {
+export interface IInspectorState {
+    /**
+     * Defines the reference to the node being edited.
+     */
+    node: Nullable<GraphNode>;
+    /**
+     * Defines the reference to the group being modified.
+     */
+    group: Nullable<LGraphGroup>;
+}
+
+export class Inspector extends AbstractInspector<GraphNode | LGraphGroup, IInspectorState> {
     /**
      * Defines the reference to the graph editor's window.
      */
@@ -24,8 +47,6 @@ export class Inspector extends AbstractInspectorLegacy<GraphNode | LGraphGroup> 
      * Defines the reference to current node being updated.
      */
     protected node: Nullable<GraphNode> = null;
-
-    private _shape: string = "";
 
     /**
      * Constructor.
@@ -40,14 +61,61 @@ export class Inspector extends AbstractInspectorLegacy<GraphNode | LGraphGroup> 
 
         this.graphEditor = props.editor as any;
         this.graphEditor.inspector = this;
+
+        this.state = {
+            node: null,
+            group: null,
+        };
     }
 
     /**
-     * Called on the component did moubnt.
+     * Called on a property of the selected object has changed.
      */
-    public componentDidMount(): void {
-        this.tool = new GUI({ autoPlace: false, scrollable: true } as GUIParams);
-        (this._div ?? document.getElementById(this._id!))?.appendChild(this.tool.domElement);
+    public onPropertyChanged(configuration: IInspectorNotifierUndoRedo<any>): void {
+        super.onPropertyChanged(configuration);
+
+        const node = this.state.node;
+
+        undoRedo.push({
+            common: () => {
+                if (node) {
+                    this._notifyPropertyChanged(node, configuration.object, configuration.property);
+                }
+
+                this.graphEditor.graph.refresh();
+            },
+            undo: () => configuration.object[configuration.property] = configuration.oldValue,
+            redo: () => configuration.object[configuration.property] = configuration.newValue,
+        });
+    }
+
+    /**
+     * Renders the content of the inspector.
+     */
+    public renderContent(): React.ReactNode {
+        if (this.state.group) {
+            return this.getGroupInspector(this.state.group);
+        }
+
+        if (this.state.node) {
+            return this.getNodeInspector(this.state.node);
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Returns the inspector used to edit the given group.
+     */
+    protected getGroupInspector(group: LGraphGroup): React.ReactNode {
+        const o = { color: Color3.FromHexString(group.color) };
+
+        return (
+            <InspectorSection title="Group">
+                <InspectorString key={Tools.RandomId()} object={group} property="title" label="Title" />
+                <InspectorColorPicker key={Tools.RandomId()} object={o} property="color" label="Color" onChange={() => group.color = o.color.toHexString()} />
+            </InspectorSection>
+        );
     }
 
     /**
@@ -56,7 +124,7 @@ export class Inspector extends AbstractInspectorLegacy<GraphNode | LGraphGroup> 
      */
     public setGroup(group: LGraphGroup): void {
         this.selectedObject = group;
-        this.onUpdate();
+        this.setState({ group, node: null });
     }
 
     /**
@@ -65,202 +133,119 @@ export class Inspector extends AbstractInspectorLegacy<GraphNode | LGraphGroup> 
      */
     public setNode(node: GraphNode): void {
         this.selectedObject = node;
-        this.onUpdate();
+        this.setState({ node, group: null });
     }
 
     /**
-     * Called on a controller changes.
-     * @param folder the folder containing the modified controller.
-     * @param controller the controller that has been modified.
+     * Resizes the inspector.
+     * @param size defines the new size of the panel.
      */
-    public onControllerChange(_?: GUI, __?: GUIController): void {
-        this.graphEditor.graph.refresh();
+    public resize(size?: ISize): void {
+        size = size ?? this.editor.getPanelSize("inspector");
+        size.height += 40;
+        super.resize(size);
     }
 
     /**
-     * Called on a controller finished changes.
-     * @param folder the folder containing the modified controller.
-     * @param controller the controller that has been modified.
+     * Returns the inspector used to edit the given node.
      */
-    public onControllerFinishChange(_?: GUI, controller?: GUIController): void {
-        if (!controller) { return; }
+    protected getNodeInspector(node: GraphNode): React.ReactNode {
+        node.onWidgetChange = () => this.forceUpdate();
 
-        const object = controller.object as any;
-        if (!object || object === this) { return; }
-
-        const node = this.selectedObject;
-        const property = controller.property;
-        const value = object[property];
-        const initialValue = controller["initialValue"];
-
-        if (value === initialValue) { return; }
-
-        undoRedo.push({
-            common: () => {
-                this.refreshDisplay();
-                if (node instanceof GraphNode) {
-                    this._notifyPropertyChanged(node, object, property);
-                }
-
-                this.graphEditor.graph.refresh();
-            },
-            undo: () => object[property] = initialValue,
-            redo: () => object[property] = value,
-        });
-    }
-
-    /**
-     * Resizes the edition tool.
-     * @param size defines the size of the panel.
-     */
-    public resize(): void {
-        this.tool!.width = this.graphEditor.getPanelSize("inspector").width;
-    }
-
-    /**
-     * Called on the component did mount.
-     * @override
-     */
-    public onUpdate(): void {
-        if (this.node) { this.node.onWidgetChange = null; }
-        this.node = null;
-
-        this.clear();
-
-        if (this.selectedObject instanceof LGraphGroup) {
-            this._addGroup(this.selectedObject);
-        } else {
-            this._addNode(this.selectedObject);
-        }
-
-        this.resize();
-        setTimeout(() => this._handleChanged(), 0);
-    }
-
-    /**
-     * Adds all the group editable properties.
-     */
-    private _addGroup(group: LGraphGroup): void {
-        const folder = this.tool!.addFolder("Group");
-        folder.open();
-        folder.add(group, "title").name("Title");
-        folder.addColor(group, "color").name("Color");
-    }
-
-    /**
-     * Adds all the node editable properties.
-     */
-    private _addNode(node: GraphNode): void {
-        this.node = node;
-        this.node.onWidgetChange = () => this.onUpdate();
-
-        // Configure
+        node.shape = node.shape ?? LiteGraph.ROUND_SHAPE;
         node.bgcolor = node.bgcolor ?? LiteGraph.NODE_DEFAULT_BGCOLOR;
         node.boxcolor = node.boxcolor ?? LiteGraph.NODE_DEFAULT_BOXCOLOR;
-        node.shape = node.shape ?? LiteGraph.ROUND_SHAPE;
 
-        // Functions
-        const functions = this.tool!.addFolder("Functions");
-        functions.open();
-        functions.addButton("Focus").onClick(() => node.focusOn());
-
-        this._addNodeCommon(node);
-        this._addNodeColor(node);
-        this._addNodeProperties(node);
+        return (
+            <InspectorSection title="Node">
+                <InspectorButton label="Focus" onClick={() => node.focusOn()} />
+                {this._getNodeCommonInspector(node)}
+                {this._getNodePropertiesInspector(node)}
+            </InspectorSection>
+        );
     }
 
     /**
-     * Adds the common node editable properties.
+     * Returns the inspector used to edit the common properties of the given node.
      */
-    private _addNodeCommon(node: GraphNode): void {
-        const common = this.tool!.addFolder("Common");
-        common.open();
-        common.add(node, "title").name("Title");
+    private _getNodeCommonInspector(node: GraphNode): React.ReactNode {
+        const colors = {
+            box: Color3.FromHexString(node.boxcolor),
+            background: Color3.FromHexString(node.bgcolor),
+        };
 
-        const shapes: string[] = ["BOX_SHAPE", "ROUND_SHAPE", "CIRCLE_SHAPE", "CARD_SHAPE", "ARROW_SHAPE"];
-        this._shape = shapes.find((s) => node.shape === LiteGraph[s])!;
-        common.addSuggest(this, "_shape", shapes).name("Shape").onChange(() => {
-            const newShape = this._shape;
-            const oldShape = shapes.find((s) => node.shape === LiteGraph[s])!;
-
-            undoRedo.push({
-                common: () => {
-                    this.refreshDisplay();
-                    this.graphEditor.graph.refresh();
-                },
-                undo: () => node.shape = LiteGraph[oldShape],
-                redo: () => node.shape = LiteGraph[newShape],
-            });
-        });
+        return (
+            <InspectorSection title="Common">
+                <InspectorString key={Tools.RandomId()} object={node} property="title" label="Title" />
+                <InspectorList key={Tools.RandomId()} object={node} property="shape" label="Shape" items={[
+                    { label: "Box", data: LiteGraph.BOX_SHAPE },
+                    { label: "Card", data: LiteGraph.CARD_SHAPE },
+                    { label: "Round", data: LiteGraph.ROUND_SHAPE },
+                    { label: "Circle", data: LiteGraph.CIRCLE_SHAPE },
+                    { label: "Arrow", data: LiteGraph.ARROW_SHAPE },
+                ]} />
+                <InspectorColorPicker key={Tools.RandomId()} object={colors} property="box" label="Box Color" onChange={() => node.boxcolor = colors.box.toHexString()} />
+                <InspectorColorPicker key={Tools.RandomId()} object={colors} property="background" label="Background Color" onChange={() => node.bgcolor = colors.background.toHexString()} />
+            </InspectorSection>
+        );
     }
 
     /**
-     * Adds the color node editable properties.
+     * Returns the inspector used to edit the node's properties.
      */
-    private _addNodeColor(node: GraphNode): void {
-        const colors = this.tool!.addFolder("Colors");
-        colors.open();
-        colors.addColor(node, "bgcolor").name("Background Color");
-        colors.addColor(node, "boxcolor").name("Box Color");
-    }
-
-    /**
-     * Adds the node properties editable properties.
-     */
-    private _addNodeProperties(node: GraphNode): void {
-        const properties = this.tool!.addFolder("Properties");
-        properties.open();
+    private _getNodePropertiesInspector(node: GraphNode): React.ReactNode {
+        const properties: React.ReactNode[] = [];
 
         for (const p in node.properties) {
             const widget = node.widgets?.find((w) => w.name === p);
 
             if (widget?.options?.values) {
-                const values = (typeof(widget.options.values) === "function") ? widget.options.values() : widget.options.values;
-                const propertyController = properties.addSuggest(node.properties, p, values).name(this._getFormatedname(p)).onChange((r) => {
-                    const initialValue = propertyController["initialValue"];
-                    undoRedo.push({
-                        common: () => {
-                            this.tool?.updateDisplay();
-                            this.graphEditor.graph.refresh();
-                        },
-                        undo: () => {
-                            node.properties[p] = initialValue;
-                            node.propertyChanged(p, initialValue);
-                        },
-                        redo: () => {
-                            node.properties[p] = r;
-                            node.propertyChanged(p, r);
-                        },
-                    });
-                });
+                const values = (typeof (widget.options.values) === "function") ? widget.options.values() : widget.options.values;
+                if (!values.length) {
+                    continue;
+                }
+
+                properties.push(<InspectorList key={Tools.RandomId()} object={node.properties} property={p} label={this._getFormatedname(p)} items={values.map((v) => ({ label: v, data: v }))} />);
                 continue;
             }
 
             const value = node.properties[p];
             const ctor = Tools.GetConstructorName(value).toLowerCase();
 
-            let controller: Nullable<GUIController> = null;
             switch (ctor) {
                 case "number":
-                case "string":
-                case "boolean":
-                    controller = properties.add(node.properties, p).name(this._getFormatedname(p));
+                    properties.push(<InspectorNumber key={Tools.RandomId()} object={node.properties} property={p} label={this._getFormatedname(p)} min={widget?.options?.min} max={widget?.options?.max} step={widget?.options?.step ?? 0.01} />);
                     break;
+                case "string":
+                    properties.push(<InspectorString key={Tools.RandomId()} object={node.properties} property={p} label={this._getFormatedname(p)} />);
+                    break;
+                case "boolean":
+                    properties.push(<InspectorBoolean key={Tools.RandomId()} object={node.properties} property={p} label={this._getFormatedname(p)} />);
+                    break;
+
                 case "vector2":
+                    properties.push(<InspectorVector2 key={Tools.RandomId()} object={node.properties} property={p} label={this._getFormatedname(p)} min={widget?.options?.min} max={widget?.options?.max} step={widget?.options?.step ?? 0.01} />);
+                    break;
                 case "vector3":
-                    controller = properties.addVector(this._getFormatedname(p), value) as any;
+                    properties.push(<InspectorVector3 key={Tools.RandomId()} object={node.properties} property={p} label={this._getFormatedname(p)} min={widget?.options?.min} max={widget?.options?.max} step={widget?.options?.step ?? 0.01} />);
                     break;
                 case "color3":
-                    controller = properties.addAdvancedColor(this._getFormatedname(p), value) as any;
+                case "color4":
+                    properties.push(
+                        <InspectorSection title={this._getFormatedname(p)}>
+                            <InspectorColor key={Tools.RandomId()} object={node.properties} property={p} label={this._getFormatedname(p)} step={widget?.options?.step} />
+                            <InspectorColorPicker key={Tools.RandomId()} object={node.properties} property={p} label={this._getFormatedname(p)} />
+                        </InspectorSection>
+                    );
                     break;
             }
-
-            if (controller && widget) {
-                if (widget.options?.min && controller.min) { controller.min(widget.options.min); }
-                if (widget.options?.max && controller.max) { controller.max(widget.options.max); }
-                if (widget.options?.step && controller.step) { controller.step(widget.options.step); }
-            }
         }
+
+        return (
+            <InspectorSection title="Properties">
+                {properties}
+            </InspectorSection>
+        );
     }
 
     /**

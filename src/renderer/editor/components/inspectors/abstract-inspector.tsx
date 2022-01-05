@@ -9,9 +9,6 @@ import { IObjectInspectorProps } from "../inspector";
 
 import { undoRedo } from "../../tools/undo-redo";
 
-import { TextureAssets } from "../../assets/textures";
-import { MaterialAssets } from "../../assets/materials";
-
 import { InspectorNotifier } from "../../gui/inspector/notifier";
 import { IInspectorListItem } from "../../gui/inspector/fields/list";
 import { IInspectorNotifierUndoRedo, InspectorUtils } from "../../gui/inspector/utils";
@@ -19,6 +16,11 @@ import { IInspectorNotifierUndoRedo, InspectorUtils } from "../../gui/inspector/
 import { Editor } from "../../editor";
 
 export abstract class AbstractInspector<T, S> extends React.Component<IObjectInspectorProps, S> {
+    /**
+     * Defines wether or not undo/redo should be handled by the inspector.
+     */
+    public handleUndoRedo: boolean = true;
+
     /**
      * Defines the reference to the editor.
      */
@@ -79,7 +81,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         // Listen to events
         InspectorUtils.RegisterInspectorChangedListener(this._inspectorName, (c) => {
             this._handleUndoRedo(c);
-            this.onPropertyChanged();
+            this.onPropertyChanged(c);
         });
 
         this.resize();
@@ -133,7 +135,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
     /**
      * Called on a property of the selected object has changed.
      */
-    public onPropertyChanged(): void {
+    public onPropertyChanged(_?: IInspectorNotifierUndoRedo<any>): void {
         // Empty at the moment...
     }
 
@@ -141,7 +143,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
      * Returns the list of available textures in the assets to be drawn.
      */
     public getTexturesList(): IInspectorListItem<Nullable<Texture>>[] {
-        const assets = this.editor.assets.getAssetsOf(TextureAssets) ?? [];
+        const assets = this.editor.assets.getAssetsOfComponentId("textures") ?? [];
         const empty: IInspectorListItem<Nullable<Texture>> = { label: "None", data: null, description: "No Texture" };
 
         return [empty].concat(assets.map((a) => {
@@ -166,7 +168,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
      * Returns the list of available materials in the assets to be drawn.
      */
     public getMaterialsList(): IInspectorListItem<Nullable<Material>>[] {
-        const assets = this.editor.assets.getAssetsOf(MaterialAssets) ?? [];
+        const assets = this.editor.assets.getAssetsOfComponentId("materials") ?? [];
         const empty: IInspectorListItem<Nullable<Material>> = { label: "None", data: null, description: "No Material" };
 
         return [empty].concat(assets.map((a) => {
@@ -191,6 +193,10 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
      * Called on an action finished to handle undo/redo.
      */
     private _handleUndoRedo(configuration: IInspectorNotifierUndoRedo<any>): void {
+        if (!this.handleUndoRedo) {
+            return;
+        }
+        
         if (configuration.noUndoRedo || configuration.newValue === configuration.oldValue) {
             return;
         }
@@ -207,7 +213,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
             },
             undo: () => {
                 const target = configuration.object[configuration.property];
-                if (target instanceof Color3 || target instanceof Color4 || target instanceof Vector2 || target instanceof Vector3 || target instanceof Vector4) {
+                if (target instanceof Color3 || target instanceof Color4 || target instanceof Vector2 || target instanceof Vector3 || target instanceof Vector4) {
                     target.copyFrom(configuration.oldValue);
                 } else {
                     configuration.object[configuration.property] = configuration.oldValue;
@@ -215,7 +221,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
             },
             redo: () => {
                 const target = configuration.object[configuration.property];
-                if (target instanceof Color3 || target instanceof Color4 || target instanceof Vector2 || target instanceof Vector3 || target instanceof Vector4) {
+                if (target instanceof Color3 || target instanceof Color4 || target instanceof Vector2 || target instanceof Vector3 || target instanceof Vector4) {
                     target.copyFrom(configuration.newValue);
                 } else {
                     configuration.object[configuration.property] = configuration.newValue;

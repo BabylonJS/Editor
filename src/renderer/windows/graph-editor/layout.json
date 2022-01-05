@@ -1,0 +1,114 @@
+{
+	"global": {
+		"enableEdgeDock": false,
+		"tabEnableRename": false,
+		"tabSetMinWidth": 240,
+		"tabSetMinHeight": 50
+	},
+	"layout": {
+		"type": "row",
+		"id": "#1",
+		"width": "100%",
+		"height": "calc(100% - 73px)",
+		"children": [
+			{
+				"type": "row",
+				"id": "#2",
+				"weight": 75,
+				"children": [
+					{
+						"type": "row",
+						"id": "#15",
+						"weight": 69.96647691334599,
+						"children": [
+							{
+								"type": "tabset",
+								"id": "#4",
+								"weight": 81.86813186813187,
+								"children": [
+									{
+										"type": "tab",
+										"id": "graph",
+										"name": "Graph",
+										"component": "graph",
+										"enableClose": false,
+										"enableRenderOnDemand": false
+									}
+								]
+							},
+							{
+								"type": "tabset",
+								"id": "#14",
+								"weight": 18.13186813186813,
+								"children": [
+									{
+										"type": "tab",
+										"id": "inspector",
+										"name": "Inspector",
+										"component": "inspector",
+										"enableClose": false,
+										"enableRenderOnDemand": false
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "row",
+						"id": "#11",
+						"weight": 57.033523086654014,
+						"children": [
+							{
+								"type": "tabset",
+								"id": "modules-tabset",
+								"weight": 25,
+								"children": [
+									{
+										"type": "tab",
+										"id": "console",
+										"name": "Console",
+										"component": "console",
+										"enableClose": false,
+										"enableRenderOnDemand": false
+									}
+								]
+							},
+							{
+								"type": "tabset",
+								"id": "#18",
+								"weight": 25,
+								"children": [
+									{
+										"type": "tab",
+										"id": "call-stack",
+										"name": "Call Stack",
+										"component": "call-stack",
+										"enableClose": false,
+										"enableRenderOnDemand": false
+									}
+								],
+								"active": true
+							},
+							{
+								"type": "tabset",
+								"id": "#10",
+								"weight": 50,
+								"children": [
+									{
+										"type": "tab",
+										"id": "preview",
+										"name": "Preview",
+										"component": "preview",
+										"enableClose": false,
+										"enableRenderOnDemand": false
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	},
+	"borders": []
+}

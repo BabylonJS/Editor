@@ -5,8 +5,11 @@ import { extname, basename } from "path";
 import { Nullable, IStringDictionary, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { Button, Divider, ButtonGroup, Popover, Position, Menu, MenuItem, MenuDivider, Toaster, Intent, ContextMenu, Classes } from "@blueprintjs/core";
-import GoldenLayout from "golden-layout";
+import { Layout, Model, TabNode, Rect } from "flexlayout-react";
+import {
+    Button, Divider, ButtonGroup, Popover, Position, Menu, MenuItem, MenuDivider, Toaster, Intent,
+    ContextMenu, Classes,
+} from "@blueprintjs/core";
 
 import { ISize } from "babylonjs";
 
@@ -18,7 +21,6 @@ import { Confirm } from "../../editor/gui/confirm";
 import { Tools } from "../../editor/tools/tools";
 import { IPCTools } from "../../editor/tools/ipc";
 import { undoRedo } from "../../editor/tools/undo-redo";
-import { LayoutUtils } from "../../editor/tools/layout-utils";
 import { TouchBarHelper, ITouchBarButton } from "../../editor/tools/touch-bar";
 
 import { GraphCode } from "../../editor/graph/graph";
@@ -33,6 +35,28 @@ import { CallStack } from "./components/call-stack";
 import { GraphEditorTemplate } from "./template";
 
 import "./augmentations";
+
+// Json
+import layoutConfiguration from "./layout.json";
+
+export interface ILayoutTabNodeConfiguration {
+    /**
+     * Defines the name of the layout tab node.
+     */
+    componentName: "preview" | "inspector" | "console" | "stack" | string;
+    /**
+     * Defines the name of the tab component.
+     */
+    name: string;
+    /**
+     * Defines the id of the layout tab node.
+     */
+    id: string;
+    /**
+     * Defines the id of the tab node in the layout.
+     */
+    rect: Rect;
+}
 
 export const title = "Graph Editor";
 
@@ -70,7 +94,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     /**
      * Reference to the layout used to create the editor's sections.
      */
-    public layout: GoldenLayout;
+    public layout: Layout;
     /**
      * Defines the reference to the graph.
      */
@@ -91,20 +115,25 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      * Defines the reference to the inspector.
      */
     public inspector: Inspector;
-    
-    private _layoutDiv: Nullable<HTMLDivElement> = null;
+
     private _toaster: Nullable<Toaster> = null;
     private _refHandler = {
-        getLayoutDiv: (ref: HTMLDivElement) => this._layoutDiv = ref,
         getToaster: (ref: Toaster) => (this._toaster = ref),
     };
 
     private _path: Nullable<string> = null;
     private _linkPath: Nullable<string> = null;
 
-    private _components: IStringDictionary<any> = { };
+    private _components: IStringDictionary<any> = {};
     private _isSaving: boolean = false;
     private _closing: boolean = false;
+
+    /**
+     * Defines the dictionary of all configurations for all tab nodes. This configuration is updated each time a node
+     * event is triggered, like "resize".
+     * @hidden
+     */
+    public readonly _layoutTabNodesConfigurations: Record<string, ILayoutTabNodeConfiguration> = {};
 
     /**
      * Defines the current version of the layout.
@@ -124,6 +153,12 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
             templates: [],
         };
 
+        this._components["graph"] = <Graph editor={this} />;
+        this._components["console"] = <Logs editor={this} />;
+        this._components["preview"] = <Preview editor={this} />;
+        this._components["call-stack"] = <CallStack editor={this} />;
+        this._components["inspector"] = <Inspector editor={this as any} toolId={Tools.RandomId()} _objectRef={null} />;
+
         GraphCode.Init();
     }
 
@@ -131,6 +166,10 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      * Renders the component.
      */
     public render(): React.ReactNode {
+        const layoutVersion = localStorage.getItem("babylonjs-editor-graph-layout-version");
+        const layoutStateItem = (layoutVersion === GraphEditorWindow.LayoutVersion) ? localStorage.getItem("babylonjs-editor-graph-layout-state") : null;
+        const layoutState = layoutStateItem ? JSON.parse(layoutStateItem) : layoutConfiguration;
+
         const file = (
             <Menu>
                 <MenuItem text="Load From..." icon={<Icon src="folder-open.svg" />} onClick={() => this._handleLoadFrom()} />
@@ -168,27 +207,27 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
                 )) : undefined}
             </Menu>
         );
-        
+
         return (
             <>
                 <div className="bp3-dark" style={{ width: "100%", height: "80px", backgroundColor: "#444444" }}>
                     <ButtonGroup style={{ paddingTop: "4px" }}>
                         <Popover content={file} position={Position.BOTTOM_LEFT}>
-                            <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="File"/>
+                            <Button icon={<Icon src="folder-open.svg" />} rightIcon="caret-down" text="File" />
                         </Popover>
                         <Popover content={edit} position={Position.BOTTOM_LEFT}>
-                            <Button icon={<Icon src="edit.svg"/>} rightIcon="caret-down" text="Edit"/>
+                            <Button icon={<Icon src="edit.svg" />} rightIcon="caret-down" text="Edit" />
                         </Popover>
                         <Popover content={view} position={Position.BOTTOM_LEFT}>
-                            <Button icon={<Icon src="eye.svg"/>} rightIcon="caret-down" text="View"/>
+                            <Button icon={<Icon src="eye.svg" />} rightIcon="caret-down" text="View" />
                         </Popover>
                         <Popover content={snippets} position={Position.BOTTOM_LEFT}>
-                            <Button icon={<Icon src="grip-lines.svg"/>} rightIcon="caret-down" text="Snippets"/>
+                            <Button icon={<Icon src="grip-lines.svg" />} rightIcon="caret-down" text="Snippets" />
                         </Popover>
                     </ButtonGroup>
                     <Divider />
                     <ButtonGroup style={{ position: "relative", left: "50%", transform: "translate(-50%)" }}>
-                        <Button disabled={this.state.playing} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Play" onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this.start(false)} />
+                        <Button disabled={this.state.playing} icon={<Icon src="play.svg" />} rightIcon="caret-down" text="Play" onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this.start(false)} />
                         <Button disabled={!this.state.playing} icon={<Icon src="square-full.svg" />} text="Stop" onClick={() => this.stop()} />
                         <Button disabled={!this.state.playing} icon="reset" text="Restart" onClick={() => {
                             this.stop();
@@ -197,18 +236,54 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
                     </ButtonGroup>
                     <Divider />
                 </div>
-                <div ref={this._refHandler.getLayoutDiv} className="bp3-dark" style={{ width: "100%", height: "calc(100% - 80px)" }}></div>
+                <Layout ref={(r) => this.layout = r!} model={Model.fromJson(layoutState)} factory={(n) => this._layoutFactory(n)} classNameMapper={(d) => {
+                    switch (d) {
+                        case "flexlayout__layout": return "graphEditorFlexLayout";
+                        default: return d;
+                    }
+                }} />
                 <Toaster canEscapeKeyClear={true} position={Position.TOP_RIGHT} ref={this._refHandler.getToaster}></Toaster>
             </>
         );
     }
 
     /**
+     * Called each time a FlexLayout.TabNode is mounted by React.
+     */
+    private _layoutFactory(node: TabNode): React.ReactNode {
+        const componentName = node.getComponent();
+        if (!componentName) {
+            this.logs.log("Can't mount layout node without component name.");
+            return <div>Error, see console...</div>;
+        }
+
+        const component = this._components[componentName];
+        if (!component) {
+            this.logs.log(`No react component available for "${componentName}".`);
+            return <div>Error, see console...</div>;
+        }
+
+        this._layoutTabNodesConfigurations[componentName] ??= {
+            componentName,
+            id: node.getId(),
+            name: node.getName(),
+            rect: node.getRect(),
+        };
+
+        node.setEventListener("resize", (ev: { rect: Rect }) => {
+            const configuration = this._layoutTabNodesConfigurations[componentName];
+            configuration.rect = ev.rect;
+
+            setTimeout(() => this.resize(), 0);
+        });
+
+        return component;
+    }
+
+    /**
      * Called on the component did mount.
      */
     public async componentDidMount(): Promise<void> {
-        if (!this._layoutDiv) { return; }
-
         // Window configuration
         // const windowDimensions = JSON.parse(localStorage.getItem("babylonjs-editor-graph-window-dimensions") ?? "null");
         // if (windowDimensions) {
@@ -219,64 +294,6 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         //     window.moveTo(x, y);
         // }
 
-        // Layout configuration
-        const layoutVersion = localStorage.getItem('babylonjs-editor-graph-layout-version');
-        const layoutStateItem = (layoutVersion === GraphEditorWindow.LayoutVersion) ? localStorage.getItem('babylonjs-editor-graph-layout-state') : null;
-        const layoutState = layoutStateItem ? JSON.parse(layoutStateItem) : null;
-
-        if (layoutState) { LayoutUtils.ConfigureLayoutContent(this, layoutState.content); }
-
-        // Create layout
-        this.layout = new GoldenLayout(layoutState ?? {
-            settings: { showPopoutIcon: false, showCloseIcon: false, showMaximiseIcon: false },
-            dimensions: { minItemWidth: 240, minItemHeight: 50 },
-            labels: { close: "Close", maximise: "Maximize", minimise: "Minimize" },
-            content: [{
-                type: "row", content: [
-                    { type: "column", width: 1, content: [
-                        { type: "react-component", id: "inspector", component: "inspector", componentName: "Inspector", title: "Inspector", isClosable: false, props: {
-                            editor: this,
-                        } },
-                        { type: "react-component", id: "preview", component: "preview", componentName: "Preview", title: "Preview", isClosable: false, props: {
-                            editor: this,
-                        } },
-                        { type: "react-component", id: "logs", component: "logs", componentName: "Logs", title: "Logs", isClosable: false, props: {
-                            editor: this,
-                        } },
-                        { type: "react-component", id: "call-stack", component: "call-stack", componentName: "Call Stack", title: "Call Stack", isClosable: false, props: {
-                            editor: this,
-                        } },
-                    ]},
-                    { type: "react-component", id: "graph", component: "graph", componentName: "graph", title: "Graph", width: 1, isClosable: false, props: {
-                        editor: this,
-                    } },
-                ],
-            }],
-        }, this._layoutDiv);
-
-        // Register layout events
-        this.layout.on("componentCreated", (c) => {
-            this._components[c.config.component] = c;
-            c.container.on("resize", () => this.resize());
-            c.container.on("show", () => this.resize());
-        });
-
-        this.layout.registerComponent("inspector", Inspector);
-        this.layout.registerComponent("preview", Preview);
-        this.layout.registerComponent("logs", Logs);
-        this.layout.registerComponent("call-stack", CallStack);
-        this.layout.registerComponent("graph", Graph);
-
-        // Initialize layout
-        try {
-            await Tools.Wait(0);
-            this.layout.init();
-            await Tools.Wait(0);
-        } catch (e) {
-            localStorage.removeItem("babylonjs-editor-graph-layout-state");
-            localStorage.removeItem("babylonjs-editor-graph-layout-version");
-            localStorage.removeItem("babylonjs-editor-graph-window-dimensions");
-        }
         // Initialize code generation
         await GraphCodeGenerator.Init();
 
@@ -286,9 +303,6 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         // Bind all events
         this._bindEvents();
-
-        this.forceUpdate();
-        this.layout.updateSize();
 
         // Init templates
         await this._loadTemplates();
@@ -356,10 +370,10 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      * Called on the window or layout is resized.
      */
     public resize(): void {
+        this.logs?.resize();
         this.graph?.resize();
         this.preview?.resize();
         this.inspector?.resize();
-        this.logs?.resize();
     }
 
     /**
@@ -367,12 +381,12 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      * @param panelId the id of the panel to retrieve its size.
      */
     public getPanelSize(panelId: string): ISize {
-        const panel = this._components[panelId];
+        const panel = this._layoutTabNodesConfigurations[panelId];
         if (!panel) {
             return { width: 0, height: 0 };
         }
 
-        return { width: panel.container.width, height: panel.container.height };
+        return { width: panel.rect.width, height: panel.rect.height };
     }
 
     /**
@@ -381,7 +395,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      */
     public async start(standalone: boolean): Promise<void> {
         this.logs.clear();
-        
+
         await this.preview.reset(standalone);
         await this.graph.start(this.preview.getScene());
 
@@ -412,7 +426,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
             preview: this.graph.graphCanvas?.canvas.toDataURL(),
             closed,
         });
-        
+
         this._isSaving = false;
 
         if (result.data.error) {
@@ -422,10 +436,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         }
 
         // Save state
-        const config = this.layout.toConfig();
-        LayoutUtils.ClearLayoutContent(this, config.content);
-
-        localStorage.setItem("babylonjs-editor-graph-layout-state", JSON.stringify(config));
+        localStorage.setItem("babylonjs-editor-graph-layout-state", JSON.stringify(this.layout.props.model.toJson()));
         localStorage.setItem("babylonjs-editor-graph-layout-version", GraphEditorWindow.LayoutVersion);
         localStorage.setItem("babylonjs-editor-graph-window-dimensions", JSON.stringify({ x: screenLeft, y: screenTop, width: innerWidth, height: innerHeight }));
 
@@ -435,7 +446,6 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
                 render_execution_order: this.graph.graphCanvas.render_execution_order,
                 render_collapsed_slots: this.graph.graphCanvas.render_collapsed_slots,
             }));
-
         }
     }
 
@@ -464,7 +474,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      */
     private async _handleLoadFrom(): Promise<void> {
         const path = await Tools.ShowOpenFileDialog("Load Graph From...");
-        
+
         try {
             const override = await Confirm.Show("Override Current Graph?", "Are you sure to override the current graph? Existing graph will be overwritten and all changes will be lost.");
             if (!override) { return; }
@@ -535,7 +545,6 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     private _bindEvents(): void {
         // Resize
         window.addEventListener("resize", () => {
-            this.layout.updateSize();
             this.resize();
         });
 
@@ -545,6 +554,9 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
 
         ipcRenderer.on("undo", () => undoRedo.undo());
         ipcRenderer.on("redo", () => undoRedo.redo());
+
+        // Misc.
+        window.focus();
     }
 
     /**
