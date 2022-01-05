@@ -91,7 +91,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     private _firstUpdate: boolean = true;
     private _filter: string = "";
 
-    private _copiedTransform: Nullable<AbstractMesh | Light | Camera> = null;
+    private _copiedTransform: Nullable<AbstractMesh | Light | Camera> = null;
 
     /**
      * Defines the last selected node in the graph.
@@ -118,7 +118,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Renders the component.
      */
     public render(): React.ReactNode {
-        if (!this.state.nodes.length) {return null; }
+        if (!this.state.nodes.length) { return null; }
 
         return (
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
@@ -250,8 +250,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Returns the list of all selected nodes (node, particle system, sound).
      */
-    public getAllSelected(): (Node | IParticleSystem | Sound)[] {
-        const result:(Node | IParticleSystem | Sound)[] = [];
+    public getAllSelected(): (Node | IParticleSystem | Sound)[] {
+        const result: (Node | IParticleSystem | Sound)[] = [];
         const selectedIds = this.state.selectedNodeIds ?? [];
         selectedIds.forEach((sid) => {
             const node = this._getNodeById(sid);
@@ -269,7 +269,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      */
     public cloneObject(node: Node | IParticleSystem): Nullable<Node | IParticleSystem> {
         let clone: Nullable<Node | IParticleSystem> = null;
-        
+
         if (node instanceof Mesh) {
             const clonedMesh = node.clone(node.name, node.parent, false, true);
 
@@ -380,25 +380,25 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         }
 
         const parent = node instanceof Node ? node.parent :
-                       node instanceof Sound ? node["_connectedTransformNode"] :
-                       node.emitter as AbstractMesh;
+            node instanceof Sound ? node["_connectedTransformNode"] :
+                node.emitter as AbstractMesh;
         const lods = node instanceof Mesh ? node.getLODLevels().slice() : [];
         const particleSystems = this._editor.scene!.particleSystems.filter((ps) => ps.emitter === node);
         const shadowLights = this._editor.scene!.lights.filter((l) => l.getShadowGenerator()?.getShadowMap()?.renderList)
-                                                       .filter((l) => l.getShadowGenerator()!.getShadowMap()!.renderList!.indexOf(node as AbstractMesh) !== -1);
+            .filter((l) => l.getShadowGenerator()!.getShadowMap()!.renderList!.indexOf(node as AbstractMesh) !== -1);
 
         const sounds: Sound[] = [];
         [this._editor.scene!.mainSoundTrack].concat(this._editor.scene!.soundTracks ?? []).forEach((st) => {
             if (!st) { return; }
             st.soundCollection?.forEach((s) => s["_connectedTransformNode"] === node && sounds.push(s));
         });
-        
+
         return ({
             redo: () => {
                 if (node instanceof Node) { node.parent = null; }
-                
+
                 removeFunc?.call(caller, node);
-                
+
                 if (node instanceof Sound) {
                     if (parent) { node.detachFromMesh(); }
                     this._editor.assets.forceRefresh(SoundAssets);
@@ -408,7 +408,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
                 if (node instanceof Mesh) {
                     node.doNotSerialize = true;
-                    
+
                     lods.forEach((lod) => {
                         node.removeLODLevel(lod.mesh!);
                         if (lod.mesh) {
@@ -517,9 +517,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 icon={<Icon src="camera-retro.svg" />}
             />
         );
-        
+
         const soundsChildren = this._editor.scene!.mainSoundTrack.soundCollection.filter((s) => !s.spatialSound).map((s) => {
-            s.metadata = s.metadata ?? { };
+            s.metadata = s.metadata ?? {};
             if (!s.metadata.id) { s.metadata.id = Tools.RandomId(); }
 
             return (
@@ -560,7 +560,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         let disabled = false;
 
-        node.metadata = node.metadata ?? { };
+        node.metadata = node.metadata ?? {};
         if (node instanceof AbstractMesh) {
             disabled = (node.metadata?.collider ?? null) !== null;
 
@@ -656,7 +656,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         this._editor.scene!.mainSoundTrack.soundCollection.forEach((s) => {
             if (s["_connectedTransformNode"] !== node) { return; }
 
-            s.metadata = s.metadata ?? { };
+            s.metadata = s.metadata ?? {};
             if (!s.metadata.id) { s.metadata.id = Tools.RandomId(); }
 
             children.push(
@@ -788,7 +788,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
             if (!notAllNodes) {
                 all.forEach((n) => {
-                    n.metadata = n.metadata ?? { };
+                    n.metadata = n.metadata ?? {};
                     n.metadata.doNotExport = n.metadata.doNotExport ?? false;
                 });
 
@@ -799,7 +799,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                             all.forEach((n) => {
                                 n.metadata.doNotExport = !n.metadata.doNotExport;
                             });
-                            
+
                             this.refresh();
                         }} />
                     </>
@@ -812,7 +812,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         <MenuDivider />
                         <MenuItem text="Locked" icon={(node as Mesh).metadata?.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
                             all.forEach((m) => {
-                                m.metadata = m.metadata ?? { };
+                                m.metadata = m.metadata ?? {};
                                 m.metadata.isLocked = m.metadata.isLocked ?? false;
                                 m.metadata.isLocked = !m.metadata.isLocked;
                             });
@@ -923,7 +923,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         const selectedNodeIds = this.state.selectedNodeIds?.slice() ?? [];
         if (selectedNodeIds.indexOf(graphNode.key) !== -1) { return; }
-        
+
         if (e.ctrlKey) {
             selectedNodeIds.push(graphNode.key);
             this.setState({ selectedNodeIds });
@@ -1120,9 +1120,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         let nodes = [target];
         if (this.state.selectedNodeIds && this.state.selectedNodeIds.indexOf(target.id) !== -1) {
             nodes = this.state.selectedNodeIds
-                        .map((s) => this._getNodeById(s))
-                        .filter((n) => n instanceof Node && nodes.indexOf(n) === -1)
-                        .concat(nodes) as Node[];
+                .map((s) => this._getNodeById(s))
+                .filter((n) => n instanceof Node && nodes.indexOf(n) === -1)
+                .concat(nodes) as Node[];
         }
 
         const components = this._editor.assets.getAssetsComponents();
@@ -1151,7 +1151,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         const node = all.find((c) => c.id === id);
         if (node) { return node; }
-        
+
         const ps = this._editor.scene!.getParticleSystemByID(id);
         if (ps) { return ps; }
 
