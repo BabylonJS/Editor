@@ -1,0 +1,9 @@
+/* GRAPH EDITOR */
+.graphEditorFlexLayout {
+    left: 0;
+    top: 80px;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    overflow: hidden;
+}

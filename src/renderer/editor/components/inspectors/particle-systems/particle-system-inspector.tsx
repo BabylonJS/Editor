@@ -24,8 +24,8 @@ import { InspectorColorPicker } from "../../../gui/inspector/fields/color-picker
 
 import { Tools } from "../../../tools/tools";
 
+import { Editor } from "../../../editor";
 import { AbstractInspector } from "../abstract-inspector";
-import Editor from "../../..";
 
 export interface IParticleSystemInspectorState {
     /**
