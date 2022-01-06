@@ -26,7 +26,7 @@ export class OpenDirectoryDialogIPC implements IIPCHandler {
 	 */
 	public async handler(event: IpcMainEvent, title: string, defaultPath: string): Promise<void> {
         const window = WindowsHandler.GetWindowByWebContentsId(event.sender.id) ?? this._window;
-		const result = await dialog.showOpenDialog(window, { title, defaultPath, properties: ["openDirectory"] });
+		const result = await dialog.showOpenDialog(window, { title, defaultPath, properties: ["openDirectory", "createDirectory"] });
 
 		if (!result || !result.filePaths.length) { return event.sender.send(IPCResponses.CancelOpenFileDialog); }
 		event.sender.send(IPCResponses.OpenDirectoryDialog, result.filePaths[0]);
