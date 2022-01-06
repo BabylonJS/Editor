@@ -30,6 +30,8 @@ export class SceneTools {
             return;
         }
 
+        merged.id = Tools.RandomId();
+
         // Refresh graph!
         editor.graph.refresh();
     }

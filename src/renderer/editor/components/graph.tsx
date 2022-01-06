@@ -808,6 +808,12 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             });
         }
 
+        let subMeshesItem = subMeshesItems.length ? (
+            <div style={{ maxHeight: "300px", overflow: "auto" }}>
+                {subMeshesItems}
+            </div>
+        ) : undefined;
+
         let mergeMeshesItem: React.ReactNode;
         let doNotExportItem: React.ReactNode;
         let lockedMeshesItem: React.ReactNode;
@@ -957,7 +963,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 {lockedMeshesItem}
                 <MenuDivider />
                 <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveObject()} />
-                {subMeshesItems}
+                {subMeshesItem}
             </Menu>,
             { left: e.clientX, top: e.clientY }
         );

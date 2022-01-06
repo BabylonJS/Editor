@@ -199,6 +199,12 @@ export class ScenePicker {
             });
         }
 
+        let subMeshesItem = subMeshesItems.length ? (
+            <div style={{ maxHeight: "300px", overflow: "auto" }}>
+                {subMeshesItems}
+            </div>
+        ) : undefined;
+
         let isolatedMode = node instanceof AbstractMesh ? (
             <>
                 <MenuDivider />
@@ -223,7 +229,7 @@ export class ScenePicker {
                     this._editor.graph.removeObject(node!);
                     this._editor.graph.refresh();
                 }} />
-                {subMeshesItems}
+                {subMeshesItem}
             </Menu>,
             { left: ev.clientX, top: ev.clientY }
         );
