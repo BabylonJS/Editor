@@ -102,7 +102,8 @@ export class Graph extends React.Component<IGraphProps> {
      */
     public componentDidMount(): void {
         this._bindEvents();
-        this._updateSceneNodesLists();
+
+        setTimeout(() => this._updateSceneNodesLists(), 100);
     }
 
     /**
@@ -234,7 +235,7 @@ export class Graph extends React.Component<IGraphProps> {
      * @param event defines the right-click event.
      */
     public async addNode(event: MouseEvent): Promise<void> {
-        const type = await NodeCreator.Show();
+        const type = await NodeCreator.Show(event);
         if (!type) {
             return;
         }
@@ -496,6 +497,8 @@ export class Graph extends React.Component<IGraphProps> {
 
         const materials = await IPCTools.ExecuteEditorFunction<IMaterialResult[]>("sceneUtils.getAllMaterials");
         Material.Materials = materials.data.map((m) => ({ name: m.name, base64: m.base64, type: m.type }));
+
+        this.graphCanvas?.setDirty(true, true);
     }
 
     /**
@@ -570,20 +573,20 @@ export class Graph extends React.Component<IGraphProps> {
             }
         });
 
-        document.addEventListener("keydown", (event) => {
+        document.addEventListener("keydown", (e) => {
             if (!this._canvasFocused) { return; }
             
             // Copy/paste
-            if (event.key === "c" && event.ctrlKey) {
+            if (e.key === "c" && (e.ctrlKey || e.metaKey)) {
                 return this.graphCanvas?.copyToClipboard();
             }
             
-            if (event.key === "v" && event.ctrlKey) {
+            if (e.key === "v" && (e.ctrlKey || e.metaKey)) {
                 return this.graphCanvas?.pasteFromClipboard();
             }
 
             // Del
-            if (event.keyCode === 46) {
+            if (e.keyCode === 46) {
                 return this.removeNode();
             }
         });
@@ -594,6 +597,8 @@ export class Graph extends React.Component<IGraphProps> {
      */
     private _handleProcessContextMenu(graphCanvas: LGraphCanvas): void {
         graphCanvas.processContextMenu = (n: GraphNode, e: MouseEvent) => {
+            this.graphCanvas!.selectNode(n, e.ctrlKey || e.metaKey);
+
             if (n) {
                 const slot = n.getSlotInPosition(e["canvasX"], e["canvasY"]);
                 if (slot?.input?.removable) {

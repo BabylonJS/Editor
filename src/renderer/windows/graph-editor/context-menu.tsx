@@ -62,7 +62,7 @@ export class GraphContextMenu {
         }
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Add Node..." icon={<Icon src="plus.svg" />} onClick={() => editor.addNode(event)} />
+                <MenuItem text="Add Node..." icon={<Icon src="plus.svg" />} shouldDismissPopover={false} onClick={() => editor.addNode(event)} />
                 <MenuItem text="Add Group" icon={<Icon src="plus.svg" />} onClick={() => editor.addGroup(event)} />
                 {groupItem}
             </Menu>,

@@ -2,10 +2,8 @@ import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
-
 import GraphEditorWindow from "../index";
+import { ConsoleLog, ConsoleLogType } from "../../../editor/components/console/log";
 
 export interface IConsoleProps {
     /**
@@ -14,15 +12,25 @@ export interface IConsoleProps {
     editor: GraphEditorWindow;
 }
 
-export class Logs extends React.Component<IConsoleProps> {
-    private _logsDiv: HTMLDivElement;
-    private _refHandler = {
-        getLogsDiv: (ref: HTMLDivElement) => this._logsDiv = ref,
-    }
+export interface IConsoleState {
+    /**
+     * Defines the current width in pixels of the panel.
+     */
+    width: number;
+    /**
+     * Defines the current height in pixels of the panel.
+     */
+    height: number;
 
-    private _terminal: Nullable<Terminal> = null;
-    private _fitAddon: FitAddon = new FitAddon();
-    
+    /**
+     * Defines the list of all available logs.
+     */
+    logs: React.ReactNode[];
+}
+
+export class Logs extends React.Component<IConsoleProps, IConsoleState> {
+    private _div: Nullable<HTMLDivElement>;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -31,78 +39,88 @@ export class Logs extends React.Component<IConsoleProps> {
         super(props);
 
         props.editor.logs = this;
+
+        this.state = {
+            logs: [],
+            width: 1,
+            height: 1,
+        };
     }
 
     /**
      * Renders the component.
      */
     public render(): React.ReactNode {
-        return <div ref={this._refHandler.getLogsDiv} style={{ width: "100%", height: "100%" }}></div>;
+        return (
+            <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+                <div
+                    key="common-div"
+                    className="bp3-code-block"
+                    ref={(r) => this._div = r}
+                    style={{ width: this.state.width, height: this.state.height, marginTop: "0px", overflow: "auto" }}
+                >
+                    {this.state.logs}
+                </div>
+            </div>
+        )
     }
 
     /**
      * Called on the component did mount.
      */
     public componentDidMount(): void {
-        // Create terminal
-        this._terminal = new Terminal({
-            fontFamily: "Consolas, 'Courier New', monospace",
-            fontSize: 12,
-            fontWeight: "normal",
-            cursorStyle: "block",
-            cursorWidth: 1,
-            drawBoldTextInBrightColors: true,
-            fontWeightBold: "bold",
-            letterSpacing: -4,
-            cols: 80,
-            lineHeight: 1,
-            rendererType: "canvas",
-            allowTransparency: true,
-            theme: {
-                background: "#222222",
-            },
-        });
-
-        this._terminal.loadAddon(this._fitAddon);
-        this._terminal.open(this._logsDiv);
-
         const log = console.log;
         console.log = (...args: any[]): void => {
             log.call(console, ...args);
-            this.log(args);
+            this.log(ConsoleLogType.Info, ...args);
+        };
+
+        const warn = console.warn;
+        console.warn = (...args: any[]): void => {
+            warn.call(console, ...args);
+            this.log(ConsoleLogType.Warning, ...args);
         };
 
         this.resize();
     }
 
     /**
+     * Called on the component did update.
+     */
+    public componentDidUpdate(): void {
+        if (this._div) {
+            this._div.scrollTop = this._div.scrollHeight + 25;
+        }
+    }
+
+    /**
      * Called on the panel has been resized.
      */
     public resize(): void {
-        setTimeout(() => {
-            try { this._fitAddon.fit(); } catch (e) { /* Catch silently */ }
-        }, 0);
+        const size = this.props.editor.getPanelSize("console");
+        this.setState({ width: size.width, height: size.height });
     }
 
     /**
      * Clears the logs.
      */
     public clear(): void {
-        this._terminal?.clear();
-        this._terminal?.writeln("Ready.");
+
     }
 
     /**
      * Logs the given messages.
      * @param args defines all messages to log.
      */
-    public log(...args: any[]): void {
+    public log(type: ConsoleLogType, ...args: any[]): void {
         args.forEach((a) => {
             if (!a.toString) {
                 return;
             }
 
-            this._terminal?.writeln(a.toString());
+            this.state.logs.push(<ConsoleLog message={a.toString()} type={type} />);
         });
+
+        this.setState({ logs: this.state.logs });
     }
 }

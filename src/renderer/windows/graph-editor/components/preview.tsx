@@ -175,7 +175,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         // Load scene
         this.setState({ loadingScene: false });
-        await SceneLoader.AppendAsync(json.data.rootUrl, sceneFileName, this.scene, null, "babylon");
+        await SceneLoader.AppendAsync(json.data.rootUrl, sceneFileName, this.scene, null, ".babylon");
 
         // Attach controls to camera
         this.scene.activeCamera?.attachControl(this.canvas, false);

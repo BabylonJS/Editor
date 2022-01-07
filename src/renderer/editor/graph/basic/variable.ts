@@ -5,7 +5,8 @@ import { LiteGraph, SerializedLGraphNode } from "litegraph.js";
 
 type VariableType = "number" | "string" | "boolean" |
                     "Vector2" | "Vector3" |
-                    "Mesh" | "Camera" | "Light" | "Skeleton" |
+                    "AbstractMesh" | "Mesh" | "InstancedMesh" |
+                    "Camera" | "Light" | "Skeleton" |
                     "Animatable";
 
 const basicTypes: string[] = [
@@ -44,7 +45,8 @@ export class Variable extends GraphNode<
             this._reset();
         }, {
             values: inspectorVisibleTypes.concat([
-                "Mesh", "Camera", "Light", "Skeleton",
+                "AbstractMesh", "Mesh", "InstancedMesh", "Camera",
+                "Light", "Skeleton",
                 "Animatable",
             ]),
         });
@@ -91,7 +93,7 @@ export class Variable extends GraphNode<
     public generateCode(input?: ICodeGenerationOutput): ICodeGenerationOutput {
         const requires: any[] = [];
         if (basicTypes.indexOf(this.properties.type) === -1) {
-            requires.push({ module: "@babylonjs/core", classes: ["Vector2", "Vector3", "Mesh", "Camera", "Light"] });
+            requires.push({ module: "@babylonjs/core", classes: ["Vector2", "Vector3", "AbstractMesh", "Mesh", "InstancedMesh", "Camera", "Light"] });
         }
         if (inspectorVisibleTypes.indexOf(this.properties.type) !== -1 && this.properties.visibleInInspector) {
             requires.push({ module: "../../decorators", classes: ["visibleInInspector"] });
@@ -123,7 +125,9 @@ export class Variable extends GraphNode<
             case "Vector2": return "new Vector2(0, 0)";
             case "Vector3": return "new Vector3(0, 0, 0)";
 
+            case "AbstractMesh": return "null";
             case "Mesh": return "null";
+            case "InstancedMesh": return "null";
             case "Camera": return "null";
             case "Light": return "null";
             case "Skeleton": return "null";
@@ -167,7 +171,10 @@ export class Variable extends GraphNode<
             case "Vector2": this._value = new Vector2(0, 0); break;
             case "Vector3": this._value = new Vector3(0, 0, 0); break;
 
+            case "AbstractMesh": this._value = null; break;
             case "Mesh": this._value = null; break;
+            case "InstancedMesh": this._value = null; break;
+
             case "Camera": this._value = null; break;
             case "Light": this._value = null; break;
 

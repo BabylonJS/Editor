@@ -98,8 +98,8 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
         // Exit locks
         const engine = this._editor.preview.engine;
         if (engine) {
-            if (engine.isPointerLock) { engine.exitPointerlock(); }
-            if (engine.isFullscreen) { engine.exitFullscreen(); }
+            engine.exitPointerlock();
+            engine.exitFullscreen();
         }
 
         const graph = this._editor.graph.graph!;
