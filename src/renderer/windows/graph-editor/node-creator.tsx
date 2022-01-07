@@ -1,16 +1,11 @@
 import { Nullable, IStringDictionary } from "../../../shared/types";
 
 import * as React from "react";
-import * as ReactDOM from "react-dom";
-import { Dialog, FormGroup, InputGroup, Classes, Tree, ITreeNode } from "@blueprintjs/core";
+import { FormGroup, InputGroup, Classes, Tree, ITreeNode, ContextMenu, Menu } from "@blueprintjs/core";
 
 import { LiteGraph } from "litegraph.js";
 
 export interface INodeCreatorProps {
-    /**
-     * Defines the HTML element where to dialog is mounted.
-     */
-    container: HTMLDivElement;
     /**
      * Callback, called on the 
      */
@@ -32,20 +27,25 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
     /**
      * Shows the node creator.
      */
-    public static Show(): Promise<Nullable<string>> {
-        const container = document.createElement("div");
-        container.style.position = "absolute";
-        container.style.pointerEvents = "none";
-        document.body.appendChild(container);
-
+    public static Show(event: MouseEvent): Promise<Nullable<string>> {
         return new Promise<Nullable<string>>((resolve) => {
-            const dialog = <NodeCreator container={container} onSelect={(type) => resolve(type)} />;
-            ReactDOM.render(dialog, container);
+            let ref: Nullable<NodeCreator> = null;
+
+            ContextMenu.show((
+                <Menu>
+                    <NodeCreator ref={(r) => ref = r} onSelect={(type) => resolve(type)} />
+                </Menu>
+            ), {
+                top: event.clientY,
+                left: event.clientX,
+            }, () => {
+                ref?._clearKeyboardEvent();
+            });
         });
     }
 
-    private _enterListener: (this: Window, ev: WindowEventMap["keyup"]) => void;
     private _selectedNode: Nullable<ITreeNode> = null;
+    private _enterListener: (this: Window, ev: WindowEventMap["keyup"]) => void;
 
     /**
      * Constructor.
@@ -64,30 +64,22 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
      */
     public render(): React.ReactNode {
         return (
-            <Dialog
-                isOpen={true}
-                usePortal={true}
-                title="Create New Node"
-                className={Classes.DARK}
-                enforceFocus={true}
-                style={{ width: "800px", height: "600px" }}
-                onClose={() => this._handleClose(true)}
-            >
-                <div className={Classes.DIALOG_BODY}>
-                    <FormGroup disabled={false} inline={false} label="Search..." labelFor="filter-input" labelInfo="(filter)">
-                        <InputGroup id="filter-input" placeholder="Search..." disabled={false} autoFocus={true} type="text" onChange={(v) => this.setState({ filter: v.target.value, nodes: this._updateTreeNodes(v.target.value) })} />
-                    </FormGroup>
-                    <div style={{ width: "760px", height: "450px", overflow: "auto" }}>
-                        <Tree
-                            contents={this.state.nodes}
-                            onNodeDoubleClick={(n) => this._handleNodeDoubleClick(n)}
-                            onNodeCollapse={(n) => this._handleNodeCollapse(n)}
-                            onNodeExpand={(n) => this._handleNodeExpand(n)}
-                            className={Classes.ELEVATION_0}
-                        />
-                    </div>
+            <>
+                <FormGroup disabled={false} inline={false} label="Search..." labelFor="filter-input" labelInfo="(filter)">
+                    <InputGroup style={{ backgroundColor: "rgba(16, 22, 26, 0.3)", color: "white" }} id="filter-input" placeholder="Search..." disabled={false} autoFocus={true} type="text" onChange={(v) => {
+                        this.setState({ filter: v.target.value, nodes: this._updateTreeNodes(v.target.value) });
+                    }} />
+                </FormGroup>
+                <div style={{ minWidth: "500px", height: "450px", overflow: "auto" }}>
+                    <Tree
+                        contents={this.state.nodes}
+                        onNodeDoubleClick={(n) => this._handleNodeDoubleClick(n)}
+                        onNodeCollapse={(n) => this._handleNodeCollapse(n)}
+                        onNodeExpand={(n) => this._handleNodeExpand(n)}
+                        className={Classes.ELEVATION_0}
+                    />
                 </div>
-            </Dialog>
+            </>
         );
     }
 
@@ -104,15 +96,20 @@ export class NodeCreator extends React.Component<INodeCreatorProps, INodeCreateS
      * Called on the dialog is being closed.
      */
     private _handleClose(discard?: boolean): void {
-        if (this._enterListener) {
-            window.removeEventListener("keyup", this._enterListener);
-        }
-
         if (!discard) {
             this.props.onSelect(this._selectedNode?.id as string ?? null);
         }
 
-        ReactDOM.unmountComponentAtNode(this.props.container);
+        ContextMenu.hide();
+    }
+
+    /**
+     * Clears the registered keyboard events on window etc.
+     */
+    private _clearKeyboardEvent(): void {
+        if (this._enterListener) {
+            window.removeEventListener("keyup", this._enterListener);
+        }
     }
 
     /**

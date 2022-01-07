@@ -253,13 +253,11 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     private _layoutFactory(node: TabNode): React.ReactNode {
         const componentName = node.getComponent();
         if (!componentName) {
-            this.logs.log("Can't mount layout node without component name.");
             return <div>Error, see console...</div>;
         }
 
         const component = this._components[componentName];
         if (!component) {
-            this.logs.log(`No react component available for "${componentName}".`);
             return <div>Error, see console...</div>;
         }
 
