@@ -160,6 +160,7 @@ export class Graph extends React.Component<IGraphProps> {
         this._handleLinkContextMenu(this.graphCanvas);
         this._handlePrompt(this.graphCanvas);
         this._handleNodeMoved(this.graphCanvas);
+        this._handleLinkAborted(this.graphCanvas);
 
         this.resize();
 
@@ -234,10 +235,10 @@ export class Graph extends React.Component<IGraphProps> {
      * Adds a new node to the graph.
      * @param event defines the right-click event.
      */
-    public async addNode(event: MouseEvent): Promise<void> {
+    public async addNode(event: MouseEvent): Promise<Nullable<GraphNode>> {
         const type = await NodeCreator.Show(event);
         if (!type) {
-            return;
+            return null;
         }
 
         const node = LiteGraph.createNode(type) as GraphNode;
@@ -253,6 +254,8 @@ export class Graph extends React.Component<IGraphProps> {
             undo: () => this.graph?.remove(node),
             redo: () => this.graph?.add(node, false),
         });
+
+        return node;
     }
 
     /**
@@ -473,7 +476,7 @@ export class Graph extends React.Component<IGraphProps> {
     private async _updateSceneNodesLists(): Promise<void> {
         const meshes = await IPCTools.ExecuteEditorFunction<IMeshResult[]>("sceneUtils.getAllMeshes");
         Mesh.Meshes = GetMesh.Meshes = meshes.data.map((d) => ({ name: d.name, type: d.type }));
-        
+
         const cameras = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllCameras");
         Camera.Cameras = GetCamera.Cameras = cameras.data.map((d) => d.name);
 
@@ -575,12 +578,12 @@ export class Graph extends React.Component<IGraphProps> {
 
         document.addEventListener("keydown", (e) => {
             if (!this._canvasFocused) { return; }
-            
+
             // Copy/paste
             if (e.key === "c" && (e.ctrlKey || e.metaKey)) {
                 return this.graphCanvas?.copyToClipboard();
             }
-            
+
             if (e.key === "v" && (e.ctrlKey || e.metaKey)) {
                 return this.graphCanvas?.pasteFromClipboard();
             }
@@ -682,6 +685,17 @@ export class Graph extends React.Component<IGraphProps> {
         }
     }
 
+    /**
+     * Handles showing the node creator when the user connects an output slot to the void.
+     */
+    private _handleLinkAborted(graphCanvas: LGraphCanvas): void {
+        graphCanvas.onLinkAborted = async (e, n, s) => {
+            const node = await this.addNode(e);
+            if (node?.outputs[0]?.type === LiteGraph.EVENT as any) {
+                n.connect(s, node!, 0);
+            }
+        };
+    }
     /**
      * Cleans the useless links of the graph.
      */
