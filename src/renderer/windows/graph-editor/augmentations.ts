@@ -1,5 +1,7 @@
+import { Nullable } from "../../../shared/types";
+
 import { Scene } from "babylonjs";
-import { LGraphNode, LiteGraph } from "litegraph.js";
+import { INodeOutputSlot, LGraphCanvas, LGraphNode, LiteGraph } from "litegraph.js";
 
 import { ELinkErrorType, GraphNode } from "../../editor/graph/node";
 
@@ -20,6 +22,7 @@ declare module "litegraph.js" {
         read_only: boolean;
         notifyLinkError(errorType: ELinkErrorType): void;
         onNodeMoved?(node: GraphNode): void;
+        onLinkAborted?(event: MouseEvent, node: GraphNode, targetSlot: number): void;
     }
 
     interface INodeInputSlot {
@@ -41,7 +44,7 @@ declare module "litegraph.js" {
  * @param param defines the parameters to send to the target slot.
  * @param link_id in case you want to trigger and specific output link in a slot.
  */
-LGraphNode.prototype.triggerSlot = async function(slot: number, param: any, link_id): Promise<void> {
+LGraphNode.prototype.triggerSlot = async function (slot: number, param: any, link_id): Promise<void> {
     const promises: Promise<void>[] = [];
 
     if (!this.outputs) {
@@ -98,3 +101,41 @@ LGraphNode.prototype.triggerSlot = async function(slot: number, param: any, link
 
     await Promise.all(promises);
 }
+
+/**
+ * Overrides the mouse down event to add custom behavior.
+ */
+let connecting_slot: Nullable<number> = null;
+let connecting_node: Nullable<GraphNode> = null;
+let connecting_output: Nullable<INodeOutputSlot> = null;
+
+const processMouseDown = LGraphCanvas.prototype.processMouseDown;
+LGraphCanvas.prototype.processMouseDown = function (e) {
+    const result = processMouseDown.call(this, e);
+    connecting_node = this.connecting_node;
+    connecting_slot = this.connecting_slot;
+    connecting_output = this.connecting_output;
+
+    return result;
+};
+
+/**
+ * Overrides the mouse up event to add custom behavior.
+ */
+const processMouseUp = LGraphCanvas.prototype.processMouseUp;
+LGraphCanvas.prototype.processMouseUp = function (e) {
+    const result = processMouseUp.call(this, e);
+
+    const node = this.graph.getNodeOnPos(e["canvasX"], e["canvasY"], this.visible_nodes);
+    const slot = node ? this.isOverNodeInput(node, e["canvasX"], e["canvasY"]) : null;
+
+    if (connecting_node && connecting_slot !== -1 && connecting_output?.type === (LiteGraph.EVENT as any) && !node && slot === null) {
+        this.onLinkAborted?.(e, connecting_node, connecting_slot);
+    }
+
+    connecting_node = null;
+    connecting_slot = null;
+    connecting_output = null;
+
+    return result;
+};
