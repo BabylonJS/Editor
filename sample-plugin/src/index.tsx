@@ -1,7 +1,27 @@
+import { join } from "path";
+
 import * as React from "react";
-import { Editor, IPlugin, IPluginConfiguration } from "babylonjs-editor";
+import { Editor, IPlugin, IPluginConfiguration, IPluginGraph, Icon } from "babylonjs-editor";
 
 import { Toolbar } from "./toolbar";
+
+import { MarkdownInspector } from "./inspectors/md-inspector";
+
+import { MarkdownItemHandler } from "./assets/md-handler";
+import { AssetsBrowserMarkdownMoveHandler } from "./assets/md-move";
+
+import { CustomLog } from "./graph/basic-node";
+
+/**
+ * Returns the configuration of graph nodes to register when the plugin has been loaded.
+ */
+export const registerGraphConfiguration = (): IPluginGraph => {
+    return {
+        nodes: [
+            { creatorPath: "sample_plugin/custom_log", ctor: CustomLog },
+        ],
+    }
+}
 
 /**
  * Registers the plugin by returning the IPlugin content.
@@ -16,7 +36,24 @@ export const registerEditorPlugin = (editor: Editor, configuration: IPluginConfi
          * Defines the list of all toolbar elements to add when the plugin has been loaded.
          */
         toolbar: [
-            { buttonLabel: "Sample Plugin", buttonIcon: "airplane", content: <Toolbar editor={editor} /> }
+            { buttonLabel: "Sample Plugin", buttonIcon: <Icon src={join(__dirname, "../../assets/markdown.svg")} />, content: <Toolbar editor={editor} /> }
+        ],
+
+        /**
+         * Defines the list of all inspectors to register when the plugin has been loaded.
+         */
+        inspectors: [
+            { ctor: MarkdownInspector, ctorNames: ["MarkdownEditableObject"], title: "Markdown" },
+        ],
+
+        /**
+         * Defines the list of all assets handlers to register when the plugin has been loaded.
+         */
+        assets: [
+            {
+                itemHandler: { ctor: MarkdownItemHandler, extension: ".md" },
+                moveItemhandler: new AssetsBrowserMarkdownMoveHandler(editor),
+            },
         ],
 
         /**

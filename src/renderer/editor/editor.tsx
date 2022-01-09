@@ -61,6 +61,9 @@ import { MainToolbar } from "./components/main-toolbar";
 import { ToolsToolbar } from "./components/tools-toolbar";
 import { Console } from "./components/console";
 
+// Assets
+import { AssetsBrowserItem } from "./components/assets-browser/files/item";
+
 // Augmentations
 import "./gui/augmentations/index";
 
@@ -1295,6 +1298,7 @@ export class Editor {
             if (exists) { continue; }
 
             if (pluginReference.onDispose) { pluginReference.onDispose(); }
+
             delete Editor.LoadedExternalPlugins[p];
         }
 
@@ -1328,9 +1332,18 @@ export class Editor {
                 }
 
                 // Inspectors
-                if (plugin.inspectors) {
-                    plugin.inspectors.forEach((i) => Inspector.RegisterObjectInspector(i));
-                }
+                plugin.inspectors?.forEach((i) => Inspector.RegisterObjectInspector(i));
+
+                // Assets
+                plugin.assets?.forEach((a) => {
+                    if (a.itemHandler) {
+                        AssetsBrowserItem.RegisterItemHandler(a.itemHandler);
+                    }
+
+                    if (a.moveItemhandler) {
+                        AssetsBrowserItem.RegisterItemMoveHandler(a.moveItemhandler);
+                    }
+                });
             } catch (e) {
                 console.error(e);
             }
