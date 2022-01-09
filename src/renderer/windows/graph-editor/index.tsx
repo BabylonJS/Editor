@@ -160,6 +160,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         this._components["inspector"] = <Inspector editor={this as any} toolId={Tools.RandomId()} _objectRef={null} />;
 
         GraphCode.Init();
+        TouchBarHelper.SetTouchBarElements([]);
     }
 
     /**

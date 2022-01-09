@@ -39,7 +39,7 @@ export class DisposeNode extends GraphNode<{ do_not_recurse: boolean; dispose_ma
      */
     public generateCode(node: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `${node.code}.dispose(${this.properties.do_not_recurse}, ${this.properties.dispose_material_and_textures})`,
         };
     }

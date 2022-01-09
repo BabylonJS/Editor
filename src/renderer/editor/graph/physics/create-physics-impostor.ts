@@ -66,7 +66,7 @@ export class CreatePhysicsImpostor extends GraphNode<{ type: string; mass: numbe
             });`;
 
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: undefined },

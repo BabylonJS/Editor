@@ -47,7 +47,7 @@ export class TransformLight extends GraphNode {
         const code = `${position ? `\n${light.code}.direction = ${position.code}` : ""}${direction ? `\n${light.code}.rotation = ${direction.code}` : ""}`;
 
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: undefined },

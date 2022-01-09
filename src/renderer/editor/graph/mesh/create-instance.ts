@@ -52,7 +52,7 @@ export class CreateMeshInstance extends GraphNode<{ name: string; }> {
         const code = `const ${varName} = ${mesh.code}.createInstance("${name}");`;
 
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: undefined },

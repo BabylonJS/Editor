@@ -70,17 +70,21 @@ export class NotNull extends GraphNode {
 
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("Bool", "boolean");
+        this.addOutput("object", "");
     }
 
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
-        const equals = this.getInputData(1) !== null;
+    public async execute(): Promise<void> {
+        const data = this.getInputData(1);
+        const equals = data !== null;
         
         this.setOutputData(1, equals);
+        this.setOutputData(2, data);
+
         if (equals) {
-            this.triggerSlot(0, null);
+            return this.triggerSlot(0, null);
         }
     }
 
@@ -98,6 +102,7 @@ export class NotNull extends GraphNode {
             outputsCode: [
                 { code: undefined },
                 { code: `(${a.code} !== null)` },
+                { code: a.code },
             ],
         };
     }
@@ -112,20 +117,24 @@ export class NotUndefined extends GraphNode {
 
         this.addInput("", LiteGraph.EVENT as any);
         this.addInput("object *", "");
-
+        
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("Bool", "boolean");
+        this.addOutput("object", "");
     }
 
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
-        const equals = this.getInputData(1) !== undefined;
+    public async execute(): Promise<void> {
+        const data = this.getInputData(1);
+        const equals = data !== undefined;
         
         this.setOutputData(1, equals);
+        this.setOutputData(2, data);
+
         if (equals) {
-            this.triggerSlot(0, null);
+            return this.triggerSlot(0, null);
         }
     }
 
@@ -143,6 +152,7 @@ export class NotUndefined extends GraphNode {
             outputsCode: [
                 { code: undefined },
                 { code: `(${a.code} !== undefined)` },
+                { code: a.code },
             ],
         };
     }
@@ -160,17 +170,21 @@ export class NotNullOrUndefined extends GraphNode {
 
         this.addOutput("", LiteGraph.EVENT as any);
         this.addOutput("Bool", "boolean");
+        this.addOutput("object", "");
     }
 
     /**
      * Called on the node is being executed.
      */
-    public execute(): void {
-        const equals = this.getInputData(1) !== undefined;
+    public async execute(): Promise<void> {
+        const data = this.getInputData(1);
+        const equals = data !== null && data !== undefined;
         
         this.setOutputData(1, equals);
+        this.setOutputData(2, data);
+
         if (equals) {
-            this.triggerSlot(0, null);
+            return this.triggerSlot(0, null);
         }
     }
 
@@ -188,6 +202,7 @@ export class NotNullOrUndefined extends GraphNode {
             outputsCode: [
                 { code: undefined },
                 { code: `(${a.code} !== null && ${a.code} !== undefined)` },
+                { code: a.code },
             ],
         };
     }

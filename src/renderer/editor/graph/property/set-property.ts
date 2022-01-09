@@ -36,7 +36,7 @@ export class SetProperty extends GraphNode<{ path: string; }> {
      */
     public generateCode(object: ICodeGenerationOutput, value: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `${object.code}.${this.properties.path} = ${value.code}`,
         };
     }

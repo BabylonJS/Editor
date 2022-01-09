@@ -53,7 +53,7 @@ export class GetAnimationRange extends GraphNode<{ name: string; }> {
         `;
 
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: varName },

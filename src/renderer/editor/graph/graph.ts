@@ -7,6 +7,7 @@ import { Debugger } from "./basic/debugger";
 import { Cast } from "./basic/cast";
 import { KeyCode } from "./basic/key-code";
 import { ObjectNode } from "./basic/object";
+import { GFunction, CallGFunction } from "./basic/function";
 
 // Pointer
 import { RequestPointerLock, ExitPointerLock } from "./basic/pointer-lock";
@@ -127,6 +128,9 @@ export class GraphCode {
         LiteGraph.registerNodeType("basics/key_code", KeyCode);
 
         LiteGraph.registerNodeType("basics/object", ObjectNode);
+
+        LiteGraph.registerNodeType("basics/function", GFunction);
+        LiteGraph.registerNodeType("basics/call_function", CallGFunction);
 
         // Pointer
         LiteGraph.registerNodeType("pointer/request_pointer_lock", RequestPointerLock);

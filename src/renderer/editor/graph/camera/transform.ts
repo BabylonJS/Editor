@@ -43,7 +43,7 @@ export class TransformCamera extends GraphNode {
         const code = `${position ? `\n${camera.code}.position = ${position.code}` : ""}`;
 
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: undefined },

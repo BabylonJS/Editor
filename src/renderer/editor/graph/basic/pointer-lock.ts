@@ -30,7 +30,7 @@ export class RequestPointerLock extends GraphNode {
      */
     public generateCode(): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `if (!this._scene.getEngine().isPointerLock) {
                 this._scene.getEngine().enterPointerlock();
             }`,
@@ -66,7 +66,7 @@ export class ExitPointerLock extends GraphNode {
      */
     public generateCode(): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `if (this._scene.getEngine().isPointerLock) {
                 this._scene.getEngine().exitPointerlock();
             }`,

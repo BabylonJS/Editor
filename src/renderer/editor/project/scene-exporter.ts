@@ -342,7 +342,6 @@ export class SceneExporter {
 		// Tools
 		await this.GenerateScripts(editor);
 		await this.CopyShaderFiles(editor);
-		await this.GenerateProjectConfiguration(editor);
 
 		editor.updateTaskFeedback(task, 100);
 		editor.closeTaskFeedback(task, 1000);
@@ -460,8 +459,9 @@ export class SceneExporter {
 		await copyFile(join(Tools.GetAppPath(), "assets", "scripts", "fx.ts"), join(WorkSpace.DirPath!, "src", "scenes", "fx.ts"));
 
 		const tools = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
-		const finalTools = tools// .replace("// ${decorators}", decorators)
-			.replace("${editor-version}", editor._packageJson.version);
+		const finalTools = tools
+			.replace("${editor-version}", editor._packageJson.version)
+			.replace("\"${project-configuration}\"", JSON.stringify(this.GetProjectConfiguration(editor), null, "\t"));
 
 		await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "tools.ts"), finalTools, { encoding: "utf-8" });
 
@@ -517,12 +517,12 @@ export class SceneExporter {
 	 * Copies the current project configuration as a Json file.
 	 * @param editor defines the editor reference.
 	 */
-	public static async GenerateProjectConfiguration(editor: Editor): Promise<void> {
+	public static GetProjectConfiguration(editor: Editor): any {
 		if (!WorkSpace.Workspace) {
 			return;
 		}
 
-		editor.console.logInfo("Copying configuration...");
+		editor.console.logInfo("Computing project configuration...");
 
 		const projectConfiguration = {
 			compressedTextures: {
@@ -545,7 +545,7 @@ export class SceneExporter {
 			}
 		}
 
-		await writeJSON(join(WorkSpace.DirPath!, "src", "scenes", "configuration.json"), projectConfiguration, { encoding: "utf-8" });
+		return projectConfiguration;
 	}
 
 	/**

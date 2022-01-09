@@ -41,7 +41,7 @@ export class SetMeshMaterial extends GraphNode {
      */
     public generateCode(mesh: ICodeGenerationOutput, material: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `${mesh.code}.material = ${material.code};`,
             outputsCode: [
                 { code: undefined },

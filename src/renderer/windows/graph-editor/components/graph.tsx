@@ -600,9 +600,11 @@ export class Graph extends React.Component<IGraphProps> {
      */
     private _handleProcessContextMenu(graphCanvas: LGraphCanvas): void {
         graphCanvas.processContextMenu = (n: GraphNode, e: MouseEvent) => {
-            this.graphCanvas!.selectNode(n, e.ctrlKey || e.metaKey);
-
             if (n) {
+                if (!graphCanvas.selected_nodes[n.id]) {
+                    graphCanvas.selectNode(n, e.ctrlKey || e.metaKey);
+                }
+                
                 const slot = n.getSlotInPosition(e["canvasX"], e["canvasY"]);
                 if (slot?.input?.removable) {
                     return GraphContextMenu.ShowSlotContextMenu(n, slot.slot, e);
@@ -611,7 +613,7 @@ export class Graph extends React.Component<IGraphProps> {
                 return GraphContextMenu.ShowNodeContextMenu(e, this);
             }
 
-            const pos = this.graphCanvas!.convertEventToCanvasOffset(e);
+            const pos = graphCanvas!.convertEventToCanvasOffset(e);
             const group = this.graph?.getGroupOnPos(pos[0], pos[1]);
             GraphContextMenu.ShowGraphContextMenu(e, this, group!);
         };

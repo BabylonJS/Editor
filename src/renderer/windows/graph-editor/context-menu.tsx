@@ -101,7 +101,7 @@ export class GraphContextMenu {
 
                     undoRedo.push({
                         common: () => {
-                            node.computeSize();
+                            node.size = node.computeSize();
                             node.setDirtyCanvas(true, true);
                         },
                         undo: () => input.name = oldName,
@@ -113,7 +113,7 @@ export class GraphContextMenu {
 
                     undoRedo.push({
                         common: () => {
-                            node.computeSize();
+                            node.size = node.computeSize();
                             node.setDirtyCanvas(true, true);
                         },
                         undo: () => node.inputs.push(input),

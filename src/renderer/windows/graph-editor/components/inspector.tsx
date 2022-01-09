@@ -170,8 +170,9 @@ export class Inspector extends AbstractInspector<GraphNode | LGraphGroup, IInspe
      */
     private _getNodeCommonInspector(node: GraphNode): React.ReactNode {
         const colors = {
-            box: Color3.FromHexString(node.boxcolor),
-            background: Color3.FromHexString(node.bgcolor),
+            node: Color3.FromHexString(node.color ?? "#333333"),
+            box: Color3.FromHexString(node.boxcolor ?? "#333333"),
+            background: Color3.FromHexString(node.bgcolor ?? "#333333"),
         };
 
         return (
@@ -185,6 +186,7 @@ export class Inspector extends AbstractInspector<GraphNode | LGraphGroup, IInspe
                     { label: "Arrow", data: LiteGraph.ARROW_SHAPE },
                 ]} />
                 <InspectorColorPicker key={Tools.RandomId()} object={colors} property="box" label="Box Color" onChange={() => node.boxcolor = colors.box.toHexString()} />
+                <InspectorColorPicker key={Tools.RandomId()} object={colors} property="node" label="Title Color" onChange={() => node.color = colors.node.toHexString()} />
                 <InspectorColorPicker key={Tools.RandomId()} object={colors} property="background" label="Background Color" onChange={() => node.bgcolor = colors.background.toHexString()} />
             </InspectorSection>
         );

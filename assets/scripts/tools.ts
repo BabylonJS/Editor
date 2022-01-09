@@ -45,7 +45,7 @@ export interface IScript {
     onMessage?(name: string, data: any, sender: any): void;
 }
 
-import projectConfiguration from "./configuration.json";
+export const projectConfiguration = "${project-configuration}";
 
 /**
  * Configures the given engine according to the current project configuration (compressed textures, etc.).

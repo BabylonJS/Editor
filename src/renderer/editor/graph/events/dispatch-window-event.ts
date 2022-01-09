@@ -35,7 +35,7 @@ export class DispatchWindowEvent extends GraphNode<{ eventName: string; }> {
         const code = `window.dispatchEvent(new CustomEvent("${this.properties.eventName}", { detail: ${data?.code ?? "undefined"} }))`;
         
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
         };
     }
