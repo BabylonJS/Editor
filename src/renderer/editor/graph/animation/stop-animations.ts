@@ -35,7 +35,7 @@ export class StopAnimation extends GraphNode {
      */
     public generateCode(node: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `this._scene.stopAnimation(${node.code})`,
             outputsCode: [
                 { code: undefined },

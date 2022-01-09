@@ -37,7 +37,7 @@ export class SendNodeMessage extends GraphNode<{ message: string; }> {
      */
     public generateCode(node: ICodeGenerationOutput, data?: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `(${node.code} as any).onMessage?.call(${node.code}, "${this.properties.message}", ${data?.code ?? "null"}, this)`,
             outputsCode: [
                 { code: undefined },

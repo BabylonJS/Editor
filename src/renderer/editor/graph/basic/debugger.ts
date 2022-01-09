@@ -24,7 +24,7 @@ export class Debugger extends GraphNode {
      */
     public generateCode(): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: "debugger;",
         };
     }

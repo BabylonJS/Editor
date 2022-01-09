@@ -33,7 +33,7 @@ export class StopAnimationGroup extends GraphNode {
      */
     public generateCode(group: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `${group.code}.stop()`,
             outputsCode: [
                 { code: undefined },

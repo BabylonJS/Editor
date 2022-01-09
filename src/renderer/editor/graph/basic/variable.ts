@@ -36,6 +36,8 @@ export class Variable extends GraphNode<
     public constructor() {
         super("Variable");
 
+        this.bgcolor = "#503117";
+
         this.addProperty("type", "number", "string");
         this.addProperty("name", "myVariable", "string");
 
@@ -191,6 +193,8 @@ export class GetVariable extends GraphNode<{ name: string; }> {
     public constructor() {
         super("Get Variable");
 
+        this.bgcolor = "#503117";
+
         this.addProperty("name", Variable.Variables[0]?.properties.name ?? "None", "string");
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
@@ -230,6 +234,8 @@ export class UpdateVariable extends GraphNode<{ name: string; }> {
     public constructor() {
         super("Update Variable");
 
+        this.bgcolor = "#503117";
+
         this.addProperty("name", Variable.Variables[0]?.properties.name ?? "None", "string");
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
@@ -264,7 +270,7 @@ export class UpdateVariable extends GraphNode<{ name: string; }> {
      */
     public generateCode(input: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `this.${this.properties.name} = ${input.code}`,
             outputsCode: [
                 { code: undefined },

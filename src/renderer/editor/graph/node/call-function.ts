@@ -46,7 +46,7 @@ export class CallNodeFunction extends GraphNode<{ function: string; cast_as_any:
         const code = `${this.properties.cast_as_any ? `(${mesh.code} as any)` : mesh.code}.${this.properties.function}(${value?.code ?? ""});`;
 
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: undefined },

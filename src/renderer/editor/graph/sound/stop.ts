@@ -14,6 +14,7 @@ export class StopSound extends GraphNode {
         this.addInput("Sound *", "Sound");
 
         this.addOutput("", LiteGraph.EVENT as any);
+        this.addOutput("Sound", "Sound");
     }
 
     /**
@@ -33,8 +34,12 @@ export class StopSound extends GraphNode {
      */
     public generateCode(value: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `${value.code}.stop()`,
+            outputsCode: [
+                { code: undefined },
+                { code: value.code },
+            ],
         };
     }
 }

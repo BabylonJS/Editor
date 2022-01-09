@@ -68,7 +68,7 @@ export class SetParticleSystemProperty extends GraphNode<{ property: string; }> 
      */
     public generateCode(particleSystem: ICodeGenerationOutput, value: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `${particleSystem.code}.${this.properties.property} = ${value.code}`,
             outputsCode: [
                 { code: undefined },

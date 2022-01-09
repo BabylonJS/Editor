@@ -68,7 +68,7 @@ export class SetLightProperty extends GraphNode<{ property: string; }> {
      */
     public generateCode(light: ICodeGenerationOutput, value: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `${light.code}.${this.properties.property} = ${value.code}`,
             outputsCode: [
                 { code: undefined },

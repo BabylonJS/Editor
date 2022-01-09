@@ -52,7 +52,7 @@ export class RotateMesh extends GraphNode<{ amount: number; space: string; }> {
      */
     public generateCode(mesh: ICodeGenerationOutput, axis: ICodeGenerationOutput, amount?: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `${mesh.code}.rotate(${axis.code}, ${amount?.code ?? this.properties.amount.toString()}, Space.${this.properties.space})`,
             outputsCode: [
                 { code: undefined },

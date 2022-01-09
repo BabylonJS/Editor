@@ -42,11 +42,11 @@ export class GraphCodeGenerator {
         if (result.error) { return null; }
 
         const requires = result.nodeOutputs.filter((o) => o.requires);
-        const modules: IStringDictionary<string[]> = { };
+        const modules: IStringDictionary<string[]> = {};
         requires.forEach((r) => {
             r.requires!.forEach((r) => {
                 if (!modules[r.module]) { modules[r.module] = []; }
-                
+
                 r.classes.forEach((c) => {
                     if (modules[r.module].indexOf(c) !== -1) { return; }
                     modules[r.module].push(c);
@@ -60,9 +60,9 @@ export class GraphCodeGenerator {
         const properties = result.output.filter((o) => o.type === CodeGenerationExecutionType.Properties);
 
         const finalStr = this._Template.replace("// ${requires}", imports.join("\n"))
-                                       .replace("// ${onStart}", start.map((o) => o.code).join(""))
-                                       .replace("// ${onUpdate}", update.map((o) => o.code).join(""))
-                                       .replace("// ${properties}", properties.map((o) => o.code).join(""));
+            .replace("// ${onStart}", start.map((o) => o.code).join(""))
+            .replace("// ${onUpdate}", update.map((o) => o.code).join(""))
+            .replace("// ${properties}", properties.map((o) => o.code).join(""));
 
         const bFinalStr = this._FormatTsCode(finalStr);
         return bFinalStr;
@@ -73,7 +73,7 @@ export class GraphCodeGenerator {
      * @param graph defines the reference to the graph that should be converted to code.
      * @param stack defines the current stack of code generation.
      */
-    public static _GenerateCode(graph: LGraph, stack: ICodeGenerationStack = { }): ICodeGenerationStackFinalOutput {
+    public static _GenerateCode(graph: LGraph, stack: ICodeGenerationStack = {}): ICodeGenerationStackFinalOutput {
         stack.nodes = stack.nodes ?? graph.computeExecutionOrder(false, true) as GraphNode[];
         stack.visited = stack.visited ?? [];
 
@@ -103,12 +103,12 @@ export class GraphCodeGenerator {
 
                 const output = stack.visited!.find((o) => o.id === link.origin_id) ?? stack.nodeOutput;
                 const inputIndex = filteredInputs.indexOf(filteredInputs.find((fi) => fi.link === link.id)!);
-                
+
                 if (!output || inputIndex === -1) { continue; }
 
                 if (output.outputsCode && output.outputsCode[link.origin_slot]) {
                     const outputCode = output.outputsCode[link.origin_slot];
-                    
+
                     let code = outputCode.code!;
                     if (outputCode.thisVariable) {
                         code = `this.${output.variable?.name}`;
@@ -118,7 +118,7 @@ export class GraphCodeGenerator {
                     }
 
                     inputs[inputIndex] = { ...output, code };
-                // Simple input
+                    // Simple input
                 } else {
                     inputs[inputIndex] = output;
                 }
@@ -149,7 +149,7 @@ export class GraphCodeGenerator {
                 // Constant. Nothing to do for constant nodes, just keep the generated code.
                 case CodeGenerationOutputType.Constant:
                     break;
-                
+
                 // Variable
                 case CodeGenerationOutputType.Variable:
                     if (!previous.variable) {
@@ -158,7 +158,7 @@ export class GraphCodeGenerator {
 
                     previous.variable.name = previous.variable.name.replace(/ /g, "_");
                     const count = stack.visited!.filter((o) => o.variable?.name === previous.variable?.name);
-                    
+
                     if (count.length > 1) {
                         previous.variable.name = `${previous.variable.name}_${count.length}`;
                     }
@@ -168,17 +168,18 @@ export class GraphCodeGenerator {
 
                     const decorator = previous.variable.visibleInInspector ? `@visibleInInspector("${previous.variable.type}", "${previous.variable.name}", ${previous.variable.value.toString()})` : "";
                     output.push({
-                        code: `${decorator}\npublic ${previous.variable.name}: ${previous.variable.type} = ${previous.variable.value.toString()};\n`,
+                        code: `${decorator} public ${previous.variable.name}: ${previous.variable.type} = ${previous.variable.value.toString()};`,
                         type: executionType,
                     });
                     break;
 
                 // Just a function call
-                case CodeGenerationOutputType.Function:
+                case CodeGenerationOutputType.FunctionCall:
                     output.push({ code: previous.code, type: executionType });
                     break;
 
                 // Function with callback, means it has a trigger output
+                case CodeGenerationOutputType.Function:
                 case CodeGenerationOutputType.CallbackFunction:
                     const callbackResult = this._FunctionCallback(graph, { stack, output, previous, executionType, node: n, nodeIndex: index, inputs });
                     if (callbackResult?.error) {
@@ -310,7 +311,7 @@ export class GraphCodeGenerator {
             addFile(fileName: string, text: string) {
                 this.files[fileName] = ScriptSnapshot.fromString(text);
             }
-        
+
             // for ts.LanguageServiceHost
             getCompilationSettings = () => getDefaultCompilerOptions();
             getScriptFileNames = () => Object.keys(this.files);

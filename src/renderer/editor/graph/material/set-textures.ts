@@ -49,7 +49,7 @@ export class SetMaterialTextures extends GraphNode {
         }
 
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: undefined },

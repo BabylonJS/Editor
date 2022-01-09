@@ -35,7 +35,7 @@ export class GetMeshDirection extends GraphNode {
     public generateCode(mesh: ICodeGenerationOutput, localAxis: ICodeGenerationOutput): ICodeGenerationOutput {
         const code = `${mesh.code}.getDirection(${localAxis.code})`;
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: mesh.code },

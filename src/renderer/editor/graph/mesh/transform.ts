@@ -57,7 +57,7 @@ export class TransformMesh extends GraphNode {
         const code = `${position ? `\n${mesh.code}.position = ${position.code}` : ""}${rotation ? `\n${mesh.code}.rotation = ${rotation.code}` : ""}${scaling ? `\n${mesh.code}.scaling = ${scaling.code}` : ""}${quaternion ? `\n${mesh.code}.rotationQuaternion = ${quaternion.code}` : ""}`;
 
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: undefined },

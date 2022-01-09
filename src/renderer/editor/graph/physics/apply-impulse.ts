@@ -42,7 +42,7 @@ export class ApplyImpulse extends GraphNode {
         const code = `${mesh.code}.applyImpulse(${force.code}, ${contactPoint.code});`;
 
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code,
             outputsCode: [
                 { code: undefined },

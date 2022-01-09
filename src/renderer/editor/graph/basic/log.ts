@@ -31,7 +31,7 @@ export class Log extends GraphNode<{ message: string; }> {
      */
     public generateCode(value?: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `console.log(${value?.code ?? `"${this.properties.message}"`})`,
         };
     }

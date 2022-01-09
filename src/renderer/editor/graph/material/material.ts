@@ -13,7 +13,9 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
      */
     public static Materials: { name: string; base64: string; type: string; }[] = [];
 
+    private _baseWidth: number;
     private _baseHeight: number;
+
     private _img: Nullable<HTMLImageElement> = null;
     private _lastTextureName: Nullable<string> = null;
 
@@ -36,6 +38,7 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
 
         this.addOutput("Material", "Material");
 
+        this._baseWidth = this.size[0];
         this._baseHeight = this.size[1];
     }
 
@@ -87,6 +90,7 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
             }
 
             this.updateConnectedNodesFromOutput(0);
+            this.size = this.computeSize();
         }
 
         return super.propertyChanged(name, value);
@@ -112,8 +116,10 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
         }
 
         if (this._img?.complete) {
+            const diff = (this.size[0] - this._baseWidth) * 0.5;
+
             this.size[1] = this._baseHeight * 2 + 120;
-            ctx.drawImage(this._img, 5, this._baseHeight + 5, this.size[0] - 10, this._baseHeight + 110);
+            ctx.drawImage(this._img, diff + 5, this._baseHeight + 5, this.size[0] - (diff * 2) - 10, this._baseHeight + 110);
         }
         
         this._lastTextureName = this.properties.name;

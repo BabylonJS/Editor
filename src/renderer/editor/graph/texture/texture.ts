@@ -8,7 +8,9 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
      */
     public static Textures: { name: string; base64: string; }[] = [];
 
+    private _baseWidth: number;
     private _baseHeight: number;
+
     private _img: Nullable<HTMLImageElement> = null;
     private _lastTextureName: Nullable<string> = null;
 
@@ -31,6 +33,7 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
 
         this.addOutput("Texture", "BaseTexture,Texture");
 
+        this._baseWidth = this.size[0];
         this._baseHeight = this.size[1];
     }
 
@@ -65,6 +68,19 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
     }
 
     /**
+     * Called on a property changed.
+     * @param name defines the name of the property that changed.
+     * @param value defines the new value of the property.
+     */
+    public propertyChanged(name: string, value: any): boolean {
+        if (name === "name") {
+            this.size = this.computeSize();
+        }
+
+        return super.propertyChanged(name, value);
+    }
+
+    /**
      * Called each time the background is drawn.
      * @param ctx defines the rendering context of the canvas.
      * @override
@@ -84,10 +100,12 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
         }
 
         if (this._img?.complete) {
+            const diff = (this.size[0] - this._baseWidth) * 0.5;
+
             this.size[1] = this._baseHeight * 2 + 120;
-            ctx.drawImage(this._img, 5, this._baseHeight + 5, this.size[0] - 10, this._baseHeight + 100);
+            ctx.drawImage(this._img, diff + 5, this._baseHeight + 5, this.size[0] - (diff * 2) - 10, this._baseHeight + 100);
         }
-        
+
         this._lastTextureName = this.properties.name;
     }
 }

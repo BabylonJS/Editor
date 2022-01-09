@@ -39,7 +39,7 @@ export class AddMeshToShadowGenerator extends GraphNode {
      */
     public generateCode(mesh: ICodeGenerationOutput, light: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
-            type: CodeGenerationOutputType.Function,
+            type: CodeGenerationOutputType.FunctionCall,
             code: `${light.code}.getShadowGenerator()?.getShadowMap()?.renderList?.push(${mesh.code});`,
             outputsCode: [
                 { code: undefined },
