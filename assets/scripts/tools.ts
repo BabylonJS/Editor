@@ -60,11 +60,12 @@ export function configureEngine(engine: Engine): void {
 /**
  * Returns wether or not the given constructor is an ES6 (or more) class.
  * @param ctor defines the reference to the constructor to test.
+ * @param scene defines the reference the scene in case the tested script is a graph.
  * @returns wether or not the given constructor is 
  */
-function isEs6Class(ctor: any): boolean {
+function isEs6Class(ctor: any, scene: Scene): boolean {
     try {
-        ctor.call({});
+        ctor.call({}, scene, {});
         return false;
     } catch (e) {
         return true;
@@ -94,11 +95,13 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node
         let prototype = exports.default.prototype;
 
         // Call constructor
-        if (isEs6Class(prototype.constructor)) {
+        if (isEs6Class(prototype.constructor, scene)) {
             const currentScene = EngineStore.LastCreatedScene;
             EngineStore._LastCreatedScene = dummyScene;
 
-            const clone = Reflect.construct(prototype.constructor.bind(n), []);
+            const clone = exports.IsGraph ?
+                Reflect.construct(prototype.constructor.bind(n), [scene, n]) :
+                Reflect.construct(prototype.constructor.bind(n), []);
             Reflect.setPrototypeOf(n, clone.constructor.prototype);
 
             EngineStore._LastCreatedScene = currentScene;

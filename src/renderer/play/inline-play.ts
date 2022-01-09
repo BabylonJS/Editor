@@ -57,7 +57,7 @@ export class ScenePlayer {
         this._editor.scene!.activeCamera = null;
 
         // Run scene's tools
-        const sceneTools = require(join(WorkSpace.DirPath!, "build/src/scenes", WorkSpace.GetProjectName(), "index.js"));
+        const sceneTools = require(join(WorkSpace.DirPath!, "build/src/scenes/tools.js"));
         sceneTools.runScene(this._scene, rootUrl);
 
         this.runRenderLoop();

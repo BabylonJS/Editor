@@ -95,10 +95,11 @@ export class Variable extends GraphNode<
     public generateCode(input?: ICodeGenerationOutput): ICodeGenerationOutput {
         const requires: any[] = [];
         if (basicTypes.indexOf(this.properties.type) === -1) {
-            requires.push({ module: "@babylonjs/core", classes: ["Vector2", "Vector3", "AbstractMesh", "Mesh", "InstancedMesh", "Camera", "Light"] });
+            requires.push({ module: "@babylonjs/core", classes: [this.properties.type] });
         }
+
         if (inspectorVisibleTypes.indexOf(this.properties.type) !== -1 && this.properties.visibleInInspector) {
-            requires.push({ module: "../../decorators", classes: ["visibleInInspector"] });
+            requires.push({ module: "../decorators", classes: ["visibleInInspector"] });
         }
 
         return {
