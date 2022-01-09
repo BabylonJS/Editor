@@ -9,14 +9,16 @@ export class SetProperty extends GraphNode<{ path: string; }> {
     public constructor() {
         super("Set Property");
 
-        this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Object *", "");
-        this.addInput("Value *", "");
+        this.addInput("", LiteGraph.EVENT);
+        this.addInput("Object *", "", { linkedOutput: "Object" });
+        this.addInput("Value *", "", { linkedOutput: "Value" });
         
         this.addProperty("path", "name", "string");
         this.addWidget("text", "path", this.properties.path, (v) => this.properties.path = this.title = v);
 
-        this.addOutput("", LiteGraph.EVENT as any);
+        this.addOutput("", LiteGraph.EVENT);
+        this.addOutput("Object", "");
+        this.addOutput("Value", "");
     }
 
     /**
@@ -38,6 +40,11 @@ export class SetProperty extends GraphNode<{ path: string; }> {
         return {
             type: CodeGenerationOutputType.FunctionCall,
             code: `${object.code}.${this.properties.path} = ${value.code}`,
+            outputsCode: [
+                { code: undefined },
+                { code: object.code },
+                { code: value.code },
+            ],
         };
     }
 }

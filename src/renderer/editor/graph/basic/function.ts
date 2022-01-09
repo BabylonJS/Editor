@@ -13,8 +13,10 @@ export class GFunction extends GraphNode<{ name: string; }> {
 	public constructor() {
 		super("Function");
 
-		this.color = "#12233a";
+		this.color = "#1e3a5a";
 		this.bgcolor = "#244872";
+
+		this.size[1] = 120;
 
 		this.addProperty("name", "myFunction", "string");
 		this.addWidget("text", "name", this.properties.name, (v) => this.properties.name = v);
@@ -56,6 +58,23 @@ export class GFunction extends GraphNode<{ name: string; }> {
 			type: CodeGenerationOutputType.Function,
 			executionType: CodeGenerationExecutionType.Properties,
 		};
+	}
+
+	/**
+	 * Called each time the background is drawn.
+	 * @param ctx defines the rendering context of the canvas.
+	 * @override
+	 */
+	public drawBackground(ctx: CanvasRenderingContext2D): void {
+		super.drawBackground(ctx);
+
+		this.size[1] = Math.max(this.size[1], 120);
+
+		ctx.font = "40px Arial";
+		ctx.fillStyle = "#666";
+		ctx.textAlign = "center";
+		ctx.fillText("ƒ", this.size[0] * 0.5, (this.size[1] + LiteGraph.NODE_TITLE_HEIGHT) * 0.6);
+		ctx.textAlign = "left";
 	}
 }
 
@@ -110,5 +129,20 @@ export class CallGFunction extends GraphNode {
 			code: `this._function_${this.properties.name}()`,
 			type: CodeGenerationOutputType.FunctionCall,
 		};
+	}
+
+	/**
+	 * Called each time the background is drawn.
+	 * @param ctx defines the rendering context of the canvas.
+	 * @override
+	 */
+	public drawBackground(ctx: CanvasRenderingContext2D): void {
+		super.drawBackground(ctx);
+
+		ctx.font = "20px Arial";
+		ctx.fillStyle = "#666";
+		ctx.textAlign = "center";
+		ctx.fillText("ƒ", this.size[0] * 0.5, (this.size[1] + LiteGraph.NODE_TITLE_HEIGHT) * 0.2);
+		ctx.textAlign = "left";
 	}
 }

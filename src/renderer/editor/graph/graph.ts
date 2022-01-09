@@ -12,15 +12,16 @@ import { Cast } from "./basic/cast";
 import { KeyCode } from "./basic/key-code";
 import { ObjectNode } from "./basic/object";
 import { GFunction, CallGFunction } from "./basic/function";
+import { StringCase, StringConcat } from "./basic/string";
 
 // Pointer
 import { RequestPointerLock, ExitPointerLock } from "./basic/pointer-lock";
 
 // Math
-import { Add, Subtract, Multiply, Divide } from "./math/operation";
+import { Add, Subtract, Multiply, Divide, Compare } from "./math/operation";
 import { Random } from "./math/random";
 import { Sinus, Cosinus, Tangent } from "./math/trigonometry";
-import { Equals, And, Or, NotNull, NotUndefined, NotNullOrUndefined, Not } from "./math/logic";
+import { Equals, And, Or, NotNull, NotUndefined, NotNullOrUndefined, Not, NotNaN, IsTrue } from "./math/logic";
 import { ForLoop } from "./math/loop";
 
 import { Vec2, Vec3, VectorLength } from "./math/vector";
@@ -67,6 +68,7 @@ import { TransformNode } from "./transform-node/transform-node";
 import { Mesh } from "./mesh/mesh";
 import { RotateMesh } from "./mesh/rotate";
 import { Translate } from "./mesh/translate";
+import { MoveWithCollisions } from "./mesh/move-with-collisions";
 import { PickMesh } from "./mesh/pick";
 import { TransformMesh } from "./mesh/transform";
 import { AbsoluteTransformMesh } from "./mesh/absolute-transform";
@@ -87,7 +89,7 @@ import { PauseAnimationGroup } from "./animation/pause-animation-group";
 import { AnimationRatio } from "./animation/ratio";
 import { InterpolationAnimation } from "./animation/interpolate";
 import { PlayAnimation } from "./animation/start-animations";
-import { PlayWeightedAnimation } from "./animation/start-weighted-animation";
+import { GetAnimationWeight, PlayWeightedAnimation, SetAnimationWeight } from "./animation/weighted-animation";
 import { StopAnimation } from "./animation/stop-animations";
 
 import { EasingFunction } from "./animation/easing";
@@ -138,6 +140,10 @@ export class GraphCode {
         LiteGraph.registerNodeType("basics/function", GFunction);
         LiteGraph.registerNodeType("basics/call_function", CallGFunction);
 
+        // String
+        LiteGraph.registerNodeType("string/string_case", StringCase);
+        LiteGraph.registerNodeType("string/string_concat", StringConcat);
+
         // Pointer
         LiteGraph.registerNodeType("pointer/request_pointer_lock", RequestPointerLock);
         LiteGraph.registerNodeType("pointer/exit_pointer_lock", ExitPointerLock);
@@ -148,11 +154,14 @@ export class GraphCode {
         LiteGraph.registerNodeType("math/multiply", Multiply);
         LiteGraph.registerNodeType("math/divide", Divide);
         LiteGraph.registerNodeType("math/random", Random);
+        LiteGraph.registerNodeType("math/compare", Compare);
 
         LiteGraph.registerNodeType("logic/equals", Equals);
         LiteGraph.registerNodeType("logic/and", And);
         LiteGraph.registerNodeType("logic/or", Or);
         LiteGraph.registerNodeType("logic/not", Not);
+        LiteGraph.registerNodeType("logic/not_nan", NotNaN);
+        LiteGraph.registerNodeType("logic/is_true", IsTrue);
         LiteGraph.registerNodeType("logic/not_null", NotNull);
         LiteGraph.registerNodeType("logic/not_undefined", NotUndefined);
         LiteGraph.registerNodeType("logic/not_null_or_undefined", NotNullOrUndefined);
@@ -226,6 +235,7 @@ export class GraphCode {
         LiteGraph.registerNodeType("mesh/mesh", Mesh);
         LiteGraph.registerNodeType("mesh/rotate_mesh", RotateMesh);
         LiteGraph.registerNodeType("mesh/translate_mesh", Translate);
+        LiteGraph.registerNodeType("mesh/move_with_collisions", MoveWithCollisions);
         LiteGraph.registerNodeType("mesh/pick_mesh", PickMesh);
         LiteGraph.registerNodeType("mesh/transform_mesh", TransformMesh);
         LiteGraph.registerNodeType("mesh/absolute_transform_mesh", AbsoluteTransformMesh);
@@ -247,8 +257,11 @@ export class GraphCode {
         LiteGraph.registerNodeType("animation/animation_ratio", AnimationRatio);
         LiteGraph.registerNodeType("animation/interpolation_animation", InterpolationAnimation);
         LiteGraph.registerNodeType("animation/play_animation", PlayAnimation);
-        LiteGraph.registerNodeType("animation/play_weighted_animation", PlayWeightedAnimation);
         LiteGraph.registerNodeType("animation/stop_animation", StopAnimation);
+
+        LiteGraph.registerNodeType("animation/get_animation_weight", GetAnimationWeight);
+        LiteGraph.registerNodeType("animation/set_animation_weight", SetAnimationWeight);
+        LiteGraph.registerNodeType("animation/play_weighted_animation", PlayWeightedAnimation);
 
         LiteGraph.registerNodeType("animation/easing_function", EasingFunction);
         LiteGraph.registerNodeType("animation/get_animation_range", GetAnimationRange);

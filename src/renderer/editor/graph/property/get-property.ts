@@ -10,8 +10,10 @@ export class GetProperty extends GraphNode<{ path: string; }> {
         this.addProperty("path", "name", "string");
         this.addWidget("text", "path", this.properties.path, (v) => this.properties.path = this.title = v);
         
-        this.addInput("Object *", "");
+        this.addInput("Object *", "", { linkedOutput: "Object" });
+
         this.addOutput("Value", "");
+        this.addOutput("Object", "");
     }
 
     /**
@@ -24,15 +26,23 @@ export class GetProperty extends GraphNode<{ path: string; }> {
         if (target) {
             this.setOutputData(0, target[this.properties.path] ?? null);
         }
+
+        this.setOutputData(1, target);
     }
 
     /**
      * Generates the code of the graph.
      */
     public generateCode(object: ICodeGenerationOutput): ICodeGenerationOutput {
+        const code = `${object.code}.${this.properties.path}`;
+
         return {
+            code,
             type: CodeGenerationOutputType.Constant,
-            code: `${object.code}.${this.properties.path}`,
+            outputsCode: [
+                { code },
+                { code: object.code },
+            ],
         };
     }
 }

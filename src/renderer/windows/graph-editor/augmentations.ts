@@ -14,8 +14,8 @@ declare module "litegraph.js" {
 
         sendEventToAllNodes(event: string): void;
 
-        hasPaused: boolean;
         scene?: Scene;
+        hasPaused: boolean;
     }
 
     interface LGraphCanvas {
