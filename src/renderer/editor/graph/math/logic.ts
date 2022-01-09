@@ -208,6 +208,103 @@ export class NotNullOrUndefined extends GraphNode {
     }
 }
 
+
+export class NotNaN extends GraphNode {
+    /**
+     * Constructor.
+     */
+    public constructor() {
+        super("Not NaN");
+
+        this.addInput("", LiteGraph.EVENT);
+        this.addInput("Value *", "number");
+        
+        this.addOutput("", LiteGraph.EVENT);
+        this.addOutput("Bool", "boolean");
+        this.addOutput("Value", "number");
+    }
+
+    /**
+     * Called on the node is being executed.
+     */
+    public async execute(): Promise<void> {
+        const data = this.getInputData(1);
+        const equals = !isNaN(data);
+        
+        this.setOutputData(1, equals);
+        this.setOutputData(2, data);
+
+        if (equals) {
+            return this.triggerSlot(0, null);
+        }
+    }
+
+    /**
+     * Generates the code of the graph.
+     */
+    public generateCode(a: ICodeGenerationOutput): ICodeGenerationOutput {
+        const code = `if (!isNaN(${a.code})) {
+                {{generated__equals__body}}
+            }`;
+        
+        return {
+            type: CodeGenerationOutputType.Condition,
+            code,
+            outputsCode: [
+                { code: undefined },
+                { code: `(!isNaN(${a.code})` },
+                { code: a.code },
+            ],
+        };
+    }
+}
+
+export class IsTrue extends GraphNode {
+    /**
+     * Constructor.
+     */
+    public constructor() {
+        super("Is True");
+
+        this.addInput("", LiteGraph.EVENT);
+        this.addInput("Value *", "", { linkedOutput: "Value" });
+        
+        this.addOutput("", LiteGraph.EVENT);
+        this.addOutput("Value", "number");
+    }
+
+    /**
+     * Called on the node is being executed.
+     */
+    public async execute(): Promise<void> {
+        const data = this.getInputData(1);
+        
+        this.setOutputData(1, data);
+
+        if (data) {
+            return this.triggerSlot(0, null);
+        }
+    }
+
+    /**
+     * Generates the code of the graph.
+     */
+    public generateCode(a: ICodeGenerationOutput): ICodeGenerationOutput {
+        const code = `if (${a.code}) {
+                {{generated__equals__body}}
+            }`;
+        
+        return {
+            type: CodeGenerationOutputType.Condition,
+            code,
+            outputsCode: [
+                { code: undefined },
+                { code: a.code },
+            ],
+        };
+    }
+}
+
 export class And extends GraphNode {
     /**
      * Constructor.

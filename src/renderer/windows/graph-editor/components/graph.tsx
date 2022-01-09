@@ -326,7 +326,7 @@ export class Graph extends React.Component<IGraphProps> {
      */
     public startGraph(graph: LGraph, scene: Scene): void {
         graph.hasPaused = false;
-        graph["scene"] = scene;
+        graph.scene = scene;
 
         graph.status = LGraph.STATUS_RUNNING;
 
