@@ -1,5 +1,9 @@
 import { LiteGraph } from "litegraph.js";
 
+import { Tools } from "../tools/tools";
+import { IPluginGraph } from "../plugins/graph";
+
+// Basics
 import { Number, String, Boolean } from "./basic/types";
 import { Variable, GetVariable, UpdateVariable } from "./basic/variable";
 import { Log } from "./basic/log";
@@ -257,5 +261,24 @@ export class GraphCode {
         // Materials
         LiteGraph.registerNodeType("material/material", Material);
         LiteGraph.registerNodeType("material/set_material_textures", SetMaterialTextures);
+
+        // Plugins
+        const preferences = Tools.GetEditorPreferences();
+        preferences?.plugins?.forEach((p) => {
+            if (!p.enabled) { return; }
+
+            try {
+                const exports = require(p.path);
+
+                const graphConfiguration = exports.registerGraphConfiguration?.() as IPluginGraph;
+                if (!graphConfiguration) { return; }
+
+                graphConfiguration.nodes?.forEach((n) => {
+                    LiteGraph.registerNodeType(n.creatorPath, n.ctor);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        });
     }
 }

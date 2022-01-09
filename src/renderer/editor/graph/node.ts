@@ -1,7 +1,7 @@
 import { Nullable } from "../../../shared/types";
 
 import { Scene } from "babylonjs";
-import { LGraphNode, LiteGraph, LLink, SerializedLGraphNode, Vector2, LGraphCanvas, WidgetCallback, IWidget } from "litegraph.js";
+import { LGraphNode, LiteGraph, LLink, SerializedLGraphNode, Vector2, LGraphCanvas, WidgetCallback, IWidget, INodeInputSlot, INodeOutputSlot } from "litegraph.js";
 
 import { Tools } from "../tools/tools";
 import { undoRedo } from "../tools/undo-redo";
@@ -198,7 +198,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      */
     public getInputData<T = any>(slot: number, force_update?: boolean): T {
         let force = force_update ?? false;
-        for (const linkId in this.graph?.links ?? { }) {
+        for (const linkId in this.graph?.links ?? {}) {
             const link = this.graph!.links[linkId];
             if (link.target_id === this.id && link.target_slot === slot) {
                 const originNode = this.graph!.getNodeById(link.origin_id);
@@ -222,7 +222,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
      */
     public onConnectionsChange(type: number, _: number, added: boolean, link: LLink, input: any): void {
         if (this.mode === LiteGraph.NEVER) { return; }
-        
+
         // Changed output type?
         if (link?.type && type === LiteGraph.INPUT && input?.linkedOutput) {
             const outputIndex = this.outputs.findIndex((o) => o.name === input.linkedOutput);
@@ -332,6 +332,26 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
     }
 
     /**
+     * Adds a new input slot to use in this node
+     * @param name defines the name of the input.
+     * @param type string defining the input type ("vec3","number",...), it its a generic one use 0
+     * @param extra_info this can be used to have special properties of an input (label, color, position, etc)
+     */
+    public addInput(name: string, type: string | number, extra_info?: Partial<INodeInputSlot>): void {
+        return super.addInput(name, type as any, extra_info);
+    }
+
+    /**
+     * Adds a new output slot to use in this node
+     * @param name defines the name of the output.
+     * @param type string defining the output type ("vec3","number",...)
+     * @param extra_info this can be used to have special properties of an output (label, special color, position, etc)
+     */
+    public addOutput(name: string, type: string | number, extra_info?: Partial<INodeOutputSlot>): void {
+        return super.addOutput(name, type as any, extra_info);
+    }
+
+    /**
      * Triggers an slot event in this node.
      * @param slot the index of the output slot.
      * @param param defines the parameters to send to the target slot.
@@ -341,7 +361,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
         if (this.graph!.hasPaused) {
             await this.waitForBreakPoint();
         }
-        
+
         return super.triggerSlot(slot, param ?? null, link_id);
     }
 
@@ -362,7 +382,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
         if (this.hasBeakPoint) {
             this.graph!.hasPaused = true;
             this.pausedOnBreakPoint = true;
-            
+
             this.focusOn();
             this.getScene()?.render();
 
@@ -490,7 +510,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
     public onDrawBackground(canvas: HTMLCanvasElement, _: CanvasRenderingContext2D): void {
         // Nothing to do now...
         if (this.flags["collapsed"]) { return; }
-        
+
         this.drawBackground(canvas as any);
     }
 
@@ -544,7 +564,7 @@ export abstract class GraphNode<TProperties = Record<string, any>> extends LGrap
 
         // Mode?
         if (this.mode !== LiteGraph.ON_TRIGGER) { return; }
-        
+
         if (pos[0] >= this.size[0] - 30 && pos[1] <= 5) {
             setTimeout(() => this.graph!.list_of_graphcanvas[0].canvas.style.cursor = "pointer", 0);
         }

@@ -13,5 +13,7 @@
     "devDependencies": {
         "babylonjs-editor": "file:../module"
     },
-    "dependencies": {}
+    "dependencies": {
+        "markdown-to-jsx": "7.1.5"
+    }
 }

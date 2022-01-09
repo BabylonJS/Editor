@@ -4,6 +4,7 @@ import { IObjectInspector } from "../components/inspector";
 
 import { Editor } from "../editor";
 
+import { IPluginAssets } from "./assets";
 import { IPluginToolbar } from "./toolbar";
 
 export interface IPluginConfiguration {
@@ -19,9 +20,13 @@ export interface IPlugin {
      */
     toolbar?: Undefinable<IPluginToolbar[]>;
     /**
-     * Defines the list of all inspector elements.
+     * Defines the list of all inspectors to register when the plugin has been loaded.
      */
     inspectors?: Undefinable<IObjectInspector[]>;
+    /**
+     * Defines the list of all assets handlers to register when the plugin has been loaded.
+     */
+    assets?: Undefinable<IPluginAssets[]>;
 
     /**
      * If implemented, should return an object (plain JSON object) that will be saved

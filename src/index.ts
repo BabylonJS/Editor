@@ -1,5 +1,7 @@
 // Plugins
+export { IPluginAssets } from "./renderer/editor/plugins/assets";
 export { IPluginToolbar } from "./renderer/editor/plugins/toolbar";
+export { IPluginGraph, IPluginGraphNode } from "./renderer/editor/plugins/graph";
 export { IPlugin, IPluginConfiguration } from "./renderer/editor/plugins/plugin";
 
 export { AbstractEditorPlugin, IEditorPluginProps } from "./renderer/editor/tools/plugin";
@@ -15,6 +17,9 @@ export { FSTools } from "./renderer/editor/tools/fs";
 // Assets
 export { Assets, IAssetComponent, IAssetsProps, IAssetsState } from "./renderer/editor/components/assets";
 export { AbstractAssets, IAbstractAssets, IAssetComponentItem, IAssetsComponentProps, IAssetsComponentState } from "./renderer/editor/assets/abstract-assets";
+
+export { AssetsBrowserMoveHandler } from "./renderer/editor/components/assets-browser/files/move/move-handler";
+export { AssetsBrowserItemHandler, IAssetsBrowserItemHandlerProps, IAssetsBrowserItemHandlerState, IItemHandler } from "./renderer/editor/components/assets-browser/files/item-handler";
 
 export { MaterialAssets } from "./renderer/editor/assets/materials";
 export { TextureAssets } from "./renderer/editor/assets/textures";
@@ -37,6 +42,9 @@ export { InspectorVector3 } from "./renderer/editor/gui/inspector/fields/vector3
 export { InspectorNotifier } from "./renderer/editor/gui/inspector/notifier";
 export { InspectorColorPicker } from "./renderer/editor/gui/inspector/fields/color-picker";
 export { InspectorList, IInspectorListItem } from "./renderer/editor/gui/inspector/fields/list";
+
+// Graph
+export { GraphNode, CodeGenerationExecutionType, CodeGenerationOutputType, ELinkErrorType, ICodeGenerationOutput, INodeContextMenuOption } from "./renderer/editor/graph/node";
 
 // Project
 export { FilesStore, IContentFile, IFile } from "./renderer/editor/project/files";
