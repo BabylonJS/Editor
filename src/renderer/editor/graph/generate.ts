@@ -62,7 +62,7 @@ export class GraphCodeGenerator {
         const finalStr = this._Template.replace("// ${requires}", imports.join("\n"))
             .replace("// ${onStart}", start.map((o) => o.code).join(""))
             .replace("// ${onUpdate}", update.map((o) => o.code).join(""))
-            .replace("// ${properties}", properties.map((o) => o.code).join(""));
+            .replace("// ${properties}", properties.map((o) => o.code).join("\n"));
 
         const bFinalStr = this._FormatTsCode(finalStr);
         return bFinalStr;

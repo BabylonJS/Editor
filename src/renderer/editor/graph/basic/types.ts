@@ -92,3 +92,59 @@ export class Boolean extends GraphNode<{ value: boolean; }> {
         };
     }
 }
+
+export class Null extends GraphNode {
+    /**
+     * Constructor.
+     */
+    public constructor() {
+        super("Null");
+
+        this.addOutput("", "");
+    }
+
+    /**
+     * Called on the node is being executed.
+     */
+    public execute(): void {
+        this.setOutputData(0, null);
+    }
+
+    /**
+     * Generates the code of the graph.
+     */
+    public generateCode(): ICodeGenerationOutput {
+        return {
+            code: "null",
+            type: CodeGenerationOutputType.Constant,
+        };
+    }
+}
+
+export class Undefined extends GraphNode {
+    /**
+     * Constructor.
+     */
+    public constructor() {
+        super("Undefined");
+
+        this.addOutput("", "");
+    }
+
+    /**
+     * Called on the node is being executed.
+     */
+    public execute(): void {
+        this.setOutputData(0, undefined);
+    }
+
+    /**
+     * Generates the code of the graph.
+     */
+    public generateCode(): ICodeGenerationOutput {
+        return {
+            code: "undefined",
+            type: CodeGenerationOutputType.Constant,
+        };
+    }
+}

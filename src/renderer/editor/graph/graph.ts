@@ -4,7 +4,7 @@ import { Tools } from "../tools/tools";
 import { IPluginGraph } from "../plugins/graph";
 
 // Basics
-import { Number, String, Boolean } from "./basic/types";
+import { Number, String, Boolean, Null, Undefined } from "./basic/types";
 import { Variable, GetVariable, UpdateVariable } from "./basic/variable";
 import { Log } from "./basic/log";
 import { Debugger } from "./basic/debugger";
@@ -120,6 +120,8 @@ export class GraphCode {
         LiteGraph.registerNodeType("basics/number", Number);
         LiteGraph.registerNodeType("basics/string", String);
         LiteGraph.registerNodeType("basics/boolean", Boolean);
+        LiteGraph.registerNodeType("basics/null", Null);
+        LiteGraph.registerNodeType("basics/undefined", Undefined);
 
         LiteGraph.registerNodeType("basics/debugger", Debugger);
         LiteGraph.registerNodeType("basics/log", Log);
