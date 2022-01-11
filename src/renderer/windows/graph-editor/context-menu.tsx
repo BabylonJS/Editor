@@ -21,7 +21,7 @@ export class GraphContextMenu {
      */
     public static ShowNodeContextMenu(event: MouseEvent, editor: Graph): void {
         let extraOptions: JSX.Element[] = [];
-        
+
         const selectedNodes = Object.keys(editor.graphCanvas!.selected_nodes);
         if (selectedNodes.length === 1) {
             const node = editor.graphCanvas!.selected_nodes[selectedNodes[0]] as GraphNode;
@@ -86,12 +86,12 @@ export class GraphContextMenu {
     }
 
     /**
-     * Shows the context menu when a slot is right-clicked.
+     * Shows the context menu when an input slot is right-clicked.
      * @param node defines the reference to the node containing the clicked slot.
      * @param slot defines the index of the slot being clicked.
      * @param event defines the mouse event.
      */
-    public static ShowSlotContextMenu(node: GraphNode, slot: number, event: MouseEvent): void {
+    public static ShowSlotInputContextMenu(node: GraphNode, slot: number, event: MouseEvent): void {
         ContextMenu.show(
             <Menu>
                 <MenuItem text="Rename Slot..." onClick={async () => {
@@ -116,8 +116,48 @@ export class GraphContextMenu {
                             node.size = node.computeSize();
                             node.setDirtyCanvas(true, true);
                         },
-                        undo: () => node.inputs.push(input),
-                        redo: () => node.inputs.splice(node.inputs.indexOf(input)),
+                        undo: () => node.addInput(input.name, input.type, input),
+                        redo: () => node.removeInput(slot),
+                    });
+                }} />
+            </Menu>,
+            { left: event.clientX, top: event.clientY }
+        );
+    }
+
+    /**
+     * Shows the context menu when an output slot is right-clicked.
+     * @param node defines the reference to the node containing the clicked slot.
+     * @param slot defines the index of the slot being clicked.
+     * @param event defines the mouse event.
+     */
+    public static ShowSlotOutputContextMenu(node: GraphNode, slot: number, event: MouseEvent): void {
+        ContextMenu.show(
+            <Menu>
+                <MenuItem text="Rename Slot..." onClick={async () => {
+                    const newName = await Dialog.Show("Output Name", "Please provide the new name of the output");
+                    const oldName = node.outputs[slot].name;
+                    const input = node.outputs[slot];
+
+                    undoRedo.push({
+                        common: () => {
+                            node.size = node.computeSize();
+                            node.setDirtyCanvas(true, true);
+                        },
+                        undo: () => input.name = oldName,
+                        redo: () => input.name = newName,
+                    });
+                }} />
+                <MenuItem text="Remove Slot" icon={<Icon src="times.svg" />} onClick={() => {
+                    const input = node.outputs[slot];
+
+                    undoRedo.push({
+                        common: () => {
+                            node.size = node.computeSize();
+                            node.setDirtyCanvas(true, true);
+                        },
+                        undo: () => node.addOutput(input.name, input.type, input),
+                        redo: () => node.removeOutput(slot),
                     });
                 }} />
             </Menu>,

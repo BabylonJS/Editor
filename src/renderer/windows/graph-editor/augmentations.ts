@@ -36,6 +36,13 @@ declare module "litegraph.js" {
          */
         removable?: boolean;
     }
+
+    interface INodeOutputSlot {
+        /**
+         * Defines wether or not the output is removable.
+         */
+        removable?: boolean;
+    }
 }
 
 /**
