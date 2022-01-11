@@ -607,7 +607,11 @@ export class Graph extends React.Component<IGraphProps> {
                 
                 const slot = n.getSlotInPosition(e["canvasX"], e["canvasY"]);
                 if (slot?.input?.removable) {
-                    return GraphContextMenu.ShowSlotContextMenu(n, slot.slot, e);
+                    return GraphContextMenu.ShowSlotInputContextMenu(n, slot.slot, e);
+                }
+
+                if (slot?.output?.removable) {
+                    return GraphContextMenu.ShowSlotOutputContextMenu(n, slot.slot, e);
                 }
 
                 return GraphContextMenu.ShowNodeContextMenu(e, this);

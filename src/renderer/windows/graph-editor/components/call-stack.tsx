@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Classes, Tree, ITreeNode, Callout, Intent, Tooltip, ButtonGroup, Button, Pre, Position } from "@blueprintjs/core";
+import { Classes, Tree, ITreeNode, Callout, Tooltip, ButtonGroup, Button, Pre, Position } from "@blueprintjs/core";
 
 import { LiteGraph } from "litegraph.js";
 
@@ -57,7 +57,7 @@ export class CallStack extends React.Component<ICallStackProps, ICallStackState>
             );
         } else {
             empty = (
-                <Callout title="Call Stack" style={{ height: "100%" }} intent={Intent.PRIMARY} icon="info-sign">
+                <Callout title="Call Stack" style={{ height: "100%" }} intent="none" icon="info-sign">
                     <p>This panel (Call Stack) draws the current call stack when a debugger is set on the graph.</p>
                 </Callout>
             );

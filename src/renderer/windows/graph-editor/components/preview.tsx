@@ -5,7 +5,7 @@ import { mkdtemp, writeJson, rmdir, remove } from "fs-extra";
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { Callout, Intent, Spinner } from "@blueprintjs/core";
+import { Callout, Spinner } from "@blueprintjs/core";
 
 import { Engine, Scene, SceneLoader } from "babylonjs";
 import "babylonjs-materials";
@@ -78,7 +78,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         let welcome: React.ReactNode;
         if (this.state.welcome) {
             welcome = (
-                <Callout title="Preview" style={{ height: "100%" }} intent={Intent.SUCCESS} icon="info-sign">
+                <Callout title="Preview" style={{ height: "100%" }} intent="none" icon="info-sign">
                     <h3 style={{ color: "white" }}>
                         This panel (Preview) draws the current scene when the graph is started and is used to preview the graph results.
                         <br />

@@ -19,7 +19,7 @@ export class NodeUtils {
         switch (node.mode) {
             case LiteGraph.ALWAYS: node.color = undefined!; break;
             case LiteGraph.ON_EVENT: node.color = "#55A"; break;
-            case LiteGraph.ON_TRIGGER: node.color = "#151"; break;
+            case LiteGraph.ON_TRIGGER: node.color = "#115543"; break;
             case LiteGraph.NEVER: node.color = "#A55"; break;
             default: break;
         }
