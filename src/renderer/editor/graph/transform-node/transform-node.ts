@@ -18,6 +18,7 @@ export class TransformNode extends GraphNode<{ var_name: string; name: string; }
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
             this.title = `Transform Node (${v})`;
+            this.size = this.computeSize();
         }, {
             values: () => ["Self"].concat(TransformNode.TransformNodes),
         });

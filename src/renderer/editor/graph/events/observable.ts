@@ -5,45 +5,52 @@ import { Observer, Observable } from "babylonjs";
 import { CodeGenerationExecutionType, CodeGenerationOutputType, GraphNode, ICodeGenerationOutput } from "../node";
 import { LiteGraph, LLink, SerializedLGraphNode } from "litegraph.js";
 
-interface IObservableInput {
+interface IObservableOutput {
 	name: string;
 	type: string;
+	property?: string;
 }
 
 interface IObservable {
 	name: string;
-	inputs: IObservableInput[];
+	outputs: IObservableOutput[];
 }
 
 const observablesList: Record<string, IObservable[]> = {
 	"ParticleSystem": [
-		{ name: "onDisposeObservable", inputs: [{ name: "Particles System", type: "IParticleSystem,ParticleSystem" }] },
-		{ name: "onStoppedObservable", inputs: [{ name: "Particles System", type: "IParticleSystem,ParticleSystem" }] },
+		{ name: "onDisposeObservable", outputs: [{ name: "Particles System", type: "IParticleSystem,ParticleSystem" }] },
+		{ name: "onStoppedObservable", outputs: [{ name: "Particles System", type: "IParticleSystem,ParticleSystem" }] },
 		// { name: "onBeforeDrawParticlesObservable", inputs: [{ name: "Effect", type: "Effect" }] },
 	],
 	"Material": [
-		{ name: "onDisposeObservable", inputs: [{ name: "Material", type: "Material" }] },
-		{ name: "onBindObservable", inputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh" }] },
-		{ name: "onUnBindObservable", inputs: [{ name: "Material", type: "Material" }] },
+		{ name: "onDisposeObservable", outputs: [{ name: "Material", type: "Material" }] },
+		{ name: "onBindObservable", outputs: [
+			{ name: "Mesh", type: "Node,TransformNode,AbstractMesh" },
+			{ name: "Material", type: "Material", property: "material" },
+		] },
+		{ name: "onUnBindObservable", outputs: [{ name: "Material", type: "Material" }] },
 		// { name: "onEffectCreatedObservable", inputs: [{ name: "Material", type: "Material" }] },
 	],
 	"Node": [
-		{ name: "onDisposeObservable", inputs: [{ name: "Node", type: "Node" }] },
+		{ name: "onDisposeObservable", outputs: [{ name: "Node", type: "Node" }] },
 	],
 	"TransformNode": [
-		{ name: "onAfterWorldMatrixUpdateObservable", inputs: [{ name: "Node", type: "Node,TransformNode" }] },
+		{ name: "onAfterWorldMatrixUpdateObservable", outputs: [{ name: "Node", type: "Node,TransformNode" }] },
 	],
 	"AbstractMesh": [
-		{ name: "onCollideObservable", inputs: [{ name: "Other Mesh", type: "Node,TransformNode,AbstractMesh" }] },
-		{ name: "onCollisionPositionChangeObservable", inputs: [{ name: "New Position", type: "Vector3" }] },
-		{ name: "onMaterialChangedObservable", inputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh" }] },
-		{ name: "onRebuildObservable", inputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh" }] },
+		{ name: "onCollideObservable", outputs: [{ name: "Other Mesh", type: "Node,TransformNode,AbstractMesh" }] },
+		{ name: "onCollisionPositionChangeObservable", outputs: [{ name: "New Position", type: "Vector3" }] },
+		{ name: "onMaterialChangedObservable", outputs: [
+			{ name: "Mesh", type: "Node,TransformNode,AbstractMesh" },
+			{ name: "Material", type: "Material", property: "material" },
+		] },
+		{ name: "onRebuildObservable", outputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh" }] },
 	],
 	"Mesh": [
-		{ name: "onBeforeRenderObservable", inputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh,Mesh" }] },
-		{ name: "onBeforeBindObservable", inputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh,Mesh" }] },
-		{ name: "onAfterRenderObservable", inputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh,Mesh" }] },
-		{ name: "onBeforeDrawObservable", inputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh,Mesh" }] },
+		{ name: "onBeforeRenderObservable", outputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh,Mesh" }] },
+		{ name: "onBeforeBindObservable", outputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh,Mesh" }] },
+		{ name: "onAfterRenderObservable", outputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh,Mesh" }] },
+		{ name: "onBeforeDrawObservable", outputs: [{ name: "Mesh", type: "Node,TransformNode,AbstractMesh,Mesh" }] },
 	],
 };
 
@@ -76,7 +83,7 @@ export class GraphObservable extends GraphNode<{ name: string; once: boolean; }>
 			}
 
 			const observable = this._observablesList.find((o) => o.name === v);
-			observable?.inputs.forEach((i) => this.addOutput(i.name, i.type));
+			observable?.outputs.forEach((i) => this.addOutput(i.name, i.type));
 
 			this.size = this.computeSize();
 		}, {
@@ -137,6 +144,16 @@ export class GraphObservable extends GraphNode<{ name: string; once: boolean; }>
 			});
 		`;
 
+		const extraOutputs: string[] = [];
+		const observable = this._observablesList.find((o) => o.name === this.properties.name);
+
+		if (observable) {
+			for (let i = 3; i < this.outputs.length; i++) {
+				const property = observable.outputs[i - 2].property;
+				extraOutputs.push(property === "" ? argumentName : `${argumentName}.${property}`);
+			}
+		}
+
 		return {
 			code,
 			type: CodeGenerationOutputType.CallbackFunction,
@@ -145,6 +162,7 @@ export class GraphObservable extends GraphNode<{ name: string; once: boolean; }>
 				{ code: undefined },
 				{ code: input.code },
 				{ code: argumentName },
+				...extraOutputs.map((eo) => ({ code: eo })),
 			],
 		};
 	}

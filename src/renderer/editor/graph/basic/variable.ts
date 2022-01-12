@@ -41,7 +41,11 @@ export class Variable extends GraphNode<
         this.addProperty("type", "number", "string");
         this.addProperty("name", "myVariable", "string");
 
-        this.addWidget("text", "name", this.properties.name, (v) => this.properties.name = v);
+        this.addWidget("text", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Variable (${v})`;
+            this.size = this.computeSize();
+        });
         this.addWidget("combo", "type", this.properties.type, (v) => {
             this.properties.type = v;
             this._reset();
@@ -199,6 +203,8 @@ export class GetVariable extends GraphNode<{ name: string; }> {
         this.addProperty("name", Variable.Variables[0]?.properties.name ?? "None", "string");
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
+            this.title = `Get Variable (${v})`;
+            this.size = this.computeSize();
         }, {
             values: () => Variable.Variables.map((v) => v.properties.name),
         });
@@ -240,6 +246,8 @@ export class UpdateVariable extends GraphNode<{ name: string; }> {
         this.addProperty("name", Variable.Variables[0]?.properties.name ?? "None", "string");
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
+            this.title = `Update Variable (${v})`;
+            this.size = this.computeSize();
         }, {
             values: () => Variable.Variables.map((v) => v.properties.name),
         });

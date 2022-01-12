@@ -15,7 +15,11 @@ export class GetLight extends GraphNode<{ name: string; }> {
         this.addInput("Name", "string");
 
         this.addProperty("name", "None", "string", (v) => this.properties.name = this.title = v);
-        this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
+        this.addWidget("combo", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Get Light (${v})`;
+            this.size = this.computeSize();
+        }, {
             values: () => GetLight.Lights,
         });
 

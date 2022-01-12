@@ -30,7 +30,11 @@ export class GFunction extends GraphNode<{ name: string; }> {
 		this.size[1] = 120;
 
 		this.addProperty("name", "myFunction", "string");
-		this.addWidget("text", "name", this.properties.name, (v) => this.properties.name = v);
+		this.addWidget("text", "name", this.properties.name, (v) => {
+			this.properties.name = v;
+			this.title = `Function (${v})`;
+			this.size = this.computeSize();
+		});
 
 		this.addOutput("", LiteGraph.EVENT as any);
 
@@ -196,6 +200,8 @@ export class CallGFunction extends GraphNode {
 		this.addProperty("name", GFunction.Functions[0]?.properties.name ?? "None", "string");
 		this.addWidget("combo", "name", this.properties.name, (v) => {
 			this.properties.name = v;
+			this.title = `Call Function (${v})`;
+			this.size = this.computeSize();
 			this._functionRef = GFunction.Functions.find((f) => f.properties.name === v) ?? null;
 		}, {
 			values: () => GFunction.Functions.map((v) => v.properties.name),

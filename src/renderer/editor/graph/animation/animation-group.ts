@@ -15,7 +15,11 @@ export class AnimationGroup extends GraphNode<{ name: string; var_name: string; 
         this.addProperty("name", "None", "string");
         this.addProperty("var_name", "myGroup", "string");
 
-        this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
+        this.addWidget("combo", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Animation Group (${v})`;
+            this.size = this.computeSize();
+        }, {
             values: () => AnimationGroup.Groups,
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
