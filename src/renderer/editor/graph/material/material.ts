@@ -31,6 +31,7 @@ export class Material extends GraphNode<{ name: string; var_name: string; }> {
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
             this.title = `Material (${v})`;
+            this.size = this.computeSize();
         }, {
             values: () => Material.Materials.map((m) => m.name),
         });

@@ -15,12 +15,16 @@ export class ParticleSystem extends GraphNode<{ name: string; var_name: string; 
         this.addProperty("name", "None", "string");
         this.addProperty("var_name", "myPs", "string");
 
-        this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
+        this.addWidget("combo", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Particle System (${v})`;
+            this.size = this.computeSize();
+        }, {
             values: () => ParticleSystem.ParticleSystems,
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
-        this.addOutput("Particles System", "IParticleSystem");
+        this.addOutput("Particles System", "IParticleSystem,ParticleSystem");
     }
 
     /**

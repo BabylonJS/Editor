@@ -393,7 +393,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      * @param standalone defines wehter or not only the current graph will be executed.
      */
     public async start(standalone: boolean): Promise<void> {
-        this.logs.clear();
+        await this.logs.clear();
 
         await this.preview.reset(standalone);
         await this.graph.start(this.preview.getScene());

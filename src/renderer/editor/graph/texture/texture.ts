@@ -26,6 +26,7 @@ export class Texture extends GraphNode<{ name: string; var_name: string; }> {
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
             this.title = `Texture (${v})`;
+            this.size = this.computeSize();
         }, {
             values: () => Texture.Textures.map((t) => t.name),
         });

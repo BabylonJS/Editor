@@ -104,8 +104,8 @@ export class Logs extends React.Component<IConsoleProps, IConsoleState> {
     /**
      * Clears the logs.
      */
-    public clear(): void {
-
+    public clear(): Promise<void> {
+        return new Promise<void>((resolve) => this.setState({ logs: [] }, () => resolve()));
     }
 
     /**
@@ -114,7 +114,7 @@ export class Logs extends React.Component<IConsoleProps, IConsoleState> {
      */
     public log(type: ConsoleLogType, ...args: any[]): void {
         args.forEach((a) => {
-            if (!a.toString) {
+            if (!a?.toString) {
                 return;
             }
 
