@@ -26,7 +26,7 @@ export default class PreviewPlugin extends AbstractEditorPlugin<{ }> {
      * Called on the plugin is ready.
      */
     public async onReady(): Promise<void> {
-		if (!this.props.openParameters || !this._div) {
+		if (!this.props.openParameters || !this._div) {
 			return this.editor.closePlugin("node-material-editor");
 		}
 

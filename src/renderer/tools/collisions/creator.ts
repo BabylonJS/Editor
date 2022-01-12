@@ -63,13 +63,14 @@ export class ColliderCreator {
 
 		colliderMesh.metadata = {};
 		colliderMesh.scaling.set(1, 1, 1);
+		colliderMesh.rotation.set(0, 0, 0);
 		colliderMesh.position.set(1, 1, 1);
 
 		if (colliderMesh.rotationQuaternion) {
 			colliderMesh.rotationQuaternion.copyFrom(Quaternion.Identity());
 		}
 
-		colliderMesh.rotation.set(0, 0, 0);
+		colliderMesh.isPickable = false;
 
 		return colliderMesh;
 	}

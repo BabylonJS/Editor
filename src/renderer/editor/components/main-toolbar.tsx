@@ -271,7 +271,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "edit:reset-typescript-watcher": WorkSpace.RestartTypeScriptWatcher(this._editor); break;
 
             // Help
-            case "help:documentation": shell.openExternal("https://github.com/BabylonJS/Editor/blob/master/doc/00%20-%20welcome/doc.md"); break; // this._editor.addBuiltInPlugin("doc"); break;
+            // case "help:documentation": shell.openExternal("https://github.com/BabylonJS/Editor/blob/master/doc/00%20-%20welcome/doc.md"); break;
+            case "help:documentation": this._editor.addBuiltInPlugin("doc"); break;
             case "help:report": shell.openExternal("https://github.com/BabylonJS/Editor/issues"); break;
             case "help:welcome": WelcomeDialog.Show(this._editor, true); break;
             case "help:check-for-updates": EditorUpdater.CheckForUpdates(this._editor, true); break;

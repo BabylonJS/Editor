@@ -133,7 +133,7 @@ export class ScenePicker {
      */
     private _onCanvasUp(ev: MouseEvent, byPassDistance: boolean = false): void {
         this._editor.scene!.meshes.forEach((m) => {
-            if (!m._masterMesh) {
+            if (!m._masterMesh && !m.metadata?.collider) {
                 m.isPickable = true;
             }
         });

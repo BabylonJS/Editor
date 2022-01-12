@@ -28,7 +28,7 @@ export default class PreviewPlugin extends AbstractEditorPlugin<{ }> {
                 </div>
                 <iframe
                     ref={this._refHandler.getIFrame}
-                    src="https://doc.babylonjs.com/resources/"
+                    src="https://doc.babylonjs.com/extensions/editor"
                     style={{ width: "100%", height: "calc(100% - 30px)" }}
                 ></iframe>
             </>
