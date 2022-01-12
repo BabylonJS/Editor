@@ -196,7 +196,7 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 	
 					const normal = pick.getNormal(true, true);
 					if (normal) {
-						this._cloneMesh.lookAt(pick.pickedPoint.subtract(normal.negate()));
+						this._cloneMesh.lookAt(pick.pickedPoint.subtract(normal.negate()), 0, Math.PI * 0.5, 0);
 					}
 				}
 	
@@ -261,9 +261,9 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 
 		// Get rotation
 		const randomRotation = Quaternion.FromEulerAngles(
-			Math.random() * (this.randomRotationMax.x - this.randomRotationMin.x) + this.randomRotationMin.x,
-			Math.random() * (this.randomRotationMax.y - this.randomRotationMin.y) + this.randomRotationMin.y,
-			Math.random() * (this.randomRotationMax.z - this.randomRotationMin.z) + this.randomRotationMin.z,
+			Math.random() * ((this.randomRotationMax.x - this.randomRotationMin.x) + this.randomRotationMin.x),
+			Math.random() * ((this.randomRotationMax.y - this.randomRotationMin.y) + this.randomRotationMin.y),
+			Math.random() * ((this.randomRotationMax.z - this.randomRotationMin.z) + this.randomRotationMin.z),
 		);
 
 		const absoluteRotation = this._cloneMesh.absoluteRotationQuaternion;
@@ -279,7 +279,6 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 
 		// Search for existing thin instance under the set distance
 		const matrices = this._selectedMesh.thinInstanceGetWorldMatrices();
-		const paintDistance = this._paintDistance / this._decal.size.normalizeToNew().z;
 
 		for (let i = 0; i < matrices.length; i++) {
 			const m = matrices[i];
@@ -288,7 +287,7 @@ export class ThinInstancePainter extends AbstractPaintingTool {
 				transformedTranslation.multiply(this._selectedMesh.scaling),
 			);
 
-			if (distance < paintDistance) {
+			if (distance < this._paintDistance) {
 				if (!this._removing) { return; }
 				if (i === 0) { continue; }
 

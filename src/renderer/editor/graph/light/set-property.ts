@@ -86,6 +86,9 @@ export class SetLightProperty extends GraphNode<{ property: string; }> {
         // Slots
         this.removeInput(2);
         this.addInput("value *", property.type);
+
+        this.title = `Set Light Property (${property.name})`;
+        this.size = this.computeSize();
     }
 
     /**

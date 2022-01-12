@@ -125,7 +125,10 @@ export class ScenePicker {
      */
     private _onCanvasDown(ev: MouseEvent): void {
         this._downMousePosition.set(ev.offsetX, ev.offsetY);
-        this._editor.scene!.meshes.forEach((m) => m.isPickable = false);
+
+        if (!ev.ctrlKey) {
+            this._editor.scene!.meshes.forEach((m) => m.isPickable = false);
+        }
     }
 
     /**

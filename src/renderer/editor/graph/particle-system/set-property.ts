@@ -86,6 +86,9 @@ export class SetParticleSystemProperty extends GraphNode<{ property: string; }> 
         // Slots
         this.removeInput(2);
         this.addInput("value *", property.type);
+
+        this.title = `Set Particle System Property (${property.name})`;
+        this.size = this.computeSize();
     }
 
     /**

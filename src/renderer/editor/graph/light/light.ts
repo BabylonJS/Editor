@@ -18,6 +18,7 @@ export class Light extends GraphNode<{ name: string; var_name: string; }> {
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
             this.title = `Light (${v})`;
+            this.size = this.computeSize();
         }, {
             values: () => ["Self"].concat(Light.Lights),
         });

@@ -120,5 +120,8 @@ export class EasingFunction extends GraphNode<{ easingFunction: string; }> {
             this.addProperty(p.name, oldProperties[p.name] ?? p.value, p.type);
             this.addWidget("number", p.name, this.properties[p.name], (v) => this.properties[p.name] = v);
         });
+
+        this.title = `Easing Function (${fn})`;
+        this.size = this.computeSize();
     }
 }

@@ -18,6 +18,7 @@ export class Sound extends GraphNode<{ name: string; var_name: string; }> {
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
             this.title = `Sound (${v})`;
+            this.size = this.computeSize();
         }, {
             values: () => Sound.Sounds,
         });

@@ -15,7 +15,11 @@ export class Camera extends GraphNode<{ var_name: string; name: string; }> {
         this.addProperty("var_name", "aMesh", "string", (v) => this.properties.name = this.title = v);
         this.addProperty("name", "Self", "string", (v) => this.properties.name = this.title = v);
 
-        this.addWidget("combo", "name", this.properties.name, (v) => this.properties.name = v, {
+        this.addWidget("combo", "name", this.properties.name, (v) => {
+            this.properties.name = v;
+            this.title = `Camera (${v})`;
+            this.size = this.computeSize();
+        }, {
             values: () => ["Self"].concat(Camera.Cameras),
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);

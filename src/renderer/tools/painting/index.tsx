@@ -128,7 +128,7 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
 
         const tabTitle = (
             <Tooltip content={title} usePortal>
-                <Icon src={icon} />
+                <Icon src={icon} style={{ width: "20px", height: "20px" }} />
             </Tooltip>
         );
 
@@ -136,7 +136,7 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
             <div style={{ marginLeft: "-40px", marginTop: "5px", borderLeftColor: "#838383", borderLeftWidth: "2px", borderLeftStyle: "groove" }}>
                 {component}
             </div>
-        )
+        );
 
         return (
             <Tab id={id} title={tabTitle} key={id} panel={panel} style={{ width: "42px" }} />
