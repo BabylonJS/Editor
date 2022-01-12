@@ -11,11 +11,11 @@ export class SetMeshMaterial extends GraphNode {
         super("Set Mesh Material");
 
         this.addInput("", LiteGraph.EVENT as any);
-        this.addInput("Mesh *", "Mesh", { linkedOutput: "Mesh" });
+        this.addInput("Mesh *", "AbstractMesh,Mesh", { linkedOutput: "Mesh" });
         this.addInput("Material *", "Material", { linkedOutput: "Material" });
 
         this.addOutput("", LiteGraph.EVENT as any);
-        this.addOutput("Mesh", "Node,TransformNode,AbstractMesh,Mesh");
+        this.addOutput("Mesh", "Node,TransformNode,AbstractMesh");
         this.addOutput("Material", "Material");
     }
 

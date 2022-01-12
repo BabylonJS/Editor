@@ -42,6 +42,7 @@ import { TickGameEvent } from "./events/tick-game-event";
 import { CameraCollisionEvent } from "./events/collision-event";
 import { WindowEvent } from "./events/window-event";
 import { DispatchWindowEvent } from "./events/dispatch-window-event";
+import { GraphObservable } from "./events/observable";
 
 import { PickInfos } from "./data/pick-info";
 
@@ -202,6 +203,7 @@ export class GraphCode {
         LiteGraph.registerNodeType("events/collision_event", CameraCollisionEvent);
         LiteGraph.registerNodeType("events/window_event", WindowEvent);
         LiteGraph.registerNodeType("events/dispatch_window_event", DispatchWindowEvent);
+        LiteGraph.registerNodeType("events/observable", GraphObservable);
 
         // Data
         LiteGraph.registerNodeType("data/pick_infos", PickInfos);

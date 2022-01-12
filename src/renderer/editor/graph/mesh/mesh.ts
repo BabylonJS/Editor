@@ -18,9 +18,10 @@ export class Mesh extends GraphNode<{ var_name: string; name: string; }> {
         this.addWidget("combo", "name", this.properties.name, (v) => {
             this.properties.name = v;
             this.title = `Mesh (${v})`;
+            this.size = this.computeSize();
 
             if (v === "Self") {
-                this.outputs[0].type = `Node,TransformNode,AbstractMesh`;
+                this.outputs[0].type = `Node,TransformNode,AbstractMesh,Mesh,InstancedMesh`;
             } else {
                 const mesh = Mesh.Meshes.find((m) => m.name === v);
                 if (mesh) { this.outputs[0].type = `Node,TransformNode,AbstractMesh,${mesh.type}`; }
