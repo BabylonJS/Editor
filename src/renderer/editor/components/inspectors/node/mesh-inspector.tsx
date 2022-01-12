@@ -86,6 +86,12 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
 
         const meshSceneFilePath = this.selectedObject.metadata?.originalSourceFile?.sceneFileName ?? null;
 
+        const assetLink = this.selectedObject instanceof InstancedMesh ? (
+            <InspectorButton label="Go To Source Mesh" small icon="link" onClick={() => this.editor.selectedNodeObservable.notifyObservers((this.selectedObject as InstancedMesh).sourceMesh)} />
+        ) : (
+            <InspectorButton label="Show In Assets Browser" small icon="link" disabled={meshSceneFilePath === null} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(meshSceneFilePath)} />
+        );
+
         return (
             <>
                 {super.renderContent()}
@@ -94,7 +100,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
                     <InspectorBoolean object={this.selectedObject} property="isVisible" label="Visible" />
                     <InspectorBoolean object={this.selectedObject} property="isPickable" label="Pickable" />
 
-                    <InspectorButton label="Show In Assets Browser" small icon="link" disabled={meshSceneFilePath === null} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(meshSceneFilePath)} />
+                    {assetLink}
                 </InspectorSection>
 
                 {this._getRenderingInspector()}
