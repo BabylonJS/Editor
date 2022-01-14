@@ -9,7 +9,7 @@ import {
     AbstractMesh, Mesh,
     Vector2, Vector3, Vector4, Matrix,
     SSAO2RenderingPipeline, DefaultRenderingPipeline, ScreenSpaceReflectionPostProcess, MotionBlurPostProcess,
-    Nullable, EngineStore,
+    Nullable, EngineStore, SceneLoader,
 } from "@babylonjs/core";
 
 export type NodeScriptConstructor = (new (...args: any[]) => Node);
@@ -58,6 +58,23 @@ export function configureEngine(engine: Engine): void {
 }
 
 /**
+ * Loads the given scene file and appends it to the given scene reference (`toScene`).
+ * @param toScene defines the instance of `Scene` to append to.
+ * @param rootUrl defines the root url for the scene and resources or the concatenation of rootURL and filename (e.g. http://example.com/test.glb)
+ * @param sceneFilename defines the name of the scene file.
+ */
+export async function appendScene(toScene: Scene, rootUrl: string, sceneFilename: string): Promise<void> {
+    await SceneLoader.AppendAsync(rootUrl, sceneFilename, toScene, null, ".babylon");
+
+    return new Promise<void>((resolve) => {
+        toScene.executeWhenReady(() => {
+            runScene(toScene, rootUrl);
+            resolve();
+        });
+    });
+}
+
+/**
  * Returns wether or not the given constructor is an ES6 (or more) class.
  * @param ctor defines the reference to the constructor to test.
  * @param scene defines the reference the scene in case the tested script is a graph.
@@ -81,11 +98,11 @@ function isEs6Class(ctor: any, scene: Scene): boolean {
 function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node | Scene)[]): void {
     const dummyScene = new Scene(scene.getEngine(), { virtual: true });
     const initializedNodes: { node: Node | Scene; exports: any; }[] = [];
-    
+
     // Initialize nodes
     for (const n of nodes as ((Scene | Node) & IScript)[]) {
         if (!n.metadata || !n.metadata.script || !n.metadata.script.name || n.metadata.script.name === "None") { continue; }
-        
+
         const exports = scriptsMap[n.metadata.script.name];
         if (!exports) { continue; }
 
@@ -165,7 +182,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node
         }
 
         // Check properties
-        const properties = n.metadata.script.properties ?? { };
+        const properties = n.metadata.script.properties ?? {};
         for (const key in properties) {
             const p = properties[key];
 
@@ -214,11 +231,11 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node
         // Sounds
         const soundLinks = (e.default as any)._SoundValues ?? [];
         for (const link of soundLinks) {
-           switch (link.type) {
-               case "global": n[link.propertyKey] = scene.mainSoundTrack.soundCollection.find((s) => s.name === link.soundName && !s.spatialSound); break;
-               case "spatial": n[link.propertyKey] = scene.mainSoundTrack.soundCollection.find((s) => s.name === link.soundName && s.spatialSound); break;
-               default: n[link.propertyKey] = scene.getSoundByName(link.soundName); break;
-           }
+            switch (link.type) {
+                case "global": n[link.propertyKey] = scene.mainSoundTrack.soundCollection.find((s) => s.name === link.soundName && !s.spatialSound); break;
+                case "spatial": n[link.propertyKey] = scene.mainSoundTrack.soundCollection.find((s) => s.name === link.soundName && s.spatialSound); break;
+                default: n[link.propertyKey] = scene.getSoundByName(link.soundName); break;
+            }
         }
 
         // Check pointer events
@@ -351,8 +368,8 @@ export function applyMeshesPoseMatrices(scene: Scene): void {
 export function attachScriptToNodeAtRuntime(scriptPath: string, object: Node | Scene): any {
     const scriptsMap = require("./scripts-map").scriptsMap;
 
-    object.metadata = object.metadata ?? { };
-    object.metadata.script = object.metadata.script ?? { };
+    object.metadata = object.metadata ?? {};
+    object.metadata.script = object.metadata.script ?? {};
     object.metadata.script.name = scriptPath;
 
     requireScriptForNodes(object instanceof Scene ? object : object.getScene(), scriptsMap, [object]);
