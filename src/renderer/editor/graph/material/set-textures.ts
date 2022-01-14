@@ -72,7 +72,7 @@ export class SetMaterialTextures extends GraphNode {
         if (slot !== 1 || !added || !link) { return; }
 
         // Get output type and then material type.
-        const outputType = this.graph?.getNodeById(link.origin_id)?.outputs[link.origin_slot].type;
+        const outputType = this.graph?.getNodeById(link.origin_id)?.outputs[link.origin_slot]?.type;
         if (!outputType) {
             this.disconnectInput(slot);
             return;

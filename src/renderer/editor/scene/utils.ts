@@ -8,17 +8,20 @@ import { SceneExporter } from "../project/scene-exporter";
 import { TextureAssets } from "../assets/textures";
 import { MaterialAssets } from "../assets/materials";
 
+import { IExportedInspectorValue, SandboxMain } from "../../sandbox/main";
+
 import { Editor } from "../editor";
+import { Tools } from "../tools/tools";
 
 export interface INodeResult {
-    /**
-     * Defines the name of the node.
-     */
-    name: string;
     /**
      * Defines the Id of the node.
      */
     id: string;
+    /**
+     * Defines the name of the node.
+     */
+    name: string;
 }
 
 export interface IMeshResult extends INodeResult {
@@ -48,21 +51,32 @@ export interface IMaterialResult extends IAssetResult {
 
 export interface ISceneJsonResult {
     /**
+     * Defines the JSON representation of the scenE.
+     */
+    scene: any;
+    /**
      * Defines the Root Url of the scene.
      */
     rootUrl: string;
-    /**
-     * Defines the absolute path to the workspace.
-     */
-    workspacePath: string;
     /**
      * Defines the name of the scene (project).
      */
     sceneName: string;
     /**
-     * Defines the JSON representation of the scenE.
+     * Defines the absolute path to the workspace.
      */
-    scene: any;
+    workspacePath: string;
+}
+
+export interface ISerializablePropertyResult {
+    /**
+     * Defines the type of the property.
+     */
+    type: string;
+    /**
+     * Defines the name of the property.
+     */
+    propertyKey: string;
 }
 
 export class SceneUtils {
@@ -70,7 +84,7 @@ export class SceneUtils {
      * Defines the current scene.
      */
     public readonly scene: Scene;
-    
+
     private readonly _editor: Editor;
 
     /**
@@ -87,8 +101,9 @@ export class SceneUtils {
      */
     public getAllNodes(): INodeResult[] {
         return (this.getAllMeshes() as INodeResult[])
-                    .concat(this.getAllLights())
-                    .concat(this.getAllCameras());
+            .concat(this.getAllLights())
+            .concat(this.getAllCameras())
+            .concat(this.getAllTransformNodes());
     }
 
     /**
@@ -166,6 +181,23 @@ export class SceneUtils {
      */
     public getAllMaterials(): IMaterialResult[] {
         return this._editor.assets.getAssetsOf(MaterialAssets)?.map((i) => ({ name: i.id, base64: i.base64, type: this.scene.getMaterialByName(i.id)?.getClassName() ?? "Material" })) ?? [];
+    }
+
+    /**
+     * Returns the list of all serializable properties from attached script(s) of the node idenfified
+     * by the given Id.
+     * @param id defines the id of the node to gets its serializable properties from attached script(s).
+     */
+    public async getNodeScriptSerializableProperties(id: string): Promise<IExportedInspectorValue[]> {
+        const node = this._editor.scene!.getNodeByID(id);
+        if (!node?.metadata?.script?.name) {
+            return [];
+        }
+
+        const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, node.metadata.script.name);
+        const properties = await SandboxMain.GetInspectorValues(jsPath);
+
+        return properties ?? [];
     }
 
     /**
