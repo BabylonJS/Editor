@@ -138,7 +138,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
     /**
      * Defines the current version of the layout.
      */
-    public static readonly LayoutVersion = "3.0.0";
+    public static readonly LayoutVersion = "3.1.0";
 
     /**
      * Constructor
