@@ -123,6 +123,10 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text={<div>Redo <Tag intent={Intent.PRIMARY}>(CTRL+y</Tag></div>} icon={<Icon src="redo.svg" />} onClick={() => this._menuItemClicked("edit:redo")} />
                 <MenuDivider />
                 <MenuItem text="Editor Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("edit:editor-camera")} />
+                <MenuItem text="Editor Camera Type">
+                    <MenuItem text="Free Camera" onClick={() => SceneSettings.GetFreeCamera(this._editor)} />
+                    <MenuItem text="Arc Rotate Camera" onClick={() => SceneSettings.GetArcRotateCamera(this._editor)} />
+                </MenuItem>
                 <MenuDivider />
                 <MenuItem text="Reset Editor..." icon={<Icon src="reset.svg" style={{ filter: "grayscale(1)", width: "20px", height: "20px" }} />} onClick={() => this._menuItemClicked("edit:reset")} />
                 <MenuDivider />

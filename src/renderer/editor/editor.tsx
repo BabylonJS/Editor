@@ -1156,8 +1156,9 @@ export class Editor {
                 SceneSettings.Camera.metadata.detached = false;
 
                 for (const i in SceneSettings.Camera.inputs.attached) {
+                    debugger;
                     const input = SceneSettings.Camera.inputs.attached[i];
-                    SceneSettings.Camera.inputs.attachInput(input);
+                    SceneSettings.Camera.inputs.attachInput(input as any);
                 }
             }
         });
