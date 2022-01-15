@@ -1,4 +1,5 @@
-import { PointerEventTypes, KeyboardEventTypes } from "@babylonjs/core";
+import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
+import { KeyboardEventTypes } from "@babylonjs/core/Events/keyboardEvents";
 
 export type VisiblityPropertyType =
     "number" | "string" | "boolean" |

@@ -1,4 +1,4 @@
-import { Node } from "@babylonjs/core";
+import { Node } from "@babylonjs/core/node";
 
 /**
  * This represents a script that is attached to a node in the editor.
