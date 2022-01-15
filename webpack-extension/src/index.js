@@ -20,7 +20,11 @@ var notify = function(percentage, message) {
             connected = false;
         });
         socket.on("error", function() {
-            connect();
+            setTimeout(function() {
+                if (socket) {
+                    connect();
+                }
+            }, 5000);
         });
 
         connect();
@@ -31,13 +35,15 @@ var notify = function(percentage, message) {
             percentage = 1;
         }
 
-        var done = percentage === 1;
+        var done = percentage >= 1;
 
-        socket.write(JSON.stringify({
+        const data = JSON.stringify({
             done: done,
             message: message,
             percentage: percentage * 100,
-        }));
+        });
+
+        socket.write(data + "\n");
 
         if (done) {
             socket.destroy();

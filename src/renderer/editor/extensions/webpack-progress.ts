@@ -56,7 +56,11 @@ export class WebpackProgressExtension {
         socket.on("data", (d) => {
             let data: IWebpackProgressData;
             try {
-                data = JSON.parse(d.toString()) as IWebpackProgressData;
+                const split = d.toString().split("\n");
+                split.pop();
+
+                const str =  split.pop();
+                data = JSON.parse(str!) as IWebpackProgressData;
             } catch (e) {
                 return;
             }
