@@ -12,7 +12,7 @@ export class SceneSettings {
     /**
      * Defines the camera being used by the editor.
      */
-    public static Camera: Nullable<ArcRotateCamera> = null;
+    public static Camera: Nullable<ArcRotateCamera | FreeCamera> = null;
     /**
      * Defines the reference to the SSAO rendering pipeline.
      */
@@ -43,16 +43,24 @@ export class SceneSettings {
     }
 
     /**
-     * Returns the editor cameras as an ArcRotateCamera.
+     * Returns the editor camera as an ArcRotateCamera.
      * @param editor the editor reference.
      */
     public static GetArcRotateCamera(editor: Editor): ArcRotateCamera {
-        if (this.Camera) { return this.Camera; }
+        if (this.Camera && this.Camera instanceof ArcRotateCamera) {
+            return this.Camera;
+        }
+
+        this.Camera?.dispose();
 
         const camera = new ArcRotateCamera("Editor Camera", 0, 0, 10, Vector3.Zero(), editor.scene!);
+        camera.setTarget(this.Camera?.target ?? Vector3.Zero());
         camera.attachControl(editor.scene!.getEngine().getRenderingCanvas()!, true, false);
+        camera.panningInertia = camera.inertia = 0;
+        camera.angularSensibilityX = camera.angularSensibilityY = 200;
         camera.id = Tools.RandomId();
         camera.doNotSerialize = true;
+        camera.metadata = {};
 
         this.Camera = camera;
 
@@ -61,10 +69,37 @@ export class SceneSettings {
     }
 
     /**
+     * Returns the editor camera as a FreeCamera.
+     * @param editor defines the reference to the editor.
+     */
+    public static GetFreeCamera(editor: Editor): FreeCamera {
+        if (this.Camera && this.Camera instanceof FreeCamera) {
+            return this.Camera;
+        }
+
+        this.Camera?.dispose();
+
+        const camera = new FreeCamera("Editor Camera", this.Camera?.position ?? Vector3.Zero(), editor.scene!);
+        camera.setTarget(this.Camera?.target ?? Vector3.Zero())
+        camera.attachControl(editor.scene!.getEngine().getRenderingCanvas()!, true);
+        camera.inertia = 0.5;
+        camera.angularSensibility = 500;
+        camera.speed = 2;
+        camera.id = Tools.RandomId();
+        camera.doNotSerialize = true;
+        camera.metadata = {};
+
+        this.Camera = camera;
+
+        this.SetActiveCamera(editor, this.Camera);
+        return this.Camera as FreeCamera;
+    }
+
+    /**
      * Updates the panning sensibility according to the current radius.
      */
     public static UpdateArcRotateCameraPanning(): void {
-        if (this.Camera) {
+        if (this.Camera && this.Camera instanceof ArcRotateCamera) {
             this.Camera.panningSensibility = 1000 / this.Camera.radius;
         }
     }
@@ -77,7 +112,7 @@ export class SceneSettings {
     public static ConfigureFromJson(json: any, editor: Editor): void {
         if (this.Camera) { this.Camera.dispose(); }
 
-        this.Camera = Camera.Parse(json, editor.scene!) as ArcRotateCamera;
+        this.Camera = Camera.Parse(json, editor.scene!) as (ArcRotateCamera | FreeCamera);
         this.Camera.attachControl(editor.scene!.getEngine().getRenderingCanvas()!, true, false);
         this.Camera.doNotSerialize = true;
 
