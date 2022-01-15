@@ -14,6 +14,7 @@ import { InspectorNumber } from "../../../gui/inspector/fields/number";
 import { InspectorVector2 } from "../../../gui/inspector/fields/vector2";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorVector3 } from "../../../gui/inspector/fields/vector3";
+import { InspectorColorPicker } from "../../../gui/inspector/fields/color-picker";
 
 import { MaterialAssets } from "../../../assets/materials";
 
@@ -115,7 +116,12 @@ export class NodeMaterialInspector extends MaterialInspector<NodeMaterial> {
 
                     case NodeMaterialBlockConnectionPointTypes.Color3:
                     case NodeMaterialBlockConnectionPointTypes.Color4:
-                        return <InspectorColor key={b.name} object={b} property="value" label={b.name} step={0.01} />;
+                        return (
+                            <InspectorSection title={b.name}>
+                                <InspectorColor key={b.name} object={b} property="value" label={b.name} step={0.01} />
+                                <InspectorColorPicker key={`${b.name}_hex`} object={b} property="value" label={`${b.name} Hex`} />
+                            </InspectorSection>
+                        );
                 }
             });
 
