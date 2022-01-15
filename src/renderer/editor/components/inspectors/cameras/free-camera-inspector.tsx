@@ -27,6 +27,7 @@ export class FreeCameraInspector extends CameraInspector<FreeCamera | Universal
 
                 <InspectorSection title="Free Camera">
                     <InspectorNumber object={this.selectedObject} property="speed" label="Speed" min={0} step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="angularSensibility" label="Angular Sensibility" min={0} step={0.01} />
                     <InspectorBoolean object={this.selectedObject} property="noRotationConstraint" label="No Rotation Constraint" />
                 </InspectorSection>
 

@@ -15,7 +15,7 @@ import { Tools } from "../../../editor/tools/tools";
 import { IPCTools } from "../../../editor/tools/ipc";
 import { undoRedo } from "../../../editor/tools/undo-redo";
 
-import { INodeResult, IAssetResult, IMaterialResult, IMeshResult } from "../../../editor/scene/utils";
+import { INodeResult, IAssetResult, IMaterialResult, IMeshResult, ICameraResult, ILightResult } from "../../../editor/scene/utils";
 
 import { GraphCodeGenerator } from "../../../editor/graph/generate";
 import { GraphNode, ELinkErrorType } from "../../../editor/graph/node";
@@ -30,10 +30,6 @@ import { AnimationGroup } from "../../../editor/graph/animation/animation-group"
 import { ParticleSystem } from "../../../editor/graph/particle-system/particle-system";
 import { Texture } from "../../../editor/graph/texture/texture";
 import { Material } from "../../../editor/graph/material/material";
-
-import { GetMesh } from "../../../editor/graph/mesh/get-mesh";
-import { GetCamera } from "../../../editor/graph/camera/get-camera";
-import { GetLight } from "../../../editor/graph/light/get-light";
 
 import { TickGameEvent } from "../../../editor/graph/events/tick-game-event";
 import { StartGameEvent } from "../../../editor/graph/events/start-game-event";
@@ -475,16 +471,16 @@ export class Graph extends React.Component<IGraphProps> {
      */
     private async _updateSceneNodesLists(): Promise<void> {
         const meshes = await IPCTools.ExecuteEditorFunction<IMeshResult[]>("sceneUtils.getAllMeshes");
-        Mesh.Meshes = GetMesh.Meshes = meshes.data.map((d) => ({ name: d.name, type: d.type }));
+        Mesh.Meshes = meshes.data.map((d) => ({ name: d.name, type: d.type }));
 
-        const cameras = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllCameras");
-        Camera.Cameras = GetCamera.Cameras = cameras.data.map((d) => d.name);
+        const cameras = await IPCTools.ExecuteEditorFunction<ICameraResult[]>("sceneUtils.getAllCameras");
+        Camera.Cameras = cameras.data.map((d) => ({ name: d.name, type: d.type }));
 
         const sounds = await IPCTools.ExecuteEditorFunction<string[]>("sceneUtils.getAllSounds");
         Sound.Sounds = sounds.data;
 
-        const lights = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllLights");
-        Light.Lights = GetLight.Lights = lights.data.map((l) => l.name);
+        const lights = await IPCTools.ExecuteEditorFunction<ILightResult[]>("sceneUtils.getAllLights");
+        Light.Lights = lights.data;
 
         const transformNodes = await IPCTools.ExecuteEditorFunction<INodeResult[]>("sceneUtils.getAllTransformNodes");
         TransformNode.TransformNodes = transformNodes.data.map((l) => l.name);

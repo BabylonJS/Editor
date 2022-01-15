@@ -1,11 +1,8 @@
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 
-export class GetCamera extends GraphNode<{ name: string; }> {
-    /**
-     * Defines the list of all avaialbe cameras in the scene.
-     */
-    public static Cameras: string[] = [];
+import { Camera, cameraInheritance } from "./camera";
 
+export class GetCamera extends GraphNode<{ name: string; }> {
     /**
      * Constructor.
      */
@@ -21,8 +18,15 @@ export class GetCamera extends GraphNode<{ name: string; }> {
             this.properties.name = v;
             this.title = `Get Camera (${v})`;
             this.size = this.computeSize();
+
+            const camera = Camera.Cameras.find((m) => m.name === v);
+            if (camera) {
+                this.outputs[0].type = cameraInheritance[camera.type];
+            }
+
+            this.updateConnectedNodesFromOutput(0);
         }, {
-            values: () => GetCamera.Cameras,
+            values: () => Camera.Cameras.map((m) => m.name),
         });
 
         this.addOutput("Camera", "Node,Camera");

@@ -1,11 +1,8 @@
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 
-export class GetMesh extends GraphNode<{ name: string; }> {
-    /**
-     * Defines the list of all avaialbe meshes in the scene.
-     */
-    public static Meshes: { name: string; type: string; }[] = [];
+import { Mesh } from "./mesh";
 
+export class GetMesh extends GraphNode<{ name: string; }> {
     /**
      * Constructor.
      */
@@ -19,8 +16,15 @@ export class GetMesh extends GraphNode<{ name: string; }> {
             this.properties.name = v;
             this.title = v;
             this.size = this.computeSize();
+
+            const mesh = Mesh.Meshes.find((m) => m.name === v);
+            if (mesh) {
+                this.outputs[0].type = `Node,TransformNode,AbstractMesh,${mesh.type}`;
+            }
+            
+            this.updateConnectedNodesFromOutput(0);
         }, {
-            values: () => GetMesh.Meshes.map((m) => m.name),
+            values: () => Mesh.Meshes.map((m) => m.name),
         });
 
         this.addOutput("mesh", "Node,TransformNode,AbstractMesh");

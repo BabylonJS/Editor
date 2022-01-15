@@ -3,11 +3,13 @@ import { pathExists } from "fs-extra";
 import directoryTree, { DirectoryTree } from "directory-tree";
 
 import * as React from "react";
-import { Classes, InputGroup, Tree, ITreeNode } from "@blueprintjs/core";
+import { Classes, InputGroup, Tree, ITreeNode, ContextMenu, Menu, MenuItem, Icon as BPIcon } from "@blueprintjs/core";
 
 import { Editor } from "../../editor";
 
 import { Icon } from "../../gui/icon";
+import { Alert } from "../../gui/alert";
+import { Confirm } from "../../gui/confirm";
 
 export interface IAssetsBrowserTreeProps {
 	/**
@@ -65,6 +67,7 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 					<Tree
 						contents={this.state.nodes}
 						onNodeClick={(n) => this._handleNodeClicked(n)}
+						onNodeContextMenu={(n, _, e) => this._handleNodeContextMenu(n, e)}
 						onNodeExpand={(n) => this._handleNodeExpanded(n, "expand")}
 						onNodeCollapse={(n) => this._handleNodeExpanded(n, "collapse")}
 						onNodeDoubleClick={(n) => this._handleNodeExpanded(n, n.isExpanded ? "collapse" : "expand")}
@@ -152,6 +155,48 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 	}
 
 	/**
+	 * Called on the user right-clicks on a node.
+	 */
+	private _handleNodeContextMenu(n: ITreeNode<string>, ev: React.MouseEvent<HTMLElement, MouseEvent>): void {
+		this._handleNodeClicked(n);
+
+		ContextMenu.show((
+			<Menu>
+				<MenuItem
+					text="Move to trash..."
+					icon={<BPIcon icon="trash" color="white" />}
+					onClick={() => this._handleMoveDirectoryToTrash(n)}
+				/>
+			</Menu>
+		), {
+			top: ev.clientY,
+			left: ev.clientX,
+		});
+	}
+
+	/**
+	 * Called on the user moves the given folder to the trash.
+	 */
+	private async _handleMoveDirectoryToTrash(n: ITreeNode<string>): Promise<void> {
+		const confirm = await Confirm.Show(
+			`Move Selected Folder To Trash?`,
+			"Are you sure to move the selected folder to trash? If yes, all linked elements in the scene will be reset",
+		);
+
+		if (!confirm) {
+			return;
+		}
+
+		const result = await this.props.editor.assetsBrowser.moveItemsToTrash(false, [n.nodeData!]);
+		if (result.length) {
+			Alert.Show("Failed To Move Folder To Trash", "Failed to move folder to trash.");
+		}
+
+		await this.props.editor.assetsBrowser.refresh();
+		await this.props.editor.assets.forceRefresh();
+	}
+
+	/**
 	 * Called on the user expands or collapses a node.
 	 */
 	private _handleNodeExpanded(node: ITreeNode<string>, state: "expand" | "collapse"): void {
@@ -212,9 +257,9 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 			});
 
 			const isLeaf = !child.childNodes?.length;
-            if (isLeaf && t.name.toLowerCase().indexOf(filter) === -1) {
-                return;
-            }
+			if (isLeaf && t.name.toLowerCase().indexOf(filter) === -1) {
+				return;
+			}
 
 			root?.childNodes?.push(child);
 		});
