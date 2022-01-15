@@ -1,10 +1,19 @@
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
 
+export const lightInheritance: Record<string, string> = {
+    "Light": "Node,Light",
+    "ShadowLight": "Node,Light,ShadowLight",
+    "SpotLight": "Node,Light,ShadowLight,SpotLight",
+    "HemisphericLight": "Node,Light,HemisphericLight",
+    "PointLight": "Node,Light,ShadowLight,PointLight",
+    "DirectionalLight": "Node,Light,ShadowLight,DirectionalLight",
+};
+
 export class Light extends GraphNode<{ name: string; var_name: string; }> {
     /**
      * Defines the list of all avaialbe sounds in the scene.
      */
-    public static Lights: string[] = [];
+    public static Lights: { name: string; type: string; }[] = [];
 
     /**
      * Constructor.
@@ -19,8 +28,19 @@ export class Light extends GraphNode<{ name: string; var_name: string; }> {
             this.properties.name = v;
             this.title = `Light (${v})`;
             this.size = this.computeSize();
+
+            if (v === "Self") {
+                this.outputs[0].type = "Node,Light,ShadowLight,DirectionalLight,PointLight,HemisphericLight,SpotLight";
+            } else {
+                const light = Light.Lights.find((m) => m.name === v);
+                if (light) {
+                    this.outputs[0].type = lightInheritance[light.type];
+                }
+            }
+
+            this.updateConnectedNodesFromOutput(0);
         }, {
-            values: () => ["Self"].concat(Light.Lights),
+            values: () => ["Self"].concat(Light.Lights.map((l) => l.name)),
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 

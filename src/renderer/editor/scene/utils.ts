@@ -31,6 +31,20 @@ export interface IMeshResult extends INodeResult {
     type: string;
 }
 
+export interface ICameraResult extends INodeResult {
+    /**
+     * Defines the type of the mesh.
+     */
+    type: string;
+}
+
+export interface ILightResult extends INodeResult {
+    /**
+     * Defines the type of the mesh.
+     */
+    type: string;
+}
+
 export interface IAssetResult {
     /**
      * Defines the name drawn in the editor.
@@ -110,21 +124,25 @@ export class SceneUtils {
      * Returns the list of all meshes.
      */
     public getAllMeshes(): IMeshResult[] {
-        return this.scene.meshes.filter((m) => !m._masterMesh).map((m) => ({ id: m.id, name: m.name, type: m.getClassName() }));
+        return this.scene.meshes
+            .filter((m) => !m._masterMesh)
+            .map((m) => ({ id: m.id, name: m.name, type: m.getClassName() }));
     }
 
     /**
      * Returns the list of all lights.
      */
-    public getAllLights(): INodeResult[] {
-        return this._getAsNodeResult(this.scene.lights);
+    public getAllLights(): ILightResult[] {
+        return this.scene.lights.map((l) => ({ id: l.id, name: l.name, type: l.getClassName() }));
     }
 
     /**
      * Returns the list of all cameras.
      */
-    public getAllCameras(): INodeResult[] {
-        return this._getAsNodeResult(this.scene.cameras.filter((c) => !c.doNotSerialize));
+    public getAllCameras(): ICameraResult[] {
+        return this.scene.cameras
+            .filter((c) => !c.doNotSerialize)
+            .map((c) => ({ id: c.id, name: c.name, type: c.getClassName() }));
     }
 
     /**

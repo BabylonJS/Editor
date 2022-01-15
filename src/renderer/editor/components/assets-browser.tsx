@@ -270,8 +270,21 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			return [];
 		}
 
+		return this.moveItemsToTrash(deleteOnFail, this._files.selectedItems);
+	}
+
+	/**
+	 * Moves all the given items to trash and returns the list of failed items.
+	 * @param deleteOnFail defines wether or not the file should be deleted if failed to move to trash.
+	 * @param items defines the list of all items to move to trash
+	 */
+	public async moveItemsToTrash(deleteOnFail: boolean, items: string[]): Promise<string[]> {
+		if (!items.length) {
+			return [];
+		}
+
 		const usedFiles: string[] = [];
-		const isUsedCheckResults = await Promise.all(this._files.selectedItems.map(async (i) => {
+		const isUsedCheckResults = await Promise.all(items.map(async (i) => {
 			let files = [i];
 			
 			const fStat = await stat(i);
@@ -308,7 +321,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		const failed: string[] = [];
 		const platform = os.platform();
 
-		this._files.selectedItems.map((i) => {
+		items.map((i) => {
 			const extension = extname(i).toLowerCase();
 			const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
 

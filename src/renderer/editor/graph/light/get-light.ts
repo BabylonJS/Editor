@@ -1,11 +1,8 @@
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
 
-export class GetLight extends GraphNode<{ name: string; }> {
-    /**
-     * Defines the list of all avaialbe meshes in the scene.
-     */
-    public static Lights: string[] = [];
+import { Light, lightInheritance } from "./light";
 
+export class GetLight extends GraphNode<{ name: string; }> {
     /**
      * Constructor.
      */
@@ -19,8 +16,15 @@ export class GetLight extends GraphNode<{ name: string; }> {
             this.properties.name = v;
             this.title = `Get Light (${v})`;
             this.size = this.computeSize();
+
+            const light = Light.Lights.find((m) => m.name === v);
+            if (light) {
+                this.outputs[0].type = lightInheritance[light.type];
+            }
+
+            this.updateConnectedNodesFromOutput(0);
         }, {
-            values: () => GetLight.Lights,
+            values: () => Light.Lights,
         });
 
         this.addOutput("Light", "Node,Light");

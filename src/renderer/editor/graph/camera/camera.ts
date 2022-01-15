@@ -1,10 +1,18 @@
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType, CodeGenerationExecutionType } from "../node";
 
+export const cameraInheritance: Record<string, string> = {
+    "Camera": "Node,Camera",
+    "TargetCamera": "Node,Camera,TargetCamera",
+    "FreeCamera": "Node,Camera,TargetCamera,FreeCamera",
+    "TouchCamera": "Node,Camera,TargetCamera,FreeCamera,TouchCamera",
+    "UniversalCamera": "Node,Camera,TargetCamera,FreeCamera,TouchCamera,UniversalCamera",
+};
+
 export class Camera extends GraphNode<{ var_name: string; name: string; }> {
     /**
      * Defines the list of all avaialbe cameras in the scene.
      */
-    public static Cameras: string[] = [];
+    public static Cameras: { name: string; type: string; }[] = [];
 
     /**
      * Constructor.
@@ -19,8 +27,19 @@ export class Camera extends GraphNode<{ var_name: string; name: string; }> {
             this.properties.name = v;
             this.title = `Camera (${v})`;
             this.size = this.computeSize();
+
+            if (v === "Self") {
+                this.outputs[0].type = `Node,Camera,TargetCamera,FreeCamera,TouchCamera,UniversalCamera`;
+            } else {
+                const camera = Camera.Cameras.find((m) => m.name === v);
+                if (camera) {
+                    this.outputs[0].type = cameraInheritance[camera.type];
+                }
+            }
+
+            this.updateConnectedNodesFromOutput(0);
         }, {
-            values: () => ["Self"].concat(Camera.Cameras),
+            values: () => ["Self"].concat(Camera.Cameras.map((m) => m.name)),
         });
         this.addWidget("text", "var_name", this.properties.var_name, (v) => this.properties.var_name = v);
 
