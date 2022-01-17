@@ -149,12 +149,32 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 		const result = await SceneLoader.ImportMeshAsync("", join(dirname(this.props.absolutePath), "/"), basename(this.props.absolutePath), scene);
 		scene.stopAllAnimations();
 
+		const parentNode = new TransformNode(basename(this.props.relativePath));
+		parentNode.id = Tools.RandomId();
+
 		Promise.all([
-			this._configureMeshes(result.meshes, pick, isGltf),
-			this._configureTransformNodes(result.transformNodes, pick),
+			this._configureMeshes(result.meshes, parentNode, isGltf),
+			this._configureTransformNodes(result.transformNodes, parentNode),
 			this._configureSkeletons(result.skeletons, scene),
 			this._configureParticleSystems(result.particleSystems),
 		]).then(() => {
+			if (pick?.pickedPoint) {
+				const children = parentNode.getChildren();
+				if (children.length <= 1) {
+					const child = children[0];
+					child.parent = null;
+
+					parentNode.dispose(true, false);
+
+					const position = child["position"];
+					position?.copyFrom?.(pick?.pickedPoint);
+
+					this.props.editor.graph.refresh();
+				} else {
+					parentNode.position.copyFrom(pick.pickedPoint);
+				}
+			}
+
 			this.props.editor.assets.refresh();
 		});
 
@@ -194,12 +214,12 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	/**
 	 * Configures the given imported transform nodes.
 	 */
-	private _configureTransformNodes(transformNodes: TransformNode[], pick: PickingInfo): void {
+	private _configureTransformNodes(transformNodes: TransformNode[], parent: TransformNode): void {
 		transformNodes.forEach((tn) => {
 			tn.id = Tools.RandomId();
 
-			if (!tn.parent && pick?.pickedPoint) {
-				tn.position.addInPlace(pick.pickedPoint);
+			if (!tn.parent) {
+				tn.parent = parent;
 			}
 		});
 	}
@@ -207,13 +227,13 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	/**
 	 * Configures the given imported transform nodes.
 	 */
-	private async _configureMeshes(meshes: AbstractMesh[], pick: PickingInfo, isGltf: boolean): Promise<void> {
+	private async _configureMeshes(meshes: AbstractMesh[], parent: TransformNode, isGltf: boolean): Promise<void> {
 		for (const m of meshes) {
 			m.metadata ??= {};
 			m.metadata.basePoseMatrix = m.getPoseMatrix().asArray();
 
-			if (!m.parent && pick?.pickedPoint) {
-				m.position.addInPlace(pick.pickedPoint);
+			if (!m.parent) {
+				m.parent = parent;
 			}
 
 			if (m.material) {
@@ -248,24 +268,26 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 				Overlay.Show("Configuring GLTF...");
 			}
 
-			const instantiatedMaterial = await this._createMaterialFile(material, force);
+			const instantiatedMaterial = await this._getEffectiveMaterial(material, force);
 			if (instantiatedMaterial) {
 				return instantiatedMaterial;
 			}
 
 			this._configureMaterialTextures(material, isGltf).then(() => {
 				Overlay.Hide();
+
+				const materialMetadata = Tools.GetMaterialMetadata(material);
+				materialMetadata.originalSourceFile = materialMetadata.originalSourceFile ?? {
+					id: material.id,
+					name: material.name,
+					sceneFileName: this.props.relativePath,
+				};
+
+				material.id = Tools.RandomId();
+
+				this._writeMaterialFile(material);
 			});
 		}
-
-		const materialMetadata = Tools.GetMaterialMetadata(material);
-		materialMetadata.originalSourceFile = materialMetadata.originalSourceFile ?? {
-			id: material.id,
-			name: material.name,
-			sceneFileName: this.props.relativePath,
-		};
-
-		material.id = Tools.RandomId();
 
 		if (material instanceof MultiMaterial) {
 			for (let i = 0; i < material.subMaterials.length; i++) {
@@ -274,22 +296,24 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 					continue;
 				}
 
-				const instantiatedMaterial = await this._createMaterialFile(m, force);
+				const instantiatedMaterial = await this._getEffectiveMaterial(m, force);
 				if (instantiatedMaterial) {
 					material.subMaterials[i] = instantiatedMaterial;
 					continue;
 				}
 
-				this._configureMaterialTextures(m, isGltf);
+				this._configureMaterialTextures(m, isGltf).then(() => {
+					const subMaterialMetadata = Tools.GetMaterialMetadata(m);
+					subMaterialMetadata.originalSourceFile = subMaterialMetadata.originalSourceFile ?? {
+						id: m.id,
+						name: m.name,
+						sceneFileName: this.props.relativePath,
+					};
 
-				const subMaterialMetadata = Tools.GetMaterialMetadata(m);
-				subMaterialMetadata.originalSourceFile = subMaterialMetadata.originalSourceFile ?? {
-					id: m.id,
-					name: m.name,
-					sceneFileName: this.props.relativePath,
-				};
+					m.id = Tools.RandomId();
 
-				m.id = Tools.RandomId();
+					this._writeMaterialFile(m);
+				});
 			};
 		}
 
@@ -299,9 +323,20 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	}
 
 	/**
+	 * Writes the given material.
+	 */
+	private async _writeMaterialFile(material: Material): Promise<void> {
+		this.props.editor.console.logInfo(`Saved material configuration: ${material.metadata.editorPath}`);
+		writeJSON(join(dirname(this.props.absolutePath), basename(material.metadata.editorPath)), material.serialize(), {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+	}
+
+	/**
 	 * Creates the given material file.
 	 */
-	private async _createMaterialFile(material: Material, force: boolean = false): Promise<Nullable<Material>> {
+	private async _getEffectiveMaterial(material: Material, force: boolean = false): Promise<Nullable<Material>> {
 		const materialFilename = filenamify(`${material.name ?? basename(this.props.absolutePath)}-${material.id ?? Tools.RandomId()}.material`);
 		const materialPath = join(dirname(this.props.absolutePath), materialFilename);
 
@@ -313,7 +348,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 		if (exists) {
 			const json = await readJSON(materialPath, { encoding: "utf-8" });
 
-			material.dispose(true, false);
+			material.dispose(true, true);
 
 			let instantiatedMaterial = this.props.editor.scene!.materials.find((m) => {
 				return m.id === json.id;
@@ -337,11 +372,6 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 
 			return instantiatedMaterial;
 		}
-
-		await writeJSON(materialPath, material.serialize(), {
-			spaces: "\t",
-			encoding: "utf-8",
-		});
 
 		return null;
 	}

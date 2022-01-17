@@ -423,7 +423,15 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
     }
 
     if (data.screenSpaceReflections?.json && !screenSpaceReflectionPostProcessRef) {
-        screenSpaceReflectionPostProcessRef = ScreenSpaceReflectionPostProcess._Parse(data.screenSpaceReflections.json, scene.activeCamera!, scene, "");
+        // screenSpaceReflectionPostProcessRef = ScreenSpaceReflectionPostProcess._Parse(data.screenSpaceReflections.json, scene.activeCamera!, scene, "");
+        screenSpaceReflectionPostProcessRef = new ScreenSpaceReflectionPostProcess(data.screenSpaceReflections.json.name, scene, 1.0, scene.activeCamera!);
+        screenSpaceReflectionPostProcessRef.step = data.screenSpaceReflections.json.step;
+        screenSpaceReflectionPostProcessRef.strength = data.screenSpaceReflections.json.strength;
+        screenSpaceReflectionPostProcessRef.threshold = data.screenSpaceReflections.json.threshold;
+        screenSpaceReflectionPostProcessRef.smoothSteps = data.screenSpaceReflections.json.smoothSteps;
+        screenSpaceReflectionPostProcessRef.roughnessFactor = data.screenSpaceReflections.json.roughnessFactor;
+        screenSpaceReflectionPostProcessRef.reflectionSamples = data.screenSpaceReflections.json.reflectionSamples;
+        screenSpaceReflectionPostProcessRef.enableSmoothReflections = data.screenSpaceReflections.json.enableSmoothReflections;
     }
 
     if (data.default && !defaultRenderingPipelineRef) {
@@ -434,7 +442,11 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
     }
 
     if (data.motionBlur?.json) {
-        motionBlurPostProcessRef = MotionBlurPostProcess._Parse(data.motionBlur.json, scene.activeCamera!, scene, "");
+        // motionBlurPostProcessRef = MotionBlurPostProcess._Parse(data.motionBlur.json, scene.activeCamera!, scene, "");
+        motionBlurPostProcessRef = new MotionBlurPostProcess(data.motionBlur.json.name, scene, 1.0, scene.activeCamera!);
+        motionBlurPostProcessRef.isObjectBased = data.motionBlur.json.isObjectBased;
+        motionBlurPostProcessRef.motionStrength = data.motionBlur.json.motionStrength;
+        motionBlurPostProcessRef.motionBlurSamples = data.motionBlur.json.motionBlurSamples;
     }
 
     scene.onDisposeObservable.addOnce(() => {
