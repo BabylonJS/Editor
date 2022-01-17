@@ -52,6 +52,12 @@ Module._resolveFilename = function (filename: string, parent: any, isMain: boole
 		return join(parent.path, filename);
 	}
 
+	if (filename.includes("@babylonjs/core/")) { return cacheMap["babylonjs"]; }
+	if (filename.includes("@babylonjs/gui/")) { return cacheMap["babylonjs-gui"]; }
+	if (filename.includes("@babylonjs/loaders/")) { return cacheMap["babylonjs-loaders"]; }
+	if (filename.includes("@babylonjs/materials/")) { return cacheMap["babylonjs-materials"]; }
+	if (filename.includes("@babylonjs/post-processes/")) { return cacheMap["babylonjs-post-process"]; }
+
 	return originalResolveFilename(filename, parent, isMain);
 };
 
@@ -73,6 +79,6 @@ try {
 import path from "path";
 
 const pathJoin = path.join;
-path.join = function(...args: string[]): string {
+path.join = function (...args: string[]): string {
 	return pathJoin(...args).replace(/\\/g, "/");
 };

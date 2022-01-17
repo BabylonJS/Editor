@@ -29,7 +29,7 @@ export { SoundAssets } from "./renderer/editor/assets/sounds";
 export { Inspector, IInspectorProps, IInspectorState, IObjectInspector, IObjectInspectorProps } from "./renderer/editor/components/inspector";
 export { AbstractInspectorLegacy } from "./renderer/editor/components/inspectors/abstract-inspector-legacy";
 export { AbstractInspector } from "./renderer/editor/components/inspectors/abstract-inspector";
-export { MaterialInspector } from "./renderer/editor/components/inspectors/materials/material-inspector";
+export { MaterialInspector, IMaterialInspectorState } from "./renderer/editor/components/inspectors/materials/material-inspector";
 
 export { InspectorColor } from "./renderer/editor/gui/inspector/fields/color";
 export { InspectorButton } from "./renderer/editor/gui/inspector/fields/button";
