@@ -1,3 +1,5 @@
+// Shamely inspiered by ThreeJS FBX loader: https://threejs.org/examples/webgl_loader_fbx.html
+
 import { join, resolve } from "path";
 
 import { INumberDictionary, Nullable } from "../../../../shared/types";
@@ -8,11 +10,11 @@ import { parseText, FBXReader, FBXData, FBXReaderNode } from "fbx-parser";
 
 import {
     ISceneLoaderPluginAsync, ISceneLoaderPluginExtensions, ISceneLoaderProgressEvent,
-    ISceneLoaderAsyncResult, Scene, AssetContainer, Geometry, Bone, TransformNode, Logger, Material,
+    ISceneLoaderAsyncResult, Scene, AssetContainer, Bone, TransformNode, Logger, Material,
 } from "babylonjs";
 
 import { FBXMesh } from "./mesh/mesh";
-import { FBXGeometry } from "./mesh/geometry";
+import { FBXGeometry, IFBXGeometryResult } from "./mesh/geometry";
 
 import { FBXMaterial } from "./material/material";
 import { FBXAnimations } from "./animation/animations";
@@ -38,7 +40,7 @@ export interface IFBXLoaderRuntime {
     writeTextures: boolean;
 
     cachedModels: INumberDictionary<TransformNode | Bone>;
-    cachedGeometries: INumberDictionary<Geometry>;
+    cachedGeometries: INumberDictionary<IFBXGeometryResult>;
     cachedSkeletons: INumberDictionary<IFBXSkeleton>;
     cachedMaterials: INumberDictionary<Material>;
 }
@@ -221,7 +223,7 @@ export class FBXLoader implements ISceneLoaderPluginAsync {
                 
                 case "Root":
                 case "LimbNode":
-                    model = scene.getBoneByName(`Deformer::-${name}`);
+                    // model = scene.getBoneByName(`Deformer::-${name}`);
                     break;
 
                 case "Null":

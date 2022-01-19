@@ -29,6 +29,8 @@ interface IFBXBuffers {
     indices: number[];
     positions: number[];
 
+    materialIndices: number[];
+
     matricesIndices: number[];
     matricesWeights: number[];
 }
@@ -38,6 +40,8 @@ interface IFBXInBuffers {
     positions: number[];
     uvs?: IFBXParsedGeometryData;
     normals?: IFBXParsedGeometryData;
+
+    materials?: IFBXParsedGeometryData;
 
     skeleton?: IFBXSkeleton;
     weightTable: INumberDictionary<IFBXWeightTable[]>;
@@ -53,8 +57,15 @@ interface IFBXFaceInfo {
     faceUVs: number[];
     faceNormals: number[];
 
+    materialIndex?: number;
+
     faceWeights: number[];
     faceWeightIndices: number[];
+}
+
+export interface IFBXGeometryResult {
+    geometry: Geometry;
+    materialIndices?: number[];
 }
 
 export class FBXGeometry {
@@ -83,7 +94,7 @@ export class FBXGeometry {
             if (!importedGeometry) {
                 importedGeometry = this.Import(g, runtime.scene, skeleton, model);
 
-                runtime.result.geometries.push(importedGeometry);
+                runtime.result.geometries.push(importedGeometry.geometry);
                 runtime.cachedGeometries[geometryId] = importedGeometry;
             }
         }
@@ -96,7 +107,7 @@ export class FBXGeometry {
      * @param skeleton defines the optional reference to the skeleton linked to the geometry.
      * @returns the reference to the parsed geometry.
      */
-    public static Import(node: FBXReaderNode, scene: Scene, skeleton?: IFBXSkeleton, model?: FBXReaderNode): Geometry {
+    public static Import(node: FBXReaderNode, scene: Scene, skeleton?: IFBXSkeleton, model?: FBXReaderNode): IFBXGeometryResult {
         const positions = node.node("Vertices")?.prop(0, "number[]");
         if (!positions) {
             throw new Error("Failed to parse positions of geometry");
@@ -109,6 +120,7 @@ export class FBXGeometry {
 
         const uvs = this._ParseUvs(node.node("LayerElementUV"));
         const normals = this._ParseNormals(node.node("LayerElementNormal"));
+        const materials = this._ParseMaterials(node.node("LayerElementMaterial"));
 
         const weightTable: INumberDictionary<IFBXWeightTable[]> = {};
         if (skeleton) {
@@ -126,7 +138,7 @@ export class FBXGeometry {
             });
         }
 
-        const buffers = this._GenerateBuffers({ positions, indices, normals, uvs, skeleton, weightTable });
+        const buffers = this._GenerateBuffers({ positions, indices, normals, uvs, materials, skeleton, weightTable });
 
         const vertexData = new VertexData();
         vertexData.indices = buffers.indices;
@@ -169,17 +181,17 @@ export class FBXGeometry {
 
             const geometricTranslation = properties.find((p) => p.prop(0, "string") === "GeometricTranslation");
             if (geometricTranslation) {
-                translation.set(geometricTranslation.prop(4, "number")!, geometricTranslation.prop(5, "number")!, geometricTranslation.prop(6, "number")!);
+                translation.set(geometricTranslation.prop(4, "number") ?? 0, geometricTranslation.prop(5, "number") ?? 0, geometricTranslation.prop(6, "number") ?? 0);
             }
 
             const geometricRotation = properties.find((p) => p.prop(0, "string") === "GeometricRotation");
             if (geometricRotation) {
-                rotation.set(geometricRotation.prop(4, "number")!, geometricRotation.prop(5, "number")!, geometricRotation.prop(6, "number")!);
+                rotation.set(geometricRotation.prop(4, "number") ?? 0, geometricRotation.prop(5, "number") ?? 0, geometricRotation.prop(6, "number") ?? 0);
             }
 
             const geometricScaling = properties.find((p) => p.prop(0, "string") === "GeometricScaling");
             if (geometricScaling) {
-                scale.set(geometricScaling.prop(4, "number")!, geometricScaling.prop(5, "number")!, geometricScaling.prop(6, "number")!);
+                scale.set(geometricScaling.prop(4, "number") ?? 1, geometricScaling.prop(5, "number") ?? 1, geometricScaling.prop(6, "number") ?? 1);
             }
 
             const matrix = Matrix.Compose(scale, FBXUtils.GetFinalRotationQuaternionFromVector(rotation), translation);
@@ -188,7 +200,10 @@ export class FBXGeometry {
             }
         }
 
-        return new Geometry(Tools.RandomId(), scene, vertexData, false);
+        return {
+            materialIndices: buffers.materialIndices,
+            geometry: new Geometry(Tools.RandomId(), scene, vertexData, false),
+        };
     }
 
     /**
@@ -268,6 +283,7 @@ export class FBXGeometry {
             indices: [],
             normals: [],
             positions: [],
+            materialIndices: [],
             matricesIndices: [],
             matricesWeights: [],
         };
@@ -283,6 +299,7 @@ export class FBXGeometry {
         let facePositionIndexes: number[] = [];
 
         sourceBuffers.indices.forEach((vertexIndex, polygonVertexIndex) => {
+            let materialIndex;
             let endOfFace = false;
 
             // Face index and vertex index arrays are combined in a single array
@@ -312,6 +329,10 @@ export class FBXGeometry {
                 faceUVs.push(data[0], data[1]);
             }
 
+            if (sourceBuffers.materials) {
+                materialIndex = this._GetData(polygonVertexIndex, polygonIndex, vertexIndex, sourceBuffers.materials)[0];
+            }
+
             if (sourceBuffers.skeleton) {
                 if (sourceBuffers.weightTable[vertexIndex] !== undefined) {
                     sourceBuffers.weightTable[vertexIndex].forEach((wt) => {
@@ -339,7 +360,7 @@ export class FBXGeometry {
                             }
                         });
                     });
-                    
+
                     weights = weights2;
                     weightIndices = weightIndices2;
                 }
@@ -359,7 +380,7 @@ export class FBXGeometry {
             faceLength++;
 
             if (endOfFace) {
-                this._GenerateFace({ sourceBuffers, outputBuffers, facePositionIndexes, faceLength, faceUVs, faceNormals, faceWeights, faceWeightIndices });
+                this._GenerateFace({ sourceBuffers, outputBuffers, facePositionIndexes, faceLength, faceUVs, faceNormals, faceWeights, faceWeightIndices, materialIndex });
 
                 polygonIndex++;
                 faceLength = 0;
@@ -425,6 +446,12 @@ export class FBXGeometry {
 
                 face.outputBuffers.uvs.push(face.faceUVs[i * 2]);
                 face.outputBuffers.uvs.push(face.faceUVs[i * 2 + 1]);
+            }
+
+            if (face.materialIndex !== undefined) {
+                face.outputBuffers.materialIndices.push(face.materialIndex);
+                face.outputBuffers.materialIndices.push(face.materialIndex);
+                face.outputBuffers.materialIndices.push(face.materialIndex);
             }
 
             // Skeleton
@@ -511,6 +538,51 @@ export class FBXGeometry {
             dataSize: 3,
             mappingType: mappingType,
             referenceType: referenceType,
+        };
+    }
+
+    /**
+     * Parses the given materials FBX node and returns its parsed geometry data.
+     */
+    private static _ParseMaterials(node?: FBXReaderNode): Undefinable<IFBXParsedGeometryData> {
+        if (!node) {
+            return undefined;
+        }
+
+        const mappingType = node.node("MappingInformationType")!.prop(0, "string")!;
+        if (mappingType === "AllSame") {
+            return undefined;
+        }
+
+        const referenceType = node.node("ReferenceInformationType")!.prop(0, "string")!;
+
+        if (mappingType === 'NoMappingInformation') {
+            return {
+                dataSize: 1,
+                buffer: [0],
+                indices: [0],
+                mappingType: "AllSame",
+                referenceType: referenceType
+            };
+        }
+
+        const buffer = node.node("Materials")!.prop(0, "number[]")!;
+
+        // Since materials are stored as indices, there's a bit of a mismatch between FBX and what
+        // we expect.So we create an intermediate buffer that points to the index in the buffer,
+        // for conforming with the other functions we've written for other data.
+        const materialIndices: number[] = [];
+
+        for (let i = 0; i < buffer.length; ++i) {
+            materialIndices.push(i);
+        }
+
+        return {
+            buffer,
+            dataSize: 1,
+            indices: materialIndices,
+            mappingType: mappingType,
+            referenceType: referenceType
         };
     }
 
