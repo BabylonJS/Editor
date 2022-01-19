@@ -208,7 +208,7 @@ export class FBXLoader implements ISceneLoaderPluginAsync {
 
             FBXSkeleton.CheckSkeleton(runtime, m, name, relationships);
 
-            let model: Nullable<TransformNode> = null;
+            let model: Nullable<TransformNode | Bone> = null;
             switch (type) {
                 case "Mesh":
                     model = FBXMesh.CreateMesh(runtime, m, relationships);
@@ -218,9 +218,10 @@ export class FBXLoader implements ISceneLoaderPluginAsync {
                 case "Camera":
                 case "NurbsCurve":
                     break;
-                        
+                
                 case "Root":
                 case "LimbNode":
+                    model = scene.getBoneByName(`Deformer::-${name}`);
                     break;
 
                 case "Null":

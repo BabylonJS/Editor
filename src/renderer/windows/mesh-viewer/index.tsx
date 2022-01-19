@@ -4,6 +4,8 @@ import "babylonjs-loaders";
 
 import { FBXLoader } from "../../editor/loaders/fbx/loader";
 
+import { TouchBarHelper } from "../../editor/tools/touch-bar";
+
 import * as React from "react";
 
 export const title = "Mesh Viewer";
@@ -19,6 +21,8 @@ export default class MeshViewerWindow extends React.Component {
      */
     public constructor(props: any) {
         super(props);
+
+        TouchBarHelper.SetTouchBarElements([]);
     }
 
     /**

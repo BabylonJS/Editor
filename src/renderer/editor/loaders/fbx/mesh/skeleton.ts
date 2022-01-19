@@ -3,7 +3,6 @@ import { IStringDictionary } from "../../../../../shared/types";
 import { FBXReaderNode } from "fbx-parser";
 import { Matrix, Skeleton, Scene, Bone, AbstractMesh } from "babylonjs";
 
-import { FBXUtils } from "../utils";
 import { IFBXLoaderRuntime } from "../loader";
 import { IFBXConnections } from "../connections";
 
@@ -168,22 +167,23 @@ export class FBXSkeleton {
 					}
 				});
 				
-				const transformData = FBXTransform.GetTransformData(b);
+				// const transformData = FBXTransform.GetTransformData(b);
 				FBXTransform.ApplyTransform(b);
 
+				/*
 				let baseMatrix = Matrix.Identity();
 				if (rawBone.transformLink && boneIndex !== -1) {
-					baseMatrix.copyFrom(FBXUtils.GetMatrix(rawBone.transformLink, transformData.eulerOrder));
+					baseMatrix.copyFrom(FBXUtils.GetMatrix(rawBone.transformLink, transformData));
 				}
 
 				const parentBone = b.getParent();
 				if (parentBone) {
 					baseMatrix.multiplyToRef(parentBone.getInvertedAbsoluteTransform(), baseMatrix);
 				}
+				*/
 
-				b.setBindPose(baseMatrix);
-				b.setRestPose(baseMatrix);
-				b.updateMatrix(baseMatrix, false, false);
+				b.setRestPose(b.getLocalMatrix());
+				b.updateMatrix(b.getLocalMatrix(), false, false);
 
 				b._updateDifferenceMatrix(undefined, true);
 			}
@@ -191,12 +191,12 @@ export class FBXSkeleton {
 			// Assign
 			const parents = runtime.connections.get(parseInt(skeletonId))?.parents;
 			parents?.forEach((p) => {
-				const parents = runtime.connections.get(p.id)?.parents;
-				parents?.forEach((p) => {
+				const parents2 = runtime.connections.get(p.id)?.parents;
+				parents2?.forEach((p) => {
 					const model = runtime.cachedModels[p.id];
 					if (model && model instanceof AbstractMesh) {
 						const poseMatrix = poseMatrices[p.id];
-						if (poseMatrix) {
+						if (poseMatrix && !poseMatrix.isIdentity()) {
 							model.updatePoseMatrix(poseMatrix);
 							skeleton.skeletonInstance.needInitialSkinMatrix = true;
 						}

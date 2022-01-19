@@ -169,10 +169,10 @@ export class SceneGizmo {
         }
 
         if (node instanceof Mesh && node.skeleton) {
-            // this._skeletonViewer = new SkeletonViewer(node.skeleton, node, node.getScene(), false, (node.renderingGroupId > 0 ) ? node.renderingGroupId + 1 : 1, {
+            // this._skeletonViewer = new SkeletonViewer(node.skeleton, node, node.getScene(), true, (node.renderingGroupId > 0 ) ? node.renderingGroupId + 1 : 1, {
             //     pauseAnimations: false, 
             //     returnToRest: false, 
-            //     computeBonesUsingShaders: true, 
+            //     computeBonesUsingShaders: true,
             //     useAllBones: false,
             //     displayMode: SkeletonViewer.DISPLAY_SPHERE_AND_SPURS,
             //     displayOptions: {

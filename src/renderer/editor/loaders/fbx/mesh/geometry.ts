@@ -182,7 +182,7 @@ export class FBXGeometry {
                 scale.set(geometricScaling.prop(4, "number")!, geometricScaling.prop(5, "number")!, geometricScaling.prop(6, "number")!);
             }
 
-            const matrix = Matrix.Compose(scale, FBXUtils.GetRotationQuaternionFromVector(rotation, eulerOrder), translation);
+            const matrix = Matrix.Compose(scale, FBXUtils.GetFinalRotationQuaternionFromVector(rotation), translation);
             if (!matrix.isIdentity()) {
                 vertexData.transform(matrix);
             }
