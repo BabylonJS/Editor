@@ -16,11 +16,11 @@ BinaryReader.prototype.readUint64 = function () {
 BinaryReader.prototype.readInt64 = function () {
     let low = this.readUint32();
     let high = this.readUint32();
-        
+
     // calculate negative value
     if (high & 0x80000000) {
-        high = ~ high & 0xFFFFFFFF;
-        low = ~ low & 0xFFFFFFFF;
+        high = ~high & 0xFFFFFFFF;
+        low = ~low & 0xFFFFFFFF;
 
         if (low === 0xFFFFFFFF) {
             high = (high + 1) & 0xFFFFFFFF;
@@ -38,6 +38,6 @@ BinaryReader.prototype.readInt64 = function () {
 /**
  * Reads a 8 bits signed integer array.
  */
-BinaryReader.prototype.readUint8Array = function(size: number) {
+BinaryReader.prototype.readUint8Array = function (size: number) {
     return Buffer.from(this.binary.buffer.slice(this.offset, (this.offset += size)));
 };
