@@ -1,9 +1,9 @@
-import { INumberDictionary, IStringDictionary } from "../../../../../shared/types";
+import { INumberDictionary, IStringDictionary, Undefinable } from "../../../../../shared/types";
 
 import { FBXReaderNode } from "fbx-parser";
 import {
 	Node, Matrix, AnimationGroup, Vector3, Quaternion, Animation,
-	Tools as BabylonTools, Bone, TransformNode,
+	Tools as BabylonTools, Bone, TransformNode, Tools,
 } from "babylonjs";
 
 import { FBXUtils } from "../utils";
@@ -32,6 +32,9 @@ interface IFBXLayerCurve {
 	eulerOrder: string;
 
 	transform: Matrix;
+
+	preRotation?: Vector3;
+	postRotation?: Vector3;
 
 	T?: IFBXAnimationRawCurveNode;
 	R?: IFBXAnimationRawCurveNode;
@@ -96,9 +99,9 @@ export class FBXAnimations {
 			layer.transform.decompose(scaling, rotation, position);
 		}
 
+		let initialScale = scaling.asArray();
 		let initialPosition = position.asArray();
 		let initialRotation = rotation.toEulerAngles().asArray();
-		let initialScale = scaling.asArray();
 
 		// Position
 		if (layer.T && Object.keys(layer.T.curves).length > 0) {
@@ -113,42 +116,66 @@ export class FBXAnimations {
 					frame: t,
 					value: positions[index],
 				})));
-	
+
 				animationGroup.addTargetedAnimation(animation, t);
-			})
+			});
 		}
 
 		// Rotation
 		if (layer.R && Object.keys(layer.R.curves).length > 0) {
 			const curves = layer.R.curves;
 
-			if (curves.x !== undefined) {
+			if (curves.x) {
 				this._InterpolateRotations(curves.x);
 				curves.x.values = curves.x.values.map((v) => BabylonTools.ToRadians(v));
 			}
 
-			if (curves.y !== undefined) {
+			if (curves.y) {
 				this._InterpolateRotations(curves.y);
 				curves.y.values = curves.y.values.map((v) => BabylonTools.ToRadians(v));
 			}
 
-			if (curves.z !== undefined) {
+			if (curves.z) {
 				this._InterpolateRotations(curves.z);
 				curves.z.values = curves.z.values.map((v) => BabylonTools.ToRadians(v));
 			}
 
 			const rotationTimes = this._GetTimes(curves);
 			const rotations = this._GetKeyFrameAnimationValues(rotationTimes, curves, initialRotation);
-			const rotationQuaternions = rotations.map((r) => FBXUtils.GetRotationQuaternionFromVector(r, layer.eulerOrder));
 
-			targets.forEach((t) => {
-				const animation = new Animation(`${t.name}.rotationQuaternion`, "rotationQuaternion", 1, Animation.ANIMATIONTYPE_QUATERNION, Animation.ANIMATIONLOOPMODE_CYCLE, false);
-				animation.setKeys(rotationTimes.map((t, index) => ({
-					frame: t,
-					value: rotationQuaternions[index],
-				})));
+			const rotationQuaternions = rotations.map((r) => {
+				let finalRotation: Quaternion;
 
-				animationGroup.addTargetedAnimation(animation, t);
+				const preRotation = layer.preRotation;
+				const postRotation = layer.postRotation;
+
+				if (preRotation || postRotation) {
+					finalRotation = FBXUtils.GetFinalRotationQuaternionFromVector(r);
+					
+					if (preRotation) {
+						const pre = FBXUtils.GetFinalRotationQuaternionFromVector(preRotation);
+						finalRotation = pre.multiply(finalRotation);
+					}
+					
+					if (postRotation) {
+						const post = FBXUtils.GetFinalRotationQuaternionFromVector(postRotation);
+						finalRotation = finalRotation.multiply(Quaternion.Inverse(post));
+					}
+				} else {
+					finalRotation = FBXUtils.GetFinalRotationQuaternionFromVector(r);
+				}
+
+				return finalRotation;
+			});
+
+			targets.forEach((target) => {
+				const animation = new Animation(`${target.name}.rotationQuaternion`, "rotationQuaternion", 1, Animation.ANIMATIONTYPE_QUATERNION, Animation.ANIMATIONLOOPMODE_CYCLE, false);
+				animation.setKeys(rotationTimes.map((frame, index) => {
+					const value = rotationQuaternions[index];
+					return { frame, value };
+				}));
+
+				animationGroup.addTargetedAnimation(animation, target);
 			});
 		}
 
@@ -164,7 +191,7 @@ export class FBXAnimations {
 					frame: t,
 					value: scalings[index],
 				})));
-	
+
 				animationGroup.addTargetedAnimation(animation, t);
 			});
 		}
@@ -361,7 +388,7 @@ export class FBXAnimations {
 						}
 
 						const nodeId = model.prop(0, "number")!;
-						const modelName =  model.prop(1, "string")!;
+						const modelName = model.prop(1, "string")!;
 
 						const modelRef = this._GetTargets(nodeId, cachedModels, cachedSkeletons)[0];
 
@@ -374,10 +401,40 @@ export class FBXAnimations {
 							}
 						}
 
+						const propertiesNode = model.node("Properties70");
+						const properties = propertiesNode?.nodes("P");
+
+						let preRotation: Undefinable<Vector3>;
+						let postRotation: Undefinable<Vector3>;
+
+						if (properties?.length) {
+							const preRotationNode = properties.find((p) => p.prop(0, "string") === "PreRotation");
+							const postRotationNode = properties.find((p) => p.prop(0, "string") === "PostRotation");
+
+							if (preRotationNode) {
+								preRotation = new Vector3(
+									Tools.ToRadians(preRotationNode.prop(4, "number") ?? 0),
+									Tools.ToRadians(preRotationNode.prop(5, "number") ?? 0),
+									Tools.ToRadians(preRotationNode.prop(6, "number") ?? 0),
+								);
+							}
+
+							if (postRotationNode) {
+								postRotation = new Vector3(
+									Tools.ToRadians(postRotationNode.prop(4, "number") ?? 0),
+									Tools.ToRadians(postRotationNode.prop(5, "number") ?? 0),
+									Tools.ToRadians(postRotationNode.prop(6, "number") ?? 0),
+								);
+							}
+						}
+
 						const node: IFBXLayerCurve = {
 							modelId,
 							transform,
 							modelName,
+
+							preRotation,
+							postRotation,
 
 							id: nodeId,
 							eulerOrder: modelRef?.metadata?.transformData?.eulerOrder ?? "ZYX",
@@ -401,7 +458,7 @@ export class FBXAnimations {
 	/**
 	 * Returns the list of all animation targets for the given id.
 	 */
-	 private static _GetTargets(id: number, cachedModels: INumberDictionary<Node>, cachedSkeletons: INumberDictionary<IFBXSkeleton>): (TransformNode | Bone)[] {
+	private static _GetTargets(id: number, cachedModels: INumberDictionary<Node>, cachedSkeletons: INumberDictionary<IFBXSkeleton>): (TransformNode | Bone)[] {
 		const target = cachedModels[id];
 		if (target && target instanceof TransformNode) {
 			return [target];

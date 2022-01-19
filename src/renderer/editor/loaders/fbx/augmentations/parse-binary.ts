@@ -28,6 +28,7 @@ export function parseBinary(binary) {
 		
         fbx.push(subnode);
     }
+
     return fbx;
 }
 

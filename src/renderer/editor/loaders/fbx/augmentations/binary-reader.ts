@@ -34,3 +34,10 @@ BinaryReader.prototype.readInt64 = function () {
 
     return high * 0x100000000 + low;
 };
+
+/**
+ * Reads a 8 bits signed integer array.
+ */
+BinaryReader.prototype.readUint8Array = function(size: number) {
+    return Buffer.from(this.binary.buffer.slice(this.offset, (this.offset += size)));
+};

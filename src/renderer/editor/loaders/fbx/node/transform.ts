@@ -1,9 +1,9 @@
 import { FBXReaderNode } from "fbx-parser";
-import { TransformNode, Tools, Vector3, Bone, Quaternion, Space } from "babylonjs";
+import { TransformNode, Tools, Vector3, Bone, Quaternion } from "babylonjs";
 
 import { FBXUtils } from "../utils";
 
-interface IFBXTransformData {
+export interface IFBXTransformData {
 	eulerOrder: string;
 
 	inheritType?: number;
@@ -99,28 +99,33 @@ export class FBXTransform {
 		const scaling = transformData.scaling ?? model.scaling;
 		const translation = transformData.translation ?? model.position;
 
-		const rotation = transformData.rotation?.toQuaternion() ?? Quaternion.FromEulerAngles(0, 0, 0);
-		const preRotation = transformData.preRotation?.toQuaternion() ?? Quaternion.FromEulerAngles(0, 0, 0);
-		const postRotation = transformData.postRotation?.toQuaternion() ?? Quaternion.FromEulerAngles(0, 0, 0);
-
-		let finalRotation = preRotation.multiply(rotation).multiply(postRotation);
-		if (!model.parent) {
-			finalRotation = FBXUtils.GetRotationQuaternion(finalRotation, transformData.eulerOrder);
-		} else {
-			finalRotation.x = -finalRotation.x;
-			finalRotation.w = -finalRotation.w;
+		let finalRotation = Quaternion.Identity();
+		
+		if (transformData.rotation) {
+			finalRotation = FBXUtils.GetFinalRotationQuaternionFromVector(transformData.rotation);
 		}
 
-		// Add
-		if (model instanceof Bone) {
-			model.setScale(scaling);
-			model.setPosition(translation, Space.LOCAL);
-			model.setRotationQuaternion(finalRotation, Space.LOCAL);
-		} else {
-			model.scaling = scaling;
-			model.position = translation;
-			model.rotationQuaternion = finalRotation;
+		if (transformData.preRotation) {
+			const pre = FBXUtils.GetFinalRotationQuaternionFromVector(transformData.preRotation);
+			finalRotation = pre.multiply(finalRotation);
 		}
+		
+		if (transformData.postRotation) {
+			const post = FBXUtils.GetFinalRotationQuaternionFromVector(transformData.postRotation);
+			finalRotation = finalRotation.multiply(Quaternion.Inverse(post));
+		}
+
+		// if (!model.parent) {
+		// 	finalRotation = FBXUtils.GetFinalRotationQuaternion(finalRotation);
+		// } else {
+		// 	finalRotation.x = -finalRotation.x;
+		// 	finalRotation.w = -finalRotation.w;
+		// }
+
+		// Set
+		model.scaling = scaling;
+		model.position = translation;
+		model.rotationQuaternion = finalRotation;
 
 		delete model.metadata.transformData;
 	}
