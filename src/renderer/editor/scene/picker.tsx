@@ -1,23 +1,19 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem, MenuDivider, Classes, Pre, Code } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, Classes } from "@blueprintjs/core";
 
 import {
     Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh, Sound,
-    ParticleSystem, Mesh, MultiMaterial,
+    ParticleSystem,
 } from "babylonjs";
-
-import { Icon } from "../gui/icon";
 
 import { Editor } from "../editor";
 
 import { SceneIcons } from "./icons";
 import { SceneSettings } from "./settings";
 
-import { PreviewFocusMode } from "../components/preview";
-
-import { Tools } from "../tools/tools";
+import { GraphContextMenu } from "../components/graph/context-menu";
 
 export class ScenePicker {
     /**
@@ -195,56 +191,7 @@ export class ScenePicker {
 
         if (!node) { return; }
 
-        const subMeshesItems: JSX.Element[] = [];
-        if (node instanceof Mesh && node.subMeshes?.length && node.subMeshes.length > 1) {
-            const multiMaterial = node.material && node.material instanceof MultiMaterial ? node.material : null;
-
-            subMeshesItems.push(<MenuDivider />);
-            subMeshesItems.push(<Code style={{ width: "100%" }}>Sub-Meshes:</Code>);
-
-            node.subMeshes.forEach((sm, index) => {
-                const material = multiMaterial && sm.getMaterial();
-                const text = material ? (material.name ?? Tools.GetConstructorName(material)) : `Sub Mesh "${index}`;
-                const key = `${(node as Mesh)!.id}-${index}`;
-                const extraMenu = <MenuItem key={key} text={text} icon={<Icon src="vector-square.svg" />} onClick={() => this._editor.selectedSubMeshObservable.notifyObservers(sm)} />;
-                subMeshesItems.push(extraMenu);
-            });
-        }
-
-        let subMeshesItem = subMeshesItems.length ? (
-            <div style={{ maxHeight: "300px", overflow: "auto" }}>
-                {subMeshesItems}
-            </div>
-        ) : undefined;
-
-        let isolatedMode = node instanceof AbstractMesh ? (
-            <>
-                <MenuDivider />
-                <MenuItem text="Isolate..." onClick={() => this._editor.preview.toggleIsolatedMode(node)} />
-            </>
-        ) : undefined;
-
-        ContextMenu.show(
-            <Menu className={Classes.DARK}>
-                <Pre>
-                    "{node.name}" <b style={{ color: "grey" }}>({Tools.GetConstructorName(node)})</b>
-                </Pre>
-                <MenuDivider />
-                <MenuItem text="Clone" disabled={node instanceof Sound || node instanceof ParticleSystem} icon={<Icon src="clone.svg" />} onClick={() => {
-                    this._editor.graph.cloneObject(node!);
-                    this._editor.graph.refresh();
-                }} />
-                {isolatedMode}
-                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Position)} />
-                <MenuDivider />
-                <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => {
-                    this._editor.graph.removeObject(node!);
-                    this._editor.graph.refresh();
-                }} />
-                {subMeshesItem}
-            </Menu>,
-            { left: ev.clientX, top: ev.clientY }
-        );
+        GraphContextMenu.Show(ev, this._editor, node);
     }
 
     /**

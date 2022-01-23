@@ -1,37 +1,30 @@
 import * as React from "react";
 import Tree from "antd/lib/tree/Tree";
 import {
-    ContextMenu, Menu, MenuItem, MenuDivider, Classes, Tooltip,
-    Position, InputGroup, FormGroup, Icon as BPIcon,
-    Switch, ButtonGroup, Button, Popover, Pre, Intent, Code, Tag,
+    Classes, Tooltip, Position, InputGroup, FormGroup, Icon as BPIcon, Switch, ButtonGroup, Button, Popover, Intent, Tag,
 } from "@blueprintjs/core";
 
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import {
     Node, Scene, Mesh, Light, Camera, TransformNode, InstancedMesh, AbstractMesh,
-    MultiMaterial, IParticleSystem, ParticleSystem, Sound, Bone,
+    IParticleSystem, ParticleSystem, Sound, Bone,
 } from "babylonjs";
 
 import { Editor } from "../editor";
 
 import { Icon } from "../gui/icon";
-import { EditableText } from "../gui/editable-text";
 
 import { Tools } from "../tools/tools";
 import { undoRedo } from "../tools/undo-redo";
 import { IMeshMetadata } from "../tools/types";
 
-import { Prefab } from "../prefab/prefab";
-
 import { SceneSettings } from "../scene/settings";
-import { SceneTools } from "../scene/tools";
-
-import { PreviewFocusMode } from "./preview";
 
 import { SoundAssets } from "../assets/sounds";
 import { IDragAndDroppedAssetComponentItem } from "../assets/abstract-assets";
 
+import { GraphContextMenu } from "./graph/context-menu";
 import { GraphReferenceUpdater } from "./graph/reference-updater";
 
 export interface IGraphProps {
@@ -88,11 +81,9 @@ interface _ITreeDropInfo {
 
 export class Graph extends React.Component<IGraphProps, IGraphState> {
     private _editor: Editor;
-    private _firstUpdate: boolean = true;
     private _filter: string = "";
-
-    private _copiedTransform: Nullable<AbstractMesh | Light | Camera> = null;
-
+    private _firstUpdate: boolean = true;
+    
     /**
      * Defines the last selected node in the graph.
      */
@@ -738,10 +729,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
     /**
      * Called on the user right-clicks on a node.
-     * @param e the event object coming from react.
+     * @param ev the event object coming from react.
      * @param graphNode the node being right-clicked in the tree.
      */
-    private _handleNodeContextMenu(e: React.MouseEvent, graphNode: any): void {
+    private _handleNodeContextMenu(ev: React.MouseEvent, graphNode: any): void {
         if (graphNode.disabled) {
             return;
         }
@@ -751,188 +742,12 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (!node || node === SceneSettings.Camera) { return; }
         if (node instanceof Node && node.doNotSerialize) { return; }
 
-        const name = node.name ?? Tools.GetConstructorName(node);
-
-        const subMeshesItems: React.ReactNode[] = [];
-        if (node instanceof Mesh && node.subMeshes?.length && node.subMeshes.length > 1) {
-            const multiMaterial = node.material && node.material instanceof MultiMaterial ? node.material : null;
-
-            subMeshesItems.push(<MenuDivider />);
-            subMeshesItems.push(<Code>Sub-Meshes:</Code>);
-
-            node.subMeshes.forEach((sm, index) => {
-                const material = multiMaterial && sm.getMaterial();
-                const text = material ? (material.name ?? Tools.GetConstructorName(material)) : `Sub Mesh "${index}`;
-                const key = `${(node as Mesh)!.id}-${index}`;
-                const extraMenu = <MenuItem key={key} text={text} icon={<Icon src="vector-square.svg" />} onClick={() => this._editor.selectedSubMeshObservable.notifyObservers(sm)} />;
-                subMeshesItems.push(extraMenu);
-            });
-        }
-
-        let subMeshesItem = subMeshesItems.length ? (
-            <div style={{ maxHeight: "300px", overflow: "auto" }}>
-                {subMeshesItems}
-            </div>
-        ) : undefined;
-
-        let mergeMeshesItem: React.ReactNode;
-        let doNotExportItem: React.ReactNode;
-        let lockedMeshesItem: React.ReactNode;
-
-        if (this.state.selectedNodeIds) {
-            const all = this.state.selectedNodeIds.map((id) => this._getNodeById(id)) as Mesh[];
-            const notAllMeshes = all.find((n) => !(n instanceof Mesh));
-            const notAllAbstractMeshes = all.find((n) => !(n instanceof AbstractMesh));
-            const notAllNodes = all.find((n) => !(n instanceof Node));
-
-            if (!notAllMeshes && all.length > 1) {
-                mergeMeshesItem = (
-                    <>
-                        <MenuDivider />
-                        <MenuItem text="Merge Meshes..." onClick={() => SceneTools.MergeMeshes(this._editor, all as Mesh[])} />
-                    </>
-                );
-            }
-
-            if (!notAllNodes) {
-                all.forEach((n) => {
-                    n.metadata = n.metadata ?? {};
-                    n.metadata.doNotExport = n.metadata.doNotExport ?? false;
-                });
-
-                doNotExportItem = (
-                    <>
-                        <MenuDivider />
-                        <MenuItem text="Do Not Export" icon={(node as Node).metadata.doNotExport ? <Icon src="check.svg" /> : undefined} onClick={() => {
-                            all.forEach((n) => {
-                                n.metadata.doNotExport = !n.metadata.doNotExport;
-                            });
-
-                            this.refresh();
-                        }} />
-                    </>
-                )
-            }
-
-            if (!notAllAbstractMeshes) {
-                lockedMeshesItem = (
-                    <>
-                        <MenuDivider />
-                        <MenuItem text="Locked" icon={(node as Mesh).metadata?.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
-                            all.forEach((m) => {
-                                m.metadata = m.metadata ?? {};
-                                m.metadata.isLocked = m.metadata.isLocked ?? false;
-                                m.metadata.isLocked = !m.metadata.isLocked;
-                            });
-
-                            this.refresh();
-                        }} />
-                    </>
-                );
-            }
-        }
-
-        // Copy paste
-        let copyPasteTransform: React.ReactNode;
-        if (node instanceof AbstractMesh || node instanceof Light || node instanceof Camera) {
-            const copyTransform = (property: string) => {
-                if (this._copiedTransform?.[property]) {
-                    const base = node![property]?.clone();
-                    const target = this._copiedTransform[property].clone();
-
-                    undoRedo.push({
-                        description: `Changed transform information of object "${node?.["name"] ?? "undefiend"}" from "${base.toString()}" to "${target.toString()}"`,
-                        common: () => this._editor.inspector.refreshDisplay(),
-                        undo: () => node![property] = base,
-                        redo: () => node![property] = target,
-                    });
-                }
-
-                this._editor.inspector.refreshDisplay();
-            };
-
-            copyPasteTransform = (
-                <>
-                    <MenuItem text="Copy Transform" icon="duplicate" onClick={() => this._copiedTransform = node as any} />
-                    <MenuItem text="Paste Transform" icon="clipboard" label={`(${this._copiedTransform?.name ?? "None"})`} disabled={this._copiedTransform === null}>
-                        <MenuItem text="All" onClick={() => {
-                            copyTransform("position");
-                            copyTransform("rotationQuaternion");
-                            copyTransform("rotation");
-                            copyTransform("scaling");
-                            copyTransform("direction");
-                        }} />
-                        <MenuDivider />
-                        <MenuItem text="Position" disabled={(this._copiedTransform?.["position"] ?? null) === null} onClick={() => {
-                            copyTransform("position");
-                        }} />
-                        <MenuItem text="Rotation" disabled={((this._copiedTransform?.["rotationQuaternion"] ?? null) || (this._copiedTransform?.["rotation"] ?? null)) === null} onClick={() => {
-                            copyTransform("rotationQuaternion");
-                            copyTransform("rotation");
-                        }} />
-                        <MenuItem text="Scaling" disabled={(this._copiedTransform?.["scaling"] ?? null) === null} onClick={() => {
-                            copyTransform("scaling");
-                        }} />
-                        <MenuDivider />
-                        <MenuItem text="Direction" disabled={(this._copiedTransform?.["direction"] ?? null) === null} onClick={() => {
-                            copyTransform("direction");
-                        }} />
-                    </MenuItem>
-                    <MenuDivider />
-                </>
-            );
-        }
-
-        ContextMenu.show(
-            <Menu className={Classes.DARK}>
-                <Pre>
-                    <p style={{ color: "white", marginBottom: "0px" }}>Name</p>
-                    <EditableText
-                        disabled={node instanceof Sound}
-                        value={name}
-                        intent={Intent.PRIMARY}
-                        multiline={true}
-                        confirmOnEnterKey={true}
-                        selectAllOnFocus={true}
-                        className={Classes.FILL}
-                        onConfirm={(v) => {
-                            const oldName = node!.name;
-                            undoRedo.push({
-                                description: `Changed name of node "${node?.name ?? "undefined"}" from "${oldName}" to "${v}"`,
-                                common: () => this.refresh(),
-                                redo: () => node!.name = v,
-                                undo: () => node!.name = oldName,
-                            });
-                        }}
-                    />
-                </Pre>
-                <MenuDivider />
-                <MenuItem text="Clone" disabled={node instanceof Sound || node instanceof ParticleSystem} icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneObject()} />
-                <MenuDivider />
-                <MenuItem text="Focus..." onClick={() => this._editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Position)} />
-                <MenuDivider />
-                {copyPasteTransform}
-                <MenuItem text="Prefab">
-                    <MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, false)} />
-                    <MenuItem text="Create Prefab As..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(this._editor, node as Mesh, true)} />
-                </MenuItem>
-                <MenuItem text="Export">
-                    <MenuItem text="Export as Babylon..." disabled={!(node instanceof Mesh)} onClick={() => SceneTools.ExportMeshToBabylonJSFormat(this._editor, node as Mesh)} />
-                </MenuItem>
-                {mergeMeshesItem}
-                {doNotExportItem}
-                {lockedMeshesItem}
-                <MenuDivider />
-                <MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => this._handleRemoveObject()} />
-                {subMeshesItem}
-            </Menu>,
-            { left: e.clientX, top: e.clientY }
-        );
+        GraphContextMenu.Show(ev.nativeEvent, this._editor, node);
 
         const selectedNodeIds = this.state.selectedNodeIds?.slice() ?? [];
         if (selectedNodeIds.indexOf(graphNode.key) !== -1) { return; }
 
-        if (e.ctrlKey) {
+        if (ev.ctrlKey) {
             selectedNodeIds.push(graphNode.key);
             this.setState({ selectedNodeIds });
         } else {
@@ -942,8 +757,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
     /**
      * Removes the given node from the graph and destroys its data.
+     * @hidden
      */
-    private _handleRemoveObject(): void {
+    public _handleRemoveObject(): void {
         if (!this.state.selectedNodeIds) { return; }
 
         const selectedNodeIds = this.state.selectedNodeIds.slice();
@@ -965,8 +781,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
     /**
      * Clones all selected nodes.
+     * @hidden
      */
-    private _handleCloneObject(): void {
+    public _handleCloneObject(): void {
         if (!this.state.selectedNodeIds) { return; }
         this.state.selectedNodeIds.forEach((id) => {
             const node = this._getNodeById(id);
@@ -1153,8 +970,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Returns the node in the stage identified by the given id.
      * @param id the id of the node to find.
+     * @hidden
      */
-    private _getNodeById(id: string): Undefinable<Node | IParticleSystem | Sound> {
+    public _getNodeById(id: string): Undefinable<Node | IParticleSystem | Sound> {
         const all = Tools.getAllSceneNodes(this._editor.scene!);
 
         const node = all.find((c) => c.id === id);
