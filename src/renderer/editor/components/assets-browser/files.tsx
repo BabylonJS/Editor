@@ -232,6 +232,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 						gridTemplateRows: `repeat(auto-fill, ${120 * this.state.itemsSize}px)`,
 						gridTemplateColumns: `repeat(auto-fill, ${120 * this.state.itemsSize}px)`,
 					}}
+					onClick={() => {
+						this._items.forEach((i) => i.setSelected(false));
+						this.selectedItems = [];
+					}}
 					onContextMenu={(ev) => this._handleContextMenu(ev)}
 				>
 					{this.state.items}
@@ -333,7 +337,31 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Called on the user clicks on the item.
 	 */
 	private _handleAssetSelected(item: AssetsBrowserItem, ev: React.MouseEvent<HTMLDivElement>): void {
-		if (ev.ctrlKey || ev.metaKey) {
+		if (ev.shiftKey) {
+			let endIndex = this._items.indexOf(item);
+
+			let startIndex = this.selectedItems?.length ? this._items.findIndex((i) => i.props.absolutePath === this.selectedItems[0]) : 0;
+			if (startIndex === -1) { startIndex = 0; }
+
+			if (endIndex < startIndex) {
+				const startCopy = startIndex;
+
+				startIndex = endIndex;
+				endIndex = startCopy;
+			}
+
+			this.selectedItems = [];
+
+			this._items.forEach((i, index) => {
+				const isSelected = index >= startIndex && index <= endIndex;
+				if (isSelected) {
+					this.selectedItems.push(i.props.absolutePath);
+				}
+
+				i.setSelected(isSelected);
+			});
+		}
+		else if (ev.ctrlKey || ev.metaKey) {
 			const isSelected = !item.state.isSelected;
 			if (!isSelected) {
 				const index = this.selectedItems.indexOf(item.props.absolutePath);
