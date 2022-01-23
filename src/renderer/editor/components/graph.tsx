@@ -10,7 +10,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 
 import {
     Node, Scene, Mesh, Light, Camera, TransformNode, InstancedMesh, AbstractMesh,
-    MultiMaterial, IParticleSystem, ParticleSystem, Sound,
+    MultiMaterial, IParticleSystem, ParticleSystem, Sound, Bone,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -154,7 +154,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         />
                     </ButtonGroup>
                 </Popover>
-                <div style={{ width: "100%", height: "calc(100% - 70px)", overflow: "auto" }}>
+                <div style={{ width: "100%", height: "calc(100% - 75px)", overflow: "auto" }}>
                     <Tree.DirectoryTree
                         multiple
                         showIcon
@@ -612,19 +612,28 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         let children: JSX.Element[] = [];
         if (matchesFilter) {
             children = node.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as JSX.Element[];
+        } else {
+            return null;
         }
 
         // Mesh and skeleton?
         if (node instanceof AbstractMesh && node.skeleton) {
+            const bones = node.skeleton.bones.filter((b) => !b.getParent());
+            const skeletonChildren = bones.map((b) => {
+                return b.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as JSX.Element[];
+            });
+
             children.splice(0, 0, (
                 <Tree.TreeNode
                     active
                     expanded
                     title={node.skeleton.name}
                     key={`${node.skeleton.name}-${node.skeleton.id}`}
-                    isLeaf
+                    isLeaf={!skeletonChildren.length}
                     icon={<Icon src="human-skull.svg" />}
-                />
+                >
+                    {skeletonChildren}
+                </Tree.TreeNode>
             ));
         }
 
@@ -634,8 +643,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
             children.push(
                 <Tree.TreeNode
-                    active={true}
-                    expanded={true}
+                    active
+                    isLeaf
+                    expanded
                     title={
                         <Tooltip
                             content={<span>{Tools.GetConstructorName(ps)}</span>}
@@ -646,7 +656,6 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         </Tooltip>
                     }
                     key={ps.id}
-                    isLeaf={true}
                     icon={<Icon src="wind.svg" />}
                 ></Tree.TreeNode>
             );
@@ -661,8 +670,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
             children.push(
                 <Tree.TreeNode
-                    active={true}
-                    expanded={true}
+                    active
+                    isLeaf
+                    expanded
                     title={
                         <Tooltip
                             content={<span>{Tools.GetConstructorName(s)}</span>}
@@ -673,7 +683,6 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         </Tooltip>
                     }
                     key={s.metadata.id}
-                    isLeaf={true}
                     icon={<Icon src={s.isPlaying ? "volume-up.svg" : "volume-mute.svg"} />}
                 ></Tree.TreeNode>
             );
@@ -694,14 +703,11 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         return (
             <Tree.TreeNode
-                active={true}
+                expanded
+                active
                 disabled={disabled}
-                expanded={true}
                 title={
-                    <Tooltip
-                        content={<span>{ctor}</span>}
-                        usePortal={true}
-                    >
+                    <Tooltip usePortal content={<span>{ctor}</span>}>
                         <>
                             <span style={style}>{name}</span>
                             {updateReferences}
@@ -725,6 +731,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (node instanceof AbstractMesh) { return "vector-square.svg"; }
         if (node instanceof Light) { return "lightbulb.svg"; }
         if (node instanceof Camera) { return "camera.svg"; }
+        if (node instanceof Bone) { return "bone.svg"; }
+
         return "clone.svg";
     }
 
