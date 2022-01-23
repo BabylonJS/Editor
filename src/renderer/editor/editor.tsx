@@ -78,6 +78,7 @@ import "./components/inspectors/node/transform-node-inspector";
 import "./components/inspectors/node/sub-mesh-proxy-inspector";
 import "./components/inspectors/node/sub-mesh-inspector";
 import "./components/inspectors/node/ground-inspector";
+import "./components/inspectors/node/skeleton-inspector";
 
 import "./components/inspectors/lights/light-inspector";
 import "./components/inspectors/lights/directional-light-inspector";
