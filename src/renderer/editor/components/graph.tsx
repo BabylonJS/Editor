@@ -1,5 +1,7 @@
 import * as React from "react";
 import Tree from "antd/lib/tree/Tree";
+import { DataNode } from "rc-tree/lib/interface";
+
 import {
     Classes, Tooltip, Position, InputGroup, FormGroup, Icon as BPIcon, Switch, ButtonGroup, Button, Popover, Intent, Tag,
 } from "@blueprintjs/core";
@@ -42,7 +44,7 @@ export interface IGraphState {
     /**
      * Defines the list of all nodes to be draws in the editor.
      */
-    nodes: JSX.Element[];
+    nodes: DataNode[];
     /**
      * Defines the list of all expanded nodes.
      */
@@ -83,7 +85,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     private _editor: Editor;
     private _filter: string = "";
     private _firstUpdate: boolean = true;
-    
+
     /**
      * Defines the last selected node in the graph.
      */
@@ -156,6 +158,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         autoExpandParent={false}
                         expandAction="doubleClick"
                         className="draggable-tree"
+                        treeData={this.state.nodes}
                         style={{ height: "calc(100% - 32px)" }}
                         expandedKeys={this.state.expandedNodeIds ?? []}
                         selectedKeys={this.state.selectedNodeIds ?? []}
@@ -165,9 +168,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         onExpand={(k) => this._handleExpandedNode(k as string[])}
                         onSelect={(k) => this._handleSelectedNodes(k as string[])}
                         onRightClick={(e) => this._handleNodeContextMenu(e.event, e.node)}
-                    >
-                        {this.state.nodes}
-                    </Tree.DirectoryTree>
+                    />
                 </div>
             </div>
         );
@@ -495,57 +496,46 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Recursively parses the stage to adds the nodes to the props.
      */
-    private _parseScene(): JSX.Element[] {
-        const nodes = this._scene.rootNodes.map((n) => this._parseNode(n)).filter((n) => n !== null);
+    private _parseScene(): DataNode[] {
+        const nodes = this._scene.rootNodes
+            .map((n) => this._parseNode(n))
+            .filter((n) => n !== null);
 
-        const scene = (
-            <Tree.TreeNode
-                active={true}
-                expanded={true}
-                title={<span>Scene</span>}
-                key="__editor__scene__"
-                isLeaf={true}
-                icon={<Icon src="camera-retro.svg" />}
-            />
-        );
+        const scene: DataNode = {
+            isLeaf: true,
+            key: "__editor__scene__",
+            title: <span>Scene</span>,
+            icon: <Icon src="camera-retro.svg" />,
+        };
 
         const soundsChildren = this._editor.scene!.mainSoundTrack.soundCollection.filter((s) => !s.spatialSound).map((s) => {
-            s.metadata = s.metadata ?? {};
-            if (!s.metadata.id) { s.metadata.id = Tools.RandomId(); }
+            s.metadata ??= {};
+            s.metadata.id ??= Tools.RandomId();
 
-            return (
-                <Tree.TreeNode
-                    active={true}
-                    expanded={true}
-                    title={<span>{s.name}</span>}
-                    key={s.metadata.id}
-                    isLeaf={true}
-                    icon={<Icon src={s.isPlaying ? "volume-up.svg" : "volume-mute.svg"} />}
-                    children={sounds}
-                />
-            );
+            return {
+                isLeaf: true,
+                key: s.metadata.id,
+                title: <span>{s.name}</span>,
+                icon: <Icon src={s.isPlaying ? "volume-up.svg" : "volume-mute.svg"} />,
+            } as DataNode;
         });
 
-        const sounds = (
-            <Tree.TreeNode
-                active={true}
-                expanded={true}
-                title={<span>Sounds</span>}
-                key="sounds"
-                isLeaf={soundsChildren.length === 0}
-                icon={<Icon src="volume-off.svg" />}
-                children={soundsChildren}
-            />
-        );
+        const sounds: DataNode = {
+            key: "sounds",
+            children: soundsChildren,
+            title: <span> Sounds</span>,
+            isLeaf: soundsChildren.length === 0,
+            icon: < Icon src="volume-off.svg" />,
+        };
 
-        return [scene, sounds].concat(nodes as JSX.Element[]);
+        return [scene, sounds].concat(nodes as DataNode[]);
     }
 
     /**
      * Parses the given node and returns the new treenode object.
      * @param node the node to parse.
      */
-    private _parseNode(node: Node): Nullable<JSX.Element> {
+    private _parseNode(node: Node): Nullable<DataNode> {
         if (node instanceof Mesh && node._masterMesh) { return null; }
         if (node === SceneSettings.Camera) { return null; }
 
@@ -600,9 +590,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             matchesFilter = all.find((c) => (c.name ?? Tools.GetConstructorName(c)).toLowerCase().indexOf(this._filter.toLowerCase()) !== -1) !== undefined;
         }
 
-        let children: JSX.Element[] = [];
+        let children: DataNode[] = [];
         if (matchesFilter) {
-            children = node.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as JSX.Element[];
+            children = node.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as DataNode[];
         } else {
             return null;
         }
@@ -610,73 +600,58 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         // Mesh and skeleton?
         if (node instanceof AbstractMesh && node.skeleton) {
             const bones = node.skeleton.bones.filter((b) => !b.getParent());
-            const skeletonChildren = bones.map((b) => {
-                return b.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as JSX.Element[];
-            });
+            const skeletonChildren = bones.map((b) => this._parseNode(b)).filter((sc) => sc !== null) as DataNode[];
 
-            children.splice(0, 0, (
-                <Tree.TreeNode
-                    active
-                    expanded
-                    title={node.skeleton.name}
-                    key={`${node.skeleton.name}-${node.skeleton.id}`}
-                    isLeaf={!skeletonChildren.length}
-                    icon={<Icon src="human-skull.svg" />}
-                >
-                    {skeletonChildren}
-                </Tree.TreeNode>
-            ));
+            children.splice(0, 0, {
+                title: node.skeleton.name,
+                children: skeletonChildren,
+                isLeaf: !skeletonChildren.length,
+                icon: <Icon src="human-skull.svg" />,
+                key: `${node.skeleton.name}-${node.skeleton.id}`,
+            });
         }
 
         // Search for particle systems.
         this._editor.scene!.particleSystems.forEach((ps) => {
             if (ps.emitter !== node) { return; }
 
-            children.push(
-                <Tree.TreeNode
-                    active
-                    isLeaf
-                    expanded
-                    title={
-                        <Tooltip
-                            content={<span>{Tools.GetConstructorName(ps)}</span>}
-                            position={Position.RIGHT}
-                            usePortal={false}
-                        >
-                            <span style={style}>{ps.name}</span>
-                        </Tooltip>
-                    }
-                    key={ps.id}
-                    icon={<Icon src="wind.svg" />}
-                ></Tree.TreeNode>
-            );
+            children.push({
+                key: ps.id,
+                isLeaf: true,
+                icon: <Icon src="wind.svg" />,
+                title: (
+                    <Tooltip
+                        content={<span>{Tools.GetConstructorName(ps)}</span>}
+                        position={Position.RIGHT}
+                        usePortal={false}
+                    >
+                        <span style={style}>{ps.name}</span>
+                    </Tooltip>
+                ),
+            });
         });
 
         // Search for sounds
         this._editor.scene!.mainSoundTrack.soundCollection.forEach((s) => {
             if (s["_connectedTransformNode"] !== node) { return; }
 
-            s.metadata = s.metadata ?? {};
-            if (!s.metadata.id) { s.metadata.id = Tools.RandomId(); }
+            s.metadata ??= {};
+            s.metadata.id ??= Tools.RandomId();
 
-            children.push(
-                <Tree.TreeNode
-                    active
-                    isLeaf
-                    expanded
-                    title={
-                        <Tooltip
-                            content={<span>{Tools.GetConstructorName(s)}</span>}
-                            position={Position.RIGHT}
-                            usePortal={false}
-                        >
-                            <span style={style}>{s.name}</span>
-                        </Tooltip>
-                    }
-                    key={s.metadata.id}
-                    icon={<Icon src={s.isPlaying ? "volume-up.svg" : "volume-mute.svg"} />}
-                ></Tree.TreeNode>
-            );
+            children.push({
+                isLeaf: true,
+                key: s.metadata.id,
+                icon: <Icon src={s.isPlaying ? "volume-up.svg" : "volume-mute.svg"} />,
+                title: (
+                    <Tooltip
+                        content={<span>{Tools.GetConstructorName(s)}</span>}
+                        position={Position.RIGHT}
+                        usePortal={false}
+                    >
+                        <span style={style}>{s.name}</span>
+                    </Tooltip>
+                ),
+            });
         });
 
         // Update references
@@ -692,26 +667,21 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             );
         }
 
-        return (
-            <Tree.TreeNode
-                expanded
-                active
-                disabled={disabled}
-                title={
-                    <Tooltip usePortal content={<span>{ctor}</span>}>
-                        <>
-                            <span style={style}>{name}</span>
-                            {updateReferences}
-                        </>
-                    </Tooltip>
-                }
-                key={node.id}
-                isLeaf={!children.length}
-                icon={<Icon src={this._getIcon(node)} />}
-            >
-                {children}
-            </Tree.TreeNode>
-        );
+        return {
+            disabled,
+            children,
+            key: node.id,
+            isLeaf: !children.length,
+            icon: <Icon src={this._getIcon(node)} />,
+            title: (
+                <Tooltip usePortal content={<span>{ctor}</span>}>
+                    <>
+                        <span style={style}>{name}</span>
+                        {updateReferences}
+                    </>
+                </Tooltip>
+            ),
+        }
     }
 
     /**

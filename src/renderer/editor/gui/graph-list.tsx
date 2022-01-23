@@ -2,6 +2,7 @@ import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
 import Tree from "antd/lib/tree/Tree";
+import { DataNode } from "rc-tree/lib/interface";
 import { ContextMenu, Classes, Menu, MenuItem } from "@blueprintjs/core";
 
 import { Icon } from "./icon";
@@ -69,38 +70,32 @@ export class GraphList extends React.Component<IGraphListProps, IGraphListState>
      * Renders the component.
      */
     public render(): React.ReactNode {
-        const nodes = this.state.list.map((item) => (
-            <Tree.TreeNode
-                active={true}
-                expanded={true}
-                title={<span style={{ color: "white" }}>{item.name}</span>}
-                key={item.id}
-                isLeaf={true}
-                icon={item.icon}
-                style={{ height: "25px" }}
-            >
-            </Tree.TreeNode>
-        ));
+        const nodes = this.state.list.map((item) => ({
+            isLeaf: true,
+            key: item.id,
+            icon: item.icon,
+            style: { height: "25px" },
+            title: <span style={{ color: "white" }}>{item.name}</span>,
+        } as DataNode));
 
         return (
             <div style={{ width: "100%", height: "100%", overflow: "scroll", ...this.props.style ?? { } }}>
                 <Tree.DirectoryTree
-                    className="draggable-tree"
-                    draggable={false}
-                    multiple={true}
-                    showIcon={true}
-                    checkable={false}
+                    multiple
+                    showIcon
                     key={"Graph"}
-                    style={{ height: "100%" }}
+                    draggable={false}
+                    checkable={false}
+                    treeData={nodes}
                     blockNode={true}
+                    expandedKeys={[]}
+                    autoExpandParent={false}
+                    className="draggable-tree"
+                    style={{ height: "100%" }}
+                    selectedKeys={this.state.selectedIds}
                     onRightClick={this.props.onRemove && ((e) => this._handleNodeContextMenu(e.event, e.node))}
                     onSelect={(k) => this._handleSelectedNodes(k as string[])}
-                    autoExpandParent={false}
-                    selectedKeys={this.state.selectedIds}
-                    expandedKeys={[]}
-                >
-                    {nodes}
-                </Tree.DirectoryTree>
+                />
             </div>
         )
     }
