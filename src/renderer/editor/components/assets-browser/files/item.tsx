@@ -208,7 +208,10 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 				onDragOver={(ev) => this._handleDragOver(ev)}
 				onDragLeave={(ev) => this._handleDragLeave(ev)}
 
-				onClick={(ev) => this.props.onClick(this, ev)}
+				onClick={(ev) => {
+					ev.stopPropagation();
+					this.props.onClick(this, ev);
+				}}
 				onDoubleClick={() => this.props.onDoubleClick()}
 
 				onContextMenu={(ev) => {
