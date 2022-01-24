@@ -611,7 +611,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             });
         } else if (node instanceof Bone) {
             // Bone
-            const attachedNodes = this._editor.scene!.meshes.filter((m) => m.parent === node);
+            const attachedMeshes = this._editor.scene!.meshes.filter((m) => m.parent === node);
+            const attachedTransformNodes = this._editor.scene!.transformNodes.filter((tn) => tn.parent === node);
+            
+            const attachedNodes = attachedTransformNodes.concat(attachedMeshes);
             const attachedNodesChildren = attachedNodes.map((atn) => this._parseNode(atn)).filter((atn) => atn !== null) as DataNode[];
 
             children.splice.apply(children, [0, 0, ...attachedNodesChildren]);
