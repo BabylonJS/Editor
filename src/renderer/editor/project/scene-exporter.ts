@@ -4,7 +4,7 @@ import directoryTree, { DirectoryTree } from "directory-tree";
 import { copyFile, pathExists, readdir, readFile, readJSON, remove, writeFile, writeJSON } from "fs-extra";
 
 import { LGraph } from "litegraph.js";
-import { SceneSerializer, Mesh } from "babylonjs";
+import { SceneSerializer, Mesh, Bone } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -187,6 +187,23 @@ export class SceneExporter {
 			m.lodMeshIds = lods.map((lod) => lod.mesh?.id);
 			m.lodDistances = lods.map((lod) => lod.distance);
 			m.lodCoverages = lods.map((lod) => lod.distance);
+		});
+
+		// Bones parenting
+		scene.meshes?.forEach((m) => {
+			const mesh = editor.scene!.getMeshByID(m.id);
+			if (mesh && mesh.parent && mesh.parent instanceof Bone) {
+				m.metadata ??= {};
+				m.metadata.parentBoneId = mesh.parent.id;
+			}
+		});
+
+		scene.transformNodes?.forEach((tn) => {
+			const transformNode = editor.scene!.getTransformNodeByID(tn.id);
+			if (transformNode && transformNode.parent && transformNode.parent instanceof Bone) {
+				tn.metadata ??= {};
+				tn.metadata.parentBoneId = transformNode.parent.id;
+			}
 		});
 
 		// Physics

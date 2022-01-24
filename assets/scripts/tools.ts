@@ -5,12 +5,14 @@
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
+import { Bone } from "@babylonjs/core/Bones/bone";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { EngineStore } from "@babylonjs/core/Engines/engineStore";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader"; 
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
 import { Vector2, Vector3, Vector4, Matrix } from "@babylonjs/core/Maths/math.vector";
 
@@ -308,6 +310,9 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
     // Pose matrices
     applyMeshesPoseMatrices(scene);
 
+    // Bones parenting
+    attachTransformNodesToBones(scene);
+
     // Apply colliders
     applyMeshColliders(scene);
 }
@@ -370,6 +375,30 @@ export function applyMeshesPoseMatrices(scene: Scene): void {
             delete m.metadata.basePoseMatrix;
         }
     })
+}
+
+/**
+ * Checks scene's transform nodes in order to attach to related bones. 
+ * @param scene defines the reference to the scene containing the transform nodes to potentially attach to bones.
+ */
+export function attachTransformNodesToBones(scene: Scene): void {
+    const apply = (tn: TransformNode) => {
+        if (!tn.metadata?.parentBoneId) { return; }
+
+        const bone = scene.getBoneByID(tn.metadata.parentBoneId);
+        if (!bone) { return; }
+
+        const skeleton = bone.getSkeleton();
+        const mesh = scene.meshes.find((m) => m.skeleton === skeleton);
+        if (mesh) {
+            tn.attachToBone(bone, mesh);
+        }
+
+        delete tn.metadata.parentBoneId;
+    };
+
+    scene.meshes.forEach((m) => apply(m));
+    scene.transformNodes.forEach((tn) => apply(tn));
 }
 
 /**

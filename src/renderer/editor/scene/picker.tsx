@@ -191,6 +191,8 @@ export class ScenePicker {
 
         if (!node) { return; }
 
+        this._editor.graph.setSelected(node, ev.ctrlKey || ev.metaKey);
+        
         GraphContextMenu.Show(ev, this._editor, node);
     }
 
