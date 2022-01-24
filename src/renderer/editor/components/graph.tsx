@@ -86,6 +86,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     private _filter: string = "";
     private _firstUpdate: boolean = true;
 
+    private _allKeys: string[] = [];
+
     /**
      * Defines the last selected node in the graph.
      */
@@ -160,8 +162,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         className="draggable-tree"
                         treeData={this.state.nodes}
                         style={{ height: "calc(100% - 32px)" }}
-                        expandedKeys={this.state.expandedNodeIds ?? []}
                         selectedKeys={this.state.selectedNodeIds ?? []}
+                        expandedKeys={this._filter ? this._allKeys : (this.state.expandedNodeIds ?? [])}
                         onDrop={(i) => this._handleDrop(i)}
                         onDragEnter={(n) => this._handleDragEnter(n)}
                         onDragStart={(n) => this._handleDragStart(n)}
@@ -497,6 +499,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Recursively parses the stage to adds the nodes to the props.
      */
     private _parseScene(): DataNode[] {
+        this._allKeys = [];
+
         const nodes = this._scene.rootNodes
             .map((n) => this._parseNode(n))
             .filter((n) => n !== null);
@@ -528,7 +532,29 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             icon: < Icon src="volume-off.svg" />,
         };
 
+        this._allKeys.push(sounds.key as string);
+
         return [scene, sounds].concat(nodes as DataNode[]);
+    }
+
+    /**
+     * Returns the list of all descendants of the given bone.
+     */
+    private _getBoneDescendants(bone: Bone): { name: string; }[] {
+        const all: Node[] = [];
+        const skeleton = bone.getSkeleton();
+
+        skeleton.bones.forEach((b) => {
+            let parent = b;
+            while (parent) {
+                if (parent === bone) {
+                    all.push(b);
+                }
+                parent = parent.getParent()!;
+            }
+        });
+
+        return all;
     }
 
     /**
@@ -583,46 +609,64 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             Object.assign(style, node.metadata.editorGraphStyles);
         }
 
-        // Filter
-        let matchesFilter: boolean = true;
-        if (this._filter) {
-            const all = [node].concat(node.getDescendants());
-            matchesFilter = all.find((c) => (c.name ?? Tools.GetConstructorName(c)).toLowerCase().indexOf(this._filter.toLowerCase()) !== -1) !== undefined;
-        }
-
         let children: DataNode[] = [];
-        if (matchesFilter) {
-            children = node.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as DataNode[];
-        } else {
-            return null;
-        }
 
         if (node instanceof AbstractMesh && node.skeleton) {
             // Mesh and skeleton?
             const bones = node.skeleton.bones.filter((b) => !b.getParent());
             const skeletonChildren = bones.map((b) => this._parseNode(b)).filter((sc) => sc !== null) as DataNode[];
 
+            const key = `${node.skeleton.name}-${node.skeleton.id}`;
+            this._allKeys.push(key);
+
             children.splice(0, 0, {
+                key,
                 title: node.skeleton.name,
                 children: skeletonChildren,
                 isLeaf: !skeletonChildren.length,
                 icon: <Icon src="human-skull.svg" />,
-                key: `${node.skeleton.name}-${node.skeleton.id}`,
             });
         } else if (node instanceof Bone) {
             // Bone
             const attachedMeshes = this._editor.scene!.meshes.filter((m) => m.parent === node);
             const attachedTransformNodes = this._editor.scene!.transformNodes.filter((tn) => tn.parent === node);
-            
+
             const attachedNodes = attachedTransformNodes.concat(attachedMeshes);
             const attachedNodesChildren = attachedNodes.map((atn) => this._parseNode(atn)).filter((atn) => atn !== null) as DataNode[];
 
             children.splice.apply(children, [0, 0, ...attachedNodesChildren]);
         }
 
+        // Filter
+        let matchesFilter: boolean = true;
+        if (this._filter) {
+            let all: { name: string; }[] = [];
+            if (node instanceof Bone) {
+                all = this._getBoneDescendants(node);
+            } else if (node instanceof AbstractMesh && node.skeleton) {
+                all = [
+                    node,
+                    node.skeleton,
+                    ...node.getDescendants(),
+                    ...node.skeleton.bones,
+                ]
+            } else {
+                all = [node].concat(node.getDescendants());
+            }
+            matchesFilter = all.find((c) => (c.name ?? Tools.GetConstructorName(c)).toLowerCase().indexOf(this._filter.toLowerCase()) !== -1) !== undefined;
+        }
+
+        if (matchesFilter) {
+            children.push.apply(children, node.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as DataNode[]);
+        } else {
+            return null;
+        }
+
         // Search for particle systems.
         this._editor.scene!.particleSystems.forEach((ps) => {
             if (ps.emitter !== node) { return; }
+
+            this._allKeys.push(ps.id);
 
             children.push({
                 key: ps.id,
@@ -646,6 +690,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
             s.metadata ??= {};
             s.metadata.id ??= Tools.RandomId();
+
+            this._allKeys.push(s.metadata.id);
 
             children.push({
                 isLeaf: true,
@@ -675,6 +721,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 >...</Tag>
             );
         }
+
+        this._allKeys.push(node.id);
 
         return {
             disabled,

@@ -203,8 +203,12 @@ export class FBXSkeleton {
 						
 						model.skeleton = skeleton.skeletonInstance;
 
-						model.skeleton.sortBones();
-						model.skeleton.returnToRest();
+						model.skeleton.bones.forEach((b) => {
+							b.name = `${model.name}-${b.name}`;
+						});
+
+						// model.skeleton.sortBones();
+						// model.skeleton.returnToRest();
 					}
 				});
 			});

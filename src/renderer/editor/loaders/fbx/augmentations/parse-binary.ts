@@ -91,7 +91,7 @@ function readProperty(data) {
 
     // replace '\x00\x01' by '::' and flip like in the text files
     if (typeCode === 'S' && value.indexOf('\x00\x01') != -1) {
-        value = value.split('\x00\x01').reverse().join('::');
+        value = value.split('\x00\x01').reverse().join("::");
     }
 
     return value;

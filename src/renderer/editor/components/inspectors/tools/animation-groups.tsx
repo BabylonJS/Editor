@@ -140,12 +140,12 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
                         this.forceUpdate();
                     }} />
 
-                    <InspectorString object={object} property="name" label="Name" onFinishChange={(v) => {
+                    <InspectorString key={Tools.RandomId()} object={object} property="name" label="Name" onFinishChange={(v) => {
                         node.label = v;
                         this.setState({ nodes: this.state.nodes });
                     }} />
 
-                    <InspectorSection title="Informations">
+                    <InspectorSection key={Tools.RandomId()} title="Informations">
                         <span>Animations Count: {object.targetedAnimations.length}</span>
                         <span>From: {object.from}</span>
                         <span>To: {object.to}</span>
@@ -239,6 +239,8 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
         if (!data || !(data instanceof AnimationGroup)) {
             return;
         }
+
+        this._handleNodeClicked(node);
 
         ContextMenu.show((
             <Menu>
