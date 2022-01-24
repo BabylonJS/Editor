@@ -597,8 +597,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             return null;
         }
 
-        // Mesh and skeleton?
         if (node instanceof AbstractMesh && node.skeleton) {
+            // Mesh and skeleton?
             const bones = node.skeleton.bones.filter((b) => !b.getParent());
             const skeletonChildren = bones.map((b) => this._parseNode(b)).filter((sc) => sc !== null) as DataNode[];
 
@@ -609,6 +609,12 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 icon: <Icon src="human-skull.svg" />,
                 key: `${node.skeleton.name}-${node.skeleton.id}`,
             });
+        } else if (node instanceof Bone) {
+            // Bone
+            const attachedNodes = this._editor.scene!.meshes.filter((m) => m.parent === node);
+            const attachedNodesChildren = attachedNodes.map((atn) => this._parseNode(atn)).filter((atn) => atn !== null) as DataNode[];
+
+            children.splice.apply(children, [0, 0, ...attachedNodesChildren]);
         }
 
         // Search for particle systems.
@@ -870,7 +876,18 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (info.node.dragOver) {
             all.forEach((n) => {
                 if (n instanceof Node) {
-                    return (n.parent = target);
+                    if (target instanceof Bone && n instanceof TransformNode) {
+                        const skeleton = target.getSkeleton();
+                        const mesh = this._editor.scene!.meshes.find((m) => m.skeleton === skeleton);
+
+                        if (mesh) {
+                            n.attachToBone(target, mesh);
+                        }
+
+                        return (n.parent = target);
+                    } else {
+                        return (n.parent = target);
+                    }
                 }
 
                 if (target instanceof AbstractMesh) {
@@ -947,6 +964,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         const node = all.find((c) => c.id === id);
         if (node) { return node; }
+
+        const bone = this._editor.scene!.getBoneByID(id);
+        if (bone) { return bone; }
 
         const ps = this._editor.scene!.getParticleSystemByID(id);
         if (ps) { return ps; }

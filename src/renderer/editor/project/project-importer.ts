@@ -6,7 +6,7 @@ import { Nullable } from "../../../shared/types";
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
-    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture,
+    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone,
 } from "babylonjs";
 
 import { PrefabAssets } from "../assets/prefabs";
@@ -69,10 +69,10 @@ export class ProjectImporter {
 
         // Read moved assets links to restore links
         try {
-			editor.assetsBrowser.movedAssetsDictionary = await readJSON(join(Project.DirPath!, "../links.json"), { encoding: "utf-8" });
-		} catch (e) {
-			/* Catch siently */
-		}
+            editor.assetsBrowser.movedAssetsDictionary = await readJSON(join(Project.DirPath!, "../links.json"), { encoding: "utf-8" });
+        } catch (e) {
+            /* Catch siently */
+        }
 
         // Set workspace path
         await Workers.ExecuteFunction<AssetsWorker, "setWorkspacePath">(AssetsBrowserItemHandler.AssetWorker, "setWorkspacePath", WorkSpace.DirPath!);
@@ -202,9 +202,9 @@ export class ProjectImporter {
 
             try {
                 const materialJsonPath = m.isMultiMaterial ?
-                        join(Project.DirPath, "materials", m.json) :
-                        join(editor.assetsBrowser.assetsDirectory, m.json);
-                
+                    join(Project.DirPath, "materials", m.json) :
+                    join(editor.assetsBrowser.assetsDirectory, m.json);
+
                 const json = await readJSON(materialJsonPath);
 
                 let materialRootUrl = join(editor.assetsBrowser.assetsDirectory, "/");
@@ -219,7 +219,7 @@ export class ProjectImporter {
                         Overlay.SetMessage("Installing dependencies...");
 
                         await WorkSpace.InstallDependencies(editor);
-                        
+
                         Overlay.SetMessage("Compiling TypeScript...");
                         const tsProcess = await WorkSpace.CompileTypeScript(editor);
                         if (tsProcess) {
@@ -575,6 +575,14 @@ export class ProjectImporter {
         if (!n.metadata?._waitingParentId) { return; }
 
         n.parent = n.getScene().getNodeByID(n.metadata._waitingParentId) ?? n.getScene().getTransformNodeByID(n.metadata._waitingParentId);
+        if (n.parent instanceof Bone && n instanceof TransformNode) {
+            const skeleton = n.parent.getSkeleton();
+            const mesh = n.getScene()!.meshes.find((m) => m.skeleton === skeleton);
+
+            if (mesh) {
+                n.attachToBone(n.parent, mesh);
+            }
+        }
 
         delete n.metadata._waitingParentId;
         n._waitingParentId = null;
