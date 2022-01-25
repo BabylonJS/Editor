@@ -154,8 +154,8 @@ export class FBXMaterial {
 			const fileName = basename(filePath);
 			let fileUrl = join(rootUrl, fileName);
 
-			const content = v.node("Content")?.prop(0) as Undefinable<string | number[]>;
-			if (!Array.isArray(content)) {
+			const content = v.node("Content")?.prop(0) as Undefinable<string | Buffer>;
+			if (!Buffer.isBuffer(content)) {
 				continue;
 			}
 
@@ -169,12 +169,16 @@ export class FBXMaterial {
 				if (writeTextures) {
 					writeFileSync(fileUrl, Buffer.from(content), { encoding: "binary" });
 				} else {
-					const blob = new Blob([Buffer.from(content)]);
+					const blob = new Blob([content]);
 					fileUrl = URL.createObjectURL(blob);
 				}
 			}
 			
-			const texture = new Texture(fileUrl, scene, !useMipMap);
+			const texture = new Texture(fileUrl, scene, !useMipMap, undefined, undefined, undefined, () => {
+				if (!writeTextures) {
+					URL.revokeObjectURL(fileUrl);
+				}
+			});
 			
 			if (!writeTextures) {
 				texture.onLoadObservable.addOnce(() => URL.revokeObjectURL(fileUrl));

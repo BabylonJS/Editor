@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { AbstractAssets } from "../../assets/abstract-assets";
 
+import { _IDragAndDroppedItem } from "../../components/graph";
 import { AssetsBrowserItemHandler } from "../../components/assets-browser/files/item-handler";
 
 interface _InspectorNotification {
@@ -108,6 +109,9 @@ export class InspectorNotifier {
         }
     }
 
+    public static _DragAndDroppedGraphItem: Nullable<_IDragAndDroppedItem> = null;
+    public static _DragAndDroppedAssetItem: Nullable<AssetsBrowserItemHandler> = null;
+
     /**
      * Called on the user drops the asset in a supported inspector field.
      * @param ev defiens the reference to the event object.
@@ -115,8 +119,13 @@ export class InspectorNotifier {
      * @param property defines the property of the object to assign the asset instance.
      */
     public static async NotifyOnDrop(ev: React.DragEvent<HTMLElement>, object: any, property: string): Promise<boolean> {
-        if (AssetsBrowserItemHandler._DragAndDroppedItem) {
-            await AssetsBrowserItemHandler._DragAndDroppedItem.onDropInInspector(ev, object, property);
+        if (this._DragAndDroppedAssetItem) {
+            await this._DragAndDroppedAssetItem.onDropInInspector(ev, object, property);
+            return true;
+        }
+
+        if (this._DragAndDroppedGraphItem) {
+            await this._DragAndDroppedGraphItem.onDropInInspector(ev, object, property);
             return true;
         }
 

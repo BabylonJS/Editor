@@ -30,7 +30,7 @@ export class FBXMesh {
 				geometry.materialIndices.forEach((currentIndex, i) => {
 					if (currentIndex !== prevMaterialIndex) {
 						const count = i - startIndex;
-						new SubMesh(prevMaterialIndex, startIndex * 3, count * 3, startIndex, count, mesh, mesh, true, true);
+						new SubMesh(prevMaterialIndex, startIndex * 3, count * 3, startIndex, count, mesh, mesh, false, true);
 
 						prevMaterialIndex = currentIndex;
 						startIndex = i;
@@ -43,7 +43,7 @@ export class FBXMesh {
 
 					if (lastIndex !== geometry.materialIndices.length) {
 						const count = geometry.materialIndices.length - lastIndex;
-						new SubMesh(prevMaterialIndex, lastIndex * 3, count * 3, lastIndex, count, mesh, mesh, true, true);
+						new SubMesh(prevMaterialIndex, lastIndex * 3, count * 3, lastIndex, count, mesh, mesh, false, true);
 					}
 				} else {
 					mesh.subMeshes.push(baseSubMesh);

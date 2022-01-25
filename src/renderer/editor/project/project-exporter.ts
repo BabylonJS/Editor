@@ -96,6 +96,7 @@ export class ProjectExporter {
 
         // Create project
         const project: IProject = {
+            animationGroups: [],
             cameras: [],
             materials: [],
             textures: [],
@@ -111,6 +112,7 @@ export class ProjectExporter {
                 graphs: [],
                 prefabs: [],
             },
+            cinematics: [],
             project: {
                 camera: SceneSettings.Camera!.serialize(),
             },
@@ -132,11 +134,47 @@ export class ProjectExporter {
         const exportedSounds: string[] = [];
         const exportedTransformNodes: string[] = [];
         const exportedMorphTargets: string[] = [];
-
+        const exportedCinematics: string[] = [];
+        const exportedAnimationGroups: string[] = [];
+        
         let savePromises: Promise<void>[] = [];
 
         let progressValue = 0;
         let progressCount = 0;
+
+        // Write all animation groups
+        const animationGroupsDir = join(Project.DirPath!, "animationGroups");
+
+        if (editor.scene!.animationGroups?.length) {
+            await FSTools.CreateDirectory(animationGroupsDir);
+
+            progressCount = 100 / editor.scene!.animationGroups.length;
+
+            for (const ag of editor.scene!.animationGroups) {
+                if (ag.metadata?.doNotSerialize) {
+                    continue;
+                }
+
+                const animationGroupDest = `${filenamify(ag.name)}.json`;
+                const json = ag.serialize();
+
+                savePromises.push(new Promise<void>(async (resolve) => {
+                    await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(animationGroupsDir, animationGroupDest), json);
+
+                    project.animationGroups.push(animationGroupDest);
+                    exportedAnimationGroups.push(animationGroupDest);
+
+                    editor.updateTaskFeedback(task, progressValue += progressCount);
+                    editor.console.logInfo(`Saved animation group configuration "${ag.name}"`);
+
+                    resolve();
+                }));
+            }
+
+            await Promise.all(savePromises);
+            savePromises = [];
+        }
+
 
         // Write all morph target managers
         const morphTargets: any[] = [];
@@ -359,6 +397,28 @@ export class ProjectExporter {
         await Promise.all(savePromises);
         savePromises = [];
 
+        // Write all cinematics
+        editor.updateTaskFeedback(task, 0, "Saving Cinematics");
+
+        progressValue = 0;
+        progressCount = 100 / Project.Cinematics.length;
+
+        const cinematicsDir = join(Project.DirPath!, "cinematics");
+        await FSTools.CreateDirectory(cinematicsDir);
+
+        for (const cinematic of Project.Cinematics) {
+            const cinematicJson = cinematic.serialize();
+
+            const cinematicDest = `${normalize(basename(filenamify(cinematic.name)))}.json`;
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(cinematicsDir, cinematicDest), cinematicJson);
+
+            exportedCinematics.push(cinematicDest);
+            project.cinematics.push(cinematicDest);
+
+            editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved Cinematic configuration "${cinematic.name}"`);
+        }
+
         // Write all lights
         editor.updateTaskFeedback(task, 0, "Saving Lights");
 
@@ -518,6 +578,7 @@ export class ProjectExporter {
         editor._saveEditorConfig();
 
         // Run clean in background
+        this._CleanOutputDir(animationGroupsDir, exportedAnimationGroups);
         this._CleanOutputDir(camerasDir, exportedCameras);
         this._CleanOutputDir(geometriesDir, exportedGeometries);
         this._CleanOutputDir(lightsDir, exportedLights);
@@ -527,6 +588,7 @@ export class ProjectExporter {
         this._CleanOutputDir(soundsDir, exportedSounds);
         this._CleanOutputDir(transformNodesDir, exportedTransformNodes);
         this._CleanOutputDir(morphTargetsDir, exportedMorphTargets);
+        this._CleanOutputDir(cinematicsDir, exportedCinematics);
 
         // Update recent projects to be shown in welcome wizard
         this._UpdateWelcomeRecentProjects(editor);

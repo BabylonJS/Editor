@@ -1,12 +1,16 @@
 import { ipcRenderer } from "electron";
 import { extname } from "path";
 
-import { IPCRequests, IPCResponses } from "../../../shared/ipc";
 import { Nullable } from "../../../shared/types";
+import { IPCRequests, IPCResponses } from "../../../shared/ipc";
+
+import { Tools } from "../tools/tools";
+
+import { Overlay } from "../gui/overlay";
+
+import { Cinematic } from "../cinematic/cinematic";
 
 import { IProject } from "./typings";
-import { Tools } from "../tools/tools";
-import { Overlay } from "../gui/overlay";
 
 export class Project {
     /**
@@ -21,6 +25,11 @@ export class Project {
      * Defines the current project datas.
      */
     public static Project: Nullable<IProject> = null;
+
+    /**
+     * Defines the list of all available cinematics for the project.
+     */
+    public static Cinematics: Cinematic[] = [];
 
     /**
      * Returns the project path set when opened the editor from the OS file system.

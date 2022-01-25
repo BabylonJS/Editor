@@ -190,6 +190,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Painting Tools..." icon={<Icon src="paint-brush.svg" />} onClick={() => this._menuItemClicked("tools:painting-tools")} />
                 <MenuDivider /> */}
                 <MenuItem text="Painting Tools..." icon={<Icon src="paint-brush.svg" />} onClick={() => this._menuItemClicked("tools:painting-tools")} />
+                <MenuItem text="Cinematic Editor" icon={<Icon src="film.svg" />} onClick={() => this._menuItemClicked("tools:cinematic-editor")} />
                 <MenuDivider />
                 <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
             </Menu>;
@@ -363,8 +364,10 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         // Tools
         if (family === "tools") {
             switch (action) {
-                case "animation-editor": this._editor.addBuiltInPlugin("animation-editor"); break;
                 case "painting-tools": this._editor.addBuiltInPlugin("painting"); break;
+                case "cinematic-editor": this._editor.addBuiltInPlugin("cinematic"); break;
+
+                case "animation-editor": this._editor.addBuiltInPlugin("animation-editor"); break;
 
                 case "photoshop": this._handleTogglePhotoshop(); break;
             }

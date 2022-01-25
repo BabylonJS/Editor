@@ -1,6 +1,6 @@
 import {
     Camera, ArcRotateCamera, Vector3, SSAO2RenderingPipeline, DefaultRenderingPipeline,
-    SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess, Color4, Vector2,
+    SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess, FreeCamera, Color4, Vector2,
 } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
@@ -152,7 +152,7 @@ export class SceneSettings {
 
         if (camera instanceof ArcRotateCamera) {
             camera.attachControl(canvas, true, false);
-        } else if (camera instanceof EditorCamera) {
+        } else if (camera instanceof FreeCamera) {
             camera.attachControl(canvas, true);
         } else {
             debugger;

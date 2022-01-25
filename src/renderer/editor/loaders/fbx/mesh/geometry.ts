@@ -278,15 +278,7 @@ export class FBXGeometry {
      * Generates the final buffers.
      */
     private static _GenerateBuffers(sourceBuffers: IFBXInBuffers): IFBXBuffers {
-        const outputBuffers: IFBXBuffers = {
-            uvs: [],
-            indices: [],
-            normals: [],
-            positions: [],
-            materialIndices: [],
-            matricesIndices: [],
-            matricesWeights: [],
-        };
+        const outputBuffersDict: Record<number, IFBXBuffers> = { };
 
         let faceLength = 0;
         let polygonIndex = 0;
@@ -298,8 +290,9 @@ export class FBXGeometry {
         let faceWeightIndices: number[] = [];
         let facePositionIndexes: number[] = [];
 
+        let materialIndex = 0;
+
         sourceBuffers.indices.forEach((vertexIndex, polygonVertexIndex) => {
-            let materialIndex;
             let endOfFace = false;
 
             // Face index and vertex index arrays are combined in a single array
@@ -330,7 +323,7 @@ export class FBXGeometry {
             }
 
             if (sourceBuffers.materials) {
-                materialIndex = this._GetData(polygonVertexIndex, polygonIndex, vertexIndex, sourceBuffers.materials)[0];
+                materialIndex = Math.max(0, this._GetData(polygonVertexIndex, polygonIndex, vertexIndex, sourceBuffers.materials)[0] ?? 0);
             }
 
             if (sourceBuffers.skeleton) {
@@ -380,7 +373,19 @@ export class FBXGeometry {
             faceLength++;
 
             if (endOfFace) {
-                this._GenerateFace({ sourceBuffers, outputBuffers, facePositionIndexes, faceLength, faceUVs, faceNormals, faceWeights, faceWeightIndices, materialIndex });
+                if (!outputBuffersDict[materialIndex]) {
+                    outputBuffersDict[materialIndex] = {
+                        uvs: [],
+                        indices: [],
+                        normals: [],
+                        positions: [],
+                        materialIndices: [],
+                        matricesIndices: [],
+                        matricesWeights: [],
+                    };
+                }
+
+                this._GenerateFace({ sourceBuffers, outputBuffers: outputBuffersDict[materialIndex], facePositionIndexes, faceLength, faceUVs, faceNormals, faceWeights, faceWeightIndices, materialIndex });
 
                 polygonIndex++;
                 faceLength = 0;
@@ -393,6 +398,35 @@ export class FBXGeometry {
                 facePositionIndexes = [];
             }
         });
+
+        // Re-order buffers to avoid having too much draw-calls
+        const outputBuffers: IFBXBuffers = {
+            uvs: [],
+            indices: [],
+            normals: [],
+            positions: [],
+            materialIndices: [],
+            matricesIndices: [],
+            matricesWeights: [],
+        };
+
+        for (const mi in outputBuffersDict) {
+            const ob = outputBuffersDict[mi];
+
+            const startIndex = outputBuffers.indices.length;
+            const endIndex = startIndex + ob.indices.length;
+
+            for (let i = startIndex; i < endIndex; i++) {
+                outputBuffers.indices.push(i);
+            }
+
+            outputBuffers.uvs = outputBuffers.uvs.concat(ob.uvs);
+            outputBuffers.normals = outputBuffers.normals.concat(ob.normals);
+            outputBuffers.positions = outputBuffers.positions.concat(ob.positions);
+            outputBuffers.materialIndices = outputBuffers.materialIndices.concat(ob.materialIndices);
+            outputBuffers.matricesIndices = outputBuffers.matricesIndices.concat(ob.matricesIndices);
+            outputBuffers.matricesWeights = outputBuffers.matricesWeights.concat(ob.matricesWeights);
+        }
 
         return outputBuffers;
     }

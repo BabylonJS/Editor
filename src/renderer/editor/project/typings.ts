@@ -153,6 +153,10 @@ export interface IProject {
     filesList?: string[];
 
     /**
+     * Defines the list of scene's animation groups.
+     */
+    animationGroups: string[];
+    /**
      * Defines the list of scene's cameras.
      */
     cameras: string[];
@@ -248,6 +252,10 @@ export interface IProject {
          */
         graphs: Undefinable<string[]>;
     };
+    /**
+     * Defines the list of all project's cinematics.
+     */
+    cinematics: string[];
     /**
      * Defines some useful datas
      */

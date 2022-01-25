@@ -78,7 +78,7 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
             <div style={{ width: "100%", height: "25px" }}>
                 <div style={{ width: "30%", float: "left", borderLeft: "3px solid #1ed36f", padding: "0 4px 0 5px" }}>
                     <Tooltip content={this.props.label}>
-                        <span style={{ lineHeight: "30px", textAlign: "center" }}>{this.props.label}</span>
+                        <span style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                     </Tooltip>
                 </div>
                 <div style={{ width: "70%", float: "left", marginTop: "3px" }}>

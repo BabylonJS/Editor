@@ -19,6 +19,7 @@ import { Icon } from "../../../gui/icon";
 import { InspectorString } from "../../../gui/inspector/fields/string";
 import { InspectorButton } from "../../../gui/inspector/fields/button";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
+import { InspectorBoolean } from "../../../gui/inspector/fields/boolean";
 
 export interface IAnimationGroupProps {
     /**
@@ -79,9 +80,9 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
         return (
             <>
                 <InspectorButton label="Import From File..." onClick={() => this._handleImportAnimationGroupsFromFile()} />
-               
+
                 <Divider />
-                
+
                 <div style={{ width: "100%", height: "35px" }}>
                     <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Filter..." onChange={(e) => {
                         this.setState({
@@ -133,6 +134,9 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
         if (object instanceof AnimationGroup) {
             this._selectedAnimationGroup = object;
 
+            this._selectedAnimationGroup.metadata ??= {};
+            this._selectedAnimationGroup.metadata.embedInSceneFile ??= true;
+
             return (
                 <InspectorSection title="Animation Group">
                     <InspectorButton label={object.isPlaying ? "Stop" : "Play"} onClick={() => {
@@ -144,6 +148,8 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
                         node.label = v;
                         this.setState({ nodes: this.state.nodes });
                     }} />
+
+                    <InspectorBoolean key={Tools.RandomId()} object={object.metadata} property="embedInSceneFile" label="Embed In Scene File" />
 
                     <InspectorSection key={Tools.RandomId()} title="Informations">
                         <span>Animations Count: {object.targetedAnimations.length}</span>
@@ -177,13 +183,17 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
                 nodeData: t,
                 label: (
                     <div style={{ width: "100%" }}>
-                        <div style={{ width: "calc(50% - 10px)", float: "left" }}>
+                        <div
+                            style={{ width: "calc(50% - 10px)", float: "left", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}
+                        >
                             {t.target ? (t.target.name ?? "Unnamed target") : "Undefined target"}
                         </div>
                         <div style={{ width: "20px", float: "left" }}>
                             <BPIcon icon="arrow-right" />
                         </div>
-                        <div style={{ width: "calc(50% - 10px)", float: "left" }}>
+                        <div
+                            style={{ width: "calc(50% - 10px)", float: "left", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}
+                        >
                             {t.animation.name ?? "Unnamed animation"}
                         </div>
                     </div>

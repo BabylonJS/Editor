@@ -16,6 +16,8 @@ import { Tools } from "../../../tools/tools";
 import { Alert } from "../../../gui/alert";
 import { Confirm } from "../../../gui/confirm";
 
+import { InspectorNotifier } from "../../../gui/inspector/notifier";
+
 import { IWorkerConfiguration, Workers } from "../../../workers/workers";
 
 export interface IAssetsBrowserItemHandlerProps {
@@ -71,11 +73,6 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	 * Defines the reference to the assets worker.
 	 */
 	public static AssetWorker: IWorkerConfiguration;
-	/**
-	 * Defines the reference to the drag'n'dropped item.
-	 * @hidden
-	 */
-	public static _DragAndDroppedItem: Nullable<AssetsBrowserItemHandler> = null;
 
 	/**
 	 * Initialzes the item handler.
@@ -252,7 +249,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	private _handleDragStart(ev: React.DragEvent<HTMLDivElement>): void {
 		this.onDragStart(ev);
 
-		AssetsBrowserItemHandler._DragAndDroppedItem = this;
+		InspectorNotifier._DragAndDroppedAssetItem = this;
 
 		ev.dataTransfer.setDragImage(new Image(), 0, 0);
 
@@ -270,7 +267,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	 * Called on the user ended dragging the item.
 	 */
 	private _handleDragEnd(_: React.DragEvent<HTMLDivElement>): void {
-		AssetsBrowserItemHandler._DragAndDroppedItem = null;
+		InspectorNotifier._DragAndDroppedAssetItem = null;
 
 		if (this._dropListener) {
 			this.props.editor.engine!.getRenderingCanvas()?.removeEventListener("drop", this._dropListener);

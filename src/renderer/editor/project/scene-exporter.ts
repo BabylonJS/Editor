@@ -154,6 +154,24 @@ export class SceneExporter {
 			motionBlur: { enabled: SceneSettings.IsMotionBlurEnabled(), json: SceneSettings.MotionBlurPostProcess?.serialize() },
 		};
 
+
+		// Animation Groups
+		scene.animationGroups ??= [];
+
+		for (let i = scene.animationGroups.length - 1; i >= 0; i--) {
+			const g = scene.animationGroups[i];
+			if (g.metadata?.doNotSerialize) {
+				scene.animationGroups.splice(i, 1);
+			}
+		}
+
+		Project.Cinematics.forEach((c) => {
+			const group = c.generateAnimationGroup(editor.scene!);
+			scene.animationGroups.push(group.serialize());
+			group.dispose();
+		});
+
+		// Post-processes
 		scene.postProcesses = [];
 
 		// Set producer
@@ -330,6 +348,57 @@ export class SceneExporter {
 
 		editor.updateTaskFeedback(task, 50);
 		editor.beforeGenerateSceneObservable.notifyObservers(scenePath);
+
+		// Animation groups
+		const animationGroupsPath = join(scenePath, "animationGroups");
+		const animationGroupsFolderExists = await pathExists(animationGroupsPath);
+
+		if (animationGroupsFolderExists) {
+			const incrementalFiles = await readdir(animationGroupsPath);
+
+			try {
+				await Promise.all(incrementalFiles.map((f) => remove(join(animationGroupsPath, f))));
+			} catch (e) {
+				editor.console.logError("Failed to remove animation group file");
+			}
+		}
+
+		scene.animationGroups ??= [];
+		const externalAnimationGroups = scene.animationGroups.filter((a) => a.metadata?.embedInSceneFile === false);
+
+		if (externalAnimationGroups.length) {
+			if (!animationGroupsFolderExists) {
+				await FSTools.CreateDirectory(animationGroupsPath);
+			}
+
+			const promises: Promise<void>[] = [];
+			for (const ag of externalAnimationGroups) {
+				promises.push(new Promise<void>(async (resolve) => {
+					const path = join(animationGroupsPath, `${filenamify(ag.name)}.json`);
+
+					try {
+						await writeJSON(path, ag, { encoding: "utf-8" })
+					} catch (e) {
+						editor.console.logError(`Failed to write animation group: ${path}`);
+					}
+
+					const index = scene.animationGroups.indexOf(ag);
+					if (index !== -1) {
+						scene.animationGroups.splice(index, 1);
+					}
+
+					resolve();
+				}));
+			}
+
+			await Promise.all(promises);
+		} else {
+			try {
+				await remove(animationGroupsPath);
+			} catch (e) {
+				editor.console.logError("Failed to remove animation groups output folder.");
+			}
+		}
 
 		// Handle incremental loading
 		const geometriesPath = join(scenePath, "geometries");

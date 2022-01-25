@@ -24,8 +24,11 @@ import { WorkSpace } from "./workspace";
 import { ProjectHelpers } from "./helpers";
 import { SceneExporter } from "./scene-exporter";
 
+import { Cinematic } from "../cinematic/cinematic";
+
 import { Workers } from "../workers/workers";
 import AssetsWorker from "../workers/workers/assets";
+
 import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
 export class ProjectImporter {
@@ -78,7 +81,8 @@ export class ProjectImporter {
         const spinnerStep = 1 / (
             project.textures.length + project.materials.length + project.meshes.length + project.lights.length +
             project.cameras.length + (project.particleSystems?.length ?? 0) + (project.sounds?.length ?? 0) +
-            (project.transformNodes?.length ?? 0) + (project.scene.morphTargetManagers?.length ?? 0)
+            (project.transformNodes?.length ?? 0) + (project.scene.morphTargetManagers?.length ?? 0) +
+            (project.animationGroups?.length ?? 0) + (project.cinematics?.length ?? 0)
         );
         let spinnerValue = 0;
 
@@ -357,6 +361,20 @@ export class ProjectImporter {
             Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
         }
 
+        // Load all cinematics
+        Overlay.SetMessage("Creating Cinematics...");
+
+        for (const c of project.cinematics ?? []) {
+            try {
+                const json = await readJSON(join(Project.DirPath, "cinematics", c));
+                Project.Cinematics.push(Cinematic.Parse(json));
+
+                editor.console.logInfo(`Parsed cinematic "${c}"`);
+            } catch (e) {
+                editor.console.logError(`Failed to parse cinematic "${c}"`);
+            }
+        }
+
         // Load all particle systems
         Overlay.SetMessage("Creating Particle Systems...");
 
@@ -440,6 +458,23 @@ export class ProjectImporter {
                 animationGroup.goToFrame(animationGroup.from);
                 animationGroup.stop();
             }
+        }
+
+        Overlay.SetMessage("Creating Animation Groups...");
+
+        for (const ag of project.animationGroups ?? []) {
+            try {
+                const json = await readJSON(join(Project.DirPath!, "animationGroups", ag));
+
+                const animationGroup = AnimationGroup.Parse(json, editor.scene!);
+                animationGroup.play();
+                animationGroup.goToFrame(animationGroup.from);
+                animationGroup.stop();
+            } catch (e) {
+                editor.console.logError(`Failed to parse animation group "${ag}"`);
+            }
+
+            Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
         }
 
         // Configure and save project

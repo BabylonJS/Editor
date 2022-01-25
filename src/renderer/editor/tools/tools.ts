@@ -217,7 +217,6 @@ export class Tools {
         return object;
     }
 
-
     /**
      * Returns the saved editor preferences (zoom, etc.).
      */

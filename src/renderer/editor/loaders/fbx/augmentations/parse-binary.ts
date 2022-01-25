@@ -79,7 +79,7 @@ const read = {
     i: function (data) { return readPropertyArray(data, function (r) { return r.readInt32(); }); },
     b: function (data) { return readPropertyArray(data, function (r) { return r.readUint8AsBool(); }); },
     S: function (data) { return data.readArrayAsString(data.readUint32()); },
-    R: function (data) { return Array.from(data.readUint8Array(data.readUint32())); },
+    R: function (data) { return data.readUint8Array(data.readUint32()); },
 };
 
 function readProperty(data) {
@@ -91,7 +91,7 @@ function readProperty(data) {
     let value = read[typeCode](data);
 
     // replace '\x00\x01' by '::' and flip like in the text files
-    if (typeCode === 'S' && value.indexOf('\x00\x01') != -1) {
+    if (typeCode === "S" && value.indexOf('\x00\x01') != -1) {
         value = value.split('\x00\x01').reverse().join("::");
     }
 

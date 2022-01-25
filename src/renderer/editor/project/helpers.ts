@@ -62,6 +62,7 @@ export class ProjectHelpers {
         }
 
         // Animation Groups
+        /*
         if (scene.animationGroups && scene.animationGroups.length > 0) {
             serializationObject.animationGroups = [];
             for (let animationGroupIndex = 0; animationGroupIndex < scene.animationGroups.length; animationGroupIndex++) {
@@ -70,7 +71,8 @@ export class ProjectHelpers {
                 serializationObject.animationGroups.push(animationGroup.serialize());
             }
         }
-
+        */
+       
         // Environment Intensity
         if (scene.environmentTexture) {
             serializationObject.environmentTexture = scene.environmentTexture.serialize();

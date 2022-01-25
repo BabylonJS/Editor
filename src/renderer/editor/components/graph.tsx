@@ -16,6 +16,7 @@ import {
 import { Editor } from "../editor";
 
 import { Icon } from "../gui/icon";
+import { InspectorNotifier } from "../gui/inspector/notifier";
 
 import { Tools } from "../tools/tools";
 import { undoRedo } from "../tools/undo-redo";
@@ -24,8 +25,6 @@ import { IMeshMetadata } from "../tools/types";
 import { SceneSettings } from "../scene/settings";
 
 import { IDragAndDroppedAssetComponentItem } from "../assets/abstract-assets";
-
-import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
 import { GraphContextMenu } from "./graph/context-menu";
 import { GraphReferenceUpdater } from "./graph/reference-updater";
@@ -85,6 +84,11 @@ interface _ITreeDropInfo {
     dragNodesKeys: (string | number)[];
     dropPosition: number;
     dropToGap: boolean;
+}
+
+export interface _IDragAndDroppedItem {
+    nodeId: string;
+    onDropInInspector: (ev: React.DragEvent<HTMLElement>, object: any, property: string) => Promise<void>;
 }
 
 export class Graph extends React.Component<IGraphProps, IGraphState> {
@@ -933,6 +937,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 nodeId: draggedNodeId,
                 allNodeIds: this.state.selectedNodeIds,
             }));
+
+            InspectorNotifier._DragAndDroppedGraphItem = this._getDragAndDroppedItemConfiguration(draggedNodeId);
         }
 
         this._dragging = true;
@@ -943,6 +949,19 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      */
     private _handleDragEnd(): void {
         this._dragging = false;
+    }
+
+    /**
+     * Returns the drag'n'dropped item configuration to be used when the user
+     * drags and drops a graph item in an inspector field.
+     */
+    private _getDragAndDroppedItemConfiguration(nodeId): _IDragAndDroppedItem {
+        return {
+            nodeId,
+            onDropInInspector: async (_, object, property) => {
+                object[property] = nodeId;
+            },
+        };
     }
 
     /**
@@ -1080,8 +1099,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             this.setSelected(targetNode);
         }
 
-        if (AssetsBrowserItemHandler._DragAndDroppedItem) {
-            return AssetsBrowserItemHandler._DragAndDroppedItem.onDropInGraph(ev, allSelected);
+        if (InspectorNotifier._DragAndDroppedAssetItem) {
+            return InspectorNotifier._DragAndDroppedAssetItem.onDropInGraph(ev, allSelected);
         }
     }
 

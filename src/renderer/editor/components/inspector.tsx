@@ -1,3 +1,5 @@
+import { Nullable, Undefinable } from "../../../shared/types";
+
 import * as React from "react";
 import { Tabs, Tab, TabId } from "@blueprintjs/core";
 
@@ -9,10 +11,9 @@ import { AbstractInspector } from "./inspectors/abstract-inspector";
 import { AbstractInspectorLegacy } from "./inspectors/abstract-inspector-legacy";
 
 import { Tools } from "../tools/tools";
-import { Nullable, Undefinable } from "../../../shared/types";
 
 export interface IObjectInspector {
-    ctor: (new (props: IObjectInspectorProps) => AbstractInspectorLegacy<any> | AbstractInspector<any, any>);
+    ctor: (new (props: IObjectInspectorProps) => AbstractInspectorLegacy<any> | AbstractInspector<any, any>);
     ctorNames: string[];
     title: string;
     isSupported?: Undefinable<(obj: any) => boolean>;
