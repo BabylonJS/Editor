@@ -5,10 +5,10 @@ The Babylon.js Editor provides a way, for designers (and developers), to go furt
 
 The online documentation is available here: https://github.com/BabylonJS/Editor/blob/master/doc/00%20-%20welcome/doc.md
 
-## Download (v4.0.3)
-  * Win32 - [download](http://editor.babylonjs.com/electron/4.0.4/BabylonJS%20Editor%20Setup%204.0.5.exe)
-  * MacOS - [download](http://editor.babylonjs.com/electron/4.0.4/BabylonJS%20Editor-4.0.5.dmg)
-  * Linux - [download](http://editor.babylonjs.com/electron/4.0.4/BabylonJS%20Editor-4.0.5.AppImage)
+## Download (v4.0.5)
+  * Win32 - [download](http://editor.babylonjs.com/electron/4.0.5/BabylonJS%20Editor%20Setup%204.0.5.exe)
+  * MacOS - [download](http://editor.babylonjs.com/electron/4.0.5/BabylonJS%20Editor-4.0.5.dmg)
+  * Linux - [download](http://editor.babylonjs.com/electron/4.0.5/BabylonJS%20Editor-4.0.5.AppImage)
 
 ## Features
 * Workspace based to manage multiple projects
