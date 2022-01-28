@@ -277,6 +277,10 @@ export class ProjectExporter {
                 }
 
                 const isMultiMaterial = material instanceof MultiMaterial;
+                if (isMultiMaterial) {
+                    delete json.materialsUniqueIds;
+                }
+
                 const dest = isMultiMaterial ?
                         join(materialsDir, `${normalize(`${basename(filenamify(material.name))}-${material.id}`)}.json`) :
                         join(editor.assetsBrowser.assetsDirectory, material.metadata.editorPath);
