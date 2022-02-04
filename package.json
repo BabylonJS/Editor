@@ -46,7 +46,7 @@
     "electron": "11.5.0",
     "electron-builder": "22.14.5",
     "electron-rebuild": "3.2.5",
-    "spectron": "10.0.1",
+    "spectron": "19.0.0",
     "mocha": "8.2.1",
     "spectron-dialog-addon": "1.0.1",
     "xhr2": "0.2.0"

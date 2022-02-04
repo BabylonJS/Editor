@@ -119,7 +119,7 @@ export class TestApp {
         await this.waitUntilIsInitialized();
 
         this.setOpenDirectoryPath(this.workspacePath);
-        this.application.client.click("#welcome-open-workspace");
+        this.application.client.touchClick("#welcome-open-workspace");
 
         await this.waitUntilRestart();
         await this.waitUntilProjectReady();
@@ -149,7 +149,7 @@ export class TestApp {
      * @param query defines the query to get the element where to click.
      */
     public async click(query: string): Promise<void> {
-        this.application.client.click(query);
+        this.application.client.touchClick(query);
         return this.wait(1000);
     }
 

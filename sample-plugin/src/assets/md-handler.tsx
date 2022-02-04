@@ -37,7 +37,7 @@ export class MarkdownItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-		shell.openItem(this.props.absolutePath);
+		shell.openPath(this.props.absolutePath);
 	}
 
 	/**
@@ -47,7 +47,7 @@ export class MarkdownItemHandler extends AssetsBrowserItemHandler {
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		ContextMenu.show((
 			<Menu>
-				<MenuItem text="Open..." onClick={() => shell.openItem(this.props.absolutePath)} />
+				<MenuItem text="Open..." onClick={() => shell.openPath(this.props.absolutePath)} />
 				<MenuDivider />
 				{this.getCommonContextMenuItems()}
 			</Menu>
