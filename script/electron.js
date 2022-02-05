@@ -1,3 +1,4 @@
+const os = require("os");
 const Builder = require("electron-builder");
 
 const yargs = require("yargs");
@@ -10,9 +11,15 @@ ELECTRON BUILD
 `);
 console.log("\nBuilding Electron...");
 
+// Arch
+const arch = os.arch();
+const x64 = arch === "x64";
+const arm64 = arch === "arm64";
+
 // Build
 Builder.build({
-    x64: true,
+    x64,
+    arm64,
     config: {
         fileAssociations: [{
             ext: "editorproject",
