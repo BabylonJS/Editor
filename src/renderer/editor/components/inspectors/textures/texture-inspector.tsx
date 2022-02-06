@@ -79,11 +79,18 @@ export class TextureInspector<T extends Texture | CubeTexture, S extends ITextur
             default: break;
         }
 
+        const size = this.selectedObject.getSize();
+        const baseSize = this.selectedObject.getBaseSize();
+
         return (
             <InspectorSection title="Preview">
                 <a style={{ color: "white", textAlign: "center", wordBreak: "break-all" }} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject.name)}>{this.selectedObject.name}</a>
                 <img src={path} style={{ width: "100%", height: "280px", objectFit: "contain" }}></img>
                 <InspectorButton label="Show In Assets Browser" small icon="link" onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject.name)} />
+                <div style={{ color: "darkgrey" }}>
+                    <span style={{ display: "block" }}>Size: {size.width}*{size.height}</span>
+                    <span style={{ display: "block" }}>Base Size: {baseSize.width}*{baseSize.height}</span>
+                </div>
             </InspectorSection>
         );
     }
