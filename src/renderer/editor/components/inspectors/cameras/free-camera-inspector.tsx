@@ -78,6 +78,6 @@ export class FreeCameraInspector extends CameraInspector<FreeCamera | Universal
 
 Inspector.RegisterObjectInspector({
     ctor: FreeCameraInspector,
-    ctorNames: ["FreeCamera", "UniversalCamera"],
+    ctorNames: ["FreeCamera", "UniversalCamera", "EditorCamera"],
     title: "Free Camera",
 });

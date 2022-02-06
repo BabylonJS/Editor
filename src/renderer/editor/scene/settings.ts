@@ -1,5 +1,5 @@
 import {
-    Camera, ArcRotateCamera, Vector3, FreeCamera, SSAO2RenderingPipeline, DefaultRenderingPipeline,
+    Camera, ArcRotateCamera, Vector3, SSAO2RenderingPipeline, DefaultRenderingPipeline,
     SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess, Color4, Vector2,
 } from "babylonjs";
 
@@ -8,11 +8,13 @@ import { Nullable } from "../../../shared/types";
 import { Editor } from "../editor";
 import { Tools } from "../tools/tools";
 
+import { EditorCamera } from "./editor-camera";
+
 export class SceneSettings {
     /**
      * Defines the camera being used by the editor.
      */
-    public static Camera: Nullable<ArcRotateCamera | FreeCamera> = null;
+    public static Camera: Nullable<ArcRotateCamera | EditorCamera> = null;
     /**
      * Defines the reference to the SSAO rendering pipeline.
      */
@@ -72,14 +74,14 @@ export class SceneSettings {
      * Returns the editor camera as a FreeCamera.
      * @param editor defines the reference to the editor.
      */
-    public static GetFreeCamera(editor: Editor): FreeCamera {
-        if (this.Camera && this.Camera instanceof FreeCamera) {
+    public static GetFreeCamera(editor: Editor): EditorCamera {
+        if (this.Camera && this.Camera instanceof EditorCamera) {
             return this.Camera;
         }
 
         this.Camera?.dispose();
 
-        const camera = new FreeCamera("Editor Camera", this.Camera?.position ?? Vector3.Zero(), editor.scene!);
+        const camera = new EditorCamera("Editor Camera", this.Camera?.position ?? Vector3.Zero(), editor.scene!);
         camera.setTarget(this.Camera?.target ?? Vector3.Zero())
         camera.attachControl(editor.scene!.getEngine().getRenderingCanvas()!, true);
         camera.inertia = 0.5;
@@ -92,7 +94,7 @@ export class SceneSettings {
         this.Camera = camera;
 
         this.SetActiveCamera(editor, this.Camera);
-        return this.Camera as FreeCamera;
+        return this.Camera as EditorCamera;
     }
 
     /**
@@ -112,7 +114,7 @@ export class SceneSettings {
     public static ConfigureFromJson(json: any, editor: Editor): void {
         if (this.Camera) { this.Camera.dispose(); }
 
-        this.Camera = Camera.Parse(json, editor.scene!) as (ArcRotateCamera | FreeCamera);
+        this.Camera = Camera.Parse(json, editor.scene!) as (ArcRotateCamera | EditorCamera);
         this.Camera.attachControl(editor.scene!.getEngine().getRenderingCanvas()!, true, false);
         this.Camera.doNotSerialize = true;
 
@@ -150,7 +152,7 @@ export class SceneSettings {
 
         if (camera instanceof ArcRotateCamera) {
             camera.attachControl(canvas, true, false);
-        } else if (camera instanceof FreeCamera) {
+        } else if (camera instanceof EditorCamera) {
             camera.attachControl(canvas, true);
         } else {
             debugger;
