@@ -1,3 +1,4 @@
+import { join } from "path";
 import { writeJSON } from "fs-extra";
 import { ipcRenderer } from "electron";
 
@@ -10,10 +11,10 @@ import { Icon } from "../../../../gui/icon";
 
 import { IPCTools } from "../../../../tools/ipc";
 
+import { WorkSpace } from "../../../../project/workspace";
 import { SceneExporter } from "../../../../project/scene-exporter";
 
 import { AssetsBrowserItemHandler } from "../item-handler";
-import { join } from "path";
 
 export class GraphItemHandler extends AssetsBrowserItemHandler {
     private static _GraphEditors: { id: number; path: string }[] = [];
@@ -59,7 +60,7 @@ export class GraphItemHandler extends AssetsBrowserItemHandler {
         const relativePath = this.props.absolutePath.replace(join(this.props.editor.assetsBrowser.assetsDirectory, "/"), "").replace(/\//g, "_");
         const linkPath = join("src/scenes/_graphs", `${relativePath}.ts`);
 
-        const popupId = await this.props.editor.addWindowedPlugin("graph-editor", existingId, this.props.absolutePath, linkPath);
+        const popupId = await this.props.editor.addWindowedPlugin("graph-editor", existingId, this.props.absolutePath, linkPath, WorkSpace.DirPath!);
         if (!popupId) {
             return;
         }

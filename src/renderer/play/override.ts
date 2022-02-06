@@ -3,12 +3,12 @@ import { pathExistsSync } from "fs-extra";
 
 import { Nullable } from "../../shared/types";
 
-import { Engine } from "babylonjs";
+import { Engine, Tools } from "babylonjs";
 
 export class PlayOverride {
-    /**
-     * @hidden
-     */
+    /** @hidden */
+    public static _LoadFileFn: Nullable<typeof Tools.LoadFile> = null;
+    /** @hidden */
     public static _CreateTextureFn: Nullable<typeof Engine.prototype.createTexture> = null;
 
     /**
@@ -17,6 +17,18 @@ export class PlayOverride {
      * @param workspacePath defines the absolute path of the workspace.
      */
     public static OverrideEngineFunctions(workspacePath: string): void {
+        // Load file
+        this._LoadFileFn = Tools.LoadFile;
+        Tools.LoadFile = function (...args: any[]) {
+            const pathInWorkspace = join(workspacePath, args[0]);
+            if (pathExistsSync(pathInWorkspace)) {
+                args[0] = `file:///${pathInWorkspace}`;
+            }
+
+            return PlayOverride._LoadFileFn!.call(this, ...args);
+        };
+
+        // Create texture
         this._CreateTextureFn = Engine.prototype.createTexture;
         Engine.prototype.createTexture = function (...args: any[]) {
             const url = args[0];
@@ -35,10 +47,15 @@ export class PlayOverride {
      * Restores all the original functions that were overidden.
      */
     public static RestoreOverridenFunctions(): void {
+        if (this._LoadFileFn) {
+            Tools.LoadFile = this._LoadFileFn;
+        }
+
         if (this._CreateTextureFn) {
             Engine.prototype.createTexture = this._CreateTextureFn;
         }
 
+        this._LoadFileFn = null;
         this._CreateTextureFn = null;
     }
 }

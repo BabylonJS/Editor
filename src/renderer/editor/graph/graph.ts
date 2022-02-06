@@ -45,6 +45,7 @@ import { DispatchWindowEvent } from "./events/dispatch-window-event";
 import { GraphObservable } from "./events/observable";
 
 import { PickInfos } from "./data/pick-info";
+import { LoadFile } from "./data/load-file";
 
 import { GetProperty } from "./property/get-property";
 import { SetProperty } from "./property/set-property";
@@ -207,6 +208,7 @@ export class GraphCode {
 
         // Data
         LiteGraph.registerNodeType("data/pick_infos", PickInfos);
+        LiteGraph.registerNodeType("data/load_file", LoadFile);
 
         // Utils
         LiteGraph.registerNodeType("utils/get_property", GetProperty);

@@ -126,6 +126,7 @@ export class Graph extends React.Component<IGraphProps> {
         this.graph = new LGraph();
         this.graph.configure(json, false);
         this.graph.scene = this._editor.preview.getScene();
+        this.graph.workspaceDir = this._editor.workspacePath ?? "";
         this.graph.config["align_to_grid"] = true;
         this._checkGraph();
 

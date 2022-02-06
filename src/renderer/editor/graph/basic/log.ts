@@ -1,3 +1,4 @@
+import { Tools } from "babylonjs";
 import { LiteGraph } from "litegraph.js";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
@@ -22,7 +23,7 @@ export class Log extends GraphNode<{ message: string; }> {
      * Called on the node is being executed.
      */
     public execute(): Promise<void> {
-        console.log(this.getInputData(1) ?? this.properties.message);
+        Tools.Log(this.getInputData(1) ?? this.properties.message);
         return this.triggerSlot(0, null);
     }
 
@@ -32,7 +33,10 @@ export class Log extends GraphNode<{ message: string; }> {
     public generateCode(value?: ICodeGenerationOutput): ICodeGenerationOutput {
         return {
             type: CodeGenerationOutputType.FunctionCall,
-            code: `console.log(${value?.code ?? `"${this.properties.message}"`})`,
+            code: `Tools.Log(${value?.code ?? `"${this.properties.message}"`} as any)`,
+            requires: [
+                { module: "@babylonjs/core", classes: ["Tools"] },
+            ],
         };
     }
 }

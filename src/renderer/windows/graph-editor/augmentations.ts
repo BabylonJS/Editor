@@ -15,6 +15,7 @@ declare module "litegraph.js" {
         sendEventToAllNodes(event: string): void;
 
         scene?: Scene;
+        workspaceDir?: string;
         hasPaused: boolean;
     }
 
