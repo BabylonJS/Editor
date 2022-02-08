@@ -179,7 +179,7 @@ export interface IMeshMetadata extends ICommonMetadata {
             /**
              * Defines the handler to call in order to apply the updated material reference.
              */
-            handler?: (mesh: Mesh) => unknown | Promise<unknown>;
+            handler?: (mesh: Mesh, withSkeleton: boolean) => unknown | Promise<unknown>;
         }
         /**
          * Defines the material object containing the component's to update.

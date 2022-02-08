@@ -457,11 +457,11 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 					geometry: m.geometry,
 					skeleton: m.skeleton,
 					subMeshes: m.subMeshes?.slice() ?? [],
-					handler: (m) => this._updateInstantiatedGeometryReferences(m),
+					handler: (m, s) => this._updateInstantiatedGeometryReferences(m, s),
 				};
 
 				if (force) {
-					this._updateInstantiatedGeometryReferences(im);
+					this._updateInstantiatedGeometryReferences(im, false);
 				}
 
 				const material = m.material;
@@ -505,11 +505,14 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	/**
 	 * Called on the user wants to update the geometry of the mesh from source file.
 	 */
-	private _updateInstantiatedGeometryReferences(mesh: Mesh): void {
+	private _updateInstantiatedGeometryReferences(mesh: Mesh, withSkeleton: boolean): void {
 		const metadata = Tools.GetMeshMetadata(mesh);
 
 		metadata._waitingUpdatedReferences?.geometry?.geometry?.applyToMesh(mesh);
-		mesh.skeleton = metadata._waitingUpdatedReferences?.geometry?.skeleton ?? null;
+
+		if (withSkeleton) {
+			mesh.skeleton = metadata._waitingUpdatedReferences?.geometry?.skeleton ?? null;
+		}
 
 		if (metadata._waitingUpdatedReferences?.geometry?.subMeshes) {
 			mesh.subMeshes = [];

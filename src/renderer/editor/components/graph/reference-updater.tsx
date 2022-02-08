@@ -26,7 +26,8 @@ export class GraphReferenceUpdater {
 		ContextMenu.show((
 			<Menu>
 				<Tag>Changes available from source file</Tag>
-				<MenuItem text="Update Geometry" disabled={(metadata._waitingUpdatedReferences?.geometry ?? null) === null} onClick={() => this._updateGeometry()} />
+				<MenuItem text="Update Geometry" disabled={(metadata._waitingUpdatedReferences?.geometry ?? null) === null} onClick={() => this._updateGeometry(false)} />
+				<MenuItem text="Update Geometry With Skeleton" disabled={(metadata._waitingUpdatedReferences?.geometry ?? null) === null} onClick={() => this._updateGeometry(true)} />
 				<MenuItem text="Update Material" disabled={(metadata._waitingUpdatedReferences?.material ?? null) === null} onClick={() => this._updateMaterial()} />
 				<MenuDivider />
 				<MenuItem text="Update All" onClick={() => this._updateAll()} />
@@ -41,16 +42,16 @@ export class GraphReferenceUpdater {
 	 * Called on the user wants to update all updated references.
 	 */
 	private _updateAll(): void {
-		this._updateGeometry();
+		this._updateGeometry(false);
 		this._updateMaterial();
 	}
 
 	/**
 	 * Called on the user wants to update the geometry of the mesh.
 	 */
-	private _updateGeometry(): void {
+	private _updateGeometry(withSkeleton: boolean): void {
 		const metadata = Tools.GetMeshMetadata(this._mesh);
-		metadata._waitingUpdatedReferences?.geometry?.handler?.(this._mesh);
+		metadata._waitingUpdatedReferences?.geometry?.handler?.(this._mesh, withSkeleton);
 	}
 
 	/**
