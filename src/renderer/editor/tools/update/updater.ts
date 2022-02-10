@@ -8,25 +8,36 @@ import { Intent, Classes } from "@blueprintjs/core";
 import { Tools } from "../tools";
 
 import { Editor } from "../../editor";
+import { Semver } from "../semver";
+import { Nullable } from "../../../../shared/types";
+
+interface _IEditorVersions {
+    [version: string]: {
+        win32: string;
+        darwin: string;
+        linux?: string;
+    }
+}
 
 export class EditorUpdater {
     private static _Updating: boolean = false;
-    
+
     /**
      * Checks for updates of the editor.
      * @param editor defines the editor reference.
      */
     public static async CheckForUpdates(editor: Editor, drawResult: boolean): Promise<void> {
         try {
-            const packageJson = await this._LoadPackageJson();
+            const availableVersions = JSON.parse(await Tools.LoadFile("http://editor.babylonjs.com/electron/versions.json?" + Date.now(), false));
+            const foundVersion = this._CheckNeedsUpdate(editor, availableVersions);
 
-            if (!this._CheckNeedsUpdate(editor, packageJson)) {
+            if (!foundVersion) {
                 return drawResult ? editor.notifyMessage("No update available.", 3000, "info-sign") : void 0;
             }
 
             // Notify
             editor._toaster?.show({
-                message: `New version of the Babylon.JS Editor is available: ${packageJson.version}`,
+                message: `New version of the Babylon.JS Editor is available: ${foundVersion.version}`,
                 timeout: -1,
                 intent: Intent.PRIMARY,
                 className: Classes.DARK,
@@ -34,7 +45,7 @@ export class EditorUpdater {
                     text: "Download",
                     onClick: async () => {
                         try {
-                            await this._Download(editor, packageJson);
+                            await this._Download(editor, availableVersions, foundVersion);
                         } catch (e) {
                             editor.notifyMessage("Failed to download the update.", 3000, "error");
                         }
@@ -49,16 +60,15 @@ export class EditorUpdater {
     /**
      * Downloads the update.
      */
-    private static async _Download(editor: Editor, packageJson: any): Promise<void> {
+    private static async _Download(editor: Editor, availableVersions: _IEditorVersions, version: Semver): Promise<void> {
         if (this._Updating) { return; }
 
-        const versions = JSON.parse(await Tools.LoadFile("http://editor.babylonjs.com/electron/versions.json", false));
-        const links = versions[packageJson.version];
+        const links = availableVersions[version.version];
         const url = join("http://editor.babylonjs.com/", links[os.platform()]);
 
         const destFolder = await Tools.ShowSaveDialog();
         const dest = join(destFolder, basename(url));
-        
+
         // Download!
         this._Updating = true;
 
@@ -109,14 +119,21 @@ export class EditorUpdater {
     /**
      * Returns wether or not the editor should be updated.
      */
-    private static _CheckNeedsUpdate(editor: Editor, packageJson: any): boolean {
-        return packageJson.version > editor._packageJson.version;
-    }
+    private static _CheckNeedsUpdate(editor: Editor, versions: _IEditorVersions): Nullable<Semver> {
+        let highestVersion = new Semver("0.0.0");
+        const currentSemver = new Semver(editor._packageJson.version);
 
-    /**
-     * Loads the package.json file.
-     */
-    private static async _LoadPackageJson(): Promise<any> {
-        return JSON.parse(await Tools.LoadFile("http://editor.babylonjs.com/electron/package.json?" + Date.now(), false));
+        for (const v in versions) {
+            const version = new Semver(v);
+            if (!version.isSameMajorVersion(currentSemver)) {
+                continue;
+            }
+
+            if (version.isVersionGreaterThan(highestVersion)) {
+                highestVersion = version;
+            }
+        }
+
+        return highestVersion.isVersionGreaterThan(currentSemver) ? highestVersion : null;
     }
 }
