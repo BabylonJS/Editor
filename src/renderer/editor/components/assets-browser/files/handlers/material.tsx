@@ -8,13 +8,14 @@ import { Nullable, Undefinable } from "../../../../../../shared/types";
 import * as React from "react";
 import { Spinner, ContextMenu, Menu, MenuItem, MenuDivider, Icon as BPIcon } from "@blueprintjs/core";
 
-import { PickingInfo, Mesh, Material, NodeMaterial } from "babylonjs";
+import { PickingInfo, Mesh, Material, NodeMaterial, AbstractMesh } from "babylonjs";
 
 import { Icon } from "../../../../gui/icon";
 import { InspectorNotifier } from "../../../../gui/inspector/notifier";
 
 import { Tools } from "../../../../tools/tools";
 import { IPCTools } from "../../../../tools/ipc";
+import { undoRedo } from "../../../../tools/undo-redo";
 
 import { WorkSpace } from "../../../../project/workspace";
 
@@ -86,7 +87,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		} catch (e) {
 			/* Catch silently */
 		}
-		
+
 		const nodeMaterialEditItems = isNodeMaterial ? (
 			<>
 				<MenuItem text="Edit..." disabled={existingMaterial === null} icon={<Icon src="edit.svg" />} onClick={() => this._handleEditNodeMaterial(existingMaterial!)} />
@@ -170,6 +171,42 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		if (material) {
 			object[property] = material;
 		}
+
+		await this.props.editor.assets.refresh();
+	}
+
+	/**
+	 * Called on the user drops the asset in the editor's graph.
+	 * @param ev defines the reference to the event object.
+	 * @param objects defines the reference to the array of objects selected in the graph.
+	 */
+	public async onDropInGraph(_: React.DragEvent<HTMLElement>, objects: any[]): Promise<void> {
+		const oldMaterials = objects.map((o) => o.material);
+
+		undoRedo.push({
+			common: () => {
+				this.props.editor.assets.refresh();
+			},
+			undo: () => {
+				objects.forEach((o, index) => {
+					if (o instanceof AbstractMesh && !o.isAnInstance) {
+						o.material = oldMaterials[index];
+					}
+				});
+			},
+			redo: async () => {
+				let material = this.props.editor.scene?.materials.find((m) => m.metadata?.editorPath === this.props.relativePath) ?? null;
+				if (!material) {
+					material = await this._readAndParseMaterialFile();
+				}
+
+				objects.forEach((o) => {
+					if (o instanceof AbstractMesh && !o.isAnInstance) {
+						o.material = material;
+					}
+				});
+			},
+		});
 
 		await this.props.editor.assets.refresh();
 	}
@@ -321,8 +358,8 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 						...message.data.json,
 						editorData: message.data.editorData,
 						metadata: {
-							...message.data.json?.metadata ?? { },
-							...existingMaterial?.metadata ?? { },
+							...message.data.json?.metadata ?? {},
+							...existingMaterial?.metadata ?? {},
 						}
 					}, {
 						spaces: "\t",

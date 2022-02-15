@@ -485,6 +485,7 @@ export class Editor {
         this.inspector.resize();
         this.assets.resize();
         this.console.resize();
+        this.graph.resize();
 
         this.engine?.resize();
 

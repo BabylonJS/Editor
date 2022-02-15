@@ -26,6 +26,8 @@ import { SceneSettings } from "../scene/settings";
 import { SoundAssets } from "../assets/sounds";
 import { IDragAndDroppedAssetComponentItem } from "../assets/abstract-assets";
 
+import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
+
 import { GraphContextMenu } from "./graph/context-menu";
 import { GraphReferenceUpdater } from "./graph/reference-updater";
 
@@ -59,6 +61,11 @@ export interface IGraphState {
     filter: string;
 
     /**
+     * Defines the panel's width.
+     */
+    width?: number;
+
+    /**
      * Defines wether or not the graphs options should be drawn.
      */
     showOptions: boolean;
@@ -84,6 +91,8 @@ interface _ITreeDropInfo {
 export class Graph extends React.Component<IGraphProps, IGraphState> {
     private _editor: Editor;
     private _filter: string = "";
+
+    private _dragging: boolean = false;
     private _firstUpdate: boolean = true;
 
     private _allKeys: string[] = [];
@@ -153,9 +162,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     <Tree.DirectoryTree
                         multiple
                         showIcon
-                        draggable
                         blockNode
                         key="Graph"
+                        icon={false}
                         checkable={false}
                         autoExpandParent={false}
                         expandAction="doubleClick"
@@ -163,8 +172,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         treeData={this.state.nodes}
                         style={{ height: "calc(100% - 32px)" }}
                         selectedKeys={this.state.selectedNodeIds ?? []}
+                        draggable={{ icon: false, nodeDraggable: () => true }}
                         expandedKeys={this._filter ? this._allKeys : (this.state.expandedNodeIds ?? [])}
                         onDrop={(i) => this._handleDrop(i)}
+                        onDragEnd={() => this._handleDragEnd()}
                         onDragEnter={(n) => this._handleDragEnter(n)}
                         onDragStart={(n) => this._handleDragStart(n)}
                         onExpand={(k) => this._handleExpandedNode(k as string[])}
@@ -174,6 +185,16 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 </div>
             </div>
         );
+    }
+
+    /**
+     * Resizes the panel
+     */
+    public resize(): void {
+        const panel = this._editor.getPanelSize("graph");
+        if (panel.width) {
+            this.setState({ width: panel.width });
+        }
     }
 
     /**
@@ -731,12 +752,19 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             isLeaf: !children.length,
             icon: <Icon src={this._getIcon(node)} />,
             title: (
-                <Tooltip usePortal content={<span>{ctor}</span>}>
-                    <>
-                        <span style={style}>{name}</span>
-                        {updateReferences}
-                    </>
-                </Tooltip>
+                <div
+                    onDrop={(ev) => !this._dragging && this._handleExternalDrop(ev, node.id)}
+                    onDragLeave={(ev) => ev.currentTarget.style.background = "unset"}
+                    onDragOver={(ev) => !this._dragging && (ev.currentTarget.style.background = "#333333")}
+                    style={{ width: this.state.width ? `${this.state.width}px` : "auto" }}
+                >
+                    <Tooltip usePortal content={<span>{ctor}</span>}>
+                        <>
+                            <span style={style}>{name}</span>
+                            {updateReferences}
+                        </>
+                    </Tooltip>
+                </div>
             ),
         }
     }
@@ -881,6 +909,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         const draggedNodeId = info.node?.key;
         if (!draggedNodeId) { return; }
 
+        info.event.dataTransfer.setDragImage(new Image(), 0, 0);
+
         if (info.event.ctrlKey) {
             if (this.state.selectedNodeIds?.indexOf(draggedNodeId) === -1) {
                 this.setState({ selectedNodeIds: this.state.selectedNodeIds.concat([draggedNodeId]) });
@@ -897,6 +927,15 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 nodeId: draggedNodeId,
             }));
         }
+
+        this._dragging = true;
+    }
+
+    /**
+     * Called on the user ended dragging a node.
+     */
+    private _handleDragEnd(): void {
+        this._dragging = false;
     }
 
     /**
@@ -912,7 +951,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         const all = this.state.selectedNodeIds.map((s) => this._getNodeById(s)).filter((n) => n) as (Node | IParticleSystem | Sound)[];
 
         // Sound?
-        if (info.node.key === "sounds") {
+        if (info.node.key === "sounds" && info.node.dragOver) {
             all.filter((a) => a instanceof Sound).forEach((s: Sound) => {
                 s.detachFromMesh();
                 s.spatialSound = false;
@@ -1003,6 +1042,40 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         }
 
         this.refresh();
+    }
+
+    /**
+     * Called on an HTML element has been dropped on the data node.
+     */
+    private _handleExternalDrop(ev: React.DragEvent<HTMLDivElement>, nodeId: string): void | Promise<void> {
+        if (this._dragging) {
+            return;
+        }
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        ev.currentTarget.style.background = "unset";
+
+        if (!this.state.selectedNodeIds) {
+            return;
+        }
+
+        const targetNode = this._getNodeById(nodeId);
+        if (!targetNode) {
+            return;
+        }
+
+        let allSelected = this.state.selectedNodeIds?.map((s) => this._getNodeById(s)).filter((n) => n) as (Node | IParticleSystem | Sound)[];
+
+        if (allSelected.indexOf(targetNode) === -1) {
+            allSelected = [targetNode];
+            this.setSelected(targetNode);
+        }
+
+        if (AssetsBrowserItemHandler._DragAndDroppedItem) {
+            return AssetsBrowserItemHandler._DragAndDroppedItem.onDropInGraph(ev, allSelected);
+        }
     }
 
     /**

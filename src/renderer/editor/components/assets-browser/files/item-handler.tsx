@@ -192,6 +192,15 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	}
 
 	/**
+	 * Called on the user drops the asset in the editor's graph.
+	 * @param ev defines the reference to the event object.
+	 * @param objects defines the reference to the array of objects selected in the graph.
+	 */
+	public onDropInGraph(_1: React.DragEvent<HTMLElement>, _2: any[]): Promise<void> {
+		return Promise.resolve();
+	}
+
+	/**
 	 * Returns the list of all common context menu items.
 	 */
 	protected getCommonContextMenuItems(): React.ReactNode[] {
