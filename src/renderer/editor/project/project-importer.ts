@@ -428,7 +428,12 @@ export class ProjectImporter {
         }
 
         if (project.postProcesses.default?.json) {
-            SerializationHelper.Parse(() => SceneSettings.DefaultPipeline, project.postProcesses.default.json, editor.scene!, rootUrl);
+            if (project.postProcesses.default.json.serializedFromEditor) {
+                SceneSettings.ParseDefaultPipeline(project.postProcesses.default.json);
+            } else {
+                SerializationHelper.Parse(() => SceneSettings.DefaultPipeline, project.postProcesses.default.json, editor.scene!, rootUrl);
+            }
+
             SceneSettings.SetDefaultPipelineEnabled(editor, project.postProcesses.default.enabled);
         }
 

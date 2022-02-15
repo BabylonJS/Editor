@@ -1,6 +1,6 @@
 import {
     Camera, ArcRotateCamera, Vector3, FreeCamera, SSAO2RenderingPipeline, DefaultRenderingPipeline,
-    SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess,
+    SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess, Color4, Vector2,
 } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
@@ -129,7 +129,9 @@ export class SceneSettings {
         const scene = camera.getScene();
         if (camera === scene.activeCamera) { return; }
 
-        if (scene.activeCamera)  { scene.activeCamera.detachControl(); }
+        if (scene.activeCamera) {
+            scene.activeCamera.detachControl();
+        }
 
         scene.activeCamera = camera;
 
@@ -222,6 +224,133 @@ export class SceneSettings {
      */
     public static IsDefaultPipelineEnabled(): boolean {
         return this._DefaultPipelineEnabled;
+    }
+
+    /**
+     * Serializes the default rendering pipeline and returns its JSON representation.
+     */
+    public static SerializeDefaultPipeline(): any {
+        if (!this.DefaultPipeline) {
+            return null;
+        }
+
+        return {
+            serializedFromEditor: true,
+            imageProcessing: {
+                enabled: this.DefaultPipeline.imageProcessingEnabled,
+                exposure: this.DefaultPipeline.imageProcessing.exposure,
+                contrast: this.DefaultPipeline.imageProcessing.contrast,
+                fromLinearSpace: this.DefaultPipeline.imageProcessing.fromLinearSpace,
+                toneMappingEnabled: this.DefaultPipeline.imageProcessing.toneMappingEnabled,
+            },
+            bloom: {
+                enabled: this.DefaultPipeline.bloomEnabled,
+                bloomScale: this.DefaultPipeline.bloomScale,
+                bloomWeight: this.DefaultPipeline.bloomWeight,
+                bloomKernel: this.DefaultPipeline.bloomKernel,
+                bloomThreshold: this.DefaultPipeline.bloomThreshold,
+            },
+            sharpen: {
+                enabled: this.DefaultPipeline.sharpenEnabled,
+                edgeAmount: this.DefaultPipeline.sharpen.edgeAmount,
+                colorAmount: this.DefaultPipeline.sharpen.colorAmount,
+            },
+            depthOfField: {
+                enabled: this.DefaultPipeline.depthOfFieldEnabled,
+                fStop: this.DefaultPipeline.depthOfField.fStop,
+                focalLength: this.DefaultPipeline.depthOfField.focalLength,
+                focusDistance: this.DefaultPipeline.depthOfField.focusDistance,
+                depthOfFieldBlurLevel: this.DefaultPipeline.depthOfFieldBlurLevel,
+            },
+            chromaticAberration: {
+                enabled: this.DefaultPipeline.chromaticAberrationEnabled,
+                aberrationAmount: this.DefaultPipeline.chromaticAberration.aberrationAmount,
+                radialIntensity: this.DefaultPipeline.chromaticAberration.radialIntensity,
+                direction: this.DefaultPipeline.chromaticAberration.direction.asArray(),
+                centerPosition: this.DefaultPipeline.chromaticAberration.centerPosition.asArray(),
+            },
+            grain: {
+                enabled: this.DefaultPipeline.grainEnabled,
+                animated: this.DefaultPipeline.grain.animated,
+                intensity: this.DefaultPipeline.grain.intensity,
+            },
+            glowLayer: {
+                enabled: this.DefaultPipeline.glowLayerEnabled,
+                intensity: this.DefaultPipeline.glowLayer?.intensity,
+                blurKernelSize: this.DefaultPipeline.glowLayer?.blurKernelSize,
+            },
+            vignette: {
+                enabled: this.DefaultPipeline.imageProcessing.vignetteEnabled,
+                vignetteWeight: this.DefaultPipeline.imageProcessing.vignetteWeight,
+                vignetteBlendMode: this.DefaultPipeline.imageProcessing.vignetteBlendMode,
+                vignetteColor: this.DefaultPipeline.imageProcessing.vignetteColor.asArray(),
+            },
+            fxaa: {
+                enabled: this.DefaultPipeline.fxaaEnabled,
+            },
+        };
+    }
+
+    /**
+     * Parses the current default rendering pipeline according to the given JSON representation.
+     * @param data defines the JSON representation of the default rendering pipeline.
+     */
+    public static ParseDefaultPipeline(data: any): void {
+        if (!this.DefaultPipeline) {
+            return;
+        }
+
+        this.DefaultPipeline.fxaaEnabled = data.fxaa.enabled;
+
+        // Image processing
+        this.DefaultPipeline.imageProcessingEnabled = data.imageProcessing.enabled;
+        this.DefaultPipeline.imageProcessing.exposure = data.imageProcessing.exposure;
+        this.DefaultPipeline.imageProcessing.contrast = data.imageProcessing.contrast;
+        this.DefaultPipeline.imageProcessing.fromLinearSpace = data.imageProcessing.fromLinearSpace;
+        this.DefaultPipeline.imageProcessing.toneMappingEnabled = data.imageProcessing.toneMappingEnabled;
+
+        this.DefaultPipeline.imageProcessing.vignetteEnabled = data.vignette.enabled;
+        this.DefaultPipeline.imageProcessing.vignetteWeight = data.vignette.vignetteWeight;
+        this.DefaultPipeline.imageProcessing.vignetteBlendMode = data.vignette.vignetteBlendMode;
+        this.DefaultPipeline.imageProcessing.vignetteColor = Color4.FromArray(data.vignette.vignetteColor);
+
+        // Sharpen
+        this.DefaultPipeline.sharpenEnabled = data.sharpen.enabled;
+        this.DefaultPipeline.sharpen.edgeAmount = data.sharpen.edgeAmount;
+        this.DefaultPipeline.sharpen.colorAmount = data.sharpen.colorAmount;
+
+        // Bloom
+        this.DefaultPipeline.bloomEnabled = data.bloom.enabled;
+        this.DefaultPipeline.bloomScale = data.bloom.bloomScale;
+        this.DefaultPipeline.bloomWeight = data.bloom.bloomWeight;
+        this.DefaultPipeline.bloomKernel = data.bloom.bloomKernel;
+        this.DefaultPipeline.bloomThreshold = data.bloom.bloomThreshold;
+
+        // Depth of field
+        this.DefaultPipeline.depthOfFieldEnabled = data.depthOfField.enabled;
+        this.DefaultPipeline.depthOfField.fStop = data.depthOfField.fStop;
+        this.DefaultPipeline.depthOfField.focalLength = data.depthOfField.focalLength;
+        this.DefaultPipeline.depthOfField.focusDistance = data.depthOfField.focusDistance;
+        this.DefaultPipeline.depthOfFieldBlurLevel = data.depthOfField.depthOfFieldBlurLevel;
+
+        // Chromatic aberration
+        this.DefaultPipeline.chromaticAberrationEnabled = data.chromaticAberration.enabled;
+        this.DefaultPipeline.chromaticAberration.aberrationAmount = data.chromaticAberration.aberrationAmount;
+        this.DefaultPipeline.chromaticAberration.radialIntensity = data.chromaticAberration.radialIntensity;
+        this.DefaultPipeline.chromaticAberration.direction = Vector2.FromArray(data.chromaticAberration.direction);
+        this.DefaultPipeline.chromaticAberration.centerPosition = Vector2.FromArray(data.chromaticAberration.centerPosition);
+
+        // Grain
+        this.DefaultPipeline.grainEnabled = data.grain.enabled;
+        this.DefaultPipeline.grain.animated = data.grain.animated;
+        this.DefaultPipeline.grain.intensity = data.grain.intensity;
+
+        // Glow
+        this.DefaultPipeline.glowLayerEnabled = data.glowLayer.enabled;
+        if (this.DefaultPipeline.glowLayer) {
+            this.DefaultPipeline.glowLayer.intensity = data.glowLayer.intensity;
+            this.DefaultPipeline.glowLayer.blurKernelSize = data.glowLayer.blurKernelSize;
+        }
     }
 
     /**
@@ -340,13 +469,13 @@ export class SceneSettings {
 
         // Default
         if (this.DefaultPipeline) {
-            const source = this.DefaultPipeline.serialize();
+            const source = this.SerializeDefaultPipeline();
             this.DefaultPipeline.dispose();
             this.DefaultPipeline = null;
 
             try {
                 this.GetDefaultRenderingPipeline(editor);
-                SerializationHelper.Parse(() => this.DefaultPipeline, source, editor.scene!);
+                this.ParseDefaultPipeline(source);
                 editor.scene!.render();
             } catch (e) {
                 this._DisposePipeline(editor, this.DefaultPipeline);

@@ -464,7 +464,61 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
     }
 
     if (data.default && !defaultRenderingPipelineRef) {
-        defaultRenderingPipelineRef = DefaultRenderingPipeline.Parse(data.default.json, scene, rootUrl);
+        defaultRenderingPipelineRef = new DefaultRenderingPipeline(data.default.json.name, true, scene);
+
+        defaultRenderingPipelineRef.fxaaEnabled = data.default.json.fxaa.enabled;
+
+        // Image processing
+        defaultRenderingPipelineRef.imageProcessingEnabled = data.default.json.imageProcessing.enabled;
+        defaultRenderingPipelineRef.imageProcessing.exposure = data.default.json.imageProcessing.exposure;
+        defaultRenderingPipelineRef.imageProcessing.contrast = data.default.json.imageProcessing.contrast;
+        defaultRenderingPipelineRef.imageProcessing.fromLinearSpace = data.default.json.imageProcessing.fromLinearSpace;
+        defaultRenderingPipelineRef.imageProcessing.toneMappingEnabled = data.default.json.imageProcessing.toneMappingEnabled;
+
+        // Vignette
+        defaultRenderingPipelineRef.imageProcessing.vignetteEnabled = data.default.json.vignette.enabled;
+        defaultRenderingPipelineRef.imageProcessing.vignetteWeight = data.default.json.vignette.vignetteWeight;
+        defaultRenderingPipelineRef.imageProcessing.vignetteBlendMode = data.default.json.vignette.vignetteBlendMode;
+        defaultRenderingPipelineRef.imageProcessing.vignetteColor = Color4.FromArray(data.default.json.vignette.vignetteColor);
+
+        // Sharpen
+        defaultRenderingPipelineRef.sharpenEnabled = data.default.json.sharpen.enabled;
+        defaultRenderingPipelineRef.sharpen.edgeAmount = data.default.json.sharpen.edgeAmount;
+        defaultRenderingPipelineRef.sharpen.colorAmount = data.default.json.sharpen.colorAmount;
+
+        // Bloom
+        defaultRenderingPipelineRef.bloomEnabled = data.default.json.bloom.enabled;
+        defaultRenderingPipelineRef.bloomScale = data.default.json.bloom.bloomScale;
+        defaultRenderingPipelineRef.bloomWeight = data.default.json.bloom.bloomWeight;
+        defaultRenderingPipelineRef.bloomKernel = data.default.json.bloom.bloomKernel;
+        defaultRenderingPipelineRef.bloomThreshold = data.default.json.bloom.bloomThreshold;
+
+        // Depth of field
+        defaultRenderingPipelineRef.depthOfFieldEnabled = data.default.json.depthOfField.enabled;
+        defaultRenderingPipelineRef.depthOfField.fStop = data.default.json.depthOfField.fStop;
+        defaultRenderingPipelineRef.depthOfField.focalLength = data.default.json.depthOfField.focalLength;
+        defaultRenderingPipelineRef.depthOfField.focusDistance = data.default.json.depthOfField.focusDistance;
+        defaultRenderingPipelineRef.depthOfFieldBlurLevel = data.default.json.depthOfField.depthOfFieldBlurLevel;
+
+        // Chromatic aberration
+        defaultRenderingPipelineRef.chromaticAberrationEnabled = data.default.json.chromaticAberration.enabled;
+        defaultRenderingPipelineRef.chromaticAberration.aberrationAmount = data.default.json.chromaticAberration.aberrationAmount;
+        defaultRenderingPipelineRef.chromaticAberration.radialIntensity = data.default.json.chromaticAberration.radialIntensity;
+        defaultRenderingPipelineRef.chromaticAberration.direction = Vector2.FromArray(data.default.json.chromaticAberration.direction);
+        defaultRenderingPipelineRef.chromaticAberration.centerPosition = Vector2.FromArray(data.default.json.chromaticAberration.centerPosition);
+
+        // Grain
+        defaultRenderingPipelineRef.grainEnabled = data.default.json.grain.enabled;
+        defaultRenderingPipelineRef.grain.animated = data.default.json.grain.animated;
+        defaultRenderingPipelineRef.grain.intensity = data.default.json.grain.intensity;
+
+        // Glow
+        defaultRenderingPipelineRef.glowLayerEnabled = data.default.json.glowLayer.enabled;
+        if (defaultRenderingPipelineRef.glowLayer) {
+            defaultRenderingPipelineRef.glowLayer.intensity = data.default.json.glowLayer.intensity;
+            defaultRenderingPipelineRef.glowLayer.blurKernelSize = data.default.json.glowLayer.blurKernelSize;
+        }
+
         if (!data.default.enabled) {
             scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(defaultRenderingPipelineRef.name, scene.cameras);
         }
