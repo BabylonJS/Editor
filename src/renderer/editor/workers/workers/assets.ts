@@ -1,7 +1,7 @@
 import "../../../module";
 
 import { basename, dirname, join } from "path";
-import { createReadStream, readJSON } from "fs-extra";
+import { createReadStream, pathExists, readJSON } from "fs-extra";
 
 import { IStringDictionary, Nullable } from "../../../../shared/types";
 
@@ -85,7 +85,18 @@ export default class AssetsWorker {
 	/**
 	 * Returns the current cache JSON data.
 	 */
-	public getCache(): IStringDictionary<string> {
+	public async getCache(): Promise<IStringDictionary<string>> {
+		if (this._workspaceDir) {
+			const keys = Object.keys(this._cachedPreviews);
+
+			await Promise.all(keys.map(async (k) => {
+				const exists = await pathExists(join(this._workspaceDir!, "assets", k));
+				if (!exists) {
+					delete this._cachedPreviews[k];
+				}
+			}));
+		}
+
 		return this._cachedPreviews;
 	}
 
