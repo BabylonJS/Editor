@@ -288,10 +288,13 @@ export default class AssetsWorker {
 			}
 
 			const scaling = Vector3.Zero();
-			d.getWorldMatrix().decompose(scaling, undefined, undefined);
+			const translation = Vector3.Zero();
+			d.getWorldMatrix().decompose(scaling, undefined, translation);
 
-			const bMinimum = d._boundingInfo?.minimum.multiply(scaling);
-			const bMaximum = d._boundingInfo?.maximum.multiply(scaling);
+			translation.divideInPlace(scaling);
+
+			const bMinimum = d._boundingInfo?.boundingBox.minimum.add(translation).multiply(scaling);
+			const bMaximum = d._boundingInfo?.boundingBox.maximum.add(translation).multiply(scaling);
 
 			if (!bMinimum || !bMaximum) { return; }
 
@@ -307,7 +310,7 @@ export default class AssetsWorker {
 		const center = Vector3.Center(minimum, maximum);
 		const distance = Vector3.Distance(minimum, maximum) * 0.5;
 
-		this._camera.position = center.add(new Vector3(distance, distance * 0.5, distance));
+		this._camera.position = center.add(new Vector3(distance, distance, distance));
 		this._camera.setTarget(center);
 
 		this._light.position.copyFrom(maximum);

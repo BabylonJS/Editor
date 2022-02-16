@@ -177,6 +177,11 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemMoveHandler(new AssetsBrowserParticlesSystemMoveHandler(editor));
 	}
 
+	/**
+	 * @hidden
+	 */
+	public _itemHandlerRef: Nullable<AssetsBrowserItemHandler> = null;
+
 	private _mainDiv: Nullable<HTMLDivElement> = null;
 
 	/**
@@ -236,8 +241,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 						key="render-image"
 						style={{
 							margin: "auto",
-							width: "calc(100% - 20px)",
-							height: "calc(100% - 20px)",
+							width: `${100 * this.state.size - 20}px`,
+							height: `${100 * this.state.size - 20}px`,
 						}}
 					>
 						{this.state.itemHandler}
@@ -270,6 +275,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.setState({
 			itemHandler: (
 				<handler.itemHandler
+					ref={(r) => r && (this._itemHandlerRef = r)}
 					type={this.props.type}
 					editor={this.props.editor}
 					relativePath={this.props.relativePath}
@@ -277,7 +283,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 					onDragStart={(ev) => this.props.onDragStart(this, ev)}
 					onSetTitleColor={(c) => this.setState({ titleColor: c })}
 				/>
-			)
+			),
 		});
 	}
 

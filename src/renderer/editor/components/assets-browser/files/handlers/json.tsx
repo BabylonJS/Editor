@@ -1,3 +1,5 @@
+import { shell } from "electron";
+
 import * as React from "react";
 
 import { Icon } from "../../../../gui/icon";
@@ -19,5 +21,13 @@ export class JsonItemHandler extends FileItemHandler {
 				}}
 			/>
 		);
+	}
+
+	/**
+	 * Called on the user double clicks on the item.
+	 * @param ev defines the reference to the event object.
+	 */
+	public onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+		shell.openPath(this.props.absolutePath);
 	}
 }

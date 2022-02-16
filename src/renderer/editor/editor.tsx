@@ -813,6 +813,7 @@ export class Editor {
             audioEngine: true,
             disableWebGL2Support: false,
             powerPreference: "high-performance",
+            premultipliedAlpha: false,
             failIfMajorPerformanceCaveat: false,
             useHighPrecisionFloats: true,
             preserveDrawingBuffer: true,

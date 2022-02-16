@@ -174,6 +174,15 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	}
 
 	/**
+	 * Calls the given function in all the selected items (if exists).
+	 * @param methodName defines the name of the function to call.
+	 * @hidden
+	 */
+	public async _callSelectedItemsMethod(methodName: string, ...parameters: any[]): Promise<void> {
+		return this._files?._callSelectedItemsMethod(methodName, ...parameters);
+	}
+
+	/**
 	 * Refreshes the current directory.
 	 */
 	public async refresh(): Promise<void> {

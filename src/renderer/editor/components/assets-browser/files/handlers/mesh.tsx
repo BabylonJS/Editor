@@ -74,6 +74,10 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		ContextMenu.show((
 			<Menu>
+				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => {
+					this.props.editor.assetsBrowser._callSelectedItemsMethod("_handleRefreshPreview");
+				}} />
+				<MenuDivider />
 				{this.getCommonContextMenuItems()}
 				<MenuDivider />
 				{/* <MenuItem text="Update Instantiated References..." onClick={() => this._handleUpdateInstantiatedReferences()} /> */}
@@ -81,8 +85,6 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 					<MenuItem text="Force Update" onClick={() => this._handleUpdateInstantiatedReferences(true)} />
 					<MenuItem text="Update Per Object" onClick={() => this._handleUpdateInstantiatedReferences(false)} />
 				</MenuItem>
-				<MenuDivider />
-				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => this._handleRefreshPreview()} />
 			</Menu>
 		), {
 			top: ev.clientY,
@@ -92,14 +94,16 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 
 	/**
 	 * Called on the user wants to refresh the preview of the material.
+	 * @hidden
 	 */
-	private async _handleRefreshPreview(): Promise<void> {
+	public async _handleRefreshPreview(): Promise<void> {
 		await Workers.ExecuteFunction<AssetsWorker, "deleteFromCache">(
 			AssetsBrowserItemHandler.AssetWorker,
 			"deleteFromCache",
 			this.props.relativePath,
 		);
-		this._computePreview();
+
+		return this._computePreview();
 	}
 
 	/**

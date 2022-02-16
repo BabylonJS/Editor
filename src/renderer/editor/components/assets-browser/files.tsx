@@ -334,6 +334,31 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	}
 
 	/**
+	 * Calls the given function in all the selected items (if exists).
+	 * @param methodName defines the name of the function to call.
+	 * @hidden
+	 */
+	public async _callSelectedItemsMethod(methodName: string, ...parameters: any[]): Promise<void> {
+		const stepsCount = this._items.length;
+		const stepsInterval = 100 / stepsCount;
+
+		const task = this.props.editor.addTaskFeedback(0, `Assets: Executing ${methodName}`);
+
+		let progress = 0;
+
+		const items = this._items.filter((i) => i.state.isSelected);
+		for (const i of items) {
+			await i._itemHandlerRef?.[methodName]?.(...parameters);
+
+			progress += stepsInterval;
+			this.props.editor.updateTaskFeedback(task, progress);
+		}
+
+		this.props.editor.updateTaskFeedback(task, progress, "Action done on assets.");
+		this.props.editor.closeTaskFeedback(task, 1000);
+	}
+
+	/**
 	 * Called on the user clicks on the item.
 	 */
 	private _handleAssetSelected(item: AssetsBrowserItem, ev: React.MouseEvent<HTMLDivElement>): void {
@@ -682,7 +707,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 */
 	private async _handleAddMaterialFromSourceCode(): Promise<void> {
 		let path = join(await Tools.ShowOpenFileDialog("Material Source Code", this._sourcesDirectory));
-		
+
 		if (path.indexOf(this._sourcesDirectory) !== 0) {
 			return Alert.Show("Failed To Create Material", `Selected source code is not part of the current workspace.\n${path}`);
 		}

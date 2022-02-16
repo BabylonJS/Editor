@@ -25,6 +25,7 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 				style={{
 					width: "100%",
 					height: "100%",
+					objectFit: "contain",
 				}}
 			/>
 		);
@@ -76,10 +77,13 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 		if (WorkSpace.Workspace?.ktx2CompressedTextures?.enabled) {
 			ktxMenus.push.apply(ktxMenus, [
 				<MenuItem text="KTX Texture" icon={<Icon src="../images/ktx.png" style={{ filter: "none" }} />}>
-					<MenuItem text="Refresh KTX Texture" onClick={() => this._handleRefreshKtx(false)} />
-					<MenuItem text="Refresh All KTX Texture" onClick={() => this._handleRefreshKtx(true)} />
+					<MenuItem text="Refresh KTX Texture" onClick={() => {
+						this.props.editor.assetsBrowser._callSelectedItemsMethod("_handleRefreshKtx", false);
+					}} />
+					<MenuItem text="Refresh All KTX Texture" onClick={() => {
+						this.props.editor.assetsBrowser._callSelectedItemsMethod("_handleRefreshKtx", true);
+					}} />
 				</MenuItem>,
-				<MenuDivider />,
 			]);
 		}
 
@@ -98,8 +102,9 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 
 	/**
 	 * Called on the user wants to refresh the KTX texture(s).
+	 * @hidden
 	 */
-	private async _handleRefreshKtx(allFormats: boolean): Promise<void> {
+	public async _handleRefreshKtx(allFormats: boolean): Promise<void> {
 		const destination = dirname(this.props.absolutePath);
 
 		if (!allFormats) {

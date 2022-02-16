@@ -50,13 +50,13 @@ export class SoundItemHandler extends AssetsBrowserItemHandler {
      * @param ev defines the reference to the event object.
      */
     public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-        const sounds = this.props.editor.scene!.mainSoundTrack.soundCollection.filter((s) => {
-            return s.name === this.props.relativePath && !s.spatialSound;
-        });
+        const sounds = this._getInstantiatedNonSpatialSounds();
 
         ContextMenu.show((
             <Menu>
-                <MenuItem text={sounds.length ? "Unload" : "Load"} icon={<BPIcon icon={sounds.length ? "remove" : "add"} color="white" />} onClick={() => this._loadOrUnloadSound(sounds)} />
+                <MenuItem text={sounds.length ? "Unload" : "Load"} icon={<BPIcon icon={sounds.length ? "remove" : "add"} color="white" />} onClick={() => {
+                    this.props.editor.assetsBrowser._callSelectedItemsMethod("_loadOrUnloadSound");
+                }} />
                 <MenuDivider />
                 <MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.relativePath, "clipboard")} />
                 <MenuItem text="Copy Absolute Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.absolutePath, "clipboard")} />
@@ -100,9 +100,21 @@ export class SoundItemHandler extends AssetsBrowserItemHandler {
     }
 
     /**
-     * Called on the user wants to load or unload a sound asset in the scene from the context menu.
+     * Returns the list of instantiated non-spacial sounds for this asset.
      */
-    private _loadOrUnloadSound(sounds: Sound[]): void {
+    private _getInstantiatedNonSpatialSounds(): Sound[] {
+        return this.props.editor.scene!.mainSoundTrack.soundCollection.filter((s) => {
+            return s.name === this.props.relativePath && !s.spatialSound;
+        });
+    }
+
+    /**
+     * Called on the user wants to load or unload a sound asset in the scene from the context menu.
+     * @hidden
+     */
+    public _loadOrUnloadSound(): void {
+        const sounds = this._getInstantiatedNonSpatialSounds();
+
         if (sounds?.length) {
             sounds.forEach((s) => this.props.editor.scene!.mainSoundTrack.removeSound(s));
             return this.props.editor.graph.refresh();

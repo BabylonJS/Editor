@@ -17,7 +17,7 @@ export class KTXItemHandler extends AssetsBrowserItemHandler {
 					width: "100%",
 					height: "100%",
 					filter: "none",
-					marginTop: "25%",
+					objectFit: "contain",
 				}}
 			/>
 		);
