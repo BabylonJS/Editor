@@ -5,7 +5,6 @@
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
-import { Bone } from "@babylonjs/core/Bones/bone";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";

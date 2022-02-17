@@ -334,6 +334,8 @@ export class SceneExporter {
 			}
 
 			const geometryRootPath = options?.geometryRootPath ?? `../${WorkSpace.GetProjectName()}/`;
+			
+			await GeometryExporter.Init();
 			await GeometryExporter.ExportIncrementalGeometries(editor, geometriesPath, scene, true, geometryRootPath, task);
 		}
 

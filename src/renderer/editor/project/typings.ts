@@ -335,13 +335,26 @@ export interface IBabylonFileNode {
  */
 export interface IBabylonFile {
     meshes: (IBabylonFileNode & {
+        geometryId?: string;
+        delayLoadingFile?: string;
+        boundingBoxMaximum?: number[];
+        boundingBoxMinimum?: number[];
+        _binaryInfo?: any;
+
         materialId: Undefinable<string>;
         instances: (IBabylonFileNode & {
 
         })[];
     })[];
+    
     lights: (IBabylonFileNode & {
 
     })[];
+
     particleSystems: [];
+    geometries?: {
+        vertexData?: {
+            id: string;
+        }[];
+    };
 }

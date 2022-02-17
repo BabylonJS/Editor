@@ -81,6 +81,7 @@ export class ProjectExporter {
             return this.SaveAs(editor);
         }
 
+        await GeometryExporter.Init();
         this._Worker = this._Worker ?? await Workers.LoadWorker("save.js");
 
         // Check is isolated mode
