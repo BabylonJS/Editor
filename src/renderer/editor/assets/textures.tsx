@@ -62,21 +62,12 @@ export class TextureAssets extends AbstractAssets {
      * Renders the component.
      */
     public render(): React.ReactNode {
-        // const add =
-        //     <Menu>
-        //         <MenuItem key="add-pure-cube" text="Pur Cube Texture..." onClick={() => this._addPureCubeTexture()} />
-        //     </Menu>;
-
         return (
             <>
                 <div className={Classes.FILL} key="materials-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>
                     <ButtonGroup>
                         <Button key="refresh-folder" icon="refresh" small={true} onClick={() => this.refresh()} />
                         <Divider />
-                        {/* <Popover content={add} position={Position.BOTTOM_LEFT}>
-                            <Button icon={<Icon src="plus.svg" />} rightIcon="caret-down" small={true} text="Add" />
-                        </Popover>
-                        <Divider /> */}
                         <Button key="clear-unused" icon={<Icon src="recycle.svg" />} small={true} text="Clear Unused" onClick={() => this._clearUnusedTextures()} />
                     </ButtonGroup>
                 </div>
@@ -602,21 +593,27 @@ export class TextureAssets extends AbstractAssets {
 
         // Check materials
         for (const m of this.editor.scene!.materials) {
-            for (const thing in m) {
-                const value = m[thing];
+            const mKeys = Object.keys(m);
+            mKeys.forEach((k) => {
+                const value = m[k];
 
                 if (value === texture) {
-                    result.push({ object: m, property: thing });
+                    result.push({ object: m, property: k });
+                }
+
+                if (!value || typeof (value) !== "object") {
+                    return;
                 }
 
                 // In case of PBR materials.
-                for (const thing2 in value) {
-                    const value2 = value[thing2];
+                const mKeys2 = Object.keys(value);
+                mKeys2.forEach((k2) => {
+                    const value2 = value[k2];
                     if (value2 === texture) {
-                        result.push({ object: m, property: `${thing}.${thing2}` });
+                        result.push({ object: m, property: `${k}.${k2}` });
                     }
-                }
-            }
+                });
+            });
         }
 
         // Check particle systems

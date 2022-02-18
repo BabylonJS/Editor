@@ -92,7 +92,9 @@ export class Assets extends React.Component<IAssetsProps, IAssetsState> {
 
         return (
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-                <InputGroup className={Classes.FILL} leftIcon={"search"} type="search" placeholder="Search..." onChange={(e) => this._handleSearchChanged(e)} />
+                <div style={{ width: "100%", padding: "5px" }}>
+                    <InputGroup className={Classes.FILL} leftIcon="search" type="search" placeholder="Search..." onChange={(e) => this._handleSearchChanged(e)} />
+                </div>
                 <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
                     <Tabs
                         ref={this._refHandler.getTabs}
