@@ -78,13 +78,12 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 					this.props.editor.assetsBrowser._callSelectedItemsMethod("_handleRefreshPreview");
 				}} />
 				<MenuDivider />
-				{this.getCommonContextMenuItems()}
-				<MenuDivider />
-				{/* <MenuItem text="Update Instantiated References..." onClick={() => this._handleUpdateInstantiatedReferences()} /> */}
 				<MenuItem text="Update Instantiated References">
 					<MenuItem text="Force Update" onClick={() => this._handleUpdateInstantiatedReferences(true)} />
 					<MenuItem text="Update Per Object" onClick={() => this._handleUpdateInstantiatedReferences(false)} />
 				</MenuItem>
+				<MenuDivider />
+				{this.getCommonContextMenuItems()}
 			</Menu>
 		), {
 			top: ev.clientY,
@@ -180,6 +179,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 			}
 
 			this.props.editor.assets.refresh();
+			this.props.editor.assetsBrowser.refresh();
 		});
 
 		this.props.editor.graph.refresh();
@@ -332,7 +332,15 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	 */
 	private async _writeMaterialFile(material: Material): Promise<void> {
 		this.props.editor.console.logInfo(`Saved material configuration: ${material.metadata.editorPath}`);
-		writeJSON(join(dirname(this.props.absolutePath), basename(material.metadata.editorPath)), material.serialize(), {
+
+		const serializationObject = material.serialize();
+		try {
+			serializationObject.metadata = Tools.CloneObject(material.metadata);
+		} catch (e) {
+			// Catch silently.
+		}
+
+		writeJSON(join(dirname(this.props.absolutePath), basename(material.metadata.editorPath)), serializationObject, {
 			spaces: "\t",
 			encoding: "utf-8",
 		});
@@ -352,7 +360,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 
 		if (exists) {
 			const json = await readJSON(materialPath, { encoding: "utf-8" });
-
+			
 			material.dispose(true, true);
 
 			let instantiatedMaterial = this.props.editor.scene!.materials.find((m) => {
