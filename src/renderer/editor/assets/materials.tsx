@@ -286,10 +286,10 @@ export class MaterialAssets extends AbstractAssets {
         ) : undefined;
 
         return (
-            <>
-                <Tag key="itemId" fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
+            <div style={{ width: "286px" }}>
+                <Tag key="itemId" fill intent="primary">{item.id}</Tag>
                 <Divider />
-                <Tag key="itemClassName" fill={true} intent={Intent.PRIMARY}>{material.getClassName()}</Tag>
+                <Tag key="itemClassName" fill intent="primary">{material.getClassName()}</Tag>
                 {attachedEllement}
                 <Divider />
                 <img
@@ -302,7 +302,7 @@ export class MaterialAssets extends AbstractAssets {
                         left: "50%",
                     }}
                 ></img>
-            </>
+            </div>
         );
     }
 

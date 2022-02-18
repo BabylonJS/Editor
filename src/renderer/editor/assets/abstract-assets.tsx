@@ -335,9 +335,10 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                     position: "relative",
                     width: `${this.size}px`,
                     height: `${this.size + 15}px`,
-                    outlineStyle: item.isSelected ? "groove" : undefined,
-                    outlineColor: "#48aff0",
                     outlineWidth: "3px",
+                    outlineColor: "#48aff0",
+                    backgroundColor: "#222222",
+                    outlineStyle: item.isSelected ? "groove" : undefined,
                 }}
                 onMouseOver={() => item.ref && (item.ref.style.outlineStyle = "groove")}
                 onMouseLeave={() => item.ref && !item.isSelected && (item.ref.style.outlineStyle = "unset")}
@@ -366,15 +367,15 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                     ></img>
                 </Popover>
                 <small style={{
-                    float: "left",
-                    width: `${this.size}px`,
-                    left: "50%",
-                    top: "8px",
-                    transform: "translate(-50%, -50%)",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    position: "relative",
+                    left: "0px",
+					bottom: "0px",
+					width: `${this.size}px`,
+					overflow: "hidden",
+					userSelect: "none",
+					whiteSpace: "nowrap",
+					position: "absolute",
+					textOverflow: "ellipsis",
+                    textAlign: "center",
                 }}>{item.id}</small>
             </div>
         );

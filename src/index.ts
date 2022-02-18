@@ -23,7 +23,6 @@ export { AssetsBrowserItemHandler, IAssetsBrowserItemHandlerProps, IAssetsBrowse
 
 export { MaterialAssets } from "./renderer/editor/assets/materials";
 export { TextureAssets } from "./renderer/editor/assets/textures";
-export { SoundAssets } from "./renderer/editor/assets/sounds";
 
 // Inspectors
 export { Inspector, IInspectorProps, IInspectorState, IObjectInspector, IObjectInspectorProps } from "./renderer/editor/components/inspector";

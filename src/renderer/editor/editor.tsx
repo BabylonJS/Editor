@@ -111,7 +111,6 @@ import "./components/inspectors/sound/sound-inspector";
 // Assets
 import { MaterialAssets } from "./assets/materials";
 import { TextureAssets } from "./assets/textures";
-import { PrefabAssets } from "./assets/prefabs";
 
 // Extensions
 import { WebpackProgressExtension } from "./extensions/webpack-progress";
@@ -352,7 +351,6 @@ export class Editor {
         // Register assets
         MaterialAssets.Register();
         TextureAssets.Register();
-        PrefabAssets.Register();
 
         // Register loaders
         SceneLoader.RegisterPlugin(new FBXLoader());

@@ -1,4 +1,4 @@
-import { join, extname, basename } from "path";
+import { join, extname } from "path";
 import { readFile, mkdtemp, remove, rmdir } from "fs-extra";
 import { tmpdir } from "os";
 
@@ -19,7 +19,6 @@ import { MeshExporter } from "../export/mesh";
 import { ProjectImporter } from "../project/project-importer";
 import { IBabylonFileNode, IBabylonFile } from "../project/typings";
 
-import { PrefabAssets } from "../assets/prefabs";
 import { MaterialAssets } from "../assets/materials";
 
 export class Prefab {
@@ -124,9 +123,9 @@ export class Prefab {
             // Add prefab to collection
             editor.updateTaskFeedback(task, 100, "Adding to assets...");
 
-            const assets = editor.assets.getComponent(PrefabAssets);
-            await assets?.onDropFiles([{ path: destination, name: basename(destination) }]);
-            await assets?.refresh();
+            // const assets = editor.assets.getComponent(PrefabAssets);
+            // await assets?.onDropFiles([{ path: destination, name: basename(destination) }]);
+            // await assets?.refresh();
 
             // Remove temp file?
             if (tempDir) {

@@ -10,9 +10,6 @@ import {
 
 import filenamify from "filenamify";
 
-import { GraphAssets } from "../assets/graphs";
-import { PrefabAssets } from "../assets/prefabs";
-
 import { Editor } from "../editor";
 
 import { FSTools } from "../tools/fs";
@@ -111,8 +108,8 @@ export class ProjectExporter {
             scene: ProjectHelpers.ExportSceneSettings(editor.scene!),
             assets: {
                 meshes: [],
-                prefabs: PrefabAssets.Prefabs.map((p) => p.name),
-                graphs: GraphAssets.Graphs.map((g) => g.name),
+                graphs: [],
+                prefabs: [],
             },
             project: {
                 camera: SceneSettings.Camera!.serialize(),

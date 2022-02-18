@@ -6,7 +6,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
 import {
-    ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, MenuDivider, Tag, Intent,
+    ButtonGroup, Button, Classes, ContextMenu, Menu, MenuItem, Divider, MenuDivider, Tag,
     Icon as BPIcon,
 } from "@blueprintjs/core";
 
@@ -170,6 +170,11 @@ export class TextureAssets extends AbstractAssets {
                     texture.metadata.editorId = Tools.RandomId();
                 }
 
+                let style: Undefinable<React.CSSProperties> = undefined;
+                if (texture.isCube) {
+                    style = { filter: "invert(1)" };
+                }
+
                 let base64 = texture.isCube ? "../css/svg/dds.svg" : filePath ?? "../css/svg/file.svg";
                 if (isDyamicTexture) {
                     base64 = (texture as DynamicTexture).getContext().canvas.toDataURL("image/png");
@@ -182,6 +187,7 @@ export class TextureAssets extends AbstractAssets {
                 }
 
                 const itemData: IAssetComponentItem = {
+                    style,
                     base64,
                     key: texture.metadata.editorId,
                     id: texture.metadata.editorName,
@@ -339,17 +345,6 @@ export class TextureAssets extends AbstractAssets {
     }
 
     /**
-     * Configures the paths of the given texture.
-     * @param texture defines the reference to the texture to configure.
-     */
-    public configureTexturePath(texture: Texture | CubeTexture): void {
-        const path = join("files", basename(texture.name));
-
-        texture.name = path;
-        if (texture.url) { texture.url = path; }
-    }
-
-    /**
      * Called on the user pressed the delete key on the asset.
      * @param item defines the item being deleted.
      */
@@ -360,22 +355,6 @@ export class TextureAssets extends AbstractAssets {
         if (!texture || (!(texture instanceof Texture) && !(texture instanceof CubeTexture))) { return; }
 
         this._removeTexture(item, texture);
-    }
-
-    /**
-     * Returns the last reference of the texture identified by the given name.
-     * @param name defines the name of the texture to find.
-     */
-    public getLastTextureByName<T extends Texture>(name: string): Nullable<T> {
-        let texture: Nullable<T> = null;
-
-        for (const tex of this.editor.scene!.textures) {
-            if (basename(tex.name) === name) {
-                texture = tex as T;
-            }
-        }
-
-        return texture;
     }
 
     /**
@@ -428,13 +407,13 @@ export class TextureAssets extends AbstractAssets {
                         const texturePath = join(this.editor.assetsBrowser.assetsDirectory, texture.name);
                         await KTXTools.CompressTexture(this.editor, texturePath, compressedTexturesDest, ktxFormat);
                     }
-    
+
                     // Update Url
                     if (!texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture) {
                         texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
                         texture.url = previousUrl;
                     }
-    
+
                     texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = true;
 
                     resolve();
@@ -467,12 +446,12 @@ export class TextureAssets extends AbstractAssets {
         const fullPath = join(Project.DirPath!, texture.name);
 
         return (
-            <>
-                <Tag fill={true} intent={Intent.PRIMARY}>{item.id}</Tag>
+            <div style={{ width: "256px", height: "350px" }}>
+                <Tag fill intent="primary">{item.id}</Tag>
                 <Divider />
-                <Tag fill={true} interactive={true} intent={Intent.PRIMARY} onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(fullPath))}>{fullPath}</Tag>
+                <Tag fill interactive={true} intent="primary" onClick={() => shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(fullPath))}>{fullPath}</Tag>
                 <Divider />
-                <Tag fill={true} intent={Intent.PRIMARY}>{size.width}x{size.height}</Tag>
+                <Tag fill intent="primary">{size.width}x{size.height}</Tag>
                 <Divider />
                 <img
                     src={item.base64}
@@ -484,7 +463,7 @@ export class TextureAssets extends AbstractAssets {
                         left: "50%",
                     }}
                 ></img>
-            </>
+            </div>
         );
     }
 

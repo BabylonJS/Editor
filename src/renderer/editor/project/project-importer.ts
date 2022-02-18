@@ -9,9 +9,6 @@ import {
     AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone,
 } from "babylonjs";
 
-import { PrefabAssets } from "../assets/prefabs";
-import { GraphAssets } from "../assets/graphs";
-
 import { Editor } from "../editor";
 
 import { Overlay } from "../gui/overlay";
@@ -86,15 +83,6 @@ export class ProjectImporter {
         let spinnerValue = 0;
 
         let loadPromises: Promise<void>[] = [];
-
-        // Configure assets
-        if (project.assets.prefabs) {
-            project.assets.prefabs.forEach((p) => PrefabAssets.Prefabs.push({ name: p, path: join(Project.DirPath!, "prefabs", p) }));
-        }
-
-        if (project.assets.graphs) {
-            project.assets.graphs.forEach((g) => GraphAssets.Graphs.push({ name: g, path: join(Project.DirPath!, "graphs", g) }));
-        }
 
         // Configure scene
         ProjectHelpers.ImportSceneSettings(editor.scene!, project.scene, rootUrl);

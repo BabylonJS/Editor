@@ -23,7 +23,6 @@ import { IMeshMetadata } from "../tools/types";
 
 import { SceneSettings } from "../scene/settings";
 
-import { SoundAssets } from "../assets/sounds";
 import { IDragAndDroppedAssetComponentItem } from "../assets/abstract-assets";
 
 import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
@@ -414,9 +413,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
                 removeFunc?.call(caller, node);
 
-                if (node instanceof Sound) {
-                    if (parent) { node.detachFromMesh(); }
-                    this._editor.assets.forceRefresh(SoundAssets);
+                if (node instanceof Sound && parent) {
+                    node.detachFromMesh();
                 }
 
                 if (node instanceof InstancedMesh) { node.sourceMesh.removeInstance(node); }
@@ -477,9 +475,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 if (node instanceof Node) {
                     node.parent = parent;
                 }
-                if (node instanceof Sound) {
-                    if (parent) { node.attachToMesh(parent); }
-                    this._editor.assets.forceRefresh(SoundAssets);
+                if (node instanceof Sound && parent) {
+                    node.attachToMesh(parent);
                 }
 
                 particleSystems.forEach((ps) => this._editor.scene!.addParticleSystem(ps));
