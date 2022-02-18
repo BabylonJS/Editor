@@ -274,6 +274,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 
 			const instantiatedMaterial = await this._getEffectiveMaterial(material, force);
 			if (instantiatedMaterial) {
+				Overlay.Hide();
 				return instantiatedMaterial;
 			}
 

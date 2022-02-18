@@ -123,7 +123,7 @@ export class KTXTools {
 
 			case "-pvrtc.ktx":
 				const qpvrtc = ktx2CompressedTextures.pvrtcOptions?.quality ?? "pvrtcfastest";
-				command = `"${exePath}" -i "${texturePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTC1_2" : "PVRTC1_2_RGB"},UBN,lRGB -q ${qpvrtc} -o "${destination}"`;
+				command = `"${exePath}" -i "${texturePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q ${qpvrtc} -o "${destination}"`;
 				break;
 
 			case "-etc1.ktx":
