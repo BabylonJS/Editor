@@ -82,6 +82,10 @@ html, body {
     background-color: #111111;
 }
 
+.flexlayout__tab_button_content {
+    min-width: 80px;
+}
+
 /* EDITOR */
 .searchBar {
     left: calc(50% - 200px);

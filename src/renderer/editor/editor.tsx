@@ -800,7 +800,12 @@ export class Editor {
 
         // Add component
         this._components[name] = <plugin.default editor={this} id={plugin.title} openParameters={openParameters} />;
-        this.layout.addTabToActiveTabSet({ type: "tab", name: plugin.title, component: name, id: name });
+        this.layout.addTabToActiveTabSet({
+            id: name,
+            type: "tab",
+            component: name,
+            name: plugin.title,
+        });
     }
 
     /**
