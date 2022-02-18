@@ -60,7 +60,7 @@ export default class AssetsWorker {
 		this._shadowGenerator = new ShadowGenerator(1024, this._light, false);
 
 		// Environment
-		const environmentTexture = CubeTexture.CreateFromPrefilteredData("../../../../../assets/textures/studio.env", this._scene);
+		const environmentTexture = CubeTexture.CreateFromPrefilteredData("../../../../../assets/textures/parking.env", this._scene);
 		this._scene.environmentTexture = environmentTexture;
 
 		// Ground

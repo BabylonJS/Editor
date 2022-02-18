@@ -1,6 +1,6 @@
 import { platform } from "os";
 import { shell } from "electron";
-import { basename, extname, join } from "path";
+import { basename, dirname, extname, join } from "path";
 import { copyFile, mkdir, pathExists, readdir, readFile, readJSON, stat, Stats, writeFile, writeJSON } from "fs-extra";
 
 import { Nullable } from "../../../../shared/types";
@@ -26,6 +26,8 @@ import { Tools } from "../../tools/tools";
 
 import { WorkSpace } from "../../project/workspace";
 import { SceneExporter } from "../../project/scene-exporter";
+
+import { AssetsBrowserTree, IAssetsBrowserFavorite } from "./tree";
 
 import { AssetsBrowserItem } from "./files/item";
 import { AssetsBrowserItemHandler } from "./files/item-handler";
@@ -245,6 +247,79 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	}
 
 	/**
+	 * Sets the new favorite to read and draw its items.
+	 * @param favorite defines the id of the favorite to show in the view.
+	 */
+	public async setFavorite(favorite: IAssetsBrowserFavorite): Promise<void> {
+		this._items = [];
+		this.selectedItems = [];
+
+		let assets: { name: string; metadata?: any; }[] = [];
+
+		switch (favorite) {
+			case AssetsBrowserTree.TexturesFavorite: assets = this.props.editor.scene!.textures; break;
+			case AssetsBrowserTree.MaterialsFavorite: assets = this.props.editor.scene!.materials; break;
+		}
+
+		assets = assets?.filter((a) => a);
+		if (!assets?.length) {
+			return;
+		}
+
+		if (this.state.filter) {
+			const filter = this.state.filter.toLowerCase();
+			assets = assets.filter((f) => f.name.toLowerCase().indexOf(filter) !== -1);
+		}
+
+		const items: React.ReactNode[] = [];
+		for (const asset of assets) {
+			let relativePath: Nullable<string> = null;
+			switch (favorite) {
+				case AssetsBrowserTree.TexturesFavorite: relativePath = asset.name; break;
+				case AssetsBrowserTree.MaterialsFavorite: relativePath = asset.metadata?.editorPath; break;
+			}
+
+			if (!relativePath) {
+				continue;
+			}
+
+			const absolutePath = join(this._assetsDirectory, relativePath);
+			if (!await pathExists(absolutePath)) {
+				continue;
+			}
+
+			const fStats = await stat(absolutePath);
+
+			items.push(
+				<AssetsBrowserItem
+					ref={(r) => {
+						if (r && !this._items.find((i) => i.props.absolutePath === r.props.absolutePath)) {
+							this._items.push(r);
+						}
+					}}
+					type="file"
+					key={Tools.RandomId()}
+					editor={this.props.editor}
+					absolutePath={absolutePath}
+					size={this.state.itemsSize}
+					relativePath={relativePath}
+					title={basename(relativePath)}
+
+					onClick={(i, ev) => this._handleAssetSelected(i, ev)}
+					onDragStart={(i, ev) => this._handleAssetSelected(i, ev)}
+					onDoubleClick={() => this._handleItemDoubleClicked(dirname(absolutePath), basename(relativePath!), fStats)}
+				/>
+			);
+		}
+
+		this.setState({
+			items,
+			pathStack: [favorite.id],
+			currentDirectory: favorite.id,
+		});
+	}
+
+	/**
 	 * Sets the new absolute path to the directory to read and draw its items.
 	 * @param directoryPath defines the absolute path to the directory to show in the view.
 	 */
@@ -330,6 +405,13 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Refreshes the current list of files.
 	 */
 	public refresh(): Promise<void> {
+		switch (this.state.currentDirectory) {
+			case AssetsBrowserTree.TexturesFavorite.id:
+				return this.setFavorite(AssetsBrowserTree.TexturesFavorite);
+			case AssetsBrowserTree.MaterialsFavorite.id:
+				return this.setFavorite(AssetsBrowserTree.MaterialsFavorite);
+		}
+
 		return this.setDirectory(this.state.currentDirectory);
 	}
 
@@ -435,12 +517,38 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 			const p = this.state.pathStack[i];
 			const itemStack = pathStack.concat([p]);
 
+			let name = "";
+			let icon: Nullable<JSX.Element> = null;
+
+			switch (p) {
+				case AssetsBrowserTree.TexturesFavorite.id:
+					icon = <BPIcon icon="star" color="yellow" />;
+					name = AssetsBrowserTree.TexturesFavorite.name;
+					break;
+				case AssetsBrowserTree.MaterialsFavorite.id:
+					icon = <BPIcon icon="star" color="yellow" />;
+					name = AssetsBrowserTree.MaterialsFavorite.name;
+					break;
+				default:
+					name = basename(p);
+					icon = <Icon src="folder-open.svg" />;
+					break;
+			}
+
 			items.push({
-				text: <span style={{ marginLeft: "5px" }}>{basename(p)}</span>,
-				icon: <Icon src="folder-open.svg" />,
+				icon,
+				text: <span style={{ marginLeft: "5px", marginTop: "3px" }}>{name}</span>,
 				intent: Intent.NONE,
 				onClick: () => {
 					this.setState({ filter: "" });
+
+					switch (this.state.currentDirectory) {
+						case AssetsBrowserTree.TexturesFavorite.id:
+							return this.setFavorite(AssetsBrowserTree.TexturesFavorite);
+						case AssetsBrowserTree.MaterialsFavorite.id:
+							return this.setFavorite(AssetsBrowserTree.MaterialsFavorite);
+					}
+					
 					this.setDirectory(itemStack.join("/"));
 				},
 			});
@@ -456,6 +564,13 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 */
 	private _handleFilterChanged(filter: string): void {
 		this.setState({ filter }, () => {
+			switch (this.state.currentDirectory) {
+				case AssetsBrowserTree.TexturesFavorite.id:
+					return this.setFavorite(AssetsBrowserTree.TexturesFavorite);
+				case AssetsBrowserTree.MaterialsFavorite.id:
+					return this.setFavorite(AssetsBrowserTree.MaterialsFavorite);
+			}
+
 			this.setDirectory(this.state.currentDirectory);
 		});
 	}

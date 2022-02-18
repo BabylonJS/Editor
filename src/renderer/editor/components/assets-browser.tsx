@@ -66,7 +66,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	/**
 	 * Defines the reference to the dictionary that stores all the moved assets.
 	 */
-	public movedAssetsDictionary: IStringDictionary<string> = { };
+	public movedAssetsDictionary: IStringDictionary<string> = {};
 
 	private _editor: Editor;
 
@@ -108,6 +108,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 				<AssetsBrowserTree
 					editor={this._editor}
 					ref={(r) => this._tree = r}
+					onFavoriteSelected={(f) => this._files?.setFavorite(f)}
 					onDirectorySelected={(p) => this._files?.setDirectory(p)}
 				/>
 				<AssetsBrowserFiles
@@ -295,7 +296,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		const usedFiles: string[] = [];
 		const isUsedCheckResults = await Promise.all(items.map(async (i) => {
 			let files = [i];
-			
+
 			const fStat = await stat(i);
 			if (fStat.isDirectory()) {
 				files = await FSTools.GetGlobFiles(join(i, "**", "*.*"));
@@ -304,7 +305,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			const result = await Promise.all(files.map(async (f) => {
 				const extension = extname(f).toLowerCase();
 				const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
-	
+
 				const isUsed = await handler?.isFileUsed(f) ?? false;
 				if (isUsed) {
 					usedFiles.push(f);

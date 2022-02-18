@@ -11,6 +11,17 @@ import { Icon } from "../../gui/icon";
 import { Alert } from "../../gui/alert";
 import { Confirm } from "../../gui/confirm";
 
+export interface IAssetsBrowserFavorite {
+	/**
+	 * Defines the id of the favorite.
+	 */
+	id: string;
+	/**
+	 * Defines the name of the favorite.
+	 */
+	name: string;
+}
+
 export interface IAssetsBrowserTreeProps {
 	/**
 	 * Defines the reference to the editor.
@@ -20,6 +31,10 @@ export interface IAssetsBrowserTreeProps {
 	 * Defines the callback called on a directory has been clicked in the tree.
 	 */
 	onDirectorySelected: (path: string) => void;
+	/**
+	 * Defines the callback called on a favorite has been clicked in the tree.
+	 */
+	onFavoriteSelected: (favorite: IAssetsBrowserFavorite) => void;
 }
 
 export interface IAssetsBrowserTreeState {
@@ -30,6 +45,21 @@ export interface IAssetsBrowserTreeState {
 }
 
 export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, IAssetsBrowserTreeState> {
+	/**
+	 * Defines the id of the node for favorites "Textures".
+	 */
+	public static readonly TexturesFavorite: IAssetsBrowserFavorite = {
+		name: "All Textures",
+		id: "__editor_assets_browser_textures__",
+	};
+	/**
+	 * Defines the id of the node for favorites "Materials".
+	 */
+	public static readonly MaterialsFavorite: IAssetsBrowserFavorite = {
+		name: "All Materials",
+		id: "__editor_assets_browser_materials__",
+	};
+
 	private _assetsDirectory: string;
 	private _sourcesDirectory: string;
 
@@ -127,8 +157,23 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 		const sources = this._refreshTree(join(this._assetsDirectory, "../src"));
 
 		this.setState({
-			nodes: [sources, assets],
+			nodes: [...this._getFavorites(), sources, assets],
 		});
+	}
+
+	/**
+	 * Returns the list of all tree favorites.
+	 */
+	private _getFavorites(): ITreeNode<string>[] {
+		return [{
+			id: AssetsBrowserTree.MaterialsFavorite.id,
+			label: AssetsBrowserTree.MaterialsFavorite.name,
+			icon: <BPIcon icon="star" color="yellow" />,
+		}, {
+			id: AssetsBrowserTree.TexturesFavorite.id,
+			label: AssetsBrowserTree.TexturesFavorite.name,
+			icon: <BPIcon icon="star" color="yellow" />,
+		}];
 	}
 
 	/**
@@ -147,6 +192,13 @@ export class AssetsBrowserTree extends React.Component<IAssetsBrowserTreeProps, 
 		node.isSelected = true;
 
 		this.setState({ nodes: this.state.nodes });
+
+		switch (node.id) {
+			case AssetsBrowserTree.TexturesFavorite.id:
+				return this.props.onFavoriteSelected(AssetsBrowserTree.TexturesFavorite);
+			case AssetsBrowserTree.MaterialsFavorite.id:
+				return this.props.onFavoriteSelected(AssetsBrowserTree.MaterialsFavorite);
+		}
 
 		const exists = await pathExists(node.nodeData!);
 		if (exists) {

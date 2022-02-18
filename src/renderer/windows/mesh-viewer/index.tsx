@@ -122,7 +122,7 @@ export default class MeshViewerWindow extends React.Component {
         this._camera.maxZ = distance * 10;
         
         // Environment texture
-        const texture = CubeTexture.CreateFromPrefilteredData("../assets/textures/forest.env", this._scene);
+        const texture = CubeTexture.CreateFromPrefilteredData("../assets/textures/parking.env", this._scene);
         this._scene.environmentTexture = texture;
 
         const materialTexture = texture.clone();
