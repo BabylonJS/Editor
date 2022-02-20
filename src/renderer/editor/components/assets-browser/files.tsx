@@ -424,7 +424,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		const stepsCount = this._items.length;
 		const stepsInterval = 100 / stepsCount;
 
-		const task = this.props.editor.addTaskFeedback(0, `Assets: Executing ${methodName}`);
+		const task = this.props.editor.addTaskFeedback(0, `Assets: Executing "${methodName}"`);
 
 		let progress = 0;
 

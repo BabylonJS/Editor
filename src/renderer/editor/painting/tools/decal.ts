@@ -3,7 +3,10 @@ import { Nullable } from "../../../../shared/types";
 import { UtilityLayerRenderer, Mesh, PickingInfo, MeshBuilder, Vector3, Material } from "babylonjs";
 
 export class Decal {
-    private _mesh: Nullable<Mesh> = null;
+    /**
+     * @hidden
+     */
+    public _mesh: Nullable<Mesh> = null;
     
     /**
      * Defines the layer used to render the decal.

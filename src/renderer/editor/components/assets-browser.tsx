@@ -20,9 +20,13 @@ import { Tools } from "../tools/tools";
 import { Project } from "../project/project";
 import { WorkSpace } from "../project/workspace";
 
+import { Workers } from "../workers/workers";
+import AssetsWorker from "../workers/workers/assets";
+
 import { AssetsBrowserTree } from "./assets-browser/tree";
 import { AssetsBrowserFiles } from "./assets-browser/files";
 import { AssetsBrowserItem } from "./assets-browser/files/item";
+import { AssetsBrowserItemHandler } from "./assets-browser/files/item-handler";
 
 export interface IAssetsBrowserProps {
 	/**
@@ -181,6 +185,19 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	 */
 	public async _callSelectedItemsMethod(methodName: string, ...parameters: any[]): Promise<void> {
 		return this._files?._callSelectedItemsMethod(methodName, ...parameters);
+	}
+
+	/**
+	 * Returns the base64 string data of the preview for the asset at the given relative path.
+	 * @param relativePath defines the relative path to the item.
+	 */
+	public getAssetPreview(relativePath: string): Promise<string> {
+		return Workers.ExecuteFunction<AssetsWorker, "createScenePreview">(
+			AssetsBrowserItemHandler.AssetWorker,
+			"createScenePreview",
+			relativePath,
+			join(WorkSpace.DirPath!, relativePath),
+		);
 	}
 
 	/**

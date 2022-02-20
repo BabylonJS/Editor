@@ -922,6 +922,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (event) {
             event.dataTransfer?.setData("graph/node", JSON.stringify({
                 nodeId: draggedNodeId,
+                allNodeIds: this.state.selectedNodeIds,
             }));
         }
 
