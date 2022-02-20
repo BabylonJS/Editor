@@ -156,6 +156,29 @@ export interface IMeshMetadata extends ICommonMetadata {
      * Defines the original data of the source file.
      */
     originalSourceFile?: IOriginalSourceFileMetadata;
+    heightMap?: {
+        /**
+         * Defines the buffer of the height map texture.
+         */
+        texture: number[];
+        /**
+         * Defines the width of the texture.
+         */
+        textureWidth: number;
+        /**
+         * Defines the height of the texture.
+         */
+        textureHeight: number;
+        /**
+         * Defines the options of the heightmap when being applied.
+         * @see VertexData.CreateGroundFromHeightMap for more information.
+         */
+        options: {
+            minHeight: number;
+            maxHeight: number;
+            colorFilter: number[];
+        };
+    };
     /**
      * Defines the objects that are waiting to be updated.
      */
@@ -180,7 +203,7 @@ export interface IMeshMetadata extends ICommonMetadata {
              * Defines the handler to call in order to apply the updated material reference.
              */
             handler?: (mesh: Mesh, withSkeleton: boolean) => unknown | Promise<unknown>;
-        }
+        };
         /**
          * Defines the material object containing the component's to update.
          */
@@ -197,8 +220,8 @@ export interface IMeshMetadata extends ICommonMetadata {
              * Defines the handler to call in order to apply the updated material reference.
              */
             handler?: (mesh: Mesh) => unknown | Promise<unknown>;
-        }
-    }
+        };
+    };
 }
 
 export interface ITransformNodeMetadata extends ICommonMetadata {

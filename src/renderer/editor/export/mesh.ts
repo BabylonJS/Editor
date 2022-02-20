@@ -16,10 +16,15 @@ export class MeshExporter {
         }
 
         const meshMetadata = Tools.GetMeshMetadata(mesh);
+        const heightMap = meshMetadata.heightMap;
         const waitingUpdatedReferences = meshMetadata._waitingUpdatedReferences;
 
         if (waitingUpdatedReferences) {
             delete meshMetadata._waitingUpdatedReferences;
+        }
+
+        if (heightMap) {
+            delete meshMetadata.heightMap;
         }
 
         const json = SceneSerializer.SerializeMesh(mesh, withParents, withChildren);
@@ -70,6 +75,7 @@ export class MeshExporter {
             json.lods.push(lodJson);
         }
 
+        meshMetadata.heightMap = heightMap;
         meshMetadata._waitingUpdatedReferences = waitingUpdatedReferences;
 
         return json;

@@ -131,7 +131,7 @@ export class GroundInspector extends AbstractInspector<GroundMesh, IGroundInspec
 
         // Save metadata
         const metadata = this._getGroundMetadata();
-        metadata.heightMap ??= { };
+        metadata.heightMap ??= { };
         metadata.heightMap.texture = Array.from(new Uint8Array(pixels.buffer));
         metadata.heightMap.textureWidth = texture.getSize().width;
         metadata.heightMap.textureHeight = texture.getSize().height;

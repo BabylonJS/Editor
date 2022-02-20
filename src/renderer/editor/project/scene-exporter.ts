@@ -171,11 +171,25 @@ export class SceneExporter {
 			delete m.renderOverlay;
 
 			const exportedMeshMetadata = m.metadata;
+
+			// Waiting updated references metadata
 			const waitingUpdatedReferences = exportedMeshMetadata?._waitingUpdatedReferences;
 			if (waitingUpdatedReferences) {
 				delete m.metadata._waitingUpdatedReferences;
 				m.metadata = Tools.CloneObject(m.metadata);
 				exportedMeshMetadata._waitingUpdatedReferences = waitingUpdatedReferences;
+			}
+
+			// Clone metadata.
+			try {
+				m.metadata = Tools.CloneObject(m.metadata);
+			} catch (e) {
+				// Catch silently.
+			}
+
+			// Heightmap metadata
+			if (m.metadata?.heightMap) {
+				delete m.metadata.heightMap;
 			}
 
 			const mesh = editor.scene!.getMeshByID(m.id);
