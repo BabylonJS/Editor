@@ -270,6 +270,10 @@ export interface IGroundMetadata {
 
 export interface IMaterialMetadata {
     /**
+     * Defines the relative path in the project of the material asset.
+     */
+    editorPath?: string;
+    /**
      * Defines the original data of the source file.
      */
     originalSourceFile?: IOriginalSourceFileMetadata;
