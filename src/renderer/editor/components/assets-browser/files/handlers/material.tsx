@@ -195,6 +195,9 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 				objects.forEach((o, index) => {
 					if (o instanceof AbstractMesh && !o.isAnInstance) {
 						o.material = oldMaterials[index];
+						if (o instanceof Mesh) {
+							o.getLODLevels()?.forEach((lod) => lod.mesh && (lod.mesh.material = oldMaterials[index]));
+						}
 					}
 				});
 			},
@@ -207,6 +210,9 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 				objects.forEach((o) => {
 					if (o instanceof AbstractMesh && !o.isAnInstance) {
 						o.material = material;
+						if (o instanceof Mesh) {
+							o.getLODLevels()?.forEach((lod) => lod.mesh && (lod.mesh.material = material));
+						}
 					}
 				});
 			},
