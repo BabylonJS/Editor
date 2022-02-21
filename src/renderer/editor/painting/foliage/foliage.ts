@@ -2,7 +2,7 @@ import { Nullable } from "../../../../shared/types";
 
 import {
     Mesh, PointerInfo, PointerEventTypes, Matrix, Vector3, Quaternion,
-    AbstractMesh, StandardMaterial, DynamicTexture, Epsilon, PickingInfo, TransformNode, Scalar,
+    AbstractMesh, StandardMaterial, DynamicTexture, Epsilon, PickingInfo, TransformNode, Scalar, Ray,
 } from "babylonjs";
 
 import { Editor } from "../../editor";
@@ -33,12 +33,12 @@ export class FoliagePainter extends AbstractPaintingTool {
      * Defines the reference to the vector applied for the random scaling
      * as minumum values for X, Y and Z.
      */
-    public randomScalingMin: Vector3 = new Vector3(0, 0, 0);
+    public randomScalingMin: number = 0;
     /**
      * Defines the reference to the vector applied for the random scaling
      * as maximum values for X, Y and Z.
      */
-    public randomScalingMax: Vector3 = new Vector3(0, 0, 0);
+    public randomScalingMax: number = 0;
 
     /**
      * @hidden
@@ -113,7 +113,7 @@ export class FoliagePainter extends AbstractPaintingTool {
         }
 
         if (info.type === PointerEventTypes.POINTERUP) {
-            this._handlePointerUp();
+            return this._handlePointerUp();
         }
     }
 
@@ -172,17 +172,6 @@ export class FoliagePainter extends AbstractPaintingTool {
 
                 this._decal.updateDecal(this._pick);
 
-                /*
-                if (pick.pickedPoint) {
-                    this._cloneMesh.setAbsolutePosition(pick.pickedPoint);
-
-                    const normal = pick.getNormal(true, true);
-                    if (normal) {
-                        this._cloneMesh.lookAt(pick.pickedPoint.subtract(normal.negate()), 0, Math.PI * 0.5, 0);
-                    }
-                }
-                */
-
                 if (this._isPointerDown && this.holdToPaint) {
                     this._paint();
                 }
@@ -201,10 +190,7 @@ export class FoliagePainter extends AbstractPaintingTool {
         this.paintDistance = distance;
         this._handlePointerMove();
 
-        InspectorNotifier.NotifyChange(this, {
-            caller: this,
-            waitMs: 100,
-        });
+        InspectorNotifier.NotifyChange(this, { caller: this, waitMs: 100 });
     }
 
     /**
@@ -237,11 +223,19 @@ export class FoliagePainter extends AbstractPaintingTool {
                 return this._createThinInstance(m, center);
             }
 
-            this._createThinInstance(m, new Vector3(
+            const randomPoint = new Vector3(
                 Scalar.RandomRange(center.x - size.z * 0.5, center.x + size.z * 0.5),
                 center.y,
                 Scalar.RandomRange(center.z - size.z * 0.5, center.z + size.z * 0.5),
-            ));
+            );
+
+            const ray = Ray.CreateNewFromTo(this.editor.scene!.activeCamera!.globalPosition, randomPoint);
+            this._pick = this.editor.scene!.pickWithRay(ray, (m) => m === this._targetMesh, false);
+            if (!this._pick?.pickedPoint) {
+                return;
+            }
+
+            this._createThinInstance(m, this._pick.pickedPoint);
         });
     }
 
@@ -261,7 +255,8 @@ export class FoliagePainter extends AbstractPaintingTool {
         }
 
         const tn = new TransformNode("empty", this.layerScene.utilityLayerScene);
-        tn.lookAt(this._pick.pickedPoint.subtract(normal.negate()), 0, Math.PI * 0.5, 0);
+        tn.lookAt(normal, 0, Math.PI * 0.5, 0);
+        tn.computeWorldMatrix();
         const absoluteRotation = tn.absoluteRotationQuaternion;
         tn.dispose();
 
@@ -333,9 +328,9 @@ export class FoliagePainter extends AbstractPaintingTool {
 
         // Scaling
         const randomScaling = mesh.scaling.add(new Vector3(
-            Math.random() * (this.randomScalingMax.x - this.randomScalingMin.x) + this.randomScalingMin.x,
-            Math.random() * (this.randomScalingMax.y - this.randomScalingMin.y) + this.randomScalingMin.y,
-            Math.random() * (this.randomScalingMax.z - this.randomScalingMin.z) + this.randomScalingMin.z,
+            Math.random() * (this.randomScalingMax - this.randomScalingMin) + this.randomScalingMin,
+            Math.random() * (this.randomScalingMax - this.randomScalingMin) + this.randomScalingMin,
+            Math.random() * (this.randomScalingMax - this.randomScalingMin) + this.randomScalingMin,
         ));
 
         const scaling = randomScaling.divide(mesh.scaling);
@@ -387,8 +382,8 @@ export class FoliagePainter extends AbstractPaintingTool {
             meshIds: this._selectedMeshes.map((m) => m.id),
             randomRotationMin: this.randomRotationMin.asArray(),
             randomRotationMax: this.randomRotationMax.asArray(),
-            randomScalingMin: this.randomScalingMin.asArray(),
-            randomScalingMax: this.randomScalingMax.asArray(),
+            randomScalingMin: this.randomScalingMin,
+            randomScalingMax: this.randomScalingMax,
             holdToPaint: this.holdToPaint,
             paintDistance: this.paintDistance,
         }
@@ -405,8 +400,8 @@ export class FoliagePainter extends AbstractPaintingTool {
 
         this.randomRotationMin = Vector3.FromArray(config.randomRotationMin);
         this.randomRotationMax = Vector3.FromArray(config.randomRotationMax);
-        this.randomScalingMin = Vector3.FromArray(config.randomScalingMin);
-        this.randomScalingMax = Vector3.FromArray(config.randomScalingMax);
+        this.randomScalingMin = config.randomScalingMin;
+        this.randomScalingMax = config.randomScalingMax;
         this.holdToPaint = config.holdToPaint;
         this.paintDistance = config.paintDistance;
     }

@@ -2,11 +2,13 @@ import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
+import { Mesh } from "babylonjs";
+
 export interface IFoliageAssetItemProps {
     /**
      * Defines the title of the item.
      */
-    title: string;
+    mesh: Mesh;
     /**
      * Defines the preview of the item (base64).
      */
@@ -14,10 +16,15 @@ export interface IFoliageAssetItemProps {
 }
 
 export interface IFoliageAssetItemState {
-
+    /**
+     * Defines the number of active thin instances for the mesh.
+     */
+    thinInstanceCount: number;
 }
 
 export class FoliageAssetItem extends React.Component<IFoliageAssetItemProps, IFoliageAssetItemState> {
+    private _intervalId: Nullable<number> = null;
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -26,7 +33,7 @@ export class FoliageAssetItem extends React.Component<IFoliageAssetItemProps, IF
         super(props);
 
         this.state = {
-
+            thinInstanceCount: 0,
         };
     }
 
@@ -43,6 +50,7 @@ export class FoliageAssetItem extends React.Component<IFoliageAssetItemProps, IF
                     textAlign: "center",
                     outlineWidth: "3px",
                     position: "relative",
+                    borderRadius: "10px",
                     outlineColor: "#48aff0",
                     backgroundColor: "#222222",
                 }}
@@ -60,10 +68,6 @@ export class FoliageAssetItem extends React.Component<IFoliageAssetItemProps, IF
                         position: "absolute",
                         textOverflow: "ellipsis",
                     }}
-                    onDoubleClick={(ev) => {
-                        ev.stopPropagation();
-                        this.setState({ isRenaming: true });
-                    }}
                 >
                     <div
                         key="render-image"
@@ -78,9 +82,39 @@ export class FoliageAssetItem extends React.Component<IFoliageAssetItemProps, IF
                             src={this.props.preview ?? "../css/svg/question-mark.svg"}
                         />
                     </div>
-                    {this.props.title}
+                    {this.props.mesh.name}
+                    <div style={{
+                        width: "24px",
+                        height: "24px",
+                        left: "0px",
+                        top: "0px",
+                        lineHeight: "24px",
+                        borderRadius: "15px",
+                        position: "absolute",
+                        background: "cornflowerblue",
+                    }}>
+                        {this.state.thinInstanceCount}
+                    </div>
                 </small>
             </div>
         );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        this._intervalId = setInterval(() => {
+            this.setState({ thinInstanceCount: this.props.mesh.thinInstanceCount });
+        }, 500) as any;
+    }
+
+    /**
+     * Called on the component will unmount.
+     */
+    public componentWillUnmount(): void {
+        if (this._intervalId) {
+            clearInterval(this._intervalId);
+        }
     }
 }

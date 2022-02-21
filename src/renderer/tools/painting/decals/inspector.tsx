@@ -56,7 +56,7 @@ export class DecalsPainterInspector extends AbstractInspector<DecalsPainter, IDe
         return (
             <>
                 <Divider />
-                <H4 style={{ textAlign: "center" }}>Decals Painter</H4>
+                <H4 style={{ textAlign: "center", margin: "10px 0px 10px 0px" }}>Decals Painter</H4>
                 <InspectorSection title="Material">
                     <div style={{ width: "100%", height: "140px" }}>
                         <div data-tooltip={this.state.selectedMaterialAsset ? undefined : "No Material Set."} style={{ height: "100px", margin: "auto" }}>

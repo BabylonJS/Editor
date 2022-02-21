@@ -33,6 +33,8 @@ export interface IFoliagePainterState {
 export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, IFoliagePainterState> {
     private static _serializedConfiguration: Nullable<any> = null;
 
+    private _items: FoliageAssetItem[] = [];
+
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -58,10 +60,10 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
         return (
             <>
                 <Divider />
-                <H4 style={{ textAlign: "center" }}>Foliage Painter</H4>
+                <H4 style={{ textAlign: "center", margin: "10px 0px 10px 0px" }}>Foliage Painter</H4>
                 <InspectorSection title="Meshes">
                     <div
-                        style={{ minHeight: "200px" }}
+                        style={{ minHeight: "200px", backgroundColor: "#333333", borderRadius: "10px", borderColor: "black" }}
                         onDrop={(e) => this._handleAssetsDropped(e)}
                     >
                         {this._getMeshesSection()}
@@ -74,8 +76,8 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
                 </InspectorSection>
 
                 <InspectorSection title="Random Scaling">
-                    <InspectorVector3 object={this.selectedObject} property="randomScalingMin" label="Random Min Scaling" step={0.01} />
-                    <InspectorVector3 object={this.selectedObject} property="randomScalingMax" label="Random Max Scaling" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="randomScalingMin" label="Min" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="randomScalingMax" label="Max" step={0.01} />
                 </InspectorSection>
 
                 <InspectorSection title="Painting">
@@ -112,7 +114,7 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
      * Called on a property of the selected object has changed.
      */
     public onPropertyChanged(): void {
-
+        // Nothing to do for now...
     }
 
     /**
@@ -129,17 +131,19 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
             );
         }
 
+        this._items = [];
+
         const previews = this.state.assetPreviews.map((ap, index) => (
-            <FoliageAssetItem preview={ap} title={this.state.selectedMeshes[index]!.name} />
+            <FoliageAssetItem key={Tools.RandomId()} ref={(r) => r && this._items.push(r)} preview={ap} mesh={this.state.selectedMeshes[index]!} />
         ));
 
         return (
             <div
                 style={{
-                    width: "100%",
                     display: "grid",
                     overflow: "auto",
                     position: "absolute",
+                    width: "calc(100% - 40px)",
                     height: "calc(100% - 70px)",
                     gridTemplateRows: "repeat(auto-fill, 120px)",
                     gridTemplateColumns: "repeat(auto-fill, 120px)",
