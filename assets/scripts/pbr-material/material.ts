@@ -76,6 +76,13 @@ export class /*{__shader_class_name__}*/APBRMaterial extends PBRMaterial {
 	}
 
 	/**
+	 * Returns the name of this material class.
+	 */
+	public getClassName(): string {
+		return "/*{__shader_class_name__}*/APBRMaterial";
+	}
+
+	/**
 	 * Serializes this PBR-based Material.
 	 * @returns - An object with the serialized material.
 	 */
@@ -126,7 +133,7 @@ export default /*{__shader_class_name__}*/APBRMaterial;
 /**
  * Defines the configuration of the material.
  */
- export const materialConfiguration = {
+export const materialConfiguration = {
 	vertexShaderContent: "./{__shader_name__}.vertex.fx",
 	pixelShaderContent: "./{__shader_name__}.fragment.fx",
 }
