@@ -88,11 +88,11 @@ export class /*{__shader_class_name__}*/AMaterial extends PushMaterial {
             }
         }
 
-        if (!subMesh._materialDefines) {
+        if (!subMesh.materialDefines) {
             subMesh.materialDefines = new /*{__shader_class_name__}*/AMaterialDefines();
         }
 
-        var defines = </*{__shader_class_name__}*/AMaterialDefines>subMesh._materialDefines;
+        var defines = </*{__shader_class_name__}*/AMaterialDefines>subMesh.materialDefines;
         var scene = this.getScene();
 
         if (this._isReadyForSubMesh(subMesh)) {
@@ -214,7 +214,7 @@ export class /*{__shader_class_name__}*/AMaterial extends PushMaterial {
     public bindForSubMesh(world: Matrix, mesh: Mesh, subMesh: SubMesh): void {
         var scene = this.getScene();
 
-        var defines = </*{__shader_class_name__}*/AMaterialDefines>subMesh._materialDefines;
+        var defines = </*{__shader_class_name__}*/AMaterialDefines>subMesh.materialDefines;
         if (!defines) {
             return;
         }
@@ -249,7 +249,7 @@ export class /*{__shader_class_name__}*/AMaterial extends PushMaterial {
                 this._activeEffect.setFloat("pointSize", this.pointSize);
             }
 
-            MaterialHelper.BindEyePosition(effect, scene);
+            scene.bindEyePosition(effect);
         }
 
         this._activeEffect.setColor4("vDiffuseColor", this.diffuseColor, this.alpha * mesh.visibility);

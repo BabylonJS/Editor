@@ -53,7 +53,7 @@ export class /*{__shader_class_name__}*/APBRMaterial extends PBRMaterial {
 	 * @param subMesh - A submesh of the BJS mesh.
 	 */
 	public bindForSubMesh(world: Matrix, mesh: Mesh, subMesh: SubMesh): void {
-		const defines = <PBRMaterialDefines>subMesh._materialDefines;
+		const defines = </*{__shader_class_name__}*/AMaterialDefines>subMesh.materialDefines;
 		if (!defines) {
 			return;
 		}
