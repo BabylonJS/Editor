@@ -1,6 +1,6 @@
 import {
     StandardMaterial, AbstractMesh, SubMesh, StandardMaterialDefines, Effect, Scene, Tools, Matrix,
-    Mesh, _TypeStore, SerializationHelper,
+    Mesh, RegisterClass, SerializationHelper,
 } from "@babylonjs/core";
 
 import { ICustomShaderNameResolveOptions } from "@babylonjs/core/Materials/material";
@@ -53,7 +53,7 @@ export class /*{__shader_class_name__}*/AStandardMaterial extends StandardMateri
      * @param subMesh - A submesh of the BJS mesh.
      */
     public bindForSubMesh(world: Matrix, mesh: Mesh, subMesh: SubMesh): void {
-        const defines = </*{__shader_class_name__}*/AMaterialDefines>subMesh._materialDefines;
+        const defines = </*{__shader_class_name__}*/AMaterialDefines>subMesh.materialDefines;
         if (!defines) {
             return;
         }
@@ -107,7 +107,7 @@ export class /*{__shader_class_name__}*/AStandardMaterial extends StandardMateri
 /**
  * Register the material in the BabylonJS registered types in order to be parsed.
  */
-_TypeStore.RegisteredTypes["BABYLON./*{__shader_class_name__}*/AStandardMaterial"] = /*{__shader_class_name__}*/AStandardMaterial;
+RegisterClass("BABYLON./*{__shader_class_name__}*/AStandardMaterial", /*{__shader_class_name__}*/AStandardMaterial);
 
 /**
  * Export the class by default.
