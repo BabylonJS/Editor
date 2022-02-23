@@ -121,7 +121,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 			"deleteFromCache",
 			this.props.relativePath,
 		);
-		
+
 		return this._computePreview();
 	}
 
@@ -263,10 +263,13 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 
 		const previewImage = (
 			<img
+				ref={(r) => r && requestAnimationFrame(() => r.style.opacity = "1.0")}
 				src={path}
 				style={{
 					width: "100%",
 					height: "100%",
+					opacity: "0",
+					transition: "opacity 0.3s ease-in-out",
 				}}
 			/>
 		);

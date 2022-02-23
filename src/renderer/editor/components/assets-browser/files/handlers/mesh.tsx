@@ -118,10 +118,13 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 
 		const previewImage = (
 			<img
+				ref={(r) => r && requestAnimationFrame(() => r.style.opacity = "1.0")}
 				src={path}
 				style={{
 					width: "100%",
 					height: "100%",
+					opacity: "0",
+					transition: "opacity 0.3s ease-in-out",
 				}}
 			/>
 		);
@@ -360,7 +363,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 
 		if (exists) {
 			const json = await readJSON(materialPath, { encoding: "utf-8" });
-			
+
 			material.dispose(true, true);
 
 			let instantiatedMaterial = this.props.editor.scene!.materials.find((m) => {
