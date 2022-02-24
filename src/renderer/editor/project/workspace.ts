@@ -210,6 +210,18 @@ export class WorkSpace {
     }
 
     /**
+     * Closes the current workspace.
+     */
+    public static async Close(): Promise<void> {
+        Overlay.Show("Closing...", true);
+        await new Promise<void>((resolve) => {
+            ipcRenderer.once(IPCResponses.SetWorkspacePath, () => resolve());
+            ipcRenderer.send(IPCRequests.SetWorkspacePath, null);
+        });
+        window.location.reload();
+    }
+
+    /**
      * Installs the workspace's dependencies.
      * @param editor defines the reference to the editor.
      * @returns the promise resolved on the dependencies have been installed.

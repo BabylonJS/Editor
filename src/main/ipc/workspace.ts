@@ -28,8 +28,9 @@ export class SetWorkspacePathIPC implements IIPCHandler {
 	 * @param event defines the reference to the IPC event.
      * @param path defines the new path of the project file.
 	 */
-	public handler(event: IpcMainEvent, path: string): void {
+	public handler(event: IpcMainEvent, path: string | null): void {
 		Settings.WorkspacePath = path;
+		Settings.OpenedFile = null;
 		event.sender.send(IPCResponses.SetWorkspacePath);
 	}
 }
