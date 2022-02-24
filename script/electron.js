@@ -30,6 +30,9 @@ const build = ({ x64, arm64 } = options) => {
             nsis: {
                 oneClick: false
             },
+            linux: {
+                target: "AppImage"
+            },
             asar: true,
             compression: "store",
             extraFiles: [
@@ -62,7 +65,7 @@ const build = ({ x64, arm64 } = options) => {
     ];
 
     if (archs.find((a) => a.enabled)) {
-        for (const a of archs) {
+        for (const a of archs.filter((a) => a.enabled)) {
             console.log("   -------------------------------------------------------------");
             console.log(`   ${a.type}`);
             console.log("   -------------------------------------------------------------");
