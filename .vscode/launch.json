@@ -5,23 +5,24 @@
             "name": "Electron With Devtools",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceRoot}",
-            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+            "protocol": "inspector",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
             "windows": {
-                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+                "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
             },
             "env": {
                 "DEBUG": "true",
-                "ONE_WINDOW_AT_A_TIME": "false"
+                "ONE_WINDOW_AT_A_TIME": "false",
             },
             "args": [
                 "--remote-debugging-port=9223",
                 "."
             ],
             "outFiles": [
-                "build/**/*.js"
+                "${workspaceFolder}/build/**/*.js"
             ],
-            "sourceMaps": true
+            "outputCapture": "std",
         },
         {
             "name": "Attach Electron Renderer",
@@ -31,37 +32,37 @@
             "sourceMaps": true,
             "port": 9223,
             "sourceMapPathOverrides": {
-                "file://*": "${workspaceRoot}/src/*",
-                "file://./*": "${workspaceRoot}/src/*",
-            }
+                "file://*": "${workspaceFolder}/src/*",
+                "file://./*": "${workspaceFolder}/src/*",
+            },
+            "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "name": "Electron",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceRoot}",
-            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
             "windows": {
-                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+                "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
             },
             "args": [
                 "--remote-debugging-port=9223",
                 "."
             ],
             "outFiles": [
-                "build/**/*.js"
+                "${workspaceFolder}/build/**/*.js"
             ],
-            "sourceMaps": true
         },
         {
             "name": "Run Tests",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "stopOnEntry": false,
             "sourceMaps": true,
             "args": [
-                "${workspaceRoot}/build/test/index.js"
+                "${workspaceFolder}/build/test/index.js"
             ],
             "preLaunchTask": "clean-tests",
             "presentation": {
@@ -70,7 +71,7 @@
                 "order": 1
             },
             "console": "internalConsole",
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "runtimeExecutable": null,
             "env": {
                 "NODE_ENV": "development"
@@ -79,11 +80,28 @@
     ],
     "compounds": [
         {
+            "name": "Editor With Devtools",
+            "configurations": [
+                "Electron With Devtools",
+                "Attach Electron Renderer"
+            ],
+            "preLaunchTask": "watch",
+            "stopAll": true,
+            "presentation": {
+                "group": "Editor",
+                "order": 1
+            }
+        },
+        {
             "name": "Editor",
             "configurations": [
                 "Electron",
                 "Attach Electron Renderer"
             ],
+            "presentation": {
+                "group": "Editor",
+                "order": 2
+            }
         }
     ]
 }
