@@ -1,5 +1,7 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu } from "electron";
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Rectangle } from "electron";
 import { extname } from "path";
+import { existsSync } from "fs";
+import Store from "electron-store";
 import * as os from "os";
 
 import { Undefinable } from "../shared/types";
@@ -7,6 +9,28 @@ import { Undefinable } from "../shared/types";
 import { IPCHandler } from "./handlers/ipc";
 import { Settings } from "./settings";
 import { WindowsHandler } from "./handlers/window";
+
+interface Config {
+	windowBounds: Rectangle;
+	isWindowMaximized: boolean;
+	openedFile: string | null;
+	workspacePath: string | null;
+}
+
+const ConfigSchema: Store.Schema<Config> = {
+	windowBounds: {
+		type: "object", 
+		properties: {
+			x: { type: "number" },
+			y: { type: "number" },
+			width: { type: "number", default: 800 },
+			height: { type: "number", default: 600 },
+		}
+	},
+	isWindowMaximized: { type: "boolean", default: true },
+	openedFile: { type: [ "string", "null" ], default: null },
+	workspacePath: { type: [ "string", "null" ], default: null }
+}
 
 export default class EditorApp {
     /**
@@ -40,13 +64,17 @@ export default class EditorApp {
 	 */
 	public static ConfigureSettings(filePathArgument: Undefinable<string>): void {
 		if (!filePathArgument) { return; }
-		Settings.OpenedFile = null;
-		Settings.WorkspacePath = null;
 
 		const extension = extname(filePathArgument).toLowerCase();
 		switch (extension) {
-			case ".editorproject": Settings.OpenedFile = filePathArgument; break;
-			case ".editorworkspace": Settings.WorkspacePath = filePathArgument; break;
+			case ".editorproject":
+				Settings.OpenedFile = filePathArgument;
+				Settings.WorkspacePath = null;
+				break;
+			case ".editorworkspace":
+				Settings.OpenedFile = null;
+				Settings.WorkspacePath = filePathArgument;
+				break;
 			default: break;
 		}
 	}
@@ -61,24 +89,36 @@ export default class EditorApp {
 		}
 
 		const platform = os.platform();
-		if (platform === "darwin") {
-			return argv[2];
+		let index =  (platform === "darwin") ? 2 : 1;
+		while (index < argv.length && argv[index].startsWith('--')) {
+			index += 1;
 		}
 
-		return argv[1];
+		return index < argv.length ? argv[index] : undefined;
 	}
 
-    /**
-     * Creates a new window
-     */
+	/**
+	 * Creates a new window
+	 */
 	public static async CreateWindow(): Promise<void> {
+		const store = new Store<Config>({schema: ConfigSchema});
+		console.log(`Configuration settings read from ${store.path}`, store.store);
+
+		const verifyExists = (path: string | null) => {
+			return path && existsSync(path) ? path : null;
+		};
+		Settings.OpenedFile = verifyExists(store.get("openedFile"));
+		Settings.WorkspacePath = verifyExists(store.get("workspacePath"));
+
 		// Save the opened file from the OS file explorer
 		this.ConfigureSettings(this.GetFilePathArgument(process.argv));
-		
+
+		const windowBounds = store.get("windowBounds");
+		const isWindowMaximized = store.get("isWindowMaximized");
+
 		this.Window = await WindowsHandler.CreateWindowOnDemand({
 			options: {
-				width: 800,
-				height: 600,
+				...windowBounds,
 				title: "Babylon.JS Editor Preview",
 				webPreferences: {
 					scrollBounce: true,
@@ -92,11 +132,21 @@ export default class EditorApp {
 			url: "file://" + __dirname + "/../../../html/editor.html",
 			autofocus: true,
 		});
-		this.Window.maximize();
+		if (isWindowMaximized ?? true) {
+			this.Window.maximize();
+		}
 		this.Window.on("closed", () => app.quit());
 		this.Window.on("close", async (e) => {
 			if (this._ForceQuit) { return; }
-			
+
+			store.set({
+				windowBounds: this.Window.getBounds(),
+				isWindowMaximized: this.Window.isMaximized(),
+				openedFile: Settings.OpenedFile,
+				workspacePath: Settings.WorkspacePath
+			});
+			console.log(`Configuration settings written to ${store.path}`, store.store);
+
 			e.preventDefault();
 			this._ForceQuit = await new Promise<boolean>((resolve) => {
 				ipcMain.on("quit", (_, shouldQuit) => resolve(shouldQuit));

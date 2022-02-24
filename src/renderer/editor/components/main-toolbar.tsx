@@ -87,6 +87,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             <Menu>
                 <MenuItem text="Open Workspace..." icon={<Icon src="workspace.svg" />} onClick={() => this._menuItemClicked("project:open-workspace")} />
                 <MenuItem text="Reveal WorkSpace In File Explorer" disabled={!WorkSpace.HasWorkspace()} icon="document-open" onClick={() => this._menuItemClicked("project:open-worspace-file-explorer")} />
+                <MenuItem text="Close Workspace" disabled={!WorkSpace.HasWorkspace()} icon={<Icon src="times.svg" />} onClick={() => this._menuItemClicked("project:close-workspace")} />
                 <MenuDivider />
                 <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} id="toolbar-files-reload" />
                 <MenuItem text={<div>Save Project... <Tag intent={Intent.PRIMARY}>(CTRL+s)</Tag></div>} icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} id="toolbar-save-project" />
@@ -256,6 +257,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             // Project
             case "project:open-workspace": WorkSpace.Browse(); break;
             case "project:open-worspace-file-explorer": shell.openPath(WorkSpace.DirPath!); break;
+            case "project:close-workspace": WorkSpace.Close(); break;
 
             case "project:reload": this._reloadProject(); break;
             case "project:save": ProjectExporter.Save(this._editor); break;
