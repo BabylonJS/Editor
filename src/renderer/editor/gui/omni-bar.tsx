@@ -55,13 +55,13 @@ export class Omnibar extends React.Component<IOmnibarProps, IOmnibarState> {
     public render(): React.ReactNode {
         return (
             <EditorOmnibar
+                resetOnQuery
+                resetOnSelect
                 className="searchBar"
                 isOpen={this.state.isOpen}
-                resetOnSelect={true}
-                resetOnQuery={true}
                 items={this.state.items}
                 itemsEqual={(a, b) => a.name.toLowerCase() === b.name.toLowerCase()}
-                noResults={<MenuItem disabled={true} text="No results." />}
+                noResults={<MenuItem disabled text="No results." />}
                 itemPredicate={(query, i) => i.name.toLowerCase().indexOf(query.toLowerCase()) !== -1}
                 itemRenderer={(i, p) => {
                     if (!p.modifiers.matchesPredicate) { return null; }
@@ -72,22 +72,22 @@ export class Omnibar extends React.Component<IOmnibarProps, IOmnibarState> {
 
                     return (
                         <MenuItem
+                            key={i.id}
+                            label={i.id}
+                            text={i.name}
                             active={p.modifiers.active}
                             disabled={p.modifiers.disabled}
-                            label={i.name}
-                            key={i.id}
                             onClick={() => this._handleClose(i)}
-                            text={i.name}
                         />
                     );
                 }}
-                onItemSelect={(v) => this._handleClose(v)}
                 onClose={() => this._handleClose(null)}
+                onItemSelect={(v) => this._handleClose(v)}
                 inputProps={{
                     inputRef: (ref) => ref?.classList.add("whitePlaceHolder"),
                     style: {
-                        backgroundColor: "#444444",
                         color: "white",
+                        backgroundColor: "#444444",
                     },
                 }}
             />

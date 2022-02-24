@@ -119,8 +119,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         const edit =
             <Menu>
-                <MenuItem text={<div>Undo <Tag intent={Intent.PRIMARY}>(CTRL+z</Tag></div>} icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("edit:undo")} />
-                <MenuItem text={<div>Redo <Tag intent={Intent.PRIMARY}>(CTRL+y</Tag></div>} icon={<Icon src="redo.svg" />} onClick={() => this._menuItemClicked("edit:redo")} />
+                <MenuItem text={<div>Undo <Tag intent={Intent.PRIMARY}>(CTRL+z)</Tag></div>} icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("edit:undo")} />
+                <MenuItem text={<div>Redo <Tag intent={Intent.PRIMARY}>(CTRL+y)</Tag></div>} icon={<Icon src="redo.svg" />} onClick={() => this._menuItemClicked("edit:redo")} />
                 <MenuDivider />
                 <MenuItem text="Editor Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("edit:editor-camera")} />
                 <MenuItem text="Editor Camera Type">
@@ -149,7 +149,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Statistics" icon={<Icon src="stats.svg" />} onClick={() => this._menuItemClicked("view:stats")} />
                 <MenuDivider />
                 <MenuItem text={<div>Focus Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target)} />
-                <MenuItem text={<div>Go To Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Position)} />
+                <MenuItem text={<div>Go To Selected Object <Tag intent={Intent.PRIMARY}>(Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Position)} />
                 <MenuDivider />
                 <MenuItem text="Webpack Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:webpack-logs")} />
                 <MenuItem text="TypeScript Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:typescript-logs")} />

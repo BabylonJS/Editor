@@ -6,26 +6,26 @@ import * as React from "react";
 import { Position, ButtonGroup, Popover, Menu, MenuItem, Divider, Tag, Tooltip, Pre, AnchorButton, ProgressBar } from "@blueprintjs/core";
 
 import {
-    Node, TargetCamera, Vector3, Animation, Light, Mesh, Camera, InstancedMesh, IParticleSystem,
-    ParticleSystem, AbstractMesh, Sound, Observable,
+    Node, TargetCamera, Vector3, Animation, Camera, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable,
 } from "babylonjs";
 
 import { Editor } from "../editor";
 
 import { ScenePicker } from "../scene/picker";
-import { SceneGizmo, GizmoType } from "../scene/gizmo";
 import { SceneSettings } from "../scene/settings";
+import { SceneGizmo, GizmoType } from "../scene/gizmo";
 
 import { Tools } from "../tools/tools";
 
 import { Icon } from "../gui/icon";
-import { Alert } from "../gui/alert";
 import { Omnibar, IOmnibarItem } from "../gui/omni-bar";
 
 import { WorkSpace } from "../project/workspace";
 import { SceneExporter } from "../project/scene-exporter";
 
 import { ScenePlayer } from "../../play/inline-play";
+
+import { PreviewCopyHelper } from "./preview/copy";
 
 export enum PreviewFocusMode {
     Target = 1,
@@ -490,85 +490,11 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Pastes the latest copied node.
      */
     public pasteCopiedNode(): void {
-        if (!this._copiedNode) { return; }
-
-        let clone: Nullable<Node | IParticleSystem> = null;
-
-        if (this._copiedNode instanceof Light) {
-            clone = this._copiedNode.clone(this._copiedNode.name);
-        } else if (this._copiedNode instanceof Camera) {
-            clone = this._copiedNode.clone(this._copiedNode.name);
-        } else if (this._copiedNode instanceof Mesh) {
-            if (this._copiedNode.hasThinInstances) {
-                Alert.Show("Can't create mesh instance", "The mesh to paste contains Thin Instances. Please use Thin Instances painting tool instead to create copies.");
-                return;
-            }
-
-            const instance = clone = this._copiedNode.createInstance(`${this._copiedNode.name} (Mesh Instance)`);
-            
-            instance.position.copyFrom(this._copiedNode.position);
-            instance.rotation.copyFrom(this._copiedNode.rotation);
-            if (this._copiedNode.rotationQuaternion) {
-                instance.rotationQuaternion = this._copiedNode.rotationQuaternion.clone();
-            }
-            instance.scaling.copyFrom(this._copiedNode.scaling);
-            instance.checkCollisions = this._copiedNode.checkCollisions;
-        } else if (this._copiedNode instanceof InstancedMesh) {
-            const instance = clone = this._copiedNode.sourceMesh.createInstance(`${this._copiedNode.sourceMesh.name} (Mesh Instance)`);
-            instance.position.copyFrom(this._copiedNode.position);
-            instance.rotation.copyFrom(this._copiedNode.rotation);
-            if (this._copiedNode.rotationQuaternion) {
-                instance.rotationQuaternion = this._copiedNode.rotationQuaternion.clone();
-            }
-            instance.scaling.copyFrom(this._copiedNode.scaling);
-            instance.checkCollisions = this._copiedNode.checkCollisions;
-        } else if (this._copiedNode instanceof ParticleSystem) {
-            clone = this._copiedNode.clone(this._copiedNode.name, this._copiedNode.emitter);
+        if (!this._copiedNode) {
+            return;
         }
 
-        if (clone) {
-            if (clone instanceof Node && this._copiedNode instanceof Node) {
-                clone.parent = this._copiedNode.parent;
-            }
-
-            if (this._copiedNode instanceof AbstractMesh) {
-                const collider = this._copiedNode.getChildMeshes(true).find((m) => m.metadata?.collider);
-                if (collider) {
-                    let colliderInstance: Nullable<AbstractMesh> = null;
-                    if (collider instanceof Mesh) {
-                        colliderInstance = collider.createInstance(`${collider.name} (Mesh Instance)`);
-                    } else if (collider instanceof InstancedMesh) {
-                        colliderInstance = collider.sourceMesh.createInstance(collider.name);
-                    }
-
-                    if (colliderInstance && clone instanceof Node) {
-                        colliderInstance.parent = clone;
-                        colliderInstance.checkCollisions = collider.checkCollisions;
-                        colliderInstance.metadata = {
-                            collider: Tools.CloneObject(collider.metadata.collider),
-                        };
-
-                        colliderInstance.id = Tools.RandomId();
-                    }
-                }
-            }
-
-            clone.id = Tools.RandomId();
-
-            if (clone instanceof Node) {
-                this._editor.addedNodeObservable.notifyObservers(clone);
-            } else {
-                this._editor.addedParticleSystemObservable.notifyObservers(clone);
-            }
-
-            this._editor.graph.refresh(() => {
-                if (clone instanceof Node) {
-                    this._editor.selectedNodeObservable.notifyObservers(clone);
-                } else {
-                    this._editor.selectedParticleSystemObservable.notifyObservers(clone!);
-                }
-            });
-        }
+        PreviewCopyHelper.CopyNode(this._editor, this._copiedNode);
     }
 
     /**
