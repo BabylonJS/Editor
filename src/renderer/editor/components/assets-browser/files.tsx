@@ -113,6 +113,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 */
 	public render(): React.ReactNode {
 		const isMacOs = platform() === "darwin";
+		const isSrcDirectory = this.state.currentDirectory.indexOf(this._sourcesDirectory) === 0;
 		const isAssetsDirectory = this.state.currentDirectory.indexOf(this._assetsDirectory) === 0;
 
 		const addContent = (
@@ -143,8 +144,8 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 				<MenuDivider />
 
-				<MenuItem text="TypeScript File..." disabled={isAssetsDirectory} icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
-				<MenuItem text="Material File..." disabled={isAssetsDirectory} icon={<Icon src="json.svg" style={{ filter: "none" }} />}>
+				<MenuItem text="TypeScript File..." disabled={!isSrcDirectory} icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
+				<MenuItem text="Material File..." disabled={!isSrcDirectory} icon={<Icon src="json.svg" style={{ filter: "none" }} />}>
 					<MenuItem text="Custom Material" onClick={() => this._handleAddMaterialScript("material")} />
 					<MenuDivider />
 					<MenuItem text="PBR Based Material" onClick={() => this._handleAddMaterialScript("pbr-material")} />
@@ -167,6 +168,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				</div>
 				<MenuDivider />
 				<MenuItem
+					disabled={!isAssetsDirectory && !isSrcDirectory}
 					icon={<BPIcon icon="document-open" color="white" />}
 					text={`Reveal in ${isMacOs ? "Finder" : "Explorer"}`}
 					onClick={() => shell.openPath(Tools.NormalizePathForCurrentPlatform(this.state.currentDirectory))}
