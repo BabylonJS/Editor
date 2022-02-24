@@ -16,8 +16,8 @@ export class HomeContent extends React.Component {
                             The Babylon.JS Editor is an open source project maintained by the community.
                             The mission is to provide community-driven powerful and simple tools that help Babylon.JS users to create beautiful,
                             awesome 3D games / applications. It comes with deep customization features and is built using Electron 
-                            to support cross-platform development. Using the lastest version of Babylon.JS, the Editor allows creating highly
-                            customizable 3D web projet skeletons based on the powerful ES6 modules version of Babylon.JS.
+                            to support cross-platform development. Using the latest version of Babylon.JS, the Editor allows creating highly
+                            customizable 3D web project skeletons based on the powerful ES6 modules version of Babylon.JS.
                         </p>
                     </div>
                 </div>
