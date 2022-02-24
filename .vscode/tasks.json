@@ -33,11 +33,12 @@
             "type": "npm",
             "script": "watch",
             "group": "build",
-            "problemMatcher": [],
+            "problemMatcher": "$tsc-watch",
             "presentation": {
-                "panel": "shared",
-                "group": "build"
-            }
+                "panel": "dedicated",
+                "group": "watch",
+            },
+            "isBackground": true
         },
         {
             "label": "watch-sample-plugin",
