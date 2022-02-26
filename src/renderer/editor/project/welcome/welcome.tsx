@@ -175,7 +175,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
      * Called on the user wants to open the preferences.
      */
     private _handleOpenPreferences(): void {
-        this.props.editor.addWindowedPlugin("preferences", undefined, WorkSpace.Path);
+        this.props.editor.addWindowedPlugin("preferences", false, undefined, WorkSpace.Path);
     }
 
     /**

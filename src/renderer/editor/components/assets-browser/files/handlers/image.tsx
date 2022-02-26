@@ -65,7 +65,7 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-		this.props.editor.addWindowedPlugin("texture-viewer", undefined, this.props.absolutePath);
+		this.props.editor.addWindowedPlugin("texture-viewer", false, undefined, this.props.absolutePath);
 	}
 
 	/**
@@ -115,11 +115,11 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 		} else {
 			// Regenerate all supported formats
 			const allKtxPromises: Promise<void>[] = [];
-	
+
 			for (const type of KTXTools.GetAllKtxFormats()) {
 				allKtxPromises.push(KTXTools.CompressTexture(this.props.editor, this.props.absolutePath, destination, type));
 			}
-	
+
 			await Promise.all(allKtxPromises);
 		}
 

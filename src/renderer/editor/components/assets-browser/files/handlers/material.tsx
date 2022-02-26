@@ -286,7 +286,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 			return this._handleOpenNodeMaterialEditor(json);
 		}
 
-		this.props.editor.addWindowedPlugin("material-viewer", undefined, {
+		this.props.editor.addWindowedPlugin("material-viewer", true, undefined, {
 			rootUrl: join(this.props.editor.assetsBrowser.assetsDirectory, "/"),
 			json: await readJSON(this.props.absolutePath, { encoding: "utf-8" }),
 			environmentTexture: this.props.editor.scene!.environmentTexture?.serialize(),
@@ -317,7 +317,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		const index = MaterialItemHandler._NodeMaterialEditors.findIndex((m) => m.absolutePath === this.props.absolutePath);
 		const existingId = index !== -1 ? MaterialItemHandler._NodeMaterialEditors[index].id : undefined;
 
-		const popupId = await this.props.editor.addWindowedPlugin("node-material-editor", existingId, {
+		const popupId = await this.props.editor.addWindowedPlugin("node-material-editor", true, existingId, {
 			json: json,
 			editorData: (existingMaterial ?? json).editorData,
 			lights: this.props.editor.scene!.lights.map((l) => l.serialize()),

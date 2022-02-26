@@ -60,7 +60,7 @@ export class GraphItemHandler extends AssetsBrowserItemHandler {
         const relativePath = this.props.absolutePath.replace(join(this.props.editor.assetsBrowser.assetsDirectory, "/"), "").replace(/\//g, "_");
         const linkPath = join("src/scenes/_graphs", `${relativePath}.ts`);
 
-        const popupId = await this.props.editor.addWindowedPlugin("graph-editor", existingId, this.props.absolutePath, linkPath, WorkSpace.DirPath!);
+        const popupId = await this.props.editor.addWindowedPlugin("graph-editor", true, existingId, this.props.absolutePath, linkPath, WorkSpace.DirPath!);
         if (!popupId) {
             return;
         }

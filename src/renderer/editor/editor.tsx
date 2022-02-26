@@ -637,11 +637,12 @@ export class Editor {
 
     /**
      * Adds a new plugin handled by its own window.
-     * @param name the name of the plugin to load.
-     * @param windowId the id of the window that is possibly already opened.
-     * @param args optional arguments to pass the plugn's .init function.
+     * @param name defines the name of the plugin to load.
+     * @param tabbed defines wether or not the window should be added in a tab (works only on MacOS).
+     * @param windowId defines the id of the window that is possibly already opened.
+     * @param args defines the optional arguments to pass the plugn's .init function.
      */
-    public async addWindowedPlugin(name: string, windowId?: Undefinable<number>, ...args: any[]): Promise<Nullable<number>> {
+    public async addWindowedPlugin(name: string, tabbed: boolean, windowId?: Undefinable<number>, ...args: any[]): Promise<Nullable<number>> {
         // Check if the provided window id exists. If exists, just restore.
         if (windowId) {
             const index = this._pluginWindows.indexOf(windowId);
@@ -668,8 +669,9 @@ export class Editor {
                     zoomFactor: parseFloat(this.getPreferences()?.zoom ?? "1"),
                 },
             },
-            url: "./plugin.html",
+            tabbed,
             autofocus: true,
+            url: "./plugin.html",
         });
 
         this._pluginWindows.push(popupId);
@@ -737,7 +739,7 @@ export class Editor {
                 this.addBuiltInPlugin("run");
                 break;
             case EditorPlayMode.IntegratedBrowser:
-                this.addWindowedPlugin("run", undefined, workspace);
+                this.addWindowedPlugin("run", false, undefined, workspace);
                 break;
             case EditorPlayMode.ExternalBrowser:
                 shell.openExternal(`${protocol}://localhost:${workspace.serverPort}`);

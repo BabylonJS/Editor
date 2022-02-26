@@ -100,7 +100,8 @@ html, body {
 /* Blue Print */
 
 .bp3-dark .bp3-menu {
-    background-color: #444444;
+    max-height: 100% !important;
+    background-color: #444444 !important;
 }
 
 .bp3-dark .bp3-button {

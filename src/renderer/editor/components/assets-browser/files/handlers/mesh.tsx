@@ -49,7 +49,7 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public onDoubleClick(_: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-		this.props.editor.addWindowedPlugin("mesh-viewer", undefined, {
+		this.props.editor.addWindowedPlugin("mesh-viewer", true, undefined, {
 			rootUrl: join(dirname(this.props.absolutePath), "/"),
 			name: basename(this.props.absolutePath),
 		});

@@ -7,7 +7,7 @@ import "babylonjs-loaders";
 
 import * as React from "react";
 
-export const title = "Mesh Viewer";
+export const title = "Material Viewer";
 
 export default class MeshViewerWindow extends React.Component {
     private _engine: Engine;

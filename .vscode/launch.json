@@ -83,7 +83,7 @@
                 "Electron With Devtools",
                 "Attach Electron Renderer"
             ],
-            "preLaunchTask": "watch",
+            "preLaunchTask": "watch-all-editor",
             "stopAll": true,
             "presentation": {
                 "group": "Editor",

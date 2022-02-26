@@ -375,7 +375,7 @@ export class MaterialAssets extends AbstractAssets {
         if (material instanceof NodeMaterial) {
             const index = MaterialAssets._NodeMaterialEditors.findIndex((m) => m.material === material);
             const existingId = index !== -1 ? MaterialAssets._NodeMaterialEditors[index].id : undefined;
-            const popupId = await this.editor.addWindowedPlugin("node-material-editor", existingId, {
+            const popupId = await this.editor.addWindowedPlugin("node-material-editor", true, existingId, {
                 json: material.serialize(),
                 lights: material.getScene().lights.map((l) => l.serialize()),
                 editorData: material.editorData,
@@ -422,7 +422,7 @@ export class MaterialAssets extends AbstractAssets {
                 }
             });
         } else {
-            await this.editor.addWindowedPlugin("material-viewer", undefined, {
+            await this.editor.addWindowedPlugin("material-viewer", true, undefined, {
                 rootUrl: join(Project.DirPath!),
                 json: material.serialize(),
                 environmentTexture: this.editor.scene!.environmentTexture?.serialize(),

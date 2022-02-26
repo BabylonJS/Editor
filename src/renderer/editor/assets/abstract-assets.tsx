@@ -107,6 +107,12 @@ export interface IAbstractAssets {
 
 export class AbstractAssets extends React.Component<IAssetsComponentProps, IAssetsComponentState> implements IAbstractAssets {
     /**
+     * Defines the reference to the drag'n'dropped item.
+     * @hidden
+     */
+    public static _DragAndDroppedItem: Nullable<AbstractAssets> = null;
+
+    /**
      * Defines the list of all available assets.
      */
     public items: IAssetComponentItem[] = [];
@@ -165,12 +171,31 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
     }
 
     /**
+     * Called on the user starts dragging the item.
+     * @param ev defines the reference to the drag event.
+     * @param item defines the reference to the dragged item.
+     */
+    public onDragStart(_1: React.DragEvent<HTMLImageElement>, _2: IAssetComponentItem): void {
+        // Nothing to do by default.
+    }
+
+    /**
      * Called on the user drops an asset in editor. (typically the preview canvas).
      * @param item the item being dropped.
      * @param pickInfo the pick info generated on the drop event.
      */
     public onDropAsset(_: IAssetComponentItem, __: PickingInfo): void {
         // Nothing to do by default.
+    }
+
+    /**
+     * Called on the user drops the asset in a supported inspector field.
+     * @param ev defiens the reference to the event object.
+     * @param object defines the reference to the object being modified in the inspector.
+     * @param property defines the property of the object to assign the asset instance.
+     */
+    public onDropInInspector(_1: React.DragEvent<HTMLElement>, _2: any, _3: string): Promise<void> {
+        return Promise.resolve();
     }
 
     /**
@@ -343,7 +368,7 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                 onMouseOver={() => item.ref && (item.ref.style.outlineStyle = "groove")}
                 onMouseLeave={() => item.ref && !item.isSelected && (item.ref.style.outlineStyle = "unset")}
             >
-                <Popover content={popoverContent} usePortal interactionKind="hover" isOpen={item.popoverEnabled ? undefined : item.popoverEnabled} hoverOpenDelay={1000} minimal autoFocus enforceFocus canEscapeKeyClose boundary="window">
+                <Popover content={popoverContent} usePortal interactionKind="hover" isOpen={item.popoverEnabled ? undefined : item.popoverEnabled} hoverOpenDelay={100} hoverCloseDelay={100} minimal autoFocus enforceFocus canEscapeKeyClose boundary="window">
                     <img
                         src={item.base64}
                         style={{
@@ -368,13 +393,13 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
                 </Popover>
                 <small style={{
                     left: "0px",
-					bottom: "0px",
-					width: `${this.size}px`,
-					overflow: "hidden",
-					userSelect: "none",
-					whiteSpace: "nowrap",
-					position: "absolute",
-					textOverflow: "ellipsis",
+                    bottom: "0px",
+                    width: `${this.size}px`,
+                    overflow: "hidden",
+                    userSelect: "none",
+                    whiteSpace: "nowrap",
+                    position: "absolute",
+                    textOverflow: "ellipsis",
                     textAlign: "center",
                 }}>{item.id}</small>
             </div>
@@ -415,11 +440,15 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
     /**
      * Called on the user starts dragging the asset.
      */
-    protected dragStart(e: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
+    protected dragStart(ev: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
+        this.onDragStart(ev, item);
+
+        AbstractAssets._DragAndDroppedItem = this;
+
         this._dropListener = this._getDropListener(item);
         this._itemBeingDragged = item;
 
-        e.dataTransfer.setData(this.dragAndDropType, JSON.stringify({
+        ev.dataTransfer.setData(this.dragAndDropType, JSON.stringify({
             id: item.id,
             key: item.key,
             extraData: item.extraData,
@@ -466,6 +495,8 @@ export class AbstractAssets extends React.Component<IAssetsComponentProps, IAsse
      * @param e defines the reference to the drag'n'drop event.
      */
     protected dragEnd(e: React.DragEvent<HTMLImageElement>): void {
+        AbstractAssets._DragAndDroppedItem = null;
+
         e.dataTransfer?.clearData();
 
         this.editor.engine!.getRenderingCanvas()?.removeEventListener("drop", this._dropListener!);

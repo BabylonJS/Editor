@@ -6,13 +6,11 @@
         {
             "label": "watch-all-editor",
             "group": "build",
-            "problemMatcher": [],
+            "problemMatcher": "$tsc-watch",
             "dependsOn": ["watch", "watch-sample-plugin"],
             "presentation": {
                 "panel": "shared",
-                "group": "build",
-                "showReuseMessage": true,
-                "echo": true
+                "group": "watch",
             }
         },
         {
@@ -22,12 +20,11 @@
             "dependsOn": ["watch-website", "serve-website"],
             "presentation": {
                 "panel": "shared",
-                "group": "build",
+                "group": "watch",
                 "showReuseMessage": true,
                 "echo": true
             }
         },
-
         {
             "label": "watch",
             "type": "npm",
@@ -35,7 +32,7 @@
             "group": "build",
             "problemMatcher": "$tsc-watch",
             "presentation": {
-                "panel": "dedicated",
+                "panel": "shared",
                 "group": "watch",
             },
             "isBackground": true
@@ -45,11 +42,12 @@
             "type": "npm",
             "script": "watch-sample-plugin",
             "group": "build",
-            "problemMatcher": [],
+            "problemMatcher": "$tsc-watch",
             "presentation": {
                 "panel": "shared",
-                "group": "build"
-            }
+                "group": "watch"
+            },
+            "isBackground": true
         },
         {
             "label": "watch-website",
@@ -89,11 +87,6 @@
                 "showReuseMessage": false,
                 "clear": false
             }
-        },
-        {
-            "type": "npm",
-            "script": "rebuild",
-            "problemMatcher": []
         }
     ]
 }

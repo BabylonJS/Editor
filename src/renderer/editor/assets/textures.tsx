@@ -233,7 +233,7 @@ export class TextureAssets extends AbstractAssets {
         const file = FilesStore.GetFileFromBaseName(name);
         if (!file) { return; }
 
-        await this.editor.addWindowedPlugin("texture-viewer", undefined, file.path);
+        await this.editor.addWindowedPlugin("texture-viewer", false, undefined, file.path);
     }
 
     /**
@@ -295,6 +295,47 @@ export class TextureAssets extends AbstractAssets {
             </Menu>,
             { left: e.clientX, top: e.clientY },
         );
+    }
+
+    /**
+     * Called on the user starts dragging the item.
+     * @param ev defines the reference to the drag event.
+     */
+    public onDragStart(ev: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
+        super.onDragStart(ev, item);
+
+        const texture = this._getTexture(item.key);
+        if (!texture?.metadata?.editorName) {
+            return;
+        }
+
+        const absolutePath = join(WorkSpace.DirPath!, "assets", texture.name);
+
+        ev.dataTransfer.setData("asset/texture", JSON.stringify({
+            absolutePath: absolutePath,
+            relativePath: texture.metadata.editorName,
+        }));
+
+        ev.dataTransfer.setData("plain/text", absolutePath);
+    }
+
+    /**
+     * Called on the user drops the asset in a supported inspector field.
+     * @param ev defiens the reference to the event object.
+     * @param object defines the reference to the object being modified in the inspector.
+     * @param property defines the property of the object to assign the asset instance.
+     */
+    public async onDropInInspector(ev: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
+        const d = JSON.parse(ev.dataTransfer.getData("asset/texture"));
+
+        const texture = this.editor.scene!.textures.find((tex) => tex.metadata?.editorName === d.relativePath);
+        if (!texture) {
+            return;
+        }
+
+        object[property] = texture;
+
+        await this.editor.assets.refresh();
     }
 
     /**

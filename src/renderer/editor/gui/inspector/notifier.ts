@@ -2,6 +2,8 @@ import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
 
+import { AbstractAssets } from "../../assets/abstract-assets";
+
 import { AssetsBrowserItemHandler } from "../../components/assets-browser/files/item-handler";
 
 interface _InspectorNotification {
@@ -108,13 +110,18 @@ export class InspectorNotifier {
 
     /**
      * Called on the user drops the asset in a supported inspector field.
-	 * @param ev defiens the reference to the event object.
-	 * @param object defines the reference to the object being modified in the inspector.
-	 * @param property defines the property of the object to assign the asset instance.
+     * @param ev defiens the reference to the event object.
+     * @param object defines the reference to the object being modified in the inspector.
+     * @param property defines the property of the object to assign the asset instance.
      */
     public static async NotifyOnDrop(ev: React.DragEvent<HTMLElement>, object: any, property: string): Promise<boolean> {
         if (AssetsBrowserItemHandler._DragAndDroppedItem) {
             await AssetsBrowserItemHandler._DragAndDroppedItem.onDropInInspector(ev, object, property);
+            return true;
+        }
+
+        if (AbstractAssets._DragAndDroppedItem) {
+            await AbstractAssets._DragAndDroppedItem.onDropInInspector(ev, object, property);
             return true;
         }
 

@@ -134,7 +134,7 @@ export class MeshesAssets extends AbstractAssets {
     public async onDoubleClick(item: IAssetComponentItem, img: HTMLImageElement): Promise<void> {
         super.onDoubleClick(item, img);
 
-        await this.editor.addWindowedPlugin("mesh-viewer", undefined, {
+        await this.editor.addWindowedPlugin("mesh-viewer", true, undefined, {
             rootUrl: join(Project.DirPath!, "files", "/"),
             name: join("..", "assets/meshes", item.id),
         });

@@ -10,11 +10,12 @@ Welcome to the documentation of the Babylon.JS Editor. A series of tutorials are
 * Running the scene
   * [Running application/game](../02%20-%20running-project/0-running-project.md)
   * [Playing scene](../02%20-%20running-project/1-playing-scene.md)
-* Adding assets
-  * [Adding meshes](../03%20-%20adding-assets/0-adding-meshes.md)
-  * [Adding materials](../03%20-%20adding-assets/1-adding-materials.md)
-  * [Adding textures](../03%20-%20adding-assets/2-adding-textures.md)
-  * [Adding sounds](../03%20-%20adding-assets/3-adding-sounds.md)
+* Using Assets Browser
+  * [Introduction](../03%20-%20adding-assets/0-introduction.md)
+  * [Adding files](../03%20-%20adding-assets/1-adding-files.md)
+  * [Adding meshes](../03%20-%20adding-assets/2-adding-meshes.md)
+  * [Adding materials](../03%20-%20adding-assets/3-adding-materials.md)
+  * [Using textures](../03%20-%20adding-assets/4-using-textures.md)
 * Scripting
   * [Attaching scripts](../04%20-%20attaching-scripts/attaching-scripts.md)
 * Physics
@@ -22,6 +23,13 @@ Welcome to the documentation of the Babylon.JS Editor. A series of tutorials are
 * Collisions
   * [Basic collisions](../06%20-%20setting-collisions/basic.md)
   * [Advanced collisions](../06%20-%20setting-collisions/advanced.md)
+
+## Legacy, Babylon.JS Editor < 4.1.0
+* Adding assets
+  * [Adding meshes](../03%20-%20adding-assets/legacy/0-adding-meshes.md)
+  * [Adding materials](../03%20-%20adding-assets/legacy/1-adding-materials.md)
+  * [Adding textures](../03%20-%20adding-assets/legacy/2-adding-textures.md)
+  * [Adding sounds](../03%20-%20adding-assets/legacy/3-adding-sounds.md)
 
 ## Troubleshoothing
 * [Blurred UI](../troubleshooting/blurred-ui.md)

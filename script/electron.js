@@ -14,6 +14,9 @@ const build = ({ x64, arm64 } = options) => {
         x64,
         arm64,
         config: {
+            mac: {
+                identity: null,
+            },
             fileAssociations: [{
                 ext: "editorproject",
                 name: "Babylon.js Editor Project"
