@@ -267,6 +267,9 @@ if (shouldQuit) {
 }
 else {
 	app.allowRendererProcessReuse = false;
+
+	// Enable remote debugging of both the Editor and the edited Project.
+	app.commandLine.appendSwitch("remote-debugging-port", "8315");
 	
 	// Events
 	app.on("second-instance", (_, argv) => {

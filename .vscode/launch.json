@@ -16,7 +16,6 @@
                 "ONE_WINDOW_AT_A_TIME": "false",
             },
             "args": [
-                "--remote-debugging-port=9223",
                 "."
             ],
             "outFiles": [
@@ -30,7 +29,7 @@
             "request": "attach",
             "webRoot": "${workspaceFolder}",
             "sourceMaps": true,
-            "port": 9223,
+            "port": 8315,
             "sourceMapPathOverrides": {
                 "file://*": "${workspaceFolder}/src/*",
                 "file://./*": "${workspaceFolder}/src/*",
@@ -47,7 +46,6 @@
                 "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
             },
             "args": [
-                "--remote-debugging-port=9223",
                 "."
             ],
             "outFiles": [
@@ -80,7 +78,7 @@
     ],
     "compounds": [
         {
-            "name": "Editor With Devtools",
+            "name": "Editor",
             "configurations": [
                 "Electron With Devtools",
                 "Attach Electron Renderer"
@@ -90,17 +88,6 @@
             "presentation": {
                 "group": "Editor",
                 "order": 1
-            }
-        },
-        {
-            "name": "Editor",
-            "configurations": [
-                "Electron",
-                "Attach Electron Renderer"
-            ],
-            "presentation": {
-                "group": "Editor",
-                "order": 2
             }
         }
     ]

@@ -18,10 +18,6 @@ export class WindowsHandler {
 		const window = this._CreateWindow(definition.options);
 		await this._SetWindowURL(window, definition.url);
 
-		if (process.env.DEBUG) {
-			window.webContents.openDevTools();
-		}
-
 		if (definition.autofocus) {
 			window.focus();
 		}
