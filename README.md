@@ -40,6 +40,11 @@ npm run build
 
 This will transpile all the TypeScript files to JavaScript and build the Electron version of the Editor.
 
+For `aarch64` platforms, for example Ubuntu, compiler to use may be provided before the build command in case the target architecture is different from the current one. For example `x64` with `g++10`:
+```bash
+CXX=x86_64-linux-gnu-g++-10 node script/electron.js --x64
+```
+
 ## Developing
 To contribute to the editor, using VSCode, just watch TypeScript files and run the launch setting "Electron With Devtools". This allows to debug the main part in VSCode and have the devtools opened in the renderer part.
 
