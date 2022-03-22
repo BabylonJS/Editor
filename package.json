@@ -21,6 +21,8 @@
     "prepare-tests": "node ./script/remove-tests.js",
     "build": "npm run compile && npm run bundle",
     "rebuild": "npm run clean && npm run build",
+    "rebuild-x64": "npm run compile && npm run bundle -- --x64",
+    "rebuild-arm64": "npm run compile && npm run bundle -- --arm64",
     "watch": "tsc -p . --watch",
     "watch-sample-plugin": "cd sample-plugin && tsc -p . --watch",
     "bundle": "node ./script/dts.js && node ./script/electron.js",
