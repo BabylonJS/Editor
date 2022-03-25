@@ -58,7 +58,7 @@ export class Workers {
 	 * @param parameters defines the parameters to send to the function called in the worker.
 	 * @returns the result of the function computed in the worker's context.
 	 */
-	public static ExecuteFunction<TClass, TFunction extends FunctionPropertyNames<TClass>>(
+	public static ExecuteFunction<TClass extends Record<any, any>, TFunction extends FunctionPropertyNames<TClass>>(
 		config: IWorkerConfiguration,
 		fnName: TFunction,
 		...parameters: Parameters<TClass[TFunction]>

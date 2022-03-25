@@ -4,10 +4,29 @@ import * as React from "react";
 import { SketchPicker } from "react-color";
 import { Popover } from "@blueprintjs/core";
 
-import { Color3, Color4, IColor4Like } from "babylonjs";
+import { Color3, Color4 } from "babylonjs";
 
 import { InspectorUtils } from "../utils";
 import { InspectorNotifier } from "../notifier";
+
+export interface IColor4Like {
+    /**
+     * Defines the red component (between 0 and 1, default is 0)
+     */
+    r: number;
+    /**
+     * Defines the green component (between 0 and 1, default is 0)
+     */
+    g: number;
+    /**
+     * Defines the blue component (between 0 and 1, default is 0)
+     */
+    b: number;
+    /**
+     * Defines the alpha component (between 0 and 1, default is 1)
+     */
+    a: number;
+}
 
 export interface IInspectorColorPickerProps {
     /**

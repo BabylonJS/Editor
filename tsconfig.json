@@ -14,19 +14,9 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "typeRoots": [
-      "node_modules/@types"
-    ],
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "skipLibCheck": true,
-    "types": [
-      "babylonjs",
-      "jquery",
-      "monaco-editor",
-      "typescript",
-      "mocha"
-    ],
     "lib": [
       "es2015.promise",
       "es2015",
