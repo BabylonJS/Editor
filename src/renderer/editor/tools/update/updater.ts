@@ -64,7 +64,9 @@ export class EditorUpdater {
         if (this._Updating) { return; }
 
         const links = availableVersions[version.version];
-        const url = join("http://editor.babylonjs.com/", links[os.platform()]);
+        const link = links[`${os.platform()}-${os.arch()}`] ?? links[os.platform()];
+        
+        const url = join("http://editor.babylonjs.com/", link);
 
         const destFolder = await Tools.ShowSaveDialog();
         const dest = join(destFolder, basename(url));
