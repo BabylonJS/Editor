@@ -865,7 +865,20 @@ export class Editor {
         if (workspacePath) {
             const needsUpdate = await WorkspaceConverter.NeedsConversion(workspacePath);
             if (needsUpdate) {
-                await WorkspaceConverter.Convert(this, workspacePath);
+                const allowConverting = await Confirm.Show(
+                    "Convert Project?",
+                    `
+                        This project has been saved with a version of the Editor < v4.1.0. The project needs to be converted.
+                        It is highly recommended to keep a working copy of this project before processing to the conversion.
+                        Are you sure to convert the project?
+                    `
+                );
+
+                if (allowConverting) {
+                    await WorkspaceConverter.Convert(this, workspacePath);
+                } else {
+                    return WorkSpace.Close();
+                }
             }
 
             await WorkSpace.ReadWorkSpaceFile(workspacePath);
