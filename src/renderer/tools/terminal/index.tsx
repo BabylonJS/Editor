@@ -54,10 +54,10 @@ export default class TerminalPlugin extends AbstractEditorPlugin<{ }> {
      * Called on the panel has been resized.
      */
     public resize(): void {
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             this._resizeTerminal();
             this._resizeProcess();
-        }, 0);
+        });
     }
 
     /**
@@ -116,8 +116,7 @@ export default class TerminalPlugin extends AbstractEditorPlugin<{ }> {
         this._terminal.loadAddon(this._fitAddon);
         this._terminal.open(this._terminalDiv);
 
-        this._resizeTerminal();
-        this._resizeProcess();
+        this.resize();
 
         // Events
         this._terminal.onData((d) => this._process?.write(d));
