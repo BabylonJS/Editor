@@ -13,6 +13,7 @@ import {
 } from "@blueprintjs/core";
 
 import { Tools as BabylonTools, Material, NodeMaterial, ParticleSystem, Mesh } from "babylonjs";
+import { AdvancedDynamicTexture } from "babylonjs-gui";
 
 import { SandboxMain } from "../../../sandbox/main";
 
@@ -141,6 +142,11 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				</MenuItem>
 
 				<MenuItem text="Graph File..." disabled={!isAssetsDirectory} icon={<Icon src="project-diagram.svg" />} onClick={() => this._handleAddGraph()} />
+
+				<MenuItem text="GUI" disabled={!isAssetsDirectory} icon={<Icon src="columns.svg" />}>
+					<MenuItem text="GUI File..." onClick={() => this._handleAddGui()} />
+					<MenuItem text="GUI From Snippet..." onClick={() => this._handleAddGuiFromSnippet()} />
+				</MenuItem>
 
 				<MenuDivider />
 
@@ -754,6 +760,48 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		await SceneExporter.GenerateScripts(this.props.editor);
 
 		await this.refresh();
+	}
+
+	/**
+	 * Called on the user wants to add a new GUI file.
+	 */
+	private async _handleAddGui(sourceTexture?: AdvancedDynamicTexture): Promise<void> {
+		let name = await Dialog.Show("GUI Name", "Please provide a name for the new GUI file.");
+
+		const extension = extname(name).toLowerCase();
+		if (extension !== ".gui") {
+			name += ".gui";
+		}
+
+		const dest = join(this.state.currentDirectory, name);
+		if (await pathExists(dest)) {
+			Alert.Show("Can't Create GUI File", `A gui file named "${name}" already exists.`);
+		}
+
+		const texture = sourceTexture ?? new AdvancedDynamicTexture(name, 128, 128, this.props.editor.scene!, false);
+		await writeJSON(dest, texture.serializeContent(), { encoding: "utf-8", spaces: "\t" });
+		texture.dispose();
+
+		await this.refresh();
+	}
+
+	/**
+	 * Called on the user wants to add a new GUI file from snippet.
+	 * @todo
+	 */
+	private async _handleAddGuiFromSnippet(): Promise<void> {
+		const snippetId = await Dialog.Show("Snippet Id", "Please provide the Id of the snippet.");
+
+		const texture = new AdvancedDynamicTexture("snippet-ui", 128, 128, this.props.editor.scene!, false);
+		
+		try {
+			await texture.parseFromSnippetAsync(snippetId, false);
+		} catch (e) {
+			texture.dispose();
+			return Alert.Show("Failed to load from snippet", e.message);
+		}
+
+		return this._handleAddGui(texture);
 	}
 
 	/**

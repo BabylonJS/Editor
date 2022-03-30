@@ -12,6 +12,7 @@ import { EditableText } from "../../../gui/editable-text";
 import { AssetsBrowserItemHandler, IItemHandler, IAssetsBrowserItemHandlerProps } from "./item-handler";
 
 import { KTXItemHandler } from "./handlers/ktx";
+import { GUIItemHandler } from "./handlers/gui";
 import { FileItemHandler } from "./handlers/file";
 import { MeshItemHandler } from "./handlers/mesh";
 import { SoundItemHandler } from "./handlers/mp3";
@@ -167,6 +168,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".ps", ctor: ParticlesSystemItemHandler });
 
 		this.RegisterItemHandler({ extension: ".json", ctor: JsonItemHandler });
+
+		this.RegisterItemHandler({ extension: ".gui", ctor: GUIItemHandler });
 
 		// Move handlers
 		this.RegisterItemMoveHandler(new AssetsBrowserMeshMoveHandler(editor));

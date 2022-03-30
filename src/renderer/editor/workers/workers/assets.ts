@@ -16,6 +16,7 @@ import "babylonjs-loaders";
 import { Tools } from "../../tools/tools";
 
 import { FBXLoader } from "../../loaders/fbx/loader";
+import { AdvancedDynamicTexture } from "babylonjs-gui";
 
 export default class AssetsWorker {
 	private _scene: Scene;
@@ -124,6 +125,43 @@ export default class AssetsWorker {
 		if (this._cachedPreviews[key]) {
 			delete this._cachedPreviews[key];
 		}
+	}
+
+	/**
+	 * Loads the gui file located at the given absolute path and returns its preview image.
+	 * @param relativePath defines the relative path to the gui file.
+	 * @param absolutePath defines the absolute path to the gui file.
+	 */
+	public async createGuiPreview(relativePath: string, absolutePath: string): Promise<string> {
+		if (this._cachedPreviews[relativePath]) {
+			return this._cachedPreviews[relativePath];
+		}
+
+		await this._waitQueue();
+
+		if (this._cachedPreviews[relativePath]) {
+			return this._cachedPreviews[relativePath];
+		}
+
+		this._isBusy = true;
+
+		const parsedData = await readJSON(absolutePath, { encoding: "utf-8" });
+
+		const texture = new AdvancedDynamicTexture("gui", this._engine.getRenderWidth(), this._engine.getRenderHeight(), this._scene, false);
+		texture.parseContent(parsedData);
+
+		await this._waitPendingData();
+
+		this._scene.render();
+
+		texture?.dispose();
+
+		const result = await this._convertCanvasToBase64();
+
+		this._isBusy = false;
+		this._cachedPreviews[relativePath] = result;
+
+		return result;
 	}
 
 	/**

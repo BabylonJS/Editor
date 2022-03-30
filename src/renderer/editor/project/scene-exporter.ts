@@ -58,6 +58,7 @@ export class SceneExporter {
 		...SceneExporter.CopyAbleImageTypes,
 		".env", ".dds",
 		".mp3", ".wav", ".ogg", ".wave",
+		".gui",
 	];
 
 	private static _IsExporting: boolean = false;

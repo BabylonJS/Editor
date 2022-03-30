@@ -8,6 +8,7 @@ import * as React from "react";
 import { Menu, MenuItem, ButtonGroup, Popover, Button, Position, Toaster, Intent } from "@blueprintjs/core";
 
 import { NodeMaterial, Engine, Scene, Light } from "babylonjs";
+import { NodeEditor } from "babylonjs-node-editor";
 import "babylonjs-loaders";
 
 import { IPCTools } from "../../editor/tools/ipc";
@@ -16,8 +17,6 @@ import { Icon } from "../../editor/gui/icon";
 import { Tools } from "../../editor/tools/tools";
 
 import "../../editor/assets/materials/augmentations";
-
-const { NodeEditor } = require("babylonjs-node-editor");
 
 export const title = "Node Material Editor";
 
@@ -132,7 +131,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
             return;
         }
 
-        NodeEditor._CurrentState.onRebuildRequiredObservable.notifyObservers();
+        NodeEditor["_CurrentState"].onRebuildRequiredObservable.notifyObservers();
 
         const result = await IPCTools.SendWindowMessage<{ error: Boolean; }>(-1, "node-material-json", {
             json: nodeMaterial.serialize(),

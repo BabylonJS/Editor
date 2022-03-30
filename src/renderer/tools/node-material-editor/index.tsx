@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { AbstractEditorPlugin } from "../../editor/tools/plugin";
 
-const { NodeEditor } = require("babylonjs-node-editor");
+import { NodeEditor } from "babylonjs-node-editor";
 
 export const title = "Node Material Editor";
 

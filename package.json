@@ -70,6 +70,7 @@
     "babylonjs-loaders": "5.0.0-rc.11",
     "babylonjs-materials": "5.0.0-rc.11",
     "babylonjs-node-editor": "5.0.0-rc.11",
+    "babylonjs-gui-editor": "5.0.0-rc.11",
     "babylonjs-post-process": "5.0.0-rc.11",
     "babylonjs-procedural-textures": "5.0.0-rc.11",
     "babylonjs-serializers": "5.0.0-rc.11",
