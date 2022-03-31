@@ -1,17 +1,19 @@
+import { readJSON } from "fs-extra";
+
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
 
 import { AbstractEditorPlugin } from "../../editor/tools/plugin";
 
+import { Observable } from "babylonjs";
 import { GUIEditor } from "babylonjs-gui-editor";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { readJSON } from "fs-extra";
 
 export const title = "GUI Editor";
 
-export default class PreviewPlugin extends AbstractEditorPlugin<{ }> {
-	private _div: Nullable<HTMLDivElement> = null;
+export default class GUIEditorPlugin extends AbstractEditorPlugin<{}> {
+    private _div: Nullable<HTMLDivElement> = null;
     private _texture: Nullable<AdvancedDynamicTexture> = null;
 
     /**
@@ -19,9 +21,9 @@ export default class PreviewPlugin extends AbstractEditorPlugin<{ }> {
      */
     public render(): React.ReactNode {
         return (
-            <div ref={(r) => this._div = r} style={{ width: "100%", height: "calc(100% - 100px)" }}>
-				{/* GUI Editor will be put here. */}
-			</div>
+            <div ref={(r) => this._div = r} style={{ width: "100%", height: "100%", padding: "0", margin: "0", overflow: "hidden" }}>
+                {/* GUI Editor will be put here. */}
+            </div>
         );
     }
 
@@ -29,32 +31,27 @@ export default class PreviewPlugin extends AbstractEditorPlugin<{ }> {
      * Called on the plugin is ready.
      */
     public async onReady(): Promise<void> {
-		if (!this.props.openParameters || !this._div) {
-			return this.editor.closePlugin("gui-editor");
-		}
+        if (!this.props.openParameters || !this._div) {
+            return this.editor.closePlugin("gui-editor");
+        }
 
         const parsedData = await readJSON(this.props.openParameters, { encoding: "utf-8" });
 
-        this._texture = new AdvancedDynamicTexture("ui-editor", 128, 128, this.editor.scene!, false);
+        this._texture = AdvancedDynamicTexture.CreateFullscreenUI("editor-ui", true, this.editor.scene!, AdvancedDynamicTexture.TRILINEAR_SAMPLINGMODE, true);
         this._texture.parseContent(parsedData, true);
 
-		// Create node material editor.
-		GUIEditor.Show({
+        // Create gui editor.
+        GUIEditor.Show({
             hostElement: this._div,
             liveGuiTexture: this._texture,
+            customLoadObservable: new Observable(),
             customLoad: {
-                label: "Load from Editor's assets",
-                action: (d) => {
-                    debugger;
-                    return Promise.resolve(d);
-                },
+                label: "Editor's custom load",
+                action: (d) => Promise.resolve(d),
             },
             customSave: {
-                label: "Save to Editor's assets",
-                action: (d) => {
-                    debugger;
-                    return Promise.resolve(d);
-                },
+                label: "Editor's custom save",
+                action: (d) => Promise.resolve(d),
             },
         });
     }
@@ -63,6 +60,6 @@ export default class PreviewPlugin extends AbstractEditorPlugin<{ }> {
      * Called on the plugin is closed.
      */
     public onClose(): void {
-        // Empty for now...
+        this._texture?.dispose();
     }
 }

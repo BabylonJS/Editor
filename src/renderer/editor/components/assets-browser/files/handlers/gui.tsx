@@ -1,10 +1,13 @@
-import { readJSON } from "fs-extra";
+import { readJSON, writeJSON } from "fs-extra";
 import { ipcRenderer } from "electron";
 
+import { Nullable } from "../../../../../../shared/types";
 import { IPCResponses } from "../../../../../../shared/ipc";
 
 import * as React from "react";
 import { ContextMenu, Menu, MenuDivider, MenuItem, Spinner, Icon as BPIcon } from "@blueprintjs/core";
+
+import { AdvancedDynamicTexture } from "babylonjs-gui";
 
 import { Icon } from "../../../../gui/icon";
 
@@ -89,7 +92,12 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
             }
 
             if (message.data.json) {
-                IPCTools.SendWindowMessage(popupId, "gui-json");
+                try {
+                    await writeJSON(this.props.absolutePath, message.data.json, { encoding: "utf-8", spaces: "\t" });
+                    IPCTools.SendWindowMessage(popupId, "gui-json");
+                } catch (e) {
+                    IPCTools.SendWindowMessage(popupId, "gui-json", { error: true });
+                }
             }
         });
     }
@@ -131,26 +139,35 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
      * Computes the preview image of the object.
      */
     private async _computePreview(): Promise<void> {
-        const path = await Workers.ExecuteFunction<AssetsWorker, "createGuiPreview">(
-            AssetsBrowserItemHandler.AssetWorker,
-            "createGuiPreview",
-            this.props.relativePath,
-            this.props.absolutePath,
-        );
+        let texture: Nullable<AdvancedDynamicTexture> = null;
 
-        const previewImage = (
-            <img
-                ref={(r) => r && requestAnimationFrame(() => r.style.opacity = "1.0")}
-                src={path}
-                style={{
-                    width: "100%",
-                    height: "100%",
-                    opacity: "0",
-                    transition: "opacity 0.3s ease-in-out",
-                }}
-            />
-        );
+        try {
+            const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
 
-        this.setState({ previewImage });
+            texture = AdvancedDynamicTexture.CreateFullscreenUI("editor-ui", true, this.props.editor.scene!);
+            texture.parseContent(json);
+
+            this.props.editor.scene!.render();
+
+            const previewImage = (
+                <img
+                    ref={(r) => r && requestAnimationFrame(() => r.style.opacity = "1.0")}
+                    src={texture["_canvas"].toDataURL("image/png")}
+                    style={{
+                        opacity: "0",
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        transition: "opacity 0.3s ease-in-out",
+                    }}
+                />
+            );
+
+            this.setState({ previewImage });
+        } catch (e) {
+            // Catch silently.
+        }
+
+        texture?.dispose();
     }
 }

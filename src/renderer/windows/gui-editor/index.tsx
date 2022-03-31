@@ -7,20 +7,19 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 import { Menu, MenuItem, ButtonGroup, Popover, Button, Position, Toaster, Intent } from "@blueprintjs/core";
 
-import { Engine, Scene } from "babylonjs";
 import { GUIEditor } from "babylonjs-gui-editor";
+import { Engine, Observable, Scene } from "babylonjs";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 
+import { Tools } from "../../editor/tools/tools";
 import { IPCTools } from "../../editor/tools/ipc";
+import { GUITools } from "../../editor/tools/gui";
 
 import { Icon } from "../../editor/gui/icon";
-import { Tools } from "../../editor/tools/tools";
 
-import "../../editor/assets/materials/augmentations";
+export const title = "GUI Editor";
 
-export const title = "Node Material Editor";
-
-export default class NodeMaterialEditorWindow extends React.Component {
+export default class GUIEditorWindow extends React.Component {
     private _canvas: HTMLCanvasElement;
     private _engine: Engine;
     private _scene: Scene;
@@ -28,12 +27,8 @@ export default class NodeMaterialEditorWindow extends React.Component {
 
     private _relativePath: string;
 
-    private _editorDiv: Nullable<HTMLDivElement> = null;
     private _toaster: Nullable<Toaster> = null;
-    private _refHandler = {
-        getEditorDiv: (ref: HTMLDivElement) => this._editorDiv = ref,
-        getToaster: (ref: Toaster) => this._toaster = ref,
-    };
+    private _editorDiv: Nullable<HTMLDivElement> = null;
 
     public constructor(props: any) {
         super(props);
@@ -41,8 +36,8 @@ export default class NodeMaterialEditorWindow extends React.Component {
         // Babylon.JS stuff
         this._canvas = document.createElement("canvas");
         this._canvas.style.visibility = "hidden";
-        this._canvas.width = 100;
-        this._canvas.height = 100;
+        this._canvas.width = 1920;
+        this._canvas.height = 1080;
         document.body.appendChild(this._canvas);
 
         this._engine = new Engine(this._canvas);
@@ -55,7 +50,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
     public render(): React.ReactNode {
         const file =
             <Menu>
-                <MenuItem text="Save (CTRL + S)" icon={<Icon src="copy.svg" />} onClick={() => this._saveMaterial(this._texture)} />
+                <MenuItem text="Save (CTRL + S)" icon={<Icon src="copy.svg" />} onClick={() => this._saveGui(this._texture)} />
                 <MenuItem text="Save As..." icon={<Icon src="copy.svg" />} onClick={() => this._saveAs(this._texture)} />
             </Menu>;
 
@@ -68,8 +63,8 @@ export default class NodeMaterialEditorWindow extends React.Component {
                         </Popover>
                     </ButtonGroup>
                 </div>
-                <div ref={this._refHandler.getEditorDiv} style={{ width: "100%", height: "calc(100% - 100px)" }}></div>
-                <Toaster canEscapeKeyClear={true} position={Position.TOP_RIGHT} ref={this._refHandler.getToaster}></Toaster>
+                <div ref={(r) => this._editorDiv = r} style={{ width: "100%", height: "calc(100% - 100px)", /*padding: "0", margin: "0", overflow: "hidden"*/ }} />
+                <Toaster canEscapeKeyClear={true} position={Position.TOP_RIGHT} ref={(r) => this._toaster = r}></Toaster>
             </>
         );
     }
@@ -83,7 +78,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
 
     /**
      * Inits the plugin.
-     * @param data the initialization data containing the material definition etc.
+     * @param data the initialization data containing the gui texture definition etc.
      */
     public init(data: { json: any; relativePath: string; }): void {
         this._relativePath = data.relativePath;
@@ -102,51 +97,48 @@ export default class NodeMaterialEditorWindow extends React.Component {
     }
 
     /**
-     * Called on a material has been selected in the editor.
+     * Called on a texture has been selected in the editor.
      */
     private _setTexture(json: any): void {
         if (!this._editorDiv) { return; }
 
-        // Create material
-        this._texture = new AdvancedDynamicTexture("editor-ui", 100, 100, this._scene, false);
-        this._texture.parseContent(json, false);
+        // Create ui texture
+        this._texture = AdvancedDynamicTexture.CreateFullscreenUI("editor-ui", true, this._scene, AdvancedDynamicTexture.TRILINEAR_SAMPLINGMODE, true);
+        this._texture.parseContent(json, true);
 
         document.title = `GUI Editor - ${this._texture.name}`;
 
-        // Create node material editor.
+        // Create gui editor.
         GUIEditor.Show({
             hostElement: this._editorDiv,
             liveGuiTexture: this._texture,
+            customLoadObservable: new Observable(),
             customLoad: {
-                label: "",
-                action: async (d) => {
-                    debugger;
-                    return d;
-                }
+                label: "Editor's custom load",
+                action: (d) => Promise.resolve(d),
             },
             customSave: {
-                label: "",
-                action: async (d) => {
-                    debugger;
-                    return d;
-                }
-            }
+                label: "Editor's custom save",
+                action: (d) => Promise.resolve(d),
+            },
         });
     }
 
     /**
-     * Saves the node material.
+     * Saves the gui texture.
      */
-    private async _saveMaterial(texture: Nullable<AdvancedDynamicTexture>, closed: boolean = false): Promise<void> {
+    private async _saveGui(texture: Nullable<AdvancedDynamicTexture>, closed: boolean = false): Promise<void> {
         if (!texture) { return; }
 
         try {
+            const json = this._texture.serializeContent();
+
             const result = await IPCTools.SendWindowMessage<{ error: Boolean; }>(-1, "gui-json", {
                 closed,
-                json: texture.serializeContent(),
                 relativePath: this._relativePath,
+                json: GUITools.CleanSerializedGUI(json),
             });
-    
+
             if (result.data.error) {
                 this._toaster?.show({ message: "Failed to save.", intent: Intent.DANGER, timeout: 1000 });
             } else {
@@ -158,7 +150,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
     }
 
     /**
-     * Saves the given material as...
+     * Saves the given gui texture as...
      */
     private async _saveAs(texture: Nullable<AdvancedDynamicTexture>): Promise<void> {
         if (!texture) { return; }
@@ -179,7 +171,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
      */
     private _bindEvents(): void {
         // Shortcuts
-        ipcRenderer.on("save", () => this._saveMaterial(this._texture));
+        ipcRenderer.on("save", () => this._saveGui(this._texture));
         ipcRenderer.on("save-as", () => this._saveAs(this._texture));
     }
 }

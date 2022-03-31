@@ -7,3 +7,7 @@
     position: absolute;
     overflow: hidden;
 }
+
+#workbench-canvas {
+    position: absolute !important;
+}
