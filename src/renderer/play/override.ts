@@ -3,59 +3,58 @@ import { pathExistsSync } from "fs-extra";
 
 import { Nullable } from "../../shared/types";
 
-import { Engine, Tools } from "babylonjs";
+import { Engine, WebRequest } from "babylonjs";
 
 export class PlayOverride {
     /** @hidden */
-    public static _LoadFileFn: Nullable<typeof Tools.LoadFile> = null;
+    public static _WebRequestOpen: Nullable<typeof WebRequest.prototype.open> = null;
     /** @hidden */
     public static _CreateTextureFn: Nullable<typeof Engine.prototype.createTexture> = null;
 
     /**
-     * Overrides the create texture function of the engine to ensure textures will be loaded
-     * same in web browser and in editor.
+     * Overrides the create texture, load file, etc. functions of the engine to ensure textures
+     * will be loaded same way in web browser and in editor.
      * @param workspacePath defines the absolute path of the workspace.
      */
     public static OverrideEngineFunctions(workspacePath: string): void {
         // Load file
-        this._LoadFileFn = Tools.LoadFile;
-        Tools.LoadFile = function (...args: any[]) {
-            const pathInWorkspace = join(workspacePath, args[0]);
-            if (pathExistsSync(pathInWorkspace)) {
-                args[0] = `file:///${pathInWorkspace}`;
-            }
-
-            return PlayOverride._LoadFileFn!.call(this, ...args);
-        };
-
-        // Create texture
+        this._WebRequestOpen = WebRequest.prototype.open;
         this._CreateTextureFn = Engine.prototype.createTexture;
-        Engine.prototype.createTexture = function (...args: any[]) {
-            const url = args[0];
-            if (url) {
-                const pathInWorkspace = join(workspacePath, url);
-                if (pathExistsSync(pathInWorkspace)) {
-                    args[0] = `file:///${pathInWorkspace}`;
-                }
-            }
 
-            return PlayOverride._CreateTextureFn!.call(this, ...args);
-        };
+        WebRequest.prototype.open = this._GetOverridedFunctionUrl(this._WebRequestOpen, workspacePath, 1);
+        Engine.prototype.createTexture = this._GetOverridedFunctionUrl(this._CreateTextureFn, workspacePath, 0);
     }
 
     /**
      * Restores all the original functions that were overidden.
      */
     public static RestoreOverridenFunctions(): void {
-        if (this._LoadFileFn) {
-            Tools.LoadFile = this._LoadFileFn;
+        if (this._WebRequestOpen) {
+            WebRequest.prototype.open = this._WebRequestOpen;
         }
 
         if (this._CreateTextureFn) {
             Engine.prototype.createTexture = this._CreateTextureFn;
         }
 
-        this._LoadFileFn = null;
+        this._WebRequestOpen = null;
         this._CreateTextureFn = null;
+    }
+
+    /**
+     * Returns the reference to the function
+     */
+    private static _GetOverridedFunctionUrl(fn: (...args: any[]) => any, workspacePath: string, argumentIndex: number): (...args: any[]) => any {
+        return function (...args: any[]) {
+            const url = args[argumentIndex];
+            if (url) {
+                const pathInWorkspace = join(workspacePath, url);
+                if (pathExistsSync(pathInWorkspace)) {
+                    args[argumentIndex] = join("file:/", pathInWorkspace);
+                }
+            }
+
+            return fn.call(this, ...args);
+        };
     }
 }
