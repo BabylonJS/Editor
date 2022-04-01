@@ -357,7 +357,7 @@ export class SceneExporter {
 			}
 
 			const geometryRootPath = options?.geometryRootPath ?? `../${WorkSpace.GetProjectName()}/`;
-			
+
 			await GeometryExporter.Init();
 			await GeometryExporter.ExportIncrementalGeometries(editor, geometriesPath, scene, true, geometryRootPath, task);
 		}
@@ -428,9 +428,12 @@ export class SceneExporter {
 				continue;
 			}
 			*/
-
+			
 			if (options?.forceRegenerateFiles || !(await pathExists(path))) {
-				promises.push(copyFile(child.path, path));
+				switch (extension) {
+					case ".gui": promises.push(this._CopyGUIFile(child.path, path)); break;
+					default: promises.push(copyFile(child.path, path)); break;
+				}
 				editor.console.logInfo(`Copied asset file at: ${path}`);
 			}
 
@@ -485,6 +488,14 @@ export class SceneExporter {
 		for (const child of directoryTree.children ?? []) {
 			await this._RecursivelyWriteAssets(editor, child, assetsPath, outputPath, options);
 		}
+	}
+
+	/**
+	 * Copies the given GUI file to the given target path by keeping it minified.
+	 */
+	private static async _CopyGUIFile(sourcePath: string, targetPath: string): Promise<void> {
+		const data = await readJSON(sourcePath, { encoding: "utf-8" });
+		await writeJSON(targetPath, data, { encoding: "utf-8" });
 	}
 
 	/**
