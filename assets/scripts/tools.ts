@@ -25,14 +25,14 @@ import "@babylonjs/core/Physics/physicsEngineComponent";
 import "@babylonjs/core/Engines/Extensions/engine.textureSelector";
 import "@babylonjs/core/Materials/Textures/Loaders/ktxTextureLoader";
 
+import { ISceneScriptMap } from "./scripts-map";
+
 export type NodeScriptConstructor = (new (...args: any[]) => Node);
 export type GraphScriptConstructor = (new (scene: Scene) => any);
 export type ScriptMap = {
-    [index: string]: {
-        IsGraph?: boolean;
-        IsGraphAttached?: boolean;
-        default: (new (...args: any[]) => NodeScriptConstructor | GraphScriptConstructor);
-    }
+    IsGraph?: boolean;
+    IsGraphAttached?: boolean;
+    default: (new (...args: any[]) => NodeScriptConstructor | GraphScriptConstructor);
 };
 
 export interface IScript {
@@ -113,7 +113,7 @@ function isEs6Class(ctor: any, scene: Scene): boolean {
  * @param scriptsMap defines the map that contains the scripts constructors ordered by script path.
  * @param nodes the array of nodes to attach script (if exists).
  */
-function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node | Scene)[]): void {
+function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes: (Node | Scene)[]): void {
     const dummyScene = new Scene(scene.getEngine(), { virtual: true });
     const initializedNodes: { node: Node | Scene; exports: any; }[] = [];
 
@@ -121,7 +121,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node
     for (const n of nodes as ((Scene | Node) & IScript)[]) {
         if (!n.metadata || !n.metadata.script || !n.metadata.script.name || n.metadata.script.name === "None") { continue; }
 
-        const exports = scriptsMap[n.metadata.script.name];
+        const exports = scriptsMap[n.metadata.script.name] as ScriptMap;
         if (!exports) { continue; }
 
         const scene = n instanceof Scene ? n : n.getScene();
@@ -330,7 +330,7 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
  * Attaches all available scripts on nodes of the given scene.
  * @param scene the scene reference that contains the nodes to attach scripts.
  */
-export function attachScripts(scriptsMap: ScriptMap, scene: Scene): void {
+export function attachScripts(scriptsMap: ISceneScriptMap, scene: Scene): void {
     requireScriptForNodes(scene, scriptsMap, scene.meshes);
     requireScriptForNodes(scene, scriptsMap, scene.lights);
     requireScriptForNodes(scene, scriptsMap, scene.cameras);
@@ -415,7 +415,7 @@ export function attachTransformNodesToBones(scene: Scene): void {
  * @param scriptPath defines the path to the script to attach (available as a key in the exported "scriptsMap" map).
  * @param object defines the reference to the object (node or scene) to attach the script to.
  */
-export function attachScriptToNodeAtRuntime(scriptPath: string, object: Node | Scene): any {
+export function attachScriptToNodeAtRuntime(scriptPath: keyof ISceneScriptMap, object: Node | Scene): any {
     const scriptsMap = require("./scripts-map").scriptsMap;
 
     object.metadata = object.metadata ?? {};

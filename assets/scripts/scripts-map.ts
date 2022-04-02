@@ -3,7 +3,7 @@ import { ScriptMap } from "./tools";
 /**
  * Defines the interface that exposes all exported scripts in this project.
  */
-export interface ISceneScriptMap extends ScriptMap {
+export interface ISceneScriptMap {
 // ${scriptsInterface}
 }
 
