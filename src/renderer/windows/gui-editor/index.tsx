@@ -63,7 +63,7 @@ export default class GUIEditorWindow extends React.Component {
                         </Popover>
                     </ButtonGroup>
                 </div>
-                <div ref={(r) => this._editorDiv = r} style={{ width: "100%", height: "calc(100% - 100px)", /*padding: "0", margin: "0", overflow: "hidden"*/ }} />
+                <div ref={(r) => this._editorDiv = r} style={{ width: "100%", height: "calc(100% - 35px)", padding: "0", margin: "0", overflow: "hidden" }} />
                 <Toaster canEscapeKeyClear={true} position={Position.TOP_RIGHT} ref={(r) => this._toaster = r}></Toaster>
             </>
         );
@@ -131,6 +131,12 @@ export default class GUIEditorWindow extends React.Component {
         if (!texture) { return; }
 
         try {
+            const globalState = GUIEditor["_CurrentState"];
+            globalState.workbench.removeEditorTransformation();
+            
+            const size = globalState.workbench.guiSize;
+            globalState.guiTexture.scaleTo(size.width, size.height);
+
             const json = this._texture.serializeContent();
 
             const result = await IPCTools.SendWindowMessage<{ error: Boolean; }>(-1, "gui-json", {
