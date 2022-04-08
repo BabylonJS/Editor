@@ -269,7 +269,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                 case "number":
                     property.value ??= property.value ?? iv.defaultValue ?? 0;
                     children.push(
-                        <InspectorNumber object={property} property="value" label={label} step={0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
+                        <InspectorNumber object={property} property="value" label={label} min={iv.options?.min} max={iv.options?.max} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
 
@@ -302,7 +302,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                         property.value ??= property.value ?? { x: 0, y: 0 };
                     }
                     children.push(
-                        <InspectorVector2 object={property} property="value" label={label} step={0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
+                        <InspectorVector2 object={property} property="value" label={label} min={iv.options?.min} max={iv.options?.max} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
                 case "Vector3":
@@ -313,7 +313,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                         property.value ??= property.value ?? { x: 0, y: 0, z: 0 };
                     }
                     children.push(
-                        <InspectorVector3 object={property} property="value" label={label} step={0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
+                        <InspectorVector3 object={property} property="value" label={label} min={iv.options?.min} max={iv.options?.max} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
 
@@ -326,7 +326,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                         property.value ??= property.value ?? { r: 0, g: 0, b: 0, a: iv.type === "Color4" ? 1 : undefined };
                     }
                     children.push(
-                        <InspectorColor object={property} property="value" label={label} step={0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
+                        <InspectorColor object={property} property="value" label={label} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
             }
