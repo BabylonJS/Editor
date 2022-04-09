@@ -570,8 +570,3 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
         return texture;
     };
 })();
-
-/**
- * @deprecated will be moved to "./decorators.ts".
- */
-export * from "./decorators";
