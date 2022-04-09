@@ -69,3 +69,23 @@ according to their properties and options. If the inspector is already focused o
 attached to it, the inspector will be automatically updated.
 
 ![example](./exposing-properties/example.gif)
+
+As a full example, a script that uses the `Speed` decorated property to apply a rotation on a mesh.
+
+```typescript
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+
+import { visibleInInspector } from "../decorators";
+
+export default class MyMeshComponent extends Mesh {
+    @visibleInInspector("number", "Speed", 0.04, { min: 0, max: 1, step: 0.01 })
+    private _speed: number = 1;
+
+    /**
+     * Called each frame.
+     */
+    public onUpdate(): void {
+        this.rotation.y += 0.04 * this._speed;
+    }
+}
+```
