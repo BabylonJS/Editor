@@ -18,11 +18,16 @@ Welcome to the documentation of the Babylon.JS Editor. A series of tutorials are
   * [Using textures](../03%20-%20adding-assets/4-using-textures.md)
 * Scripting
   * [Attaching scripts](../04%20-%20attaching-scripts/attaching-scripts.md)
+  * [Exposing properties](../04%20-%20attaching-scripts/0-exposing-properties.md)
+  * [Getting components](../04%20-%20attaching-scripts/1-getting-components.md)
+  * [Listening events](../04%20-%20attaching-scripts/2-listening-events.md)
 * Physics
   * [Using physics](../05%20-%20using-physics/using-physics.md)
 * Collisions
   * [Basic collisions](../06%20-%20setting-collisions/basic.md)
   * [Advanced collisions](../06%20-%20setting-collisions/advanced.md)
+* Painting Tools
+  * [Decals painting](../07%20-%20using-painting-tools/decals-painting-tool.md)
 
 ## Legacy, Babylon.JS Editor < 4.1.0
 * Adding assets
