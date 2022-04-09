@@ -188,6 +188,46 @@ export class MaterialAssets extends AbstractAssets {
     }
 
     /**
+     * Called on the user starts dragging the item.
+     * @param ev defines the reference to the drag event.
+     */
+    public onDragStart(ev: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
+        super.onDragStart(ev, item);
+
+        const material = this.editor.scene!.getMaterialByID(item.key);
+        if (!material?.metadata?.editorPath) {
+            return;
+        }
+
+        const absolutePath = join(WorkSpace.DirPath!, "assets", material.metadata.editorPath);
+        ev.dataTransfer.setData("asset/material", JSON.stringify({
+            absolutePath,
+            relativePath: material.metadata.editorPath,
+        }));
+
+        ev.dataTransfer.setData("plain/text", absolutePath);
+    }
+
+    /**
+     * Called on the user drops the asset in a supported inspector field.
+     * @param ev defiens the reference to the event object.
+     * @param object defines the reference to the object being modified in the inspector.
+     * @param property defines the property of the object to assign the asset instance.
+     */
+    public async onDropInInspector(ev: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
+        const d = JSON.parse(ev.dataTransfer.getData("asset/material"));
+
+        const material = this.editor.scene!.materials.find((m) => m.metadata?.editorPath === d.relativePath);
+        if (!material) {
+            return;
+        }
+
+        object[property] = material;
+
+        await this.editor.assets.refresh();
+    }
+
+    /**
      * Called on the user drops an asset in editor. (typically the preview canvas).
      * @param item the item being dropped.
      * @param pickInfo the pick info generated on the drop event.
@@ -531,7 +571,7 @@ export class MaterialAssets extends AbstractAssets {
 
         try {
             const clone = new exports.default("dummy", material.getScene());
-            
+
             for (const key in clone) {
                 if (!Reflect.has(material, key)) {
                     material[key] = clone[key];
@@ -576,7 +616,7 @@ export class MaterialAssets extends AbstractAssets {
         if (includes) {
             Effect.IncludesShadersStore[includes.key] = await readFile(includes.path, { encoding: "utf-8" });
         }
-        
+
         await SceneExporter.CopyShaderFiles(this.editor);
 
         material.markAsDirty(Material.AllDirtyFlag);
