@@ -106,6 +106,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                     this._editor.runProject(EditorPlayMode.IntegratedBrowser, false);
                 }} id="toolbar-build-and-run-project" />
                 <MenuDivider />
+                <MenuItem text="Install Dependencies..." onClick={() => WorkSpace.InstallDependencies(this._editor)} />
+                <MenuDivider />
                 <MenuItem text={<div>Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={() => this._editor.runProject(EditorPlayMode.IntegratedBrowser, false)} />
                 <MenuDivider />
                 <MenuItem text="Export" icon="more">

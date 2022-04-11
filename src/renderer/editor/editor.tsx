@@ -17,8 +17,8 @@ import {
 } from "babylonjs";
 
 import { Overlay } from "./gui/overlay";
-import { ActivityIndicator } from "./gui/acitivity-indicator";
 import { Confirm } from "./gui/confirm";
+import { ActivityIndicator } from "./gui/acitivity-indicator";
 
 import { Tools } from "./tools/tools";
 import { IPCTools } from "./tools/ipc";
@@ -792,6 +792,11 @@ export class Editor {
     private _addPlugin(plugin: any, name: string, fullPath: boolean, openParameters: any = {}): void {
         if (this._components[name]) {
             this.layout.props.model.doAction(Actions.selectTab(name));
+            return;
+        }
+
+        const activeTabSet = this.layout.props.model.getActiveTabset();
+        if (!activeTabSet) {
             return;
         }
 

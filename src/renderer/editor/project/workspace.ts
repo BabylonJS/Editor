@@ -230,7 +230,7 @@ export class WorkSpace {
         if (!this.Workspace) { return; }
 
         await EditorProcess.RegisterProcess(editor, "npm install", {
-            command: "npm install",
+            command: "npm install --verbose",
             cwd: WorkSpace.DirPath!,
             terminal: this.WebpackTerminal,
         })?.wait();
