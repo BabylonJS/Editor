@@ -44,7 +44,7 @@ Of course, all these dependencies and scripts can be modified/customized/removed
 ## Understanding webpack.config.js
 As well as the `pacakge.json` file, the Webpack configuration file can be customized to include whatever needed by the project. By default, it just packs the project into one single file (`"bundle.js"`) ready to be imported/called by the `index.html` file.
 
-It is free, accoding to the user's preferences, to use Webpack plugins (including custom plugins) like the dev server (more informations here: https://webpack.js.org/configuration/dev-server/).
+It is free, according to the user's preferences, to use Webpack plugins (including custom plugins) like the dev server (more informations here: https://webpack.js.org/configuration/dev-server/).
 
 In fact, the `webpack.config.js` file must support both "build" and "watch" modes as the Editor allows to automatically build/watch the project instead of typing the commands by ourself. Of course, build and watch commands can be handled by ourself if needed using custom commands. For example:
 
