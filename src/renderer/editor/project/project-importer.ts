@@ -118,6 +118,29 @@ export class ProjectImporter {
             loadPromises = [];
         }
 
+        // Load all transform nodes
+        Overlay.SetMessage("Creating Transform Nodes");
+
+        for (const t of project.transformNodes ?? []) {
+            loadPromises.push(new Promise<void>(async (resolve) => {
+                try {
+                    const json = await readJSON(join(Project.DirPath!, "transform", t));
+                    const transform = TransformNode.Parse(json, editor.scene!, rootUrl);
+
+                    transform.metadata = transform.metadata ?? {};
+                    transform.metadata._waitingParentId = json.parentId;
+                } catch (e) {
+                    editor.console.logError(`Failed to load transform node "${t}"`);
+                }
+
+                Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+                resolve();
+            }));
+        }
+
+        await Promise.all(loadPromises);
+        loadPromises = [];
+
         // Load all meshes
         Overlay.SetMessage("Creating Meshes...");
 
@@ -149,29 +172,6 @@ export class ProjectImporter {
                     }
                 } catch (e) {
                     editor.console.logError(`Failed to load mesh "${m}"`);
-                }
-
-                Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
-                resolve();
-            }));
-        }
-
-        await Promise.all(loadPromises);
-        loadPromises = [];
-
-        // Load all transform nodes
-        Overlay.SetMessage("Creating Transform Nodes");
-
-        for (const t of project.transformNodes ?? []) {
-            loadPromises.push(new Promise<void>(async (resolve) => {
-                try {
-                    const json = await readJSON(join(Project.DirPath!, "transform", t));
-                    const transform = TransformNode.Parse(json, editor.scene!, rootUrl);
-
-                    transform.metadata = transform.metadata ?? {};
-                    transform.metadata._waitingParentId = json.parentId;
-                } catch (e) {
-                    editor.console.logError(`Failed to load transform node "${t}"`);
                 }
 
                 Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
