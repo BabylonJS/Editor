@@ -9,7 +9,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { EngineStore } from "@babylonjs/core/Engines/engineStore";
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader"; 
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
@@ -49,6 +49,11 @@ export interface IScript {
      * Called each frame.
      */
     onUpdate?(): void;
+    /**
+     * Called on the object has been disposed.
+     * Object can be disposed manually or when the editor stops running the scene.
+     */
+    onStop(): void;
     /**
      * Called on a message has been received and sent from a graph.
      * @param message defines the name of the message sent from the graph.
@@ -192,6 +197,11 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ScriptMap, nodes: (Node
         if (n.onUpdate) {
             const updateObserver = scene.onBeforeRenderObservable.add(() => n.onUpdate());
             n.onDisposeObservable.addOnce(() => scene.onBeforeRenderObservable.remove(updateObserver));
+        }
+
+        // Check stop
+        if (n.onStop) {
+            n.onDisposeObservable.addOnce(() => n.onStop());
         }
 
         // Check properties

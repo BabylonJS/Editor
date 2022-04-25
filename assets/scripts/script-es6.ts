@@ -42,6 +42,14 @@ export default class MyScript extends Node {
     }
 
     /**
+     * Called on the object has been disposed.
+     * Object can be disposed manually or when the editor stops running the scene.
+     */
+    public onStop(): void {
+        // ...
+    }
+
+    /**
      * Called on a message has been received and sent from a graph.
      * @param message defines the name of the message sent from the graph.
      * @param data defines the data sent in the message.
