@@ -103,6 +103,7 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 		try {
 			require(folder);
 		} catch (e) {
+			console.error("Error loading plugin", e);
 			return;
 		}
 
