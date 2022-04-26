@@ -63,6 +63,9 @@ export { Dialog, IDialogProps } from "./renderer/editor/gui/dialog";
 export { Confirm, IConfirmProps } from "./renderer/editor/gui/confirm";
 export { Icon } from "./renderer/editor/gui/icon";
 
+// Tools
+export { SceneImporterTools, ISceneImporterToolsConfiguration } from "./renderer/editor/scene/import-tools";
+
 // Packer
 export { Packer, IPackerOptions, PackerStatus } from "./renderer/editor/project/packer/packer";
 
