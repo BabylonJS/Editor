@@ -90,6 +90,8 @@ export class MaterialAssets extends AbstractAssets {
     public async refresh(): Promise<void> {
         this._updateSourcesWatchers();
 
+        this.items = [];
+
         for (const material of this.editor.scene!.materials) {
             const editorPath = material.metadata?.editorPath;
             if (!editorPath) {
