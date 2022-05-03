@@ -747,7 +747,16 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             children,
             key: node.id,
             isLeaf: !children.length,
-            icon: <Icon src={this._getIcon(node)} />,
+            icon: (
+                <Icon
+                    src={this._getIcon(node)}
+                    style={{ opacity: node.isEnabled(true) ? "1.0" : "0.5" }}
+                    onClick={() => {
+                        node.setEnabled(!node.isEnabled());
+                        this.refresh();
+                    }}
+                />
+            ),
             title: (
                 <div
                     onDrop={(ev) => !this._dragging && this._handleExternalDrop(ev, node.id)}
