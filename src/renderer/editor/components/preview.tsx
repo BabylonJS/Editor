@@ -176,7 +176,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         const cameras = (
             <Menu>
                 {this._editor.scene?.cameras.map((c) => (
-                    <MenuItem key={c.id} id={c.id} text={c.name} icon={<Icon src="camera.svg" />} onClick={() => SceneSettings.SetActiveCamera(this._editor, c)} />
+                    <MenuItem key={c.id} id={c.id} text={c.name} icon={this._editor.scene?.activeCamera === c ? <Icon src="check.svg" /> : null} onClick={() => SceneSettings.SetActiveCamera(this._editor, c)} />
                 ))}
             </Menu>
         );
