@@ -156,6 +156,7 @@ export class SceneImporterTools {
         if (!(material instanceof MultiMaterial)) {
             if (configuration.isGltf) {
                 Overlay.Show("Configuring GLTF...");
+                material.sideOrientation = Material.ClockWiseSideOrientation;
             }
 
             const instantiatedMaterial = await this._GetEffectiveMaterial(material, configuration, force);
@@ -187,13 +188,21 @@ export class SceneImporterTools {
                     continue;
                 }
 
+                if (configuration.isGltf) {
+                    Overlay.Show("Configuring GLTF...");
+                    m.sideOrientation = Material.ClockWiseSideOrientation;
+                }
+
                 const instantiatedMaterial = await this._GetEffectiveMaterial(m, configuration, force);
                 if (instantiatedMaterial) {
+                    Overlay.Hide();
                     material.subMaterials[i] = instantiatedMaterial;
                     continue;
                 }
 
                 this._ConfigureMaterialTextures(m, configuration).then(() => {
+                    Overlay.Hide();
+                    
                     const subMaterialMetadata = Tools.GetMaterialMetadata(m);
                     subMaterialMetadata.originalSourceFile = subMaterialMetadata.originalSourceFile ?? {
                         id: m.id,
