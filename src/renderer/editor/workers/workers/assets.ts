@@ -145,41 +145,50 @@ export default class AssetsWorker {
 
 		this._isBusy = true;
 
-		const parsedData = await readJSON(absolutePath, { encoding: "utf-8" });
-		if (parsedData.customType === "BABYLON.NodeMaterial") {
-			rootUrl = undefined!;
+		let parsedData: any;
+		let result: string;
+
+		try {
+			parsedData = await readJSON(absolutePath, { encoding: "utf-8" });
+
+			if (parsedData.customType === "BABYLON.NodeMaterial") {
+				rootUrl = undefined!;
+			}
+
+			let material: Nullable<Material> = null;
+			if (parsedData.metadata?.sourcePath && this._workspaceDir) {
+				const jsPath = Tools.GetSourcePath(this._workspaceDir, parsedData.metadata.sourcePath);
+
+				delete require.cache[jsPath];
+				const exports = require(jsPath);
+				material = exports.default.Parse(parsedData, this._scene, rootUrl);
+			} else {
+				material = Material.Parse(parsedData, this._scene, rootUrl);
+			}
+
+			const sphere = Mesh.CreateSphere("AssetsWorkerSphere", 32, 10, this._scene, false);
+			sphere.material = material;
+
+			await this._waitPendingData();
+
+			this._shadowGenerator.addShadowCaster(sphere, false);
+			this._setupDecoration();
+
+			this._scene.render();
+
+			this._shadowGenerator.removeShadowCaster(sphere, false);
+
+			material?.dispose(true, true);
+			sphere.dispose(true, false);
+
+			result = await this._convertCanvasToBase64();
+
+			this._cachedPreviews[relativePath] = result;
+		} catch (e) {
+			result = "";
 		}
-
-		let material: Nullable<Material> = null;
-		if (parsedData.metadata?.sourcePath && this._workspaceDir) {
-			const jsPath = Tools.GetSourcePath(this._workspaceDir, parsedData.metadata.sourcePath);
-
-			delete require.cache[jsPath];
-			const exports = require(jsPath);
-			material = exports.default.Parse(parsedData, this._scene, rootUrl);
-		} else {
-			material = Material.Parse(parsedData, this._scene, rootUrl);
-		}
-
-		const sphere = Mesh.CreateSphere("AssetsWorkerSphere", 32, 10, this._scene, false);
-		sphere.material = material;
-
-		await this._waitPendingData();
-
-		this._shadowGenerator.addShadowCaster(sphere, false);
-		this._setupDecoration();
-
-		this._scene.render();
-
-		this._shadowGenerator.removeShadowCaster(sphere, false);
-
-		material?.dispose(true, true);
-		sphere.dispose(true, false);
-
-		const result = await this._convertCanvasToBase64();
 
 		this._isBusy = false;
-		this._cachedPreviews[relativePath] = result;
 
 		return result;
 	}

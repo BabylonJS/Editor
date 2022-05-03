@@ -284,9 +284,17 @@ export class SceneImporterTools {
             .filter((t) => !t.metadata?.editorDone);
 
         if (configuration.isGltf) {
-            textures.forEach((tex: Texture) => {
+            for (const tex of textures) {
+                if (!(tex instanceof Texture)) {
+                    continue;
+                }
+
                 tex.metadata ??= {};
                 tex.metadata.editorDone = true;
+
+                if (tex.url?.startsWith("data:/")) {
+                    tex.url = tex.name = filenamify(`${tex.name}.png`);
+                }
 
                 const mimeType = tex["_mimeType"];
                 if (mimeType) {
@@ -306,7 +314,7 @@ export class SceneImporterTools {
                 if (tex.url) {
                     tex.url = tex.name;
                 }
-            });
+            }
 
             await GLTFTools.TexturesToFiles(dirname(configuration.absolutePath), textures);
             await configuration.editor.assetsBrowser.refresh();
