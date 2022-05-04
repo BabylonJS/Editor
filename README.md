@@ -5,15 +5,15 @@ The Babylon.js Editor provides a way, for designers (and developers), to go furt
 
 The online documentation is available here: https://doc.babylonjs.com/extensions/editor
 
-## Download (v4.1.0)
+## Download (v4.2.0)
   * x64
-    * Win32 - [download](http://editor.babylonjs.com/electron/4.1.0/BabylonJS%20Editor%20Setup%204.1.0.exe)
-    * MacOS - [download](http://editor.babylonjs.com/electron/4.1.0/BabylonJS%20Editor-4.1.0.dmg)
-    * Linux - [download](http://editor.babylonjs.com/electron/4.1.0/BabylonJS%20Editor-4.1.0.AppImage)
+    * Win32 - [download](http://editor.babylonjs.com/electron/4.2.0/BabylonJS%20Editor%20Setup%204.2.0.exe)
+    * MacOS - [download](http://editor.babylonjs.com/electron/4.2.0/BabylonJS%20Editor-4.2.0.dmg)
+    * Linux - [download](http://editor.babylonjs.com/electron/4.2.0/BabylonJS%20Editor-4.2.0.AppImage)
   * arm64
-    * Win32 - [download](http://editor.babylonjs.com/electron/4.1.0/BabylonJS%20Editor%20Setup%204.1.0-arm64.exe)
-    * MacOS - [download](http://editor.babylonjs.com/electron/4.1.0/BabylonJS%20Editor-4.1.0-arm64.dmg)
-    * Linux - [download](http://editor.babylonjs.com/electron/4.1.0/BabylonJS%20Editor-4.1.0-arm64.AppImage)
+    * Win32 - [download](http://editor.babylonjs.com/electron/4.2.0/BabylonJS%20Editor%20Setup%204.2.0-arm64.exe)
+    * MacOS - [download](http://editor.babylonjs.com/electron/4.2.0/BabylonJS%20Editor-4.2.0-arm64.dmg)
+    * Linux - [download](http://editor.babylonjs.com/electron/4.2.0/BabylonJS%20Editor-4.2.0-arm64.AppImage)
 
 ## Features
 * Project based to manage multiple scenes
