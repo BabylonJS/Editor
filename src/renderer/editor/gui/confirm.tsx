@@ -8,11 +8,11 @@ export interface IConfirmProps {
     /**
      * The title of the dialog.
      */
-    title: string;
+    title: React.ReactNode;
     /**
      * The message of the dialog.
      */
-    message: string;
+    message: React.ReactNode;
     /**
      * The icon to show on top-left of the dialog.
      */
@@ -34,7 +34,7 @@ export class Confirm extends React.Component<IConfirmProps> {
      * @param message the message of the dialog.
      * @param icon the icon of the dialog to show on top-left.
      */
-    public static async Show(title: string, message: string, icon?: Undefinable<IconName | JSX.Element>): Promise<boolean> {
+    public static async Show(title: React.ReactNode, message: React.ReactNode, icon?: Undefinable<IconName | JSX.Element>): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
             const container = document.createElement("div");
             container.style.position = "absolute";
@@ -61,7 +61,7 @@ export class Confirm extends React.Component<IConfirmProps> {
                 onClose={() => this._handleClose(false)}
             >
                 <div className={Classes.DIALOG_BODY}>
-                    <p><strong>{this.props.message}</strong></p>
+                    {typeof(this.props.message) === "string" ? <p><strong>{this.props.message}</strong></p> : this.props.message}
                 </div>
                 <div className={Classes.DIALOG_FOOTER}>
                     <div className={Classes.DIALOG_FOOTER_ACTIONS}>

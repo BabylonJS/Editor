@@ -7,7 +7,7 @@ import { IStringDictionary, Nullable, Undefinable } from "../../shared/types";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName, MaybeElement } from "@blueprintjs/core";
+import { Toaster, Position, ProgressBar, Intent, Classes, IToastProps, IconName, MaybeElement, Pre } from "@blueprintjs/core";
 import { Layout, Model, TabNode, Rect, Actions } from "flexlayout-react";
 
 import {
@@ -952,9 +952,31 @@ export class Editor {
                 await SceneExporter.ExportFinalScene(this);
             }
 
+            let forceInstall = false;
+            
+            const editorVersion = this._packageJson.dependencies["@babylonjs/core"];
+            const matchesVersions = await WorkSpace.MatchesEditorBabylonJSMajorVersion(editorVersion);
+            if (!matchesVersions) {
+                forceInstall = await Confirm.Show("Update Babylon.JS Version", (
+                    <>
+                        <p>
+                            The major version of Babylon.JS used in this project is lower than the one used by the Editor.
+                            <br />
+                            Do you want to upgrade the Babylon.JS version of the project to match the one used by the Editor?
+                            Upgrading will trigger installation of dependencies and rebuild processes.
+                        </p>
+                        <Pre>New version: {editorVersion}</Pre>
+                    </>
+                ));
+
+                if (forceInstall) {
+                    await WorkSpace.MatchBabylonJSEditorVersion(editorVersion);
+                }
+            }
+
             const hasNodeModules = await pathExists(join(WorkSpace.DirPath!, "node_modules"));
             const hasPackageJson = await pathExists(join(WorkSpace.DirPath!, "package.json"));
-            if (!hasNodeModules && hasPackageJson) {
+            if (forceInstall || !hasNodeModules && hasPackageJson) {
                 await WorkSpace.InstallAndBuild(this);
             }
 

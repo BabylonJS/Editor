@@ -11,6 +11,7 @@ import { Terminal } from "xterm";
 import { Editor } from "../editor";
 
 import { Tools } from "../tools/tools";
+import { Semver } from "../tools/semver";
 import { EditorProcess, IEditorProcess } from "../tools/process";
 
 import { Overlay } from "../gui/overlay";
@@ -397,6 +398,72 @@ export class WorkSpace {
         }
 
         return this._WatchTypescriptProgram;
+    }
+
+    /**
+     * Returns wether or not the major Babylon.JS version of the project matches with the one of the editor.
+     * Checked at initialization time of the Editor.
+     * @param version defines the version of Babylon.JS being used by the editor.
+     */
+    public static async MatchesEditorBabylonJSMajorVersion(version: string): Promise<boolean> {
+        if (!this.DirPath) {
+            return true;
+        }
+
+        try {
+            const packageJson = await readJSON(join(this.DirPath, "package.json"), { encoding: "utf-8" });
+            const projectVersion = packageJson.dependencies?.["@babylonjs/core"] ?? packageJson.devDependencies?.["@babylonjs/core"];
+
+            const versionSemver = new Semver(version);
+            const projectSemver = new Semver(projectVersion);
+
+            return versionSemver.isSameMajorVersion(projectSemver);
+        } catch (e) {
+            // Catch silently
+        }
+
+        return true;
+    }
+
+    /**
+     * Configures the package.json file of the project to match the Babylon.JS version used in the editor.
+     * Checked at initialization time of the Editor.
+     * @param version defines the version of Babylon.JS being used by the editor.
+     */
+    public static async MatchBabylonJSEditorVersion(version: string): Promise<void> {
+        if (!this.DirPath) {
+            return;
+        }
+
+        try {
+            const packageJson = await readJSON(join(this.DirPath, "package.json"), { encoding: "utf-8" });
+            const dependenciesVersion = packageJson.dependencies?.["@babylonjs/core"];
+            const devDependenciesVersion = packageJson.devDependencies?.["@babylonjs/core"];
+
+            const modules = [
+                "@babylonjs/core",
+                "@babylonjs/gui",
+                "@babylonjs/loaders",
+                "@babylonjs/materials",
+                "@babylonjs/serializers",
+                "@babylonjs/post-processes",
+                "@babylonjs/procedural-textures",
+            ];
+
+            modules.forEach((m) => {
+                if (dependenciesVersion && packageJson.dependencies[m]) {
+                    packageJson.dependencies[m] = version;
+                }
+
+                if (devDependenciesVersion && packageJson.devDependencies[m]) {
+                    packageJson.devDependencies[m] = version;
+                }
+            });
+
+            await writeJSON(join(this.DirPath, "package.json"), packageJson, { encoding: "utf-8", spaces: "    " });
+        } catch (e) {
+            // Catch silently.
+        }
     }
 
     /**
