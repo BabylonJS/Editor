@@ -63,6 +63,7 @@ export class SceneExporter {
 		".env", ".dds",
 		".mp3", ".wav", ".ogg", ".wave",
 		".gui",
+		".json",
 	];
 
 	private static _IsExporting: boolean = false;
