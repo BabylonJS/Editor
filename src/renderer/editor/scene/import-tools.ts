@@ -156,7 +156,6 @@ export class SceneImporterTools {
         if (!(material instanceof MultiMaterial)) {
             if (configuration.isGltf) {
                 Overlay.Show("Configuring GLTF...");
-                material.sideOrientation = Material.ClockWiseSideOrientation;
             }
 
             const instantiatedMaterial = await this._GetEffectiveMaterial(material, configuration, force);

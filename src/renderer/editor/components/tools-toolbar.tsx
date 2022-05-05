@@ -81,8 +81,8 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
                 </ButtonGroup>
 
                 <ButtonGroup large={false} style={{ zIndex: 1, left: "50%", position: "absolute", transform: "translate(-50%)" }}>
-                    <Button style={{ width: "50px" }} disabled={this.state.playing.isLoading} icon={playIcon} onClick={() => this._buttonClicked("play-scene")} />
-                    <Button style={{ width: "50px" }} disabled={!this.state.playing.isPlaying || this.state.playing.isLoading} icon="reset" onClick={() => this._buttonClicked("restart-play-scene")} />
+                    <Button style={{ width: "50px" }} disabled={this.state.playing.isLoading} icon={playIcon} onClick={() => this._buttonClicked("play-scene")} />
+                    <Button style={{ width: "50px" }} disabled={!this.state.playing.isPlaying || this.state.playing.isLoading} icon="reset" onClick={() => this._buttonClicked("restart-play-scene")} />
                 </ButtonGroup>
             </div>
         );
@@ -100,8 +100,12 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
             case "run-my-browser-https": this._editor.runProject(EditorPlayMode.ExternalBrowser, true); break;
 
             case "generate": SceneExporter.ExportFinalScene(this._editor); break;
-            case "generate-final": SceneExporter.ExportFinalScene(this._editor, undefined, { forceRegenerateFiles: false, generateAllCompressedTextureFormats: true }); break;
+            case "generate-force": SceneExporter.ExportFinalScene(this._editor, undefined, { forceRegenerateFiles: true }); break;
+            case "generate-force-all": SceneExporter.ExportFinalScene(this._editor, undefined, { forceRegenerateFiles: true, forceRegenerateCompressedTextures: true }); break;
+
+            case "generate-final": SceneExporter.ExportFinalScene(this._editor, undefined, { generateAllCompressedTextureFormats: true }); break;
             case "generate-final-force": SceneExporter.ExportFinalScene(this._editor, undefined, { forceRegenerateFiles: true, generateAllCompressedTextureFormats: true }); break;
+
             case "generate-as": SceneExporter.ExportFinalSceneAs(this._editor); break;
             case "generate-only-geometries": SceneExporter.ExportFinalSceneOnlyGeometries(this._editor); break;
             case "build-project": WorkSpace.BuildProject(this._editor); break;
@@ -136,7 +140,11 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
     private _handleGenerateContextMenu(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text={<div>Generate Scene... <Tag intent={Intent.PRIMARY}>(CTRL+g)</Tag></div>} onClick={() => this._buttonClicked("generate")} />
+                <MenuItem text={<div>Generate Scene... <Tag intent={Intent.PRIMARY}>(CTRL+g)</Tag></div>} onClick={() => this._buttonClicked("generate")}>
+                    <MenuItem text="Generate..." onClick={() => this._buttonClicked("generate")} />
+                    <MenuItem text="Force Generate..." onClick={() => this._buttonClicked("generate-force")} />
+                    <MenuItem text="Force Generate All..." onClick={() => this._buttonClicked("generate-force-all")} />
+                </MenuItem>
                 <MenuItem text="Generate Final Scene..." onClick={() => this._buttonClicked("generate-final")}>
                     <MenuItem text="Generate..." onClick={() => this._buttonClicked("generate-final")} />
                     <MenuItem text="Force Regenerate..." onClick={() => this._buttonClicked("generate-final-force")} />

@@ -39,6 +39,10 @@ export interface IExportFinalSceneOptions {
 	 */
 	forceRegenerateFiles?: boolean;
 	/**
+	 * Defines wether or not all compressed textures should be regenerated.
+	 */
+	forceRegenerateCompressedTextures?: boolean;
+	/**
 	 * Defines wether or not all compressed texture formats should be generated.
 	 * Typically used when exporting final scene version.
 	 */
@@ -542,10 +546,10 @@ export class SceneExporter {
 					}));
 				} else {
 					const ktxFilename = KTXTools.GetKtxFileName(path, supportedTextureFormat);
-					if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
+					if (!options?.forceRegenerateCompressedTextures && await pathExists(ktxFilename)) {
 						continue;
 					}
-
+					
 					promises.push(KTXTools.CompressTexture(editor, child.path, destFilesDir, supportedTextureFormat));
 				}
 			}
