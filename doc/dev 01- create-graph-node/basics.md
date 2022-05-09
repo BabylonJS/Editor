@@ -12,11 +12,10 @@ In the Editor, all nodes have been redesigned in order to provide only useful no
 
 All nodes are available here: https://github.com/BabylonJS/Editor/tree/v4.2.0/src/renderer/editor/graph
 
-- The `node.ts` file contains the base class that ALL nodes will extend as it provides some useful functions alerady written for us.
-- The `graph.ts` file registers ALL available nodes. In the Graph Editor window, when searching for a node, the search box traverses the list of available nodes available in that file.
+* The `node.ts` file contains the base class that ALL nodes will extend as it provides some useful functions alerady written for us.
+* The `graph.ts` file registers ALL available nodes. In the Graph Editor window, when searching for a node, the search box traverses the list of available nodes available in that file.
 
 Let's create our first node:
-
 ```typescript
 import { AbstractMesh, Sound } from "babylonjs";
 import { LiteGraph } from "litegraph.js";
@@ -30,118 +29,111 @@ import { GraphNode, ICodeGenerationOutput } from "../node";
  * Also, we want this node to be trigerrable.
  */
 export class OurNode extends GraphNode {
-  /**
-   * Constructor.
-   * No argument allowed
-   */
-  public constructor() {
-    super("This is the name of our node drawn in the title bar");
+    /**
+     * Constructor.
+     * No argument allowed
+     */
+    public constructor() {
+        super("This is the name of our node drawn in the title bar");
 
-    // Let's add our first input which is the "trigger" pin
-    this.addInput(
-      "", // This is the name of the input. We don't really set a name for the trigger input as it is visually understandable.
-      LiteGraph.EVENT as any // "as any" is mandatory as litegraph.js still has problems in its typings.
-    );
-    // Now, our node is triggerrable!
+        // Let's add our first input which is the "trigger" pin
+        this.addInput(
+            "", // This is the name of the input. We don't really set a name for the trigger input as it is visually understandable.
+            LiteGraph.EVENT as any, // "as any" is mandatory as litegraph.js still has problems in its typings.
+        );
+        // Now, our node is triggerrable!
 
-    // Let's add the abstract mesh input
-    this.addInput(
-      "The mesh *", // Same, this is the name of the input.
-      "AbstractMesh" // Now the type of the input is "AbstractMesh". That means the user will be able to connect ONLY AbstractMesh references.
-    );
+        // Let's add the abstract mesh input
+        this.addInput(
+            "The mesh *", // Same, this is the name of the input.
+            "AbstractMesh", // Now the type of the input is "AbstractMesh". That means the user will be able to connect ONLY AbstractMesh references.
+        );
 
-    // Let's add the sound input (which is of type "Sound").
-    this.addInput("The sound *", "Sound");
+        // Let's add the sound input (which is of type "Sound").
+        this.addInput("The sound *", "Sound");
 
-    // For the outputs, this is the same.
-    this.addOutput("", LiteGraph.EVENT as any); // We add a trigger output so the user can chain his nodes in the graph.
-    this.addOutput("The mesh", "AbstractMesh");
-    this.addOutput("The sound", "Sound");
-  }
-
-  /**
-   * Executes the node once it has been triggerred.
-   * Or, if the node has no trigger input, the node is executed each frame.
-   * This function will be executed only when the user wants to test his graph in the
-   * Graph Editor window. In production, the node is translated to real typescript code. @see .generateCode
-   */
-  public execute(): void {
-    // Now we want to attach the sound to the mesh.
-
-    // Let's get the mesh reference:
-    const mesh = this.getInputData<AbstractMesh>(1);
-
-    // The parameter in the .getInputData defines the id of the slot (input) to get its data.
-    // Becase we have the trigger input as the first input, the index of the mesh is "1".
-    // That means for sound the index is "2".
-
-    // Let's do the same for sound:
-    const sound = this.getInputData<Sound>(2);
-
-    // Let's check availability:
-    if (!mesh || !sound) {
-      return;
+        // For the outputs, this is the same.
+        this.addOutput("", LiteGraph.EVENT as any); // We add a trigger output so the user can chain his nodes in the graph.
+        this.addOutput("The mesh", "AbstractMesh");
+        this.addOutput("The sound", "Sound");
     }
 
-    // Let's attach! (do the action).
-    sound.attachToMesh(mesh);
+    /**
+     * Executes the node once it has been triggerred.
+     * Or, if the node has no trigger input, the node is executed each frame.
+     * This function will be executed only when the user wants to test his graph in the
+     * Graph Editor window. In production, the node is translated to real typescript code. @see .generateCode
+     */
+    public execute(): void {
+        // Now we want to attach the sound to the mesh.
 
-    // Once attached (the action is done). Let's configure the outputs of the node.
-    this.setOutputData(
-      1, // Defines the index of the output (here "1" because we have the trigger output)
-      mesh
-    );
+        // Let's get the mesh reference:
+        const mesh = this.getInputData<AbstractMesh>(1);
 
-    // Same for sound.
-    this.setOutputData(2, sound);
+        // The parameter in the .getInputData defines the id of the slot (input) to get its data.
+        // Becase we have the trigger input as the first input, the index of the mesh is "1".
+        // That means for sound the index is "2".
 
-    // Now, the node has been configured, let's trigger its children!
-    this.triggerSlot(0, null);
-  }
+        // Let's do the same for sound:
+        const sound = this.getInputData<Sound>(2);
 
-  /**
-   * Generates the code. This function is called each time the user saves or generates the final scene in the Editor.
-   * Arguments are passed automatically according to the order of the node's inputs. The trigger inputs are ignored.
-   */
-  public generateCode(
-    mesh: ICodeGenerationOutput,
-    sound: ICodeGenerationOutput
-  ): ICodeGenerationOutput {
-    return {
-      type: CodeGenerationOutputType.Function, // Defines the type of the node. This is a function node.
-      code: `${sound.code}.attachToMesh(${mesh.code})`, // Defines the code generated by the node.
-      outputsCode: [
-        // Defines the list of all
-        { code: undefined }, // Trigger output is not ignored here, we must set undefined.
-        { code: mesh.code }, // We just output the mesh
-        { code: sound.code }, // We just output the sound
+        // Let's check availability:
+        if (!mesh || !sound) { return; }
 
-        // Just an example here, but is we want to output the name of the sound here (having a "string" output slot create in the constructor)
-        // it would be:
-        { code: `${sound.code}.name` },
-      ],
-    };
-  }
+        // Let's attach! (do the action).
+        sound.attachToMesh(mesh);
+
+        // Once attached (the action is done). Let's configure the outputs of the node.
+        this.setOutputData(
+            1, // Defines the index of the output (here "1" because we have the trigger output)
+            mesh,
+        );
+
+        // Same for sound.
+        this.setOutputData(2, sound);
+
+        // Now, the node has been configured, let's trigger its children!
+        this.triggerSlot(0, null);
+    }
+
+    /**
+     * Generates the code. This function is called each time the user saves or generates the final scene in the Editor.
+     * Arguments are passed automatically according to the order of the node's inputs. The trigger inputs are ignored.
+     */
+    public generateCode(mesh: ICodeGenerationOutput, sound: ICodeGenerationOutput): ICodeGenerationOutput {
+        return {
+            type: CodeGenerationOutputType.Function, // Defines the type of the node. This is a function node.
+            code: `${sound.code}.attachToMesh(${mesh.code})`, // Defines the code generated by the node.
+            outputsCode: [ // Defines the list of all 
+                { code: undefined }, // Trigger output is not ignored here, we must set undefined.
+                { code: mesh.code }, // We just output the mesh
+                { code: sound.code }, // We just output the sound
+
+                // Just an example here, but is we want to output the name of the sound here (having a "string" output slot create in the constructor)
+                // it would be:
+                { code: `${sound.code}.name` },
+            ],
+        };
+    }
 }
+
 ```
 
 ## Registering The Node
-
 In the `graph.ts` file, we can register our node:
-
 ```typescript
 import { OurNode } from "./custom/ourNode";
 
 export class GraphCode {
     ...
-
+    
     public static Init(): void {
         ...
 
         const category = "custom";
         const name = "our_node";
         LiteGraph.registerNodeType(
-            // For the example, but can be a plain string like "custom/our_node". Underscores ("_") are used to create spaces in the name of the node when searching for a node
+            // For the example, but can be a plain string like "custom/our_node". Underscores ("_") are used to create spaces in the name of the node when searching for a node 
             // in the Graph Editor window's search box.
             `${category}/${name}`,
             // Give the reference to the constructor of the node.
@@ -158,30 +150,28 @@ That's all! We can now use the "OurNode" in the Graph Editor.
 
 ## Some useful functions in the GraphNode class
 
-- .focusOn: focuses on the node in the Graph Editor window
-- .isInputConnected(slotId): returns wether or not the input at the index "slot" is connected.
-- .isOutputConnected(slotId): same but for outputs
+* .focusOn: focuses on the node in the Graph Editor window
+* .isInputConnected(slotId): returns wether or not the input at the index "slot" is connected.
+* .isOutputConnected(slotId): same but for outputs
 
-Don't hesitate to have a look the code of all existing nodes. Except for variables, all nodes
+Don't hesitate to have a look the code of all existing nodes. Except for variables, all nodes 
 
 ## List Of Already Existing Input/Output Types
-
 The types in the Graph Editor are following the names of the classes in Babylon.JS and TypeScript.
-
-- number
-- string
-- boolean
-- Vector2
-- Vector3
-- Node
-- TransformNode
-- Camera
-- Mesh
-- AbstractMesh
-- Sound
-- Light
-- AnimationGroup
-- PickInfo
+* number
+* string
+* boolean
+* Vector2
+* Vector3
+* Node
+* TransformNode
+* Camera
+* Mesh
+* AbstractMesh
+* Sound
+* Light
+* AnimationGroup
+* PickInfo
 
 ## Working With Properties
 
