@@ -10,7 +10,7 @@ In the Editor, all nodes have been redesigned in order to provide only useful no
 
 ## Creating First Node
 
-All nodes are available here: https://github.com/BabylonJS/Editor/tree/release/4.0.0/src/renderer/editor/graph
+All nodes are available here: https://github.com/BabylonJS/Editor/tree/v4.2.0/src/renderer/editor/graph
 
 * The `node.ts` file contains the base class that ALL nodes will extend as it provides some useful functions alerady written for us.
 * The `graph.ts` file registers ALL available nodes. In the Graph Editor window, when searching for a node, the search box traverses the list of available nodes available in that file.
