@@ -145,6 +145,13 @@ export class Tools {
     }
 
     /**
+     * Waits for the next animation frame.
+     */
+    public static WaitNextAnimationFrame(): Promise<void> {
+        return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+
+    /**
      * Returns the given array by keeping only distinct values.
      * @param array the array to filter.
      */
