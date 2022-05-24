@@ -42,6 +42,10 @@ export interface IScript {
      */
     onInitialize?(): void;
     /**
+     * Called on the node has been fully initialized and is ready.
+     */
+    onInitialized?(): void;
+    /**
      * Called on the scene starts.
      */
     onStart?(): void;
@@ -261,6 +265,13 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
             }
         }
 
+        // Materials
+        const materialLinks = (e.default as any)._MaterialsValues ?? [];
+        for (const link of materialLinks) {
+            const m = scene.getMaterialByName(link.nodeName);
+            n[link.propertyKey] = m;
+        }
+
         // Check pointer events
         const pointerEvents = (e.default as any)._PointerValues ?? [];
         for (const event of pointerEvents) {
@@ -294,6 +305,9 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
         }
 
         delete n.metadata.script;
+
+        // Tell the script it has is ready
+        n.onInitialized?.();
     }
 
     dummyScene.dispose();

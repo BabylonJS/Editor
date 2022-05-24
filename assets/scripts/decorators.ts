@@ -127,6 +127,21 @@ export function fromSounds(soundName?: string, type?: "global" | "spatial"): any
 }
 
 /**
+ * Sets the decorated member linked to a material.
+ * @param materialName defines the name of the material to retrieve.
+ */
+export function fromMaterials(materialName?: string): any {
+    return (target: any, propertyKey: string | symbol) => {
+        const ctor = target.constructor;
+        ctor._MaterialsValues = ctor._MaterialsValues ?? [];
+        ctor._MaterialsValues.push({
+            propertyKey: propertyKey.toString(),
+            nodeName: materialName ?? propertyKey.toString(),
+        });
+    };
+}
+
+/**
  * Sets the decorated member function to be called on the given pointer event is fired.
  * @param type the event type to listen to execute the decorated function.
  * @param onlyWhenMeshPicked defines wether or not the decorated function should be called only when the mesh is picked. default true.
