@@ -429,7 +429,7 @@ export function attachTransformNodesToBones(scene: Scene): void {
  * @param scriptPath defines the path to the script to attach (available as a key in the exported "scriptsMap" map).
  * @param object defines the reference to the object (node or scene) to attach the script to.
  */
-export function attachScriptToNodeAtRuntime(scriptPath: keyof ISceneScriptMap, object: Node | Scene): any {
+export function attachScriptToNodeAtRuntime<T extends (Node | Scene)>(scriptPath: keyof ISceneScriptMap, object: Node | Scene): T {
     const scriptsMap = require("./scripts-map").scriptsMap;
 
     object.metadata = object.metadata ?? {};
@@ -437,6 +437,8 @@ export function attachScriptToNodeAtRuntime(scriptPath: keyof ISceneScriptMap, o
     object.metadata.script.name = scriptPath;
 
     requireScriptForNodes(object instanceof Scene ? object : object.getScene(), scriptsMap, [object]);
+
+    return object as T;
 }
 
 /**
