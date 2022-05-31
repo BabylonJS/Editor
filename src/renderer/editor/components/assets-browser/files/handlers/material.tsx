@@ -96,11 +96,19 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 			</>
 		) : undefined;
 
+		const addMaterial = existingMaterial ? undefined : (
+			<>
+				<MenuDivider />
+				<MenuItem text="Add Material To Scene" icon={<BPIcon icon="plus" color="white" />} onClick={() => this._handleAddMaterialToScene()} />
+			</>
+		);
+
 		ContextMenu.show((
 			<Menu>
 				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => {
 					this.props.editor.assetsBrowser._callSelectedItemsMethod("_handleRefreshPreview");
 				}} />
+				{addMaterial}
 				<MenuDivider />
 				{nodeMaterialEditItems}
 				{this.getCommonContextMenuItems()}
@@ -218,6 +226,14 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 			},
 		});
 
+		await this.props.editor.assets.refresh();
+	}
+
+	/**
+	 * Adds the current material to the scene.
+	 */
+	private async _handleAddMaterialToScene(): Promise<void> {
+		await this._readAndParseMaterialFile();
 		await this.props.editor.assets.refresh();
 	}
 
