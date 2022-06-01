@@ -48,11 +48,11 @@ export class ProjectRenamer {
         await rename(Project.DirPath, join(WorkSpace.DirPath, "projects", name));
 
         // Rename scene's folder
-        const sceneFolder = join(WorkSpace.DirPath, "scenes", projectName);
+        const sceneFolder = join(WorkSpace.DirPath, WorkSpace.OutputSceneDirectory, "scenes", projectName);
         const sceneFolderExists = await pathExists(sceneFolder);
         if (sceneFolderExists) {
             try {
-                await rename(sceneFolder, join(WorkSpace.DirPath, "scenes", name));
+                await rename(sceneFolder, join(WorkSpace.DirPath, WorkSpace.OutputSceneDirectory, "scenes", name));
             } catch (e) {
                 return this._Rename(editor, originalname, originalname);
             }

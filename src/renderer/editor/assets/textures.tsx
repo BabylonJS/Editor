@@ -272,7 +272,7 @@ export class TextureAssets extends AbstractAssets {
         ContextMenu.show(
             <Menu className={Classes.DARK}>
                 <MenuItem text="Copy Name" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(texture.name, "clipboard")} />
-                <MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(`./scenes/${WorkSpace.GetProjectName()}/${texture.name}`, "clipboard")} />
+                <MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(`./${WorkSpace.OutputSceneDirectory || "."}/scenes/${WorkSpace.GetProjectName()}/${texture.name}`, "clipboard")} />
                 <MenuItem text="Show In Assets Browser" icon={<BPIcon icon="document-open" color="white" />} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(texture.name)} />
                 <MenuDivider />
                 {/* <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {

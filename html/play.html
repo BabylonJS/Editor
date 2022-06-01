@@ -35,7 +35,12 @@
 		window.addEventListener("message", function (ev) {
 			if (ev.data && ev.data.id === "init") {
 				const play = require("../build/src/renderer/play/index.js");
-				const game = new play.default(ev.data.workspaceDir, ev.data.projectName, ev.data.physicsEngine);
+				const game = new play.default(
+					ev.data.workspaceDir,
+					ev.data.outputSceneDirectory,
+					ev.data.projectName,
+					ev.data.physicsEngine,
+				);
 			}
 		});
 	</script>

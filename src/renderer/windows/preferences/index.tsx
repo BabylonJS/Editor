@@ -49,7 +49,11 @@ export interface IPreferencesWindowState {
 }
 
 export default class PreferencesWindow extends React.Component<{}, IPreferencesWindowState> {
-	private _workspacePath: Nullable<string> = null;
+	/**
+	 * Defines the absolute path to the workspace file.
+	 */
+	public workspacePath: Nullable<string> = null;
+
 	private _panels: IStringDictionary<React.JSXElementConstructor<IPreferencesPanelProps>> = {
 		"workspace": WorkspacePreferencesPanel,
 		"editor": EditorPreferencesPanel,
@@ -80,22 +84,24 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 	 * @param workspaePath defines the path to the workspace file.
 	 */
 	public async init(workspaePath?: string): Promise<void> {
-		this._workspacePath = workspaePath ?? null;
+		this.workspacePath = workspaePath ?? null;
 
 		TouchBarHelper.SetTouchBarElements([]);
 
-		if (this._workspacePath) {
-			this.setState({ workspace: await readJSON(this._workspacePath, { encoding: "utf-8" }) });
+		if (this.workspacePath) {
+			this.setState({
+				workspace: await readJSON(this.workspacePath, { encoding: "utf-8" }),
+			});
 		}
 
 		this.setState({
 			categories: [
-				{ id: "workspace", label: "Workspace", disabled: this._workspacePath === null },
+				{ id: "workspace", label: "Workspace", disabled: this.workspacePath === null },
 				{ id: "editor", label: "Editor", isSelected: true },
 				{ id: "plugins", label: "Plugins" },
-				{ id: "assets", label: "Assets", isExpanded: true, disabled: this._workspacePath === null, childNodes: [
-					{ id: "assets/geometries", label: "Geometries", disabled: this._workspacePath === null },
-					{ id: "assets/textures", label: "Textures", disabled: this._workspacePath === null },
+				{ id: "assets", label: "Assets", isExpanded: true, disabled: this.workspacePath === null, childNodes: [
+					{ id: "assets/geometries", label: "Geometries", disabled: this.workspacePath === null },
+					{ id: "assets/textures", label: "Textures", disabled: this.workspacePath === null },
 				] }
 			],
 		});
@@ -179,8 +185,8 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 	private async _handleApply(): Promise<void> {
 		try {
 			// Workspace
-			if (this._workspacePath && this.state.workspace) {
-				await writeJSON(this._workspacePath, this.state.workspace, { encoding: "utf-8", spaces: "\t" });
+			if (this.workspacePath && this.state.workspace) {
+				await writeJSON(this.workspacePath, this.state.workspace, { encoding: "utf-8", spaces: "\t" });
 				await IPCTools.ExecuteEditorFunction("_refreshWorkSpace");
 			}
 

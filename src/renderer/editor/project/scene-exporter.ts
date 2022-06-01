@@ -321,7 +321,7 @@ export class SceneExporter {
 	 */
 	public static GetExportedSceneLocation(): string {
 		const projectName = basename(dirname(WorkSpace.Workspace!.lastOpenedScene));
-		return join(WorkSpace.DirPath!, "scenes", projectName);
+		return join(WorkSpace.DirPath!, WorkSpace.OutputSceneDirectory, "scenes", projectName);
 	}
 
 	/**
@@ -343,9 +343,9 @@ export class SceneExporter {
 		await editor.console.logInfo("Serializing scene...");
 		const scene = SceneExporter.GetFinalSceneJson(editor);
 
-		const assetsPath = join(WorkSpace.DirPath!, "scenes/_assets");
+		const assetsPath = join(WorkSpace.DirPath!, WorkSpace.OutputSceneDirectory, "scenes/_assets");
 
-		await FSTools.CreateDirectory(join(WorkSpace.DirPath!, "scenes"));
+		await FSTools.CreateDirectory(join(WorkSpace.DirPath!, WorkSpace.OutputSceneDirectory, "scenes"));
 		await FSTools.CreateDirectory(assetsPath);
 
 		const scenePath = options?.destPath ?? this.GetExportedSceneLocation();

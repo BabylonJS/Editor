@@ -601,7 +601,7 @@ export class ProjectExporter {
      */
     public static async ListExportedFiles(): Promise<{ scenePath: string; filesPaths: string[]; incrementalFiles: string[]; }> {
         const projectName = basename(dirname(WorkSpace.Workspace!.lastOpenedScene));
-        const projectDir = join(WorkSpace.DirPath!, "scenes", projectName);
+        const projectDir = join(WorkSpace.DirPath!, WorkSpace.OutputSceneDirectory, "scenes", projectName);
 
         const scenePath = join(projectDir, "scene.babylon");
         const filesPaths = (await readdir(join(projectDir, "files"))).map((f) => join(projectDir, "files", f));

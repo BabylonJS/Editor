@@ -16,7 +16,7 @@ export default class Play {
 	 * Constructor.
 	 * @param rootUrl 
 	 */
-	public constructor(public workspaceDir: string, public projectName: string, public physicsEngine: string) {
+	public constructor(public workspaceDir: string, public outputSceneDirectory, public projectName: string, public physicsEngine: string) {
 		this._engine = new Engine(document.getElementById("renderCanvas") as HTMLCanvasElement, true);
 		this._scene = new Scene(this._engine);
 
@@ -46,7 +46,8 @@ export default class Play {
 
 		SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 
-		SceneLoader.Append(rootUrl, `../scenes/${this.projectName}/scene.babylon`, this._scene, () => {
+		const filename = join("../", this.outputSceneDirectory,  `scenes/${this.projectName}/scene.babylon`);
+		SceneLoader.Append(rootUrl, filename, this._scene, () => {
 			this._scene.executeWhenReady(() => {
 				this._run(rootUrl);
 			});
@@ -67,7 +68,7 @@ export default class Play {
 		this._scene.activeCamera.attachControl(this._engine.getRenderingCanvas(), false);
 
 		// Run the scene to attach scripts etc.
-		const sceneTools = require(join(this.workspaceDir, "build/src/scenes", this.projectName, "index.js"));
+		const sceneTools = require(join(this.workspaceDir, "build/src/scenes/tools.js"));
 		sceneTools.runScene(this._scene, rootUrl);
 
 		// Render.

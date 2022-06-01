@@ -948,7 +948,7 @@ export class Editor {
             WebpackProgressExtension.Initialize(this);
 
             // First load?
-            if (!(await pathExists(join(WorkSpace.DirPath!, "scenes", WorkSpace.GetProjectName())))) {
+            if (!(await pathExists(join(WorkSpace.DirPath!, WorkSpace.OutputSceneDirectory, "scenes", WorkSpace.GetProjectName())))) {
                 await SceneExporter.ExportFinalScene(this);
             }
 

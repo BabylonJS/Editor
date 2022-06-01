@@ -37,7 +37,7 @@ export class ScenePlayer {
         this._scene = new Scene(this._editor.engine!);
 
         const rootUrl = join(WorkSpace.DirPath!, "assets/");
-        const filename = join("../scenes", WorkSpace.GetProjectName(), "scene.babylon");
+        const filename = join("../", WorkSpace.OutputSceneDirectory, "scenes", WorkSpace.GetProjectName(), "scene.babylon");
 
         this._requirePhysicsEngine();
 

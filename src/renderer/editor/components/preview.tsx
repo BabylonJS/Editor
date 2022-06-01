@@ -297,7 +297,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         }
 
         await SceneExporter.ExportFinalScene(this._editor, undefined, {
-            geometryRootPath: this.state.isPlayingInIframe ? undefined : join("../scenes", WorkSpace.GetProjectName(), "/"),
+            geometryRootPath: this.state.isPlayingInIframe ? undefined : join("../", WorkSpace.OutputSceneDirectory, "scenes", WorkSpace.GetProjectName(), "/"),
         });
 
         if (isPlayingInIframe) {
@@ -654,6 +654,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             workspaceDir: WorkSpace.DirPath!,
             projectName: WorkSpace.GetProjectName(),
             physicsEngine: WorkSpace.Workspace!.physicsEngine,
+            outputSceneDirectory: WorkSpace.OutputSceneDirectory,
         }, undefined!);
 
         window.addEventListener("message", this._playMessageEventListener = (ev) => {

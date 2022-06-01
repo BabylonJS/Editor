@@ -85,6 +85,7 @@ export class WorkSpace {
         const json = await readJSON(path, { encoding: "utf-8" }) as IWorkSpace;
 
         json.packageManager ??= "npm";
+        json.outputSceneDirectory ??= "";
 
         this.Path = path;
         this.DirPath = join(dirname(path), "/");
@@ -127,6 +128,7 @@ export class WorkSpace {
             physicsEngine: this.Workspace!.physicsEngine,
             pluginsPreferences,
             packageManager: this.Workspace!.packageManager,
+            outputSceneDirectory: this.Workspace!.outputSceneDirectory,
             playProjectInIFrame: this.Workspace!.playProjectInIFrame,
             https: this.Workspace!.https ?? {
                 enabled: false,
@@ -155,6 +157,13 @@ export class WorkSpace {
             spaces: "\t",
             encoding: "utf-8",
         });
+    }
+
+    /**
+     * Returns the relative path to the directory where the output scene should be written.
+     */
+    public static get OutputSceneDirectory(): string {
+        return this.Workspace?.outputSceneDirectory ?? "";
     }
 
     /**

@@ -58,6 +58,12 @@ export interface IWorkSpace {
      * Can be npm or yarn.
      */
     packageManager: PackageManagerType;
+    /**
+     * Defines the custom directory where to generate the output scenes. By default,
+     * the value is the working directory of the workspace.
+     * @default "./"
+     */
+    outputSceneDirectory: string;
 
     /**
      * Defines wether or not the project should be played in an isolated iFrame in the preview
