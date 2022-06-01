@@ -82,7 +82,9 @@ export class WorkSpace {
      * @param path the absolute path of the workspace file.
      */
     public static async ReadWorkSpaceFile(path: string): Promise<Nullable<IWorkSpace>> {
-        const json = await readJSON(path, { encoding: "utf-8" });
+        const json = await readJSON(path, { encoding: "utf-8" }) as IWorkSpace;
+
+        json.packageManager ??= "npm";
 
         this.Path = path;
         this.DirPath = join(dirname(path), "/");
@@ -124,6 +126,7 @@ export class WorkSpace {
             watchProject: this.Workspace!.watchProject,
             physicsEngine: this.Workspace!.physicsEngine,
             pluginsPreferences,
+            packageManager: this.Workspace!.packageManager,
             playProjectInIFrame: this.Workspace!.playProjectInIFrame,
             https: this.Workspace!.https ?? {
                 enabled: false,
@@ -231,7 +234,7 @@ export class WorkSpace {
         if (!this.Workspace) { return; }
 
         await EditorProcess.RegisterProcess(editor, "npm install", {
-            command: "npm install --verbose",
+            command: `${this.Workspace.packageManager} install`,
             cwd: WorkSpace.DirPath!,
             terminal: this.WebpackTerminal,
         })?.wait();
@@ -252,7 +255,7 @@ export class WorkSpace {
             await EditorProcess.RegisterProcess(editor, "npm build", {
                 cwd: WorkSpace.DirPath!,
                 terminal: this.WebpackTerminal,
-                command: "npm run build -- --progress",
+                command: `${this.Workspace.packageManager} run build -- --progress`,
             })?.wait();
             editor.updateTaskFeedback(task, 100, "Done!");
         } catch (e) {
@@ -278,7 +281,7 @@ export class WorkSpace {
             await EditorProcess.RegisterProcess(editor, "npm build", {
                 cwd: WorkSpace.DirPath!,
                 terminal: this.WebpackTerminal,
-                command: "npm run build -- --progress",
+                command: `${this.Workspace.packageManager} run build -- --progress`,
             })?.wait();
             editor.updateTaskFeedback(task, 100, "Done!");
         } catch (e) {

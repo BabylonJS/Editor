@@ -263,17 +263,17 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
     }
 
     /**
-     * Updates the workspace settings on 
+     * Updates the workspace settings for the newly creted project according
+     * tot the options selected in the wizard panels.
      */
-    private async _updateWorkspaceSettings(worksapcePath: string): Promise<void> {
-        const workspace = await readJSON(worksapcePath, { encoding: "utf-8" }) as IWorkSpace;
+    private async _updateWorkspaceSettings(workspacePath: string): Promise<void> {
+        const workspace = await readJSON(workspacePath, { encoding: "utf-8" }) as IWorkSpace;
+
         workspace.serverPort = this._wizard1.state.serverPort;
         workspace.watchProject = this._wizard1.state.watchWorkspaceWithWebPack;
+        workspace.packageManager = this._wizard1.state.useYarnInsteadOfNpm ? "yarn" : "npm";
 
-        await writeJson(worksapcePath, workspace, {
-            encoding: "utf-8",
-            spaces: "\t",
-        });
+        await writeJson(workspacePath, workspace, { encoding: "utf-8", spaces: "\t" });
     }
 
     /**

@@ -8,6 +8,12 @@ import { KTXToolsType } from "../tools/ktx";
  */
 export type PhysicsEngineType = "cannon" | "oimo" | "ammo";
 
+/**
+ * Defines the values of available package managers than can be used by
+ * the editor for each workspace. The default value is "npm".
+ */
+export type PackageManagerType = "npm" | "yarn";
+
 export interface IWorkSpace {
     /**
      * Defines the version of the Editor that handled the project.
@@ -46,6 +52,12 @@ export interface IWorkSpace {
      * Defines the dictionary that contains the preferences of external plugins in the editor.
      */
     pluginsPreferences?: Undefinable<IStringDictionary<any>>;
+
+    /**
+     * Defines the package manager used by the project.
+     * Can be npm or yarn.
+     */
+    packageManager: PackageManagerType;
 
     /**
      * Defines wether or not the project should be played in an isolated iFrame in the preview
