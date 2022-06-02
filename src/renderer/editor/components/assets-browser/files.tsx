@@ -667,7 +667,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 			name += ".ps";
 		}
 
-		const relativePath = this.state.currentDirectory.replace(join(this._assetsDirectory, "/"), "");
+		const relativePath = join(this.state.currentDirectory, "/").replace(join(this._assetsDirectory, "/"), "");
 
 		ps["metadata"] ??= {};
 		ps["metadata"].editorPath = join(relativePath, name);
