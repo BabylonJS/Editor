@@ -1,5 +1,5 @@
-import { join } from "path";
 import { ipcRenderer } from "electron";
+import { dirname, extname, join } from "path";
 import { readJSON, writeJSON } from "fs-extra";
 
 import { IPCResponses } from "../../../../../../shared/ipc";
@@ -11,6 +11,7 @@ import { Spinner, ContextMenu, Menu, MenuItem, MenuDivider, Icon as BPIcon } fro
 import { PickingInfo, Mesh, Material, NodeMaterial, AbstractMesh } from "babylonjs";
 
 import { Icon } from "../../../../gui/icon";
+import { Dialog } from "../../../../gui/dialog";
 import { InspectorNotifier } from "../../../../gui/inspector/notifier";
 
 import { Tools } from "../../../../tools/tools";
@@ -110,6 +111,8 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 				}} />
 				{addMaterial}
 				<MenuDivider />
+				<MenuItem text="Clone..." icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneMaterialFile()} />
+				<MenuDivider />
 				{nodeMaterialEditItems}
 				{this.getCommonContextMenuItems()}
 			</Menu>
@@ -117,6 +120,31 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 			top: ev.clientY,
 			left: ev.clientX,
 		});
+	}
+
+	/**
+	 * Called on the user wants to clone the material file.
+	 */
+	private async _handleCloneMaterialFile(): Promise<void> {
+		let newName = await Dialog.Show("Cloned Material Name", "Please provide a new name for the cloned material file");
+		
+		const extension = extname(newName).toLowerCase();
+		if (extension !== ".material") {
+			newName += ".material";
+		}
+
+		const relativePath = join(dirname(this.props.relativePath), newName);
+		const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
+		
+		json.id = Tools.RandomId();
+		json.name = newName.replace(".material", "");
+
+		json.metadata ??= {};
+		json.metadata.editorPath = relativePath;
+
+		await writeJSON(join(this.props.editor.assetsBrowser.assetsDirectory, relativePath), json, { encoding: "utf-8" });
+		
+		this.props.editor.assetsBrowser.refresh();
 	}
 
 	/**
