@@ -121,6 +121,8 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
     const dummyScene = new Scene(scene.getEngine(), { virtual: true });
     const initializedNodes: { node: Node | Scene; exports: any; }[] = [];
 
+    const engine = scene.getEngine();
+
     // Initialize nodes
     for (const n of nodes as ((Scene | Node) & IScript)[]) {
         if (!n.metadata || !n.metadata.script || !n.metadata.script.name || n.metadata.script.name === "None") { continue; }
@@ -244,7 +246,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
         // Check particle systems
         const particleSystemLinks = (e.default as any)._ParticleSystemValues ?? [];
         for (const link of particleSystemLinks) {
-            const ps = scene.particleSystems.filter((ps) => ps.emitter === n && ps.name === link.particleSystemName)[0];
+            const ps = scene.particleSystems.find((ps) => ps.name === link.particleSystemName);
             n[link.propertyKey] = ps;
         }
 
@@ -275,7 +277,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
         // Check pointer events
         const pointerEvents = (e.default as any)._PointerValues ?? [];
         for (const event of pointerEvents) {
-            scene.onPointerObservable.add((e) => {
+            const observer = scene.onPointerObservable.add((e) => {
                 if (e.type !== event.type) { return; }
                 if (!event.onlyWhenMeshPicked) { return n[event.propertyKey](e); }
 
@@ -283,12 +285,14 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
                     n[event.propertyKey](e);
                 }
             });
+
+            n.onDisposeObservable.addOnce(() => scene.onPointerObservable.remove(observer));
         }
 
         // Check keyboard events
         const keyboardEvents = (e.default as any)._KeyboardValues ?? [];
         for (const event of keyboardEvents) {
-            scene.onKeyboardObservable.add((e) => {
+            const observer = scene.onKeyboardObservable.add((e) => {
                 if (event.type && e.type !== event.type) { return; }
 
                 if (!event.keys.length) { return n[event.propertyKey](e); }
@@ -297,6 +301,18 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
                     n[event.propertyKey](e);
                 }
             });
+
+            n.onDisposeObservable.addOnce(() => scene.onKeyboardObservable.remove(observer));
+        }
+
+        // Check resize events
+        const resizeEvents = (e.default as any)._ResizeValues ?? [];
+        for (const event of resizeEvents) {
+            const observer = engine.onResizeObservable.add((e) => {
+                n[event.propertyKey](e.getRenderWidth(), e.getRenderHeight());
+            });
+
+            n.onDisposeObservable.addOnce(() => engine.onResizeObservable.remove(observer));
         }
 
         // Retrieve impostors

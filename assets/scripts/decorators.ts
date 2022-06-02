@@ -181,3 +181,23 @@ export function onKeyboardEvent(key: number | number[] | string | string[], type
         });
     };
 }
+
+/**
+ * Sets the decorated member function to be called each time the engine is resized.
+ * The decorated function can take 2 arguments:
+ *  - width: number defines the new width
+ *  - height: number defines the new height
+ */
+export function onEngineResize(): any {
+    return (target: any, propertyKey: string | symbol) => {
+        if (typeof(target[propertyKey]) !== "function") {
+            throw new Error(`Decorated propery "${propertyKey.toString()}" in class "${target.constructor.name}" must be a function.`);
+        }
+
+        const ctor = target.constructor;
+        ctor._ResizeValues = ctor._ResizeValues ?? [];
+        ctor._ResizeValues.push({
+            propertyKey: propertyKey.toString(),
+        });
+    };
+}
