@@ -947,6 +947,9 @@ export class Editor {
             // Extensions
             WebpackProgressExtension.Initialize(this);
 
+            // Update title
+            document.title += ` - ${WorkSpace.DirPath!}`;
+
             // First load?
             if (!(await pathExists(join(WorkSpace.DirPath!, WorkSpace.OutputSceneDirectory, "scenes", WorkSpace.GetProjectName())))) {
                 await SceneExporter.ExportFinalScene(this);
