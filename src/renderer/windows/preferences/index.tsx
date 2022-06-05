@@ -193,6 +193,7 @@ export default class PreferencesWindow extends React.Component<{}, IPreferencesW
 			// Preferences
 			localStorage.setItem("babylonjs-editor-preferences", JSON.stringify(this.state.editor));
 			await IPCTools.ExecuteEditorFunction("_applyPreferences");
+			await IPCTools.ExecuteEditorFunction("_applyPreferencesPlugins");
 
 			this._toaster?.show({
 				timeout: 1000,

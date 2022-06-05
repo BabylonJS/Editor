@@ -206,10 +206,12 @@ export class EditorProcess {
 	 * Executes the given command and returns the reference to the newly created editor process object.
 	 * @param command defines the command to execute in the terminal process.
 	 * @param readonly defines wether or not the terminal process is in read-only.
+	 * @param cwd defines the absolute path to the working directory where to process will be executed.
 	 * @returns the newly created editor process object that contains the terminal, process, etc.
 	 */
-	public static ExecuteCommand(command: string, readonly: boolean = true): Nullable<IEditorProcess> {
+	public static ExecuteCommand(command: string, readonly: boolean = true, cwd?: string): Nullable<IEditorProcess> {
 		return this.RegisterProcess(null, Tools.RandomId(), {
+			cwd,
 			command,
 			readonly,
 		});

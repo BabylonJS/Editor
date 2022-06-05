@@ -130,6 +130,7 @@ export class WorkSpace {
             packageManager: this.Workspace!.packageManager,
             outputSceneDirectory: this.Workspace!.outputSceneDirectory,
             playProjectInIFrame: this.Workspace!.playProjectInIFrame,
+            plugins: this.Workspace!.plugins,
             https: this.Workspace!.https ?? {
                 enabled: false,
             },

@@ -404,9 +404,13 @@ export class Editor {
                 Editor.LoadedPlugins = JSON.parse(loadedPluginsItem);
                 for (const key in Editor.LoadedPlugins) {
                     const name = Editor.LoadedPlugins[key].name;
-                    const plugin = Editor.LoadedPlugins[key].fullPath ? require(name) : require(`../tools/${name}`);
 
-                    this._components[name] = <plugin.default editor={this} id={plugin.title} />;
+                    try {
+                        const plugin = Editor.LoadedPlugins[key].fullPath ? require(name) : require(`../tools/${name}`);
+                        this._components[name] = <plugin.default editor={this} id={plugin.title} />;
+                    } catch (e) {
+                        // Catch silently.
+                    }
                 }
             }
         } catch (e) {
@@ -919,25 +923,6 @@ export class Editor {
         this._isInitialized = true;
 
         const workspace = WorkSpace.Workspace;
-        if (workspace) {
-            // Plugins
-            for (const p in workspace.pluginsPreferences ?? {}) {
-                const plugin = Editor.LoadedExternalPlugins[p];
-                if (!plugin?.setWorkspacePreferences) { continue; }
-
-                const preferences = workspace.pluginsPreferences![p];
-
-                try {
-                    plugin.setWorkspacePreferences(preferences);
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-        }
-
-        // Notify!
-        this.editorInitializedObservable.notifyObservers();
-        this.selectedSceneObservable.notifyObservers(this.scene!);
 
         // If has workspace, od workspace stuffs.
         if (workspace) {
@@ -992,7 +977,30 @@ export class Editor {
             }
         }
 
+        // Apply plugins
+        this._applyPreferencesPlugins();
+
+        if (workspace) {
+            // Plugins
+            for (const p in workspace.pluginsPreferences ?? {}) {
+                const plugin = Editor.LoadedExternalPlugins[p];
+                if (!plugin?.setWorkspacePreferences) { continue; }
+
+                const preferences = workspace.pluginsPreferences![p];
+
+                try {
+                    plugin.setWorkspacePreferences(preferences);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
         this._isProjectReady = true;
+
+        // Notify!
+        this.editorInitializedObservable.notifyObservers();
+        this.selectedSceneObservable.notifyObservers(this.scene!);
 
         // Check for updates
         EditorUpdater.CheckForUpdates(this, false);
@@ -1342,8 +1350,27 @@ export class Editor {
             this.preview.picker.drawOverlayOnOverElement = !this._preferences.noOverlayOnDrawElement;
         }
 
-        // Plugins
-        const plugins = this._preferences.plugins ?? [];
+        this.resize();
+
+        // Devtools
+        await new Promise<void>((resolve) => {
+            ipcRenderer.once(IPCResponses.EnableDevTools, () => resolve());
+            ipcRenderer.send(IPCRequests.EnableDevTools, this._preferences!.developerMode);
+        });
+
+        // Assets
+        this.assets.getComponent(TextureAssets)?.refreshCompressedTexturesFiles();
+    }
+
+    /**
+     * @hidden
+     */
+    public async _applyPreferencesPlugins(): Promise<void> {
+        const plugins = this._preferences?.plugins ?? [];
+        if (WorkSpace.Workspace?.plugins) {
+            plugins.push(...WorkSpace.Workspace.plugins);
+        }
+
         const pluginToolbars: IPluginToolbar[] = [];
 
         for (const p in Editor.LoadedExternalPlugins) {
@@ -1373,9 +1400,18 @@ export class Editor {
             if (!p.enabled) { continue; }
 
             try {
-                const exports = require(p.path);
+                let exports: any;
+                let fromWorkspace: boolean = false;
+
+                try {
+                    exports = require(join(WorkSpace.DirPath!, "node_modules", p.path));
+                    fromWorkspace = true;
+                } catch (e) {
+                    exports = require(p.path);
+                }
+                
                 const plugin = exports.registerEditorPlugin(this, {
-                    pluginAbsolutePath: p.path,
+                    pluginAbsolutePath: fromWorkspace ? join(WorkSpace.DirPath!, "node_modules", p.path) : p.path,
                 } as IPluginConfiguration) as IPlugin;
 
                 Editor.LoadedExternalPlugins[p.name] = plugin;
@@ -1404,15 +1440,5 @@ export class Editor {
         }
 
         this.mainToolbar?.setState({ plugins: pluginToolbars });
-        this.resize();
-
-        // Devtools
-        await new Promise<void>((resolve) => {
-            ipcRenderer.once(IPCResponses.EnableDevTools, () => resolve());
-            ipcRenderer.send(IPCRequests.EnableDevTools, this._preferences!.developerMode);
-        });
-
-        // Assets
-        this.assets.getComponent(TextureAssets)?.refreshCompressedTexturesFiles();
     }
 }

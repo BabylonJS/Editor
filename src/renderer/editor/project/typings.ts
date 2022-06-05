@@ -1,6 +1,7 @@
 import { Undefinable, IStringDictionary } from "../../../shared/types";
 
 import { KTXToolsType } from "../tools/ktx";
+import { IRegisteredPlugin } from "../tools/types";
 
 /**
  * Defines the type the possible values of the physics engine type string
@@ -162,6 +163,11 @@ export interface IWorkSpace {
             quality: "etcfast" | "etcnormal" | "etcslow";
         };
     };
+
+    /**
+     * Defines the list of all registered plugins for the workspace.
+     */
+    plugins?: Undefinable<IRegisteredPlugin[]>;
 }
 
 export interface IProject {

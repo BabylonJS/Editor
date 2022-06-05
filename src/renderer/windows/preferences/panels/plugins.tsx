@@ -1,7 +1,5 @@
-import { join } from "path";
-import { platform } from "os";
 import { readJSON } from "fs-extra";
-import { execSync } from "child_process";
+import { dirname, join } from "path";
 
 import { Nullable } from "../../../../shared/types";
 
@@ -11,6 +9,7 @@ import { H3 } from "@blueprintjs/core";
 import { FitAddon } from "xterm-addon-fit";
 
 import { Tools } from "../../../editor/tools/tools";
+import { IRegisteredPlugin } from "../../../editor/tools/types";
 import { EditorProcess, IEditorProcess } from "../../../editor/tools/process";
 
 import { Alert } from "../../../editor/gui/alert";
@@ -36,19 +35,17 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 				</InspectorSection>
 
 				<InspectorSection title="Available Plugins">
-					{this._getAvailablePlugins()}
+					{this._getAvailablePluginsNodes()}
 				</InspectorSection>
 			</div>
 		);
 	}
 
 	/**
-	 * Returns the list of all available plugins.
+	 * Returns the list of all available plugins as react nodes.
 	 */
-	private _getAvailablePlugins(): React.ReactNode {
-		const plugins = this.props.preferences.state.editor.plugins ?? [];
-
-		this.props.preferences.state.editor.plugins = plugins;
+	private _getAvailablePluginsNodes(): React.ReactNode {
+		const plugins = this._getAvailablePlugins();
 
 		if (!plugins.length) {
 			return (
@@ -66,13 +63,25 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 	}
 
 	/**
+	 * Returns the list of all available plugins.
+	 */
+	private _getAvailablePlugins(): IRegisteredPlugin[] {
+		const plugins = this.props.preferences.state.editor.plugins?.slice() ?? [];
+		
+		// Add plugins from workspace
+		const workspace = this.props.preferences.state.workspace;
+		if (workspace?.plugins) {
+			plugins.push(...workspace.plugins);
+		}
+
+		return plugins;
+	}
+
+	/**
 	 * Called on the user wants to remove an existing plugin.
 	 */
 	private async _handleRemovePlugin(index: number): Promise<void> {
-		const plugins = this.props.preferences.state.editor.plugins;
-		if (!plugins) {
-			return;
-		}
+		const plugins = this._getAvailablePlugins();
 
 		const plugin = plugins[index];
 		const remove = await Confirm.Show("Remove plugin?", `Are you sure to remove the plugin named "${plugin.name}"?`);
@@ -85,7 +94,23 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 			await this._handleAddOrRemovePluginFromNpm(true, plugin.name);
 		}
 
-		plugins.splice(index, 1);
+		// Check in editor global
+		if (this.props.preferences.state.editor.plugins?.includes(plugin)) {
+			const index = this.props.preferences.state.editor.plugins.indexOf(plugin);
+			if (index !== -1) {
+				this.props.preferences.state.editor.plugins.splice(index, 1);
+			}
+		}
+
+		// Check in workspace
+		const workspace = this.props.preferences.state.workspace;
+		if (workspace?.plugins) {
+			const index = workspace.plugins.indexOf(plugin);
+			if (index !== -1) {
+				workspace.plugins.splice(index, 1);
+			}
+		}
+
 		this.forceUpdate();
 	}
 
@@ -125,20 +150,26 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 	 * Called on the user wants to add a plugin from NPM.
 	 */
 	private async _handleAddOrRemovePluginFromNpm(remove?: boolean, moduleName?: string): Promise<void> {
-		const plugins = this.props.preferences.state.editor.plugins;
-		if (!plugins) {
+		const plugins = this._getAvailablePlugins();
+
+		const workspace = this.props.preferences.state.workspace;
+		if (!workspace) {
 			return;
 		}
 
-		moduleName = moduleName ?? await Dialog.Show("NPM Package Name", "Please provide the name of the package available on Npm");
+		const workspacePath = this.props.preferences.workspacePath;
+		if (!workspacePath) {
+			return;
+		}
+
+		moduleName ??= await Dialog.Show("NPM Package Name", "Please provide the name of the package available on Npm");
 
 		if (!remove) {
 			const exists = plugins.find((p) => p.name === moduleName);
 			if (exists) { return; }
 		}
 
-		const sudo = platform() === "win32" ? "" : "sudo ";
-		const editorProcess = EditorProcess.ExecuteCommand(remove ? `${sudo}npm uninstall -g ${moduleName} && exit` : `${sudo}npm i -g ${moduleName} && exit`, sudo === "");
+		const editorProcess = EditorProcess.ExecuteCommand(remove ? `npm uninstall ${moduleName} && exit` : `npm i ${moduleName} --save-dev && exit`, true, dirname(workspacePath));
 		if (!editorProcess) {
 			return;
 		}
@@ -149,12 +180,12 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 			await editorProcess?.wait();
 
 			if (!remove) {
-				const globalNodeModules = execSync("npm root -g").toString().trim();
-				plugins.push({
+				workspace.plugins ??= [];
+				workspace.plugins.push({
 					enabled: true,
 					fromNpm: true,
 					name: moduleName,
-					path: join(globalNodeModules, moduleName),
+					path: moduleName,
 				});
 			}
 		} catch (e) {
