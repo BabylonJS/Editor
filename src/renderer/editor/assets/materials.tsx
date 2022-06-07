@@ -137,7 +137,7 @@ export class MaterialAssets extends AbstractAssets {
     public onClick(item: IAssetComponentItem, img: HTMLImageElement): void {
         super.onClick(item, img);
 
-        const material = this.editor.scene!.getMaterialByID(item.key);
+        const material = this.editor.scene!.getMaterialById(item.key);
         if (material) { this.editor.selectedMaterialObservable.notifyObservers(material); }
     }
 
@@ -196,7 +196,7 @@ export class MaterialAssets extends AbstractAssets {
     public onDragStart(ev: React.DragEvent<HTMLImageElement>, item: IAssetComponentItem): void {
         super.onDragStart(ev, item);
 
-        const material = this.editor.scene!.getMaterialByID(item.key);
+        const material = this.editor.scene!.getMaterialById(item.key);
         if (!material?.metadata?.editorPath) {
             return;
         }
@@ -241,7 +241,7 @@ export class MaterialAssets extends AbstractAssets {
         const mesh = pickInfo.pickedMesh;
         if (!mesh || !(mesh instanceof Mesh)) { return; }
 
-        const material = this.editor.scene!.getMaterialByID(item.key);
+        const material = this.editor.scene!.getMaterialById(item.key);
         if (!material) { return; }
 
         const subMeshId = pickInfo.subMeshId ?? null;
@@ -484,7 +484,7 @@ export class MaterialAssets extends AbstractAssets {
      * Called on the user wants to remove a material.
      */
     private _handleRemoveMaterial(item: IAssetComponentItem): void {
-        const material = this.editor.scene!.getMaterialByID(item.key);
+        const material = this.editor.scene!.getMaterialById(item.key);
         if (!material || material.metadata?.isLocked) { return; }
 
         const bindedMeshes = material.getBindedMeshes();
@@ -504,7 +504,7 @@ export class MaterialAssets extends AbstractAssets {
                 bindedMeshes.forEach((m) => m.material = material);
                 this.items.push(item);
             },
-        })
+        });
     }
 
     /**

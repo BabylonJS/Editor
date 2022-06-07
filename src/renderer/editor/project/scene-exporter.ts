@@ -50,16 +50,29 @@ export interface IExportFinalSceneOptions {
 }
 
 export class SceneExporter {
+	/**
+	 * Defines the list of all textures file types that are copy-able for the
+	 * final assets output folder.
+	 */
 	public static readonly CopyAbleImageTypes: string[] = [
 		".png", ".jpeg", ".jpg", ".bmp",
 	];
 
 	/**
-	 * Defines the list of all files types that are copy-able for the
+	 * Defines the list of all 3d assets file types that are copy-able for the
+	 * final assets output folder.
+	 */
+	public static readonly CopyAble3dAssetTypes: string[] = [
+		".glb", ".gltf",
+	];
+
+	/**
+	 * Defines the list of all file types that are copy-able for the
 	 * final assets output folder.
 	 */
 	public static readonly CopyAbleAssetsTypes: string[] = [
 		...SceneExporter.CopyAbleImageTypes,
+		...SceneExporter.CopyAble3dAssetTypes,
 		".env", ".dds",
 		".mp3", ".wav", ".ogg", ".wave",
 		".gui",

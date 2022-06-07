@@ -99,6 +99,7 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
                         onNodeExpand={(n) => this._handleNodeExpand(n, true)}
                         onNodeCollapse={(n) => this._handleNodeExpand(n, false)}
                         onNodeContextMenu={(n, _, e) => this._handleNodeContextMenu(n, e)}
+                        onNodeDoubleClick={(n) => this._handleNodeDoubleClicked(n)}
                     />
                 </div>
                 {this._getObjectInspector()}
@@ -157,7 +158,7 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
                         <span>To: {object.to}</span>
                     </InspectorSection>
                 </InspectorSection>
-            )
+            );
         }
     }
 
@@ -278,5 +279,27 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
             left: ev.clientX,
             top: ev.clientY,
         });
+    }
+
+    /**
+     * Called on the user double-clicks on a node.
+     */
+    private _handleNodeDoubleClicked(node: ITreeNode<AnimationGroup | TargetedAnimation>): void {
+        this._handleNodeClicked(node);
+
+        const object = node.nodeData;
+        if (!object || !(object instanceof AnimationGroup)) {
+            return;
+        }
+
+        this._selectedAnimationGroup?.stop();
+
+        if (object.isPlaying) {
+            object.stop();
+        } else {
+            object.play();
+        }
+        
+        this.forceUpdate();
     }
 }

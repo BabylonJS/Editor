@@ -128,7 +128,9 @@ export class SceneImporterTools {
 
             if (m.material) {
                 this.ConfigureMaterial(m.material, configuration).then((material) => {
-                    m.material = material;
+                    if (m instanceof Mesh) {
+                        m.material = material;
+                    }
                 });
             }
 
