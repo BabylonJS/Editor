@@ -169,7 +169,7 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 			if (exists) { return; }
 		}
 
-		const editorProcess = EditorProcess.ExecuteCommand(remove ? `npm uninstall ${moduleName} && exit` : `npm i ${moduleName} --save-dev && exit`, true, dirname(workspacePath));
+		const editorProcess = EditorProcess.ExecuteCommand(remove ? `npm uninstall ${moduleName} && exit` : `npm i ${moduleName} --save-dev --legacy-peer-deps && exit`, true, dirname(workspacePath));
 		if (!editorProcess) {
 			return;
 		}

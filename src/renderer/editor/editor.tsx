@@ -1,6 +1,6 @@
-import { ipcRenderer, shell, webFrame } from "electron";
 import { dirname, join } from "path";
 import { pathExists } from "fs-extra";
+import { ipcRenderer, shell, webFrame } from "electron";
 
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
 import { IStringDictionary, Nullable, Undefinable } from "../../shared/types";
@@ -1404,7 +1404,9 @@ export class Editor {
                 let fromWorkspace: boolean = false;
 
                 try {
-                    exports = require(join(WorkSpace.DirPath!, "node_modules", p.path));
+                    const path = join(WorkSpace.DirPath!, "node_modules", p.path);
+
+                    exports = require(path);
                     fromWorkspace = true;
                 } catch (e) {
                     exports = require(p.path);

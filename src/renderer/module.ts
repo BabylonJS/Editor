@@ -29,6 +29,11 @@ const cacheMap = {
 	"react": Module._resolveFilename("react", module, false),
 	"react-dom": Module._resolveFilename("react-dom", module, false),
 
+	"@blueprintjs/core": Module._resolveFilename("@blueprintjs/core", module, false),
+	"@blueprintjs/select": Module._resolveFilename("@blueprintjs/select", module, false),
+
+	"filenamify": Module._resolveFilename("filenamify", module, false),
+
 	// Redirect @babylonjs/*
 	"@babylonjs/core": join(dirname(Module._resolveFilename("babylonjs", module, false)), "babylon.max.js"),
 	"@babylonjs/loaders": join(dirname(Module._resolveFilename("babylonjs-loaders", module, false)), "babylonjs.loaders.js"),
