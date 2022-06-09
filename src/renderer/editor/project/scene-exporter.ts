@@ -10,6 +10,7 @@ import { Editor } from "../editor";
 
 import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
+import { AppTools } from "../tools/app";
 import { KTXTools, KTXToolsType } from "../tools/ktx";
 import { MaterialTools } from "../tools/components/material";
 
@@ -86,7 +87,7 @@ export class SceneExporter {
 	 * @param editor defines the reference to the editor.
 	 */
 	public static async ExportFinalSceneAs(editor: Editor): Promise<void> {
-		const destPath = await Tools.ShowSaveDialog();
+		const destPath = await AppTools.ShowSaveDialog();
 		if (!destPath) { return; }
 
 		return this.ExportFinalScene(editor, undefined, { destPath });
@@ -132,7 +133,7 @@ export class SceneExporter {
 		scene.meshes?.forEach((m) => m.materialId = null);
 
 		// Save
-		let destPath = await Tools.ShowSaveFileDialog("Save Scene (Only Geometries)");
+		let destPath = await AppTools.ShowSaveFileDialog("Save Scene (Only Geometries)");
 		if (!destPath) { return; }
 
 		if (extname(destPath).toLowerCase() !== ".babylon") {
@@ -593,12 +594,12 @@ export class SceneExporter {
 		// Copy tools
 		editor.console.logInfo("Copying tools...");
 
-		const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
+		const decorators = await readFile(join(AppTools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
 		await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "decorators.ts"), decorators, { encoding: "utf-8" });
 
-		await copyFile(join(Tools.GetAppPath(), "assets", "scripts", "fx.ts"), join(WorkSpace.DirPath!, "src", "scenes", "fx.ts"));
+		await copyFile(join(AppTools.GetAppPath(), "assets", "scripts", "fx.ts"), join(WorkSpace.DirPath!, "src", "scenes", "fx.ts"));
 
-		const tools = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
+		const tools = await readFile(join(AppTools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
 		const finalTools = tools
 			.replace("${editor-version}", editor._packageJson.version)
 			.replace("\"${project-configuration}\"", JSON.stringify(this.GetProjectConfiguration(editor), null, "\t"));
@@ -607,7 +608,7 @@ export class SceneExporter {
 
 		// Export scripts
 		editor.console.logInfo("Configuring scripts...");
-		const scriptsMap = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "scripts-map.ts"), { encoding: "utf-8" });
+		const scriptsMap = await readFile(join(AppTools.GetAppPath(), "assets", "scripts", "scripts-map.ts"), { encoding: "utf-8" });
 		const newScriptsMap = await this._UpdateScriptContent(editor, scriptsMap);
 		await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "scripts-map.ts"), newScriptsMap, { encoding: "utf-8" });
 

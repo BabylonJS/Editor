@@ -15,7 +15,7 @@ import { InspectorNumber } from "../../../gui/inspector/fields/number";
 import { InspectorButton } from "../../../gui/inspector/fields/button";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
 
-import { Tools } from "../../../tools/tools";
+import { AppTools } from "../../../tools/app";
 import { undoRedo } from "../../../tools/undo-redo";
 import { IGroundMetadata } from "../../../tools/types";
 
@@ -114,7 +114,7 @@ export class GroundInspector extends AbstractInspector<GroundMesh, IGroundInspec
      * Loads the height map and applies the new geometry.
      */
     private async _handleLoadHeightMap(): Promise<void> {
-        const file = await Tools.ShowOpenFileDialog("Select Height Map Texture");
+        const file = await AppTools.ShowOpenFileDialog("Select Height Map Texture");
         const extensions = [".png", ".jpg", ".jpeg", ".bmp"];
 
         if (extensions.indexOf(extname(file).toLocaleLowerCase()) === -1) {

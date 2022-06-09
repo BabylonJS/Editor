@@ -1,5 +1,5 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Rectangle } from "electron";
-import { extname } from "path";
+import { extname, join } from "path";
 import { existsSync } from "fs";
 import Store from "electron-store";
 import * as os from "os";
@@ -127,6 +127,7 @@ export default class EditorApp {
 					nativeWindowOpen: false,
 					nodeIntegrationInSubFrames: true,
 					allowRunningInsecureContent: false,
+					preload: join(__dirname + "/../../../build/src/preloaders/editor.js"),
 				},
 			},
 			tabbed: false,
@@ -322,7 +323,7 @@ else {
 	app.allowRendererProcessReuse = false;
 
 	// Enable remote debugging of both the Editor and the edited Project.
-	app.commandLine.appendSwitch("remote-debugging-port", "8315");
+	// app.commandLine.appendSwitch("remote-debugging-port", "8315");
 	
 	// Events
 	app.on("second-instance", (_, argv) => {

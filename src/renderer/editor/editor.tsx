@@ -21,6 +21,7 @@ import { Confirm } from "./gui/confirm";
 import { ActivityIndicator } from "./gui/acitivity-indicator";
 
 import { Tools } from "./tools/tools";
+import { AppTools } from "./tools/app";
 import { IPCTools } from "./tools/ipc";
 import { IObjectModified, IEditorPreferences, EditorPlayMode } from "./tools/types";
 import { undoRedo } from "./tools/undo-redo";
@@ -383,7 +384,7 @@ export class Editor {
         Overlay.Show("Loading Editor...", true);
 
         // Initialize tools
-        await Tools.Init();
+        await AppTools.Init();
 
         // Get version
         this._packageJson = JSON.parse(await Tools.LoadFile("../package.json", false));

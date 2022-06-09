@@ -16,6 +16,7 @@ import { Overlay } from "../../gui/overlay";
 import { Alert } from "../../gui/alert";
 
 import { Tools } from "../../tools/tools";
+import { AppTools } from "../../tools/app";
 
 import { Project } from "../project";
 import { IWorkSpace } from "../typings";
@@ -201,7 +202,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
             return this._downloadTemplate(templateType);
         }
 
-        const path = await Tools.ShowSaveDialog();
+        const path = await AppTools.ShowSaveDialog();
         if (!(await this._isFolderEmpty(path))) {
             await Alert.Show("Can't Create Project.", "Can't create project. The destination folder must be empty.");
             return this._handleFinishWizard();
@@ -211,7 +212,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         Overlay.Show("Creating Project...", true);
 
         // Write project.
-        const projectZipPath = join(Tools.GetAppPath(), `assets/project/workspace.zip`);        
+        const projectZipPath = join(AppTools.GetAppPath(), `assets/project/workspace.zip`);        
         const projectZip = new Zip(projectZipPath);
         await new Promise<void>((resolve, reject) => {
             projectZip.extractAllToAsync(path, false, (err) => err ? reject(err) : resolve());
@@ -232,7 +233,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
      */
     private async _downloadTemplate(template: IWorkspaceTemplate): Promise<void> {
         // Get destination path.
-        const path = await Tools.ShowSaveDialog();
+        const path = await AppTools.ShowSaveDialog();
         if (!(await this._isFolderEmpty(path))) {
             await Alert.Show("Can't Create Project.", "Can't create project. The destination folder must be empty.");
             return this._downloadTemplate(template);
@@ -284,7 +285,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
             await mkdir(join(path, ".vscode"));
         }
 
-        await copy(join(Tools.GetAppPath(), "assets/project/launch.json"), join(path, ".vscode/launch.json"), { overwrite: false });
+        await copy(join(AppTools.GetAppPath(), "assets/project/launch.json"), join(path, ".vscode/launch.json"), { overwrite: false });
     }
 
     /**

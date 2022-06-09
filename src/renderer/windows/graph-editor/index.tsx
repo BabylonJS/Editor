@@ -19,6 +19,7 @@ import { Alert } from "../../editor/gui/alert";
 import { Confirm } from "../../editor/gui/confirm";
 
 import { Tools } from "../../editor/tools/tools";
+import { AppTools } from "../../editor/tools/app";
 import { IPCTools } from "../../editor/tools/ipc";
 import { undoRedo } from "../../editor/tools/undo-redo";
 import { TouchBarHelper, ITouchBarButton } from "../../editor/tools/touch-bar";
@@ -465,7 +466,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
         const json = this.graph.graph?.serialize();
         if (!json) { return; }
 
-        let path = await Tools.ShowSaveFileDialog("Save Graph...");
+        let path = await AppTools.ShowSaveFileDialog("Save Graph...");
         const extension = extname(path).toLowerCase();
 
         if (extension !== ".json") {
@@ -482,7 +483,7 @@ export default class GraphEditorWindow extends React.Component<IGraphEditorWindo
      * Loads the current graph from...
      */
     private async _handleLoadFrom(): Promise<void> {
-        const path = await Tools.ShowOpenFileDialog("Load Graph From...");
+        const path = await AppTools.ShowOpenFileDialog("Load Graph From...");
 
         try {
             const override = await Confirm.Show("Override Current Graph?", "Are you sure to override the current graph? Existing graph will be overwritten and all changes will be lost.");

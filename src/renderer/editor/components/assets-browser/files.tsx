@@ -24,6 +24,7 @@ import { Alert } from "../../gui/alert";
 import { Dialog } from "../../gui/dialog";
 
 import { Tools } from "../../tools/tools";
+import { AppTools } from "../../tools/app";
 
 import { WorkSpace } from "../../project/workspace";
 import { SceneExporter } from "../../project/scene-exporter";
@@ -704,7 +705,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		const tsConfig = await readJSON(join(WorkSpace.DirPath!, "tsconfig.json"), { encoding: "utf-8" });
 		const isEs5 = (tsConfig.compilerOptions?.target?.toLowerCase() ?? "es5") === "es5";
 
-		const skeleton = await readFile(join(Tools.GetAppPath(), `assets/scripts/${isEs5 ? "script.ts" : "script-es6.ts"}`), { encoding: "utf-8" });
+		const skeleton = await readFile(join(AppTools.GetAppPath(), `assets/scripts/${isEs5 ? "script.ts" : "script-es6.ts"}`), { encoding: "utf-8" });
 		await writeFile(dest, skeleton);
 
 		await SceneExporter.GenerateScripts(this.props.editor);
@@ -727,10 +728,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		await mkdir(destFolder);
 
-		await copyFile(join(Tools.GetAppPath(), `assets/scripts/${base}/vertex.fx`), join(destFolder, `${name}.vertex.fx`));
-		await copyFile(join(Tools.GetAppPath(), `assets/scripts/${base}/fragment.fx`), join(destFolder, `${name}.fragment.fx`));
+		await copyFile(join(AppTools.GetAppPath(), `assets/scripts/${base}/vertex.fx`), join(destFolder, `${name}.vertex.fx`));
+		await copyFile(join(AppTools.GetAppPath(), `assets/scripts/${base}/fragment.fx`), join(destFolder, `${name}.fragment.fx`));
 
-		const tsContent = await readFile(join(Tools.GetAppPath(), `assets/scripts/${base}/material.ts`), { encoding: "utf-8" });
+		const tsContent = await readFile(join(AppTools.GetAppPath(), `assets/scripts/${base}/material.ts`), { encoding: "utf-8" });
 		const finalTsContent = tsContent.replace(/{__shader_name__}/g, name).replace(/\/\*{__shader_class_name__}\*\/A/g, capitalizedName);
 
 		await writeFile(join(destFolder, `${name}.ts`), finalTsContent, { encoding: "utf-8" });
@@ -754,7 +755,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 			Alert.Show("Can't Create Graph File", `A graph named "${name}" already exists.`);
 		}
 
-		const skeleton = await readFile(join(Tools.GetAppPath(), `assets/graphs/default.json`), { encoding: "utf-8" });
+		const skeleton = await readFile(join(AppTools.GetAppPath(), `assets/graphs/default.json`), { encoding: "utf-8" });
 		await writeFile(dest, skeleton);
 
 		await SceneExporter.GenerateScripts(this.props.editor);
@@ -871,7 +872,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Called on the user wants to add a new material asset from source code.
 	 */
 	private async _handleAddMaterialFromSourceCode(): Promise<void> {
-		let path = join(await Tools.ShowOpenFileDialog("Material Source Code", this._sourcesDirectory));
+		let path = join(await AppTools.ShowOpenFileDialog("Material Source Code", this._sourcesDirectory));
 
 		if (path.indexOf(this._sourcesDirectory) !== 0) {
 			return Alert.Show("Failed To Create Material", `Selected source code is not part of the current workspace.\n${path}`);

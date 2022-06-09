@@ -16,6 +16,7 @@ import { Alert } from "../gui/alert";
 import { Dialog } from "../gui/dialog";
 
 import { Tools } from "../tools/tools";
+import { AppTools } from "../tools/app";
 
 import { Editor } from "../editor";
 
@@ -75,7 +76,7 @@ export class SceneFactory {
      */
     public static async AddTerrainFromHeightMap(editor: Editor): Promise<Mesh> {
         const ground = this.AddGround(editor);
-        const file = await Tools.ShowOpenFileDialog("Select Height Map Texture");
+        const file = await AppTools.ShowOpenFileDialog("Select Height Map Texture");
 
         const extensions = [".png", ".jpg", ".jpeg", ".bmp"];
         if (extensions.indexOf(extname(file).toLocaleLowerCase()) === -1) {

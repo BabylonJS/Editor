@@ -11,9 +11,9 @@ import { GUIEditor } from "babylonjs-gui-editor";
 import { Engine, Observable, Scene } from "babylonjs";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 
-import { Tools } from "../../editor/tools/tools";
 import { IPCTools } from "../../editor/tools/ipc";
 import { GUITools } from "../../editor/tools/gui";
+import { AppTools } from "../../editor/tools/app";
 
 import { Icon } from "../../editor/gui/icon";
 
@@ -161,7 +161,7 @@ export default class GUIEditorWindow extends React.Component {
     private async _saveAs(texture: Nullable<AdvancedDynamicTexture>): Promise<void> {
         if (!texture) { return; }
 
-        let path = await Tools.ShowSaveFileDialog("Save GUI As...");
+        let path = await AppTools.ShowSaveFileDialog("Save GUI As...");
 
         const extension = extname(path);
         if (extension.toLowerCase() !== ".gui") {

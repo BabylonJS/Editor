@@ -1,9 +1,11 @@
+debugger;
 import {
     Engine, Scene, ArcRotateCamera, Vector3, Material, Mesh, Texture,
     HemisphericLight, SerializationHelper,
 } from "babylonjs";
 import "babylonjs-materials";
 import "babylonjs-loaders";
+import "babylonjs-inspector";
 
 import * as React from "react";
 
@@ -97,7 +99,6 @@ export default class MeshViewerWindow extends React.Component {
             enablePopup: false,
             enableClose: false,
             embedMode: true,
-            inspectorURL: "../node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
         });
         this._scene.debugLayer.select(material);
     }

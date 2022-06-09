@@ -8,7 +8,7 @@ import { Button, ButtonGroup, Callout, Divider } from "@blueprintjs/core";
 
 import { Alert } from "../../gui/alert";
 
-import { Tools } from "../../tools/tools";
+import { AppTools } from "../../tools/app";
 
 import { Editor } from "../../editor";
 
@@ -127,7 +127,7 @@ export class PackerDialog extends React.Component<IPackerProps, IPackerState> {
 		}
 
 		// Check destination
-		let destination = await Tools.ShowSaveFileDialog("Archive Save Path", WorkSpace.DirPath!);
+		let destination = await AppTools.ShowSaveFileDialog("Archive Save Path", WorkSpace.DirPath!);
 		if (!destination) {
 			return;
 		}

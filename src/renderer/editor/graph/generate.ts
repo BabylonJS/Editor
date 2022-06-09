@@ -10,7 +10,7 @@ import { Nullable, IStringDictionary } from "../../../shared/types";
 
 import { LGraph, LiteGraph } from "litegraph.js";
 
-import { Tools } from "../tools/tools";
+import { AppTools } from "../tools/app";
 
 import { GraphNode, CodeGenerationOutputType, CodeGenerationExecutionType } from "./node";
 
@@ -29,7 +29,7 @@ export class GraphCodeGenerator {
      */
     public static async Init(): Promise<void> {
         if (this._Initialized) { return; }
-        this._Template = await readFile(join(Tools.GetAppPath(), `assets/scripts/graph.ts`), { encoding: "utf-8" });
+        this._Template = await readFile(join(AppTools.GetAppPath(), `assets/scripts/graph.ts`), { encoding: "utf-8" });
     }
 
     /**

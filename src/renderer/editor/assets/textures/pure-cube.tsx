@@ -10,6 +10,7 @@ import { Dialog, Classes, Button, Intent, AnchorButton, H5, FileInput } from "@b
 import { CubeTexture, Engine, Scene, Mesh, StandardMaterial, Texture, ArcRotateCamera, Vector3, Color3 } from "babylonjs";
 
 import { Tools } from "../../tools/tools";
+import { AppTools } from "../../tools/app";
 
 import { Editor } from "../../editor";
 
@@ -116,7 +117,7 @@ export class PureCubeDialog extends React.Component<IPureCubeDialogProps, IPureC
      * Called on the component did mount.
      */
     public async componentDidMount(): Promise<void> {
-        PureCubeDialog.DefaultImage ||= join(Tools.GetAppPath(), "assets/extras/waitlogo.png");
+        PureCubeDialog.DefaultImage ||= join(AppTools.GetAppPath(), "assets/extras/waitlogo.png");
 
         await Tools.Wait(100);
 

@@ -26,6 +26,7 @@ import { InspectorList, IInspectorListItem } from "../../gui/inspector/fields/li
 import { WorkSpace } from "../../project/workspace";
 
 import { Tools } from "../../tools/tools";
+import { AppTools } from "../../tools/app";
 
 import { SandboxMain, IExportedInspectorValue } from "../../../sandbox/main";
 
@@ -389,7 +390,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
      * Refreshes the decorators functions that are used in the project.
      */
     private async _refreshDecorators(): Promise<void> {
-        const decorators = await readFile(join(Tools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
+        const decorators = await readFile(join(AppTools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
         const transpiledScript = transpile(decorators, { module: ModuleKind.None, target: ScriptTarget.ES5, experimentalDecorators: true });
 
         await SandboxMain.ExecuteCode(transpiledScript, "__editor__decorators__.js");

@@ -19,8 +19,9 @@ import {
 } from "babylonjs";
 
 import { Tools } from "../tools/tools";
-import { undoRedo } from "../tools/undo-redo";
+import { AppTools } from "../tools/app";
 import { IPCTools } from "../tools/ipc";
+import { undoRedo } from "../tools/undo-redo";
 
 import { Icon } from "../gui/icon";
 
@@ -515,7 +516,7 @@ export class MaterialAssets extends AbstractAssets {
         const zip = this.getZippedMaterial(item.key);
         if (!zip) { return; }
 
-        let destination = await Tools.ShowSaveFileDialog("Save Material Preset");
+        let destination = await AppTools.ShowSaveFileDialog("Save Material Preset");
         const task = this.editor.addTaskFeedback(0, "Saving Material...");
 
         const extension = extname(destination);

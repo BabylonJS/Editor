@@ -1,3 +1,4 @@
+import { join } from "path";
 import { IpcMainEvent } from "electron";
 
 import { IIPCHandler } from "../handlers/ipc";
@@ -16,7 +17,16 @@ export class OpenWindowIPC implements IIPCHandler {
 	 */
 	public async handler(event: IpcMainEvent, definition: IWindowDefinition): Promise<void> {
 		definition.url = `file://${__dirname}/../../../../html/${definition.url}`;
+		
+		definition.options.webPreferences ??= { };
+		definition.options.webPreferences.preload = join(__dirname + "/../../../../build/src/preloaders/plugin.js");
+
 		const window = await WindowsHandler.CreateWindowOnDemand(definition);
+
+		if (process.env.DEBUG) {
+			window.webContents.openDevTools({ mode: "right" });
+		}
+
 		event.sender.send(IPCResponses.OpenWindowOnDemand, window.webContents.id);
 	}
 }

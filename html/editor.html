@@ -22,14 +22,16 @@
 	<link rel="stylesheet" type="text/css" href="../css/editor.css" />
 
 	<style type="text/css">
-		input, select {
+		input,
+		select {
 			background-color: rgba(16, 22, 26, 0.3);
 		}
 	</style>
 </head>
 
 <body id="body">
-	<div id="BABYLON-EDITOR-TOOLBAR" class="bp3-dark" style="width: 100%; height: 63px; background-color: #444444 !important">
+	<div id="BABYLON-EDITOR-TOOLBAR" class="bp3-dark"
+		style="width: 100%; height: 63px; background-color: #444444 !important">
 		<div id="BABYLON-EDITOR-MAIN-TOOLBAR" class="bp3-dark" style="width: 100%; height: 31px;"></div>
 		<div id="BABYLON-EDITOR-TOOLS-TOOLBAR" class="bp3-dark" style="width: 100%; height: 31px;"></div>
 	</div>
@@ -38,53 +40,6 @@
 	<div id="BABYLON-EDITOR-TOASTS" class="bp3-dark" style="position: absolute; pointer-events: none;"></div>
 	<div id="BABYLON-EDITOR-DRAWER" class="bp3-dark" style="position: absolute; pointer-events: none;"></div>
 	<div id="BABYLON-EDITOR-ACTIVITY-INDICATOR" class="bp3-dark" style="position: absolute; z-index: 10; top: 5px; right: 5px;"></div>
-
-	<!-- REQUIRE MONACO EDITOR -->
-	<script type="text/javascript">
-		const img = document.createElement("img");
-		img.id = "BABYLON-START-IMAGE";
-		img.src = "../assets/textures/waitlogo.png";
-		img.style.marginLeft = "auto";
-		img.style.marginTop = "auto";
-		img.style.objectFit = "contain";
-		img.style.width = "100%";
-		img.style.height = "100%";
-		img.style.background = "#111111";
-		document.body.insertBefore(img, document.body.firstChild);
-		img.onload = () => {
-			setTimeout(() => {
-				// Require modules hack for development mode.
-				require('../build/src/renderer/module.js');
-
-				window["CANNON"] = require("cannon");
-
-				const path = require('path');
-				const Editor = require('../build/src/renderer/editor/index.js');
-
-				// Configure monaco editor embedded loader
-				const amdLoader = require('../node_modules/monaco-editor/min/vs/loader.js');
-				const amdRequire = amdLoader.require;
-				const amdDefine = amdLoader.require.define;
-				function uriFromPath(_path) {
-					var pathName = path.resolve(_path).replace(/\\/g, '/');
-					if (pathName.length > 0 && pathName.charAt(0) !== '/') {
-						pathName = '/' + pathName;
-					}
-					return encodeURI('file://' + pathName);
-				}
-				amdRequire.config({
-					baseUrl: uriFromPath(path.join(__dirname, '../node_modules/monaco-editor/min'))
-				});
-
-				// workaround monaco-css not understanding the environment
-				self.module = undefined;
-				amdRequire(['vs/editor/editor.main'], function () {
-					window.monaco = monaco;
-					window.editor = new Editor.default();
-				});
-			}, 100);
-		};
-	</script>
 </body>
 
 </html>

@@ -12,6 +12,7 @@ import {
 import { Scene, AnimationGroup, TargetedAnimation, Node, SceneLoader, SceneLoaderAnimationGroupLoadingMode } from "babylonjs";
 
 import { Tools } from "../../../tools/tools";
+import { AppTools } from "../../../tools/app";
 import { undoRedo } from "../../../tools/undo-redo";
 
 import { Icon } from "../../../gui/icon";
@@ -229,7 +230,7 @@ export class AnimationGroupComponent extends React.Component<IAnimationGroupProp
      * Called on the user wants to import animations from another file.
      */
     private async _handleImportAnimationGroupsFromFile(): Promise<void> {
-        const file = await Tools.ShowOpenFileDialog("Open File To Merge Animations");
+        const file = await AppTools.ShowOpenFileDialog("Open File To Merge Animations");
         if (!file) {
             return;
         }

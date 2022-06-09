@@ -1,15 +1,17 @@
-import { shell } from "electron";
 import * as os from "os";
+import { shell } from "electron";
 import { writeFile } from "fs-extra";
 import { join, basename, dirname } from "path";
+
+import { Nullable } from "../../../../shared/types";
 
 import { Intent, Classes } from "@blueprintjs/core";
 
 import { Tools } from "../tools";
+import { AppTools } from "../app";
+import { Semver } from "../semver";
 
 import { Editor } from "../../editor";
-import { Semver } from "../semver";
-import { Nullable } from "../../../../shared/types";
 
 interface _IEditorVersions {
     [version: string]: {
@@ -68,7 +70,7 @@ export class EditorUpdater {
         
         const url = join("http://editor.babylonjs.com/", link);
 
-        const destFolder = await Tools.ShowSaveDialog();
+        const destFolder = await AppTools.ShowSaveDialog();
         const dest = join(destFolder, basename(url));
 
         // Download!

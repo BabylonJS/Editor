@@ -1,6 +1,7 @@
 import { Engine, Scene, ArcRotateCamera, Vector3, SceneLoader, PointLight, Mesh, Texture, PBRMaterial, CubeTexture, Color3 } from "babylonjs";
 import { GridMaterial } from "babylonjs-materials";
 import "babylonjs-loaders";
+import "babylonjs-inspector";
 
 import { FBXLoader } from "../../editor/loaders/fbx/loader";
 
@@ -109,7 +110,6 @@ export default class MeshViewerWindow extends React.Component {
                 enablePopup: false,
                 enableClose: false,
                 embedMode: true,
-                inspectorURL: "../node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
             });
 
             this._scene.debugLayer.select(this._scene.meshes[0]);

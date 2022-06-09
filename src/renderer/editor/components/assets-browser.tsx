@@ -1,8 +1,8 @@
 import Glob from "glob";
 import * as os from "os";
 import { shell } from "electron";
-import { move, pathExists, stat, writeJSON } from "fs-extra";
 import { basename, dirname, extname, isAbsolute, join } from "path";
+import { move, pathExists, remove, stat, writeJSON } from "fs-extra";
 
 import { IStringDictionary, Nullable } from "../../../shared/types";
 
@@ -348,18 +348,24 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		const failed: string[] = [];
 		const platform = os.platform();
 
-		items.map((i) => {
+		await Promise.all(items.map(async (i) => {
 			const extension = extname(i).toLowerCase();
 			const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
 
 			handler?.onRemoveFile(i);
 
 			const iAbsolute = platform === "win32" ? i.replace(/\//g, "\\") : i;
-			const result = shell.moveItemToTrash(iAbsolute, deleteOnFail);
-			if (!result) {
-				failed.push(i);
+
+			try {
+				await shell.trashItem(iAbsolute);
+			} catch (e) {
+				if (deleteOnFail) {
+					await remove(iAbsolute);
+				} else {
+					failed.push(i);
+				}
 			}
-		});
+		}));
 
 		return failed;
 	}

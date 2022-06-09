@@ -8,6 +8,7 @@ import * as ReactDOM from "react-dom";
 
 import { Tools } from "../editor/tools/tools";
 import { IPCTools } from "../editor/tools/ipc";
+import { AppTools } from "../editor/tools/app";
 
 export interface IWindowedPluginInitialization {
     /**
@@ -37,7 +38,7 @@ export default class WindowedPlugin {
      */
     private async _init(): Promise<void> {
         // Initialize tools
-        await Tools.Init();
+        await AppTools.Init();
         
         // Get current window id
         const windowId = await IPCTools.CallWithPromise<number>(IPCRequests.GetWindowId);

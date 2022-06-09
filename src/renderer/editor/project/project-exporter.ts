@@ -14,6 +14,7 @@ import { Editor } from "../editor";
 
 import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
+import { AppTools } from "../tools/app";
 
 import { SceneExporter } from "./scene-exporter";
 import { SceneSettings } from "../scene/settings";
@@ -41,7 +42,7 @@ export class ProjectExporter {
      * @param editor the editor reference.
      */
     public static async SaveAs(editor: Editor): Promise<void> {
-        const path = await Tools.ShowSaveDialog(Project.Path);
+        const path = await AppTools.ShowSaveDialog(Project.Path);
         Project.Path = join(path, "scene.editorproject");
         Project.DirPath = path;
 

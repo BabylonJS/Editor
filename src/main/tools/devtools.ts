@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContents } from "electron";
+import { WebContents, session } from "electron";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
 export class DevTools {
@@ -18,7 +18,7 @@ export class DevTools {
                 await installExtension(REACT_DEVELOPER_TOOLS);
                 webContents.openDevTools({ mode: "right" });
             } else {
-                BrowserWindow.removeDevToolsExtension("React Developer Tools");
+                session.defaultSession.removeExtension("React Developer Tools");
                 webContents.closeDevTools();
             }
         } catch (e) {

@@ -74,8 +74,10 @@ Module._extensions[".fx"] = function (module: any, filename: string): void {
 
 // Globals
 try {
-	global["React"] = require("react");
-	global["ReactDOM"] = require("react-dom");
+	if (window) {
+		global["React"] = require("react");
+		global["ReactDOM"] = require("react-dom");
+	}
 } catch (e) {
 	/* Catch silently */
 }

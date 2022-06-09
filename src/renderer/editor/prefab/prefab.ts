@@ -13,6 +13,7 @@ import { Editor } from "../editor";
 import { Dialog } from "../gui/dialog";
 
 import { Tools } from "../tools/tools";
+import { AppTools } from "../tools/app";
 
 import { MeshExporter } from "../export/mesh";
 
@@ -93,7 +94,7 @@ export class Prefab {
 
         // Add preview
         try {
-            const previewFile = await Tools.ShowOpenFileDialog("Choose optional preview image for prefab");
+            const previewFile = await AppTools.ShowOpenFileDialog("Choose optional preview image for prefab");
             const buffer = await readFile(previewFile);
 
             zip.addFile("preview.png", buffer);
@@ -107,7 +108,7 @@ export class Prefab {
             let tempDir: Undefinable<string> = undefined;
 
             if (as) {
-                destination = await Tools.ShowSaveFileDialog("Save Mesh Prefab");
+                destination = await AppTools.ShowSaveFileDialog("Save Mesh Prefab");
             } else {
                 destination = await Dialog.Show("Prefab name?", "Please provide a name for the prefab.");
 

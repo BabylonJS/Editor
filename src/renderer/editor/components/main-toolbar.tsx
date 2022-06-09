@@ -13,6 +13,7 @@ import { AbstractMesh, Node, IParticleSystem } from "babylonjs";
 import { Editor } from "../editor";
 
 import { Tools } from "../tools/tools";
+import { AppTools } from "../tools/app";
 import { undoRedo } from "../tools/undo-redo";
 import { EditorPlayMode } from "../tools/types";
 import { EditorProcess } from "../tools/process";
@@ -460,7 +461,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                     ContextMenu.show(
                         <Menu className={Classes.DARK}>
                             <MenuItem text="Save..." icon={<Icon src="save.svg" />} onClick={async () => {
-                                let destination = await Tools.ShowSaveFileDialog("Save Screenshot");
+                                let destination = await AppTools.ShowSaveFileDialog("Save Screenshot");
 
                                 const extension = extname(destination);
                                 if (extension !== ".png") { destination += ".png"; }

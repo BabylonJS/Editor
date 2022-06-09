@@ -2,7 +2,8 @@ import { Nullable } from "../../shared/types";
 
 import { Vector2, Vector3, Vector4, Color3, Color4 } from "babylonjs"
 
-import { Tools } from "../editor/tools/tools";
+import SandboxWorker from "../editor/workers/workers/sandbox";
+import { IWorkerConfiguration, Workers } from "../editor/workers/workers";
 
 export interface IExportedInspectorValueOptions {
     /**
@@ -80,20 +81,13 @@ export interface IExportedInspectorValue {
  * @see ./iframe.ts for more informations about require/import of scripts and returned values.
  */
 export class SandboxMain {
-    private static _IFrame: HTMLIFrameElement;
+    private static _Worker: IWorkerConfiguration;
 
     /**
      * Inits the sandbox.
      */
     public static async Init(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            this._IFrame = document.createElement("iframe");
-            this._IFrame.addEventListener("load", () => resolve());
-            this._IFrame.addEventListener("error", (e) => reject(e));
-            this._IFrame.style.visibility = "hidden";
-            this._IFrame.src = "../html/sandbox.html";
-            document.body.append(this._IFrame);
-        });
+        this._Worker = await Workers.LoadWorker("sandbox.js");
     }
 
     /**
@@ -111,7 +105,7 @@ export class SandboxMain {
             delete require.cache[path];
         }
 
-        return this._CallFunction("ClearCache", path);
+        return Workers.ExecuteFunction<SandboxWorker, "clearCache">(this._Worker, "clearCache", path);
     }
 
     /**
@@ -119,7 +113,7 @@ export class SandboxMain {
      * @param path the path of the file to require.
      */
     public static GetInspectorValues(path: string): Promise<IExportedInspectorValue[]> {
-        return this._CallFunction("GetInspectorValues", path);
+        return Workers.ExecuteFunction<SandboxWorker, "getInspectorValues">(this._Worker, "getInspectorValues", path);
     }
 
     /**
@@ -128,7 +122,7 @@ export class SandboxMain {
      * @param name the name of the module.
      */
     public static ExecuteCode(code: string, name: string): Promise<void> {
-        return this._CallFunction("ExecuteCode", code, name);
+        return Workers.ExecuteFunction<SandboxWorker, "executeCode">(this._Worker, "executeCode", code, name);
     }
 
     /**
@@ -136,29 +130,6 @@ export class SandboxMain {
      * @param path defines the path to the JS file.
      */
     public static GetConstructorsList(path: string): Promise<string[]> {
-        return this._CallFunction("GetConstructorsList", path);
-    }
-
-    /**
-     * Calls the given function with the given arguments in the iFrame.
-     */
-    private static async _CallFunction<T>(fn: string, ...args: any[]): Promise<T> {
-        const id = Tools.RandomId();
-
-        return new Promise<T>((resolve, reject) => {
-            let callback: (ev: WindowEventMap["message"]) => any;
-            window.addEventListener("message", callback = (ev) => {
-                const data = ev.data;
-                if (data.fn === fn && data.id === id) {
-                    window.removeEventListener("message", callback);
-                    if (data.error) {
-                        reject(data.error);
-                    } else {
-                        resolve(data.result as T);
-                    }
-                }
-            });
-            this._IFrame.contentWindow?.postMessage({ fn, args, id }, undefined!);
-        });
+        return Workers.ExecuteFunction<SandboxWorker, "getConstructorsList">(this._Worker, "getConstructorsList", path);
     }
 }

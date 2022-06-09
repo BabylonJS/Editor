@@ -14,7 +14,7 @@ import "babylonjs-loaders";
 import { IPCTools } from "../../editor/tools/ipc";
 
 import { Icon } from "../../editor/gui/icon";
-import { Tools } from "../../editor/tools/tools";
+import { AppTools } from "../../editor/tools/app";
 
 import "../../editor/assets/materials/augmentations";
 
@@ -152,7 +152,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
     private async _saveAs(nodeMaterial: Nullable<NodeMaterial>): Promise<void> {
         if (!nodeMaterial) { return; }
 
-        let path = await Tools.ShowSaveFileDialog("Save Node Material As...");
+        let path = await AppTools.ShowSaveFileDialog("Save Node Material As...");
 
         const extension = extname(path);
         if (extension.toLowerCase() !== ".json") {

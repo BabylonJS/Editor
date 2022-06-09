@@ -10,7 +10,7 @@ import { Wizard } from "../../gui/wizard";
 import { Confirm } from "../../gui/confirm";
 import { Icon } from "../../gui/icon";
 
-import { Tools } from "../../tools/tools";
+import { AppTools } from "../../tools/app";
 
 import { Wizard0 } from "./wizard-project0";
 // import { Wizard1 } from "./wizard-project1";
@@ -89,7 +89,7 @@ export class NewProjectWizard extends React.Component {
         await mkdir(dest);
 
         // Write project.
-        const sceneZipPath = join(Tools.GetAppPath(), `assets/project/add-project.zip`);
+        const sceneZipPath = join(AppTools.GetAppPath(), `assets/project/add-project.zip`);
         const sceneZip = new Zip(sceneZipPath);
 
         await new Promise<void>((resolve, reject) => {

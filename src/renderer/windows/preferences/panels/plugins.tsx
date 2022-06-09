@@ -8,7 +8,7 @@ import { H3 } from "@blueprintjs/core";
 
 import { FitAddon } from "xterm-addon-fit";
 
-import { Tools } from "../../../editor/tools/tools";
+import { AppTools } from "../../../editor/tools/app";
 import { IRegisteredPlugin } from "../../../editor/tools/types";
 import { EditorProcess, IEditorProcess } from "../../../editor/tools/process";
 
@@ -123,7 +123,7 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 			return;
 		}
 
-		const folder = await Tools.ShowSaveDialog();
+		const folder = await AppTools.ShowSaveDialog();
 
 		try {
 			require(folder);

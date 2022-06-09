@@ -9,11 +9,11 @@ import { Alert } from "../gui/alert";
 import { Dialog } from "../gui/dialog";
 
 import { Tools } from "../tools/tools";
+import { AppTools } from "../tools/app";
 
 import { Project } from "../project/project";
 
 import { MeshExporter } from "../export/mesh";
-
 
 import { Editor } from "../editor";
 
@@ -42,7 +42,7 @@ export class SceneTools {
      * @param mesh defines the reference to the mesh to export.
      */
     public static async ExportMeshToBabylonJSFormat(editor: Editor, mesh: Mesh): Promise<void> {
-        let destPath = await Tools.ShowSaveFileDialog(`Export location for mesh "${mesh.name ?? ""}"`);
+        let destPath = await AppTools.ShowSaveFileDialog(`Export location for mesh "${mesh.name ?? ""}"`);
         
         if (!destPath) { return; }
 
@@ -85,7 +85,7 @@ export class SceneTools {
         editor.updateTaskFeedback(task, 50);
 
         try {
-            let dest = await Tools.ShowSaveFileDialog("Please select the path where to save the exported scene.");
+            let dest = await AppTools.ShowSaveFileDialog("Please select the path where to save the exported scene.");
             if (extname(dest) !== ".babylon") {
                 dest += ".babylon";
             }
@@ -126,7 +126,7 @@ export class SceneTools {
         editor.updateTaskFeedback(task, 75);
 
         try {
-            const dest = await Tools.ShowSaveDialog();
+            const dest = await AppTools.ShowSaveDialog();
             for (const f in data.glTFFiles) {
                 const file = data.glTFFiles[f];
 
@@ -169,7 +169,7 @@ export class SceneTools {
             editor.updateTaskFeedback(task, 50);
 
             const data = format === "glb" ? await GLTF2Export.GLBAsync(editor.scene!, prefix, { }) : await GLTF2Export.GLTFAsync(editor.scene!, prefix, { });
-            const dest = await Tools.ShowSaveDialog();
+            const dest = await AppTools.ShowSaveDialog();
             for (const f in data.glTFFiles) {
                 const file = data.glTFFiles[f];
 
@@ -202,7 +202,7 @@ export class SceneTools {
      */
     public static async ImportAnimationGroupsFromFile(editor: Editor, path?: string): Promise<void> {
         if (!path) {
-            path = await Tools.ShowOpenFileDialog("Please select the file to load");
+            path = await AppTools.ShowOpenFileDialog("Please select the file to load");
         }
 
         if (!path) { return; }

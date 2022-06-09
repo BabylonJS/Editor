@@ -10,7 +10,7 @@ import { Terminal } from "xterm";
 
 import { Editor } from "../editor";
 
-import { Tools } from "../tools/tools";
+import { AppTools } from "../tools/app";
 import { Semver } from "../tools/semver";
 import { EditorProcess, IEditorProcess } from "../tools/process";
 
@@ -215,7 +215,7 @@ export class WorkSpace {
      * Opens the file dialog and loads the selected project.
      */
     public static async Browse(): Promise<void> {
-        const file = await Tools.ShowOpenFileDialog("Please select the workspace to open.");
+        const file = await AppTools.ShowOpenFileDialog("Please select the workspace to open.");
         if (!file || extname(file).toLowerCase() !== ".editorworkspace") { return; }
 
         Overlay.Show("Preparing...", true);
@@ -358,7 +358,7 @@ export class WorkSpace {
         if (watch && this._WatchTypescriptProgram) { return null; }
 
         // Update the tsconfig file
-        await copyFile(join(Tools.GetAppPath(), "assets", "scripts", "editor.tsconfig.json"), join(this.DirPath!, "editor.tsconfig.json"));
+        await copyFile(join(AppTools.GetAppPath(), "assets", "scripts", "editor.tsconfig.json"), join(this.DirPath!, "editor.tsconfig.json"));
 
         // Get command
         const isWin32 = platform() === "win32";
