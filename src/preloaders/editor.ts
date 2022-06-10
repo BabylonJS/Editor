@@ -1,4 +1,6 @@
-const path = require('path');
+import { join, resolve, basename } from "path";
+
+import { Tools } from "../renderer/editor/tools/tools";
 
 /**
  * When href contains editor.html, let's load the editor itself.
@@ -16,7 +18,7 @@ function runEditor(): void {
     const amdRequire = amdLoader.require;
 
     function uriFromPath(_path) {
-        var pathName = path.resolve(_path).replace(/\\/g, '/');
+        var pathName = resolve(_path).replace(/\\/g, '/');
         if (pathName.length > 0 && pathName.charAt(0) !== '/') {
             pathName = '/' + pathName;
         }
@@ -24,7 +26,7 @@ function runEditor(): void {
     }
 
     amdRequire.config({
-        baseUrl: uriFromPath(path.join(__dirname, '../../../node_modules/monaco-editor/min'))
+        baseUrl: uriFromPath(join(__dirname, '../../../node_modules/monaco-editor/min'))
     });
 
     // workaround monaco-css not understanding the environment
@@ -59,8 +61,10 @@ function runIsolatedPlay(): void {
     });
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-    const htmlFile = path.basename(window.location.href);
+window.addEventListener("DOMContentLoaded", async () => {
+    await Tools.Wait(100);
+
+    const htmlFile = basename(window.location.href);
 
     if (htmlFile === "editor.html") {
         return runEditor();

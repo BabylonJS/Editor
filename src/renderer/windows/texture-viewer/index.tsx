@@ -5,6 +5,7 @@ import Image from "antd/lib/image";
 
 import { Engine, Scene, ArcRotateCamera, Vector3, PBRMaterial, CubeTexture, Mesh } from "babylonjs";
 import "babylonjs-loaders";
+import "babylonjs-inspector";
 
 export interface ITextureViewerState {
     /**
@@ -101,7 +102,6 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
             enablePopup: false,
             enableClose: false,
             embedMode: true,
-            inspectorURL: "../node_modules/babylonjs-inspector/babylon.inspector.bundle.max.js",
         });
 
         scene.debugLayer.select(material.reflectionTexture);
