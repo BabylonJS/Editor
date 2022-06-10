@@ -28,22 +28,6 @@
 
 <body id="body">
 	<canvas id="renderCanvas"></canvas>
-
-	<script type="text/javascript">
-		require('../build/src/renderer/module.js');
-
-		window.addEventListener("message", function (ev) {
-			if (ev.data && ev.data.id === "init") {
-				const play = require("../build/src/renderer/play/index.js");
-				const game = new play.default(
-					ev.data.workspaceDir,
-					ev.data.outputSceneDirectory,
-					ev.data.projectName,
-					ev.data.physicsEngine,
-				);
-			}
-		});
-	</script>
 </body>
 
 </html>

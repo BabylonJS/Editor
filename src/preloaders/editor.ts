@@ -1,10 +1,14 @@
-window.addEventListener("DOMContentLoaded", () => {
+const path = require('path');
+
+/**
+ * When href contains editor.html, let's load the editor itself.
+ */
+function runEditor(): void {
     // Require modules hack for development mode.
     require('../renderer/module.js');
 
     window["CANNON"] = require("cannon");
 
-    const path = require('path');
     const Editor = require('../renderer/editor/index.js');
 
     // Configure monaco editor embedded loader
@@ -32,4 +36,37 @@ window.addEventListener("DOMContentLoaded", () => {
             (window as any).editor = new Editor.default();
         }
     });
+}
+
+/**
+ * When href contains play.html, let's run the project in an isolated iframe.
+ */
+function runIsolatedPlay(): void {
+    require('../renderer/module.js');
+
+    window.addEventListener("message", function (ev) {
+        if (ev.data?.id !== "init") {
+            return;
+        }
+
+        const play = require("../renderer/play/index.js");
+        new play.default(
+            ev.data.workspaceDir,
+            ev.data.outputSceneDirectory,
+            ev.data.projectName,
+            ev.data.physicsEngine,
+        );
+    });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    const htmlFile = path.basename(window.location.href);
+
+    if (htmlFile === "editor.html") {
+        return runEditor();
+    }
+
+    if (htmlFile === "play.html") {
+        return runIsolatedPlay();
+    }
 });
