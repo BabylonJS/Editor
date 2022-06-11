@@ -2,7 +2,7 @@ import { ipcMain, IpcMainEvent, BrowserWindow } from "electron";
 
 import { OpenWindowIPC } from "../ipc/open-window";
 
-import { SetProjectPathIPC, GetProjectPathIPC } from "../ipc/project";
+import { SetProjectPathIPC, GetProjectPathIPC } from "../ipc/project";
 import { GetWorkspacePathIPC, SetWorkspacePathIPC } from "../ipc/workspace";
 
 import { GetAppPathIPC } from "../ipc/app-path";
@@ -13,13 +13,15 @@ import { OpenDirectoryDialogIPC, OpenFileDialogIPC, SaveFileDialogIPC } from "..
 import { StartWebServerIPC } from "../ipc/webserver";
 import { SendWindowMessageIPC } from "../ipc/window-message";
 
+import { TrashItemIPC } from "../ipc/trash-item";
+
 import { CloseWindowIPC } from "../ipc/close-window";
 import { FocusWindowIPC } from "../ipc/focus-window";
 
-import { EnableDevToolsIPC } from "../ipc/enable-devtools";
-import { OpenDevToolsIPC } from "../ipc/open-devtools";
+import { OpenDevToolsIPC } from "../ipc/open-devtools";
+import { EnableDevToolsIPC } from "../ipc/enable-devtools";
 
-import { ToucharIPC } from "../ipc/touchbar";
+import { ToucharIPC } from "../ipc/touchbar";
 
 export interface IIPCHandler {
 	/**
@@ -56,6 +58,8 @@ export class IPCHandler {
 
 		this.registerHandler(new GetAppPathIPC());
 		this.registerHandler(new GetWindowIdIPC());
+
+		this.registerHandler(new TrashItemIPC());
 
 		this.registerHandler(new StartWebServerIPC());
 

@@ -870,6 +870,9 @@ export class Editor {
         // Refresh preferences
         this._applyPreferences();
 
+        // Console
+        this.console.overrideLogger();
+
         // Check workspace
         const workspacePath = await WorkSpace.GetOpeningWorkspace();
         if (workspacePath) {
@@ -913,15 +916,16 @@ export class Editor {
             WelcomeDialog.Show(this, false);
         }
 
-        // Console
-        this.console.overrideLogger();
-
         // Refresh
         this.mainToolbar.setState({ hasWorkspace: workspacePath !== null });
         this.toolsToolbar.setState({ hasWorkspace: WorkSpace.HasWorkspace() });
 
         // Now initialized!
         this._isInitialized = true;
+
+        // Notify!
+        this.editorInitializedObservable.notifyObservers();
+        this.selectedSceneObservable.notifyObservers(this.scene!);
 
         const workspace = WorkSpace.Workspace;
 
@@ -998,10 +1002,6 @@ export class Editor {
         }
 
         this._isProjectReady = true;
-
-        // Notify!
-        this.editorInitializedObservable.notifyObservers();
-        this.selectedSceneObservable.notifyObservers(this.scene!);
 
         // Check for updates
         EditorUpdater.CheckForUpdates(this, false);

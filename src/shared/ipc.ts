@@ -14,6 +14,8 @@ export enum IPCRequests {
 	GetAppPath = "getapppath",
 	GetWindowId = "getwindowid",
 
+	TrashItem = "trashitem",
+
 	StartGameServer = "startgameserver",
 
 	FocusWindow = "focuswindow",
@@ -43,6 +45,8 @@ export enum IPCResponses {
 
 	GetAppPath = "getapppath",
 	GetWindowId = "getwindowid",
+
+	TrashItem = "trashitem",
 
 	StartGameServer = "startgameserver",
 

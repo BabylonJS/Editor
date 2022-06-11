@@ -1,9 +1,9 @@
 import Glob from "glob";
 import * as os from "os";
-import { shell } from "electron";
 import { basename, dirname, extname, isAbsolute, join } from "path";
 import { move, pathExists, remove, stat, writeJSON } from "fs-extra";
 
+import { IPCRequests } from "../../../shared/ipc";
 import { IStringDictionary, Nullable } from "../../../shared/types";
 
 import * as React from "react";
@@ -16,6 +16,7 @@ import { Alert } from "../gui/alert";
 
 import { FSTools } from "../tools/fs";
 import { Tools } from "../tools/tools";
+import { IPCTools } from "../tools/ipc";
 
 import { Project } from "../project/project";
 import { WorkSpace } from "../project/workspace";
@@ -357,7 +358,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			const iAbsolute = platform === "win32" ? i.replace(/\//g, "\\") : i;
 
 			try {
-				await shell.trashItem(iAbsolute);
+				await IPCTools.CallWithPromise(IPCRequests.TrashItem, iAbsolute);
 			} catch (e) {
 				if (deleteOnFail) {
 					await remove(iAbsolute);
