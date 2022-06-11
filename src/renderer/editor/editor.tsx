@@ -65,9 +65,6 @@ import { Console } from "./components/console";
 // Assets
 import { AssetsBrowserItem } from "./components/assets-browser/files/item";
 
-// Augmentations
-import "./gui/augmentations/index";
-
 // Inspectors
 import "./components/inspectors/scene/scene-inspector";
 import "./components/inspectors/scene/rendering-inspector";

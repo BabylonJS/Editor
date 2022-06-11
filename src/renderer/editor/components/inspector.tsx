@@ -8,12 +8,11 @@ import { Scene, SubMesh, Sound } from "babylonjs";
 import { Editor } from "../editor";
 
 import { AbstractInspector } from "./inspectors/abstract-inspector";
-import { AbstractInspectorLegacy } from "./inspectors/abstract-inspector-legacy";
 
 import { Tools } from "../tools/tools";
 
 export interface IObjectInspector {
-    ctor: (new (props: IObjectInspectorProps) => AbstractInspectorLegacy<any> | AbstractInspector<any, any>);
+    ctor: (new (props: IObjectInspectorProps) => AbstractInspector<any, any>);
     ctorNames: string[];
     title: string;
     isSupported?: Undefinable<(obj: any) => boolean>;
@@ -21,7 +20,7 @@ export interface IObjectInspector {
      * The reference to the inspector.
      * @hidden
      */
-    _ref?: Undefinable<AbstractInspectorLegacy<any>>;
+    _ref?: Undefinable<AbstractInspector<any, any>>;
     /**
      * @hidden
      */
@@ -76,7 +75,7 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
     private _sceneInspectorKey: string = Tools.RandomId();
 
     private _refHandler = {
-        getInspector: (ref: AbstractInspectorLegacy<any>) => ref && (Inspector._ObjectInspectorsConfigurations.find((a) => a._id === ref.props.toolId)!._ref = ref),
+        getInspector: (ref: AbstractInspector<any, any>) => ref && (Inspector._ObjectInspectorsConfigurations.find((a) => a._id === ref.props.toolId)!._ref = ref),
     };
 
     private static _ObjectInspectorsConfigurations: IObjectInspector[] = [];
@@ -205,13 +204,6 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
         this.setState({
             refreshCount: this.state.refreshCount + 1,
         });
-    }
-
-    /**
-     * Refreshes the current display of the current inspector.
-     */
-    public refreshDisplay(): void {
-        Inspector._ObjectInspectorsConfigurations.forEach((i) => i._ref?.refreshDisplay?.());
     }
 
     /**

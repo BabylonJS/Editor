@@ -176,7 +176,7 @@ export class EnvDdsItemHandler extends AssetsBrowserItemHandler {
 
 		object[property] = texture;
 
-		this.props.editor.inspector.refreshDisplay();
+		this.props.editor.inspector.refresh();
 		return this.props.editor.assets.refresh();
 	}
 }

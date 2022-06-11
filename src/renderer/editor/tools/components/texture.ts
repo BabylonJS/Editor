@@ -95,8 +95,6 @@ export class TextureTools {
             console.error("Failed to remove tmp dir", e);
         }
 
-        editor.inspector.refreshDisplay();
-
         return name;
     }
 

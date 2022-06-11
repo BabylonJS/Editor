@@ -26,7 +26,6 @@ export { TextureAssets } from "./renderer/editor/assets/textures";
 
 // Inspectors
 export { Inspector, IInspectorProps, IInspectorState, IObjectInspector, IObjectInspectorProps } from "./renderer/editor/components/inspector";
-export { AbstractInspectorLegacy } from "./renderer/editor/components/inspectors/abstract-inspector-legacy";
 export { AbstractInspector } from "./renderer/editor/components/inspectors/abstract-inspector";
 export { MaterialInspector, IMaterialInspectorState } from "./renderer/editor/components/inspectors/materials/material-inspector";
 

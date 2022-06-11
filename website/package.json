@@ -21,7 +21,7 @@
         "markdown-it": "^12.3.2",
         "react": "16.12.0",
         "react-dom": "16.12.0",
-        "shelljs": "^0.8.5"
+        "shelljs": "0.8.5"
     },
     "devDependencies": {
         "@types/node": "13.9.0",

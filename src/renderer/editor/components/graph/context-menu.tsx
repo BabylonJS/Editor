@@ -185,13 +185,13 @@ export class GraphContextMenu {
 
 				undoRedo.push({
 					description: `Changed transform information of object "${node?.["name"] ?? "undefiend"}" from "${base.toString()}" to "${target.toString()}"`,
-					common: () => editor.inspector.refreshDisplay(),
+					common: () => editor.inspector.refresh(),
 					undo: () => node![property] = base,
 					redo: () => node![property] = target,
 				});
 			}
 
-			editor.inspector.refreshDisplay();
+			editor.inspector.refresh();
 		};
 
 		return (

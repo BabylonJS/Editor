@@ -309,7 +309,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             }
 
             this.forceUpdate();
-            this._editor.inspector.refreshDisplay();
+            this._editor.inspector.refresh();
         }
 
         // Add
