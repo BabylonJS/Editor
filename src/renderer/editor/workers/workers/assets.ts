@@ -233,6 +233,8 @@ export default class AssetsWorker {
 			});
 
 			container.removeAllFromScene();
+			container.materials.forEach((m) => m.dispose(true, true));
+
 			container.dispose();
 		} catch (e) {
 			// Catch silently.
