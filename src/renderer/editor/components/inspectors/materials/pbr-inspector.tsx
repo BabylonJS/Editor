@@ -83,8 +83,9 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 {this.getInspectableValuesInspector()}
 
                 <InspectorSection title="Options">
-                    <InspectorBoolean object={this.material} property="usePhysicalLightFalloff" label= "Use Physical Light Falloff" />
-                    <InspectorBoolean object={this.material} property="forceIrradianceInFragment" label= "Force Irradiance In Fragment" />
+                    <InspectorBoolean object={this.material} property="unlit" label="Unlit" defaultValue={false} />
+                    <InspectorBoolean object={this.material} property="usePhysicalLightFalloff" label="Use Physical Light Falloff" />
+                    <InspectorBoolean object={this.material} property="forceIrradianceInFragment" label="Force Irradiance In Fragment" />
                 </InspectorSection>
 
                 <InspectorSection title="Albedo">
