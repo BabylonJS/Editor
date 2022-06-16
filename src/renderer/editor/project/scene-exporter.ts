@@ -60,6 +60,14 @@ export class SceneExporter {
 	];
 
 	/**
+	 * Defines the list of all video file types that are copy-able for the
+	 * final assets output folder.
+	 */
+	public static readonly CopyAbleVideoTypes: string[] = [
+		".webm", ".mp4",
+	];
+
+	/**
 	 * Defines the list of all 3d assets file types that are copy-able for the
 	 * final assets output folder.
 	 */
@@ -73,6 +81,7 @@ export class SceneExporter {
 	 */
 	public static readonly CopyAbleAssetsTypes: string[] = [
 		...SceneExporter.CopyAbleImageTypes,
+		...SceneExporter.CopyAbleVideoTypes,
 		...SceneExporter.CopyAble3dAssetTypes,
 		".env", ".dds",
 		".mp3", ".wav", ".ogg", ".wave",
