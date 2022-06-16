@@ -257,6 +257,9 @@ export class ProjectExporter {
             if (texture.name.indexOf("data:") === 0 || texture === editor.scene!.environmentBRDFTexture) { continue; }
             if (!extname(texture.name)) { continue; }
             
+            texture.metadata ??= { };
+            texture.metadata.editorId ??= Tools.RandomId();
+
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = texture.serialize();
                 if (!json) { return resolve(); }
@@ -266,7 +269,7 @@ export class ProjectExporter {
                     json.files = json.files.map((f) => join("files", basename(f)));
                 }
 
-                const dest = `${normalize(`${filenamify(basename(texture.name))}-${texture.uniqueId.toString()}`)}.json`;
+                const dest = `${normalize(`${filenamify(basename(texture.name))}-${texture.metadata.editorId}`)}.json`;
                 await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(texturesDir, dest), json);
 
                 project.textures.push(dest);

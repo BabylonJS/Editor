@@ -133,6 +133,7 @@ export class ProjectImporter {
 
                     transform.metadata = transform.metadata ?? {};
                     transform.metadata._waitingParentId = json.parentId;
+                    transform.uniqueId = json.uniqueId ?? transform.uniqueId;
                 } catch (e) {
                     editor.console.logError(`Failed to load transform node "${t}"`);
                 }
@@ -230,8 +231,12 @@ export class ProjectImporter {
                     MultiMaterial.ParseMultiMaterial(json, editor.scene!) :
                     Material.Parse(json, editor.scene!, materialRootUrl!);
 
-                if (material && json.metadata) {
-                    material.metadata = json.metadata;
+                if (material) {
+                    if (json.metadata) {
+                        material.metadata = json.metadata;
+                    }
+
+                    material.uniqueId = json.uniqueId ?? material.uniqueId;
                 }
 
                 editor.console.logInfo(`Parsed material "${m.json}"`);
@@ -299,6 +304,7 @@ export class ProjectImporter {
 
                     light.metadata = light.metadata ?? {};
                     light.metadata._waitingParentId = json.parentId;
+                    light.uniqueId = json.uniqueId ?? light.uniqueId;
 
                     editor.console.logInfo(`Parsed light "${l.json}"`);
 
@@ -352,6 +358,7 @@ export class ProjectImporter {
 
                 camera.metadata = camera.metadata ?? {};
                 camera.metadata._waitingParentId = json.parentId;
+                camera.uniqueId = json.uniqueId ?? camera.uniqueId;
 
                 editor.console.logInfo(`Parsed camera "${c}"`);
             } catch (e) {
@@ -528,7 +535,7 @@ export class ProjectImporter {
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, filename, editor.scene, null, ".babylon");
         editor.console.logInfo(`Parsed mesh "${name}"`);
 
-        const allMeshes: { mesh: Mesh; geometryId: string; parentId?: string; instances?: string[]; }[] = [];
+        const allMeshes: { mesh: Mesh; geometryId: string; parentId?: string; instances?: string[]; uniqueId: number; instancesUniqueIds?: number[] }[] = [];
 
         result.meshes.forEach((mesh, index) => {
             if (!(mesh instanceof Mesh)) { return; }
@@ -539,9 +546,11 @@ export class ProjectImporter {
 
             allMeshes.push({
                 mesh,
-                geometryId: json.meshes[index].geometryId,
                 parentId: json.meshes[index].parentId,
+                geometryId: json.meshes[index].geometryId,
+                uniqueId: json.meshes[index].uniqueId ?? mesh.uniqueId,
                 instances: json.meshes[index].instances?.map((i) => i.parentId) ?? [],
+                instancesUniqueIds: json.meshes[index].instances?.map((i) => i.uniqueId),
             });
         });
 
@@ -557,7 +566,7 @@ export class ProjectImporter {
                 const mesh = lodResult.meshes[0];
                 if (!mesh || !(mesh instanceof Mesh)) { continue; }
 
-                allMeshes.push({ mesh, geometryId: lod.mesh.meshes[0].geometryId });
+                allMeshes.push({ mesh, geometryId: lod.mesh.meshes[0].geometryId, uniqueId: lod.mesh.meshes[0].uniqueId ?? mesh.uniqueId });
 
                 (result.meshes[0] as Mesh).addLODLevel(lod.distance, mesh);
                 URL.revokeObjectURL(url);
@@ -576,6 +585,7 @@ export class ProjectImporter {
 
         // Parent
         allMeshes.forEach((m) => {
+            m.mesh.uniqueId = m.uniqueId;
             m.mesh.metadata = m.mesh.metadata ?? {};
             m.mesh.metadata._waitingParentId = m.parentId;
             m.mesh.metadata._waitingGeometryId = m.geometryId;
@@ -584,7 +594,9 @@ export class ProjectImporter {
             if (m.instances) {
                 m.mesh.instances?.forEach((i, instanceIndex) => {
                     i.metadata = i.metadata ?? {};
-                    i.metadata._waitingParentId = m.instances![instanceIndex];
+                    i.metadata._waitingParentId = m.instances?.[instanceIndex];
+
+                    i.uniqueId = m.instancesUniqueIds?.[instanceIndex] ?? i.uniqueId;
                 });
             }
 
