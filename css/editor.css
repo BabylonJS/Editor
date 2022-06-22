@@ -56,6 +56,19 @@ html, body {
     border-radius: 0px !important;
 }
 
+/* Editor */
+
+.launchIcon {
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+    margin-top: auto;
+    margin-left: auto;
+    position: absolute;
+    background: black;
+}
+
 /* FLEX LAYOUT */
 .flexlayout__layout {
     top: 63px;
