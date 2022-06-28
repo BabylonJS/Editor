@@ -110,12 +110,47 @@ export class TextureInspector<T extends Texture | CubeTexture, S extends ITextur
                 <InspectorNumber object={this.selectedObject} property="coordinatesIndex" label="Coordinates Index" min={0} step={1} />
                 <InspectorNumber object={this.selectedObject} property="level" label="Level" min={0} step={0.01} />
 
+                {this.getWrappingSection()}
                 {this.getSamplingModeInspector()}
 
                 <InspectorList object={this.selectedObject} property="coordinatesMode" label="Coordinates Mode" items={
                     TextureInspector._CoordinatesModes.map((cm) => ({ label: cm, data: Texture[cm] }))
                 } />
             </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the section used to edit the wrapping properties of the selected texture.
+     */
+    protected getWrappingSection(): React.ReactNode {
+        if (!(this.selectedObject instanceof Texture)) {
+            return undefined;
+        }
+
+        return (
+            <InspectorSection title="Wrapping">
+                {this.getWrappingInspector("wrapU", "Wrap U")}
+                {this.getWrappingInspector("wrapV", "Wrap V")}
+                {this.getWrappingInspector("wrapR", "Wrap R")}
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the inspector used to configure the given wrapping property.
+     */
+    protected getWrappingInspector(property: string, label: string): React.ReactNode {
+        if (!(this.selectedObject instanceof Texture)) {
+            return undefined;
+        }
+
+        return (
+            <InspectorList object={this.selectedObject} property={property} label={label} items={[
+                { label: "Wrap", data: Texture.WRAP_ADDRESSMODE },
+                { label: "Clamp", data: Texture.CLAMP_ADDRESSMODE },
+                { label: "Mirror", data: Texture.MIRROR_ADDRESSMODE },
+            ]} />
         );
     }
 
