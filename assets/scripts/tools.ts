@@ -140,11 +140,31 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
             const currentScene = EngineStore.LastCreatedScene;
             EngineStore._LastCreatedScene = dummyScene;
 
-            const clone = exports.IsGraph ?
-                Reflect.construct(prototype.constructor.bind(n), [scene, n]) :
-                Reflect.construct(prototype.constructor.bind(n), []);
-            Reflect.setPrototypeOf(n, clone.constructor.prototype);
+            let clone: Nullable<Node | Scene> = null;
 
+            if (exports.IsGraph) {
+                clone = Reflect.construct(prototype.constructor.bind(n), [scene, n]);
+            } else {
+                const className = n.getClassName();
+                switch (className) {
+                    case "PointLight":
+                    case "HemisphericLight":
+                    case "DirectionalLight": clone = Reflect.construct(prototype.constructor, [null, Vector3.Zero(), dummyScene]); break;
+                    case "SpotLight": clone = Reflect.construct(prototype.constructor, [null, Vector3.Zero(), Vector3.Zero(), 0, 0, dummyScene]); break;
+
+                    case "TouchCamera":
+                    case "UniversalCamera":
+                    case "TargetCamera":
+                    case "Camera":
+                    case "FreeCamera": clone = Reflect.construct(prototype.constructor, [null, Vector3.Zero()]); break;
+                    case "ArcRotateCamera": clone = Reflect.construct(prototype.constructor, [null, 0, 0, 0, Vector3.Zero(), dummyScene]); break;
+
+                    default: clone = Reflect.construct(prototype.constructor, []); break;
+                }
+            }
+            
+            Reflect.setPrototypeOf(n, clone!.constructor.prototype);
+            
             EngineStore._LastCreatedScene = currentScene;
 
             for (const key in clone) {
@@ -153,7 +173,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
                 }
             }
 
-            clone.dispose();
+            clone!.dispose();
         } else {
             if (exports.IsGraph) {
                 exports.IsGraphAttached = true;
