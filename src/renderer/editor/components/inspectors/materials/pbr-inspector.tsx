@@ -47,6 +47,10 @@ export interface IPBRMaterialInspectorState extends IMaterialInspectorState {
      * Defines wether or not sub surface refaction is enabled.
      */
     subSurfaceRefractionEnabled: boolean;
+    /**
+     * Defines wether or not iridescence is enabled.
+     */
+    useIridescence: boolean;
 }
 
 export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMaterialInspectorState> {
@@ -54,7 +58,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
      * Constructor.
      * @param props defines the component's props.
      */
-     public constructor(props: IObjectInspectorProps) {
+    public constructor(props: IObjectInspectorProps) {
         super(props);
 
         this.state = {
@@ -63,6 +67,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
             clearCoatEnabled: this.material.clearCoat.isEnabled,
             anisotropyEnabled: this.material.anisotropy.isEnabled,
             sheenEnabled: this.material.sheen.isEnabled,
+            useIridescence: this.material.iridescence.isEnabled,
             useSheenRoughness: (this.material.sheen.roughness ?? null) !== null,
             subSurfaceTranslucencyEnabled: this.material.subSurface.isTranslucencyEnabled,
             subSurfaceRefractionEnabled: this.material.subSurface.isRefractionEnabled,
@@ -89,23 +94,23 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 </InspectorSection>
 
                 <InspectorSection title="Albedo">
-                    <InspectorBoolean object={this.material} property="useAlphaFromAlbedoTexture" label= "Use Alpha From Albedo Texture" />
+                    <InspectorBoolean object={this.material} property="useAlphaFromAlbedoTexture" label="Use Alpha From Albedo Texture" />
                     <InspectorColor object={this.material} property="albedoColor" label="Color" step={0.01} />
                     <InspectorColorPicker object={this.material} property="albedoColor" label="Hex Color" />
                 </InspectorSection>
 
                 <InspectorSection title="Bump">
                     {this._getBumpTextureLevelInspector()}
-                    <InspectorBoolean object={this.material} property="invertNormalMapX" label= "Invert Normal Map X" />
-                    <InspectorBoolean object={this.material} property="invertNormalMapY" label= "Invert Normal Map Y" />
-                    <InspectorBoolean object={this.material} property="useParallax" label= "Use Parallax" />
-                    <InspectorBoolean object={this.material} property="useParallaxOcclusion" label= "Use Parallax Occlusion" />
+                    <InspectorBoolean object={this.material} property="invertNormalMapX" label="Invert Normal Map X" />
+                    <InspectorBoolean object={this.material} property="invertNormalMapY" label="Invert Normal Map Y" />
+                    <InspectorBoolean object={this.material} property="useParallax" label="Use Parallax" />
+                    <InspectorBoolean object={this.material} property="useParallaxOcclusion" label="Use Parallax Occlusion" />
                     <InspectorNumber object={this.material} property="parallaxScaleBias" label="Parallax Scale Bias" step={0.001} />
                 </InspectorSection>
 
                 <InspectorSection title="Reflectivity">
-                    <InspectorBoolean object={this.material} property="enableSpecularAntiAliasing" label= "Enable Specular Anti-Aliasing" />
-                    <InspectorBoolean object={this.material} property="useSpecularOverAlpha" label= "Use Specular Over Alpha" />
+                    <InspectorBoolean object={this.material} property="enableSpecularAntiAliasing" label="Enable Specular Anti-Aliasing" />
+                    <InspectorBoolean object={this.material} property="useSpecularOverAlpha" label="Use Specular Over Alpha" />
                     <InspectorColor object={this.material} property="reflectivityColor" label="Color" step={0.01} />
                     <InspectorColorPicker object={this.material} property="reflectivityColor" label="Hex Color" />
                 </InspectorSection>
@@ -117,8 +122,8 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 </InspectorSection>
 
                 <InspectorSection title="Ambient">
-                    <InspectorBoolean object={this.material} property="useAmbientInGrayScale" label= "Use Ambient In Gray Scale" />
-                    <InspectorBoolean object={this.material} property="useAmbientOcclusionFromMetallicTextureRed" label= "Use Ambient Occlusion From Metallic Texture Red" />
+                    <InspectorBoolean object={this.material} property="useAmbientInGrayScale" label="Use Ambient In Gray Scale" />
+                    <InspectorBoolean object={this.material} property="useAmbientOcclusionFromMetallicTextureRed" label="Use Ambient Occlusion From Metallic Texture Red" />
                     <InspectorNumber object={this.material} property="ambientTextureStrength" label="Strength" step={0.01} />
                     <InspectorColor object={this.material} property="ambientColor" label="Color" step={0.01} />
                     <InspectorColorPicker object={this.material} property="ambientColor" label="Hex Color" />
@@ -126,16 +131,16 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
 
                 <InspectorSection title="Micro Surface (Glossiness)">
                     <InspectorNumber object={this.material} property="microSurface" label="Micro Surface" min={0} max={1} step={0.01} />
-                    <InspectorBoolean object={this.material} property="useAutoMicroSurfaceFromReflectivityMap" label= "Use Auto Micro Surface From Reflectivity Map" />
-                    <InspectorBoolean object={this.material} property="useMicroSurfaceFromReflectivityMapAlpha" label= "Use Micro Surface From Reflectivity Map Alpha" />
+                    <InspectorBoolean object={this.material} property="useAutoMicroSurfaceFromReflectivityMap" label="Use Auto Micro Surface From Reflectivity Map" />
+                    <InspectorBoolean object={this.material} property="useMicroSurfaceFromReflectivityMapAlpha" label="Use Micro Surface From Reflectivity Map Alpha" />
                 </InspectorSection>
 
                 <InspectorSection title="Metallic / Roughness">
-                    <InspectorBoolean object={this.material} property="useMetallnessFromMetallicTextureBlue" label= "Use Metallness From Metallic Texture Blue" />
-                    <InspectorBoolean object={this.material} property="useRoughnessFromMetallicTextureAlpha" label= "Use Roughness From Metallic Texture Alpha" />
-                    <InspectorBoolean object={this.material} property="useRoughnessFromMetallicTextureGreen" label= "Use Roughness From Metallic Texture Green" />
-                    <InspectorNumber object={this.material} property="indexOfRefraction" label= "Index Of Refraction" min={1} max={3} step={0.01} />
-                    <InspectorNumber object={this.material} property="metallicF0Factor" label= "Metallic F0 Factor" min={0} max={1} step={0.01} />
+                    <InspectorBoolean object={this.material} property="useMetallnessFromMetallicTextureBlue" label="Use Metallness From Metallic Texture Blue" />
+                    <InspectorBoolean object={this.material} property="useRoughnessFromMetallicTextureAlpha" label="Use Roughness From Metallic Texture Alpha" />
+                    <InspectorBoolean object={this.material} property="useRoughnessFromMetallicTextureGreen" label="Use Roughness From Metallic Texture Green" />
+                    <InspectorNumber object={this.material} property="indexOfRefraction" label="Index Of Refraction" min={1} max={3} step={0.01} />
+                    <InspectorNumber object={this.material} property="metallicF0Factor" label="Metallic F0 Factor" min={0} max={1} step={0.01} />
                     {this._getMetallicWorkflowInspector()}
                     {this._getRoughnessWorkflowInspector()}
                 </InspectorSection>
@@ -151,6 +156,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 </InspectorSection>
 
                 {this._getClearCoatInspector()}
+                {this._getIridescenceInspector()}
                 {this._getAnisotropyInspector()}
                 {this._getSheenInspector()}
                 {this._getSubSurfaceInspector()}
@@ -249,7 +255,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
         if (!this.state.clearCoatEnabled) {
             return (
                 <InspectorSection title="Clear Coat">
-                    <InspectorBoolean object={this.material.clearCoat} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ clearCoatEnabled: v })} />
+                    <InspectorBoolean object={this.material.clearCoat} property="isEnabled" label="Enabled" onChange={(v) => this.setState({ clearCoatEnabled: v })} />
                 </InspectorSection>
             );
         }
@@ -283,14 +289,14 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
         if (!this.state.anisotropyEnabled) {
             return (
                 <InspectorSection title="Anisotropy">
-                    <InspectorBoolean object={this.material.anisotropy} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ anisotropyEnabled: v })} />
+                    <InspectorBoolean object={this.material.anisotropy} property="isEnabled" label="Enabled" onChange={(v) => this.setState({ anisotropyEnabled: v })} />
                 </InspectorSection>
             );
         }
 
         return (
             <InspectorSection title="Anisotropy">
-                <InspectorBoolean object={this.material.anisotropy} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ anisotropyEnabled: v })} />
+                <InspectorBoolean object={this.material.anisotropy} property="isEnabled" label="Enabled" onChange={(v) => this.setState({ anisotropyEnabled: v })} />
                 <InspectorList object={this.material.anisotropy} property="texture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorNumber object={this.material.anisotropy} property="intensity" label="Intensity" step={0.01} />
                 <InspectorVector2 object={this.material.anisotropy} property="direction" label="Direction" step={0.01} />
@@ -306,18 +312,18 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
         if (!this.state.sheenEnabled) {
             return (
                 <InspectorSection title="Sheen">
-                    <InspectorBoolean object={this.material.sheen} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ sheenEnabled: v })} />
+                    <InspectorBoolean object={this.material.sheen} property="isEnabled" label="Enabled" onChange={(v) => this.setState({ sheenEnabled: v })} />
                 </InspectorSection>
             );
         }
 
         return (
             <InspectorSection title="Sheen">
-                <InspectorBoolean object={this.material.sheen} property="isEnabled" label= "Enabled" onChange={(v) => this.setState({ sheenEnabled: v })} />
+                <InspectorBoolean object={this.material.sheen} property="isEnabled" label="Enabled" onChange={(v) => this.setState({ sheenEnabled: v })} />
                 <InspectorList object={this.material.sheen} property="texture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
-                <InspectorBoolean object={this.material.sheen} property="linkSheenWithAlbedo" label= "Link Sheen With Albedo" />
-                <InspectorBoolean object={this.material.sheen} property="albedoScaling" label= "Albedo Scaling" />
-                <InspectorBoolean object={this.material.sheen} property="useRoughnessFromMainTexture" label= "Use Roughness From Main Texture" />
+                <InspectorBoolean object={this.material.sheen} property="linkSheenWithAlbedo" label="Link Sheen With Albedo" />
+                <InspectorBoolean object={this.material.sheen} property="albedoScaling" label="Albedo Scaling" />
+                <InspectorBoolean object={this.material.sheen} property="useRoughnessFromMainTexture" label="Use Roughness From Main Texture" />
 
                 {this._getSheenRoughnessInspector()}
 
@@ -367,7 +373,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 <InspectorSection title="Sub Surface">
                     <InspectorList object={this.material.subSurface} property="thicknessTexture" label="Thickness Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                     <InspectorList object={this.material.subSurface} property="refractionTexture" label="Refraction Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
-                    
+
                     <InspectorColor object={this.material.subSurface} property="tintColor" label="Tint Color" step={0.01} />
                     <InspectorColorPicker object={this.material.subSurface} property="tintColor" label="Hex Color" />
                     <InspectorBoolean object={this.material.subSurface} property="useMaskFromThicknessTexture" label="Use Mask From Thickness Texture" />
@@ -401,7 +407,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 </InspectorSection>
             );
         }
-        
+
         return (
             <InspectorSection title="Translucency">
                 <InspectorBoolean object={this.state} property="subSurfaceTranslucencyEnabled" label="Enabled" onChange={(v) => {
@@ -436,6 +442,36 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     this.setState({ subSurfaceRefractionEnabled: v });
                 }} />
                 <InspectorNumber object={this.material.subSurface} property="indexOfRefraction" label="Index Of Refraction" step={0.01} />
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the inspector used to configure the iridescence properties of the PBR material.
+     */
+    private _getIridescenceInspector(): React.ReactNode {
+        if (!this.state.useIridescence) {
+            return (
+                <InspectorSection title="Iridescence">
+                    <InspectorBoolean object={this.state} property="useIridescence" label="Enabled" onChange={(v) => {
+                        this.material.iridescence.isEnabled = true;
+                        this.setState({ useIridescence: v });
+                    }} />
+                </InspectorSection>
+            );
+        }
+
+        return (
+            <InspectorSection title="Iridescence">
+                <InspectorBoolean object={this.state} property="useIridescence" label="Enabled" onChange={(v) => {
+                    this.material.iridescence.isEnabled = false;
+                    this.setState({ useIridescence: v });
+                }} />
+
+                <InspectorNumber object={this.material.iridescence} property="intensity" label="Intensity" min={0} max={10} step={0.01} />
+                <InspectorNumber object={this.material.iridescence} property="indexOfRefraction" label="Index Of Refraction" min={0} max={10} step={0.01} />
+                <InspectorNumber object={this.material.iridescence} property="minimumThickness" label="Minimum Thickness" min={0} step={1} />
+                <InspectorNumber object={this.material.iridescence} property="maximumThickness" label="Maximum Thickness" min={0} step={1} />
             </InspectorSection>
         );
     }
