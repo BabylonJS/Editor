@@ -4,8 +4,10 @@ import { HemisphericLight } from "babylonjs";
 
 import { Inspector } from "../../inspector";
 
+import { InspectorColor } from "../../../gui/inspector/fields/color";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorVector3 } from "../../../gui/inspector/fields/vector3";
+import { InspectorColorPicker } from "../../../gui/inspector/fields/color-picker";
 
 import { INodeInspectorState } from "../node-inspector";
 
@@ -20,8 +22,11 @@ export class HemisphericLightInspector extends LightInspector<HemisphericLight, 
             <>
                 {super.renderContent()}
 
-                <InspectorSection title="Transforms">
+                <InspectorSection title="Hemispheric Light">
                     <InspectorVector3 object={this.selectedObject} property="direction" label="Direction" step={0.01} />
+
+                    <InspectorColor object={this.selectedObject} property="groundColor" label="Ground Color" step={0.01} />
+                    <InspectorColorPicker object={this.selectedObject} property="groundColor" label="Hex" />
                 </InspectorSection>
 
                 {this.getAnimationRangeInspector()}

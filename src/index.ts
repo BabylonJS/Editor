@@ -67,5 +67,3 @@ export { SceneImporterTools, ISceneImporterToolsConfiguration } from "./renderer
 
 // Packer
 export { Packer, IPackerOptions, PackerStatus } from "./renderer/editor/project/packer/packer";
-
-import "./renderer/editor/gui/augmentations/index";
