@@ -92,6 +92,16 @@ export interface IWorkSpace {
     };
 
     /**
+     * Defines the options of the custom webserver.
+     */
+    customWebServer?: {
+        /**
+         * Defines the Url of the custom webserver where to start the game.
+         */
+        url: string;
+    }
+
+    /**
      * Defines the options of the KTX2 compression tool.
      */
     ktx2CompressedTextures?: {

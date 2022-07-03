@@ -55,7 +55,10 @@ export default class PlayPlugin extends AbstractEditorPlugin<IPlayPlugin> {
 
         let content: React.ReactNode;
         if (this.state.isRunning) {
-            const iframeUrl = `http://localhost:${WorkSpace.Workspace.serverPort}/`;
+            const iframeUrl = WorkSpace.Workspace.customWebServer
+                ? WorkSpace.Workspace.customWebServer.url
+                : `http://localhost:${WorkSpace.Workspace.serverPort}/`;
+            
             content = (
                 <iframe ref={this._refHandler.getIFrame} src={iframeUrl} style={{ border: "none", width: "100%", height: "calc(100% - 25px)" }}></iframe>
             );

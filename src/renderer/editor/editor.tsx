@@ -708,32 +708,43 @@ export class Editor {
     public async runProject(mode: EditorPlayMode, https: boolean): Promise<void> {
         await SceneExporter.ExportFinalScene(this);
 
-        const task = this.addTaskFeedback(0, "Running Server");
         const workspace = WorkSpace.Workspace!;
 
-        const httpsConfig = https ? workspace.https : undefined;
-        const serverResult = await IPCTools.CallWithPromise<{ ips?: string[]; error?: string }>(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort, httpsConfig);
+        if (!workspace.customWebServer) {
+            const task = this.addTaskFeedback(0, "Running Server");
+    
+            const httpsConfig = https ? workspace.https : undefined;
+            const serverResult = await IPCTools.CallWithPromise<{ ips?: string[]; error?: string }>(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort, httpsConfig);
+    
+            this.updateTaskFeedback(task, 100);
+            this.closeTaskFeedback(task, 500);
+    
+            if (serverResult?.error) {
+                return this.notifyMessage(`Failed to run server: ${serverResult.error}`, 3000, null, "danger");
+            }
+    
+            const protocol = https ? "https" : "http";
+    
+            this.console.logSection("Running Game Server");
+    
+            if (serverResult.ips) {
+                this.console.logCustom(
+                    <>
+                        <span style={{ color: "green" }}>Server is running:</span>
+                        <ul>{serverResult.ips!.map((ip) => <li style={{ color: "green" }}>{protocol}://{ip}:{workspace.serverPort}</li>)}</ul>
+                    </>
+                );
+            } else {
+                this.console.logInfo("Server is running.");
+            }
 
-        this.updateTaskFeedback(task, 100);
-        this.closeTaskFeedback(task, 500);
-
-        if (serverResult?.error) {
-            return this.notifyMessage(`Failed to run server: ${serverResult.error}`, 3000, null, "danger");
-        }
-
-        const protocol = https ? "https" : "http";
-
-        this.console.logSection("Running Game Server");
-
-        if (serverResult.ips) {
-            this.console.logCustom(
-                <>
-                    <span style={{ color: "green" }}>Server is running:</span>
-                    <ul>{serverResult.ips!.map((ip) => <li style={{ color: "green" }}>{protocol}://{ip}:{workspace.serverPort}</li>)}</ul>
-                </>
-            );
+            if (mode === EditorPlayMode.ExternalBrowser) {
+                shell.openExternal(`${protocol}://localhost:${workspace.serverPort}`);
+            }
         } else {
-            this.console.logInfo("Server is running.");
+            if (mode === EditorPlayMode.ExternalBrowser) {
+                shell.openExternal(workspace.customWebServer.url);
+            }
         }
 
         switch (mode) {
@@ -742,9 +753,6 @@ export class Editor {
                 break;
             case EditorPlayMode.IntegratedBrowser:
                 this.addWindowedPlugin("run", false, undefined, workspace);
-                break;
-            case EditorPlayMode.ExternalBrowser:
-                shell.openExternal(`${protocol}://localhost:${workspace.serverPort}`);
                 break;
         }
     }

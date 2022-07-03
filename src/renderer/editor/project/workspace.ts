@@ -134,6 +134,7 @@ export class WorkSpace {
             https: this.Workspace!.https ?? {
                 enabled: false,
             },
+            customWebServer: this.Workspace!.customWebServer,
             ktx2CompressedTextures: {
                 enabled: this.Workspace!.ktx2CompressedTextures?.enabled ?? false,
                 pvrTexToolCliPath: this.Workspace!.ktx2CompressedTextures?.pvrTexToolCliPath ?? "",

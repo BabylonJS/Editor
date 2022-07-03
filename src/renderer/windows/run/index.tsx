@@ -42,7 +42,10 @@ export default class PlayWindow extends React.Component<{ }, IPlayWindowState> {
     public render(): React.ReactNode {
         if (!this.state.workspace) { return null; }
 
-        const iframeUrl = `http://localhost:${this.state.workspace.serverPort}/`;
+        const iframeUrl = this.state.workspace.customWebServer
+            ? this.state.workspace.customWebServer.url
+            : `http://localhost:${this.state.workspace.serverPort}/`;
+        
         return (
             <>
                 <div className={Classes.FILL} key="documentation-toolbar" style={{ width: "100%", height: "25px", backgroundColor: "#333333", borderRadius: "10px", marginTop: "5px" }}>

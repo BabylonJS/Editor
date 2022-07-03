@@ -8,9 +8,12 @@ import { DefaultOptionType } from "rc-tree-select/lib/TreeSelect";
 
 import { InspectorList } from "../../../editor/gui/inspector/fields/list";
 import { InspectorNumber } from "../../../editor/gui/inspector/fields/number";
+import { InspectorString } from "../../../editor/gui/inspector/fields/string";
 import { InspectorSection } from "../../../editor/gui/inspector/fields/section";
 import { InspectorBoolean } from "../../../editor/gui/inspector/fields/boolean";
 import { InspectorFileInput } from "../../../editor/gui/inspector/fields/file-input";
+
+import { IWorkSpace } from "../../../editor/project/typings";
 
 import { IPreferencesPanelProps } from "../index";
 
@@ -26,6 +29,8 @@ export interface IWorkspacePreferencesPanelState {
 }
 
 export class WorkspacePreferencesPanel extends React.Component<IPreferencesPanelProps, IWorkspacePreferencesPanelState> {
+	private _webServerType: "default" | "custom" = "default";
+
 	/**
 	 * Constructor.
 	 * @param props defines the component's props.
@@ -51,6 +56,8 @@ export class WorkspacePreferencesPanel extends React.Component<IPreferencesPanel
 		workspace.https ??= {
 			enabled: false,
 		};
+
+		this._webServerType = workspace.customWebServer ? "custom" : "default";
 
 		return (
 			<div style={{ width: "70%", height: "100%", margin: "auto" }}>
@@ -83,14 +90,7 @@ export class WorkspacePreferencesPanel extends React.Component<IPreferencesPanel
 					/>
 				</InspectorSection>
 
-				<InspectorSection title="Web Server">
-					<InspectorNumber object={workspace} property="serverPort" label="Server Port" min={0} step={1} />
-					<InspectorSection title="HTTPS">
-						<InspectorBoolean object={workspace.https} property="enabled" label="Enabled" defaultValue={false} />
-						<InspectorFileInput object={workspace.https} property="certPath" label="Certificate" />
-						<InspectorFileInput object={workspace.https} property="keyPath" label="Private Key" />
-					</InspectorSection>
-				</InspectorSection>
+				{this.getWebserverInspector(workspace)}
 			</div>
 		);
 	}
@@ -112,6 +112,49 @@ export class WorkspacePreferencesPanel extends React.Component<IPreferencesPanel
 				...await this._getDirectories(workspaceDirectory),
 			],
 		});
+	}
+
+	/**
+	 * Returns the inspector used to configure the webserver options.
+	 */
+	protected getWebserverInspector(workspace: IWorkSpace): React.ReactNode {
+		const webServerType = (
+			<InspectorList object={this} property="_webServerType" label="Type" items={[
+				{ label: "Default", data: "default" },
+				{ label: "Custom", data: "custom" },
+			]} onChange={() => {
+				if (this._webServerType === "custom") {
+					workspace.customWebServer = {
+						url: `http://localhost:${workspace.serverPort}`,
+					};
+				} else {
+					workspace.customWebServer = undefined;
+				}
+
+				this.forceUpdate();
+			}} />
+		);
+
+		if (workspace.customWebServer) {
+			return (
+				<InspectorSection title="Web Server">
+					{webServerType}
+					<InspectorString object={workspace.customWebServer} property="url" label="Url" />
+				</InspectorSection>
+			);
+		}
+
+		return (
+			<InspectorSection title="Web Server">
+				{webServerType}
+				<InspectorNumber object={workspace} property="serverPort" label="Server Port" min={0} step={1} />
+				<InspectorSection title="HTTPS">
+					<InspectorBoolean object={workspace.https} property="enabled" label="Enabled" defaultValue={false} />
+					<InspectorFileInput object={workspace.https} property="certPath" label="Certificate" />
+					<InspectorFileInput object={workspace.https} property="keyPath" label="Private Key" />
+				</InspectorSection>
+			</InspectorSection>
+		);
 	}
 
 	/**
