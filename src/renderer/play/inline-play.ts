@@ -6,6 +6,8 @@ import { Scene, SceneLoader, Camera } from "babylonjs";
 
 import Editor from "../editor";
 
+import { aliases, workspaceConfiguration } from "../module";
+
 import { WorkSpace } from "../editor/project/workspace";
 import { SceneSettings } from "../editor/scene/settings";
 
@@ -34,6 +36,21 @@ export class ScenePlayer {
     public async start(progress: (p: number) => void): Promise<Scene> {
         PlayOverride.OverrideEngineFunctions(WorkSpace.DirPath!);
 
+        // Configure aliases
+        const aliasesKeys = Object.keys(aliases);
+        aliasesKeys.forEach((k) => delete aliases[k]);
+
+        const tsConfigPath = join(WorkSpace.DirPath!, "tsconfig.json");
+        delete require.cache[tsConfigPath];
+
+        const tsConfig = require(tsConfigPath);
+        if (tsConfig.compilerOptions?.paths) {
+            Object.assign(aliases, tsConfig.compilerOptions.paths);
+        }
+
+        workspaceConfiguration.dirPath = WorkSpace.DirPath!;
+
+        // Load project
         this._scene = new Scene(this._editor.engine!);
 
         const rootUrl = join(WorkSpace.DirPath!, "assets/");

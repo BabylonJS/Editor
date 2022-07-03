@@ -309,7 +309,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             hideLoadingUI: () => { },
             loadingUIText: "",
             loadingUIBackgroundColor: "",
-        }
+        };
 
         try {
             await this._scenePlayer.start((p) => this.setState({ playLoadingProgress: p }));

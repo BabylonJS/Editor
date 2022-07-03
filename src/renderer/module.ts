@@ -11,7 +11,7 @@
  * 		For example, i18next will not be taken from [...]/babylonjs/node_modules/i18next/index.js but from [...]/babylonjs-editor/node_modules/i18next/index.js
  */
 
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join, dirname, extname } from "path";
 
 const Module = require("module");
@@ -42,8 +42,16 @@ const cacheMap = {
 	"@babylonjs/post-processes": join(dirname(Module._resolveFilename("babylonjs-post-process", module, false)), "..", "babylonjs-post-process", "babylonjs.postProcess.js"),
 }
 
-const handledExtensions: Record<string, boolean> = {
+export const handledExtensions: Record<string, boolean> = {
 	".fx": true,
+};
+
+export const aliases: Record<string, string[]> = {
+	
+};
+
+export const workspaceConfiguration = {
+	dirPath: "",
 };
 
 const originalResolveFilename = Module._resolveFilename;
@@ -55,6 +63,29 @@ Module._resolveFilename = function (filename: string, parent: any, isMain: boole
 	const ext = extname(filename).toLowerCase();
 	if (handledExtensions[ext]) {
 		return join(parent.path, filename);
+	}
+
+	for (const alias in aliases) {
+		const startIndex = alias.indexOf("*");
+		const startAlias = alias.substring(0, startIndex);
+
+		if (filename.indexOf(startAlias) === -1) {
+			continue;
+		}
+
+		// Search for each filename
+		const aliasPaths = aliases[alias];
+		for (const path of aliasPaths) {
+			const startIndex = path.indexOf("*");
+			const startPath = path.substring(0, startIndex);
+
+			const absolutePath = join(workspaceConfiguration.dirPath, "build", startPath, filename.replace(startAlias, ""));
+			const finalPath = `${absolutePath}.js`;
+
+			if (existsSync(finalPath)) {
+				return finalPath;
+			}
+		}
 	}
 
 	if (filename.includes("@babylonjs/core/")) { return cacheMap["babylonjs"]; }
