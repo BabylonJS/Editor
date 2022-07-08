@@ -218,6 +218,7 @@ export class SceneExporter {
 			if (!m) { return; }
 
 			delete m.renderOverlay;
+			delete m.materialUniqueId;
 
 			const exportedMeshMetadata = m.metadata;
 
@@ -241,7 +242,7 @@ export class SceneExporter {
 				delete m.metadata.heightMap;
 			}
 
-			const mesh = editor.scene!.getMeshByID(m.id);
+			const mesh = editor.scene!.getMeshById(m.id);
 			if (!mesh || !(mesh instanceof Mesh)) { return; }
 
 			const lods = mesh.getLODLevels();
@@ -254,7 +255,7 @@ export class SceneExporter {
 
 		// Bones parenting
 		scene.meshes?.forEach((m) => {
-			const mesh = editor.scene!.getMeshByID(m.id);
+			const mesh = editor.scene!.getMeshById(m.id);
 			if (mesh && mesh.parent && mesh.parent instanceof Bone) {
 				m.metadata ??= {};
 				m.metadata.parentBoneId = mesh.parent.id;
@@ -262,7 +263,7 @@ export class SceneExporter {
 		});
 
 		scene.transformNodes?.forEach((tn) => {
-			const transformNode = editor.scene!.getTransformNodeByID(tn.id);
+			const transformNode = editor.scene!.getTransformNodeById(tn.id);
 			if (transformNode && transformNode.parent && transformNode.parent instanceof Bone) {
 				tn.metadata ??= {};
 				tn.metadata.parentBoneId = transformNode.parent.id;
@@ -276,7 +277,7 @@ export class SceneExporter {
 		}
 
 		scene.meshes?.forEach((m) => {
-			const existingMesh = editor.scene!.getMeshByID(m.id);
+			const existingMesh = editor.scene!.getMeshById(m.id);
 			if (!existingMesh) { return; }
 
 			if (scene.physicsEnabled) {
@@ -291,7 +292,7 @@ export class SceneExporter {
 			}
 
 			m.instances?.forEach((i) => {
-				const instance = existingMesh._scene.getMeshByID(i.id);
+				const instance = existingMesh._scene.getMeshById(i.id);
 				if (!instance?.physicsImpostor) { return; }
 
 				if (scene.physicsEnabled) {
