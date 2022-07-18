@@ -17,7 +17,7 @@
     "dependencies": {
         "@blueprintjs/core": "3.28.1",
         "ecstatic": "^4.1.4",
-        "glob-parent": "^5.1.2",
+        "glob-parent": "^6.0.1",
         "markdown-it": "^12.3.2",
         "react": "16.12.0",
         "react-dom": "16.12.0",
