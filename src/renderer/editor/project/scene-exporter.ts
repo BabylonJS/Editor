@@ -526,14 +526,21 @@ export class SceneExporter {
 				continue;
 			}
 			*/
-			
-			if (options?.forceRegenerateFiles || !(await pathExists(path))) {
-				switch (extension) {
-					case ".gui": promises.push(this._CopyGUIFile(child.path, path)); break;
-					default: promises.push(copyFile(child.path, path)); break;
-				}
-				editor.console.logInfo(`Copied asset file at: ${path}`);
+
+			switch (extension) {
+				case ".gui":
+					promises.push(this._CopyGUIFile(child.path, path));
+					editor.console.logInfo(`Copied GUI asset file at: ${path}`);
+					break;
+
+				default:
+					if (options?.forceRegenerateFiles || !(await pathExists(path))) {
+						promises.push(copyFile(child.path, path));
+						editor.console.logInfo(`Copied asset file at: ${path}`);
+					}
+					break;
 			}
+			
 
 			// KTX
 			if (this.CopyAbleImageTypes.indexOf(extension) === -1) {
@@ -592,8 +599,9 @@ export class SceneExporter {
 	 * Copies the given GUI file to the given target path by keeping it minified.
 	 */
 	private static async _CopyGUIFile(sourcePath: string, targetPath: string): Promise<void> {
-		const data = await readJSON(sourcePath, { encoding: "utf-8" });
-		await writeJSON(targetPath, data, { encoding: "utf-8" });
+		// const data = await readJSON(sourcePath, { encoding: "utf-8" });
+		// await writeJSON(targetPath, data, { encoding: "utf-8" });
+		await copyFile(sourcePath, targetPath);
 	}
 
 	/**
