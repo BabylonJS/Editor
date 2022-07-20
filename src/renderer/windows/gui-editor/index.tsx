@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import { writeJSON } from "fs-extra";
-import { extname } from "path";
+import { dirname, extname } from "path";
 
 import { Nullable } from "../../../shared/types";
 
@@ -16,6 +16,8 @@ import { GUITools } from "../../editor/tools/gui";
 import { AppTools } from "../../editor/tools/app";
 
 import { Icon } from "../../editor/gui/icon";
+
+import { overridesConfiguration } from "./overrides";
 
 export const title = "GUI Editor";
 
@@ -80,7 +82,10 @@ export default class GUIEditorWindow extends React.Component {
      * Inits the plugin.
      * @param data the initialization data containing the gui texture definition etc.
      */
-    public init(data: { json: any; relativePath: string; }): void {
+    public init(data: { workspaceDir?: string; json: any; relativePath: string; }): void {
+        overridesConfiguration.workspaceDir = data.workspaceDir ?? "";
+        overridesConfiguration.relativePath = dirname(data.relativePath);
+
         this._relativePath = data.relativePath;
 
         this._setTexture(data.json);
@@ -122,6 +127,8 @@ export default class GUIEditorWindow extends React.Component {
                 action: (d) => Promise.resolve(d),
             },
         });
+
+        GUIEditor["_CurrentState"].workbench.guiSize = this._texture.getSize();
     }
 
     /**
@@ -135,7 +142,7 @@ export default class GUIEditorWindow extends React.Component {
             globalState.workbench.removeEditorTransformation();
             
             const size = globalState.workbench.guiSize;
-            globalState.guiTexture.scaleTo(size.width, size.height);
+            this._texture.scaleTo(size.width, size.height);
 
             const json = this._texture.serializeContent();
 

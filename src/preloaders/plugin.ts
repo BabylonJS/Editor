@@ -35,7 +35,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     // workaround monaco-css not understanding the environment
     (window as any).module = undefined;
     amdRequire(['vs/editor/editor.main'], function () {
-        debugger;
         (window as any).monaco = monaco;
 
         const plugin = require("../renderer/windows/index.js");
