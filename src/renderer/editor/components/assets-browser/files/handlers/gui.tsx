@@ -63,7 +63,7 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
         const index = GUIItemHandler._GUIEditors.findIndex((m) => m.absolutePath === this.props.absolutePath);
         const existingId = index !== -1 ? GUIItemHandler._GUIEditors[index].id : undefined;
 
-        const popupId = await this.props.editor.addWindowedPlugin("gui-editor", false, existingId, {
+        const popupId = await this.props.editor.addWindowedPlugin("gui-editor", true, existingId, {
             workspaceDir: WorkSpace.DirPath,
             relativePath: this.props.relativePath,
             json: await readJSON(this.props.absolutePath, { encoding: "utf-8" }),
@@ -148,7 +148,7 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
             const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
 
             texture = AdvancedDynamicTexture.CreateFullscreenUI("editor-ui", true, this.props.editor.scene!);
-            texture.parseContent(json);
+            texture.parseContent(json, true);
 
             this.props.editor.scene!.render();
 
