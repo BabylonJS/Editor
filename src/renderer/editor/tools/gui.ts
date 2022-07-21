@@ -1,8 +1,20 @@
+import { dirname, isAbsolute, join } from "path";
+
 export interface ISerializedGUIControl {
     /**
      * Defines the metadata of the 
      */
     metadata?: any;
+    /**
+     * Defines the name of the class of the control.
+     */
+    className?: string;
+
+    /**
+     * In case of image, defines the source Url of the image file to draw.
+     */
+    source?: string;
+
     /**
      * Defines the list of all children of the current control.
      */
@@ -21,16 +33,23 @@ export class GUITools {
      * Cleans the given serialized JSON representation of a GUI advanced dynamic texture.
      * @param data defines the JSON representation of a GUI advanced dynamic texture.
      */
-    public static CleanSerializedGUI(data: ISerializedGUI): ISerializedGUI {
-        this._RecursivelyCleanSerializedControl(data.root);
+    public static CleanSerializedGUI(data: ISerializedGUI, absolutePath: string): ISerializedGUI {
+        this._RecursivelyCleanSerializedControl(data.root, absolutePath);
         return data;
     }
 
     /**
      * Recursively cleans the the gicen control and its children.
      */
-    private static _RecursivelyCleanSerializedControl(control: ISerializedGUIControl): void {
+    private static _RecursivelyCleanSerializedControl(control: ISerializedGUIControl, absolutePath: string): void {
         delete control.metadata;
-        control.children?.forEach((c) => this._RecursivelyCleanSerializedControl(c));
+
+        if (control.className === "Image" && control.source) {
+            if (isAbsolute(control.source)) {
+                control.source = control.source.replace(join(dirname(absolutePath), "/"), "");
+            }
+        }
+
+        control.children?.forEach((c) => this._RecursivelyCleanSerializedControl(c, absolutePath));
     }
 }

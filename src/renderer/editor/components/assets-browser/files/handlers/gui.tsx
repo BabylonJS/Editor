@@ -14,8 +14,6 @@ import { Icon } from "../../../../gui/icon";
 // import { Tools } from "../../../../tools/tools";
 import { IPCTools } from "../../../../tools/ipc";
 
-import { WorkSpace } from "../../../../project/workspace";
-
 import { Workers } from "../../../../workers/workers";
 import AssetsWorker from "../../../../workers/workers/assets";
 
@@ -64,7 +62,7 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
         const existingId = index !== -1 ? GUIItemHandler._GUIEditors[index].id : undefined;
 
         const popupId = await this.props.editor.addWindowedPlugin("gui-editor", true, existingId, {
-            workspaceDir: WorkSpace.DirPath,
+            absolutePath: this.props.absolutePath,
             relativePath: this.props.relativePath,
             json: await readJSON(this.props.absolutePath, { encoding: "utf-8" }),
         });

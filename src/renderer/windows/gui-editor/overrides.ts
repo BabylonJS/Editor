@@ -1,12 +1,11 @@
-import { isAbsolute, join } from "path";
+import { dirname, isAbsolute, join } from "path";
 
 import { Nullable } from "../../../shared/types";
 
 import { Image } from "babylonjs-gui";
 
 export const overridesConfiguration = {
-    relativePath: "",
-    workspaceDir: "",
+    absolutePath: "",
 };
 
 /**
@@ -21,7 +20,7 @@ Object.defineProperty(Image.prototype, "source", {
     },
     set: function (value: Nullable<string>) {
         if (value && !isAbsolute(value)) {
-            value = join(overridesConfiguration.workspaceDir, "assets", overridesConfiguration.relativePath, value);
+            value = join(dirname(overridesConfiguration.absolutePath), value);
         }
 
         source?.set?.call(this, value);

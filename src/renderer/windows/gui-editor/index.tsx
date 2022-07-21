@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import { writeJSON } from "fs-extra";
-import { dirname, extname } from "path";
+import { extname } from "path";
 
 import { Nullable } from "../../../shared/types";
 
@@ -28,6 +28,7 @@ export default class GUIEditorWindow extends React.Component {
     private _texture: AdvancedDynamicTexture;
 
     private _relativePath: string;
+    private _absolutePath: string;
 
     private _toaster: Nullable<Toaster> = null;
     private _editorDiv: Nullable<HTMLDivElement> = null;
@@ -82,11 +83,11 @@ export default class GUIEditorWindow extends React.Component {
      * Inits the plugin.
      * @param data the initialization data containing the gui texture definition etc.
      */
-    public init(data: { workspaceDir?: string; json: any; relativePath: string; }): void {
-        overridesConfiguration.workspaceDir = data.workspaceDir ?? "";
-        overridesConfiguration.relativePath = dirname(data.relativePath);
+    public init(data: { absolutePath: string; json: any; relativePath: string; }): void {
+        overridesConfiguration.absolutePath = data.absolutePath ?? "";
 
         this._relativePath = data.relativePath;
+        this._absolutePath = data.absolutePath;
 
         this._setTexture(data.json);
     }
@@ -149,7 +150,7 @@ export default class GUIEditorWindow extends React.Component {
             const result = await IPCTools.SendWindowMessage<{ error: Boolean; }>(-1, "gui-json", {
                 closed,
                 relativePath: this._relativePath,
-                json: GUITools.CleanSerializedGUI(json),
+                json: GUITools.CleanSerializedGUI(json, this._absolutePath),
             });
 
             if (result.data.error) {
