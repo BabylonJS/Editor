@@ -40,7 +40,7 @@ import AssetsWorker from "../workers/workers/assets";
 
 import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
-import "./materials/augmentations";
+import "../tools/materials/augmentations";
 
 export class MaterialAssets extends AbstractAssets {
     private static _NodeMaterialEditors: { id: number; material: NodeMaterial }[] = [];

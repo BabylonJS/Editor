@@ -17,7 +17,7 @@ import { AppTools } from "../../editor/tools/app";
 
 import { Icon } from "../../editor/gui/icon";
 
-import { overridesConfiguration } from "./overrides";
+import { overridesConfiguration } from "../../editor/tools/gui/augmentations";
 
 export const title = "GUI Editor";
 

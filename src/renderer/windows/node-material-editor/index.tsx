@@ -16,7 +16,7 @@ import { IPCTools } from "../../editor/tools/ipc";
 import { Icon } from "../../editor/gui/icon";
 import { AppTools } from "../../editor/tools/app";
 
-import "../../editor/assets/materials/augmentations";
+import "../../editor/tools/materials/augmentations";
 
 export const title = "Node Material Editor";
 

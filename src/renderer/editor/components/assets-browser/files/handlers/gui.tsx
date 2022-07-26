@@ -7,7 +7,8 @@ import { IPCResponses } from "../../../../../../shared/ipc";
 import * as React from "react";
 import { ContextMenu, Menu, MenuDivider, MenuItem, Spinner, Icon as BPIcon } from "@blueprintjs/core";
 
-import { AdvancedDynamicTexture } from "babylonjs-gui";
+import { Scene } from "babylonjs";
+import { AdvancedDynamicTexture, Image } from "babylonjs-gui";
 
 import { Icon } from "../../../../gui/icon";
 
@@ -18,6 +19,8 @@ import { Workers } from "../../../../workers/workers";
 import AssetsWorker from "../../../../workers/workers/assets";
 
 import { AssetsBrowserItemHandler } from "../item-handler";
+
+import { overridesConfiguration } from "../../../../tools/gui/augmentations";
 
 export class GUIItemHandler extends AssetsBrowserItemHandler {
     private static _GUIEditors: {
@@ -141,14 +144,21 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
      */
     private async _computePreview(): Promise<void> {
         let texture: Nullable<AdvancedDynamicTexture> = null;
+        
+        const scene = new Scene(this.props.editor.engine!);
+        scene.activeCamera = this.props.editor.scene!.activeCamera;
 
         try {
             const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
+            
+            overridesConfiguration.absolutePath = this.props.absolutePath;
 
-            texture = AdvancedDynamicTexture.CreateFullscreenUI("editor-ui", true, this.props.editor.scene!);
+            texture = AdvancedDynamicTexture.CreateFullscreenUI("editor-ui", true, scene);
             texture.parseContent(json, true);
 
-            this.props.editor.scene!.render();
+            await this._waitUntilAssetsLoaded(texture);
+
+            scene.render();
 
             const previewImage = (
                 <img
@@ -169,6 +179,38 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
             // Catch silently.
         }
 
+        scene.dispose();
         texture?.dispose();
+    }
+
+    /**
+     * Waits until the given texture external assets (images, etc.) are loaded.
+     */
+    private async _waitUntilAssetsLoaded(texture: AdvancedDynamicTexture): Promise<void> {
+        const images = texture.getControlsByType("Image") as Image[];
+        
+        const promises = images.map((i) => {
+            if (!i.source) {
+                return Promise.resolve();
+            }
+
+            return new Promise<void>((resolve) => {
+                const timeoutId = setTimeout(() => resolve(), 5000);
+
+                const textureLoadEnd = () => {
+                    resolve();
+                    clearTimeout(timeoutId);
+                }
+
+                const domImage = i["_domImage"];
+                if (domImage) {
+                    domImage.onerror = () => textureLoadEnd();
+                }
+
+                i.onImageLoadedObservable.add(() => textureLoadEnd());
+            });
+        })
+
+        await Promise.all(promises);
     }
 }

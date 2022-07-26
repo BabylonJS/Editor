@@ -1,3 +1,4 @@
+import { pathExistsSync } from "fs-extra";
 import { dirname, isAbsolute, join } from "path";
 
 export interface ISerializedGUIControl {
@@ -45,7 +46,7 @@ export class GUITools {
         delete control.metadata;
 
         if (control.className === "Image" && control.source) {
-            if (isAbsolute(control.source)) {
+            if (isAbsolute(control.source) && pathExistsSync(control.source)) {
                 control.source = control.source.replace(join(dirname(absolutePath), "/"), "");
             }
         }
