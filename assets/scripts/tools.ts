@@ -162,9 +162,9 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
                     default: clone = Reflect.construct(prototype.constructor, []); break;
                 }
             }
-            
+
             Reflect.setPrototypeOf(n, clone!.constructor.prototype);
-            
+
             EngineStore._LastCreatedScene = currentScene;
 
             for (const key in clone) {
@@ -201,7 +201,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
 
     // Configure initialized nodes
     for (const i of initializedNodes) {
-        const n = i.node as (Scene | Node) & IScript;
+        const n = i.node as (Scene | Node | AbstractMesh) & IScript;
         const e = i.exports;
         const scene = i.node instanceof Scene ? i.node : i.node.getScene();
 
@@ -209,7 +209,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
         if (n.onStart) {
             let startObserver = scene.onBeforeRenderObservable.addOnce(() => {
                 startObserver = null!;
-                n.onStart();
+                n.onStart!();
             });
 
             n.onDisposeObservable.addOnce(() => {
@@ -221,13 +221,13 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
 
         // Check update
         if (n.onUpdate) {
-            const updateObserver = scene.onBeforeRenderObservable.add(() => n.onUpdate());
+            const updateObserver = scene.onBeforeRenderObservable.add(() => n.onUpdate!());
             n.onDisposeObservable.addOnce(() => scene.onBeforeRenderObservable.remove(updateObserver));
         }
 
         // Check stop
         if (n.onStop) {
-            n.onDisposeObservable.addOnce(() => n.onStop());
+            n.onDisposeObservable.addOnce(() => n.onStop!());
         }
 
         // Check properties
@@ -337,7 +337,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
 
         // Retrieve impostors
         if (n instanceof AbstractMesh && !n.physicsImpostor) {
-            n.physicsImpostor = n._scene.getPhysicsEngine()?.getImpostorForPhysicsObject(n);
+            n.physicsImpostor = n._scene.getPhysicsEngine()?.getImpostorForPhysicsObject(n) ?? null;
         }
 
         delete n.metadata.script;
@@ -351,7 +351,9 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
 
 /**
  * Works as an helper, this will:
- * = attach scripts on objects.
+ * - attach scripts on objects.
+ * - configure post-processes
+ * - setup rendering groups
  * @param scene the scene to attach scripts, etc.
  */
 export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
@@ -499,7 +501,7 @@ export let motionBlurPostProcessRef: Nullable<MotionBlurPostProcess> = null;
  * @param scene the scene where to create the post-processes and attach to its cameras.
  * @param rootUrl the root Url where to find extra assets used by pipelines. Should be the same as the scene.
  */
-export function configurePostProcesses(scene: Scene, rootUrl: string = null): void {
+export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> = null): void {
     if (rootUrl === null || !scene.metadata?.postProcesses) { return; }
 
     // Load  post-processes configuration
@@ -523,7 +525,7 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
         screenSpaceReflectionPostProcessRef.reflectionSamples = data.screenSpaceReflections.json.reflectionSamples;
         screenSpaceReflectionPostProcessRef.enableSmoothReflections = data.screenSpaceReflections.json.enableSmoothReflections;
     }
-    
+
     if (data.default && !defaultRenderingPipelineRef) {
         defaultRenderingPipelineRef = new DefaultRenderingPipeline(data.default.json.name, true, scene);
 
@@ -584,7 +586,7 @@ export function configurePostProcesses(scene: Scene, rootUrl: string = null): vo
             scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(defaultRenderingPipelineRef.name, scene.cameras);
         }
     }
-    
+
     if (data.motionBlur?.json) {
         // motionBlurPostProcessRef = MotionBlurPostProcess._Parse(data.motionBlur.json, scene.activeCamera!, scene, "");
         motionBlurPostProcessRef = new MotionBlurPostProcess(data.motionBlur.json.name, scene, 1.0, scene.activeCamera!);
