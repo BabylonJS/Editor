@@ -1,7 +1,9 @@
 import filenamify from "filenamify";
+import { DirectoryTree } from "directory-tree";
 import { basename, dirname, extname, join } from "path";
-import directoryTree, { DirectoryTree } from "directory-tree";
 import { copyFile, pathExists, readdir, readFile, readJSON, remove, writeFile, writeJSON } from "fs-extra";
+
+import { Nullable } from "../../../shared/types";
 
 import { LGraph } from "litegraph.js";
 import { SceneSerializer, Mesh, Bone } from "babylonjs";
@@ -24,6 +26,9 @@ import { GraphCode } from "../graph/graph";
 import { GraphCodeGenerator } from "../graph/generate";
 
 import { GeometryExporter } from "../export/geometry";
+
+import DirectoryWorker from "../workers/workers/directory";
+import { IWorkerConfiguration, Workers } from "../workers/workers";
 
 export interface IExportFinalSceneOptions {
 	/**
@@ -90,6 +95,7 @@ export class SceneExporter {
 	];
 
 	private static _IsExporting: boolean = false;
+	private static _Worker: Nullable<IWorkerConfiguration> = null;
 
 	/**
 	 * Exports the final scene and asks for the destination folder.
@@ -361,6 +367,8 @@ export class SceneExporter {
 
 		await editor.console.logSection("Exporting Final Scene");
 
+		this._Worker ??= await Workers.LoadWorker("directory.js");
+
 		task = task ?? editor.addTaskFeedback(0, "Generating Final Scene");
 		editor.updateTaskFeedback(task, 0, "Generating Final Scene");
 
@@ -461,7 +469,7 @@ export class SceneExporter {
 		}
 
 		// Copy assets files
-		let assetsTree = directoryTree(editor.assetsBrowser.assetsDirectory);
+		let assetsTree = await Workers.ExecuteFunction<DirectoryWorker, "getDirectoryTree">(this._Worker, "getDirectoryTree", editor.assetsBrowser.assetsDirectory);
 		await this._RecursivelyWriteAssets(editor, assetsTree, editor.assetsBrowser.assetsDirectory, assetsPath, options);
 
 		// Handle node material textures
@@ -469,7 +477,7 @@ export class SceneExporter {
 		await MaterialTools.ExportSerializedNodeMaterialsTextures(editor, scene.materials, editor.assetsBrowser.assetsDirectory, assetsPath);
 
 		// Second write assets pass for generated textures
-		assetsTree = directoryTree(editor.assetsBrowser.assetsDirectory);
+		assetsTree = await Workers.ExecuteFunction<DirectoryWorker, "getDirectoryTree">(this._Worker, "getDirectoryTree", editor.assetsBrowser.assetsDirectory);
 		await this._RecursivelyWriteAssets(editor, assetsTree, editor.assetsBrowser.assetsDirectory, assetsPath, {
 			...options,
 			forceRegenerateFiles: false,
