@@ -1,5 +1,5 @@
 import { readJSON, writeJSON } from "fs-extra";
-import { ipcRenderer } from "electron";
+import { clipboard, ipcRenderer } from "electron";
 
 import { Nullable } from "../../../../../../shared/types";
 import { IPCResponses } from "../../../../../../shared/ipc";
@@ -116,6 +116,9 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
                 <MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => {
                     this.props.editor.assetsBrowser._callSelectedItemsMethod("_handleRefreshPreview");
                 }} />
+                <MenuDivider />
+                <MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.relativePath, "clipboard")} />
+                <MenuItem text="Copy Absolute Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(this.props.absolutePath, "clipboard")} />
                 <MenuDivider />
                 {this.getCommonContextMenuItems()}
             </Menu>
