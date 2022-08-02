@@ -6,7 +6,7 @@ import { Scene, SceneLoader, Camera } from "babylonjs";
 
 import Editor from "../editor";
 
-import { aliases, workspaceConfiguration } from "../module";
+import { aliases, workspaceConfiguration } from "../configuration";
 
 import { WorkSpace } from "../editor/project/workspace";
 import { SceneSettings } from "../editor/scene/settings";

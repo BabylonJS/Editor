@@ -14,6 +14,8 @@
 import { readFileSync, existsSync } from "fs";
 import { join, dirname, extname } from "path";
 
+import { aliases, workspaceConfiguration } from "./configuration";
+
 const Module = require("module");
 const cacheMap = {
 	"babylonjs": join(dirname(Module._resolveFilename("babylonjs", module, false)), "babylon.max.js"),
@@ -44,14 +46,6 @@ const cacheMap = {
 
 export const handledExtensions: Record<string, boolean> = {
 	".fx": true,
-};
-
-export const aliases: Record<string, string[]> = {
-	// To be filled.
-};
-
-export const workspaceConfiguration = {
-	dirPath: "",
 };
 
 const originalResolveFilename = Module._resolveFilename;
