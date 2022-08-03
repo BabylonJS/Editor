@@ -6,6 +6,7 @@ import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Tools } from "@babylonjs/core/Misc/tools";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { EngineStore } from "@babylonjs/core/Engines/engineStore";
@@ -19,6 +20,9 @@ import { MotionBlurPostProcess } from "@babylonjs/core/PostProcesses/motionBlurP
 import { ScreenSpaceReflectionPostProcess } from "@babylonjs/core/PostProcesses/screenSpaceReflectionPostProcess";
 import { SSAO2RenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssao2RenderingPipeline";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
+
+import { Image } from "@babylonjs/gui/2D/controls/image";
+import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
 import "@babylonjs/core/Audio/audioSceneComponent";
 import "@babylonjs/core/Physics/physicsEngineComponent";
@@ -58,6 +62,7 @@ export interface IScript {
      * Object can be disposed manually or when the editor stops running the scene.
      */
     onStop?(): void;
+
     /**
      * Called on a message has been received and sent from a graph.
      * @param message defines the name of the message sent from the graph.
@@ -65,6 +70,13 @@ export interface IScript {
      * @param sender defines the reference to the graph class that sent the message.
      */
     onMessage?(name: string, data: any, sender: any): void;
+
+    /**
+     * In case the component is decorated @guiComponent this function iscalled once the GUI data
+     * has been loaded and ready to be parsed. Returns the reference to the GUI advanced dynamic texture.
+     * @param parsedData defines the reference to the GUI data to be parsed coming from the server.
+     */
+    onGuiInitialized?(parsedData: any): AdvancedDynamicTexture;
 }
 
 export const projectConfiguration = "${project-configuration}";
@@ -109,6 +121,67 @@ function isEs6Class(ctor: any, scene: Scene): boolean {
     } catch (e) {
         return true;
     }
+}
+
+/**
+ * Loads the gui data and configures the given node.
+ * @param path defines the path to the GUI file to load.
+ * @param node defines the reference to the node to configure.
+ * @param exports defines the reference to the exported object of the attached script.
+ */
+async function loadGuiComponent(path: string, node: (Scene | Node | AbstractMesh) & IScript, exports: any): Promise<void> {
+    let isDisposed = false;
+    const disposeObserver = node.onDisposeObservable.addOnce(() => isDisposed = true);
+
+    const dataResult = await Tools.LoadFileAsync(path, false) as string;
+
+    if (isDisposed) {
+        return;
+    }
+
+    node.onDisposeObservable.remove(disposeObserver as any);
+
+    const data = JSON.parse(dataResult as string);
+
+    const ui = node.onGuiInitialized?.(data);
+    if (!ui) {
+        return
+    }
+
+    ui.parseContent(data, true);
+
+    node.onDisposeObservable.addOnce(() => ui.dispose());
+
+    // Link controls
+    const controlsLinks = (exports.default as any)._ControlsValues ?? [];
+    for (const link of controlsLinks) {
+        const c = ui.getControlByName(link.controlName);
+        node[link.propertyKey] = c;
+    }
+
+    // Link events
+    const controlsClickLinks = (exports.default as any)._ControlsClickValues ?? [];
+    for (const link of controlsClickLinks) {
+        const c = ui.getControlByName(link.controlName);
+        switch (link.type) {
+            case "onPointerClickObservable": c?.onPointerClickObservable.add((i) => node[link.propertyKey](i)); break;
+            case "onPointerEnterObservable": c?.onPointerEnterObservable.add((c) => node[link.propertyKey](c)); break;
+            case "onPointerOutObservable": c?.onPointerOutObservable.add((c) => node[link.propertyKey](c)); break;
+        }
+    }
+
+    // Replace Urls for images to fit relative path
+    const images = ui.getControlsByType("Image") as Image[];
+    const basePath = Tools.GetFolderPath(path);
+
+    images.forEach((i) => {
+        const source = i.source ?? "";
+        if (source.startsWith("http://") || source.startsWith("https://")) {
+            return;
+        }
+
+        i.source = basePath + i.source;
+    });
 }
 
 /**
@@ -205,29 +278,12 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
         const e = i.exports;
         const scene = i.node instanceof Scene ? i.node : i.node.getScene();
 
-        // Check start
-        if (n.onStart) {
-            let startObserver = scene.onBeforeRenderObservable.addOnce(() => {
-                startObserver = null!;
-                n.onStart!();
-            });
+        const promises: Promise<unknown>[] = [];
 
-            n.onDisposeObservable.addOnce(() => {
-                if (startObserver) {
-                    scene.onBeforeRenderObservable.remove(startObserver);
-                }
-            });
-        }
-
-        // Check update
-        if (n.onUpdate) {
-            const updateObserver = scene.onBeforeRenderObservable.add(() => n.onUpdate!());
-            n.onDisposeObservable.addOnce(() => scene.onBeforeRenderObservable.remove(updateObserver));
-        }
-
-        // Check stop
-        if (n.onStop) {
-            n.onDisposeObservable.addOnce(() => n.onStop!());
+        // Check GUI
+        const guiPath = (e.default as any)._GuiPath;
+        if (guiPath) {
+            promises.push(loadGuiComponent(guiPath, n, e));
         }
 
         // Check properties
@@ -309,41 +365,74 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
             n.onDisposeObservable.addOnce(() => scene.onPointerObservable.remove(observer));
         }
 
-        // Check keyboard events
-        const keyboardEvents = (e.default as any)._KeyboardValues ?? [];
-        for (const event of keyboardEvents) {
-            const observer = scene.onKeyboardObservable.add((e) => {
-                if (event.type && e.type !== event.type) { return; }
+        const resultCallback = () => {
+            // Check start
+            if (n.onStart) {
+                let startObserver = scene.onBeforeRenderObservable.addOnce(() => {
+                    startObserver = null!;
+                    n.onStart!();
+                });
 
-                if (!event.keys.length) { return n[event.propertyKey](e); }
+                n.onDisposeObservable.addOnce(() => {
+                    if (startObserver) {
+                        scene.onBeforeRenderObservable.remove(startObserver);
+                    }
+                });
+            }
 
-                if (event.keys.indexOf(e.event.keyCode) !== -1 || event.keys.indexOf(e.event.key) !== -1) {
-                    n[event.propertyKey](e);
-                }
-            });
+            // Check update
+            if (n.onUpdate) {
+                const updateObserver = scene.onBeforeRenderObservable.add(() => n.onUpdate!());
+                n.onDisposeObservable.addOnce(() => scene.onBeforeRenderObservable.remove(updateObserver));
+            }
 
-            n.onDisposeObservable.addOnce(() => scene.onKeyboardObservable.remove(observer));
+            // Check stop
+            if (n.onStop) {
+                n.onDisposeObservable.addOnce(() => n.onStop!());
+            }
+
+            // Check keyboard events
+            const keyboardEvents = (e.default as any)._KeyboardValues ?? [];
+            for (const event of keyboardEvents) {
+                const observer = scene.onKeyboardObservable.add((e) => {
+                    if (event.type && e.type !== event.type) { return; }
+
+                    if (!event.keys.length) { return n[event.propertyKey](e); }
+
+                    if (event.keys.indexOf(e.event.keyCode) !== -1 || event.keys.indexOf(e.event.key) !== -1) {
+                        n[event.propertyKey](e);
+                    }
+                });
+
+                n.onDisposeObservable.addOnce(() => scene.onKeyboardObservable.remove(observer));
+            }
+
+            // Check resize events
+            const resizeEvents = (e.default as any)._ResizeValues ?? [];
+            for (const event of resizeEvents) {
+                const observer = engine.onResizeObservable.add((e) => {
+                    n[event.propertyKey](e.getRenderWidth(), e.getRenderHeight());
+                });
+
+                n.onDisposeObservable.addOnce(() => engine.onResizeObservable.remove(observer));
+            }
+
+            // Retrieve impostors
+            if (n instanceof AbstractMesh && !n.physicsImpostor) {
+                n.physicsImpostor = n._scene.getPhysicsEngine()?.getImpostorForPhysicsObject(n) ?? null;
+            }
+
+            delete n.metadata.script;
+
+            // Tell the script it has is ready
+            n.onInitialized?.();
+        };
+
+        if (promises.length) {
+            Promise.all(promises).then(() => resultCallback());
+        } else {
+            resultCallback();
         }
-
-        // Check resize events
-        const resizeEvents = (e.default as any)._ResizeValues ?? [];
-        for (const event of resizeEvents) {
-            const observer = engine.onResizeObservable.add((e) => {
-                n[event.propertyKey](e.getRenderWidth(), e.getRenderHeight());
-            });
-
-            n.onDisposeObservable.addOnce(() => engine.onResizeObservable.remove(observer));
-        }
-
-        // Retrieve impostors
-        if (n instanceof AbstractMesh && !n.physicsImpostor) {
-            n.physicsImpostor = n._scene.getPhysicsEngine()?.getImpostorForPhysicsObject(n) ?? null;
-        }
-
-        delete n.metadata.script;
-
-        // Tell the script it has is ready
-        n.onInitialized?.();
     }
 
     dummyScene.dispose();

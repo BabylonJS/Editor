@@ -1,5 +1,8 @@
+import { Observable } from "@babylonjs/core/Misc/observable";
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { KeyboardEventTypes } from "@babylonjs/core/Events/keyboardEvents";
+
+import { Control } from "@babylonjs/gui/2D/controls/control";
 
 export type VisiblityPropertyType =
     "number" | "string" | "boolean" |
@@ -99,7 +102,7 @@ export function fromParticleSystems(particleSystemName?: string): any {
  * @param animationGroupName defines the name of the animation group to retrieve.
  */
 export function fromAnimationGroups(animationGroupName?: string): any {
-    return (target: any, propertyKey: string | symbol) => {
+    return (target: any, propertyKey: string | symbol) => {
         const ctor = target.constructor;
         ctor._AnimationGroupValues = ctor._AnimationGroupValues ?? [];
         ctor._AnimationGroupValues.push({
@@ -115,7 +118,7 @@ export function fromAnimationGroups(animationGroupName?: string): any {
  * @param type defines the type of sound to retrieve. "global" means "not spatial". By default, any sound matching the given name is retrieved.
  */
 export function fromSounds(soundName?: string, type?: "global" | "spatial"): any {
-    return (target: any, propertyKey: string | symbol) => {
+    return (target: any, propertyKey: string | symbol) => {
         const ctor = target.constructor;
         ctor._SoundValues = ctor._SoundValues ?? [];
         ctor._SoundValues.push({
@@ -148,7 +151,7 @@ export function fromMaterials(materialName?: string): any {
  */
 export function onPointerEvent(type: PointerEventTypes, onlyWhenMeshPicked: boolean = true): any {
     return (target: any, propertyKey: string | symbol) => {
-        if (typeof(target[propertyKey]) !== "function") {
+        if (typeof (target[propertyKey]) !== "function") {
             throw new Error(`Decorated propery "${propertyKey.toString()}" in class "${target.constructor.name}" must be a function.`);
         }
 
@@ -168,7 +171,7 @@ export function onPointerEvent(type: PointerEventTypes, onlyWhenMeshPicked: bool
  */
 export function onKeyboardEvent(key: number | number[] | string | string[], type?: KeyboardEventTypes): any {
     return (target: any, propertyKey: string | symbol) => {
-        if (typeof(target[propertyKey]) !== "function") {
+        if (typeof (target[propertyKey]) !== "function") {
             throw new Error(`Decorated propery "${propertyKey.toString()}" in class "${target.constructor.name}" must be a function.`);
         }
 
@@ -190,7 +193,7 @@ export function onKeyboardEvent(key: number | number[] | string | string[], type
  */
 export function onEngineResize(): any {
     return (target: any, propertyKey: string | symbol) => {
-        if (typeof(target[propertyKey]) !== "function") {
+        if (typeof (target[propertyKey]) !== "function") {
             throw new Error(`Decorated propery "${propertyKey.toString()}" in class "${target.constructor.name}" must be a function.`);
         }
 
@@ -200,4 +203,78 @@ export function onEngineResize(): any {
             propertyKey: propertyKey.toString(),
         });
     };
+}
+
+/**
+ * Sets the component as a GUI component. Loads the GUI data located at the given path
+ * and allows to use the @fromControls decorator.
+ * @param path defines the path to the GUI data to load and parse.
+ */
+export function guiComponent(path: string): any {
+    return (target: any) => {
+        target._GuiPath = path;
+    };
+}
+
+/**
+ * Sets the decorated member linked to a GUI control.
+ * Handled only if the component is tagged @guiComponent
+ * @param controlName defines the name of the control to retrieve.
+ */
+export function fromControls(controlName?: string): any {
+    return (target: any, propertyKey: string | symbol) => {
+        const ctor = target.constructor;
+        ctor._ControlsValues = ctor._ControlsValues ?? [];
+        ctor._ControlsValues.push({
+            propertyKey: propertyKey.toString(),
+            controlName: controlName ?? propertyKey.toString(),
+        });
+    };
+}
+
+type KeyOfType<T, V> = keyof {
+    [P in keyof T as T[P] extends V? P: never]: any
+}
+
+function onControlEvent(controlName: string, type: KeyOfType<Control, Observable<any>>): any {
+    return (target: any, propertyKey: string | symbol) => {
+        if (typeof (target[propertyKey]) !== "function") {
+            throw new Error(`Decorated propery "${propertyKey.toString()}" in class "${target.constructor.name}" must be a function.`);
+        }
+
+        const ctor = target.constructor;
+        ctor._ControlsClickValues = ctor._ControlsClickValues ?? [];
+        ctor._ControlsClickValues.push({
+            type,
+            controlName,
+            propertyKey: propertyKey.toString(),
+        });
+    };
+}
+
+/**
+ * Sets the decorated member function to be called on the control identified by the given name is clicked.
+ * Handled only if the component is tagged @guiComponent
+ * @param controlName defines the name of the control to listen the click event.
+ */
+export function onControlClick(controlName: string): any {
+    return onControlEvent(controlName, "onPointerClickObservable");
+}
+
+/**
+ * Sets the decorated member function to be called on the pointer enters the control identified by the given name.
+ * Handled only if the component is tagged @guiComponent
+ * @param controlName defines the name of the control to listen the pointer enter event.
+ */
+export function onControlPointerEnter(controlName: string): any {
+    return onControlEvent(controlName, "onPointerEnterObservable");
+}
+
+/**
+ * Sets the decorated member function to be called on the pointer is out of the control identified by the given name.
+ * Handled only if the component is tagged @guiComponent
+ * @param controlName defines the name of the control to listen the pointer out event.
+ */
+export function onControlPointerOut(controlName: string): any {
+    return onControlEvent(controlName, "onPointerOutObservable");
 }
