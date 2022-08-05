@@ -1,4 +1,3 @@
-debugger;
 import {
     Engine, Scene, ArcRotateCamera, Vector3, Material, Mesh, Texture,
     HemisphericLight, SerializationHelper,

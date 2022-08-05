@@ -174,7 +174,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	 * @param ev defines the reference to the event object.
 	 * @param pick defines the picking info generated while dropping in the preview.
 	 */
-	public onDropInPreview(_1: React.DragEvent<HTMLElement>, _2: PickingInfo): void {
+	public onDropInPreview(_1: DragEvent, _2: PickingInfo): void {
 		// Empty by default...
 	}
 
@@ -257,7 +257,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 			const scene = this.props.editor.scene!;
 			const pick = scene.pick(dropEv.offsetX, dropEv.offsetY) ?? new PickingInfo();
 
-			this.onDropInPreview(ev, pick);
+			this.onDropInPreview(dropEv, pick);
 		});
 
 		this.props.onDragStart(ev);

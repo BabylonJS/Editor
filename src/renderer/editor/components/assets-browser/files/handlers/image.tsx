@@ -2,14 +2,15 @@ import { clipboard } from "electron";
 import { basename, dirname, join } from "path";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuDivider, MenuItem, Tag, Icon as BPIcon } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuDivider, MenuItem, Tag, Icon as BPIcon, H4 } from "@blueprintjs/core";
 
-import { Texture } from "babylonjs";
+import { BaseTexture, Mesh, PBRMaterial, PickingInfo, StandardMaterial, Texture } from "babylonjs";
 
 import { Icon } from "../../../../gui/icon";
 
 import { WorkSpace } from "../../../../project/workspace";
 
+import { undoRedo } from "../../../../tools/undo-redo";
 import { KTXTools, KTXToolsType } from "../../../../tools/ktx";
 
 import { AssetsBrowserItemHandler } from "../item-handler";
@@ -139,13 +140,85 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	}
 
 	/**
+	 * Called on the assets has been dropped in the preview panel.
+	 * @param ev defines the reference to the event object.
+	 * @param pick defines the picking info generated while dropping in the preview.
+	 */
+	public onDropInPreview(ev: DragEvent, pick: PickingInfo): void {
+		if (!pick.pickedMesh || !(pick.pickedMesh instanceof Mesh)) {
+			return;
+		}
+
+		const material = pick.pickedMesh.material;
+		if (!material) {
+			return;
+		}
+
+		let textures: string[] = [];
+
+		if (material instanceof PBRMaterial) {
+			textures.push(...[
+				"albedoTexture", "bumpTexture", "reflectivityTexture",
+				"microSurfaceTexture", "metallicTexture",
+				"ambientTexture", "opacityTexture", "emissiveTexture",
+				"lightmapTexture",
+			]);
+		} else if (material instanceof StandardMaterial) {
+			textures.push(...[
+				"diffuseTexture", "bumpTexture", "specularTexture",
+				"ambientTexture", "opacityTexture", "emissiveTexture",
+				"lightmapTexture",
+			]);
+		}
+
+		if (!textures.length) {
+			return;
+		}
+
+		ContextMenu.show((
+			<Menu>
+				<H4 style={{ textAlign: "center" }}>{basename(this.props.relativePath)}</H4>
+				<div style={{ width: "128px", height: "128px", margin: "auto" }}>
+					<img src={this.props.absolutePath} style={{ objectFit: "contain", width: "100%", height: "100%" }} />
+				</div>
+
+				<MenuDivider />
+
+				{textures.map((t) => (
+					<MenuItem icon={<BPIcon icon="arrow-right" color="white" />} text={t} onClick={() => {
+						const oldTexture = material[t];
+						undoRedo.push({
+							undo: () => material[t] = oldTexture,
+							redo: () => material[t] = this._getFirstInstantiatedTexture(),
+						});
+						material[t] = this._getFirstInstantiatedTexture();
+					}} />
+				))}
+			</Menu>
+		), {
+			top: ev.clientY,
+			left: ev.clientX,
+		});
+	}
+
+	/**
 	 * Called on the user drops the asset in a supported inspector field.
 	 * @param ev defiens the reference to the event object.
 	 * @param object defines the reference to the object being modified in the inspector.
 	 * @param property defines the property of the object to assign the asset instance.
 	 */
 	public async onDropInInspector(_: React.DragEvent<HTMLElement>, object: any, property: string): Promise<void> {
+		object[property] = this._getFirstInstantiatedTexture();
+		await this.props.editor.assets.refresh();
+	}
+
+	/**
+	 * Returns the reference to the first instantiated texture.
+	 * If the texture doesn't exist, creates the texture.
+	 */
+	private _getFirstInstantiatedTexture(): BaseTexture {
 		let texture = this.props.editor.scene!.textures.find((tex) => tex.name === this.props.relativePath);
+
 		if (!texture) {
 			texture = new Texture(this.props.absolutePath, this.props.editor.scene!);
 			texture.name = join(dirname(this.props.relativePath), basename(this.props.absolutePath));
@@ -153,8 +226,6 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 			(texture as Texture).url = texture.name;
 		}
 
-		object[property] = texture;
-
-		await this.props.editor.assets.refresh();
+		return texture;
 	}
 }

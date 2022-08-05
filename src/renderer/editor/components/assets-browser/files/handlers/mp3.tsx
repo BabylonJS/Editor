@@ -70,11 +70,11 @@ export class SoundItemHandler extends AssetsBrowserItemHandler {
     }
 
     /**
-     * Called on the 
+     * Called on the user drops the asset in the editor's preview canvas.
      * @param ev defines the reference to the event object.
      * @param pick defines the picking info generated while dropping in the preview.
      */
-    public onDropInPreview(_: React.DragEvent<HTMLElement>, pick: PickingInfo): void {
+    public onDropInPreview(_: DragEvent, pick: PickingInfo): void {
         if (!pick.pickedMesh) {
             return;
         }

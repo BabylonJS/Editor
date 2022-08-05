@@ -61,7 +61,7 @@ export class ParticlesSystemItemHandler extends AssetsBrowserItemHandler {
      * @param ev defines the reference to the event object.
      * @param pick defines the picking info generated while dropping in the preview.
      */
-    public async onDropInPreview(_: React.DragEvent<HTMLElement>, pick: PickingInfo): Promise<void> {
+    public async onDropInPreview(_: DragEvent, pick: PickingInfo): Promise<void> {
         const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
 
         const emitter = new Mesh(json.name, this.props.editor.scene!);

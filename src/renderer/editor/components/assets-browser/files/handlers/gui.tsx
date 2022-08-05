@@ -7,7 +7,7 @@ import { IPCResponses } from "../../../../../../shared/ipc";
 import * as React from "react";
 import { ContextMenu, Menu, MenuDivider, MenuItem, Spinner, Icon as BPIcon } from "@blueprintjs/core";
 
-import { Scene } from "babylonjs";
+import { Mesh, PickingInfo, Scene } from "babylonjs";
 import { AdvancedDynamicTexture, Image } from "babylonjs-gui";
 
 import { Icon } from "../../../../gui/icon";
@@ -129,6 +129,26 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
     }
 
     /**
+     * Called on the user drops the asset in the editor's preview canvas.
+     * @param ev defines the reference to the event object.
+     * @param pick defines the picking info generated while dropping in the preview.
+     */
+    public async onDropInPreview(_: DragEvent, pick: PickingInfo): Promise<void> {
+        if (!pick.pickedMesh || !(pick.pickedMesh instanceof Mesh)) {
+            return;
+        }
+
+        try {
+            const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
+
+            const ui = AdvancedDynamicTexture.CreateForMesh(pick.pickedMesh, 3, 3);
+            ui.parseContent(json, true);
+        } catch (e) {
+            // Catch silently.
+        }
+    }
+
+    /**
      * Called on the user wants to refresh the preview of the material.
      * @hidden
      */
@@ -147,13 +167,13 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
      */
     private async _computePreview(): Promise<void> {
         let texture: Nullable<AdvancedDynamicTexture> = null;
-        
+
         const scene = new Scene(this.props.editor.engine!);
         scene.activeCamera = this.props.editor.scene!.activeCamera;
 
         try {
             const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
-            
+
             overridesConfiguration.absolutePath = this.props.absolutePath;
 
             texture = AdvancedDynamicTexture.CreateFullscreenUI("editor-ui", true, scene);
@@ -191,7 +211,7 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
      */
     private async _waitUntilAssetsLoaded(texture: AdvancedDynamicTexture): Promise<void> {
         const images = texture.getControlsByType("Image") as Image[];
-        
+
         const promises = images.map((i) => {
             if (!i.source) {
                 return Promise.resolve();

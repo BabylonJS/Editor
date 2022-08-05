@@ -174,11 +174,11 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	}
 
 	/**
-	 * Called on the 
+	 * Called on the user drops the asset in the editor's preview canvas.
 	 * @param ev defines the reference to the event object.
 	 * @param pick defines the picking info generated while dropping in the preview.
 	 */
-	public async onDropInPreview(_: React.DragEvent<HTMLDivElement>, pick: PickingInfo): Promise<void> {
+	public async onDropInPreview(_: DragEvent, pick: PickingInfo): Promise<void> {
 		if (!pick.pickedMesh || !(pick.pickedMesh instanceof Mesh)) {
 			return;
 		}
