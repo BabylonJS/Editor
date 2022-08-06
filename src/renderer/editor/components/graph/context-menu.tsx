@@ -92,7 +92,14 @@ export class GraphContextMenu {
 				<MenuDivider />
 				<MenuItem text="Clone" disabled={node instanceof Sound || node instanceof ParticleSystem} icon={<Icon src="clone.svg" />} onClick={() => graph._handleCloneObject()} />
 				<MenuDivider />
-				<MenuItem text="Focus..." onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Position)} />
+				<MenuItem text="Focus..." onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Position)}>
+                    <MenuItem text="Back" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Back)} />
+					<MenuItem text="Front" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Front)} />
+                    <MenuItem text="Top" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Top)} />
+					<MenuItem text="Bottom" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Bottom)} />
+                    <MenuItem text="Left" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Left)} />
+                    <MenuItem text="Right" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Right)} />
+				</MenuItem>
 				<MenuDivider />
 				{this._GetCopyPasterItem(editor, node)}
 				<MenuItem text="Prefab">

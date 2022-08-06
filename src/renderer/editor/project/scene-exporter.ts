@@ -8,6 +8,8 @@ import { Nullable } from "../../../shared/types";
 import { LGraph } from "litegraph.js";
 import { SceneSerializer, Mesh, Bone } from "babylonjs";
 
+import { AdvancedDynamicTexture } from "babylonjs-gui";
+
 import { Editor } from "../editor";
 
 import { FSTools } from "../tools/fs";
@@ -325,6 +327,26 @@ export class SceneExporter {
 			if (m.customType === "BABYLON.PBRMaterial" && m.environmentBRDFTexture) {
 				delete m.environmentBRDFTexture;
 			}
+		});
+
+		// GUI
+		scene.meshes?.forEach((m) => {
+			if (!m.metadata?.guiPath) {
+				return;
+			}
+
+			const material = editor.scene!.getMaterialById(m.materialId);
+			if (material) {
+				const activeTextures = material.getActiveTextures();
+				if (!activeTextures.find((t) => t instanceof AdvancedDynamicTexture)) {
+					return delete m.metadata.guiPath;
+				}
+			}
+			
+			const outputFolder = join(WorkSpace.DirPath!, WorkSpace.OutputSceneDirectory);
+			const dest = join(outputFolder, "scenes/_assets", m.metadata.guiPath);
+
+			m.metadata.guiPath = dest.replace(join(outputFolder, "/"), "");
 		});
 
 		// Ids

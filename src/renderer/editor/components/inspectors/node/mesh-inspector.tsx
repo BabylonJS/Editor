@@ -415,6 +415,29 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         const mesh = this.selectedObject as Mesh;
 
         switch (editorGeometry.type) {
+            case "Plane":
+                if (typeof (editorGeometry.size) === "number") {
+                    editorGeometry.width = editorGeometry.size;
+                    editorGeometry.height = editorGeometry.size;
+                    delete editorGeometry.size;
+                }
+
+                return (
+                    <InspectorSection title="Plane Geometry">
+                        <InspectorNumber
+                            object={editorGeometry} property="width" label="Width" min={0} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreatePlane, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreatePlane, editorGeometry, { ...editorGeometry, width: o })}
+                        />
+
+                        <InspectorNumber
+                            object={editorGeometry} property="height" label="Height" min={0} noUndoRedo
+                            onChange={() => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreatePlane, editorGeometry)}
+                            onFinishChange={(_, o) => this._applyGeometryBuilderConfiguration(mesh, VertexData.CreatePlane, editorGeometry, { ...editorGeometry, height: o })}
+                        />
+                    </InspectorSection>
+                );
+
             case "Cube":
                 return (
                     <InspectorSection title="Cube Geometry">
@@ -494,7 +517,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
     /**
      * Applies the new geometry for the given mesh.
      */
-    private _applyGeometryBuilderConfiguration(mesh: Mesh, fn: (... args: any[]) => VertexData, editorGeometry: any, oldEditorGeometry?: any): void {
+    private _applyGeometryBuilderConfiguration(mesh: Mesh, fn: (...args: any[]) => VertexData, editorGeometry: any, oldEditorGeometry?: any): void {
         if (!oldEditorGeometry) {
             return mesh.geometry?.setAllVerticesData(fn(editorGeometry), false);
         }

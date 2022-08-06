@@ -25,6 +25,7 @@ import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
 import { ParticlesSystemItemHandler } from "./handlers/particles-system";
 
+import { AssetsBrowserGUIMoveHandler } from "./move/gui";
 import { AssetsBrowserMeshMoveHandler } from "./move/mesh";
 import { AssetsBrowserSoundMoveHandler } from "./move/sound";
 import { AssetsBrowserMoveHandler } from "./move/move-handler";
@@ -172,6 +173,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".gui", ctor: GUIItemHandler });
 
 		// Move handlers
+		this.RegisterItemMoveHandler(new AssetsBrowserGUIMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserMeshMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserSoundMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTextureMoveHandler(editor));

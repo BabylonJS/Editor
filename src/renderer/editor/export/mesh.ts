@@ -1,4 +1,5 @@
 import { Mesh, SceneSerializer } from "babylonjs";
+import { AdvancedDynamicTexture } from "babylonjs-gui";
 
 import { Tools } from "../tools/tools";
 
@@ -51,11 +52,22 @@ export class MeshExporter {
             }
 
             m.instances?.forEach((i) => {
-                const instance = mesh._scene.getMeshByID(i.id);
+                const instance = mesh._scene.getMeshById(i.id);
                 if (!instance?.physicsImpostor) { return; }
 
                 i.physicsRestitution = instance.physicsImpostor.getParam("restitution");
             });
+
+            // GUI
+            if (m.metadata?.guiPath) {
+                const material = mesh._scene.getMaterialById(m.materialId);
+                if (material) {
+                    const activeTextures = material.getActiveTextures();
+                    if (!activeTextures.find((t) => t instanceof AdvancedDynamicTexture)) {
+                        delete m.metadata.guiPath;
+                    }
+                }
+            }
 
             delete m.renderOverlay;
         });

@@ -99,6 +99,16 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
                 try {
                     await writeJSON(this.props.absolutePath, message.data.json, { encoding: "utf-8", spaces: "\t" });
                     IPCTools.SendWindowMessage(popupId, "gui-json");
+
+                    // Update instantied references
+                    const meshes = this.props.editor.scene!.meshes.filter((m) => m.metadata?.guiPath);
+                    meshes.forEach((m) => {
+                        const ui = m.material?.getActiveTextures().find((t) => t instanceof AdvancedDynamicTexture) as AdvancedDynamicTexture;
+                        if (ui) {
+                            ui.rootContainer.clearControls();
+                            ui.parseContent(message.data.json, true);
+                        }
+                    });
                 } catch (e) {
                     IPCTools.SendWindowMessage(popupId, "gui-json", { error: true });
                 }
@@ -143,6 +153,9 @@ export class GUIItemHandler extends AssetsBrowserItemHandler {
 
             const ui = AdvancedDynamicTexture.CreateForMesh(pick.pickedMesh, 3, 3);
             ui.parseContent(json, true);
+
+            pick.pickedMesh.metadata ??= { };
+            pick.pickedMesh.metadata.guiPath = this.props.relativePath;
         } catch (e) {
             // Catch silently.
         }

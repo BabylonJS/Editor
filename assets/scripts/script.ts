@@ -37,7 +37,7 @@ export default class MyScript extends Node {
     /**
      * Called on the node has been fully initialized and is ready.
      */
-    public onInitialized?(): void {
+    public onInitialized(): void {
         // ...
     }
 

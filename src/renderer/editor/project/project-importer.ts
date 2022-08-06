@@ -9,12 +9,16 @@ import {
     AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone,
 } from "babylonjs";
 
+import { AdvancedDynamicTexture } from "babylonjs-gui";
+
 import { Editor } from "../editor";
 
 import { Overlay } from "../gui/overlay";
 
 import { Tools } from "../tools/tools";
 import { KTXTools } from "../tools/ktx";
+
+import { overridesConfiguration } from "../tools/gui/augmentations";
 
 import { SceneSettings } from "../scene/settings";
 
@@ -155,6 +159,7 @@ export class ProjectImporter {
                     const json = await readJSON(join(Project.DirPath!, "meshes", m));
                     const result = await this.ImportMesh(editor, m, json, Project.DirPath!, join("meshes", m));
 
+                    // Physics
                     if (physicsEngine) {
                         result.meshes.forEach((m) => {
                             try {
@@ -174,6 +179,27 @@ export class ProjectImporter {
                                 editor.console.logError(`Failed to set physics impostor for mesh "${m.name}"`);
                             }
                         });
+                    }
+
+                    // GUI
+                    for (const m of result.meshes) {
+                        if (!m.metadata?.guiPath) {
+                            continue;
+                        }
+
+                        const guiPath = join(WorkSpace.DirPath!, "assets", m.metadata?.guiPath);
+                        
+                        try {
+                            const data = await readJSON(guiPath, { encoding: "utf-8" });
+                            if (data) {
+                                overridesConfiguration.absolutePath = guiPath;
+                                
+                                const ui = AdvancedDynamicTexture.CreateForMesh(m, 3, 3);
+                                ui.parseContent(data, true);
+                            }
+                        } catch (e) {
+                            editor.console.logError(`Failed to load GUI for mesh "${m.name}"`);
+                        }
                     }
                 } catch (e) {
                     editor.console.logError(`Failed to load mesh "${m}"`);

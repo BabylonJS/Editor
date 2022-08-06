@@ -58,7 +58,7 @@ export class SceneFactory {
     public static AddPlane(editor: Editor): Mesh {
         const plane = Mesh.CreatePlane("New Plane", 1, editor.scene!, false);
         plane.rotation.x = Math.PI * 0.5;
-        plane.metadata = { editorGeometry: { type: "Plane", size: 1 } };
+        plane.metadata = { editorGeometry: { type: "Plane", width: 1, height: 1 } };
         return this._ConfigureNode(plane);
     }
 

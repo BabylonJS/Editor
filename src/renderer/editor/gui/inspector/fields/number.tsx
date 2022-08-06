@@ -47,6 +47,11 @@ export interface IInspectorNumberProps {
     noLabel?: boolean;
 
     /**
+     * Defines the default value of the field in case the editor property doesn't exist.
+     */
+    defaultValue?: number;
+
+    /**
      * Defines wether or not automatic undo/redo should be skipped.
      */
     noUndoRedo?: boolean;
@@ -110,7 +115,13 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
     public constructor(props: IInspectorNumberProps) {
         super(props);
 
-        const value = props.object[props.property];
+        let value = props.object[props.property];
+        
+        if (typeof (value) !== "number" && typeof (props.defaultValue) === "number") {
+            value = props.defaultValue;
+            props.object[props.property] = value;
+        }
+
         if (typeof (value) !== "number") {
             throw new Error("Only number are supported for InspectorNumber components.");
         }

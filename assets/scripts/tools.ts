@@ -145,7 +145,7 @@ async function loadGuiComponent(path: string, node: (Scene | Node | AbstractMesh
 
     const ui = node.onGuiInitialized?.(data);
     if (!ui) {
-        return
+        return;
     }
 
     ui.parseContent(data, true);
@@ -277,14 +277,6 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
         const n = i.node as (Scene | Node | AbstractMesh) & IScript;
         const e = i.exports;
         const scene = i.node instanceof Scene ? i.node : i.node.getScene();
-
-        const promises: Promise<unknown>[] = [];
-
-        // Check GUI
-        const guiPath = (e.default as any)._GuiPath;
-        if (guiPath) {
-            promises.push(loadGuiComponent(guiPath, n, e));
-        }
 
         // Check properties
         const properties = n.metadata.script.properties ?? {};
@@ -427,6 +419,14 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
             // Tell the script it has is ready
             n.onInitialized?.();
         };
+
+        // Check asynchronous components
+        const promises: Promise<unknown>[] = [];
+
+        const guiPath = (e.default as any)._GuiPath ?? n.metadata?.guiPath;
+        if (guiPath) {
+            promises.push(loadGuiComponent(guiPath, n, e));
+        }
 
         if (promises.length) {
             Promise.all(promises).then(() => resultCallback());
