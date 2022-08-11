@@ -75,8 +75,14 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 
 	private _editor: Editor;
 
-	private _tree: Nullable<AssetsBrowserTree> = null;
-	private _files: Nullable<AssetsBrowserFiles> = null;
+	/**
+	 * @hidden
+	 */
+	public _tree: Nullable<AssetsBrowserTree> = null;
+	/**
+	 * @hidden
+	 */
+	public _files: Nullable<AssetsBrowserFiles> = null;
 
 	/**
 	 * Constructor.
@@ -281,6 +287,10 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 
 		const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
 		if (handler) {
+			if (!await handler.canRename(absolutePath, destination)) {
+				return;
+			}
+
 			await handler.moveFile(absolutePath, destination);
 		}
 

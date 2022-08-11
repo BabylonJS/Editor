@@ -28,6 +28,7 @@ import { AppTools } from "../../tools/app";
 
 import { WorkSpace } from "../../project/workspace";
 import { SceneExporter } from "../../project/scene-exporter";
+import { NewProjectWizard } from "../../project/welcome/new-project";
 
 import { AssetsBrowserTree, IAssetsBrowserFavorite } from "./tree";
 
@@ -148,6 +149,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					<MenuItem text="GUI File..." onClick={() => this._handleAddGui()} />
 					<MenuItem text="GUI From Snippet..." onClick={() => this._handleAddGuiFromSnippet()} />
 				</MenuItem>
+
+				<MenuDivider />
+
+				<MenuItem text="Scene..." icon={<Icon src="file.svg" />} onClick={() => NewProjectWizard.Show(this.props.editor)} />
 
 				<MenuDivider />
 

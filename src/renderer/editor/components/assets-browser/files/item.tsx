@@ -20,6 +20,7 @@ import { EnvDdsItemHandler } from "./handlers/env";
 import { JsonItemHandler } from "./handlers/json";
 import { ImageItemHandler } from "./handlers/image";
 import { GraphItemHandler } from "./handlers/graph";
+import { SceneItemHandler } from "./handlers/scene";
 import { TypeScriptItemHandler } from "./handlers/ts";
 import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
@@ -28,6 +29,7 @@ import { ParticlesSystemItemHandler } from "./handlers/particles-system";
 import { AssetsBrowserGUIMoveHandler } from "./move/gui";
 import { AssetsBrowserMeshMoveHandler } from "./move/mesh";
 import { AssetsBrowserSoundMoveHandler } from "./move/sound";
+import { AssetsBrowserSceneMoveHandler } from "./move/scene";
 import { AssetsBrowserMoveHandler } from "./move/move-handler";
 import { AssetsBrowserTypeScriptMoveHandler } from "./move/ts";
 import { AssetsBrowserTextureMoveHandler } from "./move/texture";
@@ -172,10 +174,13 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 
 		this.RegisterItemHandler({ extension: ".gui", ctor: GUIItemHandler });
 
+		this.RegisterItemHandler({ extension: ".scene", ctor: SceneItemHandler });
+
 		// Move handlers
 		this.RegisterItemMoveHandler(new AssetsBrowserGUIMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserMeshMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserSoundMoveHandler(editor));
+		this.RegisterItemMoveHandler(new AssetsBrowserSceneMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTextureMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserMaterialMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTypeScriptMoveHandler(editor));

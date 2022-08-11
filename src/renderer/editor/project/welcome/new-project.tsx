@@ -1,5 +1,5 @@
 import { join } from "path";
-import { pathExists, mkdir } from "fs-extra";
+import { pathExists, mkdir, writeJSON } from "fs-extra";
 import Zip from "adm-zip";
 
 import * as React from "react";
@@ -12,18 +12,28 @@ import { Icon } from "../../gui/icon";
 
 import { AppTools } from "../../tools/app";
 
+import { Editor } from "../../editor";
+
 import { Wizard0 } from "./wizard-project0";
 // import { Wizard1 } from "./wizard-project1";
 import { Wizard2 } from "./wizard-project2";
 
 import { WorkSpace } from "../workspace";
 
-export class NewProjectWizard extends React.Component {
+export interface INewProjectWizardProps {
+    /**
+     * Defines the reference to the editor.
+     */
+    editor: Editor;
+}
+
+export class NewProjectWizard extends React.Component<INewProjectWizardProps> {
     /**
      * Shows the welcome wizard.
+     * @param editor defines the reference to the editor.
      */
-    public static Show(): void {
-        ReactDOM.render(<NewProjectWizard />, document.getElementById("BABYLON-EDITOR-OVERLAY"));
+    public static Show(editor: Editor): void {
+        ReactDOM.render(<NewProjectWizard editor={editor} />, document.getElementById("BABYLON-EDITOR-OVERLAY"));
     }
 
     // private _wizard1: Wizard1;
@@ -99,6 +109,15 @@ export class NewProjectWizard extends React.Component {
         // Write src project
         const srcDest = join(WorkSpace.DirPath!, "src/scenes/", name);
         if (!(await pathExists(srcDest))) { await mkdir(srcDest); }
+
+        // Write .scene file
+        await writeJSON(join(this.props.editor.assetsBrowser._files!.state.currentDirectory, `${name}.scene`), {
+            createdAt: new Date(Date.now()).toDateString(),
+        }, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
+        await this.props.editor.assetsBrowser.refresh();
 
         this._handleClose();
         if (!(await Confirm.Show("Load new project?", "Do you want to load the new created project?"))) { return; }

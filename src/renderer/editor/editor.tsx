@@ -36,7 +36,9 @@ import { ProjectImporter } from "./project/project-importer";
 import { ProjectExporter } from "./project/project-exporter";
 import { WelcomeDialog } from "./project/welcome/welcome";
 import { SceneExporter } from "./project/scene-exporter";
-import { WorkspaceConverter } from "./project/converter/converter";
+
+import { WorkspaceSceneConverter } from "./project/converter/scenes-converter";
+import { WorkspaceAssetsConverter } from "./project/converter/assets-converter";
 
 import { SceneSettings } from "./scene/settings";
 import { GizmoType } from "./scene/gizmo";
@@ -881,8 +883,9 @@ export class Editor {
         // Check workspace
         const workspacePath = await WorkSpace.GetOpeningWorkspace();
         if (workspacePath) {
-            const needsUpdate = await WorkspaceConverter.NeedsConversion(workspacePath);
-            if (needsUpdate) {
+            // Assets
+            const needsAssetsUpdate = await WorkspaceAssetsConverter.NeedsConversion(workspacePath);
+            if (needsAssetsUpdate) {
                 const allowConverting = await Confirm.Show(
                     "Convert Project?",
                     `
@@ -893,10 +896,16 @@ export class Editor {
                 );
 
                 if (allowConverting) {
-                    await WorkspaceConverter.Convert(this, workspacePath);
+                    await WorkspaceAssetsConverter.Convert(this, workspacePath);
                 } else {
                     return WorkSpace.Close();
                 }
+            }
+
+            // Scenes
+            const needsSceneUpdaate = await WorkspaceSceneConverter.NeedsConversion(workspacePath);
+            if (needsSceneUpdaate) {
+                await WorkspaceSceneConverter.Convert(this, workspacePath);
             }
 
             await WorkSpace.ReadWorkSpaceFile(workspacePath);

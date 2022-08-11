@@ -15,7 +15,16 @@ export abstract class AssetsBrowserMoveHandler {
 	 * @param from defines the previous absolute path to the file being moved.
 	 * @param to defines the new absolute path to the file being moved.
 	 */
-	public abstract moveFile(from: string, to: string): void | Promise<void>;
+	public abstract moveFile(from: string, to: string): void | Promise<void>;
+
+	/**
+	 * Returns wheter or not the given file can be renamed.
+	 * @param from defines the previous absolute path to the file being renamed.
+	 * @param to defines the new absolute path to the file being renamed.
+	 */
+	public async canRename(_from: string, _to: string): Promise<boolean> {
+		return true;
+	}
 
 	/**
 	 * Called on the given file is being remvoed.

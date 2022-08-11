@@ -19,7 +19,7 @@ import { IProject, IWorkSpace } from "../typings";
  * The version 4.1.0 comes with a full workspace-based assets browser and need to convert the previously
  * project-based assets.
  */
-export class WorkspaceConverter {
+export class WorkspaceAssetsConverter {
     /**
      * Returns wether or not the workspace needs to be converted to fit new workspace-based assets.
      * @param workspacePath defines the path to the workspace file being opened.

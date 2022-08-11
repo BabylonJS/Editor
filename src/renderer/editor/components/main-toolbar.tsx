@@ -1,6 +1,6 @@
+import { extname } from "path";
 import { shell } from "electron";
-import { join, extname } from "path";
-import { readdir, writeFile } from "fs-extra";
+import { writeFile } from "fs-extra";
 
 import { Undefinable } from "../../../shared/types";
 
@@ -32,7 +32,7 @@ import { SceneTools } from "../scene/tools";
 import { WorkSpace } from "../project/workspace";
 import { ProjectExporter } from "../project/project-exporter";
 import { WelcomeDialog } from "../project/welcome/welcome";
-import { NewProjectWizard } from "../project/welcome/new-project";
+// import { NewProjectWizard } from "../project/welcome/new-project";
 import { ProjectRenamer } from "../project/rename";
 import { PackerDialog } from "../project/packer/dialog";
 
@@ -92,15 +92,15 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Reload Project..." icon={<Icon src="undo.svg" />} onClick={() => this._menuItemClicked("project:reload")} id="toolbar-files-reload" />
                 <MenuItem text={<div>Save Project... <Tag intent={Intent.PRIMARY}>(CTRL+s)</Tag></div>} icon={<Icon src="copy.svg" />} onClick={() => this._menuItemClicked("project:save")} id="toolbar-save-project" />
-                <MenuItem text="Rename Project..." icon="edit" onClick={() => this._menuItemClicked("project:rename")} />
+                {/* <MenuItem text="Rename Project..." icon="edit" onClick={() => this._menuItemClicked("project:rename")} /> */}
                 <MenuDivider />
-                <MenuItem text="Add New Project..." icon={<Icon src="plus.svg" />} onClick={() => NewProjectWizard.Show()} />
+                {/* <MenuItem text="Add New Project..." icon={<Icon src="plus.svg" />} onClick={() => NewProjectWizard.Show(this._editor)} />
                 <MenuItem text="Projects" icon="more">
                     <MenuItem text="Refresh..." icon={<Icon src="recycle.svg" />} onClick={() => this._handleRefreshWorkspace()} />
                     <MenuDivider />
                     {WorkSpace.AvailableProjects.map((p) => <MenuItem key={p} text={p} onClick={() => this._handleChangeProject(p)} />)}
                 </MenuItem>
-                <MenuDivider />
+                <MenuDivider /> */}
                 <MenuItem text={<div>Build Project... <Tag intent={Intent.PRIMARY}>(CTRL+b)</Tag></div>} onClick={() => WorkSpace.BuildProject(this._editor)} id="toolbar-build-project" />
                 <MenuItem text={<div>Build & Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={async () => {
                     await WorkSpace.BuildProject(this._editor);
@@ -401,10 +401,10 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
     /**
      * Called on the user wants to refresh the available projects in the workspace.
      */
-    private async _handleRefreshWorkspace(): Promise<void> {
-        await WorkSpace.RefreshAvailableProjects();
-        this.forceUpdate();
-    }
+    // private async _handleRefreshWorkspace(): Promise<void> {
+    //     await WorkSpace.RefreshAvailableProjects();
+    //     this.forceUpdate();
+    // }
 
     /**
      * Called on the user wants to show the workspace settings.
@@ -431,21 +431,21 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
     /**
      * Called on the user wants to change the current project.
      */
-    private async _handleChangeProject(name: string): Promise<void> {
-        if (!(await Confirm.Show("Load project?", "Are you sure to close the current project?"))) { return; }
+    // private async _handleChangeProject(name: string): Promise<void> {
+    //     if (!(await Confirm.Show("Load project?", "Are you sure to close the current project?"))) { return; }
 
-        const projectFolder = join(WorkSpace.DirPath!, "projects", name);
-        const files = await readdir(projectFolder);
+    //     const projectFolder = join(WorkSpace.DirPath!, "projects", name);
+    //     const files = await readdir(projectFolder);
 
-        let projectFileName: Undefinable<string> = "scene.editorproject";
-        if (files.indexOf(projectFileName) === -1) {
-            projectFileName = files.find((f) => extname(f).toLowerCase() === ".editorproject");
-        }
+    //     let projectFileName: Undefinable<string> = "scene.editorproject";
+    //     if (files.indexOf(projectFileName) === -1) {
+    //         projectFileName = files.find((f) => extname(f).toLowerCase() === ".editorproject");
+    //     }
 
-        if (!projectFileName) { return; }
-        await WorkSpace.WriteWorkspaceFile(join(projectFolder, projectFileName));
-        window.location.reload();
-    }
+    //     if (!projectFileName) { return; }
+    //     await WorkSpace.WriteWorkspaceFile(join(projectFolder, projectFileName));
+    //     window.location.reload();
+    // }
 
     /**
      * Called on the user wants to create a screenshot.
