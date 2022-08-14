@@ -5,8 +5,8 @@ Welcome to the documentation of the Babylon.JS Editor. A series of tutorials are
 ## Tutorials
 * Workspace
   * [Creating a new workspace](../01%20-%20create-workspace/0-create-new-workspace.md)
-  * [Creating a new project](../01%20-%20create-workspace/1-creating-new-project.md)
-  * [Renaming a project](../01%20-%20create-workspace/2-renaming-project.md)
+  * [Creating a new scene](../01%20-%20create-workspace/1-creating-new-scene.md)
+  * [Renaming a scene](../01%20-%20create-workspace/2-renaming-scene.md)
 * Running the scene
   * [Running application/game](../02%20-%20running-project/0-running-project.md)
   * [Playing scene](../02%20-%20running-project/1-playing-scene.md)
