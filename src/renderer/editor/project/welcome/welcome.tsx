@@ -222,6 +222,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         const workspacePath = join(path, "workspace.editorworkspace");
         await this._updateWorkspaceSettings(workspacePath);
         await this._copyVsCodeLaunch(path);
+        await this._configureSceneFile(path);
 
         // Open project!
         await WorkSpace.SetOpeningWorkspace(workspacePath);
@@ -258,6 +259,7 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
 
         await this._updateWorkspaceSettings(workspacePath);
         await this._copyVsCodeLaunch(path);
+        await this._configureSceneFile(path);
 
         await WorkSpace.SetOpeningWorkspace(join(path, workspaceFile));
         window.location.reload();
@@ -286,6 +288,22 @@ export class WelcomeDialog extends React.Component<IWelcomeDialogProps, IWelcome
         }
 
         await copy(join(AppTools.GetAppPath(), "assets/project/launch.json"), join(path, ".vscode/launch.json"), { overwrite: false });
+    }
+
+    /**
+     * Configures the default scene file to keep real creation data.
+     */
+    private async _configureSceneFile(path: string): Promise<void> {
+        try {
+            await writeJson(join(path, "assets/scene.scene"), {
+                createdAt: new Date(Date.now()).toDateString(),
+            }, {
+                spaces: "\t",
+                encoding: "utf-8",
+            });
+        } catch (e) {
+            // Catch silently.
+        }
     }
 
     /**

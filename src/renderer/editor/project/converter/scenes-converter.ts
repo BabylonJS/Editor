@@ -62,5 +62,14 @@ export class WorkspaceSceneConverter {
 
             editor.console.logInfo(`Converted scene "${p}" to scene file "${sceneFileName}"`);
         }));
+
+        // Update workspace file
+        const workspaceJson = await readJSON(workspacePath, { encoding: "utf-8" }) as IWorkSpace;
+        workspaceJson.editorVersion = editor._packageJson.version;
+
+        await writeJSON(workspacePath, workspaceJson, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
     }
 }
