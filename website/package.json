@@ -12,7 +12,7 @@
         "watch": "webpack --mode development --watch",
         "build": "npm run generate-documentation && webpack --mode production",
         "webserver": "http-server -p 1337 -c-1",
-        "generate-documentation": "rm -rf ./_doc && markdown-folder-to-html ../doc && mv ../_doc ./_doc"
+        "generate-documentation": "rm -rf ./_doc && markdown-folder-to-html ../doc && mv ./_../* ./_doc"
     },
     "dependencies": {
         "@blueprintjs/core": "3.28.1",
@@ -29,8 +29,8 @@
         "@types/react-dom": "16.9.5",
         "babel-loader": "8.0.4",
         "css-loader": "5.0.1",
-        "http-server": "^14.1.1",
-        "markdown-folder-to-html": "^1.4.4",
+        "http-server": "14.1.1",
+        "markdown-folder-to-html": "1.4.4",
         "style-loader": "1.2.1",
         "ts-loader": "4.4.2",
         "typescript": "4.0.5",
