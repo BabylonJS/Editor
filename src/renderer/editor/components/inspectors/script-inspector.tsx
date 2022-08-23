@@ -350,6 +350,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
 
         // Check
         if (this.selectedObject.metadata.script.name === "None") {
+            this.editor.graph.refresh();
             return this.isMounted && this.forceUpdate();
         }
 
@@ -384,6 +385,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         const inspectorValues = await SandboxMain.GetInspectorValues(jsPath) ?? [];
 
         this.setState({ refresing: false, inspectorValues });
+        this.editor.graph.refresh();
     }
 
     /**
