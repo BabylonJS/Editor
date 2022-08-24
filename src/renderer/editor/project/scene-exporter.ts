@@ -261,8 +261,14 @@ export class SceneExporter {
 			m.lodCoverages = lods.map((lod) => lod.distanceOrScreenCoverage);
 		});
 
-		// Bones parenting
+		// Parenting
 		scene.meshes?.forEach((m) => {
+			// Instances
+			m.instances?.forEach((i) => {
+				delete i.parentInstanceIndex;
+			});
+
+			// Bones
 			const mesh = editor.scene!.getMeshById(m.id);
 			if (mesh && mesh.parent && mesh.parent instanceof Bone) {
 				m.metadata ??= {};

@@ -52,10 +52,12 @@ export class MeshExporter {
             }
 
             m.instances?.forEach((i) => {
-                const instance = mesh._scene.getMeshById(i.id);
-                if (!instance?.physicsImpostor) { return; }
+                delete i.parentInstanceIndex;
 
-                i.physicsRestitution = instance.physicsImpostor.getParam("restitution");
+                const instance = mesh._scene.getMeshById(i.id);
+                if (instance?.physicsImpostor) {
+                    i.physicsRestitution = instance.physicsImpostor.getParam("restitution");
+                }
             });
 
             // GUI

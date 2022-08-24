@@ -188,12 +188,12 @@ export class ProjectImporter {
                         }
 
                         const guiPath = join(WorkSpace.DirPath!, "assets", m.metadata?.guiPath);
-                        
+
                         try {
                             const data = await readJSON(guiPath, { encoding: "utf-8" });
                             if (data) {
                                 overridesConfiguration.absolutePath = guiPath;
-                                
+
                                 const ui = AdvancedDynamicTexture.CreateForMesh(m, 3, 3);
                                 ui.parseContent(data, true);
                             }
@@ -581,7 +581,7 @@ export class ProjectImporter {
         });
 
         // Lods
-        for (const lod of json.lods) {
+        for (const lod of json.lods ?? []) {
             try {
                 lod.mesh.meshes[0].delayLoadingFile = join(Project.DirPath!, lod.mesh.meshes[0].delayLoadingFile);
 
