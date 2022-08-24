@@ -263,14 +263,19 @@ export class SceneExporter {
 
 		// Parenting
 		scene.meshes?.forEach((m) => {
+			const mesh = editor.scene!.getMeshById(m.id);
+
+			m.parentId = mesh?.parent?.id;
+
 			// Instances
 			m.instances?.forEach((i) => {
+				const instancedMesh = editor.scene!.getMeshById(i.id);
+				i.parentId = instancedMesh?.parent?.id;
 				delete i.parentInstanceIndex;
 			});
 
 			// Bones
-			const mesh = editor.scene!.getMeshById(m.id);
-			if (mesh && mesh.parent && mesh.parent instanceof Bone) {
+			if (mesh?.parent && mesh.parent instanceof Bone) {
 				m.metadata ??= {};
 				m.metadata.parentBoneId = mesh.parent.id;
 			}
