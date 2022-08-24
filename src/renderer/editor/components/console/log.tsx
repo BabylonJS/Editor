@@ -85,8 +85,10 @@ export class ConsoleLog extends React.Component<IConsoleLogProps, IConsoleLogSta
      * Sets the new body of the log.
      * @param body defines the reference to the custom body.
      */
-    public setBody(body: React.ReactNode): void {
-        this.setState({ body });
+    public setBody(body: React.ReactNode): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this.setState({ body }, () => resolve());
+        });
     }
 
     /**

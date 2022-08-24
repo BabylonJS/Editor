@@ -1,10 +1,10 @@
 import { shell } from "electron";
 import { basename, dirname, extname, join } from "path";
 
+import { Nullable } from "../../../shared/types";
+
 import * as React from "react";
 import { Icon, Spinner } from "@blueprintjs/core";
-
-import { Nullable } from "../../../shared/types";
 
 import { Engine } from "babylonjs";
 
@@ -25,7 +25,7 @@ import { EditorProcess, IEditorProcess } from "./process";
 export type KTXToolsType = "-astc.ktx" | "-dxt.ktx" | "-pvrtc.ktx" | "-etc1.ktx" | "-etc2.ktx";
 
 export class KTXTools {
-	private static _SupportedExtensions: string[] = [".png", ".jpg", ".jpeg"];
+	private static _SupportedExtensions: string[] = [".png", ".jpg", ".jpeg", ".bmp"];
 
 	/**
 	 * Returns the format of the currently supported Ktx format.
@@ -162,7 +162,7 @@ export class KTXTools {
 			log.setBody(
 				<div style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
 					<Icon icon="endorsed" intent="warning" />
-					<span style={{ color: "yellow" }}>Failed to compress texture at </span>
+					<span style={{ color: "yellow" }}>Failed to compress KTX texture at </span>
 					<a style={{ color: "grey" }} onClick={() => shell.showItemInFolder(dirname(texturePath))}>{texturePath}</a>
 				</div>
 			);

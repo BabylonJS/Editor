@@ -102,6 +102,16 @@ export interface IWorkSpace {
     }
 
     /**
+     * Defines the options of the Basis compression tool.
+     */
+    basisCompressedTextures?: {
+        /**
+         * Defines wether or not Basis compressed texture is enabled using KTX Software.
+         */
+        enabled?: boolean;
+    },
+
+    /**
      * Defines the options of the KTX2 compression tool.
      */
     ktx2CompressedTextures?: {
