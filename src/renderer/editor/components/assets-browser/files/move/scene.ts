@@ -95,7 +95,7 @@ export class AssetsBrowserSceneMoveHandler extends AssetsBrowserMoveHandler {
         );
 
         Project.DirPath = join(WorkSpace.DirPath!, "projects", newName);
-        Project.Path = join(WorkSpace.DirPath!, "projects", newName, basename(Project.DirPath!));
+        Project.Path = join(WorkSpace.DirPath!, "projects", newName, "scene.editorproject");
 
         await WorkSpace.WriteWorkspaceFile(join(WorkSpace.DirPath!, "projects", newName, "scene.editorproject"));
 
