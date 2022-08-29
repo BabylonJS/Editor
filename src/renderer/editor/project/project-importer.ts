@@ -214,6 +214,22 @@ export class ProjectImporter {
 
         await Promise.all(loadPromises);
         loadPromises = [];
+        
+        // Load all reflection probes
+        for (const rp of project.reflectionProbes ?? []) {
+            try {
+                const json = await readJSON(join(Project.DirPath, "reflectionProbes", rp));
+
+                const reflectionProbe = ReflectionProbe.Parse(json, editor.scene!, rootUrl);
+                if (reflectionProbe) {
+                    reflectionProbe["metadata"] = json.metadata;
+                }
+            } catch (e) {
+                editor.console.logError(`Failed to parse reflection probe "${rp}"`);
+            }
+
+            Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+        }
 
         editor.scene!.meshes.sort((a, b) => a.uniqueId - b.uniqueId);
         
@@ -552,6 +568,16 @@ export class ProjectImporter {
         scene.cameras.forEach((c) => this._SetWaitingParent(c));
         scene.transformNodes.forEach((tn) => this._SetWaitingParent(tn));
         
+        // Waiting render list
+        scene.reflectionProbes?.forEach((rp) => {
+            rp.cubeTexture._waitingRenderList?.forEach((wr) => {
+                const m = scene.getMeshById(wr);
+                if (m) {
+                    rp.renderList?.push(m);
+                }
+            });
+        });
+
         // Waiting render list
         scene.reflectionProbes?.forEach((rp) => {
             rp.cubeTexture._waitingRenderList?.forEach((wr) => {
