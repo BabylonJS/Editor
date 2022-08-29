@@ -6,7 +6,7 @@ import * as React from "react";
 import { Position, ButtonGroup, Popover, Menu, MenuItem, Divider, Tag, Tooltip, Pre, AnchorButton, ProgressBar } from "@blueprintjs/core";
 
 import {
-    Node, TargetCamera, Vector3, Animation, Camera, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable,
+    Node, TargetCamera, Vector3, Animation, Camera, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable, ReflectionProbe,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -478,7 +478,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * @param node defines the reference to the node to focus.
      * @param mode defines the focus mode (animate target, position, etc.).
      */
-    public focusNode(node: Node | IParticleSystem | Sound, mode: PreviewFocusMode): void {
+    public focusNode(node: Node | IParticleSystem | Sound | ReflectionProbe, mode: PreviewFocusMode): void {
         this._focusNode(node, mode);
     }
 
@@ -487,7 +487,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      */
     public copySelectedNode(): void {
         const object = this._editor.graph.lastSelectedObject;
-        if (!(object instanceof Sound)) {
+        if (!(object instanceof Sound) && !(object instanceof ReflectionProbe)) {
             this._copiedNode = object;
         }
     }
@@ -537,7 +537,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     /**
      * Focuses on the given node.
      */
-    private _focusNode(node: Nullable<Node | IParticleSystem | Sound>, mode: PreviewFocusMode, camera?: Nullable<Camera>): void {
+    private _focusNode(node: Nullable<Node | IParticleSystem | Sound | ReflectionProbe>, mode: PreviewFocusMode, camera?: Nullable<Camera>): void {
         if (!node) { return; }
 
         if (node instanceof ParticleSystem) { node = node.emitter as AbstractMesh; }

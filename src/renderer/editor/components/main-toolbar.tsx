@@ -8,7 +8,7 @@ import * as React from "react";
 import Image from "antd/lib/image";
 import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent, Tag } from "@blueprintjs/core";
 
-import { AbstractMesh, Node, IParticleSystem } from "babylonjs";
+import { AbstractMesh, Node, IParticleSystem, ReflectionProbe, ParticleSystem, GPUParticleSystem } from "babylonjs";
 
 import { Editor } from "../editor";
 
@@ -172,10 +172,14 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Sky" icon={<Icon src="smog.svg" />} onClick={() => this._menuItemClicked("add:sky")} />
                 <MenuDivider />
                 <MenuItem text="Dummy Node" icon={<Icon src="clone.svg" />} onClick={() => this._menuItemClicked("add:dummy")} />
+                <MenuDivider />
+                <MenuItem text="Reflection Probe" icon={<Icon src="image.svg" />} onClick={() => this._menuItemClicked("add:reflection-probe")} />
             </Menu>;
 
         const addMesh =
             <Menu>
+                <MenuItem text="Empty" icon={<Icon src="vector-square.svg" />} onClick={() => this._menuItemClicked("addmesh:empty")} />
+                <MenuDivider />
                 <MenuItem text="Cube" icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("addmesh:cube")} />
                 <MenuItem text="Sphere" icon={<Icon src="circle.svg" />} onClick={() => this._menuItemClicked("addmesh:sphere")} />
                 <MenuItem text="Cylinder" icon={<Icon src="cylinder.svg" />} onClick={() => this._menuItemClicked("addmesh:cylinder")} />
@@ -209,32 +213,32 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         return (
             <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
                 <Popover content={project} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
-                    <Button icon={<Icon src="folder-open.svg"/>} rightIcon="caret-down" text="File" id="toolbar-files" />
+                    <Button icon={<Icon src="folder-open.svg" />} rightIcon="caret-down" text="File" id="toolbar-files" />
                 </Popover>
                 <Popover content={edit} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
-                    <Button icon={<Icon src="edit.svg"/>} rightIcon="caret-down" text="Edit"/>
+                    <Button icon={<Icon src="edit.svg" />} rightIcon="caret-down" text="Edit" />
                 </Popover>
                 <Popover content={view} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
-                    <Button icon={<Icon src="eye.svg"/>} rightIcon="caret-down" text="View"/>
+                    <Button icon={<Icon src="eye.svg" />} rightIcon="caret-down" text="View" />
                 </Popover>
                 <Popover content={add} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
-                    <Button icon={<Icon src="plus.svg"/>} rightIcon="caret-down" text="Add"/>
+                    <Button icon={<Icon src="plus.svg" />} rightIcon="caret-down" text="Add" />
                 </Popover>
                 <Popover content={addMesh} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
-                    <Button icon={<Icon src="plus.svg"/>} rightIcon="caret-down" text="Add Mesh"/>
+                    <Button icon={<Icon src="plus.svg" />} rightIcon="caret-down" text="Add Mesh" />
                 </Popover>
                 <Popover content={tools} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
-                    <Button icon={<Icon src="wrench.svg"/>} rightIcon="caret-down" text="Tools"/>
+                    <Button icon={<Icon src="wrench.svg" />} rightIcon="caret-down" text="Tools" />
                 </Popover>
 
                 {this.state.plugins?.map((p) => (
                     <Popover content={p.content} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
-                        <Button icon={p.buttonIcon} rightIcon="caret-down" text={p.buttonLabel}/>
+                        <Button icon={p.buttonIcon} rightIcon="caret-down" text={p.buttonLabel} />
                     </Popover>
                 ))}
 
                 <Popover content={help} position={Position.BOTTOM_LEFT} hasBackdrop={false}>
-                    <Button icon={<Icon src="dog.svg"/>} rightIcon="caret-down" text="Help"/>
+                    <Button icon={<Icon src="dog.svg" />} rightIcon="caret-down" text="Help" />
                 </Popover>
             </ButtonGroup>
         );
@@ -314,7 +318,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         // Add
         if (family === "add") {
-            let node: Undefinable<Node | IParticleSystem>;
+            let node: Undefinable<Node | IParticleSystem | ReflectionProbe>;
 
             switch (action) {
                 case "pointlight": node = SceneFactory.AddPointLight(this._editor); break;
@@ -328,6 +332,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 case "sky": node = await SceneFactory.AddSky(this._editor); break;
 
                 case "dummy": node = SceneFactory.AddDummy(this._editor); break;
+
+                case "reflection-probe": node = SceneFactory.AddReflectionProbe(this._editor); break;
+
                 default: break;
             }
 
@@ -335,9 +342,10 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
             if (node instanceof Node) {
                 this._editor.addedNodeObservable.notifyObservers(node);
-            } else {
+            } else if (node instanceof ParticleSystem || node instanceof GPUParticleSystem) {
                 this._editor.addedParticleSystemObservable.notifyObservers(node);
             }
+
             return this._editor.graph.refresh();
         }
 
@@ -346,6 +354,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             let mesh: Undefinable<AbstractMesh>;
 
             switch (action) {
+                case "empty": mesh = SceneFactory.AddEmptyMesh(this._editor); break;
                 case "cube": mesh = SceneFactory.AddCube(this._editor); break;
                 case "sphere": mesh = SceneFactory.AddSphere(this._editor); break;
                 case "cylinder": mesh = SceneFactory.AddCynlinder(this._editor); break;
@@ -393,7 +402,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         if (!PhotoshopExtension.IsEnabled) {
             password = await Dialog.Show("Connect to Photoshop", "Please provide the password to connect to photoshop", undefined, true);
         }
-        
+
         await PhotoshopExtension.ToggleEnabled(this._editor, password);
         this.setState({ isPhotoshopEnabled: PhotoshopExtension.IsEnabled });
     }

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { PBRMaterial } from "babylonjs";
+import { Constants, PBRMaterial } from "babylonjs";
 
 import { Inspector, IObjectInspectorProps } from "../../inspector";
 
@@ -153,6 +153,15 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 <InspectorSection title="BRDF">
                     <InspectorBoolean object={this.material.brdf} property="useEnergyConservation" label="Use Energy Conservation" />
                     <InspectorBoolean object={this.material.brdf} property="useSpecularGlossinessInputEnergyConservation" label="Use Specular Glossiness Input Energy Conservation" />
+                </InspectorSection>
+
+                <InspectorSection title="Filtering">
+                    <InspectorBoolean object={this.material} property="realTimeFiltering" label="Real-Time Filtering" />
+                    <InspectorList object={this.material} property="realTimeFilteringQuality" label="Quality" items={[
+                        { label: "Low", data: Constants.TEXTURE_FILTERING_QUALITY_LOW },
+                        { label: "Medium", data: Constants.TEXTURE_FILTERING_QUALITY_MEDIUM },
+                        { label: "High", data: Constants.TEXTURE_FILTERING_QUALITY_HIGH },
+                    ]} />
                 </InspectorSection>
 
                 {this._getClearCoatInspector()}

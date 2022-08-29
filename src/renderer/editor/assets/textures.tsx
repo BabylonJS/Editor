@@ -199,6 +199,28 @@ export class TextureAssets extends AbstractAssets {
             this.updateAssetObservable.notifyObservers();
         }
 
+        for (const reflectionProbe of this.editor.scene!.reflectionProbes ?? []) {
+            const itemData: IAssetComponentItem = {
+                id: reflectionProbe.name,
+                key: reflectionProbe["metadata"].id,
+                base64: "../css/svg/reflection-probe.svg",
+                style: {
+                    filter: "invert(1)",
+                },
+            };
+
+            if (reflectionProbe["reflectionProbe"]?.isLocked) {
+                itemData.style = { border: "solid red" };
+            }
+
+            const existingItemIndex = this.items.findIndex((i) => i.key === reflectionProbe["metadata"]?.id);
+            if (existingItemIndex !== -1) {
+                this.items[existingItemIndex] = itemData;
+            } else {
+                this.items.push(itemData);
+            }
+        }
+
         await this.refreshCompressedTexturesFiles();
 
         return super.refresh();
@@ -215,7 +237,12 @@ export class TextureAssets extends AbstractAssets {
         const texture = this._getTexture(item.key);
         if (!texture) { return; }
 
-        this.editor.selectedTextureObservable.notifyObservers(texture);
+        const reflectionProbe = this.editor.scene!.reflectionProbes.find((rp) => rp.cubeTexture === texture);
+        if (reflectionProbe) {
+            this.editor.selectedReflectionProbeObservable.notifyObservers(reflectionProbe);
+        } else {
+            this.editor.selectedTextureObservable.notifyObservers(texture);
+        }
     }
 
     /**
@@ -252,6 +279,8 @@ export class TextureAssets extends AbstractAssets {
 
         const extension = extname(texture.name).toLowerCase();
 
+        const reflectionProbe = this.editor.scene!.reflectionProbes.find((rp) => rp.cubeTexture === texture) ?? null;
+
         let setAsEnvironmentTexture: React.ReactNode;
         if (extension === ".env" || extension === ".dds") {
             setAsEnvironmentTexture = (
@@ -271,9 +300,9 @@ export class TextureAssets extends AbstractAssets {
 
         ContextMenu.show(
             <Menu className={Classes.DARK}>
-                <MenuItem text="Copy Name" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(texture.name, "clipboard")} />
-                <MenuItem text="Copy Path" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(`./${WorkSpace.OutputSceneDirectory || "."}/scenes/${WorkSpace.GetProjectName()}/${texture.name}`, "clipboard")} />
-                <MenuItem text="Show In Assets Browser" icon={<BPIcon icon="document-open" color="white" />} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(texture.name)} />
+                <MenuItem text="Copy Name" icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(reflectionProbe?.name ?? texture.name, "clipboard")} />
+                <MenuItem text="Copy Path" disabled={reflectionProbe !== null} icon={<BPIcon icon="clipboard" color="white" />} onClick={() => clipboard.writeText(`./${WorkSpace.OutputSceneDirectory || "."}/scenes/${WorkSpace.GetProjectName()}/${texture.name}`, "clipboard")} />
+                <MenuItem text="Show In Assets Browser" disabled={reflectionProbe !== null} icon={<BPIcon icon="document-open" color="white" />} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(texture.name)} />
                 <MenuDivider />
                 {/* <MenuItem text={`Show in ${explorer}`} icon="document-open" onClick={() => {
                     const name = basename(texture.name);
@@ -281,7 +310,7 @@ export class TextureAssets extends AbstractAssets {
                     if (file) { shell.showItemInFolder(Tools.NormalizePathForCurrentPlatform(file.path)); }
                 }} />
                 <MenuDivider /> */}
-                <MenuItem text="Clone..." icon={<Icon src="clone.svg" />} onClick={() => this._cloneTexture(texture)} />
+                <MenuItem text="Clone..." disabled={reflectionProbe !== null} icon={<Icon src="clone.svg" />} onClick={() => this._cloneTexture(texture)} />
                 <MenuDivider />
                 <MenuItem text="Locked" icon={texture.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
                     texture.metadata.isLocked = !texture.metadata.isLocked;
@@ -507,6 +536,10 @@ export class TextureAssets extends AbstractAssets {
             if (texture.metadata?.editorId === uid) { return texture; }
         }
 
+        for (const rp of this.editor.scene!.reflectionProbes ?? []) {
+            if (rp["metadata"]?.id === uid) { return rp.cubeTexture; }
+        }
+
         return null;
     }
 
@@ -577,15 +610,18 @@ export class TextureAssets extends AbstractAssets {
             u.object[u.property] = null;
         });
 
-        // Not found, remove.
-        texture.dispose();
+        // Reflection probe
+        const reflectionProbe = this.editor.scene!.reflectionProbes?.find((rp) => rp.cubeTexture === texture);
+        if (reflectionProbe) {
+            reflectionProbe.dispose();
+        } else {
+            texture.dispose();
+        }
 
         const itemIndex = this.items.findIndex((i) => i.key === texture.uid);
         if (itemIndex) {
             this.items.splice(itemIndex, 1);
         }
-
-        texture.dispose();
 
         const index = this.items.indexOf(item);
         if (index !== -1) {
@@ -593,6 +629,7 @@ export class TextureAssets extends AbstractAssets {
         }
 
         this.refresh();
+        this.editor.graph.refresh();
     }
 
     /**

@@ -276,6 +276,10 @@ export interface IProject {
      */
     morphTargetManagers?: string[];
     /**
+     * Defines the list of all reflection probes.
+     */
+    reflectionProbes?: string[];
+    /**
      * Saves the scene's settings.
      */
     scene: any;

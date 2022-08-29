@@ -107,6 +107,7 @@ export class ProjectExporter {
             lights: [],
             sounds: [],
             morphTargetManagers: [],
+            reflectionProbes: [],
             scene: ProjectHelpers.ExportSceneSettings(editor.scene!),
             assets: {
                 meshes: [],
@@ -137,6 +138,7 @@ export class ProjectExporter {
         const exportedMorphTargets: string[] = [];
         const exportedCinematics: string[] = [];
         const exportedAnimationGroups: string[] = [];
+        const exportedReflectionProbes: string[] = [];
         
         let savePromises: Promise<void>[] = [];
 
@@ -539,7 +541,7 @@ export class ProjectExporter {
             const json = s.serialize();
             json.url = json.name;
 
-            const dest = `${normalize(`${basename(filenamify(s.name))}-${s.metadata?.id}`)}.json`
+            const dest = `${normalize(`${basename(filenamify(s.name))}-${s.metadata?.id}`)}.json`;
 
             await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(soundsDir, dest), json);
 
@@ -548,6 +550,30 @@ export class ProjectExporter {
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved sound configuration "${s.name}"`);
+        }
+
+        // Write all reflection probes
+        editor.updateTaskFeedback(task, 0, "Saving Reflection Probes");
+
+        progressValue = 0;
+        progressCount = 100 / (editor.scene!.reflectionProbes ?? []).length;
+
+        const reflectionProbesDir = join(Project.DirPath!, "reflectionProbes");
+        await FSTools.CreateDirectory(reflectionProbesDir);
+
+        for (const rp of editor.scene!.reflectionProbes ?? []) {
+            const json = rp.serialize();
+            json.metadata = rp["metadata"];
+
+            const dest = `${normalize(`${basename(filenamify(rp.name))}-${rp["metadata"]?.id}`)}.json`;
+
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(reflectionProbesDir, dest), json);
+
+            project.reflectionProbes!.push(dest);
+            exportedReflectionProbes.push(dest);
+
+            editor.updateTaskFeedback(task, progressValue += progressCount);
+            editor.console.logInfo(`Saved reflection probe configuration "${rp.name}"`);
         }
 
         // Write assets cache
@@ -593,6 +619,7 @@ export class ProjectExporter {
         this._CleanOutputDir(transformNodesDir, exportedTransformNodes);
         this._CleanOutputDir(morphTargetsDir, exportedMorphTargets);
         this._CleanOutputDir(cinematicsDir, exportedCinematics);
+        this._CleanOutputDir(reflectionProbesDir, exportedReflectionProbes);
 
         // Update recent projects to be shown in welcome wizard
         this._UpdateWelcomeRecentProjects(editor);

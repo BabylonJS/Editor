@@ -13,7 +13,7 @@ import { Layout, Model, TabNode, Rect, Actions } from "flexlayout-react";
 import {
     Engine, Scene, Observable, ISize, Node, BaseTexture, Material, Vector3, CannonJSPlugin,
     SubMesh, Animation, AbstractMesh, IParticleSystem, Sound, KeyboardInfo, KeyboardEventTypes,
-    Color4, SceneLoader, Skeleton,
+    Color4, SceneLoader, Skeleton, ReflectionProbe,
 } from "babylonjs";
 
 import { Overlay } from "./gui/overlay";
@@ -107,6 +107,8 @@ import "./components/inspectors/particle-systems/particle-system-inspector";
 import "./components/inspectors/particle-systems/particle-system-gradients-inspector";
 
 import "./components/inspectors/sound/sound-inspector";
+
+import "./components/inspectors/textures/reflection-probe-inspector";
 
 // Assets
 import { MaterialAssets } from "./assets/materials";
@@ -223,6 +225,10 @@ export class Editor {
      * Notifies observers that a particle system has been selected in the editor (preview or graph).
      */
     public selectedParticleSystemObservable: Observable<IParticleSystem> = new Observable<IParticleSystem>();
+    /**
+     * Notifies observers that a reflection probe has been selected in the editor (preview or graph).
+     */
+    public selectedReflectionProbeObservable: Observable<ReflectionProbe> = new Observable<ReflectionProbe>();
     /**
      * Notifies observers that a texture has been selected in the editor (assets).
      */
@@ -1108,6 +1114,12 @@ export class Editor {
             }
 
             if (ev.target !== this.graph) { this.graph.setSelected(o); }
+        });
+
+        this.selectedReflectionProbeObservable.add((rp, ev) => {
+            this.inspector.setSelectedObject(rp);
+
+            if (ev.target !== this.graph) { this.graph.setSelected(rp); }
         });
 
         this.selectedSceneObservable.add((s) => this.inspector.setSelectedObject(s));

@@ -8,7 +8,7 @@ import {
     Node, TransformNode,  GroundMesh, ParticleHelper, IParticleSystem,
     Vector3,
     FreeCamera, ArcRotateCamera,
-    Texture, VertexData, Color3,
+    Texture, VertexData, Color3, ReflectionProbe,
 } from "babylonjs";
 import { SkyMaterial } from "babylonjs-materials";
 
@@ -21,6 +21,15 @@ import { AppTools } from "../tools/app";
 import { Editor } from "../editor";
 
 export class SceneFactory {
+    /**
+     * Adds a new empty mesh to the scene.
+     * @param editor defines the reference to the editor.
+     */
+    public static AddEmptyMesh(editor: Editor): Mesh {
+        const mesh = new Mesh("New Empty Mesh", editor.scene!);
+        return this._ConfigureNode(mesh);
+    }
+
     /**
      * Adds a new cube to the scene.
      * @param editor the editor reference.
@@ -227,6 +236,16 @@ export class SceneFactory {
         ps.id = Tools.RandomId();
 
         return ps;
+    }
+
+    /**
+     * Adds a new reflection probe to the scene.
+     * @param editor defines the reference to the editor.
+     */
+    public static AddReflectionProbe(editor: Editor): ReflectionProbe {
+        const rp = new ReflectionProbe("New Reflection Probe", 512, editor.scene!, true, true, true);
+
+        return rp;
     }
 
     /**

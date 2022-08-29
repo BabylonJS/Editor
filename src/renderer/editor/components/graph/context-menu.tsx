@@ -3,7 +3,10 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { ContextMenu, Menu, MenuItem, MenuDivider, Code, Classes, Pre } from "@blueprintjs/core";
 
-import { IParticleSystem, Node, Sound, Mesh, MultiMaterial, AbstractMesh, Light, Camera, ParticleSystem, TransformNode } from "babylonjs";
+import {
+	IParticleSystem, Node, Sound, Mesh, MultiMaterial, AbstractMesh, Light, Camera, ParticleSystem, TransformNode,
+	ReflectionProbe,
+} from "babylonjs";
 
 import { Icon } from "../../gui/icon";
 import { EditableText } from "../../gui/editable-text";
@@ -26,7 +29,7 @@ export class GraphContextMenu {
 	 * Shows the context menu of the graph according to the given right-clicked node.
 	 * @param node defines the reference to the node that has been right-clicked.
 	 */
-	public static Show(ev: MouseEvent, editor: Editor, node: Node | IParticleSystem | Sound): void {
+	public static Show(ev: MouseEvent, editor: Editor, node: Node | IParticleSystem | Sound | ReflectionProbe): void {
 		const graph = editor.graph
 
 		let mergeMeshesItem: React.ReactNode;
@@ -86,6 +89,17 @@ export class GraphContextMenu {
 			}
 		}
 
+		if (node instanceof ReflectionProbe) {
+			return ContextMenu.show(
+				<Menu className={Classes.DARK}>
+					{this._GetNameField(editor, node)}
+					<MenuDivider />
+					<MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => graph._handleRemoveObject()} />
+				</Menu>,
+				{ left: ev.clientX, top: ev.clientY }
+			);
+		}
+
 		ContextMenu.show(
 			<Menu className={Classes.DARK}>
 				{this._GetNameField(editor, node)}
@@ -93,12 +107,12 @@ export class GraphContextMenu {
 				<MenuItem text="Clone" disabled={node instanceof Sound || node instanceof ParticleSystem} icon={<Icon src="clone.svg" />} onClick={() => graph._handleCloneObject()} />
 				<MenuDivider />
 				<MenuItem text="Focus..." onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Position)}>
-                    <MenuItem text="Back" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Back)} />
+					<MenuItem text="Back" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Back)} />
 					<MenuItem text="Front" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Front)} />
-                    <MenuItem text="Top" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Top)} />
+					<MenuItem text="Top" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Top)} />
 					<MenuItem text="Bottom" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Bottom)} />
-                    <MenuItem text="Left" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Left)} />
-                    <MenuItem text="Right" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Right)} />
+					<MenuItem text="Left" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Left)} />
+					<MenuItem text="Right" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Right)} />
 				</MenuItem>
 				<MenuDivider />
 				{this._GetCopyPasterItem(editor, node)}
@@ -123,7 +137,7 @@ export class GraphContextMenu {
 	/**
 	 * Returns the field used to edit the given node's name.
 	 */
-	private static _GetNameField(editor: Editor, node: Node | IParticleSystem | Sound): React.ReactNode {
+	private static _GetNameField(editor: Editor, node: Node | IParticleSystem | Sound | ReflectionProbe): React.ReactNode {
 		return (
 			<Pre>
 				<p style={{ color: "white", marginBottom: "0px" }}>Name</p>
@@ -139,9 +153,25 @@ export class GraphContextMenu {
 						const oldName = node!.name;
 						undoRedo.push({
 							description: `Changed name of node "${node?.name ?? "undefined"}" from "${oldName}" to "${v}"`,
-							common: () => editor.graph.refresh(),
-							redo: () => node!.name = v,
-							undo: () => node!.name = oldName,
+							common: () => {
+								editor.graph.refresh();
+								
+								if (node instanceof ReflectionProbe) {
+									editor.assets.refresh();
+								}
+							},
+							redo: () => {
+								node!.name = v;
+								if (node instanceof ReflectionProbe) {
+									node.cubeTexture.name = v;
+								}
+							},
+							undo: () => {
+								node!.name = oldName;
+								if (node instanceof ReflectionProbe) {
+									node.cubeTexture.name = oldName;
+								}
+							},
 						});
 					}}
 				/>
@@ -153,7 +183,7 @@ export class GraphContextMenu {
 	 * Retruns the list of all sub meshes items avaiable for the given node.
 	 * Checks wether or not the given node is a mesh else returns undefined.
 	 */
-	private static _GetSubMeshesItems(editor: Editor, node: Node | IParticleSystem | Sound): React.ReactNode {
+	private static _GetSubMeshesItems(editor: Editor, node: Node | IParticleSystem | Sound | ReflectionProbe): React.ReactNode {
 		const subMeshesItems: React.ReactNode[] = [];
 		if (node instanceof Mesh && node.subMeshes?.length && node.subMeshes.length > 1) {
 			const multiMaterial = node.material && node.material instanceof MultiMaterial ? node.material : null;
@@ -180,7 +210,7 @@ export class GraphContextMenu {
 	/**
 	 * Returns the items used to copy and paste transforms for the given node.
 	 */
-	private static _GetCopyPasterItem(editor: Editor, node: Node | IParticleSystem | Sound): React.ReactNode {
+	private static _GetCopyPasterItem(editor: Editor, node: Node | IParticleSystem | Sound | ReflectionProbe): React.ReactNode {
 		if (!(node instanceof TransformNode) && !(node instanceof Light) && !(node instanceof Camera)) {
 			return undefined;
 		}

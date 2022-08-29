@@ -10,7 +10,7 @@ import { Nullable, Undefinable } from "../../../shared/types";
 
 import {
     Node, Scene, Mesh, Light, Camera, TransformNode, InstancedMesh, AbstractMesh,
-    IParticleSystem, ParticleSystem, Sound, Bone,
+    IParticleSystem, ParticleSystem, Sound, Bone, ReflectionProbe,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -104,7 +104,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Defines the last selected node in the graph.
      */
-    public lastSelectedObject: Nullable<Node | IParticleSystem | Sound> = null;
+    public lastSelectedObject: Nullable<Node | IParticleSystem | Sound | ReflectionProbe> = null;
 
     /**
      * Constructor.
@@ -226,7 +226,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * @param node the node to select in the graph.
      * @param appendToSelected defines wether or not the selected node should be appended to the currently selected nodes.
      */
-    public setSelected(node: Node | IParticleSystem | Sound, appendToSelected?: boolean): void {
+    public setSelected(node: Node | IParticleSystem | Sound | ReflectionProbe, appendToSelected?: boolean): void {
         let expanded = this.state.expandedNodeIds?.slice();
         if (expanded) {
             let parent: Nullable<Node>;
@@ -234,6 +234,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 parent = node.parent;
             } else if (node instanceof Sound) {
                 parent = node["_connectedTransformNode"];
+            } else if (node instanceof ReflectionProbe) {
+                parent = node["_attachedMesh"];
             } else {
                 parent = node.emitter as AbstractMesh;
             }
@@ -248,7 +250,11 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         this.lastSelectedObject = node;
 
-        const id = node instanceof Sound ? node.metadata?.id : node.id;
+        const id = node instanceof Sound
+            ? node.metadata?.id
+            : node instanceof ReflectionProbe
+                ? node["metadata"]?.id
+                : node.id;
 
         this.setState({
             selectedNodeIds: (appendToSelected ? (this.state.selectedNodeIds ?? []) : []).concat([id]),
@@ -269,8 +275,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     /**
      * Returns the list of all selected nodes (node, particle system, sound).
      */
-    public getAllSelected(): (Node | IParticleSystem | Sound)[] {
-        const result: (Node | IParticleSystem | Sound)[] = [];
+    public getAllSelected(): (Node | IParticleSystem | Sound | ReflectionProbe)[] {
+        const result: (Node | IParticleSystem | Sound | ReflectionProbe)[] = [];
         const selectedIds = this.state.selectedNodeIds ?? [];
         selectedIds.forEach((sid) => {
             const node = this._getNodeById(sid);
@@ -341,7 +347,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Removes the given node.
      * @param node the node to remove.
      */
-    public removeObject(node: Node | IParticleSystem | Sound): void {
+    public removeObject(node: Node | IParticleSystem | Sound | ReflectionProbe): void {
         const descendants = [node].concat(node instanceof Node ? node.getDescendants() : []);
         const actions = descendants.map((d) => this._removeObject(d));
 
@@ -364,9 +370,9 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * @param node the node to remove.
      * @hidden
      */
-    public _removeObject(node: Node | IParticleSystem | Sound): { redo: () => void; undo: () => void; } {
-        let removeFunc: Nullable<(n: Node | IParticleSystem | Sound) => void> = null;
-        let addFunc: Nullable<(n: Node | IParticleSystem | Sound) => void> = null;
+    public _removeObject(node: Node | IParticleSystem | Sound | ReflectionProbe): { redo: () => void; undo: () => void; } {
+        let removeFunc: Nullable<(n: Node | IParticleSystem | Sound | ReflectionProbe) => void> = null;
+        let addFunc: Nullable<(n: Node | IParticleSystem | Sound | ReflectionProbe) => void> = null;
         let caller: any = this._editor.scene!;
 
         if (node instanceof AbstractMesh) {
@@ -392,15 +398,24 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             removeFunc = this._editor.scene!.mainSoundTrack.removeSound;
             addFunc = this._editor.scene!.mainSoundTrack.addSound;
             caller = this._editor.scene!.mainSoundTrack;
+        } else if (node instanceof ReflectionProbe) {
+            removeFunc = this._editor.scene!.removeReflectionProbe;
+            addFunc = this._editor.scene!.addReflectionProbe;
         }
 
         if (!removeFunc || !addFunc) {
             return { redo: () => { }, undo: () => { } };
         }
 
-        const parent = node instanceof Node ? node.parent :
-            node instanceof Sound ? node["_connectedTransformNode"] :
-                node.emitter as AbstractMesh;
+        const parent =
+            node instanceof Node
+                ? node.parent
+                : node instanceof Sound
+                    ? node["_connectedTransformNode"]
+                    : node instanceof ReflectionProbe
+                        ? node["_attachedMesh"]
+                        : node.emitter as AbstractMesh;
+
         const lods = node instanceof Mesh ? node.getLODLevels().slice() : [];
         const particleSystems = this._editor.scene!.particleSystems.filter((ps) => ps.emitter === node);
         const shadowLights = this._editor.scene!.lights.filter((l) => l.getShadowGenerator()?.getShadowMap()?.renderList)
@@ -442,6 +457,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     this._editor.removedNodeObservable.notifyObservers(node);
                 } else if (node instanceof Sound) {
                     this._editor.removedSoundObservable.notifyObservers(node);
+                } else if (node instanceof ReflectionProbe) {
+                    // TODO: notify
                 } else {
                     this._editor.removedParticleSystemObservable.notifyObservers(node);
                 }
@@ -490,6 +507,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     this._editor.addedNodeObservable.notifyObservers(node);
                 } else if (node instanceof Sound) {
                     this._editor.addedSoundObservable.notifyObservers(node);
+                } else if (node instanceof ReflectionProbe) {
+                    // TODO: notify
                 } else {
                     this._editor.addedParticleSystemObservable.notifyObservers(node);
                 }
@@ -535,6 +554,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             icon: <Icon src="camera-retro.svg" />,
         };
 
+        // Sounds
         const soundsChildren = this._editor.scene!.mainSoundTrack.soundCollection.filter((s) => !s.spatialSound).map((s) => {
             s.metadata ??= {};
             s.metadata.id ??= Tools.RandomId();
@@ -550,14 +570,36 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         const sounds: DataNode = {
             key: "sounds",
             children: soundsChildren,
-            title: <span> Sounds</span>,
+            title: <span>Sounds</span>,
             isLeaf: soundsChildren.length === 0,
-            icon: < Icon src="volume-off.svg" />,
+            icon: <Icon src="volume-off.svg" />,
+        };
+
+        // Reflection probes
+        const reflectionProbesChildren = (this._editor.scene!.reflectionProbes ?? []).filter((rp) => !rp["_attachedMesh"]).map((rp) => {
+            rp["metadata"] ??= {};
+            rp["metadata"].id ??= Tools.RandomId();
+
+            return {
+                isLeaf: true,
+                title: rp.name,
+                key: rp["metadata"].id,
+                icon: <Icon src="reflection-probe.svg" />,
+            } as DataNode;
+        });
+
+        const reflectionProbes: DataNode = {
+            key: "reflectionProbes",
+            icon: <Icon src="reflection-probe.svg" />,
+            children: reflectionProbesChildren,
+            title: <span>Reflection Probes</span>,
+            isLeaf: reflectionProbesChildren.length === 0,
         };
 
         this._allKeys.push(sounds.key as string);
+        this._allKeys.push(reflectionProbes.key as string);
 
-        return [scene, sounds].concat(nodes as DataNode[]);
+        return [scene, sounds, reflectionProbes].concat(nodes as DataNode[]);
     }
 
     /**
@@ -732,6 +774,29 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             });
         });
 
+        // Search for reflection probes
+        this._editor.scene!.reflectionProbes?.forEach((rp) => {
+            if (rp["_attachedMesh"] !== node) { return; }
+
+            rp["metadata"] ??= {};
+            rp["metadata"].id ??= Tools.RandomId();
+
+            children.push({
+                isLeaf: true,
+                key: rp["metadata"].id,
+                icon: <Icon src="reflection-probe.svg" />,
+                title: (
+                    <Tooltip
+                        content={<span>{Tools.GetConstructorName(rp)}</span>}
+                        position={Position.RIGHT}
+                        usePortal={false}
+                    >
+                        <span style={style}>{rp.name}</span>
+                    </Tooltip>
+                ),
+            });
+        });
+
         // Update references
         let updateReferences: React.ReactNode;
         if (node.metadata?._waitingUpdatedReferences && Object.values(node.metadata?._waitingUpdatedReferences).find((v) => v !== undefined)) {
@@ -842,7 +907,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         if (!this.state.selectedNodeIds) { return; }
         this.state.selectedNodeIds.forEach((id) => {
             const node = this._getNodeById(id);
-            if (!node || node instanceof Sound) { return; }
+            if (!node || node instanceof Sound || node instanceof ReflectionProbe) { return; }
 
             this.cloneObject(node);
         });
@@ -883,6 +948,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             this._editor.selectedSoundObservable.notifyObservers(lastSelected, undefined, this);
         } else if (lastSelected instanceof ParticleSystem) {
             this._editor.selectedParticleSystemObservable.notifyObservers(lastSelected, undefined, this);
+        } else if (lastSelected instanceof ReflectionProbe) {
+            this._editor.selectedReflectionProbeObservable.notifyObservers(lastSelected, undefined, this);
         }
 
         this.lastSelectedObject = lastSelected;
@@ -964,13 +1031,22 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         const source = this._getNodeById(info.dragNode.key);
         if (!source) { return; }
 
-        const all = this.state.selectedNodeIds.map((s) => this._getNodeById(s)).filter((n) => n) as (Node | IParticleSystem | Sound)[];
+        const all = this.state.selectedNodeIds.map((s) => this._getNodeById(s)).filter((n) => n) as (Node | IParticleSystem | Sound | ReflectionProbe)[];
 
         // Sound?
         if (info.node.key === "sounds" && info.node.dragOver) {
             all.filter((a) => a instanceof Sound).forEach((s: Sound) => {
                 s.detachFromMesh();
                 s.spatialSound = false;
+            });
+
+            return this.refresh();
+        }
+
+        // Reflection probes?
+        if (info.node.key === "reflectionProbes" && info.node.dragOver) {
+            all.filter((a) => a instanceof ReflectionProbe).forEach((rp: ReflectionProbe) => {
+                rp.attachToMesh(null);
             });
 
             return this.refresh();
@@ -1002,6 +1078,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     } else if (n instanceof Sound) {
                         n.attachToMesh(target);
                         n.spatialSound = true;
+                    } else if (n instanceof ReflectionProbe) {
+                        n.attachToMesh(target);
                     }
                 }
             });
@@ -1017,6 +1095,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     } else if (n instanceof Sound) {
                         n.attachToMesh(target.parent);
                         n.spatialSound = true;
+                    } else if (n instanceof ReflectionProbe) {
+                        n.attachToMesh(target.parent);
                     }
                 }
             });
@@ -1082,7 +1162,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             return;
         }
 
-        let allSelected = this.state.selectedNodeIds?.map((s) => this._getNodeById(s)).filter((n) => n) as (Node | IParticleSystem | Sound)[];
+        let allSelected = this.state.selectedNodeIds?.map((s) => this._getNodeById(s)).filter((n) => n) as (Node | IParticleSystem | Sound | ReflectionProbe)[];
 
         if (allSelected.indexOf(targetNode) === -1) {
             allSelected = [targetNode];
@@ -1099,20 +1179,23 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * @param id the id of the node to find.
      * @hidden
      */
-    public _getNodeById(id: string): Undefinable<Node | IParticleSystem | Sound> {
+    public _getNodeById(id: string): Undefinable<Node | IParticleSystem | Sound | ReflectionProbe> {
         const all = Tools.getAllSceneNodes(this._editor.scene!);
 
         const node = all.find((c) => c.id === id);
         if (node) { return node; }
 
-        const bone = this._editor.scene!.getBoneByID(id);
+        const bone = this._editor.scene!.getBoneById(id);
         if (bone) { return bone; }
 
-        const ps = this._editor.scene!.getParticleSystemByID(id);
+        const ps = this._editor.scene!.getParticleSystemById(id);
         if (ps) { return ps; }
 
         const sound = this._editor.scene!.mainSoundTrack.soundCollection.find((s) => s.metadata?.id === id);
         if (sound) { return sound; }
+
+        const rp = this._editor.scene!.reflectionProbes?.find((rp) => rp["metadata"]?.id === id);
+        if (rp) { return rp; }
 
         return undefined;
     }

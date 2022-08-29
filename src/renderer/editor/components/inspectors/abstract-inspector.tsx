@@ -150,7 +150,8 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         const empty: IInspectorListItem<Nullable<Texture>> = { label: "None", data: null, description: "No Texture" };
 
         return [empty].concat(assets.map((a) => {
-            const data = (this.editor.scene!.textures.find((t) => t.metadata?.editorId === a.key) ?? null) as Nullable<Texture>;
+            const reflectionProbe = this.editor.scene!.reflectionProbes?.find((rp) => rp["metadata"]?.id === a.key);
+            const data = reflectionProbe?.cubeTexture ?? (this.editor.scene!.textures.find((t) => t.metadata?.editorId === a.key) ?? null) as Nullable<Texture>;
             const icon = a.base64 ? (
                 <img
                     src={a.base64}

@@ -3,6 +3,7 @@ import {
     LightGizmo, Light, IParticleSystem, Sound, Vector3, Quaternion, Camera, CameraGizmo, HemisphericLight,
     SkeletonViewer,
     Mesh,
+    ReflectionProbe,
 } from "babylonjs";
 
 import { Nullable } from "../../../shared/types";
@@ -161,7 +162,7 @@ export class SceneGizmo {
      * Sets the given node attached to the current gizmos if exists.
      * @param node the node to attach to current gizmos if exists.
      */
-    public setAttachedNode(node: Nullable<Node | IParticleSystem | Sound>): void {
+    public setAttachedNode(node: Nullable<Node | IParticleSystem | Sound | ReflectionProbe>): void {
         // Skeleton gizmo
         if (this._skeletonViewer) {
             this._skeletonViewer.dispose();

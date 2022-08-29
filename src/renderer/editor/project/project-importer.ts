@@ -6,7 +6,7 @@ import { Nullable } from "../../../shared/types";
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
-    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone,
+    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe,
 } from "babylonjs";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
@@ -212,6 +212,22 @@ export class ProjectImporter {
 
         await Promise.all(loadPromises);
         loadPromises = [];
+        
+        // Load all reflection probes
+        for (const rp of project.reflectionProbes ?? []) {
+            try {
+                const json = await readJSON(join(Project.DirPath, "reflectionProbes", rp));
+
+                const reflectionProbe = ReflectionProbe.Parse(json, editor.scene!, rootUrl);
+                if (reflectionProbe) {
+                    reflectionProbe["metadata"] = json.metadata;
+                }
+            } catch (e) {
+                editor.console.logError(`Failed to parse reflection probe "${rp}"`);
+            }
+
+            Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+        }
 
         // Load all materials
         Overlay.SetMessage("Creating Materials...");
@@ -529,6 +545,16 @@ export class ProjectImporter {
         scene.lights.forEach((l) => this._SetWaitingParent(l));
         scene.cameras.forEach((c) => this._SetWaitingParent(c));
         scene.transformNodes.forEach((tn) => this._SetWaitingParent(tn));
+
+        // Waiting render list
+        scene.reflectionProbes?.forEach((rp) => {
+            rp.cubeTexture._waitingRenderList?.forEach((wr) => {
+                const m = scene.getMeshById(wr);
+                if (m) {
+                    rp.renderList?.push(m);
+                }
+            });
+        });
 
         // Geometry Ids
         scene.meshes.forEach((m) => {
