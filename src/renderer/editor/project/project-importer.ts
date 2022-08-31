@@ -150,6 +150,8 @@ export class ProjectImporter {
         await Promise.all(loadPromises);
         loadPromises = [];
 
+        editor.scene!.transformNodes.sort((a, b) => a.uniqueId - b.uniqueId);
+
         // Load all meshes
         Overlay.SetMessage("Creating Meshes...");
 
@@ -195,7 +197,7 @@ export class ProjectImporter {
                                 overridesConfiguration.absolutePath = guiPath;
 
                                 const ui = AdvancedDynamicTexture.CreateForMesh(m, 3, 3);
-                                ui.parseContent(data, true);
+                                ui.parseSerializedObject(data, true);
                             }
                         } catch (e) {
                             editor.console.logError(`Failed to load GUI for mesh "${m.name}"`);
@@ -212,6 +214,8 @@ export class ProjectImporter {
 
         await Promise.all(loadPromises);
         loadPromises = [];
+
+        editor.scene!.meshes.sort((a, b) => a.uniqueId - b.uniqueId);
         
         // Load all reflection probes
         for (const rp of project.reflectionProbes ?? []) {
@@ -389,6 +393,8 @@ export class ProjectImporter {
 
         await Promise.all(loadPromises);
         loadPromises = [];
+
+        editor.scene!.lights.sort((a, b) => a.uniqueId - b.uniqueId);
 
         // Load all cameras
         Overlay.SetMessage("Creating Cameras...");

@@ -46,6 +46,9 @@ export class MeshExporter {
                 m.metadata = Tools.CloneObject(m.metadata);
             }
 
+            delete m.geometryUniqueId;
+            delete m.materialUniqueId;
+
             // TODO: fix in babylonjs where restitution is equal to mass when serializing mesh.
             if (mesh.physicsImpostor) {
                 m.physicsRestitution = mesh.physicsImpostor.getParam("restitution");

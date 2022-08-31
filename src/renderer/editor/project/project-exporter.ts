@@ -272,10 +272,10 @@ export class ProjectExporter {
                 }
 
                 const dest = `${normalize(`${filenamify(basename(texture.name))}-${texture.metadata.editorId}`)}.json`;
-                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(texturesDir, dest), json);
-
                 project.textures.push(dest);
                 exportedTextures.push(dest);
+
+                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(texturesDir, dest), json);
 
                 editor.updateTaskFeedback(task, progressValue += progressCount);
                 editor.console.logInfo(`Saved texture configuration "${texture.name}"`);
@@ -329,17 +329,20 @@ export class ProjectExporter {
                         join(materialsDir, `${normalize(`${basename(filenamify(material.name))}-${material.id}`)}.json`) :
                         join(editor.assetsBrowser.assetsDirectory, material.metadata.editorPath);
 
+                const materialData = {
+                    isMultiMaterial,
+                    bindedMeshes: material.getBindedMeshes().map((m) => m.id),
+                    json: isMultiMaterial ? basename(dest) : material.metadata.editorPath,
+                };
+
+                project.materials.push(materialData);
+
                 if (!(await pathExists(dirname(dest)))) {
+                    project.materials.splice(project.materials.indexOf(materialData), 1);
                     return resolve();
                 }
                 
                 await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", dest, json);
-
-                project.materials.push({
-                    isMultiMaterial,
-                    bindedMeshes: material.getBindedMeshes().map((m) => m.id),
-                    json: isMultiMaterial ? basename(dest) : material.metadata.editorPath,
-                });
 
                 editor.updateTaskFeedback(task, progressValue += progressCount);
                 editor.console.logInfo(`Saved material configuration "${material.name}"`);
@@ -378,6 +381,11 @@ export class ProjectExporter {
                     });
                 }
 
+                const dest = `${normalize(`${basename(filenamify(mesh.name))}-${mesh.id}`)}.json`;
+
+                project.meshes.push(dest);
+                exportedMeshes.push(dest);
+
                 exportedGeometries.push.apply(exportedGeometries, await GeometryExporter.ExportIncrementalGeometries(editor, geometriesDir, json, false));
 
                 for (const lod of json.lods) {
@@ -386,12 +394,7 @@ export class ProjectExporter {
                     }
                 };
 
-                const dest = `${normalize(`${basename(filenamify(mesh.name))}-${mesh.id}`)}.json`;
-
                 await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(meshesDir, dest), json);
-
-                project.meshes.push(dest);
-                exportedMeshes.push(dest);
 
                 editor.updateTaskFeedback(task, progressValue += progressCount);
                 editor.console.logInfo(`Saved mesh configuration "${mesh.name}"`);
@@ -443,21 +446,21 @@ export class ProjectExporter {
 
             const lightDest = `${normalize(`${basename(filenamify(light.name))}-${light.id}`)}.json`;
 
-            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(lightsDir, lightDest), lightJson);
+            exportedLights.push(lightDest);
 
             const shadowJson = light.getShadowGenerator()?.serialize();
             if (shadowJson) {
                 const shadowDest = `${normalize(`${basename(filenamify(light.name))}-${light.id}`)}.json`;
-
-                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(shadowsDir, shadowDest), shadowJson);
-
-                project.lights.push({ json: lightDest, shadowGenerator: shadowDest });
+                
                 exportedShadows.push(shadowDest);
+                project.lights.push({ json: lightDest, shadowGenerator: shadowDest });
+                
+                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(shadowsDir, shadowDest), shadowJson);
             } else {
                 project.lights.push({ json: lightDest, shadowGenerator: undefined });
             }
 
-            exportedLights.push(lightDest);
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(lightsDir, lightDest), lightJson);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved light configuration "${light.name}"`);
@@ -479,10 +482,10 @@ export class ProjectExporter {
 
                 const dest = `${normalize(`${filenamify(basename(transform.name))}-${transform.id}`)}.json`;
 
-                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(transformNodesDir, dest), json);
-
                 project.transformNodes.push(dest);
                 exportedTransformNodes.push(dest);
+
+                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(transformNodesDir, dest), json);
 
                 editor.updateTaskFeedback(task, progressValue += progressCount);
                 editor.console.logInfo(`Saved transform node configuration "${transform.name}"`);
@@ -515,14 +518,14 @@ export class ProjectExporter {
             };
 
             const dest = join(editor.assetsBrowser.assetsDirectory, editorPath);
-            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", dest, json);
-
             project.particleSystems!.push({
                 id: ps.id,
                 name: ps.name,
                 json: editorPath,
                 emitterId: (ps.emitter as AbstractMesh)?.id ?? undefined,
             });
+
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", dest, json);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved particle system configuration "${ps.name}"`);
@@ -543,10 +546,10 @@ export class ProjectExporter {
 
             const dest = `${normalize(`${basename(filenamify(s.name))}-${s.metadata?.id}`)}.json`;
 
-            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(soundsDir, dest), json);
-
             project.sounds!.push(dest);
             exportedSounds.push(dest);
+
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(soundsDir, dest), json);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved sound configuration "${s.name}"`);
@@ -567,10 +570,10 @@ export class ProjectExporter {
 
             const dest = `${normalize(`${basename(filenamify(rp.name))}-${rp["metadata"]?.id}`)}.json`;
 
-            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(reflectionProbesDir, dest), json);
-
             project.reflectionProbes!.push(dest);
             exportedReflectionProbes.push(dest);
+
+            await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(reflectionProbesDir, dest), json);
 
             editor.updateTaskFeedback(task, progressValue += progressCount);
             editor.console.logInfo(`Saved reflection probe configuration "${rp.name}"`);
