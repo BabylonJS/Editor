@@ -214,6 +214,8 @@ export class ProjectImporter {
 
         await Promise.all(loadPromises);
         loadPromises = [];
+
+        editor.scene!.meshes.sort((a, b) => a.uniqueId - b.uniqueId);
         
         // Load all reflection probes
         for (const rp of project.reflectionProbes ?? []) {
