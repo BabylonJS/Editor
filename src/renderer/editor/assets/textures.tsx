@@ -237,7 +237,7 @@ export class TextureAssets extends AbstractAssets {
         const texture = this._getTexture(item.key);
         if (!texture) { return; }
 
-        const reflectionProbe = this.editor.scene!.reflectionProbes.find((rp) => rp.cubeTexture === texture);
+        const reflectionProbe = this.editor.scene!.reflectionProbes?.find((rp) => rp.cubeTexture === texture);
         if (reflectionProbe) {
             this.editor.selectedReflectionProbeObservable.notifyObservers(reflectionProbe);
         } else {
@@ -279,7 +279,7 @@ export class TextureAssets extends AbstractAssets {
 
         const extension = extname(texture.name).toLowerCase();
 
-        const reflectionProbe = this.editor.scene!.reflectionProbes.find((rp) => rp.cubeTexture === texture) ?? null;
+        const reflectionProbe = this.editor.scene!.reflectionProbes?.find((rp) => rp.cubeTexture === texture) ?? null;
 
         let setAsEnvironmentTexture: React.ReactNode;
         if (extension === ".env" || extension === ".dds") {

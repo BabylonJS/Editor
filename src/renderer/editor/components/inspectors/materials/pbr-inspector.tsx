@@ -91,6 +91,8 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     <InspectorBoolean object={this.material} property="unlit" label="Unlit" defaultValue={false} />
                     <InspectorBoolean object={this.material} property="usePhysicalLightFalloff" label="Use Physical Light Falloff" />
                     <InspectorBoolean object={this.material} property="forceIrradianceInFragment" label="Force Irradiance In Fragment" />
+                    <InspectorBoolean object={this.material} property="useRadianceOcclusion" label="Use Radiance Occlusion" />
+                    <InspectorNumber object={this.material} property="directIntensity" label="Direct Intensity" min={0} step={0.01} />
                 </InspectorSection>
 
                 <InspectorSection title="Albedo">
@@ -162,6 +164,12 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                         { label: "Medium", data: Constants.TEXTURE_FILTERING_QUALITY_MEDIUM },
                         { label: "High", data: Constants.TEXTURE_FILTERING_QUALITY_HIGH },
                     ]} />
+                </InspectorSection>
+
+                <InspectorSection title="Camera">
+                    <InspectorNumber object={this.material} property="cameraExposure" label="Exposure" min={0} step={0.01} />
+                    <InspectorNumber object={this.material} property="cameraContrast" label="Contrast" min={0} step={0.01} />
+                    <InspectorBoolean object={this.material} property="cameraToneMappingEnabled" label="Tone Mapping Enabled" />
                 </InspectorSection>
 
                 {this._getClearCoatInspector()}
