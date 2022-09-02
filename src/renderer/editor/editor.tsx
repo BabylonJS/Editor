@@ -93,6 +93,7 @@ import "./components/inspectors/cameras/arc-rotate-camera-inspector";
 
 import "./components/inspectors/materials/standard-inspector";
 import "./components/inspectors/materials/pbr-inspector";
+import "./components/inspectors/materials/pbr-metallic-rougness-inspector";
 import "./components/inspectors/materials/sky-inspector";
 import "./components/inspectors/materials/node-inspector";
 import "./components/inspectors/materials/cell-inspector";

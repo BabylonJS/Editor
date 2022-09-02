@@ -5,7 +5,7 @@ import { ContextMenu, Menu, MenuItem, Classes } from "@blueprintjs/core";
 
 import {
     Observable, Node, Vector2, PointerEventTypes, AbstractMesh, SubMesh, Sound,
-    ParticleSystem, IMouseEvent,
+    ParticleSystem, IMouseEvent, MultiMaterial,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -83,7 +83,7 @@ export class ScenePicker {
         if (!pick) { return null; }
         if (pick.pickedMesh?.metadata?.isLocked) { return null; }
 
-        if (pick.pickedMesh && pick.pickedMesh.subMeshes?.length > 1) {
+        if (pick.pickedMesh && (pick.pickedMesh.subMeshes?.length > 1 || pick.pickedMesh.material instanceof MultiMaterial)) {
             const subMesh = pick.pickedMesh.subMeshes[pick.subMeshId];
             if (subMesh) { return subMesh; }
         }

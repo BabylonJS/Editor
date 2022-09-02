@@ -68,7 +68,7 @@ export class InspectorColor extends React.Component<IInspectorColorProps, IInspe
         super(props);
 
         const value = props.object[props.property];
-        if (value.r === undefined || value.g === undefined || value.b === undefined) {
+        if (value.r === undefined || value.g === undefined || value.b === undefined) {
             throw new Error("Only Color4 (r, g, b, a?) are supported for InspectorColor.");
         }
 
