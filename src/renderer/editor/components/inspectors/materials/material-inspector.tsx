@@ -72,6 +72,10 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
         "ALPHA_PREMULTIPLIED_PORTERDUFF", "ALPHA_INTERPOLATE", "ALPHA_SCREENMODE",
     ];
 
+    private static _TransparencyModes: string[] = [
+        "MATERIAL_OPAQUE", "MATERIAL_ALPHATEST", "MATERIAL_ALPHABLEND", "MATERIAL_ALPHATESTANDBLEND",
+    ];
+
     /**
      * Defines the reference to the selected material.
      */
@@ -167,6 +171,9 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
                 ]} />
                 <InspectorList object={this.material} property="alphaMode" label="Alpha Mode" items={
                     MaterialInspector._AlphaModes.map((am) => ({ label: am, data: Constants[am] }))
+                } />
+                <InspectorList object={this.material} property="transparencyMode" label="Transparency Mode" items={
+                    MaterialInspector._TransparencyModes.map((am) => ({ label: am, data: Material[am] }))
                 } />
             </InspectorSection>
         );
