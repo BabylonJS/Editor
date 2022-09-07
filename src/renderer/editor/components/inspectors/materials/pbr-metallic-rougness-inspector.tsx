@@ -52,6 +52,10 @@ export class PBRMetallicRoughnessMaterialInspector extends MaterialInspector<PBR
                     <InspectorColorPicker object={this.material} property="baseColor" label="Hex Color" />
                 </InspectorSection>
 
+                <InspectorSection title="Occlusion">
+                    <InspectorNumber object={this.material} property="occlusionStrength" label="Strength" min={0} step={0.01} />
+                </InspectorSection>
+
                 <InspectorSection title="Metallic / Roughness">
                     <InspectorNumber object={this.material} property="metallic" label="Metallic" min={0} max={1} step={0.01} />
                     <InspectorNumber object={this.material} property="roughness" label="Roughness" min={0} max={1} step={0.01} />
@@ -60,6 +64,10 @@ export class PBRMetallicRoughnessMaterialInspector extends MaterialInspector<PBR
                 <InspectorSection title="Emissive">
                     <InspectorColor object={this.material} property="emissiveColor" label="Color" step={0.01} />
                     <InspectorColorPicker object={this.material} property="emissiveColor" label="Hex Color" />
+                </InspectorSection>
+
+                <InspectorSection title="Lightmap">
+                    <InspectorBoolean object={this.material} property="useLightmapAsShadowmap" label="Use Lightmap As Shadowmap" />
                 </InspectorSection>
 
                 <InspectorSection title="BRDF">

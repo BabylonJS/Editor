@@ -191,7 +191,6 @@ export class SceneExporter {
 			motionBlur: { enabled: SceneSettings.IsMotionBlurEnabled(), json: SceneSettings.MotionBlurPostProcess?.serialize() },
 		};
 
-
 		// Animation Groups
 		scene.animationGroups ??= [];
 
@@ -339,6 +338,11 @@ export class SceneExporter {
 			if (m.customType === "BABYLON.PBRMaterial" && m.environmentBRDFTexture) {
 				delete m.environmentBRDFTexture;
 			}
+		});
+
+		// Multi materials
+		scene.multiMaterials?.forEach((m) => {
+			delete m.materialsUniqueIds;
 		});
 
 		// GUI
@@ -665,7 +669,12 @@ export class SceneExporter {
 		const decorators = await readFile(join(AppTools.GetAppPath(), "assets", "scripts", "decorators.ts"), { encoding: "utf-8" });
 		await writeFile(join(WorkSpace.DirPath!, "src", "scenes", "decorators.ts"), decorators, { encoding: "utf-8" });
 
-		await copyFile(join(AppTools.GetAppPath(), "assets", "scripts", "fx.ts"), join(WorkSpace.DirPath!, "src", "scenes", "fx.ts"));
+		await copyFile(join(AppTools.GetAppPath(), "assets", "scripts", "fx.ts"), join(WorkSpace.DirPath!, "src", "scenes", "fx.d.ts"));
+
+		const oldFxPath = join(WorkSpace.DirPath!, "src", "scenes", "fx.ts");
+		if (await pathExists(oldFxPath)) {
+			await remove(oldFxPath);
+		}
 
 		const tools = await readFile(join(AppTools.GetAppPath(), "assets", "scripts", "tools.ts"), { encoding: "utf-8" });
 		const finalTools = tools

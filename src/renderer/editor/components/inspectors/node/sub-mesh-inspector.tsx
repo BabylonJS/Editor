@@ -94,8 +94,8 @@ export class SubMeshInspector extends AbstractInspector<SubMesh, { }> {
             return;
         }
 
-        if (mesh.material.subMaterials.length <= this.selectedObject.materialIndex) {
-            return;
+        while (mesh.material.subMaterials.length <= this.selectedObject.materialIndex) {
+            mesh.material.subMaterials.push(null);
         }
 
         const material = this._material;

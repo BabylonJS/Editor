@@ -257,7 +257,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		});
 
 		const excluded = [
-			"src/scenes/fx.ts",
+			"src/scenes/fx.d.ts",
 			"src/scenes/tools.ts",
 			"src/scenes/decorators.ts",
 			"src/scenes/scripts-map.ts",

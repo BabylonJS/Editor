@@ -288,7 +288,7 @@ export class ProjectImporter {
                 editor.console.logInfo(`Parsed material "${m.json}"`);
 
                 m.bindedMeshes.forEach((bm) => {
-                    const mesh = editor.scene!.getMeshByID(bm);
+                    const mesh = editor.scene!.getMeshById(bm);
                     if (mesh) {
                         mesh.material = material;
                     } else {
@@ -551,7 +551,7 @@ export class ProjectImporter {
         scene.lights.forEach((l) => this._SetWaitingParent(l));
         scene.cameras.forEach((c) => this._SetWaitingParent(c));
         scene.transformNodes.forEach((tn) => this._SetWaitingParent(tn));
-
+        
         // Waiting render list
         scene.reflectionProbes?.forEach((rp) => {
             rp.cubeTexture._waitingRenderList?.forEach((wr) => {

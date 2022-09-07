@@ -5,7 +5,7 @@ import { Node } from "@babylonjs/core/node";
  * Available nodes are:
  *      - Meshes
  *      - Lights
- *      - Cameas
+ *      - Cameras
  *      - Transform nodes
  * 
  * You can extend the desired class according to the node type.
@@ -65,7 +65,7 @@ export default class MyScript extends Node {
 
     /**
      * Called on a message has been received and sent from a graph.
-     * @param message defines the name of the message sent from the graph.
+     * @param name defines the name of the message sent from the graph.
      * @param data defines the data sent in the message.
      * @param sender defines the reference to the graph class that sent the message.
      */

@@ -13,6 +13,7 @@ import { EngineStore } from "@babylonjs/core/Engines/engineStore";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
 import { Vector2, Vector3, Vector4, Matrix } from "@babylonjs/core/Maths/math.vector";
 
@@ -706,7 +707,7 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
 
         const texture = textureParser.call(SerializationHelper, sourceProperty, scene, rootUrl);
 
-        if (sourceProperty.url) {
+        if (sourceProperty.url && texture instanceof Texture) {
             texture.url = rootUrl + sourceProperty.url;
         }
 

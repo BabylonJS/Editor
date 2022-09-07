@@ -6,6 +6,7 @@
         "outDir": "./build/src",
         "rootDir": "./src",
         "preserveWatchOutput": true,
+        "noEmit": false
     },
     "include": [
         "./src"
