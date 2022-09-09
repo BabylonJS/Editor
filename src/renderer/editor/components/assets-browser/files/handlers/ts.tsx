@@ -1,5 +1,5 @@
-import { join } from "path";
 import { shell } from "electron";
+import { join, extname } from "path";
 
 import * as React from "react";
 import { ContextMenu, Menu } from "@blueprintjs/core";
@@ -15,9 +15,12 @@ export class TypeScriptItemHandler extends AssetsBrowserItemHandler {
 	 * Computes the image to render.
 	 */
 	public computePreview(): React.ReactNode {
+		const extension = extname(this.props.relativePath).toLowerCase();
+		const iconSrc = extension === ".ts" ? "../images/ts.png" : "react.svg";
+
 		return (
 			<Icon
-				src="../images/ts.png"
+				src={iconSrc}
 				style={{
 					width: "100%",
 					height: "100%",

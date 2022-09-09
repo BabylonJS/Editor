@@ -247,7 +247,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		}
 
 		const files = await new Promise<string[]>((resolve, reject) => {
-			Glob(join(WorkSpace.DirPath!, "src", "scenes", "**", "*.ts"), {}, (err, files) => {
+			Glob(join(WorkSpace.DirPath!, "src", "scenes", "**", "*.{ts,tsx}"), {}, (err, files) => {
 				if (err) {
 					reject(err);
 				} else {

@@ -14,7 +14,7 @@ export class AssetsBrowserTypeScriptMoveHandler extends AssetsBrowserMoveHandler
 	/**
 	 * Defines the list of all extensions handled by the item mover.
 	 */
-	public extensions: string[] = [".ts"];
+	public extensions: string[] = [".ts", ".tsx"];
 
 	private _editor: Editor;
 
