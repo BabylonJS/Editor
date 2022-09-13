@@ -49,6 +49,7 @@ import { SandboxMain } from "../sandbox/main";
 import { IPluginToolbar } from "./plugins/toolbar";
 import { IPlugin, IPluginConfiguration } from "./plugins/plugin";
 
+import "./scene/register";
 import "./painting/material-mixer/material";
 
 // Loaders
@@ -90,6 +91,7 @@ import "./components/inspectors/lights/shadows-inspector";
 import "./components/inspectors/cameras/camera-inspector";
 import "./components/inspectors/cameras/free-camera-inspector";
 import "./components/inspectors/cameras/arc-rotate-camera-inspector";
+import "./components/inspectors/cameras/target-camera-inspector";
 
 import "./components/inspectors/materials/standard-inspector";
 import "./components/inspectors/materials/pbr-inspector";

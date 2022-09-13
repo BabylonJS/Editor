@@ -8,7 +8,7 @@ import {
     Node, TransformNode,  GroundMesh, ParticleHelper, IParticleSystem,
     Vector3,
     FreeCamera, ArcRotateCamera,
-    Texture, VertexData, Color3, ReflectionProbe,
+    Texture, VertexData, Color3, ReflectionProbe, TargetCamera,
 } from "babylonjs";
 import { SkyMaterial } from "babylonjs-materials";
 
@@ -179,6 +179,14 @@ export class SceneFactory {
      */
     public static AddArcRotateCamera(editor: Editor): ArcRotateCamera {
         return this._ConfigureNode(new ArcRotateCamera("New Arc Rotate Camera", 0, 0, 10, Vector3.Zero(), editor.scene!, false));
+    }
+
+    /**
+     * Adds a new target camera to the scene.
+     * @param editor defines the reference to the editor.
+     */
+    public static AddTargetCamera(editor: Editor): TargetCamera {
+        return this._ConfigureNode(new TargetCamera("New Target Camera", Vector3.Zero(), editor.scene!));
     }
 
     /**

@@ -16,7 +16,7 @@ import { INodeInspectorState } from "../node-inspector";
 
 import { CameraInspector } from "./camera-inspector";
 
-export class FreeCameraInspector extends CameraInspector<FreeCamera | UniversalCamera, INodeInspectorState> {
+export class FreeCameraInspector extends CameraInspector<FreeCamera | UniversalCamera, INodeInspectorState> {
     /**
      * Renders the content of the inspector.
      */

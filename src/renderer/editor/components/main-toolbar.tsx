@@ -166,8 +166,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Spot Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:spot-light")} />
                 <MenuItem text="Hemispheric Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:hemispheric-light")} />
                 <MenuDivider />
-                <MenuItem text="Free Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("add:camera")} />
+                <MenuItem text="Universal Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("add:camera")} />
                 <MenuItem text="Arc Rotate Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("add:arc-rotate-camera")} />
+                <MenuItem text="Target Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("add:target-camera")} />
                 <MenuDivider />
                 <MenuItem text="Sky" icon={<Icon src="smog.svg" />} onClick={() => this._menuItemClicked("add:sky")} />
                 <MenuDivider />
@@ -328,6 +329,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
                 case "camera": node = SceneFactory.AddFreeCamera(this._editor); break;
                 case "arc-rotate-camera": node = SceneFactory.AddArcRotateCamera(this._editor); break;
+                case "target-camera": node = SceneFactory.AddTargetCamera(this._editor); break;
 
                 case "sky": node = await SceneFactory.AddSky(this._editor); break;
 
