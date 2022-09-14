@@ -114,8 +114,19 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
      */
     public onPropertyChanged(): void {
         super.onPropertyChanged();
+        this._onPropertyChanged();
+    }
 
-        this.editor.assets.refresh(MaterialAssets, this.material);
+    /**
+     * Called on a property of the selected object has changed.
+     * Refreshes the preview of the materials.
+     */
+    private async _onPropertyChanged(): Promise<void> {
+        if (this.material.metadata?.editorPath) {
+            await this.editor.assetsBrowser._files?.refreshItemPreview(this.material.metadata?.editorPath);
+        }
+
+        await this.editor.assets.refresh(MaterialAssets, this.material);
     }
 
     /**

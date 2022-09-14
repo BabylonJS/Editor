@@ -430,6 +430,15 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	}
 
 	/**
+	 * Refreshes the preview thmbnail of the asset located at the given relative path.
+	 * @param relativePath defines the relative path to the asset.
+	 */
+	public refreshItemPreview(relativePath: string): Promise<void> {
+		const file = this._items.find((i) => i.props.relativePath === relativePath);
+		return file?._itemHandlerRef?._handleRefreshPreview?.() ?? Promise.resolve();
+	}
+
+	/**
 	 * Calls the given function in all the selected items (if exists).
 	 * @param methodName defines the name of the function to call.
 	 * @hidden

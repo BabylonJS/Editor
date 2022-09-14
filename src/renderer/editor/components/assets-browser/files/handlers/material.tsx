@@ -84,7 +84,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		try {
 			json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
 			isNodeMaterial = json.customType === "BABYLON.NodeMaterial";
-			existingMaterial = this.props.editor.scene!.getMaterialByID(json.id);
+			existingMaterial = this.props.editor.scene!.getMaterialById(json.id);
 		} catch (e) {
 			/* Catch silently */
 		}
@@ -297,12 +297,15 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	 * Computes the preview image of the object.
 	 */
 	private async _computePreview(): Promise<void> {
+		const material = this.props.editor.scene!.materials.find((m) => m.metadata?.editorPath === this.props.relativePath);
+		
 		const path = await Workers.ExecuteFunction<AssetsWorker, "createMaterialPreview">(
 			AssetsBrowserItemHandler.AssetWorker,
 			"createMaterialPreview",
 			this.props.relativePath,
 			this.props.absolutePath,
 			join(this.props.editor.assetsBrowser.assetsDirectory, "/"),
+			material?.serialize(),
 		);
 
 		const previewImage = (

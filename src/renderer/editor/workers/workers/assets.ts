@@ -132,7 +132,7 @@ export default class AssetsWorker {
 	 * @param absolutePath defines the absolute path to the material file.
 	 * @param rootUrl defines the rootUrl the files are relative to.
 	 */
-	public async createMaterialPreview(relativePath: string, absolutePath: string, rootUrl: string): Promise<string> {
+	public async createMaterialPreview(relativePath: string, absolutePath: string, rootUrl: string, object?: any): Promise<string> {
 		if (this._cachedPreviews[relativePath]) {
 			return this._cachedPreviews[relativePath];
 		}
@@ -149,7 +149,7 @@ export default class AssetsWorker {
 		let result: string;
 
 		try {
-			parsedData = await readJSON(absolutePath, { encoding: "utf-8" });
+			parsedData = object ?? await readJSON(absolutePath, { encoding: "utf-8" });
 
 			if (parsedData.customType === "BABYLON.NodeMaterial") {
 				rootUrl = undefined!;

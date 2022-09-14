@@ -138,6 +138,13 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	public abstract computePreview(): React.ReactNode | Promise<React.ReactNode>;
 
 	/**
+	 * Refreshes the preview thumbnail of the asset.
+	 */
+	public _handleRefreshPreview(): Promise<void> {
+		return Promise.resolve();
+	}
+
+	/**
 	 * Called on the user clicks on the asset.
 	 * @param ev defines the reference to the event object.
 	 */
