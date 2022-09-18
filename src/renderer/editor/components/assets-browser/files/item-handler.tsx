@@ -246,8 +246,11 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 			Alert.Show("Failed To Move Asset(s) To Trash", `Failed to move some assets to trash.`);
 		}
 
-		await this.props.editor.assetsBrowser.refresh();
-		await this.props.editor.assets.forceRefresh();
+		// ???
+		setTimeout(async () => {
+			await this.props.editor.assetsBrowser.refresh();
+			await this.props.editor.assets.forceRefresh();
+		}, 500);
 	}
 
 	/**
