@@ -14,6 +14,7 @@ import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
 import { Vector2, Vector3, Vector4, Matrix } from "@babylonjs/core/Maths/math.vector";
 
@@ -225,6 +226,8 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
                     case "HemisphericLight":
                     case "DirectionalLight": clone = Reflect.construct(prototype.constructor, [null, Vector3.Zero(), dummyScene]); break;
                     case "SpotLight": clone = Reflect.construct(prototype.constructor, [null, Vector3.Zero(), Vector3.Zero(), 0, 0, dummyScene]); break;
+
+                    case "InstancedMesh": clone = Reflect.construct(prototype.constructor, [null, (n as InstancedMesh).sourceMesh]); break;
 
                     case "TouchCamera":
                     case "UniversalCamera":
