@@ -31,6 +31,7 @@ import { AppTools } from "../../tools/app";
 import { SandboxMain, IExportedInspectorValue } from "../../../sandbox/main";
 
 import { AbstractInspector } from "./abstract-inspector";
+import { NodeIcon } from "../../gui/node-icon";
 
 export interface IScriptInspectorState {
     /**
@@ -347,12 +348,27 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                         <InspectorColor object={property} property="value" label={label} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
+                case "Node":
+                    property.value ??= property.value ?? iv.defaultValue ?? null;
+                    children.push(
+                        <InspectorList object={property} property="value" label={label} items={() => this.getSceneNodes()} noUndoRedo={true} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} dndHandledTypes={["graph/node"]} />
+                    );
+                    break;
             }
         });
 
         return (
             <InspectorSection title="Exported Values" children={children} />
         );
+    }
+
+    /**
+     * Gets all nodes in the current scene, or returns an empty array if no scene
+     */
+    getSceneNodes(): IInspectorListItem<string>[] {
+        if (!this.editor.scene) return [];
+
+        return this.editor.scene.getNodes().map( node => ({data: node.id, label: node.name, icon: <NodeIcon node={node}></NodeIcon>}))
     }
 
     /**

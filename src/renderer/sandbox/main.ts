@@ -37,11 +37,11 @@ export interface IExportedInspectorValue {
     /**
      * Defines the default value of the decorated property.
      */
-    defaultValue: number | string | boolean | Vector2 | Vector3 | Vector4 | Color3 | Color4;
+    defaultValue: number | string | boolean | Vector2 | Vector3 | Vector4 | Color3 | Color4 | Nullable<Node>;
     /**
      * Defines the type of the decorated property.
      */
-    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4" | "Texture";
+    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4" | "Texture" | "Node";
 
     /**
      * Defines the optional options available for the exported value.
