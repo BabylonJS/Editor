@@ -6,7 +6,7 @@ import { transpile, ModuleKind, ScriptTarget } from "typescript";
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { Spinner } from "@blueprintjs/core";
+import { Icon, Spinner } from "@blueprintjs/core";
 
 import { Scene, Node, Vector2, Vector3, Color4 } from "babylonjs";
 
@@ -36,7 +36,11 @@ export interface IScriptInspectorState {
     /**
      * Defines wether or not the script is being refreshing.
      */
-    refresing: boolean;
+    refreshing: boolean;
+    /**
+     * Defines wether or not there was an error while trying to load a given script
+     */
+    errorLoadingScript: boolean;
     /**
      * Defines the list of all available sripts.
      */
@@ -60,7 +64,8 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         this.state = {
             ...this.state,
             scripts: [],
-            refresing: false,
+            refreshing: false,
+            errorLoadingScript: false,
             inspectorValues: [],
         };
     }
@@ -83,6 +88,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                 {this._getScriptsList()}
                 {this._getOpenButton()}
                 {this._getSpinner()}
+                {this._getError()}
                 {this._getInspectorValues()}
             </InspectorSection>
         );
@@ -198,11 +204,22 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
      * Returns the spinner shown in case of refreshing.
      */
     private _getSpinner(): React.ReactNode {
-        if (!this.state.refresing) {
+        if (!this.state.refreshing) {
             return undefined;
         }
 
         return <Spinner size={35} />;
+    }
+
+    /**
+     * Returns the error shown in case of script failing to load.
+     */
+    private _getError(): React.ReactNode{
+        if (!this.state.errorLoadingScript) {
+            return undefined;
+        }
+
+        return <p><Icon icon="error" color="red"></Icon> Failed to load script </p>;
     }
 
     /**
@@ -354,7 +371,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             return this.isMounted && this.forceUpdate();
         }
 
-        this.setState({ refresing: true });
+        this.setState({ refreshing: true, errorLoadingScript: false });
         await this._refreshDecorators();
 
         const name = this.selectedObject.metadata.script.name as string;
@@ -382,10 +399,16 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             });
         }
 
-        const inspectorValues = await SandboxMain.GetInspectorValues(jsPath) ?? [];
+        try {
+            const inspectorValues = await SandboxMain.GetInspectorValues(jsPath) ?? [];
 
-        this.setState({ refresing: false, inspectorValues });
-        this.editor.graph.refresh();
+            this.setState({ refreshing: false, inspectorValues });
+            this.editor.graph.refresh();
+        }
+        catch (err) {
+            this.setState({ refreshing: false, errorLoadingScript: true });
+        }
+       
     }
 
     /**
