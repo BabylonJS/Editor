@@ -6,7 +6,7 @@ import { transpile, ModuleKind, ScriptTarget } from "typescript";
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { Icon, Spinner } from "@blueprintjs/core";
+import { Classes, Icon, Pre, Spinner, Tooltip } from "@blueprintjs/core";
 
 import { Scene, Node, Vector2, Vector3, Color4 } from "babylonjs";
 
@@ -41,7 +41,7 @@ export interface IScriptInspectorState {
     /**
      * Defines wether or not there was an error while trying to load a given script
      */
-    errorLoadingScript: boolean;
+    errorLoadingScript: Nullable<Error>;
     /**
      * Defines the list of all available sripts.
      */
@@ -215,12 +215,23 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
     /**
      * Returns the error shown in case of script failing to load.
      */
-    private _getError(): React.ReactNode{
+    private _getError(): React.ReactNode {
         if (!this.state.errorLoadingScript) {
             return undefined;
         }
 
-        return <p><Icon icon="error" color="red"></Icon> Failed to load script </p>;
+        return (
+            <p>
+                <Icon icon="error" color="red"></Icon>
+                <Tooltip className={Classes.TOOLTIP_INDICATOR} content={
+                    <Pre>
+                        {this.state.errorLoadingScript.toString()}
+                    </Pre>
+                }>
+                    Failed to load script.
+                </Tooltip>
+            </p>
+        );
     }
 
     /**
@@ -236,7 +247,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         if (this.selectedObject instanceof Scene) {
             target = this.selectedObject;
         } else {
-            target = playScene.getNodeByID(this.selectedObject["id"]);
+            target = playScene.getNodeById(this.selectedObject["id"]);
         }
 
         if (!target) {
@@ -387,7 +398,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             return this.isMounted && this.forceUpdate();
         }
 
-        this.setState({ refreshing: true, errorLoadingScript: false });
+        this.setState({ refreshing: true, errorLoadingScript: null });
         await this._refreshDecorators();
 
         const name = this.selectedObject.metadata.script.name as string;
@@ -422,9 +433,9 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             this.editor.graph.refresh();
         }
         catch (err) {
-            this.setState({ refreshing: false, errorLoadingScript: true });
+            this.setState({ refreshing: false, errorLoadingScript: err });
         }
-       
+
     }
 
     /**
