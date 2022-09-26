@@ -23,6 +23,10 @@ export interface IExportedInspectorValueOptions {
      * In case of numbers, defines the step applied in the editor.
      */
     step?: number;
+    /**
+     * In case of node, restricts the type of node that can be assigned
+     */
+    allowedNodeType?: "TransformNode" | "Mesh" | "Light" | "Camera";
 }
 
 export interface IExportedInspectorValue {
@@ -37,7 +41,7 @@ export interface IExportedInspectorValue {
     /**
      * Defines the default value of the decorated property.
      */
-    defaultValue: number | string | boolean | Vector2 | Vector3 | Vector4 | Color3 | Color4 | Nullable<Node>;
+    defaultValue: number | string | boolean | Vector2 | Vector3 | Vector4 | Color3 | Color4;
     /**
      * Defines the type of the decorated property.
      */

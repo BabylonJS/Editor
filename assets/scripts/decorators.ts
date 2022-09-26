@@ -29,6 +29,10 @@ export interface IVisibleInInspectorOptions {
      * In case of numbers, defines the step applied in the editor.
      */
     step?: number;
+    /**
+     * In case of node, restricts the type of node that can be assigned
+     */
+     allowedNodeType?: "TransformNode" | "Mesh" | "Light" | "Camera";
 }
 
 /**
