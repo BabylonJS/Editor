@@ -8,7 +8,7 @@ import { Nullable, Undefinable } from "../../../../../../shared/types";
 import * as React from "react";
 import { Spinner, ContextMenu, Menu, MenuItem, MenuDivider, Icon as BPIcon } from "@blueprintjs/core";
 
-import { PickingInfo, Mesh, Material, NodeMaterial, AbstractMesh } from "babylonjs";
+import { PickingInfo, Mesh, Material, NodeMaterial, AbstractMesh, PBRMetallicRoughnessMaterial, PBRMaterial } from "babylonjs";
 
 import { Icon } from "../../../../gui/icon";
 import { Dialog } from "../../../../gui/dialog";
@@ -104,12 +104,19 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 			</>
 		);
 
+		const convertToPBRMaterial = json?.customType === "BABYLON.PBRMetallicRoughnessMaterial" ? (
+			<MenuItem text="Convert to PBR Material" icon={<BPIcon icon="exchange" color="white" />} onClick={() => {
+				this.props.editor.assetsBrowser._callSelectedItemsMethod("_convertMetallicRoughnessToPBR");
+			}} />
+		) : undefined;
+
 		ContextMenu.show((
 			<Menu>
 				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => {
 					this.props.editor.assetsBrowser._callSelectedItemsMethod("_handleRefreshPreview");
 				}} />
 				{addMaterial}
+				{convertToPBRMaterial}
 				<MenuDivider />
 				<MenuItem text="Clone..." icon={<Icon src="clone.svg" />} onClick={() => this._handleCloneMaterialFile()} />
 				<MenuDivider />
@@ -123,11 +130,95 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	}
 
 	/**
+	 * Converts the given PBR Metallic Roughness material to full PBR Material.
+	 * @internal
+	 */
+	public async _convertMetallicRoughnessToPBR(): Promise<void> {
+		let json: any = null;
+		let existingMaterial: Nullable<Material> = null;
+
+		try {
+			json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
+			existingMaterial = this.props.editor.scene!.getMaterialById(json.id);
+		} catch (e) {
+			return;
+		}
+
+		if (json.customType !== "BABYLON.PBRMetallicRoughnessMaterial") {
+			return;
+		}
+
+		const mrMaterial = PBRMetallicRoughnessMaterial.Parse(json, this.props.editor.scene!, join(WorkSpace.DirPath!, "assets/"));
+		const pbrMaterial = new PBRMaterial(mrMaterial.name, this.props.editor.scene!);
+
+		pbrMaterial.id = mrMaterial.id;
+
+		pbrMaterial.albedoTexture = mrMaterial.baseTexture;
+		pbrMaterial.albedoColor.copyFrom(mrMaterial.baseColor);
+
+		pbrMaterial.bumpTexture = mrMaterial.normalTexture;
+
+		pbrMaterial.reflectionTexture = mrMaterial.environmentTexture;
+
+		if (mrMaterial.occlusionTexture) {
+			pbrMaterial.useAmbientOcclusionFromMetallicTextureRed = true;
+			pbrMaterial.ambientTextureStrength = mrMaterial.occlusionStrength;
+		}
+
+		if (mrMaterial.metallicRoughnessTexture) {
+			pbrMaterial.metallicTexture = mrMaterial.metallicRoughnessTexture;
+			pbrMaterial.metallic = mrMaterial.metallic;
+			pbrMaterial.roughness = mrMaterial.roughness;
+
+			pbrMaterial.useMetallnessFromMetallicTextureBlue = true;
+			pbrMaterial.useRoughnessFromMetallicTextureAlpha = false;
+			pbrMaterial.useRoughnessFromMetallicTextureGreen = true;
+		}
+
+		pbrMaterial.emissiveTexture = mrMaterial.emissiveTexture;
+		pbrMaterial.emissiveColor.copyFrom(mrMaterial.emissiveColor);
+
+		pbrMaterial.lightmapTexture = mrMaterial.lightmapTexture;
+		pbrMaterial.useLightmapAsShadowmap = mrMaterial.useLightmapAsShadowmap;
+
+		pbrMaterial.metadata = mrMaterial.metadata;
+
+		// Write
+		await writeJSON(this.props.absolutePath, {
+			...pbrMaterial.serialize(),
+			metadata: Tools.CloneObject(pbrMaterial.metadata),
+		}, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		// Dispose or assign
+		if (existingMaterial) {
+			// Check binded meshes
+			existingMaterial.getBindedMeshes().forEach((m) => {
+				m.material = pbrMaterial;
+			});
+
+			// Check multi-materials
+			this.props.editor.scene!.multiMaterials.forEach((mm) => {
+				const index = mm.subMaterials.indexOf(existingMaterial);
+				if (index !== -1) {
+					mm.subMaterials[index] = pbrMaterial;
+				}
+			});
+		} else {
+			pbrMaterial.dispose(true, false);
+		}
+
+		mrMaterial.dispose(true, false);
+	}
+
+	/**
 	 * Called on the user wants to clone the material file.
 	 */
 	private async _handleCloneMaterialFile(): Promise<void> {
 		let newName = await Dialog.Show("Cloned Material Name", "Please provide a new name for the cloned material file");
-		
+
 		const extension = extname(newName).toLowerCase();
 		if (extension !== ".material") {
 			newName += ".material";
@@ -135,7 +226,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 
 		const relativePath = join(dirname(this.props.relativePath), newName);
 		const json = await readJSON(this.props.absolutePath, { encoding: "utf-8" });
-		
+
 		json.id = Tools.RandomId();
 		json.name = newName.replace(".material", "");
 
@@ -143,7 +234,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 		json.metadata.editorPath = relativePath;
 
 		await writeJSON(join(this.props.editor.assetsBrowser.assetsDirectory, relativePath), json, { encoding: "utf-8" });
-		
+
 		this.props.editor.assetsBrowser.refresh();
 	}
 
@@ -298,7 +389,7 @@ export class MaterialItemHandler extends AssetsBrowserItemHandler {
 	 */
 	private async _computePreview(): Promise<void> {
 		const material = this.props.editor.scene!.materials.find((m) => m.metadata?.editorPath === this.props.relativePath);
-		
+
 		const path = await Workers.ExecuteFunction<AssetsWorker, "createMaterialPreview">(
 			AssetsBrowserItemHandler.AssetWorker,
 			"createMaterialPreview",

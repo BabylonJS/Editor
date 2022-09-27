@@ -9,7 +9,7 @@ import { AbstractInspector } from "../../editor/components/inspectors/abstract-i
 import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plugin";
 
 import { DecalsPainterInspector } from "./decals/inspector";
-// import { FoliagePainterInspector } from "./foliage/inspector";
+import { FoliagePainterInspector } from "./foliage/inspector";
 
 export const title = "Painting Tools";
 
@@ -63,7 +63,7 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
 
         const tabs = [
             this._createTabComponent("Decals", "cylinder.svg", <DecalsPainterInspector ref={(ref) => this._getTool("decals", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
-            // this._createTabComponent("Foliage", "grass.svg", <FoliagePainterInspector ref={(ref) => this._getTool("foliage", ref)} toolId={"foliage"} editor={this.editor} _objectRef={null} />),
+            this._createTabComponent("Foliage", "grass.svg", <FoliagePainterInspector ref={(ref) => this._getTool("foliage", ref)} toolId={"foliage"} editor={this.editor} _objectRef={null} />),
         ];
 
         return (
