@@ -207,7 +207,8 @@ export class SceneExporter {
 			group.dispose();
 		});
 
-		// Post-processes
+		// Additional data
+		scene.effectLayers = [];
 		scene.postProcesses = [];
 
 		// Set producer
