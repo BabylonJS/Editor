@@ -28,6 +28,7 @@ import { IDragAndDroppedAssetComponentItem } from "../assets/abstract-assets";
 
 import { GraphContextMenu } from "./graph/context-menu";
 import { GraphReferenceUpdater } from "./graph/reference-updater";
+import { NodeIcon } from "../gui/node-icon";
 
 export interface IGraphProps {
     /**
@@ -752,8 +753,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             key: node.id,
             isLeaf: !children.length,
             icon: (
-                <Icon
-                    src={this._getIcon(node)}
+                <NodeIcon
+                    node={node}
                     style={{ opacity: node.isEnabled(true) ? "1.0" : "0.5" }}
                     onClick={() => {
                         node.setEnabled(!node.isEnabled());
@@ -779,18 +780,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         }
     }
 
-    /**
-     * Returns the appropriate icon according to the given node type.
-     * @param node the node reference.
-     */
-    private _getIcon(node: Node): string {
-        if (node instanceof AbstractMesh) { return "vector-square.svg"; }
-        if (node instanceof Light) { return "lightbulb.svg"; }
-        if (node instanceof Camera) { return "camera.svg"; }
-        if (node instanceof Bone) { return "bone.svg"; }
-
-        return "clone.svg";
-    }
+  
 
     /**
      * Called on the user right-clicks on a node.

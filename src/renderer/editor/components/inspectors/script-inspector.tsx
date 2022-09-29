@@ -8,7 +8,7 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { Classes, Icon, Pre, Spinner, Tooltip } from "@blueprintjs/core";
 
-import { Scene, Node, Vector2, Vector3, Color4 } from "babylonjs";
+import { Scene, Node, Vector2, Vector3, Color4, TransformNode, Light, Camera, Mesh, AbstractMesh } from "babylonjs";
 
 import { IObjectInspectorProps } from "../inspector";
 
@@ -31,6 +31,7 @@ import { AppTools } from "../../tools/app";
 import { SandboxMain, IExportedInspectorValue } from "../../../sandbox/main";
 
 import { AbstractInspector } from "./abstract-inspector";
+import { NodeIcon } from "../../gui/node-icon";
 
 export interface IScriptInspectorState {
     /**
@@ -271,6 +272,9 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             case "Color4":
                 target[propertyKey].copyFrom(value);
                 break;
+            case "Node":
+                target[propertyKey] = this.editor.scene?.getNodeById(value);
+                break;
         }
 
     }
@@ -358,12 +362,44 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                         <InspectorColor object={property} property="value" label={label} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
+                case "Node":
+                    if (typeof iv.defaultValue == "string") {
+                        const defaultValue = this.editor.scene?.getNodeByName(iv.defaultValue);
+                        property.value ??= property.value ?? defaultValue?.id;
+                    } 
+                  
+                    children.push(
+                        <InspectorList object={property} property="value" label={label} items={() => this._getSceneNodes(iv.options?.allowedNodeType)} noUndoRedo={true} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} dndHandledTypes={["graph/node"]} />
+                    );
+                    break;
             }
         });
 
         return (
             <InspectorSection title="Exported Values" children={children} />
         );
+    }
+
+    /**
+     * Gets all nodes in the current scene, or returns an empty array if no scene
+     */
+    private _getSceneNodes(allowedType?: "TransformNode" | "Mesh" | "Light" | "Camera" | "AbstractMesh"): IInspectorListItem<string>[] {
+        if (!this.editor.scene) return [];
+        
+        let nodes = this.editor.scene.getNodes();
+        if (allowedType) {
+            const typeMap = {
+              TransformNode: TransformNode,
+              AbstractMesh: AbstractMesh,
+              Mesh: Mesh,
+              Light: Light,
+              Camera: Camera,
+            };
+            nodes = nodes.filter(node => node instanceof typeMap[allowedType])
+        }
+
+
+        return nodes.map(node => ({ data: node.id, label: node.name, icon: <NodeIcon node={node}></NodeIcon> }));
     }
 
     /**

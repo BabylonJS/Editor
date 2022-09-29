@@ -16,6 +16,7 @@ Suported property types are:
 - Color4
 - Texture
 - KeyMap
+- Node
 
 **Notes: the `KeyMap` type draws a button in the inspector waiting for the user to press a key in the keyboard**
 
@@ -89,3 +90,12 @@ export default class MyMeshComponent extends Mesh {
     }
 }
 ```
+
+## Assigning nodes
+
+In this example we want to assign a node from the scene for an object to follow around. This will default to any object in the scene named "target", until assigned in the inspector. It will only be able to assigned node which inherit from TransformNode.
+
+```typescript
+ @visibleInInspector("Node", "Node to Follow", "target", {allowedNodeType: "TransformNode"})
+  private _targetNode: Nullable<TransformNode>;
+``` 

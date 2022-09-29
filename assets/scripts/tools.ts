@@ -290,7 +290,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
 
                 case "Color3": n[key] = new Color3(p.value.r, p.value.g, p.value.b); break;
                 case "Color4": n[key] = new Color4(p.value.r, p.value.g, p.value.b, p.value.a); break;
-
+                case "Node": n[key] = scene.getNodeById(p.value); break;
                 default: n[key] = p.value; break;
             }
         }

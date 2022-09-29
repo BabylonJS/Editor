@@ -262,6 +262,7 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
         });
 
         this._initialValue = item.data;
+        this._getCurrentItem();
     }
 
     /**

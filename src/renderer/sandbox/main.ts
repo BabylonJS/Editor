@@ -23,6 +23,10 @@ export interface IExportedInspectorValueOptions {
      * In case of numbers, defines the step applied in the editor.
      */
     step?: number;
+    /**
+     * In case of node, restricts the type of node that can be assigned
+     */
+    allowedNodeType?: "TransformNode" | "Mesh" | "Light" | "Camera";
 }
 
 export interface IExportedInspectorValue {
@@ -41,7 +45,7 @@ export interface IExportedInspectorValue {
     /**
      * Defines the type of the decorated property.
      */
-    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4" | "Texture";
+    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4" | "Texture" | "Node";
 
     /**
      * Defines the optional options available for the exported value.

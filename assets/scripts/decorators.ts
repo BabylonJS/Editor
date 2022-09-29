@@ -8,7 +8,7 @@ export type VisiblityPropertyType =
     "number" | "string" | "boolean" |
     "Vector2" | "Vector3" | "Vector4" |
     "Color3" | "Color4" |
-    "Texture" |
+    "Texture" | "Node" |
     "KeyMap";
 
 export interface IVisibleInInspectorOptions {
@@ -29,6 +29,10 @@ export interface IVisibleInInspectorOptions {
      * In case of numbers, defines the step applied in the editor.
      */
     step?: number;
+    /**
+     * In case of node, restricts the type of node that can be assigned
+     */
+     allowedNodeType?: "TransformNode" | "Mesh" | "Light" | "Camera";
 }
 
 /**
