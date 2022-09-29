@@ -369,7 +369,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                     } 
                   
                     children.push(
-                        <InspectorList object={property} property="value" label={label} items={() => this.getSceneNodes(iv.options?.allowedNodeType)} noUndoRedo={true} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} dndHandledTypes={["graph/node"]} />
+                        <InspectorList object={property} property="value" label={label} items={() => this._getSceneNodes(iv.options?.allowedNodeType)} noUndoRedo={true} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} dndHandledTypes={["graph/node"]} />
                     );
                     break;
             }
@@ -383,7 +383,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
     /**
      * Gets all nodes in the current scene, or returns an empty array if no scene
      */
-    getSceneNodes(allowedType?: "TransformNode" | "Mesh" | "Light" | "Camera" | "AbstractMesh"): IInspectorListItem<string>[] {
+    private _getSceneNodes(allowedType?: "TransformNode" | "Mesh" | "Light" | "Camera" | "AbstractMesh"): IInspectorListItem<string>[] {
         if (!this.editor.scene) return [];
         
         let nodes = this.editor.scene.getNodes()
