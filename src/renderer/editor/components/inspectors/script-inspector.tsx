@@ -386,7 +386,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
     private _getSceneNodes(allowedType?: "TransformNode" | "Mesh" | "Light" | "Camera" | "AbstractMesh"): IInspectorListItem<string>[] {
         if (!this.editor.scene) return [];
         
-        let nodes = this.editor.scene.getNodes()
+        let nodes = this.editor.scene.getNodes();
         if (allowedType) {
             const typeMap = {
               TransformNode: TransformNode,
@@ -399,7 +399,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
         }
 
 
-        return nodes.map( node => ({data: node.id, label: node.name, icon: <NodeIcon node={node}></NodeIcon>}))
+        return nodes.map(node => ({ data: node.id, label: node.name, icon: <NodeIcon node={node}></NodeIcon> }));
     }
 
     /**

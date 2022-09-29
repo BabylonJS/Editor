@@ -11,7 +11,7 @@ export type INodeIconProps = {
 
 export interface INodeIconState {
 
-}
+};
 
 /**
  * Displays an icon to represent a given node based on its type.
@@ -20,7 +20,7 @@ export interface INodeIconState {
 export class NodeIcon extends Component<INodeIconProps, INodeIconState> {
     constructor(props :INodeIconProps) {
         super(props);
-        this.state ={}
+        this.state = {};
     }
 
     render() {
