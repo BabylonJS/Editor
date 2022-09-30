@@ -13,6 +13,7 @@ import { AssetsBrowserItemHandler, IItemHandler, IAssetsBrowserItemHandlerProps 
 
 import { KTXItemHandler } from "./handlers/ktx";
 import { GUIItemHandler } from "./handlers/gui";
+import { SVGItemHandler } from "./handlers/svg";
 import { FileItemHandler } from "./handlers/file";
 import { MeshItemHandler } from "./handlers/mesh";
 import { SoundItemHandler } from "./handlers/mp3";
@@ -144,6 +145,8 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".bmp", ctor: ImageItemHandler });
 		this.RegisterItemHandler({ extension: ".jpg", ctor: ImageItemHandler });
 		this.RegisterItemHandler({ extension: ".jpeg", ctor: ImageItemHandler });
+
+		this.RegisterItemHandler({ extension: ".svg", ctor: SVGItemHandler });
 
 		this.RegisterItemHandler({ extension: ".ktx", ctor: KTXItemHandler });
 		this.RegisterItemHandler({ extension: ".basis", ctor: KTXItemHandler });

@@ -95,6 +95,7 @@ export class SceneExporter {
 		".mp3", ".wav", ".ogg", ".wave",
 		".gui",
 		".json",
+		".svg",
 	];
 
 	private static _IsExporting: boolean = false;
