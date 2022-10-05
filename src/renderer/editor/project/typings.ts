@@ -122,7 +122,7 @@ export interface IWorkSpace {
         /**
          * Defines the path to the PVRTexToolCLI program executed to 
          */
-        pvrTexToolCliPath?: string;
+        pvrTexToolCliPath?: string | Record<string, string>;
 
         /**
          * Defines wether or not the Editor automatically generates compressed textures

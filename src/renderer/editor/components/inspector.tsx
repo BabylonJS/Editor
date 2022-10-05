@@ -1,7 +1,7 @@
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { Tabs, Tab, TabId } from "@blueprintjs/core";
+import { Tabs, Tab, TabId, NonIdealState } from "@blueprintjs/core";
 
 import { Scene, SubMesh, Sound } from "babylonjs";
 
@@ -120,7 +120,14 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
      * Renders the component.
      */
     public render(): React.ReactNode {
-        if (!this.state.selectedObject) { return null; }
+        if (!this.state.selectedObject) {
+            return (
+                <NonIdealState
+                    icon="info-sign"
+                    title="No Object Selected"
+                />
+            );
+        }
 
         const tabs: JSX.Element[] = [];
         const ctor = Tools.GetConstructorName(this.state.selectedObject);

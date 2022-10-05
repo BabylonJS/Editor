@@ -140,7 +140,7 @@ export class WorkSpace {
             },
             ktx2CompressedTextures: {
                 enabled: this.Workspace!.ktx2CompressedTextures?.enabled ?? false,
-                pvrTexToolCliPath: this.Workspace!.ktx2CompressedTextures?.pvrTexToolCliPath ?? "",
+                pvrTexToolCliPath: this.Workspace!.ktx2CompressedTextures?.pvrTexToolCliPath ?? {},
                 forcedFormat: this.Workspace!.ktx2CompressedTextures?.forcedFormat ?? "automatic",
                 enabledInPreview: this.Workspace!.ktx2CompressedTextures?.enabledInPreview ?? false,
                 astcOptions: this.Workspace!.ktx2CompressedTextures?.astcOptions ?? {

@@ -611,10 +611,11 @@ export class SceneExporter {
 
 			const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures;
 
+			const ktx2CliPath = KTXTools.GetCliPath();
 			const forcedFormat = ktx2CompressedTextures?.forcedFormat ?? "automatic";
 			const supportedTextureFormat = (forcedFormat !== "automatic" ? forcedFormat : editor.engine!.texturesSupported[0]) as KTXToolsType;
 
-			if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.pvrTexToolCliPath) {
+			if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CliPath) {
 				const destFilesDir = dirname(path);
 
 				if (options?.generateAllCompressedTextureFormats) {

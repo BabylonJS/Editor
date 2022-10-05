@@ -1,3 +1,5 @@
+import * as os from "os";
+
 import * as React from "react";
 import { Card } from "@blueprintjs/core";
 
@@ -9,6 +11,8 @@ import { InspectorBoolean } from "../../../../editor/gui/inspector/fields/boolea
 import { InspectorFileInput } from "../../../../editor/gui/inspector/fields/file-input";
 
 import { IPreferencesPanelProps } from "../../index";
+
+const platform = os.platform();
 
 export class AssetsTexturesPreferencesPanel extends React.Component<IPreferencesPanelProps> {
 	/**
@@ -41,6 +45,13 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 			quality: "etcfast",
 		};
 
+		// Cli path
+		if (typeof(workspace.ktx2CompressedTextures.pvrTexToolCliPath) === "string") {
+			workspace.ktx2CompressedTextures.pvrTexToolCliPath = { [platform]: workspace.ktx2CompressedTextures.pvrTexToolCliPath };
+		} else {
+			workspace.ktx2CompressedTextures.pvrTexToolCliPath ??= {};
+		}
+
 		return (
 			<div style={{ width: "70%", height: "100%", margin: "auto" }}>
 				{this._getBasisCompression(workspace)}
@@ -71,7 +82,7 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 		return (
 			<InspectorSection title="KTX2 Compression">
 				<InspectorBoolean object={workspace.ktx2CompressedTextures} property="enabled" label="Enabled" defaultValue={false} />
-				<InspectorFileInput object={workspace.ktx2CompressedTextures} property="pvrTexToolCliPath" label="PVRTexToolCLI Path" />
+				<InspectorFileInput object={workspace.ktx2CompressedTextures?.pvrTexToolCliPath} property={platform} label="PVRTexToolCLI Path" />
 
 				<InspectorSection title="Development">
 					<InspectorBoolean object={workspace.ktx2CompressedTextures} property="enabledInPreview" label="Enabled In Preview" defaultValue={false} />
@@ -85,7 +96,7 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 					]} />
 				</InspectorSection>
 
-				<InspectorSection title="ASCT">
+				<InspectorSection title="ASTC">
 					<InspectorList object={workspace.ktx2CompressedTextures!.astcOptions} property="quality" label="Quality" items={[
 						{ label: "Very Fast", data: "astcveryfast" },
 						{ label: "Fast", data: "astcfast" },

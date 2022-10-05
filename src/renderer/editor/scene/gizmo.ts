@@ -203,14 +203,11 @@ export class SceneGizmo {
         }
 
         // Camera or light?
-        if (this._cameraGizmo || this._lightGizmo) {
+        if (this._cameraGizmo || this._lightGizmo || !this._currentGizmo) {
             return;
         }
 
-        // Mesh or transform node
-        if (!node || !this._currentGizmo) { return; }
-
-        // CHeck node has a billboard mode
+        // Check node has a billboard mode
         if (node instanceof TransformNode && node.billboardMode !== TransformNode.BILLBOARDMODE_NONE && this._type === GizmoType.Rotation) {
             return;
         }
@@ -219,6 +216,8 @@ export class SceneGizmo {
             this._currentGizmo.attachedMesh = node;
         } else if (node instanceof Node) {
             this._currentGizmo.attachedNode = node;
+        } else if (!node) {
+            this._currentGizmo.attachedNode = null;
         }
     }
 

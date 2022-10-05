@@ -168,6 +168,9 @@ export class ScenePicker {
                     this._editor.selectedParticleSystemObservable.notifyObservers(object);
                 }
             }
+        } else {
+            this._editor.inspector.setSelectedObject(this._editor.scene);
+            this._editor.preview.gizmo.setAttachedNode(null);
         }
     }
 

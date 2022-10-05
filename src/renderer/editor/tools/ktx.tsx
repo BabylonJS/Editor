@@ -1,3 +1,4 @@
+import { platform } from "os";
 import { shell } from "electron";
 import { basename, dirname, extname, join } from "path";
 
@@ -42,6 +43,23 @@ export class KTXTools {
 	}
 
 	/**
+	 * Returns the path to the CLI according to the current platform.
+	 */
+	public static GetCliPath(): Nullable<string> {
+		const configuration = WorkSpace.Workspace?.ktx2CompressedTextures;
+		if (!configuration) {
+			return null;
+		}
+
+		const p = platform();
+		if (typeof(configuration.pvrTexToolCliPath) === "string") {
+			configuration.pvrTexToolCliPath = { [p]: configuration.pvrTexToolCliPath };
+		}
+
+		return configuration.pvrTexToolCliPath?.[p] ?? null;
+	}
+
+	/**
 	 * Returns the of the given texture path by applying the ktx extension to it.
 	 * @param texturePath defines the path to the texture to gets its Ktx name.
 	 * @param type defines the type of ktx file to use.
@@ -61,8 +79,10 @@ export class KTXTools {
 	 * @param type defines compression type to apply on the texture.
 	 */
 	public static async CompressTexture(editor: Editor, texturePath: string, destinationFolder: string, type: KTXToolsType): Promise<void> {
+		const ktx2CliPath = this.GetCliPath();
 		const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
-		if (!ktx2CompressedTextures?.enabled || !ktx2CompressedTextures.pvrTexToolCliPath) {
+
+		if (!ktx2CompressedTextures?.enabled || !ktx2CliPath) {
 			return;
 		}
 
@@ -108,32 +128,30 @@ export class KTXTools {
 			hasAlpha = await Workers.ExecuteFunction<AssetsWorker, "textureHasAlpha">(AssetsBrowserItemHandler.AssetWorker, "textureHasAlpha", texturePath);
 		}
 
-		const exePath = ktx2CompressedTextures.pvrTexToolCliPath;
-
 		let command: Nullable<string> = null;
 		switch (type) {
 			case "-astc.ktx":
 				const qastc = ktx2CompressedTextures.astcOptions?.quality ?? "astcveryfast";
-				command = `"${exePath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q ${qastc} -o "${destination}"`;
+				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q ${qastc} -o "${destination}"`;
 				break;
 
 			case "-dxt.ktx":
-				command = `"${exePath}" -i "${texturePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${destination}"`;
+				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${destination}"`;
 				break;
 
 			case "-pvrtc.ktx":
 				const qpvrtc = ktx2CompressedTextures.pvrtcOptions?.quality ?? "pvrtcfastest";
-				command = `"${exePath}" -i "${texturePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q ${qpvrtc} -o "${destination}"`;
+				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q ${qpvrtc} -o "${destination}"`;
 				break;
 
 			case "-etc1.ktx":
 				const qect1 = ktx2CompressedTextures.ect1Options?.quality ?? "etcfast";
-				command = `"${exePath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q ${qect1} -o "${destination}"`;
+				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q ${qect1} -o "${destination}"`;
 				break;
 
 			case "-etc2.ktx":
 				const qetc2 = ktx2CompressedTextures.ect2Options?.quality ?? "etcfast";
-				command = `"${exePath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q ${qetc2} -o "${destination}"`;
+				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q ${qetc2} -o "${destination}"`;
 				break;
 		}
 
