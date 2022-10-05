@@ -848,7 +848,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         }
     }
 
-  
+
 
     /**
      * Called on the user right-clicks on a node.
@@ -1057,6 +1057,19 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
 
         const target = this._getNodeById(info.node.key);
         if (!target || !(target instanceof Node)) { return; }
+
+        // Shift key? If yes, clone all nodes
+        if (info.event.shiftKey) {
+            const nodes = all.filter((n) => n instanceof Node) as Node[];
+            nodes.forEach((n) => {
+                const clone = this.cloneObject(n);
+                if (clone) {
+                    clone["parent"] = target;
+                }
+            });
+
+            return this.refresh();
+        }
 
         if (info.node.dragOver) {
             all.forEach((n) => {
