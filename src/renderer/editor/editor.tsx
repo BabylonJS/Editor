@@ -1094,7 +1094,7 @@ export class Editor {
             this.inspector.setSelectedObject(o);
             this.preview.gizmo.setAttachedNode(o);
 
-            if (ev.target !== this.graph) { this.graph.setSelected(o, ev.userInfo?.ctrlDown); }
+            if (ev.target !== this.graph) { this.graph.setSelected(o, ev.userInfo?.shiftDown); }
         });
         this.selectedSubMeshObservable.add((o, ev) => {
             this.inspector.setSelectedObject(o);

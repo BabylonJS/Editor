@@ -160,7 +160,7 @@ export class ScenePicker {
 
                 if (object instanceof Node) {
                     this._editor.selectedNodeObservable.notifyObservers(object, undefined, undefined, undefined, {
-                        ctrlDown: ev.ctrlKey || ev.metaKey,
+                        shiftDown: ev.shiftKey,
                     });
                 } else if (object instanceof Sound) {
                     this._editor.selectedSoundObservable.notifyObservers(object);

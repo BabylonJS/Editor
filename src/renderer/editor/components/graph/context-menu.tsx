@@ -23,6 +23,9 @@ import { Editor } from "../../editor";
 import { PreviewFocusMode } from "../preview";
 
 export class GraphContextMenu {
+	private static _CopiedLightExcludedMeshes: Nullable<AbstractMesh[]> = null;
+	private static _CopiedLightShadowsIncludedMeshes: Nullable<AbstractMesh[]> = null;
+
 	private static _CopiedTransform: Nullable<AbstractMesh | Light | Camera> = null;
 
 	/**
@@ -115,7 +118,8 @@ export class GraphContextMenu {
 					<MenuItem text="Right" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Right)} />
 				</MenuItem>
 				<MenuDivider />
-				{this._GetCopyPasterItem(editor, node)}
+				{this._GetCopyPasterNodeItem(editor, node)}
+				{this._GetLightItem(editor, node)}
 				<MenuItem text="Prefab">
 					<MenuItem text="Create Prefab..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(editor, node as Mesh, false)} />
 					<MenuItem text="Create Prefab As..." disabled={!(node instanceof Mesh)} icon={<Icon src="plus.svg" />} onClick={() => Prefab.CreateMeshPrefab(editor, node as Mesh, true)} />
@@ -155,7 +159,7 @@ export class GraphContextMenu {
 							description: `Changed name of node "${node?.name ?? "undefined"}" from "${oldName}" to "${v}"`,
 							common: () => {
 								editor.graph.refresh();
-								
+
 								if (node instanceof ReflectionProbe) {
 									editor.assets.refresh();
 								}
@@ -208,9 +212,59 @@ export class GraphContextMenu {
 	}
 
 	/**
+	 * Returns the item for lights used to copy/paste excluded meshes list etc.
+	 */
+	private static _GetLightItem(editor: Editor, node: Node | IParticleSystem | Sound | ReflectionProbe): React.ReactNode {
+		if (!(node instanceof Light)) {
+			return undefined;
+		}
+
+		const shadowMapRenderList = node.getShadowGenerator()?.getShadowMap()?.renderList;
+		const shadowsItems = shadowMapRenderList ? (
+			<>
+				<MenuDivider title="Shadows" />
+				<MenuItem text="Copy Included Meshes" onClick={() => this._CopiedLightShadowsIncludedMeshes = shadowMapRenderList} />
+				<MenuItem text="Paste Included Meshes" disabled={(this._CopiedLightShadowsIncludedMeshes ?? null) === null} onClick={() => {
+					this._CopiedLightShadowsIncludedMeshes?.forEach((m) => {
+						if (shadowMapRenderList.indexOf(m) === -1) {
+							shadowMapRenderList.push(m);
+						}
+					});
+					editor.inspector.forceUpdate();
+				}} />
+			</>
+		) : undefined;
+
+		return (
+			<MenuItem text="Light">
+				<MenuItem text="Copy Excluded Meshes" onClick={() => this._CopiedLightExcludedMeshes = node.excludedMeshes} />
+				<MenuDivider />
+				<MenuItem text="Paste Excluded Meshes" disabled={(this._CopiedLightExcludedMeshes ?? null) === null} onClick={() => {
+					this._CopiedLightExcludedMeshes?.forEach((m) => {
+						if (node.excludedMeshes.indexOf(m) === -1) {
+							node.excludedMeshes.push(m);
+						}
+					});
+					editor.inspector.forceUpdate();
+				}} />
+				<MenuItem text="Paste Included Meshes" disabled={(this._CopiedLightExcludedMeshes ?? null) === null} onClick={() => {
+					const meshes = editor.scene!.meshes.filter((m) => this._CopiedLightExcludedMeshes!.indexOf(m) === -1);
+					meshes.forEach((m) => {
+						if (node.excludedMeshes.indexOf(m) === -1) {
+							node.excludedMeshes.push(m);
+						}
+					});
+					editor.inspector.forceUpdate();
+				}} />
+				{shadowsItems}
+			</MenuItem>
+		);
+	}
+
+	/**
 	 * Returns the items used to copy and paste transforms for the given node.
 	 */
-	private static _GetCopyPasterItem(editor: Editor, node: Node | IParticleSystem | Sound | ReflectionProbe): React.ReactNode {
+	private static _GetCopyPasterNodeItem(editor: Editor, node: Node | IParticleSystem | Sound | ReflectionProbe): React.ReactNode {
 		if (!(node instanceof TransformNode) && !(node instanceof Light) && !(node instanceof Camera)) {
 			return undefined;
 		}

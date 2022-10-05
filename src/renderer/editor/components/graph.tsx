@@ -307,7 +307,10 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 clonedMesh.skeleton = node.skeleton.clone(node.skeleton.name, id as any);
             }
 
-            if (clonedMesh.parent) { clonedMesh.physicsImpostor?.forceUpdate(); }
+            if (clonedMesh.parent) {
+                clonedMesh.physicsImpostor?.forceUpdate();
+            }
+
             clonedMesh.physicsImpostor?.sleep();
 
             clone = clonedMesh;
