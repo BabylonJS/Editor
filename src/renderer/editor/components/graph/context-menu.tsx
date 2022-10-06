@@ -22,18 +22,24 @@ import { Editor } from "../../editor";
 
 import { PreviewFocusMode } from "../preview";
 
+export type ContextMenuNodeType = Node | IParticleSystem | Sound | ReflectionProbe;
+
 export class GraphContextMenu {
 	private static _CopiedLightExcludedMeshes: Nullable<AbstractMesh[]> = null;
 	private static _CopiedLightShadowsIncludedMeshes: Nullable<AbstractMesh[]> = null;
+
+	private static _CutNodes: Nullable<ContextMenuNodeType[]> = null;
 
 	private static _CopiedTransform: Nullable<AbstractMesh | Light | Camera> = null;
 
 	/**
 	 * Shows the context menu of the graph according to the given right-clicked node.
+	 * @param ev defines the reference to the mouse event.
+	 * @param editor defines the reference to the editor.
 	 * @param node defines the reference to the node that has been right-clicked.
 	 */
-	public static Show(ev: MouseEvent, editor: Editor, node: Node | IParticleSystem | Sound | ReflectionProbe): void {
-		const graph = editor.graph
+	public static Show(ev: MouseEvent, editor: Editor, node: ContextMenuNodeType): void {
+		const graph = editor.graph;
 
 		let mergeMeshesItem: React.ReactNode;
 		let doNotExportItem: React.ReactNode;
@@ -97,6 +103,8 @@ export class GraphContextMenu {
 				<Menu className={Classes.DARK}>
 					{this._GetNameField(editor, node)}
 					<MenuDivider />
+					{this._GetCutPasteItem(editor, node)}
+					<MenuDivider />
 					<MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => graph._handleRemoveObject()} />
 				</Menu>,
 				{ left: ev.clientX, top: ev.clientY }
@@ -117,6 +125,8 @@ export class GraphContextMenu {
 					<MenuItem text="Left" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Left)} />
 					<MenuItem text="Right" onClick={() => editor.preview.focusNode(node!, PreviewFocusMode.Target | PreviewFocusMode.Right)} />
 				</MenuItem>
+				<MenuDivider />
+				{this._GetCutPasteItem(editor, node)}
 				<MenuDivider />
 				{this._GetCopyPasterNodeItem(editor, node)}
 				{this._GetLightItem(editor, node)}
@@ -209,6 +219,42 @@ export class GraphContextMenu {
 				{subMeshesItems}
 			</div>
 		) : undefined;
+	}
+
+	/**
+	 * Returns the item used to cut/paste nodes in the graph.
+	 */
+	private static _GetCutPasteItem(editor: Editor, target: ContextMenuNodeType): React.ReactNode {
+		const all = editor.graph.state.selectedNodeIds!
+			.map((id) => editor.graph._getNodeById(id))
+			.filter((n) => n) as ContextMenuNodeType[];
+
+		return (
+			<>
+				<MenuItem text="Cut" onClick={() => this._CutNodes = all} />
+				<MenuItem text="Paste" disabled={this._CutNodes === null || !(target instanceof Node)} onClick={() => {
+					this._CutNodes?.forEach((n) => {
+						if (n === target) {
+							return;
+						}
+
+						if (n instanceof Sound && target instanceof TransformNode) {
+							return n.attachToMesh(target);
+						}
+
+						if (n instanceof ReflectionProbe && target instanceof AbstractMesh) {
+							return n.attachToMesh(target);
+						}
+
+						if (target instanceof Node && (n instanceof TransformNode || n instanceof Camera || n instanceof Light)) {
+							n.parent = target;
+						}
+					});
+
+					editor.graph.refresh();
+				}} />
+			</>
+		);
 	}
 
 	/**
