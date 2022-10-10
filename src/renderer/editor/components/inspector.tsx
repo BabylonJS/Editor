@@ -193,7 +193,7 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
      * Catches exceptions generated in descendant components. 
      * Unhandled exceptions will cause the entire component tree to unmount.
      */
-    componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    public componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
         this._editor.console.logError(`inspector failed to load due to error ${error.message} ${errorInfo.componentStack}`);
         throw error;
     }
