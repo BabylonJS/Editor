@@ -131,8 +131,6 @@ export default class NodeMaterialEditorWindow extends React.Component {
             return;
         }
 
-        NodeEditor["_CurrentState"].onRebuildRequiredObservable.notifyObservers();
-
         const result = await IPCTools.SendWindowMessage<{ error: Boolean; }>(-1, "node-material-json", {
             json: nodeMaterial.serialize(),
             editorData: nodeMaterial.editorData,
