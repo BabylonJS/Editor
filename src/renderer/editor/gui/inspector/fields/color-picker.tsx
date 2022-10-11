@@ -8,6 +8,7 @@ import { Color3, Color4 } from "babylonjs";
 
 import { InspectorUtils } from "../utils";
 import { InspectorNotifier } from "../notifier";
+import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IColor4Like {
     /**
@@ -37,11 +38,6 @@ export interface IInspectorColorPickerProps {
      * Defines the property to edit in the object.
      */
     property: string;
-    /**
-     * Defines the label of the field.
-     */
-    label: string;
-
     /**
      * Defines wether or not the label should be hidden.
      */
@@ -79,7 +75,7 @@ export interface IInspectorColorPickerState {
     textColor: string;
 }
 
-export class InspectorColorPicker extends React.Component<IInspectorColorPickerProps, IInspectorColorPickerState> {
+export class InspectorColorPicker extends AbstractFieldComponent<IInspectorColorPickerProps, IInspectorColorPickerState> {
     private _inspectorName: Nullable<string> = null;
     private _initialValue: Color3 | Color4;
 
@@ -87,7 +83,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
      * Constructor.
      * @param props defines the component's props.
      */
-    public constructor(props: IInspectorColorPickerProps) {
+    public constructor(props: InspectorColorPicker["props"]) {
         super(props);
 
         const value = props.object[props.property] as Color3 | Color4;

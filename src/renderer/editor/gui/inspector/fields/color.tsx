@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { InspectorNumber } from "./number";
 import { InspectorNotifier } from "../notifier";
+import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IColor4Like {
     /**
@@ -32,10 +33,6 @@ export interface IInspectorColorProps {
      */
     property: string;
     /**
-     * Defines the label of the field.
-     */
-    label: string;
-    /**
      * Defines the step used when dragging the mouse.
      */
     step?: number;
@@ -59,12 +56,12 @@ export interface IInspectorColorState {
     value: IColor4Like;
 }
 
-export class InspectorColor extends React.Component<IInspectorColorProps, IInspectorColorState> {
+export class InspectorColor extends AbstractFieldComponent<IInspectorColorProps, IInspectorColorState> {
     /**
      * Constructor.
      * @param props defines the component's props.
      */
-    public constructor(props: IInspectorColorProps) {
+    public constructor(props: InspectorColor["props"]) {
         super(props);
 
         const value = props.object[props.property];

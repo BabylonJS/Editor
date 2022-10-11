@@ -8,20 +8,15 @@ import { InspectorNotifier } from "../notifier";
 
 import { AbstractFieldComponent } from "./abstract-field";
 
-export interface IInspectorBooleanProps<T> {
+export interface IInspectorBooleanProps {
     /**
      * Defines the reference to the object to modify.
      */
-    object: T;
+    object: any;
     /**
      * Defines the property to edit in the object.
      */
     property: string;
-    /**
-     * Defines the label of the field.
-     */
-    label: string;
-
     /**
      * Defines the default value in case of possible undefined/null value.
      */
@@ -55,7 +50,7 @@ export interface IInspectorBooleanState {
     overColor: string;
 }
 
-export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBooleanProps<T>, IInspectorBooleanState> {
+export class InspectorBoolean extends AbstractFieldComponent<IInspectorBooleanProps, IInspectorBooleanState> {
     private _input: Nullable<HTMLInputElement> = null;
     private _initialValue: boolean;
 
@@ -65,7 +60,7 @@ export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBoolea
      * Constructor.
      * @param props defines the component's props.
      */
-    public constructor(props: IInspectorBooleanProps<T>) {
+    public constructor(props: InspectorBoolean["props"]) {
         super(props);
 
         const value = props.object[props.property] ?? props.defaultValue;
@@ -91,7 +86,7 @@ export class InspectorBoolean<T> extends AbstractFieldComponent<IInspectorBoolea
                 onMouseEnter={() => this.setState({ overColor: "rgba(0, 0, 0, 0.2)" })}
                 onMouseLeave={() => this.setState({ overColor: "rgba(0, 0, 0, 0)" })}
             >
-                <Tooltip content={this.props.label} targetProps={{ style: { width: "100%" } }}>
+                <Tooltip content={this.props.toolTip ?? this.props.label} targetProps={{ style: { width: "100%" } }}>
                     <Switch
                         inputRef={(ref) => this._input = ref}
                         checked={this.state.value}

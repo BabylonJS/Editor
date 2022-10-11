@@ -2,6 +2,8 @@ import * as React from "react";
 
 import { InspectorNumber } from "./number";
 import { InspectorNotifier } from "../notifier";
+import { Tooltip } from "@blueprintjs/core";
+import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IVector3Like {
     /**
@@ -27,11 +29,6 @@ export interface IInspectorVector3Props {
      * Defines the property to edit in the object.
      */
     property: string;
-    /**
-     * Defines the label of the field.
-     */
-    label: string;
-
     /**
      * Defines the minimum value of the input.
      */
@@ -69,12 +66,12 @@ export interface IInspectorVector3State {
     value: IVector3Like;
 }
 
-export class InspectorVector3 extends React.Component<IInspectorVector3Props, IInspectorVector3State> {
+export class InspectorVector3 extends AbstractFieldComponent<IInspectorVector3Props, IInspectorVector3State> {
     /**
      * Constructor.
      * @param props defines the component's props.
      */
-    public constructor(props: IInspectorVector3Props) {
+    public constructor(props: InspectorVector3["props"]) {
         super(props);
 
         const value = props.object[props.property];
@@ -92,7 +89,9 @@ export class InspectorVector3 extends React.Component<IInspectorVector3Props, II
         return (
             <div style={{ width: "100%", height: "45px" }}>
                 <div style={{ width: "100%", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px" }}>
-                    <span>{this.props.label}</span>
+                    <Tooltip content={this.props.toolTip ?? this.props.label}>
+                        <span>{this.props.label}</span>
+                    </Tooltip>
                 </div>
                 <div style={{ float: "left", width: "33%", height: "30px" }}>
                     <InspectorNumber

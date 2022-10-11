@@ -17,10 +17,6 @@ export interface IInspectorStringProps {
      * Defines the property to edit in the object.
      */
     property: string;
-    /**
-     * Defines the label of the field.
-     */
-    label: string;
 
     /**
      * Defines wether or not automatic undo/redo should be skipped.
@@ -57,7 +53,7 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
      * Constructor.
      * @param props defines the component's props.
      */
-    public constructor(props: IInspectorStringProps) {
+    public constructor(props: InspectorString["props"]) {
         super(props);
 
         const value = props.object[props.property];
@@ -77,7 +73,7 @@ export class InspectorString extends AbstractFieldComponent<IInspectorStringProp
         return (
             <div style={{ width: "100%", height: "25px" }}>
                 <div style={{ width: "30%", float: "left", borderLeft: "3px solid #1ed36f", padding: "0 4px 0 5px" }}>
-                    <Tooltip content={this.props.label}>
+                    <Tooltip content={this.props.toolTip ?? this.props.label}>
                         <span style={{ lineHeight: "30px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                     </Tooltip>
                 </div>

@@ -1,6 +1,19 @@
 import * as React from "react";
 
-export class AbstractFieldComponent<P = { }, S = { }> extends React.Component<P, S> {
+/**
+ * Props shared by all input Fields
+ */
+export interface IAbstractFieldProps {
+    /**
+     * Defines the label of the field.
+     */
+    label: string;
+    /**
+     * Defines ToolTip given for the field
+     */
+    toolTip?: string;
+}
+export class AbstractFieldComponent<P, S = { }> extends React.Component<P & IAbstractFieldProps, S> {
     private _isMounted: boolean;
 
     /**
