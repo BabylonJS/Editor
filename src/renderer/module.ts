@@ -11,12 +11,16 @@
  * 		For example, i18next will not be taken from [...]/babylonjs/node_modules/i18next/index.js but from [...]/babylonjs-editor/node_modules/i18next/index.js
  */
 
+import * as os from "os";
 import { readFileSync, existsSync } from "fs";
 import { join, dirname, extname } from "path";
 
-import { aliases, workspaceConfiguration } from "./configuration";
+import { aliases, compilerOptions, workspaceConfiguration } from "./configuration";
 
 const Module = require("module");
+
+const platform = os.platform();
+
 const cacheMap = {
 	"babylonjs": join(dirname(Module._resolveFilename("babylonjs", module, false)), "babylon.max.js"),
 	"babylonjs-materials": join(dirname(Module._resolveFilename("babylonjs-materials", module, false)), "babylonjs.materials.js"),
@@ -91,10 +95,26 @@ Module._resolveFilename = function (filename: string, parent: any, isMain: boole
 	return originalResolveFilename(filename, parent, isMain);
 };
 
+/**
+ * Returns the final module exports object according to the current
+ * tsconfig compiler options and runtime environment.
+ */
+function getModuleExportsObject(content: any): any {
+	if (process.env.DEBUG || platform === "darwin") {
+		return compilerOptions.esModuleInterop
+			? content
+			: { default: content };
+	} else {
+		return compilerOptions.esModuleInterop
+			? { default: content }
+			: content;
+	}
+}
+
 // Native extension for .fx files
 Module._extensions[".fx"] = function (module: any, filename: string): void {
-	const content = readFileSync(filename, "utf8");
-	module.exports = { default: content };
+	const content = readFileSync(filename, "utf-8");
+	module.exports = getModuleExportsObject(content);
 };
 
 // Globals

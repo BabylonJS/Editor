@@ -1,5 +1,5 @@
 import { dirname, join } from "path";
-import { pathExists } from "fs-extra";
+import { pathExists, readJSON } from "fs-extra";
 import { ipcRenderer, shell, webFrame } from "electron";
 
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
@@ -45,6 +45,8 @@ import { GizmoType } from "./scene/gizmo";
 import { SceneUtils } from "./scene/utils";
 
 import { SandboxMain } from "../sandbox/main";
+
+import { compilerOptions } from "../configuration";
 
 import { IPluginToolbar } from "./plugins/toolbar";
 import { IPlugin, IPluginConfiguration } from "./plugins/plugin";
@@ -919,6 +921,16 @@ export class Editor {
 
             await WorkSpace.ReadWorkSpaceFile(workspacePath);
             await WorkSpace.RefreshAvailableProjects();
+        }
+
+        // Initialize tsconfig configuration
+        if (WorkSpace.DirPath) {
+            try {
+                const tsconfig = await readJSON(join(WorkSpace.DirPath, "tsconfig.json"), { encoding: "utf-8" });
+                Object.assign(compilerOptions, tsconfig.compilerOptions ?? { });
+            } catch (e) {
+                this.console.logWarning(`Failed to get tsconfig.json configuration: ${e.message}`);
+            }
         }
 
         // Initialize assets browser
