@@ -98,6 +98,7 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
                 <InspectorSection title="Controls">
                     <InspectorButton label="Start" small={true} onClick={() => this.selectedObject.start()} />
                     <InspectorButton label="Stop" small={true} onClick={() => this.selectedObject.stop()} />
+                    <InspectorBoolean object={this.selectedObject} property="preventAutoStart" label="Prevent Auto Start" defaultValue={false} />
                 </InspectorSection>
 
                 <InspectorSection title="Common">

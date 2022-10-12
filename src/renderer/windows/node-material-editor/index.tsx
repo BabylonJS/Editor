@@ -110,7 +110,7 @@ export default class NodeMaterialEditorWindow extends React.Component {
         this._material = NodeMaterial.Parse(json, this._scene);
 
         document.title = `Node Material Editor - ${this._material.name}`;
-        
+
         // Create node material editor.
         NodeEditor.Show({
             hostElement: this._editorDiv,
@@ -122,14 +122,23 @@ export default class NodeMaterialEditorWindow extends React.Component {
      * Saves the node material.
      */
     private async _saveMaterial(nodeMaterial: Nullable<NodeMaterial>, closed: boolean = false): Promise<void> {
-        if (!nodeMaterial) { return; }
+        if (!nodeMaterial) {
+            return;
+        }
 
         try {
+            let uniqueId = 0;
+            nodeMaterial.attachedBlocks.forEach((b) => {
+                b.uniqueId = uniqueId++;
+            });
+
             nodeMaterial.build(false);
         } catch (e) {
             this._toaster?.show({ message: `An error occured: ${e.message}`, intent: Intent.DANGER, timeout: 3000 });
             return;
         }
+
+        NodeEditor["_CurrentState"].stateManager.onRebuildRequiredObservable.notifyObservers();
 
         const result = await IPCTools.SendWindowMessage<{ error: Boolean; }>(-1, "node-material-json", {
             json: nodeMaterial.serialize(),
