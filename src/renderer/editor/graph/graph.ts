@@ -108,6 +108,10 @@ import { Texture } from "./texture/texture";
 import { Material } from "./material/material";
 import { SetMaterialTextures } from "./material/set-textures";
 
+// CSG
+import { CSGOperation } from "./csg/operation";
+import { CSGMesh, CSGToMesh } from "./csg/mesh";
+
 export class GraphCode {
     private static _Initialized: boolean = false;
     
@@ -280,6 +284,11 @@ export class GraphCode {
         // Materials
         LiteGraph.registerNodeType("material/material", Material);
         LiteGraph.registerNodeType("material/set_material_textures", SetMaterialTextures);
+
+        // CSG
+        LiteGraph.registerNodeType("csg/mesh_to_csg", CSGMesh);
+        LiteGraph.registerNodeType("csg/csg_to_mesh", CSGToMesh);
+        LiteGraph.registerNodeType("csg/csg_operation", CSGOperation);
 
         // Plugins
         const preferences = Tools.GetEditorPreferences();
