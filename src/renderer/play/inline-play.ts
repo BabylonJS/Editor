@@ -8,6 +8,8 @@ import Editor from "../editor";
 
 import { aliases, workspaceConfiguration } from "../configuration";
 
+import { Tools } from "../editor/tools/tools";
+
 import { WorkSpace } from "../editor/project/workspace";
 import { SceneSettings } from "../editor/scene/settings";
 
@@ -18,7 +20,7 @@ export class ScenePlayer {
      * @hidden
      */
     public _scene: Nullable<Scene> = null;
-    
+
     private _editor: Editor;
     private _lastEditorCamera: Nullable<Camera> = null;
 
@@ -62,11 +64,21 @@ export class ScenePlayer {
             progress(ev.loaded / ev.total);
         }, ".babylon");
 
+        while (this._scene._pendingData.length) {
+            await Tools.Wait(150);
+        }
+
         // Attach camera
         if (!this._scene.activeCamera) {
-            throw new Error("No camera defined in the scene. Please add at least one camera in the project or create one yourself in the code.");
+            const sd = SceneSettings.Camera?.serialize();
+            if (sd) {
+                Camera.Parse(sd, this._scene);
+            } else {
+                throw new Error("No camera defined in the scene. Please add at least one camera in the project or create one yourself in the code.");
+            }
         }
-        this._scene.activeCamera.attachControl(this._editor.engine!.getRenderingCanvas(), false);
+
+        this._scene.activeCamera?.attachControl(this._editor.engine!.getRenderingCanvas(), false);
 
         this._lastEditorCamera = this._editor.scene!.activeCamera;
 

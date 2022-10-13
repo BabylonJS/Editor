@@ -25,7 +25,7 @@ export interface IToolbarState {
      * Defines wether or not project has a workspace loaded.
      */
     hasWorkspace: boolean;
-    
+
     /**
      * Defines wether or not the user is playing the scene.
      */
@@ -70,14 +70,17 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
         const playIcon = this.state.playing.isLoading ? (
             <Spinner size={20} />
         ) : (
-            <Icon src={this.state.playing.isPlaying ? "square-full.svg" : "play.svg"} />
+            <Icon
+                src={this.state.playing.isPlaying ? "square-full.svg" : "play.svg"}
+                style={this.state.playing.isPlaying ? { outlineColor: "darkturquoise", outlineStyle: "solid", outlineWidth: "5px" } : undefined}
+            />
         );
 
         return (
             <div style={{ width: "100%" }}>
                 <ButtonGroup large={false} style={{ marginTop: "auto", marginBottom: "auto" }}>
-                    <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg"/>} rightIcon="caret-down" text="Run..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("run")} id="play-game" />
-                    <Button disabled={!this.state.hasWorkspace} icon={<Icon src="generate.svg"/>} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} id="generate-scene" />
+                    <Button disabled={!this.state.hasWorkspace} icon={<Icon src="play.svg" />} rightIcon="caret-down" text="Run..." onContextMenu={(e) => this._handlePlayContextMenu(e)} onClick={() => this._buttonClicked("run")} id="play-game" />
+                    <Button disabled={!this.state.hasWorkspace} icon={<Icon src="generate.svg" />} rightIcon="caret-down" text="Generate..." onContextMenu={(e) => this._handleGenerateContextMenu(e)} onClick={() => this._buttonClicked("generate")} id="generate-scene" />
                 </ButtonGroup>
 
                 <ButtonGroup large={false} style={{ zIndex: 1, left: "50%", position: "absolute", transform: "translate(-50%)" }}>
@@ -167,7 +170,7 @@ export class ToolsToolbar extends React.Component<IToolbarProps, IToolbarState> 
         if (this.state.playing?.isLoading) {
             return;
         }
-        
+
         const isPlaying = !this.state.playing.isPlaying;
         this.setState({ playing: { isPlaying, isLoading: true } });
 

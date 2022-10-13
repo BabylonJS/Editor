@@ -1231,6 +1231,8 @@ export class Editor {
         window.addEventListener("keyup", (ev) => {
             this.keyboardEventObservable.notifyObservers(new KeyboardInfo(KeyboardEventTypes.KEYUP, ev as any));
 
+            if (ev.key === "F5") { return this.toolsToolbar.handlePlay(); }
+
             if (this.preview.canvasFocused) {
                 if (ev.key === "t") { return this.preview.setGizmoType(GizmoType.Position); }
                 if (ev.key === "r") { return this.preview.setGizmoType(GizmoType.Rotation); }
