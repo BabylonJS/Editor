@@ -26,23 +26,23 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
                 {this.getMapsInspector()}
 
                 <InspectorSection title="Diffuse">
-                    <InspectorBoolean object={this.material} property="useAlphaFromDiffuseTexture" label= "Use Alpha From Diffuse Texture" />
+                    <InspectorBoolean object={this.material} property="useAlphaFromDiffuseTexture" label="Use Alpha From Diffuse Texture" />
                     <InspectorColor object={this.material} property="diffuseColor" label="Color" step={0.01} />
                     <InspectorColorPicker object={this.material} property="diffuseColor" label="Hex Color" />
                 </InspectorSection>
 
                 <InspectorSection title="Bump">
-                    <InspectorBoolean object={this.material} property="invertNormalMapX" label= "Invert Normal Map X" />
-                    <InspectorBoolean object={this.material} property="invertNormalMapY" label= "Invert Normal Map Y" />
-                    <InspectorBoolean object={this.material} property="useParallax" label= "Use Parallax" />
-                    <InspectorBoolean object={this.material} property="useParallaxOcclusion" label= "Use Parallax Occlusion" />
+                    <InspectorBoolean object={this.material} property="invertNormalMapX" label="Invert Normal Map X" />
+                    <InspectorBoolean object={this.material} property="invertNormalMapY" label="Invert Normal Map Y" />
+                    <InspectorBoolean object={this.material} property="useParallax" label="Use Parallax" />
+                    <InspectorBoolean object={this.material} property="useParallaxOcclusion" label="Use Parallax Occlusion" />
                     <InspectorNumber object={this.material} property="parallaxScaleBias" label="Parallax Scale Bias" step={0.001} />
                 </InspectorSection>
 
                 <InspectorSection title="Specular">
-                    <InspectorBoolean object={this.material} property="useGlossinessFromSpecularMapAlpha" label= "Use Glossiness From Specular Map Alpha" />
-                    <InspectorBoolean object={this.material} property="useReflectionFresnelFromSpecular" label= "Use Reflection Fresnel From Specular" />
-                    <InspectorBoolean object={this.material} property="useSpecularOverAlpha" label= "Use Specular Over Alpha" />
+                    <InspectorBoolean object={this.material} property="useGlossinessFromSpecularMapAlpha" label="Use Glossiness From Specular Map Alpha" />
+                    <InspectorBoolean object={this.material} property="useReflectionFresnelFromSpecular" label="Use Reflection Fresnel From Specular" />
+                    <InspectorBoolean object={this.material} property="useSpecularOverAlpha" label="Use Specular Over Alpha" />
 
                     <InspectorNumber object={this.material} property="specularPower" label="Power" step={0.01} />
                     <InspectorColor object={this.material} property="specularColor" label="Color" step={0.01} />
@@ -54,8 +54,19 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
                     <InspectorColorPicker object={this.material} property="ambientColor" label="Hex Color" />
                 </InspectorSection>
 
+                <InspectorSection title="Detail">
+                    <InspectorBoolean object={this.material.detailMap} property="isEnabled" label="Enabled" />
+                    <InspectorNumber object={this.material.detailMap} property="bumpLevel" label="Bump Level" min={0} max={1} step={0.01} />
+                    <InspectorNumber object={this.material.detailMap} property="diffuseBlendLevel" label="Diffuse Blend Level" min={0} max={1} step={0.01} />
+                    <InspectorNumber object={this.material.detailMap} property="roughnessBlendLevel" label="Roughness Blend Level" min={0} max={1} step={0.01} />
+                    <InspectorList object={this.material.detailMap} property="normalBlendMethod" label="Normal Blend Method" items={[
+                        { label: "Without", data: StandardMaterial.MATERIAL_NORMALBLENDMETHOD_WHITEOUT },
+                        { label: "Rotated Normal Mapping", data: StandardMaterial.MATERIAL_NORMALBLENDMETHOD_RNM },
+                    ]} />
+                </InspectorSection>
+
                 <InspectorSection title="Emissive">
-                    <InspectorBoolean object={this.material} property="linkEmissiveWithDiffuse" label= "Link Emissive With Diffuse" />
+                    <InspectorBoolean object={this.material} property="linkEmissiveWithDiffuse" label="Link Emissive With Diffuse" />
                     <InspectorColor object={this.material} property="emissiveColor" label="Color" step={0.01} />
                     <InspectorColorPicker object={this.material} property="emissiveColor" label="Hex Color" />
                 </InspectorSection>
@@ -77,6 +88,7 @@ export class StandardMaterialInspector extends MaterialInspector<StandardMateria
                 <InspectorList object={this.material} property="emissiveTexture" label="Emissive Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorList object={this.material} property="lightmapTexture" label="Lightmap Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorList object={this.material} property="reflectionTexture" label="Reflection Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                <InspectorList object={this.material.detailMap} property="texture" label="Detail Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
             </InspectorSection>
         );
     }

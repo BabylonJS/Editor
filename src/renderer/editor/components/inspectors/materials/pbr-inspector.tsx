@@ -152,6 +152,17 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                     <InspectorColorPicker object={this.material} property="emissiveColor" label="Hex Color" />
                 </InspectorSection>
 
+                <InspectorSection title="Detail">
+                    <InspectorBoolean object={this.material.detailMap} property="isEnabled" label="Enabled" />
+                    <InspectorNumber object={this.material.detailMap} property="bumpLevel" label="Bump Level" min={0} max={1} step={0.01} />
+                    <InspectorNumber object={this.material.detailMap} property="diffuseBlendLevel" label="Diffuse Blend Level" min={0} max={1} step={0.01} />
+                    <InspectorNumber object={this.material.detailMap} property="roughnessBlendLevel" label="Roughness Blend Level" min={0} max={1} step={0.01} />
+                    <InspectorList object={this.material.detailMap} property="normalBlendMethod" label="Normal Blend Method" items={[
+                        { label: "Without", data: PBRMaterial.MATERIAL_NORMALBLENDMETHOD_WHITEOUT },
+                        { label: "Rotated Normal Mapping", data: PBRMaterial.MATERIAL_NORMALBLENDMETHOD_RNM },
+                    ]} />
+                </InspectorSection>
+
                 <InspectorSection title="BRDF">
                     <InspectorBoolean object={this.material.brdf} property="useEnergyConservation" label="Use Energy Conservation" />
                     <InspectorBoolean object={this.material.brdf} property="useSpecularGlossinessInputEnergyConservation" label="Use Specular Glossiness Input Energy Conservation" />
@@ -197,6 +208,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 <InspectorList object={this.material} property="opacityTexture" label="Opacity Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorList object={this.material} property="emissiveTexture" label="Emissive Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorList object={this.material} property="lightmapTexture" label="Lightmap Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                <InspectorList object={this.material.detailMap} property="texture" label="Detail Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
             </InspectorSection>
         );
     }
