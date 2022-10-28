@@ -755,7 +755,10 @@ export class SceneExporter {
 		if (WorkSpace.Workspace?.ktx2CompressedTextures?.enabled) {
 			projectConfiguration.compressedTextures.supportedFormats.push("-dxt.ktx");
 			projectConfiguration.compressedTextures.supportedFormats.push("-astc.ktx");
-			projectConfiguration.compressedTextures.supportedFormats.push("-pvrtc.ktx");
+
+			if (WorkSpace.Workspace.ktx2CompressedTextures.pvrtcOptions?.enabled) {
+				projectConfiguration.compressedTextures.supportedFormats.push("-pvrtc.ktx");
+			}
 
 			if (WorkSpace.Workspace.ktx2CompressedTextures.ect1Options?.enabled) {
 				projectConfiguration.compressedTextures.supportedFormats.push("-etc1.ktx");

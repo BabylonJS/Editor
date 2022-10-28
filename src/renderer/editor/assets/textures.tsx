@@ -30,6 +30,7 @@ import { Alert } from "../gui/alert";
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
 
+import { FSTools } from "../tools/fs";
 import { PureCubeDialog } from "./textures/pure-cube";
 
 interface _IUsedTextureInfos {
@@ -471,7 +472,11 @@ export class TextureAssets extends AbstractAssets {
 
                     // Update Url
                     if (!texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture) {
-                        texture.updateURL(join(compressedTexturesDest, basename(ktxTexturePath)));
+                        const texturePath = join(compressedTexturesDest, basename(ktxTexturePath));
+
+                        await FSTools.WaitUntilFileExists(texturePath);
+
+                        texture.updateURL(texturePath);
                         texture.url = previousUrl;
                     }
 

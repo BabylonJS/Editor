@@ -117,7 +117,9 @@ export class EditorProcess {
 		}
 
 		// Events
-		program.onData((d) => terminal.write(d));
+		program.onData((d) => {
+			terminal.write(d);
+		});
 
 		let onDataListener: Undefinable<IDisposable> = undefined;
 		if (options?.readonly === false) {

@@ -3,6 +3,8 @@ import rimraf from "rimraf";
 import { mkdir, pathExists } from "fs-extra";
 import directoryTree, { DirectoryTree } from "directory-tree";
 
+import { Tools } from "./tools";
+
 export class FSTools {
 	/**
 	 * Creates the directory at the given absolute path. If the directory already exists, nothing is done.
@@ -56,6 +58,31 @@ export class FSTools {
 					resolve();
 				}
 			});
+		});
+	}
+
+	/**
+	 * Waits until the given file (absolute path) exists.
+	 * @param filePath defines the absolute path to the file to test until it exists.
+	 * @param timeout defines the optional timeout to resolve the promise @default 10000
+	 */
+	public static async WaitUntilFileExists(filePath: string, timeout: number = 10000): Promise<void> {
+		return new Promise<void>(async (resolve) => {
+			let done = false;
+
+			const timeoutId = setTimeout(() => done = true, timeout);
+			
+			while (!done) {
+				const exists = await pathExists(filePath);
+				if (exists) {
+					break;
+				}
+
+				await Tools.Wait(150);
+			}
+
+			resolve();
+			clearTimeout(timeoutId);
 		});
 	}
 }

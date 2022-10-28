@@ -1,5 +1,6 @@
 import { platform } from "os";
 import { shell } from "electron";
+import { remove } from "fs-extra";
 import { basename, dirname, extname, join } from "path";
 
 import { Nullable } from "../../../shared/types";
@@ -18,12 +19,16 @@ import AssetsWorker from "../workers/workers/assets";
 
 import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
+import { FSTools } from "./fs";
+import { Tools } from "./tools";
 import { EditorProcess, IEditorProcess } from "./process";
 
 /**
  * Defines the possibile types of texture to be compressed.
  */
 export type KTXToolsType = "-astc.ktx" | "-dxt.ktx" | "-pvrtc.ktx" | "-etc1.ktx" | "-etc2.ktx";
+
+const currentPlatform = platform();
 
 export class KTXTools {
 	private static _SupportedExtensions: string[] = [".png", ".jpg", ".jpeg", ".bmp"];
@@ -51,12 +56,11 @@ export class KTXTools {
 			return null;
 		}
 
-		const p = platform();
-		if (typeof(configuration.pvrTexToolCliPath) === "string") {
-			configuration.pvrTexToolCliPath = { [p]: configuration.pvrTexToolCliPath };
+		if (typeof (configuration.pvrTexToolCliPath) === "string") {
+			configuration.pvrTexToolCliPath = { [currentPlatform]: configuration.pvrTexToolCliPath };
 		}
 
-		return configuration.pvrTexToolCliPath?.[p] ?? null;
+		return configuration.pvrTexToolCliPath?.[currentPlatform] ?? null;
 	}
 
 	/**
@@ -97,7 +101,136 @@ export class KTXTools {
 					return;
 				}
 				break;
+
+			case "-pvrtc.ktx":
+				if (!ktx2CompressedTextures.pvrtcOptions?.enabled) {
+					return;
+				}
+				break;
 		}
+
+		switch (type) {
+			case "-dxt.ktx":
+			case "-astc.ktx":
+				return (ktx2CompressedTextures?.nvidiaTextureTools?.enabled && ktx2CompressedTextures?.nvidiaTextureTools?.cliPath)
+					? this._CompressUsingNVidiaTextureTools(editor, texturePath, destinationFolder, type)
+					: this._CompressUsingPVRTexTool(editor, texturePath, destinationFolder, type);
+
+			default:
+				return this._CompressUsingPVRTexTool(editor, texturePath, destinationFolder, type);
+		}
+	}
+
+	/**
+	 * Compressed the texture using NVidia Texture Tools.
+	 */
+	private static async _CompressUsingNVidiaTextureTools(editor: Editor, texturePath: string, destinationFolder: string, type: KTXToolsType): Promise<void> {
+		const ktx2CliPath = this.GetCliPath();
+		const nvttCliPath = WorkSpace.Workspace!.ktx2CompressedTextures!.nvidiaTextureTools!.cliPath;
+
+		const name = basename(texturePath);
+		const extension = extname(name).toLocaleLowerCase();
+
+		if (KTXTools._SupportedExtensions.indexOf(extension) === -1) {
+			return;
+		}
+
+		let editorProcess: Nullable<IEditorProcess> = null;
+
+		const filename = `${name.substr(0, name.lastIndexOf("."))}${type}`;
+		const destination = join(destinationFolder, filename);
+		const ddsDestination = destination.replace(".ktx", ".dds");
+
+		let hasAlpha = type !== "-etc1.ktx" && extension === ".png";
+		if (hasAlpha) {
+			hasAlpha = await Workers.ExecuteFunction<AssetsWorker, "textureHasAlpha">(AssetsBrowserItemHandler.AssetWorker, "textureHasAlpha", texturePath);
+		}
+
+		let command: Nullable<string> = null;
+		switch (type) {
+			case "-astc.ktx":
+				command = `"${nvttCliPath}" -highest -dds10 -astc_ldr_8x8 "${texturePath}" "${ddsDestination}"`;
+				break;
+
+			case "-dxt.ktx":
+				command = `"${nvttCliPath}" -highest ${hasAlpha ? "-bc2" : "-bc1"} "${texturePath}" "${ddsDestination}"`;
+				break;
+		}
+
+		const log = await editor.console.createLog();
+		log.setBody(
+			<div style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+				<div style={{ float: "left" }}>
+					<Spinner size={16} />
+				</div>
+				<Icon icon="stop" intent="danger" onClick={() => editorProcess?.kill()} />
+				<span>Compressing texture </span>
+				<a style={{ color: "grey" }}>{name} {type}</a>
+			</div>
+		);
+
+		try {
+			const setLogProgress = (progress: string) => {
+				if (progress.indexOf("%") !== 2) {
+					return;
+				}
+
+				log.setBody(
+					<div style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+						<div style={{ float: "left" }}>
+							<Spinner size={16} />
+						</div>
+						<Icon icon="stop" intent="danger" onClick={() => editorProcess?.kill()} />
+						<span>Compressing texture </span>
+						<a style={{ color: "grey" }}>{name} {type} {progress}</a>
+					</div>
+				);
+			}
+
+			editorProcess = EditorProcess.ExecuteCommand(command!);
+			editorProcess?.program.onData((d) => setLogProgress(d));
+			await editorProcess?.wait();
+
+			await FSTools.WaitUntilFileExists(ddsDestination);
+
+			setLogProgress("99%");
+			await Tools.Wait(150);
+
+			editorProcess = EditorProcess.ExecuteCommand(`"${ktx2CliPath}" -i "${ddsDestination}" -flip y -o "${destination}"`);
+			await editorProcess?.wait();
+
+			setLogProgress("100%");
+
+			log.setBody(
+				<div style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+					<Icon icon="endorsed" intent="success" />
+					<span>KTX texture available at </span>
+					<a style={{ color: "grey" }}>{destination}</a>
+				</div>
+			);
+		} catch (e) {
+			log.setBody(
+				<div style={{ marginBottom: "0px", whiteSpace: "nowrap" }}>
+					<Icon icon="endorsed" intent="warning" />
+					<span style={{ color: "yellow" }}>Failed to compress KTX texture at </span>
+					<a style={{ color: "grey" }} onClick={() => shell.showItemInFolder(dirname(texturePath))}>{texturePath}</a>
+				</div>
+			);
+		}
+
+		try {
+			await remove(ddsDestination);
+		} catch (e) {
+			// Catch silently.
+		}
+	}
+
+	/**
+	 * Compressed the texture using PVRTexTool.
+	 */
+	private static async _CompressUsingPVRTexTool(editor: Editor, texturePath: string, destinationFolder: string, type: KTXToolsType): Promise<void> {
+		const ktx2CliPath = this.GetCliPath();
+		const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures!;
 
 		const name = basename(texturePath);
 		const extension = extname(name).toLocaleLowerCase();

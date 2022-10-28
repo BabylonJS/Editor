@@ -34,6 +34,7 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 			quality: "astcveryfast",
 		};
 		workspace.ktx2CompressedTextures.pvrtcOptions ??= {
+			enabled: false,
 			quality: "pvrtcfastest",
 		};
 		workspace.ktx2CompressedTextures.ect1Options ??= {
@@ -46,11 +47,17 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 		};
 
 		// Cli path
-		if (typeof(workspace.ktx2CompressedTextures.pvrTexToolCliPath) === "string") {
+		if (typeof (workspace.ktx2CompressedTextures.pvrTexToolCliPath) === "string") {
 			workspace.ktx2CompressedTextures.pvrTexToolCliPath = { [platform]: workspace.ktx2CompressedTextures.pvrTexToolCliPath };
 		} else {
 			workspace.ktx2CompressedTextures.pvrTexToolCliPath ??= {};
 		}
+
+		// NVidia cli path
+		workspace.ktx2CompressedTextures.nvidiaTextureTools ??= {
+			cliPath: "",
+			enabled: false,
+		};
 
 		return (
 			<div style={{ width: "70%", height: "100%", margin: "auto" }}>
@@ -82,7 +89,12 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 		return (
 			<InspectorSection title="KTX2 Compression">
 				<InspectorBoolean object={workspace.ktx2CompressedTextures} property="enabled" label="Enabled" defaultValue={false} />
-				<InspectorFileInput object={workspace.ktx2CompressedTextures?.pvrTexToolCliPath} property={platform} label="PVRTexToolCLI Path" />
+				<InspectorFileInput object={workspace.ktx2CompressedTextures!.pvrTexToolCliPath} property={platform} label="PVRTexToolCLI Path" />
+
+				{/* <InspectorSection title="NVidia Texture Tools">
+					<InspectorBoolean object={workspace.ktx2CompressedTextures!.nvidiaTextureTools} property="enabled" label="Enabled" defaultValue={false} />
+					<InspectorFileInput object={workspace.ktx2CompressedTextures!.nvidiaTextureTools} property="cliPath" label="NVidia Texture Tools CLI Path" />
+				</InspectorSection> */}
 
 				<InspectorSection title="Development">
 					<InspectorBoolean object={workspace.ktx2CompressedTextures} property="enabledInPreview" label="Enabled In Preview" defaultValue={false} />
@@ -107,6 +119,7 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 				</InspectorSection>
 
 				<InspectorSection title="PVRTC">
+					<InspectorBoolean object={workspace.ktx2CompressedTextures!.pvrtcOptions} property="enabled" label="Enabled" defaultValue={false} />
 					<InspectorList object={workspace.ktx2CompressedTextures!.pvrtcOptions} property="quality" label="Quality" items={[
 						{ label: "Fastest", data: "pvrtcfastest" },
 						{ label: "Fast", data: "pvrtcfast" },

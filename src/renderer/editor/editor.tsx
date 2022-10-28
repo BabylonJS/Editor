@@ -104,6 +104,7 @@ import "./components/inspectors/materials/cell-inspector";
 import "./components/inspectors/materials/fire-inspector";
 import "./components/inspectors/materials/lava-inspector";
 import "./components/inspectors/materials/water-inspector";
+import "./components/inspectors/materials/gradient-inspector";
 import "./components/inspectors/materials/tri-planar-inspector";
 
 import "./components/inspectors/textures/texture-inspector";

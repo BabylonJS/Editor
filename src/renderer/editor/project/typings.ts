@@ -120,9 +120,17 @@ export interface IWorkSpace {
          */
         enabled?: boolean;
         /**
-         * Defines the path to the PVRTexToolCLI program executed to 
+         * Defines the path to the PVRTexToolCLI program executed to generate all compressed textures files.
          */
         pvrTexToolCliPath?: string | Record<string, string>;
+
+        /**
+         * Defines the path to the NVidia Texture Tools program executed to generate DXT and ASTC files.
+         */
+        nvidiaTextureTools?: {
+            enabled?: boolean;
+            cliPath?: string;
+        };
 
         /**
          * Defines wether or not the Editor automatically generates compressed textures
@@ -149,6 +157,10 @@ export interface IWorkSpace {
          * Defines the options of the PVRTC format.
          */
         pvrtcOptions?: {
+            /**
+             * Defines wether or not PVRTC is enabled.
+             */
+            enabled?: boolean;
             /**
              * Defines the quality of the PVRTC generated textures.
              */
@@ -402,7 +414,7 @@ export interface IBabylonFile {
 
         })[];
     })[];
-    
+
     lights: (IBabylonFileNode & {
 
     })[];

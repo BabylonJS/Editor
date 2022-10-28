@@ -141,12 +141,14 @@ export class WorkSpace {
             ktx2CompressedTextures: {
                 enabled: this.Workspace!.ktx2CompressedTextures?.enabled ?? false,
                 pvrTexToolCliPath: this.Workspace!.ktx2CompressedTextures?.pvrTexToolCliPath ?? {},
+                nvidiaTextureToolsLink: this.Workspace!.ktx2CompressedTextures?.nvidiaTextureTools ?? {},
                 forcedFormat: this.Workspace!.ktx2CompressedTextures?.forcedFormat ?? "automatic",
                 enabledInPreview: this.Workspace!.ktx2CompressedTextures?.enabledInPreview ?? false,
                 astcOptions: this.Workspace!.ktx2CompressedTextures?.astcOptions ?? {
                     quality: "astcveryfast",
                 },
                 pvrtcOptions: this.Workspace!.ktx2CompressedTextures?.pvrtcOptions ?? {
+                    enabled: false,
                     quality: "pvrtcfastest",
                 },
                 ect1Options: this.Workspace!.ktx2CompressedTextures?.ect1Options ?? {

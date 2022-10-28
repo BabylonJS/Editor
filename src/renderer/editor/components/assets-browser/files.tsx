@@ -136,6 +136,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					<MenuItem text="Fire Material..." onClick={() => this._handleCreateMaterial("FireMaterial")} />
 					<MenuItem text="Lava Material..." onClick={() => this._handleCreateMaterial("LavaMaterial")} />
 					<MenuItem text="Water Material..." onClick={() => this._handleCreateMaterial("WaterMaterial")} />
+					<MenuItem text="Gradient Material..." onClick={() => this._handleCreateMaterial("GradientMaterial")} />
 					<MenuItem text="Tri Planar Material..." onClick={() => this._handleCreateMaterial("TriPlanarMaterial")} />
 				</MenuItem>
 
