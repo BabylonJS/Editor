@@ -322,8 +322,8 @@ export class SceneSettings {
         this.DefaultPipeline.imageProcessing.toneMappingEnabled = data.imageProcessing.toneMappingEnabled;
         this.DefaultPipeline.imageProcessing.toneMappingType = data.imageProcessing.toneMappingType;
 
-        this.DefaultPipeline.imageProcessing.colorCurvesEnabled = data.imageProcessing.colorCurvesEnabled;
-        this.DefaultPipeline.imageProcessing.colorGradingEnabled = data.imageProcessing.colorGradingEnabled;
+        this.DefaultPipeline.imageProcessing.colorCurvesEnabled = data.imageProcessing.colorCurvesEnabled ?? this.DefaultPipeline.imageProcessing.colorCurvesEnabled;
+        this.DefaultPipeline.imageProcessing.colorGradingEnabled = data.imageProcessing.colorGradingEnabled ?? this.DefaultPipeline.imageProcessing.colorGradingEnabled;
 
         if (data.imageProcessing.colorCurves) {
             this.DefaultPipeline.imageProcessing.colorCurves = ColorCurves.Parse(data.imageProcessing.colorCurves);

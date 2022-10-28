@@ -635,8 +635,8 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
         defaultRenderingPipelineRef.imageProcessing.toneMappingEnabled = data.default.json.imageProcessing.toneMappingEnabled;
         defaultRenderingPipelineRef.imageProcessing.toneMappingType = data.default.json.imageProcessing.toneMappingType;
         
-        defaultRenderingPipelineRef.imageProcessing.colorCurvesEnabled = data.default.json.imageProcessing.colorCurvesEnabled;
-        defaultRenderingPipelineRef.imageProcessing.colorGradingEnabled = data.default.json.imageProcessing.colorGradingEnabled;
+        defaultRenderingPipelineRef.imageProcessing.colorCurvesEnabled = data.default.json.imageProcessing.colorCurvesEnabled ?? defaultRenderingPipelineRef.imageProcessing.colorCurvesEnabled;
+        defaultRenderingPipelineRef.imageProcessing.colorGradingEnabled = data.default.json.imageProcessing.colorGradingEnabled ?? defaultRenderingPipelineRef.imageProcessing.colorGradingEnabled;
 
         if (data.default.json.imageProcessing.colorCurves) {
             defaultRenderingPipelineRef.imageProcessing.colorCurves = ColorCurves.Parse(data.default.json.imageProcessing.colorCurves);

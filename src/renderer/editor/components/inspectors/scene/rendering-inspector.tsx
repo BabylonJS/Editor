@@ -1,9 +1,10 @@
 import * as React from "react";
 
-import { Scene, DepthOfFieldEffectBlurLevel, ImageProcessingConfiguration, ColorGradingTexture, TonemappingOperator } from "babylonjs";
+import { Scene, DepthOfFieldEffectBlurLevel, ImageProcessingConfiguration, TonemappingOperator, ColorGradingTexture, Texture } from "babylonjs";
 
 import { Inspector, IObjectInspectorProps } from "../../inspector";
 
+import { Confirm } from "../../../gui/confirm";
 import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorColor } from "../../../gui/inspector/fields/color";
 import { InspectorNumber } from "../../../gui/inspector/fields/number";
@@ -235,7 +236,20 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
                     <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="colorGradingEnabled" label="Enabled" />
                     <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing.imageProcessingConfiguration} property="colorGradingBGR" label="Grading BGR" />
                     <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing.imageProcessingConfiguration} property="colorGradingWithGreenDepth" label="With Green Depth" />
-                    <InspectorList object={SceneSettings.DefaultPipeline.imageProcessing} property="colorGradingTexture" label="Texture" items={() => this.getTexturesList((t) => t instanceof ColorGradingTexture)} dndHandledTypes={["asset/3dl"]} />
+                    <InspectorList object={SceneSettings.DefaultPipeline.imageProcessing} property="colorGradingTexture" label="Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/3dl", "asset/texture"]} onChange={async (t) => {
+                        if (!t || t instanceof ColorGradingTexture) {
+                            return;
+                        }
+
+                        const proceed = await Confirm.Show("Configure Texture?", "Color grading with standard textures needs to update wrapping and sampling modes. Apply changes?");
+                        if (proceed) {
+                            t.wrapU = Texture.CLAMP_ADDRESSMODE;
+                            t.wrapV = Texture.CLAMP_ADDRESSMODE;
+                            t.updateSamplingMode(Texture.BILINEAR_SAMPLINGMODE);
+                        }
+
+                        this.forceUpdate();
+                    }} />
                     {SceneSettings.DefaultPipeline.imageProcessing.colorGradingTexture ? (
                         <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorGradingTexture} property="level" label="Level" step={0.01} />
                     ) : undefined}

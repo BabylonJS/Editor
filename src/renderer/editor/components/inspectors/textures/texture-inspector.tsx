@@ -1,4 +1,4 @@
-import { join, extname } from "path";
+import { join, extname, isAbsolute } from "path";
 
 import * as React from "react";
 
@@ -12,6 +12,7 @@ import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorBoolean } from "../../../gui/inspector/fields/boolean";
 
 import { Project } from "../../../project/project";
+import { WorkSpace } from "../../../project/workspace";
 
 import { AbstractInspector } from "../abstract-inspector";
 import { Inspector, IObjectInspectorProps } from "../../inspector";
@@ -184,6 +185,18 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
 
         return (
             <InspectorSection title="Scale">
+                <InspectorBoolean object={this.selectedObject} property="_invertY" label="Invert Y" onChange={() => {
+                    const texture = this.selectedObject as Texture;
+                    const textureUrl = texture.url;
+
+                    if (textureUrl) {
+                        if (!isAbsolute(textureUrl)) {
+                            texture.url = join(WorkSpace.DirPath!, "assets", textureUrl);
+                        }
+                        texture.updateURL(this.selectedObject.url!);
+                        texture.url = textureUrl;
+                    }
+                }} />
                 <InspectorNumber object={this.selectedObject} property="uScale" label="U Scale" step={0.01} />
                 <InspectorNumber object={this.selectedObject} property="vScale" label="V Scale" step={0.01} />
             </InspectorSection>
