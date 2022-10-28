@@ -2,7 +2,7 @@ import { join, extname } from "path";
 
 import * as React from "react";
 
-import { Texture, CubeTexture } from "babylonjs";
+import { Texture, CubeTexture, ColorGradingTexture } from "babylonjs";
 
 import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorButton } from "../../../gui/inspector/fields/button";
@@ -23,7 +23,7 @@ export interface ITextureInspectorState {
     samplingMode?: number;
 }
 
-export class TextureInspector<T extends Texture | CubeTexture, S extends ITextureInspectorState> extends AbstractInspector<T, S> {
+export class TextureInspector<T extends Texture | CubeTexture | ColorGradingTexture, S extends ITextureInspectorState> extends AbstractInspector<T, S> {
     private static _CoordinatesModes: string[] = [
         "EXPLICIT_MODE", "SPHERICAL_MODE", "PLANAR_MODE", "CUBIC_MODE",
         "PROJECTION_MODE", "SKYBOX_MODE", "INVCUBIC_MODE", "EQUIRECTANGULAR_MODE",
@@ -75,6 +75,7 @@ export class TextureInspector<T extends Texture | CubeTexture, S extends ITextur
         let path = this.selectedObject.isCube ? "../css/svg/dds.svg" : join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name) ?? "";
         const extension = extname(this.selectedObject.name).toLowerCase();
         switch (extension) {
+            case ".3dl": path = "../css/svg/magic.svg"; break;
             case ".basis": path = "../css/images/ktx.png"; break;
             default: break;
         }
@@ -223,6 +224,6 @@ export class TextureInspector<T extends Texture | CubeTexture, S extends ITextur
 
 Inspector.RegisterObjectInspector({
     ctor: TextureInspector,
-    ctorNames: ["Texture", "CubeTexture"],
+    ctorNames: ["Texture", "CubeTexture", "ColorGradingTexture"],
     title: "Texture",
 });

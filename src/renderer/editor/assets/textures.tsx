@@ -30,6 +30,8 @@ import { Alert } from "../gui/alert";
 import { Assets } from "../components/assets";
 import { AbstractAssets, IAssetComponentItem } from "./abstract-assets";
 
+import { SceneSettings } from "../scene/settings";
+
 import { FSTools } from "../tools/fs";
 import { PureCubeDialog } from "./textures/pure-cube";
 
@@ -162,8 +164,11 @@ export class TextureAssets extends AbstractAssets {
                     texture.metadata.editorId = Tools.RandomId();
                 }
 
+                const extension = extname(texture.name).toLowerCase();
+                const is3dl = extension === ".3dl";
+
                 let style: Undefinable<React.CSSProperties> = undefined;
-                if (texture.isCube) {
+                if (texture.isCube || is3dl) {
                     style = { filter: "invert(1)" };
                 }
 
@@ -171,8 +176,8 @@ export class TextureAssets extends AbstractAssets {
                 if (isDyamicTexture) {
                     base64 = (texture as DynamicTexture).getContext().canvas.toDataURL("image/png");
                 } else {
-                    const extension = extname(texture.name).toLowerCase();
                     switch (extension) {
+                        case ".3dl": base64 = "../css/svg/magic.svg"; break;
                         case ".basis": base64 = "../css/images/ktx.png"; break;
                         default: break;
                     }
@@ -713,6 +718,11 @@ export class TextureAssets extends AbstractAssets {
         // Check scene
         if (texture === this.editor.scene!.environmentTexture) {
             result.push({ object: this.editor.scene, property: "environmentTexture" });
+        }
+
+        // Check color grading
+        if (texture === SceneSettings.DefaultPipeline?.imageProcessing?.colorGradingTexture) {
+            result.push({ object: SceneSettings.DefaultPipeline.imageProcessing, property: "colorGradingTexture" })
         }
 
         return result;

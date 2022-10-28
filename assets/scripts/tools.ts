@@ -12,11 +12,13 @@ import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { EngineStore } from "@babylonjs/core/Engines/engineStore";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { ColorCurves } from "@babylonjs/core/Materials/colorCurves";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
 import { Vector2, Vector3, Vector4, Matrix } from "@babylonjs/core/Maths/math.vector";
+import { ColorGradingTexture } from "@babylonjs/core/Materials/Textures/colorGradingTexture";
 
 import { MotionBlurPostProcess } from "@babylonjs/core/PostProcesses/motionBlurPostProcess";
 import { ScreenSpaceReflectionPostProcess } from "@babylonjs/core/PostProcesses/screenSpaceReflectionPostProcess";
@@ -630,6 +632,18 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
         defaultRenderingPipelineRef.imageProcessing.contrast = data.default.json.imageProcessing.contrast;
         defaultRenderingPipelineRef.imageProcessing.fromLinearSpace = data.default.json.imageProcessing.fromLinearSpace;
         defaultRenderingPipelineRef.imageProcessing.toneMappingEnabled = data.default.json.imageProcessing.toneMappingEnabled;
+        
+        defaultRenderingPipelineRef.imageProcessing.colorCurvesEnabled = data.default.json.imageProcessing.colorCurvesEnabled;
+        defaultRenderingPipelineRef.imageProcessing.colorGradingEnabled = data.default.json.imageProcessing.colorGradingEnabled;
+
+        if (data.default.json.imageProcessing.colorCurves) {
+            defaultRenderingPipelineRef.imageProcessing.colorCurves = ColorCurves.Parse(data.default.json.imageProcessing.colorCurves);
+        }
+
+        if (data.default.json.imageProcessing.colorGradingTexture) {
+            data.default.json.imageProcessing.colorGradingTexture.name = rootUrl + data.default.json.imageProcessing.colorGradingTexture.name;
+            defaultRenderingPipelineRef.imageProcessing.colorGradingTexture = ColorGradingTexture.Parse(data.default.json.imageProcessing.colorGradingTexture, scene);
+        }
 
         // Vignette
         defaultRenderingPipelineRef.imageProcessing.vignetteEnabled = data.default.json.vignette.enabled;

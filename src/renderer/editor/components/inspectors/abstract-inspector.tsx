@@ -3,7 +3,7 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { Classes, InputGroup } from "@blueprintjs/core";
 
-import { Texture, Material, ISize, Color3, Color4, Vector2, Vector3, Vector4 } from "babylonjs";
+import { Texture, Material, ISize, Color3, Color4, Vector2, Vector3, Vector4, BaseTexture } from "babylonjs";
 
 import { IObjectInspectorProps } from "../inspector";
 
@@ -145,11 +145,11 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
     /**
      * Returns the list of available textures in the assets to be drawn.
      */
-    public getTexturesList(): IInspectorListItem<Nullable<Texture>>[] {
+    public getTexturesList(predicate?: (t: BaseTexture) => unknown): IInspectorListItem<Nullable<Texture>>[] {
         const assets = this.editor.assets.getAssetsOfComponentId("textures") ?? [];
         const empty: IInspectorListItem<Nullable<Texture>> = { label: "None", data: null, description: "No Texture" };
 
-        return [empty].concat(assets.map((a) => {
+        let result = [empty].concat(assets.map((a) => {
             const reflectionProbe = this.editor.scene!.reflectionProbes?.find((rp) => rp["metadata"]?.id === a.key);
             const data = reflectionProbe?.cubeTexture ?? (this.editor.scene!.textures.find((t) => t.metadata?.editorId === a.key) ?? null) as Nullable<Texture>;
             const icon = a.base64 ? (
@@ -166,6 +166,12 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
             ) : undefined;
             return { label: a.id, data, icon, description: data?.name };
         }));
+
+        if (predicate) {
+            result = result.filter((r) => !r.data || predicate(r.data));
+        }
+
+        return result;
     }
 
     /**

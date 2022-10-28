@@ -145,6 +145,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".bmp", ctor: ImageItemHandler });
 		this.RegisterItemHandler({ extension: ".jpg", ctor: ImageItemHandler });
 		this.RegisterItemHandler({ extension: ".jpeg", ctor: ImageItemHandler });
+		this.RegisterItemHandler({ extension: ".3dl", ctor: ImageItemHandler });
 
 		this.RegisterItemHandler({ extension: ".svg", ctor: SVGItemHandler });
 

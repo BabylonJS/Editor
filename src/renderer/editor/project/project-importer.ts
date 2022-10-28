@@ -1,4 +1,4 @@
-import { dirname, join, basename } from "path";
+import { dirname, join, basename, extname } from "path";
 import { readJSON, pathExistsSync, pathExists } from "fs-extra";
 
 import { Nullable } from "../../../shared/types";
@@ -216,7 +216,7 @@ export class ProjectImporter {
         loadPromises = [];
 
         editor.scene!.meshes.sort((a, b) => a.uniqueId - b.uniqueId);
-        
+
         // Load all reflection probes
         for (const rp of project.reflectionProbes ?? []) {
             try {
@@ -234,7 +234,7 @@ export class ProjectImporter {
         }
 
         editor.scene!.meshes.sort((a, b) => a.uniqueId - b.uniqueId);
-        
+
         // Load all reflection probes
         for (const rp of project.reflectionProbes ?? []) {
             try {
@@ -508,7 +508,7 @@ export class ProjectImporter {
 
         if (project.postProcesses.default?.json) {
             if (project.postProcesses.default.json.serializedFromEditor) {
-                SceneSettings.ParseDefaultPipeline(project.postProcesses.default.json);
+                SceneSettings.ParseDefaultPipeline(editor, project.postProcesses.default.json);
             } else {
                 SerializationHelper.Parse(() => SceneSettings.DefaultPipeline, project.postProcesses.default.json, editor.scene!, rootUrl);
             }
@@ -569,7 +569,7 @@ export class ProjectImporter {
         scene.lights.forEach((l) => this._SetWaitingParent(l));
         scene.cameras.forEach((c) => this._SetWaitingParent(c));
         scene.transformNodes.forEach((tn) => this._SetWaitingParent(tn));
-        
+
         // Waiting render list
         scene.reflectionProbes?.forEach((rp) => {
             rp.cubeTexture._waitingRenderList?.forEach((wr) => {
@@ -782,9 +782,20 @@ export class ProjectImporter {
 
             // Create texture
             if (!texture) {
-                texture = textureParser(source, scene, rootUrl);
+                const sourceName = source.name;
+                const extension = extname(source.name).toLowerCase();
+                if (extension === ".3dl") {
+                    source.name = join(rootUrl, source.name);
+                }
 
+                texture = textureParser(source, scene, rootUrl);
+                
                 if (texture) {
+                    if (extension === ".3dl") {
+                        texture.name = sourceName;
+                        texture.metadata = source.metadata;
+                    }
+
                     texture.metadata ??= {};
                     texture.metadata.ktx2CompressedTextures ??= {};
                     texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;

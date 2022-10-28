@@ -43,6 +43,10 @@ export class ProjectHelpers {
 
         // Image processing
         serializationObject.imageProcessingConfiguration = scene.imageProcessingConfiguration.serialize();
+        
+        if (scene.imageProcessingConfiguration.colorGradingTexture && serializationObject.imageProcessingConfiguration.colorGradingTexture) {
+            serializationObject.imageProcessingConfiguration.colorGradingTexture.metadata = scene.imageProcessingConfiguration.colorGradingTexture.metadata;
+        }
 
         // Animations
         SerializationHelper.AppendSerializedAnimations(scene, serializationObject);
@@ -141,6 +145,10 @@ export class ProjectHelpers {
 
         // Image processing
         SerializationHelper.Parse(() => scene.imageProcessingConfiguration, parsedData.imageProcessingConfiguration, scene, rootUrl);
+        
+        if (scene.imageProcessingConfiguration.colorGradingTexture && parsedData.imageProcessingConfiguration.colorGradingTexture) {
+            scene.imageProcessingConfiguration.colorGradingTexture.metadata = parsedData.imageProcessingConfiguration.colorGradingTexture.metadata;
+        }
 
         // Animations
         for (const animation of parsedData.animations ?? []) {

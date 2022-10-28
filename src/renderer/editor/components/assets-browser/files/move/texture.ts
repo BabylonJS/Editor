@@ -12,7 +12,7 @@ export class AssetsBrowserTextureMoveHandler extends AssetsBrowserMoveHandler {
 	 */
 	public extensions: string[] = [
 		".png", ".jpg", ".jpeg", ".bmp",
-		".env", ".dds", ".basis",
+		".env", ".dds", ".basis", ".3dl",
 	];
 
 	private _editor: Editor;

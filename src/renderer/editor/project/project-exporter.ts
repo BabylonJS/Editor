@@ -5,7 +5,7 @@ import { Nullable } from "../../../shared/types";
 
 import {
     ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial,
-    AbstractMesh,
+    AbstractMesh, ColorGradingTexture,
 } from "babylonjs";
 
 import filenamify from "filenamify";
@@ -265,6 +265,10 @@ export class ProjectExporter {
             savePromises.push(new Promise<void>(async (resolve) => {
                 const json = texture.serialize();
                 if (!json) { return resolve(); }
+
+                if (texture instanceof ColorGradingTexture) {
+                    json.metadata = texture.metadata;
+                }
 
                 if (json.isCube && !json.isRenderTarget && json.files && json.metadata?.isPureCube) {
                     // Replace Urls

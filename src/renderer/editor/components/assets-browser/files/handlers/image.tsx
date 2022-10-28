@@ -1,10 +1,10 @@
 import { clipboard } from "electron";
-import { basename, dirname, join } from "path";
+import { basename, dirname, extname, join } from "path";
 
 import * as React from "react";
 import { ContextMenu, Menu, MenuDivider, MenuItem, Tag, Icon as BPIcon, H4 } from "@blueprintjs/core";
 
-import { BaseTexture, Mesh, PBRMaterial, PickingInfo, StandardMaterial, Texture } from "babylonjs";
+import { BaseTexture, ColorGradingTexture, Mesh, PBRMaterial, PickingInfo, StandardMaterial, Texture } from "babylonjs";
 
 import { Icon } from "../../../../gui/icon";
 
@@ -20,7 +20,17 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 * Computes the image to render.
 	 */
 	public computePreview(): React.ReactNode {
-		return (
+		const extension = extname(this.props.relativePath).toLowerCase();
+
+		return extension == ".3dl" ? (
+			<Icon
+				src="magic.svg"
+				style={{
+					width: "80%",
+					height: "80%",
+				}}
+			/>
+		) : (
 			<img
 				src={this.props.absolutePath}
 				style={{
@@ -75,7 +85,9 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 */
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		const ktxMenus: React.ReactNode[] = [<MenuDivider />];
-		if (WorkSpace.Workspace?.ktx2CompressedTextures?.enabled) {
+		const extension = extname(this.props.relativePath).toLowerCase();
+
+		if (WorkSpace.Workspace?.ktx2CompressedTextures?.enabled && extension !== ".3dl") {
 			ktxMenus.push.apply(ktxMenus, [
 				<MenuItem text="KTX Texture" icon={<Icon src="../images/ktx.png" style={{ filter: "none" }} />}>
 					<MenuItem text="Refresh KTX Texture" onClick={() => {
@@ -132,7 +144,9 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 * @param ev defines the reference to the event object.
 	 */
 	public onDragStart(ev: React.DragEvent<HTMLDivElement>): void {
-		ev.dataTransfer.setData("asset/texture", JSON.stringify({
+		const extension = extname(this.props.relativePath).toLowerCase();
+
+		ev.dataTransfer.setData(extension === ".3dl" ? "asset/3dl" : "asset/texture", JSON.stringify({
 			absolutePath: this.props.absolutePath,
 			relativePath: this.props.relativePath,
 		}));
@@ -145,6 +159,11 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 * @param pick defines the picking info generated while dropping in the preview.
 	 */
 	public onDropInPreview(ev: DragEvent, pick: PickingInfo): void {
+		const extension = extname(this.props.relativePath).toLowerCase();
+		if (extension === ".3dl") {
+			return;
+		}
+
 		if (!pick.pickedMesh || !(pick.pickedMesh instanceof Mesh)) {
 			return;
 		}
@@ -218,12 +237,18 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	 */
 	private _getFirstInstantiatedTexture(): BaseTexture {
 		let texture = this.props.editor.scene!.textures.find((tex) => tex.name === this.props.relativePath);
-
+		
 		if (!texture) {
-			texture = new Texture(this.props.absolutePath, this.props.editor.scene!);
-			texture.name = join(dirname(this.props.relativePath), basename(this.props.absolutePath));
-
-			(texture as Texture).url = texture.name;
+			const extension = extname(this.props.relativePath).toLowerCase();
+			if (extension === ".3dl") {
+				texture = new ColorGradingTexture(this.props.absolutePath, this.props.editor.scene!);
+				texture.name = join(dirname(this.props.relativePath), basename(this.props.absolutePath));
+			} else {
+				texture = new Texture(this.props.absolutePath, this.props.editor.scene!);
+				texture.name = join(dirname(this.props.relativePath), basename(this.props.absolutePath));
+	
+				(texture as Texture).url = texture.name;
+			}
 		}
 
 		return texture;

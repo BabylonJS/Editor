@@ -1,12 +1,16 @@
 import {
     Camera, ArcRotateCamera, Vector3, SSAO2RenderingPipeline, DefaultRenderingPipeline,
-    SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess, FreeCamera, Color4, Vector2,
+    SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess, FreeCamera, Color4, Vector2, ColorCurves, ColorGradingTexture,
 } from "babylonjs";
+import { join } from "path";
 
 import { Nullable } from "../../../shared/types";
 
 import { Editor } from "../editor";
+
 import { Tools } from "../tools/tools";
+
+import { WorkSpace } from "../project/workspace";
 
 import { EditorCamera } from "./editor-camera";
 
@@ -244,6 +248,10 @@ export class SceneSettings {
                 contrast: this.DefaultPipeline.imageProcessing.contrast,
                 fromLinearSpace: this.DefaultPipeline.imageProcessing.fromLinearSpace,
                 toneMappingEnabled: this.DefaultPipeline.imageProcessing.toneMappingEnabled,
+                colorCurvesEnabled: this.DefaultPipeline.imageProcessing.colorCurvesEnabled,
+                colorCurves: this.DefaultPipeline.imageProcessing.colorCurves?.serialize(),
+                colorGradingEnabled: this.DefaultPipeline.imageProcessing.colorGradingEnabled,
+                colorGradingTexture: this.DefaultPipeline.imageProcessing.colorGradingTexture?.serialize(),
             },
             bloom: {
                 enabled: this.DefaultPipeline.bloomEnabled,
@@ -295,9 +303,10 @@ export class SceneSettings {
 
     /**
      * Parses the current default rendering pipeline according to the given JSON representation.
+     * @param editor defines the reference to the editor.
      * @param data defines the JSON representation of the default rendering pipeline.
      */
-    public static ParseDefaultPipeline(data: any): void {
+    public static ParseDefaultPipeline(editor: Editor, data: any): void {
         if (!this.DefaultPipeline) {
             return;
         }
@@ -311,6 +320,25 @@ export class SceneSettings {
         this.DefaultPipeline.imageProcessing.fromLinearSpace = data.imageProcessing.fromLinearSpace;
         this.DefaultPipeline.imageProcessing.toneMappingEnabled = data.imageProcessing.toneMappingEnabled;
 
+        this.DefaultPipeline.imageProcessing.colorCurvesEnabled = data.imageProcessing.colorCurvesEnabled;
+        this.DefaultPipeline.imageProcessing.colorGradingEnabled = data.imageProcessing.colorGradingEnabled;
+
+        if (data.imageProcessing.colorCurves) {
+            this.DefaultPipeline.imageProcessing.colorCurves = ColorCurves.Parse(data.imageProcessing.colorCurves);
+        }
+
+        if (data.imageProcessing.colorGradingTexture && !this.DefaultPipeline.imageProcessing.colorGradingTexture && WorkSpace.DirPath) {
+            const sourceName = data.imageProcessing.colorGradingTexture.name;
+
+            data.imageProcessing.colorGradingTexture.name = join(WorkSpace.DirPath, "assets", data.imageProcessing.colorGradingTexture.name);
+            this.DefaultPipeline.imageProcessing.colorGradingTexture = ColorGradingTexture.Parse(data.imageProcessing.colorGradingTexture, editor.scene!);
+
+            if (this.DefaultPipeline.imageProcessing.colorGradingTexture) {
+                this.DefaultPipeline.imageProcessing.colorGradingTexture.name = sourceName;
+            }
+        }
+
+        // Vignette
         this.DefaultPipeline.imageProcessing.vignetteEnabled = data.vignette.enabled;
         this.DefaultPipeline.imageProcessing.vignetteWeight = data.vignette.vignetteWeight;
         this.DefaultPipeline.imageProcessing.vignetteBlendMode = data.vignette.vignetteBlendMode;
@@ -477,7 +505,7 @@ export class SceneSettings {
 
             try {
                 this.GetDefaultRenderingPipeline(editor);
-                this.ParseDefaultPipeline(source);
+                this.ParseDefaultPipeline(editor, source);
                 editor.scene!.render();
             } catch (e) {
                 this._DisposePipeline(editor, this.DefaultPipeline);

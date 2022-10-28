@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Scene, DepthOfFieldEffectBlurLevel, ImageProcessingConfiguration } from "babylonjs";
+import { Scene, DepthOfFieldEffectBlurLevel, ImageProcessingConfiguration, ColorGradingTexture } from "babylonjs";
 
 import { Inspector, IObjectInspectorProps } from "../../inspector";
 
@@ -210,7 +210,10 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
             );
         }
 
-        const imageProcessingEnable = <InspectorBoolean object={SceneSettings.DefaultPipeline} property="imageProcessingEnabled" label="Enabled" onChange={() => this._updateDefaultState()} />;
+        const imageProcessingEnable = (
+            <InspectorBoolean object={SceneSettings.DefaultPipeline} property="imageProcessingEnabled" label="Enabled" onChange={() => this._updateDefaultState()} />
+        );
+
         const imageProcessing = this.state.default.imageProcessingEnabled ? (
             <InspectorSection title="Image Processing">
                 {imageProcessingEnable}
@@ -218,6 +221,48 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
                 <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing} property="contrast" label="Contrast" step={0.01} />
                 <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="toneMappingEnabled" label="Tone Mapping Enabled" />
                 <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="fromLinearSpace" label="From Linear Space" />
+
+                <InspectorSection title="Color Grading">
+                    <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="colorGradingEnabled" label="Enabled" />
+                    <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing.imageProcessingConfiguration} property="colorGradingBGR" label="Grading BGR" />
+                    <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing.imageProcessingConfiguration} property="colorGradingWithGreenDepth" label="With Green Depth" />
+                    <InspectorList object={SceneSettings.DefaultPipeline.imageProcessing} property="colorGradingTexture" label="Texture" items={() => this.getTexturesList((t) => t instanceof ColorGradingTexture)} dndHandledTypes={["asset/3dl"]} />
+                    {SceneSettings.DefaultPipeline.imageProcessing.colorGradingTexture ? (
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorGradingTexture} property="level" label="Level" step={0.01} />
+                    ) : undefined}
+                </InspectorSection>
+
+                <InspectorSection title="Color Curves">
+                    <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="colorCurvesEnabled" label="Enabled" />
+
+                    <InspectorSection title="Global">
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="globalHue" label="Global Hue" step={0.1} min={0} max={360} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="globalDensity" label="Global Density" step={0.1} min={-100} max={100} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="globalSaturation" label="Global Saturation" step={0.1} min={-100} max={100} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="globalExposure" label="Global Exposure" step={0.1} min={-100} max={100} />
+                    </InspectorSection>
+
+                    <InspectorSection title="Highlights">
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="highlightsHue" label="Highlights Hue" step={0.1} min={0} max={360} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="highlightsDensity" label="Highlights Density" step={0.1} min={-100} max={100} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="highlightsSaturation" label="Highlights Saturation" step={0.1} min={-100} max={100} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="highlightsExposure" label="Highlights Exposure" step={0.1} min={-100} max={100} />
+                    </InspectorSection>
+
+                    <InspectorSection title="Midtones">
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="midtonesHue" label="Midtones Hue" step={0.1} min={0} max={360} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="midtonesDensity" label="Midtones Density" step={0.1} min={-100} max={100} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="midtonesSaturation" label="Midtones Saturation" step={0.1} min={-100} max={100} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="midtonesExposure" label="Midtones Exposure" step={0.1} min={-100} max={100} />
+                    </InspectorSection>
+
+                    <InspectorSection title="Shadows">
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="shadowsHue" label="Shadows Hue" step={0.1} min={0} max={360} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="shadowsDensity" label="Shadows Density" step={0.1} min={-100} max={100} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="shadowsSaturation" label="Shadows Saturation" step={0.1} min={-100} max={100} />
+                        <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing.colorCurves} property="shadowsExposure" label="Shadows Exposure" step={0.1} min={-100} max={100} />
+                    </InspectorSection>
+                </InspectorSection>
             </InspectorSection>
         ) : (
             <InspectorSection title="Image Processing">
