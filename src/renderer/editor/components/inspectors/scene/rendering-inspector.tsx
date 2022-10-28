@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Scene, DepthOfFieldEffectBlurLevel, ImageProcessingConfiguration, ColorGradingTexture } from "babylonjs";
+import { Scene, DepthOfFieldEffectBlurLevel, ImageProcessingConfiguration, ColorGradingTexture, TonemappingOperator } from "babylonjs";
 
 import { Inspector, IObjectInspectorProps } from "../../inspector";
 
@@ -219,8 +219,17 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
                 {imageProcessingEnable}
                 <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing} property="exposure" label="Exposure" step={0.01} />
                 <InspectorNumber object={SceneSettings.DefaultPipeline.imageProcessing} property="contrast" label="Contrast" step={0.01} />
-                <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="toneMappingEnabled" label="Tone Mapping Enabled" />
                 <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="fromLinearSpace" label="From Linear Space" />
+
+                <InspectorSection title="Tone Mapping">
+                    <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="toneMappingEnabled" label="Enabled" />
+                    <InspectorList object={SceneSettings.DefaultPipeline.imageProcessing} property="toneMappingType" label="Type" items={[
+                        { label: "Hable", data: TonemappingOperator.Hable },
+                        { label: "Reinhard", data: TonemappingOperator.Reinhard },
+                        { label: "HejiDawson", data: TonemappingOperator.HejiDawson },
+                        { label: "Photographic", data: TonemappingOperator.Photographic },
+                    ]} />
+                </InspectorSection>
 
                 <InspectorSection title="Color Grading">
                     <InspectorBoolean object={SceneSettings.DefaultPipeline.imageProcessing} property="colorGradingEnabled" label="Enabled" />

@@ -248,6 +248,7 @@ export class SceneSettings {
                 contrast: this.DefaultPipeline.imageProcessing.contrast,
                 fromLinearSpace: this.DefaultPipeline.imageProcessing.fromLinearSpace,
                 toneMappingEnabled: this.DefaultPipeline.imageProcessing.toneMappingEnabled,
+                toneMappingType: this.DefaultPipeline.imageProcessing.toneMappingType,
                 colorCurvesEnabled: this.DefaultPipeline.imageProcessing.colorCurvesEnabled,
                 colorCurves: this.DefaultPipeline.imageProcessing.colorCurves?.serialize(),
                 colorGradingEnabled: this.DefaultPipeline.imageProcessing.colorGradingEnabled,
@@ -319,6 +320,7 @@ export class SceneSettings {
         this.DefaultPipeline.imageProcessing.contrast = data.imageProcessing.contrast;
         this.DefaultPipeline.imageProcessing.fromLinearSpace = data.imageProcessing.fromLinearSpace;
         this.DefaultPipeline.imageProcessing.toneMappingEnabled = data.imageProcessing.toneMappingEnabled;
+        this.DefaultPipeline.imageProcessing.toneMappingType = data.imageProcessing.toneMappingType;
 
         this.DefaultPipeline.imageProcessing.colorCurvesEnabled = data.imageProcessing.colorCurvesEnabled;
         this.DefaultPipeline.imageProcessing.colorGradingEnabled = data.imageProcessing.colorGradingEnabled;

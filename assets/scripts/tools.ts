@@ -631,7 +631,9 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
         defaultRenderingPipelineRef.imageProcessing.exposure = data.default.json.imageProcessing.exposure;
         defaultRenderingPipelineRef.imageProcessing.contrast = data.default.json.imageProcessing.contrast;
         defaultRenderingPipelineRef.imageProcessing.fromLinearSpace = data.default.json.imageProcessing.fromLinearSpace;
+
         defaultRenderingPipelineRef.imageProcessing.toneMappingEnabled = data.default.json.imageProcessing.toneMappingEnabled;
+        defaultRenderingPipelineRef.imageProcessing.toneMappingType = data.default.json.imageProcessing.toneMappingType;
         
         defaultRenderingPipelineRef.imageProcessing.colorCurvesEnabled = data.default.json.imageProcessing.colorCurvesEnabled;
         defaultRenderingPipelineRef.imageProcessing.colorGradingEnabled = data.default.json.imageProcessing.colorGradingEnabled;
