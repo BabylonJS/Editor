@@ -3,12 +3,16 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { Classes, InputGroup } from "@blueprintjs/core";
 
-import { Texture, Material, ISize, Color3, Color4, Vector2, Vector3, Vector4, BaseTexture } from "babylonjs";
+import {
+    Texture, Material, ISize, Color3, Color4, Vector2, Vector3, Vector4, BaseTexture,
+    TransformNode, Light, Camera, Mesh, AbstractMesh,
+} from "babylonjs";
 
 import { IObjectInspectorProps } from "../inspector";
 
 import { undoRedo } from "../../tools/undo-redo";
 
+import { NodeIcon } from "../../gui/node-icon";
 import { InspectorNotifier } from "../../gui/inspector/notifier";
 import { IInspectorListItem } from "../../gui/inspector/fields/list";
 import { IInspectorNotifierUndoRedo, InspectorUtils } from "../../gui/inspector/utils";
@@ -200,13 +204,36 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
     }
 
     /**
+     * Gets all nodes in the current scene, or returns an empty array if no scene.
+     */
+    public getSceneNodes(allowedType?: "TransformNode" | "Mesh" | "Light" | "Camera" | "AbstractMesh"): IInspectorListItem<string>[] {
+        if (!this.editor.scene) {
+            return [];
+        }
+
+        let nodes = this.editor.scene.getNodes();
+        if (allowedType) {
+            const typeMap = {
+                TransformNode: TransformNode,
+                AbstractMesh: AbstractMesh,
+                Mesh: Mesh,
+                Light: Light,
+                Camera: Camera,
+            };
+            nodes = nodes.filter(node => node instanceof typeMap[allowedType])
+        }
+
+        return nodes.map(node => ({ data: node.id, label: node.name, icon: <NodeIcon node={node}></NodeIcon> }));
+    }
+
+    /**
      * Called on an action finished to handle undo/redo.
      */
     private _handleUndoRedo(configuration: IInspectorNotifierUndoRedo<any>): void {
         if (!this.handleUndoRedo) {
             return;
         }
-        
+
         if (configuration.noUndoRedo || configuration.newValue === configuration.oldValue) {
             return;
         }
