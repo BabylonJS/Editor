@@ -64,6 +64,10 @@ export class SceneInspector extends ScriptInspector<Scene, IScriptInspectorState
                     <InspectorVector3 object={this.selectedObject} property="gravity" label="Gravity" step={0.01} />
                 </InspectorSection>
 
+                <InspectorSection title="Advanced">
+                    <InspectorBoolean object={this.selectedObject} property="useOrderIndependentTransparency" label="Use Order Independent Transparency" defaultValue={false} />
+                </InspectorSection>
+
                 {this.getPhysicsFields()}
             </>
         );

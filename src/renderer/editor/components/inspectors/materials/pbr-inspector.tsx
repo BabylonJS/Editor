@@ -97,6 +97,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
 
                 <InspectorSection title="Albedo">
                     <InspectorBoolean object={this.material} property="useAlphaFromAlbedoTexture" label="Use Alpha From Albedo Texture" />
+                    <InspectorNumber object={this.material} property="alphaCutOff" label="Alpha Cut Off" min={0} max={1} step={0.01} />
                     <InspectorColor object={this.material} property="albedoColor" label="Color" step={0.01} />
                     <InspectorColorPicker object={this.material} property="albedoColor" label="Hex Color" />
                 </InspectorSection>

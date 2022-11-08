@@ -1,4 +1,5 @@
 import "../../../module";
+import { compilerOptions } from "../../../configuration";
 
 import { basename, dirname, join } from "path";
 import { createReadStream, pathExists, readJSON } from "fs-extra";
@@ -112,8 +113,17 @@ export default class AssetsWorker {
 	 * Sets the workspace path.
 	 * @param path defines the absolute path to the workspace.
 	 */
-	public setWorkspacePath(path: string): void {
+	public async setWorkspacePath(path: string): Promise<void> {
 		this._workspaceDir = path;
+
+		if (path) {
+			try {
+				const tsconfig = await readJSON(join(path, "tsconfig.json"), { encoding: "utf-8" });
+				Object.assign(compilerOptions, tsconfig.compilerOptions ?? { });
+			} catch (e) {
+				// Catch silently.
+			}
+		}
 	}
 
 	/**

@@ -147,6 +147,10 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
      * Returns the inspector used to edit the flags of the material.
      */
     protected getMaterialFlagsInspector(): React.ReactNode {
+        const twoSidedLighting = (this.material["twoSidedLighting"] ?? null) !== null ? (
+            <InspectorBoolean object={this.material} property="twoSidedLighting" label="Two Sided Lighting" />
+        ) : undefined;
+
         const disableLighting = (this.material["disableLighting"] ?? null) !== null ? (
             <InspectorBoolean object={this.material} property="disableLighting" label="Disable Lighting" />
         ) : undefined;
@@ -161,6 +165,11 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
                 <InspectorBoolean object={this.material} property="disableDepthWrite" label="Disable Depth Write" />
                 <InspectorBoolean object={this.material} property="needDepthPrePass" label="Need Depth Pre-Pass" />
                 {disableLighting}
+
+                <InspectorSection title="Advanced">
+                    {twoSidedLighting}
+                    <InspectorBoolean object={this.material} property="separateCullingPass" label="Separate Culling Pass" />
+                </InspectorSection>
             </InspectorSection>
         );
     }
