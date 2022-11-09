@@ -643,6 +643,11 @@ export class ProjectImporter {
         // Lods
         for (const lod of json.lods ?? []) {
             try {
+                if (!lod.mesh) {
+                    (result.meshes[0] as Mesh).addLODLevel(lod.distance, null);
+                    continue;
+                }
+
                 lod.mesh.meshes[0].delayLoadingFile = join(Project.DirPath!, lod.mesh.meshes[0].delayLoadingFile);
 
                 const blob = new Blob([JSON.stringify(lod.mesh)]);
