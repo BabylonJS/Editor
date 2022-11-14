@@ -23,6 +23,7 @@ import { ImageItemHandler } from "./handlers/image";
 import { GraphItemHandler } from "./handlers/graph";
 import { SceneItemHandler } from "./handlers/scene";
 import { TypeScriptItemHandler } from "./handlers/ts";
+import { JavaScriptItemHandler } from "./handlers/js";
 import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
 import { ParticlesSystemItemHandler } from "./handlers/particles-system";
@@ -167,19 +168,21 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".ts", ctor: TypeScriptItemHandler });
 		this.RegisterItemHandler({ extension: ".tsx", ctor: TypeScriptItemHandler });
 		this.RegisterItemHandler({ extension: ".graph", ctor: GraphItemHandler });
-
+		
 		this.RegisterItemHandler({ extension: ".mp3", ctor: SoundItemHandler });
 		this.RegisterItemHandler({ extension: ".wav", ctor: SoundItemHandler });
 		this.RegisterItemHandler({ extension: ".wave", ctor: SoundItemHandler });
 		this.RegisterItemHandler({ extension: ".ogg", ctor: SoundItemHandler });
-
+		
 		this.RegisterItemHandler({ extension: ".ps", ctor: ParticlesSystemItemHandler });
-
+		
 		this.RegisterItemHandler({ extension: ".json", ctor: JsonItemHandler });
-
+		
 		this.RegisterItemHandler({ extension: ".gui", ctor: GUIItemHandler });
-
+		
 		this.RegisterItemHandler({ extension: ".scene", ctor: SceneItemHandler });
+		
+		this.RegisterItemHandler({ extension: ".js", ctor: JavaScriptItemHandler });
 
 		// Move handlers
 		this.RegisterItemMoveHandler(new AssetsBrowserGUIMoveHandler(editor));
