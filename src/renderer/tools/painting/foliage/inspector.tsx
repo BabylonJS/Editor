@@ -81,6 +81,7 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
                 </InspectorSection>
 
                 <InspectorSection title="Painting">
+                    <InspectorBoolean object={this.selectedObject} property="paintAll" label="Paint All" />
                     <InspectorBoolean object={this.selectedObject} property="holdToPaint" label="Hold To Paint" />
                     <InspectorNumber object={this.selectedObject} property="paintDistance" label="Pain Distance" step={0.01} />
                 </InspectorSection>

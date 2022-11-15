@@ -41,6 +41,11 @@ export class FoliagePainter extends AbstractPaintingTool {
     public randomScalingMax: number = 0;
 
     /**
+     * Defines wether or not all selected objects should be added as thin instances.
+     */
+    public paintAll: boolean = true;
+
+    /**
      * @hidden
      */
     public _selectedMeshes: Mesh[] = [];
@@ -212,7 +217,11 @@ export class FoliagePainter extends AbstractPaintingTool {
             return;
         }
 
-        this._selectedMeshes.forEach((m) => {
+        const selectedMeshes = this.paintAll
+            ? this._selectedMeshes
+            : [this._selectedMeshes[(this._selectedMeshes.length * Math.random()) >> 0]];
+
+        selectedMeshes.forEach((m) => {
             const size = this._decal.size;
             const center = this._decal._mesh?.getAbsolutePosition();
             if (!center) {

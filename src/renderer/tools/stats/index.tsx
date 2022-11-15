@@ -84,20 +84,20 @@ export default class StatsPlugin extends AbstractEditorPlugin<IStatsState> {
         const count = (
             <div>
                 <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Active Vertices</Divider>
-                <Tag intent={Intent.PRIMARY} key="activeFaces" fill={true}>Active Faces: {this.state.activeFaces}</Tag>
-                <Tag intent={Intent.PRIMARY} key="activeIndices" fill={true}>Active Indices: {this.state.activeIndices}</Tag>
-                <Tag intent={Intent.PRIMARY} key="activeBones" fill={true}>Active Bones: {this.state.activeBones}</Tag>
-                <Tag intent={Intent.PRIMARY} key="activeParticles" fill={true}>Active Particles: {this.state.activeParticles}</Tag>
+                <Tag intent={Intent.PRIMARY} key="activeFaces" fill={true}>Active Faces: {this.state.activeFaces?.toLocaleString()}</Tag>
+                <Tag intent={Intent.PRIMARY} key="activeIndices" fill={true}>Active Indices: {this.state.activeIndices?.toLocaleString()}</Tag>
+                <Tag intent={Intent.PRIMARY} key="activeBones" fill={true}>Active Bones: {this.state.activeBones?.toLocaleString()}</Tag>
+                <Tag intent={Intent.PRIMARY} key="activeParticles" fill={true}>Active Particles: {this.state.activeParticles?.toLocaleString()}</Tag>
                 <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Active</Divider>
-                <Tag intent={Intent.PRIMARY} key="activeMeshes" fill={true}>Active Meshes: {this.state.activeMeshes}</Tag>
-                <Tag intent={Intent.PRIMARY} key="drawCalls" fill={true}>Draw Calls: {this.state.drawCalls}</Tag>
+                <Tag intent={Intent.PRIMARY} key="activeMeshes" fill={true}>Active Meshes: {this.state.activeMeshes?.toLocaleString()}</Tag>
+                <Tag intent={Intent.PRIMARY} key="drawCalls" fill={true}>Draw Calls: {this.state.drawCalls?.toLocaleString()}</Tag>
                 <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Total Vertices</Divider>
-                <Tag intent={Intent.PRIMARY} key="totalVertices" fill={true}>Total Vertices: {this.state.totalVertices}</Tag>
+                <Tag intent={Intent.PRIMARY} key="totalVertices" fill={true}>Total Vertices: {this.state.totalVertices?.toLocaleString()}</Tag>
                 <Divider style={{ backgroundColor: "#333333", borderRadius: "5px", paddingLeft: "3px" }}>Total Others</Divider>
-                <Tag intent={Intent.PRIMARY} key="totalMeshes" fill={true}>Total Meshes: {this.state.totalMeshes}</Tag>
-                <Tag intent={Intent.PRIMARY} key="totalMaterials" fill={true}>Total Materials: {this.state.totalMaterials}</Tag>
-                <Tag intent={Intent.PRIMARY} key="totalTextures" fill={true}>Total Textures: {this.state.totalTextures}</Tag>
-                <Tag intent={Intent.PRIMARY} key="totalLights" fill={true}>Total Lights: {this.state.totalLights}</Tag>
+                <Tag intent={Intent.PRIMARY} key="totalMeshes" fill={true}>Total Meshes: {this.state.totalMeshes?.toLocaleString()}</Tag>
+                <Tag intent={Intent.PRIMARY} key="totalMaterials" fill={true}>Total Materials: {this.state.totalMaterials?.toLocaleString()}</Tag>
+                <Tag intent={Intent.PRIMARY} key="totalTextures" fill={true}>Total Textures: {this.state.totalTextures?.toLocaleString()}</Tag>
+                <Tag intent={Intent.PRIMARY} key="totalLights" fill={true}>Total Lights: {this.state.totalLights?.toLocaleString()}</Tag>
             </div>
         );
 
