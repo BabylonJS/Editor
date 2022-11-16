@@ -843,6 +843,7 @@ export class Editor {
     private async _init(): Promise<void> {
         // Create Babylon.JS stuffs
         this.engine = new Engine(document.getElementById("renderCanvas") as HTMLCanvasElement, true, {
+            stencil: true,
             antialias: true,
             audioEngine: true,
             disableWebGL2Support: false,
@@ -850,9 +851,9 @@ export class Editor {
             premultipliedAlpha: false,
             failIfMajorPerformanceCaveat: false,
             useHighPrecisionFloats: true,
+            adaptToDeviceRatio: true,
             preserveDrawingBuffer: true,
-            stencil: true,
-        }, true);
+        });
 
         this.scene = new Scene(this.engine);
 

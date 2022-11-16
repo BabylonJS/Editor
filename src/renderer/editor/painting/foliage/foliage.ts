@@ -9,6 +9,8 @@ import { Editor } from "../../editor";
 
 import { InspectorNotifier } from "../../gui/inspector/notifier";
 
+import { undoRedo } from "../../tools/undo-redo";
+
 import { Decal } from "../tools/decal";
 import { AbstractPaintingTool } from "../abstract-tool";
 
@@ -58,10 +60,11 @@ export class FoliagePainter extends AbstractPaintingTool {
     private _isPointerDown: boolean = false;
 
     private _pick: Nullable<PickingInfo> = null;
+    private _rotationMatrix = Matrix.Identity();
 
     private _paintDistance: number = 1;
 
-    private _rotationMatrix = Matrix.Identity();
+    private _editedWorldMatrices: Matrix[] = [];
 
     /**
      * Constructor.
@@ -207,6 +210,8 @@ export class FoliagePainter extends AbstractPaintingTool {
         if (!this.holdToPaint && this._pick?.pickedPoint) {
             this._paint();
         }
+
+        this._onPaintEnd();
     }
 
     /**
@@ -309,6 +314,8 @@ export class FoliagePainter extends AbstractPaintingTool {
                 if (!this._removing) { return; }
                 if (i === 0) { continue; }
 
+                this._editedWorldMatrices.push(matrices[i]);
+
                 matrices.splice(i, 1);
                 i--;
             }
@@ -349,6 +356,8 @@ export class FoliagePainter extends AbstractPaintingTool {
         // Compose matrix and add instance
         const matrix = Matrix.Compose(scaling, rotation, transformedTranslation);
 
+        this._editedWorldMatrices.push(matrix);
+
         mesh.thinInstanceAdd(matrix, true);
         mesh.getLODLevels().forEach((lod) => {
             lod.mesh?.thinInstanceAdd(matrix, true);
@@ -383,6 +392,78 @@ export class FoliagePainter extends AbstractPaintingTool {
 
         this._decal = new Decal(this.layerScene);
         this._decal.material = material;
+    }
+
+    /**
+     * Called on the user stopped painting.
+     */
+    private _onPaintEnd(): void {
+        if (!this._editedWorldMatrices.length) {
+            return;
+        }
+
+        const removed = this._removing;
+        const selectedMeshes = this._selectedMeshes.slice(0);
+        const editedWorldMatrices = this._editedWorldMatrices.slice(0);
+        const worldMatrices = selectedMeshes.map((sm) => sm.thinInstanceGetWorldMatrices().slice(0));
+
+        undoRedo.push({
+            common: () => {
+                selectedMeshes.forEach((sm) => {
+                    sm.refreshBoundingInfo(true, true);
+                    sm.thinInstanceRefreshBoundingInfo(true, true, true);
+                });
+            },
+            undo: () => {
+                selectedMeshes.forEach((sm, i) => {
+                    const matrices = !removed
+                        ? worldMatrices[i].slice(0)
+                        : worldMatrices[i].concat(editedWorldMatrices);
+
+                    if (!removed) {
+                        editedWorldMatrices.forEach((m) => {
+                            const index = matrices.findIndex((m2) => m.equals(m2));
+                            if (index !== -1) {
+                                matrices.splice(index, 1);
+                            }
+                        });
+                    }
+
+                    const array = this._getArrayFromMatrices(matrices);
+
+                    sm.thinInstanceSetBuffer("matrix", array);
+                    sm.getLODLevels().forEach((lod) => {
+                        lod.mesh?.thinInstanceSetBuffer("matrix", array);
+                    });
+                });
+            },
+            redo: () => {
+                selectedMeshes.forEach((sm, i) => {
+                    const array = this._getArrayFromMatrices(worldMatrices[i]);
+
+                    sm.thinInstanceSetBuffer("matrix", array);
+                    sm.getLODLevels().forEach((lod) => {
+                        lod.mesh?.thinInstanceSetBuffer("matrix", array);
+                    });
+                });
+            },
+        });
+
+        this._editedWorldMatrices.splice(0);
+    }
+
+    /**
+     * Transforms the given matrices array to a float32 array.
+     */
+    private _getArrayFromMatrices(matrices: Matrix[]): Nullable<Float32Array> {
+        if (matrices.length <= 1) {
+            return null;
+        }
+
+        const array = new Float32Array(matrices.length * 16);
+        matrices.forEach((m, i) => m.copyToArray(array, i * 16));
+
+        return array;
     }
 
     /**

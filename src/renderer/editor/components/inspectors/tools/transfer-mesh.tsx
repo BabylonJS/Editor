@@ -16,6 +16,11 @@ export interface IMeshTransferProps {
     targetArray: AbstractMesh[];
 
     /**
+     * Defines the optional custom labels for the transfer component.
+     */
+    labels?: [string, string];
+
+    /**
      * Defines the callback called on the transfer changed.
      */
     onChanged?: () => void;
@@ -66,7 +71,10 @@ export class MeshTransferComponent extends React.Component<IMeshTransferProps, I
                     height: "490px",
                 }}
                 showSearch
-                titles={["Included", "Excluded"]}
+                titles={[
+                    this.props.labels?.[0] ?? "Included",
+                    this.props.labels?.[1] ?? "Excluded",
+                ]}
                 selectedKeys={this.state.selectedKeys}
                 render={(i) => i.title ?? i.key ?? null}
                 onChange={(t, d, m) => this._handleTransferChange(t, d, m)}

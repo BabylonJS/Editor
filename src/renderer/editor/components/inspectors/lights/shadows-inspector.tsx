@@ -212,7 +212,7 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
 
         return (
             <InspectorSection title="Included Meshes">
-                <MeshTransferComponent editor={this.editor} targetArray={shadowMap.renderList} />
+                <MeshTransferComponent editor={this.editor} targetArray={shadowMap.renderList} labels={["Excluded", "Included"]} />
             </InspectorSection>
         );
     }

@@ -141,7 +141,7 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
                 if (i.ctorNames.indexOf(ctor) === -1) { return; }
             }
 
-            const tabId = i._id!
+            const tabId = i._id!;
             if (this._firstTabId === "") {
                 this._firstTabId = tabId;
             }
@@ -155,8 +155,8 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
                 key = this.state.selectedObject.metadata?.id;
             }
 
-            const objectInspector = <i.ctor key={key.toString() + this._forceUpdateId} editor={this._editor} _objectRef={this.state.selectedObject} toolId={i._id!} ref={this._refHandler.getInspector} />;
-            const tab = <Tab id={tabId} title={i.title} key={i._id!} panel={objectInspector} />;
+            const objectInspector = <i.ctor key={`${key.toString()}_${this._forceUpdateId}_${Tools.RandomId()}`} editor={this._editor} _objectRef={this.state.selectedObject} toolId={tabId} ref={this._refHandler.getInspector} />;
+            const tab = <Tab id={tabId} title={i.title} key={tabId} panel={objectInspector} />;
 
             tabs.push(tab);
         });
