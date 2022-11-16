@@ -6,7 +6,7 @@ import * as React from "react";
 import { Position, ButtonGroup, Popover, Menu, MenuItem, Divider, Tag, Tooltip, Pre, AnchorButton, ProgressBar } from "@blueprintjs/core";
 
 import {
-    Node, TargetCamera, Vector3, Animation, Camera, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable, ReflectionProbe,
+    Node, TargetCamera, Vector3, Animation, Camera, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable, ReflectionProbe, Mesh,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -560,6 +560,11 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
 
         if (node instanceof AbstractMesh) {
             node.refreshBoundingInfo(true);
+
+            if (node instanceof Mesh) {
+                node.thinInstanceRefreshBoundingInfo(true, true, true);
+            }
+
             translation = node.getBoundingInfo()?.boundingBox?.centerWorld?.clone() ?? translation;
         }
 

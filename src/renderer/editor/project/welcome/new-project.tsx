@@ -106,10 +106,6 @@ export class NewProjectWizard extends React.Component<INewProjectWizardProps> {
             sceneZip.extractAllToAsync(dest, false, (err) => err ? reject(err) : resolve());
         });
 
-        // Write src project
-        const srcDest = join(WorkSpace.DirPath!, "src/scenes/", name);
-        if (!(await pathExists(srcDest))) { await mkdir(srcDest); }
-
         // Write .scene file
         await writeJSON(join(this.props.editor.assetsBrowser._files!.state.currentDirectory, `${name}.scene`), {
             createdAt: new Date(Date.now()).toDateString(),
