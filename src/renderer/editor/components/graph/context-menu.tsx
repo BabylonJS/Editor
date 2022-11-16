@@ -44,12 +44,14 @@ export class GraphContextMenu {
 		let mergeMeshesItem: React.ReactNode;
 		let doNotExportItem: React.ReactNode;
 		let lockedMeshesItem: React.ReactNode;
+		let clearThinIntancesItem: React.ReactNode;
 
 		if (graph.state.selectedNodeIds) {
 			const all = graph.state.selectedNodeIds.map((id) => graph._getNodeById(id)) as Mesh[];
+			const notAllNodes = all.find((n) => !(n instanceof Node));
 			const notAllMeshes = all.find((n) => !(n instanceof Mesh));
 			const notAllAbstractMeshes = all.find((n) => !(n instanceof AbstractMesh));
-			const notAllNodes = all.find((n) => !(n instanceof Node));
+			const hasMeshWithThinInstances = all.find((n) => n instanceof Mesh && n.thinInstanceCount > 0);
 
 			if (!notAllMeshes && all.length > 1) {
 				mergeMeshesItem = (
@@ -92,6 +94,26 @@ export class GraphContextMenu {
 							});
 
 							graph.refresh();
+						}} />
+					</>
+				);
+			}
+
+			if (hasMeshWithThinInstances) {
+				clearThinIntancesItem = (
+					<>
+						<MenuDivider />
+						<MenuItem text="Clear Thin Instances" onClick={() => {
+							all.forEach((n) => {
+								if (!(n instanceof Mesh)) {
+									return;
+								}
+
+								n.thinInstanceSetBuffer("matrix", null, 16, true);
+								n.getLODLevels().forEach((lod) => {
+									lod.mesh?.thinInstanceSetBuffer("matrix", null, 16, true);
+								});
+							});
 						}} />
 					</>
 				);
@@ -140,6 +162,7 @@ export class GraphContextMenu {
 				{mergeMeshesItem}
 				{doNotExportItem}
 				{lockedMeshesItem}
+				{clearThinIntancesItem}
 				<MenuDivider />
 				<MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => graph._handleRemoveObject()} />
 				{this._GetSubMeshesItems(editor, node)}

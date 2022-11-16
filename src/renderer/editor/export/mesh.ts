@@ -87,6 +87,10 @@ export class MeshExporter {
             if (lod.mesh) {
                 lodJson.mesh = SceneSerializer.SerializeMesh(lod.mesh, false, false);
                 lodJson.mesh!.materials = [];
+                lodJson.mesh!.meshes?.forEach((m) => {
+                    delete m.geometryUniqueId;
+                    delete m.materialUniqueId;
+                });
             }
 
             json.lods.push(lodJson);
