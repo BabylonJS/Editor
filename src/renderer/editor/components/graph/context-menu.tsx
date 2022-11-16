@@ -44,14 +44,12 @@ export class GraphContextMenu {
 		let mergeMeshesItem: React.ReactNode;
 		let doNotExportItem: React.ReactNode;
 		let lockedMeshesItem: React.ReactNode;
-		let clearThinIntancesItem: React.ReactNode;
 
 		if (graph.state.selectedNodeIds) {
 			const all = graph.state.selectedNodeIds.map((id) => graph._getNodeById(id)) as Mesh[];
 			const notAllNodes = all.find((n) => !(n instanceof Node));
 			const notAllMeshes = all.find((n) => !(n instanceof Mesh));
 			const notAllAbstractMeshes = all.find((n) => !(n instanceof AbstractMesh));
-			const hasMeshWithThinInstances = all.find((n) => n instanceof Mesh && n.thinInstanceCount > 0);
 
 			if (!notAllMeshes && all.length > 1) {
 				mergeMeshesItem = (
@@ -94,26 +92,6 @@ export class GraphContextMenu {
 							});
 
 							graph.refresh();
-						}} />
-					</>
-				);
-			}
-
-			if (hasMeshWithThinInstances) {
-				clearThinIntancesItem = (
-					<>
-						<MenuDivider />
-						<MenuItem text="Clear Thin Instances" onClick={() => {
-							all.forEach((n) => {
-								if (!(n instanceof Mesh)) {
-									return;
-								}
-
-								n.thinInstanceSetBuffer("matrix", null, 16, true);
-								n.getLODLevels().forEach((lod) => {
-									lod.mesh?.thinInstanceSetBuffer("matrix", null, 16, true);
-								});
-							});
 						}} />
 					</>
 				);
@@ -162,12 +140,80 @@ export class GraphContextMenu {
 				{mergeMeshesItem}
 				{doNotExportItem}
 				{lockedMeshesItem}
-				{clearThinIntancesItem}
+				{this._GetClearThinIntancesField(editor)}
 				<MenuDivider />
 				<MenuItem text="Remove" icon={<Icon src="times.svg" />} onClick={() => graph._handleRemoveObject()} />
 				{this._GetSubMeshesItems(editor, node)}
 			</Menu>,
 			{ left: ev.clientX, top: ev.clientY }
+		);
+	}
+
+	/**
+	 * Returns the menu item used to clear thin instances of all selected meshes.
+	 */
+	private static _GetClearThinIntancesField(editor: Editor): React.ReactNode {
+		if (!editor.graph.state.selectedNodeIds) {
+			return undefined;
+		}
+
+		const meshes = editor.graph.state.selectedNodeIds
+			.map((id) => editor.graph._getNodeById(id))
+			.filter((n) => n instanceof Mesh) as Mesh[];
+
+		const hasMeshWithThinInstances = meshes.find((n) => n.thinInstanceCount > 0);
+		if (!hasMeshWithThinInstances) {
+			return undefined;
+		}
+
+		return (
+			<>
+				<MenuDivider />
+				<MenuItem text="Clear Thin Instances" onClick={() => {
+					const buffers = meshes.map((m) => m.thinInstanceGetWorldMatrices());
+
+					undoRedo.push({
+						common: () => {
+							meshes.forEach((m) => {
+								m.refreshBoundingInfo(true, true);
+								m.thinInstanceRefreshBoundingInfo(true, true, true);
+
+								m.getLODLevels().forEach((lod) => {
+									lod.mesh?.refreshBoundingInfo(true, true);
+									lod.mesh?.thinInstanceRefreshBoundingInfo(true, true, true);
+								});
+							});
+						},
+						undo: () => {
+							meshes.forEach((m, index) => {
+								if (!buffers[index]) {
+									return;
+								}
+
+								const buffer = buffers[index];
+								const array = new Float32Array(buffer.length * 16);
+
+								buffer.forEach((b, i) => {
+									b.copyToArray(array, i * 16);
+								});
+
+								m.thinInstanceSetBuffer("matrix", array, 16, true);
+								m.getLODLevels().forEach((lod) => {
+									lod.mesh?.thinInstanceSetBuffer("matrix", array, 16, true);
+								});
+							});
+						},
+						redo: () => {
+							meshes.forEach((m) => {
+								m.thinInstanceSetBuffer("matrix", null, 16, true);
+								m.getLODLevels().forEach((lod) => {
+									lod.mesh?.thinInstanceSetBuffer("matrix", null, 16, true);
+								});
+							});
+						},
+					});
+				}} />
+			</>
 		);
 	}
 

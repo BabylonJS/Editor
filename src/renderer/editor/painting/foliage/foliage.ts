@@ -336,10 +336,12 @@ export class FoliagePainter extends AbstractPaintingTool {
         }
 
         // Scaling
+        const randomScalingValue = Math.random() * (this.randomScalingMax - this.randomScalingMin) + this.randomScalingMin;
+
         const randomScaling = mesh.scaling.add(new Vector3(
-            Math.random() * (this.randomScalingMax - this.randomScalingMin) + this.randomScalingMin,
-            Math.random() * (this.randomScalingMax - this.randomScalingMin) + this.randomScalingMin,
-            Math.random() * (this.randomScalingMax - this.randomScalingMin) + this.randomScalingMin,
+            randomScalingValue * mesh.scaling.x,
+            randomScalingValue * mesh.scaling.y,
+            randomScalingValue * mesh.scaling.z,
         ));
 
         const scaling = randomScaling.divide(mesh.scaling);
