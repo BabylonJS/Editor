@@ -206,7 +206,7 @@ export class PBRMaterialInspector extends MaterialInspector<PBRMaterial, IPBRMat
                 <InspectorList object={this.material} property="ambientTexture" label="Ambient Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorList object={this.material} property="microSurfaceTexture" label="Micro Surface Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorList object={this.material} property="metallicTexture" label="Metallic Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
-                <InspectorList object={this.material} property="opacityTexture" label="Opacity Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
+                <InspectorList object={this.material} property="opacityTexture" label="Opacity Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} onChange={(t) => t && (t.getAlphaFromRGB = true)} />
                 <InspectorList object={this.material} property="emissiveTexture" label="Emissive Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorList object={this.material} property="lightmapTexture" label="Lightmap Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />
                 <InspectorList object={this.material.detailMap} property="texture" label="Detail Texture" items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />

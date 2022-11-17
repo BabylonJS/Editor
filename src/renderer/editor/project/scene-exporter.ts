@@ -259,7 +259,7 @@ export class SceneExporter {
 			const lods = mesh.getLODLevels();
 			if (!lods.length) { return; }
 
-			m.lodMeshIds = lods.map((lod) => lod.mesh?.id);
+			m.lodMeshIds = lods.filter((lod) => lod.mesh).map((lod) => lod.mesh!.id);
 			m.lodDistances = lods.map((lod) => lod.distanceOrScreenCoverage);
 			m.lodCoverages = lods.map((lod) => lod.distanceOrScreenCoverage);
 		});

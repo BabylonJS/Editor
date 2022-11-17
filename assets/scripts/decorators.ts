@@ -7,6 +7,7 @@ import { Control } from "@babylonjs/gui/2D/controls/control";
 export type VisiblityPropertyType =
     "number" | "string" | "boolean" |
     "Vector2" | "Vector3" | "Vector4" |
+    "Quaternion" |
     "Color3" | "Color4" |
     "Texture" | "Node" |
     "KeyMap";

@@ -17,8 +17,8 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
-import { Vector2, Vector3, Vector4, Matrix } from "@babylonjs/core/Maths/math.vector";
 import { ColorGradingTexture } from "@babylonjs/core/Materials/Textures/colorGradingTexture";
+import { Vector2, Vector3, Vector4, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector";
 
 import { MotionBlurPostProcess } from "@babylonjs/core/PostProcesses/motionBlurPostProcess";
 import { ScreenSpaceReflectionPostProcess } from "@babylonjs/core/PostProcesses/screenSpaceReflectionPostProcess";
@@ -294,8 +294,11 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
                 case "Vector3": n[key] = new Vector3(p.value.x, p.value.y, p.value.z); break;
                 case "Vector4": n[key] = new Vector4(p.value.x, p.value.y, p.value.z, p.value.w); break;
 
+                case "Quaternion": n[key] = new Quaternion(p.value.x, p.value.y, p.value.z, p.value.w); break;
+
                 case "Color3": n[key] = new Color3(p.value.r, p.value.g, p.value.b); break;
                 case "Color4": n[key] = new Color4(p.value.r, p.value.g, p.value.b, p.value.a); break;
+
                 case "Node": n[key] = scene.getNodeById(p.value); break;
                 default: n[key] = p.value; break;
             }
@@ -634,7 +637,7 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
 
         defaultRenderingPipelineRef.imageProcessing.toneMappingEnabled = data.default.json.imageProcessing.toneMappingEnabled;
         defaultRenderingPipelineRef.imageProcessing.toneMappingType = data.default.json.imageProcessing.toneMappingType;
-        
+
         defaultRenderingPipelineRef.imageProcessing.colorCurvesEnabled = data.default.json.imageProcessing.colorCurvesEnabled ?? defaultRenderingPipelineRef.imageProcessing.colorCurvesEnabled;
         defaultRenderingPipelineRef.imageProcessing.colorGradingEnabled = data.default.json.imageProcessing.colorGradingEnabled ?? defaultRenderingPipelineRef.imageProcessing.colorGradingEnabled;
 

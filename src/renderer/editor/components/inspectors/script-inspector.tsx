@@ -8,7 +8,7 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { Classes, Icon, Pre, Spinner, Tooltip } from "@blueprintjs/core";
 
-import { Scene, Node, Vector2, Vector3, Color4, Vector4 } from "babylonjs";
+import { Scene, Node, Vector2, Vector3, Color4, Vector4, Quaternion } from "babylonjs";
 
 import { IObjectInspectorProps } from "../inspector";
 
@@ -270,6 +270,10 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             case "Vector4":
                 target[propertyKey].copyFrom({ x: value.x, y: value.y, z: value.z, w: value.w });
                 break;
+            
+            case "Quaternion":
+                target[propertyKey].copyFrom({ _x: value.x, _y: value.y, _z: value.z, _w: value.w });
+                break;
 
             case "Color3":
             case "Color4":
@@ -356,6 +360,18 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                     if (iv.defaultValue) {
                         const defaultValue = iv.defaultValue as Vector4;
                         property.value ??= property.value ?? { x: defaultValue.x, y: defaultValue.y, z: defaultValue.z, w: defaultValue.w };
+                    } else {
+                        property.value ??= property.value ?? { x: 0, y: 0, z: 0, w: 0 };
+                    }
+                    children.push(
+                        <InspectorVector4 object={property} property="value" label={label} min={iv.options?.min} max={iv.options?.max} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
+                    );
+                    break;
+
+                case "Quaternion":
+                    if (iv.defaultValue) {
+                        const defaultValue = iv.defaultValue as Quaternion;
+                        property.value ??= property.value ?? { x: defaultValue._x, y: defaultValue._y, z: defaultValue._z, w: defaultValue._w };
                     } else {
                         property.value ??= property.value ?? { x: 0, y: 0, z: 0, w: 0 };
                     }

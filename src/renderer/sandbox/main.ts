@@ -1,6 +1,6 @@
 import { Nullable } from "../../shared/types";
 
-import { Vector2, Vector3, Vector4, Color3, Color4 } from "babylonjs"
+import { Vector2, Vector3, Vector4, Color3, Color4, Quaternion } from "babylonjs"
 
 import SandboxWorker from "../editor/workers/workers/sandbox";
 import { IWorkerConfiguration, Workers } from "../editor/workers/workers";
@@ -41,11 +41,11 @@ export interface IExportedInspectorValue {
     /**
      * Defines the default value of the decorated property.
      */
-    defaultValue: number | string | boolean | Vector2 | Vector3 | Vector4 | Color3 | Color4;
+    defaultValue: number | string | boolean | Vector2 | Vector3 | Vector4 | Color3 | Color4 | Quaternion;
     /**
      * Defines the type of the decorated property.
      */
-    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4" | "Texture" | "Node";
+    type: "number" | "string" | "boolean" | "KeyMap" | "Vector2" | "Vector3" | "Vector4" | "Color3" | "Color4" | "Texture" | "Quaternion" | "Node";
 
     /**
      * Defines the optional options available for the exported value.
