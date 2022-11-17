@@ -7,18 +7,26 @@ import { join } from "path";
 import { Nullable } from "../../../shared/types";
 import { Document } from "../../../../photoshop-extension/src/document";
 
-import { DynamicTexture } from "babylonjs";
+import { DynamicTexture, Observable } from "babylonjs";
 
 import { Editor } from "../editor";
 import { TextureAssets } from "../assets/textures";
 
 export class PhotoshopExtension {
+    /**
+     * Defines the reference to the array that contains all the textures coming from Photoshop.
+     */
+    public static Textures: DynamicTexture[] = [];
+
+    /**
+     * Defines the reference to the observable used to notify the observers that a texture has been changed or added.
+     */
+    public static OnTextureChangedObservable: Observable<DynamicTexture> = new Observable<DynamicTexture>();
+
     private static _GeneratorProcess: Nullable<any> = null;
     private static _PluginName: string = "babylonjs-editor-photoshop-extension";
     private static _Document: Nullable<Document> = null;
     private static _Syncing: boolean = false;
-
-    private static _Textures: DynamicTexture[] = [];
 
     /**
      * Inits the Photoshop extension.
@@ -98,12 +106,17 @@ export class PhotoshopExtension {
         if (!this._Document) { return; }
 
         this._Document.onDocumentChangedObservable.add((d) => {
-            let texture = this._Textures.find((t) => t.name === d.name) ?? null;
+            let texture = this.Textures.find((t) => t.name === d.name) ?? null;
+
+            const metadata = texture?.metadata;
+
             if (texture) {
                 const size = texture.getSize();
                 if (size.width !== d.width || size.height !== d.height) {
-                    const index = this._Textures.indexOf(texture);
-                    if (index !== -1) { this._Textures.splice(index, 1); }
+                    const index = this.Textures.indexOf(texture);
+                    if (index !== -1) {
+                        this.Textures.splice(index, 1);
+                    }
 
                     texture.dispose();
                     texture = null;
@@ -113,11 +126,17 @@ export class PhotoshopExtension {
             // Create texture?
             if (!texture) {
                 texture = new DynamicTexture(d.name, { width: d.width, height: d.height }, editor.scene, false);
-                texture.metadata = {
+                texture.metadata = metadata ?? {
                     photoshop: true,
                     photoshopName: d.name,
+                    photoshopEnabled: false,
                 };
-                this._Textures.push(texture);
+
+                if (!texture.metadata.photoshopEnabled) {
+                    editor.scene?.removeTexture(texture);
+                }
+
+                this.Textures.push(texture);
             }
 
             // Update texture
@@ -127,6 +146,8 @@ export class PhotoshopExtension {
 
             editor.assets.refresh(TextureAssets, texture);
             editor.console.logInfo(`Successfully updated texture "${texture.name}" from Photoshop`);
+
+            this.OnTextureChangedObservable.notifyObservers(texture);
         });
     }
 

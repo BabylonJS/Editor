@@ -6,7 +6,7 @@ import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
 import Image from "antd/lib/image";
-import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent, Tag } from "@blueprintjs/core";
+import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent, Tag, Switch } from "@blueprintjs/core";
 
 import { AbstractMesh, Node, IParticleSystem, ReflectionProbe, ParticleSystem, GPUParticleSystem } from "babylonjs";
 
@@ -36,11 +36,13 @@ import { WelcomeDialog } from "../project/welcome/welcome";
 import { ProjectRenamer } from "../project/rename";
 import { PackerDialog } from "../project/packer/dialog";
 
-import { PreviewFocusMode } from "./preview";
+import { TextureAssets } from "../assets/textures";
 
 import { PhotoshopExtension } from "../extensions/photoshop";
 
 import { IPluginToolbar } from "../plugins/toolbar";
+
+import { PreviewFocusMode } from "./preview";
 
 export interface IToolbarProps {
     /**
@@ -54,14 +56,16 @@ export interface IToolbarState {
      * Defines wether or not the current project has a workspace. If true, the workspace tool will be shows.
      */
     hasWorkspace: boolean;
+
     /**
      * Defines wether or not the photoshop extension is enabled.
      */
     isPhotoshopEnabled: boolean;
+
     /**
      * Defines the list of all menus for plugins.
      */
-    plugins?: Undefinable<IPluginToolbar[]>
+    plugins?: Undefinable<IPluginToolbar[]>;
 }
 
 export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
@@ -77,7 +81,10 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         this._editor = props.editor;
         this._editor.mainToolbar = this;
 
-        this.state = { hasWorkspace: false, isPhotoshopEnabled: false };
+        this.state = {
+            hasWorkspace: false,
+            isPhotoshopEnabled: false,
+        };
     }
 
     /**
@@ -198,7 +205,9 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Painting Tools..." icon={<Icon src="paint-brush.svg" />} onClick={() => this._menuItemClicked("tools:painting-tools")} />
                 <MenuItem text="Cinematic Editor" icon={<Icon src="film.svg" />} onClick={() => this._menuItemClicked("tools:cinematic-editor")} />
                 <MenuDivider />
-                <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")} />
+                <MenuItem text="Connect To Photoshop" intent={this.state.isPhotoshopEnabled ? Intent.SUCCESS : Intent.NONE} icon={<Icon src="photoshop.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("tools:photoshop")}>
+                    {this._getPhotoshopDocumentItems()}
+                </MenuItem>
             </Menu>;
 
         const help =
@@ -242,6 +251,59 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                     <Button icon={<Icon src="dog.svg" />} rightIcon="caret-down" text="Help" />
                 </Popover>
             </ButtonGroup>
+        );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        PhotoshopExtension.OnTextureChangedObservable.add(() => this.forceUpdate());
+    }
+
+    /**
+     * Returns the list of all documents available in the Photoshop extension.
+     */
+    private _getPhotoshopDocumentItems(): React.ReactNode {
+        if (!PhotoshopExtension.IsEnabled || !PhotoshopExtension.Textures.length) {
+            return undefined;
+        }
+
+        const documents = PhotoshopExtension.Textures.map((t) => {
+            const text = (
+                <Switch
+                    style={{ margin: "auto" }}
+                    checked={t.metadata.photoshopEnabled}
+                    labelElement={(
+                        <>
+                            {t.metadata?.photoshopName ?? t.name}
+                            <img src={t.getContext().canvas.toDataURL("image/png")} style={{ width: "24px", height: "24px", objectFit: "contain", marginLeft: "10px" }} />
+                        </>
+                    )}
+                    onChange={(e) => {
+                        const checked = (e.target as HTMLInputElement).checked;
+                        t.metadata.photoshopEnabled = checked;
+
+                        if (checked) {
+                            this._editor.scene!.addTexture(t);
+                        } else {
+                            this._editor.scene!.removeTexture(t);
+                        }
+
+                        this.forceUpdate();
+                        this._editor.assets.forceRefresh(TextureAssets);
+                    }}
+                />
+            );
+
+            return <MenuItem text={text} shouldDismissPopover={false} />
+        });
+
+        return (
+            <>
+                <MenuDivider title="Documents" />
+                {documents}
+            </>
         );
     }
 
