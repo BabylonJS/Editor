@@ -25,6 +25,7 @@ import { InspectorBoolean } from "../../../gui/inspector/fields/boolean";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorVector2 } from "../../../gui/inspector/fields/vector2";
 import { InspectorVector3 } from "../../../gui/inspector/fields/vector3";
+import { InspectorVector4 } from "../../../gui/inspector/fields/vector4";
 
 import { AbstractInspector } from "../abstract-inspector";
 
@@ -259,6 +260,7 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
             case "number": return <InspectorNumber object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
             case "Vector2": return <InspectorVector2 object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
             case "Vector3": return <InspectorVector3 object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
+            case "Vector4": return <InspectorVector4 object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
             default: return null;
         }
     }

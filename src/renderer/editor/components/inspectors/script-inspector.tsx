@@ -8,7 +8,7 @@ import { Nullable } from "../../../../shared/types";
 import * as React from "react";
 import { Classes, Icon, Pre, Spinner, Tooltip } from "@blueprintjs/core";
 
-import { Scene, Node, Vector2, Vector3, Color4 } from "babylonjs";
+import { Scene, Node, Vector2, Vector3, Color4, Vector4 } from "babylonjs";
 
 import { IObjectInspectorProps } from "../inspector";
 
@@ -20,6 +20,7 @@ import { InspectorBoolean } from "../../gui/inspector/fields/boolean";
 import { InspectorSection } from "../../gui/inspector/fields/section";
 import { InspectorVector3 } from "../../gui/inspector/fields/vector3";
 import { InspectorVector2 } from "../../gui/inspector/fields/vector2";
+import { InspectorVector4 } from "../../gui/inspector/fields/vector4";
 import { InspectorKeyMapButton } from "../../gui/inspector/fields/keymap-button";
 import { InspectorList, IInspectorListItem } from "../../gui/inspector/fields/list";
 
@@ -266,6 +267,9 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             case "Vector3":
                 target[propertyKey].copyFrom({ _x: value.x, _y: value.y, _z: value.z });
                 break;
+            case "Vector4":
+                target[propertyKey].copyFrom({ x: value.x, y: value.y, z: value.z, w: value.w });
+                break;
 
             case "Color3":
             case "Color4":
@@ -346,6 +350,17 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                     }
                     children.push(
                         <InspectorVector3 object={property} property="value" label={label} min={iv.options?.min} max={iv.options?.max} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
+                    );
+                    break;
+                case "Vector4":
+                    if (iv.defaultValue) {
+                        const defaultValue = iv.defaultValue as Vector4;
+                        property.value ??= property.value ?? { x: defaultValue.x, y: defaultValue.y, z: defaultValue.z, w: defaultValue.w };
+                    } else {
+                        property.value ??= property.value ?? { x: 0, y: 0, z: 0, w: 0 };
+                    }
+                    children.push(
+                        <InspectorVector4 object={property} property="value" label={label} min={iv.options?.min} max={iv.options?.max} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
 
