@@ -93,7 +93,21 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
                     <span style={{ display: "block" }}>Size: {size.width}*{size.height}</span>
                     <span style={{ display: "block" }}>Base Size: {baseSize.width}*{baseSize.height}</span>
                 </div>
+                {this.getReloadTextureButton()}
             </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the button used to reload the texture from file.
+     */
+    protected getReloadTextureButton(): React.ReactNode {
+        if (!(this.selectedObject instanceof Texture)) {
+            return undefined;
+        }
+
+        return (
+            <InspectorButton label="Reload" small onClick={() => this._reloadTexture()} />
         );
     }
 
@@ -185,18 +199,7 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
 
         return (
             <InspectorSection title="Scale">
-                <InspectorBoolean object={this.selectedObject} property="_invertY" label="Invert Y" onChange={() => {
-                    const texture = this.selectedObject as Texture;
-                    const textureUrl = texture.url;
-
-                    if (textureUrl) {
-                        if (!isAbsolute(textureUrl)) {
-                            texture.url = join(WorkSpace.DirPath!, "assets", textureUrl);
-                        }
-                        texture.updateURL(this.selectedObject.url!);
-                        texture.url = textureUrl;
-                    }
-                }} />
+                <InspectorBoolean object={this.selectedObject} property="_invertY" label="Invert Y" onChange={() => this._reloadTexture()} />
                 <InspectorNumber object={this.selectedObject} property="uScale" label="U Scale" step={0.01} />
                 <InspectorNumber object={this.selectedObject} property="vScale" label="V Scale" step={0.01} />
             </InspectorSection>
@@ -232,6 +235,22 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
                 <InspectorNumber object={this.selectedObject} property="rotationY" label="Rotation Y" step={0.01} />
             </InspectorSection>
         );
+    }
+
+    private _reloadTexture(): void {
+        if (!(this.selectedObject instanceof Texture)) {
+            return undefined;
+        }
+
+        const textureUrl = this.selectedObject.url;
+
+        if (textureUrl) {
+            if (!isAbsolute(textureUrl)) {
+                this.selectedObject.url = join(WorkSpace.DirPath!, "assets", textureUrl);
+            }
+            this.selectedObject.updateURL(this.selectedObject.url!);
+            this.selectedObject.url = textureUrl;
+        }
     }
 }
 
