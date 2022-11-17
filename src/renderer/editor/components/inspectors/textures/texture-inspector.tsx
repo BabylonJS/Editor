@@ -1,4 +1,7 @@
-import { join, extname, isAbsolute } from "path";
+import { pathExists } from "fs-extra";
+import { join, extname, isAbsolute, dirname, basename } from "path";
+
+import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
 
@@ -13,6 +16,8 @@ import { InspectorBoolean } from "../../../gui/inspector/fields/boolean";
 
 import { Project } from "../../../project/project";
 import { WorkSpace } from "../../../project/workspace";
+
+import { KTXTools } from "../../../tools/ktx";
 
 import { AbstractInspector } from "../abstract-inspector";
 import { Inspector, IObjectInspectorProps } from "../../inspector";
@@ -30,6 +35,8 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
         "PROJECTION_MODE", "SKYBOX_MODE", "INVCUBIC_MODE", "EQUIRECTANGULAR_MODE",
         "FIXED_EQUIRECTANGULAR_MODE", "FIXED_EQUIRECTANGULAR_MIRRORED_MODE",
     ];
+
+    private _previewImgRef: Nullable<HTMLImageElement> = null;
 
     /**
      * Constructor.
@@ -87,7 +94,7 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
         return (
             <InspectorSection title="Preview">
                 <a style={{ color: "white", textAlign: "center", wordBreak: "break-all" }} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject.name)}>{this.selectedObject.name}</a>
-                <img src={path} style={{ width: "100%", height: "280px", objectFit: "contain" }}></img>
+                <img ref={(r) => this._previewImgRef = r} src={`${path}?dummy=${Date.now()}`} style={{ width: "100%", height: "280px", objectFit: "contain" }}></img>
                 <InspectorButton label="Show In Assets Browser" small icon="link" onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject.name)} />
                 <div style={{ color: "darkgrey" }}>
                     <span style={{ display: "block" }}>Size: {size.width}*{size.height}</span>
@@ -107,7 +114,7 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
         }
 
         return (
-            <InspectorButton label="Reload" small onClick={() => this._reloadTexture()} />
+            <InspectorButton label="Reload" small onClick={() => this._reloadTexture(true)} />
         );
     }
 
@@ -199,7 +206,7 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
 
         return (
             <InspectorSection title="Scale">
-                <InspectorBoolean object={this.selectedObject} property="_invertY" label="Invert Y" onChange={() => this._reloadTexture()} />
+                <InspectorBoolean object={this.selectedObject} property="_invertY" label="Invert Y" onChange={() => this._reloadTexture(false)} />
                 <InspectorNumber object={this.selectedObject} property="uScale" label="U Scale" step={0.01} />
                 <InspectorNumber object={this.selectedObject} property="vScale" label="V Scale" step={0.01} />
             </InspectorSection>
@@ -237,19 +244,76 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
         );
     }
 
-    private _reloadTexture(): void {
+    /**
+     * Reloads the texture in case the user taps the "Reload" button.
+     * Takes care of the compressed version of the texture.
+     */
+    private async _reloadTexture(recompress: boolean): Promise<void> {
         if (!(this.selectedObject instanceof Texture)) {
             return undefined;
         }
 
-        const textureUrl = this.selectedObject.url;
+        // Update preview img
+        if (this._previewImgRef) {
+            this._previewImgRef.src = "";
+            this._previewImgRef.src = join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name) + `?dummy=${Date.now()}`;
+        }
 
-        if (textureUrl) {
-            if (!isAbsolute(textureUrl)) {
-                this.selectedObject.url = join(WorkSpace.DirPath!, "assets", textureUrl);
+        this.editor.assetsBrowser._files?.refresh();
+
+        const textureUrl = this.selectedObject.url;
+        const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
+        const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
+        const compressedTexturesDest = join(this.editor.assetsBrowser.assetsDirectory, dirname(this.selectedObject.name));
+
+        if (recompress && ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
+            if (!(await pathExists(compressedTexturesDest))) {
+                return;
             }
-            this.selectedObject.updateURL(this.selectedObject.url!);
-            this.selectedObject.url = textureUrl;
+
+            const absoluteTexturePath = join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name);
+
+            try {
+                await KTXTools.CompressTexture(this.editor, absoluteTexturePath, compressedTexturesDest, ktxFormat);
+
+                const relativeKtxTexturePath = KTXTools.GetKtxFileName(this.selectedObject.name, ktxFormat);
+                const absoluteKtxTexturePath = join(compressedTexturesDest, basename(relativeKtxTexturePath));
+
+                try {
+                    this.selectedObject.updateURL(absoluteKtxTexturePath);
+                } catch (e) {
+                    // Catch silently.
+                }
+
+                this.selectedObject.url = textureUrl;
+            } catch (e) {
+                // Catch silently.
+            }
+        } else {
+            if (textureUrl) {
+                if (!isAbsolute(textureUrl)) {
+                    this.selectedObject.url = join(WorkSpace.DirPath!, "assets", textureUrl);
+                }
+
+                try {
+                    if (ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
+                        if (!(await pathExists(compressedTexturesDest))) {
+                            await KTXTools.CompressTexture(this.editor, this.selectedObject.url!, compressedTexturesDest, ktxFormat);
+                        }
+    
+                        const relativeKtxTexturePath = KTXTools.GetKtxFileName(this.selectedObject.name, ktxFormat);
+                        const absoluteKtxTexturePath = join(compressedTexturesDest, basename(relativeKtxTexturePath));
+    
+                        this.selectedObject.updateURL(absoluteKtxTexturePath);
+                    } else {
+                        this.selectedObject.updateURL(this.selectedObject.url!);
+                    }
+                } catch (e) {
+                    // Catch silently.
+                }
+
+                this.selectedObject.url = textureUrl;
+            }
         }
     }
 }

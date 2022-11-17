@@ -552,9 +552,14 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         const lods = this.selectedObject.getLODLevels();
 
         lods.forEach((lod, index) => {
+            const materialField = lod.mesh ? (
+                <InspectorList object={lod.mesh} property="material" label="Material" items={() => this.getMaterialsList()} dndHandledTypes={["asset/material"]} />
+            ) : undefined;
+
             sections.push((
                 <InspectorSection key={`lod-${index}`} title={lod.mesh?.name ?? "Null"}>
                     {this._getLodDragAndDropZone(mesh, lod)}
+                    {materialField}
                     <InspectorNumber key={`lod-distance-${index}`} object={lod} property="distanceOrScreenCoverage" label="Distance Or Screen Coverage" min={0} onChange={() => mesh["_sortLODLevels"]()} />
                     <InspectorButton key={`lod-remove-${index}`} label="Remove" small onClick={() => {
                         mesh.removeLODLevel(lod.mesh!);

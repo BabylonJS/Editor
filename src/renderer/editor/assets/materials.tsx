@@ -541,7 +541,7 @@ export class MaterialAssets extends AbstractAssets {
         toRemove.forEach((material) => {
             if (!material || material.metadata?.isLocked) { return; }
 
-            const bindedMesh = this.editor.scene!.meshes.find((m) => !m._masterMesh && m.material === material);
+            const bindedMesh = this.editor.scene!.meshes.find((m) => m.material === material);
 
             // Used directly by a mesh, return.
             if (bindedMesh) { return; }
