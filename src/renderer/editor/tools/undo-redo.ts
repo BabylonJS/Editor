@@ -3,7 +3,7 @@ import { shell } from "electron";
 /**
  * Defines the type used to define the return type of undo/redo actions.
  */
-export type UndoRedoReturnType<T> = (T | void) | (Promise<T> | Promise<void>);
+export type UndoRedoReturnType<T> = (T | void) | (Promise<T> | Promise<void>);
 
 export interface IUndoRedoAction {
 	/**
@@ -95,7 +95,7 @@ export class UndoRedo {
 	/**
 	 * Called on a redo action should be performed.
 	 */
-	private _redo<T>(step: "push" | "redo"): UndoRedoReturnType<T> {
+	private _redo<T>(step: "push" | "redo"): UndoRedoReturnType<T> {
 		if (this._position >= this._stack.length - 1) {
 			return shell.beep();
 		}
@@ -115,13 +115,13 @@ export class UndoRedo {
 		return possiblePromise as UndoRedoReturnType<T>;
 	}
 
-    /**
-     * Clears the current undo/redo stack.
-     */
-    public clear(): void {
-        this._stack = [];
-        this._position = -1;
-    }
+	/**
+	 * Clears the current undo/redo stack.
+	 */
+	public clear(): void {
+		this._stack = [];
+		this._position = -1;
+	}
 }
 
 /**

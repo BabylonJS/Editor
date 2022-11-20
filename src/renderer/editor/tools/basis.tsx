@@ -78,7 +78,11 @@ export class BasisTools {
                                     background: "#00000000",
                                 });
 
-                                f.fit();
+                                try {
+                                    f.fit();
+                                } catch (e) {
+                                    // Catch silently.
+                                }
                             }
                         }}
                     >

@@ -13,7 +13,7 @@ import { Editor } from "../editor";
 import { SceneIcons } from "./icons";
 import { SceneSettings } from "./settings";
 
-import { GraphContextMenu } from "../components/graph/context-menu";
+import { GraphContextMenu } from "../components/graph/context-menu/menu";
 
 export class ScenePicker {
     /**

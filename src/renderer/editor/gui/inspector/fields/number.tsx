@@ -6,6 +6,8 @@ import * as React from "react";
 import Slider from "antd/lib/slider";
 import { InputGroup, Tooltip } from "@blueprintjs/core";
 
+import { Parser } from "expr-eval";
+
 import { InspectorUtils } from "../utils";
 import { InspectorNotifier } from "../notifier";
 
@@ -92,6 +94,8 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
 
     private _initialValue: number;
 
+    private _parser: Nullable<Parser> = null;
+
     private static _NumDecimals(value: number): number {
         const valueString = value.toString();
         const dotIndex = valueString.indexOf(".");
@@ -116,7 +120,7 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
         super(props);
 
         let value = props.object[props.property];
-        
+
         if (typeof (value) !== "number" && typeof (props.defaultValue) === "number") {
             value = props.defaultValue;
             props.object[props.property] = value;
@@ -185,10 +189,10 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
                 {sliderNode}
                 <div style={{ width: widthPercent, height: "25px", float: "left", marginTop: "3px" }}>
                     <InputGroup
-                        small={true}
-                        fill={true}
+                        fill
+                        small
                         value={this.state.value}
-                        type="number"
+                        type="text"
                         step={this.props.step}
                         onFocus={() => this._handleInputFocused()}
                         onBlur={() => this._handleInputBlurred()}
@@ -247,7 +251,17 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
             return this.setState({ value });
         }
 
+        this._parser ??= new Parser({
+            allowMemberAccess: false,
+        });
+
         let parsedValue = parseFloat(value);
+
+        try {
+            parsedValue = this._parser.parse(value).evaluate();
+        } catch (e) {
+            // Catch silently.
+        }
 
         // Min / max
         if (this.props.min !== undefined && parsedValue < this.props.min) {

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ContextMenu, Menu, MenuDivider, MenuItem, Tag } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuDivider, MenuItem, Tag } from "@blueprintjs/core";
 
 import { Mesh } from "babylonjs";
 

@@ -1,124 +1,81 @@
+import { Nullable } from "../../../shared/types";
+
 import * as React from "react";
-import Tree from "antd/lib/tree/Tree";
-import { DataNode } from "rc-tree/lib/interface";
+import { Classes, InputGroup, Tag, Tree, TreeNodeInfo, Icon as BPIcon } from "@blueprintjs/core";
 
-import {
-    Classes, Tooltip, Position, InputGroup, FormGroup, Icon as BPIcon, Switch, ButtonGroup, Button, Popover, Intent, Tag,
-} from "@blueprintjs/core";
-
-import { Nullable, Undefinable } from "../../../shared/types";
-
-import {
-    Node, Scene, Mesh, Light, Camera, TransformNode, InstancedMesh, AbstractMesh,
-    IParticleSystem, ParticleSystem, Sound, Bone, ReflectionProbe,
-} from "babylonjs";
+import { IParticleSystem, Mesh, Node, ReflectionProbe, Sound } from "babylonjs";
 
 import { Editor } from "../editor";
 
 import { Icon } from "../gui/icon";
-import { InspectorNotifier } from "../gui/inspector/notifier";
 
 import { Tools } from "../tools/tools";
-import { undoRedo } from "../tools/undo-redo";
-import { IMeshMetadata } from "../tools/types";
 
 import { SceneSettings } from "../scene/settings";
 
-import { IDragAndDroppedAssetComponentItem } from "../assets/abstract-assets";
+import { GraphIcon } from "./graph/icon";
+import { GraphLabel } from "./graph/label";
+import { GraphContextMenu } from "./graph/context-menu/menu";
 
-import { GraphContextMenu } from "./graph/context-menu";
+import { moveNodes } from "./graph/tools/move";
+import { isAbstractMesh, isNode, isIParticleSystem, isReflectionProbe, isScene, isSound } from "./graph/tools/tools";
+
 import { GraphReferenceUpdater } from "./graph/reference-updater";
-import { NodeIcon } from "../gui/node-icon";
-
-export interface IGraphProps {
-    /**
-     * Defines the editor reference.
-     */
-    editor: Editor;
-    /**
-     * Defines the reference to the scene to traverse.
-     */
-    scene?: Undefinable<Scene>;
-}
-
-export interface IGraphState {
-    /**
-     * Defines the list of all nodes to be draws in the editor.
-     */
-    nodes: DataNode[];
-    /**
-     * Defines the list of all expanded nodes.
-     */
-    expandedNodeIds?: Undefinable<string[]>;
-    /**
-     * Defines the list of all selected nodes.
-     */
-    selectedNodeIds?: Undefinable<string[]>;
-    /**
-     * Defines the current filter to search nodes.
-     */
-    filter: string;
-
-    /**
-     * Defines the panel's width.
-     */
-    width?: number;
-
-    /**
-     * Defines wether or not the graphs options should be drawn.
-     */
-    showOptions: boolean;
-    /**
-     * Defines wether or not the instances should be shown in the graph.
-     */
-    showInstances: boolean;
-    /**
-     * Defines wether or not the lights should be shown in the graph.
-     */
-    showLights: boolean;
-}
-
-interface _ITreeDropInfo {
-    event: React.MouseEvent;
-    node: any;
-    dragNode: any;
-    dragNodesKeys: (string | number)[];
-    dropPosition: number;
-    dropToGap: boolean;
-}
+import { removeNodes } from "./graph/tools/remove";
 
 export interface _IDragAndDroppedItem {
     nodeId: string;
     onDropInInspector: (ev: React.DragEvent<HTMLElement>, object: any, property: string) => Promise<void>;
 }
 
-export class Graph extends React.Component<IGraphProps, IGraphState> {
-    private _editor: Editor;
-    private _filter: string = "";
+export interface IGraphProps {
+    /**
+     * Defines the reference to the editor.
+     */
+    editor: Editor;
+}
 
-    private _dragging: boolean = false;
-    private _firstUpdate: boolean = true;
-
-    private _allKeys: string[] = [];
+export interface IGraphState {
+    /**
+     * Defines the current string of the filter box.
+     */
+    filter: string;
 
     /**
-     * Defines the last selected node in the graph.
+     * Defines the list of all nodes drawn in the graph.
      */
-    public lastSelectedObject: Nullable<Node | IParticleSystem | Sound | ReflectionProbe> = null;
+    nodes: TreeNodeInfo<any>[];
+    /**
+     * Defines the list of all selected nodes in the graph.
+     */
+    selectedNodes: TreeNodeInfo<any>[];
+}
+
+export class Graph extends React.Component<IGraphProps, IGraphState> {
+    /**
+     * Defines the reference to the last selected object.
+     */
+    public lastSelectedObject: any;
+
+    private _nodes: TreeNodeInfo<any>[] = [];
+    private _previousNodes: TreeNodeInfo<any>[] = [];
+
+    private _expandedNodes: TreeNodeInfo<any>[] = [];
 
     /**
      * Constructor.
-     * @param props the component's props.
+     * @param props defines the component's props.
      */
     public constructor(props: IGraphProps) {
         super(props);
 
-        this._editor = props.editor;
-        if (!props.scene) { this._editor.graph = this; }
+        props.editor.graph = this;
 
         this.state = {
-            nodes: [], expandedNodeIds: [], selectedNodeIds: [], filter: "",
-            showOptions: false, showInstances: true, showLights: true,
+            filter: "",
+
+            nodes: [],
+            selectedNodes: [],
         };
     }
 
@@ -126,160 +83,269 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Renders the component.
      */
     public render(): React.ReactNode {
-        if (!this.state.nodes.length) { return null; }
-
         return (
-            <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+            <>
                 <InputGroup
                     type="search"
                     placeholder="Search..."
                     className={Classes.FILL}
                     style={{ marginTop: "5px", marginBottom: "5px" }}
+                    onChange={(e) => this._handleSearchChange(e.target.value)}
                     leftIcon={<BPIcon icon="search" style={{ margin: "12px" }} />}
-                    onChange={(e) => this._handleFilterChanged(e.target.value)}
                 ></InputGroup>
-                <Popover
-                    fill
-                    lazy
-                    usePortal
-                    inheritDarkTheme
-                    position={Position.BOTTOM}
-                    isOpen={this.state.showOptions}
-                    popoverClassName={Classes.POPOVER_CONTENT_SIZING}
-                    onClose={() => this.setState({ showOptions: false })}
-                    content={
-                        <FormGroup label="Graph" labelInfo="Options" >
-                            <Switch label="Show Instances" checked={this.state.showInstances} onChange={(e) => this.setState({ showInstances: e.currentTarget.checked }, () => this.refresh())} />
-                            <Switch label="Show Lights" checked={this.state.showLights} onChange={(e) => this.setState({ showLights: e.currentTarget.checked }, () => this.refresh())} />
-                        </FormGroup>
-                    }
+                <div
+                    style={{
+                        height: "calc(100% - 40px)",
+                    }}
+                    onDrop={(ev) => {
+                        moveNodes(this.props.editor, this.state.selectedNodes.map((n) => n.nodeData), null, ev.shiftKey);
+                    }}
                 >
-                    <ButtonGroup fill style={{ backgroundColor: "#333333" }}>
-                        <Button
-                            text="Options..."
-                            onClick={() => this.setState({ showOptions: true })}
-                            style={{ marginTop: "5px", marginBottom: "5px", paddingLeft: "5px", paddingRight: "5px" }}
-                        />
-                    </ButtonGroup>
-                </Popover>
-                <div style={{ width: "100%", height: "calc(100% - 75px)", overflow: "auto" }}>
-                    <Tree.DirectoryTree
-                        multiple
-                        showIcon
-                        blockNode
-                        key="Graph"
-                        icon={false}
-                        checkable={false}
-                        autoExpandParent={false}
-                        expandAction="doubleClick"
-                        className="draggable-tree"
-                        treeData={this.state.nodes}
-                        style={{ height: "calc(100% - 32px)" }}
-                        selectedKeys={this.state.selectedNodeIds ?? []}
-                        draggable={{ icon: false, nodeDraggable: () => true }}
-                        expandedKeys={this._filter ? this._allKeys : (this.state.expandedNodeIds ?? [])}
-                        onDrop={(i) => this._handleDrop(i)}
-                        onDragEnd={() => this._handleDragEnd()}
-                        onDragEnter={(n) => this._handleDragEnter(n)}
-                        onDragStart={(n) => this._handleDragStart(n)}
-                        onExpand={(k) => this._handleExpandedNode(k as string[])}
-                        onSelect={(k) => this._handleSelectedNodes(k as string[])}
-                        onRightClick={(e) => this._handleNodeContextMenu(e.event, e.node)}
+                    <Tree
+                        contents={this.state.nodes}
+                        onNodeExpand={(n) => this._handleNodeExpand(n)}
+                        onNodeCollapse={(n) => this._handleNodeCollapse(n)}
+                        onNodeClick={(n, _, e) => this._handleNodeClick(n, e)}
+                        onNodeDoubleClick={(n) => this._handleNodeDoubleClick(n)}
+                        onNodeContextMenu={(n, _, e) => this._handleNodeContextMenu(n, e)}
                     />
                 </div>
-            </div>
+            </>
         );
     }
 
     /**
-     * Resizes the panel
+     * Removes the given object from the scene graph.
+     * @param node defines the reference to the object to remove.
+     */
+    public removeObject(node: any): void {
+        removeNodes(this.props.editor, [node]);
+    }
+
+    /**
+     * Resizes the component.
      */
     public resize(): void {
-        const panel = this._editor.getPanelSize("graph");
-        if (panel.width) {
-            this.setState({ width: panel.width });
+        // ...
+    }
+
+    /**
+     * Called on the user filters the graph by name.
+     */
+    private _handleSearchChange(filter: string): void {
+        if (filter.length === 1 && !this.state.filter && !this._expandedNodes.length) {
+            this._forEachNode(this.state.nodes, (n) => n.isExpanded && this._expandedNodes.push(n));
+        }
+
+        this.setState({ filter }, () => {
+            this.refresh(() => {
+                if (!this.state.filter) {
+                    this._forEachNode(this.state.nodes, (n) => {
+                        const expandedNode = this._expandedNodes.find((en) => en.id === n.id);
+                        n.isExpanded = expandedNode ? true : false;
+                    });
+
+                    this._expandedNodes.splice(0);
+
+                    this.update();
+                }
+            });
+        });
+    }
+
+    /**
+     * Called on the user right-clicks on a node.
+     */
+    private _handleNodeContextMenu(node: TreeNodeInfo<any>, event: React.MouseEvent<HTMLElement, MouseEvent>): void {
+        if (!node.isSelected) {
+            this._handleNodeClick(node, event);
+        }
+
+        if (node.nodeData && !isScene(node.nodeData)) {
+            GraphContextMenu.Show(event.nativeEvent, this.props.editor, node.nodeData!);
         }
     }
 
     /**
-     * Refreshes the graph.
-     * @param done called on the refresh process finished.
+     * Called on the user clicks on a node.
      */
-    public refresh(done?: Undefinable<() => void>): void {
-        const nodes = this._parseScene();
-        const expandedNodeIds = this._firstUpdate ? undefined : this.state.expandedNodeIds;
+    public _handleNodeClick(node: TreeNodeInfo<any>, event: React.MouseEvent<HTMLElement, MouseEvent>): void {
+        const index = this.state.selectedNodes.findIndex((n) => n.id === node.id);
 
-        this.setState({ nodes, expandedNodeIds }, () => done && done());
-        this._firstUpdate = false;
-    }
+        if (event.shiftKey && this.state.selectedNodes.length) {
+            const nodeIndex = this._nodes.findIndex((n) => n.id === node.id);
+            const firstIndex = this._nodes.findIndex((n) => n.id === this.state.selectedNodes[0].id);
 
-    /**
-     * Clears the graph.
-     */
-    public clear(): void {
-        this.setState({ nodes: [], selectedNodeIds: [], expandedNodeIds: [] });
-        this._firstUpdate = true;
-    }
+            if (nodeIndex !== -1 && firstIndex !== -1) {
+                const min = Math.max(3, Math.min(nodeIndex, firstIndex));
+                const max = Math.max(nodeIndex, firstIndex);
 
-    /**
-     * Selecs the given node in the graph.
-     * @param node the node to select in the graph.
-     * @param appendToSelected defines wether or not the selected node should be appended to the currently selected nodes.
-     */
-    public setSelected(node: Node | IParticleSystem | Sound | ReflectionProbe, appendToSelected?: boolean): void {
-        let expanded = this.state.expandedNodeIds?.slice();
-        if (expanded) {
-            let parent: Nullable<Node>;
-            if (node instanceof Node) {
-                parent = node.parent;
-            } else if (node instanceof Sound) {
-                parent = node["_connectedTransformNode"];
-            } else if (node instanceof ReflectionProbe) {
-                parent = node["_attachedMesh"];
+                const subNodes = this._nodes.filter((_, index) => index >= min && index <= max);
+
+                this.state.selectedNodes.splice(0);
+
+                this._forEachNode(this.state.nodes, (n) => {
+                    n.isSelected = false;
+
+                    if (!subNodes.find((n2) => n2.id === n.id)) {
+                        return;
+                    }
+
+                    n.isSelected = true;
+                    this.state.selectedNodes.push(n);
+                });
+            }
+        }
+        else if (!event.ctrlKey && !event.metaKey) {
+            this.state.selectedNodes.splice(0);
+            this.state.selectedNodes.push(node);
+
+            this._forEachNode(this.state.nodes, (n) => n.isSelected = false);
+            node.isSelected = true;
+        } else {
+            node.isSelected = index === -1;
+
+            if (index !== -1) {
+                this.state.selectedNodes.splice(index, 1);
             } else {
-                parent = node.emitter as AbstractMesh;
-            }
-
-            while (parent) {
-                const pid = parent.id;
-                if (expanded.indexOf(pid) === -1) { expanded.push(pid); }
-
-                parent = parent.parent;
+                this.state.selectedNodes.push(node);
             }
         }
 
-        this.lastSelectedObject = node;
+        if (node.nodeData) {
+            this.lastSelectedObject = node.nodeData;
+            this.props.editor.selectedNodeObservable.notifyObservers(node.nodeData!, undefined, this);
+        }
 
-        const id = node instanceof Sound
-            ? node.metadata?.id
-            : node instanceof ReflectionProbe
-                ? node["metadata"]?.id
-                : node.id;
-
-        this.setState({
-            selectedNodeIds: (appendToSelected ? (this.state.selectedNodeIds ?? []) : []).concat([id]),
-            expandedNodeIds: expanded ?? [],
-        });
+        this.update();
     }
 
     /**
-     * Refreshes the graph and selects the given node. Mainly used by assets.
-     * @param node the node to select in the graph.
+     * Called on the user expands a node.
      */
-    public refreshAndSelect(node: Node): void {
-        this.refresh(() => {
-            setTimeout(() => this.setSelected(node));
-        });
+    private _handleNodeExpand(node: TreeNodeInfo<any>): void {
+        node.isExpanded = true;
+        this.update();
     }
 
     /**
-     * Returns the list of all selected nodes (node, particle system, sound).
+     * Called on the user collapses a node.
      */
-    public getAllSelected(): (Node | IParticleSystem | Sound | ReflectionProbe)[] {
-        const result: (Node | IParticleSystem | Sound | ReflectionProbe)[] = [];
-        const selectedIds = this.state.selectedNodeIds ?? [];
-        selectedIds.forEach((sid) => {
-            const node = this._getNodeById(sid);
+    private _handleNodeCollapse(node: TreeNodeInfo<any>): void {
+        node.isExpanded = false;
+        this.update();
+    }
+
+    /**
+     * Called on the user double clicks a node.
+     */
+    private _handleNodeDoubleClick(node: TreeNodeInfo<any>): void {
+        node.isExpanded = !node.isExpanded;
+        this.update();
+    }
+
+    /**
+     * Refreshes the entire graph.
+     * @param done defines the reference to the callback called on the graph has been updated.
+     */
+    public refresh(done?: () => void): void {
+        this._previousNodes = this._nodes;
+        this._nodes = [];
+
+        this.setState({ nodes: this._parseSceneNodes() }, () => done?.());
+
+        this._previousNodes = [];
+    }
+
+    /**
+     * Updates the current graph state without parsing the scene nodes.
+     */
+    public update(): void {
+        this.setState({ nodes: this.state.nodes });
+    }
+
+    /**
+     * Sets the given object selected in the graph.
+     * @param object defines the reference to the object to set selected in the graph.
+     * @param appendToSelected defines wether or not the object should be added to the currently selected node(s) in the graph.
+     */
+    public setSelected(object: any, appendToSelected?: boolean): void {
+        if (!appendToSelected) {
+            this._forEachNode(this.state.nodes, (n) => n.isSelected = false);
+        }
+
+        const node = this._forEachNode(this.state.nodes, (n) => n.nodeData === object);
+        if (node) {
+            node.isSelected = true;
+
+            this.lastSelectedObject = node.nodeData;
+
+            if (appendToSelected) {
+                this.state.selectedNodes.push(node);
+            } else {
+                this.setState({ selectedNodes: [node] });
+            }
+        }
+
+        // Expand all parents
+        let parent = object.parent;
+        while (parent) {
+            const node = this._forEachNode(this.state.nodes, (n) => n.nodeData === parent);
+            if (node) {
+                node.isExpanded = true;
+            }
+
+            parent = parent.parent;
+        }
+
+        this.update();
+    }
+
+    /**
+     * Parses all the scene's nodes and returns the array of all root nodes.
+     */
+    private _parseSceneNodes(roots?: Node[]): TreeNodeInfo<any>[] {
+        this._nodes = [
+            {
+                label: "Scene",
+                hasCaret: false,
+                id: "__editor__scene__",
+                nodeData: this.props.editor.scene,
+                icon: <GraphIcon object={this.props.editor.scene} />,
+
+                isSelected: this._previousNodes[0]?.isSelected ?? false,
+            },
+            {
+                childNodes: [],
+                label: "Sounds",
+                id: "__editor__sounds__",
+                icon: <Icon src="volume-up.svg" />,
+                hasCaret: (this.props.editor.scene!.mainSoundTrack?.soundCollection?.length ?? 0) > 0,
+
+                isSelected: this._previousNodes[1]?.isSelected ?? false,
+                isExpanded: this._previousNodes[1]?.isExpanded ?? false,
+            },
+            {
+                childNodes: [],
+                label: "Reflection Probes",
+                id: "__editor__reflection__probes",
+                icon: <Icon src="reflection-probe.svg" />,
+                hasCaret: (this.props.editor.scene!.reflectionProbes?.length ?? 0) > 0,
+
+                isSelected: this._previousNodes[2]?.isSelected ?? false,
+                isExpanded: this._previousNodes[2]?.isExpanded ?? false,
+            },
+        ];
+
+        const result = this._nodes.slice();
+
+        this._nodes[1].childNodes = this.props.editor.scene!.mainSoundTrack?.soundCollection?.filter((s) => !s.spatialSound).map((s) => this._recursivelyParseSceneNodes(s)).filter((s) => s) as TreeNodeInfo<any>[];
+        this._nodes[2].childNodes = this.props.editor.scene!.reflectionProbes?.filter((rp) => !rp["_attachedMesh"]).map((rp) => this._recursivelyParseSceneNodes(rp)).filter((rp) => rp) as TreeNodeInfo<any>[];
+
+        roots ??= this.props.editor.scene!.rootNodes;
+        roots.forEach((r) => {
+            const node = this._recursivelyParseSceneNodes(r);
+
             if (node) {
                 result.push(node);
             }
@@ -289,930 +355,154 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     }
 
     /**
-     * Clones the given node.
-     * @param node the node to clone.
+     * Recursively parses all the children scene nodes of the given and returns its tree node reference.
      */
-    public cloneObject(node: Node | IParticleSystem): Nullable<Node | IParticleSystem> {
-        let clone: Nullable<Node | IParticleSystem> = null;
-
-        if (node instanceof Mesh) {
-            const clonedMesh = node.clone(node.name, node.parent, false, true);
-
-            if (node.skeleton) {
-                let id = 0;
-                while (this._editor.scene!.getSkeletonById(id as any)) {
-                    id++;
-                }
-
-                clonedMesh.skeleton = node.skeleton.clone(node.skeleton.name, id as any);
-            }
-
-            if (clonedMesh.parent) {
-                clonedMesh.physicsImpostor?.forceUpdate();
-            }
-
-            clonedMesh.physicsImpostor?.sleep();
-
-            clone = clonedMesh;
-        }
-        else if (node instanceof Light) { clone = node.clone(node.name); }
-        else if (node instanceof Camera) { clone = node.clone(node.name); }
-        else if (node instanceof TransformNode) { clone = node.clone(node.name, node.parent, false); }
-        // else if (node instanceof ParticleSystem) { clone = node.clone(node.name, node.emitter); }
-
-        if (clone) {
-            clone.id = Tools.RandomId();
-
-            if (clone instanceof Node) {
-                const metadata = { ...clone.metadata } as IMeshMetadata;
-                delete metadata._waitingUpdatedReferences;
-
-                clone.metadata = Tools.CloneObject(metadata);
-
-                const descendants = clone.getDescendants(false);
-                descendants.forEach((d) => {
-                    d.id = Tools.RandomId();
-                    d.metadata = Tools.CloneObject(d.metadata);
-                });
-
-                // Notify
-                this._editor.selectedNodeObservable.notifyObservers(clone);
-            }/* else if (clone instanceof ParticleSystem) {
-                // Notify
-                this._editor.selectedParticleSystemObservable.notifyObservers(clone);
-            }*/
+    private _recursivelyParseSceneNodes(node: Node | Sound | ReflectionProbe | IParticleSystem): Nullable<TreeNodeInfo<any>> {
+        if (node === SceneSettings.Camera) {
+            return null;
         }
 
-        return clone;
-    }
-
-    /**
-     * Removes the given node.
-     * @param node the node to remove.
-     */
-    public removeObject(node: Node | IParticleSystem | Sound | ReflectionProbe): void {
-        const descendants = [node].concat(node instanceof Node ? node.getDescendants() : []);
-        const actions = descendants.map((d) => this._removeObject(d));
-
-        undoRedo.push({
-            description: `Removed objects from graph: [${descendants.map((d) => d.name).join(", ")}]`,
-            common: () => {
-                this.refresh();
-            },
-            redo: () => {
-                actions.forEach((a) => a.redo());
-            },
-            undo: () => {
-                actions.forEach((a) => a.undo());
-            },
-        });
-    }
-
-    /**
-     * Removes the given node.
-     * @param node the node to remove.
-     * @hidden
-     */
-    public _removeObject(node: Node | IParticleSystem | Sound | ReflectionProbe): { redo: () => void; undo: () => void; } {
-        let removeFunc: Nullable<(n: Node | IParticleSystem | Sound | ReflectionProbe) => void> = null;
-        let addFunc: Nullable<(n: Node | IParticleSystem | Sound | ReflectionProbe) => void> = null;
-        let caller: any = this._editor.scene!;
-
-        if (node instanceof AbstractMesh) {
-            removeFunc = this._editor.scene!.removeMesh;
-            addFunc = this._editor.scene!.addMesh;
-        } else if (node instanceof InstancedMesh) {
-            removeFunc = node.sourceMesh.removeInstance;
-            addFunc = node.sourceMesh.addInstance;
-            caller = node.sourceMesh;
-        } else if (node instanceof Light) {
-            removeFunc = this._editor.scene!.removeLight;
-            addFunc = this._editor.scene!.addLight;
-        } else if (node instanceof Camera) {
-            removeFunc = this._editor.scene!.removeCamera;
-            addFunc = this._editor.scene!.addCamera;
-        } else if (node instanceof TransformNode) {
-            removeFunc = this._editor.scene!.removeTransformNode;
-            addFunc = this._editor.scene!.addTransformNode;
-        } else if (node instanceof ParticleSystem) {
-            removeFunc = this._editor.scene!.removeParticleSystem;
-            addFunc = this._editor.scene!.addParticleSystem;
-        } else if (node instanceof Sound) {
-            removeFunc = this._editor.scene!.mainSoundTrack.removeSound;
-            addFunc = this._editor.scene!.mainSoundTrack.addSound;
-            caller = this._editor.scene!.mainSoundTrack;
-        } else if (node instanceof ReflectionProbe) {
-            removeFunc = this._editor.scene!.removeReflectionProbe;
-            addFunc = this._editor.scene!.addReflectionProbe;
+        if (isNode(node) && node.doNotSerialize) {
+            return null;
         }
 
-        if (!removeFunc || !addFunc) {
-            return { redo: () => { }, undo: () => { } };
+        if (isAbstractMesh(node) && node._masterMesh) {
+            return null;
         }
 
-        const parent =
-            node instanceof Node
-                ? node.parent
-                : node instanceof Sound
-                    ? node["_connectedTransformNode"]
-                    : node instanceof ReflectionProbe
-                        ? node["_attachedMesh"]
-                        : node.emitter as AbstractMesh;
-
-        const lods = node instanceof Mesh ? node.getLODLevels().slice() : [];
-        const particleSystems = this._editor.scene!.particleSystems.filter((ps) => ps.emitter === node);
-        const shadowLights = this._editor.scene!.lights.filter((l) => l.getShadowGenerator()?.getShadowMap()?.renderList)
-            .filter((l) => l.getShadowGenerator()!.getShadowMap()!.renderList!.indexOf(node as AbstractMesh) !== -1);
-
-        const sounds: Sound[] = [];
-        [this._editor.scene!.mainSoundTrack].concat(this._editor.scene!.soundTracks ?? []).forEach((st) => {
-            if (!st) { return; }
-            st.soundCollection?.forEach((s) => s["_connectedTransformNode"] === node && sounds.push(s));
-        });
-
-        return ({
-            redo: () => {
-                if (node instanceof Node) { node.parent = null; }
-
-                removeFunc?.call(caller, node);
-
-                if (node instanceof Sound && parent) {
-                    node.detachFromMesh();
-                }
-
-                if (node instanceof InstancedMesh) { node.sourceMesh.removeInstance(node); }
-
-                if (node instanceof Mesh) {
-                    node.doNotSerialize = true;
-
-                    lods.forEach((lod) => {
-                        node.removeLODLevel(lod.mesh!);
-                        if (lod.mesh) {
-                            lod.mesh.doNotSerialize = true;
-                            this._editor.scene!.removeMesh(lod.mesh);
-                        }
-                    });
-                }
-
-                particleSystems.forEach((ps) => this._editor.scene!.removeParticleSystem(ps));
-
-                if (node instanceof Node) {
-                    this._editor.removedNodeObservable.notifyObservers(node);
-                } else if (node instanceof Sound) {
-                    this._editor.removedSoundObservable.notifyObservers(node);
-                } else if (node instanceof ReflectionProbe) {
-                    // TODO: notify
-                } else {
-                    this._editor.removedParticleSystemObservable.notifyObservers(node);
-                }
-
-                shadowLights.forEach((sl) => {
-                    const renderList = sl.getShadowGenerator()?.getShadowMap()?.renderList;
-                    if (renderList) {
-                        const index = renderList.indexOf(node as AbstractMesh);
-                        if (index !== -1) {
-                            renderList.splice(index, 1);
-                        }
-                    }
-                });
-
-                sounds.forEach((s) => {
-                    s.detachFromMesh();
-                    s.spatialSound = false;
-                });
-            },
-            undo: () => {
-                addFunc?.call(caller, node);
-
-                if (node instanceof Mesh) {
-                    node.doNotSerialize = false;
-
-                    lods.forEach((lod) => {
-                        if (lod.mesh) {
-                            lod.mesh.doNotSerialize = false;
-                            this._editor.scene!.addMesh(lod.mesh);
-                        }
-                        node.addLODLevel(lod.distanceOrScreenCoverage, lod.mesh);
-                    });
-                }
-                if (node instanceof InstancedMesh) { node.sourceMesh.addInstance(node); }
-
-                if (node instanceof Node) {
-                    node.parent = parent;
-                }
-                if (node instanceof Sound && parent) {
-                    node.attachToMesh(parent);
-                }
-
-                particleSystems.forEach((ps) => this._editor.scene!.addParticleSystem(ps));
-
-                if (node instanceof Node) {
-                    this._editor.addedNodeObservable.notifyObservers(node);
-                } else if (node instanceof Sound) {
-                    this._editor.addedSoundObservable.notifyObservers(node);
-                } else if (node instanceof ReflectionProbe) {
-                    // TODO: notify
-                } else {
-                    this._editor.addedParticleSystemObservable.notifyObservers(node);
-                }
-
-                shadowLights.forEach((sl) => {
-                    sl.getShadowGenerator()?.getShadowMap()?.renderList?.push(node as AbstractMesh);
-                });
-
-                sounds.forEach((s) => s.attachToMesh(node as TransformNode));
-            },
-        });
-    }
-
-    /**
-     * Called on the user wants to filter the nodes.
-     */
-    private _handleFilterChanged(filter: string): void {
-        this._filter = filter;
-        this.setState({ filter, nodes: this._parseScene() });
-    }
-
-    /**
-     * Returns the game instance used by the graph.
-     */
-    private get _scene(): Scene {
-        return this.props.scene ?? this._editor.scene!;
-    }
-
-    /**
-     * Recursively parses the stage to adds the nodes to the props.
-     */
-    private _parseScene(): DataNode[] {
-        this._allKeys = [];
-
-        const nodes = this._scene.rootNodes
-            .map((n) => this._parseNode(n))
-            .filter((n) => n !== null);
-
-        const scene: DataNode = {
-            isLeaf: true,
-            key: "__editor__scene__",
-            title: <span>Scene</span>,
-            icon: <Icon src="camera-retro.svg" />,
-        };
-
-        // Sounds
-        const soundsChildren = this._editor.scene!.mainSoundTrack.soundCollection.filter((s) => !s.spatialSound).map((s) => {
-            s.metadata ??= {};
-            s.metadata.id ??= Tools.RandomId();
-
-            return {
-                isLeaf: true,
-                key: s.metadata.id,
-                title: <span>{s.name}</span>,
-                icon: <Icon src={s.isPlaying ? "volume-up.svg" : "volume-mute.svg"} />,
-            } as DataNode;
-        });
-
-        const sounds: DataNode = {
-            key: "sounds",
-            children: soundsChildren,
-            title: <span>Sounds</span>,
-            isLeaf: soundsChildren.length === 0,
-            icon: <Icon src="volume-off.svg" />,
-        };
-
-        // Reflection probes
-        const reflectionProbesChildren = (this._editor.scene!.reflectionProbes ?? []).filter((rp) => !rp["_attachedMesh"]).map((rp) => {
-            rp["metadata"] ??= {};
-            rp["metadata"].id ??= Tools.RandomId();
-
-            return {
-                isLeaf: true,
-                title: rp.name,
-                key: rp["metadata"].id,
-                icon: <Icon src="reflection-probe.svg" />,
-            } as DataNode;
-        });
-
-        const reflectionProbes: DataNode = {
-            key: "reflectionProbes",
-            icon: <Icon src="reflection-probe.svg" />,
-            children: reflectionProbesChildren,
-            title: <span>Reflection Probes</span>,
-            isLeaf: reflectionProbesChildren.length === 0,
-        };
-
-        this._allKeys.push(sounds.key as string);
-        this._allKeys.push(reflectionProbes.key as string);
-
-        return [scene, sounds, reflectionProbes].concat(nodes as DataNode[]);
-    }
-
-    /**
-     * Returns the list of all descendants of the given bone.
-     */
-    private _getBoneDescendants(bone: Bone): { name: string; }[] {
-        const all: Node[] = [];
-        const skeleton = bone.getSkeleton();
-
-        skeleton.bones.forEach((b) => {
-            let parent = b;
-            while (parent) {
-                if (parent === bone) {
-                    all.push(b);
-                }
-                parent = parent.getParent()!;
-            }
-        });
-
-        return all;
-    }
-
-    /**
-     * Parses the given node and returns the new treenode object.
-     * @param node the node to parse.
-     */
-    private _parseNode(node: Node): Nullable<DataNode> {
-        if (node instanceof Mesh && node._masterMesh) { return null; }
-        if (node === SceneSettings.Camera) { return null; }
-
+        let id = "";
         let disabled = false;
 
-        node.metadata = node.metadata ?? {};
-        if (node instanceof AbstractMesh) {
+        if (isNode(node) || isIParticleSystem(node)) {
+            node.id ??= Tools.RandomId();
+            node.name ??= Tools.GetConstructorName(node);
+            id = node.id;
+        } else if (isSound(node)) {
+            node.metadata ??= {};
+            node.metadata.id ??= Tools.RandomId();
+            id = node.metadata.id;
+        } else if (isReflectionProbe(node)) {
+            node["metadata"] ??= {};
+            node["metadata"].id ??= Tools.RandomId();
+            id = node["metadata"].id;
+        }
+
+        if (isNode(node)) {
+            node.metadata ??= {};
+        }
+
+        if (isAbstractMesh(node)) {
             disabled = (node.metadata?.collider ?? null) !== null;
 
-            node.metadata.isPickable = disabled ? false : node.metadata.isPickable ?? node.isPickable;
+            node.metadata.isPickable = disabled ? false : (node.metadata.isPickable ?? false);
             node.isPickable = !disabled;
 
             node.subMeshes?.forEach((sm) => sm._id = sm._id ?? Tools.RandomId());
         }
 
-        node.id = node.id ?? Tools.RandomId();
-        node.name = node.name ?? "Node";
+        const existingNode = this._previousNodes.find((n) => n.nodeData === node);
 
-        // Filters
-        if (node instanceof InstancedMesh && !this.state.showInstances) { return null; }
-        if (node instanceof Light && !this.state.showLights) { return null; }
-
-        const ctor = Tools.GetConstructorName(node);
-        const name = node.name ?? ctor;
-
-        const style: React.CSSProperties = { marginLeft: "5px", textOverflow: "ellipsis", whiteSpace: "nowrap" };
-        if (node.metadata.doNotExport) {
-            style.opacity = "0.5";
-            style.textDecoration = "line-through";
-        }
-
-        if (node.metadata.isLocked) {
-            style.opacity = "0.5";
-        }
-
-        if (node.metadata.script?.name && node.metadata.script.name !== "None") {
-            style.color = "#48aff0";
-        }
-
-        if (disabled) {
-            style.color = "grey";
-        }
-
-        if (node.metadata?.editorGraphStyles) {
-            Object.assign(style, node.metadata.editorGraphStyles);
-        }
-
-        let children: DataNode[] = [];
-
-        if (node instanceof AbstractMesh && node.skeleton) {
-            // Mesh and skeleton?
-            const bones = node.skeleton.bones.filter((b) => !b.getParent());
-            const skeletonChildren = bones.map((b) => this._parseNode(b)).filter((sc) => sc !== null) as DataNode[];
-
-            const key = `${node.skeleton.name}-${node.skeleton.id}`;
-            this._allKeys.push(key);
-
-            children.splice(0, 0, {
-                key,
-                title: node.skeleton.name,
-                children: skeletonChildren,
-                isLeaf: !skeletonChildren.length,
-                icon: <Icon src="human-skull.svg" />,
-            });
-        } else if (node instanceof Bone) {
-            // Bone
-            const attachedMeshes = this._editor.scene!.meshes.filter((m) => m.parent === node);
-            const attachedTransformNodes = this._editor.scene!.transformNodes.filter((tn) => tn.parent === node);
-
-            const attachedNodes = attachedTransformNodes.concat(attachedMeshes);
-            const attachedNodesChildren = attachedNodes.map((atn) => this._parseNode(atn)).filter((atn) => atn !== null) as DataNode[];
-
-            children.splice.apply(children, [0, 0, ...attachedNodesChildren]);
-        }
-
-        // Filter
-        let matchesFilter: boolean = true;
-        if (this._filter) {
-            let all: { name: string; }[] = [];
-            if (node instanceof Bone) {
-                all = this._getBoneDescendants(node);
-            } else if (node instanceof AbstractMesh && node.skeleton) {
-                all = [
-                    node,
-                    node.skeleton,
-                    ...node.getDescendants(),
-                    ...node.skeleton.bones,
-                ]
-            } else {
-                all = [node].concat(node.getDescendants());
-            }
-            matchesFilter = all.find((c) => (c.name ?? Tools.GetConstructorName(c)).toLowerCase().indexOf(this._filter.toLowerCase()) !== -1) !== undefined;
-        }
-
-        if (matchesFilter) {
-            children.push.apply(children, node.getChildren().map((c: Node) => this._parseNode(c)).filter((n) => n !== null) as DataNode[]);
-        } else {
-            return null;
-        }
-
-        // Search for particle systems.
-        this._editor.scene!.particleSystems.forEach((ps) => {
-            if (ps.emitter !== node) { return; }
-
-            this._allKeys.push(ps.id);
-
-            children.push({
-                key: ps.id,
-                isLeaf: true,
-                icon: <Icon src="wind.svg" />,
-                title: (
-                    <Tooltip
-                        content={<span>{Tools.GetConstructorName(ps)}</span>}
-                        position={Position.RIGHT}
-                        usePortal={false}
-                    >
-                        <span style={style}>{ps.name}</span>
-                    </Tooltip>
-                ),
-            });
-        });
-
-        // Search for sounds
-        this._editor.scene!.mainSoundTrack.soundCollection.forEach((s) => {
-            if (s["_connectedTransformNode"] !== node) { return; }
-
-            s.metadata ??= {};
-            s.metadata.id ??= Tools.RandomId();
-
-            this._allKeys.push(s.metadata.id);
-
-            children.push({
-                isLeaf: true,
-                key: s.metadata.id,
-                icon: <Icon src={s.isPlaying ? "volume-up.svg" : "volume-mute.svg"} />,
-                title: (
-                    <Tooltip
-                        content={<span>{Tools.GetConstructorName(s)}</span>}
-                        position={Position.RIGHT}
-                        usePortal={false}
-                    >
-                        <span style={style}>{s.name}</span>
-                    </Tooltip>
-                ),
-            });
-        });
-
-        // Search for reflection probes
-        this._editor.scene!.reflectionProbes?.forEach((rp) => {
-            if (rp["_attachedMesh"] !== node) { return; }
-
-            rp["metadata"] ??= {};
-            rp["metadata"].id ??= Tools.RandomId();
-
-            children.push({
-                isLeaf: true,
-                key: rp["metadata"].id,
-                icon: <Icon src="reflection-probe.svg" />,
-                title: (
-                    <Tooltip
-                        content={<span>{Tools.GetConstructorName(rp)}</span>}
-                        position={Position.RIGHT}
-                        usePortal={false}
-                    >
-                        <span style={style}>{rp.name}</span>
-                    </Tooltip>
-                ),
-            });
-        });
-
-        // Update references
-        let updateReferences: React.ReactNode;
-        if (node.metadata?._waitingUpdatedReferences && Object.values(node.metadata?._waitingUpdatedReferences).find((v) => v !== undefined)) {
-            updateReferences = (
+        // Updated instantiated references
+        let secondaryLabel: React.ReactNode;
+        if (isNode(node) && node.getClassName() === "Mesh" && node.metadata?._waitingUpdatedReferences) {
+            secondaryLabel = (
                 <Tag
-                    interactive={true}
-                    intent={Intent.WARNING}
+                    intent="warning"
+                    interactive
                     style={{ marginLeft: "10px" }}
                     onClick={(e) => new GraphReferenceUpdater(node as Mesh).showContextMenu(e)}
                 >...</Tag>
             );
         }
 
-        this._allKeys.push(node.id);
-
-        return {
+        // Create tree node
+        const treeNode = {
+            id,
             disabled,
-            children,
-            key: node.id,
-            isLeaf: !children.length,
-            icon: (
-                <NodeIcon
-                    node={node}
-                    style={{ opacity: node.isEnabled(true) ? "1.0" : "0.5" }}
-                    onClick={() => {
-                        node.setEnabled(!node.isEnabled());
-                        this.refresh();
-                    }}
-                />
-            ),
-            title: (
-                <div
-                    onDrop={(ev) => !this._dragging && this._handleExternalDrop(ev, node.id)}
-                    onDragLeave={(ev) => ev.currentTarget.style.background = "unset"}
-                    onDragOver={(ev) => !this._dragging && (ev.currentTarget.style.background = "#333333")}
-                    style={{ width: this.state.width ? `${this.state.width}px` : "auto" }}
-                >
-                    <Tooltip usePortal content={<span>{ctor}</span>}>
-                        <>
-                            <span style={style}>{name}</span>
-                            {updateReferences}
-                        </>
-                    </Tooltip>
-                </div>
-            ),
-        }
-    }
+            // childNodes,
+            nodeData: node,
+            secondaryLabel,
+            // hasCaret: childNodes.length > 0,
+            icon: <GraphIcon object={node} />,
+            label: <GraphLabel editor={this.props.editor} object={node} />,
 
+            isSelected: existingNode?.isSelected ?? false,
+            isExpanded: this.state.filter ? true : (existingNode?.isExpanded ?? false),
+        } as TreeNodeInfo<any>;
 
+        this._nodes.push(treeNode);
 
-    /**
-     * Called on the user right-clicks on a node.
-     * @param ev the event object coming from react.
-     * @param graphNode the node being right-clicked in the tree.
-     */
-    private _handleNodeContextMenu(ev: React.MouseEvent, graphNode: any): void {
-        if (graphNode.disabled) {
-            return;
-        }
+        // Parse children
+        let childNodes: TreeNodeInfo<any>[] = [];
+        if (isNode(node)) {
+            childNodes = node.getChildren().map((c) => this._recursivelyParseSceneNodes(c)).filter((n) => n) as TreeNodeInfo<any>[];
 
-        let node = this._getNodeById(graphNode.key);
+            // Check for particle systems
+            const particleSystems = this.props.editor.scene!.particleSystems?.filter((ps) => ps.emitter === node);
+            particleSystems?.filter((ps) => this._matchesFilter(ps.name)).forEach((ps) => {
+                const particleSystemNode = this._recursivelyParseSceneNodes(ps);
+                if (particleSystemNode) {
+                    childNodes.push(particleSystemNode);
+                }
+            });
 
-        if (!node || node === SceneSettings.Camera) { return; }
-        if (node instanceof Node && node.doNotSerialize) { return; }
+            // Check for sounds
+            const sounds = this.props.editor.scene!.mainSoundTrack?.soundCollection?.filter((s) => s.spatialSound && s["_connectedTransformNode"] === node);
+            sounds?.filter((s) => this._matchesFilter(s.name)).forEach((s) => {
+                const soundNode = this._recursivelyParseSceneNodes(s);
+                if (soundNode) {
+                    childNodes.push(soundNode);
+                }
+            });
 
-        GraphContextMenu.Show(ev.nativeEvent, this._editor, node);
+            // Check for reflection probes
+            const reflectionProbes = this.props.editor.scene!.reflectionProbes?.filter((rp) => rp["_attachedMesh"] === node);
+            reflectionProbes?.filter((rp) => this._matchesFilter(rp.name)).forEach((rp) => {
+                const reflectionProbeNode = this._recursivelyParseSceneNodes(rp);
+                if (reflectionProbeNode) {
+                    childNodes.push(reflectionProbeNode);
+                }
+            });
 
-        const selectedNodeIds = this.state.selectedNodeIds?.slice() ?? [];
-        if (selectedNodeIds.indexOf(graphNode.key) !== -1) { return; }
-
-        if (ev.ctrlKey) {
-            selectedNodeIds.push(graphNode.key);
-            this.setState({ selectedNodeIds });
-        } else {
-            this.setState({ selectedNodeIds: [graphNode.key] });
-        }
-    }
-
-    /**
-     * Removes the given node from the graph and destroys its data.
-     * @hidden
-     */
-    public _handleRemoveObject(): void {
-        if (!this.state.selectedNodeIds) { return; }
-
-        const selectedNodeIds = this.state.selectedNodeIds.slice();
-
-        this.state.selectedNodeIds.forEach((id) => {
-            const node = this._getNodeById(id);
-            if (!node) { return; }
-
-            const index = selectedNodeIds.indexOf(id);
-            if (index !== -1) {
-                selectedNodeIds.splice(index, 1);
-            }
-
-            this.removeObject(node);
-        });
-
-        this.refresh(() => this.setState({ selectedNodeIds }));
-    }
-
-    /**
-     * Clones all selected nodes.
-     * @hidden
-     */
-    public _handleCloneObject(): void {
-        if (!this.state.selectedNodeIds) { return; }
-        this.state.selectedNodeIds.forEach((id) => {
-            const node = this._getNodeById(id);
-            if (!node || node instanceof Sound || node instanceof ReflectionProbe) { return; }
-
-            this.cloneObject(node);
-        });
-
-        this.refresh();
-    }
-
-    /**
-     * Called on the user selects keys in the graph.
-     */
-    private _handleSelectedNodes(keys: string[]): void {
-        this.setState({ selectedNodeIds: keys });
-
-        const id = keys[keys.length - 1];
-
-        // Scene?
-        if (id === "__editor__scene__") {
-            this._editor.selectedSceneObservable.notifyObservers(this._editor.scene!);
-            return;
-        }
-
-        // Skeleton?
-        const skeleton = this._scene.skeletons.find((s) => id === `${s.name}-${s.id}`);
-        if (skeleton) {
-            this._editor.selectedSkeletonObservable.notifyObservers(skeleton);
-            return;
-        }
-
-        // Node
-        let lastSelected = this._getNodeById(id);
-        if (!lastSelected) {
-            return;
-        }
-
-        if (lastSelected instanceof Node) {
-            this._editor.selectedNodeObservable.notifyObservers(lastSelected, undefined, this);
-        } else if (lastSelected instanceof Sound) {
-            this._editor.selectedSoundObservable.notifyObservers(lastSelected, undefined, this);
-        } else if (lastSelected instanceof ParticleSystem) {
-            this._editor.selectedParticleSystemObservable.notifyObservers(lastSelected, undefined, this);
-        } else if (lastSelected instanceof ReflectionProbe) {
-            this._editor.selectedReflectionProbeObservable.notifyObservers(lastSelected, undefined, this);
-        }
-
-        this.lastSelectedObject = lastSelected;
-    }
-
-    /**
-     * Called on the user expands given node keys.
-     */
-    private _handleExpandedNode(keys: string[]): void {
-        this.setState({ expandedNodeIds: keys });
-    }
-
-    /**
-     * Called on the drag event tries to enter in an existing node.
-     */
-    private _handleDragEnter(_: any): void {
-        // Nothing to do now.
-    }
-
-    /**
-     * Called on the user starts dragging a node.
-     */
-    private _handleDragStart(info: any): void {
-        const draggedNodeId = info.node?.key;
-        if (!draggedNodeId) { return; }
-
-        info.event.dataTransfer.setDragImage(new Image(), 0, 0);
-
-        if (info.event.ctrlKey) {
-            if (this.state.selectedNodeIds?.indexOf(draggedNodeId) === -1) {
-                this.setState({ selectedNodeIds: this.state.selectedNodeIds.concat([draggedNodeId]) });
-            }
-        } else {
-            if (this.state.selectedNodeIds?.indexOf(draggedNodeId) === -1) {
-                this.setState({ selectedNodeIds: [draggedNodeId] });
+            if (!this._matchesFilter(node.name) && !childNodes.length) {
+                return null;
             }
         }
 
-        const event = info.event.nativeEvent as DragEvent;
-        if (event) {
-            event.dataTransfer?.setData("graph/node", JSON.stringify({
-                nodeId: draggedNodeId,
-                allNodeIds: this.state.selectedNodeIds,
-            }));
+        treeNode.childNodes = childNodes;
+        treeNode.hasCaret = childNodes.length > 0;
 
-            InspectorNotifier._DragAndDroppedGraphItem = this._getDragAndDroppedItemConfiguration(draggedNodeId);
-        }
-
-        this._dragging = true;
+        return treeNode;
     }
 
     /**
-     * Called on the user ended dragging a node.
+     * Returns wether or not the given name matches the current filter.
      */
-    private _handleDragEnd(): void {
-        this._dragging = false;
+    private _matchesFilter(name: string): boolean {
+        if (!this.state.filter) {
+            return true;
+        }
+
+        return name.toLowerCase().includes(this.state.filter);
     }
 
     /**
-     * Returns the drag'n'dropped item configuration to be used when the user
-     * drags and drops a graph item in an inspector field.
+     * Traverses all the tree nodes starting from the given node array.
      */
-    private _getDragAndDroppedItemConfiguration(nodeId): _IDragAndDroppedItem {
-        return {
-            nodeId,
-            onDropInInspector: async (_, object, property) => {
-                object[property] = nodeId;
-            },
-        };
-    }
+    private _forEachNode(nodes: TreeNodeInfo<any>[], callback: (n: TreeNodeInfo<any>) => any): Nullable<TreeNodeInfo<any>> {
+        for (const n of nodes) {
+            if (callback(n) === true) {
+                return n;
+            }
 
-    /**
-     * Called on a node is dropped in the graph.
-     */
-    private _handleDrop(info: _ITreeDropInfo): void {
-        if (!this.state.selectedNodeIds) { return; }
-        if (!info.dragNode) { return this._handleDropAsset(info); }
-
-        const source = this._getNodeById(info.dragNode.key);
-        if (!source) { return; }
-
-        const all = this.state.selectedNodeIds.map((s) => this._getNodeById(s)).filter((n) => n) as (Node | IParticleSystem | Sound | ReflectionProbe)[];
-
-        // Sound?
-        if (info.node.key === "sounds" && info.node.dragOver) {
-            all.filter((a) => a instanceof Sound).forEach((s: Sound) => {
-                s.detachFromMesh();
-                s.spatialSound = false;
-            });
-
-            return this.refresh();
-        }
-
-        // Reflection probes?
-        if (info.node.key === "reflectionProbes" && info.node.dragOver) {
-            all.filter((a) => a instanceof ReflectionProbe).forEach((rp: ReflectionProbe) => {
-                rp.attachToMesh(null);
-            });
-
-            return this.refresh();
-        }
-
-        const target = this._getNodeById(info.node.key);
-        if (!target || !(target instanceof Node)) { return; }
-
-        // Shift key? If yes, clone all nodes
-        if (info.event.shiftKey) {
-            const nodes = all.filter((n) => n instanceof Node) as Node[];
-            nodes.forEach((n) => {
-                const clone = this.cloneObject(n);
-                if (clone) {
-                    clone["parent"] = target;
+            if (n.childNodes) {
+                const result = this._forEachNode(n.childNodes, callback);
+                if (result) {
+                    return result;
                 }
-            });
-
-            return this.refresh();
-        }
-
-        if (info.node.dragOver) {
-            all.forEach((n) => {
-                if (n instanceof Node) {
-                    if (target instanceof Bone && n instanceof TransformNode) {
-                        const skeleton = target.getSkeleton();
-                        const mesh = this._editor.scene!.meshes.find((m) => m.skeleton === skeleton);
-
-                        if (mesh) {
-                            n.attachToBone(target, mesh);
-                        }
-
-                        return (n.parent = target);
-                    } else {
-                        return (n.parent = target);
-                    }
-                }
-
-                if (target instanceof AbstractMesh) {
-                    if (n instanceof ParticleSystem) {
-                        n.emitter = target;
-                    } else if (n instanceof Sound) {
-                        n.attachToMesh(target);
-                        n.spatialSound = true;
-                    } else if (n instanceof ReflectionProbe) {
-                        n.attachToMesh(target);
-                    }
-                }
-            });
-        } else {
-            all.forEach((n) => {
-                if (n instanceof Node) {
-                    return (n.parent = target.parent);
-                }
-
-                if (target.parent instanceof AbstractMesh) {
-                    if (n instanceof ParticleSystem) {
-                        n.emitter = target.parent;
-                    } else if (n instanceof Sound) {
-                        n.attachToMesh(target.parent);
-                        n.spatialSound = true;
-                    } else if (n instanceof ReflectionProbe) {
-                        n.attachToMesh(target.parent);
-                    }
-                }
-            });
-        }
-
-        this.refresh();
-    }
-
-    /**
-     * Called on an asset has been dropped on the node.
-     */
-    private _handleDropAsset(info: _ITreeDropInfo): void {
-        const ev = info.event as unknown as DragEvent;
-        if (!ev.dataTransfer) { return; }
-
-        const target = this._getNodeById(info.node.key);
-        if (!(target instanceof Node)) { return; }
-
-        let nodes = [target];
-        if (this.state.selectedNodeIds && this.state.selectedNodeIds.indexOf(target.id) !== -1) {
-            nodes = this.state.selectedNodeIds
-                .map((s) => this._getNodeById(s))
-                .filter((n) => n instanceof Node && nodes.indexOf(n) === -1)
-                .concat(nodes) as Node[];
-        }
-
-        const components = this._editor.assets.getAssetsComponents();
-        for (const c of components) {
-            if (!c._id || !c._ref?.dragAndDropType) { continue; }
-
-            try {
-                const data = JSON.parse(ev.dataTransfer.getData(c._ref.dragAndDropType)) as IDragAndDroppedAssetComponentItem;
-
-                if (c._id !== data.assetComponentId) { continue; }
-                if (c._ref.onGraphDropAsset(data, nodes)) { break; }
-            } catch (e) {
-                // Catch silently.
             }
         }
 
-        this.refresh();
-    }
-
-    /**
-     * Called on an HTML element has been dropped on the data node.
-     */
-    private _handleExternalDrop(ev: React.DragEvent<HTMLDivElement>, nodeId: string): void | Promise<void> {
-        if (this._dragging) {
-            return;
-        }
-
-        ev.preventDefault();
-        ev.stopPropagation();
-
-        ev.currentTarget.style.background = "unset";
-
-        if (!this.state.selectedNodeIds) {
-            return;
-        }
-
-        const targetNode = this._getNodeById(nodeId);
-        if (!targetNode) {
-            return;
-        }
-
-        let allSelected = this.state.selectedNodeIds?.map((s) => this._getNodeById(s)).filter((n) => n) as (Node | IParticleSystem | Sound | ReflectionProbe)[];
-
-        if (allSelected.indexOf(targetNode) === -1) {
-            allSelected = [targetNode];
-            this.setSelected(targetNode);
-        }
-
-        if (InspectorNotifier._DragAndDroppedAssetItem) {
-            return InspectorNotifier._DragAndDroppedAssetItem.onDropInGraph(ev, allSelected);
-        }
-    }
-
-    /**
-     * Returns the node in the stage identified by the given id.
-     * @param id the id of the node to find.
-     * @hidden
-     */
-    public _getNodeById(id: string): Undefinable<Node | IParticleSystem | Sound | ReflectionProbe> {
-        const all = Tools.getAllSceneNodes(this._editor.scene!);
-
-        const node = all.find((c) => c.id === id);
-        if (node) { return node; }
-
-        const bone = this._editor.scene!.getBoneById(id);
-        if (bone) { return bone; }
-
-        const ps = this._editor.scene!.getParticleSystemById(id);
-        if (ps) { return ps; }
-
-        const sound = this._editor.scene!.mainSoundTrack.soundCollection.find((s) => s.metadata?.id === id);
-        if (sound) { return sound; }
-
-        const rp = this._editor.scene!.reflectionProbes?.find((rp) => rp["metadata"]?.id === id);
-        if (rp) { return rp; }
-
-        return undefined;
+        return null;
     }
 }

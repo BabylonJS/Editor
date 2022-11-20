@@ -1,16 +1,19 @@
 import { basename, dirname, join } from "path";
 
+import { Nullable } from "../../../../../shared/types";
+
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, Tree } from "@blueprintjs/core";
 
 import {
     Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion, PhysicsImpostor, GroundMesh,
-    MeshLODLevel, SceneLoader, Material, Tools as BabylonTools, VertexData,
+    MeshLODLevel, SceneLoader, Material, Tools as BabylonTools, VertexData, AbstractMesh,
 } from "babylonjs";
 
 import { Inspector } from "../../inspector";
 
 import { Icon } from "../../../gui/icon";
+import { Alert } from "../../../gui/alert";
 
 import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorNotifier } from "../../../gui/inspector/notifier";
@@ -685,10 +688,21 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
             result.skeletons.forEach((s) => s.dispose());
             result.particleSystems.forEach((ps) => ps.dispose(true));
             result.meshes.forEach((m) => m.material && m.material.dispose(true, true));
+            result.lights.forEach((l) => l.dispose(true, true));
+            result.transformNodes.forEach((t) => t.dispose(true, true));
+            result.animationGroups.forEach((a) => a.dispose());
 
             // Configure lod mesh
-            const lodMesh = result.meshes[0];
-            if (!lodMesh || !(lodMesh instanceof Mesh)) { return; }
+            let lodMesh = result.meshes[0];
+            if (result.meshes.length > 1) {
+                lodMesh = (await this._showLodSelector(result.meshes))!;
+            }
+
+            this._clearLodTempResult(result.meshes, lodMesh);
+
+            if (!lodMesh || !(lodMesh instanceof Mesh)) {
+                return;
+            }
 
             lodMesh.id = Tools.RandomId();
             lodMesh.name = meshName;
@@ -710,6 +724,53 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         } catch (e) {
             // Catch silently.
         }
+    }
+
+    /**
+     * In case of multiple meshes, shows a select box.
+     */
+    private _showLodSelector(meshes: AbstractMesh[]): Promise<Nullable<AbstractMesh>> {
+        return new Promise<Nullable<Mesh>>(async (resolve) => {
+            let ref: Nullable<Alert> = null;
+            let resultMesh: Nullable<Mesh> = null;
+
+            await Alert.Show("LOD Selector", "", "select", (
+                <div style={{ background: "#333333" }}>
+                    <Tree
+                        onNodeClick={(n) => {
+                            resultMesh = n.nodeData as Mesh;
+                        }}
+                        onNodeDoubleClick={(n) => {
+                            resultMesh = n.nodeData as Mesh;
+                            ref?.close();
+                        }}
+                        contents={meshes.filter((m) => m instanceof Mesh).map((m) => ({
+                            id: m.id,
+                            nodeData: m,
+                            label: m.name,
+                        }))}
+                    />
+                </div>
+            ), {
+                style: {
+                    width: "50%",
+                    height: "50%",
+                },
+            }, (r) => ref = r);
+
+            resolve(resultMesh);
+        });
+    }
+
+    /**
+     * Clears all the temporary elements from the LOD scene loader result.
+     */
+    private _clearLodTempResult(meshes: AbstractMesh[], selectedLod: Nullable<AbstractMesh>): void {
+        meshes.forEach((m) => {
+            if (m !== selectedLod) {
+                m.dispose(true, true);
+            }
+        });
     }
 
     /**

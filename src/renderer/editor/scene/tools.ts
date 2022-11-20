@@ -2,6 +2,8 @@ import { shell } from "electron";
 import { writeJSON, writeFile, readJSON } from "fs-extra";
 import { join, extname, dirname, basename } from "path";
 
+import { Nullable } from "../../../shared/types";
+
 import { Mesh, Scene, SceneLoader, SceneSerializer, BaseTexture, AnimationGroup, Node } from "babylonjs";
 import { GLTF2Export } from 'babylonjs-serializers';
 
@@ -20,20 +22,18 @@ import { Editor } from "../editor";
 export class SceneTools {
     /**
      * Merges the given meshes into a single one, by creating sub meshes and keeping materials.
-     * @param editor the editor reference.
      * @param meshes the list of all meshes to merge into a single mesh.
      */
-    public static MergeMeshes(editor: Editor, meshes: Mesh[]): void {
+    public static MergeMeshes(meshes: Mesh[]): Nullable<Mesh> {
         const merged = Mesh.MergeMeshes(meshes, false, true, undefined, true, undefined);
         if (!merged) {
             Alert.Show("Can't merge meshes", "An error occured while merging meshes.");
-            return;
+            return null;
         }
 
         merged.id = Tools.RandomId();
 
-        // Refresh graph!
-        editor.graph.refresh();
+        return merged;
     }
 
     /**
@@ -43,7 +43,7 @@ export class SceneTools {
      */
     public static async ExportMeshToBabylonJSFormat(editor: Editor, mesh: Mesh): Promise<void> {
         let destPath = await AppTools.ShowSaveFileDialog(`Export location for mesh "${mesh.name ?? ""}"`);
-        
+
         if (!destPath) { return; }
 
         if (extname(destPath).toLowerCase() !== ".babylon") {
@@ -121,7 +121,7 @@ export class SceneTools {
         editor.updateTaskFeedback(task, 35);
 
         const prefix = await Dialog.Show("GLTF file prefix", "Please provide a prefix for files.");
-        const data = format === "glb" ? await GLTF2Export.GLBAsync(scene, prefix, { }) : await GLTF2Export.GLTFAsync(scene, prefix, { });
+        const data = format === "glb" ? await GLTF2Export.GLBAsync(scene, prefix, {}) : await GLTF2Export.GLTFAsync(scene, prefix, {});
 
         editor.updateTaskFeedback(task, 75);
 
@@ -164,11 +164,11 @@ export class SceneTools {
             const extension = extname(texture.name);
             texture.name = basename(texture.name).replace(extension, "");
         });
-        
+
         try {
             editor.updateTaskFeedback(task, 50);
 
-            const data = format === "glb" ? await GLTF2Export.GLBAsync(editor.scene!, prefix, { }) : await GLTF2Export.GLTFAsync(editor.scene!, prefix, { });
+            const data = format === "glb" ? await GLTF2Export.GLBAsync(editor.scene!, prefix, {}) : await GLTF2Export.GLTFAsync(editor.scene!, prefix, {});
             const dest = await AppTools.ShowSaveDialog();
             for (const f in data.glTFFiles) {
                 const file = data.glTFFiles[f];
@@ -252,7 +252,7 @@ export class SceneTools {
      */
     public static GetNodesByIdFromSourceFile(scene: Scene, id: string): Node[] {
         const meshes = scene.meshes.filter((m: Mesh) => Tools.GetMeshMetadata(m).originalSourceFile?.id === id);
-        
+
         return meshes;
     }
 }

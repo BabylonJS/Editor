@@ -89,14 +89,19 @@ export class WaterMaterialInspector extends MaterialInspector<WaterMaterial> {
         }
 
         return (
-            <MeshTransferComponent editor={this.editor} targetArray={this.material.reflectionTexture.renderList} onChanged={() => {
-                if (!this.material.refractionTexture) { return; }
+            <MeshTransferComponent
+                editor={this.editor}
+                targetArray={this.material.reflectionTexture.renderList}
+                canTransferMesh={(n) => n.material !== this.material}
+                onChanged={() => {
+                    if (!this.material.refractionTexture) { return; }
 
-                this.material.refractionTexture.renderList = [];
-                this.material.reflectionTexture?.renderList?.forEach((m) => {
-                    this.material.refractionTexture?.renderList?.push(m);
-                });
-            }} />
+                    this.material.refractionTexture.renderList = [];
+                    this.material.reflectionTexture?.renderList?.forEach((m) => {
+                        this.material.refractionTexture?.renderList?.push(m);
+                    });
+                }}
+            />
         );
     }
 }
