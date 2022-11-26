@@ -16,6 +16,7 @@ import {
 import { Editor } from "../editor";
 
 import { Icon } from "../gui/icon";
+import { NodeIcon } from "../gui/node-icon";
 import { InspectorNotifier } from "../gui/inspector/notifier";
 
 import { Tools } from "../tools/tools";
@@ -28,7 +29,6 @@ import { IDragAndDroppedAssetComponentItem } from "../assets/abstract-assets";
 
 // import { GraphContextMenu } from "./graph/context-menu";
 import { GraphReferenceUpdater } from "./graph/reference-updater";
-import { NodeIcon } from "../gui/node-icon";
 
 export interface IGraphProps {
     /**
@@ -808,7 +808,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     interactive={true}
                     intent={Intent.WARNING}
                     style={{ marginLeft: "10px" }}
-                    onClick={(e) => new GraphReferenceUpdater(node as Mesh).showContextMenu(e)}
+                    onClick={(e) => new GraphReferenceUpdater(this.props.editor, node as Mesh).showContextMenu(e)}
                 >...</Tag>
             );
         }

@@ -317,12 +317,13 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 	 * @param items defines the list of all items to move to trash
 	 */
 	public async moveItemsToTrash(deleteOnFail: boolean, items: string[]): Promise<string[]> {
-		if (!items.length) {
+		const removableItems = items.slice();
+		if (!removableItems.length) {
 			return [];
 		}
 
 		const usedFiles: string[] = [];
-		const isUsedCheckResults = await Promise.all(items.map(async (i) => {
+		const isUsedCheckResults = await Promise.all(removableItems.map(async (i) => {
 			let files = [i];
 
 			const fStat = await stat(i);
@@ -337,6 +338,11 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 				const isUsed = await handler?.isFileUsed(f) ?? false;
 				if (isUsed) {
 					usedFiles.push(f);
+
+					const index = removableItems.indexOf(f);
+					if (index !== -1) {
+						removableItems.splice(index, 1);
+					}
 				}
 
 				return isUsed;
@@ -347,19 +353,23 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 
 		if (isUsedCheckResults.includes(true)) {
 			Alert.Show("Can't remove file(s)", "Following files are used in the scene:", undefined, (
-				<Pre>
+				<Pre style={{ maxHeight: "50vh" }}>
 					<ul>
 						{usedFiles.map((uf) => <li>{uf}</li>)}
 					</ul>
 				</Pre>
-			));
-			return [];
+			), {
+				style: {
+					width: "auto",
+					maxWidth: "90vh",
+				},
+			});
 		}
 
 		const failed: string[] = [];
 		const platform = os.platform();
 
-		await Promise.all(items.map(async (i) => {
+		await Promise.all(removableItems.map(async (i) => {
 			const extension = extname(i).toLowerCase();
 			const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
 

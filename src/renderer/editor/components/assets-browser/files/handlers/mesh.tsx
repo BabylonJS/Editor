@@ -1,22 +1,29 @@
 import { basename, dirname, extname, join } from "path";
 
+import { Nullable } from "../../../../../../shared/types";
+
 import * as React from "react";
 import { Spinner, ContextMenu, Menu, MenuItem, MenuDivider, Icon as BPIcon } from "@blueprintjs/core";
 
 import {
-	PickingInfo, SceneLoader, Mesh, SubMesh,
+	PickingInfo, SceneLoader, Mesh, SubMesh, TransformNode, AssetContainer, Skeleton, Geometry,
 } from "babylonjs";
 
 import { Tools } from "../../../../tools/tools";
 
 import { Icon } from "../../../../gui/icon";
+import { Alert } from "../../../../gui/alert";
 import { Confirm } from "../../../../gui/confirm";
+import { SceneGraph } from "../../../../gui/scene-graph";
 
 import { Workers } from "../../../../workers/workers";
 import AssetsWorker from "../../../../workers/workers/assets";
 
-import { AssetsBrowserItemHandler } from "../item-handler";
+import { isMesh, isTransformNode } from "../../../graph/tools/tools";
+
 import { SceneImporterTools } from "../../../../scene/import-tools";
+
+import { AssetsBrowserItemHandler } from "../item-handler";
 
 export class MeshItemHandler extends AssetsBrowserItemHandler {
 	/**
@@ -70,6 +77,8 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 				<MenuItem text="Refresh Preview" icon={<BPIcon icon="refresh" color="white" />} onClick={() => {
 					this.props.editor.assetsBrowser._callSelectedItemsMethod("_handleRefreshPreview");
 				}} />
+				<MenuDivider />
+				<MenuItem text="Import Selected Objects..." icon={<Icon src="plus.svg" />} onClick={() => this._importSelectedObjects()} />
 				<MenuDivider />
 				<MenuItem text="Update Instantiated References">
 					<MenuItem text="Force Update" onClick={() => this._handleUpdateInstantiatedReferences(true)} />
@@ -255,8 +264,6 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 		}
 
 		delete metadata._waitingUpdatedReferences?.material;
-
-		this.props.editor.graph.refresh();
 	}
 
 	/**
@@ -276,10 +283,95 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 			metadata._waitingUpdatedReferences.geometry.subMeshes.forEach((sm) => {
 				new SubMesh(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount, mesh, mesh, true, true);
 			});
+
+			mesh._markSubMeshesAsMiscDirty();
+			mesh._markSubMeshesAsLightDirty();
+			mesh._markSubMeshesAsAttributesDirty();
 		}
 
 		delete metadata._waitingUpdatedReferences?.geometry;
+	}
+
+	/**
+	 * Called on the user wants to import only selected objects from the scene.
+	 */
+	private async _importSelectedObjects(): Promise<void> {
+		this._prepareLoad();
+
+		const scene = this.props.editor.scene!;
+
+		const extension = extname(this.props.absolutePath).toLowerCase();
+		const isGltf = extension === ".glb" || extension === ".gltf";
+
+		const container = await SceneLoader.LoadAssetContainerAsync(join(dirname(this.props.absolutePath), "/"), basename(this.props.absolutePath), scene);
+		scene.stopAllAnimations();
+
+		const nodes = await this._showSelectedObjectsDialog(container);
+
+		const meshes = nodes.filter((n) => isMesh(n)) as Mesh[];
+		const transformNodes = nodes.filter((n) => isTransformNode(n));
+
+		meshes.forEach((m) => {
+			scene.addMesh(m);
+			if (m.material && scene.materials.indexOf(m.material) === -1) {
+				scene.addMaterial(m.material);
+			}
+		});
+
+		transformNodes.forEach((t) => scene.addTransformNode(t));
+
+		SceneImporterTools.Configure(this.props.editor.scene!, {
+			isGltf,
+			result: {
+				lights: [],
+				animationGroups: [],
+				particleSystems: [],
+				meshes: nodes.filter((n) => isMesh(n)) as Mesh[],
+				transformNodes: nodes.filter((n) => isTransformNode(n)),
+				skeletons: nodes.filter((n) => isMesh(n) && n.skeleton).map((n) => (n as Mesh).skeleton) as Skeleton[],
+				geometries: Tools.Distinct(nodes.filter((n) => isMesh(n) && n.geometry).map((n) => (n as Mesh).geometry) as Geometry[]),
+			},
+			editor: this.props.editor,
+			relativePath: this.props.relativePath,
+			absolutePath: this.props.absolutePath,
+		}).then(() => {
+			this.props.editor.assets.refresh();
+			this.props.editor.assetsBrowser.refresh();
+		});
 
 		this.props.editor.graph.refresh();
+	}
+
+	/**
+	 * In case of multiple meshes, shows a tree to select all nodes to import.
+	 */
+	private async _showSelectedObjectsDialog(container: AssetContainer): Promise<TransformNode[]> {
+		let selectedNodes: TransformNode[] = [];
+		let graphRef: Nullable<SceneGraph> = null;
+
+		await Alert.Show("Import Selected Object", "", "select", (
+			<div style={{ background: "#333333", maxHeight: "50vh", overflow: "auto" }}>
+				<SceneGraph
+					scene={container}
+					ref={(r) => graphRef = r}
+					onNodeClick={() => {
+						selectedNodes = graphRef?.state.selectedNodes.map((n) => n.nodeData).filter((n) => n instanceof TransformNode) ?? [];
+					}}
+				/>
+			</div>
+		), {
+			style: {
+				width: "50vh",
+				height: "50vh",
+			},
+		});
+
+		let result: TransformNode[] = [];
+		selectedNodes.forEach((r) => {
+			result.push(r);
+			result.push.apply(r, r.getDescendants(false, (n) => isTransformNode(n)));
+		});
+
+		return Tools.Distinct(result) as TransformNode[];
 	}
 }

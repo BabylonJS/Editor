@@ -208,16 +208,16 @@ export class GroundInspector extends AbstractInspector<GroundMesh, IGroundInspec
         if (!heightMapMetadata?.options) { return; }
 
         this.selectedObject.geometry?.setAllVerticesData(VertexData.CreateGroundFromHeightMap({
+            alphaFilter: 0,
             width: this.selectedObject._width,
             height: this.selectedObject._height,
+            bufferWidth: heightMapMetadata.textureWidth!,
+            bufferHeight: heightMapMetadata.textureHeight!,
             subdivisions: this.selectedObject.subdivisions,
             minHeight: heightMapMetadata.options.minHeight,
             maxHeight: heightMapMetadata.options.maxHeight,
-            colorFilter: Color3.FromArray(heightMapMetadata.options.colorFilter),
             buffer: Uint8Array.from(heightMapMetadata.texture!),
-            bufferWidth: heightMapMetadata.textureWidth!,
-            bufferHeight: heightMapMetadata.textureHeight!,
-            alphaFilter: 0
+            colorFilter: Color3.FromArray(heightMapMetadata.options.colorFilter),
         }), true);
     }
 }

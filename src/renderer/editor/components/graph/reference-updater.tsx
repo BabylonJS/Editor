@@ -3,18 +3,22 @@ import { ContextMenu, Menu, MenuDivider, MenuItem, Tag } from "@blueprintjs/core
 
 import { Mesh } from "babylonjs";
 
+import { Editor } from "../../editor";
+
 import { Tools } from "../../tools/tools";
 
 export class GraphReferenceUpdater {
 	private _mesh: Mesh;
+	private _editor: Editor;
 
 	/**
 	 * Constructor.
 	 * @param editor defines the reference to the editor.
 	 * @param mesh defines the reference to the mesh that has waiting references to update.
 	 */
-	public constructor(mesh: Mesh) {
+	public constructor(editor: Editor, mesh: Mesh) {
 		this._mesh = mesh;
+		this._editor = editor;
 	}
 
 	/**
@@ -52,6 +56,8 @@ export class GraphReferenceUpdater {
 	private _updateGeometry(withSkeleton: boolean): void {
 		const metadata = Tools.GetMeshMetadata(this._mesh);
 		metadata._waitingUpdatedReferences?.geometry?.handler?.(this._mesh, withSkeleton);
+
+		this._editor.graph.refresh();
 	}
 
 	/**
@@ -60,5 +66,7 @@ export class GraphReferenceUpdater {
 	private _updateMaterial(): void {
 		const metadata = Tools.GetMeshMetadata(this._mesh);
 		metadata._waitingUpdatedReferences?.material?.handler?.(this._mesh);
+
+		this._editor.graph.refresh();
 	}
 }

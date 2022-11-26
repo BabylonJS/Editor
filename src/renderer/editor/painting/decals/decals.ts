@@ -20,6 +20,8 @@ export class DecalsPainter extends AbstractPaintingTool {
 	 */
 	public receiveShadows: boolean = true;
 
+	private _lastRenderId: number = -1;
+
 	private _decal: Decal;
 	private _lastPickingInfo: Nullable<PickingInfo> = null;
 
@@ -49,6 +51,13 @@ export class DecalsPainter extends AbstractPaintingTool {
 	 */
 	protected onPointerEvent(info: PointerInfo): void {
 		if (info.type === PointerEventTypes.POINTERMOVE) {
+			const renderId = this.editor.scene!.getRenderId();
+			if (renderId === this._lastRenderId) {
+				return;
+			}
+
+			this._lastRenderId = renderId;
+
 			return this._updateDecal(false);
 		}
 

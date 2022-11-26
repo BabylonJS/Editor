@@ -16,6 +16,7 @@ import { FoliagePainter } from "../../../editor/painting/foliage/foliage";
 
 import { IObjectInspectorProps } from "../../../editor/components/inspector";
 import { AbstractInspector } from "../../../editor/components/inspectors/abstract-inspector";
+
 import { FoliageAssetItem } from "./item";
 
 export interface IFoliagePainterState {
@@ -81,9 +82,10 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
                 </InspectorSection>
 
                 <InspectorSection title="Painting">
-                    <InspectorBoolean object={this.selectedObject} property="paintAll" label="Paint All" />
                     <InspectorBoolean object={this.selectedObject} property="holdToPaint" label="Hold To Paint" />
-                    <InspectorNumber object={this.selectedObject} property="paintDistance" label="Pain Distance" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="density" label="Density" min={0} step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="distance" label="Distance" min={0} step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="size" label="Size" min={0} step={0.01} />
                 </InspectorSection>
             </>
         );

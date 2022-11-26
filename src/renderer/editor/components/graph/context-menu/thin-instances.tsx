@@ -32,19 +32,26 @@ export function GraphContextMenuClearThinInstances(props: IGraphContextMenuClear
     }
 
     return (
-        <MenuItem text="Clear Thin Instances" onClick={() => onClick(selectedNodes)} />
+        <MenuItem text="Clear Thin Instances" onClick={() => onClick(props.editor, selectedNodes)} />
     );
 }
 
 /**
  * Called on the user clicks the menu item.
  */
-function onClick(meshes: Mesh[]): void {
+function onClick(editor: Editor, meshes: Mesh[]): void {
     const matrices = meshes.map((m) => m.thinInstanceGetWorldMatrices());
 
     undoRedo.push({
         common: () => {
-            meshes.forEach((m) => refreshBoundingInfo(m));
+            meshes.forEach((m) => {
+                refreshBoundingInfo(m);
+                editor.objectModifiedObservable.notifyObservers({
+                    object: m,
+                    path: "_userThinInstanceBuffersStorage",
+                });
+            });
+
         },
         undo: () => {
             meshes.forEach((m, index) => {

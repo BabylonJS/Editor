@@ -18,10 +18,10 @@ import { GraphLabel } from "./graph/label";
 import { GraphContextMenu } from "./graph/context-menu/menu";
 
 import { moveNodes } from "./graph/tools/move";
+import { removeNodes } from "./graph/tools/remove";
 import { isAbstractMesh, isNode, isIParticleSystem, isReflectionProbe, isScene, isSound } from "./graph/tools/tools";
 
 import { GraphReferenceUpdater } from "./graph/reference-updater";
-import { removeNodes } from "./graph/tools/remove";
 
 export interface _IDragAndDroppedItem {
     nodeId: string;
@@ -410,7 +410,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     intent="warning"
                     interactive
                     style={{ marginLeft: "10px" }}
-                    onClick={(e) => new GraphReferenceUpdater(node as Mesh).showContextMenu(e)}
+                    onClick={(e) => new GraphReferenceUpdater(this.props.editor, node as Mesh).showContextMenu(e)}
                 >...</Tag>
             );
         }

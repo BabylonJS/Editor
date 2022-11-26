@@ -199,8 +199,10 @@ export function getRootNodes(nodes: Node[]): Node[] {
     nodes.forEach((n) => {
         let node = n;
         while (node) {
-            if ((!node.parent || nodes.indexOf(node.parent) === -1) && rootNodes.indexOf(node) === -1) {
-                rootNodes.push(node);
+            if ((!node.parent || nodes.indexOf(node.parent) === -1)) {
+                if (rootNodes.indexOf(node) === -1) {
+                    rootNodes.push(node);
+                }
                 break;
             }
 

@@ -26,7 +26,9 @@ export interface IGraphContextMenuMergeMeshesProps {
  * @param props defines the component's props.
  */
 export function GraphContextMenuMergeMeshes(props: IGraphContextMenuMergeMeshesProps) {
-    const selectedNodes = props.editor.graph.state.selectedNodes.filter((n) => isMesh(n.nodeData)).map((n) => n.nodeData) as Mesh[];
+    const selectedNodes = props.editor.graph.state.selectedNodes
+        .filter((n) => isMesh(n.nodeData) && n.nodeData.geometry)
+        .map((n) => n.nodeData) as Mesh[];
 
     if (selectedNodes.length < 2) {
         return null;
