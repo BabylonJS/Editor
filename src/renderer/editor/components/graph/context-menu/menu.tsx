@@ -1,9 +1,13 @@
 import * as React from "react";
-import { Classes, ContextMenu, Menu, MenuDivider } from "@blueprintjs/core";
+import { Classes, ContextMenu, Menu, MenuDivider, MenuItem } from "@blueprintjs/core";
 
 import { Node } from "babylonjs";
 
 import { Editor } from "../../../editor";
+
+import { Icon } from "../../../gui/icon";
+
+import { isNode } from "../tools/tools";
 
 import { GraphContextMenuName } from "./name";
 import { GraphContextMenuLock } from "./lock";
@@ -27,6 +31,18 @@ export class GraphContextMenu {
      */
     public static Show(event: MouseEvent, editor: Editor, object: Node): void {
         const menus: React.ReactNode[] = [];
+
+        if (isNode(object)) {
+            menus.push.apply(menus, [
+                <MenuItem text="Add" icon={<Icon src="plus.svg" />}>
+                    {editor.mainToolbar.getAddMenuItems(object)}
+                </MenuItem>,
+                <MenuItem text="Add Mesh" icon={<Icon src="plus.svg" />}>
+                    {editor.mainToolbar.getAddMeshMenuItem(object)}
+                </MenuItem>,
+                <MenuDivider />
+            ]);
+        }
 
         const clone = GraphContextMenuClone({ editor, object });
         if (clone) {

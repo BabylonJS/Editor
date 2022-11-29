@@ -1,11 +1,16 @@
+import { Nullable } from "../../../../shared/types";
+
 import * as React from "react";
 import { Tooltip } from "@blueprintjs/core";
+
+import { TransformNode } from "babylonjs";
 
 import { Editor } from "../../editor";
 
 import { InspectorNotifier } from "../../gui/inspector/notifier";
 
 import { Tools } from "../../tools/tools";
+import { undoRedo } from "../../tools/undo-redo";
 
 import { IDragAndDroppedAssetComponentItem } from "../../assets/abstract-assets";
 
@@ -36,6 +41,8 @@ export interface IGraphLabelState {
 
 export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelState> {
     private _isDraggable: boolean;
+
+    private _dropListener: Nullable<(ev: DragEvent) => void> = null;
 
     /**
      * Constructor.
@@ -120,6 +127,11 @@ export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelSta
      */
     private _handleDragEnd(_: React.DragEvent<HTMLSpanElement>): void {
         this.setState({ opacity: undefined });
+
+        if (this._dropListener) {
+            this.props.editor.engine!.getRenderingCanvas()?.removeEventListener("drop", this._dropListener);
+            this._dropListener = null;
+        }
     }
 
     /**
@@ -147,6 +159,10 @@ export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelSta
                 },
             };
         }
+
+        this.props.editor.engine?.getRenderingCanvas()?.addEventListener("drop", this._dropListener = (dropEv) => {
+            this._handleCanvasDrop(dropEv);
+        });
     }
 
     /**
@@ -215,5 +231,37 @@ export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelSta
         if (InspectorNotifier._DragAndDroppedAssetItem) {
             InspectorNotifier._DragAndDroppedAssetItem.onDropInGraph(event, objects);
         }
+    }
+
+    /**
+     * Called on the user drops an element of the graph on the preview's canvas.
+     */
+    private _handleCanvasDrop(event: DragEvent): void {
+        if (!event.dataTransfer?.getData("graph/node")) {
+            return;
+        }
+
+        const scene = this.props.editor.scene!;
+        const pick = scene.pick(event.offsetX, event.offsetY);
+
+        if (!pick?.pickedPoint) {
+            return;
+        }
+
+        const selectedNodes = this.props.editor.graph.state.selectedNodes
+            .filter((n) => n.nodeData instanceof TransformNode)
+            .map((n) => n.nodeData) as TransformNode[];
+
+        if (!selectedNodes.length) {
+            return;
+        }
+
+        const oldAbsolutePositions = selectedNodes.map((n) => n.getAbsolutePosition().clone());
+
+        undoRedo.push({
+            common: () => this.props.editor.inspector.refresh(),
+            undo: () => selectedNodes.forEach((n, index) => n.setAbsolutePosition(oldAbsolutePositions[index])),
+            redo: () => selectedNodes.forEach((n) => n.setAbsolutePosition(pick.pickedPoint!)),
+        });
     }
 }

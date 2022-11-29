@@ -166,36 +166,17 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="TypeScript Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:typescript-logs")} />
             </Menu>;
 
-        const add =
+        const add = (
             <Menu>
-                <MenuItem text="Point Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:pointlight")} />
-                <MenuItem text="Directional Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:directional-light")} />
-                <MenuItem text="Spot Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:spot-light")} />
-                <MenuItem text="Hemispheric Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._menuItemClicked("add:hemispheric-light")} />
-                <MenuDivider />
-                <MenuItem text="Universal Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("add:camera")} />
-                <MenuItem text="Arc Rotate Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("add:arc-rotate-camera")} />
-                <MenuItem text="Target Camera" icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("add:target-camera")} />
-                <MenuDivider />
-                <MenuItem text="Sky" icon={<Icon src="smog.svg" />} onClick={() => this._menuItemClicked("add:sky")} />
-                <MenuDivider />
-                <MenuItem text="Dummy Node" icon={<Icon src="clone.svg" />} onClick={() => this._menuItemClicked("add:dummy")} />
-                <MenuDivider />
-                <MenuItem text="Reflection Probe" icon={<Icon src="image.svg" />} onClick={() => this._menuItemClicked("add:reflection-probe")} />
-            </Menu>;
+                {this.getAddMenuItems()}
+            </Menu>
+        );
 
-        const addMesh =
+        const addMesh = (
             <Menu>
-                <MenuItem text="Empty" icon={<Icon src="vector-square.svg" />} onClick={() => this._menuItemClicked("addmesh:empty")} />
-                <MenuDivider />
-                <MenuItem text="Cube" icon={<Icon src="cube.svg" />} onClick={() => this._menuItemClicked("addmesh:cube")} />
-                <MenuItem text="Sphere" icon={<Icon src="circle.svg" />} onClick={() => this._menuItemClicked("addmesh:sphere")} />
-                <MenuItem text="Cylinder" icon={<Icon src="cylinder.svg" />} onClick={() => this._menuItemClicked("addmesh:cylinder")} />
-                <MenuItem text="Plane" icon={<Icon src="square-full.svg" />} onClick={() => this._menuItemClicked("addmesh:plane")} />
-                <MenuDivider />
-                <MenuItem text="Ground" icon={<Icon src="vector-square.svg" />} onClick={() => this._menuItemClicked("addmesh:ground")} />
-                <MenuItem text="Terrain From Height Map..." icon={<Icon src="terrain.svg" style={{ filter: "none" }} />} onClick={() => this._menuItemClicked("addmesh:heightmap")} />
-            </Menu>;
+                {this.getAddMeshMenuItem()}
+            </Menu>
+        );
 
         const tools =
             <Menu>
@@ -251,6 +232,49 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                     <Button icon={<Icon src="dog.svg" />} rightIcon="caret-down" text="Help" />
                 </Popover>
             </ButtonGroup>
+        );
+    }
+
+    /**
+     * Returns the list of all items of the "Add" menu.
+     */
+    public getAddMenuItems(parent?: Node): React.ReactNode {
+        return (
+            <>
+                <MenuItem text="Point Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._onAddNodeClicked("pointlight", parent)} />
+                <MenuItem text="Directional Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._onAddNodeClicked("directional-light", parent)} />
+                <MenuItem text="Spot Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._onAddNodeClicked("spot-light", parent)} />
+                <MenuItem text="Hemispheric Light" icon={<Icon src="lightbulb.svg" />} onClick={() => this._onAddNodeClicked("hemispheric-light", parent)} />
+                <MenuDivider />
+                <MenuItem text="Universal Camera" icon={<Icon src="camera.svg" />} onClick={() => this._onAddNodeClicked("camera", parent)} />
+                <MenuItem text="Arc Rotate Camera" icon={<Icon src="camera.svg" />} onClick={() => this._onAddNodeClicked("arc-rotate-camera", parent)} />
+                <MenuItem text="Target Camera" icon={<Icon src="camera.svg" />} onClick={() => this._onAddNodeClicked("target-camera", parent)} />
+                <MenuDivider />
+                <MenuItem text="Sky" icon={<Icon src="smog.svg" />} onClick={() => this._onAddNodeClicked("sky", parent)} />
+                <MenuDivider />
+                <MenuItem text="Dummy Node" icon={<Icon src="clone.svg" />} onClick={() => this._onAddNodeClicked("dummy", parent)} />
+                <MenuDivider />
+                <MenuItem text="Reflection Probe" icon={<Icon src="image.svg" />} onClick={() => this._onAddNodeClicked("reflection-probe", parent)} />
+            </>
+        );
+    }
+
+    /**
+     * Returns the list of all items of the "Add Mesh" menu.
+     */
+    public getAddMeshMenuItem(parent?: Node): React.ReactNode {
+        return (
+            <>
+                <MenuItem text="Empty" icon={<Icon src="vector-square.svg" />} onClick={() => this._onAddMeshClicked("empty", parent)} />
+                <MenuDivider />
+                <MenuItem text="Cube" icon={<Icon src="cube.svg" />} onClick={() => this._onAddMeshClicked("cube", parent)} />
+                <MenuItem text="Sphere" icon={<Icon src="circle.svg" />} onClick={() => this._onAddMeshClicked("sphere", parent)} />
+                <MenuItem text="Cylinder" icon={<Icon src="cylinder.svg" />} onClick={() => this._onAddMeshClicked("cylinder", parent)} />
+                <MenuItem text="Plane" icon={<Icon src="square-full.svg" />} onClick={() => this._onAddMeshClicked("plane", parent)} />
+                <MenuDivider />
+                <MenuItem text="Ground" icon={<Icon src="vector-square.svg" />} onClick={() => this._onAddMeshClicked("ground", parent)} />
+                <MenuItem text="Terrain From Height Map..." icon={<Icon src="terrain.svg" style={{ filter: "none" }} />} onClick={() => this._onAddMeshClicked("heightmap", parent)} />
+            </>
         );
     }
 
@@ -381,58 +405,12 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         // Add
         if (family === "add") {
-            let node: Undefinable<Node | IParticleSystem | ReflectionProbe>;
-
-            switch (action) {
-                case "pointlight": node = SceneFactory.AddPointLight(this._editor); break;
-                case "directional-light": node = SceneFactory.AddDirectionalLight(this._editor); break;
-                case "spot-light": node = SceneFactory.AddSpotLight(this._editor); break;
-                case "hemispheric-light": node = SceneFactory.AddHemisphericLight(this._editor); break;
-
-                case "camera": node = SceneFactory.AddFreeCamera(this._editor); break;
-                case "arc-rotate-camera": node = SceneFactory.AddArcRotateCamera(this._editor); break;
-                case "target-camera": node = SceneFactory.AddTargetCamera(this._editor); break;
-
-                case "sky": node = await SceneFactory.AddSky(this._editor); break;
-
-                case "dummy": node = SceneFactory.AddDummy(this._editor); break;
-
-                case "reflection-probe": node = SceneFactory.AddReflectionProbe(this._editor); break;
-
-                default: break;
-            }
-
-            if (!node) { return; }
-
-            if (node instanceof Node) {
-                this._editor.addedNodeObservable.notifyObservers(node);
-            } else if (node instanceof ParticleSystem || node instanceof GPUParticleSystem) {
-                this._editor.addedParticleSystemObservable.notifyObservers(node);
-            }
-
-            return this._editor.graph.refresh();
+            return this._onAddNodeClicked(action);
         }
 
         // Add mesh
         if (family === "addmesh") {
-            let mesh: Undefinable<AbstractMesh>;
-
-            switch (action) {
-                case "empty": mesh = SceneFactory.AddEmptyMesh(this._editor); break;
-                case "cube": mesh = SceneFactory.AddCube(this._editor); break;
-                case "sphere": mesh = SceneFactory.AddSphere(this._editor); break;
-                case "cylinder": mesh = SceneFactory.AddCynlinder(this._editor); break;
-                case "plane": mesh = SceneFactory.AddPlane(this._editor); break;
-
-                case "ground": mesh = SceneFactory.AddGround(this._editor); break;
-                case "heightmap": mesh = await SceneFactory.AddTerrainFromHeightMap(this._editor); break;
-                default: break;
-            }
-
-            if (!mesh) { return; }
-
-            this._editor.addedNodeObservable.notifyObservers(mesh);
-            return this._editor.graph.refresh();
+            return this._onAddMeshClicked(action);
         }
 
         // Tools
@@ -446,6 +424,73 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 case "photoshop": this._handleTogglePhotoshop(); break;
             }
         }
+    }
+
+    /**
+     * Called on the user clicks on an item of the "Add" menu.
+     */
+    private async _onAddNodeClicked(action: string, parent?: Node): Promise<void> {
+        let node: Undefinable<Node | IParticleSystem | ReflectionProbe>;
+
+        switch (action) {
+            case "pointlight": node = SceneFactory.AddPointLight(this._editor); break;
+            case "directional-light": node = SceneFactory.AddDirectionalLight(this._editor); break;
+            case "spot-light": node = SceneFactory.AddSpotLight(this._editor); break;
+            case "hemispheric-light": node = SceneFactory.AddHemisphericLight(this._editor); break;
+
+            case "camera": node = SceneFactory.AddFreeCamera(this._editor); break;
+            case "arc-rotate-camera": node = SceneFactory.AddArcRotateCamera(this._editor); break;
+            case "target-camera": node = SceneFactory.AddTargetCamera(this._editor); break;
+
+            case "sky": node = await SceneFactory.AddSky(this._editor); break;
+
+            case "dummy": node = SceneFactory.AddDummy(this._editor); break;
+
+            case "reflection-probe": node = SceneFactory.AddReflectionProbe(this._editor); break;
+
+            default: break;
+        }
+
+        if (!node) {
+            return;
+        }
+
+        if (node instanceof Node) {
+            node.parent = parent ?? null;
+            this._editor.addedNodeObservable.notifyObservers(node);
+        } else if (node instanceof ParticleSystem || node instanceof GPUParticleSystem) {
+            this._editor.addedParticleSystemObservable.notifyObservers(node);
+        }
+
+        return this._editor.graph.refresh();
+    }
+
+    /**
+     * Called on the user clicks on an item of the "Add Mesh" menu.
+     */
+    private async _onAddMeshClicked(action: string, parent?: Node): Promise<void> {
+        let mesh: Undefinable<AbstractMesh>;
+
+        switch (action) {
+            case "empty": mesh = SceneFactory.AddEmptyMesh(this._editor); break;
+            case "cube": mesh = SceneFactory.AddCube(this._editor); break;
+            case "sphere": mesh = SceneFactory.AddSphere(this._editor); break;
+            case "cylinder": mesh = SceneFactory.AddCynlinder(this._editor); break;
+            case "plane": mesh = SceneFactory.AddPlane(this._editor); break;
+
+            case "ground": mesh = SceneFactory.AddGround(this._editor); break;
+            case "heightmap": mesh = await SceneFactory.AddTerrainFromHeightMap(this._editor); break;
+            default: break;
+        }
+
+        if (!mesh) {
+            return;
+        }
+
+        mesh.parent = parent ?? null;
+
+        this._editor.addedNodeObservable.notifyObservers(mesh);
+        return this._editor.graph.refresh();
     }
 
     /**

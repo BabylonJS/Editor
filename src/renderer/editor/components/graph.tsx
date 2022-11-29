@@ -1,7 +1,7 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Classes, InputGroup, Tag, Tree, TreeNodeInfo, Icon as BPIcon } from "@blueprintjs/core";
+import { Classes, InputGroup, Tag, Tree, TreeNodeInfo, Icon as BPIcon, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
 
 import { IParticleSystem, Mesh, Node, ReflectionProbe, Sound } from "babylonjs";
 
@@ -100,6 +100,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                     onDrop={(ev) => {
                         moveNodes(this.props.editor, this.state.selectedNodes.map((n) => n.nodeData), null, ev.shiftKey);
                     }}
+                    onContextMenu={(e) => this._handleRootContextMenu(e)}
                 >
                     <Tree
                         contents={this.state.nodes}
@@ -154,9 +155,30 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     }
 
     /**
+     * Called on the user right-clicks on the graph panel but not on a node.
+     */
+    private _handleRootContextMenu(event: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+        ContextMenu.show((
+            <Menu className={Classes.DARK}>
+                <MenuItem text="Add" icon={<Icon src="plus.svg" />}>
+                    {this.props.editor.mainToolbar.getAddMenuItems()}
+                </MenuItem>
+                <MenuItem text="Add Mesh" icon={<Icon src="plus.svg" />}>
+                    {this.props.editor.mainToolbar.getAddMeshMenuItem()}
+                </MenuItem>
+            </Menu>
+        ), {
+            top: event.clientY,
+            left: event.clientX,
+        });
+    }
+
+    /**
      * Called on the user right-clicks on a node.
      */
     private _handleNodeContextMenu(node: TreeNodeInfo<any>, event: React.MouseEvent<HTMLElement, MouseEvent>): void {
+        event.stopPropagation();
+
         if (!node.isSelected) {
             this._handleNodeClick(node, event);
         }

@@ -121,49 +121,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		const addContent = (
 			<Menu>
-				<MenuItem text="Material" disabled={!isAssetsDirectory} icon={<Icon src="circle.svg" />}>
-					<MenuItem text="Standard Material..." onClick={() => this._handleCreateMaterial("StandardMaterial")} />
-					<MenuItem text="PBR Material..." onClick={() => this._handleCreateMaterial("PBRMaterial")} />
-					<MenuItem text="Node Material..." onClick={() => this._handleCreateMaterial("NodeMaterial")} />
-					<MenuDivider />
-					<MenuItem text="Node Material From Snippet..." onClick={() => this._handleAddNodeMaterialFromWeb()} />
-					<MenuDivider />
-					<MenuItem text="From Source Code..." onClick={() => this._handleAddMaterialFromSourceCode()} />
-					<MenuDivider />
-					<Code>Materials Library</Code>
-					<MenuItem text="Sky Material..." onClick={() => this._handleCreateMaterial("SkyMaterial")} />
-					<MenuItem text="Cel Material..." onClick={() => this._handleCreateMaterial("CellMaterial")} />
-					<MenuItem text="Fire Material..." onClick={() => this._handleCreateMaterial("FireMaterial")} />
-					<MenuItem text="Lava Material..." onClick={() => this._handleCreateMaterial("LavaMaterial")} />
-					<MenuItem text="Water Material..." onClick={() => this._handleCreateMaterial("WaterMaterial")} />
-					<MenuItem text="Gradient Material..." onClick={() => this._handleCreateMaterial("GradientMaterial")} />
-					<MenuItem text="Tri Planar Material..." onClick={() => this._handleCreateMaterial("TriPlanarMaterial")} />
-				</MenuItem>
-
-				<MenuItem text="Particles System" disabled={!isAssetsDirectory} icon={<Icon src="wind.svg" />}>
-					<MenuItem text="Particles System..." onClick={() => this._handleCreateParticlesSystem()} />
-				</MenuItem>
-
-				<MenuItem text="Graph File..." disabled={!isAssetsDirectory} icon={<Icon src="project-diagram.svg" />} onClick={() => this._handleAddGraph()} />
-
-				<MenuItem text="GUI" disabled={!isAssetsDirectory} icon={<Icon src="columns.svg" />}>
-					<MenuItem text="GUI File..." onClick={() => this._handleAddGui()} />
-					<MenuItem text="GUI From Snippet..." onClick={() => this._handleAddGuiFromSnippet()} />
-				</MenuItem>
-
-				<MenuDivider />
-
-				<MenuItem text="Scene..." icon={<Icon src="file.svg" />} onClick={() => NewProjectWizard.Show(this.props.editor)} />
-
-				<MenuDivider />
-
-				<MenuItem text="TypeScript File..." disabled={!isSrcDirectory} icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
-				<MenuItem text="Material File..." disabled={!isSrcDirectory} icon={<Icon src="json.svg" style={{ filter: "none" }} />}>
-					<MenuItem text="Custom Material" onClick={() => this._handleAddMaterialScript("material")} />
-					<MenuDivider />
-					<MenuItem text="PBR Based Material" onClick={() => this._handleAddMaterialScript("pbr-material")} />
-					<MenuItem text="Standard Based Material" onClick={() => this._handleAddMaterialScript("standard-material")} />
-				</MenuItem>
+				{this.getAddMenuItems()}
 			</Menu>
 		);
 
@@ -259,6 +217,62 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 				</div>
 			</div>
 		)
+	}
+
+	/**
+	 * Returns the list of all items drawn in the "Add..." menu.
+	 */
+	public getAddMenuItems(): React.ReactNode {
+		const isSrcDirectory = this.state.currentDirectory.indexOf(this._sourcesDirectory) === 0;
+		const isAssetsDirectory = this.state.currentDirectory.indexOf(this._assetsDirectory) === 0;
+
+		return (
+			<>
+				<MenuItem text="Material" disabled={!isAssetsDirectory} icon={<Icon src="circle.svg" />}>
+					<MenuItem text="Standard Material..." onClick={() => this._handleCreateMaterial("StandardMaterial")} />
+					<MenuItem text="PBR Material..." onClick={() => this._handleCreateMaterial("PBRMaterial")} />
+					<MenuItem text="Node Material..." onClick={() => this._handleCreateMaterial("NodeMaterial")} />
+					<MenuDivider />
+					<MenuItem text="Node Material From Snippet..." onClick={() => this._handleAddNodeMaterialFromWeb()} />
+					<MenuDivider />
+					<MenuItem text="From Source Code..." onClick={() => this._handleAddMaterialFromSourceCode()} />
+					<MenuDivider />
+					<Code>Materials Library</Code>
+					<MenuItem text="Sky Material..." onClick={() => this._handleCreateMaterial("SkyMaterial")} />
+					<MenuItem text="Cel Material..." onClick={() => this._handleCreateMaterial("CellMaterial")} />
+					<MenuItem text="Fire Material..." onClick={() => this._handleCreateMaterial("FireMaterial")} />
+					<MenuItem text="Lava Material..." onClick={() => this._handleCreateMaterial("LavaMaterial")} />
+					<MenuItem text="Water Material..." onClick={() => this._handleCreateMaterial("WaterMaterial")} />
+					<MenuItem text="Gradient Material..." onClick={() => this._handleCreateMaterial("GradientMaterial")} />
+					<MenuItem text="Tri Planar Material..." onClick={() => this._handleCreateMaterial("TriPlanarMaterial")} />
+				</MenuItem>
+
+				<MenuItem text="Particles System" disabled={!isAssetsDirectory} icon={<Icon src="wind.svg" />}>
+					<MenuItem text="Particles System..." onClick={() => this._handleCreateParticlesSystem()} />
+				</MenuItem>
+
+				<MenuItem text="Graph File..." disabled={!isAssetsDirectory} icon={<Icon src="project-diagram.svg" />} onClick={() => this._handleAddGraph()} />
+
+				<MenuItem text="GUI" disabled={!isAssetsDirectory} icon={<Icon src="columns.svg" />}>
+					<MenuItem text="GUI File..." onClick={() => this._handleAddGui()} />
+					<MenuItem text="GUI From Snippet..." onClick={() => this._handleAddGuiFromSnippet()} />
+				</MenuItem>
+
+				<MenuDivider />
+
+				<MenuItem text="Scene..." icon={<Icon src="file.svg" />} onClick={() => NewProjectWizard.Show(this.props.editor)} />
+
+				<MenuDivider />
+
+				<MenuItem text="TypeScript File..." disabled={!isSrcDirectory} icon={<Icon src="../images/ts.png" style={{ filter: "none" }} />} onClick={() => this._handleAddScript()} />
+				<MenuItem text="Material File..." disabled={!isSrcDirectory} icon={<Icon src="json.svg" style={{ filter: "none" }} />}>
+					<MenuItem text="Custom Material" onClick={() => this._handleAddMaterialScript("material")} />
+					<MenuDivider />
+					<MenuItem text="PBR Based Material" onClick={() => this._handleAddMaterialScript("pbr-material")} />
+					<MenuItem text="Standard Based Material" onClick={() => this._handleAddMaterialScript("standard-material")} />
+				</MenuItem>
+			</>
+		);
 	}
 
 	/**
@@ -572,7 +586,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 						case AssetsBrowserTree.MaterialsFavorite.id:
 							return this.setFavorite(AssetsBrowserTree.MaterialsFavorite);
 					}
-					
+
 					this.setDirectory(itemStack.join("/"));
 				},
 			});
@@ -631,6 +645,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		ContextMenu.show((
 			<Menu>
+				<MenuItem text="Add" icon={<Icon src="plus.svg" />}>
+					{this.getAddMenuItems()}
+				</MenuItem>
+				<MenuDivider />
 				<MenuItem text="Refresh" icon={<Icon src="recycle.svg" />} onClick={() => this.props.editor.assetsBrowser.refresh()} />
 				<MenuItem
 					icon={<BPIcon icon="document-open" color="white" />}
@@ -809,7 +827,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		const snippetId = await Dialog.Show("Snippet Id", "Please provide the Id of the snippet.");
 
 		const texture = new AdvancedDynamicTexture("snippet-ui", 128, 128, this.props.editor.scene!, false);
-		
+
 		try {
 			await texture.parseFromSnippetAsync(snippetId, false);
 		} catch (e) {
