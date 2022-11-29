@@ -79,7 +79,7 @@ export class /*{__shader_class_name__}*/APBRMaterial extends PBRMaterial {
 	 * Returns the name of this material class.
 	 */
 	public getClassName(): string {
-		return "/*{__shader_class_name__}*/APBRMaterial";
+		return "/*{__shader_class_name__id__}*/APBRMaterial";
 	}
 
 	/**
@@ -88,7 +88,7 @@ export class /*{__shader_class_name__}*/APBRMaterial extends PBRMaterial {
 	 */
 	public serialize(): any {
 		var serializationObject = SerializationHelper.Serialize(this, super.serialize());
-		serializationObject.customType = "BABYLON./*{__shader_class_name__}*/APBRMaterial";
+		serializationObject.customType = "BABYLON./*{__shader_class_name__id__}*/APBRMaterial";
 
 		return serializationObject;
 	}
@@ -123,7 +123,7 @@ export class /*{__shader_class_name__}*/APBRMaterial extends PBRMaterial {
 /**
  * Register the material in the BabylonJS registered types in order to be parsed.
  */
-RegisterClass("BABYLON./*{__shader_class_name__}*/APBRMaterial", /*{__shader_class_name__}*/APBRMaterial);
+RegisterClass("BABYLON./*{__shader_class_name__id__}*/APBRMaterial", /*{__shader_class_name__}*/APBRMaterial);
 
 /**
  * Export the class by default.

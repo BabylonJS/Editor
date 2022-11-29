@@ -79,7 +79,7 @@ export class /*{__shader_class_name__}*/AStandardMaterial extends StandardMateri
      * Returns the name of this material class.
      */
     public getClassName(): string {
-        return "/*{__shader_class_name__}*/AStandardMaterial";
+        return "/*{__shader_class_name__id__}*/AStandardMaterial";
     }
 
     /**
@@ -88,7 +88,7 @@ export class /*{__shader_class_name__}*/AStandardMaterial extends StandardMateri
      */
     public serialize(): any {
         var serializationObject = SerializationHelper.Serialize(this, super.serialize());
-        serializationObject.customType = "BABYLON./*{__shader_class_name__}*/AStandardMaterial";
+        serializationObject.customType = "BABYLON./*{__shader_class_name__id__}*/AStandardMaterial";
 
         return serializationObject;
     }
@@ -107,7 +107,7 @@ export class /*{__shader_class_name__}*/AStandardMaterial extends StandardMateri
 /**
  * Register the material in the BabylonJS registered types in order to be parsed.
  */
-RegisterClass("BABYLON./*{__shader_class_name__}*/AStandardMaterial", /*{__shader_class_name__}*/AStandardMaterial);
+RegisterClass("BABYLON./*{__shader_class_name__id__}*/AStandardMaterial", /*{__shader_class_name__}*/AStandardMaterial);
 
 /**
  * Export the class by default.

@@ -764,8 +764,14 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		await copyFile(join(AppTools.GetAppPath(), `assets/scripts/${base}/vertex.fx`), join(destFolder, `${name}.vertex.fx`));
 		await copyFile(join(AppTools.GetAppPath(), `assets/scripts/${base}/fragment.fx`), join(destFolder, `${name}.fragment.fx`));
 
+		const randomId = Tools.RandomId();
+
 		const tsContent = await readFile(join(AppTools.GetAppPath(), `assets/scripts/${base}/material.ts`), { encoding: "utf-8" });
-		const finalTsContent = tsContent.replace(/{__shader_name__}/g, name).replace(/\/\*{__shader_class_name__}\*\/A/g, capitalizedName);
+
+		const finalTsContent = tsContent
+			.replace(/{__shader_name__}/g, name)
+			.replace(/\/\*{__shader_class_name__}\*\/A/g, capitalizedName)
+			.replace(/\/\*{__shader_class_name__id__}\*\/A/g, `${capitalizedName}-${randomId}`);
 
 		await writeFile(join(destFolder, `${name}.ts`), finalTsContent, { encoding: "utf-8" });
 
@@ -841,10 +847,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	/**
 	 * Called on the user wants to add a new material asset.
 	 */
-	private async _handleCreateMaterial(type: string, sourcePath?: string): Promise<Material> {
+	private async _handleCreateMaterial(type: string | Function, sourcePath?: string): Promise<Material> {
 		let name = await Dialog.Show("Material Name", "Please provide a name for the new material to created.");
 
-		const ctor = BabylonTools.Instantiate(`BABYLON.${type}`);
+		const ctor = typeof (type) === "string" ? BabylonTools.Instantiate(`BABYLON.${type}`) : type;
 		const material = new ctor(name, this.props.editor.scene!);
 
 		material.id = Tools.RandomId();
@@ -950,6 +956,6 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 		// Instantiate
 		const exports = require(jsPath);
-		await this._handleCreateMaterial(exports.default.prototype.constructor.name, relativePath);
+		await this._handleCreateMaterial(exports.default, relativePath);
 	}
 }
