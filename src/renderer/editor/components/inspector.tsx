@@ -195,6 +195,16 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
         super.forceUpdate(callback);
     }
 
+
+    /**
+     * Catches exceptions generated in descendant components. 
+     * Unhandled exceptions will cause the entire component tree to unmount.
+     */
+    public componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+        this._editor.console.logError(`inspector failed to load due to error ${error.message} ${errorInfo.componentStack}`);
+        throw error;
+    }
+
     /**
      * Sets the selected object in the scene or graph to be edited.
      * @param object the selected object reference used by the inspector to be modified.
