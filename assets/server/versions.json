@@ -164,5 +164,13 @@
         "win32-arm64": "electron/4.4.0/BabylonJS Editor Setup 4.4.0-arm64.exe",
         "darwin-arm64": "electron/4.4.0/BabylonJS Editor-4.4.0-arm64.dmg",
         "linux-arm64": "electron/4.4.0/BabylonJS Editor-4.4.0-arm64.AppImage"
+    },
+    "4.5.0": {
+        "win32": "electron/4.5.0/BabylonJS Editor Setup 4.5.0.exe",
+        "darwin": "electron/4.5.0/BabylonJS Editor-4.5.0.dmg",
+        "linux": "electron/4.5.0/BabylonJS Editor-4.5.0.AppImage",
+        "win32-arm64": "electron/4.5.0/BabylonJS Editor Setup 4.5.0-arm64.exe",
+        "darwin-arm64": "electron/4.5.0/BabylonJS Editor-4.5.0-arm64.dmg",
+        "linux-arm64": "electron/4.5.0/BabylonJS Editor-4.5.0-arm64.AppImage"
     }
 }
