@@ -35,6 +35,8 @@ export class GraphReferenceUpdater {
 				<MenuItem text="Update Material" disabled={(metadata._waitingUpdatedReferences?.material ?? null) === null} onClick={() => this._updateMaterial()} />
 				<MenuDivider />
 				<MenuItem text="Update All" onClick={() => this._updateAll()} />
+				<MenuDivider />
+				<MenuItem text="Done" intent="success" onClick={() => this._handleDoneClicked()} />
 			</Menu>
 		), {
 			top: ev.clientY,
@@ -66,6 +68,17 @@ export class GraphReferenceUpdater {
 	private _updateMaterial(): void {
 		const metadata = Tools.GetMeshMetadata(this._mesh);
 		metadata._waitingUpdatedReferences?.material?.handler?.(this._mesh);
+
+		this._editor.graph.refresh();
+	}
+
+	/**
+	 * Called on the user clicks on the done button.
+	 */
+	private _handleDoneClicked(): void {
+		if (this._mesh.metadata?._waitingUpdatedReferences) {
+			delete this._mesh.metadata._waitingUpdatedReferences;
+		}
 
 		this._editor.graph.refresh();
 	}

@@ -1,7 +1,7 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Classes, ButtonGroup, Button } from "@blueprintjs/core";
+import { Classes, ButtonGroup, Button, Pre } from "@blueprintjs/core";
 
 import { Logger, Observable } from "babylonjs";
 
@@ -114,7 +114,6 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
     /**
      * Logs the given message as info.
      * @param message defines the message to log as info.
-     * @param ref defines the optional callback on the 
      */
     public logInfo(message: string): Promise<ConsoleLog> {
         return this._addLog({ type: ConsoleLogType.Info, message });
@@ -132,8 +131,16 @@ export class Console extends React.Component<IConsoleProps, IConsoleState> {
      * Logs the given message as error.
      * @param message the message to log as error.
      */
-    public logError(message: string): Promise<ConsoleLog> {
-        return this._addLog({ type: ConsoleLogType.Error, message });
+    public async logError(message: string): Promise<ConsoleLog> {
+        const log = await this._addLog({ type: ConsoleLogType.Error, message });
+
+        log.setBody(
+            <Pre style={{ outlineColor: "red", outlineWidth: "1px", outlineStyle: "double" }}>
+                {message}
+            </Pre>
+        );
+
+        return log;
     }
 
     /**

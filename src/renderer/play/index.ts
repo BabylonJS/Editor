@@ -28,7 +28,7 @@ export default class Play {
 	* Loads the first scene.
 	*/
 	private _load(): void {
-		PlayOverride.OverrideEngineFunctions(this.workspaceDir);
+		PlayOverride.OverrideEngineFunctions(this.workspaceDir, this.outputSceneDirectory);
 
 		const rootUrl = join(this.workspaceDir, "assets/");
 

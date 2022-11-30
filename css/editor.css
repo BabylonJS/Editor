@@ -39,6 +39,10 @@ html, body {
     padding: 0;
 }
 
+span, img {
+    outline: none !important;
+}
+
 /* SCROLLBARS */
 
 ::-webkit-scrollbar {
@@ -127,6 +131,10 @@ html, body {
 
 .bp3-dark .bp3-button:active {
     background-color: #222222 !important;
+}
+
+.bp3-dark .bp3-button {
+    outline: none;
 }
 
 .bp3-button.bp3-intent-danger {

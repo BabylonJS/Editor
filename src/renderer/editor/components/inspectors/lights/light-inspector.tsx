@@ -30,27 +30,41 @@ export class LightInspector<T extends Light, S extends INodeInspectorState> exte
         return (
             <>
                 {super.renderContent()}
-
-                <InspectorSection title="Light">
-                    <InspectorNumber object={this.selectedObject} property="range" label="Range" step={0.01} />
-                    <InspectorNumber object={this.selectedObject} property="radius" label="Radius" step={0.01} />
-
-                    <InspectorSection title="Intensity">
-                        <InspectorNumber object={this.selectedObject} property="intensity" label="Intensity" step={0.01} />
-                        <InspectorList object={this.selectedObject} property="intensityMode" label="Mode" items={
-                            LightInspector._Modes.map((m) => ({ label: m, data: Light[m] }))
-                        } />
-                    </InspectorSection>
-                </InspectorSection>
-
-                <InspectorSection title="Colors">
-                    <InspectorColor object={this.selectedObject} property="diffuse" label="Diffuse" step={0.01} />
-                    <InspectorColorPicker object={this.selectedObject} property="diffuse" label="Hex" />
-
-                    <InspectorColor object={this.selectedObject} property="specular" label="Specular" step={0.01} />
-                    <InspectorColorPicker object={this.selectedObject} property="specular" label="Hex" />
-                </InspectorSection>
             </>
+        );
+    }
+
+    /**
+     * Returns the inspector used to edit the light's properties.
+     */
+    protected getLightInspector(): React.ReactNode {
+        return (
+            <InspectorSection title="Light">
+                <InspectorNumber object={this.selectedObject} property="range" label="Range" step={0.01} />
+                <InspectorNumber object={this.selectedObject} property="radius" label="Radius" step={0.01} />
+
+                <InspectorSection title="Intensity">
+                    <InspectorNumber object={this.selectedObject} property="intensity" label="Intensity" step={0.01} />
+                    <InspectorList object={this.selectedObject} property="intensityMode" label="Mode" items={
+                        LightInspector._Modes.map((m) => ({ label: m, data: Light[m] }))
+                    } />
+                </InspectorSection>
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the inspector used to edit the light's colors.
+     */
+    protected getColorsInspector(): React.ReactNode {
+        return (
+            <InspectorSection title="Colors">
+                <InspectorColor object={this.selectedObject} property="diffuse" label="Diffuse" step={0.01} />
+                <InspectorColorPicker object={this.selectedObject} property="diffuse" label="Hex" />
+
+                <InspectorColor object={this.selectedObject} property="specular" label="Specular" step={0.01} />
+                <InspectorColorPicker object={this.selectedObject} property="specular" label="Hex" />
+            </InspectorSection>
         );
     }
 

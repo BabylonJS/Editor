@@ -27,9 +27,12 @@ const targetScaling = Vector3.Zero();
 const targetPosition = Vector3.Zero();
 const targetRotation = Quaternion.Identity();
 
-const scaling = Vector3.Zero();
-const position = Vector3.Zero();
-const rotation = Quaternion.Identity();
+// const scaling = Vector3.Zero();
+// const position = Vector3.Zero();
+// const rotation = Quaternion.Identity();
+
+const translation = Vector3.Zero();
+const targetScaledPosition = Vector3.Zero();
 
 export class FoliagePainter extends AbstractPaintingTool {
     /**
@@ -57,6 +60,12 @@ export class FoliagePainter extends AbstractPaintingTool {
      * as maximum values for X, Y and Z.
      */
     public randomScalingMax: number = 0;
+
+    /**
+     * Defines the scaling factor applied on added thin instances.
+     * @default Vector3.One()
+     */
+    public scalingFactor: Vector3 = Vector3.One();
 
     /**
      * Defines the reference to the vector applied for the random rotation
@@ -174,8 +183,15 @@ export class FoliagePainter extends AbstractPaintingTool {
 
         this._existingWorldMatrices.clear();
         this._selectedMeshes.forEach((m) => {
+            if (m.metadata?.thinInstanceCount) {
+                m.thinInstanceCount = m.metadata.thinInstanceCount;
+                delete m.metadata.thinInstanceCount;
+            }
+
             this._existingWorldMatrices.set(m, m.thinInstanceGetWorldMatrices());
         });
+
+        this.editor.graph.refresh();
     }
 
     /**
@@ -184,6 +200,13 @@ export class FoliagePainter extends AbstractPaintingTool {
     private _handlePointerDown(info: PointerInfo): void {
         this._isPointerDown = true;
         this._removing = info.event.button === 2;
+
+        this._selectedMeshes.forEach((m) => {
+            if (m.metadata?.thinInstanceCount) {
+                m.thinInstanceCount = m.metadata.thinInstanceCount;
+                delete m.metadata.thinInstanceCount;
+            }
+        });
     }
 
     /**
@@ -202,7 +225,11 @@ export class FoliagePainter extends AbstractPaintingTool {
             const x = this.editor.scene!.pointerX;
             const y = this.editor.scene!.pointerY;
 
-            this._pick = this.editor.scene!.pick(x, y, undefined, false, this.editor.scene!.activeCamera);
+            if (this._isPointerDown && this._targetMesh) {
+                this._pick = this.editor.scene!.pick(x, y, (m) => m === this._targetMesh, false, this.editor.scene!.activeCamera);
+            } else {
+                this._pick = this.editor.scene!.pick(x, y, undefined, false, this.editor.scene!.activeCamera);
+            }
 
             if (this._pick) {
                 if (this._pick.pickedMesh) {
@@ -319,11 +346,16 @@ export class FoliagePainter extends AbstractPaintingTool {
             map.set(mesh, []);
         }
 
+        const existingWorldMatrices = this._existingWorldMatrices.get(mesh)!;
+
         if (!mesh.thinInstanceCount) {
             mesh.setAbsolutePosition(absolutePosition);
             mesh.thinInstanceAddSelf(false);
 
-            return map.get(mesh)!.push(mesh.thinInstanceGetWorldMatrices()[0]);
+            const matrix = mesh.thinInstanceGetWorldMatrices()[0];
+
+            existingWorldMatrices.push(matrix);
+            return map.get(mesh)!.push(matrix);
         }
 
         // Compose matrix
@@ -334,10 +366,13 @@ export class FoliagePainter extends AbstractPaintingTool {
         const found = this._selectedMeshes.find((m) => {
             const matrices = this._existingWorldMatrices.get(m)!;
 
-            for (let i = 0, len = matrices.length; i < len; ++i) {
+            for (let len = matrices.length, i = len - 1; i >= 0; --i) {
                 const matrix = matrices[i];
 
-                if (Vector3.Distance(targetPosition.multiply(mesh.scaling), matrix.getTranslation().multiply(mesh.scaling)) < this.distance) {
+                matrix.getTranslationToRef(translation);
+                targetScaledPosition.copyFrom(targetPosition);
+
+                if (Vector3.Distance(targetScaledPosition.multiplyInPlace(mesh.scaling), translation.multiplyInPlace(mesh.scaling)) < this.distance) {
                     return m;
                 }
             }
@@ -348,6 +383,7 @@ export class FoliagePainter extends AbstractPaintingTool {
         }
 
         map.get(mesh)!.push(targetMatrix);
+        existingWorldMatrices.push(targetMatrix);
     }
 
     private _remove(mesh: Mesh, absolutePosition: Vector3): void {
@@ -363,14 +399,18 @@ export class FoliagePainter extends AbstractPaintingTool {
 
             const matrices = this._existingWorldMatrices.get(m)!;
 
-            for (let i = 0; i < matrices.length; ++i) {
+            for (let i = 0, len = matrices.length; i < len; ++i) {
                 const matrix = matrices[i];
-                matrix.decompose(scaling, rotation, position);
 
-                if (Vector3.Distance(targetPosition.multiply(mesh.scaling), position.multiply(mesh.scaling)) < radius) {
+                matrix.getTranslationToRef(translation)
+                targetScaledPosition.copyFrom(targetPosition);
+
+                if (Vector3.Distance(targetScaledPosition.multiplyInPlace(mesh.scaling), translation.multiplyInPlace(mesh.scaling)) < radius) {
                     matrices.splice(i, 1);
                     this._editedWorldMatrices.push(matrices[i]);
-                    i--;
+
+                    --i;
+                    --len;
                 }
             }
 
@@ -411,7 +451,7 @@ export class FoliagePainter extends AbstractPaintingTool {
             randomScalingValue * mesh.scaling.x,
             randomScalingValue * mesh.scaling.y,
             randomScalingValue * mesh.scaling.z,
-        ));
+        )).multiplyInPlace(this.scalingFactor);
 
         const scaling = randomScaling.divide(meshScale);
 
@@ -437,6 +477,8 @@ export class FoliagePainter extends AbstractPaintingTool {
                     sm.refreshBoundingInfo(true, true);
                     sm.thinInstanceRefreshBoundingInfo(true, true, true);
                 });
+
+                this.editor.graph.refresh();
             },
             undo: () => {
                 selectedMeshes.forEach((sm, i) => {
@@ -557,9 +599,10 @@ export class FoliagePainter extends AbstractPaintingTool {
             randomScalingMin: this.randomScalingMin,
             randomScalingMax: this.randomScalingMax,
             meshIds: this._selectedMeshes.map((m) => m.id),
+            scalingFactor: this.scalingFactor.asArray(),
             randomRotationMin: this.randomRotationMin.asArray(),
             randomRotationMax: this.randomRotationMax.asArray(),
-        }
+        };
     }
 
     /**
@@ -577,6 +620,7 @@ export class FoliagePainter extends AbstractPaintingTool {
         this.holdToPaint = config.holdToPaint;
         this.randomScalingMax = config.randomScalingMax;
         this.randomScalingMin = config.randomScalingMin;
+        this.scalingFactor = Vector3.FromArray(config.scalingFactor);
         this.randomRotationMin = Vector3.FromArray(config.randomRotationMin);
         this.randomRotationMax = Vector3.FromArray(config.randomRotationMax);
     }

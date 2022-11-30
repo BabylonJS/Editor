@@ -29,6 +29,9 @@ export class HemisphericLightInspector extends LightInspector<HemisphericLight, 
                     <InspectorColorPicker object={this.selectedObject} property="groundColor" label="Hex" />
                 </InspectorSection>
 
+                {this.getColorsInspector()}
+                {this.getLightInspector()}
+
                 {this.getAnimationRangeInspector()}
                 {this.getExcludedMeshesInspector()}
             </>

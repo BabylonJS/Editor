@@ -1,7 +1,7 @@
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { Tooltip } from "@blueprintjs/core";
+import { Tooltip, Icon as BPIcon, Button } from "@blueprintjs/core";
 
 import { TransformNode } from "babylonjs";
 
@@ -15,7 +15,7 @@ import { undoRedo } from "../../tools/undo-redo";
 import { IDragAndDroppedAssetComponentItem } from "../../assets/abstract-assets";
 
 import { moveNodes } from "./tools/move";
-import { getNodeId, isDraggable, isNode } from "./tools/tools";
+import { getNodeId, isDraggable, isLight, isMesh, isNode } from "./tools/tools";
 
 export interface IGraphLabelProps {
     /**
@@ -85,7 +85,7 @@ export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelSta
                 <Tooltip
                     usePortal
                     position="top"
-                    content={<span>{Tools.GetConstructorName(this.props.object)}</span>}
+                    content={this._getTooltipContent()}
                 >
                     <span
                         onDragOver={(e) => this._handleDragEnter(e)}
@@ -101,9 +101,85 @@ export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelSta
                         }}
                     >
                         {this.props.object.name}
+                        {this._getThinInstanceBadge()}
                     </span>
                 </Tooltip>
             </div>
+        );
+    }
+
+    /**
+     * In case of a mesh that has thin instances, draw a small icon.
+     */
+    private _getThinInstanceBadge(): React.ReactNode {
+        if (!isMesh(this.props.object) || !this.props.object.thinInstanceCount) {
+            return undefined;
+        }
+
+        return (
+            <>
+                <Button
+                    small
+                    icon={<BPIcon icon="tree" color={this.props.object.thinInstanceCount > 1 ? "white" : "grey"} />}
+                    style={{
+                        float: "right",
+                        marginTop: "4px",
+                        cursor: "pointer",
+                        marginLeft: "10px",
+                        borderRadius: "45px",
+                    }}
+                    onClick={() => {
+                        const object = this.props.object;
+                        if (!isMesh(object)) {
+                            return;
+                        }
+
+                        object.metadata ??= {};
+
+                        if (object.thinInstanceCount > 1) {
+                            this.props.object.metadata ??= {};
+                            this.props.object.metadata.thinInstanceCount = object.thinInstanceCount;
+                            object.thinInstanceCount = 1;
+                        } else if (this.props.object.metadata.thinInstanceCount) {
+                            object.thinInstanceCount = this.props.object.metadata.thinInstanceCount;
+                        }
+                    }}
+                />
+                <span style={{ float: "right", color: "darkgrey" }}>
+                    ({this.props.object.metadata?.thinInstanceCount ?? this.props.object.thinInstanceCount})
+                </span>
+            </>
+        );
+    }
+
+    /**
+     * Returns the final content of the tooltip.
+     */
+    private _getTooltipContent(): JSX.Element {
+        const infos: React.ReactNode[] = [
+            <>
+                {Tools.GetConstructorName(this.props.object)}
+            </>
+        ];
+
+        if (isMesh(this.props.object) && this.props.object.thinInstanceCount) {
+            infos.push(
+                <>
+                    Thin Instance Count: {this.props.object.thinInstanceCount}
+                </>
+            );
+        }
+
+        if (isLight(this.props.object) && this.props.object.getShadowGenerator()) {
+            infos.push(
+                <>
+                    Has Shadows: {Tools.GetConstructorName(this.props.object.getShadowGenerator())}
+                </>
+            );
+        }
+
+        return (
+            <span>{infos.map((i) => <>{i}<br /></>)}</span>
         );
     }
 

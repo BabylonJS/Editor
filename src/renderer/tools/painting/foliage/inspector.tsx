@@ -79,6 +79,10 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
                 <InspectorSection title="Random Scaling">
                     <InspectorNumber object={this.selectedObject} property="randomScalingMin" label="Min" step={0.01} />
                     <InspectorNumber object={this.selectedObject} property="randomScalingMax" label="Max" step={0.01} />
+
+                    <InspectorNumber object={this.selectedObject.scalingFactor} property="x" label="Factor" step={0.01} onChange={(v) => {
+                        this.selectedObject.scalingFactor.setAll(v);
+                    }} />
                 </InspectorSection>
 
                 <InspectorSection title="Painting">
