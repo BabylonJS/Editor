@@ -271,8 +271,15 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 	 */
 	private _updateInstantiatedGeometryReferences(mesh: Mesh, withSkeleton: boolean): void {
 		const metadata = Tools.GetMeshMetadata(mesh);
+		const matrices = mesh.thinInstanceGetWorldMatrices();
 
 		metadata._waitingUpdatedReferences?.geometry?.geometry?.applyToMesh(mesh);
+
+		if (matrices.length) {
+			const array = new Float32Array(matrices.length * 16);
+			matrices.forEach((m, i) => m.copyToArray(array, i * 16));
+			mesh.thinInstanceSetBuffer("matrix", array, 16, true);
+		}
 
 		if (withSkeleton) {
 			mesh.skeleton = metadata._waitingUpdatedReferences?.geometry?.skeleton ?? null;

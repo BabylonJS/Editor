@@ -25,6 +25,9 @@ export class DirectionalLightInspector extends LightInspector<DirectionalLight, 
                     <InspectorVector3 object={this.selectedObject} property="direction" label="Direction" step={0.01} />
                 </InspectorSection>
 
+                {this.getColorsInspector()}
+                {this.getLightInspector()}
+
                 {this.getAnimationRangeInspector()}
                 {this.getExcludedMeshesInspector()}
             </>

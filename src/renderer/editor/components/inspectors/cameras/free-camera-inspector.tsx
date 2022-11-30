@@ -25,15 +25,17 @@ export class FreeCameraInspector extends CameraInspector<FreeCamera | UniversalC
             <>
                 {super.renderContent()}
 
+                <InspectorSection title="Transforms">
+                    <InspectorVector3 object={this.selectedObject} property="position" label="Position" step={0.01} />
+                    <InspectorVector3 object={this.selectedObject} property="rotation" label="Rotation" step={0.01} />
+                </InspectorSection>
+
+                {this.getCameraInspector()}
+
                 <InspectorSection title="Free Camera">
                     <InspectorNumber object={this.selectedObject} property="speed" label="Speed" min={0} step={0.01} />
                     <InspectorNumber object={this.selectedObject} property="angularSensibility" label="Angular Sensibility" min={0} step={0.01} />
                     <InspectorBoolean object={this.selectedObject} property="noRotationConstraint" label="No Rotation Constraint" />
-                </InspectorSection>
-
-                <InspectorSection title="Transforms">
-                    <InspectorVector3 object={this.selectedObject} property="position" label="Position" step={0.01} />
-                    <InspectorVector3 object={this.selectedObject} property="rotation" label="Rotation" step={0.01} />
                 </InspectorSection>
 
                 <InspectorSection title="Collisions">
@@ -70,7 +72,7 @@ export class FreeCameraInspector extends CameraInspector<FreeCamera | UniversalC
                 undoRedo.push({
                     description: `Changed key for camera "${property}" from "${value}" to "${c}"`,
                     common: () => this.forceUpdate(),
-                    undo:() => this.selectedObject[property] = [value],
+                    undo: () => this.selectedObject[property] = [value],
                     redo: () => this.selectedObject[property] = [c],
                 });
             }} />

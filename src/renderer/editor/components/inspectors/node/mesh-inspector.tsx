@@ -99,6 +99,12 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
             <>
                 {super.renderContent()}
 
+                <InspectorSection title="Transforms">
+                    <InspectorVector3 object={this.selectedObject} property="position" label="Position" step={0.01} />
+                    {this._getRotationInspector()}
+                    <InspectorVector3 object={this.selectedObject} property="scaling" label="Scaling" step={0.01} />
+                </InspectorSection>
+
                 <InspectorSection title="Mesh">
                     <InspectorBoolean object={this.selectedObject} property="isVisible" label="Visible" />
                     <InspectorBoolean object={this.selectedObject} property="isPickable" label="Pickable" />
@@ -107,12 +113,6 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
                 </InspectorSection>
 
                 {this._getRenderingInspector()}
-
-                <InspectorSection title="Transforms">
-                    <InspectorVector3 object={this.selectedObject} property="position" label="Position" step={0.01} />
-                    {this._getRotationInspector()}
-                    <InspectorVector3 object={this.selectedObject} property="scaling" label="Scaling" step={0.01} />
-                </InspectorSection>
 
                 {this._getCollisionsInspector()}
 

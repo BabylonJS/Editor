@@ -1,7 +1,7 @@
 import { IStringDictionary } from "../../../shared/types";
 
 import * as React from "react";
-import { Tabs, Tab, TabId, Tooltip } from "@blueprintjs/core";
+import { Tabs, Tab, TabId, Tooltip, MaybeElement } from "@blueprintjs/core";
 
 import { Icon } from "../../editor/gui/icon";
 
@@ -10,6 +10,7 @@ import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plu
 
 import { DecalsPainterInspector } from "./decals/inspector";
 import { FoliagePainterInspector } from "./foliage/inspector";
+import { TerrainPainterInspector } from "./terrain/inspector";
 
 export const title = "Painting Tools";
 
@@ -64,6 +65,11 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
         const tabs = [
             this._createTabComponent("Decals", "cylinder.svg", <DecalsPainterInspector ref={(ref) => this._getTool("decals", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
             this._createTabComponent("Foliage", "grass.svg", <FoliagePainterInspector ref={(ref) => this._getTool("foliage", ref)} toolId={"foliage"} editor={this.editor} _objectRef={null} />),
+            this._createTabComponent(
+                "Terrain",
+                <Icon src="terrain.svg" style={{ width: "20px", height: "20px", filter: "none" }} />,
+                <TerrainPainterInspector ref={(ref) => this._getTool("terrain", ref)} toolId="terrain" editor={this.editor} _objectRef={null} />
+            ),
         ];
 
         return (
@@ -123,13 +129,15 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
     /**
      * Returns a new tab element containing the given component.
      */
-    private _createTabComponent(title: string, icon: string, component: React.ReactElement): React.ReactNode {
+    private _createTabComponent(title: string, icon: string | MaybeElement, component: React.ReactElement): React.ReactNode {
         const id = title.toLowerCase();
 
         const tabTitle = (
-            <Tooltip content={title} usePortal>
-                <Icon src={icon} style={{ width: "20px", height: "20px" }} />
-            </Tooltip>
+            <div style={{ width: "100%" }}>
+                <Tooltip content={title} usePortal>
+                    {typeof (icon) === "string" ? <Icon src={icon} style={{ width: "20px", height: "20px" }} /> : icon}
+                </Tooltip>
+            </div>
         );
 
         const panel = (

@@ -25,6 +25,7 @@ export class TargetCameraInspector extends CameraInspector<TargetCamera, INodeIn
                     <InspectorVector3 object={this.selectedObject} property="position" label="Position" step={0.01} />
                 </InspectorSection>
 
+                {this.getCameraInspector()}
                 {this.getAnimationRangeInspector()}
             </>
         );

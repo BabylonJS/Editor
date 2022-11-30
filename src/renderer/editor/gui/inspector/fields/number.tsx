@@ -4,7 +4,7 @@ import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
 import Slider from "antd/lib/slider";
-import { InputGroup, Tooltip } from "@blueprintjs/core";
+import { NumericInput, Tooltip } from "@blueprintjs/core";
 
 import { Parser } from "expr-eval";
 
@@ -85,8 +85,8 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
     private _inspectorName: Nullable<string> = null;
     private _input: Nullable<HTMLInputElement> = null;
 
-    private _impliedStep: number;
     private _precision: number;
+    private _impliedStep: number;
 
     private _isFocused: boolean = false;
 
@@ -136,10 +136,10 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
             this._impliedStep = value === 0 ? 1 : Math.pow(10, Math.floor(Math.log(Math.abs(value)) / Math.LN10)) / 10;
         }
 
-        this._precision = InspectorNumber._NumDecimals(this._impliedStep);
         this._initialValue = value;
+        this._precision = InspectorNumber._NumDecimals(this._impliedStep);
 
-        this.state = { value: value.toString() };
+        this.state = { value: this._getFinalValueString(value) };
     }
 
     /**
@@ -188,18 +188,23 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
                 {label}
                 {sliderNode}
                 <div style={{ width: widthPercent, height: "25px", float: "left", marginTop: "3px" }}>
-                    <InputGroup
+                    <NumericInput
                         fill
-                        small
                         value={this.state.value}
-                        type="text"
-                        step={this.props.step}
-                        onFocus={() => this._handleInputFocused()}
-                        onBlur={() => this._handleInputBlurred()}
-                        onKeyDown={(e) => e.key === "Enter" && this._handleEnterKeyPressed()}
-                        onChange={(e) => this._handleValueChanged(e.target.value, false)}
-                        onMouseDown={(ev) => this._handleInputClicked(ev)}
+                        style={{
+                            height: "25px",
+                        }}
+                        buttonPosition="none"
+                        stepSize={this.props.step}
+                        minorStepSize={(this.props.step ?? 0) * 0.1}
+                        majorStepSize={(this.props.step ?? 0) * 100}
+                        allowNumericCharactersOnly={false}
                         inputRef={(ref) => this._input = ref}
+                        onBlur={() => this._handleInputBlurred()}
+                        onFocus={() => this._handleInputFocused()}
+                        onMouseDown={(ev) => this._handleInputClicked(ev)}
+                        onValueChange={(_, e) => this._handleValueChanged(e, false)}
+                        onKeyDown={(e) => e.key === "Enter" && this._handleEnterKeyPressed()}
                     />
                 </div>
             </div>
@@ -215,7 +220,8 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
         this._inspectorName = InspectorUtils.CurrentInspectorName;
 
         InspectorNotifier.Register(this, this.props.object, () => {
-            this.setState({ value: this.props.object[this.props.property] });
+            const value = this.props.object[this.props.property];
+            this.setState({ value: this._getFinalValueString(value) });
         });
     }
 
@@ -360,6 +366,8 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
         });
 
         this._initialValue = value;
+
+        this.setState({ value: this._getFinalValueString(value) });
     }
 
     /**
@@ -369,5 +377,22 @@ export class InspectorNumber extends AbstractFieldComponent<IInspectorNumberProp
         this._input?.blur();
 
         this._handleValueFinishChanged();
+    }
+
+    /**
+     * Checks for the decimals of the given number and returns a more human-readable
+     * string value for the number.
+     */
+    private _getFinalValueString(value: number): string {
+        if ((value ?? null) === null) {
+            return "0";
+        }
+
+        const decimals = InspectorNumber._NumDecimals(value);
+        if (decimals > this._precision) {
+            return value.toFixed(this._precision);
+        }
+
+        return value.toString();
     }
 }

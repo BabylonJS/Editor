@@ -36,7 +36,7 @@ export class ScenePlayer {
      * Starts playing the scene in the editor: load the scene, apply attached scripts and return the reference to the scene.
      */
     public async start(progress: (p: number) => void): Promise<Scene> {
-        PlayOverride.OverrideEngineFunctions(WorkSpace.DirPath!);
+        PlayOverride.OverrideEngineFunctions(WorkSpace.DirPath!, WorkSpace.Workspace!.outputSceneDirectory);
 
         // Configure aliases
         const aliasesKeys = Object.keys(aliases);

@@ -18,10 +18,18 @@ export class SpotLightInspector extends LightInspector<SpotLight, INodeInspector
      */
     public renderContent(): React.ReactNode {
         const shadowGenerator = this.selectedObject.getShadowGenerator();
-        
+
         return (
             <>
                 {super.renderContent()}
+
+                <InspectorSection title="Transforms">
+                    <InspectorVector3 object={this.selectedObject} property="position" label="Position" step={0.01} />
+                    <InspectorVector3 object={this.selectedObject} property="direction" label="Direction" step={0.01} />
+                </InspectorSection>
+
+                {this.getColorsInspector()}
+                {this.getLightInspector()}
 
                 <InspectorSection title="Spot Light">
                     <InspectorNumber object={this.selectedObject} property="angle" label="Angle" step={0.01} />
@@ -31,11 +39,6 @@ export class SpotLightInspector extends LightInspector<SpotLight, INodeInspector
                     {shadowGenerator ? (
                         <InspectorNumber object={this.selectedObject} property="shadowAngleScale" label="Shadow Angle Scale" step={0.01} />
                     ) : undefined}
-                </InspectorSection>
-
-                <InspectorSection title="Transforms">
-                    <InspectorVector3 object={this.selectedObject} property="position" label="Position" step={0.01} />
-                    <InspectorVector3 object={this.selectedObject} property="direction" label="Direction" step={0.01} />
                 </InspectorSection>
 
                 {this.getAnimationRangeInspector()}

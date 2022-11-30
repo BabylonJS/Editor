@@ -85,16 +85,19 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     public render(): React.ReactNode {
         return (
             <>
-                <InputGroup
-                    type="search"
-                    placeholder="Search..."
-                    className={Classes.FILL}
-                    style={{ marginTop: "5px", marginBottom: "5px" }}
-                    onChange={(e) => this._handleSearchChange(e.target.value)}
-                    leftIcon={<BPIcon icon="search" style={{ margin: "12px" }} />}
-                ></InputGroup>
+                <div style={{ width: "100%", overflow: "hidden" }}>
+                    <InputGroup
+                        type="search"
+                        placeholder="Search..."
+                        className={Classes.FILL}
+                        style={{ marginTop: "5px", marginBottom: "5px" }}
+                        onChange={(e) => this._handleSearchChange(e.target.value)}
+                        leftIcon={<BPIcon icon="search" style={{ margin: "12px" }} />}
+                    ></InputGroup>
+                </div>
                 <div
                     style={{
+                        overflow: "auto",
                         height: "calc(100% - 40px)",
                     }}
                     onDrop={(ev) => {

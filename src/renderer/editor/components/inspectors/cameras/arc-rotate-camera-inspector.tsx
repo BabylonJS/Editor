@@ -34,6 +34,8 @@ export class ArcRotateCameraInspector extends CameraInspector<ArcRotateCamera, I
                     <InspectorVector3 object={this.selectedObject} property="panningAxis" label="Panning Axis" step={0.01} />
                 </InspectorSection>
 
+                {this.getCameraInspector()}
+
                 <InspectorSection title="Arc Rotate Camera">
                     <InspectorBoolean object={this.selectedObject} property="noRotationConstraint" label="No Rotation Constraint" />
                     <InspectorNumber object={this.selectedObject} property="wheelPrecision" label="Wheel Precision" min={0} step={0.01} />

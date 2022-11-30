@@ -3,7 +3,7 @@ import { Nullable } from "../../../../../shared/types";
 import * as React from "react";
 import { MenuItem } from "@blueprintjs/core";
 
-import { Node } from "babylonjs";
+import { Geometry, Node, VertexData } from "babylonjs";
 
 import { Editor } from "../../../editor";
 
@@ -55,6 +55,21 @@ function onClick(editor: Editor, object: Node): void {
         }
 
         clone.physicsImpostor?.sleep();
+
+        debugger;
+
+        if (isAbstractMesh(object)) {
+            object.geometry?.releaseForMesh(clone);
+
+            // Copy geometry
+            const serializedGeometry = object.geometry?.serializeVerticeData();
+            if (serializedGeometry) {
+                const geometry = new Geometry(Tools.RandomId(), object.getScene(), undefined, false);
+                VertexData.ImportVertexData(serializedGeometry, geometry);
+    
+                geometry?.applyToMesh(clone);
+            }
+        }
     }
 
     // Metadata

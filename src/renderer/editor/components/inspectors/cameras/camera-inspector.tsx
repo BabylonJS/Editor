@@ -14,7 +14,7 @@ export class CameraInspector<T extends Camera, S extends INodeInspectorState> ex
      * Constructor.
      * @param props defines the component's props.
      */
-     public constructor(props: IObjectInspectorProps) {
+    public constructor(props: IObjectInspectorProps) {
         super(props);
     }
 
@@ -25,14 +25,21 @@ export class CameraInspector<T extends Camera, S extends INodeInspectorState> ex
         return (
             <>
                 {super.renderContent()}
-
-                <InspectorSection title="Camera">
-                    <InspectorNumber object={this.selectedObject} property="fov" label="FOV" step={0.01} />
-                    <InspectorNumber object={this.selectedObject} property="minZ" label="Min Z" step={0.01} />
-                    <InspectorNumber object={this.selectedObject} property="maxZ" label="Max Z" step={0.01} />
-                    <InspectorNumber object={this.selectedObject} property="inertia" label="Inertia" step={0.01} />
-                </InspectorSection>
             </>
+        );
+    }
+
+    /**
+     * Returns the inspector used to edit the camera's properties.
+     */
+    protected getCameraInspector(): React.ReactNode {
+        return (
+            <InspectorSection title="Camera">
+                <InspectorNumber object={this.selectedObject} property="fov" label="FOV" step={0.01} />
+                <InspectorNumber object={this.selectedObject} property="minZ" label="Min Z" step={0.01} />
+                <InspectorNumber object={this.selectedObject} property="maxZ" label="Max Z" step={0.01} />
+                <InspectorNumber object={this.selectedObject} property="inertia" label="Inertia" step={0.01} />
+            </InspectorSection>
         );
     }
 }

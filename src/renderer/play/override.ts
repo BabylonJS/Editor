@@ -16,13 +16,13 @@ export class PlayOverride {
      * will be loaded same way in web browser and in editor.
      * @param workspacePath defines the absolute path of the workspace.
      */
-    public static OverrideEngineFunctions(workspacePath: string): void {
+    public static OverrideEngineFunctions(workspacePath: string, sceneOutputDirectory: string): void {
         // Load file
         this._WebRequestOpen = WebRequest.prototype.open;
         this._CreateTextureFn = Engine.prototype.createTexture;
 
-        WebRequest.prototype.open = this._GetOverridedFunctionUrl(this._WebRequestOpen, workspacePath, 1);
-        Engine.prototype.createTexture = this._GetOverridedFunctionUrl(this._CreateTextureFn, workspacePath, 0);
+        WebRequest.prototype.open = this._GetOverridedFunctionUrl(this._WebRequestOpen, workspacePath, sceneOutputDirectory, 1);
+        Engine.prototype.createTexture = this._GetOverridedFunctionUrl(this._CreateTextureFn, workspacePath, sceneOutputDirectory, 0);
     }
 
     /**
@@ -44,11 +44,11 @@ export class PlayOverride {
     /**
      * Returns the reference to the function
      */
-    private static _GetOverridedFunctionUrl(fn: (...args: any[]) => any, workspacePath: string, argumentIndex: number): (...args: any[]) => any {
+    private static _GetOverridedFunctionUrl(fn: (...args: any[]) => any, workspacePath: string, sceneOutputDirectory: string, argumentIndex: number): (...args: any[]) => any {
         return function (...args: any[]) {
             const url = args[argumentIndex];
             if (url) {
-                const pathInWorkspace = join(workspacePath, url);
+                const pathInWorkspace = join(workspacePath, sceneOutputDirectory, url);
                 if (pathExistsSync(pathInWorkspace)) {
                     args[argumentIndex] = join("file:/", pathInWorkspace);
                 }

@@ -44,7 +44,7 @@ export class SceneExportOptimzer {
             if (children.length < 2) { return; }
 
             // Collect
-            const materials: IStringDictionary<Mesh[]> = { };
+            const materials: IStringDictionary<Mesh[]> = {};
             children.forEach((c) => {
                 const id = c.material?.id ?? "undefined";
                 if (!materials[id]) { materials[id] = [] }
@@ -62,7 +62,9 @@ export class SceneExportOptimzer {
                 if (!merged) { continue; }
 
                 merged.setParent(meshes[0].parent);
+                merged.receiveShadows = true;
                 merged.material = meshes[0].material;
+
                 this._mergedDecals.push(merged);
             }
         });
