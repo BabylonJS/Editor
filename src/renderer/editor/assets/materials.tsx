@@ -594,11 +594,17 @@ export class MaterialAssets extends AbstractAssets {
      * Called on the material vertex or fragment program is updated.
      */
     private async _rebuildSourceMaterialProgram(material: Material, vertexPath: string, fragmentPath: string, includes?: { key: string; path: string }): Promise<void> {
-        debugger;
         const effect = material.getEffect();
         if (!effect) {
             return;
         }
+
+        const sourcePath = material.metadata?.sourcePath;
+        if (!sourcePath) {
+            return;
+        }
+
+        const materials = this.editor.scene!.materials.filter((m) => m.metadata?.sourcePath === sourcePath);
 
         let storeId = material["_storeId"];
         if (!storeId) {
@@ -613,10 +619,12 @@ export class MaterialAssets extends AbstractAssets {
         delete Effect.ShadersStore[`${storeId}VertexShader`];
         delete Effect.ShadersStore[`${storeId}PixelShader`];
 
-        storeId = material["_storeId"] = Tools.RandomId();
+        storeId = Tools.RandomId();
 
         Effect.ShadersStore[`${storeId}VertexShader`] = vertexContent;
         Effect.ShadersStore[`${storeId}PixelShader`] = fragmentContent;
+
+        materials.forEach((m) => m["_storeId"] = storeId);
 
         if (includes) {
             Effect.IncludesShadersStore[includes.key] = await readFile(includes.path, { encoding: "utf-8" });
@@ -624,8 +632,10 @@ export class MaterialAssets extends AbstractAssets {
 
         await SceneExporter.CopyShaderFiles(this.editor);
 
-        material.markAsDirty(Material.AllDirtyFlag);
-        material.onCompiled = () => this.editor.console.logInfo("Successfully compiled program.");
+        materials.forEach((m) => {
+            m.markAsDirty(Material.AllDirtyFlag);
+            m.onCompiled = () => this.editor.console.logInfo("Successfully compiled program.");
+        });
     }
 
     /**
@@ -645,6 +655,10 @@ export class MaterialAssets extends AbstractAssets {
 
             try {
                 const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, m.metadata.sourcePath);
+                if (this._materialSourcesWatchers[jsPath]) {
+                    return;
+                }
+
                 delete require.cache[jsPath];
 
                 const exports = require(jsPath);
