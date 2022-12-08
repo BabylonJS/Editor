@@ -19,7 +19,7 @@ interface Config {
 
 const ConfigSchema: Store.Schema<Config> = {
 	windowBounds: {
-		type: "object", 
+		type: "object",
 		properties: {
 			x: { type: "number" },
 			y: { type: "number" },
@@ -28,12 +28,12 @@ const ConfigSchema: Store.Schema<Config> = {
 		}
 	},
 	isWindowMaximized: { type: "boolean", default: true },
-	openedFile: { type: [ "string", "null" ], default: null },
-	workspacePath: { type: [ "string", "null" ], default: null }
+	openedFile: { type: ["string", "null"], default: null },
+	workspacePath: { type: ["string", "null"], default: null }
 }
 
 export default class EditorApp {
-    /**
+	/**
 	 * Defines the reference to the main editor's window (electron)
 	 */
 	public static Window: BrowserWindow;
@@ -44,9 +44,9 @@ export default class EditorApp {
 
 	private static _ForceQuit: boolean = false;
 
-    /**
-     * Creates a new Electron window
-     */
+	/**
+	 * Creates a new Electron window
+	 */
 	public static async Create(): Promise<void> {
 		// Create window
 		await this.CreateWindow();
@@ -89,7 +89,7 @@ export default class EditorApp {
 		}
 
 		const platform = os.platform();
-		let index =  (platform === "darwin") ? 2 : 1;
+		let index = (platform === "darwin") ? 2 : 1;
 		while (index < argv.length && argv[index].startsWith('--')) {
 			index += 1;
 		}
@@ -101,7 +101,7 @@ export default class EditorApp {
 	 * Creates a new window
 	 */
 	public static async CreateWindow(): Promise<void> {
-		const store = new Store<Config>({schema: ConfigSchema});
+		const store = new Store<Config>({ schema: ConfigSchema });
 		console.log(`Configuration settings read from ${store.path}`, store.store);
 
 		const verifyExists = (path: string | null) => {
@@ -123,6 +123,7 @@ export default class EditorApp {
 				webPreferences: {
 					scrollBounce: true,
 					nodeIntegration: true,
+					contextIsolation: false,
 					nodeIntegrationInWorker: true,
 					nativeWindowOpen: false,
 					nodeIntegrationInSubFrames: true,
@@ -154,16 +155,16 @@ export default class EditorApp {
 				ipcMain.on("quit", (_, shouldQuit) => resolve(shouldQuit));
 				this.Window.webContents.send("quit");
 			});
-			
+
 			if (this._ForceQuit) { app.quit(); }
 		});
 
 		WindowsHandler.MainWindow = this.Window;
 	}
-	
-    /**
+
+	/**
 	 * Creates the short cuts
-     */
+	 */
 	public static CreateShortcutsAndMenu(): void {
 		// Short cuts
 		globalShortcut.register("CommandOrControl+ALT+I", () => {
@@ -324,15 +325,15 @@ else {
 
 	// Enable remote debugging of both the Editor and the edited Project.
 	app.commandLine.appendSwitch("remote-debugging-port", "8315");
-	
+
 	// Events
 	app.on("second-instance", (_, argv) => {
 		if (EditorApp.Window) {
 			if (EditorApp.Window.isMinimized())
 				EditorApp.Window.restore();
-	
+
 			EditorApp.Window.focus();
-	
+
 			const filename = EditorApp.GetFilePathArgument(argv);
 			if (filename !== Settings.OpenedFile && filename !== Settings.WorkspacePath) {
 				EditorApp.ConfigureSettings(filename);

@@ -1,14 +1,9 @@
 import { join, resolve, basename } from "path";
 
-import { Tools } from "../renderer/editor/tools/tools";
-
 /**
  * When href contains editor.html, let's load the editor itself.
  */
 function runEditor(): void {
-    // Require modules hack for development mode.
-    require('../renderer/module.js');
-
     window["CANNON"] = require("cannon");
 
     const Editor = require('../renderer/editor/index.js');
@@ -44,8 +39,6 @@ function runEditor(): void {
  * When href contains play.html, let's run the project in an isolated iframe.
  */
 function runIsolatedPlay(): void {
-    require('../renderer/module.js');
-
     window.addEventListener("message", function (ev) {
         if (ev.data?.id !== "init") {
             return;
@@ -62,6 +55,10 @@ function runIsolatedPlay(): void {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+    // Require modules hack for development mode.
+    require('../renderer/module.js');
+
+    const { Tools } = require("../renderer/editor/tools/tools");
     await Tools.Wait(100);
 
     const htmlFile = basename(window.location.href);

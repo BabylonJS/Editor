@@ -3,6 +3,8 @@ import { Undefinable, IStringDictionary } from "../../../shared/types";
 import { KTXToolsType } from "../tools/ktx";
 import { IRegisteredPlugin } from "../tools/types";
 
+import { ISerializedPostProcessAsset } from "../scene/post-processes";
+
 /**
  * Defines the type the possible values of the physics engine type string
  * store in the workspace JSON file.
@@ -329,6 +331,11 @@ export interface IProject {
      * Defines the configurations of all post-processes.
      */
     postProcesses: {
+        /**
+         * Defines the list of all custom post-processes added by the user.
+         */
+        custom?: ISerializedPostProcessAsset[];
+
         /**
          * Defines the configuration of the SSAO.
          */

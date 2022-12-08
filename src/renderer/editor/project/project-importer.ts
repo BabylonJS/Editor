@@ -6,7 +6,7 @@ import { Nullable } from "../../../shared/types";
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
-    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe,
+    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe, PostProcess,
 } from "babylonjs";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
@@ -523,6 +523,44 @@ export class ProjectImporter {
             }
         }
 
+        // Custom post-processes
+        for (const p of project.postProcesses.custom ?? []) {
+            try {
+                const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, p.sourcePath);
+                if (!await pathExists(jsPath)) {
+                    Overlay.SetSpinnervalue(undefined);
+                    Overlay.SetMessage("Installing dependencies...");
+
+                    await WorkSpace.InstallDependencies(editor);
+
+                    Overlay.SetMessage("Compiling TypeScript...");
+                    const tsProcess = await WorkSpace.CompileTypeScript(editor);
+                    if (tsProcess) {
+                        await tsProcess.wait();
+                        await SceneExporter.CopyShaderFiles(editor);
+                    }
+
+                    Overlay.SetSpinnervalue(spinnerValue);
+                }
+
+                delete require.cache[jsPath];
+                require(jsPath);
+
+                const pp = PostProcess.Parse(p.serializationObject, editor.scene!, rootUrl);
+                if (pp) {
+                    editor.scene!.cameras.forEach((c) => {
+                        c.attachPostProcess(pp);
+                    });
+
+                    editor.postProcesses.addPostProcess(p.sourcePath, pp);
+                }
+            } catch (e) {
+                editor.console.logError(`Failed to parse post-process "${p.sourcePath}"\n${e.message}`);
+            }
+        };
+
+        editor.postProcesses.reset();
+
         // Animation groups
         if (project.scene.animationGroups) {
             for (const g of project.scene.animationGroups) {
@@ -794,7 +832,7 @@ export class ProjectImporter {
                 }
 
                 texture = textureParser(source, scene, rootUrl);
-                
+
                 if (texture) {
                     if (extension === ".3dl") {
                         texture.name = sourceName;

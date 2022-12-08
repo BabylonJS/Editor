@@ -665,7 +665,7 @@ export class MaterialAssets extends AbstractAssets {
                 const materialConfiguration = exports.materialConfiguration;
 
                 if (!materialConfiguration) {
-                    throw "material configuration is needed.";
+                    throw new Error("material configuration is needed.");
                 }
 
                 const vertexPath = join(dirname(join(WorkSpace.DirPath!, m.metadata.sourcePath)), materialConfiguration.vertexShaderContent);
