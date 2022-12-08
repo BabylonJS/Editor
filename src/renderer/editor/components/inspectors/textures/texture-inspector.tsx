@@ -261,12 +261,15 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
 
         this.editor.assetsBrowser._files?.refresh();
 
+        const extension = extname(this.selectedObject.name).toLowerCase();
+        const ktxSupported = KTXTools.SupportedExtensions.indexOf(extension) !== -1;
+
         const textureUrl = this.selectedObject.url;
         const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
         const ktx2CompressedTextures = WorkSpace.Workspace?.ktx2CompressedTextures;
         const compressedTexturesDest = join(this.editor.assetsBrowser.assetsDirectory, dirname(this.selectedObject.name));
 
-        if (recompress && ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
+        if (recompress && ktxSupported && ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
             if (!(await pathExists(compressedTexturesDest))) {
                 return;
             }
@@ -296,7 +299,7 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
                 }
 
                 try {
-                    if (ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
+                    if (ktxSupported && ktxFormat && ktx2CompressedTextures?.enabled && ktx2CompressedTextures.enabledInPreview) {
                         if (!(await pathExists(compressedTexturesDest))) {
                             await KTXTools.CompressTexture(this.editor, this.selectedObject.url!, compressedTexturesDest, ktxFormat);
                         }
