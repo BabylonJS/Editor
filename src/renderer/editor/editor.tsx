@@ -43,6 +43,7 @@ import { WorkspaceAssetsConverter } from "./project/converter/assets-converter";
 import { SceneSettings } from "./scene/settings";
 import { GizmoType } from "./scene/gizmo";
 import { SceneUtils } from "./scene/utils";
+import { PostProcessAssets } from "./scene/post-processes";
 
 import { SandboxMain } from "../sandbox/main";
 
@@ -115,6 +116,8 @@ import "./components/inspectors/particle-systems/particle-system-gradients-inspe
 import "./components/inspectors/sound/sound-inspector";
 
 import "./components/inspectors/textures/reflection-probe-inspector";
+
+import "./components/inspectors/post-process/post-process-inspector";
 
 // Assets
 import { MaterialAssets } from "./assets/materials";
@@ -202,6 +205,11 @@ export class Editor {
      * Reference to the scene utils.
      */
     public sceneUtils: SceneUtils;
+
+    /**
+     * Defines the reference to the post-processes assets.
+     */
+    public postProcesses: PostProcessAssets;
 
     /**
      * Notifies observers once the editor has been initialized.
@@ -874,6 +882,9 @@ export class Editor {
 
         // Utils
         this.sceneUtils = new SceneUtils(this);
+
+        // Post-processes
+        this.postProcesses = new PostProcessAssets(this);
 
         this._bindEvents();
         this.resize();

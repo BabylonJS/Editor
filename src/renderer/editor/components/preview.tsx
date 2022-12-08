@@ -207,7 +207,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                 key={Tools.RandomId()}
                 ref={this._refHandler.getPlayIframe}
                 onLoad={(ev) => this._handlePlay(ev.nativeEvent.target as HTMLIFrameElement)}
-                style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", border: "none" }}
+                style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", border: "none", outline: "none" }}
             ></iframe>
         ) : undefined;
 
@@ -257,7 +257,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                     </ButtonGroup>
                 </div>
                 <div style={{ height: "calc(100% - 25px)" }}>
-                    <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", display: displayPlayIframe ? "none" : "block" }}></canvas>
+                    <canvas id="renderCanvas" style={{ width: "100%", height: "100%", position: "unset", top: "0", touchAction: "none", outline: "none", display: displayPlayIframe ? "none" : "block" }}></canvas>
                     {playIframe}
                     {isolatedMode}
                     <Tag key="preview-tag" round={true} large={true} style={{ visibility: (this.state.canvasFocused && !this.state.isPlaying ? "visible" : "hidden"), position: "absolute", left: "50%", top: "calc(100% - 15px)", transform: "translate(-50%, -50%)" }} >{this.state.overNodeName}</Tag>
@@ -324,7 +324,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             }
 
             console.error(e);
-            
+
             throw e;
         }
     }

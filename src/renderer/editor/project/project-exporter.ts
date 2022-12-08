@@ -119,6 +119,7 @@ export class ProjectExporter {
                 camera: SceneSettings.Camera!.serialize(),
             },
             postProcesses: {
+                custom: editor.postProcesses.serialize(),
                 ssao: { enabled: SceneSettings.IsSSAOEnabled(), json: SceneSettings.SSAOPipeline?.serialize() },
                 screenSpaceReflections: { enabled: SceneSettings.IsScreenSpaceReflectionsEnabled(), json: SceneSettings.ScreenSpaceReflectionsPostProcess?.serialize() },
                 default: { enabled: SceneSettings.IsDefaultPipelineEnabled(), json: SceneSettings.SerializeDefaultPipeline() },

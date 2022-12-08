@@ -78,8 +78,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 */
 	public selectedItems: string[] = [];
 
-	private _assetsDirectory: string;
-	private _sourcesDirectory: string;
+	/** @internal */
+	public _assetsDirectory: string;
+	/** @internal */
+	public _sourcesDirectory: string;
 
 	/**
 	 * @hidden
@@ -271,6 +273,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					<MenuItem text="PBR Based Material" onClick={() => this._handleAddMaterialScript("pbr-material")} />
 					<MenuItem text="Standard Based Material" onClick={() => this._handleAddMaterialScript("standard-material")} />
 				</MenuItem>
+
+				<MenuDivider />
+
+				<MenuItem text="Post Process File" disabled={!isSrcDirectory} icon={<Icon src="magic.svg" />} onClick={() => this._handleAddPostProcessScript()} />
 			</>
 		);
 	}
@@ -765,8 +771,37 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		await copyFile(join(AppTools.GetAppPath(), `assets/scripts/${base}/fragment.fx`), join(destFolder, `${name}.fragment.fx`));
 
 		const randomId = Tools.RandomId();
-
 		const tsContent = await readFile(join(AppTools.GetAppPath(), `assets/scripts/${base}/material.ts`), { encoding: "utf-8" });
+
+		const finalTsContent = tsContent
+			.replace(/{__shader_name__}/g, name)
+			.replace(/\/\*{__shader_class_name__}\*\/A/g, capitalizedName)
+			.replace(/\/\*{__shader_class_name__id__}\*\/A/g, `${capitalizedName}-${randomId}`);
+
+		await writeFile(join(destFolder, `${name}.ts`), finalTsContent, { encoding: "utf-8" });
+
+		await this.refresh();
+	}
+
+	/**
+	 * Called on the user wants to add a new post-process.
+	 */
+	private async _handleAddPostProcessScript(): Promise<void> {
+		const name = await Dialog.Show("Post-Process Script Name", "Please provide a name for the new post-process script.");
+		const capitalizedName = name[0].toUpperCase() + name.substr(1);
+
+		const destFolder = join(this.state.currentDirectory, name);
+
+		if (await pathExists(destFolder)) {
+			return Alert.Show("Can't Create Post-Process Script", `A folder named "${name}" already exists.`);
+		}
+
+		await mkdir(destFolder);
+
+		await copyFile(join(AppTools.GetAppPath(), `assets/scripts/post-process/fragment.fx`), join(destFolder, `${name}.fragment.fx`));
+
+		const randomId = Tools.RandomId();
+		const tsContent = await readFile(join(AppTools.GetAppPath(), `assets/scripts/post-process/post-process.ts`), { encoding: "utf-8" });
 
 		const finalTsContent = tsContent
 			.replace(/{__shader_name__}/g, name)
@@ -848,7 +883,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 	 * Called on the user wants to add a new material asset.
 	 */
 	private async _handleCreateMaterial(type: string | Function, sourcePath?: string): Promise<Material> {
-		let name = await Dialog.Show("Material Name", "Please provide a name for the new material to created.");
+		const name = await Dialog.Show("Material Name", "Please provide a name for the new material to create.");
 
 		const ctor = typeof (type) === "string" ? BabylonTools.Instantiate(`BABYLON.${type}`) : type;
 		const material = new ctor(name, this.props.editor.scene!);
