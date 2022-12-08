@@ -64,7 +64,7 @@ export class SceneExporter {
 	 * final assets output folder.
 	 */
 	public static readonly CopyAbleImageTypes: string[] = [
-		".png", ".jpeg", ".jpg", ".bmp",
+		".png", ".jpeg", ".jpg", ".bmp", ".webp",
 	];
 
 	/**

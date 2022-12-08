@@ -11,7 +11,7 @@ export class AssetsBrowserTextureMoveHandler extends AssetsBrowserMoveHandler {
 	 * Defines the list of all extensions handled by the item mover.
 	 */
 	public extensions: string[] = [
-		".png", ".jpg", ".jpeg", ".bmp",
+		".png", ".jpg", ".jpeg", ".bmp", ".webp",
 		".env", ".dds", ".basis", ".3dl",
 	];
 

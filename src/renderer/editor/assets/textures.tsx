@@ -444,8 +444,8 @@ export class TextureAssets extends AbstractAssets {
         const ktxFormat = KTXTools.GetSupportedKtxFormat(this.editor.engine!);
 
         for (const texture of this.editor.scene!.textures) {
-            const extension = extname(texture.name);
-            if (!extension || !texture.name || texture.name.indexOf("data:") === 0 || !(texture instanceof Texture)) {
+            const extension = extname(texture.name).toLowerCase();
+            if (!extension || !texture.name || texture.name.indexOf("data:") === 0 || !(texture instanceof Texture) || KTXTools.SupportedExtensions.indexOf(extension) === -1) {
                 this.editor.updateTaskFeedback(task, progress += step);
                 continue;
             }

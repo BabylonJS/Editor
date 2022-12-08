@@ -31,7 +31,10 @@ export type KTXToolsType = "-astc.ktx" | "-dxt.ktx" | "-pvrtc.ktx" | "-etc1.ktx"
 const currentPlatform = platform();
 
 export class KTXTools {
-	private static _SupportedExtensions: string[] = [".png", ".jpg", ".jpeg", ".bmp"];
+	/**
+	 * Defines the list of all supported image types (extensions) for KTX compression using PVRTexTool.
+	 */
+	public static SupportedExtensions: string[] = [".png", ".jpg", ".jpeg", ".bmp"];
 
 	/**
 	 * Returns the format of the currently supported Ktx format.
@@ -131,7 +134,7 @@ export class KTXTools {
 		const name = basename(texturePath);
 		const extension = extname(name).toLocaleLowerCase();
 
-		if (KTXTools._SupportedExtensions.indexOf(extension) === -1) {
+		if (KTXTools.SupportedExtensions.indexOf(extension) === -1) {
 			return;
 		}
 
@@ -235,7 +238,7 @@ export class KTXTools {
 		const name = basename(texturePath);
 		const extension = extname(name).toLocaleLowerCase();
 
-		if (KTXTools._SupportedExtensions.indexOf(extension) === -1) {
+		if (KTXTools.SupportedExtensions.indexOf(extension) === -1) {
 			return;
 		}
 

@@ -56,8 +56,6 @@ function onClick(editor: Editor, object: Node): void {
 
         clone.physicsImpostor?.sleep();
 
-        debugger;
-
         if (isAbstractMesh(object)) {
             object.geometry?.releaseForMesh(clone);
 
