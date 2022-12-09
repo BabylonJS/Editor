@@ -95,6 +95,7 @@ import "./components/inspectors/cameras/camera-inspector";
 import "./components/inspectors/cameras/free-camera-inspector";
 import "./components/inspectors/cameras/arc-rotate-camera-inspector";
 import "./components/inspectors/cameras/target-camera-inspector";
+import "./components/inspectors/cameras/post-process-inspector";
 
 import "./components/inspectors/materials/standard-inspector";
 import "./components/inspectors/materials/pbr-inspector";
@@ -116,8 +117,6 @@ import "./components/inspectors/particle-systems/particle-system-gradients-inspe
 import "./components/inspectors/sound/sound-inspector";
 
 import "./components/inspectors/textures/reflection-probe-inspector";
-
-import "./components/inspectors/post-process/post-process-inspector";
 
 // Assets
 import { MaterialAssets } from "./assets/materials";

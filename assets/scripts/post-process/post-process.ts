@@ -1,6 +1,5 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
-import { Tools } from "@babylonjs/core/Misc/tools";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { Effect } from "@babylonjs/core/Materials/effect";
 import { RegisterClass } from "@babylonjs/core/Misc/typeStore";
@@ -17,14 +16,14 @@ export default class /*{__shader_class_name__}*/APostProcess extends PostProcess
      * Constructor.
      * @param scene defines the reference to the scene where to add the post-process.
     */
-    public constructor(scene: Scene) {
+    public constructor(scene: Scene, camera: Nullable<Camera>) {
         super(
             "{__shader_name__}",
             "/*{__shader_class_name__id__}*/APostProcess",
             [], // Uniforms
             [], // Samplers
             1.0,
-            scene.activeCamera,
+            camera ?? scene.activeCamera,
             Texture.TRILINEAR_SAMPLINGMODE,
             undefined,
             true,
@@ -48,7 +47,7 @@ export default class /*{__shader_class_name__}*/APostProcess extends PostProcess
     public static _Parse(parsedPostProcess: any, targetCamera: Camera, scene: Scene, rootUrl: string): Nullable</*{__shader_class_name__}*/APostProcess> {
         return SerializationHelper.Parse(
             () => {
-                return new /*{__shader_class_name__}*/APostProcess(scene);
+                return new /*{__shader_class_name__}*/APostProcess(scene, targetCamera);
             },
             parsedPostProcess,
             scene,

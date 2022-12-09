@@ -660,6 +660,7 @@ export class MaterialAssets extends AbstractAssets {
                 }
 
                 delete require.cache[jsPath];
+                delete require.cache[jsPath.replace(/\//g, "\\")];
 
                 const exports = require(jsPath);
                 const materialConfiguration = exports.materialConfiguration;

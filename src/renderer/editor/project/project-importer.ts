@@ -543,16 +543,18 @@ export class ProjectImporter {
                     Overlay.SetSpinnervalue(spinnerValue);
                 }
 
-                delete require.cache[jsPath];
                 require(jsPath);
 
                 const pp = PostProcess.Parse(p.serializationObject, editor.scene!, rootUrl);
                 if (pp) {
-                    editor.scene!.cameras.forEach((c) => {
-                        c.attachPostProcess(pp);
-                    });
-
                     editor.postProcesses.addPostProcess(p.sourcePath, pp);
+
+                    editor.scene!.cameras.forEach((c) => {
+                        const index = c._postProcesses.indexOf(pp);
+                        if (index === -1) {
+                            c.attachPostProcess(pp);
+                        }
+                    });
                 }
             } catch (e) {
                 editor.console.logError(`Failed to parse post-process "${p.sourcePath}"\n${e.message}`);
