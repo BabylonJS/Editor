@@ -16,6 +16,7 @@ import { Dialog } from "../../../gui/dialog";
 
 import { PostProcessAssets } from "../../../scene/post-processes";
 
+import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorColor } from "../../../gui/inspector/fields/color";
 import { InspectorButton } from "../../../gui/inspector/fields/button";
 import { InspectorNumber } from "../../../gui/inspector/fields/number";
@@ -159,6 +160,8 @@ export class PostProcessesInspector extends AbstractInspector<Camera, IPostProce
                 case "Vector2": children.push(<InspectorVector2 object={pp} property={v.propertyKey} label={v.name} min={v.options?.min} max={v.options?.max} step={v.options?.step} />); break;
                 case "Vector3": children.push(<InspectorVector3 object={pp} property={v.propertyKey} label={v.name} min={v.options?.min} max={v.options?.max} step={v.options?.step} />); break;
                 case "Vector4": children.push(<InspectorVector4 object={pp} property={v.propertyKey} label={v.name} min={v.options?.min} max={v.options?.max} step={v.options?.step} />); break;
+
+                case "Texture": children.push(<InspectorList object={pp} property={v.propertyKey} label={v.name} items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />); break;
 
                 case "Color3":
                 case "Color4":
