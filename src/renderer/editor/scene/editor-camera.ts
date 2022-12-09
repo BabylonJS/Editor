@@ -1,6 +1,11 @@
-import { Node, FreeCamera, Scene, Vector3 } from "babylonjs";
+import { Nullable } from "../../../shared/types";
+
+import { Node, FreeCamera, Scene, Vector3, KeyboardEventTypes, Observer, KeyboardInfo } from "babylonjs";
 
 export class EditorCamera extends FreeCamera {
+    private _savedSpeed: Nullable<number> = null;
+    private _keyboardObserver: Nullable<Observer<KeyboardInfo>>;
+
     /**
      * Consstructor.
      * @param name defines the name of the camera.
@@ -11,7 +16,40 @@ export class EditorCamera extends FreeCamera {
     public constructor(name: string, position: Vector3, scene: Scene, setActiveOnSceneIfNoneActive?: boolean) {
         super(name, position, scene, setActiveOnSceneIfNoneActive);
 
+        this._savedSpeed = this.speed;
+
         this.inputs.addMouseWheel();
+
+        this._keyboardObserver = scene.onKeyboardObservable.add((e) => {
+
+            if (e.event.key !== "Shift") {
+                return;
+            }
+
+            switch (e.type) {
+                case KeyboardEventTypes.KEYDOWN:
+                    this._savedSpeed = this.speed;
+                    this.speed *= 0.1;
+                    break;
+
+                case KeyboardEventTypes.KEYUP:
+                    if (this._savedSpeed !== null) {
+                        this.speed = this._savedSpeed;
+                        this._savedSpeed = null;
+                    }
+                    break;
+            }
+        });
+    }
+
+    /**
+     * Destroy the camera and release the current resources hold by it.
+     */
+    public dispose(): void {
+        super.dispose();
+
+        this._scene.onKeyboardObservable.remove(this._keyboardObserver);
+        this._keyboardObserver = null;
     }
 
     /**
