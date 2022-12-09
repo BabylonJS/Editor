@@ -6,7 +6,7 @@ import { Nullable } from "../../../../../shared/types";
 import * as React from "react";
 import { Classes, ContextMenu, Menu, MenuItem, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
-import { PostProcess } from "babylonjs";
+import { Camera, PostProcess } from "babylonjs";
 
 import { SandboxMain } from "../../../../sandbox/main";
 
@@ -45,7 +45,7 @@ export interface IPostProcessesInspectorState {
     selectedNode?: TreeNodeInfo<PostProcess>;
 }
 
-export class PostProcessesInspector extends AbstractInspector<any, IPostProcessesInspectorState> {
+export class PostProcessesInspector extends AbstractInspector<Camera, IPostProcessesInspectorState> {
     /**
      * Constructor.
      * @param props defines the component's props.
@@ -228,11 +228,22 @@ export class PostProcessesInspector extends AbstractInspector<any, IPostProcesse
 
         // Instantiate
         const exports = require(jsPath);
-        const pp = new exports.default(this.editor.scene) as PostProcess;
+        const pp = new exports.default(this.editor.scene, this.selectedObject) as PostProcess;
+
+        this.editor.scene!.cameras.forEach((c) => {
+            const index = c._postProcesses.indexOf(pp);
+            if (index === -1) {
+                c.attachPostProcess(pp);
+            }
+        });
 
         // Configure
-        const name = await Dialog.Show("Post-Process Name", "Please provide a name for the new post-process to create.");
-        pp.name = name;
+        try {
+            const name = await Dialog.Show("Post-Process Name", "Please provide a name for the new post-process to create.");
+            pp.name = name;
+        } catch (e) {
+            // Catch silently.
+        }
 
         // Register
         this.editor.postProcesses.addPostProcess(relativePath, pp);
@@ -255,12 +266,10 @@ export class PostProcessesInspector extends AbstractInspector<any, IPostProcesse
             return;
         }
 
-        const positions = this.editor.scene!.cameras.map((camera) => {
-            const index = camera._postProcesses.indexOf(pp);
-            camera.detachPostProcess(pp);
-
-            return { index, camera };
-        });
+        const positions = this.editor.scene!.cameras.map((camera) => ({
+            camera,
+            index: camera._postProcesses.indexOf(pp),
+        }));
 
         undoRedo.push({
             common: () => {
@@ -289,6 +298,6 @@ export class PostProcessesInspector extends AbstractInspector<any, IPostProcesse
 
 Inspector.RegisterObjectInspector({
     ctor: PostProcessesInspector,
-    ctorNames: ["Scene"],
     title: "Post-Processes",
+    ctorNames: ["ArcRotateCamera", "TargetCamera", "FreeCamera", "UniversalCamera", "EditorCamera"],
 });

@@ -117,42 +117,34 @@ export class PostProcessAssets {
     private async _handlePostProcessChanged(asset: IPostProcessAsset, fragmentPath: string): Promise<void> {
         const serializationObject = asset.postProcess.serialize();
         const fragmentShaderName = asset.postProcess.getClassName();
-        const shadersStoreKey = `${fragmentShaderName}FragmentShader`;
-
-        // Remove from cache
-        const compiledEffects = this._editor.engine!["_compiledEffects"];
-        for (const key in compiledEffects) {
-            if (key.indexOf(fragmentShaderName) !== -1) {
-                compiledEffects[key].dispose();
-                delete compiledEffects[key];
-            }
-        }
-
-        // Misc.
-        const fragmentShaderCode = await readFile(fragmentPath, { encoding: "utf-8" });
-
-        Effect.ShadersStore[shadersStoreKey] = fragmentShaderCode;
-        delete ShaderStore.GetShadersStore(ShaderLanguage.GLSL)[shadersStoreKey];
 
         const positions = this._editor.scene!.cameras.map((camera) => {
             const index = camera._postProcesses.indexOf(asset.postProcess);
-            camera.detachPostProcess(asset.postProcess);
+            if (index !== -1) {
+                camera.detachPostProcess(asset.postProcess);
+            }
 
             return { index, camera };
         });
 
-        // Remove from post-processes collection
+        // Copy and rebuild post-process
+        await SceneExporter.CopyShaderFiles(this._editor);
+
+        // Remove from cache
+        await this._updateEffectsCache(fragmentPath, fragmentShaderName);
+        this._clearEffectsCache(fragmentShaderName);
+
+        // Remove from post-processes
         const index = this._editor.scene!.postProcesses.indexOf(asset.postProcess);
         if (index !== -1) {
             this._editor.scene!.postProcesses.splice(index, 1);
         }
 
-        // Copy and rebuild post-process
-        await SceneExporter.CopyShaderFiles(this._editor);
-
         const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, asset.sourcePath);
 
         delete require.cache[jsPath];
+        delete require.cache[jsPath.replace(/\//g, "\\")];
+
         const exports = require(jsPath);
 
         const postProcessConfiguration = exports.postProcessConfiguration;
@@ -162,16 +154,37 @@ export class PostProcessAssets {
         }
 
         const pp = PostProcess.Parse(serializationObject, this._editor.scene!, join(this._editor.assetsBrowser.assetsDirectory, "/"));
-
         if (pp) {
             asset.postProcess = pp;
-
             positions.forEach((p) => {
-                p.camera.attachPostProcess(pp, p.index === -1 ? undefined : p.index);
+                const index = p.camera._postProcesses.indexOf(pp);
+                if (index === -1) {
+                    p.camera.attachPostProcess(pp, p.index === -1 ? undefined : p.index);
+                }
             });
 
             this._editor.inspector.refresh();
         }
+
+    }
+
+    private _clearEffectsCache(fragmentShaderName: string): void {
+        const compiledEffects = this._editor.engine!["_compiledEffects"];
+        for (const key in compiledEffects) {
+            if (key.indexOf(fragmentShaderName) !== -1) {
+                compiledEffects[key]?.dispose();
+                delete compiledEffects[key];
+            }
+        }
+    }
+
+    private async _updateEffectsCache(fragmentPath: string, fragmentShaderName: string): Promise<void> {
+        const shadersStoreKey = `${fragmentShaderName}FragmentShader`;
+
+        const fragmentShaderCode = await readFile(fragmentPath, { encoding: "utf-8" });
+
+        Effect.ShadersStore[shadersStoreKey] = fragmentShaderCode;
+        ShaderStore.GetShadersStore(ShaderLanguage.GLSL)[shadersStoreKey] = fragmentShaderCode;
     }
 
     /**
