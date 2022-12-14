@@ -8,11 +8,12 @@ import { Classes, ContextMenu, Menu, MenuItem, Tree, TreeNodeInfo } from "@bluep
 
 import { Camera, PostProcess } from "babylonjs";
 
-import { SandboxMain } from "../../../../sandbox/main";
+import { IExportedInspectorValue, SandboxMain } from "../../../../sandbox/main";
 
 import { Icon } from "../../../gui/icon";
 import { Alert } from "../../../gui/alert";
 import { Dialog } from "../../../gui/dialog";
+import { Confirm } from "../../../gui/confirm";
 
 import { PostProcessAssets } from "../../../scene/post-processes";
 
@@ -28,6 +29,7 @@ import { InspectorVector4 } from "../../../gui/inspector/fields/vector4";
 import { Tools } from "../../../tools/tools";
 import { AppTools } from "../../../tools/app";
 import { undoRedo } from "../../../tools/undo-redo";
+import { checkExportedProperties, resetExportedPropertiesToDefaultValue } from "../tools/properties-checker";
 
 import { WorkSpace } from "../../../project/workspace";
 import { SceneExporter } from "../../../project/scene-exporter";
@@ -146,10 +148,12 @@ export class PostProcessesInspector extends AbstractInspector<Camera, IPostProce
         }
 
         // Get inspectable values
-        const inspectableValues = (pp.constructor as any)._InspectorValues;
+        const inspectableValues = (pp.constructor as any)._InspectorValues as IExportedInspectorValue[];
         if (!inspectableValues?.length) {
             return;
         }
+
+        checkExportedProperties(inspectableValues, pp);
 
         // Fill from inspector
         const children: React.ReactNode[] = [];
@@ -173,8 +177,25 @@ export class PostProcessesInspector extends AbstractInspector<Camera, IPostProce
         return (
             <InspectorSection title="Parameters">
                 {children}
+                <InspectorButton label="Reset Defaults..." small onClick={() => this._handleResetInspectableValuesToDefault(inspectableValues, pp)} />
             </InspectorSection>
         );
+    }
+
+    /**
+     * Called on the user wants to reset the inspectable properties to their default value.
+     */
+    private async _handleResetInspectableValuesToDefault(inspectableValues: any, pp: PostProcess): Promise<void> {
+        const confirm = await Confirm.Show("Reset all to default values", "Are you sure to reset all inspectable properties to the default values provided in decorators?");
+        if (!confirm) {
+            return;
+        }
+
+        if (inspectableValues) {
+            resetExportedPropertiesToDefaultValue(inspectableValues, pp, () => {
+                this.editor.inspector.refresh();
+            });
+        }
     }
 
     /**
