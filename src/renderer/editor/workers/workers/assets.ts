@@ -264,15 +264,15 @@ export default class AssetsWorker {
 	 */
 	public textureHasAlpha(texturePath: string): Promise<boolean> {
 		const { PNG } = require("pngjs");
-		return new Promise<boolean>((resolve, reject) => {
+		return new Promise<boolean>((resolve) => {
 			const stream = createReadStream(texturePath);
 			stream.pipe(new PNG())
 				.on("metadata", (m) => {
 					resolve(m.alpha === true);
 					stream.close();
 				})
-				.on("error", (err) => {
-					reject(err);
+				.on("error", () => {
+					resolve(false);
 					stream.close();
 				});
 		});

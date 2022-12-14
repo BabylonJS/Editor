@@ -1,4 +1,5 @@
-import { watch, FSWatcher } from "fs-extra";
+import { watch } from "chokidar";
+import { FSWatcher } from "fs-extra";
 
 import { Nullable } from "../../../../../shared/types";
 
@@ -7,6 +8,7 @@ import * as React from "react";
 import { Material, Mesh, SubMesh, Constants } from "babylonjs";
 
 import { Tools } from "../../../tools/tools";
+import { checkExportedProperties, resetExportedPropertiesToDefaultValue } from "../tools/properties-checker";
 
 import { MaterialAssets } from "../../../assets/materials";
 
@@ -15,6 +17,8 @@ import { WorkSpace } from "../../../project/workspace";
 import { IExportedInspectorValue, SandboxMain } from "../../../../sandbox/main";
 
 import { Inspector, IObjectInspectorProps } from "../../inspector";
+
+import { Confirm } from "../../../gui/confirm";
 
 import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorColor } from "../../../gui/inspector/fields/color";
@@ -26,6 +30,7 @@ import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorVector2 } from "../../../gui/inspector/fields/vector2";
 import { InspectorVector3 } from "../../../gui/inspector/fields/vector3";
 import { InspectorVector4 } from "../../../gui/inspector/fields/vector4";
+import { InspectorColorPicker } from "../../../gui/inspector/fields/color-picker";
 
 import { AbstractInspector } from "../abstract-inspector";
 
@@ -205,24 +210,28 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
      */
     protected getInspectableValuesInspector(): React.ReactNode {
         if (!this.material.metadata?.sourcePath) {
-            return null;
+            return undefined;
         }
 
         if (!this.state.exportedValues) {
             const jsPath = Tools.GetSourcePath(WorkSpace.DirPath!, this.material.metadata.sourcePath);
             SandboxMain.GetInspectorValues(jsPath).then((v) => {
                 this.setState({ exportedValues: v });
-                
-                this._exportedValuesWateher ??= watch(jsPath, { encoding: "utf-8" }, (ev) => {
-                    if (ev === "change") {
-                        this.setState({ exportedValues: undefined });
-                    }
+
+                this._exportedValuesWateher ??= watch(jsPath, {
+                    persistent: true,
+                    ignoreInitial: false,
+                    awaitWriteFinish: true,
+                }).on("change", () => {
+                    this.setState({ exportedValues: undefined });
                 });
             });
-            return null;
+            return undefined;
         }
 
-        const sectionsDictionary: Record<string, React.ReactNode[]> = { };
+        checkExportedProperties(this.state.exportedValues, this.material);
+
+        const sectionsDictionary: Record<string, React.ReactNode[]> = {};
         this.state.exportedValues.forEach((v) => {
             const inspector = this._getExportedValueInspector(v);
             if (!inspector) {
@@ -244,8 +253,25 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
         return (
             <InspectorSection title="Exported Values">
                 {sections}
+                <InspectorButton label="Reset Defaults..." small onClick={() => this._handleResetInspectableValuesToDefault()} />
             </InspectorSection>
         );
+    }
+
+    /**
+     * Called on the user wants to reset the inspectable properties to their default value.
+     */
+    private async _handleResetInspectableValuesToDefault(): Promise<void> {
+        const confirm = await Confirm.Show("Reset all to default values", "Are you sure to reset all inspectable properties to the default values provided in decorators?");
+        if (!confirm) {
+            return;
+        }
+
+        if (this.state.exportedValues) {
+            resetExportedPropertiesToDefaultValue(this.state.exportedValues, this.material, () => {
+                this.editor.inspector.refresh();
+            });
+        }
     }
 
     /**
@@ -253,10 +279,10 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
      */
     private _getExportedValueInspector(value: IExportedInspectorValue): React.ReactNode {
         switch (value.type) {
-            case "Color3": return <InspectorColor object={this.material} property={value.propertyKey} label={value.name}  />;
+            case "Color3": return <InspectorColor object={this.material} property={value.propertyKey} label={value.name} step={0.01} />;
             case "string": return <InspectorString object={this.material} property={value.propertyKey} label={value.name} />;
             case "boolean": return <InspectorBoolean object={this.material} property={value.propertyKey} label={value.name} />;
-            case "Texture": return <InspectorList object={this.material} property= {value.propertyKey} label={value.name} items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />;
+            case "Texture": return <InspectorList object={this.material} property={value.propertyKey} label={value.name} items={() => this.getTexturesList()} dndHandledTypes={["asset/texture"]} />;
             case "number": return <InspectorNumber object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
             case "Vector2": return <InspectorVector2 object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
             case "Vector3": return <InspectorVector3 object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
@@ -264,6 +290,15 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
             case "Vector4":
             case "Quaternion":
                 return <InspectorVector4 object={this.material} property={value.propertyKey} label={value.name} min={value.options?.min} max={value.options?.max} step={value.options?.step ?? 0.01} />;
+
+            case "Color4":
+                return (
+                    <>
+                        <InspectorColor object={this.material} property={value.propertyKey} label={value.name} step={0.01} />
+                        <InspectorColorPicker object={this.material} property={value.propertyKey} label={value.name} />
+                    </>
+                );
+
             default: return null;
         }
     }
