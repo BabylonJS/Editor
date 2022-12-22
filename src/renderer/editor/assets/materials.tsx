@@ -595,9 +595,6 @@ export class MaterialAssets extends AbstractAssets {
      */
     private async _rebuildSourceMaterialProgram(material: Material, vertexPath: string, fragmentPath: string, includes?: { key: string; path: string }): Promise<void> {
         const effect = material.getEffect();
-        if (!effect) {
-            return;
-        }
 
         const sourcePath = material.metadata?.sourcePath;
         if (!sourcePath) {
@@ -611,7 +608,7 @@ export class MaterialAssets extends AbstractAssets {
             return;
         }
 
-        effect.dispose();
+        effect?.dispose();
 
         const vertexContent = await readFile(vertexPath, { encoding: "utf-8" });
         const fragmentContent = await readFile(fragmentPath, { encoding: "utf-8" });
