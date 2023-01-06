@@ -270,7 +270,7 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             case "Vector4":
                 target[propertyKey].copyFrom({ x: value.x, y: value.y, z: value.z, w: value.w });
                 break;
-            
+
             case "Quaternion":
                 target[propertyKey].copyFrom({ _x: value.x, _y: value.y, _z: value.z, _w: value.w });
                 break;
@@ -279,8 +279,9 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
             case "Color4":
                 target[propertyKey].copyFrom(value);
                 break;
+
             case "Node":
-                target[propertyKey] = this.editor.scene?.getNodeById(value);
+                target[propertyKey] = playScene.getNodeById(value);
                 break;
         }
 
@@ -392,12 +393,13 @@ export class ScriptInspector<T extends (Scene | Node), S extends IScriptInspecto
                         <InspectorColor object={property} property="value" label={label} step={iv.options?.step ?? 0.01} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} />
                     );
                     break;
+
                 case "Node":
                     if (typeof iv.defaultValue == "string") {
                         const defaultValue = this.editor.scene?.getNodeByName(iv.defaultValue);
                         property.value ??= property.value ?? defaultValue?.id;
-                    } 
-                  
+                    }
+
                     children.push(
                         <InspectorList object={property} property="value" label={label} items={() => this.getSceneNodes(iv.options?.allowedNodeType)} noUndoRedo={true} onChange={(v) => this._applyExportedValueInScenePlayer(iv.propertyKey, iv.type, v)} dndHandledTypes={["graph/node"]} />
                     );
