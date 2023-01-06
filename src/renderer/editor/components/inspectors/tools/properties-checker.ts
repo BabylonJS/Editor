@@ -1,4 +1,4 @@
-import { Color3, Color4, Vector2, Vector3, Vector4, Quaternion } from "babylonjs";
+import { Color3, Color4, Vector2, Vector3, Vector4, Quaternion, Node } from "babylonjs";
 
 import { IExportedInspectorValue } from "../../../../sandbox/main";
 
@@ -19,7 +19,10 @@ export function checkExportedProperties(values: IExportedInspectorValue[], objec
             object[v.propertyKey] = defaultValue;
         }
 
-        if (Tools.GetConstructorName(object[v.propertyKey]).toLowerCase() !== Tools.GetConstructorName(defaultValue).toLowerCase()) {
+        const nodeFalse = v.type === "Node" && !(object[v.propertyKey] instanceof Node);
+        const typeFalse = Tools.GetConstructorName(object[v.propertyKey]).toLowerCase() !== Tools.GetConstructorName(defaultValue).toLowerCase();
+
+        if (nodeFalse && typeFalse) {
             object[v.propertyKey] = defaultValue;
         }
     });
@@ -74,6 +77,8 @@ function getExportedDefaultValue(value: IExportedInspectorValue): any {
         case "Vector4": return new Vector4(defaultValue?.["x"] ?? 0, defaultValue?.["y"] ?? 0, defaultValue?.["z"] ?? 0, defaultValue?.["w"] ?? 0);
 
         case "Quaternion": return new Quaternion(defaultValue?.["x"] ?? 0, defaultValue?.["y"] ?? 0, defaultValue?.["z"] ?? 0, defaultValue?.["w"] ?? 0);
+
+        case "Node": return null;
 
         default: return null;
     }

@@ -299,6 +299,15 @@ export class MaterialInspector<T extends Material, S extends IMaterialInspectorS
                     </>
                 );
 
+            case "Node":
+                const o = { id: this.material[value.propertyKey]?.id };
+
+                return (
+                    <InspectorList object={o} property="id" label={value.name} items={() => this.getSceneNodes(value.options?.allowedNodeType)} noUndoRedo={true} dndHandledTypes={["graph/node"]} onChange={(v) => {
+                        this.material[value.propertyKey] = this.editor.scene!.getNodeById(v);
+                    }} />
+                );
+
             default: return null;
         }
     }
