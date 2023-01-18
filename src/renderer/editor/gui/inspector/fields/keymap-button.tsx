@@ -8,19 +8,16 @@ import { InspectorNotifier } from "../notifier";
 
 import { AbstractFieldComponent } from "./abstract-field";
 
-export interface IInspectorKeyMapButtonProps<T> {
+export interface IInspectorKeyMapButtonProps {
     /**
      * Defines the reference to the object to modify.
      */
-    object: T;
+    object: any;
     /**
      * Defines the property to edit in the object.
      */
     property: string;
-    /**
-     * Defines the label of the button.
-     */
-    label: string;
+
 
     /**
      * Defines wether or not automatic undo/redo should be skipped.
@@ -43,7 +40,7 @@ export interface IInspectorKeyMapButtonState {
     settingKey: boolean;
 }
 
-export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorKeyMapButtonProps<T>, IInspectorKeyMapButtonState> {
+export class InspectorKeyMapButton extends AbstractFieldComponent<IInspectorKeyMapButtonProps, IInspectorKeyMapButtonState> {
     private _keyDownListener: Nullable<(ev: KeyboardEvent) => any> = null;
     private _mouseDownListener: Nullable<(ev: MouseEvent) => any> = null;
 
@@ -54,7 +51,7 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
      * Constructor.
      * @param props defines the component's props.
      */
-    public constructor(props: IInspectorKeyMapButtonProps<T>) {
+    public constructor(props: InspectorKeyMapButton["props"]) {
         super(props);
 
         const value = this.props.object[this.props.property];
@@ -79,7 +76,7 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
         return (
             <div style={{ width: "100%", height }}>
                 <div style={{ width: "30%", height, float: "left", borderLeft: "3px solid #2FA1D6", padding: "0 4px 0 5px", overflow: "hidden" }}>
-                    <Tooltip content={this.props.label}>
+                    <Tooltip content={this.props.toolTip ?? this.props.label}>
                         <span style={{ lineHeight: height, textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
                     </Tooltip>
                 </div>

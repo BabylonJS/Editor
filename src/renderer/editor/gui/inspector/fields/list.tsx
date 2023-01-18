@@ -40,9 +40,9 @@ export interface IInspectorListProps<T> {
      */
     property: string;
     /**
-     * Defines the label of the field.
+     * Defines a jsx Element to be used as the label. Overrides `label` prop if defined
      */
-    label: string | JSX.Element;
+    labelElement?: JSX.Element;
     /**
      * Defines the list of items drawn in the suggest.
      */
@@ -102,7 +102,7 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
      * Constructor.
      * @param props defines the component's props.
      */
-    public constructor(props: IInspectorListProps<T>) {
+    public constructor(props: InspectorList<T>["props"]) {
         super(props);
 
         this.state = {
@@ -121,8 +121,8 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
         return (
             <div style={{ width: "100%", height: "25px" }}>
                 <div style={{ width: "30%", height: "25px", float: "left", borderLeft: `3px solid ${borderLeftColor}`, padding: "0 4px 0 5px", overflow: "hidden" }}>
-                    <Tooltip content={this.props.label}>
-                        <span style={{ lineHeight: "28px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.label}</span>
+                    <Tooltip content={this.props.toolTip ?? this.props.label}>
+                        <span style={{ lineHeight: "28px", textAlign: "center", whiteSpace: "nowrap" }}>{this.props.labelElement ?? this.props.label}</span>
                     </Tooltip>
                 </div>
                 <div

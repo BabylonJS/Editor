@@ -272,7 +272,7 @@ export class Tracks extends React.Component<ITracksProps, ITracksState> {
 				case CinematicTrackType.Property:
 					const listLabel = <span>{t.property!.propertyPath}</span>;
 
-					label = <InspectorList key={Tools.RandomId()} object={t.property} property="nodeId" label={listLabel} noUndoRedo borderLeftColor="forestgreen" dndHandledTypes={["graph/node"]} items={() => {
+					label = <InspectorList key={Tools.RandomId()} object={t.property} property="nodeId" label="Track" labelElement={listLabel} noUndoRedo borderLeftColor="forestgreen" dndHandledTypes={["graph/node"]} items={() => {
 						const node = scene?.getNodeById(t.property!.nodeId);
 						return [
 							{ label: node?.name ?? "None", data: node?.id ?? "None" },

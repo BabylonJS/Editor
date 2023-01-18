@@ -5,6 +5,7 @@ import { FileInput, Tooltip } from "@blueprintjs/core";
 
 import { InspectorUtils } from "../utils";
 import { InspectorNotifier } from "../notifier";
+import { AbstractFieldComponent } from "./abstract-field";
 
 export interface IInspectorFileInputProps {
 	/**
@@ -15,11 +16,6 @@ export interface IInspectorFileInputProps {
 	 * Defines the property to edit in the object.
 	 */
 	property: string;
-	/**
-	 * Defines the label of the field.
-	 */
-	label: string;
-
 	/**
 	 * Defines wether or not automatic undo/redo should be skipped.
 	 */
@@ -45,7 +41,7 @@ export interface IInspectorFileInputState {
 	value: string;
 }
 
-export class InspectorFileInput extends React.Component<IInspectorFileInputProps, IInspectorFileInputState> {
+export class InspectorFileInput extends AbstractFieldComponent<IInspectorFileInputProps, IInspectorFileInputState> {
 	private _initialValue: string;
 	private _inspectorName: Nullable<string> = null;
 
@@ -53,7 +49,7 @@ export class InspectorFileInput extends React.Component<IInspectorFileInputProps
 	 * Constructor.
 	 * @param props defines the component's props.
 	 */
-	public constructor(props: IInspectorFileInputProps) {
+	public constructor(props: InspectorFileInput["props"]) {
 		super(props);
 
 		const value = props.object[props.property];
@@ -69,7 +65,7 @@ export class InspectorFileInput extends React.Component<IInspectorFileInputProps
 		return (
 			<div style={{ width: "100%", height: "25px" }}>
 				<div style={{ width: "30%", float: "left", borderLeft: "3px solid #1ed36f", padding: "0 4px 0 5px" }}>
-					<Tooltip content={this.props.label}>
+					<Tooltip content={this.props.toolTip ?? this.props.label}>
 						<span style={{ lineHeight: "30px", textAlign: "center" }}>{this.props.label}</span>
 					</Tooltip>
 				</div>
