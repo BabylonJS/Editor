@@ -40,6 +40,10 @@ export function GraphContextMenuName(props: IGraphContextMenuNameProps) {
                 disabled={isSound(props.object)}
                 value={props.object.name ?? Tools.GetConstructorName(props.object)}
                 onConfirm={(v) => {
+                    if (v === props.object.name) {
+                        return;
+                    }
+
                     const oldName = props.object!.name;
                     undoRedo.push({
                         description: `Changed name of node "${props.object?.name ?? "undefined"}" from "${oldName}" to "${v}"`,

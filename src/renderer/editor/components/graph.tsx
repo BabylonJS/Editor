@@ -1,4 +1,4 @@
-import { Nullable } from "../../../shared/types";
+import { IStringDictionary, Nullable } from "../../../shared/types";
 
 import * as React from "react";
 import {
@@ -64,6 +64,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
     private _previousNodes: TreeNodeInfo<any>[] = [];
 
     private _expandedNodes: TreeNodeInfo<any>[] = [];
+
+    private _graphLabelRefs: IStringDictionary<Nullable<GraphLabel>> = {};
 
     /**
      * Constructor.
@@ -342,6 +344,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Parses all the scene's nodes and returns the array of all root nodes.
      */
     private _parseSceneNodes(roots?: Node[]): TreeNodeInfo<any>[] {
+        this._graphLabelRefs = {};
+
         this._nodes = [
             {
                 label: "Scene",
@@ -461,7 +465,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             secondaryLabel,
             // hasCaret: childNodes.length > 0,
             icon: <GraphIcon object={node} />,
-            label: <GraphLabel editor={this.props.editor} object={node} />,
+            label: <GraphLabel ref={(r) => this._graphLabelRefs[id] = r} editor={this.props.editor} object={node} />,
 
             isSelected: existingNode?.isSelected ?? false,
             isExpanded: this.state.filter ? true : (existingNode?.isExpanded ?? false),
@@ -547,6 +551,7 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      * Defines the list of all hot keys.
      */
     private _hotKeys: IHotkeyProps[] = [
+        // Delete
         {
             combo: "del",
             global: false,
@@ -556,6 +561,8 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                 removeNodes(this.props.editor, selectedNodes);
             },
         },
+
+        // Arrows
         {
             combo: "down",
             global: false,
@@ -567,38 +574,120 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
             global: false,
             label: "Go to the previous sibling",
             onKeyUp: () => this._handleHotKeyGoToSibling("previous"),
-        }
+        },
+        {
+            combo: "left",
+            global: false,
+            label: "Collapse selected node",
+            onKeyUp: () => this._handleHotKeySetExpanded("collapsed"),
+        },
+        {
+            combo: "right",
+            global: false,
+            label: "Expand selected node",
+            onKeyUp: () => this._handleHotKeySetExpanded("expanded"),
+        },
+
+        // Rename
+        {
+            combo: "Enter",
+            global: false,
+            label: "Rename node",
+            onKeyUp: () => this._handleHotKeyRename(),
+        },
     ];
 
     /**
-     * Handles the action on the graph when the user clicks on the 
+     * Handles the action on the graph when the user presses the Enter key to rename a node.
      */
-    private _handleHotKeyGoToSibling(type: "next" | "previous"): void {
-        const lastSelected = this.state.selectedNodes[this.state.selectedNodes.length - 1];
-        if (!lastSelected || !isNode(lastSelected.nodeData)) {
+    private _handleHotKeyRename(): void {
+        const last = this.state.selectedNodes[this.state.selectedNodes.length - 1];
+        if (!last || !isNode(last.nodeData)) {
             return;
         }
 
-        const step = (type === "next") ? 1 : -1;
-        const lastSelectedIndex = this._nodes.findIndex((n) => n.id === lastSelected.id);
+        this._graphLabelRefs[last.id]?.setState({ isRenaming: true });
+    }
 
-        for (let i = lastSelectedIndex + step; i < this._nodes.length; i += step) {
+    /**
+     * Handles the action on graph when the user presses the left of right keyboard arrows.
+     */
+    private _handleHotKeySetExpanded(type: "expanded" | "collapsed"): void {
+        const last = this.state.selectedNodes[this.state.selectedNodes.length - 1];
+        if (last) {
+            const node = this._forEachNode(this.state.nodes, (n) => n.nodeData === last.nodeData);
+            if (node) {
+                node.isExpanded = type === "expanded";
+                this.update();
+            }
+        }
+    }
+
+    /**
+     * Handles the action on the graph when the user presses the up or down keyboard arrows.
+     */
+    private _handleHotKeyGoToSibling(type: "next" | "previous"): void {
+        const lastSelected = this.state.selectedNodes[this.state.selectedNodes.length - 1];
+        if (!lastSelected?.nodeData) {
+            return;
+        }
+
+        const last = this._forEachNode(this.state.nodes, (n) => n.nodeData === lastSelected.nodeData);
+        if (!last?.nodeData || !isNode(last.nodeData)) {
+            return;
+        }
+
+        const parentIndex = this._nodes.findIndex((n) => n.childNodes && n.childNodes.find((n2) => n2.id === last.id));
+        const parent = parentIndex > 0 ? this._nodes[parentIndex] : null;
+
+        let effetiveParent = parent?.nodeData ?? null;
+        let index = this._nodes.findIndex((n) => n.id === last.id);
+
+        // Check last selected is the first child
+        if (parent) {
+            const parentNodes = parent.childNodes?.filter((n) => isNode(n.nodeData)) ?? [];
+            const nodeIndex = parentNodes.findIndex((n) => n.id === last.id);
+
+            if (type === "previous" && nodeIndex === 0) {
+                return this._handleSetSelectedSibling(parent);
+            }
+
+            if (type === "next" && nodeIndex === parentNodes.length - 1) {
+                effetiveParent = effetiveParent?.parent ?? null;
+            }
+        }
+
+        if (type === "next" && last.isExpanded && last.childNodes?.find((n) => isNode(n.nodeData))) {
+            effetiveParent = last.nodeData;
+        }
+
+        const step = (type === "next") ? 1 : -1;
+
+        for (let i = index + step; (type === "next") ? (i < this._nodes.length) : (i >= 0); i += step) {
             const n = this._nodes[i];
-            if (!isNode(n.nodeData) || n.nodeData.parent !== lastSelected.nodeData.parent) {
+            if (!n.nodeData || !isNode(n.nodeData)) {
                 continue;
             }
 
-            this._forEachNode(this.state.nodes, (n2) => {
-                n2.isSelected = n2.id === n.id;
-            });
+            const sameParent = (n.nodeData.parent ?? null) === effetiveParent;
+            if (!sameParent) {
+                continue;
+            }
 
-            this.state.selectedNodes.splice(0);
-            this.state.selectedNodes.push(n);
-
-            this.update();
-            this.props.editor.inspector.setSelectedObject(n.nodeData);
-
-            break;
+            return this._handleSetSelectedSibling(n);
         }
+    }
+
+    private _handleSetSelectedSibling(node: TreeNodeInfo<any>): void {
+        this._forEachNode(this.state.nodes, (n) => {
+            n.isSelected = n.id === node.id;
+        });
+
+        this.state.selectedNodes.splice(0);
+        this.state.selectedNodes.push(node);
+
+        this.update();
+
+        this.props.editor.inspector.setSelectedObject(node.nodeData);
     }
 }
