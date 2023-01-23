@@ -1,7 +1,10 @@
 import { Nullable } from "../../../shared/types";
 
 import * as React from "react";
-import { Classes, InputGroup, Tag, Tree, TreeNodeInfo, Icon as BPIcon, ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
+import {
+    Classes, InputGroup, Tag, Tree, TreeNodeInfo, Icon as BPIcon, ContextMenu, Menu, MenuItem,
+    HotkeysTarget2, IHotkeyProps,
+} from "@blueprintjs/core";
 
 import { IParticleSystem, Mesh, Node, ReflectionProbe, Sound } from "babylonjs";
 
@@ -84,37 +87,46 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
      */
     public render(): React.ReactNode {
         return (
-            <>
-                <div style={{ width: "100%", overflow: "hidden" }}>
-                    <InputGroup
-                        type="search"
-                        placeholder="Search..."
-                        className={Classes.FILL}
-                        style={{ marginTop: "5px", marginBottom: "5px" }}
-                        onChange={(e) => this._handleSearchChange(e.target.value)}
-                        leftIcon={<BPIcon icon="search" style={{ margin: "12px" }} />}
-                    ></InputGroup>
-                </div>
-                <div
-                    style={{
-                        overflow: "auto",
-                        height: "calc(100% - 40px)",
-                    }}
-                    onDrop={(ev) => {
-                        moveNodes(this.props.editor, this.state.selectedNodes.map((n) => n.nodeData), null, ev.shiftKey);
-                    }}
-                    onContextMenu={(e) => this._handleRootContextMenu(e)}
-                >
-                    <Tree
-                        contents={this.state.nodes}
-                        onNodeExpand={(n) => this._handleNodeExpand(n)}
-                        onNodeCollapse={(n) => this._handleNodeCollapse(n)}
-                        onNodeClick={(n, _, e) => this._handleNodeClick(n, e)}
-                        onNodeDoubleClick={(n) => this._handleNodeDoubleClick(n)}
-                        onNodeContextMenu={(n, _, e) => this._handleNodeContextMenu(n, e)}
-                    />
-                </div>
-            </>
+            <HotkeysTarget2 hotkeys={this._hotKeys}>
+                {({ handleKeyDown, handleKeyUp }) => (
+                    <div
+                        tabIndex={0}
+                        onKeyUp={handleKeyUp}
+                        onKeyDown={handleKeyDown}
+                        style={{ outline: "none" }}
+                    >
+                        <div style={{ width: "100%", overflow: "hidden" }}>
+                            <InputGroup
+                                type="search"
+                                placeholder="Search..."
+                                className={Classes.FILL}
+                                style={{ marginTop: "5px", marginBottom: "5px" }}
+                                onChange={(e) => this._handleSearchChange(e.target.value)}
+                                leftIcon={<BPIcon icon="search" style={{ margin: "12px" }} />}
+                            ></InputGroup>
+                        </div>
+                        <div
+                            style={{
+                                overflow: "auto",
+                                height: "calc(100% - 40px)",
+                            }}
+                            onDrop={(ev) => {
+                                moveNodes(this.props.editor, this.state.selectedNodes.map((n) => n.nodeData), null, ev.shiftKey);
+                            }}
+                            onContextMenu={(e) => this._handleRootContextMenu(e)}
+                        >
+                            <Tree
+                                contents={this.state.nodes}
+                                onNodeExpand={(n) => this._handleNodeExpand(n)}
+                                onNodeCollapse={(n) => this._handleNodeCollapse(n)}
+                                onNodeClick={(n, _, e) => this._handleNodeClick(n, e)}
+                                onNodeDoubleClick={(n) => this._handleNodeDoubleClick(n)}
+                                onNodeContextMenu={(n, _, e) => this._handleNodeContextMenu(n, e)}
+                            />
+                        </div>
+                    </div>
+                )}
+            </HotkeysTarget2>
         );
     }
 
@@ -529,5 +541,64 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
         }
 
         return null;
+    }
+
+    /**
+     * Defines the list of all hot keys.
+     */
+    private _hotKeys: IHotkeyProps[] = [
+        {
+            combo: "del",
+            global: false,
+            label: "Delete selected nodes",
+            onKeyUp: () => {
+                const selectedNodes = this.state.selectedNodes.map((n) => n.nodeData) as Node[];
+                removeNodes(this.props.editor, selectedNodes);
+            },
+        },
+        {
+            combo: "down",
+            global: false,
+            label: "Go to the next sibling",
+            onKeyUp: () => this._handleHotKeyGoToSibling("next"),
+        },
+        {
+            combo: "up",
+            global: false,
+            label: "Go to the previous sibling",
+            onKeyUp: () => this._handleHotKeyGoToSibling("previous"),
+        }
+    ];
+
+    /**
+     * Handles the action on the graph when the user clicks on the 
+     */
+    private _handleHotKeyGoToSibling(type: "next" | "previous"): void {
+        const lastSelected = this.state.selectedNodes[this.state.selectedNodes.length - 1];
+        if (!lastSelected || !isNode(lastSelected.nodeData)) {
+            return;
+        }
+
+        const step = (type === "next") ? 1 : -1;
+        const lastSelectedIndex = this._nodes.findIndex((n) => n.id === lastSelected.id);
+
+        for (let i = lastSelectedIndex + step; i < this._nodes.length; i += step) {
+            const n = this._nodes[i];
+            if (!isNode(n.nodeData) || n.nodeData.parent !== lastSelected.nodeData.parent) {
+                continue;
+            }
+
+            this._forEachNode(this.state.nodes, (n2) => {
+                n2.isSelected = n2.id === n.id;
+            });
+
+            this.state.selectedNodes.splice(0);
+            this.state.selectedNodes.push(n);
+
+            this.update();
+            this.props.editor.inspector.setSelectedObject(n.nodeData);
+
+            break;
+        }
     }
 }

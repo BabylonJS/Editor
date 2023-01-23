@@ -105,11 +105,15 @@ function removeLight(editor: Editor, o: Light): _AddRemoveCollection {
             o.parent = parent;
             o.doNotSerialize = false;
 
+            editor.scene!.meshes.forEach((m) => m._resyncLightSource(o));
+
             addByCheckingIndex(o, editor.scene!.lights);
         },
         remove: () => {
             o.parent = null;
             o.doNotSerialize = true;
+
+            editor.scene!.meshes.forEach((m) => m._removeLightSource(o, true));
 
             removeByCheckingIndex(o, editor.scene!.lights);
         },
