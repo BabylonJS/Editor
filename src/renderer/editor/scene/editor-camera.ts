@@ -28,8 +28,10 @@ export class EditorCamera extends FreeCamera {
 
             switch (e.type) {
                 case KeyboardEventTypes.KEYDOWN:
-                    this._savedSpeed = this.speed;
-                    this.speed *= 0.1;
+                    if (!this._savedSpeed) {
+                        this._savedSpeed = this.speed;
+                        this.speed *= 0.1;
+                    }
                     break;
 
                 case KeyboardEventTypes.KEYUP:

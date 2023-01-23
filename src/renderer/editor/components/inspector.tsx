@@ -1,7 +1,7 @@
 import { Nullable, Undefinable } from "../../../shared/types";
 
 import * as React from "react";
-import { Tabs, Tab, TabId, NonIdealState } from "@blueprintjs/core";
+import { Tabs, Tab, TabId, NonIdealState, Icon as BPIcon, Button } from "@blueprintjs/core";
 
 import { Scene, SubMesh, Sound } from "babylonjs";
 
@@ -59,6 +59,13 @@ export interface IInspectorState {
      * Defines the number of times the component has been refreshed.
      */
     refreshCount: number;
+
+    /**
+     * Defines wether or not the inspector is locked. When locked, inspector will not be updated
+     * according to newly selected objects but stays on the last selected one. Once unlocked, updates
+     * the inspector the currently selected object in the graph.
+     */
+    isLocked: boolean;
 }
 
 export class Inspector extends React.Component<IInspectorProps, IInspectorState> {
@@ -113,7 +120,12 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
         this._editor = props.editor;
         this._editor.inspector = this;
 
-        this.state = { selectedObject: null, refreshCount: 0 };
+        this.state = {
+            isLocked: false,
+
+            refreshCount: 0,
+            selectedObject: null,
+        };
     }
 
     /**
@@ -181,6 +193,10 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
                     onChange={(id) => this._handleActiveTabChanged(id)}
                     selectedTabId={this._activeTabId || this._firstTabId}
                 ></Tabs>
+
+                <div style={{ position: "absolute", right: "8px", top: "8px" }}>
+                    <Button icon={<BPIcon color="white" icon={this.state.isLocked ? "lock" : "unlock"} />} onClick={() => this._handleLockButtonClicked()} />
+                </div>
             </div>
         );
     }
@@ -211,7 +227,10 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
      */
     public setSelectedObject<T>(object: T): void {
         this.selectedObject = object;
-        this.setState({ selectedObject: object, refreshCount: this.state.refreshCount + 1 });
+
+        if (!this.state.isLocked) {
+            this.setState({ selectedObject: object, refreshCount: this.state.refreshCount + 1 });
+        }
     }
 
     /**
@@ -236,5 +255,16 @@ export class Inspector extends React.Component<IInspectorProps, IInspectorState>
     private _handleActiveTabChanged(tabId: TabId): void {
         this._activeTabId = tabId;
         super.forceUpdate();
+    }
+
+    /**
+     * Called on the user clicks the lock button.
+     */
+    private _handleLockButtonClicked(): void {
+        const isLocked = !this.state.isLocked;
+
+        this.setState({ isLocked }, () => {
+            this.setSelectedObject(this.selectedObject);
+        });
     }
 }
