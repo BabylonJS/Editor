@@ -1,12 +1,13 @@
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { Tooltip, Icon as BPIcon, Button } from "@blueprintjs/core";
+import { Tooltip, Icon as BPIcon, Button, Classes } from "@blueprintjs/core";
 
-import { TransformNode } from "babylonjs";
+import { ReflectionProbe, TransformNode } from "babylonjs";
 
 import { Editor } from "../../editor";
 
+import { EditableText } from "../../gui/editable-text";
 import { InspectorNotifier } from "../../gui/inspector/notifier";
 
 import { Tools } from "../../tools/tools";
@@ -37,6 +38,11 @@ export interface IGraphLabelState {
      * Defines the current background color of the label.
      */
     backgroundColor?: string;
+
+    /**
+     * Defines wether or not the node is being renamed.
+     */
+    isRenaming: boolean;
 }
 
 export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelState> {
@@ -54,6 +60,8 @@ export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelSta
         this._isDraggable = isDraggable(props.object);
 
         this.state = {
+            isRenaming: false,
+
             opacity: undefined,
             backgroundColor: undefined,
         };
@@ -63,10 +71,6 @@ export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelSta
      * Renders the component.
      */
     public render(): React.ReactNode {
-        const isLocked = this.props.object.metadata?.isLocked;
-        const doNotExport = this.props.object.metadata?.doNotExport;
-        const hasScript = this.props.object.metadata?.script?.name && this.props.object.metadata?.script.name !== "None";
-
         return (
             <div
                 draggable={this._isDraggable}
@@ -82,29 +86,90 @@ export class GraphLabel extends React.Component<IGraphLabelProps, IGraphLabelSta
                 onDragEnter={(e) => this._handleDragEnter(e)}
                 onDragLeave={(e) => this._handleDragLeave(e)}
             >
-                <Tooltip
-                    usePortal
-                    position="top"
-                    content={this._getTooltipContent()}
-                >
-                    <span
-                        onDragOver={(e) => this._handleDragEnter(e)}
-                        style={{
-                            height: "100%",
-                            lineHeight: "30px",
-
-                            color: hasScript ? "#48aff0" : undefined,
-                            opacity: (doNotExport || isLocked) ? "0.5" : undefined,
-                            textDecoration: doNotExport ? "line-through" : undefined,
-
-                            ...(this.props.object.metadata?.editorGraphStyles ?? {}),
-                        }}
-                    >
-                        {this.props.object.name}
-                        {this._getThinInstanceBadge()}
-                    </span>
-                </Tooltip>
+                {this.state.isRenaming ? this._getRenamingText() : this._getLabelSpan()}
             </div>
+        );
+    }
+
+    private _getLabelSpan(): React.ReactNode {
+        const isLocked = this.props.object.metadata?.isLocked;
+        const doNotExport = this.props.object.metadata?.doNotExport;
+        const hasScript = this.props.object.metadata?.script?.name && this.props.object.metadata?.script.name !== "None";
+
+        return (
+            <Tooltip
+                usePortal
+                position="top"
+                content={this._getTooltipContent()}
+            >
+                <span
+                    onDragOver={(e) => this._handleDragEnter(e)}
+                    style={{
+                        height: "100%",
+                        lineHeight: "30px",
+
+                        color: hasScript ? "#48aff0" : undefined,
+                        opacity: (doNotExport || isLocked) ? "0.5" : undefined,
+                        textDecoration: doNotExport ? "line-through" : undefined,
+
+                        ...(this.props.object.metadata?.editorGraphStyles ?? {}),
+                    }}
+                >
+                    {this.props.object.name}
+                    {this._getThinInstanceBadge()}
+                </span>
+            </Tooltip>
+        );
+    }
+
+    private _getRenamingText(): React.ReactNode {
+        const edit = (
+            <EditableText
+                intent="none"
+                confirmOnEnterKey
+                selectAllOnFocus
+                multiline={false}
+                ref={(r) => r?.focus()}
+                className={Classes.FILL}
+                value={this.props.object.name}
+                onConfirm={(v) => {
+                    this.setState({ isRenaming: false });
+
+                    if (v === this.props.object.name) {
+                        return;
+                    }
+
+                    const oldName = this.props.object!.name;
+                    undoRedo.push({
+                        description: `Changed name of node "${this.props.object?.name ?? "undefined"}" from "${oldName}" to "${v}"`,
+                        common: () => {
+                            this.props.editor.graph.refresh();
+
+                            if (this.props.object instanceof ReflectionProbe) {
+                                this.props.editor.assets.refresh();
+                            }
+                        },
+                        redo: () => {
+                            this.props.object!.name = v;
+                            if (this.props.object instanceof ReflectionProbe) {
+                                this.props.object.cubeTexture.name = v;
+                            }
+                        },
+                        undo: () => {
+                            this.props.object!.name = oldName;
+                            if (this.props.object instanceof ReflectionProbe) {
+                                this.props.object.cubeTexture.name = oldName;
+                            }
+                        },
+                    });
+                }}
+            />
+        );
+
+        return (
+            <Tooltip content={edit} isOpen>
+                {this._getLabelSpan()}
+            </Tooltip>
         );
     }
 
