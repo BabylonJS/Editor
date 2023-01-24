@@ -110,6 +110,7 @@ import "./components/inspectors/materials/gradient-inspector";
 import "./components/inspectors/materials/tri-planar-inspector";
 
 import "./components/inspectors/textures/texture-inspector";
+import "./components/inspectors/textures/texture-file-inspector";
 
 import "./components/inspectors/particle-systems/particle-system-inspector";
 import "./components/inspectors/particle-systems/particle-system-gradients-inspector";

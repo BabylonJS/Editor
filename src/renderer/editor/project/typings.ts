@@ -433,3 +433,27 @@ export interface IBabylonFile {
         }[];
     };
 }
+
+export interface IAssetFileConfiguration {
+    ktxCompression?: {
+        astc?: {
+            quality?: "none" | "automatic" | "astcveryfast" | "astcfast" | "astcmedium" | "astcthorough" | "astcexhaustive";
+        };
+
+        dxt?: {
+            type?: "none" | "automatic" | "BC1" | "BC2" | "BC3" | "BC4" | "BC5";
+        };
+
+        pvrtc?: {
+            quality?: "none" | "automatic" | "pvrtcfastest" | "pvrtcfast" | "pvrtclow" | "pvrtcnormal" | "pvrtchigh" | "pvrtcveryhigh" | "pvrtcthorough" | "pvrtcbest";
+        };
+
+        etc1?: {
+            quality?: "none" | "automatic" | "etcfast" | "etcnormal" | "etcslow";
+        };
+
+        etc2?: {
+            quality?: "none" | "automatic" | "etcfast" | "etcnormal" | "etcslow";
+        };
+    };
+}
