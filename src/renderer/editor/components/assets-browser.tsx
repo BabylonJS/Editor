@@ -285,6 +285,7 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			return;
 		}
 
+		// Check move handler
 		const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
 		if (handler) {
 			if (!await handler.canRename(absolutePath, destination)) {
@@ -292,6 +293,16 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 			}
 
 			await handler.moveFile(absolutePath, destination);
+		}
+
+		// Check files configurations
+		const relativePath = absolutePath.replace(join(this.assetsDirectory, "/"), "");
+		const configuration = AssetsBrowserItemHandler.AssetsConfiguration[relativePath];
+
+		if (configuration) {
+			const relativeDestination = destination.replace(join(this.assetsDirectory, "/"), "");
+			AssetsBrowserItemHandler.AssetsConfiguration[relativeDestination] = configuration;
+			delete AssetsBrowserItemHandler.AssetsConfiguration[relativePath];
 		}
 
 		await move(absolutePath, destination);
@@ -385,6 +396,13 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 				} else {
 					failed.push(i);
 				}
+			}
+
+			// Check file configuration
+			const relativePath = i.replace(join(this.assetsDirectory, "/"), "");
+			const configuration = AssetsBrowserItemHandler.AssetsConfiguration[relativePath];
+			if (configuration) {
+				delete AssetsBrowserItemHandler.AssetsConfiguration[relativePath];
 			}
 		}));
 
@@ -484,6 +502,14 @@ export class AssetsBrowser extends React.Component<IAssetsBrowserProps, IAssetsB
 		const handler = AssetsBrowserItem._ItemMoveHandlers.find((h) => h.extensions.indexOf(extension) !== -1);
 		if (handler) {
 			await handler.moveFile(absolutePath, destination);
+		}
+
+		// Check configuration
+		const configuration = AssetsBrowserItemHandler.AssetsConfiguration[relativePath];
+
+		if (configuration) {
+			AssetsBrowserItemHandler.AssetsConfiguration[relativeDestination] = configuration;
+			delete AssetsBrowserItemHandler.AssetsConfiguration[relativePath];
 		}
 
 		if (physicallyMove && !(await pathExists(destination))) {

@@ -588,7 +588,11 @@ export class ProjectExporter {
         const assetsCache = await Workers.ExecuteFunction<AssetsWorker, "getCache">(AssetsBrowserItemHandler.AssetWorker, "getCache");
         await Workers.ExecuteFunction<SaveWorker, "writeJSON">(this._Worker!, "writeJSON", join(Project.DirPath!, "../cache.json"), assetsCache);
 
+        // Write links
         await Workers.ExecuteFunction<SaveWorker, "writeJSON">(this._Worker!, "writeJSON", join(Project.DirPath!, "../links.json"), { });
+
+        // Write files configurations
+        await Workers.ExecuteFunction<SaveWorker, "writeJSON">(this._Worker!, "writeJSON", join(Project.DirPath!, "../files.json"), AssetsBrowserItemHandler.AssetsConfiguration);
 
         // Write project!
         await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(Project.DirPath!, "scene.editorproject"), project);

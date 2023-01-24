@@ -13,6 +13,8 @@ import { WorkSpace } from "../../../../project/workspace";
 import { undoRedo } from "../../../../tools/undo-redo";
 import { KTXTools, KTXToolsType } from "../../../../tools/ktx";
 
+import { TextureFileInspectorObject } from "../../../inspectors/textures/texture-file-inspector";
+
 import { AssetsBrowserItemHandler } from "../item-handler";
 
 export class ImageItemHandler extends AssetsBrowserItemHandler {
@@ -49,7 +51,7 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 	public onClick(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		const existing = this.props.editor.scene!.textures.filter((t) => t.name === this.props.relativePath);
 		if (!existing.length) {
-			return;
+			return this.props.editor.inspector.setSelectedObject(new TextureFileInspectorObject(this.props.relativePath));
 		}
 
 		if (existing.length === 1) {
@@ -115,7 +117,7 @@ export class ImageItemHandler extends AssetsBrowserItemHandler {
 
 	/**
 	 * Called on the user wants to refresh the KTX texture(s).
-	 * @hidden
+	 * @internal
 	 */
 	public async _handleRefreshKtx(allFormats: boolean): Promise<void> {
 		const destination = dirname(this.props.absolutePath);
