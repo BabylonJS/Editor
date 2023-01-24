@@ -25,7 +25,7 @@ export class MaterialTools {
         for (const m of materials ?? []) {
             if (m?.customType !== "BABYLON.NodeMaterial") { continue; }
 
-            const material = editor.scene!.getMaterialByID(m.id) as NodeMaterial;
+            const material = editor.scene!.getMaterialById(m.id) as NodeMaterial;
             if (!material || !(material instanceof NodeMaterial)) { continue; }
             if (!material.metadata?.editorPath) { continue; }
 

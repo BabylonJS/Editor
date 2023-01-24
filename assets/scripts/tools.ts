@@ -474,6 +474,9 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
 
     // Apply colliders
     applyMeshColliders(scene);
+
+    // Apply textures lods watcher
+    handleTexturesLods(scene);
 }
 
 /**
@@ -713,6 +716,80 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
         defaultRenderingPipelineRef = null;
         motionBlurPostProcessRef = null;
     });
+}
+
+/**
+ * Handles the pre-generated lods for all textures.
+ * @param scene defines the reference to the scene that contains the textures.
+ */
+function handleTexturesLods(scene: Scene): void {
+    const uniqueTextures: Texture[] = [];
+    scene.textures.forEach((t) => {
+        const internalTexture = t.getInternalTexture();
+        if (!internalTexture || t.getClassName() !== "Texture") {
+            return;
+        }
+
+        const existing = uniqueTextures.find((ut) => ut.getInternalTexture() === internalTexture);
+        if (!existing) {
+            uniqueTextures.push(t as Texture);
+        }
+    });
+
+    uniqueTextures.forEach((t) => {
+        if (!t.metadata?.lods?.length) {
+            return;
+        }
+
+        checkTextureLods(scene, t);
+    });
+}
+
+async function checkTextureLods(scene: Scene, t: Texture): Promise<void> {
+    const wait = (timeMs: number) => new Promise<void>((resolve) => setTimeout(resolve, timeMs));
+
+    await wait(1000);
+
+    const lod = t.metadata?.lods?.pop();
+    if (!lod) {
+        return;
+    }
+
+    while (!t.isReadyOrNotBlocking()) {
+        await wait(150);
+    }
+
+    const internalTexture = t.getInternalTexture();
+    if (!internalTexture?.url) {
+        return;
+    }
+
+    const baseUrl = internalTexture._originalUrl.replace(`/${t.name}`, "");
+    const finalUrl = `${baseUrl}/${lod}`;
+
+    const tempTexture = new Texture(finalUrl, scene, {
+        mimeType: t.mimeType,
+        format: t.textureFormat,
+        useSRGBBuffer: t.isRGBD,
+    }, t.invertY, t.samplingMode, undefined);
+
+    await new Promise<void>((resolve) => {
+        tempTexture.onLoadObservable.addOnce(() => {
+            if (!tempTexture.loadingError) {
+                const tempUrl = tempTexture.getInternalTexture()?.url;
+                if (tempUrl) {
+                    t.updateURL(tempUrl);
+                }
+            }
+
+            tempTexture.dispose();
+
+            resolve();
+        });
+    });
+
+    // Go check next lod
+    checkTextureLods(scene, t);
 }
 
 /**

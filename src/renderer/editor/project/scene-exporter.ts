@@ -17,6 +17,7 @@ import { Tools } from "../tools/tools";
 import { AppTools } from "../tools/app";
 import { BasisTools } from "../tools/basis";
 import { KTXTools, KTXToolsType } from "../tools/ktx";
+import { TextureTools } from "../tools/components/texture";
 import { MaterialTools } from "../tools/components/material";
 
 import { SceneSettings } from "../scene/settings";
@@ -524,6 +525,18 @@ export class SceneExporter {
 			forceRegenerateFiles: false,
 		});
 
+		// Update scene materials to apply LODs
+		scene.materials?.forEach((m) => {
+			for (const level1 in m) {
+				const value1 = m[level1];
+				if (value1 && value1.name && value1.metadata?.waitingLodName) {
+					value1.metadata.lods = [value1.name];
+					value1.name = value1.metadata.waitingLodName;
+					delete value1.metadata.waitingLodName;
+				}
+			}
+		});
+
 		// Write scene
 		editor.updateTaskFeedback(task, 50, "Writing scene...");
 		await writeJSON(join(scenePath, "scene.babylon"), scene);
@@ -589,7 +602,7 @@ export class SceneExporter {
 					break;
 			}
 
-			// KTX and Basis
+			// KTX, Basis and image auto-lod
 			if (this.CopyAbleImageTypes.indexOf(extension) === -1) {
 				continue;
 			}
@@ -599,51 +612,11 @@ export class SceneExporter {
 				promises.splice(0);
 			}
 
-			const basisCompressedTextures = WorkSpace.Workspace!.basisCompressedTextures;
-			if (basisCompressedTextures?.enabled) {
-				const basisFilename = BasisTools.GetBasisFileName(path);
-				if (!options?.forceRegenerateFiles && await pathExists(basisFilename)) {
-					continue;
-				}
+			// Auto-lod
+			promises.push(this._CreateAutoLod(editor, path, extension, child.path, options));
 
-				const destFilesDir = dirname(path);
-				promises.push(BasisTools.CompressTexture(editor, path, destFilesDir));
-			}
-
-			const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures;
-
-			const ktx2CliPath = KTXTools.GetCliPath();
-			const forcedFormat = ktx2CompressedTextures?.forcedFormat ?? "automatic";
-			const supportedTextureFormat = (forcedFormat !== "automatic" ? forcedFormat : editor.engine!.texturesSupported[0]) as KTXToolsType;
-
-			if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CliPath) {
-				const destFilesDir = dirname(path);
-
-				if (options?.generateAllCompressedTextureFormats) {
-					const allKtxPromises: Promise<void>[] = [];
-
-					for (const type of KTXTools.GetAllKtxFormats()) {
-						const ktxFilename = KTXTools.GetKtxFileName(path, type);
-						if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
-							continue;
-						}
-
-						allKtxPromises.push(KTXTools.CompressTexture(editor, path, destFilesDir, type));
-					}
-
-					promises.push(new Promise<void>(async (resolve) => {
-						await Promise.all(allKtxPromises);
-						resolve();
-					}));
-				} else {
-					const ktxFilename = KTXTools.GetKtxFileName(path, supportedTextureFormat);
-					if (!options?.forceRegenerateCompressedTextures && await pathExists(ktxFilename)) {
-						continue;
-					}
-
-					promises.push(KTXTools.CompressTexture(editor, child.path, destFilesDir, supportedTextureFormat));
-				}
-			}
+			// Basis and KTX
+			promises.push(this._CompressTextureAsset(editor, path, options));
 		}
 
 		await Promise.all(promises);
@@ -651,6 +624,132 @@ export class SceneExporter {
 		for (const child of directoryTree.children ?? []) {
 			await this._RecursivelyWriteAssets(editor, child, assetsPath, outputPath, options);
 		}
+	}
+
+	/**
+	 * Creates an automatic LOD of the texture located at the given path.
+	 */
+	private static async _CreateAutoLod(editor: Editor, path: string, extension: string, basePath: string, options?: IExportFinalSceneOptions): Promise<void> {
+		const lodDir = dirname(path);
+		const lodName = `${basename(path).replace(extension, "")}_2${extension}`
+		const lodPath = join(lodDir, lodName);
+
+		const setLodsMetadata = () => {
+			const relativePath = basePath.replace(join(editor.assetsBrowser.assetsDirectory, "/"), "");
+			const textures = editor.scene!.textures.filter((t) => t.name === relativePath);
+
+			textures.forEach((t) => {
+				t.metadata ??= {};
+				t.metadata.waitingLodName = join(dirname(relativePath), lodName);
+			});
+		};
+
+		if (await pathExists(lodPath)) {
+			await this._CompressTextureAsset(editor, lodPath, options);
+			return setLodsMetadata();
+		}
+
+		const image = new Image();
+
+		try {
+			await new Promise<void>((resolve, reject) => {
+				image.addEventListener("load", () => resolve());
+				image.addEventListener("error", () => reject());
+				image.src = path;
+			});
+		} catch (e) {
+			return;
+		}
+
+		const ratio = 1 / 16;
+
+		const canvas = document.createElement("canvas");
+		canvas.width = Math.max(image.width * ratio, 1);
+		canvas.height = Math.max(image.height * ratio, 1);
+
+		const context = canvas.getContext("2d");
+		if (!context) {
+			return;
+		}
+
+		context.scale(ratio, ratio);
+		context.drawImage(image, 0, 0);
+
+		let type = "jpeg";
+		switch (extension) {
+			case ".bmp": type = "bmp"; break;
+			case ".png": type = "png"; break;
+			case ".webp": type = "webp"; break;
+		}
+
+		const dataUrl = canvas.toDataURL(`image/${type}`, 1);
+		const buffer = TextureTools.ConvertOctetStreamToBuffer(dataUrl);
+
+		canvas.remove();
+		image.remove();
+
+		await writeFile(lodPath, buffer);
+		await this._CompressTextureAsset(editor, lodPath, options);
+
+		setLodsMetadata();
+
+		editor.console.logInfo(`Generated texture lod ${lodPath}`);
+	}
+
+	/**
+	 * Compresses the texture asset located at the given path.
+	 */
+	private static async _CompressTextureAsset(editor: Editor, path: string, options?: IExportFinalSceneOptions): Promise<void> {
+		const promises: Promise<void>[] = [];
+
+		// Basis
+		const basisCompressedTextures = WorkSpace.Workspace!.basisCompressedTextures;
+		if (basisCompressedTextures?.enabled) {
+			const basisFilename = BasisTools.GetBasisFileName(path);
+			if (!options?.forceRegenerateFiles && await pathExists(basisFilename)) {
+				return;
+			}
+
+			const destFilesDir = dirname(path);
+			promises.push(BasisTools.CompressTexture(editor, path, destFilesDir));
+		}
+
+		const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures;
+
+		const ktx2CliPath = KTXTools.GetCliPath();
+		const forcedFormat = ktx2CompressedTextures?.forcedFormat ?? "automatic";
+		const supportedTextureFormat = (forcedFormat !== "automatic" ? forcedFormat : editor.engine!.texturesSupported[0]) as KTXToolsType;
+
+		if (supportedTextureFormat && ktx2CompressedTextures?.enabled && ktx2CliPath) {
+			const destFilesDir = dirname(path);
+
+			if (options?.generateAllCompressedTextureFormats) {
+				const allKtxPromises: Promise<void>[] = [];
+
+				for (const type of KTXTools.GetAllKtxFormats()) {
+					const ktxFilename = KTXTools.GetKtxFileName(path, type);
+					if (!options?.forceRegenerateFiles && await pathExists(ktxFilename)) {
+						continue;
+					}
+
+					allKtxPromises.push(KTXTools.CompressTexture(editor, path, destFilesDir, type));
+				}
+
+				promises.push(new Promise<void>(async (resolve) => {
+					await Promise.all(allKtxPromises);
+					resolve();
+				}));
+			} else {
+				const ktxFilename = KTXTools.GetKtxFileName(path, supportedTextureFormat);
+				if (!options?.forceRegenerateCompressedTextures && await pathExists(ktxFilename)) {
+					return;
+				}
+
+				promises.push(KTXTools.CompressTexture(editor, path, destFilesDir, supportedTextureFormat));
+			}
+		}
+
+		await Promise.all(promises);
 	}
 
 	/**

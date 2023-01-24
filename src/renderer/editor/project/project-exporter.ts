@@ -1,11 +1,11 @@
-import { join, normalize, basename, dirname, extname } from "path";
+import { join, normalize, basename, dirname, extname, isAbsolute } from "path";
 import { writeJSON, readdir, remove, pathExists } from "fs-extra";
 
 import { Nullable } from "../../../shared/types";
 
 import {
     ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial,
-    AbstractMesh, ColorGradingTexture,
+    AbstractMesh, ColorGradingTexture, Texture,
 } from "babylonjs";
 
 import filenamify from "filenamify";
@@ -87,6 +87,14 @@ export class ProjectExporter {
             return editor.notifyMessage("Can't save when Isolated Mode is enabled.", 2000, "error");
         }
 
+        // Rewrite all urls for textures
+        editor.scene!.textures.forEach((t) => {
+            if (t instanceof Texture && t.url && isAbsolute(t.url)) {
+                t.url = t.name;
+            }
+        });
+
+        // Prepare
         await editor.console.logSection("Exporting Project");
         await editor.console.logInfo(`Exporting project to: ${Project.DirPath}`);
         
