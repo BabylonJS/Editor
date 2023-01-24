@@ -22,11 +22,17 @@ import { KTXTools } from "../../../tools/ktx";
 import { AbstractInspector } from "../abstract-inspector";
 import { Inspector, IObjectInspectorProps } from "../../inspector";
 
+import { TextureFileInspectorComponent, TextureFileInspectorObject } from "./texture-file-inspector";
+
 export interface ITextureInspectorState {
     /**
      * Defines the current sampling mode of the texture.
      */
     samplingMode?: number;
+    /**
+     * Defines the reference to the optional texture file object used to edit the texture's file configuration.
+     */
+    textureFileObject?: TextureFileInspectorObject;
 }
 
 export class TextureInspector<T extends Texture | CubeTexture | ColorGradingTexture, S extends ITextureInspectorState> extends AbstractInspector<T, S> {
@@ -68,8 +74,36 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
                 {this.getScaleInspector()}
                 {this.getOffsetInspector()}
                 {this.getCubeTextureInspector()}
+
+                {this.getTextureFileComponent()}
             </>
         );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public componentDidMount(): void {
+        super.componentDidMount();
+        this._checkTextureFile();
+    }
+
+    private async _checkTextureFile(): Promise<void> {
+        if (!(this.selectedObject instanceof Texture) || !this.selectedObject.url) {
+            return;
+        }
+
+        let textureUrl = this.selectedObject.url;
+        if (!isAbsolute(textureUrl)) {
+            textureUrl = join(WorkSpace.DirPath!, "assets", textureUrl);
+        }
+
+        if (!await pathExists(textureUrl)) {
+            return;
+        }
+
+        const relativeUrl = textureUrl.replace(join(WorkSpace.DirPath!, "assets/"), "");
+        this.setState({ textureFileObject: new TextureFileInspectorObject(relativeUrl) });
     }
 
     /**
@@ -241,6 +275,19 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
             <InspectorSection title="Cube Texture">
                 <InspectorNumber object={this.selectedObject} property="rotationY" label="Rotation Y" step={0.01} />
             </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the inspector used to configure the texture's file configuration.
+     */
+    protected getTextureFileComponent(): React.ReactNode {
+        if (!this.state.textureFileObject) {
+            return undefined;
+        }
+
+        return (
+            <TextureFileInspectorComponent object={this.state.textureFileObject} />
         );
     }
 

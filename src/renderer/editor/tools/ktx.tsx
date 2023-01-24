@@ -234,15 +234,18 @@ export class KTXTools {
 	private static async _CompressUsingPVRTexTool(editor: Editor, texturePath: string, destinationFolder: string, type: KTXToolsType): Promise<void> {
 		const ktx2CliPath = this.GetCliPath();
 		const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures!;
-
+		
 		const name = basename(texturePath);
 		const extension = extname(name).toLocaleLowerCase();
-
+		
 		if (KTXTools.SupportedExtensions.indexOf(extension) === -1) {
 			return;
 		}
-
+		
 		let editorProcess: Nullable<IEditorProcess> = null;
+		
+		const relativePath = texturePath.replace(join(WorkSpace.DirPath!, "assets/"), "");
+		const configuration = AssetsBrowserItemHandler.AssetsConfiguration[relativePath];
 
 		const filename = `${name.substr(0, name.lastIndexOf("."))}${type}`;
 		const destination = join(destinationFolder, filename);
@@ -272,7 +275,16 @@ export class KTXTools {
 				break;
 
 			case "-dxt.ktx":
-				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${destination}"`;
+				let type = configuration?.ktxCompression?.dxt?.type ?? "automatic";
+				if (type === "none") {
+					command = null;
+				} else {
+					if (type === "automatic") {
+						type = hasAlpha ? "BC2" : "BC1";
+					}
+	
+					command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${type},UBN,lRGB -o "${destination}"`;
+				}
 				break;
 
 			case "-pvrtc.ktx":

@@ -1,8 +1,9 @@
 import { platform } from "os";
-import { basename } from "path";
 import { shell } from "electron";
+import { readJSON } from "fs-extra";
+import { basename, join } from "path";
 
-import { Nullable } from "../../../../../shared/types";
+import { IStringDictionary, Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
 import { MenuItem, Icon as BPIcon, MenuDivider } from "@blueprintjs/core";
@@ -15,6 +16,9 @@ import { Tools } from "../../../tools/tools";
 
 import { Alert } from "../../../gui/alert";
 import { Confirm } from "../../../gui/confirm";
+
+import { WorkSpace } from "../../../project/workspace";
+import { IAssetFileConfiguration } from "../../../project/typings";
 
 import { InspectorNotifier } from "../../../gui/inspector/notifier";
 
@@ -73,11 +77,18 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	 * Defines the reference to the assets worker.
 	 */
 	public static AssetWorker: IWorkerConfiguration;
+	/**
+	 * Defines the reference to the object that collects the configuration of all assets available
+	 * in the workspace. The key represents the releative path to the file and the value the configuration
+	 * of the asset. This is typically used to let the user choose how to handle the assets during the export.
+	 */
+	public static AssetsConfiguration: IStringDictionary<IAssetFileConfiguration> = {};
 
 	/**
 	 * Initialzes the item handler.
 	 */
 	public static async Init(): Promise<void> {
+		// Create worker
 		const canvas = document.createElement("canvas");
 		canvas.width = 100;
 		canvas.height = 100;
@@ -85,6 +96,14 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 		const offscreen = canvas.transferControlToOffscreen();
 
 		this.AssetWorker = await Workers.LoadWorker("assets.js", offscreen);
+
+		// Load files configuration
+		try {
+			const filesPath = join(WorkSpace.DirPath!, "projects/files.json");
+			this.AssetsConfiguration = await readJSON(filesPath, { encoding: "utf-8" });
+		} catch (e) {
+			// Catch silently.
+		}
 	}
 
 	private _dropListener: Nullable<(ev: DragEvent) => void> = null;
