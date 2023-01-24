@@ -292,7 +292,7 @@ export class KTXTools {
 				break;
 
 			case "-pvrtc.ktx":
-				let qpvrtc = configuration.ktxCompression?.pvrtc?.quality ?? "automatic";
+				let qpvrtc = configuration?.ktxCompression?.pvrtc?.quality ?? "automatic";
 				if (qpvrtc !== "none") {
 					if (qpvrtc === "automatic") {
 						qpvrtc = ktx2CompressedTextures.pvrtcOptions?.quality ?? "pvrtcfastest";
@@ -303,7 +303,7 @@ export class KTXTools {
 				break;
 
 			case "-etc1.ktx":
-				let qect1 = configuration.ktxCompression?.etc1?.quality ?? "automatic";
+				let qect1 = configuration?.ktxCompression?.etc1?.quality ?? "automatic";
 				if (qect1 !== "none") {
 					if (qect1 === "automatic") {
 						qect1 = ktx2CompressedTextures.ect1Options?.quality ?? "etcfast";
@@ -314,7 +314,7 @@ export class KTXTools {
 				break;
 
 			case "-etc2.ktx":
-				let qetc2 = configuration.ktxCompression?.etc2?.quality ?? "automatic";
+				let qetc2 = configuration?.ktxCompression?.etc2?.quality ?? "automatic";
 				if (qetc2 !== "none") {
 					if (qetc2 === "automatic") {
 						qetc2 = ktx2CompressedTextures.ect2Options?.quality ?? "etcfast";
