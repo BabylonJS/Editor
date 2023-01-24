@@ -108,6 +108,7 @@ import "./components/inspectors/materials/lava-inspector";
 import "./components/inspectors/materials/water-inspector";
 import "./components/inspectors/materials/gradient-inspector";
 import "./components/inspectors/materials/tri-planar-inspector";
+import "./components/inspectors/materials/grid-inspector";
 
 import "./components/inspectors/textures/texture-inspector";
 import "./components/inspectors/textures/texture-file-inspector";
