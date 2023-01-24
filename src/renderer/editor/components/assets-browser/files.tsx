@@ -240,6 +240,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					<MenuItem text="From Source Code..." onClick={() => this._handleAddMaterialFromSourceCode()} />
 					<MenuDivider />
 					<Code>Materials Library</Code>
+					<MenuItem text="Grid Material" onClick={() => this._handleCreateMaterial("GridMaterial")} />
 					<MenuItem text="Sky Material..." onClick={() => this._handleCreateMaterial("SkyMaterial")} />
 					<MenuItem text="Cel Material..." onClick={() => this._handleCreateMaterial("CellMaterial")} />
 					<MenuItem text="Fire Material..." onClick={() => this._handleCreateMaterial("FireMaterial")} />
