@@ -234,16 +234,16 @@ export class KTXTools {
 	private static async _CompressUsingPVRTexTool(editor: Editor, texturePath: string, destinationFolder: string, type: KTXToolsType): Promise<void> {
 		const ktx2CliPath = this.GetCliPath();
 		const ktx2CompressedTextures = WorkSpace.Workspace!.ktx2CompressedTextures!;
-		
+
 		const name = basename(texturePath);
 		const extension = extname(name).toLocaleLowerCase();
-		
+
 		if (KTXTools.SupportedExtensions.indexOf(extension) === -1) {
 			return;
 		}
-		
+
 		let editorProcess: Nullable<IEditorProcess> = null;
-		
+
 		const relativePath = texturePath.replace(join(WorkSpace.DirPath!, "assets/"), "");
 		const configuration = AssetsBrowserItemHandler.AssetsConfiguration[relativePath];
 
@@ -270,36 +270,58 @@ export class KTXTools {
 		let command: Nullable<string> = null;
 		switch (type) {
 			case "-astc.ktx":
-				const qastc = ktx2CompressedTextures.astcOptions?.quality ?? "astcveryfast";
-				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q ${qastc} -o "${destination}"`;
+				let qastc = configuration?.ktxCompression?.astc?.quality ?? "automatic";
+				if (qastc !== "none") {
+					if (qastc === "automatic") {
+						qastc = ktx2CompressedTextures.astcOptions?.quality ?? "astcveryfast";
+					}
+
+					command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q ${qastc} -o "${destination}"`;
+				}
 				break;
 
 			case "-dxt.ktx":
 				let type = configuration?.ktxCompression?.dxt?.type ?? "automatic";
-				if (type === "none") {
-					command = null;
-				} else {
+				if (type !== "none") {
 					if (type === "automatic") {
 						type = hasAlpha ? "BC2" : "BC1";
 					}
-	
+
 					command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${type},UBN,lRGB -o "${destination}"`;
 				}
 				break;
 
 			case "-pvrtc.ktx":
-				const qpvrtc = ktx2CompressedTextures.pvrtcOptions?.quality ?? "pvrtcfastest";
-				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q ${qpvrtc} -o "${destination}"`;
+				let qpvrtc = configuration.ktxCompression?.pvrtc?.quality ?? "automatic";
+				if (qpvrtc !== "none") {
+					if (qpvrtc === "automatic") {
+						qpvrtc = ktx2CompressedTextures.pvrtcOptions?.quality ?? "pvrtcfastest";
+					}
+
+					command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q ${qpvrtc} -o "${destination}"`;
+				}
 				break;
 
 			case "-etc1.ktx":
-				const qect1 = ktx2CompressedTextures.ect1Options?.quality ?? "etcfast";
-				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q ${qect1} -o "${destination}"`;
+				let qect1 = configuration.ktxCompression?.etc1?.quality ?? "automatic";
+				if (qect1 !== "none") {
+					if (qect1 === "automatic") {
+						qect1 = ktx2CompressedTextures.ect1Options?.quality ?? "etcfast";
+					}
+
+					command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q ${qect1} -o "${destination}"`;
+				}
 				break;
 
 			case "-etc2.ktx":
-				const qetc2 = ktx2CompressedTextures.ect2Options?.quality ?? "etcfast";
-				command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q ${qetc2} -o "${destination}"`;
+				let qetc2 = configuration.ktxCompression?.etc2?.quality ?? "automatic";
+				if (qetc2 !== "none") {
+					if (qetc2 === "automatic") {
+						qetc2 = ktx2CompressedTextures.ect2Options?.quality ?? "etcfast";
+					}
+
+					command = `"${ktx2CliPath}" -i "${texturePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q ${qetc2} -o "${destination}"`;
+				}
 				break;
 		}
 

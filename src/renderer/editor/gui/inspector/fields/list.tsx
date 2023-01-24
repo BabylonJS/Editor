@@ -23,7 +23,7 @@ export interface IInspectorListItem<T> {
     /**
      * Defines the optional description of the item (drawn on the right).
      */
-    description?: string;
+    description?: string | React.ReactNode;
     /**
      * Defines the optional icon.
      */

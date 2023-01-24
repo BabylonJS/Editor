@@ -1,14 +1,17 @@
+import { shell } from "electron";
+
 import * as React from "react";
 
+import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
+
+import { WorkSpace } from "../../../project/workspace";
+import { IAssetFileConfiguration } from "../../../project/typings";
 
 import { AssetsBrowserItemHandler } from "../../assets-browser/files/item-handler";
 
 import { AbstractInspector } from "../abstract-inspector";
 import { Inspector, IObjectInspectorProps } from "../../inspector";
-import { InspectorList } from "../../../gui/inspector/fields/list";
-import { WorkSpace } from "../../../project/workspace";
-import { IAssetFileConfiguration } from "../../../project/typings";
 
 export class TextureFileInspectorObject {
     public constructor(
@@ -123,11 +126,11 @@ export class TextureFileInspectorComponent extends React.Component<ITextureFileI
                     <InspectorList object={configuration.ktxCompression.dxt} property="type" label="Type" items={[
                         { label: "None", data: "none" },
                         { label: "Automatic", data: "automatic" },
-                        { label: "BC1", data: "BC1" },
-                        { label: "BC2", data: "BC2" },
-                        { label: "BC3", data: "BC3" },
-                        { label: "BC4", data: "BC4" },
-                        { label: "BC5", data: "BC5" },
+                        { label: "BC1", data: "BC1", description: this._getDescriptionDocumentation("https://learn.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-block-compression#bc1") },
+                        { label: "BC2", data: "BC2", description: this._getDescriptionDocumentation("https://learn.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-block-compression#bc2") },
+                        { label: "BC3", data: "BC3", description: this._getDescriptionDocumentation("https://learn.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-block-compression#bc3") },
+                        { label: "BC4", data: "BC4", description: this._getDescriptionDocumentation("https://learn.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-block-compression#bc4") },
+                        { label: "BC5", data: "BC5", description: this._getDescriptionDocumentation("https://learn.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-block-compression#bc5") },
                     ]} onChange={(r) => {
                         configuration.ktxCompression!.dxt!.type = r as any;
                     }} />
@@ -174,6 +177,12 @@ export class TextureFileInspectorComponent extends React.Component<ITextureFileI
                     }} />
                 </InspectorSection>
             </InspectorSection>
+        );
+    }
+
+    private _getDescriptionDocumentation(url: string): React.ReactNode {
+        return (
+            <a onClick={() => shell.openExternal(url)}>Documentation</a>
         );
     }
 }
