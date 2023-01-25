@@ -534,6 +534,15 @@ export class SceneExporter {
 					value1.name = value1.metadata.waitingLodName;
 					delete value1.metadata.waitingLodName;
 				}
+
+				for (const level2 in value1) {
+					const value2 = value1[level2];
+					if (value2 && value2.name && value2.metadata?.waitingLodName) {
+						value2.metadata.lods = [value2.name];
+						value2.name = value2.metadata.waitingLodName;
+						delete value2.metadata.waitingLodName;
+					}
+				}
 			}
 		});
 
@@ -613,7 +622,9 @@ export class SceneExporter {
 			}
 
 			// Auto-lod
-			promises.push(this._CreateAutoLod(editor, path, extension, child.path, options));
+			if (WorkSpace.Workspace?.autoLod?.enabled) {
+				promises.push(this._CreateAutoLod(editor, path, extension, child.path, options));
+			}
 
 			// Basis and KTX
 			promises.push(this._CompressTextureAsset(editor, path, options));
@@ -846,6 +857,10 @@ export class SceneExporter {
 		editor.console.logInfo("Computing project configuration...");
 
 		const projectConfiguration = {
+			autoLod: {
+				enabled: WorkSpace.Workspace?.autoLod?.enabled ?? true,
+				autoApply: WorkSpace.Workspace?.autoLod?.autoApply ?? true,
+			},
 			compressedTextures: {
 				supportedFormats: [] as string[],
 			},

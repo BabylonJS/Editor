@@ -101,6 +101,20 @@ export interface IWorkSpace {
          * Defines the Url of the custom webserver where to start the game.
          */
         url: string;
+    };
+
+    /**
+     * Defines the options of the auto-lod feature.
+     */
+    autoLod?: {
+        /**
+         * Defines wether or not the auto-lod feature is enabled on scene is exported.
+         */
+        enabled?: boolean;
+        /**
+         * Defines wether or not the auto-lod is applied automatically once the scene is loaded.
+         */
+        autoApply?: boolean;
     }
 
     /**
@@ -111,7 +125,7 @@ export interface IWorkSpace {
          * Defines wether or not Basis compressed texture is enabled using KTX Software.
          */
         enabled?: boolean;
-    },
+    };
 
     /**
      * Defines the options of the KTX2 compression tool.

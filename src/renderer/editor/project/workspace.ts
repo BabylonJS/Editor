@@ -135,6 +135,10 @@ export class WorkSpace {
                 enabled: false,
             },
             customWebServer: this.Workspace!.customWebServer,
+            autoLod: this.Workspace!.autoLod ?? {
+                enabled: false,
+                autoApply: true,
+            },
             basisCompressedTextures: {
                 enabled: this.Workspace!.basisCompressedTextures?.enabled ?? false,
             },
