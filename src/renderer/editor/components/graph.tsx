@@ -95,7 +95,12 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                         tabIndex={0}
                         onKeyUp={handleKeyUp}
                         onKeyDown={handleKeyDown}
-                        style={{ outline: "none" }}
+                        style={{ outline: "none", height: "100%" }}
+
+                        onContextMenu={(e) => this._handleRootContextMenu(e)}
+                        onDrop={(ev) => {
+                            moveNodes(this.props.editor, this.state.selectedNodes.map((n) => n.nodeData), null, ev.shiftKey);
+                        }}
                     >
                         <div style={{ width: "100%", overflow: "hidden" }}>
                             <InputGroup
@@ -112,10 +117,6 @@ export class Graph extends React.Component<IGraphProps, IGraphState> {
                                 overflow: "auto",
                                 height: "calc(100% - 40px)",
                             }}
-                            onDrop={(ev) => {
-                                moveNodes(this.props.editor, this.state.selectedNodes.map((n) => n.nodeData), null, ev.shiftKey);
-                            }}
-                            onContextMenu={(e) => this._handleRootContextMenu(e)}
                         >
                             <Tree
                                 contents={this.state.nodes}

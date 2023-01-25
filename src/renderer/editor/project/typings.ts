@@ -449,6 +449,10 @@ export interface IBabylonFile {
 }
 
 export interface IAssetFileConfiguration {
+    autoLod?: {
+        disabled?: boolean;
+    },
+
     ktxCompression?: {
         astc?: {
             quality?: "none" | "automatic" | "astcveryfast" | "astcfast" | "astcmedium" | "astcthorough" | "astcexhaustive";

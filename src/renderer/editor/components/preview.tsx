@@ -297,6 +297,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
         }
 
         await SceneExporter.ExportFinalScene(this._editor, undefined, {
+            byPassAutoLodGeneration: true,
             geometryRootPath: this.state.isPlayingInIframe ? undefined : join("../", WorkSpace.OutputSceneDirectory, "scenes", WorkSpace.GetProjectName(), "/"),
         });
 
