@@ -476,7 +476,9 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
     applyMeshColliders(scene);
 
     // Apply textures lods watcher
-    handleTexturesLods(scene);
+    if (projectConfiguration.autoLod.enabled && projectConfiguration.autoLod.autoApply) {
+        handleTexturesLods(scene);
+    }
 }
 
 /**
@@ -722,7 +724,7 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
  * Handles the pre-generated lods for all textures.
  * @param scene defines the reference to the scene that contains the textures.
  */
-function handleTexturesLods(scene: Scene): void {
+export function handleTexturesLods(scene: Scene): void {
     const uniqueTextures: Texture[] = [];
     scene.textures.forEach((t) => {
         const internalTexture = t.getInternalTexture();

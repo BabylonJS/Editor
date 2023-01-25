@@ -24,6 +24,12 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 			return null;
 		}
 
+		// Auto-lod
+		workspace.autoLod ??= {};
+		workspace.autoLod.enabled ??= false;
+		workspace.autoLod.autoApply ??= true;
+
+		// PVRTexTool
 		workspace.basisCompressedTextures ??= {};
 		workspace.basisCompressedTextures.enabled ??= false;
 
@@ -46,7 +52,6 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 			quality: "etcfast",
 		};
 
-		// Cli path
 		if (typeof (workspace.ktx2CompressedTextures.pvrTexToolCliPath) === "string") {
 			workspace.ktx2CompressedTextures.pvrTexToolCliPath = { [platform]: workspace.ktx2CompressedTextures.pvrTexToolCliPath };
 		} else {
@@ -61,9 +66,22 @@ export class AssetsTexturesPreferencesPanel extends React.Component<IPreferences
 
 		return (
 			<div style={{ width: "70%", height: "100%", margin: "auto" }}>
+				{this._getAutoLod(workspace)}
 				{this._getBasisCompression(workspace)}
 				{this._getKTX2Compression(workspace)}
 			</div>
+		);
+	}
+
+	/**
+	 * Returns the inspector used to edit the auto-lod configuration.
+	 */
+	private _getAutoLod(workspace: IWorkSpace): React.ReactNode {
+		return (
+			<InspectorSection title="Auto LOD">
+				<InspectorBoolean object={workspace.autoLod} property="enabled" label="Enabled" defaultValue={false} />
+				<InspectorBoolean object={workspace.autoLod} property="autoApply" label="Automatically Apply" defaultValue={false} />
+			</InspectorSection>
 		);
 	}
 
