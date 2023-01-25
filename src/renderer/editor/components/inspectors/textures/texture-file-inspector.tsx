@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
+import { InspectorBoolean } from "../../../gui/inspector/fields/boolean";
 
 import { WorkSpace } from "../../../project/workspace";
 import { IAssetFileConfiguration } from "../../../project/typings";
@@ -76,7 +77,22 @@ export class TextureFileInspectorComponent extends React.Component<ITextureFileI
 
         return (
             <InspectorSection title="Asset File Configuration">
+                {this._getAutoLodInspector(configuration)}
                 {this._getCompressionInspector(configuration)}
+            </InspectorSection>
+        );
+    }
+
+    /**
+     * Returns the inspector used to edit the auto-lod properties for this texture.
+     */
+    private _getAutoLodInspector(configuration: IAssetFileConfiguration): React.ReactNode {
+        configuration.autoLod ??= {};
+        configuration.autoLod.disabled ??= false;
+
+        return (
+            <InspectorSection title="Auto-LOD">
+                <InspectorBoolean object={configuration.autoLod} property="disabled" label="Disabled" defaultValue={false} />
             </InspectorSection>
         );
     }

@@ -476,8 +476,8 @@ export async function runScene(scene: Scene, rootUrl?: string): Promise<void> {
     applyMeshColliders(scene);
 
     // Apply textures lods watcher
-    if (projectConfiguration.autoLod.enabled && projectConfiguration.autoLod.autoApply) {
-        handleTexturesLods(scene);
+    if (rootUrl && projectConfiguration.autoLod.autoApply) {
+        handleTexturesLods(scene, rootUrl);
     }
 }
 
@@ -723,8 +723,13 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
 /**
  * Handles the pre-generated lods for all textures.
  * @param scene defines the reference to the scene that contains the textures.
+ * @param rootUrl the root Url where to find the textures lods. Should be the same as the scene.
  */
-export function handleTexturesLods(scene: Scene): void {
+export function handleTexturesLods(scene: Scene, rootUrl: string): void {
+    if (!projectConfiguration.autoLod.enabled) {
+        return;
+    }
+
     const uniqueTextures: Texture[] = [];
     scene.textures.forEach((t) => {
         const internalTexture = t.getInternalTexture();
@@ -743,13 +748,15 @@ export function handleTexturesLods(scene: Scene): void {
             return;
         }
 
-        checkTextureLods(scene, t);
+        checkTextureLods(scene, t, rootUrl);
     });
 }
 
-async function checkTextureLods(scene: Scene, t: Texture): Promise<void> {
-    const wait = (timeMs: number) => new Promise<void>((resolve) => setTimeout(resolve, timeMs));
+function wait(timeMs: number): Promise<void> {
+    return new Promise<void>((resolve) => setTimeout(resolve, timeMs));
+}
 
+async function checkTextureLods(scene: Scene, t: Texture, rootUrl: string): Promise<void> {
     await wait(1000);
 
     const lod = t.metadata?.lods?.pop();
@@ -766,8 +773,7 @@ async function checkTextureLods(scene: Scene, t: Texture): Promise<void> {
         return;
     }
 
-    const baseUrl = internalTexture._originalUrl.replace(`/${t.name}`, "");
-    const finalUrl = `${baseUrl}/${lod}`;
+    const finalUrl = `${rootUrl}${lod}`;
 
     const tempTexture = new Texture(finalUrl, scene, {
         mimeType: t.mimeType,
@@ -791,7 +797,7 @@ async function checkTextureLods(scene: Scene, t: Texture): Promise<void> {
     });
 
     // Go check next lod
-    checkTextureLods(scene, t);
+    checkTextureLods(scene, t, rootUrl);
 }
 
 /**

@@ -23,6 +23,8 @@ import { MaterialTools } from "../tools/components/material";
 import { SceneSettings } from "../scene/settings";
 import { SceneExportOptimzer } from "../scene/export-optimizer";
 
+import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
+
 import { Project } from "./project";
 import { WorkSpace } from "./workspace";
 
@@ -57,6 +59,12 @@ export interface IExportFinalSceneOptions {
 	 * Typically used when exporting final scene version.
 	 */
 	generateAllCompressedTextureFormats?: boolean;
+
+	/**
+	 * Defines wether or not the automatic lod generation for textures should
+	 * be bypassed. Typically set to true when playing in the editor.
+	 */
+	byPassAutoLodGeneration?: boolean;
 }
 
 export class SceneExporter {
@@ -414,6 +422,8 @@ export class SceneExporter {
 		task = task ?? editor.addTaskFeedback(0, "Generating Final Scene");
 		editor.updateTaskFeedback(task, 0, "Generating Final Scene");
 
+		this._PrepareTexturesLods(editor);
+
 		await editor.console.logInfo("Serializing scene...");
 		const scene = SceneExporter.GetFinalSceneJson(editor);
 
@@ -525,26 +535,7 @@ export class SceneExporter {
 			forceRegenerateFiles: false,
 		});
 
-		// Update scene materials to apply LODs
-		scene.materials?.forEach((m) => {
-			for (const level1 in m) {
-				const value1 = m[level1];
-				if (value1 && value1.name && value1.metadata?.waitingLodName) {
-					value1.metadata.lods = [value1.name];
-					value1.name = value1.metadata.waitingLodName;
-					delete value1.metadata.waitingLodName;
-				}
-
-				for (const level2 in value1) {
-					const value2 = value1[level2];
-					if (value2 && value2.name && value2.metadata?.waitingLodName) {
-						value2.metadata.lods = [value2.name];
-						value2.name = value2.metadata.waitingLodName;
-						delete value2.metadata.waitingLodName;
-					}
-				}
-			}
-		});
+		this._ApplyLodsOnExportedScene(scene);
 
 		// Write scene
 		editor.updateTaskFeedback(task, 50, "Writing scene...");
@@ -559,6 +550,50 @@ export class SceneExporter {
 
 		editor.afterGenerateSceneObservable.notifyObservers(scenePath);
 		editor.console.logInfo(`Successfully generated scene at ${scenePath}`);
+	}
+
+	/**
+	 * Prepares all the LODs metadata for all the textures loaded in the project.
+	 */
+	private static _PrepareTexturesLods(editor: Editor): void {
+		// Clean textures lods
+		editor.scene!.textures.forEach((t) => {
+			if (t.metadata?.lods) {
+				t.metadata.lods = [];
+			}
+		});
+	}
+
+	/**
+	 * Applies the LODs metadata for all textures available in the 
+	 */
+	private static _ApplyLodsOnExportedScene(scene: any): void {
+		const computedIds: number[] = [];
+
+		const handleObject = (v: any) => {
+			if (!v || !v.name || !v.metadata?.lods?.length) {
+				return;
+			}
+
+			if (computedIds.indexOf(v.metadata.editorId) === -1) {
+				const lowerLod = v.metadata.lods[0];
+				v.metadata.lods[0] = v.name;
+				v.name = lowerLod;
+				computedIds.push(v.metadata.editorId);
+			}
+		};
+
+		scene.materials?.forEach((m) => {
+			for (const level1 in m) {
+				const value1 = m[level1];
+				handleObject(m[level1]);
+
+				for (const level2 in value1) {
+					const value2 = m[level2];
+					handleObject(value2);
+				}
+			}
+		});
 	}
 
 	/**
@@ -622,8 +657,24 @@ export class SceneExporter {
 			}
 
 			// Auto-lod
-			if (WorkSpace.Workspace?.autoLod?.enabled) {
-				promises.push(this._CreateAutoLod(editor, path, extension, child.path, options));
+			if (WorkSpace.Workspace?.autoLod?.enabled && !options?.byPassAutoLodGeneration) {
+				const relativePath = child.path.replace(join(editor.assetsBrowser.assetsDirectory, "/"), "");
+				const configuration = AssetsBrowserItemHandler.AssetsConfiguration[relativePath];
+
+				if (!configuration?.autoLod?.disabled) {
+					promises.push(new Promise<void>(async (resolve) => {
+						const ratios = [
+							1 / 32,
+							// 1 / 16,
+						];
+	
+						for (const r of ratios) {
+							await this._CreateAutoLod(editor, path, r, extension, child.path, options);
+						}
+	
+						resolve();
+					}));
+				}
 			}
 
 			// Basis and KTX
@@ -640,18 +691,23 @@ export class SceneExporter {
 	/**
 	 * Creates an automatic LOD of the texture located at the given path.
 	 */
-	private static async _CreateAutoLod(editor: Editor, path: string, extension: string, basePath: string, options?: IExportFinalSceneOptions): Promise<void> {
+	private static async _CreateAutoLod(editor: Editor, path: string, ratio: number, extension: string, basePath: string, options?: IExportFinalSceneOptions): Promise<void> {
 		const lodDir = dirname(path);
-		const lodName = `${basename(path).replace(extension, "")}_2${extension}`
+		const lodName = `${basename(path).replace(extension, "")}_${ratio.toString().replace(".", "")}${extension}`
 		const lodPath = join(lodDir, lodName);
 
 		const setLodsMetadata = () => {
 			const relativePath = basePath.replace(join(editor.assetsBrowser.assetsDirectory, "/"), "");
+			const lodRelativePath = join(dirname(relativePath), lodName);
 			const textures = editor.scene!.textures.filter((t) => t.name === relativePath);
 
 			textures.forEach((t) => {
 				t.metadata ??= {};
-				t.metadata.waitingLodName = join(dirname(relativePath), lodName);
+				t.metadata.lods ??= [];
+
+				if (t.metadata.lods.indexOf(lodRelativePath) === -1) {
+					t.metadata.lods.push(lodRelativePath);
+				}
 			});
 		};
 
@@ -671,8 +727,6 @@ export class SceneExporter {
 		} catch (e) {
 			return;
 		}
-
-		const ratio = 1 / 16;
 
 		const canvas = document.createElement("canvas");
 		canvas.width = Math.max(image.width * ratio, 1);
