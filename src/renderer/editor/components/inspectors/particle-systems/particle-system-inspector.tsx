@@ -59,7 +59,7 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
 
             ps.dispose(false);
             ps = ParticleSystem.Parse(serializationData, editor.scene!, rootUrl, !ps.isStarted());
-            
+
             ps.particleTexture?.dispose();
             ps.particleTexture = particleSystem.particleTexture;
 
@@ -96,15 +96,20 @@ export class ParticleSystemInspector extends AbstractInspector<ParticleSystem, I
         return (
             <>
                 <InspectorSection title="Controls">
-                    <InspectorButton label="Start" small={true} onClick={() => this.selectedObject.start()} />
-                    <InspectorButton label="Stop" small={true} onClick={() => this.selectedObject.stop()} />
+                    <InspectorButton label="Start" small onClick={() => this.selectedObject.start()} />
+                    <InspectorButton label="Stop" small onClick={() => this.selectedObject.stop()} />
                     <InspectorBoolean object={this.selectedObject} property="preventAutoStart" label="Prevent Auto Start" defaultValue={false} />
+                    <InspectorButton label="Reset" small onClick={() => this.selectedObject.reset()} />
                 </InspectorSection>
 
                 <InspectorSection title="Common">
                     <InspectorString object={this.selectedObject} property="name" label="Name" />
                     <InspectorVector3 object={this.selectedObject} property="gravity" label="Gravity" step={0.01} />
                     <InspectorVector3 object={this.selectedObject} property="worldOffset" label="World Offset" step={0.01} />
+                    <InspectorNumber object={this.selectedObject} property="_capacity" label="Capacity" step={1} min={1} max={50000} onFinishChange={() => {
+                        this.selectedObject.reset();
+                        this.selectedObject["_reset"]();
+                    }} />
 
                     <InspectorButton label="Show In Assets Browser" small icon="link" onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject["metadata"]?.editorPath ?? null)} />
                 </InspectorSection>
