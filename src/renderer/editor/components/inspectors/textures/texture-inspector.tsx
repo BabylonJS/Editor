@@ -287,7 +287,11 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
         }
 
         return (
-            <TextureFileInspectorComponent object={this.state.textureFileObject} />
+            <TextureFileInspectorComponent object={this.state.textureFileObject} onCompressionChanged={() => {
+                if (WorkSpace.Workspace?.ktx2CompressedTextures?.enabledInPreview) {
+                    this._reloadTexture(true);
+                }
+            }} />
         );
     }
 
