@@ -52,6 +52,11 @@ export interface ITextureFileInspectorComponentProps {
      * Defines the reference to the asset file configuration object.
      */
     object: TextureFileInspectorObject;
+
+    /**
+     * Defines the callback called on a compression setting has been changed.
+     */
+    onCompressionChanged?: () => void;
 }
 
 export class TextureFileInspectorComponent extends React.Component<ITextureFileInspectorComponentProps, ITextureFileInspectorState> {
@@ -135,6 +140,7 @@ export class TextureFileInspectorComponent extends React.Component<ITextureFileI
                         { label: "astcexhaustive", data: "astcexhaustive" },
                     ]} onChange={(r) => {
                         configuration.ktxCompression!.astc!.quality = r as any;
+                        this.props.onCompressionChanged?.();
                     }} />
                 </InspectorSection>
 
@@ -149,6 +155,7 @@ export class TextureFileInspectorComponent extends React.Component<ITextureFileI
                         { label: "BC5", data: "BC5", description: this._getDescriptionDocumentation("https://learn.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-block-compression#bc5") },
                     ]} onChange={(r) => {
                         configuration.ktxCompression!.dxt!.type = r as any;
+                        this.props.onCompressionChanged?.();
                     }} />
                 </InspectorSection>
 
@@ -166,6 +173,7 @@ export class TextureFileInspectorComponent extends React.Component<ITextureFileI
                         { label: "pvrtcbest", data: "pvrtcbest" },
                     ]} onChange={(r) => {
                         configuration.ktxCompression!.pvrtc!.quality = r as any;
+                        this.props.onCompressionChanged?.();
                     }} />
                 </InspectorSection>
 
@@ -178,6 +186,7 @@ export class TextureFileInspectorComponent extends React.Component<ITextureFileI
                         { label: "etcslow", data: "etcslow" },
                     ]} onChange={(r) => {
                         configuration.ktxCompression!.etc1!.quality = r as any;
+                        this.props.onCompressionChanged?.();
                     }} />
                 </InspectorSection>
 
@@ -190,6 +199,7 @@ export class TextureFileInspectorComponent extends React.Component<ITextureFileI
                         { label: "etcslow", data: "etcslow" },
                     ]} onChange={(r) => {
                         configuration.ktxCompression!.etc2!.quality = r as any;
+                        this.props.onCompressionChanged?.();
                     }} />
                 </InspectorSection>
             </InspectorSection>
