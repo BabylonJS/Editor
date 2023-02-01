@@ -729,8 +729,8 @@ export class SceneExporter {
 		}
 
 		const canvas = document.createElement("canvas");
-		canvas.width = Math.max(image.width * ratio, 1);
-		canvas.height = Math.max(image.height * ratio, 1);
+		canvas.width = Math.max(image.width * ratio, 8);
+		canvas.height = Math.max(image.height * ratio, 8);
 
 		const context = canvas.getContext("2d");
 		if (!context) {
