@@ -1,6 +1,6 @@
 import { Nullable } from "../../../../../shared/types";
 
-import { AbstractMesh, Camera, Light, ParticleSystem, ReflectionProbe, RenderTargetTexture, Sound, TransformNode } from "babylonjs";
+import { AbstractMesh, Camera, Light, Node, ParticleSystem, ReflectionProbe, RenderTargetTexture, Sound, TransformNode } from "babylonjs";
 
 import { Editor } from "../../../editor";
 
@@ -24,6 +24,7 @@ export function removeNodes(editor: Editor, nodes: any[]): void {
     });
     objects = Tools.Distinct(objects);
 
+    const lastSelectedObject = editor.graph.lastSelectedObject;
     const methods = objects.map((o) => getAddRemoveMethods(editor, o));
 
     undoRedo.push({
@@ -32,9 +33,16 @@ export function removeNodes(editor: Editor, nodes: any[]): void {
         },
         undo: () => {
             methods.forEach((m) => m.add());
+
+            if (lastSelectedObject instanceof Node) {
+                editor.selectedNodeObservable.notifyObservers(lastSelectedObject);
+            }
         },
         redo: () => {
             methods.forEach((m) => m.remove());
+
+            editor.preview.gizmo.setAttachedNode(null);
+            editor.selectedSceneObservable.notifyObservers(editor.scene!);
         },
     });
 }
