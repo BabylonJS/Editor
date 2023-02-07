@@ -1,7 +1,7 @@
 import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
-import { SketchPicker } from "react-color";
+import { Color, ColorXplrApp, createColorXplr, ColorXplrParams } from "@jniac/color-xplr";
 import { Popover } from "@blueprintjs/core";
 
 import { Color3, Color4 } from "babylonjs";
@@ -79,6 +79,43 @@ export interface IInspectorColorPickerState {
     textColor: string;
 }
 
+type ColorXplrProps = Omit<ColorXplrParams, 'onChange' | 'onFinish'> & {
+    onChange?: (color: Color) => void
+    onFinish?: (color: Color) => void
+}
+
+class ColorXplr extends React.Component<ColorXplrProps> {
+    private ref = React.createRef<HTMLDivElement>();
+    private app: ColorXplrApp;
+
+    public constructor(props: ColorXplrProps) {
+        super(props);
+        const app = createColorXplr({
+            style: {
+                backgroundColor: '#999',
+            },
+            ...props,
+            onChange: ({ color }) => props.onChange?.(color),
+            onFinish: ({ color }) => props.onFinish?.(color),
+        });
+        this.app = app;
+    }
+
+    public componentDidMount(): void {
+        this.ref.current?.append(this.app.element);
+    }
+
+    public componentWillUnmount(): void {
+        this.app.destroy();
+    }
+
+    public render(): React.ReactNode {
+        return (
+            <div ref={this.ref}></div>
+        );
+    }
+}
+
 export class InspectorColorPicker extends React.Component<IInspectorColorPickerProps, IInspectorColorPickerState> {
     private _inspectorName: Nullable<string> = null;
     private _initialValue: Color3 | Color4;
@@ -126,13 +163,10 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
                         fill={true}
                         hasBackdrop={true}
                         content={
-                            <div style={{ color: "black" }}>
-                                <SketchPicker
-                                    color={this.state.hex}
-                                    onChange={(c) => this._handleColorChange(c)}
-                                    onChangeComplete={(c) => this._handleColorFinishChange(c)}
-                                />
-                            </div>
+                            <ColorXplr
+                                color={this.state.hex}
+                                onChange={color => this._handleColorChange(color)}
+                                onFinish={color => this._handleColorFinishChange(color)} />
                         }
                     >
                         <div
@@ -180,24 +214,17 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
     /**
      * Called on the color changed.
      */
-    private _handleColorChange(color: any): void {
-        const normalizedColor = {
-            r: color.rgb.r / 255,
-            g: color.rgb.g / 255,
-            b: color.rgb.b / 255,
-            a: (color.rgb.a ?? 1),
-        };
-
+    private _handleColorChange(color: Color): void {
         const textColor = (color.hsv.v < 0.5 || color.hsv.s > 0.5) ? "white" : "black";
 
-        this.setState({ hex: color.hex, textColor });
+        this.setState({ hex: color.toCss({ includeAlpha: 'always' }).toUpperCase(), textColor });
 
-        this.props.object[this.props.property].r = normalizedColor.r;
-        this.props.object[this.props.property].g = normalizedColor.g;
-        this.props.object[this.props.property].b = normalizedColor.b;
+        this.props.object[this.props.property].r = color.r;
+        this.props.object[this.props.property].g = color.g;
+        this.props.object[this.props.property].b = color.b;
 
         if (this.props.object[this.props.property] instanceof Color4) {
-            this.props.object[this.props.property].a = normalizedColor.a;
+            this.props.object[this.props.property].a = color.a;
         }
 
         this.props.onChange?.(this.props.object);
@@ -208,7 +235,7 @@ export class InspectorColorPicker extends React.Component<IInspectorColorPickerP
     /**
      * Called on the color finished change.
      */
-    private _handleColorFinishChange(color: IColor4Like): void {
+    private _handleColorFinishChange(color: Color): void {
         this._handleColorChange(color);
 
         this.props.onFinishChange?.(this.props.object);
