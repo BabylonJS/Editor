@@ -2,7 +2,7 @@ import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
 // import { SketchPicker } from "react-color";
-import { Color, ColorXplrApp, createColorXplr, CreateColorXplrArg } from '@jniac/color-xplr'
+import { Color, ColorXplrApp, createColorXplr, ColorXplrParams } from "@jniac/color-xplr";
 import { Popover } from "@blueprintjs/core";
 
 import { Color3, Color4 } from "babylonjs";
@@ -80,7 +80,7 @@ export interface IInspectorColorPickerState {
     textColor: string;
 }
 
-type ColorXplrProps = Omit<CreateColorXplrArg, 'onChange' | 'onFinish'> & {
+type ColorXplrProps = Omit<ColorXplrParams, 'onChange' | 'onFinish'> & {
     onChange?: (color: Color) => void
     onFinish?: (color: Color) => void
 }
@@ -88,13 +88,15 @@ class ColorXplr extends React.Component<ColorXplrProps> {
     private ref = React.createRef<HTMLDivElement>();
     private app: ColorXplrApp;
     constructor(props: ColorXplrProps) {
-        super(props)
+        super(props);
         const app = createColorXplr({
-            backgroundColor: '#999',
+            style: {
+                backgroundColor: '#999',
+            },
             ...props,
             onChange: ({ color }) => props.onChange?.(color),
             onFinish: ({ color }) => props.onFinish?.(color),
-        })
+        });
         this.app = app;
     }
     componentDidMount(): void {
