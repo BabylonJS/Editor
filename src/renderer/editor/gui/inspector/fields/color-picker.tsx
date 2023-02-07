@@ -1,7 +1,6 @@
 import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
-// import { SketchPicker } from "react-color";
 import { Color, ColorXplrApp, createColorXplr, ColorXplrParams } from "@jniac/color-xplr";
 import { Popover } from "@blueprintjs/core";
 
@@ -84,10 +83,12 @@ type ColorXplrProps = Omit<ColorXplrParams, 'onChange' | 'onFinish'> & {
     onChange?: (color: Color) => void
     onFinish?: (color: Color) => void
 }
+
 class ColorXplr extends React.Component<ColorXplrProps> {
     private ref = React.createRef<HTMLDivElement>();
     private app: ColorXplrApp;
-    constructor(props: ColorXplrProps) {
+
+    public constructor(props: ColorXplrProps) {
         super(props);
         const app = createColorXplr({
             style: {
@@ -99,13 +100,16 @@ class ColorXplr extends React.Component<ColorXplrProps> {
         });
         this.app = app;
     }
-    componentDidMount(): void {
+
+    public componentDidMount(): void {
         this.ref.current?.append(this.app.element);
     }
-    componentWillUnmount(): void {
+
+    public componentWillUnmount(): void {
         this.app.destroy();
     }
-    render(): React.ReactNode {
+
+    public render(): React.ReactNode {
         return (
             <div ref={this.ref}></div>
         );
