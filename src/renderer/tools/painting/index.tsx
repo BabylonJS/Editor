@@ -10,7 +10,7 @@ import { AbstractEditorPlugin, IEditorPluginProps } from "../../editor/tools/plu
 
 import { DecalsPainterInspector } from "./decals/inspector";
 import { FoliagePainterInspector } from "./foliage/inspector";
-import { TerrainPainterInspector } from "./terrain/inspector";
+// import { TerrainPainterInspector } from "./terrain/inspector";
 
 export const title = "Painting Tools";
 
@@ -65,11 +65,11 @@ export default class PaintingToolsPlugin extends AbstractEditorPlugin<IPaintingT
         const tabs = [
             this._createTabComponent("Decals", "cylinder.svg", <DecalsPainterInspector ref={(ref) => this._getTool("decals", ref)} toolId={"decals"} editor={this.editor} _objectRef={null} />),
             this._createTabComponent("Foliage", "grass.svg", <FoliagePainterInspector ref={(ref) => this._getTool("foliage", ref)} toolId={"foliage"} editor={this.editor} _objectRef={null} />),
-            this._createTabComponent(
-                "Terrain",
-                <Icon src="terrain.svg" style={{ width: "20px", height: "20px", filter: "none" }} />,
-                <TerrainPainterInspector ref={(ref) => this._getTool("terrain", ref)} toolId="terrain" editor={this.editor} _objectRef={null} />
-            ),
+            // this._createTabComponent(
+            //     "Terrain",
+            //     <Icon src="terrain.svg" style={{ width: "20px", height: "20px", filter: "none" }} />,
+            //     <TerrainPainterInspector ref={(ref) => this._getTool("terrain", ref)} toolId="terrain" editor={this.editor} _objectRef={null} />
+            // ),
         ];
 
         return (
