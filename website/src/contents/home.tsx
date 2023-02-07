@@ -11,7 +11,7 @@ export class HomeContent extends React.Component {
                 {/* INTRO */}
                 <div style={{ width: "100%", height: "200px", backgroundColor: "#201936" }}>
                     <div style={{ marginLeft: "50px", marginRight: "50px" }}>
-                        <h1 className="title">Welcome to Babylon.JS Editor 4.4</h1>
+                        <h1 className="title">Welcome to Babylon.JS Editor 4.6</h1>
                         <p className="content">
                             The Babylon.JS Editor is an open source project maintained by the community.
                             The mission is to provide community-driven powerful and simple tools that help Babylon.JS users to create beautiful,
@@ -120,7 +120,7 @@ export class HomeContent extends React.Component {
                             description={
                                 <p className="content" style={{ maxWidth: "90%" }}>
                                     The Editor source code is fully open source sharing the same licence as Babylon.JS.
-                                    All code is available on <a target="blank" href="https://github.com/BabylonJS/Editor/tree/release/4.0.0">Github</a> and is open to all contributions/feedbacks.
+                                    All code is available on <a target="blank" href="https://github.com/BabylonJS/Editor">Github</a> and is open to all contributions/feedbacks.
                                 </p>
                             }
                         />
