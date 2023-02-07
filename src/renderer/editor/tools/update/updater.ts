@@ -30,7 +30,7 @@ export class EditorUpdater {
      */
     public static async CheckForUpdates(editor: Editor, drawResult: boolean): Promise<void> {
         try {
-            const availableVersions = JSON.parse(await Tools.LoadFile("http://editor.babylonjs.com/electron/versions.json?" + Date.now(), false));
+            const availableVersions = JSON.parse(await Tools.LoadFile("https://editor.babylonjs.com/electron/versions.json?" + Date.now(), false));
             const foundVersion = this._CheckNeedsUpdate(editor, availableVersions);
 
             if (!foundVersion) {
@@ -68,7 +68,7 @@ export class EditorUpdater {
         const links = availableVersions[version.version];
         const link = links[`${os.platform()}-${os.arch()}`] ?? links[os.platform()];
         
-        const url = join("http://editor.babylonjs.com/", link);
+        const url = join("https://editor.babylonjs.com/", link);
 
         const destFolder = await AppTools.ShowSaveDialog();
         const dest = join(destFolder, basename(url));

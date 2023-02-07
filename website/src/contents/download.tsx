@@ -39,14 +39,14 @@ export class DownloadContent extends React.Component {
                                     <Tree
                                         key="lastest-download-links"
                                         contents={[
-                                            { id: "0", label: <a key={json[0].win32} href={"http://editor.babylonjs.com/" + json[0].win32}>Windows</a>, icon: <img width="24" height="24" src="./img/download/windows_icon.png"></img> } as ITreeNode,
-                                            { id: "0", label: <a key={json[0].win32} href={"http://editor.babylonjs.com/" + json[0]["win32-arm64"]}>Windows Arm64</a>, icon: <img width="24" height="24" src="./img/download/windows_icon.png"></img> } as ITreeNode,
+                                            { id: "0", label: <a key={json[0].win32} href={"https://editor.babylonjs.com/" + json[0].win32}>Windows</a>, icon: <img width="24" height="24" src="./img/download/windows_icon.png"></img> } as ITreeNode,
+                                            { id: "0", label: <a key={json[0].win32} href={"https://editor.babylonjs.com/" + json[0]["win32-arm64"]}>Windows Arm64</a>, icon: <img width="24" height="24" src="./img/download/windows_icon.png"></img> } as ITreeNode,
                                             { id: "0", label: <Divider /> } as ITreeNode,
-                                            { id: "1", label: <a key={json[0].darwin} href={"http://editor.babylonjs.com/" + json[0].darwin}>Mac</a>, icon: <img width="24" height="24" src="./img/download/mac_icon.svg"></img> } as ITreeNode,
-                                            { id: "1", label: <a key={json[0].darwin} href={"http://editor.babylonjs.com/" + json[0]["darwin-arm64"]}>Mac Arm64</a>, icon: <img width="24" height="24" src="./img/download/mac_icon.svg"></img> } as ITreeNode,
+                                            { id: "1", label: <a key={json[0].darwin} href={"https://editor.babylonjs.com/" + json[0].darwin}>Mac</a>, icon: <img width="24" height="24" src="./img/download/mac_icon.svg"></img> } as ITreeNode,
+                                            { id: "1", label: <a key={json[0].darwin} href={"https://editor.babylonjs.com/" + json[0]["darwin-arm64"]}>Mac Arm64</a>, icon: <img width="24" height="24" src="./img/download/mac_icon.svg"></img> } as ITreeNode,
                                             { id: "0", label: <Divider /> } as ITreeNode,
-                                            { id: "2", label: <a key={json[0].linux} href={"http://editor.babylonjs.com/" + json[0].linux}>Linux</a>, icon: <img width="24" height="24" src="./img/download/linux_icon.svg"></img> } as ITreeNode,
-                                            { id: "2", label: <a key={json[0].linux} href={"http://editor.babylonjs.com/" + json[0]["linux-arm64"]}>Linux Aarch64</a>, icon: <img width="24" height="24" src="./img/download/linux_icon.svg"></img> } as ITreeNode,
+                                            { id: "2", label: <a key={json[0].linux} href={"https://editor.babylonjs.com/" + json[0].linux}>Linux</a>, icon: <img width="24" height="24" src="./img/download/linux_icon.svg"></img> } as ITreeNode,
+                                            { id: "2", label: <a key={json[0].linux} href={"https://editor.babylonjs.com/" + json[0]["linux-arm64"]}>Linux Aarch64</a>, icon: <img width="24" height="24" src="./img/download/linux_icon.svg"></img> } as ITreeNode,
                                         ]}
                                     />
                                 }
@@ -71,15 +71,15 @@ export class DownloadContent extends React.Component {
     private _getOlderVersionsCards(json: IVersionsDownload[]): React.ReactNode[] {
         return json.map((v) => {
             const windowsArm64 = v["win32-arm64"] ? (
-                <a href={"http://editor.babylonjs.com/" + v["win32-arm64"]}>Windows Arm64</a>
+                <a href={"https://editor.babylonjs.com/" + v["win32-arm64"]}>Windows Arm64</a>
             ) : undefined;
 
             const darwinArm64 = v["darwin-arm64"] ? (
-                <a href={"http://editor.babylonjs.com/" + v["darwin-arm64"]}>Mac Arm64</a>
+                <a href={"https://editor.babylonjs.com/" + v["darwin-arm64"]}>Mac Arm64</a>
             ) : undefined;
 
             const linuxAarch64 = v["linux-arm64"] ? (
-                <a href={"http://editor.babylonjs.com/" + v["linux-arm64"]}>Linux Aarch64</a>
+                <a href={"https://editor.babylonjs.com/" + v["linux-arm64"]}>Linux Aarch64</a>
             ) : undefined;
 
             return (
@@ -90,7 +90,7 @@ export class DownloadContent extends React.Component {
                             icon={<img width="24" height="24" src="./img/download/windows_icon.png"></img>}
                             title={
                                 <>
-                                    <a href={"http://editor.babylonjs.com/" + v.win32}>Windows x64</a>
+                                    <a href={"https://editor.babylonjs.com/" + v.win32}>Windows x64</a>
                                     <br />
                                     {windowsArm64}
                                 </>
@@ -102,7 +102,7 @@ export class DownloadContent extends React.Component {
                             icon={<img width="24" height="24" src="./img/download/mac_icon.svg"></img>}
                             title={
                                 <>
-                                    <a href={"http://editor.babylonjs.com/" + v.darwin}>Mac x64</a>
+                                    <a href={"https://editor.babylonjs.com/" + v.darwin}>Mac x64</a>
                                     <br />
                                     {darwinArm64}
                                 </>
@@ -114,7 +114,7 @@ export class DownloadContent extends React.Component {
                             icon={<img width="24" height="24" src="./img/download/linux_icon.svg"></img>}
                             title={
                                 <>
-                                    <a href={"http://editor.babylonjs.com/" + v.linux}>Linux x64</a>
+                                    <a href={"https://editor.babylonjs.com/" + v.linux}>Linux x64</a>
                                     <br />
                                     {linuxAarch64}
                                 </>

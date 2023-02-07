@@ -16,7 +16,7 @@ export class GraphEditorTemplate {
      * Refreshes the current list of available graph templates.
      */
     public static async GetTemplatesList(): Promise<IGraphEditorTemplate[]> {
-        const templates = await Tools.LoadFile<string>("http://editor.babylonjs.com/templates/graphs/templates.json", false);
+        const templates = await Tools.LoadFile<string>("https://editor.babylonjs.com/templates/graphs/templates.json", false);
         return JSON.parse(templates);
     }
 
@@ -32,7 +32,7 @@ export class GraphEditorTemplate {
         if (!graphHandler.graph) { return; }
 
         try {
-            const content = await Tools.LoadFile<string>(`http://editor.babylonjs.com/templates/graphs/${template.file}`, false);
+            const content = await Tools.LoadFile<string>(`https://editor.babylonjs.com/templates/graphs/${template.file}`, false);
 
             const json = JSON.parse(content);
             const graph = graphHandler.graph!;
