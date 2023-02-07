@@ -7,7 +7,7 @@ import { ContextMenu, Menu, MenuItem, Tree } from "@blueprintjs/core";
 
 import {
     Mesh, InstancedMesh, RenderingManager, Vector3, Quaternion, PhysicsImpostor, GroundMesh,
-    MeshLODLevel, SceneLoader, Material, Tools as BabylonTools, VertexData, AbstractMesh,
+    MeshLODLevel, SceneLoader, Material, Tools as BabylonTools, VertexData, AbstractMesh, SubMesh,
 } from "babylonjs";
 
 import { Inspector } from "../../inspector";
@@ -28,6 +28,7 @@ import AssetsWorker from "../../../workers/workers/assets";
 import { AssetsBrowserItemHandler } from "../../assets-browser/files/item-handler";
 
 import { Tools } from "../../../tools/tools";
+import { AppTools } from "../../../tools/app";
 import { undoRedo } from "../../../tools/undo-redo";
 
 import { INodeInspectorState, NodeInspector } from "../node-inspector";
@@ -126,6 +127,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
                 {this._getSkeletonInspector()}
                 {this._getMorphTargetsInspector()}
                 {this._getGeometryBuilderInspector()}
+                {this._getGeometryInspector()}
                 {this._getLodsInspector()}
                 {this.getAnimationRangeInspector()}
                 {this.getAnimationsGroupInspector()}
@@ -407,7 +409,68 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
     }
 
     /**
-     * Returns the editor geometry inspector used to configure basic meshes geometry.
+     * Returns the geometry inspector used to manipulate geometry of the mesh.
+     */
+    private _getGeometryInspector(): React.ReactNode {
+        if (!(this.selectedObject instanceof Mesh)) {
+            return;
+        }
+
+        return (
+            <InspectorSection title="Geometry">
+                <InspectorButton label="Update Geometry" small onClick={() => this._handleUpdateGeometry()} />
+            </InspectorSection>
+        );
+    }
+
+    private async _handleUpdateGeometry(): Promise<void> {
+        const file = await AppTools.ShowOpenFileDialog("Select source mesh");
+
+        let mesh: Nullable<AbstractMesh> = null;
+
+        try {
+            const meshName = basename(file);
+            const rootUrl = join(dirname(file), "/");
+            const result = await SceneLoader.ImportMeshAsync("", rootUrl, meshName, this.editor.scene!);
+
+            // Clean load result
+            result.skeletons.forEach((s) => s.dispose());
+            result.particleSystems.forEach((ps) => ps.dispose(true));
+            result.meshes.forEach((m) => m.material && m.material.dispose(true, true));
+            result.lights.forEach((l) => l.dispose(true, true));
+            result.transformNodes.forEach((t) => t.dispose(true, true));
+            result.animationGroups.forEach((a) => a.dispose());
+
+            // Set mesh to use
+            mesh = result.meshes[0];
+            if (result.meshes.length > 1) {
+                mesh = (await this._showLodSelector(result.meshes))!;
+            }
+
+            this._clearLodTempResult(result.meshes, mesh);
+
+            if (mesh && mesh instanceof Mesh && mesh.geometry && this.selectedObject instanceof Mesh) {
+                this.selectedObject.subMeshes.forEach((sm) => sm.dispose());
+                this.selectedObject.subMeshes = [];
+
+                mesh.geometry.applyToMesh(this.selectedObject as Mesh);
+                mesh.subMeshes.forEach((sm) => {
+                    new SubMesh(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount, this.selectedObject, this.selectedObject as Mesh, true, true);
+                });
+            }
+
+        } catch (e) {
+            // Catch silently.    
+        }
+
+        mesh?.dispose(true, true);
+
+        this.forceUpdate();
+        this.editor.graph.refresh();
+    }
+
+    /**
+     * Returns the geometry builder inspector used to configure basic meshes geometry.
      */
     private _getGeometryBuilderInspector(): React.ReactNode {
         const editorGeometry = this.selectedObject.metadata?.editorGeometry;
@@ -578,7 +641,7 @@ export class MeshInspector extends NodeInspector<Mesh | InstancedMesh | GroundMe
         return (
             <InspectorSection key="lod" title="LOD">
                 {sections}
-                <InspectorButton label="Add LOD" onClick={() => {
+                <InspectorButton label="Add LOD" small onClick={() => {
                     mesh.addLODLevel(100, null);
                     this.forceUpdate();
                 }} />

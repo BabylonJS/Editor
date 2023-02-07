@@ -100,7 +100,7 @@ export class SceneExporter {
 		...SceneExporter.CopyAbleImageTypes,
 		...SceneExporter.CopyAbleVideoTypes,
 		...SceneExporter.CopyAble3dAssetTypes,
-		".env", ".dds",
+		".env", ".dds", ".hdr",
 		".3dl",
 		".mp3", ".wav", ".ogg", ".wave",
 		".gui",
