@@ -40,11 +40,11 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 	public render(): React.ReactNode {
 		return (
 			<>
-				<div style={{ width: "400px", height: "24px", position: "absolute", right: "10px", bottom: "210px", textAlign: "center", lineHeight: "24px", display: this.state.visible ? "" : "none", background: "#00000044", backdropFilter: "blur(50px)" }}>
+				<div style={{ width: "400px", height: "24px", position: "absolute", right: "10px", bottom: "210px", textAlign: "center", lineHeight: "24px", display: this.state.visible ? "" : "none", background: "#00000099", backdropFilter: "blur(50px)" }}>
 					<span>Preview: {this._selectedNode?.name}</span>
 					<Button text="x" small style={{ position: "absolute", right: "2px", top: "0px", borderRadius: "100%" }} onClick={() => this._clear()} />
 				</div>
-				<div style={{ width: "400px", height: "200px", position: "absolute", right: "10px", bottom: "10px", pointerEvents: "none", display: this.state.visible ? "" : "none", background: "#00000044", backdropFilter: "blur(50px)" }}>
+				<div style={{ width: "400px", height: "200px", position: "absolute", right: "10px", bottom: "10px", pointerEvents: "none", display: this.state.visible ? "" : "none", background: "#00000099", backdropFilter: "blur(50px)" }}>
 					<canvas ref={(r) => this._canvas = r} style={{ width: "100%", height: "100%", transform: "scale(1, -1)", objectFit: "contain", pointerEvents: "none" }} />
 				</div>
 			</>
@@ -56,8 +56,6 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 	 * @param node defines the reference to the selected node in the editor.
 	 */
 	public setSelectedNode(node: Node): void {
-		this._clear();
-
 		if (!(node instanceof Camera)) {
 			return;
 		}
