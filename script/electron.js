@@ -44,6 +44,9 @@ const build = ({ x64, arm64 } = options) => {
                 "assets/scripts/**",
                 "assets/graphs/**",
                 "assets/extras/**",
+
+                "module/index.d.ts",
+                "module/package.json",
             ],
             files: [
                 "src/**",

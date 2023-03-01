@@ -1,3 +1,5 @@
+import { Editor } from "./renderer/editor/editor";
+
 // Plugins
 export { IPluginAssets } from "./renderer/editor/plugins/assets";
 export { IPluginToolbar } from "./renderer/editor/plugins/toolbar";
@@ -67,3 +69,5 @@ export { SceneImporterTools, ISceneImporterToolsConfiguration } from "./renderer
 
 // Packer
 export { Packer, IPackerOptions, PackerStatus } from "./renderer/editor/project/packer/packer";
+
+export let editor: Editor | null = null;
