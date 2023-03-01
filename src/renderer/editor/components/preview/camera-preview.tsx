@@ -8,11 +8,21 @@ import { Editor } from "../../editor";
 import { Button } from "@blueprintjs/core";
 
 export interface ICameraPreviewProps {
+	/**
+	 * Defines the reference to the editor.
+	 */
 	editor: Editor;
 }
 
 export interface ICameraPreviewState {
+	/**
+	 * Defines the reference wether or not the preview is visible.
+	 */
 	visible: boolean;
+	/**
+	 * Defines wether or not the size should be doubled.
+	 */
+	doubleSize: boolean;
 }
 
 export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraPreviewState> {
@@ -31,6 +41,7 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 
 		this.state = {
 			visible: false,
+			doubleSize: false,
 		};
 	}
 
@@ -40,15 +51,55 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 	public render(): React.ReactNode {
 		return (
 			<>
-				<div style={{ width: "400px", height: "24px", position: "absolute", right: "10px", bottom: "210px", textAlign: "center", lineHeight: "24px", display: this.state.visible ? "" : "none", background: "#00000099", backdropFilter: "blur(50px)" }}>
+				<div
+					style={{
+						right: "10px",
+						height: "24px",
+						position: "absolute",
+						background: "#00000099",
+						backdropFilter: "blur(50px)",
+						textAlign: "center", lineHeight: "24px",
+						display: this.state.visible ? "" : "none",
+						bottom: this.state.doubleSize ? "410px" : "210px",
+						width: this.state.doubleSize ? "800px" : "400px",
+					}}
+				>
 					<span>Preview: {this._selectedNode?.name}</span>
 					<Button text="x" small style={{ position: "absolute", right: "2px", top: "0px", borderRadius: "100%" }} onClick={() => this._clear()} />
+					<Button text={this.state.doubleSize ? "[x]" : "[]"} small style={{ position: "absolute", right: "32px", top: "0px", borderRadius: "100%" }} onClick={() => this.setDoubleSized(!this.state.doubleSize)} />
 				</div>
-				<div style={{ width: "400px", height: "200px", position: "absolute", right: "10px", bottom: "10px", pointerEvents: "none", display: this.state.visible ? "" : "none", background: "#00000099", backdropFilter: "blur(50px)" }}>
+				<div
+					style={{
+						right: "10px",
+						bottom: "10px",
+						position: "absolute",
+						pointerEvents: "none",
+						background: "#00000099",
+						backdropFilter: "blur(50px)",
+						display: this.state.visible ? "" : "none",
+						width: this.state.doubleSize ? "800px" : "400px",
+						height: this.state.doubleSize ? "400px" : "200px",
+					}}
+				>
 					<canvas ref={(r) => this._canvas = r} style={{ width: "100%", height: "100%", transform: "scale(1, -1)", objectFit: "contain", pointerEvents: "none" }} />
 				</div>
 			</>
 		);
+	}
+
+	/**
+	 * Sets wether or not the size of the preview should be doubled.
+	 * @param doubled defines wether or not the size of the preview should be doubled.
+	 */
+	public setDoubleSized(doubled: boolean): void {
+		this.setState({ doubleSize: doubled });
+
+		if (this._selectedNode) {
+			const node = this._selectedNode;
+
+			this._clear();
+			this.setSelectedNode(node);
+		}
 	}
 
 	/**
@@ -64,7 +115,7 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 
 		this._selectedNode = node;
 
-		this._renderTarget = new RenderTargetTexture("camera_preview_rtt", { width: 400, height: 200 }, this.props.editor.scene!, true, true);
+		this._renderTarget = new RenderTargetTexture("camera_preview_rtt", this.state.doubleSize ? { width: 800, height: 400 } : { width: 400, height: 200 }, this.props.editor.scene!, true, true);
 		this._renderTarget.refreshRate = 0;
 		this._renderTarget.activeCamera = node;
 		this._renderTarget.useCameraPostProcesses = false;
