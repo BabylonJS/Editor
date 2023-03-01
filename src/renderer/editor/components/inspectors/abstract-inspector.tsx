@@ -212,6 +212,7 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
         }
 
         let nodes = this.editor.scene.getNodes();
+
         if (allowedType) {
             const typeMap = {
                 TransformNode: TransformNode,
@@ -220,10 +221,12 @@ export abstract class AbstractInspector<T, S> extends React.Component<IObjectIns
                 Light: Light,
                 Camera: Camera,
             };
-            nodes = nodes.filter(node => node instanceof typeMap[allowedType])
+            nodes = nodes.filter(node => node instanceof typeMap[allowedType]);
         }
 
-        return nodes.map(node => ({ data: node.id, label: node.name, icon: <NodeIcon node={node}></NodeIcon> }));
+        return [
+            { data: null, label: "None", icon: null } as any,
+        ].concat(nodes.map(node => ({ data: node.id, label: node.name, icon: <NodeIcon node={node}></NodeIcon> })));
     }
 
     /**
