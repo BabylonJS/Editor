@@ -54,17 +54,17 @@ export class Document {
      */
     private async _sendPixMap(id: number): Promise<void> {
         // Get pixmap
-        const pixmap = await this._generator.getDocumentPixmap(id, { });
+        const pixmap = await this._generator.getDocumentPixmap(id, {});
         if (!pixmap) {
             return;
         }
 
         // Set pixels order
-        for (var i=0; i < pixmap.pixels.length; i += pixmap.channelCount) {
-            var a = pixmap.pixels[i];
-            var r = pixmap.pixels[i + 1];
-            var g = pixmap.pixels[i + 2];
-            var b = pixmap.pixels[i + 3];
+        for (let i = 0; i < pixmap.pixels.length; i += pixmap.channelCount) {
+            const a = pixmap.pixels[i];
+            const r = pixmap.pixels[i + 1];
+            const g = pixmap.pixels[i + 2];
+            const b = pixmap.pixels[i + 3];
 
             pixmap.pixels[i] = r;
             pixmap.pixels[i + 1] = g;
