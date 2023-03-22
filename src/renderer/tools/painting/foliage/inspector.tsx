@@ -1,7 +1,7 @@
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
-import { Divider, H4, NonIdealState } from "@blueprintjs/core";
+import { Divider, H4, NonIdealState, Tab, Tabs } from "@blueprintjs/core";
 
 import { Mesh } from "babylonjs";
 
@@ -12,7 +12,7 @@ import { InspectorBoolean } from "../../../editor/gui/inspector/fields/boolean";
 
 import { Tools } from "../../../editor/tools/tools";
 
-import { FoliagePainter } from "../../../editor/painting/foliage/foliage";
+import { FoliagePainter, FoliageToolType } from "../../../editor/painting/foliage/foliage";
 
 import { IObjectInspectorProps } from "../../../editor/components/inspector";
 import { AbstractInspector } from "../../../editor/components/inspectors/abstract-inspector";
@@ -20,6 +20,11 @@ import { AbstractInspector } from "../../../editor/components/inspectors/abstrac
 import { FoliageAssetItem } from "./item";
 
 export interface IFoliagePainterState {
+    /**
+     * Defines the current id of the selected tab.
+     */
+    selectedTabId: FoliageToolType;
+
     /**
      * Defines the preview of the mesh.
      */
@@ -49,6 +54,8 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
         }
 
         this.state = {
+            selectedTabId: "add",
+
             assetPreviews: [],
             selectedMeshes: [],
         };
@@ -71,6 +78,36 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
                     </div>
                 </InspectorSection>
 
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                    <Tabs
+                        animate
+                        selectedTabId={this.state.selectedTabId}
+                        onChange={(id) => {
+                            this.selectedObject.toolType = id as FoliageToolType;
+                            this.setState({ selectedTabId: id as FoliageToolType });
+                        }}
+                    >
+                        <Tab id="add" title="Add" />
+                        <Tab id="scale" title="Scale" />
+                    </Tabs>
+                </div>
+
+                {this.getAddInspector()}
+                {this.getScaleInspector()}
+            </>
+        );
+    }
+
+    /**
+     * Returns the inspector used to add / remove instances.
+     */
+    protected getAddInspector(): React.ReactNode {
+        if (this.state.selectedTabId !== "add") {
+            return undefined;
+        }
+
+        return (
+            <>
                 <InspectorSection title="Random Rotation">
                     <InspectorVector3 object={this.selectedObject} property="randomRotationMin" label="Random Min Rotation" step={0.01} />
                     <InspectorVector3 object={this.selectedObject} property="randomRotationMax" label="Random Max Rotation" step={0.01} />
@@ -90,6 +127,23 @@ export class FoliagePainterInspector extends AbstractInspector<FoliagePainter, I
                     <InspectorNumber object={this.selectedObject} property="density" label="Density" min={0} step={0.01} />
                     <InspectorNumber object={this.selectedObject} property="distance" label="Distance" min={0} step={0.01} />
                     <InspectorNumber object={this.selectedObject} property="size" label="Size" min={0} step={0.01} />
+                </InspectorSection>
+            </>
+        );
+    }
+
+    /**
+     * Returns the inspector used to scale existing instances.
+     */
+    protected getScaleInspector(): React.ReactNode {
+        if (this.state.selectedTabId !== "scale") {
+            return undefined;
+        }
+
+        return (
+            <>
+                <InspectorSection title="Value">
+                    <InspectorVector3 object={this.selectedObject} property="rescaleValue" label="Value" step={0.01} />
                 </InspectorSection>
             </>
         );
