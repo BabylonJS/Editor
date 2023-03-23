@@ -20,6 +20,11 @@ export class SceneSettings {
      */
     public static Camera: Nullable<ArcRotateCamera | EditorCamera> = null;
     /**
+     * Defines the reference to the last used camera.
+     */
+    public static LastUsedCamera: Nullable<Camera> = null;
+
+    /**
      * Defines the reference to the SSAO rendering pipeline.
      */
     public static SSAOPipeline: Nullable<SSAO2RenderingPipeline> = null;
@@ -135,6 +140,8 @@ export class SceneSettings {
         const scene = camera.getScene();
         if (camera === scene.activeCamera) { return; }
 
+        this.LastUsedCamera = scene.activeCamera;
+
         if (scene.activeCamera) {
             scene.activeCamera.detachControl();
         }
@@ -143,6 +150,8 @@ export class SceneSettings {
 
         this.AttachControl(editor, camera);
         this.ResetPipelines(editor);
+
+        editor.notifyMessage(`Switched to camera "${camera.name}"`, 2000);
     }
 
     /**

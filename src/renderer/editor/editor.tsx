@@ -941,7 +941,7 @@ export class Editor {
         if (WorkSpace.DirPath) {
             try {
                 const tsconfig = await readJSON(join(WorkSpace.DirPath, "tsconfig.json"), { encoding: "utf-8" });
-                Object.assign(compilerOptions, tsconfig.compilerOptions ?? { });
+                Object.assign(compilerOptions, tsconfig.compilerOptions ?? {});
             } catch (e) {
                 this.console.logWarning(`Failed to get tsconfig.json configuration: ${e.message}`);
             }
@@ -1226,6 +1226,9 @@ export class Editor {
 
         // Search
         ipcRenderer.on("search", () => this.preview.showSearchBar());
+
+        // View
+        ipcRenderer.on("switch-last-camera", () => SceneSettings.LastUsedCamera && SceneSettings.SetActiveCamera(this, SceneSettings.LastUsedCamera));
 
         // Project
         ipcRenderer.on("build-project", () => WorkSpace.BuildProject(this));

@@ -148,6 +148,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         const view =
             <Menu>
+                <MenuItem text={<div>Use Last Camera <Tag intent={Intent.PRIMARY}>(ALT+c)</Tag></div>} icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("view:switch-old-camera")} />
+                <MenuDivider />
                 {/* <MenuItem text="Add Preview" icon={<Icon src="plus.svg" />} onClick={() => this._menuItemClicked("view:add-preview")} /> */}
                 <MenuItem text="Enable Post-Processes" icon={this._getCheckedIcon(this._editor.scene?.postProcessesEnabled)} onClick={() => this._menuItemClicked("view:pp-enabled")} />
                 <MenuItem text="Enable Fog" icon={this._getCheckedIcon(this._editor.scene?.fogEnabled)} onClick={() => this._menuItemClicked("view:fog-enabled")} />
@@ -159,7 +161,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Statistics" icon={<Icon src="stats.svg" />} onClick={() => this._menuItemClicked("view:stats")} />
                 <MenuDivider />
-                <MenuItem text={<div>Focus Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target)} />
+                <MenuItem text={<div>Focus Selected Object <Tag intent={Intent.PRIMARY}>(f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target)} />
                 <MenuItem text={<div>Go To Selected Object <Tag intent={Intent.PRIMARY}>(Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Position)} />
                 <MenuDivider />
                 <MenuItem text="Webpack Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:webpack-logs")} />
@@ -384,6 +386,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         // View
         if (family === "view") {
             switch (action) {
+                case "switch-old-camera": SceneSettings.LastUsedCamera && SceneSettings.SetActiveCamera(this._editor, SceneSettings.LastUsedCamera); break;
+
                 // case "add-preview": this._editor.addPreview(); break;
                 case "pp-enabled": this._editor.scene!.postProcessesEnabled = !this._editor.scene!.postProcessesEnabled; break;
                 case "fog-enabled": this._editor.scene!.fogEnabled = !this._editor.scene!.fogEnabled; break;
