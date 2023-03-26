@@ -799,10 +799,12 @@ export class Editor {
      * Sets wether or not the editor's scene should be rendered.
      * @param render defines wether or not the render loop should render the editor's scene.
      */
-    public runRenderLoop(render: boolean): void {
+    public runRenderLoop(render: boolean, clear: boolean = true): void {
         if (!render) {
             this.engine?.stopRenderLoop();
-            this.engine?.clear(new Color4(0, 0, 0, 1), true, true, true);
+            if (clear) {
+                this.engine?.clear(new Color4(0, 0, 0, 1), true, true, true);
+            }
         } else {
             this.engine?.runRenderLoop(() => {
                 this.scene!.render();

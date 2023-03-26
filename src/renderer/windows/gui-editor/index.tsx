@@ -7,7 +7,6 @@ import { Nullable } from "../../../shared/types";
 import * as React from "react";
 import { Menu, MenuItem, ButtonGroup, Popover, Button, Position, Toaster, Intent } from "@blueprintjs/core";
 
-import { GUIEditor } from "babylonjs-gui-editor";
 import { Engine, Observable, Scene } from "babylonjs";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 
@@ -18,6 +17,8 @@ import { AppTools } from "../../editor/tools/app";
 import { Icon } from "../../editor/gui/icon";
 
 import { overridesConfiguration } from "../../editor/tools/gui/augmentations";
+
+const { GUIEditor } = require("babylonjs-gui-editor");
 
 export const title = "GUI Editor";
 

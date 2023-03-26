@@ -6,7 +6,7 @@ import { Nullable } from "../../../shared/types";
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
-    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe, PostProcess,
+    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe, PostProcess, PhysicsEngine,
 } from "babylonjs";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
@@ -95,7 +95,7 @@ export class ProjectImporter {
         // Configure scene
         ProjectHelpers.ImportSceneSettings(editor.scene!, project.scene, rootUrl);
 
-        const physicsEngine = editor.scene!.getPhysicsEngine();
+        const physicsEngine = editor.scene!.getPhysicsEngine() as PhysicsEngine;
         if (physicsEngine) {
             // Remove physics engine steps
             physicsEngine._step = () => { };

@@ -16,6 +16,7 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
+import { PhysicsEngine } from "@babylonjs/core/Physics/physicsEngine";
 import { ColorGradingTexture } from "@babylonjs/core/Materials/Textures/colorGradingTexture";
 import { ISceneLoaderProgressEvent, SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { Vector2, Vector3, Vector4, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector";
@@ -446,7 +447,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
 
             // Retrieve impostors
             if (n instanceof AbstractMesh && !n.physicsImpostor) {
-                n.physicsImpostor = n._scene.getPhysicsEngine()?.getImpostorForPhysicsObject(n) ?? null;
+                n.physicsImpostor = (n._scene.getPhysicsEngine() as PhysicsEngine)?.getImpostorForPhysicsObject(n) ?? null;
             }
 
             delete n.metadata.script;
