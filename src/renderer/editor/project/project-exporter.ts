@@ -97,11 +97,35 @@ export class ProjectExporter {
         // Prepare
         await editor.console.logSection("Exporting Project");
         await editor.console.logInfo(`Exporting project to: ${Project.DirPath}`);
-        
+
         editor.beforeSaveProjectObservable.notifyObservers(Project.DirPath!);
 
         const task = editor.addTaskFeedback(0, "Saving Files...");
         await Tools.Wait(500);
+
+        // Clean render targets
+        const renderTargets = editor.scene!.customRenderTargets.slice(0);
+
+        const materialsWithRenderTargets = editor.scene!.materials.filter((m) => m.getRenderTargetTextures?.().length);
+        materialsWithRenderTargets.forEach((m) => {
+            m.getRenderTargetTextures?.().forEach((rt) => renderTargets.push(rt));
+        });
+
+        renderTargets.forEach((rt) => {
+            if (!rt.renderList) {
+                return;
+            }
+
+            for (let i = 0; i < rt.renderList.length; ++i) {
+                const m = rt.renderList[i];
+                if (m) {
+                    continue;
+                }
+
+                rt.renderList.splice(i, 1);
+                --i;
+            }
+        });
 
         // Create project
         const project: IProject = {
@@ -148,7 +172,7 @@ export class ProjectExporter {
         const exportedCinematics: string[] = [];
         const exportedAnimationGroups: string[] = [];
         const exportedReflectionProbes: string[] = [];
-        
+
         let savePromises: Promise<void>[] = [];
 
         let progressValue = 0;
@@ -267,8 +291,8 @@ export class ProjectExporter {
             if (texture instanceof RenderTargetTexture || texture instanceof DynamicTexture) { continue; }
             if (texture.name.indexOf("data:") === 0 || texture === editor.scene!.environmentBRDFTexture) { continue; }
             if (!extname(texture.name)) { continue; }
-            
-            texture.metadata ??= { };
+
+            texture.metadata ??= {};
             texture.metadata.editorId ??= Tools.RandomId();
 
             savePromises.push(new Promise<void>(async (resolve) => {
@@ -326,7 +350,7 @@ export class ProjectExporter {
                 if (json.customType === "BABYLON.PBRMaterial" && json.environmentBRDFTexture) {
                     delete json.environmentBRDFTexture;
                 }
-                
+
                 try {
                     json.metadata = Tools.CloneObject(material.metadata);
                 } catch (e) {
@@ -339,8 +363,8 @@ export class ProjectExporter {
                 }
 
                 const dest = isMultiMaterial ?
-                        join(materialsDir, `${normalize(`${basename(filenamify(material.name))}-${material.id}`)}.json`) :
-                        join(editor.assetsBrowser.assetsDirectory, material.metadata.editorPath);
+                    join(materialsDir, `${normalize(`${basename(filenamify(material.name))}-${material.id}`)}.json`) :
+                    join(editor.assetsBrowser.assetsDirectory, material.metadata.editorPath);
 
                 const materialData = {
                     isMultiMaterial,
@@ -354,7 +378,7 @@ export class ProjectExporter {
                     project.materials.splice(project.materials.indexOf(materialData), 1);
                     return resolve();
                 }
-                
+
                 await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", dest, json);
 
                 editor.updateTaskFeedback(task, progressValue += progressCount);
@@ -464,10 +488,10 @@ export class ProjectExporter {
             const shadowJson = light.getShadowGenerator()?.serialize();
             if (shadowJson) {
                 const shadowDest = `${normalize(`${basename(filenamify(light.name))}-${light.id}`)}.json`;
-                
+
                 exportedShadows.push(shadowDest);
                 project.lights.push({ json: lightDest, shadowGenerator: shadowDest });
-                
+
                 await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", join(shadowsDir, shadowDest), shadowJson);
             } else {
                 project.lights.push({ json: lightDest, shadowGenerator: undefined });
@@ -597,7 +621,7 @@ export class ProjectExporter {
         await Workers.ExecuteFunction<SaveWorker, "writeJSON">(this._Worker!, "writeJSON", join(Project.DirPath!, "../cache.json"), assetsCache);
 
         // Write links
-        await Workers.ExecuteFunction<SaveWorker, "writeJSON">(this._Worker!, "writeJSON", join(Project.DirPath!, "../links.json"), { });
+        await Workers.ExecuteFunction<SaveWorker, "writeJSON">(this._Worker!, "writeJSON", join(Project.DirPath!, "../links.json"), {});
 
         // Write files configurations
         await Workers.ExecuteFunction<SaveWorker, "writeJSON">(this._Worker!, "writeJSON", join(Project.DirPath!, "../files.json"), AssetsBrowserItemHandler.AssetsConfiguration);
