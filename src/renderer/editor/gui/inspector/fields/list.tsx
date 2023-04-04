@@ -117,7 +117,7 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
      * Renders the component.
      */
     public render(): React.ReactNode {
-        const borderLeftColor = this.props.borderLeftColor ?? "#2FA1D6"
+        const borderLeftColor = this.props.borderLeftColor ?? "#2FA1D6";
         return (
             <div style={{ width: "100%", height: "25px" }}>
                 <div style={{ width: "30%", height: "25px", float: "left", borderLeft: `3px solid ${borderLeftColor}`, padding: "0 4px 0 5px", overflow: "hidden" }}>
@@ -147,7 +147,8 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
     private _getSuggestComponent(): React.ReactNode {
         return (
             <InspectorList.ListSuggest
-                fill={true}
+                fill
+                scrollToActiveItem
                 items={this.state.items}
                 selectedItem={this.state.selectedItem ?? { label: "Undefined", data: undefined }}
                 activeItem={this.state.selectedItem}
@@ -180,8 +181,16 @@ export class InspectorList<T> extends AbstractFieldComponent<IInspectorListProps
                     );
                 }}
                 popoverProps={{
+                    boundary: "viewport",
                     position: Position.RIGHT,
                     onOpening: () => this._refreshItems(),
+                    popoverRef: (r) => {
+                        if (r) {
+                            r.style.overflowY = "auto";
+                            r.style.overflowX = "hidden";
+                            r.style.maxHeight = "90vh";
+                        }
+                    },
                 }}
             ></InspectorList.ListSuggest>
         );
