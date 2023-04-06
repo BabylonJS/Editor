@@ -6,7 +6,8 @@ import { Nullable } from "../../../shared/types";
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
-    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe, PostProcess, PhysicsEngine,
+    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe,
+    PostProcess, PhysicsEngine, VideoTexture,
 } from "babylonjs";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
@@ -36,6 +37,8 @@ import AssetsWorker from "../workers/workers/assets";
 import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
 export class ProjectImporter {
+    private static _VideoExtensions: string[] = [".mp4", ".webm"];
+
     /**
      * Imports the project located at the given path.
      * @param editor the editor reference.
@@ -661,7 +664,7 @@ export class ProjectImporter {
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, filename, editor.scene, null, ".babylon");
         editor.console.logInfo(`Parsed mesh "${name}"`);
 
-        const allMeshes: { mesh: Mesh; geometryId: string; parentId?: string; instances?: string[]; uniqueId: number; instancesUniqueIds?: number[] }[] = [];
+        const allMeshes: { mesh: Mesh; geometryId: string; parentId?: string; instances?: string[]; uniqueId: number; instancesUniqueIds?: number[]; }[] = [];
 
         result.meshes.forEach((mesh, index) => {
             if (!(mesh instanceof Mesh)) { return; }
@@ -829,21 +832,36 @@ export class ProjectImporter {
             if (!texture) {
                 const sourceName = source.name;
                 const extension = extname(source.name).toLowerCase();
-                if (extension === ".3dl") {
-                    source.name = join(rootUrl, source.name);
-                }
 
-                texture = textureParser(source, scene, rootUrl);
+                if (ProjectImporter._VideoExtensions.includes(extension)) {
+                    const videoTexture = SerializationHelper.Parse(() => new VideoTexture(source.name, rootUrl + source.name, scene), source, scene, rootUrl);
 
-                if (texture) {
-                    if (extension === ".3dl") {
-                        texture.name = sourceName;
-                        texture.metadata = source.metadata;
+                    if (videoTexture) {
+                        if (source.samplingMode) {
+                            if (videoTexture.samplingMode !== source.samplingMode) {
+                                videoTexture.updateSamplingMode(source.samplingMode);
+                            }
+                        }
                     }
 
-                    texture.metadata ??= {};
-                    texture.metadata.ktx2CompressedTextures ??= {};
-                    texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;
+                    texture = videoTexture;
+                } else {
+                    if (extension === ".3dl") {
+                        source.name = join(rootUrl, source.name);
+                    }
+
+                    texture = textureParser(source, scene, rootUrl);
+
+                    if (texture) {
+                        if (extension === ".3dl") {
+                            texture.name = sourceName;
+                            texture.metadata = source.metadata;
+                        }
+
+                        texture.metadata ??= {};
+                        texture.metadata.ktx2CompressedTextures ??= {};
+                        texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;
+                    }
                 }
             }
 

@@ -22,6 +22,7 @@ import { JsonItemHandler } from "./handlers/json";
 import { ImageItemHandler } from "./handlers/image";
 import { GraphItemHandler } from "./handlers/graph";
 import { SceneItemHandler } from "./handlers/scene";
+import { VideoItemHandler } from "./handlers/video";
 import { TypeScriptItemHandler } from "./handlers/ts";
 import { JavaScriptItemHandler } from "./handlers/js";
 import { MaterialItemHandler } from "./handlers/material";
@@ -32,6 +33,7 @@ import { AssetsBrowserGUIMoveHandler } from "./move/gui";
 import { AssetsBrowserMeshMoveHandler } from "./move/mesh";
 import { AssetsBrowserSoundMoveHandler } from "./move/sound";
 import { AssetsBrowserSceneMoveHandler } from "./move/scene";
+import { AssetsBrowserVideoMoveHandler } from "./move/video";
 import { AssetsBrowserMoveHandler } from "./move/move-handler";
 import { AssetsBrowserTypeScriptMoveHandler } from "./move/ts";
 import { AssetsBrowserTextureMoveHandler } from "./move/texture";
@@ -185,11 +187,15 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		
 		this.RegisterItemHandler({ extension: ".js", ctor: JavaScriptItemHandler });
 
+		this.RegisterItemHandler({ extension: ".mp4", ctor: VideoItemHandler });
+		this.RegisterItemHandler({ extension: ".webm", ctor: VideoItemHandler });
+
 		// Move handlers
 		this.RegisterItemMoveHandler(new AssetsBrowserGUIMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserMeshMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserSoundMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserSceneMoveHandler(editor));
+		this.RegisterItemMoveHandler(new AssetsBrowserVideoMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTextureMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserMaterialMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTypeScriptMoveHandler(editor));

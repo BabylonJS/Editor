@@ -126,6 +126,7 @@ export abstract class AssetsBrowserItemHandler extends React.Component<IAssetsBr
 	public render(): React.ReactNode {
 		return (
 			<div
+				draggable
 				onClick={(ev) => this.onClick(ev)}
 				onDragEnd={(ev) => this._handleDragEnd(ev)}
 				onDoubleClick={(ev) => this.onDoubleClick(ev)}
