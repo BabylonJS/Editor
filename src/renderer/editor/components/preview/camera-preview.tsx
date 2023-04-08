@@ -1,11 +1,13 @@
 import { Nullable } from "../../../../shared/types";
 
 import * as React from "react";
+import { Button } from "@blueprintjs/core";
 
-import { Camera, Node, Observer, RenderTargetTexture } from "babylonjs";
+import { Camera, Engine, Node, Observer, Viewport } from "babylonjs";
 
 import { Editor } from "../../editor";
-import { Button } from "@blueprintjs/core";
+
+import { SceneSettings } from "../../scene/settings";
 
 export interface ICameraPreviewProps {
 	/**
@@ -27,10 +29,9 @@ export interface ICameraPreviewState {
 
 export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraPreviewState> {
 	private _selectedNode: Nullable<Camera> = null;
-	private _canvas: Nullable<HTMLCanvasElement> = null;
-	private _renderTarget: Nullable<RenderTargetTexture> = null;
-	private _viewMatrixChangeObserver: Nullable<Observer<Camera>> = null;
-	private _projectionMatrixChangeObserver: Nullable<Observer<Camera>> = null;
+	private _resizeObserver: Nullable<Observer<Engine>> = null;
+
+	private _divElement: Nullable<HTMLDivElement> = null;
 
 	/**
 	 * Constructor.
@@ -73,15 +74,32 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 						right: "10px",
 						bottom: "10px",
 						position: "absolute",
-						pointerEvents: "none",
-						background: "#00000099",
-						backdropFilter: "blur(50px)",
 						display: this.state.visible ? "" : "none",
 						width: this.state.doubleSize ? "800px" : "400px",
 						height: this.state.doubleSize ? "400px" : "200px",
 					}}
+					ref={(r) => this._divElement = r}
+					onMouseEnter={() => {
+						SceneSettings.Camera?.detachControl();
+
+						this.props.editor.engine!.inputElement = this._divElement;
+
+						if (this._selectedNode) {
+							this.props.editor.scene!.cameraToUseForPointers = this._selectedNode;
+							SceneSettings.AttachControl(this.props.editor, this._selectedNode);
+						}
+					}}
+					onMouseLeave={() => {
+						this._selectedNode?.detachControl();
+
+						this.props.editor.engine!.inputElement = null;
+
+						if (SceneSettings.Camera) {
+							this.props.editor.scene!.cameraToUseForPointers = SceneSettings.Camera;
+							SceneSettings.AttachControl(this.props.editor, SceneSettings.Camera);
+						}
+					}}
 				>
-					<canvas ref={(r) => this._canvas = r} style={{ width: "100%", height: "100%", transform: "scale(1, -1)", objectFit: "contain", pointerEvents: "none" }} />
 				</div>
 			</>
 		);
@@ -92,14 +110,15 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 	 * @param doubled defines wether or not the size of the preview should be doubled.
 	 */
 	public setDoubleSized(doubled: boolean): void {
-		this.setState({ doubleSize: doubled });
+		this.setState({ doubleSize: doubled }, () => {
+			if (this._selectedNode) {
+				const node = this._selectedNode;
 
-		if (this._selectedNode) {
-			const node = this._selectedNode;
+				this._clear();
+				this.setSelectedNode(node);
+			}
+		});
 
-			this._clear();
-			this.setSelectedNode(node);
-		}
 	}
 
 	/**
@@ -107,7 +126,7 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 	 * @param node defines the reference to the selected node in the editor.
 	 */
 	public setSelectedNode(node: Node): void {
-		if (!(node instanceof Camera)) {
+		if (!(node instanceof Camera) || node === SceneSettings.Camera) {
 			return;
 		}
 
@@ -115,91 +134,73 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 
 		this._selectedNode = node;
 
-		this._renderTarget = new RenderTargetTexture("camera_preview_rtt", this.state.doubleSize ? { width: 800, height: 400 } : { width: 400, height: 200 }, this.props.editor.scene!, true, true);
-		this._renderTarget.refreshRate = 0;
-		this._renderTarget.activeCamera = node;
-		this._renderTarget.useCameraPostProcesses = false;
-		this._renderTarget.renderList = this.props.editor.scene!.meshes.slice();
+		const scene = this.props.editor.scene!;
+		const engine = this.props.editor.engine!;
 
-		this.props.editor.scene!.customRenderTargets.push(this._renderTarget);
+		scene.activeCameras = [];
+		scene.activeCameras.push(SceneSettings.Camera!);
+		scene.activeCameras.push(node);
 
-		const c = this._canvas?.getContext("2d");
-		if (!c) {
+		scene.activeCamera = SceneSettings.Camera;
+		scene.cameraToUseForPointers = SceneSettings.Camera;
+
+		SceneSettings.ResetPipelines(this.props.editor);
+
+		this._updatePreviewCameraViewport();
+
+		this._resizeObserver = engine.onResizeObservable.add(() => {
+			this._updatePreviewCameraViewport();
+		});
+	}
+
+	/**
+	 * Updates the viewport of the camera used in the preview sub-panel.
+	 */
+	private _updatePreviewCameraViewport(): void {
+		if (!this._selectedNode) {
 			return;
 		}
 
-		let computing = false;
-		let firstRender = true;
-		let buffer = new Uint8Array();
+		const engine = this.props.editor.engine!;
+		const canvas = engine.getRenderingCanvas();
 
-		this._viewMatrixChangeObserver = node.onViewMatrixChangedObservable.add(() => {
-			this._renderTarget!.refreshRate = 0;
-		});
+		if (!canvas) {
+			return;
+		}
 
-		this._projectionMatrixChangeObserver = node.onProjectionMatrixChangedObservable.add(() => {
-			this._renderTarget!.refreshRate = 0;
-		});
+		const offsetX = 10 / canvas.width;
+		const offsetY = 10 / canvas.height;
 
-		this._renderTarget.onAfterRenderObservable.add(async () => {
-			if (computing) {
-				return;
-			}
+		const x = (canvas.width - (this.state.doubleSize ? 800 : 400)) / canvas.width;
 
-			computing = true;
+		const width = (this.state.doubleSize ? 800 : 400) / canvas.width;
+		const height = (this.state.doubleSize ? 400 : 200) / canvas.height;
 
-			const renderWidth = this.props.editor.engine!.getRenderWidth();
-			const renderHeight = this.props.editor.engine!.getRenderHeight();
-
-			const { width, height } = this._renderTarget!.getSize();
-
-			if (width !== this.props.editor.engine!.getRenderWidth() || height !== this.props.editor.engine!.getRenderHeight()) {
-				this._renderTarget!.resize({ width: renderWidth, height: renderHeight });
-			}
-
-			if (c.canvas.width !== width || c.canvas.height !== height) {
-				c.canvas.width = width;
-				c.canvas.height = height;
-			}
-
-			const count = width * height * 4;
-			if (buffer.length !== count) {
-				buffer = new Uint8Array(count);
-			}
-
-			try {
-				const p = await this._renderTarget!.readPixels(0, 0, buffer, true, true) as Uint8Array;
-				const a = new ImageData(new Uint8ClampedArray(p), width, height);
-
-				c.scale(1, -1);
-				c.putImageData(a, 0, 0);
-			} catch (e) {
-				// Catch silently.
-			}
-
-			computing = false;
-
-			if (firstRender) {
-				firstRender = false;
-				this._renderTarget!.refreshRate = 0;
-			}
-		});
+		this._selectedNode.viewport = new Viewport(
+			x - offsetX,
+			offsetY,
+			width,
+			height,
+		);
 	}
 
 	/**
 	 * Clears all the preview allocated resources.
 	 */
 	private _clear(): void {
-		if (this._renderTarget) {
-			this._renderTarget?.dispose();
-			this._renderTarget = null;
-		}
+		const scene = this.props.editor.scene!;
+		const engine = this.props.editor.engine!;
 
 		if (this._selectedNode) {
-			this._selectedNode.onViewMatrixChangedObservable.remove(this._viewMatrixChangeObserver);
-			this._selectedNode.onProjectionMatrixChangedObservable.remove(this._projectionMatrixChangeObserver);
+			scene.activeCameras = [];
+			scene.activeCamera = SceneSettings.Camera;
 
-			this._viewMatrixChangeObserver = null;
-			this._projectionMatrixChangeObserver = null;
+			this._selectedNode.viewport = new Viewport(0, 0, 1, 1);
+		}
+
+		if (this._resizeObserver) {
+			engine.onResizeObservable.remove(this._resizeObserver);
+			this._resizeObserver = null;
 		}
 
 		this._selectedNode = null;

@@ -91,7 +91,7 @@ export class SceneSettings {
         this.Camera?.dispose();
 
         const camera = new EditorCamera("Editor Camera", this.Camera?.position ?? Vector3.Zero(), editor.scene!);
-        camera.setTarget(this.Camera?.target ?? Vector3.Zero())
+        camera.setTarget(this.Camera?.target ?? Vector3.Zero());
         camera.attachControl(editor.scene!.getEngine().getRenderingCanvas()!, true);
         camera.inertia = 0.5;
         camera.angularSensibility = 500;
@@ -179,7 +179,11 @@ export class SceneSettings {
     public static GetSSAORenderingPipeline(editor: Editor): SSAO2RenderingPipeline {
         if (this.SSAOPipeline) { return this.SSAOPipeline; }
 
-        const ssao = new SSAO2RenderingPipeline("ssao", editor.scene!, { ssaoRatio: 0.5, blurRatio: 0.5 }, this._SSAOPipelineEnabled ? [editor.scene!.activeCamera!] : [], false);
+        const cameras = editor.scene!.activeCameras?.length
+            ? editor.scene!.activeCameras!
+            : [SceneSettings.Camera!];
+
+        const ssao = new SSAO2RenderingPipeline("ssao", editor.scene!, { ssaoRatio: 0.5, blurRatio: 0.5 }, this._SSAOPipelineEnabled ? cameras : [], false);
         ssao.radius = 3.5;
         ssao.totalStrength = 1.3;
         ssao.expensiveBlur = true;
@@ -215,7 +219,11 @@ export class SceneSettings {
     public static GetDefaultRenderingPipeline(editor: Editor): DefaultRenderingPipeline {
         if (this.DefaultPipeline) { return this.DefaultPipeline; }
 
-        const pipeline = new DefaultRenderingPipeline("default", true, editor.scene!, this._DefaultPipelineEnabled ? [editor.scene!.activeCamera!] : [], true);
+        const cameras = editor.scene!.activeCameras?.length
+            ? editor.scene!.activeCameras!
+            : [SceneSettings.Camera!];
+
+        const pipeline = new DefaultRenderingPipeline("default", true, editor.scene!, this._DefaultPipelineEnabled ? cameras : [], true);
         // const curve = new ColorCurves();
         // curve.globalHue = 200;
         // curve.globalDensity = 80;
@@ -412,7 +420,7 @@ export class SceneSettings {
     public static GetMotionBlurPostProcess(editor: Editor): MotionBlurPostProcess {
         if (this.MotionBlurPostProcess) { return this.MotionBlurPostProcess; }
 
-        this.MotionBlurPostProcess = new MotionBlurPostProcess("motionBlur", editor.scene!, 1.0, editor.scene!.activeCamera, undefined, undefined, undefined, undefined, undefined, false);
+        this.MotionBlurPostProcess = new MotionBlurPostProcess("motionBlur", editor.scene!, 1.0, this.Camera, undefined, undefined, undefined, undefined, undefined, false);
         return this.MotionBlurPostProcess;
     }
 
@@ -441,7 +449,7 @@ export class SceneSettings {
     public static GetScreenSpaceReflectionsPostProcess(editor: Editor): ScreenSpaceReflectionPostProcess {
         if (this.ScreenSpaceReflectionsPostProcess) { return this.ScreenSpaceReflectionsPostProcess; }
 
-        this.ScreenSpaceReflectionsPostProcess = new ScreenSpaceReflectionPostProcess("ssr", editor.scene!, 1.0, editor.scene!.activeCamera!, undefined, undefined, undefined, undefined, undefined, false);
+        this.ScreenSpaceReflectionsPostProcess = new ScreenSpaceReflectionPostProcess("ssr", editor.scene!, 1.0, this.Camera, undefined, undefined, undefined, undefined, undefined, false);
         return this.ScreenSpaceReflectionsPostProcess;
     }
 
