@@ -66,7 +66,7 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 					}}
 				>
 					<span>Preview: {this._selectedNode?.name}</span>
-					<Button text="x" small style={{ position: "absolute", right: "2px", top: "0px", borderRadius: "100%" }} onClick={() => this._clear()} />
+					<Button text="x" small style={{ position: "absolute", right: "2px", top: "0px", borderRadius: "100%" }} onClick={() => this.clear()} />
 					<Button text={this.state.doubleSize ? "[x]" : "[]"} small style={{ position: "absolute", right: "32px", top: "0px", borderRadius: "100%" }} onClick={() => this.setDoubleSized(!this.state.doubleSize)} />
 				</div>
 				<div
@@ -114,7 +114,7 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 			if (this._selectedNode) {
 				const node = this._selectedNode;
 
-				this._clear();
+				this.clear();
 				this.setSelectedNode(node);
 			}
 		});
@@ -125,17 +125,24 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 	 * Sets the selected in the editor. In case of a camera, create the preview.
 	 * @param node defines the reference to the selected node in the editor.
 	 */
-	public setSelectedNode(node: Node): void {
-		if (!(node instanceof Camera) || node === SceneSettings.Camera) {
+	public setSelectedNode(node: Nullable<Node>): void {
+		if (!node || !(node instanceof Camera)) {
+			return;
+		}
+
+		const scene = this.props.editor.scene!;
+
+		if (scene.activeCameras?.length) {
+			if (scene.activeCameras[0] !== SceneSettings.Camera) {
+				return;
+			}
+		} else if (scene.activeCamera !== SceneSettings.Camera) {
 			return;
 		}
 
 		this.setState({ visible: true });
 
 		this._selectedNode = node;
-
-		const scene = this.props.editor.scene!;
-		const engine = this.props.editor.engine!;
 
 		scene.activeCameras = [];
 		scene.activeCameras.push(SceneSettings.Camera!);
@@ -148,6 +155,7 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 
 		this._updatePreviewCameraViewport();
 
+		const engine = this.props.editor.engine!;
 		this._resizeObserver = engine.onResizeObservable.add(() => {
 			this._updatePreviewCameraViewport();
 		});
@@ -187,7 +195,7 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 	/**
 	 * Clears all the preview allocated resources.
 	 */
-	private _clear(): void {
+	public clear(): void {
 		const scene = this.props.editor.scene!;
 		const engine = this.props.editor.engine!;
 
