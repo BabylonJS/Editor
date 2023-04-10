@@ -412,9 +412,9 @@ export class SceneSettings {
     public static GetMotionBlurPostProcess(editor: Editor): MotionBlurPostProcess {
         if (this.MotionBlurPostProcess) { return this.MotionBlurPostProcess; }
 
-        this.MotionBlurPostProcess = new MotionBlurPostProcess("motionBlur", editor.scene!, 1.0, null, undefined, undefined, undefined, undefined, undefined, false);
+        this.MotionBlurPostProcess = new MotionBlurPostProcess("motionBlur", editor.scene!, 1.0, editor.scene!.activeCamera, undefined, undefined, undefined, undefined, undefined, false);
 
-        editor.scene?.cameras.forEach((c) => c.attachPostProcess(this.MotionBlurPostProcess!));
+        editor.scene?.cameras.forEach((c) => !c._postProcesses.includes(this.MotionBlurPostProcess!) && c.attachPostProcess(this.MotionBlurPostProcess!));
 
         return this.MotionBlurPostProcess;
     }
@@ -444,9 +444,9 @@ export class SceneSettings {
     public static GetScreenSpaceReflectionsPostProcess(editor: Editor): ScreenSpaceReflectionPostProcess {
         if (this.ScreenSpaceReflectionsPostProcess) { return this.ScreenSpaceReflectionsPostProcess; }
 
-        this.ScreenSpaceReflectionsPostProcess = new ScreenSpaceReflectionPostProcess("ssr", editor.scene!, 1.0, null, undefined, undefined, undefined, undefined, undefined, false);
+        this.ScreenSpaceReflectionsPostProcess = new ScreenSpaceReflectionPostProcess("ssr", editor.scene!, 1.0, editor.scene!.activeCamera, undefined, editor.engine!, undefined, undefined, undefined, false);
 
-        editor.scene?.cameras.forEach((c) => c.attachPostProcess(this.ScreenSpaceReflectionsPostProcess!));
+        editor.scene?.cameras.forEach((c) => !c._postProcesses.includes(this.ScreenSpaceReflectionsPostProcess!) && c.attachPostProcess(this.ScreenSpaceReflectionsPostProcess!));
 
         return this.ScreenSpaceReflectionsPostProcess;
     }
