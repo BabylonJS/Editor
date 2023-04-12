@@ -114,6 +114,10 @@ export class MaterialAssets extends AbstractAssets {
                 id: material.name,
             };
 
+            if (material.metadata?.isLocked) {
+                itemData.style = { border: "solid #48aff0" };
+            }
+
             const item = this.items.find((i) => i.key === material.id);
             if (item) {
                 const index = this.items.indexOf(item);
@@ -181,7 +185,7 @@ export class MaterialAssets extends AbstractAssets {
                 <MenuItem text="Locked" icon={material.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
                     material.metadata.isLocked = !material.metadata.isLocked;
                     item.style = item.style ?? {};
-                    item.style.border = material.metadata.isLocked ? "solid red" : "";
+                    item.style.border = material.metadata.isLocked ? "solid #48aff0" : "";
                     super.refresh();
                 }} />
                 <MenuDivider />

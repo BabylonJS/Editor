@@ -155,7 +155,7 @@ export class TextureAssets extends AbstractAssets {
             const filePath = join(this.editor.assetsBrowser.assetsDirectory, texture.name);
             const exists = await pathExists(filePath);
 
-            if (exists || isDyamicTexture) {
+            if (exists || texture.loadingError || isDyamicTexture) {
                 texture.metadata = texture.metadata ?? {};
                 if (!texture.metadata.editorName) {
                     texture.metadata.editorName = basename(texture.name);
@@ -175,6 +175,8 @@ export class TextureAssets extends AbstractAssets {
                 let base64 = texture.isCube ? "../css/svg/dds.svg" : filePath ?? "../css/svg/file.svg";
                 if (isDyamicTexture) {
                     base64 = (texture as DynamicTexture).getContext().canvas.toDataURL("image/png");
+                } else if (texture.loadingError) {
+                    base64 = "../css/svg/question-mark.svg";
                 } else {
                     switch (extension) {
                         case ".3dl": base64 = "../css/svg/magic.svg"; break;
@@ -191,7 +193,7 @@ export class TextureAssets extends AbstractAssets {
                 };
 
                 if (texture.metadata?.isLocked) {
-                    itemData.style = { border: "solid red" };
+                    itemData.style = { border: "solid #48aff0" };
                 }
 
                 const existingItemIndex = this.items.findIndex((i) => i.key === texture.metadata?.editorId);
@@ -216,7 +218,7 @@ export class TextureAssets extends AbstractAssets {
             };
 
             if (reflectionProbe["reflectionProbe"]?.isLocked) {
-                itemData.style = { border: "solid red" };
+                itemData.style = { border: "solid #48aff0" };
             }
 
             const existingItemIndex = this.items.findIndex((i) => i.key === reflectionProbe["metadata"]?.id);
@@ -321,7 +323,7 @@ export class TextureAssets extends AbstractAssets {
                 <MenuItem text="Locked" icon={texture.metadata.isLocked ? <Icon src="check.svg" /> : undefined} onClick={() => {
                     texture.metadata.isLocked = !texture.metadata.isLocked;
                     item.style = item.style ?? {};
-                    item.style.border = texture.metadata.isLocked ? "solid red" : "";
+                    item.style.border = texture.metadata.isLocked ? "solid #48aff0" : "";
                     super.refresh();
                 }} />
                 {setAsEnvironmentTexture}
@@ -447,6 +449,11 @@ export class TextureAssets extends AbstractAssets {
             const extension = extname(texture.name).toLowerCase();
             if (!extension || !texture.name || texture.name.indexOf("data:") === 0 || !(texture instanceof Texture) || KTXTools.SupportedExtensions.indexOf(extension) === -1) {
                 this.editor.updateTaskFeedback(task, progress += step);
+                continue;
+            }
+
+            const textureAbsolutePath = join(this.editor.assetsBrowser.assetsDirectory, texture.name);
+            if (!(await pathExists(textureAbsolutePath))) {
                 continue;
             }
 
