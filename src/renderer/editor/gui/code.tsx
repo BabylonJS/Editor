@@ -30,15 +30,19 @@ export interface ICodeProps {
 }
 
 export class Code extends React.Component<ICodeProps> {
+    /**
+     * Defines the reference to the code editor.
+     */
+    public editor: Nullable<globalMonaco.editor.ICodeEditor> = null;
+
     private _div: Nullable<HTMLDivElement> = null;
-    private _editor: Nullable<globalMonaco.editor.ICodeEditor> = null;
 
     /**
      * Renders the component.
      */
     public render(): React.ReactNode {
         return (
-            <div ref={(ref) => this._div = ref} style={this.props.style ?? { }}>
+            <div ref={(ref) => this._div = ref} style={this.props.style ?? {}}>
 
             </div>
         );
@@ -50,13 +54,13 @@ export class Code extends React.Component<ICodeProps> {
     public componentDidMount(): void {
         if (!this._div) { return; }
 
-        this._editor = monaco.editor.create(this._div, {
-            value: this.props.code,
-            language: this.props.language,
-            readOnly: this.props.readonly,
+        this.editor = monaco.editor.create(this._div, {
             theme: "vs-dark",
             automaticLayout: true,
-            selectionHighlight: true
+            value: this.props.code,
+            selectionHighlight: true,
+            language: this.props.language,
+            readOnly: this.props.readonly,
         });
     }
 
@@ -64,6 +68,6 @@ export class Code extends React.Component<ICodeProps> {
      * Called on the component will unmount.
      */
     public componentWillUnmount(): void {
-        this._editor?.dispose();
+        this.editor?.dispose();
     }
 }

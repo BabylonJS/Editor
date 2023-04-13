@@ -1,12 +1,11 @@
-import { join } from "path";
 import { shell } from "electron";
 
 import * as React from "react";
-import { ContextMenu, Menu, MenuItem, MenuDivider, Pre } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuItem, MenuDivider } from "@blueprintjs/core";
 
 import { Icon } from "../../../../gui/icon";
 
-import { WorkSpace } from "../../../../project/workspace";
+import { JSTools } from "../../../../tools/js";
 
 import { AssetsBrowserItemHandler } from "../item-handler";
 
@@ -42,6 +41,9 @@ export class JavaScriptItemHandler extends AssetsBrowserItemHandler {
     public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
         ContextMenu.show((
             <Menu>
+                <MenuItem text="Edit..." icon={<Icon src="edit.svg" />} onClick={() => this.props.editor.addBuiltInPlugin("script-editor", {
+                    path: this.props.absolutePath,
+                })} />
                 <MenuItem text="Execute in Editor..." icon={<Icon src="play.svg" />} onClick={() => this._executeScript()} />
                 <MenuDivider />
                 {this.getCommonContextMenuItems()}
@@ -56,29 +58,6 @@ export class JavaScriptItemHandler extends AssetsBrowserItemHandler {
      * Executes the script in the context of the editor.
      */
     private async _executeScript(): Promise<void> {
-        this.props.editor.revealPanel("console");
-
-        // Try executing the script
-        try {
-            const a = require(this.props.absolutePath);
-            await a.main(this.props.editor);
-            this.props.editor.console.logInfo(`Successfuly executed script "${this.props.relativePath}"`);
-        } catch (e) {
-            this.props.editor.console.logError(`An error happened executing the script at "${this.props.relativePath}"`);
-            this.props.editor.console.logCustom(
-                <Pre style={{ outlineColor: "red", outlineWidth: "1px", outlineStyle: "double" }}>
-                    {e?.toString()}
-                    {e?.stack}
-                </Pre>
-            );
-        }
-
-        // Clear cache
-        for (const c in require.cache) {
-            const cachePath = c.replace(/\\/g, "/");
-            if (cachePath.indexOf(join(WorkSpace.DirPath!, "assets")) !== -1) {
-                delete require.cache[c];
-            }
-        }
+        await JSTools.ExecuteInEditorContext(this.props.editor, this.props.absolutePath);
     }
 }
