@@ -502,6 +502,11 @@ export class ProjectImporter {
             SceneSettings.SetSSAOEnabled(editor, project.postProcesses.ssao.enabled);
         }
 
+        if (project.postProcesses.ssr?.json) {
+            SerializationHelper.Parse(() => SceneSettings.SSRPipeline, project.postProcesses.ssr.json, editor.scene!, rootUrl);
+            SceneSettings.SetSSREnabled(editor, project.postProcesses.ssr.enabled);
+        }
+
         if (project.postProcesses.screenSpaceReflections?.json) {
             SceneSettings.SetScreenSpaceReflectionsEnabled(editor, project.postProcesses.screenSpaceReflections.enabled);
             if (SceneSettings.ScreenSpaceReflectionsPostProcess) {

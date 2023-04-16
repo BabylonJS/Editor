@@ -875,6 +875,7 @@ export class Editor {
 
         // Post-processes
         SceneSettings.GetSSAORenderingPipeline(this);
+        SceneSettings.GetSSRRenderingPipeline(this);
         SceneSettings.GetDefaultRenderingPipeline(this);
 
         // Physics

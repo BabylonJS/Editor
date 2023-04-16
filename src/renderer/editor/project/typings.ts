@@ -363,6 +363,16 @@ export interface IProject {
              */
             json: any;
         };
+        ssr?: {
+            /**
+             * Defines wether or not the SSR pipeline is enabled.
+             */
+            enabled: boolean;
+            /**
+             * Defines the JSON representation of the post-process.
+             */
+            json: any;
+        },
         /**
          * Defines the configuration of the SSR post-process
          */

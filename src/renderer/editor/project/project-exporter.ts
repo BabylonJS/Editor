@@ -153,6 +153,7 @@ export class ProjectExporter {
             postProcesses: {
                 custom: editor.postProcesses.serialize(),
                 ssao: { enabled: SceneSettings.IsSSAOEnabled(), json: SceneSettings.SSAOPipeline?.serialize() },
+                ssr: { enabled: SceneSettings.IsSSRPipelineEnabled(), json: SceneSettings.SSRPipeline?.serialize() },
                 screenSpaceReflections: { enabled: SceneSettings.IsScreenSpaceReflectionsEnabled(), json: SceneSettings.ScreenSpaceReflectionsPostProcess?.serialize() },
                 default: { enabled: SceneSettings.IsDefaultPipelineEnabled(), json: SceneSettings.SerializeDefaultPipeline() },
                 motionBlur: { enabled: SceneSettings.IsMotionBlurEnabled(), json: SceneSettings.MotionBlurPostProcess?.serialize() },
