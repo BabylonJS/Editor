@@ -44,7 +44,7 @@ export class GeometryExporter {
             if (!geometry) { return; }
 
             const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
-            const originMesh = editor.scene!.getMeshByID(m.id);
+            const originMesh = editor.scene!.getMeshById(m.id);
 
             m.delayLoadingFile = `${overridePath ?? ""}geometries/${geometryFileName}`;
             m.boundingBoxMaximum = originMesh?.getBoundingInfo()?.maximum?.asArray() ?? [0, 0, 0];

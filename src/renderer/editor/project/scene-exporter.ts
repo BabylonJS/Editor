@@ -493,16 +493,6 @@ export class SceneExporter {
 		const geometriesPath = join(scenePath, "geometries");
 		const incrementalFolderExists = await pathExists(geometriesPath);
 
-		if (incrementalFolderExists) {
-			const incrementalFiles = await readdir(geometriesPath);
-
-			try {
-				await Promise.all(incrementalFiles.map((f) => remove(join(geometriesPath, f))));
-			} catch (e) {
-				editor.console.logError("Failed to remove incremental geometry file");
-			}
-		}
-
 		if (!WorkSpace.Workspace?.useIncrementalLoading) {
 			try {
 				await remove(geometriesPath);
@@ -517,7 +507,19 @@ export class SceneExporter {
 			const geometryRootPath = options?.geometryRootPath ?? `../${WorkSpace.GetProjectName()}/`;
 
 			await GeometryExporter.Init();
-			await GeometryExporter.ExportIncrementalGeometries(editor, geometriesPath, scene, true, geometryRootPath, task);
+			const geometries = await GeometryExporter.ExportIncrementalGeometries(editor, geometriesPath, scene, true, geometryRootPath, task);
+
+			try {
+				const outputGeometries = await readdir(geometriesPath);
+
+				for (const outputGeometry of outputGeometries) {
+					if (!geometries.find((g) => basename(g) === outputGeometry)) {
+						remove(join(geometriesPath, outputGeometry));
+					}
+				}
+			} catch (e) {
+				// Catch silently.
+			}
 		}
 
 		// Copy assets files
@@ -667,11 +669,11 @@ export class SceneExporter {
 							1 / 32,
 							// 1 / 16,
 						];
-	
+
 						for (const r of ratios) {
 							await this._CreateAutoLod(editor, path, r, extension, child.path, options);
 						}
-	
+
 						resolve();
 					}));
 				}
