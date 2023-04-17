@@ -218,7 +218,7 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					{this.state.items}
 				</div>
 			</div>
-		)
+		);
 	}
 
 	/**
@@ -263,7 +263,11 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 
 				<MenuDivider />
 
-				<MenuItem text="Scene..." icon={<Icon src="file.svg" />} onClick={() => NewProjectWizard.Show(this.props.editor)} />
+				<MenuItem text="Scene..." icon={<Icon src="file.svg" />} disabled={!isAssetsDirectory} onClick={() => NewProjectWizard.Show(this.props.editor)} />
+
+				<MenuDivider />
+
+				<MenuItem text="Script..." disabled={!isAssetsDirectory} icon={<Icon src="javascript.svg" style={{ filter: "none" }} />} onClick={() => this._handleAddScriptAsset()} />
 
 				<MenuDivider />
 
@@ -722,6 +726,28 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		});
 
 		this.props.editor.graph.refresh();
+
+		await this.refresh();
+	}
+
+	/**
+	 * Called on the user wants to add a new script asset (javascript file).
+	 */
+	private async _handleAddScriptAsset(): Promise<void> {
+		let name = await Dialog.Show("Script Name", "Please provide a name for the new JavaScript file.");
+
+		const extension = extname(name).toLowerCase();
+		if (extension !== ".js") {
+			name += ".js";
+		}
+
+		const dest = join(this.state.currentDirectory, name);
+		if (await pathExists(dest)) {
+			return Alert.Show("Can't Create Script", `A script named "${name}" already exists.`);
+		}
+
+		const skeleton = await readFile(join(AppTools.GetAppPath(), "assets/scripts/script.js"), { encoding: "utf-8" });
+		await writeFile(dest, skeleton);
 
 		await this.refresh();
 	}
