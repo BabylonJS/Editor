@@ -88,7 +88,7 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
                     <Button
                         fill={true}
                         small={this.props.small}
-                        onClick={() => this._handleButtonClicked()}
+                        onClick={(ev) => this._handleButtonClicked(ev)}
                     >
                         {this.state.settingKey ? "Press the key to set" : `${value} (${String.fromCharCode(value)})`}
                     </Button>
@@ -124,12 +124,17 @@ export class InspectorKeyMapButton<T> extends AbstractFieldComponent<IInspectorK
     /**
      * Called on the user clicks on the button.
      */
-    private _handleButtonClicked(): void {
+    private _handleButtonClicked(ev: React.MouseEvent<HTMLButtonElement>): void {
         if (this.state.settingKey) {
             return;
         }
 
+        ev.currentTarget.blur();
+
         document.addEventListener("keydown", this._keyDownListener = (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+
             this._handleKeyboardEvent(ev);
         });
         document.addEventListener("mousedown", this._mouseDownListener = () => {
