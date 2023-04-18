@@ -151,7 +151,7 @@ export class CameraPreview extends React.Component<ICameraPreviewProps, ICameraP
 		scene.activeCamera = SceneSettings.Camera;
 		scene.cameraToUseForPointers = SceneSettings.Camera;
 
-		SceneSettings.ResetPipelines(this.props.editor);
+		// SceneSettings.ResetPipelines(this.props.editor);
 
 		this._updatePreviewCameraViewport();
 
