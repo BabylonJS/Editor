@@ -6,7 +6,7 @@ import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
 import Image from "antd/lib/image";
-import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent, Tag, Switch } from "@blueprintjs/core";
+import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent, Tag, Switch, Pre } from "@blueprintjs/core";
 
 import { AbstractMesh, Node, IParticleSystem, ReflectionProbe, ParticleSystem, GPUParticleSystem } from "babylonjs";
 
@@ -115,6 +115,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 }} id="toolbar-build-and-run-project" />
                 <MenuDivider />
                 <MenuItem text="Install Dependencies..." onClick={() => WorkSpace.InstallDependencies(this._editor)} />
+                <MenuItem text="Update Dependencies..." onClick={() => this._handleUpdateDependencies()} />
                 <MenuDivider />
                 <MenuItem text={<div>Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={() => this._editor.runProject(EditorPlayMode.IntegratedBrowser, false)} />
                 <MenuDivider />
@@ -322,7 +323,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 />
             );
 
-            return <MenuItem text={text} shouldDismissPopover={false} />
+            return <MenuItem text={text} shouldDismissPopover={false} />;
         });
 
         return (
@@ -604,5 +605,26 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 height: "50%",
             },
         });
+    }
+
+    /**
+     * Called on the user wants to update the dependencies of a project.
+     */
+    private async _handleUpdateDependencies(): Promise<void> {
+        const editorVersion = this._editor._packageJson.dependencies["@babylonjs/core"];
+        const update = await Confirm.Show("Update Babylon.JS Version", (
+            <>
+                <p>
+                    Do you want to upgrade the Babylon.JS version of the project to match the one used by the Editor?
+                    Upgrading will trigger installation of dependencies and rebuild processes.
+                </p>
+                <Pre>New version: {editorVersion}</Pre>
+            </>
+        ));
+
+        if (update) {
+            await WorkSpace.MatchBabylonJSEditorVersion(editorVersion);
+            await WorkSpace.InstallAndBuild(this._editor);
+        }
     }
 }

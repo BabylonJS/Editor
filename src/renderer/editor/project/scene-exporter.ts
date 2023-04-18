@@ -197,6 +197,7 @@ export class SceneExporter {
 		scene.metadata = scene.metadata ?? {};
 		scene.metadata.postProcesses = {
 			ssao: { enabled: SceneSettings.IsSSAOEnabled(), json: SceneSettings.SSAOPipeline?.serialize() },
+			ssr: { enabled: SceneSettings.IsSSRPipelineEnabled(), json: SceneSettings.SSRPipeline?.serialize() },
 			screenSpaceReflections: { enabled: SceneSettings.IsScreenSpaceReflectionsEnabled(), json: SceneSettings.ScreenSpaceReflectionsPostProcess?.serialize() },
 			default: { enabled: SceneSettings.IsDefaultPipelineEnabled(), json: SceneSettings.SerializeDefaultPipeline() },
 			motionBlur: { enabled: SceneSettings.IsMotionBlurEnabled(), json: SceneSettings.MotionBlurPostProcess?.serialize() },
@@ -466,7 +467,7 @@ export class SceneExporter {
 					const path = join(animationGroupsPath, `${filenamify(ag.name)}.json`);
 
 					try {
-						await writeJSON(path, ag, { encoding: "utf-8" })
+						await writeJSON(path, ag, { encoding: "utf-8" });
 					} catch (e) {
 						editor.console.logError(`Failed to write animation group: ${path}`);
 					}
@@ -695,7 +696,7 @@ export class SceneExporter {
 	 */
 	private static async _CreateAutoLod(editor: Editor, path: string, ratio: number, extension: string, basePath: string, options?: IExportFinalSceneOptions): Promise<void> {
 		const lodDir = dirname(path);
-		const lodName = `${basename(path).replace(extension, "")}_${ratio.toString().replace(".", "")}${extension}`
+		const lodName = `${basename(path).replace(extension, "")}_${ratio.toString().replace(".", "")}${extension}`;
 		const lodPath = join(lodDir, lodName);
 
 		const setLodsMetadata = () => {

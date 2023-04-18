@@ -23,6 +23,7 @@ import { Vector2, Vector3, Vector4, Matrix, Quaternion } from "@babylonjs/core/M
 
 import { MotionBlurPostProcess } from "@babylonjs/core/PostProcesses/motionBlurPostProcess";
 import { ScreenSpaceReflectionPostProcess } from "@babylonjs/core/PostProcesses/screenSpaceReflectionPostProcess";
+import { SSRRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssrRenderingPipeline";
 import { SSAO2RenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssao2RenderingPipeline";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
 
@@ -614,6 +615,10 @@ export function attachScriptToNodeAtRuntime<T extends (Node | Scene)>(scriptPath
  */
 export let ssao2RenderingPipelineRef: Nullable<SSAO2RenderingPipeline> = null;
 /**
+ * Defines the reference to the SSR rendering pipeline.
+ */
+export let ssrRenderingPipelineRef: Nullable<SSRRenderingPipeline> = null;
+/**
  * Defines the reference to the SSR post-process.
  */
 export let screenSpaceReflectionPostProcessRef: Nullable<ScreenSpaceReflectionPostProcess> = null;
@@ -641,6 +646,13 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
         ssao2RenderingPipelineRef = SSAO2RenderingPipeline.Parse(data.ssao.json, scene, rootUrl);
         if (data.ssao.enabled) {
             scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(ssao2RenderingPipelineRef.name, scene.cameras);
+        }
+    }
+
+    if (data.ssr && !ssrRenderingPipelineRef) {
+        ssrRenderingPipelineRef = SSRRenderingPipeline.Parse(data.ssr.json, scene, rootUrl);
+        if (data.ssr.enabled) {
+            scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(ssrRenderingPipelineRef.name, scene.cameras);
         }
     }
 
