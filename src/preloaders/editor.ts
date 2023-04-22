@@ -32,6 +32,9 @@ function runEditor(): void {
         if (!(window as any).editor) {
             (window as any).editor = new Editor.default();
         }
+
+        const editorExports = require('../index.js');
+        editorExports.editor = (window as any).editor;
     });
 }
 

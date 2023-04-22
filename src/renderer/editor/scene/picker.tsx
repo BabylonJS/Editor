@@ -72,13 +72,15 @@ export class ScenePicker {
     public getObjectUnderPointer(fastCheck: boolean = false): Nullable<Node | SubMesh> {
         // Icons
         let scene = this.icons._layer.utilityLayerScene;
+        scene.cameraToUseForPointers = this._editor.scene!.cameraToUseForPointers;
+
         let pick = scene.pick(scene.pointerX, scene.pointerY, undefined, false);
 
         if (pick?.pickedMesh) { return pick.pickedMesh; }
 
         // Scene
         scene = this._editor.scene!;
-        pick = scene.pick(scene.pointerX, scene.pointerY, undefined, fastCheck);
+        pick = scene.pick(scene.pointerX, scene.pointerY, undefined, fastCheck, scene.cameraToUseForPointers);
 
         if (!pick) { return null; }
         if (pick.pickedMesh?.metadata?.isLocked) { return null; }

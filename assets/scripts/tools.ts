@@ -10,18 +10,20 @@ import { Tools } from "@babylonjs/core/Misc/tools";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { EngineStore } from "@babylonjs/core/Engines/engineStore";
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { ColorCurves } from "@babylonjs/core/Materials/colorCurves";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
+import { PhysicsEngine } from "@babylonjs/core/Physics/physicsEngine";
 import { ColorGradingTexture } from "@babylonjs/core/Materials/Textures/colorGradingTexture";
+import { ISceneLoaderProgressEvent, SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { Vector2, Vector3, Vector4, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector";
 
 import { MotionBlurPostProcess } from "@babylonjs/core/PostProcesses/motionBlurPostProcess";
 import { ScreenSpaceReflectionPostProcess } from "@babylonjs/core/PostProcesses/screenSpaceReflectionPostProcess";
+import { SSRRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssrRenderingPipeline";
 import { SSAO2RenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssao2RenderingPipeline";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
 
@@ -96,16 +98,42 @@ export function configureEngine(engine: Engine): void {
 }
 
 /**
+ * Defines the possible loading phases when a scene is being loaded.
+ * In other words, when loading a scene there are at least two phases:
+ *  - load the .babylon file
+ *  - load the external items of the .babylon file (sounds, textures, etc.).
+ */
+export type AppendScenePhase = "sceneLoading" | "filesLoading";
+
+/**
  * Loads the given scene file and appends it to the given scene reference (`toScene`).
  * @param toScene defines the instance of `Scene` to append to.
  * @param rootUrl defines the root url for the scene and resources or the concatenation of rootURL and filename (e.g. http://example.com/test.glb)
  * @param sceneFilename defines the name of the scene file.
+ * @param onProgress defines callback with a progress event for each file being loaded.
  */
-export async function appendScene(toScene: Scene, rootUrl: string, sceneFilename: string): Promise<void> {
-    await SceneLoader.AppendAsync(rootUrl, sceneFilename, toScene, null, ".babylon");
+export async function appendScene(toScene: Scene, rootUrl: string, sceneFilename: string, onProgress?: (progress: ISceneLoaderProgressEvent, phase: AppendScenePhase) => void): Promise<void> {
+    await SceneLoader.AppendAsync(rootUrl, sceneFilename, toScene, (p) => onProgress?.(p, "sceneLoading"), ".babylon");
+
+    const filesCount = toScene._pendingData.length;
+
+    const intervalId = onProgress ? setInterval(() => {
+        const currentFilesCount = toScene._pendingData.length;
+        const loaded = filesCount - currentFilesCount;
+
+        onProgress?.({
+            loaded,
+            total: filesCount,
+            lengthComputable: true,
+        }, "filesLoading");
+    }, 150) : null;
 
     return new Promise<void>((resolve) => {
         toScene.executeWhenReady(() => {
+            if (intervalId !== null) {
+                clearInterval(intervalId);
+            }
+
             runScene(toScene, rootUrl);
             resolve();
         });
@@ -420,7 +448,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
 
             // Retrieve impostors
             if (n instanceof AbstractMesh && !n.physicsImpostor) {
-                n.physicsImpostor = n._scene.getPhysicsEngine()?.getImpostorForPhysicsObject(n) ?? null;
+                n.physicsImpostor = (n._scene.getPhysicsEngine() as PhysicsEngine)?.getImpostorForPhysicsObject(n) ?? null;
             }
 
             delete n.metadata.script;
@@ -538,7 +566,7 @@ export function applyMeshesPoseMatrices(scene: Scene): void {
             m.updatePoseMatrix(Matrix.FromArray(m.metadata.basePoseMatrix));
             delete m.metadata.basePoseMatrix;
         }
-    })
+    });
 }
 
 /**
@@ -587,6 +615,10 @@ export function attachScriptToNodeAtRuntime<T extends (Node | Scene)>(scriptPath
  */
 export let ssao2RenderingPipelineRef: Nullable<SSAO2RenderingPipeline> = null;
 /**
+ * Defines the reference to the SSR rendering pipeline.
+ */
+export let ssrRenderingPipelineRef: Nullable<SSRRenderingPipeline> = null;
+/**
  * Defines the reference to the SSR post-process.
  */
 export let screenSpaceReflectionPostProcessRef: Nullable<ScreenSpaceReflectionPostProcess> = null;
@@ -614,6 +646,13 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
         ssao2RenderingPipelineRef = SSAO2RenderingPipeline.Parse(data.ssao.json, scene, rootUrl);
         if (data.ssao.enabled) {
             scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(ssao2RenderingPipelineRef.name, scene.cameras);
+        }
+    }
+
+    if (data.ssr && !ssrRenderingPipelineRef) {
+        ssrRenderingPipelineRef = SSRRenderingPipeline.Parse(data.ssr.json, scene, rootUrl);
+        if (data.ssr.enabled) {
+            scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(ssrRenderingPipelineRef.name, scene.cameras);
         }
     }
 

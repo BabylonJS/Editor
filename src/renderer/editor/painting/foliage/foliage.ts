@@ -16,6 +16,13 @@ import { Decal } from "../tools/decal";
 
 import { AbstractPaintingTool } from "../abstract-tool";
 
+/**
+ * Defines the possible types for the painting tool.
+ * - `add`: allows to add/remove painted thin instances.
+ * - `scale`: allows to rescale existing thin instances.
+ */
+export type FoliageToolType = "add" | "scale";
+
 const vectorTen = new Vector3(10, 10, 10);
 
 const meshScale = Vector3.Zero();
@@ -27,9 +34,9 @@ const targetScaling = Vector3.Zero();
 const targetPosition = Vector3.Zero();
 const targetRotation = Quaternion.Identity();
 
-// const scaling = Vector3.Zero();
-// const position = Vector3.Zero();
-// const rotation = Quaternion.Identity();
+const scaling = Vector3.Zero();
+const position = Vector3.Zero();
+const rotation = Quaternion.Identity();
 
 const translation = Vector3.Zero();
 const targetScaledPosition = Vector3.Zero();
@@ -78,6 +85,18 @@ export class FoliagePainter extends AbstractPaintingTool {
      */
     public randomRotationMax: Vector3 = new Vector3(0, Math.PI, 0);
 
+    /**
+     * Defines the type of tool used when painting thin instances.
+     * - `add`: allows to add/remove painted thin instances.
+     * - `scale`: allows to rescale existing thin instances.
+     */
+    public toolType: FoliageToolType = "add";
+
+    /**
+     * Defines the vector applied on the scale of the existing thin instances in the radius of
+     * the tool in case the tool type is equal to `scale`.
+     */
+    public rescaleValue: Vector3 = new Vector3(0.01, 0.01, 0.01);
 
     /** @hidden */
     public _selectedMeshes: Mesh[] = [];
@@ -279,6 +298,59 @@ export class FoliagePainter extends AbstractPaintingTool {
      * Paints the thin instance at the current position of the cloned mesh.
      */
     private _paint(): void {
+        if (this.toolType === "add") {
+            return this._addOrRemove();
+        }
+
+        if (this.toolType === "scale") {
+            return this._rescale();
+        }
+    }
+
+    /**
+     * Rescales the thin instances. Called on the tool type is equal to `scale`.
+     */
+    private _rescale(): void {
+        const radius = this._size * 0.5;
+
+        this._selectedMeshes.forEach((m) => {
+            if (!m.thinInstanceCount) {
+                return;
+            }
+
+            const targetMatrix = this._getFinalMatrix(m, this._pick!.pickedPoint!, Vector3.Up());
+            targetMatrix.decompose(targetScaling, targetRotation, targetPosition);
+
+            const matrices = this._existingWorldMatrices.get(m)!;
+
+            for (let i = 0, len = matrices.length; i < len; ++i) {
+                const matrix = matrices[i];
+
+                matrix.getTranslationToRef(translation);
+                targetScaledPosition.copyFrom(targetPosition);
+
+                if (Vector3.Distance(targetScaledPosition.multiplyInPlace(m.scaling), translation.multiplyInPlace(m.scaling)) < radius) {
+                    matrix.decompose(scaling, rotation, position);
+                    
+                    if (this._removing) {
+                        scaling.subtractInPlace(this.rescaleValue);
+                    } else {
+                        scaling.addInPlace(this.rescaleValue);
+                    }
+
+                    Matrix.ComposeToRef(scaling, rotation, position, matrix);
+                }
+            }
+
+            this._configureMeshMatrices(m, matrices);
+        });
+    }
+
+    /**
+     * Called when the user tries to add or removes instances.
+     * Called on the tool type is equal to `add`.
+     */
+    private _addOrRemove(): void {
         // Remove
         if (this._removing) {
             return this._selectedMeshes.forEach((m) => {
@@ -311,6 +383,9 @@ export class FoliagePainter extends AbstractPaintingTool {
         });
     }
 
+    /**
+     * Adds a thin instance at the given position.
+     */
     private _add(center: Vector3, map: Map<Mesh, Matrix[]>): unknown {
         const mesh = this._selectedMeshes[(this._selectedMeshes.length * Math.random()) >> 0];
 
@@ -386,6 +461,9 @@ export class FoliagePainter extends AbstractPaintingTool {
         existingWorldMatrices.push(targetMatrix);
     }
 
+    /**
+     * Called on the user wants to remove existing thin instances.
+     */
     private _remove(mesh: Mesh, absolutePosition: Vector3): void {
         const targetMatrix = this._getFinalMatrix(mesh, absolutePosition, Vector3.Up());
         targetMatrix.decompose(targetScaling, targetRotation, targetPosition);
@@ -402,7 +480,7 @@ export class FoliagePainter extends AbstractPaintingTool {
             for (let i = 0, len = matrices.length; i < len; ++i) {
                 const matrix = matrices[i];
 
-                matrix.getTranslationToRef(translation)
+                matrix.getTranslationToRef(translation);
                 targetScaledPosition.copyFrom(targetPosition);
 
                 if (Vector3.Distance(targetScaledPosition.multiplyInPlace(mesh.scaling), translation.multiplyInPlace(mesh.scaling)) < radius) {

@@ -9,7 +9,7 @@ import { Icon } from "../../../gui/icon";
 
 import { removeNodes } from "../tools/remove";
 
-export interface IGraphLabelProps {
+export interface IGraphContextMenuRemoveProps {
     /**
      * Defines the reference to the object to rename.
      */
@@ -24,7 +24,7 @@ export interface IGraphLabelProps {
  * Defines the component used to remove a node from the graph.
  * @param props defines the component's props.
  */
-export function GraphContextMenuRemove(props: IGraphLabelProps) {
+export function GraphContextMenuRemove(props: IGraphContextMenuRemoveProps) {
     const selectedNodes = props.editor.graph.state.selectedNodes.map((n) => n.nodeData) as Node[];
 
     if (!selectedNodes.length || !selectedNodes.find((n) => !n.metadata?.isLocked)) {

@@ -6,7 +6,8 @@ import * as React from "react";
 import { Position, ButtonGroup, Popover, Menu, MenuItem, Divider, Tag, Tooltip, Pre, AnchorButton, ProgressBar } from "@blueprintjs/core";
 
 import {
-    Node, TargetCamera, Vector3, Animation, Camera, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable, ReflectionProbe, Mesh,
+    Node, TargetCamera, Vector3, Animation, Camera, IParticleSystem, ParticleSystem, AbstractMesh, Sound, Observable, ReflectionProbe,
+    Mesh,
 } from "babylonjs";
 
 import { Editor } from "../editor";
@@ -26,6 +27,7 @@ import { SceneExporter } from "../project/scene-exporter";
 import { ScenePlayer } from "../../play/inline-play";
 
 import { PreviewCopyHelper } from "./preview/copy";
+// import { CameraPreview } from "./preview/camera-preview";
 
 export enum PreviewFocusMode {
     Target = 1,
@@ -91,6 +93,11 @@ export interface IPreviewState {
      * Defines the current play loading progress.
      */
     playLoadingProgress: number;
+
+    /**
+     * Defines wether or not the camera preview is visible.
+     */
+    cameraPreviewVisible: boolean;
 }
 
 export enum PreviewCanvasEventType {
@@ -131,6 +138,8 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     private _cameraTargetBeforeIsolation: Nullable<Vector3> = null;
     private _isolationBaseMeshesArray: Nullable<AbstractMesh[]> = null;
 
+    // private _cameraPreview: Nullable<CameraPreview> = null;
+
     private _searchBar: Omnibar;
     private _playIframe: HTMLIFrameElement;
     private _refHandler = {
@@ -166,6 +175,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
             isPlaying: false,
             isPlayingInIframe: false,
             playLoadingProgress: 1,
+            cameraPreviewVisible: false,
         };
     }
 
@@ -173,10 +183,15 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Renders the component.
      */
     public render(): React.ReactNode {
+        const activeCamera = this._editor.scene?.activeCameras?.[0] ?? this._editor.scene?.activeCamera;
+
         const cameras = (
             <Menu>
                 {this._editor.scene?.cameras.map((c) => (
-                    <MenuItem key={c.id} id={c.id} text={c.name} icon={this._editor.scene?.activeCamera === c ? <Icon src="check.svg" /> : null} onClick={() => SceneSettings.SetActiveCamera(this._editor, c)} />
+                    <MenuItem key={c.id} id={c.id} text={c.name} icon={activeCamera === c ? <Icon src="check.svg" /> : null} onClick={() => {
+                        // this._cameraPreview?.clear();
+                        SceneSettings.SetActiveCamera(this._editor, c);
+                    }} />
                 ))}
             </Menu>
         );
@@ -265,9 +280,17 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                     <div style={{ position: "absolute", top: "50%", left: "25%", width: "50%" }}>
                         {loadingProgress}
                     </div>
+                    {/* <CameraPreview ref={(r) => this._cameraPreview = r} editor={this._editor} /> */}
                 </div>
             </>
         );
+    }
+
+    /**
+     * Called on the component did mount.
+     */
+    public async componentDidMount(): Promise<void> {
+        // this._editor.selectedNodeObservable.add((n) => this._cameraPreview?.setSelectedNode(n));
     }
 
     /**

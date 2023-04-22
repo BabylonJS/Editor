@@ -38,7 +38,7 @@ export default class PlayPlugin extends AbstractEditorPlugin<IPlayPlugin> {
 
         // State
         this.state = { isReady: this.editor.isInitialized, isRunning: false };
-        
+
         // Register
         if (!this.editor.isInitialized) {
             this.editor.editorInitializedObservable.addOnce(() => {
@@ -58,16 +58,22 @@ export default class PlayPlugin extends AbstractEditorPlugin<IPlayPlugin> {
             const iframeUrl = WorkSpace.Workspace.customWebServer
                 ? WorkSpace.Workspace.customWebServer.url
                 : `http://localhost:${WorkSpace.Workspace.serverPort}/`;
-            
+
             content = (
-                <iframe ref={this._refHandler.getIFrame} src={iframeUrl} style={{ border: "none", width: "100%", height: "calc(100% - 25px)" }}></iframe>
+                <iframe
+                    src={iframeUrl}
+                    ref={this._refHandler.getIFrame}
+                    style={{ border: "none", width: "100%", height: "calc(100% - 25px)", pointerEvents: "auto" }}
+                    onMouseLeave={() => this.editor.runRenderLoop(true)}
+                    onMouseEnter={() => this.editor.runRenderLoop(false, false)}
+                />
             );
         } else {
             content = (
                 <NonIdealState
                     title="Stopped"
-                    description="Game is ready. Click restart button to run the game."
                     icon={<Icon src="square-full.svg" />}
+                    description="Game is ready. Click restart button to run the game."
                 />
             );
         }

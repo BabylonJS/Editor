@@ -197,6 +197,7 @@ export class SceneExporter {
 		scene.metadata = scene.metadata ?? {};
 		scene.metadata.postProcesses = {
 			ssao: { enabled: SceneSettings.IsSSAOEnabled(), json: SceneSettings.SSAOPipeline?.serialize() },
+			ssr: { enabled: SceneSettings.IsSSRPipelineEnabled(), json: SceneSettings.SSRPipeline?.serialize() },
 			screenSpaceReflections: { enabled: SceneSettings.IsScreenSpaceReflectionsEnabled(), json: SceneSettings.ScreenSpaceReflectionsPostProcess?.serialize() },
 			default: { enabled: SceneSettings.IsDefaultPipelineEnabled(), json: SceneSettings.SerializeDefaultPipeline() },
 			motionBlur: { enabled: SceneSettings.IsMotionBlurEnabled(), json: SceneSettings.MotionBlurPostProcess?.serialize() },
@@ -466,7 +467,7 @@ export class SceneExporter {
 					const path = join(animationGroupsPath, `${filenamify(ag.name)}.json`);
 
 					try {
-						await writeJSON(path, ag, { encoding: "utf-8" })
+						await writeJSON(path, ag, { encoding: "utf-8" });
 					} catch (e) {
 						editor.console.logError(`Failed to write animation group: ${path}`);
 					}
@@ -493,16 +494,6 @@ export class SceneExporter {
 		const geometriesPath = join(scenePath, "geometries");
 		const incrementalFolderExists = await pathExists(geometriesPath);
 
-		if (incrementalFolderExists) {
-			const incrementalFiles = await readdir(geometriesPath);
-
-			try {
-				await Promise.all(incrementalFiles.map((f) => remove(join(geometriesPath, f))));
-			} catch (e) {
-				editor.console.logError("Failed to remove incremental geometry file");
-			}
-		}
-
 		if (!WorkSpace.Workspace?.useIncrementalLoading) {
 			try {
 				await remove(geometriesPath);
@@ -517,7 +508,19 @@ export class SceneExporter {
 			const geometryRootPath = options?.geometryRootPath ?? `../${WorkSpace.GetProjectName()}/`;
 
 			await GeometryExporter.Init();
-			await GeometryExporter.ExportIncrementalGeometries(editor, geometriesPath, scene, true, geometryRootPath, task);
+			const geometries = await GeometryExporter.ExportIncrementalGeometries(editor, geometriesPath, scene, true, geometryRootPath, task);
+
+			try {
+				const outputGeometries = await readdir(geometriesPath);
+
+				for (const outputGeometry of outputGeometries) {
+					if (!geometries.find((g) => basename(g) === outputGeometry)) {
+						remove(join(geometriesPath, outputGeometry));
+					}
+				}
+			} catch (e) {
+				// Catch silently.
+			}
 		}
 
 		// Copy assets files
@@ -667,11 +670,11 @@ export class SceneExporter {
 							1 / 32,
 							// 1 / 16,
 						];
-	
+
 						for (const r of ratios) {
 							await this._CreateAutoLod(editor, path, r, extension, child.path, options);
 						}
-	
+
 						resolve();
 					}));
 				}
@@ -693,7 +696,7 @@ export class SceneExporter {
 	 */
 	private static async _CreateAutoLod(editor: Editor, path: string, ratio: number, extension: string, basePath: string, options?: IExportFinalSceneOptions): Promise<void> {
 		const lodDir = dirname(path);
-		const lodName = `${basename(path).replace(extension, "")}_${ratio.toString().replace(".", "")}${extension}`
+		const lodName = `${basename(path).replace(extension, "")}_${ratio.toString().replace(".", "")}${extension}`;
 		const lodPath = join(lodDir, lodName);
 
 		const setLodsMetadata = () => {

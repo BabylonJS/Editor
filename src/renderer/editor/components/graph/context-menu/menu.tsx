@@ -17,6 +17,7 @@ import { GraphContextMenuClone } from "./clone";
 import { GraphContextMenuExport } from "./export";
 import { GraphContextMenuRemove } from "./remove";
 import { GraphContextMenuCutPast } from "./cut-paste";
+import { GraphContextMenuSubMeshes } from "./sub-meshes";
 import { GraphContextMenuMergeMeshes } from "./merge-meshes";
 import { GraphContextMenuDoNotExport } from "./do-not-export";
 import { GraphContextMenuClearThinInstances } from "./thin-instances";
@@ -86,10 +87,16 @@ export class GraphContextMenu {
             menus.push(mergeMeshes, clearThinInstances, <MenuDivider />);
         }
 
+        const subMeshes = GraphContextMenuSubMeshes({ editor, object });
+        if (subMeshes) {
+            menus.push(subMeshes, <MenuDivider />);
+        }
+
         const remove = GraphContextMenuRemove({ editor, object });
         if (remove) {
             menus.push(remove);
         }
+
 
         ContextMenu.show((
             <Menu className={Classes.DARK}>

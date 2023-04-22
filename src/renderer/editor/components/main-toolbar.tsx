@@ -6,7 +6,7 @@ import { Undefinable } from "../../../shared/types";
 
 import * as React from "react";
 import Image from "antd/lib/image";
-import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent, Tag, Switch } from "@blueprintjs/core";
+import { ButtonGroup, Button, Popover, Position, Menu, MenuItem, MenuDivider, ContextMenu, Classes, Intent, Tag, Switch, Pre } from "@blueprintjs/core";
 
 import { AbstractMesh, Node, IParticleSystem, ReflectionProbe, ParticleSystem, GPUParticleSystem } from "babylonjs";
 
@@ -115,6 +115,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 }} id="toolbar-build-and-run-project" />
                 <MenuDivider />
                 <MenuItem text="Install Dependencies..." onClick={() => WorkSpace.InstallDependencies(this._editor)} />
+                <MenuItem text="Update Dependencies..." onClick={() => this._handleUpdateDependencies()} />
                 <MenuDivider />
                 <MenuItem text={<div>Run Project... <Tag intent={Intent.PRIMARY}>(CTRL+r)</Tag></div>} onClick={() => this._editor.runProject(EditorPlayMode.IntegratedBrowser, false)} />
                 <MenuDivider />
@@ -148,6 +149,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
 
         const view =
             <Menu>
+                <MenuItem text={<div>Use Last Camera <Tag intent={Intent.PRIMARY}>(ALT+c)</Tag></div>} icon={<Icon src="camera.svg" />} onClick={() => this._menuItemClicked("view:switch-old-camera")} />
+                <MenuDivider />
                 {/* <MenuItem text="Add Preview" icon={<Icon src="plus.svg" />} onClick={() => this._menuItemClicked("view:add-preview")} /> */}
                 <MenuItem text="Enable Post-Processes" icon={this._getCheckedIcon(this._editor.scene?.postProcessesEnabled)} onClick={() => this._menuItemClicked("view:pp-enabled")} />
                 <MenuItem text="Enable Fog" icon={this._getCheckedIcon(this._editor.scene?.fogEnabled)} onClick={() => this._menuItemClicked("view:fog-enabled")} />
@@ -159,7 +162,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuDivider />
                 <MenuItem text="Statistics" icon={<Icon src="stats.svg" />} onClick={() => this._menuItemClicked("view:stats")} />
                 <MenuDivider />
-                <MenuItem text={<div>Focus Selected Object <Tag intent={Intent.PRIMARY}>(CTRL+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target)} />
+                <MenuItem text={<div>Focus Selected Object <Tag intent={Intent.PRIMARY}>(f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target)} />
                 <MenuItem text={<div>Go To Selected Object <Tag intent={Intent.PRIMARY}>(Shift+f)</Tag></div>} onClick={() => this._editor.preview.focusSelectedNode(PreviewFocusMode.Target | PreviewFocusMode.Position)} />
                 <MenuDivider />
                 <MenuItem text="Webpack Logs..." icon={<Icon src="info.svg" />} onClick={() => this._menuItemClicked("view:webpack-logs")} />
@@ -320,7 +323,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 />
             );
 
-            return <MenuItem text={text} shouldDismissPopover={false} />
+            return <MenuItem text={text} shouldDismissPopover={false} />;
         });
 
         return (
@@ -384,6 +387,8 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
         // View
         if (family === "view") {
             switch (action) {
+                case "switch-old-camera": SceneSettings.LastUsedCamera && SceneSettings.SetActiveCamera(this._editor, SceneSettings.LastUsedCamera); break;
+
                 // case "add-preview": this._editor.addPreview(); break;
                 case "pp-enabled": this._editor.scene!.postProcessesEnabled = !this._editor.scene!.postProcessesEnabled; break;
                 case "fog-enabled": this._editor.scene!.fogEnabled = !this._editor.scene!.fogEnabled; break;
@@ -600,5 +605,26 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 height: "50%",
             },
         });
+    }
+
+    /**
+     * Called on the user wants to update the dependencies of a project.
+     */
+    private async _handleUpdateDependencies(): Promise<void> {
+        const editorVersion = this._editor._packageJson.dependencies["@babylonjs/core"];
+        const update = await Confirm.Show("Update Babylon.JS Version", (
+            <>
+                <p>
+                    Do you want to upgrade the Babylon.JS version of the project to match the one used by the Editor?
+                    Upgrading will trigger installation of dependencies and rebuild processes.
+                </p>
+                <Pre>New version: {editorVersion}</Pre>
+            </>
+        ));
+
+        if (update) {
+            await WorkSpace.MatchBabylonJSEditorVersion(editorVersion);
+            await WorkSpace.InstallAndBuild(this._editor);
+        }
     }
 }

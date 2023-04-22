@@ -7,8 +7,9 @@ import * as React from "react";
 import { AbstractEditorPlugin } from "../../editor/tools/plugin";
 
 import { Observable } from "babylonjs";
-import { GUIEditor } from "babylonjs-gui-editor";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
+
+const { GUIEditor } = require("babylonjs-gui-editor");
 
 export const title = "GUI Editor";
 

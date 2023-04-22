@@ -174,7 +174,10 @@ export class ShadowsInspector extends AbstractInspector<DirectionalLight | SpotL
                 <InspectorNumber object={cascadedShadowGenerator} property="bias" label="Bias" step={0.0000001} />
                 <InspectorNumber object={cascadedShadowGenerator} property="normalBias" label="Normal Bias" step={0.0000001} />
                 <InspectorNumber object={cascadedShadowGenerator} property="frustumEdgeFalloff" label="Frustum Edge Falloff" step={0.0000001} />
+
+                <InspectorNumber object={cascadedShadowGenerator} property="shadowMaxZ" label="Max Z" step={0.01} />
                 <InspectorBoolean object={cascadedShadowGenerator} property="stabilizeCascades" label="Stabilize Cascades" />
+                <InspectorBoolean object={cascadedShadowGenerator} property="freezeShadowCastersBoundingInfo" label="Freeze Shadow Casters BoundingInfo" />
 
                 <InspectorSection title="Percentage Closer Filtering">
                     <InspectorBoolean object={cascadedShadowGenerator} property="usePercentageCloserFiltering" label="Enabled" />

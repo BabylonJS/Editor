@@ -59,6 +59,7 @@ Welcome to the documentation of the Babylon.JS Editor. A series of tutorials are
 * `Ctrl+Shift+r` or `Command+Shift+r`: build and run the application/game
 * `Ctrl+z` or `Command+z`: Undo action
 * `Ctrl+y` or `Command+Shift+z`: Redo action
+* `Alt+c`: switch to last used camera in the preview
 
 ### In preview
 * `f`: focus the selected node

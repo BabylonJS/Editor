@@ -1,4 +1,4 @@
-import { AbstractMesh } from "babylonjs";
+import { AbstractMesh, PhysicsEngine } from "babylonjs";
 import { LiteGraph } from "litegraph.js";
 
 import { GraphNode, ICodeGenerationOutput, CodeGenerationOutputType } from "../node";
@@ -28,7 +28,7 @@ export class ApplyImpulse extends GraphNode {
         const mesh = this.getInputData(1) as AbstractMesh;
         if (!mesh) { return; }
 
-        mesh.physicsImpostor = scene.getPhysicsEngine()?.getImpostorForPhysicsObject(mesh) ?? null;
+        mesh.physicsImpostor = (scene.getPhysicsEngine() as PhysicsEngine)?.getImpostorForPhysicsObject(mesh) ?? null;
         mesh.applyImpulse(this.getInputData(2), this.getInputData(3));
 
         this.setOutputData(1, mesh);

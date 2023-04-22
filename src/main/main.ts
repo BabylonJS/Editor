@@ -254,6 +254,16 @@ export default class EditorApp {
 				],
 			},
 			{
+				label: "View",
+				submenu: [
+					{
+						label: "Use Last Camera",
+						accelerator: "Alt+C",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("switch-last-camera"),
+					}
+				],
+			},
+			{
 				label: "Project",
 				submenu: [
 					{

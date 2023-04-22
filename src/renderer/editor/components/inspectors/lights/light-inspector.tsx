@@ -1,10 +1,11 @@
 import * as React from "react";
 
-import { Light } from "babylonjs";
+import { BoundingSphere, Light, Material, Mesh, Vector3 } from "babylonjs";
 
 import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorColor } from "../../../gui/inspector/fields/color";
 import { InspectorNumber } from "../../../gui/inspector/fields/number";
+import { InspectorButton } from "../../../gui/inspector/fields/button";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorColorPicker } from "../../../gui/inspector/fields/color-picker";
 
@@ -43,6 +44,8 @@ export class LightInspector<T extends Light, S extends INodeInspectorState> exte
                 <InspectorNumber object={this.selectedObject} property="range" label="Range" step={0.01} />
                 <InspectorNumber object={this.selectedObject} property="radius" label="Radius" step={0.01} />
 
+                <InspectorButton label="Compute Range Excluded Meshes" small onClick={() => this._handleComputeRangeExcludedMeshes()} />
+
                 <InspectorSection title="Intensity">
                     <InspectorNumber object={this.selectedObject} property="intensity" label="Intensity" step={0.01} />
                     <InspectorList object={this.selectedObject} property="intensityMode" label="Mode" items={
@@ -77,6 +80,44 @@ export class LightInspector<T extends Light, S extends INodeInspectorState> exte
                 <MeshTransferComponent editor={this.editor} targetArray={this.selectedObject.excludedMeshes} />
             </InspectorSection>
         );
+    }
+
+    /**
+     * Called on the user wants to update the list of excluded meshes according to the current range of the light.
+     */
+    private _handleComputeRangeExcludedMeshes(): void {
+        this.selectedObject.computeWorldMatrix(true);
+        this.selectedObject.excludedMeshes = this.editor.scene!.meshes.filter((m) => !m._masterMesh && m.isVisible && m.isEnabled());
+
+        const absolutePosition = this.selectedObject.getAbsolutePosition();
+
+        this.editor.scene!.meshes.forEach((m) => {
+            m.computeWorldMatrix(true);
+
+            if (m instanceof Mesh && m.hasThinInstances) {
+                m.thinInstanceRefreshBoundingInfo(true, true, true);
+            } else {
+                m.refreshBoundingInfo(true, true);
+            }
+
+            const sphere = new BoundingSphere(
+                new Vector3().copyFrom(absolutePosition).add(new Vector3(-this.selectedObject.range)),
+                new Vector3().copyFrom(absolutePosition).add(new Vector3(this.selectedObject.range)),
+            );
+
+            const bb = m.getBoundingInfo().boundingBox;
+
+            if (bb.intersectsSphere(sphere)) {
+                const index = this.selectedObject.excludedMeshes.indexOf(m);
+                if (index !== -1) {
+                    this.selectedObject.excludedMeshes.splice(index, 1);
+                }
+            }
+
+            m.material?.markAsDirty(Material.LightDirtyFlag);
+        });
+
+        this.editor.inspector.refresh();
     }
 }
 

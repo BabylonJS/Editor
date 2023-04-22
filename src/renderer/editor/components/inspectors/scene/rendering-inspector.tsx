@@ -22,13 +22,18 @@ export interface IRendererInspectorState {
      */
     ssao2Enabled: boolean;
     /**
+     * Defines wether or not SSR is enabled.
+     */
+    ssrEnabled: boolean;
+    /**
      * Defines wether or not Motion Blur is enabled.
      */
     motionBlurEnabled: boolean;
     /**
      * Defines wether or not SSR is enabled.
+     * @deprecated
      */
-    ssrEnabled: boolean;
+    screenSpaceReflectionsEnabled: boolean;
     /**
      * Defines the configuration of the default pipleine.
      */
@@ -82,8 +87,9 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
 
         this.state = {
             ssao2Enabled: SceneSettings.IsSSAOEnabled(),
+            ssrEnabled: SceneSettings.IsSSRPipelineEnabled(),
             motionBlurEnabled: SceneSettings.IsMotionBlurEnabled(),
-            ssrEnabled: SceneSettings.IsScreenSpaceReflectionsEnabled(),
+            screenSpaceReflectionsEnabled: SceneSettings.IsScreenSpaceReflectionsEnabled(),
             default: this._getDefaultState(),
         };
     }
@@ -95,9 +101,10 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
         return (
             <>
                 {this._getSSAO2Inspector()}
-                {this._getMotionBlurInspector()}
                 {this._getSSRInspector()}
+                {this._getMotionBlurInspector()}
                 {this._getDefaultInspector()}
+                {this._getScreenSpaceReflectionsInspector()}
             </>
         );
     }
@@ -131,6 +138,59 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
         );
     }
 
+    private _getSSRInspector(): React.ReactNode {
+        const enable = <InspectorBoolean object={this.state} property="ssrEnabled" label="Enabled" onChange={(v) => {
+            SceneSettings.SetSSREnabled(this.editor, this.state.ssrEnabled);
+            this.setState({ ssrEnabled: v });
+        }} />
+
+        if (!this.state.ssrEnabled || !SceneSettings.SSRPipeline) {
+            return (
+                <InspectorSection title="SSR">
+                    {enable}
+                </InspectorSection>
+            );
+        }
+
+        return (
+            <InspectorSection title="SSR">
+                {enable}
+
+                <InspectorNumber object={SceneSettings.SSRPipeline} property="step" label="Step" step={0.01} min={0} />
+                <InspectorNumber object={SceneSettings.SSRPipeline} property="thickness" label="Thickness" step={0.01} />
+                <InspectorNumber object={SceneSettings.SSRPipeline} property="strength" label="Strength" step={0.01} min={0} />
+                <InspectorNumber object={SceneSettings.SSRPipeline} property="reflectionSpecularFalloffExponent" label="Reflection Specular Falloff Exponent" step={0.01} min={0} />
+                <InspectorNumber object={SceneSettings.SSRPipeline} property="maxSteps" label="Max Steps" step={0.01} min={0} />
+                <InspectorNumber object={SceneSettings.SSRPipeline} property="maxDistance" label="Max Distance" step={0.01} min={0} />
+
+                <InspectorSection title="Roughness">
+                    <InspectorNumber object={SceneSettings.SSRPipeline} property="roughnessFactor" label="Roughness Factors" step={0.01} min={0} max={1} />
+                    <InspectorNumber object={SceneSettings.SSRPipeline} property="reflectivityThreshold" label="Reflectivity Threshold" step={0.01} min={0} />
+                    <InspectorNumber object={SceneSettings.SSRPipeline} property="blurDispersionStrength" label="Blur Dispersion Strength" step={0.01} min={0} />
+                </InspectorSection>
+
+                <InspectorSection title="Options">
+                    <InspectorBoolean object={SceneSettings.SSRPipeline} property="clipToFrustum" label="Clip To Frustum" />
+                    <InspectorBoolean object={SceneSettings.SSRPipeline} property="enableSmoothReflections" label="Enable Smooth Reflections" />
+                    <InspectorBoolean object={SceneSettings.SSRPipeline} property="enableAutomaticThicknessComputation" label="Enable Automatic Thickness Computation" />
+
+                    <InspectorBoolean object={SceneSettings.SSRPipeline} property="attenuateFacingCamera" label="Attenuate Facing Camera" />
+                    <InspectorBoolean object={SceneSettings.SSRPipeline} property="attenuateScreenBorders" label="Attenuate Screen Borders" />
+                    <InspectorBoolean object={SceneSettings.SSRPipeline} property="attenuateIntersectionDistance" label="Attenuate Intersection Distance" />
+                    <InspectorBoolean object={SceneSettings.SSRPipeline} property="attenuateBackfaceReflection" label="Attenuate Backface Reflection" />
+                </InspectorSection>
+
+                <InspectorSection title="Advanced">
+                    <InspectorNumber object={SceneSettings.SSRPipeline} property="blurDownsample" label="Blur Down Sample" step={1} min={1} max={5} />
+                    <InspectorNumber object={SceneSettings.SSRPipeline} property="selfCollisionNumSkip" label="Self Collision Num Skip" step={1} min={1} max={3} />
+                    <InspectorNumber object={SceneSettings.SSRPipeline} property="ssrDownsample" label="SSR Down Sample" step={1} min={1} max={5} />
+                    <InspectorNumber object={SceneSettings.SSRPipeline} property="backfaceDepthTextureDownsample" label="Backface Depth Texture Sample" step={1} min={1} max={5} />
+
+                </InspectorSection>
+            </InspectorSection>
+        );
+    }
+
     /**
      * Returns the Motion Blur inspector used to configure the Motion Blur post-process.
      */
@@ -160,23 +220,24 @@ export class RenderingInspector extends AbstractInspector<Scene, IRendererInspec
 
     /**
      * Returns the SSE inspector used to configure the Screen-Space-Reflections post-process.
+     * @deprecated
      */
-    private _getSSRInspector(): React.ReactNode {
-        const enable = <InspectorBoolean object={this.state} property="ssrEnabled" label="Enabled" onChange={(v) => {
-            SceneSettings.SetScreenSpaceReflectionsEnabled(this.editor, this.state.ssrEnabled);
-            this.setState({ ssrEnabled: v });
+    private _getScreenSpaceReflectionsInspector(): React.ReactNode {
+        const enable = <InspectorBoolean object={this.state} property="screenSpaceReflectionsEnabled" label="Enabled" onChange={(v) => {
+            SceneSettings.SetScreenSpaceReflectionsEnabled(this.editor, this.state.screenSpaceReflectionsEnabled);
+            this.setState({ screenSpaceReflectionsEnabled: v });
         }} />
 
-        if (!this.state.ssrEnabled || !SceneSettings.ScreenSpaceReflectionsPostProcess) {
+        if (!this.state.screenSpaceReflectionsEnabled || !SceneSettings.ScreenSpaceReflectionsPostProcess) {
             return (
-                <InspectorSection title="Screen Space Reflections">
+                <InspectorSection title="Screen Space Reflections (deprecated)">
                     {enable}
                 </InspectorSection>
             );
         }
 
         return (
-            <InspectorSection title="Screen Space Reflections">
+            <InspectorSection title="Screen Space Reflections (deprecated)">
                 {enable}
 
                 <InspectorNumber object={SceneSettings.ScreenSpaceReflectionsPostProcess} property="strength" label="Strength" step={0.01} />

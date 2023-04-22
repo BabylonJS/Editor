@@ -1,6 +1,6 @@
 import { dirname, join } from "path";
-import { pathExists, readJSON } from "fs-extra";
 import { ipcRenderer, shell, webFrame } from "electron";
+import { copyFile, mkdir, pathExists, readJSON } from "fs-extra";
 
 import { IPCRequests, IPCResponses } from "../../shared/ipc";
 import { IStringDictionary, Nullable, Undefinable } from "../../shared/types";
@@ -735,21 +735,21 @@ export class Editor {
 
         if (!workspace.customWebServer) {
             const task = this.addTaskFeedback(0, "Running Server");
-    
+
             const httpsConfig = https ? workspace.https : undefined;
             const serverResult = await IPCTools.CallWithPromise<{ ips?: string[]; error?: string }>(IPCRequests.StartGameServer, WorkSpace.DirPath!, workspace.serverPort, httpsConfig);
-    
+
             this.updateTaskFeedback(task, 100);
             this.closeTaskFeedback(task, 500);
-    
+
             if (serverResult?.error) {
                 return this.notifyMessage(`Failed to run server: ${serverResult.error}`, 3000, null, "danger");
             }
-    
+
             const protocol = https ? "https" : "http";
-    
+
             this.console.logSection("Running Game Server");
-    
+
             if (serverResult.ips) {
                 this.console.logCustom(
                     <>
@@ -799,10 +799,12 @@ export class Editor {
      * Sets wether or not the editor's scene should be rendered.
      * @param render defines wether or not the render loop should render the editor's scene.
      */
-    public runRenderLoop(render: boolean): void {
+    public runRenderLoop(render: boolean, clear: boolean = true): void {
         if (!render) {
             this.engine?.stopRenderLoop();
-            this.engine?.clear(new Color4(0, 0, 0, 1), true, true, true);
+            if (clear) {
+                this.engine?.clear(new Color4(0, 0, 0, 1), true, true, true);
+            }
         } else {
             this.engine?.runRenderLoop(() => {
                 this.scene!.render();
@@ -873,6 +875,7 @@ export class Editor {
 
         // Post-processes
         SceneSettings.GetSSAORenderingPipeline(this);
+        SceneSettings.GetSSRRenderingPipeline(this);
         SceneSettings.GetDefaultRenderingPipeline(this);
 
         // Physics
@@ -941,7 +944,7 @@ export class Editor {
         if (WorkSpace.DirPath) {
             try {
                 const tsconfig = await readJSON(join(WorkSpace.DirPath, "tsconfig.json"), { encoding: "utf-8" });
-                Object.assign(compilerOptions, tsconfig.compilerOptions ?? { });
+                Object.assign(compilerOptions, tsconfig.compilerOptions ?? {});
             } catch (e) {
                 this.console.logWarning(`Failed to get tsconfig.json configuration: ${e.message}`);
             }
@@ -995,7 +998,7 @@ export class Editor {
             }
 
             let forceInstall = false;
-            
+
             const editorVersion = this._packageJson.dependencies["@babylonjs/core"];
             const matchesVersions = await WorkSpace.MatchesEditorBabylonJSMajorVersion(editorVersion);
             if (!matchesVersions) {
@@ -1020,6 +1023,23 @@ export class Editor {
             const hasPackageJson = await pathExists(join(WorkSpace.DirPath!, "package.json"));
             if (forceInstall || !hasNodeModules && hasPackageJson) {
                 await WorkSpace.InstallAndBuild(this);
+            }
+
+            // Copy node_modules
+            try {
+                const nodeModulesOutput = join(WorkSpace.DirPath!, "node_modules/babylonjs-editor");
+
+                if (!await pathExists(nodeModulesOutput)) {
+                    await mkdir(nodeModulesOutput);
+                }
+
+                await copyFile(join(AppTools.GetAppPath(), "module/index.d.ts"), join(nodeModulesOutput, "index.d.ts"));
+                await copyFile(join(AppTools.GetAppPath(), "module/package.json"), join(nodeModulesOutput, "package.json"));
+            } catch (e) {
+                this.console.logError(`Failed to generate "babylonjs-editor" package in node_modules`);
+                if (e.message) {
+                    this.console.logError(e.message);
+                }
             }
 
             // Watch typescript project.
@@ -1209,6 +1229,9 @@ export class Editor {
 
         // Search
         ipcRenderer.on("search", () => this.preview.showSearchBar());
+
+        // View
+        ipcRenderer.on("switch-last-camera", () => SceneSettings.LastUsedCamera && SceneSettings.SetActiveCamera(this, SceneSettings.LastUsedCamera));
 
         // Project
         ipcRenderer.on("build-project", () => WorkSpace.BuildProject(this));
@@ -1469,7 +1492,7 @@ export class Editor {
                 } catch (e) {
                     exports = require(p.path);
                 }
-                
+
                 const plugin = exports.registerEditorPlugin(this, {
                     pluginAbsolutePath: fromWorkspace ? join(WorkSpace.DirPath!, "node_modules", p.path) : p.path,
                 } as IPluginConfiguration) as IPlugin;

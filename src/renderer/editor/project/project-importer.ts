@@ -6,7 +6,8 @@ import { Nullable } from "../../../shared/types";
 import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
-    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe, PostProcess,
+    AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe,
+    PostProcess, PhysicsEngine, VideoTexture,
 } from "babylonjs";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
@@ -36,6 +37,8 @@ import AssetsWorker from "../workers/workers/assets";
 import { AssetsBrowserItemHandler } from "../components/assets-browser/files/item-handler";
 
 export class ProjectImporter {
+    private static _VideoExtensions: string[] = [".mp4", ".webm"];
+
     /**
      * Imports the project located at the given path.
      * @param editor the editor reference.
@@ -95,7 +98,7 @@ export class ProjectImporter {
         // Configure scene
         ProjectHelpers.ImportSceneSettings(editor.scene!, project.scene, rootUrl);
 
-        const physicsEngine = editor.scene!.getPhysicsEngine();
+        const physicsEngine = editor.scene!.getPhysicsEngine() as PhysicsEngine;
         if (physicsEngine) {
             // Remove physics engine steps
             physicsEngine._step = () => { };
@@ -499,6 +502,11 @@ export class ProjectImporter {
             SceneSettings.SetSSAOEnabled(editor, project.postProcesses.ssao.enabled);
         }
 
+        if (project.postProcesses.ssr?.json) {
+            SerializationHelper.Parse(() => SceneSettings.SSRPipeline, project.postProcesses.ssr.json, editor.scene!, rootUrl);
+            SceneSettings.SetSSREnabled(editor, project.postProcesses.ssr.enabled);
+        }
+
         if (project.postProcesses.screenSpaceReflections?.json) {
             SceneSettings.SetScreenSpaceReflectionsEnabled(editor, project.postProcesses.screenSpaceReflections.enabled);
             if (SceneSettings.ScreenSpaceReflectionsPostProcess) {
@@ -661,7 +669,7 @@ export class ProjectImporter {
         const result = await SceneLoader.ImportMeshAsync("", rootUrl, filename, editor.scene, null, ".babylon");
         editor.console.logInfo(`Parsed mesh "${name}"`);
 
-        const allMeshes: { mesh: Mesh; geometryId: string; parentId?: string; instances?: string[]; uniqueId: number; instancesUniqueIds?: number[] }[] = [];
+        const allMeshes: { mesh: Mesh; geometryId: string; parentId?: string; instances?: string[]; uniqueId: number; instancesUniqueIds?: number[]; }[] = [];
 
         result.meshes.forEach((mesh, index) => {
             if (!(mesh instanceof Mesh)) { return; }
@@ -829,21 +837,36 @@ export class ProjectImporter {
             if (!texture) {
                 const sourceName = source.name;
                 const extension = extname(source.name).toLowerCase();
-                if (extension === ".3dl") {
-                    source.name = join(rootUrl, source.name);
-                }
 
-                texture = textureParser(source, scene, rootUrl);
+                if (ProjectImporter._VideoExtensions.includes(extension)) {
+                    const videoTexture = SerializationHelper.Parse(() => new VideoTexture(source.name, rootUrl + source.name, scene), source, scene, rootUrl);
 
-                if (texture) {
-                    if (extension === ".3dl") {
-                        texture.name = sourceName;
-                        texture.metadata = source.metadata;
+                    if (videoTexture) {
+                        if (source.samplingMode) {
+                            if (videoTexture.samplingMode !== source.samplingMode) {
+                                videoTexture.updateSamplingMode(source.samplingMode);
+                            }
+                        }
                     }
 
-                    texture.metadata ??= {};
-                    texture.metadata.ktx2CompressedTextures ??= {};
-                    texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;
+                    texture = videoTexture;
+                } else {
+                    if (extension === ".3dl") {
+                        source.name = join(rootUrl, source.name);
+                    }
+
+                    texture = textureParser(source, scene, rootUrl);
+
+                    if (texture) {
+                        if (extension === ".3dl") {
+                            texture.name = sourceName;
+                            texture.metadata = source.metadata;
+                        }
+
+                        texture.metadata ??= {};
+                        texture.metadata.ktx2CompressedTextures ??= {};
+                        texture.metadata.ktx2CompressedTextures.isUsingCompressedTexture = false;
+                    }
                 }
             }
 

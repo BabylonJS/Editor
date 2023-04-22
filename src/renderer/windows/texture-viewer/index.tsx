@@ -20,7 +20,9 @@ export interface ITextureViewerState {
 
 export const title = "Texture Viewer";
 
-export default class TextureViewerWindow extends React.Component<{ }, ITextureViewerState> {
+export default class TextureViewerWindow extends React.Component<{}, ITextureViewerState> {
+    private static _VideoExtensions: string[] = [".mp4", ".webm"];
+
     /**
      * Constructor
      * @param props the component's props.
@@ -46,15 +48,25 @@ export default class TextureViewerWindow extends React.Component<{ }, ITextureVi
             );
         }
 
+        const extension = extname(this.state.path).toLowerCase();
+        if (TextureViewerWindow._VideoExtensions.includes(extension)) {
+            return (
+                <video autoPlay controls style={{ width: "100%", height: "100%", objectFit: "contain", background: "black" }} >
+                    <source src={this.state.path} />
+                </video>
+            );
+        }
+
         return (
             <Image
                 width="100%"
                 height="100%"
                 preview={{
                     visible: true,
+                    src: this.state.path,
                     title: this.state.path,
                     onVisibleChange: (v) => !v && window.close(),
-                    src: this.state.path, style: { width: "100%", height: "100%", objectFit: "contain", background: "black" }
+                    style: { width: "100%", height: "100%", objectFit: "contain", background: "black" }
                 }}
             />
         );

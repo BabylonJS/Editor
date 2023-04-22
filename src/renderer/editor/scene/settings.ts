@@ -1,6 +1,7 @@
 import {
     Camera, ArcRotateCamera, Vector3, SSAO2RenderingPipeline, DefaultRenderingPipeline,
-    SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess, FreeCamera, Color4, Vector2, ColorCurves, ColorGradingTexture,
+    SerializationHelper, PostProcessRenderPipeline, MotionBlurPostProcess, ScreenSpaceReflectionPostProcess,
+    FreeCamera, Color4, Vector2, ColorCurves, ColorGradingTexture, SSRRenderingPipeline,
 } from "babylonjs";
 import { join } from "path";
 
@@ -20,6 +21,15 @@ export class SceneSettings {
      */
     public static Camera: Nullable<ArcRotateCamera | EditorCamera> = null;
     /**
+     * Defines the reference to the last used camera.
+     */
+    public static LastUsedCamera: Nullable<Camera> = null;
+
+    /**
+     * Defines the reference to the Screen Space Reflections rendering pipeline.
+     */
+    public static SSRPipeline: Nullable<SSRRenderingPipeline> = null;
+    /**
      * Defines the reference to the SSAO rendering pipeline.
      */
     public static SSAOPipeline: Nullable<SSAO2RenderingPipeline> = null;
@@ -36,6 +46,7 @@ export class SceneSettings {
      */
     public static MotionBlurPostProcess: Nullable<MotionBlurPostProcess> = null;
 
+    private static _SSRPipelineEnabled: boolean = false;
     private static _SSAOPipelineEnabled: boolean = true;
     private static _ScreenSpaceReflectionsEnabled: boolean = false;
     private static _DefaultPipelineEnabled: boolean = true;
@@ -86,7 +97,7 @@ export class SceneSettings {
         this.Camera?.dispose();
 
         const camera = new EditorCamera("Editor Camera", this.Camera?.position ?? Vector3.Zero(), editor.scene!);
-        camera.setTarget(this.Camera?.target ?? Vector3.Zero())
+        camera.setTarget(this.Camera?.target ?? Vector3.Zero());
         camera.attachControl(editor.scene!.getEngine().getRenderingCanvas()!, true);
         camera.inertia = 0.5;
         camera.angularSensibility = 500;
@@ -135,6 +146,8 @@ export class SceneSettings {
         const scene = camera.getScene();
         if (camera === scene.activeCamera) { return; }
 
+        this.LastUsedCamera = scene.activeCamera;
+
         if (scene.activeCamera) {
             scene.activeCamera.detachControl();
         }
@@ -143,6 +156,8 @@ export class SceneSettings {
 
         this.AttachControl(editor, camera);
         this.ResetPipelines(editor);
+
+        editor.notifyMessage(`Switched to camera "${camera.name}"`, 2000);
     }
 
     /**
@@ -170,7 +185,7 @@ export class SceneSettings {
     public static GetSSAORenderingPipeline(editor: Editor): SSAO2RenderingPipeline {
         if (this.SSAOPipeline) { return this.SSAOPipeline; }
 
-        const ssao = new SSAO2RenderingPipeline("ssao", editor.scene!, { ssaoRatio: 0.5, blurRatio: 0.5 }, this._SSAOPipelineEnabled ? [editor.scene!.activeCamera!] : [], false);
+        const ssao = new SSAO2RenderingPipeline("ssao", editor.scene!, { ssaoRatio: 0.5, blurRatio: 0.5 }, this._SSAOPipelineEnabled ? editor.scene?.cameras : [], false);
         ssao.radius = 3.5;
         ssao.totalStrength = 1.3;
         ssao.expensiveBlur = true;
@@ -200,13 +215,49 @@ export class SceneSettings {
     }
 
     /**
+     * Returns the SSR rendering pipeline.
+     * @param editor the editor reference.
+     */
+    public static GetSSRRenderingPipeline(editor: Editor): SSRRenderingPipeline {
+        if (this.SSRPipeline) {
+            return this.SSRPipeline;
+        }
+
+        const ssr = new SSRRenderingPipeline("ssr", editor.scene!, this._SSRPipelineEnabled ? editor.scene?.cameras : [], false);
+        this.SSRPipeline = ssr;
+
+        return ssr;
+    }
+
+    /**
+     * Returns wether or not SSR pipeline is enabled.
+     */
+    public static IsSSRPipelineEnabled(): boolean {
+        return this._SSRPipelineEnabled;
+    }
+
+    /**
+     * Sets wether or not SSR is enabled
+     * @param editor the editor reference.
+     * @param enabled wether or not the SSR pipeline is enabled.
+     */
+    public static SetSSREnabled(editor: Editor, enabled: boolean): void {
+        if (this._SSRPipelineEnabled === enabled) {
+            return;
+        }
+
+        this._SSRPipelineEnabled = enabled;
+        this.ResetPipelines(editor);
+    }
+
+    /**
      * Returns the default rendering pipeline.
      * @param editor the editor reference.
      */
     public static GetDefaultRenderingPipeline(editor: Editor): DefaultRenderingPipeline {
         if (this.DefaultPipeline) { return this.DefaultPipeline; }
 
-        const pipeline = new DefaultRenderingPipeline("default", true, editor.scene!, this._DefaultPipelineEnabled ? [editor.scene!.activeCamera!] : [], true);
+        const pipeline = new DefaultRenderingPipeline("default", true, editor.scene!, this._DefaultPipelineEnabled ? editor.scene?.cameras : [], true);
         // const curve = new ColorCurves();
         // curve.globalHue = 200;
         // curve.globalDensity = 80;
@@ -404,6 +455,9 @@ export class SceneSettings {
         if (this.MotionBlurPostProcess) { return this.MotionBlurPostProcess; }
 
         this.MotionBlurPostProcess = new MotionBlurPostProcess("motionBlur", editor.scene!, 1.0, editor.scene!.activeCamera, undefined, undefined, undefined, undefined, undefined, false);
+
+        editor.scene?.cameras.forEach((c) => !c._postProcesses.includes(this.MotionBlurPostProcess!) && c.attachPostProcess(this.MotionBlurPostProcess!));
+
         return this.MotionBlurPostProcess;
     }
 
@@ -432,7 +486,10 @@ export class SceneSettings {
     public static GetScreenSpaceReflectionsPostProcess(editor: Editor): ScreenSpaceReflectionPostProcess {
         if (this.ScreenSpaceReflectionsPostProcess) { return this.ScreenSpaceReflectionsPostProcess; }
 
-        this.ScreenSpaceReflectionsPostProcess = new ScreenSpaceReflectionPostProcess("ssr", editor.scene!, 1.0, editor.scene!.activeCamera!, undefined, undefined, undefined, undefined, undefined, false);
+        this.ScreenSpaceReflectionsPostProcess = new ScreenSpaceReflectionPostProcess("ssr", editor.scene!, 1.0, editor.scene!.activeCamera, undefined, editor.engine!, undefined, undefined, undefined, false);
+
+        editor.scene?.cameras.forEach((c) => !c._postProcesses.includes(this.ScreenSpaceReflectionsPostProcess!) && c.attachPostProcess(this.ScreenSpaceReflectionsPostProcess!));
+
         return this.ScreenSpaceReflectionsPostProcess;
     }
 
@@ -460,14 +517,21 @@ export class SceneSettings {
      */
     public static ResetPipelines(editor: Editor): void {
         editor.scene!.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline("ssao", editor.scene!.cameras);
+        editor.scene!.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline("ssr", editor.scene!.cameras);
         editor.scene!.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline("default", editor.scene!.cameras);
 
         const ssrSource = this.ScreenSpaceReflectionsPostProcess?.serialize();
+        if (this.ScreenSpaceReflectionsPostProcess) {
+            editor.scene!.cameras.forEach((c) => c.detachPostProcess(this.ScreenSpaceReflectionsPostProcess!));
+        }
         this.ScreenSpaceReflectionsPostProcess?.dispose(editor.scene!.activeCamera!);
         this.ScreenSpaceReflectionsPostProcess = null;
 
         const motionBlurSource = this.MotionBlurPostProcess?.serialize();
-        this.MotionBlurPostProcess?.dispose(editor.scene!.activeCamera!);
+        if (this.MotionBlurPostProcess) {
+            editor.scene!.cameras.forEach((c) => c.detachPostProcess(this.MotionBlurPostProcess!));
+        }
+        this.MotionBlurPostProcess?.dispose();
         this.MotionBlurPostProcess = null;
 
         // SSAO
@@ -475,6 +539,7 @@ export class SceneSettings {
             const source = this.SSAOPipeline.serialize();
             this.SSAOPipeline.dispose(false);
             this.SSAOPipeline = null;
+
             try {
                 this.GetSSAORenderingPipeline(editor);
                 SerializationHelper.Parse(() => this.SSAOPipeline, source, editor.scene!);
@@ -486,7 +551,7 @@ export class SceneSettings {
             }
         }
 
-        // Screen spsace reflections
+        // Screen spsace reflections @deprecated
         if (this._ScreenSpaceReflectionsEnabled) {
             try {
                 this.GetScreenSpaceReflectionsPostProcess(editor);
@@ -496,6 +561,23 @@ export class SceneSettings {
                 editor.scene!.render();
             } catch (e) {
                 this.ScreenSpaceReflectionsPostProcess!.dispose(editor.scene!.activeCamera!);
+            }
+        }
+
+        // SSR
+        if (this.SSRPipeline) {
+            const source = this.SSRPipeline.serialize();
+            this.SSRPipeline.dispose(false);
+            this.SSRPipeline = null;
+
+            try {
+                this.GetSSRRenderingPipeline(editor);
+                SerializationHelper.Parse(() => this.SSRPipeline, source, editor.scene!);
+                editor.scene!.render();
+            } catch (e) {
+                this._DisposePipeline(editor, this.SSRPipeline);
+                editor.console.logError("Failed to attach SSR rendering pipeline to camera.");
+                editor.console.logError(e.message);
             }
         }
 

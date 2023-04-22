@@ -67,7 +67,7 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 	 */
 	private _getAvailablePlugins(): IRegisteredPlugin[] {
 		const plugins = this.props.preferences.state.editor.plugins?.slice() ?? [];
-		
+
 		// Add plugins from workspace
 		const workspace = this.props.preferences.state.workspace;
 		if (workspace?.plugins) {
@@ -118,6 +118,8 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 	 * Called on the user wants to add a new plugin from the file system.
 	 */
 	private async _handleAddPluginFromFileSystem(): Promise<void> {
+		this.props.preferences.state.editor.plugins ??= [];
+
 		const plugins = this.props.preferences.state.editor.plugins;
 		if (!plugins) {
 			return;
@@ -229,7 +231,7 @@ export class PluginsPreferencesPanel extends React.Component<IPreferencesPanelPr
 
 		editorProcess.terminal.loadAddon(fitAddon);
 		editorProcess.terminal.open(div);
-		
+
 		requestAnimationFrame(() => {
 			editorProcess.terminal.focus();
 			setTimeout(() => fitAddon.fit(), 1000);

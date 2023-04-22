@@ -122,6 +122,10 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
             default: break;
         }
 
+        if (this.selectedObject.loadingError) {
+            path = "../css/svg/question-mark.svg";
+        }
+
         const size = this.selectedObject.getSize();
         const baseSize = this.selectedObject.getBaseSize();
 
@@ -307,7 +311,13 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
         // Update preview img
         if (this._previewImgRef) {
             this._previewImgRef.src = "";
-            this._previewImgRef.src = join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name) + `?dummy=${Date.now()}`;
+
+            const path = join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name);
+            if (await pathExists(path)) {
+                this._previewImgRef.src = join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name) + `?dummy=${Date.now()}`;
+            } else {
+                this._previewImgRef.src = "../css/svg/question-mark.svg"
+            }
         }
 
         this.editor.assetsBrowser._files?.refresh();
@@ -354,10 +364,10 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
                         if (!(await pathExists(compressedTexturesDest))) {
                             await KTXTools.CompressTexture(this.editor, this.selectedObject.url!, compressedTexturesDest, ktxFormat);
                         }
-    
+
                         const relativeKtxTexturePath = KTXTools.GetKtxFileName(this.selectedObject.name, ktxFormat);
                         const absoluteKtxTexturePath = join(compressedTexturesDest, basename(relativeKtxTexturePath));
-    
+
                         this.selectedObject.updateURL(absoluteKtxTexturePath);
                     } else {
                         this.selectedObject.updateURL(this.selectedObject.url!);
