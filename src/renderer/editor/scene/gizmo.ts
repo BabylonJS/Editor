@@ -57,7 +57,7 @@ export class SceneGizmo {
                 this.setAttachedNode(null);
                 this._currentGizmo.attachedNode = null;
             }
-        })
+        });
     }
 
     /**
@@ -170,20 +170,20 @@ export class SceneGizmo {
         }
 
         if (node instanceof Mesh && node.skeleton) {
-            // this._skeletonViewer = new SkeletonViewer(node.skeleton, node, node.getScene(), true, (node.renderingGroupId > 0 ) ? node.renderingGroupId + 1 : 1, {
-            //     pauseAnimations: false, 
-            //     returnToRest: false, 
-            //     computeBonesUsingShaders: true,
-            //     useAllBones: false,
-            //     displayMode: SkeletonViewer.DISPLAY_SPHERE_AND_SPURS,
-            //     displayOptions: {
-            //         sphereBaseSize: 1,
-            //         sphereScaleUnit: 10, 
-            //         sphereFactor: 0.9, 
-            //         midStep: 0.1,
-            //         midStepFactor: 0.05,
-            //     }
-            // });
+            this._skeletonViewer = new SkeletonViewer(node.skeleton, node, node.getScene(), true, (node.renderingGroupId > 0 ) ? node.renderingGroupId + 1 : 1, {
+                pauseAnimations: false, 
+                returnToRest: false, 
+                computeBonesUsingShaders: true,
+                useAllBones: false,
+                displayMode: SkeletonViewer.DISPLAY_SPHERE_AND_SPURS,
+                displayOptions: {
+                    sphereBaseSize: 1,
+                    sphereScaleUnit: 10, 
+                    sphereFactor: 0.9, 
+                    midStep: 0.1,
+                    midStepFactor: 0.05,
+                }
+            });
         }
 
         // Light?

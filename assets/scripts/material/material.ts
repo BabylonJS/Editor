@@ -1,5 +1,5 @@
 import {
-	Scene, PushMaterial, MaterialDefines, Effect, Tools, Color3, BaseTexture, SerializationHelper,
+	Scene, PushMaterial, MaterialDefines, Effect, Tools, Color3, BaseTexture, SerializationHelper, bindClipPlane,
 	SubMesh, Matrix, AbstractMesh, Mesh, MaterialHelper, MaterialFlags, EffectFallbacks, VertexBuffer, IAnimatable,
 	RegisterClass, IEffectCreationOptions, Nullable, serialize, serializeAsTexture, expandToProperty, serializeAsColor3, bindClipPlane,
 } from "@babylonjs/core";
@@ -242,7 +242,7 @@ export class /*{__shader_class_name__}*/AMaterial extends PushMaterial {
             }
 
             // Clip plane
-            bindClipPlane(this._activeEffect, this, scene);
+            bindClipPlane(effect, this, scene);
 
             // Point size
             if (this.pointsCloud) {

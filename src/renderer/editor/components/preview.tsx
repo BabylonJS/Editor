@@ -27,7 +27,7 @@ import { SceneExporter } from "../project/scene-exporter";
 import { ScenePlayer } from "../../play/inline-play";
 
 import { PreviewCopyHelper } from "./preview/copy";
-// import { CameraPreview } from "./preview/camera-preview";
+import { CameraPreview } from "./preview/camera-preview";
 
 export enum PreviewFocusMode {
     Target = 1,
@@ -138,7 +138,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
     private _cameraTargetBeforeIsolation: Nullable<Vector3> = null;
     private _isolationBaseMeshesArray: Nullable<AbstractMesh[]> = null;
 
-    // private _cameraPreview: Nullable<CameraPreview> = null;
+    private _cameraPreview: Nullable<CameraPreview> = null;
 
     private _searchBar: Omnibar;
     private _playIframe: HTMLIFrameElement;
@@ -280,7 +280,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
                     <div style={{ position: "absolute", top: "50%", left: "25%", width: "50%" }}>
                         {loadingProgress}
                     </div>
-                    {/* <CameraPreview ref={(r) => this._cameraPreview = r} editor={this._editor} /> */}
+                    <CameraPreview ref={(r) => this._cameraPreview = r} editor={this._editor} />
                 </div>
             </>
         );
@@ -290,7 +290,7 @@ export class Preview extends React.Component<IPreviewProps, IPreviewState> {
      * Called on the component did mount.
      */
     public async componentDidMount(): Promise<void> {
-        // this._editor.selectedNodeObservable.add((n) => this._cameraPreview?.setSelectedNode(n));
+        this._editor.selectedNodeObservable.add((n) => this._cameraPreview?.setSelectedNode(n));
     }
 
     /**
