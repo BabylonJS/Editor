@@ -1,5 +1,9 @@
 [
     {
+        "name": "Next.JS Empty",
+        "file": "nextjs_empty.zip"
+    },
+    {
         "name": "Third Person Shooter",
         "file": "tps.zip"
     },
