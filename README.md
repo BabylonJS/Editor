@@ -28,12 +28,22 @@ The online documentation is available here: https://doc.babylonjs.com/extensions
 * Contains pre-built templates
 
 ## Installing
+### Windows
 For Windows users, follow this tutorial to install the windows build tools: https://github.com/felixrieseberg/windows-build-tools
 This is mandatory for native modules used in the Editor.
 
 Then, just install the dependencies:
 ```bash
 npm install
+```
+
+### macOS
+If this error occurred on the relatively new version of macOS when opening the app:
+> "BabylonJS Editor" is damaged and can't be opened. You should move it to the Trash.
+
+Then, try this command to remove the quarantine attribute in the app, just replace the app path with your own:
+```bash
+xattr -r -d com.apple.quarantine /Applications/BabylonJS\ Editor.app
 ```
 
 ## Building
