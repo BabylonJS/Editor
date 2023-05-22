@@ -97,7 +97,6 @@ export class GraphContextMenu {
             menus.push(remove);
         }
 
-
         ContextMenu.show((
             <Menu className={Classes.DARK}>
                 <GraphContextMenuName editor={editor} object={object} />
