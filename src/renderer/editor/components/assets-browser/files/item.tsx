@@ -27,6 +27,7 @@ import { TypeScriptItemHandler } from "./handlers/ts";
 import { JavaScriptItemHandler } from "./handlers/js";
 import { MaterialItemHandler } from "./handlers/material";
 import { DirectoryItemHandler } from "./handlers/directory";
+import { ProceduralTextureItemHandler } from "./handlers/prtex";
 import { ParticlesSystemItemHandler } from "./handlers/particles-system";
 
 import { AssetsBrowserGUIMoveHandler } from "./move/gui";
@@ -38,6 +39,7 @@ import { AssetsBrowserMoveHandler } from "./move/move-handler";
 import { AssetsBrowserTypeScriptMoveHandler } from "./move/ts";
 import { AssetsBrowserTextureMoveHandler } from "./move/texture";
 import { AssetsBrowserMaterialMoveHandler } from "./move/material";
+import { AssetsBrowserProceduralTextureMoveHandler } from "./move/prtex";
 import { AssetsBrowserParticlesSystemMoveHandler } from "./move/particles-system";
 
 export interface IAssetsBrowserItemProps {
@@ -171,24 +173,26 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemHandler({ extension: ".ts", ctor: TypeScriptItemHandler });
 		this.RegisterItemHandler({ extension: ".tsx", ctor: TypeScriptItemHandler });
 		this.RegisterItemHandler({ extension: ".graph", ctor: GraphItemHandler });
-		
+
 		this.RegisterItemHandler({ extension: ".mp3", ctor: SoundItemHandler });
 		this.RegisterItemHandler({ extension: ".wav", ctor: SoundItemHandler });
 		this.RegisterItemHandler({ extension: ".wave", ctor: SoundItemHandler });
 		this.RegisterItemHandler({ extension: ".ogg", ctor: SoundItemHandler });
-		
+
 		this.RegisterItemHandler({ extension: ".ps", ctor: ParticlesSystemItemHandler });
-		
+
 		this.RegisterItemHandler({ extension: ".json", ctor: JsonItemHandler });
-		
+
 		this.RegisterItemHandler({ extension: ".gui", ctor: GUIItemHandler });
-		
+
 		this.RegisterItemHandler({ extension: ".scene", ctor: SceneItemHandler });
-		
+
 		this.RegisterItemHandler({ extension: ".js", ctor: JavaScriptItemHandler });
 
 		this.RegisterItemHandler({ extension: ".mp4", ctor: VideoItemHandler });
 		this.RegisterItemHandler({ extension: ".webm", ctor: VideoItemHandler });
+
+		this.RegisterItemHandler({ extension: ".prtex", ctor: ProceduralTextureItemHandler });
 
 		// Move handlers
 		this.RegisterItemMoveHandler(new AssetsBrowserGUIMoveHandler(editor));
@@ -200,6 +204,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 		this.RegisterItemMoveHandler(new AssetsBrowserMaterialMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserTypeScriptMoveHandler(editor));
 		this.RegisterItemMoveHandler(new AssetsBrowserParticlesSystemMoveHandler(editor));
+		this.RegisterItemMoveHandler(new AssetsBrowserProceduralTextureMoveHandler(editor));
 	}
 
 	/**

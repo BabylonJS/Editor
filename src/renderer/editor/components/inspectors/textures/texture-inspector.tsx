@@ -5,7 +5,8 @@ import { Nullable } from "../../../../../shared/types";
 
 import * as React from "react";
 
-import { Texture, CubeTexture, ColorGradingTexture } from "babylonjs";
+import { FireProceduralTexture } from "babylonjs-procedural-textures";
+import { Texture, CubeTexture, ColorGradingTexture, ProceduralTexture } from "babylonjs";
 
 import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorButton } from "../../../gui/inspector/fields/button";
@@ -13,6 +14,8 @@ import { InspectorNumber } from "../../../gui/inspector/fields/number";
 import { InspectorString } from "../../../gui/inspector/fields/string";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
 import { InspectorBoolean } from "../../../gui/inspector/fields/boolean";
+import { InspectorVector2 } from "../../../gui/inspector/fields/vector2";
+import { InspectorColorPicker } from "../../../gui/inspector/fields/color-picker";
 
 import { Project } from "../../../project/project";
 import { WorkSpace } from "../../../project/workspace";
@@ -75,6 +78,8 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
                 {this.getOffsetInspector()}
                 {this.getCubeTextureInspector()}
 
+                {this.getProceduralTextureInspector()}
+
                 {this.getTextureFileComponent()}
             </>
         );
@@ -132,7 +137,7 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
         return (
             <InspectorSection title="Preview">
                 <a style={{ color: "white", textAlign: "center", wordBreak: "break-all" }} onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject.name)}>{this.selectedObject.name}</a>
-                <img ref={(r) => this._previewImgRef = r} src={`${path}?dummy=${Date.now()}`} style={{ width: "100%", height: "280px", objectFit: "contain" }}></img>
+                {this.getImagePreview(path)}
                 <InspectorButton label="Show In Assets Browser" small icon="link" onClick={() => this.editor.assetsBrowser.revealPanelAndShowFile(this.selectedObject.name)} />
                 <div style={{ color: "darkgrey" }}>
                     <span style={{ display: "block" }}>Size: {size.width}*{size.height}</span>
@@ -143,11 +148,27 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
         );
     }
 
+    protected getImagePreview(path: string): React.ReactNode {
+        if (this.selectedObject instanceof ProceduralTexture) {
+            return null;
+        }
+
+        return (
+            <img
+                ref={(r) => this._previewImgRef = r}
+                src={`${path}?dummy=${Date.now()}`}
+                style={{ width: "100%", height: "280px", objectFit: "contain" }}
+            >
+
+            </img>
+        );
+    }
+
     /**
      * Returns the button used to reload the texture from file.
      */
     protected getReloadTextureButton(): React.ReactNode {
-        if (!(this.selectedObject instanceof Texture)) {
+        if (!(this.selectedObject instanceof Texture) || this.selectedObject instanceof ProceduralTexture) {
             return undefined;
         }
 
@@ -300,6 +321,63 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
     }
 
     /**
+     * Returns the inspector used to configure the procedural texture.
+     */
+    protected getProceduralTextureInspector(): React.ReactNode {
+        if (!(this.selectedObject instanceof ProceduralTexture)) {
+            return null;
+        }
+
+        const resizeData = {
+            value: this.selectedObject.getSize().width,
+        };
+
+        const resize = (
+            <InspectorList object={resizeData} property="value" label="Size" items={[
+                { label: "4", data: 4 },
+                { label: "8", data: 8 },
+                { label: "16", data: 16 },
+                { label: "32", data: 32 },
+                { label: "64", data: 64 },
+                { label: "128", data: 128 },
+                { label: "256", data: 256 },
+                { label: "512", data: 512 },
+                { label: "1024", data: 1024 },
+                { label: "2048", data: 2048 },
+                { label: "4096", data: 4096 },
+            ]} onChange={(s) => {
+                (this.selectedObject as ProceduralTexture).resize({ width: s, height: s }, true);
+            }} />
+        );
+
+        if (this.selectedObject instanceof FireProceduralTexture) {
+            const colors = {
+                color1: this.selectedObject.fireColors[0],
+                color2: this.selectedObject.fireColors[1],
+                color3: this.selectedObject.fireColors[2],
+                color4: this.selectedObject.fireColors[3],
+                color5: this.selectedObject.fireColors[4],
+                color6: this.selectedObject.fireColors[5],
+            };
+
+            return (
+                <InspectorSection title="Fire Procedural Texture">
+                    {resize}
+                    <InspectorVector2 object={this.selectedObject} property="speed" label="Speed" />
+                    <InspectorNumber object={this.selectedObject} property="alphaThreshold" label="Alpha Threshold" />
+
+                    <InspectorColorPicker object={colors} property="color1" label="Color 1" />
+                    <InspectorColorPicker object={colors} property="color2" label="Color 2" />
+                    <InspectorColorPicker object={colors} property="color3" label="Color 3" />
+                    <InspectorColorPicker object={colors} property="color4" label="Color 4" />
+                    <InspectorColorPicker object={colors} property="color5" label="Color 5" />
+                    <InspectorColorPicker object={colors} property="color6" label="Color 6" />
+                </InspectorSection>
+            );
+        }
+    }
+
+    /**
      * Reloads the texture in case the user taps the "Reload" button.
      * Takes care of the compressed version of the texture.
      */
@@ -316,7 +394,7 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
             if (await pathExists(path)) {
                 this._previewImgRef.src = join(this.editor.assetsBrowser.assetsDirectory, this.selectedObject.name) + `?dummy=${Date.now()}`;
             } else {
-                this._previewImgRef.src = "../css/svg/question-mark.svg"
+                this._previewImgRef.src = "../css/svg/question-mark.svg";
             }
         }
 
@@ -384,6 +462,9 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
 
 Inspector.RegisterObjectInspector({
     ctor: TextureInspector,
-    ctorNames: ["Texture", "CubeTexture", "ColorGradingTexture"],
+    ctorNames: [
+        "Texture", "CubeTexture", "ColorGradingTexture",
+        "FireProceduralTexture",
+    ],
     title: "Texture",
 });

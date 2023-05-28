@@ -15,6 +15,8 @@ import {
     DynamicTexture,
 } from "babylonjs";
 
+import "babylonjs-procedural-textures";
+
 import { Tools } from "../tools/tools";
 import { KTXTools } from "../tools/ktx";
 import { undoRedo } from "../tools/undo-redo";

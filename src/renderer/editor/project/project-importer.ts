@@ -7,7 +7,7 @@ import {
     Texture, SceneLoader, Light, Node, Material, ShadowGenerator, CascadedShadowGenerator,
     Camera, SerializationHelper, Mesh, MultiMaterial, TransformNode, ParticleSystem, Sound, CubeTexture,
     AnimationGroup, Constants, MorphTargetManager, Matrix, SceneLoaderFlags, BaseTexture, Bone, ReflectionProbe,
-    PostProcess, PhysicsEngine, VideoTexture,
+    PostProcess, PhysicsEngine, VideoTexture, ProceduralTexture,
 } from "babylonjs";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
@@ -252,6 +252,30 @@ export class ProjectImporter {
             }
 
             Overlay.SetSpinnervalue(spinnerValue += spinnerStep);
+        }
+
+        // Load all procedural textures
+        Overlay.SetMessage("Creating Procedural Textures...");
+
+        for (const prtex of project.proceduralTextures ?? []) {
+            const path = editor.assetsBrowser.movedAssetsDictionary[prtex] ?? prtex;
+
+            try {
+                const jsonPath = join(editor.assetsBrowser.assetsDirectory, path);
+                const json = await readJSON(jsonPath);
+
+                const texture = ProceduralTexture.Parse(json, editor.scene!, join(editor.assetsBrowser.assetsDirectory, "/"));
+
+                if (texture) {
+                    if (json.metadata) {
+                        texture.metadata = json.metadata;
+                    }
+
+                    texture.uniqueId = json.uniqueId ?? texture.uniqueId;
+                }
+            } catch (e) {
+                editor.console.logError(`Failed to parse procedural texture "${path}: ${e.message}`);
+            }
         }
 
         // Load all materials
