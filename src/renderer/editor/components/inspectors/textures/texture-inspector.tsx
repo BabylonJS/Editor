@@ -6,7 +6,7 @@ import { Nullable } from "../../../../../shared/types";
 import * as React from "react";
 
 import { FireProceduralTexture } from "babylonjs-procedural-textures";
-import { Texture, CubeTexture, ColorGradingTexture, ProceduralTexture } from "babylonjs";
+import { Texture, CubeTexture, ColorGradingTexture, ProceduralTexture, VideoTexture } from "babylonjs";
 
 import { InspectorList } from "../../../gui/inspector/fields/list";
 import { InspectorButton } from "../../../gui/inspector/fields/button";
@@ -153,6 +153,17 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
             return null;
         }
 
+        if (this.selectedObject instanceof VideoTexture) {
+            return (
+                <video
+                    controls
+                    style={{ width: "100%", height: "280px", objectFit: "contain" }}
+                >
+                    <source src={`${path}?dummy=${Date.now()}`} />
+                </video>
+            )
+        }
+
         return (
             <img
                 ref={(r) => this._previewImgRef = r}
@@ -168,7 +179,7 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
      * Returns the button used to reload the texture from file.
      */
     protected getReloadTextureButton(): React.ReactNode {
-        if (!(this.selectedObject instanceof Texture) || this.selectedObject instanceof ProceduralTexture) {
+        if (!(this.selectedObject instanceof Texture) || this.selectedObject instanceof ProceduralTexture || this.selectedObject instanceof VideoTexture) {
             return undefined;
         }
 
@@ -464,7 +475,7 @@ Inspector.RegisterObjectInspector({
     ctor: TextureInspector,
     ctorNames: [
         "Texture", "CubeTexture", "ColorGradingTexture",
-        "FireProceduralTexture",
+        "FireProceduralTexture", "VideoTexture",
     ],
     title: "Texture",
 });
