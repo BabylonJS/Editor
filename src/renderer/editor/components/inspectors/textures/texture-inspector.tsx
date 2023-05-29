@@ -98,7 +98,7 @@ export class TextureInspector<T extends Texture | CubeTexture | ColorGradingText
             return;
         }
 
-        let textureUrl = this.selectedObject.url;
+        let textureUrl = this.selectedObject.name;
         if (!isAbsolute(textureUrl)) {
             textureUrl = join(WorkSpace.DirPath!, "assets", textureUrl);
         }
