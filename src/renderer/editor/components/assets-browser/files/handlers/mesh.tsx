@@ -319,6 +319,8 @@ export class MeshItemHandler extends AssetsBrowserItemHandler {
 		const transformNodes = nodes.filter((n) => isTransformNode(n));
 
 		meshes.forEach((m) => {
+			m.parent = null;
+
 			scene.addMesh(m);
 			if (m.material && scene.materials.indexOf(m.material) === -1) {
 				scene.addMaterial(m.material);
