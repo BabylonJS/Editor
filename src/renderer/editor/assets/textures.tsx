@@ -615,6 +615,10 @@ export class TextureAssets extends AbstractAssets {
             editorName: name,
         };
 
+        if (clone instanceof CubeTexture) {
+            clone.updateURL(join(this.editor.assetsBrowser.assetsDirectory, clone.name));
+        }
+
         this.refresh();
     }
 
