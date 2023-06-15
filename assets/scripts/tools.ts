@@ -115,6 +115,12 @@ export type AppendScenePhase = "sceneLoading" | "filesLoading";
 export async function appendScene(toScene: Scene, rootUrl: string, sceneFilename: string, onProgress?: (progress: ISceneLoaderProgressEvent, phase: AppendScenePhase) => void): Promise<void> {
     await SceneLoader.AppendAsync(rootUrl, sceneFilename, toScene, (p) => onProgress?.(p, "sceneLoading"), ".babylon");
 
+    toScene.meshes.forEach((m) => {
+        if (m instanceof Mesh) {
+            m._checkDelayState();
+        }
+    });
+
     const filesCount = toScene._pendingData.length;
 
     const intervalId = onProgress ? setInterval(() => {
