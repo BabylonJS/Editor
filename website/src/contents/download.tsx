@@ -27,7 +27,7 @@ export class DownloadContent extends React.Component {
                     <div style={{ marginLeft: "50px", marginRight: "50px" }}>
                         <h1 className="title">Download latest version</h1>
                         <p>
-                            The latest version of the Babylon.JS Editor comes with the latest features and bugfix. It is recommanded to
+                            The latest version of the Babylon.JS Editor comes with the latest features and bugfixes. It is recommended to
                             keep the Editor up to date.
                         </p>
                         <Card interactive={false} style={{ width: "50%", transform: "translate(50%)", background: "#324554" }}>
