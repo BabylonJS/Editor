@@ -1,0 +1,15 @@
+{
+    "name": "babylonjs-editor-tools",
+    "version": "5.0.0",
+    "description": "Babylon.js Editor Tools is a set of tools to help you create, edit and manage your Babylon.js scenes made using the Babylon.JS Editor",
+    "productName": "Babylon.js Editor Tools",
+    "scripts": {
+        "watch": "tsc -p . --watch"
+    },
+    "license": "(Apache-2.0)",
+    "devDependencies": {
+        "@babylonjs/core": "6.37.1",
+        "typescript": "5.3.3"
+    },
+    "dependencies": {}
+}

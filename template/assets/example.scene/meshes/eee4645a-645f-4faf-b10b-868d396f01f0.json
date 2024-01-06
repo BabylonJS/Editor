@@ -1,0 +1,249 @@
+{
+    "meshes": [
+        {
+            "name": "ground",
+            "id": "eee4645a-645f-4faf-b10b-868d396f01f0",
+            "uniqueId": 1705530727568,
+            "type": "GroundMesh",
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "rotation": [
+                0,
+                0,
+                0
+            ],
+            "scaling": [
+                1,
+                1,
+                1
+            ],
+            "localMatrix": {
+                "0": 1,
+                "1": 0,
+                "2": 0,
+                "3": 0,
+                "4": 0,
+                "5": 1,
+                "6": 0,
+                "7": 0,
+                "8": 0,
+                "9": 0,
+                "10": 1,
+                "11": 0,
+                "12": 0,
+                "13": 0,
+                "14": 0,
+                "15": 1
+            },
+            "isEnabled": true,
+            "isVisible": true,
+            "infiniteDistance": false,
+            "pickable": true,
+            "receiveShadows": true,
+            "billboardMode": 0,
+            "visibility": 1,
+            "checkCollisions": false,
+            "isBlocker": false,
+            "overrideMaterialSideOrientation": null,
+            "isUnIndexed": false,
+            "geometryUniqueId": 1705194397606.3928,
+            "geometryId": "f46e14f9-2cc6-48d3-aa9c-7dc94b25e447",
+            "subMeshes": null,
+            "materialUniqueId": 8,
+            "materialId": "44ce4d7a-5718-4025-a141-272ee6387673",
+            "metadata": {
+                "isPickable": true,
+                "script": {
+                    "name": "None"
+                },
+                "renderingGroupId": 0,
+                "doNotExport": false,
+                "_waitingParentId": null
+            },
+            "instances": [],
+            "animations": [],
+            "ranges": [],
+            "layerMask": 268435455,
+            "alphaIndex": 1.7976931348623157e+308,
+            "hasVertexAlpha": false,
+            "overlayAlpha": 0.5,
+            "overlayColor": [
+                1,
+                0,
+                0
+            ],
+            "applyFog": true,
+            "subdivisionsX": 32,
+            "subdivisionsY": 32,
+            "minX": -256,
+            "maxX": 256,
+            "minZ": -256,
+            "maxZ": 256,
+            "width": 128,
+            "height": 128,
+            "delayLoadingFile": "assets/example.scene/geometries/f46e14f9-2cc6-48d3-aa9c-7dc94b25e447.babylonbinarymeshdata",
+            "boundingBoxMaximum": [
+                64,
+                0,
+                64
+            ],
+            "boundingBoxMinimum": [
+                -64,
+                0,
+                -64
+            ],
+            "_binaryInfo": {
+                "positionsAttrDesc": {
+                    "count": 3267,
+                    "stride": 3,
+                    "offset": 0,
+                    "dataType": 1
+                },
+                "normalsAttrDesc": {
+                    "count": 3267,
+                    "stride": 3,
+                    "offset": 13068,
+                    "dataType": 1
+                },
+                "uvsAttrDesc": {
+                    "count": 2178,
+                    "stride": 2,
+                    "offset": 26136,
+                    "dataType": 1
+                },
+                "indicesAttrDesc": {
+                    "count": 6144,
+                    "stride": 1,
+                    "offset": 34848,
+                    "dataType": 0
+                },
+                "subMeshesAttrDesc": {
+                    "count": 1,
+                    "stride": 5,
+                    "offset": 59424,
+                    "dataType": 0
+                }
+            },
+            "positions": null,
+            "normals": null,
+            "uvs": null,
+            "hasUVs": true,
+            "indices": null
+        }
+    ],
+    "transformNodes": [],
+    "cameras": [],
+    "lights": [],
+    "materials": [
+        {
+            "tags": null,
+            "ambient": [
+                0.3,
+                0.3,
+                0.3
+            ],
+            "diffuse": [
+                1,
+                1,
+                1
+            ],
+            "specular": [
+                1,
+                1,
+                1
+            ],
+            "emissive": [
+                0,
+                0,
+                0
+            ],
+            "specularPower": 64,
+            "useAlphaFromDiffuseTexture": false,
+            "useEmissiveAsIllumination": false,
+            "linkEmissiveWithDiffuse": false,
+            "useSpecularOverAlpha": false,
+            "useReflectionOverAlpha": false,
+            "disableLighting": false,
+            "useObjectSpaceNormalMap": false,
+            "useParallax": false,
+            "useParallaxOcclusion": false,
+            "parallaxScaleBias": 0.05,
+            "roughness": 0,
+            "indexOfRefraction": 0.98,
+            "invertRefractionY": true,
+            "alphaCutOff": 0.4,
+            "useLightmapAsShadowmap": false,
+            "useReflectionFresnelFromSpecular": false,
+            "useGlossinessFromSpecularMapAlpha": false,
+            "maxSimultaneousLights": 4,
+            "invertNormalMapX": false,
+            "invertNormalMapY": false,
+            "twoSidedLighting": false,
+            "applyDecalMapAfterDetailMap": false,
+            "id": "44ce4d7a-5718-4025-a141-272ee6387673",
+            "name": "ground",
+            "metadata": {
+                "editorPath": "materials/ground.material"
+            },
+            "checkReadyOnEveryCall": false,
+            "checkReadyOnlyOnce": false,
+            "state": "",
+            "alpha": 1,
+            "backFaceCulling": true,
+            "cullBackFaces": true,
+            "sideOrientation": 1,
+            "alphaMode": 2,
+            "_needDepthPrePass": false,
+            "disableDepthWrite": false,
+            "disableColorWrite": false,
+            "forceDepthWrite": false,
+            "depthFunction": 0,
+            "separateCullingPass": false,
+            "fogEnabled": true,
+            "pointSize": 1,
+            "zOffset": 0,
+            "zOffsetUnits": 0,
+            "pointsCloud": false,
+            "fillMode": 0,
+            "stencil": {
+                "tags": null,
+                "func": 519,
+                "funcRef": 1,
+                "funcMask": 255,
+                "opStencilFail": 7680,
+                "opDepthFail": 7680,
+                "opStencilDepthPass": 7681,
+                "mask": 255,
+                "enabled": false
+            },
+            "uniqueId": 8,
+            "plugins": {
+                "DetailMapConfiguration": {
+                    "tags": null,
+                    "diffuseBlendLevel": 1,
+                    "roughnessBlendLevel": 1,
+                    "bumpLevel": 1,
+                    "normalBlendMethod": 0,
+                    "isEnabled": false,
+                    "name": "DetailMap",
+                    "priority": 140,
+                    "resolveIncludes": false,
+                    "registerForExtraEvents": false
+                }
+            }
+        }
+    ],
+    "geometries": {
+        "boxes": [],
+        "spheres": [],
+        "cylinders": [],
+        "toruses": [],
+        "grounds": [],
+        "planes": [],
+        "torusKnots": [],
+        "vertexData": []
+    }
+}
