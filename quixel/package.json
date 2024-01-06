@@ -1,0 +1,19 @@
+{
+    "name": "babylonjs-editor-quixel-plugin",
+    "version": "5.0.0",
+    "description": "",
+    "productName": "Babylon.js Editor Quixel Plugin",
+    "scripts": {
+        "watch": "tsc -p . --watch"
+    },
+    "main": "build/index.js",
+    "license": "(Apache-2.0)",
+    "devDependencies": {
+        "babylonjs": "7.0.0",
+        "babylonjs-editor": "file:../editor",
+        "typescript": "5.3.3"
+    },
+    "dependencies": {
+        "fs-extra": "^11.2.0"
+    }
+}

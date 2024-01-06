@@ -1,0 +1,277 @@
+import { pathExists } from "fs-extra";
+import { ipcRenderer } from "electron";
+import { join, basename, dirname } from "path/posix";
+
+import decompress from "decompress";
+import decompressTargz from "decompress-targz";
+
+import { Component, ReactNode } from "react";
+import { createRoot } from "react-dom/client";
+
+import { Fade } from "react-awesome-reveal";
+import { Grid } from "react-loader-spinner";
+
+import { FaQuestion } from "react-icons/fa";
+
+import { Input } from "../ui/shadcn/ui/input";
+import { Button } from "../ui/shadcn/ui/button";
+import { Separator } from "../ui/shadcn/ui/separator";
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/shadcn/ui/alert-dialog";
+
+import { ProjectType, projectsKey } from "../tools/project";
+import { tryGetProjectsFromLocalStorage } from "../tools/local-storage";
+import { openSingleFileDialog, openSingleFolderDialog } from "../tools/dialog";
+
+export function createDashboard(): void {
+    const theme = localStorage.getItem("editor-theme") ?? "dark";
+    if (theme === "dark") {
+        document.body.classList.add("dark");
+    }
+
+    const div = document.getElementById("babylonjs-editor-main-div")!;
+
+    const root = createRoot(div);
+    root.render(
+        <div className="w-screen h-screen">
+            <Dashboard />
+        </div>
+    );
+}
+
+export interface IDashboardProps {
+
+}
+
+export interface IDashboardState {
+    projects: ProjectType[];
+    openedProjects: string[];
+
+    createProject: boolean;
+    creatingProject: boolean;
+    createProjectPath: string;
+}
+
+export class Dashboard extends Component<IDashboardProps, IDashboardState> {
+    public constructor(props: IDashboardProps) {
+        super(props);
+
+        this.state = {
+            openedProjects: [],
+            projects: tryGetProjectsFromLocalStorage(),
+
+            createProject: false,
+            createProjectPath: "",
+            creatingProject: false,
+        };
+    }
+
+    public render(): ReactNode {
+        return (
+            <>
+                <div className="flex flex-col gap-4 w-screen h-screen p-5">
+                    <Fade delay={0}>
+                        <div className="flex justify-between items-center w-full">
+                            <div className="text-5xl font-semibold">
+                                Dashboard
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <img alt="" src="assets/babylonjs_icon.png" className="w-[48px] object-contain" />
+                            </div>
+                        </div>
+                    </Fade>
+
+                    <Fade delay={250}>
+                        <Separator />
+                    </Fade>
+
+                    <Fade delay={500}>
+                        <div className="flex justify-between items-center">
+                            <div className="text-3xl font-semibold">
+                                Projects
+                            </div>
+
+                            <div className="flex gap-2">
+                                <Button variant="secondary" className="font-semibold" onClick={() => this._handleImportProject()}>
+                                    Import project
+                                </Button>
+                                <Button className="font-semibold" onClick={() => this.setState({ createProject: true })}>
+                                    Create project
+                                </Button>
+                            </div>
+                        </div>
+                    </Fade>
+
+                    <Fade delay={750}>
+                        {!this.state.projects.length && (
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                No project found.
+                            </div>
+                        )}
+
+                        {this.state.projects.length &&
+                            <div className="grid grid-cols-5 gap-4">
+                                {this.state.projects.map((project) => (
+                                    <div
+                                        key={project.absolutePath}
+                                        onDoubleClick={() => ipcRenderer.send("dashboard:open-project", project.absolutePath)}
+                                        className={`
+                                            flex flex-col gap-2 w-full aspect-square rounded-lg cursor-pointer select-none
+                                            ring-muted-foreground hover:ring-2 hover:p-1
+                                            transition-all duration-300 ease-in-out
+                                            ${this.state.openedProjects.includes(project.absolutePath) ? "opacity-15 pointer-events-none" : ""}
+                                        `}
+                                    >
+                                        <div className="flex justify-center items-center w-full h-full bg-muted rounded-lg">
+                                            {!project.preview &&
+                                                <FaQuestion className="w-10 h-10" />
+                                            }
+                                            {project.preview &&
+                                                <img alt="" src={project.preview} className="w-full aspect-square object-cover rounded-lg" />
+                                            }
+                                        </div>
+
+                                        <div className="text-center px-5 select-none text-ellipsis overflow-hidden whitespace-nowrap">
+                                            {basename(dirname(project.absolutePath))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        }
+                    </Fade>
+                </div>
+
+                {this._getCreateProjectComponent()}
+            </>
+        );
+    }
+
+    public async componentDidMount(): Promise<void> {
+        ipcRenderer.send("dashboard:ready");
+
+        ipcRenderer.on("dashboard:opened-projects", (_, openedProjects) => this.setState({ openedProjects }));
+
+        await Promise.all(this.state.projects.map(async (project) => {
+            const exists = await pathExists(project.absolutePath);
+            if (!exists) {
+                const index = this.state.projects.indexOf(project);
+                if (index !== -1) {
+                    this.state.projects.splice(index, 1);
+                    this.setState({ projects: this.state.projects.slice() });
+                }
+            }
+        }));
+    }
+
+    private _getCreateProjectComponent(): ReactNode {
+        return (
+            <AlertDialog open={this.state.createProject}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Create project
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="flex flex-col gap-[10px]">
+                            {!this.state.creatingProject &&
+                                <>
+                                    <div>
+                                        Select the folder where to create the project.
+                                    </div>
+
+                                    <div className="flex gap-[10px]">
+                                        <Input value={this.state.createProjectPath} disabled placeholder="Folder path..." />
+                                        <Button variant="secondary" onClick={() => this._handleBrowseCreateProjectFolderPath()}>
+                                            Browse...
+                                        </Button>
+                                    </div>
+                                </>
+                            }
+
+                            {this.state.creatingProject &&
+                                <div className="flex flex-col gap-[10px] justify-center items-center pt-5">
+                                    <Grid width={24} height={24} color="#ffffff" />
+
+                                    <div>
+                                        Creating project...
+                                    </div>
+                                </div>
+                            }
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <Button
+                            variant="default"
+                            onClick={() => this._handleCreateProject()}
+                            disabled={this.state.createProjectPath === "" || this.state.creatingProject}
+                        >
+                            Create
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        );
+    }
+
+    private _handleImportProject(): void {
+        const file = openSingleFileDialog({
+            title: "Open Project",
+            filters: [
+                { name: "BabylonJS Editor Project File", extensions: ["bjseditor"] }
+            ],
+        });
+
+        if (!file) {
+            return;
+        }
+
+        this._tryAddProjectToLocalStorage(file);
+    }
+
+    private _handleBrowseCreateProjectFolderPath(): void {
+        const folder = openSingleFolderDialog("Select folder to create the project in");
+
+        if (folder) {
+            this.setState({ createProjectPath: folder });
+        }
+    }
+
+    private async _handleCreateProject(): Promise<void> {
+        this.setState({ creatingProject: true });
+
+        const templatePath = process.env.DEBUG
+            ? "templates/template.tgz"
+            : "../../templates/template.tgz";
+
+        const templateBlob = await fetch(templatePath).then(r => r.blob());
+        const buffer = Buffer.from(await templateBlob.arrayBuffer());
+
+        await decompress(buffer, this.state.createProjectPath, {
+            plugins: [
+                decompressTargz(),
+            ],
+            map: (file) => {
+                file.path = file.path.replace("package/", "");
+                return file;
+            }
+        });
+
+        const file = join(this.state.createProjectPath, "project.bjseditor");
+
+        this._tryAddProjectToLocalStorage(file);
+        this.setState({ createProject: false });
+    }
+
+    private _tryAddProjectToLocalStorage(absolutePath: string) {
+        try {
+            localStorage.setItem(projectsKey, JSON.stringify(this.state.projects.concat([{
+                absolutePath,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            }])));
+
+            this.setState({ projects: tryGetProjectsFromLocalStorage() });
+        } catch (e) {
+            alert("Failed to import project.");
+        }
+    }
+}

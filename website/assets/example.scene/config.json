@@ -1,0 +1,207 @@
+{
+    "environment": {
+        "environmentIntensity": 1,
+        "environmentTexture": {
+            "tags": null,
+            "url": "assets/country.env",
+            "boundingBoxPosition": [
+                0,
+                0,
+                0
+            ],
+            "rotationY": 0,
+            "files": [],
+            "textureMatrix": {
+                "0": 1,
+                "1": 0,
+                "2": 0,
+                "3": 0,
+                "4": 0,
+                "5": 1,
+                "6": 0,
+                "7": 0,
+                "8": 0,
+                "9": 0,
+                "10": 1,
+                "11": 0,
+                "12": 0,
+                "13": 0,
+                "14": 0,
+                "15": 1
+            },
+            "textureMatrixRefraction": {
+                "0": 0,
+                "1": 0,
+                "2": 0,
+                "3": 0,
+                "4": 0,
+                "5": 0,
+                "6": 0,
+                "7": 0,
+                "8": 0,
+                "9": 0,
+                "10": 0,
+                "11": 0,
+                "12": 0,
+                "13": 0,
+                "14": 0,
+                "15": 0
+            },
+            "name": "assets/country.env",
+            "hasAlpha": false,
+            "getAlphaFromRGB": false,
+            "level": 1,
+            "coordinatesIndex": 0,
+            "optimizeUVAllocation": true,
+            "coordinatesMode": 3,
+            "wrapU": 0,
+            "wrapV": 0,
+            "wrapR": 1,
+            "anisotropicFilteringLevel": 1,
+            "isCube": true,
+            "is3D": false,
+            "is2DArray": false,
+            "gammaSpace": false,
+            "invertZ": false,
+            "lodLevelInAlpha": false,
+            "lodGenerationOffset": 0,
+            "lodGenerationScale": 0.8,
+            "linearSpecularLOD": false,
+            "isRenderTarget": false,
+            "animations": []
+        }
+    },
+    "fog": {
+        "fogEnabled": false,
+        "fogMode": 0,
+        "fogStart": 10,
+        "fogEnd": 1000,
+        "fogDensity": 0.001,
+        "fogColor": [
+            0.640006735140596,
+            0.640006735140596,
+            0.640006735140596
+        ]
+    },
+    "rendering": {
+        "ssrRenderingPipeline": null,
+        "motionBlurPostProcess": null,
+        "ssao2RenderingPipeline": null,
+        "defaultRenderingPipeline": {
+            "samples": 4,
+            "fxaaEnabled": true,
+            "imageProcessingEnabled": false,
+            "bloomEnabled": false,
+            "bloomThreshold": 0.9,
+            "bloomWeight": 0.15,
+            "bloomScale": 0.5,
+            "bloomKernel": 64,
+            "sharpenEnabled": false,
+            "sharpenEdgeAmount": 0.3,
+            "sharpenColorAmount": 1,
+            "grainEnabled": false,
+            "grainIntensity": 30,
+            "grainAnimated": false,
+            "depthOfFieldEnabled": false,
+            "depthOfFieldBlurLevel": 2,
+            "lensSize": 512,
+            "fStop": 0.25,
+            "focusDistance": 100000,
+            "focalLength": 50
+        }
+    },
+    "editorCamera": {
+        "tags": null,
+        "ellipsoid": [
+            0.5,
+            1,
+            0.5
+        ],
+        "ellipsoidOffset": [
+            0,
+            0,
+            0
+        ],
+        "checkCollisions": false,
+        "applyGravity": false,
+        "rotation": [
+            0.1371668477935948,
+            -0.7570271652108816,
+            0
+        ],
+        "speed": 200,
+        "position": [
+            461.58465792469366,
+            140.63771402557663,
+            -488.54810769867925
+        ],
+        "upVector": [
+            0,
+            1,
+            0
+        ],
+        "fov": 0.8,
+        "projectionPlaneTilt": 0,
+        "minZ": 1,
+        "maxZ": 1000000,
+        "inertia": 0.5,
+        "mode": 0,
+        "layerMask": 268435455,
+        "fovMode": 0,
+        "cameraRigMode": 0,
+        "name": "camera",
+        "id": "camera",
+        "state": "",
+        "uniqueId": 2,
+        "type": "EditorCamera",
+        "inputsmgr": {
+            "FreeCameraKeyboardMoveInput": {
+                "tags": null,
+                "keysUp": [
+                    87
+                ],
+                "keysUpward": [
+                    69
+                ],
+                "keysDown": [
+                    83
+                ],
+                "keysDownward": [
+                    81
+                ],
+                "keysLeft": [
+                    65
+                ],
+                "keysRight": [
+                    68
+                ],
+                "rotationSpeed": 0.5,
+                "keysRotateLeft": [],
+                "keysRotateRight": [],
+                "keysRotateUp": [],
+                "keysRotateDown": []
+            },
+            "FreeCameraMouseInput": {
+                "tags": null,
+                "buttons": [
+                    0,
+                    1,
+                    2
+                ],
+                "angularSensibility": 500
+            },
+            "FreeCameraMouseWheelInput": {
+                "tags": null,
+                "wheelXMoveRelative": 0,
+                "wheelYMoveRelative": 2,
+                "wheelPrecisionX": 3,
+                "wheelPrecisionY": 3,
+                "wheelPrecisionZ": 3
+            }
+        },
+        "animations": [],
+        "ranges": [],
+        "isEnabled": true
+    },
+    "animationGroups": []
+}
