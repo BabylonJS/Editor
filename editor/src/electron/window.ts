@@ -1,0 +1,98 @@
+import { BrowserWindow, ipcMain, screen } from "electron";
+
+export async function createDashboardWindow(): Promise<BrowserWindow> {
+    const window = new BrowserWindow({
+        show: false,
+        width: 1280,
+        height: 800,
+        webPreferences: {
+            nodeIntegration: true,
+            preload: __dirname + "/../dashboard/preload.js",
+        },
+    });
+
+    if (process.env.DEBUG !== "true") {
+        window.menuBarVisible = false;
+    }
+
+    window.loadURL("file://" + __dirname + "/../../../index.html");
+
+    if (process.env.DEBUG) {
+        setTimeout(() => {
+            window.webContents.openDevTools();
+        }, 1000);
+    }
+
+    await new Promise<void>((resolve) => {
+        ipcMain.once("dashboard:ready", () => resolve());
+    });
+
+    return window;
+}
+
+/**
+ * Creates a new window that takes up the entire screen.
+ * @returns The newly created window.
+ */
+export async function createEditorWindow(): Promise<BrowserWindow> {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workAreaSize;
+
+    const window = new BrowserWindow({
+        show: false,
+        width: width,
+        height: height,
+        webPreferences: {
+            nodeIntegration: true,
+            preload: __dirname + "/../preload.js",
+        },
+    });
+
+    if (process.env.DEBUG !== "true") {
+        window.menuBarVisible = false;
+    }
+
+    window.loadURL("file://" + __dirname + "/../../../index.html");
+
+    if (process.env.DEBUG) {
+        setTimeout(() => {
+            window.webContents.openDevTools();
+        }, 1000);
+    }
+
+    const splash = new BrowserWindow({
+        width: 480,
+        height: 320,
+        frame: false,
+        transparent: true,
+        alwaysOnTop: true,
+        webPreferences: {
+            nodeIntegration: true,
+            preload: __dirname + "/../splash/preload.js",
+        }
+    });
+
+    splash.loadURL("file://" + __dirname + "/../../../index.html");
+    splash.center();
+
+    await Promise.all([
+        new Promise((resolve) => {
+            window.webContents.once("did-finish-load", resolve);
+        }),
+        new Promise<void>((resolve) => {
+            ipcMain.once("editor:ready", () => resolve());
+        }),
+    ]);
+
+    splash.close();
+
+    window.show();
+    window.focus();
+
+    return window;
+}
+
+ipcMain.on("editor:maximize-window", async (ev) => {
+    const window = BrowserWindow.getAllWindows().find((w) => w.id === ev.sender.id);
+    window?.maximize();
+});

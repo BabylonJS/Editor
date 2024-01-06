@@ -1,0 +1,88 @@
+"use client";
+
+import { ReactLenis } from "lenis/react";
+import { useRef, useState } from "react";
+import { Fade } from "react-awesome-reveal";
+import { useEventListener } from "usehooks-ts";
+
+import { RendererComponent } from "./renderer";
+
+export default function Home() {
+    const section2Ref = useRef<HTMLDivElement>(null);
+
+    const [section2Visible, setSection2Visible] = useState(false);
+
+    useEventListener("scroll", () => {
+        if (section2Ref.current) {
+            const bb = section2Ref.current.getBoundingClientRect();
+            setSection2Visible(bb.top <= 0 && bb.bottom > 0);
+        }
+    });
+
+    return (
+        <ReactLenis root>
+
+            <main className="min-w-screen min-h-screen landing text-black dark:text-white">
+                <div className={`fixed top-0 left-0 w-screen h-screen z-0 ${section2Visible ? "" : "blur-xl scale-125 opacity-50"} transition-all duration-1000 ease-in-out`}>
+                    <RendererComponent />
+                </div>
+
+                <div className="fixed top-2 left-5">
+                    <img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-5" />
+                </div>
+
+                <div className="flex flex-col justify-center items-center gap-5 w-screen h-screen max-w-3xl px-5 mx-auto">
+                    <div className="text-4xl md:text-7xl">
+                        <Fade>
+                            Babylon.JS Editor
+                        </Fade>
+                    </div>
+
+                    <div className="text-xl text-center">
+                        <Fade>
+                            Focus more on creating and less on coding.
+                        </Fade>
+                    </div>
+
+                    <div className="text-center text-sm max-w-3xl mx-auto">
+                        <Fade>
+                            The Babylon.JS Editor is an open source project maintained by the community. The mission is to provide community-driven powerful and simple tools that help Babylon.JS users to create beautiful, awesome 3D games / applications. It comes with deep customization features and is built using Electron to support cross-platform development. Using the latest version of Babylon.JS, the Editor allows creating highly customizable 3D web project skeletons based on the powerful ES6 modules version of Babylon.JS.
+                        </Fade>
+                    </div>
+                </div>
+
+                <div className="flex flex-col justify-between w-screen h-screen max-w-3xl px-5 mx-auto" ref={section2Ref}>
+                    <div />
+
+                    <div className="text-center max-w-3xl mx-auto">
+                        <Fade className="text-7xl">
+                            Take a look
+                        </Fade>
+                    </div>
+
+                    <div />
+                </div>
+
+                <div className="flex flex-col justify-center items-center gap-5 w-screen h-[150vh] pt-[50dvh] max-w-3xl px-5 mx-auto">
+                    <div className="text-4xl md:text-7xl">
+                        <Fade>
+                            Babylon.JS Editor
+                        </Fade>
+                    </div>
+
+                    <div className="text-xl text-center">
+                        <Fade>
+                            Focus more on creating and less on coding.
+                        </Fade>
+                    </div>
+
+                    <div className="text-center text-sm max-w-3xl mx-auto">
+                        <Fade>
+                            The Babylon.JS Editor is an open source project maintained by the community. The mission is to provide community-driven powerful and simple tools that help Babylon.JS users to create beautiful, awesome 3D games / applications. It comes with deep customization features and is built using Electron to support cross-platform development. Using the latest version of Babylon.JS, the Editor allows creating highly customizable 3D web project skeletons based on the powerful ES6 modules version of Babylon.JS.
+                        </Fade>
+                    </div>
+                </div>
+            </main>
+        </ReactLenis>
+    );
+}

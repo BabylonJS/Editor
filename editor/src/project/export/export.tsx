@@ -1,0 +1,282 @@
+import { join, dirname, basename, extname } from "path/posix";
+import { copyFile, pathExists, readJSON, readdir, writeFile, writeJSON } from "fs-extra";
+
+import sharp from "sharp";
+import { SceneSerializer } from "babylonjs";
+
+import { toast } from "sonner";
+
+import { isEditorCamera } from "../../tools/guards/nodes";
+import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
+
+import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
+import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
+import { serializeSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
+import { serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
+
+import { Editor } from "../../editor/main";
+
+import { compressFileToKtx } from "./ktx";
+import { EditorExportConsoleComponent } from "./log";
+import { EditorExportProjectProgressComponent } from "./progress";
+
+const supportedImagesExtensions: string[] = [
+    ".jpg", ".jpeg",
+    ".png",
+    ".bmp",
+];
+
+const supportedCubeTexturesExtensions: string[] = [
+    ".env", ".dds",
+];
+
+const supportedExtensions: string[] = [
+    ...supportedImagesExtensions,
+    ...supportedCubeTexturesExtensions,
+];
+
+export async function exportProject(editor: Editor, optimize: boolean): Promise<void> {
+    if (!editor.state.projectPath || !editor.state.lastOpenedScenePath) {
+        return;
+    }
+
+    let progress: EditorExportProjectProgressComponent | null = null;
+    const toastId = toast(<EditorExportProjectProgressComponent ref={(r) => progress = r} />, {
+        dismissible: false,
+        duration: optimize ? Infinity : -1,
+    });
+
+    const scene = editor.layout.preview.scene;
+    const editorCamera = scene.cameras.find((camera) => isEditorCamera(camera));
+
+    const data = await SceneSerializer.SerializeAsync(scene);
+
+    const editorCameraIndex = data.cameras?.findIndex((camera) => camera.id === editorCamera?.id);
+    if (editorCameraIndex !== -1) {
+        data.cameras?.splice(editorCameraIndex, 1);
+    }
+
+    data.metadata ??= {};
+    data.metadata.rendering = {
+        ssrRenderingPipeline: serializeSSRRenderingPipeline(),
+        motionBlurPostProcess: serializeMotionBlurPostProcess(),
+        ssao2RenderingPipeline: serializeSSAO2RenderingPipeline(),
+        defaultRenderingPipeline: serializeDefaultRenderingPipeline(),
+    };
+
+    delete data.postProcesses;
+
+    const projectDir = dirname(editor.state.projectPath);
+    const publicPath = join(projectDir, "public");
+    await createDirectoryIfNotExist(join(publicPath, "scene"));
+
+    const scenePath = join(publicPath, "scene");
+
+    await writeJSON(join(scenePath, `${basename(editor.state.lastOpenedScenePath).split(".").shift()}.babylon`), data);
+
+    // Copy files
+    const files = await normalizedGlob(join(projectDir, "/assets/**/*"), {
+        nodir: true,
+        ignore: {
+            childrenIgnored: (p) => extname(p.name) === ".scene",
+        }
+    });
+
+    // Export scripts
+    await handleExportScripts(editor);
+
+    // Export assets
+    const promises: Promise<void>[] = [];
+    const progressStep = 100 / files.length;
+    const textureCompressionEnabled = editor.state.compressedTexturesEnabled && editor.state.compressedTexturesCliPath !== null;
+
+    for (const file of files) {
+        if (optimize && textureCompressionEnabled && promises.length >= 5) {
+            await Promise.all(promises);
+            promises.length = 0;
+        }
+
+        promises.push(new Promise<void>(async (resolve) => {
+            await processFile(editor, file as string, optimize, scenePath, projectDir);
+            progress?.step(progressStep);
+            resolve();
+        }));
+    }
+
+    await Promise.all(promises);
+
+    toast.dismiss(toastId);
+
+    if (optimize) {
+        toast.success("Project exported");
+    }
+}
+
+async function processFile(editor: Editor, file: string, optimize: boolean, scenePath: string, projectDir: string): Promise<void> {
+    const extension = extname(file).toLocaleLowerCase();
+    if (!supportedExtensions.includes(extension)) {
+        return;
+    }
+
+    const relativePath = file.replace(join(projectDir, "/"), "");
+    const split = relativePath.split("/");
+
+    let path = "";
+    for (let i = 0; i < split.length - 1; ++i) {
+        try {
+            await createDirectoryIfNotExist(join(scenePath, path, split[i]));
+        } catch (e) {
+            // Catch silently.
+        }
+
+        path = join(path, split[i]);
+    }
+
+    const finalPath = join(scenePath, relativePath);
+
+    await copyFile(file, finalPath);
+
+    if (optimize) {
+        await compressFileToKtx(editor, finalPath);
+    }
+
+    if (optimize && supportedImagesExtensions.includes(extension)) {
+        await handleComputeExportedTexture(editor, finalPath);
+    }
+}
+
+const scriptsTemplate = `
+/**
+ * Generated by Babylon.js Editor
+ */
+export const scriptsMap = {
+    {{exports}}
+};
+`;
+
+export async function handleExportScripts(editor: Editor): Promise<void> {
+    if (!editor.state.projectPath) {
+        return;
+    }
+
+    const projectPath = dirname(editor.state.projectPath);
+
+    const sceneFolders = await normalizedGlob(join(projectPath, "assets/**/*.scene"), {
+        nodir: false,
+    });
+
+    const scriptsMap: Record<string, string> = {};
+
+    await Promise.all(sceneFolders.map(async (file) => {
+        const availableMetadata: any[] = [];
+
+        try {
+            const config = await readJSON(join(file, "config.json"));
+            if (config.metadata) {
+                availableMetadata.push(config.metadata);
+            }
+        } catch (e) {
+            // Catch silently.
+        }
+
+        const [nodesFiles, meshesFiles, lightsFiles, cameraFiles] = await Promise.all([
+            readdir(join(file, "nodes")),
+            readdir(join(file, "meshes")),
+            readdir(join(file, "lights")),
+            readdir(join(file, "cameras")),
+        ]);
+
+        await Promise.all([
+            ...nodesFiles.map((file) => join("nodes", file)),
+            ...meshesFiles.map((file) => join("meshes", file)),
+            ...lightsFiles.map((file) => join("lights", file)),
+            ...cameraFiles.map((file) => join("cameras", file)),
+        ].map(async (f) => {
+            const data = await readJSON(join(file, f), "utf-8");
+            if (data.metadata) {
+                availableMetadata.push(data.metadata);
+            }
+        }));
+
+        const promises: Promise<void>[] = [];
+        for (const metadata of availableMetadata) {
+            if (!metadata.scripts) {
+                continue;
+            }
+
+            for (const script of metadata.scripts) {
+                promises.push(new Promise<void>(async (resolve) => {
+                    const path = join(projectPath, "src", script.key);
+                    if (!await pathExists(path)) {
+                        return resolve();
+                    }
+
+                    const extension = extname(script.key).toLowerCase();
+                    scriptsMap[script.key] = `@/${script.key.replace(extension, "")}`;
+
+                    resolve();
+                }));
+            }
+        }
+
+        await Promise.all(promises);
+    }));
+
+    await writeFile(
+        join(projectPath, "src/scripts.ts"),
+        scriptsTemplate.replace("{{exports}}", Object.keys(scriptsMap).map((key) => `"${key}": require("${scriptsMap[key]}")`).join(",\n\t")),
+        {
+            encoding: "utf-8",
+        });
+}
+
+export async function handleComputeExportedTexture(editor: Editor, absolutePath: string): Promise<void> {
+    const extension = extname(absolutePath).toLocaleLowerCase();
+
+    const metadata = await sharp(absolutePath).metadata();
+    if (!metadata.width || !metadata.height) {
+        return editor.layout.console.error(`Failed to compute exported image "${absolutePath}". Image metadata is invalid.`);
+    }
+
+    let scale = 0.5;
+    let width = metadata.width * 0.5;
+    let height = metadata.height * 0.5;
+
+    while (width >= 8 && height >= 8) {
+        const nameWithoutExtension = basename(absolutePath).replace(extension, "");
+        const finalName = `${nameWithoutExtension}_${width}_${height}${extension}`;
+        const finalPath = join(dirname(absolutePath), finalName);
+
+        if (!await pathExists(finalPath)) {
+            let consoleLog!: EditorExportConsoleComponent;
+            editor.layout.console.log((
+                <EditorExportConsoleComponent
+                    ref={(r) => consoleLog = r!}
+                    message={`Exporting image scaled image "${finalName}"`}
+                />
+            ));
+
+            try {
+                const buffer = await sharp(absolutePath).resize(width, height).toBuffer();
+
+                await writeFile(finalPath, buffer);
+                await compressFileToKtx(editor, finalPath);
+
+                consoleLog.setState({
+                    done: true,
+                    message: `Exported image scaled image "${finalName}"`,
+                });
+            } catch (e) {
+                consoleLog.setState({
+                    done: true,
+                    error: true,
+                    message: `Failed to export image scaled image "${finalName}"`,
+                });
+            }
+        }
+
+        scale *= 0.5;
+        width *= 0.5;
+        height *= 0.5;
+    }
+}

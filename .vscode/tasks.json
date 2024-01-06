@@ -7,28 +7,21 @@
             "label": "watch-all-editor",
             "group": "build",
             "problemMatcher": "$tsc-watch",
-            "dependsOn": ["watch", "watch-sample-plugin"],
+            "dependsOn": [
+                "watch-editor",
+                "watch-editor-css",
+                "watch-tools",
+                "watch-quixel"
+            ],
             "presentation": {
                 "panel": "shared",
                 "group": "watch",
             }
         },
         {
-            "label": "watch-all-website",
-            "group": "build",
-            "problemMatcher": [],
-            "dependsOn": ["watch-website", "serve-website"],
-            "presentation": {
-                "panel": "shared",
-                "group": "watch",
-                "showReuseMessage": true,
-                "echo": true
-            }
-        },
-        {
-            "label": "watch",
+            "label": "watch-editor",
             "type": "npm",
-            "script": "watch",
+            "script": "watch-editor",
             "group": "build",
             "problemMatcher": "$tsc-watch",
             "presentation": {
@@ -38,55 +31,40 @@
             "isBackground": true
         },
         {
-            "label": "watch-sample-plugin",
+            "label": "watch-editor-css",
             "type": "npm",
-            "script": "watch-sample-plugin",
+            "script": "watch-editor-css",
             "group": "build",
             "problemMatcher": "$tsc-watch",
             "presentation": {
                 "panel": "shared",
-                "group": "watch"
+                "group": "watch",
             },
             "isBackground": true
         },
         {
-            "label": "watch-website",
+            "label": "watch-tools",
             "type": "npm",
-            "script": "watch",
+            "script": "watch-tools",
             "group": "build",
-            "problemMatcher": [],
-            "path": "website/",
+            "problemMatcher": "$tsc-watch",
             "presentation": {
                 "panel": "shared",
-                "group": "build"
-            }
+                "group": "watch",
+            },
+            "isBackground": true
         },
         {
-            "label": "serve-website",
+            "label": "watch-quixel",
             "type": "npm",
-            "script": "webserver",
+            "script": "watch-quixel",
             "group": "build",
-            "problemMatcher": [],
-            "path": "website/",
+            "problemMatcher": "$tsc-watch",
             "presentation": {
                 "panel": "shared",
-                "group": "build"
-            }
-        },
-        {
-            "label": "clean-tests",
-            "type": "npm",
-            "script": "prepare-tests",
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "silent",
-                "focus": false,
-                "panel": "shared",
-                "group": "test",
-                "showReuseMessage": false,
-                "clear": false
-            }
+                "group": "watch",
+            },
+            "isBackground": true
         }
     ]
 }
