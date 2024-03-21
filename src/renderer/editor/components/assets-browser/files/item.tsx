@@ -169,6 +169,7 @@ export class AssetsBrowserItem extends React.Component<IAssetsBrowserItemProps, 
 
 		this.RegisterItemHandler({ extension: ".env", ctor: EnvDdsItemHandler });
 		this.RegisterItemHandler({ extension: ".dds", ctor: EnvDdsItemHandler });
+		this.RegisterItemHandler({ extension: ".hdr", ctor: EnvDdsItemHandler });
 
 		this.RegisterItemHandler({ extension: ".ts", ctor: TypeScriptItemHandler });
 		this.RegisterItemHandler({ extension: ".tsx", ctor: TypeScriptItemHandler });
