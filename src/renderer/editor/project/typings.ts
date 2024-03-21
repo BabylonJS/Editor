@@ -308,6 +308,10 @@ export interface IProject {
      */
     reflectionProbes?: string[];
     /**
+     * Defines the list of all procedural textures.
+     */
+    proceduralTextures?: string[];
+    /**
      * Saves the scene's settings.
      */
     scene: any;

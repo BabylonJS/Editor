@@ -115,6 +115,12 @@ export type AppendScenePhase = "sceneLoading" | "filesLoading";
 export async function appendScene(toScene: Scene, rootUrl: string, sceneFilename: string, onProgress?: (progress: ISceneLoaderProgressEvent, phase: AppendScenePhase) => void): Promise<void> {
     await SceneLoader.AppendAsync(rootUrl, sceneFilename, toScene, (p) => onProgress?.(p, "sceneLoading"), ".babylon");
 
+    toScene.meshes.forEach((m) => {
+        if (m instanceof Mesh) {
+            m._checkDelayState();
+        }
+    });
+
     const filesCount = toScene._pendingData.length;
 
     const intervalId = onProgress ? setInterval(() => {
@@ -448,7 +454,7 @@ function requireScriptForNodes(scene: Scene, scriptsMap: ISceneScriptMap, nodes:
 
             // Retrieve impostors
             if (n instanceof AbstractMesh && !n.physicsImpostor) {
-                n.physicsImpostor = (n._scene.getPhysicsEngine() as PhysicsEngine)?.getImpostorForPhysicsObject(n) ?? null;
+                n.physicsImpostor = (n._scene.getPhysicsEngine() as Nullable<PhysicsEngine>)?.getImpostorForPhysicsObject(n) ?? null;
             }
 
             delete n.metadata.script;
@@ -651,8 +657,8 @@ export function configurePostProcesses(scene: Scene, rootUrl: Nullable<string> =
 
     if (data.ssr && !ssrRenderingPipelineRef) {
         ssrRenderingPipelineRef = SSRRenderingPipeline.Parse(data.ssr.json, scene, rootUrl);
-        if (data.ssr.enabled) {
-            scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(ssrRenderingPipelineRef.name, scene.cameras);
+        if (!data.ssr.enabled) {
+            scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(ssrRenderingPipelineRef.name, scene.cameras);
         }
     }
 

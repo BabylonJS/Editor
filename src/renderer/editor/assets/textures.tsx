@@ -15,6 +15,8 @@ import {
     DynamicTexture,
 } from "babylonjs";
 
+import "babylonjs-procedural-textures";
+
 import { Tools } from "../tools/tools";
 import { KTXTools } from "../tools/ktx";
 import { undoRedo } from "../tools/undo-redo";
@@ -612,6 +614,10 @@ export class TextureAssets extends AbstractAssets {
         clone.metadata = {
             editorName: name,
         };
+
+        if (clone instanceof CubeTexture) {
+            clone.updateURL(join(this.editor.assetsBrowser.assetsDirectory, clone.name));
+        }
 
         this.refresh();
     }

@@ -8,6 +8,7 @@ import { InspectorNumber } from "../../../gui/inspector/fields/number";
 import { InspectorSection } from "../../../gui/inspector/fields/section";
 
 import { INodeInspectorState, NodeInspector } from "../node-inspector";
+import { InspectorList } from "../../../gui/inspector/fields/list";
 
 export class CameraInspector<T extends Camera, S extends INodeInspectorState> extends NodeInspector<T, S> {
     /**
@@ -35,10 +36,17 @@ export class CameraInspector<T extends Camera, S extends INodeInspectorState> ex
     protected getCameraInspector(): React.ReactNode {
         return (
             <InspectorSection title="Camera">
-                <InspectorNumber object={this.selectedObject} property="fov" label="FOV" step={0.01} />
                 <InspectorNumber object={this.selectedObject} property="minZ" label="Min Z" step={0.01} />
                 <InspectorNumber object={this.selectedObject} property="maxZ" label="Max Z" step={0.01} />
                 <InspectorNumber object={this.selectedObject} property="inertia" label="Inertia" step={0.01} />
+
+                <InspectorSection title="FOV">
+                    <InspectorNumber object={this.selectedObject} property="fov" label="FOV" step={0.01} />
+                    <InspectorList object={this.selectedObject} property="fovMode" label="Mode" items={[
+                        { label: "Horitzontal", data: Camera.FOVMODE_HORIZONTAL_FIXED },
+                        { label: "Vertical", data: Camera.FOVMODE_VERTICAL_FIXED },
+                    ]} />
+                </InspectorSection>
             </InspectorSection>
         );
     }

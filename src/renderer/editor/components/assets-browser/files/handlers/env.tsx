@@ -6,7 +6,7 @@ import { basename, dirname, extname, join } from "path";
 import * as React from "react";
 import { ContextMenu, Menu, MenuDivider, MenuItem, Tag, Icon as BPIcon } from "@blueprintjs/core";
 
-import { CubeTexture, EnvironmentTextureTools } from "babylonjs";
+import { CubeTexture, EnvironmentTextureTools, HDRCubeTexture } from "babylonjs";
 
 import { Icon } from "../../../../gui/icon";
 import { Alert } from "../../../../gui/alert";
@@ -73,7 +73,9 @@ export class EnvDdsItemHandler extends AssetsBrowserItemHandler {
 	 */
 	public onContextMenu(ev: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
 		let convertAsEnv: React.ReactNode[] = [];
-		if (extname(this.props.absolutePath).toLowerCase() === ".dds") {
+
+		const ext = extname(this.props.absolutePath).toLowerCase();
+		if (ext === ".dds" || ext === ".hdr") {
 			convertAsEnv = [
 				<MenuDivider />,
 				<MenuItem text="Convert As .env..." onClick={() => this._convertDDSToEnd()} />,
@@ -104,15 +106,30 @@ export class EnvDdsItemHandler extends AssetsBrowserItemHandler {
 		const task = this.props.editor.addTaskFeedback(0, "Converting to env...", -1);
 
 		// Load texture and create env buffer
-		const ddsTexture = await new Promise<CubeTexture>((resolve, reject) => {
-			const texture = new CubeTexture(this.props.absolutePath, this.props.editor.scene!, null, false, null, () => {
-				resolve(texture);
-				this.props.editor.updateTaskFeedback(task, 50);
-			}, (m, e) => {
-				reject(e);
-				this.props.editor.closeTaskFeedback(task, 0);
-				this.props.editor.console.logError(`Failed to convert dds to env: ${m} : ${e?.message}`);
-			}, undefined, true, undefined, true);
+		const ddsTexture = await new Promise<CubeTexture | HDRCubeTexture>((resolve, reject) => {
+			const ext = extname(this.props.absolutePath).toLowerCase();
+
+			if (ext === ".dds") {
+				const texture = new CubeTexture(this.props.absolutePath, this.props.editor.scene!, null, false, null, () => {
+					resolve(texture);
+					this.props.editor.updateTaskFeedback(task, 50);
+				}, (m, e) => {
+					reject(e);
+					this.props.editor.closeTaskFeedback(task, 0);
+					this.props.editor.console.logError(`Failed to convert dds to env: ${m} : ${e?.message}`);
+				}, undefined, true, undefined, true);
+			}
+
+			if (ext === ".hdr") {
+				const texture = new HDRCubeTexture(this.props.absolutePath, this.props.editor.scene!, 512, false, false, false, undefined, () => {
+					resolve(texture);
+					this.props.editor.updateTaskFeedback(task, 50);
+				}, (m, e) => {
+					reject(e);
+					this.props.editor.closeTaskFeedback(task, 0);
+					this.props.editor.console.logError(`Failed to convert dds to env: ${m} : ${e?.message}`);
+				});
+			}
 		});
 
 		const buffer = await EnvironmentTextureTools.CreateEnvTextureAsync(ddsTexture);

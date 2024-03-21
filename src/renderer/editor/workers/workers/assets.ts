@@ -13,6 +13,7 @@ import {
 
 import { GridMaterial } from "babylonjs-materials";
 import "babylonjs-loaders";
+import "babylonjs-procedural-textures";
 
 import { Tools } from "../../tools/tools";
 

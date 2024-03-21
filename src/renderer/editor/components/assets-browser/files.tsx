@@ -12,7 +12,7 @@ import {
 	MenuDivider, MenuItem, Popover, Code, Divider, ContextMenu, Icon as BPIcon, InputGroup,
 } from "@blueprintjs/core";
 
-import { Tools as BabylonTools, Material, NodeMaterial, ParticleSystem, Mesh } from "babylonjs";
+import { Tools as BabylonTools, Material, NodeMaterial, ParticleSystem, Mesh, ProceduralTexture } from "babylonjs";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 
 import { SandboxMain } from "../../../sandbox/main";
@@ -248,6 +248,10 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 					<MenuItem text="Water Material..." onClick={() => this._handleCreateMaterial("WaterMaterial")} />
 					<MenuItem text="Gradient Material..." onClick={() => this._handleCreateMaterial("GradientMaterial")} />
 					<MenuItem text="Tri Planar Material..." onClick={() => this._handleCreateMaterial("TriPlanarMaterial")} />
+				</MenuItem>
+
+				<MenuItem text="Procedural Texture" disabled={!isAssetsDirectory} icon={<Icon src="circle.svg" />}>
+					<MenuItem text="Fire" onClick={() => this._handleCreateProceduralTexture("FireProceduralTexture")} />
 				</MenuItem>
 
 				<MenuItem text="Particles System" disabled={!isAssetsDirectory} icon={<Icon src="wind.svg" />}>
@@ -904,6 +908,38 @@ export class AssetsBrowserFiles extends React.Component<IAssetsBrowserFilesProps
 		}
 
 		return this._handleAddGui(texture);
+	}
+
+	private async _handleCreateProceduralTexture(type: string): Promise<ProceduralTexture> {
+		const relativePath = join(this.state.currentDirectory, "/").replace(join(this._assetsDirectory, "/"), "");
+
+		let name = await Dialog.Show("Procedural Texture Name", "Please provide a name for the procedural texture to create.");
+
+		const extension = extname(name);
+		if (extension !== ".prtex") {
+			name += ".prtex";
+		}
+
+		const ctor = BabylonTools.Instantiate(`BABYLON.${type}`);
+		const texture = new ctor(name, 256, this.props.editor.scene!);
+
+		texture.metadata = {
+			editorName: name,
+			editorId: Tools.RandomId(),
+			editorPath: join(relativePath, name),
+		};
+
+		await writeJSON(join(this.state.currentDirectory, name), {
+			...texture.serialize(),
+			metadata: Tools.CloneObject(texture.metadata),
+		}, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		this.refresh();
+
+		return texture;
 	}
 
 	/**

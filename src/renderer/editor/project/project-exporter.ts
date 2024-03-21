@@ -5,7 +5,7 @@ import { Nullable } from "../../../shared/types";
 
 import {
     ShaderMaterial, Mesh, Tools as BabylonTools, RenderTargetTexture, DynamicTexture, MultiMaterial,
-    AbstractMesh, ColorGradingTexture, Texture,
+    AbstractMesh, ColorGradingTexture, Texture, ProceduralTexture,
 } from "babylonjs";
 
 import filenamify from "filenamify";
@@ -140,6 +140,7 @@ export class ProjectExporter {
             sounds: [],
             morphTargetManagers: [],
             reflectionProbes: [],
+            proceduralTextures: [],
             scene: ProjectHelpers.ExportSceneSettings(editor.scene!),
             assets: {
                 meshes: [],
@@ -289,7 +290,7 @@ export class ProjectExporter {
         await FSTools.CreateDirectory(texturesDir);
 
         for (const texture of editor.scene!.textures) {
-            if (texture instanceof RenderTargetTexture || texture instanceof DynamicTexture) { continue; }
+            if (texture instanceof RenderTargetTexture || texture instanceof DynamicTexture || texture instanceof ProceduralTexture) { continue; }
             if (texture.name.indexOf("data:") === 0 || texture === editor.scene!.environmentBRDFTexture) { continue; }
             if (!extname(texture.name)) { continue; }
 
@@ -317,6 +318,42 @@ export class ProjectExporter {
 
                 editor.updateTaskFeedback(task, progressValue += progressCount);
                 editor.console.logInfo(`Saved texture configuration "${texture.name}"`);
+
+                resolve();
+            }));
+        }
+
+        await Promise.all(savePromises);
+        savePromises = [];
+
+        // Write all procedural textures
+        progressValue = 0;
+        progressCount = 100 / (editor.scene!.proceduralTextures?.length ?? 0);
+
+        for (const prtex of editor.scene!.proceduralTextures ?? []) {
+            if (!prtex.metadata?.editorPath) {
+                continue;
+            }
+
+            savePromises.push(new Promise<void>(async (resolve) => {
+                const json = prtex.serialize();
+
+                try {
+                    json.metadata = Tools.CloneObject(prtex.metadata);
+                } catch (e) {
+                    // Catch silently.
+                }
+
+                const dest = join(editor.assetsBrowser.assetsDirectory, prtex.metadata.editorPath);
+
+                project.proceduralTextures?.push(prtex.metadata.editorPath);
+
+                if (!(await pathExists(dirname(dest)))) {
+                    project.materials.splice(project.materials.indexOf(prtex.metadata.editorPath), 1);
+                    return resolve();
+                }
+
+                await Workers.ExecuteFunction<SaveWorker, "writeFile">(this._Worker!, "writeFile", dest, json);
 
                 resolve();
             }));

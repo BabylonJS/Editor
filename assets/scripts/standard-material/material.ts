@@ -1,7 +1,17 @@
-import {
-    StandardMaterial, AbstractMesh, SubMesh, StandardMaterialDefines, Effect, Scene, Tools, Matrix,
-    Mesh, RegisterClass, SerializationHelper,
-} from "@babylonjs/core";
+import { Effect } from "@babylonjs/core/Materials/effect";
+import { StandardMaterial, StandardMaterialDefines } from "@babylonjs/core/Materials/standardMaterial";
+
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { SubMesh } from "@babylonjs/core/Meshes/subMesh";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+
+import { Scene } from "@babylonjs/core/scene";
+
+import { Tools } from "@babylonjs/core/Misc/tools";
+import { RegisterClass } from "@babylonjs/core/Misc/typeStore";
+import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
+
+import { Matrix } from "@babylonjs/core/Maths/math.vector";
 
 import { ICustomShaderNameResolveOptions } from "@babylonjs/core/Materials/material";
 

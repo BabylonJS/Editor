@@ -1,7 +1,19 @@
-import {
-	PBRMaterial, AbstractMesh, SubMesh, PBRMaterialDefines, Effect, Scene, Tools, Matrix,
-	Mesh, RegisterClass, SerializationHelper,
-} from "@babylonjs/core";
+import { Effect } from "@babylonjs/core/Materials/effect";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
+import { PBRMaterialDefines } from "@babylonjs/core/Materials/PBR/pbrBaseMaterial";
+import { MaterialPluginEvent } from "@babylonjs/core/Materials/materialPluginEvent";
+
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { SubMesh } from "@babylonjs/core/Meshes/subMesh";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+
+import { Scene } from "@babylonjs/core/scene";
+
+import { Tools } from "@babylonjs/core/Misc/tools";
+import { RegisterClass } from "@babylonjs/core/Misc/typeStore";
+import { SerializationHelper } from "@babylonjs/core/Misc/decorators";
+
+import { Matrix } from "@babylonjs/core/Maths/math.vector";
 
 import { ICustomShaderNameResolveOptions } from "@babylonjs/core/Materials/material";
 
@@ -9,7 +21,7 @@ import vertexShaderContent from "./{__shader_name__}.vertex.fx";
 import pixelShaderContent from "./{__shader_name__}.fragment.fx";
 
 class /*{__shader_class_name__}*/AMaterialDefines extends PBRMaterialDefines {
-	public COMPUTE_WAVES = false;
+	// To be filled.
 }
 
 export class /*{__shader_class_name__}*/APBRMaterial extends PBRMaterial {
@@ -41,6 +53,11 @@ export class /*{__shader_class_name__}*/APBRMaterial extends PBRMaterial {
 	 * @returns - boolean indicating that the submesh is ready or not.
 	 */
 	public isReadyForSubMesh(mesh: AbstractMesh, subMesh: SubMesh, useInstances?: boolean): boolean {
+		if (!subMesh.materialDefines) {
+			this._callbackPluginEventGeneric(MaterialPluginEvent.GetDefineNames, this._eventInfo);
+			subMesh.materialDefines = new /*{__shader_class_name__}*/AMaterialDefines(this._eventInfo.defineNames);
+		}
+
 		/* Check textures etc. here */
 
 		return super.isReadyForSubMesh(mesh, subMesh, useInstances);

@@ -21,7 +21,7 @@ export interface IGraphContextMenuSubMeshesProps {
  * @param props defines the component's props.
  */
 export function GraphContextMenuSubMeshes(props: IGraphContextMenuSubMeshesProps) {
-    if (!(props.object instanceof AbstractMesh) || props.object.subMeshes.length < 2) {
+    if (!(props.object instanceof AbstractMesh) || (props.object.subMeshes?.length ?? 0) < 2) {
         return null;
     }
 
