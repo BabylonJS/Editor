@@ -61,6 +61,8 @@ export async function saveProject(editor: Editor): Promise<void> {
         const project = projects.find((project) => project.absolutePath === editor.state.projectPath);
         if (project) {
             project.preview = base64;
+            project.updatedAt = new Date();
+
             localStorage.setItem(projectsKey, JSON.stringify(projects));
             ipcRenderer.send("dashboard:update-projects");
         }

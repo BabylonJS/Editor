@@ -1,6 +1,6 @@
+import { join } from "path/posix";
 import { pathExists } from "fs-extra";
 import { ipcRenderer } from "electron";
-import { join, basename, dirname } from "path/posix";
 
 import decompress from "decompress";
 import decompressTargz from "decompress-targz";
@@ -11,8 +11,6 @@ import { createRoot } from "react-dom/client";
 import { Fade } from "react-awesome-reveal";
 import { Grid } from "react-loader-spinner";
 
-import { FaQuestion } from "react-icons/fa";
-
 import { Input } from "../ui/shadcn/ui/input";
 import { Button } from "../ui/shadcn/ui/button";
 import { Separator } from "../ui/shadcn/ui/separator";
@@ -21,6 +19,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ProjectType, projectsKey } from "../tools/project";
 import { tryGetProjectsFromLocalStorage } from "../tools/local-storage";
 import { openSingleFileDialog, openSingleFolderDialog } from "../tools/dialog";
+
+import { ProjectTile } from "./tile";
 
 export function createDashboard(): void {
     const theme = localStorage.getItem("editor-theme") ?? "dark";
@@ -110,31 +110,13 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                         )}
 
                         {this.state.projects.length &&
-                            <div className="grid grid-cols-5 gap-4">
+                            <div className="grid sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
                                 {this.state.projects.map((project) => (
-                                    <div
+                                    <ProjectTile
+                                        project={project}
                                         key={project.absolutePath}
-                                        onDoubleClick={() => ipcRenderer.send("dashboard:open-project", project.absolutePath)}
-                                        className={`
-                                            flex flex-col gap-2 w-full aspect-square rounded-lg cursor-pointer select-none
-                                            ring-muted-foreground hover:ring-2 hover:p-1
-                                            transition-all duration-300 ease-in-out
-                                            ${this.state.openedProjects.includes(project.absolutePath) ? "opacity-15 pointer-events-none" : ""}
-                                        `}
-                                    >
-                                        <div className="flex justify-center items-center w-full h-full bg-muted rounded-lg">
-                                            {!project.preview &&
-                                                <FaQuestion className="w-10 h-10" />
-                                            }
-                                            {project.preview &&
-                                                <img alt="" src={project.preview} className="w-full aspect-square object-cover rounded-lg" />
-                                            }
-                                        </div>
-
-                                        <div className="text-center px-5 select-none text-ellipsis overflow-hidden whitespace-nowrap">
-                                            {basename(dirname(project.absolutePath))}
-                                        </div>
-                                    </div>
+                                        isOpened={this.state.openedProjects.includes(project.absolutePath)}
+                                    />
                                 ))}
                             </div>
                         }
