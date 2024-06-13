@@ -14,6 +14,7 @@ import { MetallicAmbientPacker } from "./packers/metallic-ambient";
 import { MetallicRoughnessPacker } from "./packers/metallic-roughness";
 import { NormalDisplacementPacker } from "./packers/normal-displacement";
 import { ReflectivityGlossinessPacker } from "./packers/reflectivity-glossiness";
+import { UniqueNumber } from "./tools/id";
 
 const supportedTexturesTypes: string[] = [
     "albedo", "normal", "specular", "ao", "metalness", "opacity", "roughness", "specular",
@@ -60,6 +61,7 @@ export async function setupTextures(editor: Editor, json: QuixelJsonType, materi
         try {
             texture = await new Promise<Texture>((resolve, reject) => {
                 const texture = new Texture(path, editor.layout.preview.scene, false, true, undefined, () => {
+                    texture.uniqueId = UniqueNumber.Get();
                     texture.name = path.replace(projectFolder, "");
                     texture.url = texture.name;
                     resolve(texture);

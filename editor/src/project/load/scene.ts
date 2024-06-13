@@ -162,6 +162,15 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                     m.metadata._waitingParentId = meshData.parentId;
                 }
 
+                m.instances.forEach((instance) => {
+                    const instanceData = meshData.instances?.find((d) => d.id === instance.id);
+                    if ((instanceData?.uniqueId ?? null) !== null) {
+                        instance.uniqueId = instanceData.uniqueId;
+                        instance.metadata ??= {};
+                        instance.metadata._waitingParentId = meshData.parentId;
+                    }
+                });
+
                 if (m.material) {
                     const material = data.materials?.find((d) => d.id === m.material!.id);
                     if (material) {

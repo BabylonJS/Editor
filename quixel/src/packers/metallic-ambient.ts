@@ -5,6 +5,7 @@ import { Editor } from "babylonjs-editor";
 
 import { PBRMaterial, Texture } from "babylonjs";
 
+import { UniqueNumber } from "../tools/id";
 import { TextureUtils } from "../tools/textureMerger";
 
 export class MetallicAmbientPacker {
@@ -45,6 +46,7 @@ export class MetallicAmbientPacker {
 
                 const packedMetallicTexture = await new Promise<Texture>((resolve, reject) => {
                     const texture = new Texture(packedMetallicTexturePath, editor.layout.preview.scene, false, true, undefined, () => {
+                        texture.uniqueId = UniqueNumber.Get();
                         texture.name = packedMetallicTexturePath.replace(projectFolder, "");
                         texture.url = texture.name;
                         resolve(texture);

@@ -20,6 +20,9 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
         ".x": {
             isBinary: true,
         },
+        ".fbx": {
+            isBinary: true,
+        },
         ".3ds": {
             isBinary: true,
         },

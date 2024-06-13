@@ -1,10 +1,11 @@
 import { copyFile } from "fs-extra";
 import { join, basename } from "path/posix";
 
-import { Mesh } from "babylonjs";
+import { Mesh, Tools } from "babylonjs";
 import { Editor } from "babylonjs-editor";
 
 import { isMesh } from "./tools/guards";
+import { UniqueNumber } from "./tools/id";
 
 import { QuixelJsonType } from "./typings";
 
@@ -28,6 +29,11 @@ export async function importMeshes(editor: Editor, json: QuixelJsonType, assetsF
         return [];
     }
 
+    sourceMeshes.forEach((mesh) => {
+        mesh.id = Tools.RandomId();
+        mesh.uniqueId = UniqueNumber.Get();
+    });
+
     results[0]!.transformNodes.forEach((transformNode) => transformNode.dispose(true, false));
 
     for (let i = 1; i < results.length; ++i) {
@@ -37,6 +43,9 @@ export async function importMeshes(editor: Editor, json: QuixelJsonType, assetsF
         }
 
         result.meshes.forEach((mesh, lodIndex) => {
+            mesh.id = Tools.RandomId();
+            mesh.uniqueId = UniqueNumber.Get();
+
             if (!isMesh(mesh)) {
                 return;
             }

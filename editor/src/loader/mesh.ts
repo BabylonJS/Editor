@@ -1,11 +1,16 @@
 import { Bone, Geometry, Mesh, MultiMaterial, Skeleton, SubMesh, Tools, VertexData } from "babylonjs";
 
+import { UniqueNumber } from "../tools/tools";
+
 import { AssimpJSRuntime, IAssimpJSNodeData } from "./types";
 
 export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Mesh {
     const mesh = new Mesh(data.name, runtime.scene);
     mesh.subMeshes ??= [];
     mesh.receiveShadows = true;
+
+    mesh.id = Tools.RandomId();
+    mesh.uniqueId = UniqueNumber.Get();
 
     const meshes = data.meshes!.map((meshIndex) => runtime.data.meshes![meshIndex]);
 

@@ -4,12 +4,16 @@ import { join, basename } from "path/posix";
 import { Editor } from "babylonjs-editor";
 import { PBRMaterial, Tools } from "babylonjs";
 
+import { UniqueNumber } from "./tools/id";
+
 import { QuixelJsonType } from "./typings";
 import { copyTextures, setupTextures } from "./texture";
 
 export async function importMaterial(editor: Editor, json: QuixelJsonType, assetsFolder: string): Promise<PBRMaterial | null> {
     const material = new PBRMaterial(json.path, editor.layout.preview.scene);
     material.id = Tools.RandomId();
+    material.uniqueId = UniqueNumber.Get();
+
     material.invertNormalMapX = true;
     material.invertNormalMapY = true;
 
