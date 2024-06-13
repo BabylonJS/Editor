@@ -1,5 +1,6 @@
 import { dirname } from "path/posix";
 import { writeJSON } from "fs-extra";
+import { ipcRenderer } from "electron";
 
 import { toast } from "sonner";
 
@@ -61,6 +62,7 @@ export async function saveProject(editor: Editor): Promise<void> {
         if (project) {
             project.preview = base64;
             localStorage.setItem(projectsKey, JSON.stringify(projects));
+            ipcRenderer.send("dashboard:update-projects");
         }
     } catch (e) {
         // Catch silently.
