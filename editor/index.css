@@ -85,11 +85,16 @@
     }
 }
 
+@supports (font-variation-settings: normal) {
+    :root {
+        font-family: 'Inter var', sans-serif;
+    }
+}
+
 body * {
     color: hsl(var(--foreground));
     outline: none !important;
-    font-weight: 400 !important;
-    font-family: Roboto, sans-serif !important;
+    font-family: 'Inter', sans-serif;
 }
 
 input {
@@ -115,7 +120,7 @@ input {
 
 /* Electron */
 .electron-draggable {
-	-webkit-app-region: drag;
+    -webkit-app-region: drag;
 }
 
 /* FLEX LAYOUT */

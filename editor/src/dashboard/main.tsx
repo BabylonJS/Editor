@@ -16,7 +16,7 @@ import { FaQuestion } from "react-icons/fa";
 import { Input } from "../ui/shadcn/ui/input";
 import { Button } from "../ui/shadcn/ui/button";
 import { Separator } from "../ui/shadcn/ui/separator";
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/shadcn/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "../ui/shadcn/ui/dialog";
 
 import { ProjectType, projectsKey } from "../tools/project";
 import { tryGetProjectsFromLocalStorage } from "../tools/local-storage";
@@ -149,7 +149,11 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
     public async componentDidMount(): Promise<void> {
         ipcRenderer.send("dashboard:ready");
 
+        ipcRenderer.on("dashboard:import-project", () => this._handleImportProject());
+        ipcRenderer.on("dashboard:new-project", () => this.setState({ createProject: true }));
+
         ipcRenderer.on("dashboard:opened-projects", (_, openedProjects) => this.setState({ openedProjects }));
+        ipcRenderer.on("dashboard:update-projects", () => this.setState({ projects: tryGetProjectsFromLocalStorage() }));
 
         await Promise.all(this.state.projects.map(async (project) => {
             const exists = await pathExists(project.absolutePath);
@@ -165,13 +169,13 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
     private _getCreateProjectComponent(): ReactNode {
         return (
-            <AlertDialog open={this.state.createProject}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
+            <Dialog open={this.state.createProject} onOpenChange={(o) => !o && this.setState({ createProject: false })}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
                             Create project
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="flex flex-col gap-[10px]">
+                        </DialogTitle>
+                        <DialogDescription className="flex flex-col gap-[10px]">
                             {!this.state.creatingProject &&
                                 <>
                                     <div>
@@ -196,9 +200,9 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                                     </div>
                                 </div>
                             }
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
                         <Button
                             variant="default"
                             onClick={() => this._handleCreateProject()}
@@ -206,9 +210,9 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                         >
                             Create
                         </Button>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         );
     }
 

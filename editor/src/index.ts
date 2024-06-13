@@ -1,8 +1,10 @@
 import { platform } from "os";
-import { BrowserWindow, Menu, app, globalShortcut, ipcMain, nativeTheme } from "electron";
+import { BrowserWindow, app, globalShortcut, ipcMain, nativeTheme } from "electron";
 
 import { getFilePathArgument } from "./tools/process";
 
+import { setupEditorMenu } from "./electron/menus/editor";
+import { setupDashboardMenu } from "./electron/menus/dashboard";
 import { createDashboardWindow, createEditorWindow } from "./electron/window";
 
 import "./electron/node-pty";
@@ -57,12 +59,20 @@ ipcMain.on("dashboard:open-project", (_, file) => {
     dashboardWindow?.minimize();
 });
 
+ipcMain.on("dashboard:update-projects", () => {
+    dashboardWindow?.webContents.send("dashboard:update-projects");
+});
+
 let dashboardWindow: BrowserWindow | null = null;
 
 async function openDashboard(): Promise<void> {
     if (!dashboardWindow) {
+
+        setupDashboardMenu();
+
         dashboardWindow = await createDashboardWindow();
 
+        dashboardWindow.on("focus", () => setupDashboardMenu());
         dashboardWindow.on("closed", () => dashboardWindow = null);
     }
 
@@ -81,14 +91,18 @@ async function openProject(filePath: string): Promise<void> {
 
     notifyWindows("dashboard:opened-projects", openedProjects);
 
-    setupMenu();
+    setupEditorMenu();
 
     const window = await createEditorWindow();
 
-    window.on("focus", () => setupMenu());
+    window.on("focus", () => setupEditorMenu());
     window.once("closed", () => {
         openedProjects.splice(openedProjects.indexOf(filePath), 1);
         notifyWindows("dashboard:opened-projects", openedProjects);
+
+        if (openedProjects.length === 0) {
+            dashboardWindow?.restore();
+        }
     });
 
     if (platform() === "win32" && filePath) {
@@ -114,140 +128,4 @@ function notifyWindows(event: string, data: any) {
     BrowserWindow.getAllWindows().forEach((window) => {
         window.webContents.send(event, data);
     });
-}
-
-function setupMenu(): void {
-    Menu.setApplicationMenu(Menu.buildFromTemplate([
-        {
-            label: "Babylon.JS Editor",
-            submenu: [
-                {
-                    click: () => app.quit(),
-                    label: "Exit BabylonJS Editor",
-                    accelerator: "CommandOrControl+Q",
-                },
-            ],
-        },
-        {
-            label: "File",
-            submenu: [
-                {
-                    label: "Open Project...",
-                    accelerator: "CommandOrControl+O",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:open-project"),
-                },
-                {
-                    type: "separator",
-                },
-                {
-                    label: "Save",
-                    accelerator: "CommandOrControl+S",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save"),
-                },
-                {
-                    label: "Export",
-                    accelerator: "CommandOrControl+G",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("export"),
-                },
-                {
-                    type: "separator",
-                },
-                {
-                    label: "Open in Visual Studio Code",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:open-vscode"),
-                }
-            ],
-        },
-        {
-            label: "Edit",
-            submenu: [
-                {
-                    label: "Undo",
-                    accelerator: "CommandOrControl+Z",
-                    click: () => {
-                        // BrowserWindow.getFocusedWindow()?.webContents.undo();
-                        BrowserWindow.getFocusedWindow()?.webContents.send("undo");
-                    },
-                },
-                {
-                    label: "Redo",
-                    accelerator: platform() === "darwin" ? "CommandOrControl+Shift+Z" : "Control+Y",
-                    click: () => {
-                        // BrowserWindow.getFocusedWindow()?.webContents.redo();
-                        BrowserWindow.getFocusedWindow()?.webContents.send("redo");
-                    },
-                },
-                {
-                    type: "separator",
-                },
-                {
-                    label: "Select All",
-                    accelerator: "CommandOrControl+A",
-                    role: "selectAll",
-                },
-                {
-                    type: "separator",
-                },
-                {
-                    role: "copy",
-                    label: "Copy",
-                    accelerator: "CommandOrControl+C",
-                },
-                {
-                    role: "paste",
-                    label: "Paste",
-                    accelerator: "CommandOrControl+V",
-                },
-                {
-                    type: "separator",
-                },
-                {
-                    label: "Project...",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:edit-project"),
-                },
-                {
-                    type: "separator",
-                },
-                {
-                    label: "Preferences...",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:edit-preferences"),
-                },
-            ],
-        },
-        {
-            label: "Preview",
-            submenu: [
-                {
-                    label: "Position",
-                    accelerator: "CommandOrControl+T",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("gizmo:position"),
-                },
-                {
-                    label: "Rotation",
-                    accelerator: "CommandOrControl+R",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("gizmo:rotation"),
-                },
-                {
-                    label: "Scaling",
-                    accelerator: "CommandOrControl+W",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("gizmo:scaling"),
-                },
-                {
-                    type: "separator",
-                },
-                {
-                    label: "Focus Selected Object",
-                    accelerator: "CommandOrControl+F",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:focus"),
-                },
-                {
-                    type: "separator",
-                },
-                {
-                    label: "Edit Camera",
-                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:edit-camera"),
-                },
-            ],
-        },
-    ]));
 }
