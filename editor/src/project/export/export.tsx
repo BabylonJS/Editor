@@ -17,6 +17,7 @@ import { serializeDefaultRenderingPipeline } from "../../editor/rendering/defaul
 import { Editor } from "../../editor/main";
 
 import { compressFileToKtx } from "./ktx";
+import { configureMeshesLODs } from "./lod";
 import { EditorExportConsoleComponent } from "./log";
 import { EditorExportProjectProgressComponent } from "./progress";
 
@@ -65,6 +66,8 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
     };
 
     delete data.postProcesses;
+
+    configureMeshesLODs(data, scene);
 
     const projectDir = dirname(editor.state.projectPath);
     const publicPath = join(projectDir, "public");

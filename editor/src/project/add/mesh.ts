@@ -5,7 +5,6 @@ import { UniqueNumber } from "../../tools/tools";
 import { Editor } from "../../editor/main";
 
 export function addTransformNode(editor: Editor, parent?: Node) {
-    debugger;
     const transformNode = new TransformNode("New Transform Node", editor.layout.preview.scene);
     transformNode.id = Tools.RandomId();
     transformNode.uniqueId = UniqueNumber.Get();

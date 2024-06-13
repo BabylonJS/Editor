@@ -61,6 +61,13 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 data.morphTargetManager = meshToSerialize.morphTargetManager.serialize();
             }
 
+            data.meshes?.[0]?.instances?.forEach((instanceData: any) => {
+                const instance = meshToSerialize.instances.find((instance) => instance.id === instanceData.id);
+                if (instance) {
+                    instanceData.uniqueId = instance.uniqueId;
+                }
+            });
+
             const lodLevel = mesh.getLODLevels().find((lodLevel) => lodLevel.mesh === meshToSerialize);
             if (lodLevel) {
                 data.masterMeshId = mesh.id;

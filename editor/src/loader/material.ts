@@ -3,6 +3,8 @@ import { pathExistsSync } from "fs-extra";
 
 import { PBRMaterial, Texture, Tools } from "babylonjs";
 
+import { UniqueNumber } from "../tools/tools";
+
 import { materialPropertyMap } from "./maps";
 import { AssimpJSRuntime, IAssimpJSMaterialData } from "./types";
 
@@ -84,6 +86,9 @@ export function parseMaterial(runtime: AssimpJSRuntime, data: IAssimpJSMaterialD
 
     material.metallic ??= 0;
     material.roughness ??= 1;
+
+    material.id = Tools.RandomId();
+    material.uniqueId = UniqueNumber.Get();
 
     runtime.container.materials.push(material);
 

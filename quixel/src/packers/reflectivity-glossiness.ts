@@ -4,6 +4,7 @@ import { basename, join, dirname } from "path";
 import { Editor } from "babylonjs-editor";
 import { PBRMaterial, Texture } from "babylonjs";
 
+import { UniqueNumber } from "../tools/id";
 import { TextureUtils } from "../tools/textureMerger";
 
 export class ReflectivityGlossinessPacker {
@@ -44,6 +45,7 @@ export class ReflectivityGlossinessPacker {
 
                 const packedReflectivityTexture = await new Promise<Texture>((resolve, reject) => {
                     const texture = new Texture(packedReflectivityTexturePath, editor.layout.preview.scene, false, true, undefined, () => {
+                        texture.uniqueId = UniqueNumber.Get();
                         texture.name = packedReflectivityTexturePath.replace(projectFolder, "");
                         texture.url = texture.name;
                         resolve(texture);
