@@ -42,7 +42,7 @@ export function addBox(editor: Editor) {
 }
 
 export function addGroundMesh(editor: Editor) {
-    const ground = MeshBuilder.CreateGround("New Ground", { width: 1024, height: 1024 }, editor.layout.preview.scene);
+    const ground = MeshBuilder.CreateGround("New Ground", { width: 1024, height: 1024, subdivisions: 32 }, editor.layout.preview.scene);
     ground.receiveShadows = true;
     ground.id = Tools.RandomId();
     ground.uniqueId = UniqueNumber.Get();
@@ -50,12 +50,17 @@ export function addGroundMesh(editor: Editor) {
         type: "Ground",
         width: 1024,
         height: 1024,
+        subdivisions: 32,
     };
 
     if (ground.geometry) {
         ground.geometry.id = Tools.RandomId();
         ground.geometry.uniqueId = UniqueNumber.Get();
     }
+
+    editor.layout.preview.scene.lights.forEach((light) => {
+        light.getShadowGenerator()?.getShadowMap()?.renderList?.push(ground);
+    });
 
     editor.layout.graph.refresh();
     editor.layout.inspector.setEditedObject(ground);

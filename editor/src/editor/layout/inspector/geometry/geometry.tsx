@@ -45,6 +45,7 @@ export class GeometryInspector extends Component<IGeometryInspectorProps> {
             this.props.object.geometry?.setAllVerticesData(CreateGroundVertexData({
                 width: this.props.object.metadata.width,
                 height: this.props.object.metadata.height,
+                subdivisions: this.props.object.metadata.subdivisions >> 0,
             }), false);
         };
 
@@ -52,6 +53,7 @@ export class GeometryInspector extends Component<IGeometryInspectorProps> {
             <EditorInspectorSectionField title="Ground">
                 <EditorInspectorNumberField object={this.props.object.metadata} property="width" label="Width" step={0.1} onChange={() => onChange()} />
                 <EditorInspectorNumberField object={this.props.object.metadata} property="height" label="Height" step={0.1} onChange={() => onChange()} />
+                <EditorInspectorNumberField object={this.props.object.metadata} property="subdivisions" label="Subdivisions" step={1} min={1} onChange={() => onChange()} />
             </EditorInspectorSectionField>
         );
     }

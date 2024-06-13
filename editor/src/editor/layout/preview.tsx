@@ -57,11 +57,6 @@ export interface IEditorPreviewState {
     activeGizmo: "position" | "rotation" | "scaling" | "none";
 
     /**
-     * Defines the reference to the mesh that is under the pointer.
-     */
-    meshUnderPointer: AbstractMesh | null;
-
-    /**
      * Defines wether or not the preview is focused.
      */
     isFocused: boolean;
@@ -93,6 +88,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     private _renderScene: boolean = true;
     private _mouseDownPosition: Vector2 = Vector2.Zero();
 
+    private _meshUnderPointer: AbstractMesh | null;
+
     public constructor(props: IEditorPreviewProps) {
         super(props);
 
@@ -100,7 +97,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             activeGizmo: "none",
 
             isFocused: false,
-            meshUnderPointer: null,
             informationMessage: "",
         };
 
@@ -121,7 +117,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                 <div className="flex flex-col w-full h-full">
                     {this._getToolbar()}
 
-                    <EditorGraphContextMenu editor={this.props.editor} object={this.state.meshUnderPointer}>
+                    <EditorGraphContextMenu editor={this.props.editor} object={this._meshUnderPointer}>
                         <canvas
                             ref={(r) => this._onGotCanvasRef(r!)}
                             onDrop={(ev) => this._handleDrop(ev)}
@@ -289,17 +285,30 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
     private _handleMouseLeave(): void {
         this._restoreCurrentMeshUnderPointer();
-        this.setState({ meshUnderPointer: null, isFocused: false });
+        this._meshUnderPointer = null;
+
+        this.setState({ isFocused: false });
     }
+
+    private _mouseMoveTimeoutId: number = -1;
 
     private _handleMouseMove(x: number, y: number): void {
         const pick = this.scene.pick(x, y, (m) => !m._masterMesh, false);
         const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
 
-        if (mesh && this.state.meshUnderPointer !== mesh) {
+        if (mesh && this._meshUnderPointer !== mesh) {
             this._restoreCurrentMeshUnderPointer();
             this._highlightCurrentMeshUnderPointer(mesh);
-            this.setState({ meshUnderPointer: mesh });
+
+            this._meshUnderPointer = mesh;
+
+            if (this._mouseMoveTimeoutId) {
+                clearTimeout(this._mouseMoveTimeoutId);
+            }
+
+            this._mouseMoveTimeoutId = window.setTimeout(() => {
+                this.forceUpdate();
+            }, 200);
         }
     }
 
@@ -333,14 +342,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         Tween.KillTweensOf(pickedMesh);
 
         Tween.Create(pickedMesh, 0.1, {
-            "overlayAlpha": 0.15,
+            "overlayAlpha": 0.5,
             "overlayColor": Color3.Black(),
             onStart: () => pickedMesh!.renderOverlay = true,
         });
     }
 
     private _restoreCurrentMeshUnderPointer(): void {
-        const mesh = this.state.meshUnderPointer;
+        const mesh = this._meshUnderPointer;
 
         if (mesh) {
             Tween.KillTweensOf(mesh);
