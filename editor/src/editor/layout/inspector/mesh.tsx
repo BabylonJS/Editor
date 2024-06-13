@@ -42,6 +42,16 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
         return isAbstractMesh(object);
     }
 
+    private _castShadows: boolean;
+
+    public constructor(props: IEditorInspectorImplementationProps<AbstractMesh>) {
+        super(props);
+
+        this._castShadows = props.editor.layout.preview.scene.lights.some((light) => {
+            return light.getShadowGenerator()?.getShadowMap()?.renderList?.includes(props.object);
+        });
+    }
+
     public render(): ReactNode {
         return (
             <>
@@ -57,7 +67,6 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                     </div>
                     <EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)} />
                     <EditorInspectorSwitchField label="Pickable" object={this.props.object} property="isPickable" />
-                    <EditorInspectorSwitchField label="Receive Shadows" object={this.props.object} property="receiveShadows" />
                     <EditorInspectorSwitchField label="Check Collisions" object={this.props.object} property="checkCollisions" />
                 </EditorInspectorSectionField>
 
@@ -66,6 +75,28 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                     <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={this.props.object} property="rotation" />
                     <EditorInspectorVectorField label={<div className="w-14">Scaling</div>} object={this.props.object} property="scaling" />
                 </EditorInspectorSectionField>
+
+                {this.props.editor.layout.preview.scene.lights.length > 0 &&
+                    <EditorInspectorSectionField title="Shadows">
+                        <EditorInspectorSwitchField label="Cast Shadows" object={this} property="_castShadows" onChange={() => {
+                            this.props.editor.layout.preview.scene.lights.forEach((light) => {
+                                const shadowMap = light.getShadowGenerator()?.getShadowMap();
+                                if (!shadowMap?.renderList) {
+                                    return;
+                                }
+
+                                const index = shadowMap.renderList.indexOf(this.props.object);
+
+                                if (this._castShadows && index === -1) {
+                                    shadowMap.renderList.push(this.props.object);
+                                } else if (index !== -1) {
+                                    shadowMap.renderList.splice(index, 1);
+                                }
+                            });
+                        }} />
+                        <EditorInspectorSwitchField label="Receive Shadows" object={this.props.object} property="receiveShadows" />
+                    </EditorInspectorSectionField>
+                }
 
                 <ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
