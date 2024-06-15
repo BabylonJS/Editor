@@ -18,10 +18,7 @@ export interface IEditorLightShadowsInspectorState {
     generator: IShadowGenerator | null;
 }
 
-export type SoftShadowType = "usePoissonSampling" | "useExponentialShadowMap" |
-    "useBlurExponentialShadowMap" | "useCloseExponentialShadowMap" |
-    "useBlurCloseExponentialShadowMap" | "usePercentageCloserFiltering" |
-    "useContactHardeningShadow" | "none";
+export type SoftShadowType = "usePercentageCloserFiltering" | "useContactHardeningShadow" | "none";
 
 export class EditorLightShadowsInspector extends Component<IEditorLightShadowsInspectorProps, IEditorLightShadowsInspectorState> {
     protected _generatorSize: number = 1024;
@@ -139,12 +136,7 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
                 <EditorInspectorNumberField object={generator} property="normalBias" step={0.000001} min={0} max={1} label="Normal Bias" />
 
                 <EditorInspectorListField object={this} property="_softShadowType" label="Soft Shadows Type" onChange={(v) => this._updateSoftShadowType(v)} items={[
-                    { text: "None", value: "" },
-                    { text: "Poisson", value: "usePoissonSampling" },
-                    { text: "Exponential", value: "useExponentialShadowMap" },
-                    { text: "Blur Exponential", value: "useBlurExponentialShadowMap" },
-                    { text: "Close Exponential ShadowMap", value: "useCloseExponentialShadowMap" },
-                    { text: "Blur Close Exponential ShadowMap", value: "useBlurCloseExponentialShadowMap" },
+                    { text: "None", value: "none" },
                     { text: "Percentage Closer Filtering", value: "usePercentageCloserFiltering" },
                     { text: "Contact Hardening Shadow", value: "useContactHardeningShadow" },
                 ]} />
@@ -169,19 +161,8 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
     }
 
     private _getSoftShadowType(generator: IShadowGenerator | null): SoftShadowType {
-        debugger;
-        if (isShadowGenerator(generator) || isCascadedShadowGenerator(generator)) {
-            if (generator.usePoissonSampling) {
-                return "usePoissonSampling";
-            } else if (generator.useExponentialShadowMap) {
-                return "useExponentialShadowMap";
-            } else if (generator.useBlurExponentialShadowMap) {
-                return "useBlurExponentialShadowMap";
-            } else if (generator.useCloseExponentialShadowMap) {
-                return "useCloseExponentialShadowMap";
-            } else if (generator.useBlurCloseExponentialShadowMap) {
-                return "useBlurCloseExponentialShadowMap";
-            } else if (generator.usePercentageCloserFiltering) {
+        if (generator && (isShadowGenerator(generator) || isCascadedShadowGenerator(generator))) {
+            if (generator.usePercentageCloserFiltering) {
                 return "usePercentageCloserFiltering";
             } else if (generator.useContactHardeningShadow) {
                 return "useContactHardeningShadow";
@@ -192,8 +173,7 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
     }
 
     private _updateSoftShadowType(type: SoftShadowType): void {
-        debugger;
-        if (isShadowGenerator(this.state.generator) || isCascadedShadowGenerator(this.state.generator)) {
+        if (this.state.generator && (isShadowGenerator(this.state.generator) || isCascadedShadowGenerator(this.state.generator))) {
             this.state.generator.usePoissonSampling = false;
             this.state.generator.useExponentialShadowMap = false;
             this.state.generator.useBlurExponentialShadowMap = false;
