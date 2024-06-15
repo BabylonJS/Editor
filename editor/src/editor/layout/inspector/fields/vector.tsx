@@ -1,7 +1,11 @@
 import { IEditorInspectorFieldProps } from "./field";
 import { EditorInspectorNumberField } from "./number";
 
-export function EditorInspectorVectorField(props: IEditorInspectorFieldProps) {
+export interface IEditorInspectorVectorFieldProps extends IEditorInspectorFieldProps {
+
+}
+
+export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldProps) {
     return (
         <div className="flex gap-2 items-center px-2">
             <div>
@@ -9,9 +13,9 @@ export function EditorInspectorVectorField(props: IEditorInspectorFieldProps) {
             </div>
 
             <div className="flex gap-2">
-                <EditorInspectorNumberField object={props.object} property={`${props.property}.x`} />
-                <EditorInspectorNumberField object={props.object} property={`${props.property}.y`} />
-                <EditorInspectorNumberField object={props.object} property={`${props.property}.z`} />
+                <EditorInspectorNumberField object={props.object} property={`${props.property}.x`} noUndoRedo={props.noUndoRedo} />
+                <EditorInspectorNumberField object={props.object} property={`${props.property}.y`} noUndoRedo={props.noUndoRedo} />
+                <EditorInspectorNumberField object={props.object} property={`${props.property}.z`} noUndoRedo={props.noUndoRedo} />
             </div>
         </div>
     );

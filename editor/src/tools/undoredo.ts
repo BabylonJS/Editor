@@ -17,6 +17,8 @@ export type UndoRedoStackItem = {
     redo: () => void;
 
     onLost?: () => void;
+
+    executeRedo?: boolean;
 };
 
 export const stack: UndoRedoStackItem[] = [];
@@ -48,6 +50,10 @@ export function registerUndoRedo(configuration: UndoRedoStackItem) {
         item?.onLost?.();
     } else {
         ++index;
+    }
+
+    if (configuration.executeRedo) {
+        configuration.redo();
     }
 }
 

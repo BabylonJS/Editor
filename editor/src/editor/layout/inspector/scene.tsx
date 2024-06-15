@@ -4,10 +4,12 @@ import { Component, ReactNode } from "react";
 
 import { Divider } from "@blueprintjs/core";
 
-import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline } from "../../rendering/ssr";
-import { createSSAO2RenderingPipeline, disposeSSAO2RenderingPipeline, getSSAO2RenderingPipeline } from "../../rendering/ssao";
-import { createMotionBlurPostProcess, disposeMotionBlurPostProcess, getMotionBlurPostProcess } from "../../rendering/motion-blur";
-import { createDefaultRenderingPipeline, disposeDefaultRenderingPipeline, getDefaultRenderingPipeline } from "../../rendering/default-pipeline";
+import { registerUndoRedo } from "../../../tools/undoredo";
+
+import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../../rendering/ssr";
+import { createSSAO2RenderingPipeline, disposeSSAO2RenderingPipeline, getSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline } from "../../rendering/ssao";
+import { createMotionBlurPostProcess, disposeMotionBlurPostProcess, getMotionBlurPostProcess, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "../../rendering/motion-blur";
+import { createDefaultRenderingPipeline, disposeDefaultRenderingPipeline, getDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "../../rendering/default-pipeline";
 
 import { EditorInspectorSectionField } from "./fields/section";
 
@@ -91,12 +93,33 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
         return (
             <>
                 <EditorInspectorSectionField title="Rendering Pipeline">
-                    <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" onChange={() => {
-                        if (defaultRenderingPipeline) {
-                            disposeDefaultRenderingPipeline();
-                        } else {
-                            createDefaultRenderingPipeline(this.props.editor);
-                        }
+                    <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
+                        const pipeline = defaultRenderingPipeline;
+                        const serializedPipeline = serializeDefaultRenderingPipeline();
+
+                        registerUndoRedo({
+                            executeRedo: true,
+                            undo: () => {
+                                if (!pipeline) {
+                                    disposeDefaultRenderingPipeline();
+                                } else {
+                                    if (serializedPipeline) {
+                                        parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
+                                    }
+                                }
+                            },
+                            redo: () => {
+                                if (pipeline) {
+                                    disposeDefaultRenderingPipeline();
+                                } else {
+                                    if (serializedPipeline) {
+                                        parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
+                                    } else {
+                                        createDefaultRenderingPipeline(this.props.editor);
+                                    }
+                                }
+                            },
+                        });
 
                         this.forceUpdate();
                     }} />
@@ -199,12 +222,29 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
         return (
             <EditorInspectorSectionField title="SSAO2">
-                <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" onChange={() => {
-                    if (ssao2RenderingPipeline) {
-                        disposeSSAO2RenderingPipeline();
-                    } else {
-                        createSSAO2RenderingPipeline(this.props.editor);
-                    }
+                <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
+                    const pipeline = ssao2RenderingPipeline;
+                    const serializedPipeline = serializeSSAO2RenderingPipeline();
+
+                    registerUndoRedo({
+                        executeRedo: true,
+                        undo: () => {
+                            if (!pipeline) {
+                                disposeSSAO2RenderingPipeline();
+                            } else if (serializedPipeline) {
+                                parseSSAO2RenderingPipeline(this.props.editor, serializedPipeline);
+                            }
+                        },
+                        redo: () => {
+                            if (pipeline) {
+                                disposeSSAO2RenderingPipeline();
+                            } else if (serializedPipeline) {
+                                parseSSAO2RenderingPipeline(this.props.editor, serializedPipeline);
+                            } else {
+                                createSSAO2RenderingPipeline(this.props.editor);
+                            }
+                        },
+                    });
 
                     this.forceUpdate();
                 }} />
@@ -242,12 +282,29 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
         return (
             <EditorInspectorSectionField title="Motion Blur">
-                <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" onChange={() => {
-                    if (motionBlurPostProcess) {
-                        disposeMotionBlurPostProcess();
-                    } else {
-                        createMotionBlurPostProcess(this.props.editor);
-                    }
+                <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
+                    const pipeline = motionBlurPostProcess;
+                    const serializedPipeline = serializeMotionBlurPostProcess();
+
+                    registerUndoRedo({
+                        executeRedo: true,
+                        undo: () => {
+                            if (!pipeline) {
+                                disposeMotionBlurPostProcess();
+                            } else if (serializedPipeline) {
+                                parseMotionBlurPostProcess(this.props.editor, serializedPipeline);
+                            }
+                        },
+                        redo: () => {
+                            if (pipeline) {
+                                disposeMotionBlurPostProcess();
+                            } else if (serializedPipeline) {
+                                parseMotionBlurPostProcess(this.props.editor, serializedPipeline);
+                            } else {
+                                createMotionBlurPostProcess(this.props.editor);
+                            }
+                        },
+                    });
 
                     this.forceUpdate();
                 }} />
@@ -272,12 +329,29 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
         return (
             <EditorInspectorSectionField title="Reflections">
-                <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" onChange={() => {
-                    if (ssrRenderingPipeline) {
-                        disposeSSRRenderingPipeline();
-                    } else {
-                        createSSRRenderingPipeline(this.props.editor);
-                    }
+                <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
+                    const pipeline = ssrRenderingPipeline;
+                    const serializedPipeline = serializeSSRRenderingPipeline();
+
+                    registerUndoRedo({
+                        executeRedo: true,
+                        undo: () => {
+                            if (!pipeline) {
+                                disposeSSRRenderingPipeline();
+                            } else if (serializedPipeline) {
+                                parseSSRRenderingPipeline(this.props.editor, serializedPipeline);
+                            }
+                        },
+                        redo: () => {
+                            if (pipeline) {
+                                disposeSSRRenderingPipeline();
+                            } else if (serializedPipeline) {
+                                parseSSRRenderingPipeline(this.props.editor, serializedPipeline);
+                            } else {
+                                createSSRRenderingPipeline(this.props.editor);
+                            }
+                        },
+                    });
 
                     this.forceUpdate();
                 }} />

@@ -115,12 +115,6 @@ async function openProject(filePath: string): Promise<void> {
         window.webContents.on("did-finish-load", () => {
             window.webContents.send("editor:open", filePath);
         });
-    } else {
-        window.webContents.send("editor:show-welcome");
-
-        window.webContents.on("did-finish-load", () => {
-            window.webContents.send("editor:show-welcome");
-        });
     }
 }
 

@@ -4,6 +4,8 @@ import { Component, DragEvent, ReactNode } from "react";
 
 import { Editor } from "../../../main";
 
+import { registerUndoRedo } from "../../../../tools/undoredo";
+
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { InspectorScriptField } from "./field";
@@ -41,7 +43,14 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
     }
 
     private _handleRemoveScript(index: number): void {
-        this.props.object.metadata?.scripts?.splice(index, 1);
+        const script = this.props.object.metadata?.scripts?.[index];
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => this.props.object.metadata?.scripts?.splice(index, 0, script),
+            redo: () => this.props.object.metadata?.scripts?.splice(index, 1),
+        });
+
         this.forceUpdate();
     }
 
@@ -106,9 +115,15 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
                 return;
             }
 
-            this.props.object.metadata.scripts.push({
-                enabled: true,
-                key: relativePath,
+            registerUndoRedo({
+                executeRedo: true,
+                undo: () => this.props.object.metadata.scripts.pop(),
+                redo: () => {
+                    this.props.object.metadata.scripts.push({
+                        enabled: true,
+                        key: relativePath,
+                    });
+                },
             });
         });
 
