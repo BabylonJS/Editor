@@ -7,8 +7,11 @@ import { Color } from "@jniac/color-xplr";
 
 import { ColorPicker } from "../../../../ui/color-picker";
 
+import { registerUndoRedo } from "../../../../tools/undoredo";
+import { getInspectorPropertyValue } from "../../../../tools/property";
+
 import { EditorInspectorNumberField } from "./number";
-import { IEditorInspectorFieldProps, getInspectorPropertyValue } from "./field";
+import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorColorFieldProps extends IEditorInspectorFieldProps {
     onChange?: (value: Color3 | Color4) => void;
@@ -18,6 +21,7 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
     const color = getInspectorPropertyValue(props.object, props.property) as Color3 | Color4;
 
     const [value, setValue] = useState(color);
+    const [oldValue, setOldValue] = useState(color?.clone());
 
     function getPopoverContent() {
         return (
@@ -33,6 +37,17 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
     function handleColorPickerChange(newColor: Color) {
         color.set(newColor.r, newColor.g, newColor.b, newColor.a);
         setValue(color.clone());
+
+        if (color && !oldValue.equals(color as any) && !props.noUndoRedo) {
+            const newColor = color.clone();
+
+            registerUndoRedo({
+                undo: () => color.set(oldValue.r, oldValue.g, oldValue.b, (oldValue as any).a),
+                redo: () => color.set(newColor.r, newColor.g, newColor.b, (newColor as any).a),
+            });
+
+            setOldValue(color.clone());
+        }
     }
 
     function handleChanelChange(value: number, channel: "r" | "g" | "b" | "a") {

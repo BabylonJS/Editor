@@ -10,6 +10,7 @@ import { MdOutlineQuestionMark } from "react-icons/md";
 
 import { CubeTexture, Material, Scene, SpotLight, Texture } from "babylonjs";
 
+import { registerUndoRedo } from "../../../../tools/undoredo";
 import { isCubeTexture, isTexture } from "../../../../tools/guards/texture";
 
 import { projectConfiguration } from "../../../../project/configuration";
@@ -304,21 +305,48 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
             case ".jpg":
             case ".jpeg":
             case ".bmp":
-                this.props.object[this.props.property]?.dispose();
-                this.props.object[this.props.property] = configureImportedTexture(
+                const oldTexture = this.props.object[this.props.property];
+                const newTexture = configureImportedTexture(
                     new Texture(absolutePath, this.props.object instanceof Scene ? this.props.object : this.props.object.getScene()),
                 );
 
+                this.props.object[this.props.property] = newTexture;
                 this.props.onChange?.(this.props.object[this.props.property]);
+
+                if (oldTexture !== newTexture) {
+                    registerUndoRedo({
+                        undo: () => {
+                            this.props.object[this.props.property] = oldTexture;
+                            this._computeTemporaryPreview();
+                        },
+                        redo: () => {
+                            this.props.object[this.props.property] = newTexture;
+                            this._computeTemporaryPreview();
+                        },
+                        onLost: () => newTexture?.dispose(),
+                    });
+                }
+
                 this._computeTemporaryPreview();
                 break;
 
             case ".env":
                 if (this.props.acceptCubeTexture) {
-                    this.props.object[this.props.property]?.dispose();
-                    this.props.object[this.props.property] = configureImportedTexture(
+                    const oldTexture = this.props.object[this.props.property];
+                    const newTexture = configureImportedTexture(
                         CubeTexture.CreateFromPrefilteredData(absolutePath, this.props.object instanceof Scene ? this.props.object : this.props.object.getScene()),
                     );
+
+                    this.props.object[this.props.property] = newTexture;
+                    this.props.onChange?.(this.props.object[this.props.property]);
+
+                    if (oldTexture !== newTexture) {
+                        registerUndoRedo({
+                            undo: () => this.props.object[this.props.property] = oldTexture,
+                            redo: () => this.props.object[this.props.property] = newTexture,
+                            onLost: () => newTexture?.dispose(),
+                        });
+                    }
                 }
                 break;
         }

@@ -149,10 +149,10 @@
         "layerMask": 268435455,
         "fovMode": 0,
         "cameraRigMode": 0,
-        "name": "camera",
-        "id": "camera",
+        "name": "Editor preview",
+        "id": "3cc9ef80-8c60-43e0-bcc4-1b55ff36010d",
         "state": "",
-        "uniqueId": 2,
+        "uniqueId": 1718450874271,
         "type": "EditorCamera",
         "inputsmgr": {
             "FreeCameraKeyboardMoveInput": {
