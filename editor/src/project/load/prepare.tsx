@@ -1,4 +1,5 @@
 import { Terminal } from "xterm";
+import { FitAddon } from "xterm-addon-fit";
 
 import { Component, ReactNode } from "react";
 import { Root, createRoot } from "react-dom/client";
@@ -67,19 +68,20 @@ export class LoadScenePrepareComponent extends Component<ILoadSceneProgressCompo
             fontSize: 12,
             lineHeight: 1,
             cursorWidth: 1,
-            letterSpacing: -4,
+            letterSpacing: -3,
             cursorStyle: "block",
-            fontWeight: "100",
-            fontWeightBold: "bold",
             allowTransparency: false,
             drawBoldTextInBrightColors: true,
-            fontFamily: "Consolas, 'Courier New', monospace",
+            fontFamily: "'Inter var', sans-serif",
             theme: {
                 background: "transparent",
             },
         });
 
         this._terminal.open(this._terminalDiv);
+
+        const fitAddon = new FitAddon();
+        fitAddon.activate(this._terminal);
     }
 
     public componentWillUnmount(): void {
