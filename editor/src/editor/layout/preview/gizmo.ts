@@ -1,4 +1,8 @@
-import { GizmoCoordinatesMode, Node, PositionGizmo, RotationGizmo, ScaleGizmo, Scene, UtilityLayerRenderer } from "babylonjs";
+import { GizmoCoordinatesMode, Node, PositionGizmo, Quaternion, RotationGizmo, ScaleGizmo, Scene, UtilityLayerRenderer, Vector3 } from "babylonjs";
+
+import { Tween } from "../../../tools/animation/tween";
+import { registerUndoRedo } from "../../../tools/undoredo";
+import { isQuaternion, isVector3 } from "../../../tools/guards/math";
 
 export class EditorPreviewGizmo {
     /**
@@ -41,12 +45,15 @@ export class EditorPreviewGizmo {
             case "position":
                 this._positionGizmo = new PositionGizmo(this._gizmosLayer);
                 this._positionGizmo.planarGizmoEnabled = true;
+                this._attachVector3UndoRedoEvents(this._positionGizmo, "position");
                 break;
             case "rotation":
                 this._rotationGizmo = new RotationGizmo(this._gizmosLayer);
+                this._attachRotationUndoRedoEvents(this._rotationGizmo);
                 break;
             case "scaling":
                 this._scalingGizmo = new ScaleGizmo(this._gizmosLayer);
+                this._attachVector3UndoRedoEvents(this._scalingGizmo, "scaling");
                 break;
         }
 
@@ -99,5 +106,140 @@ export class EditorPreviewGizmo {
             case GizmoCoordinatesMode.World: return "World";
             case GizmoCoordinatesMode.Local: return "Local";
         }
+    }
+
+
+    private _attachVector3UndoRedoEvents(gizmo: PositionGizmo | ScaleGizmo | RotationGizmo, property: "position" | "scaling"): void {
+        let temporaryNode: Node | null = null;
+        let temporaryOldValue: Vector3 | null = null;
+
+        gizmo.onDragStartObservable.add(() => {
+            if (!this._attachedNode) {
+                return;
+            }
+
+            temporaryNode = this._attachedNode;
+
+            const value = this._attachedNode[property];
+            temporaryOldValue = isVector3(value) ? value.clone() : null;
+        });
+
+        gizmo.onDragEndObservable.add(() => {
+            if (!temporaryNode) {
+                return;
+            }
+
+            const node = temporaryNode;
+            const oldValue = temporaryOldValue?.clone();
+
+            const newValueRef = temporaryNode[property];
+            const newValue = isVector3(newValueRef) ? newValueRef.clone() : null;
+
+            registerUndoRedo({
+                undo: () => {
+                    const valueRef = node[property];
+                    if (isVector3(valueRef) && oldValue) {
+                        Tween.Create(valueRef, 0.1, {
+                            x: oldValue.x,
+                            y: oldValue.y,
+                            z: oldValue.z,
+                            killAllTweensOfTarget: true,
+                        });
+                    } else {
+                        node[property] = oldValue?.clone() ?? null;
+                    }
+
+                    this.setAttachedNode(node);
+                },
+                redo: () => {
+                    const valueRef = node[property];
+                    if (isVector3(valueRef) && newValue) {
+                        Tween.Create(valueRef, 0.1, {
+                            x: newValue.x,
+                            y: newValue.y,
+                            z: newValue.z,
+                            killAllTweensOfTarget: true,
+                        });
+                    } else {
+                        node[property] = newValue?.clone() ?? null;
+                    }
+
+                    this.setAttachedNode(node);
+                },
+            });
+        });
+    }
+
+    private _attachRotationUndoRedoEvents(gizmo: RotationGizmo): void {
+        let temporaryNode: Node | null = null;
+        let temporaryOldValue: Vector3 | Quaternion | null = null;
+
+        gizmo.onDragStartObservable.add(() => {
+            if (!this._attachedNode) {
+                return;
+            }
+
+            temporaryNode = this._attachedNode;
+
+            const value = this._attachedNode["rotationQuaternion"] ?? this._attachedNode["rotation"];
+            temporaryOldValue = isVector3(value) || isQuaternion(value) ? value.clone() : null;
+        });
+
+        gizmo.onDragEndObservable.add(() => {
+            if (!temporaryNode) {
+                return;
+            }
+
+            const node = temporaryNode;
+            const oldValue = temporaryOldValue?.clone();
+
+            const newValueRef = temporaryNode["rotationQuaternion"] ?? temporaryNode["rotation"];
+            const newValue = isVector3(newValueRef) || isQuaternion(newValueRef) ? newValueRef.clone() : null;
+
+            registerUndoRedo({
+                undo: () => {
+                    const valueRef = node["rotationQuaternion"] ?? node["rotation"];
+                    if (isVector3(valueRef) && isVector3(oldValue)) {
+                        Tween.Create(valueRef, 0.1, {
+                            x: oldValue.x,
+                            y: oldValue.y,
+                            z: oldValue.z,
+                            killAllTweensOfTarget: true,
+                        });
+                    } else if (isQuaternion(valueRef) && isQuaternion(oldValue)) {
+                        Tween.Create(valueRef, 0.1, {
+                            x: oldValue.x,
+                            y: oldValue.y,
+                            z: oldValue.z,
+                            w: oldValue.w,
+                            killAllTweensOfTarget: true,
+                        });
+                    }
+
+                    this.setAttachedNode(node);
+                },
+                redo: () => {
+                    const valueRef = node["rotationQuaternion"] ?? node["rotation"];
+                    if (isVector3(valueRef) && isVector3(newValue)) {
+                        Tween.Create(valueRef, 0.1, {
+                            x: newValue.x,
+                            y: newValue.y,
+                            z: newValue.z,
+                            killAllTweensOfTarget: true,
+                        });
+                    } else if (isQuaternion(valueRef) && isQuaternion(newValue)) {
+                        Tween.Create(valueRef, 0.1, {
+                            x: newValue.x,
+                            y: newValue.y,
+                            z: newValue.z,
+                            w: newValue.w,
+                            killAllTweensOfTarget: true,
+                        });
+                    }
+
+                    this.setAttachedNode(node);
+                },
+            });
+        });
     }
 }
