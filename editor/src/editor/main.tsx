@@ -7,6 +7,8 @@ import { createRoot } from "react-dom/client";
 
 import { HotkeysTarget2 } from "@blueprintjs/core";
 
+import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
+
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
 
@@ -159,6 +161,20 @@ export class Editor extends Component<{}, IEditorState> {
         ipcRenderer.on("editor:show-welcome", () => this.setState({ showWelcome: true }));
 
         ipcRenderer.send("editor:ready");
+
+        // Undo-redo
+        ipcRenderer.on("undo", () => undo());
+        ipcRenderer.on("redo", () => redo());
+
+        onUndoObservable.add(() => {
+            this.layout.graph.refresh();
+            this.layout.inspector.forceUpdate();
+        });
+
+        onRedoObservable.add(() => {
+            this.layout.graph.refresh();
+            this.layout.inspector.forceUpdate();
+        });
     }
 
     public async openProject(path: string): Promise<void> {

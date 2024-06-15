@@ -17,7 +17,7 @@
             },
             "args": [
                 ".",
-                // "${workspaceFolder}/template/project.bjseditor"
+                "${workspaceFolder}/template/project.bjseditor"
             ],
             "outFiles": [
                 "${workspaceFolder}/editor/build/**/*.js"

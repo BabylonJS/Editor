@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Switch } from "@blueprintjs/core";
 
-import { IEditorInspectorFieldProps, setInspectorEffectivePropertyValue, getInspectorPropertyValue } from "./field";
+import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from "../../../../tools/property";
+
+import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorSwitchFieldProps extends IEditorInspectorFieldProps {
     onChange?: (value: boolean) => void;
@@ -16,6 +19,16 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
                 setValue(!value);
                 setInspectorEffectivePropertyValue(props.object, props.property, !value);
                 props.onChange?.(!value);
+
+                if (!props.noUndoRedo) {
+                    registerSimpleUndoRedo({
+                        object: props.object,
+                        property: props.property,
+
+                        oldValue: value,
+                        newValue: !value,
+                    });
+                }
             }}
             className="flex gap-2 justify-center items-center px-2 cursor-pointer hover:bg-white/10 hover:px-2 rounded-lg transition-all duration-300"
         >
@@ -31,6 +44,16 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
                         setValue(ev.currentTarget.checked);
                         setInspectorEffectivePropertyValue(props.object, props.property, ev.currentTarget.checked);
                         props.onChange?.(ev.currentTarget.checked);
+
+                        if (!props.noUndoRedo) {
+                            registerSimpleUndoRedo({
+                                object: props.object,
+                                property: props.property,
+
+                                oldValue: !ev.currentTarget.checked,
+                                newValue: ev.currentTarget.checked,
+                            });
+                        }
                     }}
                 />
             </div>

@@ -2,7 +2,10 @@ import { useState } from "react";
 
 import { Scalar } from "babylonjs";
 
-import { IEditorInspectorFieldProps, setInspectorEffectivePropertyValue, getInspectorPropertyValue } from "./field";
+import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from "../../../../tools/property";
+
+import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldProps {
     min?: number;
@@ -15,7 +18,9 @@ export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldP
 
 export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldProps) {
     const [pointerDown, setPointerDown] = useState(false);
+
     const [value, setValue] = useState<string>(getInspectorPropertyValue(props.object, props.property)?.toString() ?? "");
+    const [oldValue, setOldValue] = useState<string>(getInspectorPropertyValue(props.object, props.property)?.toString() ?? "");
 
     const step = props.step ?? 0.01;
     const digitCount = props.step?.toString().split(".")[1]?.length ?? 2;
@@ -58,6 +63,25 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
                     background: hasMinMax ? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)` : undefined,
                 }}
                 className="px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none w-full"
+                onKeyUp={(ev) => ev.key === "Enter" && ev.currentTarget.blur()}
+                onBlur={(ev) => {
+                    if (ev.currentTarget.value !== oldValue && !props.noUndoRedo) {
+                        const oldValueFloat = parseFloat(oldValue);
+                        const newValueFloat = parseFloat(ev.currentTarget.value);
+
+                        if (!isNaN(oldValueFloat) && !isNaN(newValueFloat)) {
+                            registerSimpleUndoRedo({
+                                object: props.object,
+                                property: props.property,
+
+                                oldValue: oldValueFloat,
+                                newValue: newValueFloat,
+                            });
+
+                            setOldValue(ev.currentTarget.value);
+                        }
+                    }
+                }}
                 onPointerDown={(ev) => {
                     setPointerDown(true);
 
@@ -75,6 +99,8 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
                     if (props.max !== undefined && v > props.max) {
                         v = props.max;
                     }
+
+                    const oldV = v;
 
                     let startX = ev.clientX;
 
@@ -101,6 +127,20 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
                     document.body.addEventListener("mouseup", mouseUpListener = () => {
                         setPointerDown(false);
                         setValue(v.toFixed(digitCount));
+
+                        if (v !== oldV && !props.noUndoRedo) {
+                            if (!isNaN(v) && !isNaN(oldV)) {
+                                registerSimpleUndoRedo({
+                                    object: props.object,
+                                    property: props.property,
+
+                                    oldValue: oldV,
+                                    newValue: v,
+                                });
+
+                                setOldValue(v.toFixed(digitCount));
+                            }
+                        }
 
                         document.body.style.cursor = "auto";
 
