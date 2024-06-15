@@ -25,6 +25,8 @@ import { ScalingIcon } from "../../ui/icons/scaling";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
 
+import { registerSimpleUndoRedo } from "../../tools/undoredo";
+
 import { disposeSSRRenderingPipeline } from "../rendering/ssr";
 import { disposeMotionBlurPostProcess } from "../rendering/motion-blur";
 import { disposeSSAO2RenderingPipeline } from "../rendering/ssao";
@@ -243,18 +245,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         }
 
         Animation.AllowMatricesInterpolation = true;
+        Animation.AllowMatrixDecomposeForInterpolation = true;
 
         this.engine = new Engine(canvas, true, {
-            stencil: true,
             antialias: true,
             audioEngine: true,
-            disableWebGL2Support: false,
-            powerPreference: "high-performance",
-            premultipliedAlpha: false,
-            failIfMajorPerformanceCaveat: false,
-            useHighPrecisionFloats: true,
             adaptToDeviceRatio: true,
-            preserveDrawingBuffer: true,
+            disableWebGL2Support: false,
+            useHighPrecisionFloats: true,
+            useHighPrecisionMatrix: true,
+            powerPreference: "high-performance",
+            failIfMajorPerformanceCaveat: false,
         });
 
         this.scene = new Scene(this.engine);
@@ -490,17 +491,37 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                     break;
 
                 case ".env":
-                    this.props.editor.layout.preview.scene.environmentTexture?.dispose();
-                    this.props.editor.layout.preview.scene.environmentTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(
+                    const newTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(
                         absolutePath,
                         this.props.editor.layout.preview.scene,
                     ));
+
+                    registerSimpleUndoRedo({
+                        object: this.scene,
+                        property: "environmentTexture",
+                        oldValue: this.props.editor.layout.preview.scene.environmentTexture,
+                        newValue: newTexture,
+                        executeRedo: true,
+                        onLost: () => newTexture.dispose(),
+                    });
                     break;
 
                 case ".material":
                     loadImportedMaterial(this.props.editor.layout.preview.scene, absolutePath).then((material) => {
                         if (material && mesh) {
-                            mesh.material = material;
+                            registerSimpleUndoRedo({
+                                object: mesh,
+                                property: "material",
+                                oldValue: mesh?.material,
+                                newValue: material,
+                                executeRedo: true,
+                                onLost: () => {
+                                    const bindedMeshes = material.getBindedMeshes();
+                                    if (!bindedMeshes.length) {
+                                        material.dispose();
+                                    }
+                                },
+                            });
                         }
                     });
                     break;

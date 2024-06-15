@@ -2,6 +2,8 @@ import { Component, ReactNode } from "react";
 
 import { Constants, PBRMaterial } from "babylonjs";
 
+import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+
 import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
@@ -117,8 +119,15 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
                 <EditorInspectorSectionField title="Metallic / Roughness">
                     <EditorInspectorNumberField label="Metallic F0 Factor" object={this.props.material} property="metallicF0Factor" />
 
-                    <EditorInspectorSwitchField label="Metallic" object={{ checked: this.props.material.metallic !== null }} property="checked" onChange={(v) => {
-                        this.props.material.metallic = v ? 1 : null;
+                    <EditorInspectorSwitchField label="Metallic" object={{ checked: this.props.material.metallic !== null }} property="checked" noUndoRedo onChange={(v) => {
+                        registerSimpleUndoRedo({
+                            object: this.props.material,
+                            property: "metallic",
+                            oldValue: this.props.material.metallic,
+                            newValue: v ? 1 : null,
+                            executeRedo: true,
+                        });
+
                         this.forceUpdate();
                     }} />
 
@@ -126,8 +135,15 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
                         <EditorInspectorNumberField label=" " object={this.props.material} property="metallic" min={0} max={1} />
                     }
 
-                    <EditorInspectorSwitchField label="Roughness" object={{ checked: this.props.material.roughness !== null }} property="checked" onChange={(v) => {
-                        this.props.material.roughness = v ? 1 : null;
+                    <EditorInspectorSwitchField label="Roughness" object={{ checked: this.props.material.roughness !== null }} property="checked" noUndoRedo onChange={(v) => {
+                        registerSimpleUndoRedo({
+                            object: this.props.material,
+                            property: "roughness",
+                            oldValue: this.props.material.roughness,
+                            newValue: v ? 1 : null,
+                            executeRedo: true,
+                        });
+
                         this.forceUpdate();
                     }} />
 

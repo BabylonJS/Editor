@@ -12,6 +12,7 @@ import { showPrompt } from "../../../ui/dialog";
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Separator } from "../../../ui/shadcn/ui/separator";
 
+import { registerUndoRedo } from "../../../tools/undoredo";
 import { isAbstractMesh, isMesh } from "../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../tools/observables";
 
@@ -81,22 +82,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
                 {this.props.editor.layout.preview.scene.lights.length > 0 &&
                     <EditorInspectorSectionField title="Shadows">
-                        <EditorInspectorSwitchField label="Cast Shadows" object={this} property="_castShadows" onChange={() => {
-                            this.props.editor.layout.preview.scene.lights.forEach((light) => {
-                                const shadowMap = light.getShadowGenerator()?.getShadowMap();
-                                if (!shadowMap?.renderList) {
-                                    return;
-                                }
-
-                                const index = shadowMap.renderList.indexOf(this.props.object);
-
-                                if (this._castShadows && index === -1) {
-                                    shadowMap.renderList.push(this.props.object);
-                                } else if (index !== -1) {
-                                    shadowMap.renderList.splice(index, 1);
-                                }
-                            });
-                        }} />
+                        <EditorInspectorSwitchField label="Cast Shadows" object={this} property="_castShadows" noUndoRedo onChange={() => this._handleCastShadowsChanged(this._castShadows)} />
                         <EditorInspectorSwitchField label="Receive Shadows" object={this.props.object} property="receiveShadows" />
                     </EditorInspectorSectionField>
                 }
@@ -249,5 +235,39 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                 ))}
             </EditorInspectorSectionField>
         );
+    }
+
+    private _handleCastShadowsChanged(enabled: boolean): void {
+        const lightsWithShadows = this.props.editor.layout.preview.scene.lights.filter((light) => {
+            return light.getShadowGenerator()?.getShadowMap()?.renderList;
+        });
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                lightsWithShadows.forEach((light) => {
+                    if (enabled) {
+                        const index = light.getShadowGenerator()?.getShadowMap()?.renderList?.indexOf(this.props.object);
+                        if (index !== undefined && index !== -1) {
+                            light.getShadowGenerator()?.getShadowMap()?.renderList?.splice(index, 1);
+                        }
+                    } else {
+                        light.getShadowGenerator()?.getShadowMap()?.renderList?.push(this.props.object);
+                    }
+                });
+            },
+            redo: () => {
+                lightsWithShadows.forEach((light) => {
+                    if (enabled) {
+                        light.getShadowGenerator()?.getShadowMap()?.renderList?.push(this.props.object);
+                    } else {
+                        const index = light.getShadowGenerator()?.getShadowMap()?.renderList?.indexOf(this.props.object);
+                        if (index !== undefined && index !== -1) {
+                            light.getShadowGenerator()?.getShadowMap()?.renderList?.splice(index, 1);
+                        }
+                    }
+                });
+            },
+        });
     }
 }

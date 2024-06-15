@@ -99,8 +99,20 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
                     </div>
                     <div
                         onClick={() => {
-                            this.props.object[this.props.property] = null;
-                            this.props.onChange?.(null);
+                            const oldTexture = this.props.object[this.props.property];
+
+                            registerUndoRedo({
+                                executeRedo: true,
+                                undo: () => {
+                                    this.props.object[this.props.property] = oldTexture;
+                                    this._computeTemporaryPreview();
+                                },
+                                redo: () => {
+                                    this.props.object[this.props.property] = null;
+                                },
+                            });
+
+                            this.forceUpdate();
                         }}
                         className="flex justify-center items-center w-24 h-full hover:bg-muted-foreground rounded-lg transition-all duration-300"
                     >
