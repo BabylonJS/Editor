@@ -10,6 +10,10 @@ export type SimpleUndoRedoStackItem = {
 
     oldValue: any;
     newValue: any;
+
+    onLost?: () => void;
+
+    executeRedo?: boolean;
 };
 
 export type UndoRedoStackItem = {
@@ -65,6 +69,8 @@ export function registerSimpleUndoRedo(configuration: SimpleUndoRedoStackItem) {
         redo: () => {
             setInspectorEffectivePropertyValue(configuration.object, configuration.property, configuration.newValue);
         },
+        onLost: configuration.onLost,
+        executeRedo: configuration.executeRedo,
     });
 }
 
