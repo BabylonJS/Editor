@@ -5,7 +5,7 @@ import { CascadedShadowGenerator, DirectionalLight, IShadowGenerator, IShadowLig
 
 import { getPowerOfTwoSizesUntil } from "../../../../tools/tools";
 import { isDirectionalLight } from "../../../../tools/guards/nodes";
-import { isCascadedShadowGenerator } from "../../../../tools/guards/shadows";
+import { isCascadedShadowGenerator, isShadowGenerator } from "../../../../tools/guards/shadows";
 
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorListField, IEditorInspectorListFieldItem } from "../fields/list";
@@ -18,9 +18,16 @@ export interface IEditorLightShadowsInspectorState {
     generator: IShadowGenerator | null;
 }
 
+export type SoftShadowType = "usePoissonSampling" | "useExponentialShadowMap" |
+    "useBlurExponentialShadowMap" | "useCloseExponentialShadowMap" |
+    "useBlurCloseExponentialShadowMap" | "usePercentageCloserFiltering" |
+    "useContactHardeningShadow" | "none";
+
 export class EditorLightShadowsInspector extends Component<IEditorLightShadowsInspectorProps, IEditorLightShadowsInspectorState> {
     protected _generatorSize: number = 1024;
-    protected _generatorType: string = "classic";
+    protected _generatorType: string = "none";
+
+    protected _softShadowType: SoftShadowType = "none";
 
     protected _sizes: IEditorInspectorListFieldItem[] = getPowerOfTwoSizesUntil(4096, 256).map((s) => ({
         value: s,
@@ -58,6 +65,7 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
                 ? "cascaded"
                 : "classic";
 
+        this._softShadowType = this._getSoftShadowType(generator);
         this._generatorSize = generator?.getShadowMap()?.getSize().width ?? 1024;
 
         this.setState({ generator });
@@ -119,7 +127,7 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
     }
 
     private _getClassicShadowGeneratorComponent() {
-        const generator = this.state.generator;
+        const generator = this.state.generator as ShadowGenerator;
 
         if (!generator || isCascadedShadowGenerator(generator)) {
             return null;
@@ -127,7 +135,19 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 
         return (
             <>
-                <EditorInspectorNumberField object={this.state.generator} property="bias" step={0.00001} min={0} max={1} label="Bias" />
+                <EditorInspectorNumberField object={generator} property="bias" step={0.000001} min={0} max={1} label="Bias" />
+                <EditorInspectorNumberField object={generator} property="normalBias" step={0.000001} min={0} max={1} label="Normal Bias" />
+
+                <EditorInspectorListField object={this} property="_softShadowType" label="Soft Shadows Type" onChange={(v) => this._updateSoftShadowType(v)} items={[
+                    { text: "None", value: "" },
+                    { text: "Poisson", value: "usePoissonSampling" },
+                    { text: "Exponential", value: "useExponentialShadowMap" },
+                    { text: "Blur Exponential", value: "useBlurExponentialShadowMap" },
+                    { text: "Close Exponential ShadowMap", value: "useCloseExponentialShadowMap" },
+                    { text: "Blur Close Exponential ShadowMap", value: "useBlurCloseExponentialShadowMap" },
+                    { text: "Percentage Closer Filtering", value: "usePercentageCloserFiltering" },
+                    { text: "Contact Hardening Shadow", value: "useContactHardeningShadow" },
+                ]} />
             </>
         );
     }
@@ -142,9 +162,47 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
         return (
             <>
                 <EditorInspectorNumberField object={this.state.generator} property="lambda" min={0} max={1} label="Lambda" />
-                <EditorInspectorNumberField object={this.state.generator} property="bias" step={0.00001} min={0} max={1} label="Bias" />
+                <EditorInspectorNumberField object={this.state.generator} property="bias" step={0.000001} min={0} max={1} label="Bias" />
                 <EditorInspectorNumberField object={this.state.generator} property="darkness" min={0} max={1} label="Darkness" />
             </>
         );
+    }
+
+    private _getSoftShadowType(generator: IShadowGenerator | null): SoftShadowType {
+        debugger;
+        if (isShadowGenerator(generator) || isCascadedShadowGenerator(generator)) {
+            if (generator.usePoissonSampling) {
+                return "usePoissonSampling";
+            } else if (generator.useExponentialShadowMap) {
+                return "useExponentialShadowMap";
+            } else if (generator.useBlurExponentialShadowMap) {
+                return "useBlurExponentialShadowMap";
+            } else if (generator.useCloseExponentialShadowMap) {
+                return "useCloseExponentialShadowMap";
+            } else if (generator.useBlurCloseExponentialShadowMap) {
+                return "useBlurCloseExponentialShadowMap";
+            } else if (generator.usePercentageCloserFiltering) {
+                return "usePercentageCloserFiltering";
+            } else if (generator.useContactHardeningShadow) {
+                return "useContactHardeningShadow";
+            }
+        }
+
+        return "none";
+    }
+
+    private _updateSoftShadowType(type: SoftShadowType): void {
+        debugger;
+        if (isShadowGenerator(this.state.generator) || isCascadedShadowGenerator(this.state.generator)) {
+            this.state.generator.usePoissonSampling = false;
+            this.state.generator.useExponentialShadowMap = false;
+            this.state.generator.useBlurExponentialShadowMap = false;
+            this.state.generator.useCloseExponentialShadowMap = false;
+            this.state.generator.useBlurCloseExponentialShadowMap = false;
+            this.state.generator.usePercentageCloserFiltering = false;
+            this.state.generator.useContactHardeningShadow = false;
+
+            this.state.generator[type] = true;
+        }
     }
 }

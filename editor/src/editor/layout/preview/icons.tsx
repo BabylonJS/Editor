@@ -2,7 +2,7 @@ import { Component, ReactNode } from "react";
 
 import { FaCamera, FaLightbulb } from "react-icons/fa";
 
-import { Node, Vector2 } from "babylonjs";
+import { Mesh, Node, Scene, Vector2 } from "babylonjs";
 
 import { Editor } from "../../main";
 
@@ -23,6 +23,7 @@ interface _IButtonData {
 }
 
 export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEditorPreviewIconsState> {
+    private _tempMesh: Mesh | null = null;
     private _renderFunction: (() => void) | null = null;
 
     public constructor(props: IEditorPreviewIconsProps) {
@@ -61,6 +62,14 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
         );
     }
 
+    public componentDidMount(): void {
+        requestAnimationFrame(() => {
+            this._tempMesh = new Mesh("editor-preview-icons-temp-node", this.props.editor.layout.preview.scene);
+            this._tempMesh._removeFromSceneRootNodes();
+            this.props.editor.layout.preview.scene.meshes.pop();
+        });
+    }
+
     public componentWillUnmount(): void {
         this.stop();
     }
@@ -77,6 +86,14 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
             buttons.splice(0, buttons.length);
 
             scene.lights.forEach((light) => {
+                if (this._tempMesh && scene.activeCamera) {
+                    this._tempMesh.setAbsolutePosition(light.getAbsolutePosition());
+
+                    if (!this._isInFrustrum(scene)) {
+                        return;
+                    }
+                }
+
                 buttons.push({
                     node: light,
                     position: projectVectorOnScreen(light.getAbsolutePosition(), scene),
@@ -88,6 +105,13 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
                     return;
                 }
 
+                if (this._tempMesh) {
+                    this._tempMesh.setAbsolutePosition(camera.computeWorldMatrix().getTranslation());
+                    if (!this._isInFrustrum(scene)) {
+                        return;
+                    }
+                }
+
                 buttons.push({
                     node: camera,
                     position: projectVectorOnScreen(camera.computeWorldMatrix().getTranslation(), scene),
@@ -96,6 +120,11 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 
             this.setState({ buttons });
         });
+    }
+
+    private _isInFrustrum(scene: Scene): boolean {
+        this._tempMesh!.computeWorldMatrix(true);
+        return scene.activeCamera!.isInFrustum(this._tempMesh!);
     }
 
     public stop(): void {
