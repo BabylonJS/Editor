@@ -315,6 +315,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
     private _handleMouseDown(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
         this._mouseDownPosition.set(event.clientX, event.clientY);
+
+        this._restoreCurrentMeshUnderPointer();
+        this._meshUnderPointer = null;
     }
 
     private _handleMouseClick(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
