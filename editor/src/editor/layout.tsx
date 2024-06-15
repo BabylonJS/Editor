@@ -18,10 +18,6 @@ export interface IEditorLayoutProps {
      * The editor reference.
      */
     editor: Editor;
-    /**
-     * Defines if the welcome screen should be shown.
-     */
-    showWelcome: boolean;
 }
 
 export class EditorLayout extends Component<IEditorLayoutProps> {
@@ -69,7 +65,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
     public render(): ReactNode {
         return (
-            <div className={`flex flex-col w-screen h-screen ${this.props.showWelcome ? "blur-md transition-all duration-300" : ""}`}>
+            <div className="flex flex-col w-screen h-screen">
                 <EditorToolbar editor={this.props.editor} />
 
                 <div className="relative w-full h-full">

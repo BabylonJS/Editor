@@ -20,7 +20,6 @@ import { disposeSSAO2RenderingPipeline } from "./rendering/ssao";
 import { disposeMotionBlurPostProcess } from "./rendering/motion-blur";
 import { disposeDefaultRenderingPipeline } from "./rendering/default-pipeline";
 
-import { EditorWelcomeDialog } from "./dialogs/welcome/welcome";
 import { CommandPalette } from "./dialogs/command-palette/command-palette";
 import { EditorEditProjectComponent } from "./dialogs/edit-project/edit-project";
 import { EditorEditPreferencesComponent } from "./dialogs/edit-preferences/edit-preferences";
@@ -72,10 +71,6 @@ export interface IEditorState {
      * Defines if the preferences are being edited.
      */
     editPreferences: boolean;
-    /**
-     * Defines if the welcome screen should be shown.
-     */
-    showWelcome: boolean;
 }
 
 export class Editor extends Component<{}, IEditorState> {
@@ -101,8 +96,6 @@ export class Editor extends Component<{}, IEditorState> {
 
             editProject: false,
             editPreferences: false,
-
-            showWelcome: false,
         };
 
         webFrame.setZoomFactor(0.8);
@@ -125,7 +118,6 @@ export class Editor extends Component<{}, IEditorState> {
                     <EditorLayout
                         editor={this}
                         ref={ref => this.layout = ref!}
-                        showWelcome={this.state.showWelcome}
                     />
                 </HotkeysTarget2>
 
@@ -141,8 +133,6 @@ export class Editor extends Component<{}, IEditorState> {
                     onClose={() => this.setState({ editPreferences: false })}
                 />
 
-                <EditorWelcomeDialog editor={this} open={this.state.showWelcome} />
-
                 <CommandPalette ref={(r) => this.commandPalette = r!} editor={this} />
                 <Toaster />
             </>
@@ -157,8 +147,6 @@ export class Editor extends Component<{}, IEditorState> {
         ipcRenderer.on("editor:edit-preferences", () => this.setState({ editPreferences: true }));
 
         ipcRenderer.on("editor:open", (_, path) => this.openProject(join(path)));
-
-        ipcRenderer.on("editor:show-welcome", () => this.setState({ showWelcome: true }));
 
         ipcRenderer.send("editor:ready");
 
@@ -178,7 +166,6 @@ export class Editor extends Component<{}, IEditorState> {
     }
 
     public async openProject(path: string): Promise<void> {
-        this.setState({ showWelcome: false });
         ipcRenderer.send("editor:maximize-window");
 
         path = path.replace(/\\/g, sep);

@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
 
-import { AbstractMesh } from "babylonjs";
+import { AbstractMesh, Node, Observer, TransformNode } from "babylonjs";
 
 import { isTransformNode } from "../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../tools/observables";
@@ -10,6 +10,8 @@ import { EditorInspectorVectorField } from "./fields/vector";
 import { EditorInspectorSectionField } from "./fields/section";
 
 import { ScriptInspectorComponent } from "./script/script";
+
+import { onGizmoNodeChangedObservable } from "../preview/gizmo";
 
 import { IEditorInspectorImplementationProps } from "./inspector";
 
@@ -32,12 +34,56 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 
                 <EditorInspectorSectionField title="Transforms">
                     <EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" />
-                    <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={this.props.object} property="rotation" />
+                    {EditorTransformNodeInspector.GetRotationInspector(this.props.object)}
                     <EditorInspectorVectorField label={<div className="w-14">Scaling</div>} object={this.props.object} property="scaling" />
                 </EditorInspectorSectionField>
 
                 <ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
             </>
+        );
+    }
+
+    private _gizmoObserver: Observer<Node> | null = null;
+
+    public componentDidMount(): void {
+        this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {
+            if (node === this.props.object) {
+                this.props.editor.layout.inspector.forceUpdate();
+            }
+        });
+    }
+
+    public componentWillUnmount(): void {
+        if (this._gizmoObserver) {
+            onGizmoNodeChangedObservable.remove(this._gizmoObserver);
+        }
+    }
+
+    public static GetRotationInspector(object: TransformNode): ReactNode {
+        if (object.rotationQuaternion) {
+            const valueRef = object.rotationQuaternion.toEulerAngles();
+
+            const proxy = new Proxy(valueRef, {
+                get(target, prop) {
+                    return target[prop];
+                },
+                set(obj, prop, value) {
+                    obj[prop] = value;
+                    object.rotationQuaternion?.copyFrom(obj.toQuaternion());
+
+                    return true;
+                },
+            });
+
+            const o = { proxy };
+
+            return (
+                <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={o} property="proxy" />
+            );
+        }
+
+        return (
+            <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={object} property="rotation" />
         );
     }
 }

@@ -6,7 +6,7 @@ import { IoAddSharp } from "react-icons/io5";
 import { IoCloseOutline } from "react-icons/io5";
 
 import { SkyMaterial } from "babylonjs-materials";
-import { AbstractMesh, MorphTarget, MultiMaterial, PBRMaterial, StandardMaterial } from "babylonjs";
+import { AbstractMesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial } from "babylonjs";
 
 import { showPrompt } from "../../../ui/dialog";
 import { Button } from "../../../ui/shadcn/ui/button";
@@ -25,6 +25,9 @@ import { GeometryInspector } from "./geometry/geometry";
 
 import { ScriptInspectorComponent } from "./script/script";
 
+import { onGizmoNodeChangedObservable } from "../preview/gizmo";
+
+import { EditorTransformNodeInspector } from "./transform";
 import { IEditorInspectorImplementationProps } from "./inspector";
 
 import { EditorPBRMaterialInspector } from "./material/pbr";
@@ -72,7 +75,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
                 <EditorInspectorSectionField title="Transforms">
                     <EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" />
-                    <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={this.props.object} property="rotation" />
+                    {EditorTransformNodeInspector.GetRotationInspector(this.props.object)}
                     <EditorInspectorVectorField label={<div className="w-14">Scaling</div>} object={this.props.object} property="scaling" />
                 </EditorInspectorSectionField>
 
@@ -113,6 +116,22 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                 </EditorInspectorSectionField>
             </>
         );
+    }
+
+    private _gizmoObserver: Observer<Node> | null = null;
+
+    public componentDidMount(): void {
+        this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {
+            if (node === this.props.object) {
+                this.props.editor.layout.inspector.forceUpdate();
+            }
+        });
+    }
+
+    public componentWillUnmount(): void {
+        if (this._gizmoObserver) {
+            onGizmoNodeChangedObservable.remove(this._gizmoObserver);
+        }
     }
 
     private _getMaterialComponent(): ReactNode {

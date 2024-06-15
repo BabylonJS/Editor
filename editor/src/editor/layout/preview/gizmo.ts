@@ -1,8 +1,9 @@
-import { GizmoCoordinatesMode, Node, PositionGizmo, Quaternion, RotationGizmo, ScaleGizmo, Scene, UtilityLayerRenderer, Vector3 } from "babylonjs";
+import { GizmoCoordinatesMode, Node, Observable, PositionGizmo, Quaternion, RotationGizmo, ScaleGizmo, Scene, UtilityLayerRenderer, Vector3 } from "babylonjs";
 
-import { Tween } from "../../../tools/animation/tween";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isQuaternion, isVector3 } from "../../../tools/guards/math";
+
+export const onGizmoNodeChangedObservable = new Observable<Node>();
 
 export class EditorPreviewGizmo {
     /**
@@ -139,12 +140,7 @@ export class EditorPreviewGizmo {
                 undo: () => {
                     const valueRef = node[property];
                     if (isVector3(valueRef) && oldValue) {
-                        Tween.Create(valueRef, 0.1, {
-                            x: oldValue.x,
-                            y: oldValue.y,
-                            z: oldValue.z,
-                            killAllTweensOfTarget: true,
-                        });
+                        valueRef.copyFrom(oldValue);
                     } else {
                         node[property] = oldValue?.clone() ?? null;
                     }
@@ -154,12 +150,7 @@ export class EditorPreviewGizmo {
                 redo: () => {
                     const valueRef = node[property];
                     if (isVector3(valueRef) && newValue) {
-                        Tween.Create(valueRef, 0.1, {
-                            x: newValue.x,
-                            y: newValue.y,
-                            z: newValue.z,
-                            killAllTweensOfTarget: true,
-                        });
+                        valueRef.copyFrom(newValue);
                     } else {
                         node[property] = newValue?.clone() ?? null;
                     }
@@ -167,6 +158,8 @@ export class EditorPreviewGizmo {
                     this.setAttachedNode(node);
                 },
             });
+
+            onGizmoNodeChangedObservable.notifyObservers(node);
         });
     }
 
@@ -200,20 +193,9 @@ export class EditorPreviewGizmo {
                 undo: () => {
                     const valueRef = node["rotationQuaternion"] ?? node["rotation"];
                     if (isVector3(valueRef) && isVector3(oldValue)) {
-                        Tween.Create(valueRef, 0.1, {
-                            x: oldValue.x,
-                            y: oldValue.y,
-                            z: oldValue.z,
-                            killAllTweensOfTarget: true,
-                        });
+                        valueRef.copyFrom(oldValue);
                     } else if (isQuaternion(valueRef) && isQuaternion(oldValue)) {
-                        Tween.Create(valueRef, 0.1, {
-                            x: oldValue.x,
-                            y: oldValue.y,
-                            z: oldValue.z,
-                            w: oldValue.w,
-                            killAllTweensOfTarget: true,
-                        });
+                        valueRef.copyFrom(oldValue);
                     }
 
                     this.setAttachedNode(node);
@@ -221,25 +203,16 @@ export class EditorPreviewGizmo {
                 redo: () => {
                     const valueRef = node["rotationQuaternion"] ?? node["rotation"];
                     if (isVector3(valueRef) && isVector3(newValue)) {
-                        Tween.Create(valueRef, 0.1, {
-                            x: newValue.x,
-                            y: newValue.y,
-                            z: newValue.z,
-                            killAllTweensOfTarget: true,
-                        });
+                        valueRef.copyFrom(newValue);
                     } else if (isQuaternion(valueRef) && isQuaternion(newValue)) {
-                        Tween.Create(valueRef, 0.1, {
-                            x: newValue.x,
-                            y: newValue.y,
-                            z: newValue.z,
-                            w: newValue.w,
-                            killAllTweensOfTarget: true,
-                        });
+                        valueRef.copyFrom(newValue);
                     }
 
                     this.setAttachedNode(node);
                 },
             });
+
+            onGizmoNodeChangedObservable.notifyObservers(node);
         });
     }
 }
