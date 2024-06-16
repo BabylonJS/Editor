@@ -3,6 +3,11 @@ import { BrowserWindow, ipcMain, screen } from "electron";
 export async function createDashboardWindow(): Promise<BrowserWindow> {
     const window = new BrowserWindow({
         show: false,
+        frame: false,
+        closable: true,
+        minimizable: true,
+        maximizable: true,
+        titleBarStyle: "hidden",
         width: 1280,
         height: 800,
         webPreferences: {
@@ -40,6 +45,11 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
 
     const window = new BrowserWindow({
         show: false,
+        frame: false,
+        closable: true,
+        minimizable: true,
+        maximizable: true,
+        titleBarStyle: "hidden",
         width: width,
         height: height,
         webPreferences: {
