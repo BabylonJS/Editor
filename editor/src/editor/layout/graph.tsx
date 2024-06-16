@@ -117,8 +117,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         nodes.splice(0, 0, {
             id: "__editor__scene__",
             nodeData: scene,
-            label: this._getNodeLabel(scene, "Scene", true),
             icon: <SiBabylondotjs className="w-4 h-4" />,
+            label: this._getNodeLabelComponent(scene, "Scene", true),
         });
 
         this.setState({
@@ -308,8 +308,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             id: node.id,
             nodeData: node,
             isSelected: false,
-            icon: this._getIcon(node),
-            label: this._getNodeLabel(node, node.name),
+            icon: this._getNodeIconComponent(node),
+            label: this._getNodeLabelComponent(node, node.name),
         } as TreeNodeInfo;
 
         const children = node.getDescendants(true);
@@ -329,6 +329,21 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         });
 
         return info;
+    }
+
+    private _getNodeIconComponent(node: Node): ReactNode {
+        return (
+            <div
+                onClick={(ev) => {
+                    node.setEnabled(!node.isEnabled());
+                    this.refresh();
+                    ev.stopPropagation();
+                }}
+                className={`cursor-pointer ${node.isEnabled() ? "opacity-100" : "opacity-20"} transition-all duration-100 ease-in-out`}
+            >
+                {this._getIcon(node)}
+            </div>
+        );
     }
 
     private _getIcon(object: any): ReactNode {
@@ -351,7 +366,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         return <MdOutlineQuestionMark className="w-4 h-4" />;
     }
 
-    private _getNodeLabel(object: any, name?: string | null, noContextMenu?: boolean): JSX.Element {
+    private _getNodeLabelComponent(object: any, name?: string | null, noContextMenu?: boolean): JSX.Element {
         const label = (
             <EditorGraphLabel
                 object={object}
@@ -374,7 +389,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
     private _handleNodeModified(node: Node): void {
         this._forEachNode(this.state.nodes, (n) => {
             if (n.nodeData === node) {
-                n.label = this._getNodeLabel(node, node.name);
+                n.label = this._getNodeLabelComponent(node, node.name);
             }
         });
 
