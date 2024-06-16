@@ -78,12 +78,12 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
             const o = { proxy };
 
             return (
-                <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={o} property="proxy" />
+                <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={o} property="proxy" asDegrees step={0.1} />
             );
         }
 
         return (
-            <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={object} property="rotation" />
+            <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={object} property="rotation" asDegrees step={0.1} />
         );
     }
 }
