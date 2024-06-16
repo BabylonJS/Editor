@@ -13,6 +13,8 @@ export type ScriptMap = Record<
             onStart?(): void;
             onUpdate?(): void;
         };
+        onStart?: (object: any) => void;
+        onUpdate?: (object: any) => void;
     }
 >;
 
@@ -70,6 +72,14 @@ export function loadScriptsFor(scene: Scene, object: any, scriptsMap: ScriptMap)
 
             if (instance.onUpdate) {
                 scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
+            }
+        } else {
+            if (exports.onStart) {
+                scene.onBeforeRenderObservable.addOnce(() => exports.onStart!(object));
+            }
+
+            if (exports.onUpdate) {
+                scene.onBeforeRenderObservable.add(() => exports.onUpdate!(object));
             }
         }
     });
