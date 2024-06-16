@@ -102,7 +102,23 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
     return window;
 }
 
-ipcMain.on("editor:maximize-window", async (ev) => {
-    const window = BrowserWindow.getAllWindows().find((w) => w.id === ev.sender.id);
-    window?.maximize();
+ipcMain.on("window:minimize", async (ev) => {
+    const window = BrowserWindow.getAllWindows().find((w) => w.webContents.id === ev.sender.id);
+    window?.minimize();
+});
+
+ipcMain.on("window:maximize", async (ev) => {
+    const window = BrowserWindow.getAllWindows().find((w) => w.webContents.id === ev.sender.id);
+    if (window) {
+        if (window.isMaximized()) {
+            window.unmaximize();
+        } else {
+            window.maximize();
+        }
+    }
+});
+
+ipcMain.on("window:close", async (ev) => {
+    const window = BrowserWindow.getAllWindows().find((w) => w.webContents.id === ev.sender.id);
+    window?.close();
 });

@@ -22,6 +22,7 @@ import { tryGetProjectsFromLocalStorage } from "../tools/local-storage";
 import { openSingleFileDialog, openSingleFolderDialog } from "../tools/dialog";
 
 import { ProjectTile } from "./tile";
+import { WindowControls } from "./window-controls";
 
 export function createDashboard(): void {
     const theme = localStorage.getItem("editor-theme") ?? "dark";
@@ -69,8 +70,8 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
     public render(): ReactNode {
         return (
             <>
-                <div className={`flex flex-col gap-4 w-screen h-screen p-5 select-none ${platform() === "darwin" ? "pt-8" : ""}`}>
-                    <div className="absolute top-0 left-0 w-full h-24 electron-draggable" />
+                <div className={`flex flex-col gap-4 w-screen h-screen p-5 select-none ${platform() === "darwin" ? "pt-8" : "pt-10"}`}>
+                    <WindowControls />
 
                     <Fade delay={0}>
                         <div className="flex justify-between items-center w-full">
