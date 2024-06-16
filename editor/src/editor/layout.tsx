@@ -3,6 +3,8 @@ import { platform } from "os";
 import { Component, ReactNode } from "react";
 import { Layout, Model, TabNode } from "flexlayout-react";
 
+import { waitNextAnimationFrame } from "../tools/tools";
+
 import { Editor } from "./main";
 
 import layoutModel from "./layout.json";
@@ -12,8 +14,6 @@ import { EditorToolbar } from "./layout/toolbar";
 import { EditorConsole } from "./layout/console";
 import { EditorInspector } from "./layout/inspector";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
-
-import { waitNextAnimationFrame } from "../tools/tools";
 
 export interface IEditorLayoutProps {
     /**
@@ -67,9 +67,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
     public render(): ReactNode {
         return (
-            <div className={`flex flex-col w-screen h-screen ${platform() === "darwin" ? "pt-8" : ""}`}>
-                <div className="absolute top-0 left-0 w-full h-8 electron-draggable" />
-
+            <div className={`flex flex-col w-screen h-screen ${platform() === "darwin" ? "pt-10" : ""}`}>
                 <EditorToolbar editor={this.props.editor} />
 
                 <div className="relative w-full h-full">

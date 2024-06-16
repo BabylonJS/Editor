@@ -4,6 +4,11 @@ import { dirname, join } from "path/posix";
 
 import { Component, ReactNode } from "react";
 
+import { IoCloseOutline } from "react-icons/io5";
+import { VscChromeMinimize } from "react-icons/vsc";
+import { FaRegWindowMaximize } from "react-icons/fa";
+
+import { Button } from "../../ui/shadcn/ui/button";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
 
 import { execNodePty } from "../../tools/node-pty";
@@ -15,6 +20,8 @@ import { saveProject } from "../../project/save/save";
 import { exportProject } from "../../project/export/export";
 
 import { Editor } from "../main";
+
+const isWin32 = platform() === "win32";
 
 export interface IEditorToolbarProps {
     editor: Editor;
@@ -34,8 +41,10 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
         }
 
         return (
-            <div className="w-screen h-10 bg-background text-foreground">
+            <div className="flex justify-between w-screen h-10 bg-background text-foreground">
                 <Menubar className="border-none rounded-none">
+                    <img alt="" src="assets/babylonjs_icon.png" className="w-5 object-contain" />
+
                     {/* File */}
                     <MenubarMenu>
                         <MenubarTrigger>
@@ -133,6 +142,24 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
                         </MenubarContent>
                     </MenubarMenu>
                 </Menubar>
+
+                <div className="w-full h-10 electron-draggable" />
+
+                {isWin32 &&
+                    <div className="flex z-50">
+                        <Button variant="ghost" className="w-10 aspect-square !p-0 hover:bg-muted" onClick={() => ipcRenderer.send("window:minimize")}>
+                            <VscChromeMinimize className="w-4 h-4" />
+                        </Button>
+
+                        <Button variant="ghost" className="w-10 aspect-square hover:bg-muted" onClick={() => ipcRenderer.send("window:maximize")}>
+                            <FaRegWindowMaximize className="w-4 h-4" />
+                        </Button>
+
+                        <Button variant="ghost" className="w-10 aspect-square !p-0 hover:bg-muted" onClick={() => ipcRenderer.send("window:close")}>
+                            <IoCloseOutline className="w-4 h-4" />
+                        </Button>
+                    </div>
+                }
             </div>
         );
     }
