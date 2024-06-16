@@ -59,9 +59,7 @@ export class EditorPointLightInspector extends Component<IEditorInspectorImpleme
 
                 <ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
-                <EditorInspectorSectionField title="Shadows">
-                    <EditorLightShadowsInspector light={this.props.object} />
-                </EditorInspectorSectionField>
+                <EditorLightShadowsInspector light={this.props.object} />
             </>
         );
     }

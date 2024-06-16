@@ -1,16 +1,18 @@
 import { Divider } from "@blueprintjs/core";
-import { Component, ReactNode } from "react";
+import { Component, PropsWithChildren, ReactNode } from "react";
 
 import { CascadedShadowGenerator, DirectionalLight, IShadowGenerator, IShadowLight, ShadowGenerator } from "babylonjs";
 
 import { getPowerOfTwoSizesUntil } from "../../../../tools/tools";
-import { isDirectionalLight } from "../../../../tools/guards/nodes";
+import { isDirectionalLight, isPointLight } from "../../../../tools/guards/nodes";
 import { isCascadedShadowGenerator, isShadowGenerator } from "../../../../tools/guards/shadows";
 
 import { EditorInspectorNumberField } from "../fields/number";
+import { EditorInspectorSwitchField } from "../fields/switch";
+import { EditorInspectorSectionField } from "../fields/section";
 import { EditorInspectorListField, IEditorInspectorListFieldItem } from "../fields/list";
 
-export interface IEditorLightShadowsInspectorProps {
+export interface IEditorLightShadowsInspectorProps extends PropsWithChildren {
     light: IShadowLight;
 }
 
@@ -18,7 +20,11 @@ export interface IEditorLightShadowsInspectorState {
     generator: IShadowGenerator | null;
 }
 
-export type SoftShadowType = "usePercentageCloserFiltering" | "useContactHardeningShadow" | "none";
+export type SoftShadowType =
+    "usePoissonSampling" |
+    "useExponentialShadowMap" | "useCloseExponentialShadowMap" |
+    "usePercentageCloserFiltering" | "useContactHardeningShadow" |
+    "none";
 
 export class EditorLightShadowsInspector extends Component<IEditorLightShadowsInspectorProps, IEditorLightShadowsInspectorState> {
     protected _generatorSize: number = 1024;
@@ -42,9 +48,13 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
     public render(): ReactNode {
         return (
             <>
-                {this._getEmptyShadowGeneratorComponent()}
-                {this._getClassicShadowGeneratorComponent()}
-                {this._getCascadedShadowGeneratorComponent()}
+                <EditorInspectorSectionField title="Shadows">
+                    {this._getEmptyShadowGeneratorComponent()}
+                    {this._getClassicShadowGeneratorComponent()}
+                    {this._getCascadedShadowGeneratorComponent()}
+                </EditorInspectorSectionField>
+
+                {this._getClassicSoftShadowComponent()}
             </>
         );
     }
@@ -86,6 +96,13 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
             ? new ShadowGenerator(mapSize?.width ?? 1024, this.props.light, true)
             : new CascadedShadowGenerator(mapSize?.width ?? 1024, this.props.light as DirectionalLight, true);
 
+        if (isCascadedShadowGenerator(generator)) {
+            generator.lambda = 1;
+            generator.depthClamp = true;
+            generator.autoCalcDepthBounds = true;
+            generator.autoCalcDepthBoundsRefreshRate = 60;
+        }
+
         if (renderList) {
             generator.getShadowMap()?.renderList?.push(...renderList);
         } else {
@@ -126,21 +143,56 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
     private _getClassicShadowGeneratorComponent() {
         const generator = this.state.generator as ShadowGenerator;
 
-        if (!generator || isCascadedShadowGenerator(generator)) {
+        if (!generator) {
             return null;
         }
 
         return (
             <>
+                {this.props.children}
                 <EditorInspectorNumberField object={generator} property="bias" step={0.000001} min={0} max={1} label="Bias" />
                 <EditorInspectorNumberField object={generator} property="normalBias" step={0.000001} min={0} max={1} label="Normal Bias" />
+                <EditorInspectorNumberField object={generator} property="darkness" step={0.01} min={0} max={1} label="Darkness" />
+            </>
+        );
+    }
 
+    private _getClassicSoftShadowComponent() {
+        const generator = this.state.generator as ShadowGenerator | CascadedShadowGenerator;
+
+        if (!generator) {
+            return null;
+        }
+
+        return (
+            <EditorInspectorSectionField title="Soft Shadows">
                 <EditorInspectorListField object={this} property="_softShadowType" label="Soft Shadows Type" onChange={(v) => this._updateSoftShadowType(v)} items={[
                     { text: "None", value: "none" },
-                    { text: "Percentage Closer Filtering", value: "usePercentageCloserFiltering" },
-                    { text: "Contact Hardening Shadow", value: "useContactHardeningShadow" },
+                    ...(isPointLight(this.props.light)
+                        ? [
+                            { text: "Poisson Sampling", value: "usePoissonSampling" },
+                        ]
+                        : [
+                            { text: "Percentage Closer Filtering", value: "usePercentageCloserFiltering" },
+                            { text: "Contact Hardening Shadow", value: "useContactHardeningShadow" },
+                        ]
+                    ),
                 ]} />
-            </>
+
+                {generator.usePoissonSampling &&
+                    <EditorInspectorNumberField object={generator} property="blurScale" step={0.1} min={0} max={10} label="Blur Scale" />
+                }
+
+                {(generator.usePercentageCloserFiltering || generator.useContactHardeningShadow) &&
+                    <>
+                        <EditorInspectorListField object={generator} property="filteringQuality" label="Filtering Quality" items={[
+                            { text: "Low", value: ShadowGenerator.QUALITY_LOW },
+                            { text: "Medium", value: ShadowGenerator.QUALITY_MEDIUM },
+                            { text: "High", value: ShadowGenerator.QUALITY_HIGH },
+                        ]} />
+                    </>
+                }
+            </EditorInspectorSectionField>
         );
     }
 
@@ -153,9 +205,16 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 
         return (
             <>
-                <EditorInspectorNumberField object={this.state.generator} property="lambda" min={0} max={1} label="Lambda" />
-                <EditorInspectorNumberField object={this.state.generator} property="bias" step={0.000001} min={0} max={1} label="Bias" />
-                <EditorInspectorNumberField object={this.state.generator} property="darkness" min={0} max={1} label="Darkness" />
+                {this.props.children}
+                <EditorInspectorSwitchField object={generator} property="stabilizeCascades" label="Stabilize Cascades" />
+                <EditorInspectorSwitchField object={generator} property="depthClamp" label="Depth Clamp" />
+                <EditorInspectorSwitchField object={generator} property="autoCalcDepthBounds" label="Auto Calc Depth Bounds" onChange={() => this.forceUpdate()} />
+                {generator.autoCalcDepthBounds &&
+                    <EditorInspectorNumberField object={generator} property="autoCalcDepthBoundsRefreshRate" step={1} min={0} max={60} label="Auto Calc Depth Bounds Refresh Rate" />
+                }
+                <EditorInspectorNumberField object={generator} property="lambda" min={0} max={1} label="Lambda" />
+                <EditorInspectorNumberField object={generator} property="cascadeBlendPercentage" min={0} max={1} label="Blend Percentage" />
+                <EditorInspectorNumberField object={generator} property="penumbraDarkness" min={0} max={1} label="Penumbra Darkness" />
             </>
         );
     }
@@ -183,6 +242,8 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
             this.state.generator.useContactHardeningShadow = false;
 
             this.state.generator[type] = true;
+
+            this.forceUpdate();
         }
     }
 }
