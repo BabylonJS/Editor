@@ -1,3 +1,4 @@
+import { platform } from "os";
 import { join } from "path/posix";
 import { pathExists } from "fs-extra";
 import { ipcRenderer } from "electron";
@@ -68,7 +69,9 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
     public render(): ReactNode {
         return (
             <>
-                <div className="flex flex-col gap-4 w-screen h-screen p-5">
+                <div className={`flex flex-col gap-4 w-screen h-screen p-5 select-none ${platform() === "darwin" ? "pt-8" : ""}`}>
+                    <div className="absolute top-0 left-0 w-full h-24 electron-draggable" />
+
                     <Fade delay={0}>
                         <div className="flex justify-between items-center w-full">
                             <div className="text-5xl font-semibold">
