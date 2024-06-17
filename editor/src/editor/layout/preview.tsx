@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 import { Editor } from "../main";
 
+import { isMesh } from "../../tools/guards/nodes";
 import { Tween } from "../../tools/animation/tween";
 import { waitNextAnimationFrame } from "../../tools/tools";
 
@@ -345,10 +346,22 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     private _highlightCurrentMeshUnderPointer(pickedMesh: AbstractMesh): void {
         Tween.KillTweensOf(pickedMesh);
 
-        Tween.Create(pickedMesh, 0.1, {
-            "overlayAlpha": 0.5,
-            "overlayColor": Color3.Black(),
-            onStart: () => pickedMesh!.renderOverlay = true,
+        const meshes = [pickedMesh];
+
+        if (isMesh(pickedMesh)) {
+            pickedMesh.getLODLevels().forEach((lod) => {
+                if (lod.mesh) {
+                    meshes.push(lod.mesh);
+                }
+            });
+        }
+
+        meshes.forEach((mesh) => {
+            Tween.Create(mesh, 0.1, {
+                "overlayAlpha": 0.5,
+                "overlayColor": Color3.Black(),
+                onStart: () => mesh!.renderOverlay = true,
+            });
         });
     }
 
@@ -356,15 +369,27 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         const mesh = this._meshUnderPointer;
 
         if (mesh) {
-            Tween.KillTweensOf(mesh);
+            const meshes = [mesh];
 
-            mesh.overlayAlpha ??= 0;
-            mesh.overlayColor ??= Color3.Black();
+            if (isMesh(mesh)) {
+                mesh.getLODLevels().forEach((lod) => {
+                    if (lod.mesh) {
+                        meshes.push(lod.mesh);
+                    }
+                });
+            }
 
-            Tween.Create(mesh, 0.1, {
-                "overlayAlpha": 0,
-                "overlayColor": Color3.Black(),
-                onStart: () => mesh.renderOverlay = true,
+            meshes.forEach((mesh) => {
+                Tween.KillTweensOf(mesh);
+
+                mesh.overlayAlpha ??= 0;
+                mesh.overlayColor ??= Color3.Black();
+
+                Tween.Create(mesh, 0.1, {
+                    "overlayAlpha": 0,
+                    "overlayColor": Color3.Black(),
+                    onStart: () => mesh.renderOverlay = true,
+                });
             });
         }
     }

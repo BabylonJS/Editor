@@ -37,10 +37,6 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
     }
 
     public render(): ReactNode {
-        if (isDarwin && !process.env.DEBUG) {
-            return null;
-        }
-
         return (
             <>
                 {isDarwin &&

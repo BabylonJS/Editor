@@ -137,7 +137,7 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
                 </div>
 
                 {this.props.editor.state.plugins.map((plugin) => (
-                    <EditorEditProjectPluginComponent pathOrName={plugin} onRemoved={() => this._handlePluginRemoved(plugin)} />
+                    <EditorEditProjectPluginComponent editor={this.props.editor} pathOrName={plugin} onRemoved={() => this._handlePluginRemoved(plugin)} />
                 ))}
             </div>
         );

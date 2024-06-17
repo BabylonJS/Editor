@@ -1,14 +1,22 @@
 import { Button } from "@blueprintjs/core";
 import { Component, ReactNode } from "react";
 
+import { Editor } from "../main";
+
+import { EditorConsoleProgressLogComponent } from "./console/progress-log";
+
+export interface IEditorConsoleProps {
+    editor: Editor;
+}
+
 export interface IEditorConsoleState {
     logs: ReactNode[];
 }
 
-export class EditorConsole extends Component<unknown, IEditorConsoleState> {
+export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsoleState> {
     private _div: HTMLDivElement | null = null;
 
-    public constructor(props: unknown) {
+    public constructor(props: IEditorConsoleProps) {
         super(props);
 
         this.state = {
@@ -38,7 +46,7 @@ export class EditorConsole extends Component<unknown, IEditorConsoleState> {
      */
     public log(message: ReactNode): void {
         this._addLog(
-            <div key={this.state.logs.length + 1} className="whitespace-nowrap">
+            <div key={this.state.logs.length + 1} className="whitespace-break-spaces">
                 {message}
             </div>
         );
@@ -46,10 +54,14 @@ export class EditorConsole extends Component<unknown, IEditorConsoleState> {
 
     public error(message: ReactNode): void {
         this._addLog(
-            <div key={this.state.logs.length + 1} className="whitespace-nowrap text-red-500">
+            <div key={this.state.logs.length + 1} className="whitespace-break-spaces text-red-500">
                 {message}
             </div>
         );
+    }
+
+    public progress(message: ReactNode): Promise<EditorConsoleProgressLogComponent> {
+        return EditorConsoleProgressLogComponent.Create(this.props.editor, message);
     }
 
     private _addLog(log: ReactNode): void {

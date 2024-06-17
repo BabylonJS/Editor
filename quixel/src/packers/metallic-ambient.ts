@@ -25,7 +25,7 @@ export class MetallicAmbientPacker {
         const projectFolder = join(dirname(editor.state.projectPath), "/");
 
         if (metallicTexture && ambientTexture) {
-            editor.layout.console.log("Packing ambient texture in metallic texture red channel.");
+            const log = await editor.layout.console.progress("Packing ambient texture in metallic texture red channel.");
             const packedMetallicTexturePath = await TextureUtils.MergeTextures(metallicTexture, ambientTexture, rootFolder, (color1, color2) => ({
                 r: color2.r,
                 g: color1.g,
@@ -52,12 +52,15 @@ export class MetallicAmbientPacker {
                         resolve(texture);
                     }, (_, e) => {
                         reject(e);
+                        log.setState({ error: true });
                     });
                 });
 
                 material.metallicTexture = packedMetallicTexture;
                 material.useAmbientOcclusionFromMetallicTextureRed = true;
             }
+
+            log.setState({ done: true });
         } else {
             material.ambientTexture = ambientTexture!;
         }

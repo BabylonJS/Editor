@@ -1,12 +1,12 @@
+import { join, dirname } from "path/posix";
 import { copyFile, writeFile } from "fs-extra";
-import { join, extname, dirname } from "path/posix";
 
-import { PBRMaterial, Texture } from "babylonjs";
+import sharp from "sharp";
+
 import { Editor } from "babylonjs-editor";
+import { PBRMaterial, Texture } from "babylonjs";
 
 import { QuixelJsonType } from "./typings";
-
-import { TextureUtils } from "./tools/textureMerger";
 
 import { MaskPacker } from "./packers/mask";
 import { AlbedoOpacityPacker } from "./packers/albedo-opacity";
@@ -155,29 +155,12 @@ export async function copyTextures(editor: Editor, json: QuixelJsonType, assetsF
 
         // Resize to lower resolution
         try {
-            const texture = await new Promise<Texture>((resolve, reject) => {
-                const texture = new Texture(c.path, editor.layout.preview.scene, false, true, undefined, () => {
-                    resolve(texture);
-                }, (_, e) => {
-                    reject(e);
-                });
-            });
+            const buffer = await sharp(c.path).resize(1024, 1024).toBuffer();
+            const path = join(assetsFolder, c.name);
 
-            const resizedTexture = await TextureUtils.ResizeTexture(texture);
-            const resizedTextureBlob = await TextureUtils.GetTextureBlob(resizedTexture);
+            await writeFile(path, buffer);
 
-            texture.dispose();
-            resizedTexture.dispose();
-
-            if (resizedTextureBlob) {
-                const replacedName = c.name.replace(extname(c.name), ".png");
-                c.name = replacedName;
-
-                const path = join(assetsFolder, replacedName);
-                await writeFile(path, Buffer.from(await resizedTextureBlob.arrayBuffer()));
-
-                editor.layout.console.log(`Copied resized texture "${c.name}" at ${path}`);
-            }
+            editor.layout.console.log(`Copied resized texture "${c.name}" at ${path}`);
         } catch (e) {
             // Catch silently.
         }
