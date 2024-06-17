@@ -22,6 +22,7 @@ import { exportProject } from "../../project/export/export";
 import { Editor } from "../main";
 
 const isWin32 = platform() === "win32";
+const isDarwin = platform() === "darwin";
 
 export interface IEditorToolbarProps {
     editor: Editor;
@@ -36,10 +37,24 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
     }
 
     public render(): ReactNode {
-        if (platform() === "darwin" && !process.env.DEBUG) {
+        if (isDarwin && !process.env.DEBUG) {
             return null;
         }
 
+        return (
+            <>
+                {isDarwin &&
+                    <div className="absolute top-0 left-0 w-screen h-10 electron-draggable" />
+                }
+
+                {(!isDarwin || process.env.DEBUG) &&
+                    this._getToolbar()
+                }
+            </>
+        );
+    }
+
+    private _getToolbar(): ReactNode {
         return (
             <div className="flex justify-between w-screen h-10 bg-background text-foreground">
                 <Menubar className="border-none rounded-none">

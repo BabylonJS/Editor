@@ -131,7 +131,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
      * @param node the node to select.
      */
     public setSelectedNode(node: Node): void {
-        this._forEachNode(this.state.nodes, (n) => n.isSelected = n.nodeData === node);
+        this._forEachNode(this.state.nodes, (n) => {
+            if (isNode(n.nodeData)) {
+                const descendants = n.nodeData.getDescendants(false);
+                if (descendants.includes(node)) {
+                    n.isExpanded = true;
+                }
+            }
+
+            n.isSelected = n.nodeData === node;
+        });
+
         this.setState({ nodes: this.state.nodes });
     }
 
