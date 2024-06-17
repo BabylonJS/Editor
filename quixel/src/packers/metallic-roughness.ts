@@ -24,7 +24,7 @@ export class MetallicRoughnessPacker {
         const projectFolder = join(dirname(editor.state.projectPath), "/");
 
         if (metallicTexture && roughnessTexture) {
-            editor.layout.console.log("Packing roughness texture in metallic texture green channel.");
+            const log = await editor.layout.console.progress("Packing roughness texture in metallic texture green channel.");
             const packedMetallicTexturePath = await TextureUtils.MergeTextures(metallicTexture, roughnessTexture, rootFolder, (color1, color2) => ({
                 r: 0,
                 g: color2.r,
@@ -51,6 +51,7 @@ export class MetallicRoughnessPacker {
                         resolve(texture);
                     }, (_, e) => {
                         reject(e);
+                        log.setState({ error: true });
                     });
                 });
 
@@ -61,6 +62,8 @@ export class MetallicRoughnessPacker {
                 material.useRoughnessFromMetallicTextureGreen = true;
                 material.useMetallnessFromMetallicTextureBlue = true;
             }
+
+            log.setState({ done: true });
         } else if (metallicTexture) {
             material.metallicTexture = metallicTexture;
             material.metallic = 1;

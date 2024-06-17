@@ -46,7 +46,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
     private _model: Model = Model.fromJson(layoutModel as any);
     private _components: Record<string, React.ReactNode> = {
-        "console": <EditorConsole ref={(r) => this.console = r!} />,
+        "console": <EditorConsole editor={this.props.editor} ref={(r) => this.console = r!} />,
         "preview": <EditorPreview editor={this.props.editor} ref={(r) => this.preview = r!} />,
         "inspector": <EditorInspector editor={this.props.editor} ref={(r) => this.inspector = r!} />,
         "graph": <EditorGraph editor={this.props.editor} ref={(r) => this.graph = r!} />,

@@ -24,7 +24,7 @@ export class ReflectivityGlossinessPacker {
         const projectFolder = join(dirname(editor.state.projectPath), "/");
 
         if (reflectivityTexture && microSurfaceTexture) {
-            editor.layout.console.log("Packing micro surface texture in reflectivity texture alpha channel.");
+            const log = await editor.layout.console.progress("Packing micro surface texture in reflectivity texture alpha channel.");
             const packedReflectivityTexturePath = await TextureUtils.MergeTextures(reflectivityTexture, microSurfaceTexture, rootFolder, (color1, color2) => ({
                 r: color1.r,
                 g: color1.g,
@@ -51,12 +51,15 @@ export class ReflectivityGlossinessPacker {
                         resolve(texture);
                     }, (_, e) => {
                         reject(e);
+                        log.setState({ error: true });
                     });
                 });
 
                 material.reflectivityTexture = packedReflectivityTexture;
                 material.useMicroSurfaceFromReflectivityMapAlpha = true;
             }
+
+            log.setState({ done: true });
         } else {
             material.reflectivityTexture = reflectivityTexture!;
             material.microSurfaceTexture = microSurfaceTexture!;

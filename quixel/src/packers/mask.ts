@@ -23,7 +23,7 @@ export class MaskPacker {
         const projectFolder = join(dirname(editor.state.projectPath), "/");
 
         if (maskTexture) {
-            editor.layout.console.log("Packing mask texture alpha channel.");
+            const log = await editor.layout.console.progress("Packing mask texture alpha channel.");
             const packedMaskTexturePath = await TextureUtils.MergeTextures(maskTexture, maskTexture, rootFolder, (color1) => ({
                 r: color1.r,
                 g: color1.g,
@@ -49,11 +49,14 @@ export class MaskPacker {
                         resolve(texture);
                     }, (_, e) => {
                         reject(e);
+                        log.setState({ error: true });
                     });
                 });
 
                 material.albedoTexture = packedMaskTexture;
                 material.useAlphaFromAlbedoTexture = false;
+
+                log.setState({ done: true });
             } else {
                 material.albedoTexture = maskTexture;
             }

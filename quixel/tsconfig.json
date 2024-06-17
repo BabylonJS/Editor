@@ -9,6 +9,7 @@
         "declarationDir": "./declaration",
         "strictNullChecks": true,
         "noUnusedLocals": true,
+        "jsx": "react-jsx",
         "noUnusedParameters": true,
         "allowSyntheticDefaultImports": true,
         "resolveJsonModule": true,

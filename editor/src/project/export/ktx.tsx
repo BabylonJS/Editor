@@ -7,8 +7,6 @@ import { createReadStream } from "fs";
 import { Editor } from "../../editor/main";
 import { execNodePty } from "../../tools/node-pty";
 
-import { EditorExportConsoleComponent } from "./log";
-
 export type KTXToolsType = "-astc.ktx" | "-dxt.ktx" | "-pvrtc.ktx" | "-etc1.ktx" | "-etc2.ktx";
 
 export const allKtxFormats: KTXToolsType[] = [
@@ -93,18 +91,12 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
         return;
     }
 
-    let consoleLog!: EditorExportConsoleComponent;
-    editor.layout.console.log((
-        <EditorExportConsoleComponent
-            ref={(r) => consoleLog = r!}
-            message={`Compressing image "${filename}"`}
-        />
-    ));
+    const log = await editor.layout.console.progress(`Compressing image "${filename}"`);
 
     const p = await execNodePty(command);
     await p.wait();
 
-    consoleLog.setState({
+    log.setState({
         done: true,
         message: `Compressed image "${filename}"`,
     });

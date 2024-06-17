@@ -24,7 +24,7 @@ export class NormalDisplacementPacker {
         const projectFolder = join(dirname(editor.state.projectPath), "/");
 
         if (bumpTexture && displacementTexture) {
-            editor.layout.console.log("Packing displacement texture in bump texture alpha channel to use parallax mapping.");
+            const log = await editor.layout.console.progress("Packing displacement texture in bump texture alpha channel to use parallax mapping.");
             const packedBumpTexturePath = await TextureUtils.MergeTextures(bumpTexture, displacementTexture, rootFolder, (color1, color2) => ({
                 r: color1.r,
                 g: color1.g,
@@ -51,6 +51,7 @@ export class NormalDisplacementPacker {
                         resolve(texture);
                     }, (_, e) => {
                         reject(e);
+                        log.setState({ error: true });
                     });
                 });
 
@@ -59,6 +60,8 @@ export class NormalDisplacementPacker {
                 material.useParallaxOcclusion = true;
                 material.parallaxScaleBias = -0.01;
             }
+
+            log.setState({ done: true });
         } else {
             material.bumpTexture = bumpTexture!;
         }

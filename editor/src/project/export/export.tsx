@@ -18,7 +18,6 @@ import { Editor } from "../../editor/main";
 
 import { compressFileToKtx } from "./ktx";
 import { configureMeshesLODs } from "./lod";
-import { EditorExportConsoleComponent } from "./log";
 import { EditorExportProjectProgressComponent } from "./progress";
 
 const supportedImagesExtensions: string[] = [
@@ -251,13 +250,7 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
         const finalPath = join(dirname(absolutePath), finalName);
 
         if (!await pathExists(finalPath)) {
-            let consoleLog!: EditorExportConsoleComponent;
-            editor.layout.console.log((
-                <EditorExportConsoleComponent
-                    ref={(r) => consoleLog = r!}
-                    message={`Exporting image scaled image "${finalName}"`}
-                />
-            ));
+            const log = await editor.layout.console.progress(`Exporting scaled image "${finalName}"`);
 
             try {
                 const buffer = await sharp(absolutePath).resize(width, height).toBuffer();
@@ -265,12 +258,12 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
                 await writeFile(finalPath, buffer);
                 await compressFileToKtx(editor, finalPath);
 
-                consoleLog.setState({
+                log.setState({
                     done: true,
                     message: `Exported image scaled image "${finalName}"`,
                 });
             } catch (e) {
-                consoleLog.setState({
+                log.setState({
                     done: true,
                     error: true,
                     message: `Failed to export image scaled image "${finalName}"`,

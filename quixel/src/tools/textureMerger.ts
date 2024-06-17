@@ -1,7 +1,8 @@
 import { writeFile } from "fs-extra";
 import { basename, extname, join } from "path";
 
-import { Tools as BabylonTools, Texture, ISize, TextureTools } from "babylonjs";
+import { Tools as BabylonTools, Texture, ISize } from "babylonjs";
+
 import { WorkerTools } from "./workers";
 
 export interface IMergedColor {
@@ -69,33 +70,6 @@ export class TextureUtils {
         await writeFile(dest, Buffer.from(await blob.arrayBuffer()));
 
         return dest;
-    }
-
-    /**
-     * Resizes the given texture to target a size of 1024x1024.
-     * @param texture defines the reference to the texture to resize.
-     */
-    public static async ResizeTexture(texture: Texture): Promise<Texture> {
-        const resizedTexture = TextureTools.CreateResizedCopy(texture, 1024, 1024, true);
-
-        while (!resizedTexture.isReady()) {
-            await new Promise<void>((resolve) => setTimeout(() => resolve(), 150));
-        }
-
-        return resizedTexture;
-    }
-
-    /**
-     * Converts the given texture to a readable png blob.
-     * @param texture defines the reference to the texture to convert ot a png blob.
-     */
-    public static async GetTextureBlob(texture: Texture): Promise<Blob | null> {
-        const buffer = (await texture.readPixels())?.buffer;
-        if (!buffer) { return null; }
-
-        const pixels = new Uint8ClampedArray(buffer);
-
-        return this._ConvertPixelsToBlobImage(texture.getSize(), pixels);
     }
 
     /**

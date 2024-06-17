@@ -24,7 +24,7 @@ export class AlbedoOpacityPacker {
         const projectFolder = join(dirname(editor.state.projectPath), "/");
 
         if (albedoTexture && opacityTexture) {
-            editor.layout.console.log("Packing opacity texture in albedo texture alpha channel.");
+            const log = await editor.layout.console.progress("Packing opacity texture in albedo texture alpha channel.");
             const packedAlbedoTexturePath = await TextureUtils.MergeTextures(albedoTexture, opacityTexture, rootFolder, (color1, color2) => ({
                 r: color1.r,
                 g: color1.g,
@@ -51,6 +51,7 @@ export class AlbedoOpacityPacker {
                         resolve(texture);
                     }, (_, e) => {
                         reject(e);
+                        log.setState({ error: true });
                     });
                 });
 
@@ -58,6 +59,8 @@ export class AlbedoOpacityPacker {
                 packedAlbedoTexture.hasAlpha = true;
                 material.useAlphaFromAlbedoTexture = true;
             }
+
+            log.setState({ done: true });
         } else {
             if (albedoTexture) {
                 material.albedoTexture = albedoTexture;
