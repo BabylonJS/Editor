@@ -1,5 +1,5 @@
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
 
 import { Component, ReactNode } from "react";
 import { Root, createRoot } from "react-dom/client";
@@ -71,8 +71,8 @@ export class LoadScenePrepareComponent extends Component<ILoadSceneProgressCompo
             letterSpacing: -3,
             cursorStyle: "block",
             allowTransparency: false,
-            drawBoldTextInBrightColors: true,
-            fontFamily: "'Inter var', sans-serif",
+            drawBoldTextInBrightColors: false,
+            fontFamily: "'Inter', sans-serif",
             theme: {
                 background: "transparent",
             },

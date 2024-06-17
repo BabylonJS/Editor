@@ -92,9 +92,10 @@
 }
 
 body * {
-    color: hsl(var(--foreground));
-    outline: none !important;
     font-family: 'Inter', sans-serif;
+
+    @apply text-foreground;
+    @apply !outline-none;
 }
 
 input {
