@@ -306,6 +306,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
         const masterMesh = scene.getMeshById(mesh._waitingData.lods.masterMeshId);
         if (masterMesh && isMesh(masterMesh)) {
+            mesh.material = masterMesh.material;
             masterMesh.addLODLevel(mesh._waitingData.lods.distanceOrScreenCoverage, mesh);
 
         }
