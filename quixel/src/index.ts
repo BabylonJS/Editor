@@ -72,10 +72,12 @@ async function handleParsedAsset(editor: Editor, json: QuixelJsonType) {
         return;
     }
 
+    json.path = json.path.replace(/\\/g, "/");
+
     // Create folders
     const quixelFolder = join(dirname(editor.state.projectPath), "assets", "quixel");
 
-    const assetFolder = join(quixelFolder, basename(json.path.replace(/\\/g, "/")));
+    const assetFolder = join(quixelFolder, basename(json.path));
     if (!await pathExists(assetFolder)) {
         await mkdir(assetFolder);
     }

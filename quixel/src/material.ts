@@ -10,7 +10,7 @@ import { QuixelJsonType } from "./typings";
 import { copyTextures, setupTextures } from "./texture";
 
 export async function importMaterial(editor: Editor, json: QuixelJsonType, assetsFolder: string): Promise<PBRMaterial | null> {
-    const material = new PBRMaterial(json.path, editor.layout.preview.scene);
+    const material = new PBRMaterial(basename(json.path), editor.layout.preview.scene);
     material.id = Tools.RandomId();
     material.uniqueId = UniqueNumber.Get();
 
