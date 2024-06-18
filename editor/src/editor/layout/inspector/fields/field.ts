@@ -5,6 +5,7 @@ export interface IEditorInspectorFieldProps<T = unknown> {
     property: string;
 
     label?: ReactNode;
+    tooltip?: ReactNode;
 
     noUndoRedo?: boolean;
 }

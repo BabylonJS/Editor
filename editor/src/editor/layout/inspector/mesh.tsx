@@ -6,7 +6,7 @@ import { IoAddSharp } from "react-icons/io5";
 import { IoCloseOutline } from "react-icons/io5";
 
 import { SkyMaterial } from "babylonjs-materials";
-import { AbstractMesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial } from "babylonjs";
+import { AbstractMesh, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial } from "babylonjs";
 
 import { showPrompt } from "../../../ui/dialog";
 import { Button } from "../../../ui/shadcn/ui/button";
@@ -90,7 +90,10 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                 <ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
                 {isMesh(this.props.object) &&
-                    <GeometryInspector object={this.props.object} />
+                    <>
+                        <GeometryInspector object={this.props.object} />
+                        {this._getLODsComponent()}
+                    </>
                 }
 
                 {this._getMaterialComponent()}
@@ -118,6 +121,40 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
         if (this._gizmoObserver) {
             onGizmoNodeChangedObservable.remove(this._gizmoObserver);
         }
+    }
+
+    private _getLODsComponent(): ReactNode {
+        const mesh = this.props.object as Mesh;
+
+        const lods = mesh.getLODLevels();
+        if (!lods.length) {
+            return null;
+        }
+
+        const o = {
+            distance: lods[lods.length - 1].distanceOrScreenCoverage ?? 1000,
+        };
+
+        function sortLods(value: number) {
+            const lods = mesh.getLODLevels().slice();
+            lods.forEach((lod) => mesh.removeLODLevel(lod.mesh!));
+
+            lods.reverse().forEach((lod, index) => {
+                mesh.addLODLevel(value * (index + 1), lod.mesh);
+            });
+        }
+
+        return (
+            <EditorInspectorSectionField title="LODs">
+                <EditorInspectorNumberField object={o} property="distance" label="Linear Distance" tooltip="Defines the distance that separates each LODs" step={1} noUndoRedo onChange={(v) => sortLods(v)} onFinishChange={(value, oldValue) => {
+                    registerUndoRedo({
+                        executeRedo: true,
+                        undo: () => sortLods(oldValue),
+                        redo: () => sortLods(value),
+                    });
+                }} />
+            </EditorInspectorSectionField>
+        );
     }
 
     private _getMaterialComponent(): ReactNode {
