@@ -54,6 +54,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             const data = await SceneSerializer.SerializeMesh(meshToSerialize, false, false);
             delete data.skeletons;
 
+            if (meshToSerialize._masterMesh) {
+                delete data.materials;
+            }
+
             data.metadata = meshToSerialize.metadata;
             data.basePoseMatrix = meshToSerialize.getPoseMatrix().asArray();
 
