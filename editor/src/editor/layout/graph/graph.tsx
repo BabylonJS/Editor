@@ -11,6 +11,7 @@ import {
     ContextMenuSubContent, ContextMenuShortcut,
 } from "../../../ui/shadcn/ui/context-menu";
 
+import { isScene } from "../../../tools/guards/scene";
 import { isMesh, isNode } from "../../../tools/guards/nodes";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
 
@@ -35,41 +36,52 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                 <ContextMenuContent className="w-48">
                     {this.props.object &&
                         <>
-                            {isNode(this.props.object) && this._getMeshItems()}
-
-                            <ContextMenuSeparator />
-
-                            <ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
-                                Copy  <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
-                            </ContextMenuItem>
-
                             {isNode(this.props.object) &&
-                                <ContextMenuItem onClick={() => this.props.editor.layout.graph.pasteSelectedNodes(this.props.object)}>
-                                    Paste <ContextMenuShortcut>{platform() === "darwin" ? "⌘+V" : "CTRL+V"}</ContextMenuShortcut>
-                                </ContextMenuItem>
+                                <>
+                                    {this._getMeshItems()}
+                                    <ContextMenuSeparator />
+                                </>
                             }
 
-                            <ContextMenuSeparator />
+                            {!isScene(this.props.object) &&
+                                <>
+                                    <ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
+                                        Copy  <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
+                                    </ContextMenuItem>
 
-                            {isNode(this.props.object) &&
+                                    {isNode(this.props.object) &&
+                                        <ContextMenuItem onClick={() => this.props.editor.layout.graph.pasteSelectedNodes(this.props.object)}>
+                                            Paste <ContextMenuShortcut>{platform() === "darwin" ? "⌘+V" : "CTRL+V"}</ContextMenuShortcut>
+                                        </ContextMenuItem>
+                                    }
+
+                                    <ContextMenuSeparator />
+                                </>
+                            }
+
+                            {(isNode(this.props.object) || isScene(this.props.object)) &&
                                 <ContextMenuSub>
                                     <ContextMenuSubTrigger className="flex items-center gap-2">
                                         <AiOutlinePlus className="w-5 h-5" /> Add
                                     </ContextMenuSubTrigger>
                                     <ContextMenuSubContent>
-                                        <ContextMenuItem onClick={() => addTransformNode(this.props.editor, this.props.object)}>Transform Node</ContextMenuItem>
+                                        <ContextMenuItem onClick={() => addTransformNode(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Transform Node</ContextMenuItem>
                                         <ContextMenuSeparator />
-                                        <ContextMenuItem onClick={() => addPointLight(this.props.editor, this.props.object)}>Point Light</ContextMenuItem>
-                                        <ContextMenuItem onClick={() => addDirectionalLight(this.props.editor, this.props.object)}>Directional Light</ContextMenuItem>
-                                        <ContextMenuItem onClick={() => addSpotLight(this.props.editor, this.props.object)}>Spot Light</ContextMenuItem>
-                                        <ContextMenuItem onClick={() => addHemisphericLight(this.props.editor, this.props.object)}>Hemispheric Light</ContextMenuItem>
+                                        <ContextMenuItem onClick={() => addPointLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Point Light</ContextMenuItem>
+                                        <ContextMenuItem onClick={() => addDirectionalLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Directional Light</ContextMenuItem>
+                                        <ContextMenuItem onClick={() => addSpotLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Spot Light</ContextMenuItem>
+                                        <ContextMenuItem onClick={() => addHemisphericLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Hemispheric Light</ContextMenuItem>
                                     </ContextMenuSubContent>
                                 </ContextMenuSub>
                             }
 
-                            <ContextMenuSeparator />
+                            {!isScene(this.props.object) &&
+                                <>
+                                    <ContextMenuSeparator />
 
-                            {this._getRemoveItems()}
+                                    {this._getRemoveItems()}
+                                </>
+                            }
                         </>
                     }
                 </ContextMenuContent>

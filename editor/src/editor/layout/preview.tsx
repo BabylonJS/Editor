@@ -14,9 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 import { Editor } from "../main";
 
-import { isMesh } from "../../tools/guards/nodes";
 import { Tween } from "../../tools/animation/tween";
 import { waitNextAnimationFrame } from "../../tools/tools";
+import { isAbstractMesh, isLight, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
 
@@ -128,6 +128,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                                 ev.preventDefault();
                                 this._handleMouseMove(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY);
                             }}
+                            onBlur={() => this.setState({ isFocused: false })}
                             onFocus={() => this.setState({ isFocused: true })}
                             onPointerUp={(ev) => this._handleMouseClick(ev)}
                             onPointerDown={(ev) => this._handleMouseDown(ev)}
@@ -288,8 +289,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     private _handleMouseLeave(): void {
         this._restoreCurrentMeshUnderPointer();
         this._meshUnderPointer = null;
-
-        this.setState({ isFocused: false });
     }
 
     private _mouseMoveTimeoutId: number = -1;
@@ -492,6 +491,38 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     }
 
     private async _handleDrop(ev: React.DragEvent<HTMLCanvasElement>): Promise<void> {
+        const assets = ev.dataTransfer.getData("assets");
+        if (assets) {
+            return this._handleAssetsDropped(ev);
+        }
+
+        const graphNode = ev.dataTransfer.getData("graph/node");
+        if (graphNode) {
+            return this._handleGraphNodesDropped(ev);
+        }
+    }
+
+    private _handleGraphNodesDropped(ev: React.DragEvent<HTMLCanvasElement>): void {
+        const pick = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh, false);
+        const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
+
+        if (!mesh || !pick.pickedPoint) {
+            return;
+        }
+
+        const pickedPoint = pick.pickedPoint.clone();
+
+        const nodeIds = JSON.parse(ev.dataTransfer.getData("graph/node")) as string[];
+        nodeIds.forEach((id) => {
+            const object = this.scene.getTransformNodeById(id) ?? this.scene.getMeshById(id);
+
+            if (isTransformNode(object) || isAbstractMesh(object) || isLight(object)) {
+                object.setAbsolutePosition(pickedPoint);
+            }
+        });
+    }
+
+    private _handleAssetsDropped(ev: React.DragEvent<HTMLCanvasElement>): void {
         const absolutePaths = this.props.editor.layout.assets.state.selectedKeys;
 
         absolutePaths.forEach(async (absolutePath) => {

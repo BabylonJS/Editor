@@ -17,7 +17,7 @@ export async function executeBlender(pythonScript: string, inputFilename: string
 
     switch (platform()) {
         case "darwin":
-            blenderExec = "Blender";
+            blenderExec = "./Blender";
             blenderDir = "/Applications/Blender.app/Contents/MacOS";
             break;
 
