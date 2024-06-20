@@ -408,7 +408,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                                 this.scene.activeCamera?.attachControl(true);
                             }}
                         >
-                            <SelectTrigger className="w-32 border-none">
+                            <SelectTrigger className="w-36 border-none bg-muted/50">
                                 <SelectValue placeholder="Select Value..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -420,9 +420,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
                         <Divider />
 
-                        <Button active={this.state.activeGizmo === "position"} onClick={() => this.setActiveGizmo("position")} minimal icon={<PositionIcon width={16} />} className="w-10 h-10 transition-all duration-300" />
-                        <Button active={this.state.activeGizmo === "rotation"} onClick={() => this.setActiveGizmo("rotation")} minimal icon={<RotationIcon width={16} />} className="w-10 h-10 transition-all duration-300" />
-                        <Button active={this.state.activeGizmo === "scaling"} onClick={() => this.setActiveGizmo("scaling")} minimal icon={<ScalingIcon height={16} />} className="w-10 h-10 transition-all duration-300" />
+                        <Button active={this.state.activeGizmo === "position"} onClick={() => this.setActiveGizmo("position")} minimal icon={<PositionIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                        <Button active={this.state.activeGizmo === "rotation"} onClick={() => this.setActiveGizmo("rotation")} minimal icon={<RotationIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                        <Button active={this.state.activeGizmo === "scaling"} onClick={() => this.setActiveGizmo("scaling")} minimal icon={<ScalingIcon height={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
 
                         <Select
                             value={this.gizmo?.getCoordinateMode().toString()}
@@ -431,7 +431,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                                 this.forceUpdate();
                             }}
                         >
-                            <SelectTrigger className="w-32 border-none">
+                            <SelectTrigger className="w-32 border-none bg-muted/50">
                                 <SelectValue placeholder="Select Value..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -440,7 +440,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             </SelectContent>
                         </Select>
 
-                        <Button active={this.scene?.forceWireframe} minimal icon={<GiWireframeGlobe className="w-6 h-6" strokeWidth={1} color="white" />} className="w-10 h-10 transition-all duration-300" onClick={() => {
+                        <Button active={this.scene?.forceWireframe} minimal icon={<GiWireframeGlobe className="w-6 h-6" strokeWidth={1} color="white" />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" onClick={() => {
                             this.scene.forceWireframe = !this.scene.forceWireframe;
                             this.forceUpdate();
                         }} />

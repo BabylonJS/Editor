@@ -54,7 +54,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
                     <CommandGroup heading="Commands">
                         {getProjectCommands(this.props.editor).map((command) => (
-                            <CommandItem key={command.text} onSelect={() => command.action()} className="flex items-center gap-2">
+                            <CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
                                 <HiMiniCommandLine className="w-10 h-10" /> {command.text}
                             </CommandItem>
                         ))}
@@ -62,19 +62,19 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
                     <CommandGroup heading="Scene">
                         {getLightCommands(this.props.editor).map((command) => (
-                            <CommandItem key={command.text} onSelect={() => command.action()} className="flex items-center gap-2">
+                            <CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
                                 <FaCirclePlus className="w-10 h-10" /> {command.text}
                             </CommandItem>
                         ))}
 
                         {getMeshCommands(this.props.editor).map((command) => (
-                            <CommandItem key={command.text} onSelect={() => command.action()} className="flex items-center gap-2">
+                            <CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
                                 <FaCirclePlus className="w-10 h-10" /> {command.text}
                             </CommandItem>
                         ))}
 
                         {getCameraCommands(this.props.editor).map((command) => (
-                            <CommandItem key={command.text} onSelect={() => command.action()} className="flex items-center gap-2">
+                            <CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
                                 <FaCirclePlus className="w-10 h-10" /> {command.text}
                             </CommandItem>
                         ))}
@@ -82,7 +82,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
                     <CommandGroup heading="Files">
                         {this.state.files.map((file) => (
-                            <CommandItem key={file.text} onSelect={() => file.action()} className="flex items-center gap-2">
+                            <CommandItem key={file.text} onSelect={() => this._executeCommand(file)} className="flex items-center gap-2">
                                 <FaFileAlt className="w-10 h-10" /> {file.text}
                             </CommandItem>
                         ))}
@@ -98,6 +98,11 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
         if (open) {
             this._refreshAssetFiles();
         }
+    }
+
+    private _executeCommand(command: ICommandPaletteType): void {
+        command.action();
+        this.setOpen(false);
     }
 
     private async _refreshAssetFiles(): Promise<void> {
