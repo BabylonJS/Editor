@@ -10,6 +10,7 @@ import { MdOutlineQuestionMark } from "react-icons/md";
 
 import { CubeTexture, Material, Scene, SpotLight, Texture } from "babylonjs";
 
+import { isScene } from "../../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { isCubeTexture, isTexture } from "../../../../tools/guards/texture";
 
@@ -319,7 +320,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
             case ".bmp":
                 const oldTexture = this.props.object[this.props.property];
                 const newTexture = configureImportedTexture(
-                    new Texture(absolutePath, this.props.object instanceof Scene ? this.props.object : this.props.object.getScene()),
+                    new Texture(absolutePath, isScene(this.props.object) ? this.props.object : this.props.object.getScene()),
                 );
 
                 this.props.object[this.props.property] = newTexture;
@@ -346,7 +347,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
                 if (this.props.acceptCubeTexture) {
                     const oldTexture = this.props.object[this.props.property];
                     const newTexture = configureImportedTexture(
-                        CubeTexture.CreateFromPrefilteredData(absolutePath, this.props.object instanceof Scene ? this.props.object : this.props.object.getScene()),
+                        CubeTexture.CreateFromPrefilteredData(absolutePath, isScene(this.props.object) ? this.props.object : this.props.object.getScene()),
                     );
 
                     this.props.object[this.props.property] = newTexture;

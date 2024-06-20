@@ -11,6 +11,8 @@ import { createSSAO2RenderingPipeline, disposeSSAO2RenderingPipeline, getSSAO2Re
 import { createMotionBlurPostProcess, disposeMotionBlurPostProcess, getMotionBlurPostProcess, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "../../rendering/motion-blur";
 import { createDefaultRenderingPipeline, disposeDefaultRenderingPipeline, getDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "../../rendering/default-pipeline";
 
+import { isScene } from "../../../tools/guards/scene";
+
 import { EditorInspectorSectionField } from "./fields/section";
 
 import { EditorInspectorListField } from "./fields/list";
@@ -30,7 +32,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
      * @returns true if the object is supported by this inspector.
      */
     public static IsSupported(object: unknown): boolean {
-        return object instanceof Scene;
+        return isScene(object);
     }
 
     public render(): ReactNode {

@@ -1,9 +1,8 @@
 import { DragEvent, useState } from "react";
 import { TreeNodeInfo } from "@blueprintjs/core";
 
-import { Scene } from "babylonjs";
-
 import { isNode } from "../../../tools/guards/nodes";
+import { isScene } from "../../../tools/guards/scene";
 
 import { Editor } from "../../main";
 
@@ -18,10 +17,11 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
     function handleDragStart(ev: DragEvent<HTMLDivElement>) {
         const selectedNodes: TreeNodeInfo[] = [];
-        props.editor.layout.graph._forEachNode(
-            props.editor.layout.graph.state.nodes,
-            (n) => n.isSelected && selectedNodes.push(n),
-        );
+        props.editor.layout.graph._forEachNode(props.editor.layout.graph.state.nodes, (n) => {
+            if (n.isSelected || n.nodeData === props.object) {
+                selectedNodes.push(n);
+            }
+        });
 
         ev.dataTransfer.setData("graph/node", JSON.stringify(selectedNodes.map((n) => n.id)));
 
@@ -48,7 +48,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
         setOver(false);
 
-        if (!isNode(props.object) && !(props.object instanceof Scene)) {
+        if (!isNode(props.object) && !isScene(props.object)) {
             return;
         }
 
@@ -69,7 +69,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
             }
 
             if (n.nodeData && isNode(n.nodeData)) {
-                n.nodeData.parent = props.object instanceof Scene
+                n.nodeData.parent = isScene(props.object)
                     ? null
                     : props.object;
             }

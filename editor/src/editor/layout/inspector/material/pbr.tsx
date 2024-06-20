@@ -102,7 +102,11 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
                                 <EditorInspectorSwitchField label="Use Roughness from alpha" object={this.props.material} property="useRoughnessFromMetallicTextureAlpha" />
                                 <EditorInspectorSwitchField label="Use Roughness from green" object={this.props.material} property="useRoughnessFromMetallicTextureGreen" />
                                 <EditorInspectorSwitchField label="Use Metallness From Blue" object={this.props.material} property="useMetallnessFromMetallicTextureBlue" />
-                                <EditorInspectorSwitchField label="Use Ambient From Red" object={this.props.material} property="useAmbientOcclusionFromMetallicTextureRed" />
+                                <EditorInspectorSwitchField label="Use Ambient From Red" object={this.props.material} property="useAmbientOcclusionFromMetallicTextureRed" onChange={(() => this.forceUpdate())} />
+
+                                {this.props.material.useAmbientOcclusionFromMetallicTextureRed &&
+                                    <EditorInspectorNumberField label="Ambient Strength" object={this.props.material} property="ambientTextureStrength" min={0} />
+                                }
                             </>
                         }
                     </EditorInspectorTextureField>

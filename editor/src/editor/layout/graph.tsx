@@ -8,7 +8,7 @@ import { SiBabylondotjs } from "react-icons/si";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { MdOutlineQuestionMark } from "react-icons/md";
 
-import { AbstractMesh, Node, Tools } from "babylonjs";
+import { Node, Tools } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -118,7 +118,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             id: "__editor__scene__",
             nodeData: scene,
             icon: <SiBabylondotjs className="w-4 h-4" />,
-            label: this._getNodeLabelComponent(scene, "Scene", true),
+            label: this._getNodeLabelComponent(scene, "Scene", false),
         });
 
         this.setState({
@@ -173,7 +173,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             let node: Node | null = null;
 
             if (isAbstractMesh(object)) {
-                const name = isInstancedMesh(object) ? `${object.name} (Instanced Mesh)` : object.name;
+                const suffix = "(Instanced Mesh)";
+                const name = isInstancedMesh(object)
+                    ? object.name
+                    : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
                 const instance = node = object.createInstance(name);
                 instance.position.copyFrom(object.position);
                 instance.rotation.copyFrom(object.rotation);
@@ -183,7 +187,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             }
 
             if (isLight(object)) {
-                node = object.clone(`${object.name} (Clone)`);
+                const suffix = "(Clone)";
+                const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+                node = object.clone(name);
+            }
+
+            if (isTransformNode(object)) {
+                const suffix = "(Clone)";
+                const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+                node = object.clone(name, null, true);
             }
 
             if (node) {
@@ -197,7 +211,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 if (isAbstractMesh(node)) {
                     this.props.editor.layout.preview.scene.lights
                         .map((light) => light.getShadowGenerator())
-                        .forEach((generator) => generator?.getShadowMap()?.renderList?.push(node as AbstractMesh));
+                        .forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
                 }
             }
         });
