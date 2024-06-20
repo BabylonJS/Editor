@@ -9,9 +9,14 @@
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --background-start-rgb: 114 181 221;
-        --background-end-rgb: 233 224 179;
+        --background-start-rgb: 97 106 128;
+        --background-end-rgb: 171 83 83;
     }
+}
+
+body {
+    @apply leading-tight;
+    @apply tracking-tighter;
 }
 
 .landing {

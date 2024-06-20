@@ -100,12 +100,12 @@ export function RendererComponent() {
         <div className="relative w-full h-full">
             <canvas
                 ref={canvasRef}
-                className="w-full h-full outline-none select-none rounded-lg"
+                className="w-full h-full outline-none select-none"
             />
 
             <div
                 className={`
-                    absolute top-0 left-0 w-full h-full rounded-lg bg-black transition-all duration-1000 ease-in-ou
+                    absolute top-0 left-0 w-full h-full bg-black transition-all duration-1000 ease-in-ou
                     ${ready ? "opacity-0" : "opacity-100"}
                 `}
             >
