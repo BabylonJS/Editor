@@ -5,12 +5,15 @@ import { FaCopy } from "react-icons/fa";
 import { IoAddSharp } from "react-icons/io5";
 import { IoCloseOutline } from "react-icons/io5";
 
+import { XMarkIcon } from "@heroicons/react/20/solid";
+
 import { SkyMaterial } from "babylonjs-materials";
-import { AbstractMesh, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial } from "babylonjs";
+import { AbstractMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial } from "babylonjs";
 
 import { showPrompt } from "../../../ui/dialog";
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Separator } from "../../../ui/shadcn/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/shadcn/ui/tooltip";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isAbstractMesh, isMesh } from "../../../tools/guards/nodes";
@@ -168,7 +171,57 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
             );
         }
 
-        switch (this.props.object.material.getClassName()) {
+        const inspector = this._getMaterialInspectorComponent(this.props.object.material);
+        if (!inspector) {
+            return (
+                <EditorInspectorSectionField title="Material">
+                    <div className="text-center text-yellow-500">
+                        Unsupported material type: {this.props.object.material.getClassName()}
+                    </div>
+                </EditorInspectorSectionField>
+            );
+        }
+
+        return (
+            <div className="relative">
+                {inspector}
+
+                <div className="absolute top-[14px] left-0 px-5 w-full opacity-0 hover:opacity-100 transition-opacity duration-300 ease-in-out">
+                    <div className="flex justify-end w-full pointer-events-none">
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <div
+                                        onClick={() => {
+                                            const mesh = this.props.object;
+                                            const material = this.props.object.material;
+
+                                            registerUndoRedo({
+                                                executeRedo: true,
+                                                undo: () => mesh.material = material,
+                                                redo: () => mesh.material = null,
+                                            });
+
+                                            this.forceUpdate();
+                                        }}
+                                        className="cursor-pointer rounded-lg pointer-events-auto hover:bg-destructive transition-colors duration-300 ease-in-out"
+                                    >
+                                        <XMarkIcon className="w-6 h-6" />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
+                                    Remove this material from the mesh.
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    private _getMaterialInspectorComponent(material: Material): ReactNode {
+        switch (material.getClassName()) {
             case "MultiMaterial": return <EditorMultiMaterialInspector material={this.props.object.material as MultiMaterial} />;
             case "PBRMaterial": return <EditorPBRMaterialInspector material={this.props.object.material as PBRMaterial} />;
             case "StandardMaterial": return <EditorStandardMaterialInspector material={this.props.object.material as StandardMaterial} />;
