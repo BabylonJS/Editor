@@ -12,6 +12,7 @@
         "@babylonjs/core": "7.0.0",
         "@babylonjs/materials": "7.0.0",
         "babylonjs-editor-tools": "latest",
+        "is-mobile": "^4.0.0",
         "lenis": "^1.0.45",
         "next": "14.0.4",
         "raw-loader": "^4.0.2",

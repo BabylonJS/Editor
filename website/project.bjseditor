@@ -1,11 +1,7 @@
 {
-    "plugins": [
-        {
-            "nameOrPath": "C:/Users/morea/Documents/Next Decade/Editor/quixel"
-        }
-    ],
+    "plugins": [],
     "version": "5.0.0",
-    "lastOpenedScene": "/assets/example.scene",
+    "lastOpenedScene": "/assets/landing.scene",
     "compressedTexturesEnabled": false,
     "compressedTexturesCliPath": null
 }

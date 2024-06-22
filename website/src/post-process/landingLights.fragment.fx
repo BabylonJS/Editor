@@ -144,10 +144,10 @@ void main(void)
     vec3 lightColor1 = vec3(0.7333333333333333, 0.27450980392156865, 0.29411764705882354);
 
     vec2 light2 = vec2(sin(time + 3.0) * -2.0, cos(time + 7.0) * 1.0) * 0.1 + center;
-    vec3 lightColor2 = vec3(0.7490196078431373, 0.6705882352941176, 1.0);
+    vec3 lightColor2 = vec3(0.6235294117647059, 0.27058823529411763, 0.6901960784313725);
 
     vec2 light3 = vec2(sin(time + 3.0) * 2.0, cos(time + 14.0) * -1.0) * 0.1 + center;
-    vec3 lightColor3 = vec3(0.7333333333333333, 0.27450980392156865, 0.29411764705882354);
+    vec3 lightColor3 = vec3(1, 0.8941176470588236, 0.9490196078431372);
 
     float cloudIntensity1 = 5. * (1.0 - (2.5 * distance(uv, light1)));
     float lighIntensity1 = 5.0 / (100.0 * distance(uv, light1));
