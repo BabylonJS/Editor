@@ -13,6 +13,42 @@ import {
 } from "./shadcn/ui/alert-dialog";
 import { Input } from "./shadcn/ui/input";
 
+export type DialogReturnType = {
+    close: () => void;
+};
+
+export function showDialog(title: ReactNode, children: ReactNode): DialogReturnType {
+    const div = document.createElement("div");
+    document.body.appendChild(div);
+
+    const root = createRoot(div);
+
+    const returnValue = {
+        close() {
+            root.unmount();
+            document.body.removeChild(div);
+        },
+    } as DialogReturnType;
+
+    root.render(
+        <AlertDialog open onOpenChange={(o) => !o && returnValue.close()}>
+            <AlertDialogContent className="w-fit h-fit">
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{title}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {children}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+
+    return returnValue;
+}
+
 export function showConfirm(title: string, children: ReactNode): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
         const div = document.createElement("div");
