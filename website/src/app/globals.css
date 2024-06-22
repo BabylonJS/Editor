@@ -3,15 +3,8 @@
 @tailwind utilities;
 
 :root {
-    --background-start-rgb: 214, 219, 220;
-    --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background-start-rgb: 97 106 128;
-        --background-end-rgb: 171 83 83;
-    }
+    --scrollbar-track: black;
+    --scrollbar-thumb: #222;
 }
 
 body {
@@ -19,6 +12,17 @@ body {
     @apply tracking-tighter;
 }
 
-.landing {
-    background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+/* SCROLLBARS */
+
+::-webkit-scrollbar {
+    background: transparent none;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track) !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb) !important;
+    border-radius: 0px !important;
 }

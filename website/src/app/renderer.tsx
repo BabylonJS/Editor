@@ -1,5 +1,6 @@
 "use client";
 
+import { Grid } from "react-loader-spinner";
 import { useEffect, useRef, useState } from "react";
 
 import { Scene } from "@babylonjs/core/scene";
@@ -31,19 +32,28 @@ import "@babylonjs/materials/sky";
 
 import { loadScene } from "babylonjs-editor-tools";
 
+import { Tween } from "@/tween/tween";
+
+import { LandingPostProcess } from "@/post-process/landing";
+
 /**
  * We import the map of all scripts attached to objects in the editor.
  * This will allow the loader from `babylonjs-editor-tools` to attach the scripts to the
  * loaded objects (scene, meshes, transform nodes, lights, cameras, etc.).
  */
 import { scriptsMap } from "@/scripts";
-import { Grid } from "react-loader-spinner";
-import { read } from "fs";
 
-export function RendererComponent() {
+export interface ILandingRendererComponent {
+    postProcessVisible: boolean;
+}
+
+export function LandingRendererComponent(props: ILandingRendererComponent) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const [ready, setReady] = useState(false);
+
+    const [lightsPostProcess, setLightsPostProcess] = useState<LandingPostProcess | null>(null);
+    const [circlePostProcess, setCirclePostProcess] = useState<LandingPostProcess | null>(null);
 
     useEffect(() => {
         if (!canvasRef.current) {
@@ -66,13 +76,16 @@ export function RendererComponent() {
 
         const scene = new Scene(engine);
 
+        Tween.Scene = scene;
+
         SceneLoader.ShowLoadingScreen = false;
         SceneLoader.ForceFullSceneLoadingForIncremental = true;
 
         loadScene("/scene/", "example.babylon", scene, scriptsMap).then(() => {
-            // if (scene.activeCamera) {
-            //     scene.activeCamera.attachControl();
-            // }
+            if (scene.activeCamera) {
+                setLightsPostProcess(new LandingPostProcess(scene.activeCamera, "landingLights"));
+                setCirclePostProcess(new LandingPostProcess(scene.activeCamera, "landingCircle"));
+            }
 
             scene.executeWhenReady(() => {
                 setReady(true);
@@ -96,16 +109,31 @@ export function RendererComponent() {
         };
     }, [canvasRef]);
 
+    useEffect(() => {
+        if (!lightsPostProcess || !circlePostProcess) {
+            return;
+        }
+
+        Tween.Create(lightsPostProcess, 0.5, {
+            killAllTweensOfTarget: true,
+            "alpha": props.postProcessVisible ? 1 : 0,
+        });
+        Tween.Create(circlePostProcess, 0.5, {
+            killAllTweensOfTarget: true,
+            "alpha": props.postProcessVisible ? 1 : 0,
+        });
+    }, [lightsPostProcess, circlePostProcess, props.postProcessVisible]);
+
     return (
         <div className="relative w-full h-full">
             <canvas
                 ref={canvasRef}
-                className="w-full h-full outline-none select-none"
+                className={`w-full h-full outline-none select-none ${props.postProcessVisible ? "blur-lg scale-125 lg:scale-150" : ""} transition-all duration-1000 ease-in-out`}
             />
 
             <div
                 className={`
-                    absolute top-0 left-0 w-full h-full bg-black transition-all duration-1000 ease-in-ou
+                    absolute top-0 left-0 w-full h-full bg-black transition-all duration-1000 ease-in-out
                     ${ready ? "opacity-0" : "opacity-100"}
                 `}
             >

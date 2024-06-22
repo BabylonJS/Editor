@@ -14,6 +14,7 @@
         "babylonjs-editor-tools": "latest",
         "lenis": "^1.0.45",
         "next": "14.0.4",
+        "raw-loader": "^4.0.2",
         "react": "^18",
         "react-awesome-reveal": "^4.2.11",
         "react-dom": "^18",
