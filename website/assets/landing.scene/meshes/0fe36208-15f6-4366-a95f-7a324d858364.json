@@ -20,24 +20,24 @@
                 1,
                 1
             ],
-            "localMatrix": {
-                "0": 1,
-                "1": 0,
-                "2": 0,
-                "3": 0,
-                "4": 0,
-                "5": 1,
-                "6": 0,
-                "7": 0,
-                "8": 0,
-                "9": 0,
-                "10": 1,
-                "11": 0,
-                "12": 0,
-                "13": 0,
-                "14": 0,
-                "15": 1
-            },
+            "localMatrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
             "isEnabled": true,
             "isVisible": true,
             "infiniteDistance": false,
@@ -69,7 +69,8 @@
             "metadata": {
                 "type": "Ground",
                 "width": 102400,
-                "height": 102400
+                "height": 102400,
+                "subdivisions": 2
             },
             "instances": [],
             "animations": [],
@@ -93,7 +94,7 @@
             "maxZ": 512,
             "width": 1024,
             "height": 1024,
-            "delayLoadingFile": "assets/example.scene/geometries/fa4be5bf-7e53-4da5-8976-f2f037d975df.babylonbinarymeshdata",
+            "delayLoadingFile": "assets/landing.scene/geometries/fa4be5bf-7e53-4da5-8976-f2f037d975df.babylonbinarymeshdata",
             "boundingBoxMaximum": [
                 51200,
                 0,
@@ -106,33 +107,33 @@
             ],
             "_binaryInfo": {
                 "positionsAttrDesc": {
-                    "count": 12,
+                    "count": 27,
                     "stride": 3,
                     "offset": 0,
                     "dataType": 1
                 },
                 "normalsAttrDesc": {
-                    "count": 12,
+                    "count": 27,
                     "stride": 3,
-                    "offset": 48,
+                    "offset": 108,
                     "dataType": 1
                 },
                 "uvsAttrDesc": {
-                    "count": 8,
+                    "count": 18,
                     "stride": 2,
-                    "offset": 96,
+                    "offset": 216,
                     "dataType": 1
                 },
                 "indicesAttrDesc": {
-                    "count": 6,
+                    "count": 24,
                     "stride": 1,
-                    "offset": 128,
+                    "offset": 288,
                     "dataType": 0
                 },
                 "subMeshesAttrDesc": {
                     "count": 1,
                     "stride": 5,
-                    "offset": 152,
+                    "offset": 384,
                     "dataType": 0
                 }
             },
@@ -487,24 +488,25 @@
     "metadata": {
         "type": "Ground",
         "width": 102400,
-        "height": 102400
+        "height": 102400,
+        "subdivisions": 2
     },
-    "basePoseMatrix": {
-        "0": 1,
-        "1": 0,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 1,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0,
-        "10": 1,
-        "11": 0,
-        "12": 0,
-        "13": 0,
-        "14": 0,
-        "15": 1
-    }
+    "basePoseMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+    ]
 }

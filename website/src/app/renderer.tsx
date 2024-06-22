@@ -1,5 +1,7 @@
 "use client";
 
+import isMobile from "is-mobile";
+
 import { Grid } from "react-loader-spinner";
 import { useEffect, useRef, useState } from "react";
 
@@ -15,10 +17,12 @@ import "@babylonjs/core/Cameras/universalCamera";
 import "@babylonjs/core/Meshes/groundMesh";
 import "@babylonjs/core/Meshes/instancedMesh";
 
+import "@babylonjs/core/Lights/pointLight";
 import "@babylonjs/core/Lights/directionalLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 
 import "@babylonjs/core/Materials/PBR/pbrMaterial";
+import "@babylonjs/core/Materials/standardMaterial";
 
 import "@babylonjs/core/Rendering/depthRendererSceneComponent";
 import "@babylonjs/core/Rendering/prePassRendererSceneComponent";
@@ -44,6 +48,7 @@ import { LandingPostProcess } from "@/post-process/landing";
 import { scriptsMap } from "@/scripts";
 
 export interface ILandingRendererComponent {
+    scrollRatio: number;
     postProcessVisible: boolean;
 }
 
@@ -51,12 +56,19 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const [ready, setReady] = useState(false);
+    const [mobile, setMobile] = useState<boolean | null>(false);
+
+    const [scene, setScene] = useState<Scene | null>(null);
 
     const [lightsPostProcess, setLightsPostProcess] = useState<LandingPostProcess | null>(null);
     const [circlePostProcess, setCirclePostProcess] = useState<LandingPostProcess | null>(null);
 
     useEffect(() => {
-        if (!canvasRef.current) {
+        setMobile(isMobile());
+    }, []);
+
+    useEffect(() => {
+        if (!canvasRef.current || mobile === null) {
             return;
         }
 
@@ -72,17 +84,24 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
             powerPreference: "high-performance",
             failIfMajorPerformanceCaveat: false,
         });
-        // engine.setTextureFormatToUse(["-astc.ktx", "-dxt.ktx", "-pvrtc.ktx", "-etc1.ktx", "-etc2.ktx"]);
+
+        engine.setTextureFormatToUse([
+            "-dxt.ktx",
+            "-astc.ktx",
+            "-pvrtc.ktx",
+            "-etc1.ktx",
+            "-etc2.ktx",
+        ]);
 
         const scene = new Scene(engine);
 
         Tween.Scene = scene;
 
         SceneLoader.ShowLoadingScreen = false;
-        SceneLoader.ForceFullSceneLoadingForIncremental = true;
+        SceneLoader.ForceFullSceneLoadingForIncremental = false;
 
-        loadScene("/scene/", "example.babylon", scene, scriptsMap).then(() => {
-            if (scene.activeCamera) {
+        loadScene("/scene/", "landing.babylon", scene, scriptsMap).then(() => {
+            if (scene.activeCamera && !mobile) {
                 setLightsPostProcess(new LandingPostProcess(scene.activeCamera, "landingLights"));
                 setCirclePostProcess(new LandingPostProcess(scene.activeCamera, "landingCircle"));
             }
@@ -101,34 +120,47 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
             engine.resize();
         });
 
+        setScene(scene);
+
         return () => {
             scene.dispose();
             engine.dispose();
 
             window.removeEventListener("resize", listener);
         };
-    }, [canvasRef]);
+    }, [canvasRef, mobile]);
 
     useEffect(() => {
-        if (!lightsPostProcess || !circlePostProcess) {
-            return;
+        if (lightsPostProcess && circlePostProcess) {
+            Tween.Create(lightsPostProcess, 0.5, {
+                killAllTweensOfTarget: true,
+                "alpha": props.postProcessVisible ? 1 : 0,
+            });
+            Tween.Create(circlePostProcess, 0.5, {
+                killAllTweensOfTarget: true,
+                "alpha": props.postProcessVisible ? 1 : 0,
+            });
         }
 
-        Tween.Create(lightsPostProcess, 0.5, {
-            killAllTweensOfTarget: true,
-            "alpha": props.postProcessVisible ? 1 : 0,
-        });
-        Tween.Create(circlePostProcess, 0.5, {
-            killAllTweensOfTarget: true,
-            "alpha": props.postProcessVisible ? 1 : 0,
-        });
-    }, [lightsPostProcess, circlePostProcess, props.postProcessVisible]);
+        if (mobile && scene) {
+            Tween.Create(scene.imageProcessingConfiguration, 0.5, {
+                "exposure": props.postProcessVisible ? 0 : 1,
+            });
+        }
+    }, [scene, lightsPostProcess, circlePostProcess, props.postProcessVisible]);
 
     return (
         <div className="relative w-full h-full">
             <canvas
                 ref={canvasRef}
-                className={`w-full h-full outline-none select-none ${props.postProcessVisible ? "blur-lg scale-125 lg:scale-150" : ""} transition-all duration-1000 ease-in-out`}
+                style={{
+                    filter: (props.postProcessVisible && !mobile) ? `blur(16px) hue-rotate(${(180 * props.scrollRatio).toFixed(0)}deg)` : "blur(0px)",
+                }}
+                className={`
+                    w-full h-full outline-none select-none
+                    ${props.postProcessVisible ? "scale-125 lg:scale-150" : ""}
+                    transition-all duration-1000 ease-in-out
+                `}
             />
 
             <div

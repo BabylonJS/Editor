@@ -26,7 +26,12 @@ export class LandingPostProcess extends PostProcess {
         const resolution = Vector2.Zero();
 
         this.onApplyObservable.add((effect) => {
-            time += engine.getDeltaTime() * 0.0002;
+            if (type === "landingLights") {
+                time += engine.getDeltaTime() * 0.0004;
+            } else {
+                time += engine.getDeltaTime() * 0.0003;
+            }
+
             resolution.set(engine.getRenderWidth(), engine.getRenderHeight());
 
             effect.setFloat("time", time);

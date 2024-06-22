@@ -20,24 +20,24 @@
                 1,
                 1
             ],
-            "localMatrix": {
-                "0": 1,
-                "1": 0,
-                "2": 0,
-                "3": 0,
-                "4": 0,
-                "5": 1,
-                "6": 0,
-                "7": 0,
-                "8": 0,
-                "9": 0,
-                "10": 1,
-                "11": 0,
-                "12": 0,
-                "13": 0,
-                "14": 0,
-                "15": 1
-            },
+            "localMatrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
             "isEnabled": true,
             "isVisible": true,
             "infiniteDistance": false,
@@ -92,7 +92,7 @@
             ],
             "renderOverlay": true,
             "applyFog": true,
-            "delayLoadingFile": "assets/example.scene/geometries/0ba89c0a-1fc1-414a-af14-ffbc7ee3200d.babylonbinarymeshdata",
+            "delayLoadingFile": "assets/landing.scene/geometries/0ba89c0a-1fc1-414a-af14-ffbc7ee3200d.babylonbinarymeshdata",
             "boundingBoxMaximum": [
                 50,
                 50,
@@ -495,22 +495,22 @@
             }
         ]
     },
-    "basePoseMatrix": {
-        "0": 1,
-        "1": 0,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        "5": 1,
-        "6": 0,
-        "7": 0,
-        "8": 0,
-        "9": 0,
-        "10": 1,
-        "11": 0,
-        "12": 0,
-        "13": 0,
-        "14": 0,
-        "15": 1
-    }
+    "basePoseMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+    ]
 }

@@ -1,66 +1,86 @@
 "use client";
 
 import { ReactLenis } from "lenis/react";
-import { useRef, useState } from "react";
 import { Fade } from "react-awesome-reveal";
 import { useEventListener } from "usehooks-ts";
+import { useEffect, useRef, useState } from "react";
 
 import { LandingRendererComponent } from "./renderer";
 
 export default function Home() {
     const section2Ref = useRef<HTMLDivElement>(null);
 
+    const [scrollRatio, setScrollRatio] = useState(0);
     const [section2Visible, setSection2Visible] = useState(false);
+
+    useEffect(() => {
+        updateScrollRatio();
+    }, []);
 
     useEventListener("scroll", () => {
         if (section2Ref.current) {
             const bb = section2Ref.current.getBoundingClientRect();
             setSection2Visible(bb.top <= 0 && bb.bottom > 0);
         }
+
+        updateScrollRatio();
     });
+
+    function updateScrollRatio() {
+        setScrollRatio((window.scrollY) / (document.body.scrollHeight - screen.height));
+    }
 
     return (
         <ReactLenis root>
 
             <main className="min-w-screen min-h-screen text-white dark:text-white">
                 <div className="fixed top-0 left-0 w-screen h-screen z-0">
-                    <LandingRendererComponent postProcessVisible={!section2Visible} />
+                    <LandingRendererComponent
+                        scrollRatio={scrollRatio}
+                        postProcessVisible={!section2Visible}
+                    />
                 </div>
 
                 <div className="fixed top-2 left-5">
                     <img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-5" />
                 </div>
 
-                <div className="flex flex-col justify-center lg:justify-between items-center gap-5 w-screen h-screen max-w-7xl lg:pt-96 px-5 mx-auto">
-                    <Fade cascade duration={2000} damping={0.1} triggerOnce direction="up">
-                        <Fade>
-                            <div className="text-4xl md:text-7xl lg:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter">
-                                Babylon.js Editor
-                            </div>
-                        </Fade>
+                <div className="flex flex-col justify-center md:justify-end items-center gap-5 w-screen h-screen max-w-7xl px-5 mx-auto">
+                    <div className="flex flex-col gap-5 w-full">
+                        <Fade cascade damping={0.1} triggerOnce direction="up">
+                            <Fade>
+                                <div className="text-5xl md:text-8xl lg:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center">
+                                    Babylon.js Editor
+                                </div>
+                            </Fade>
 
-                        <Fade>
-                            <div className="text-xl md:text-3xl text-center max-w-64 md:max-w-max font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-                                Focus more on <b className="text-[hsl(254,50%,60%)]">creating</b> and less on <b className="text-[rgb(187,70,75)]">coding</b>.
-                            </div>
-                        </Fade>
+                            <Fade>
+                                <div className="text-center text-xl md:text-3xl max-w-64 md:max-w-max font-semibold tracking-tighter drop-shadow-[0_1px_1px_rgba(0,0,0,1)] mx-auto">
+                                    Focus more on <b className="text-[hsl(254,50%,60%)]">creating</b> and less on <b className="text-[rgb(187,70,75)]">coding</b>.
+                                </div>
+                            </Fade>
 
-                        <Fade>
-                            <div className="text-center text-sm lg:text-lg max-w-3xl mx-auto drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                            <div className="text-center text-sm lg:text-lg max-w-3xl tracking-tighter drop-shadow-[0_1px_1px_rgba(0,0,0,1)] mx-auto">
                                 The mission is to provide community-driven powerful and simple tools that help Babylon.JS users to create beautiful, awesome 3D games / applications.
                             </div>
-                        </Fade>
 
-                        <Fade>
-                            <img alt="" src="/screenshots/large.png" className="w-full h-full object-contain z-50 hidden sm:hidden md:hidden lg:hidden xl:block" />
-                            <img alt="" src="/screenshots/medium.png" className="w-full h-full object-contain z-50 hidden sm:hidden md:hidden lg:block xl:hidden" />
-                            <img alt="" src="/screenshots/small.png" className="w-full h-full object-contain z-50 lg:hidden" />
+                            <div className="w-full h-full object-contain">
+                                <img alt="" src="/screenshots/large.png" className="max-h-[75dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:hidden xl:block" />
+                                <img alt="" src="/screenshots/medium.png" className="max-h-[75dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:block xl:hidden" />
+                                <img alt="" src="/screenshots/small.png" className="max-h-[75dvh] object-contain z-50 mx-auto lg:hidden" />
+                            </div>
                         </Fade>
-                    </Fade>
+                    </div>
                 </div>
 
                 <div className="flex flex-col justify-between w-screen h-screen max-w-3xl px-5 mx-auto">
+                    <div className="text-center max-w-3xl mx-auto">
+                        <Fade className="text-7xl">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit
+                        </Fade>
+                    </div>
 
+                    <div />
                 </div>
 
                 <div className="flex flex-col justify-between w-screen h-screen max-w-3xl px-5 mx-auto" ref={section2Ref}>
