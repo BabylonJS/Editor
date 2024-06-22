@@ -8,7 +8,7 @@ import { Component, MouseEvent, ReactNode } from "react";
 
 import { GiWireframeGlobe } from "react-icons/gi";
 
-import { AbstractMesh, Animation, Camera, Color3, CubeTexture, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode, ISceneLoaderAsyncResult, Scene, Vector2, Vector3, Viewport } from "babylonjs";
+import { AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode, ISceneLoaderAsyncResult, Scene, Vector2, Vector3, Viewport } from "babylonjs";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
 
@@ -26,8 +26,6 @@ import { ScalingIcon } from "../../ui/icons/scaling";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
 
-import { registerSimpleUndoRedo } from "../../tools/undoredo";
-
 import { disposeSSRRenderingPipeline } from "../rendering/ssr";
 import { disposeMotionBlurPostProcess } from "../rendering/motion-blur";
 import { disposeSSAO2RenderingPipeline } from "../rendering/ssao";
@@ -37,8 +35,10 @@ import { EditorGraphContextMenu } from "./graph/graph";
 
 import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
+import { applyTextureAssetToObject } from "./preview/texture";
+import { applyMaterialAssetToObject } from "./preview/material";
 import { EditorPreviewConvertProgress } from "./preview/progress";
-import { configureImportedTexture, loadImportedMaterial, loadImportedSceneFile, tryConvertSceneFile } from "./preview/import";
+import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import";
 
 export interface IEditorPreviewProps {
     /**
@@ -550,39 +550,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                     break;
 
                 case ".env":
-                    const newTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(
-                        absolutePath,
-                        this.props.editor.layout.preview.scene,
-                    ));
-
-                    registerSimpleUndoRedo({
-                        object: this.scene,
-                        property: "environmentTexture",
-                        oldValue: this.props.editor.layout.preview.scene.environmentTexture,
-                        newValue: newTexture,
-                        executeRedo: true,
-                        onLost: () => newTexture.dispose(),
-                    });
+                case ".jpg":
+                case ".png":
+                case ".bmp":
+                case ".jpeg":
+                    applyTextureAssetToObject(this.props.editor, mesh ?? this.scene, absolutePath);
                     break;
 
                 case ".material":
-                    loadImportedMaterial(this.props.editor.layout.preview.scene, absolutePath).then((material) => {
-                        if (material && mesh) {
-                            registerSimpleUndoRedo({
-                                object: mesh,
-                                property: "material",
-                                oldValue: mesh?.material,
-                                newValue: material,
-                                executeRedo: true,
-                                onLost: () => {
-                                    const bindedMeshes = material.getBindedMeshes();
-                                    if (!bindedMeshes.length) {
-                                        material.dispose();
-                                    }
-                                },
-                            });
-                        }
-                    });
+                    applyMaterialAssetToObject(this.props.editor, mesh, absolutePath);
                     break;
             }
         });

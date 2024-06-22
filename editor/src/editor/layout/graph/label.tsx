@@ -1,8 +1,13 @@
+import { extname } from "path/posix";
+
 import { DragEvent, useState } from "react";
 import { TreeNodeInfo } from "@blueprintjs/core";
 
 import { isNode } from "../../../tools/guards/nodes";
 import { isScene } from "../../../tools/guards/scene";
+
+import { applyTextureAssetToObject } from "../preview/texture";
+import { applyMaterialAssetToObject } from "../preview/material";
 
 import { Editor } from "../../main";
 
@@ -53,10 +58,17 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
         }
 
         const node = ev.dataTransfer.getData("graph/node");
-        if (!node) {
-            return;
+        if (node) {
+            return dropNodeFromGraph();
         }
 
+        const asset = ev.dataTransfer.getData("assets");
+        if (asset) {
+            return handleAssetsDropped();
+        }
+    }
+
+    function dropNodeFromGraph() {
         const nodesToMove: TreeNodeInfo[] = [];
         props.editor.layout.graph._forEachNode(
             props.editor.layout.graph.state.nodes,
@@ -76,6 +88,28 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
         });
 
         props.editor.layout.graph.refresh();
+    }
+
+    function handleAssetsDropped() {
+        const absolutePaths = props.editor.layout.assets.state.selectedKeys;
+
+        absolutePaths.forEach(async (absolutePath) => {
+            const extension = extname(absolutePath).toLowerCase();
+
+            switch (extension) {
+                case ".material":
+                    applyMaterialAssetToObject(props.editor, props.object, absolutePath);
+                    break;
+
+                case ".env":
+                case ".jpg":
+                case ".png":
+                case ".bmp":
+                case ".jpeg":
+                    applyTextureAssetToObject(props.editor, props.object, absolutePath);
+                    break;
+            }
+        });
     }
 
     return (
