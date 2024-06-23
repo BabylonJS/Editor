@@ -144,12 +144,12 @@
             "mieCoefficient": 0.005,
             "mieDirectionalG": 0.8,
             "distance": 500,
-            "inclination": 0.2,
+            "inclination": 0,
             "azimuth": 0.25,
             "sunPosition": [
-                1.7995733195149916e-14,
-                404.5084971874737,
-                -293.8926261462366
+                1.8746997283273223e-30,
+                500,
+                -3.061616997868383e-14
             ],
             "useSunPosition": false,
             "cameraOffset": [
