@@ -104,6 +104,8 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
             if (scene.activeCamera && !mobile) {
                 setLightsPostProcess(new LandingPostProcess(scene.activeCamera, "landingLights"));
                 setCirclePostProcess(new LandingPostProcess(scene.activeCamera, "landingCircle"));
+            } else if (!mobile) {
+                scene.imageProcessingConfiguration.exposure = 0;
             }
 
             scene.executeWhenReady(() => {
@@ -150,16 +152,24 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
     }, [scene, lightsPostProcess, circlePostProcess, props.postProcessVisible]);
 
     return (
-        <div className="relative w-full h-full">
+        <div
+            className={`
+                relative w-full h-full
+                transition-all duration-1000 ease-in-out
+            `}
+            style={{
+                filter: (props.postProcessVisible && !mobile)
+                    ? `hue-rotate(${(180 * props.scrollRatio).toFixed(0)}deg)`
+                    : "hue-rotate(0deg)",
+            }}
+        >
             <canvas
                 ref={canvasRef}
-                style={{
-                    filter: (props.postProcessVisible && !mobile) ? `blur(16px) hue-rotate(${(180 * props.scrollRatio).toFixed(0)}deg)` : "blur(0px)",
-                }}
                 className={`
                     w-full h-full outline-none select-none
-                    ${props.postProcessVisible ? "scale-125 lg:scale-150" : ""}
-                    transition-all duration-1000 ease-in-out
+                    ${ready ? "" : "brightness-0"}
+                    ${props.postProcessVisible ? "scale-150 blur-lg" : ""}
+                    transition-all duration-[3000ms] ease-in-out
                 `}
             />
 
