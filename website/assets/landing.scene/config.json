@@ -90,7 +90,14 @@
         "defaultRenderingPipeline": {
             "samples": 4,
             "fxaaEnabled": true,
-            "imageProcessingEnabled": false,
+            "imageProcessingEnabled": true,
+            "exposure": 0.7419531249999998,
+            "contrast": 3.2208691406250005,
+            "fromLinearSpace": true,
+            "toneMappingEnabled": true,
+            "toneMappingType": 1,
+            "ditheringEnabled": false,
+            "ditheringIntensity": 0.00392156862745098,
             "bloomEnabled": false,
             "bloomThreshold": 0.9,
             "bloomWeight": 0.15,
@@ -126,7 +133,7 @@
         "applyGravity": false,
         "rotation": [
             0.1371668477935948,
-            -0.7570271652108816,
+            -0.7565193527108817,
             0
         ],
         "speed": 200,
