@@ -1,9 +1,18 @@
 "use client";
 
+import Link from "next/link";
+
 import { ReactLenis } from "lenis/react";
-import { Fade } from "react-awesome-reveal";
 import { useEventListener } from "usehooks-ts";
+
+import { Fade } from "react-awesome-reveal";
 import { useEffect, useRef, useState } from "react";
+
+import { FaToolbox } from "react-icons/fa6";
+import { IoLogoGithub, IoSpeedometer } from "react-icons/io5";
+
+import { AppleIcon } from "@/components/icons/apple";
+import { WindowsIcon } from "@/components/icons/windows";
 
 import { DownloadMacComponent } from "@/components/download-mac";
 import { DownloadWindowsComponent } from "@/components/download-windows";
@@ -16,6 +25,8 @@ export default function Home() {
 
     const [scrollRatio, setScrollRatio] = useState(0);
 
+    const [featuresVisible, setFeaturesVisible] = useState(false);
+
     const [section2Visible, setSection2Visible] = useState(false);
     const [section3Visible, setSection3Visible] = useState(false);
 
@@ -26,7 +37,9 @@ export default function Home() {
     useEventListener("scroll", () => {
         if (section2Ref.current) {
             const bb = section2Ref.current.getBoundingClientRect();
+
             setSection2Visible(bb.top <= 0 && bb.bottom > 0);
+            setFeaturesVisible(bb.top < screen.height * 0.5 && bb.bottom > 0);
         }
 
         if (section3Ref.current) {
@@ -44,7 +57,12 @@ export default function Home() {
     return (
         <ReactLenis root>
             <main className="min-w-screen min-h-screen text-neutral-50">
-                <div className="fixed top-0 left-0 w-screen h-screen z-0">
+                <div
+                    style={{
+                        filter: `brightness(${featuresVisible ? 0 : 1})`,
+                    }}
+                    className="fixed top-0 left-0 w-screen h-screen z-0 transition-all duration-[3000ms] ease-in-out"
+                >
                     <LandingRendererComponent
                         scrollRatio={scrollRatio}
                         postProcessVisible={!section3Visible}
@@ -56,7 +74,7 @@ export default function Home() {
                         <img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
 
                         <div className={`hidden lg:flex gap-2 ${section2Visible ? "" : "pointer-events-none opacity-0"} transition-all duration-1000 ease-in-out`}>
-                            <button className={`flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2`}>
+                            <button className={`flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2`} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
                                 Download
                             </button>
                         </div>
@@ -79,10 +97,7 @@ export default function Home() {
                                 </div>
                             </Fade>
 
-                            {/* <div className="text-center text-sm lg:text-lg max-w-3xl tracking-tighter drop-shadow-[0_1px_1px_rgba(0,0,0,1)] mx-auto px-5">
-                                The mission is to provide community-driven powerful and simple tools that help Babylon.JS users to create beautiful, awesome 3D games / applications.
-                            </div> */}
-                            <div className="flex justify-center gap-4 pt-4">
+                            <div className="hidden lg:flex justify-center gap-4 pt-4">
                                 <DownloadWindowsComponent />
                                 <DownloadMacComponent />
                             </div>
@@ -97,14 +112,108 @@ export default function Home() {
                 </div>
 
                 {/* Page 2 */}
-                <div className="flex flex-col justify-between w-screen h-screen max-w-3xl px-5 mx-auto" ref={section2Ref}>
-                    <div className="text-center max-w-3xl mx-auto">
-                        <Fade className="text-7xl">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit
+                <div className="flex flex-col justify-center gap-10 lg:gap-32 w-screen h-screen max-w-7xl px-5 mx-auto" ref={section2Ref}>
+                    <div className="flex flex-col lg:flex-row w-full">
+                        <Fade className="hidden lg:block w-full">
+                            <IoSpeedometer size={128} className="mx-auto" />
+                        </Fade>
+
+                        <Fade className="w-full">
+                            <div className="flex flex-col justify-center gap-2">
+                                <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                    Built-in Templates
+
+                                    <div className="lg:hidden flex gap-2">
+                                        <IoSpeedometer />
+                                    </div>
+                                </div>
+                                <div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                    Kickstart your development with built-in templates, including a Next.js template, allowing you to bypass the tedious setup process and dive straight into building your project.
+                                    <br />
+                                    Those templates come with example code, making it easier for you to understand and implement complex game mechanics quickly and efficiently.
+                                </div>
+                            </div>
                         </Fade>
                     </div>
 
-                    <div />
+                    <div className="flex flex-col lg:flex-row w-full">
+                        <Fade className="w-full">
+                            <div className="flex flex-col justify-center gap-2">
+                                <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                    Open-Source
+
+                                    <div className="lg:hidden flex gap-2">
+                                        <IoLogoGithub />
+                                    </div>
+                                </div>
+                                <div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                    The Babylon.JS Editor is an open-source project maintained by the community. The sources are available on <Link target="_blank" href="https://github.com/BabylonJS/Editor" className="underline underline-offset-4">Github</Link>.
+                                    <br />
+                                    Enjoy features and improvements driven by community feedback and contributions, ensuring the Editor evolves to meet the real-world needs of its users.
+                                </div>
+                            </div>
+                        </Fade>
+
+                        <Fade className="hidden lg:block w-full">
+                            <IoLogoGithub size={128} className="mx-auto" />
+                        </Fade>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row w-full">
+                        <Fade className="w-full">
+                            <div className="hidden lg:block relative w-44 h-44 mx-auto">
+                                <div className="absolute top-1/2 left-1/2 -translate-x-[calc(50%+32px)] -translate-y-[calc(50%+42px)] scale-[2] lg:scale-[5]">
+                                    <WindowsIcon color="#fff" />
+                                </div>
+                                <div className="absolute top-1/2 left-1/2 -translate-x-[calc(50%-64px)] -translate-y-[calc(50%-42px)] scale-[2] lg:scale-[5]">
+                                    <AppleIcon color="#fff" />
+                                </div>
+                            </div>
+                        </Fade>
+
+                        <Fade className="w-full">
+                            <div className="flex flex-col justify-center gap-2">
+                                <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                    Cross-Platform
+
+                                    <div className="lg:hidden flex gap-2">
+                                        <WindowsIcon color="#fff" />
+                                        <AppleIcon color="#fff" />
+                                    </div>
+                                </div>
+                                <div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                    The Babylon.JS Editor is available on both Windows and macOS.
+                                    <br />
+                                    Enjoy a unified development environment that supports all major platforms, allowing you to focus on creativity and innovation rather than compatibility issues.
+                                    <br />
+                                    Leverage the power of modern Web technologies to create stunning 3D video games and applications, all within an user-friendly Editor application.
+                                </div>
+                            </div>
+                        </Fade>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row w-full">
+                        <Fade className="w-full">
+                            <div className="flex flex-col justify-center gap-2">
+                                <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                    Integrated Tools
+
+                                    <div className="lg:hidden flex gap-2">
+                                        <FaToolbox />
+                                    </div>
+                                </div>
+                                <div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                    Enhance your development process, enabling you to bring your most ambitious projects to life with ease and efficiency.
+                                    <br />
+                                    Experience the power of high-resolution textures with support of advanced formats like automatic KTX compressed textures. This feature allows to incorporate stunning 4K textures into your projects, optimizing performance without sacrificing visual quality.
+                                </div>
+                            </div>
+                        </Fade>
+
+                        <Fade className="hidden lg:block w-full">
+                            <FaToolbox size={128} className="mx-auto" />
+                        </Fade>
+                    </div>
                 </div>
 
                 {/* Page 3 */}
@@ -113,7 +222,7 @@ export default function Home() {
 
                     <div className="text-center max-w-3xl mx-auto">
                         <Fade className="text-7xl">
-                            Take a look
+                            See it in action
                         </Fade>
                     </div>
 

@@ -35,7 +35,7 @@ void main(void)
     vec3 col = vec3(c) * vec3(0.576, 0.474, 0.901);
     col += vec3(smoothstep(0.2, 1.7, c)) * vec3(1., 1., 0.);
     col += vec3(smoothstep(0.4, 0.55, c));
-    col *= 0.5;
+    col *= 0.75;
 
     vec4 color = vec4(col, 1.);
 
