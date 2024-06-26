@@ -15,8 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Editor } from "../main";
 
 import { Tween } from "../../tools/animation/tween";
+import { registerUndoRedo } from "../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../tools/tools";
-import { isAbstractMesh, isLight, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAbstractMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
 
@@ -192,7 +193,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
      * Tries to focused the given object or the first one selected in the graph.
      */
     public focusObject(object?: any): void {
-        const selectedNode = object ?? this.props.editor.layout.graph.getSelectedNodes()[0];
+        const selectedNode = object ?? this.props.editor.layout.graph.getSelectedNodes()[0]?.nodeData;
         if (!selectedNode) {
             return;
         }
@@ -512,13 +513,33 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
         const pickedPoint = pick.pickedPoint.clone();
 
-        const nodeIds = JSON.parse(ev.dataTransfer.getData("graph/node")) as string[];
-        nodeIds.forEach((id) => {
-            const object = this.scene.getTransformNodeById(id) ?? this.scene.getMeshById(id);
+        const nodesToMove = this.props.editor.layout.graph.getSelectedNodes();
+        const oldPositionsMap = new Map<unknown, Vector3>();
 
-            if (isTransformNode(object) || isAbstractMesh(object) || isLight(object)) {
-                object.setAbsolutePosition(pickedPoint);
+        nodesToMove.forEach((n) => {
+            if (isTransformNode(n.nodeData) || isAbstractMesh(n.nodeData)) {
+                oldPositionsMap.set(n.nodeData, n.nodeData.getAbsolutePosition().clone());
             }
+        });
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                nodesToMove.forEach((n) => {
+                    if (isTransformNode(n.nodeData) || isAbstractMesh(n.nodeData)) {
+                        if (oldPositionsMap.has(n.nodeData)) {
+                            n.nodeData.setAbsolutePosition(oldPositionsMap.get(n.nodeData)!);
+                        }
+                    }
+                });
+            },
+            redo: () => {
+                nodesToMove.forEach((n) => {
+                    if (isTransformNode(n.nodeData) || isAbstractMesh(n.nodeData)) {
+                        n.nodeData.setAbsolutePosition(pickedPoint);
+                    }
+                });
+            },
         });
     }
 
