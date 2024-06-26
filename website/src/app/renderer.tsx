@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
+import { CubicEase } from "@babylonjs/core/Animations/easing";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 
 import "@babylonjs/core/Loading/loadingScreen";
@@ -96,6 +97,10 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
         const scene = new Scene(engine);
 
         Tween.Scene = scene;
+        Tween.DefaultEasing = {
+            type: new CubicEase(),
+            mode: CubicEase.EASINGMODE_EASEINOUT,
+        };
 
         SceneLoader.ShowLoadingScreen = false;
         SceneLoader.ForceFullSceneLoadingForIncremental = false;
@@ -134,18 +139,18 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
 
     useEffect(() => {
         if (lightsPostProcess && circlePostProcess) {
-            Tween.Create(lightsPostProcess, 0.5, {
+            Tween.Create(lightsPostProcess, 3, {
                 killAllTweensOfTarget: true,
                 "alpha": props.postProcessVisible ? 1 : 0,
             });
-            Tween.Create(circlePostProcess, 0.5, {
+            Tween.Create(circlePostProcess, 3, {
                 killAllTweensOfTarget: true,
                 "alpha": props.postProcessVisible ? 1 : 0,
             });
         }
 
         if (mobile && scene) {
-            Tween.Create(scene.imageProcessingConfiguration, 0.5, {
+            Tween.Create(scene.imageProcessingConfiguration, 3, {
                 "exposure": props.postProcessVisible ? 0 : 1,
             });
         }

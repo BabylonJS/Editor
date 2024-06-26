@@ -17,6 +17,7 @@ export class LandingPostProcess extends PostProcess {
     public constructor(camera: Camera, type: "landingLights" | "landingCircle") {
         super("landing", type, {
             camera,
+            size: 0.5,
             uniforms: ["time", "alpha", "resolution"],
         });
 
