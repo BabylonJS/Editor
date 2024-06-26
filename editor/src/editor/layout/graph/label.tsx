@@ -1,10 +1,12 @@
 import { extname } from "path/posix";
 
 import { DragEvent, useState } from "react";
-import { TreeNodeInfo } from "@blueprintjs/core";
+
+import { Node } from "babylonjs";
 
 import { isNode } from "../../../tools/guards/nodes";
 import { isScene } from "../../../tools/guards/scene";
+import { registerUndoRedo } from "../../../tools/undoredo";
 
 import { applyTextureAssetToObject } from "../preview/texture";
 import { applyMaterialAssetToObject } from "../preview/material";
@@ -21,18 +23,22 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
     const [over, setOver] = useState(false);
 
     function handleDragStart(ev: DragEvent<HTMLDivElement>) {
-        const selectedNodes: TreeNodeInfo[] = [];
-        props.editor.layout.graph._forEachNode(props.editor.layout.graph.state.nodes, (n) => {
-            if (n.isSelected || n.nodeData === props.object) {
-                selectedNodes.push(n);
+        const selectedNodes = props.editor.layout.graph.getSelectedNodes();
+        const alreadySelected = selectedNodes.find((n) => n.nodeData === props.object);
+
+        if (!alreadySelected) {
+            selectedNodes.splice(0, selectedNodes.length, props.object);
+        }
+
+        if (!alreadySelected) {
+            if (ev.ctrlKey || ev.metaKey) {
+                props.editor.layout.graph.addToSelectedNodes(props.object);
+            } else {
+                props.editor.layout.graph.setSelectedNode(props.object);
             }
-        });
+        }
 
         ev.dataTransfer.setData("graph/node", JSON.stringify(selectedNodes.map((n) => n.id)));
-
-        if (!selectedNodes.find((n) => n.nodeData === props.object)) {
-            props.editor.layout.graph.setSelectedNode(props.object);
-        }
     }
 
     function handleDragOver(ev: DragEvent<HTMLDivElement>) {
@@ -69,22 +75,39 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
     }
 
     function dropNodeFromGraph() {
-        const nodesToMove: TreeNodeInfo[] = [];
-        props.editor.layout.graph._forEachNode(
-            props.editor.layout.graph.state.nodes,
-            (n) => n.isSelected && nodesToMove.push(n),
-        );
+        const nodesToMove = props.editor.layout.graph.getSelectedNodes();
+
+        const newParent = props.object;
+        const oldHierarchyMap = new Map<unknown, unknown>();
 
         nodesToMove.forEach((n) => {
-            if (n.nodeData === props.object) {
-                return;
-            }
-
             if (n.nodeData && isNode(n.nodeData)) {
-                n.nodeData.parent = isScene(props.object)
-                    ? null
-                    : props.object;
+                oldHierarchyMap.set(n.nodeData, n.nodeData.parent);
             }
+        });
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                nodesToMove.forEach((n) => {
+                    if (n.nodeData && isNode(n.nodeData)) {
+                        if (oldHierarchyMap.has(n.nodeData)) {
+                            n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node;
+                        }
+                    }
+                });
+            },
+            redo: () => {
+                nodesToMove.forEach((n) => {
+                    if (n.nodeData === props.object) {
+                        return;
+                    }
+
+                    if (n.nodeData && isNode(n.nodeData)) {
+                        n.nodeData.parent = isScene(props.object) ? null : newParent;
+                    }
+                });
+            },
         });
 
         props.editor.layout.graph.refresh();

@@ -50,8 +50,9 @@ export function registerUndoRedo(configuration: UndoRedoStackItem) {
     stack.push(configuration);
 
     if (stack.length > 200) {
-        const item = stack.shift();
-        item?.onLost?.();
+        stack.shift();
+        // const item = stack.shift();
+        // item?.onLost?.();
     } else {
         ++index;
     }

@@ -96,8 +96,8 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                 onClick={() => {
                     const nodes = this.props.editor.layout.graph.getSelectedNodes();
                     nodes.forEach((n) => {
-                        if (isNode(n)) {
-                            n.dispose();
+                        if (isNode(n.nodeData)) {
+                            n.nodeData.dispose();
                         }
                     });
 

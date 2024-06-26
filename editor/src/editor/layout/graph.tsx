@@ -45,7 +45,7 @@ export interface IEditorGraphState {
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
-    private _objectsToCopy: unknown[] = [];
+    private _objectsToCopy: TreeNodeInfo<unknown>[] = [];
 
     public constructor(props: IEditorGraphProps) {
         super(props);
@@ -127,8 +127,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
     }
 
     /**
-     * Sets the selected node.
-     * @param node the node to select.
+     * Sets the given node selected in the graph. All other selected nodes
+     * become unselected to have only the given node selected. All parents are expanded.
+     * @param node defines the reference tot the node to select in the graph.
      */
     public setSelectedNode(node: Node): void {
         this._forEachNode(this.state.nodes, (n) => {
@@ -146,11 +147,25 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
     }
 
     /**
+     * Sets the given node selected in the graph. All other selected nodes remain selected.
+     * @param node defines the reference to the node to select in the graph.
+     */
+    public addToSelectedNodes(node: Node): void {
+        this._forEachNode(this.state.nodes, (n) => {
+            if (n.nodeData === node) {
+                n.isSelected = true;
+            }
+        });
+
+        this.setState({ nodes: this.state.nodes });
+    }
+
+    /**
      * Returns the list of all selected nodes
      */
-    public getSelectedNodes(): unknown[] {
+    public getSelectedNodes(): TreeNodeInfo<unknown>[] {
         const result: any[] = [];
-        this._forEachNode(this.state.nodes, (n) => n.isSelected && result.push(n.nodeData));
+        this._forEachNode(this.state.nodes, (n) => n.isSelected && result.push(n));
         return result;
     }
 
@@ -169,7 +184,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             return;
         }
 
-        this._objectsToCopy.forEach((object) => {
+        this._objectsToCopy.forEach((treeNode) => {
+            const object = treeNode.nodeData;
+
             let node: Node | null = null;
 
             if (isAbstractMesh(object)) {

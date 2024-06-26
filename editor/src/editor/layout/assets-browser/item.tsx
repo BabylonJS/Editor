@@ -195,14 +195,18 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
         const extension = extname(this.props.absolutePath).toLowerCase();
         const files = this.props.editor.layout.assets.state.selectedKeys.filter((key) => extname(key).toLowerCase() === extension);
 
-        if (!files.includes(this.props.absolutePath)) {
+        const alreadySelected = files.includes(this.props.absolutePath);
+
+        if (!alreadySelected) {
             files.splice(0, files.length, this.props.absolutePath);
         }
 
-        if (ev.ctrlKey || ev.metaKey) {
-            this.props.editor.layout.assets.addToSelectedFiles(this.props.absolutePath);
-        } else {
-            this.props.editor.layout.assets.setSelectedFile(this.props.absolutePath);
+        if (!alreadySelected) {
+            if (ev.ctrlKey || ev.metaKey) {
+                this.props.editor.layout.assets.addToSelectedFiles(this.props.absolutePath);
+            } else {
+                this.props.editor.layout.assets.setSelectedFile(this.props.absolutePath);
+            }
         }
 
         ev.dataTransfer.setData("assets", JSON.stringify(files));
