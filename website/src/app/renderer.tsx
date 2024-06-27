@@ -139,18 +139,18 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
 
     useEffect(() => {
         if (lightsPostProcess && circlePostProcess) {
-            Tween.Create(lightsPostProcess, 3, {
+            Tween.Create(lightsPostProcess, 1, {
                 killAllTweensOfTarget: true,
                 "alpha": props.postProcessVisible ? 1 : 0,
             });
-            Tween.Create(circlePostProcess, 3, {
+            Tween.Create(circlePostProcess, 1, {
                 killAllTweensOfTarget: true,
                 "alpha": props.postProcessVisible ? 1 : 0,
             });
         }
 
         if (mobile && scene) {
-            Tween.Create(scene.imageProcessingConfiguration, 3, {
+            Tween.Create(scene.imageProcessingConfiguration, 1, {
                 "exposure": props.postProcessVisible ? 0 : 1,
             });
         }

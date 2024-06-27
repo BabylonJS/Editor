@@ -61,11 +61,11 @@ export default function Home() {
                     style={{
                         filter: `brightness(${featuresVisible ? 0 : 1})`,
                     }}
-                    className="fixed top-0 left-0 w-screen h-screen z-0 transition-all duration-[3000ms] ease-in-out"
+                    className="fixed top-0 left-0 w-screen h-screen z-0 transition-all duration-[1000ms] ease-in-out"
                 >
                     <LandingRendererComponent
                         scrollRatio={scrollRatio}
-                        postProcessVisible={!section3Visible}
+                        postProcessVisible={!section3Visible && !section2Visible}
                     />
                 </div>
 
@@ -82,7 +82,7 @@ export default function Home() {
                 </div>
 
                 {/* Page 1 */}
-                <div className="flex flex-col justify-center md:justify-end items-center gap-5 w-screen h-screen max-w-7xl mx-auto">
+                <div className="flex flex-col justify-center md:justify-end items-center gap-5 w-screen min-h-screen max-w-7xl mx-auto">
                     <div className="flex flex-col gap-4 w-full">
                         <Fade cascade damping={0.1} triggerOnce direction="up">
                             <Fade>
@@ -112,13 +112,13 @@ export default function Home() {
                 </div>
 
                 {/* Page 2 */}
-                <div className="flex flex-col justify-center gap-10 lg:gap-32 w-screen h-screen max-w-7xl px-5 mx-auto" ref={section2Ref}>
+                <div className="flex flex-col justify-center gap-10 lg:gap-32 w-screen min-h-screen max-w-7xl px-5 mx-auto" ref={section2Ref}>
                     <div className="flex flex-col lg:flex-row w-full">
-                        <Fade className="hidden lg:block w-full">
+                        <Fade triggerOnce className="hidden lg:block w-full">
                             <IoSpeedometer size={128} className="mx-auto" />
                         </Fade>
 
-                        <Fade className="w-full">
+                        <Fade triggerOnce className="w-full">
                             <div className="flex flex-col justify-center gap-2">
                                 <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
                                     Built-in Templates
@@ -137,7 +137,7 @@ export default function Home() {
                     </div>
 
                     <div className="flex flex-col lg:flex-row w-full">
-                        <Fade className="w-full">
+                        <Fade triggerOnce className="w-full">
                             <div className="flex flex-col justify-center gap-2">
                                 <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
                                     Open-Source
@@ -149,18 +149,18 @@ export default function Home() {
                                 <div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
                                     The Babylon.JS Editor is an open-source project maintained by the community. The sources are available on <Link target="_blank" href="https://github.com/BabylonJS/Editor" className="underline underline-offset-4">Github</Link>.
                                     <br />
-                                    Enjoy features and improvements driven by community feedback and contributions, ensuring the Editor evolves to meet the real-world needs of its users.
+                                    Enjoy features and improvements driven by community feedbacks and contributions, ensuring the Editor evolves to meet the real-world needs of its users.
                                 </div>
                             </div>
                         </Fade>
 
-                        <Fade className="hidden lg:block w-full">
+                        <Fade triggerOnce className="hidden lg:block w-full">
                             <IoLogoGithub size={128} className="mx-auto" />
                         </Fade>
                     </div>
 
                     <div className="flex flex-col lg:flex-row w-full">
-                        <Fade className="w-full">
+                        <Fade triggerOnce className="w-full">
                             <div className="hidden lg:block relative w-44 h-44 mx-auto">
                                 <div className="absolute top-1/2 left-1/2 -translate-x-[calc(50%+32px)] -translate-y-[calc(50%+42px)] scale-[2] lg:scale-[5]">
                                     <WindowsIcon color="#fff" />
@@ -171,7 +171,7 @@ export default function Home() {
                             </div>
                         </Fade>
 
-                        <Fade className="w-full">
+                        <Fade triggerOnce className="w-full">
                             <div className="flex flex-col justify-center gap-2">
                                 <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
                                     Cross-Platform
@@ -193,7 +193,7 @@ export default function Home() {
                     </div>
 
                     <div className="flex flex-col lg:flex-row w-full">
-                        <Fade className="w-full">
+                        <Fade triggerOnce className="w-full">
                             <div className="flex flex-col justify-center gap-2">
                                 <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
                                     Integrated Tools
@@ -210,18 +210,18 @@ export default function Home() {
                             </div>
                         </Fade>
 
-                        <Fade className="hidden lg:block w-full">
+                        <Fade triggerOnce className="hidden lg:block w-full">
                             <FaToolbox size={128} className="mx-auto" />
                         </Fade>
                     </div>
                 </div>
 
                 {/* Page 3 */}
-                <div className="flex flex-col justify-between w-screen h-screen max-w-3xl px-5 mx-auto" ref={section3Ref}>
+                <div className="flex flex-col justify-between w-screen min-h-screen max-w-3xl px-5 mx-auto" ref={section3Ref}>
                     <div />
 
                     <div className="text-center max-w-3xl mx-auto">
-                        <Fade className="text-7xl">
+                        <Fade className="text-7xl" triggerOnce>
                             See it in action
                         </Fade>
                     </div>
