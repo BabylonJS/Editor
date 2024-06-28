@@ -7,6 +7,8 @@ import { Fade } from "react-awesome-reveal";
 import { AppleIcon } from "@/components/icons/apple";
 import { WindowsIcon } from "@/components/icons/windows";
 
+import { DownloadVersionComponent } from "./version";
+
 export default function DownloadPage() {
     return (
         <main className="min-w-screen min-h-screen p-5 bg-black text-neutral-50">
@@ -24,35 +26,19 @@ export default function DownloadPage() {
                         </div>
                     </Fade>
 
-                    <Fade>
-                        <div className="text-3xl font-semibold font-sans tracking-tighter text-neutral-500 text-center">
-                            v5.0.0-alpha.1
-                        </div>
-                    </Fade>
+                    <DownloadVersionComponent
+                        version="v5.0.0-alpha.1"
+                        windowsLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe"
+                        macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.dmg"
+                        macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0.dmg"
+                    />
 
-                    <Fade className="w-full">
-                        <div className="flex w-full">
-                            <div className="flex flex-col gap-4 items-center w-full">
-                                <WindowsIcon color="#fff" className="w-32 h-32" />
-
-                                <Link href="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe" className="font-semibold font-sans tracking-tighter underline underline-offset-2">
-                                    Windows 64bits Installer
-                                </Link>
-                            </div>
-
-                            <div className="flex flex-col gap-4 items-center w-full">
-                                <AppleIcon color="#fff" className="w-32 h-32" />
-
-                                <Link href="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.dmg" className="font-semibold font-sans tracking-tighter underline underline-offset-2">
-                                    macOS Apple Silicon
-                                </Link>
-
-                                <Link href="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0.dmg" className="font-semibold font-sans tracking-tighter underline underline-offset-2">
-                                    macOS Intel Chip
-                                </Link>
-                            </div>
-                        </div>
-                    </Fade>
+                    <DownloadVersionComponent
+                        version="v4.7.0"
+                        windowsLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%204.7.0.exe"
+                        macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-4.7.0-arm64.dmg"
+                        macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-4.7.0.dmg"
+                    />
                 </Fade>
             </div>
         </main>
