@@ -35,7 +35,7 @@ export default function DownloadPage() {
                             <div className="flex flex-col gap-4 items-center w-full">
                                 <WindowsIcon color="#fff" className="w-32 h-32" />
 
-                                <Link href="" className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+                                <Link href="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe" className="font-semibold font-sans tracking-tighter underline underline-offset-2">
                                     Windows 64bits Installer
                                 </Link>
                             </div>
