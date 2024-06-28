@@ -65,7 +65,7 @@ export default function Home() {
                 >
                     <LandingRendererComponent
                         scrollRatio={scrollRatio}
-                        postProcessVisible={!section3Visible && !section2Visible}
+                        postProcessVisible={!section3Visible}
                     />
                 </div>
 
@@ -74,9 +74,9 @@ export default function Home() {
                         <img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
 
                         <div className={`hidden lg:flex gap-2 ${section2Visible ? "" : "pointer-events-none opacity-0"} transition-all duration-1000 ease-in-out`}>
-                            <button className={`flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2`} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+                            <Link href="/download" className={`flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2`} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
                                 Download
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -98,8 +98,13 @@ export default function Home() {
                             </Fade>
 
                             <div className="hidden lg:flex justify-center gap-4 pt-4">
-                                <DownloadWindowsComponent />
-                                <DownloadMacComponent />
+                                <Link href="/download">
+                                    <DownloadWindowsComponent />
+                                </Link>
+
+                                <Link href="/download">
+                                    <DownloadMacComponent />
+                                </Link>
                             </div>
 
                             <div className="w-full h-full object-contain">
@@ -217,7 +222,7 @@ export default function Home() {
                 </div>
 
                 {/* Page 3 */}
-                <div className="flex flex-col justify-between w-screen min-h-screen max-w-3xl px-5 mx-auto" ref={section3Ref}>
+                {/* <div className="flex flex-col justify-between w-screen min-h-screen max-w-3xl px-5 mx-auto" ref={section3Ref}>
                     <div />
 
                     <div className="text-center max-w-3xl mx-auto">
@@ -227,25 +232,12 @@ export default function Home() {
                     </div>
 
                     <div />
-                </div>
+                </div> */}
 
-                <div className="flex flex-col justify-between w-screen h-screen max-w-3xl px-5 mx-auto">
-
-                </div>
+                <div className="flex flex-col justify-between w-screen h-[50dvh] max-w-3xl px-5 mx-auto" />
 
                 {/* Page 4 */}
-                <div className="flex flex-col justify-between w-screen h-screen max-w-3xl px-5 mx-auto">
-                    <div className="text-center max-w-3xl mx-auto">
-                        <Fade className="text-7xl">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                        </Fade>
-                    </div>
-
-                    <div />
-                </div>
-
-                {/* Page 5 */}
-                <div className="flex flex-col justify-center items-center gap-5 w-screen h-[150vh] pt-[50dvh] max-w-3xl px-5 mx-auto">
+                <div className="flex flex-col justify-center items-center gap-5 w-screen min-h-screen max-w-3xl px-5 mx-auto">
                     <div className="text-4xl md:text-7xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
                         <Fade>
                             Babylon.JS Editor
