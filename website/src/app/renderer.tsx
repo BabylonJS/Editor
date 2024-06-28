@@ -86,13 +86,13 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
             failIfMajorPerformanceCaveat: false,
         });
 
-        // engine.setTextureFormatToUse([
-        //     "-dxt.ktx",
-        //     "-astc.ktx",
-        //     "-pvrtc.ktx",
-        //     "-etc1.ktx",
-        //     "-etc2.ktx",
-        // ]);
+        engine.setTextureFormatToUse([
+            "-dxt.ktx",
+            "-astc.ktx",
+            "-pvrtc.ktx",
+            "-etc1.ktx",
+            "-etc2.ktx",
+        ]);
 
         const scene = new Scene(engine);
 
