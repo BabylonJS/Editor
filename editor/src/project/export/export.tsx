@@ -6,7 +6,9 @@ import { SceneSerializer } from "babylonjs";
 
 import { toast } from "sonner";
 
+import { isTexture } from "../../tools/guards/texture";
 import { isEditorCamera } from "../../tools/guards/nodes";
+import { getPowerOfTwoUntil } from "../../tools/maths/scalar";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 
 import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
@@ -48,6 +50,18 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
 
     const scene = editor.layout.preview.scene;
     const editorCamera = scene.cameras.find((camera) => isEditorCamera(camera));
+
+    // Configure textures to store base size. This will be useful for the scene loader located
+    // in the `babylonjs-editor-tools` package.
+    scene.textures.forEach((texture) => {
+        if (isTexture(texture)) {
+            texture.metadata ??= {};
+            texture.metadata.baseSize = {
+                width: texture.getBaseSize().width,
+                height: texture.getBaseSize().height,
+            };
+        }
+    });
 
     const data = await SceneSerializer.SerializeAsync(scene);
 
@@ -240,23 +254,44 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
         return editor.layout.console.error(`Failed to compute exported image "${absolutePath}". Image metadata is invalid.`);
     }
 
-    let scale = 0.5;
-    let width = metadata.width * 0.5;
-    let height = metadata.height * 0.5;
+    const width = metadata.width;
+    const height = metadata.height;
 
-    while (width >= 8 && height >= 8) {
+    type _DownscaledTextureSize = {
+        width: number;
+        height: number;
+    };
+
+    const availableSizes: _DownscaledTextureSize[] = [];
+
+    const midWidth = width * 0.66;
+    const midHeight = height * 0.66;
+
+    availableSizes.push({
+        width: getPowerOfTwoUntil(midWidth),
+        height: getPowerOfTwoUntil(midHeight),
+    });
+
+    const lowWidth = width * 0.33;
+    const lowHeight = height * 0.33;
+
+    availableSizes.push({
+        width: getPowerOfTwoUntil(lowWidth),
+        height: getPowerOfTwoUntil(lowHeight),
+    });
+
+    for (const size of availableSizes) {
         const nameWithoutExtension = basename(absolutePath).replace(extension, "");
-        const finalName = `${nameWithoutExtension}_${width}_${height}${extension}`;
+        const finalName = `${nameWithoutExtension}_${size.width}_${size.height}${extension}`;
         const finalPath = join(dirname(absolutePath), finalName);
 
         if (!await pathExists(finalPath)) {
             const log = await editor.layout.console.progress(`Exporting scaled image "${finalName}"`);
 
             try {
-                const buffer = await sharp(absolutePath).resize(width, height).toBuffer();
+                const buffer = await sharp(absolutePath).resize(size.width, size.height).toBuffer();
 
                 await writeFile(finalPath, buffer);
-                await compressFileToKtx(editor, finalPath);
 
                 log.setState({
                     done: true,
@@ -271,8 +306,6 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
             }
         }
 
-        scale *= 0.5;
-        width *= 0.5;
-        height *= 0.5;
+        await compressFileToKtx(editor, finalPath);
     }
 }

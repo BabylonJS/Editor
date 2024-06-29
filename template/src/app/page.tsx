@@ -25,7 +25,7 @@ import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 
 import "@babylonjs/materials/sky";
 
-import { loadScene, startTextureOptimizer } from "babylonjs-editor-tools";
+import { loadScene } from "babylonjs-editor-tools";
 
 /**
  * We import the map of all scripts attached to objects in the editor.
@@ -55,12 +55,10 @@ export default function Home() {
 
         const scene = new Scene(engine);
 
-        loadScene("/scene/", "example.babylon", scene, scriptsMap).then(() => {
+        loadScene("/scene/", "example.babylon", scene, scriptsMap, "hight").then(() => {
             if (scene.activeCamera) {
                 scene.activeCamera.attachControl();
             }
-
-            startTextureOptimizer(scene);
 
             engine.runRenderLoop(() => {
                 scene.render();
