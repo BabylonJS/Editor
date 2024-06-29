@@ -11,7 +11,7 @@
     "dependencies": {
         "@babylonjs/core": "7.0.0",
         "@babylonjs/materials": "7.0.0",
-        "babylonjs-editor-tools": "latest",
+        "babylonjs-editor-tools": "link:../tools",
         "is-mobile": "^4.0.0",
         "lenis": "^1.0.45",
         "next": "14.0.4",

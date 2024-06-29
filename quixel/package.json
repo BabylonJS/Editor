@@ -10,7 +10,7 @@
     "license": "(Apache-2.0)",
     "devDependencies": {
         "babylonjs": "7.0.0",
-        "babylonjs-editor": "file:../editor",
+        "babylonjs-editor": "link:../editor",
         "typescript": "5.3.3"
     },
     "dependencies": {
