@@ -6,6 +6,14 @@ import { parseSSAO2RenderingPipeline } from "./rendering/ssao";
 import { parseMotionBlurPostProcess } from "./rendering/motion-blur";
 import { parseDefaultRenderingPipeline } from "./rendering/default-pipeline";
 
+import "./texture";
+
+/**
+ * Defines the possible output type of a script.
+ * `default` is a class that will be instantiated with the object as parameter.
+ * `onStart` is a function that will be called once before the first render passing the reference to the object the script is attached to.
+ * `onUpdate` is a function that will be called every frame passing the reference to the object the script is attached to
+ */
 export type ScriptMap = Record<
     string,
     {
@@ -18,7 +26,24 @@ export type ScriptMap = Record<
     }
 >;
 
-export async function loadScene(rootUrl: string, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap) {
+/**
+ * Defines the overall desired quality of the scene.
+ * In other words, defines the quality of textures that will be loaded in terms of dimensions.
+ * The editor computes automatic "hight (untouched)", "medium (half)", and "low (quarter)" quality levels for textures.
+ * Using "medium" or "low" quality levels will reduce the memory usage and improve the performance of the scene
+ * especially on mobiles where memory is limited.
+ */
+export type SceneLoaderQualitySelector = "low" | "medium" | "hight";
+
+declare module "@babylonjs/core/scene" {
+    interface Scene {
+        loadingQuality: SceneLoaderQualitySelector;
+    }
+}
+
+export async function loadScene(rootUrl: string, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, quality: SceneLoaderQualitySelector = "hight") {
+    scene.loadingQuality = quality;
+
     await SceneLoader.AppendAsync(rootUrl, sceneFilename, scene);
 
     if (scene.metadata?.rendering) {

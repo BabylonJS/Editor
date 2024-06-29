@@ -3,7 +3,7 @@ import { Component, PropsWithChildren, ReactNode } from "react";
 
 import { CascadedShadowGenerator, DirectionalLight, IShadowGenerator, IShadowLight, ShadowGenerator } from "babylonjs";
 
-import { getPowerOfTwoSizesUntil } from "../../../../tools/tools";
+import { getPowerOfTwoSizesUntil } from "../../../../tools/maths/scalar";
 import { isDirectionalLight, isPointLight } from "../../../../tools/guards/nodes";
 import { isCascadedShadowGenerator, isShadowGenerator } from "../../../../tools/guards/shadows";
 

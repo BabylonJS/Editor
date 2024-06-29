@@ -1,102 +1,62 @@
 import { Scene } from "@babylonjs/core/scene";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Camera } from "@babylonjs/core/Cameras/camera";
+import { Nullable } from "@babylonjs/core/types";
+import { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
+import { SerializationHelper } from "@babylonjs/core/Misc/decorators.serialization";
 
-import { isMesh, isTexture } from "./guards";
+import { getPowerOfTwoUntil } from "./tools/scalar";
 
-const sceneMap = new Map<Scene, () => void>();
+/**
+ * Defines the reference to the original texture parser function.
+ */
+const textureParser = SerializationHelper._TextureParser;
 
-export function startTextureOptimizer(scene: Scene): void {
-    const engine = scene.getEngine();
-
-    const existingRenderLoop = sceneMap.get(scene);
-    if (existingRenderLoop) {
-        engine.stopRenderLoop(existingRenderLoop);
+SerializationHelper._TextureParser = (sourceProperty: any, scene: Scene, rootUrl: string): Nullable<BaseTexture> => {
+    if (scene.loadingQuality === "hight" || !sourceProperty.metadata?.baseSize) {
+        return textureParser(sourceProperty, scene, rootUrl);
     }
 
-    let time = 0;
-    const renderLoop = () => {
-        const camera = scene.activeCamera;
+    const width = sourceProperty.metadata.baseSize.width;
+    const height = sourceProperty.metadata.baseSize.height;
 
-        time += engine.getDeltaTime();
-        if (!camera || time < 1000) {
-            return;
-        }
+    let suffix = "";
 
-        scene.meshes.forEach((mesh) => {
-            if (!isMesh(mesh) || !mesh.material) {
-                return;
-            }
+    switch (scene.loadingQuality) {
+        case "medium":
+            const midWidth = getPowerOfTwoUntil(width * 0.66);
+            const midHeight = getPowerOfTwoUntil(height * 0.66);
 
-            handleMesh(camera, mesh);
-        });
+            suffix = `_${midWidth}_${midHeight}`;
+            break;
 
-        time = 0;
-    };
+        case "low":
+            const lowWidth = getPowerOfTwoUntil(width * 0.33);
+            const lowHeight = getPowerOfTwoUntil(height * 0.33);
 
-    sceneMap.set(scene, renderLoop);
-    engine.runRenderLoop(renderLoop);
-}
-
-function handleMesh(camera: Camera, mesh: Mesh): void {
-    const material = mesh.material!;
-    const textures = material.getActiveTextures();
-
-    if (!textures.length) {
-        return;
+            suffix = `_${lowWidth}_${lowHeight}`;
+            break;
     }
 
-    let isInFrustrum = false;
-    if (mesh.instances.length) {
-        isInFrustrum = [mesh, ...mesh.instances].find((instance) => camera.isInFrustum(instance)) ? true : false;
-    } else {
-        isInFrustrum = camera.isInFrustum(mesh);
+    const name = sourceProperty.name as string;
+
+    if (!name || !suffix) {
+        return textureParser(sourceProperty, scene, rootUrl);
     }
 
-    textures.forEach((texture) => {
-        if (!isTexture(texture) || !texture.getInternalTexture() || !texture.isReady()) {
-            return;
-        }
+    const finalUrl = name.split("/");
 
-        texture.metadata ??= {};
-        texture.metadata.editor ??= {
-            ratio: 1,
-            url: texture.getInternalTexture()?.url,
-        };
+    const filename = finalUrl.pop();
+    if (!filename) {
+        return textureParser(sourceProperty, scene, rootUrl);
+    }
 
-        const url = texture.metadata.editor.url as string | undefined;
-        if (!url) {
-            return;
-        }
+    const extension = filename.split(".").pop();
+    const baseFilename = filename.replace(`.${extension}`, "");
 
-        let ratio = texture.metadata.editor.ratio as number;
+    const newFilename = `${baseFilename}${suffix}.${extension}`;
 
-        if (isInFrustrum && ratio === 1) {
-            return;
-        }
+    finalUrl.push(newFilename);
 
-        let split = url.split("/");
-        const dirname = split.slice(0, -1).join("/");
+    sourceProperty.name = finalUrl.join("/");
 
-        const basename = split[split.length - 1];
-        split = basename.split(".");
-
-        ratio *= (isInFrustrum ? 2 : 0.5);
-
-        const width = texture.getBaseSize().width * ratio;
-        const height = texture.getBaseSize().height * ratio;
-
-        if (!isInFrustrum && (width <= 8 || height <= 8)) {
-            return;
-        }
-
-        if (ratio === 1 && texture.getInternalTexture()!.url !== url) {
-            texture.updateURL(url);
-        } else if (ratio < 1) {
-            const newUrl = `${dirname}/${split[0]}_${width}_${height}.${split[1]}`;
-            texture.updateURL(newUrl);
-        }
-
-        texture.metadata.editor.ratio = ratio;
-    });
-}
+    return textureParser(sourceProperty, scene, rootUrl);
+};

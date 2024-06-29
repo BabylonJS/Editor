@@ -52,9 +52,9 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
     private _getToolbar(): ReactNode {
         return (
-            <div className="flex justify-between w-screen h-10 bg-background text-foreground">
-                <Menubar className="border-none rounded-none">
-                    <img alt="" src="assets/babylonjs_icon.png" className="w-5 object-contain" />
+            <div className="flex justify-between w-screen h-12 bg-background text-foreground">
+                <Menubar className="border-none rounded-none pl-3 my-auto">
+                    <img alt="" src="assets/babylonjs_icon.png" className="w-6 object-contain" />
 
                     {/* File */}
                     <MenubarMenu>
@@ -157,17 +157,17 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
                 <div className="w-full h-10 electron-draggable" />
 
                 {isWin32 &&
-                    <div className="flex z-50">
-                        <Button variant="ghost" className="w-10 aspect-square !p-0 hover:bg-muted" onClick={() => ipcRenderer.send("window:minimize")}>
-                            <VscChromeMinimize className="w-4 h-4" />
+                    <div className="flex z-50 pr-3 my-auto">
+                        <Button variant="ghost" className="w-12 aspect-square !p-0 hover:bg-muted" onClick={() => ipcRenderer.send("window:minimize")}>
+                            <VscChromeMinimize className="w-5 h-5" />
                         </Button>
 
-                        <Button variant="ghost" className="w-10 aspect-square hover:bg-muted" onClick={() => ipcRenderer.send("window:maximize")}>
-                            <FaRegWindowMaximize className="w-4 h-4" />
+                        <Button variant="ghost" className="w-12 aspect-square !p-4 hover:bg-muted" onClick={() => ipcRenderer.send("window:maximize")}>
+                            <FaRegWindowMaximize className="w-5 h-5" />
                         </Button>
 
-                        <Button variant="ghost" className="w-10 aspect-square !p-0 hover:bg-muted" onClick={() => ipcRenderer.send("window:close")}>
-                            <IoCloseOutline className="w-4 h-4" />
+                        <Button variant="ghost" className="w-12 aspect-square !p-0 hover:bg-muted" onClick={() => ipcRenderer.send("window:close")}>
+                            <IoCloseOutline className="w-5 h-5" />
                         </Button>
                     </div>
                 }
