@@ -18,6 +18,8 @@ import { serializeDefaultRenderingPipeline } from "../../editor/rendering/defaul
 
 import { Editor } from "../../editor/main";
 
+import { writeBinaryGeometry } from "../geometry";
+
 import { compressFileToKtx } from "./ktx";
 import { configureMeshesLODs } from "./lod";
 import { EditorExportProjectProgressComponent } from "./progress";
@@ -84,11 +86,49 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
 
     const projectDir = dirname(editor.state.projectPath);
     const publicPath = join(projectDir, "public");
+
+    const sceneName = basename(editor.state.lastOpenedScenePath).split(".").shift()!;
+
     await createDirectoryIfNotExist(join(publicPath, "scene"));
+    await createDirectoryIfNotExist(join(publicPath, "scene", sceneName));
 
     const scenePath = join(publicPath, "scene");
 
-    await writeJSON(join(scenePath, `${basename(editor.state.lastOpenedScenePath).split(".").shift()}.babylon`), data);
+    // Write all geometries as incremental. This makes the scene way less heavy as binary saved geometry
+    // is not stored in the JSON scene file. Moreover, this may allow to load geometries on the fly compared
+    // to single JSON file.
+    await Promise.all(data.meshes?.map(async (mesh) => {
+        const instantiatedMesh = scene.getMeshById(mesh.id);
+        const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
+
+        if (geometry) {
+            const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
+
+            mesh.delayLoadingFile = `${sceneName}/${geometryFileName}`;
+            mesh.boundingBoxMaximum = instantiatedMesh?.getBoundingInfo()?.maximum?.asArray() ?? [0, 0, 0];
+            mesh.boundingBoxMinimum = instantiatedMesh?.getBoundingInfo()?.minimum?.asArray() ?? [0, 0, 0];
+            mesh._binaryInfo = {};
+
+            const geometryPath = join(scenePath, sceneName, geometryFileName);
+
+            try {
+                await writeBinaryGeometry(geometryPath, geometry, mesh);
+
+                let geometryIndex = -1;
+                do {
+                    geometryIndex = data.geometries!.vertexData!.findIndex((g) => g.id === mesh.geometryId);
+                    if (geometryIndex !== -1) {
+                        data.geometries!.vertexData!.splice(geometryIndex, 1);
+                    }
+                } while (geometryIndex !== -1);
+            } catch (e) {
+                editor.layout.console.error(`Export: Failed to write geometry for mesh ${mesh.name}`);
+            }
+        }
+    }));
+
+    // Write final scene file.
+    await writeJSON(join(scenePath, `${sceneName}.babylon`), data);
 
     // Copy files
     const files = await normalizedGlob(join(projectDir, "/assets/**/*"), {
