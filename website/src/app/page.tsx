@@ -238,7 +238,7 @@ export default function Home() {
 
                 {/* Page 4 */}
                 <div className="flex flex-col justify-center items-center gap-5 w-screen min-h-screen max-w-3xl px-5 mx-auto">
-                    <div className="text-4xl md:text-7xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                    <div className="text-4xl md:text-7xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
                         <Fade>
                             Babylon.JS Editor
                         </Fade>
@@ -246,13 +246,21 @@ export default function Home() {
 
                     <div className="text-xl text-center drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
                         <Fade>
-                            Focus more on creating and less on coding.
+                            Download for Windows and macOS
                         </Fade>
                     </div>
 
-                    <div className="text-center text-sm max-w-3xl mx-auto drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                    <div className="flex flex-col lg:flex-row justify-center items-center gap-4 pt-4">
                         <Fade>
-                            The Babylon.JS Editor is an open source project maintained by the community. The mission is to provide community-driven powerful and simple tools that help Babylon.JS users to create beautiful, awesome 3D games / applications. It comes with deep customization features and is built using Electron to support cross-platform development. Using the latest version of Babylon.JS, the Editor allows creating highly customizable 3D web project skeletons based on the powerful ES6 modules version of Babylon.JS.
+                            <Link href="/download">
+                                <DownloadWindowsComponent />
+                            </Link>
+                        </Fade>
+
+                        <Fade>
+                            <Link href="/download">
+                                <DownloadMacComponent />
+                            </Link>
                         </Fade>
                     </div>
                 </div>
