@@ -13,7 +13,7 @@ import { serializeSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
 import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
 import { serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
 
-import { writeBinaryGeometry } from "./geometry";
+import { writeBinaryGeometry } from "../geometry";
 
 export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
     const fStat = await stat(scenePath);
