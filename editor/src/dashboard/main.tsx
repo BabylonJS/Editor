@@ -15,6 +15,7 @@ import { Grid } from "react-loader-spinner";
 import { Input } from "../ui/shadcn/ui/input";
 import { Button } from "../ui/shadcn/ui/button";
 import { Separator } from "../ui/shadcn/ui/separator";
+import { showConfirm, showAlert } from "../ui/dialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "../ui/shadcn/ui/dialog";
 
 import { ProjectType, projectsKey } from "../tools/project";
@@ -120,6 +121,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                                         project={project}
                                         key={project.absolutePath}
                                         isOpened={this.state.openedProjects.includes(project.absolutePath)}
+                                        onRemove={() => this._tryRemoveProjectFromLocalStorage(project)}
                                     />
                                 ))}
                             </div>
@@ -202,7 +204,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
         );
     }
 
-    private _handleImportProject(): void {
+    private _handleImportProject(): unknown {
         const file = openSingleFileDialog({
             title: "Open Project",
             filters: [
@@ -212,6 +214,11 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
         if (!file) {
             return;
+        }
+
+        const exists = this.state.projects.find((p) => p.absolutePath === file);
+        if (exists) {
+            return showAlert("Project already exists", "The project you are trying to import already exists in the dashboard.");
         }
 
         this._tryAddProjectToLocalStorage(file);
@@ -262,6 +269,22 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
             this.setState({ projects: tryGetProjectsFromLocalStorage() });
         } catch (e) {
             alert("Failed to import project.");
+        }
+    }
+
+    private async _tryRemoveProjectFromLocalStorage(project: ProjectType): Promise<void> {
+        const confirm = await showConfirm("Remove project", "Are you sure you want to remove this project?");
+        if (!confirm) {
+            return;
+        }
+
+        const index = this.state.projects.indexOf(project);
+        if (index !== -1) {
+            this.state.projects.splice(index, 1);
+
+            localStorage.setItem(projectsKey, JSON.stringify(this.state.projects));
+
+            this.setState({ projects: tryGetProjectsFromLocalStorage() });
         }
     }
 }

@@ -2,7 +2,7 @@ import { platform } from "os";
 import { rename, stat } from "fs-extra";
 import { basename, extname, dirname, join } from "path/posix";
 
-import { ipcRenderer, shell } from "electron";
+import { ipcRenderer } from "electron";
 
 import { Component, MouseEvent, ReactNode } from "react";
 
@@ -273,7 +273,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
         return (
             <ContextMenuContent>
-                <ContextMenuItem className="flex items-center gap-2" onClick={() => shell.showItemInFolder(this.props.absolutePath)}>
+                <ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", this.props.absolutePath)}>
                     <RiFinderFill className="w-5 h-5" /> {`Show in ${isDarwin ? "Finder" : "Explorer"}`}
                 </ContextMenuItem>
 
