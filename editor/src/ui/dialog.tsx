@@ -132,3 +132,40 @@ export function showPrompt(title: string, children: ReactNode, value?: string): 
         );
     });
 }
+
+export function showAlert(title: ReactNode, children: ReactNode): DialogReturnType {
+    const div = document.createElement("div");
+    document.body.appendChild(div);
+
+    const root = createRoot(div);
+
+    const returnValue = {
+        close() {
+            root.unmount();
+            document.body.removeChild(div);
+        },
+    } as DialogReturnType;
+
+    root.render(
+        <AlertDialog open onOpenChange={(o) => !o && returnValue.close()}>
+            <AlertDialogContent className="w-fit h-fit">
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{title}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {children}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => {
+                        root.unmount();
+                        document.body.removeChild(div);
+                    }}>
+                        Ok
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+
+    return returnValue;
+}

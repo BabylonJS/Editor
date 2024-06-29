@@ -14,3 +14,11 @@ ipcMain.on("editor:trash-items", async (ev, items) => {
         ev.returnValue = false;
     }
 });
+
+ipcMain.on("editor:show-item", (_, item) => {
+    item = platform() === "darwin"
+        ? item.replace(/\\/g, "/")
+        : item.replace(/\//g, "\\");
+
+    shell.showItemInFolder(item);
+});
