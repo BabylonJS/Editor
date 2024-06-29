@@ -1,75 +1,6 @@
 {
     "environment": {
-        "environmentIntensity": 1,
-        "environmentTexture": {
-            "tags": null,
-            "url": "assets/country.env",
-            "boundingBoxPosition": [
-                0,
-                0,
-                0
-            ],
-            "rotationY": 0,
-            "files": [],
-            "textureMatrix": [
-                1,
-                0,
-                0,
-                0,
-                0,
-                1,
-                0,
-                0,
-                0,
-                0,
-                1,
-                0,
-                0,
-                0,
-                0,
-                1
-            ],
-            "textureMatrixRefraction": [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ],
-            "name": "assets/country.env",
-            "hasAlpha": false,
-            "getAlphaFromRGB": false,
-            "level": 1,
-            "coordinatesIndex": 0,
-            "optimizeUVAllocation": true,
-            "coordinatesMode": 3,
-            "wrapU": 0,
-            "wrapV": 0,
-            "wrapR": 1,
-            "anisotropicFilteringLevel": 1,
-            "isCube": true,
-            "is3D": false,
-            "is2DArray": false,
-            "gammaSpace": false,
-            "invertZ": false,
-            "lodLevelInAlpha": false,
-            "lodGenerationOffset": 0,
-            "lodGenerationScale": 0.8,
-            "linearSpecularLOD": false,
-            "isRenderTarget": false,
-            "animations": []
-        }
+        "environmentIntensity": 1
     },
     "fog": {
         "fogEnabled": false,
@@ -159,7 +90,7 @@
         "name": "camera",
         "id": "camera",
         "state": "",
-        "uniqueId": 3,
+        "uniqueId": 21,
         "type": "EditorCamera",
         "inputsmgr": {
             "FreeCameraKeyboardMoveInput": {

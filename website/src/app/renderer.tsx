@@ -1,7 +1,5 @@
 "use client";
 
-import isMobile from "is-mobile";
-
 import { Grid } from "react-loader-spinner";
 import { useEffect, useRef, useState } from "react";
 
@@ -57,7 +55,6 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const [ready, setReady] = useState(false);
-    const [mobile, setMobile] = useState<boolean | null>(false);
 
     const [scene, setScene] = useState<Scene | null>(null);
 
@@ -65,11 +62,7 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
     const [circlePostProcess, setCirclePostProcess] = useState<LandingPostProcess | null>(null);
 
     useEffect(() => {
-        setMobile(isMobile());
-    }, []);
-
-    useEffect(() => {
-        if (!canvasRef.current || mobile === null) {
+        if (!canvasRef.current) {
             return;
         }
 
@@ -106,11 +99,9 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
         SceneLoader.ForceFullSceneLoadingForIncremental = false;
 
         loadScene("/scene/", "landing.babylon", scene, scriptsMap).then(() => {
-            if (scene.activeCamera && !mobile) {
+            if (scene.activeCamera) {
                 setLightsPostProcess(new LandingPostProcess(scene.activeCamera, "landingLights"));
                 setCirclePostProcess(new LandingPostProcess(scene.activeCamera, "landingCircle"));
-            } else if (!mobile) {
-                scene.imageProcessingConfiguration.exposure = 0;
             }
 
             scene.executeWhenReady(() => {
@@ -135,7 +126,7 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
 
             window.removeEventListener("resize", listener);
         };
-    }, [canvasRef, mobile]);
+    }, [canvasRef]);
 
     useEffect(() => {
         if (lightsPostProcess && circlePostProcess) {
@@ -148,12 +139,6 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
                 "alpha": props.postProcessVisible ? 1 : 0,
             });
         }
-
-        if (mobile && scene) {
-            Tween.Create(scene.imageProcessingConfiguration, 1, {
-                "exposure": props.postProcessVisible ? 0 : 1,
-            });
-        }
     }, [scene, lightsPostProcess, circlePostProcess, props.postProcessVisible]);
 
     return (
@@ -163,7 +148,7 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
                 transition-all duration-1000 ease-in-out
             `}
             style={{
-                filter: (props.postProcessVisible && !mobile)
+                filter: (props.postProcessVisible)
                     ? `hue-rotate(${(180 * props.scrollRatio).toFixed(0)}deg)`
                     : "hue-rotate(0deg)",
             }}

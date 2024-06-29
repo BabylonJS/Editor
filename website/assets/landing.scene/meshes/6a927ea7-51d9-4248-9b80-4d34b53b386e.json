@@ -39,7 +39,7 @@
                 0,
                 1
             ],
-            "isEnabled": true,
+            "isEnabled": false,
             "isVisible": true,
             "infiniteDistance": false,
             "pickable": true,
