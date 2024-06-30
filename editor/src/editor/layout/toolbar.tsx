@@ -5,8 +5,7 @@ import { dirname, join } from "path/posix";
 import { Component, ReactNode } from "react";
 
 import { IoCloseOutline } from "react-icons/io5";
-import { VscChromeMinimize } from "react-icons/vsc";
-import { FaRegWindowMaximize } from "react-icons/fa";
+import { VscChromeMinimize, VscMultipleWindows } from "react-icons/vsc";
 
 import { Button } from "../../ui/shadcn/ui/button";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
@@ -163,7 +162,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
                         </Button>
 
                         <Button variant="ghost" className="w-12 aspect-square !p-4 hover:bg-muted" onClick={() => ipcRenderer.send("window:maximize")}>
-                            <FaRegWindowMaximize className="w-5 h-5" />
+                            <VscMultipleWindows className="w-5 h-5" />
                         </Button>
 
                         <Button variant="ghost" className="w-12 aspect-square !p-0 hover:bg-muted" onClick={() => ipcRenderer.send("window:close")}>

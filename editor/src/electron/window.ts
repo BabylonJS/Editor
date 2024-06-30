@@ -41,7 +41,10 @@ export async function createDashboardWindow(): Promise<BrowserWindow> {
  */
 export async function createEditorWindow(): Promise<BrowserWindow> {
     const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
+    const { width, height } = {
+        width: primaryDisplay.workAreaSize.width * 0.75,
+        height: primaryDisplay.workAreaSize.height * 0.75,
+    };
 
     const window = new BrowserWindow({
         show: false,
