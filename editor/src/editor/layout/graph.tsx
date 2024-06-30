@@ -12,7 +12,7 @@ import { Node, Tools } from "babylonjs";
 
 import { Editor } from "../main";
 
-import { UniqueNumber } from "../../tools/tools";
+import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { onNodeModifiedObservable, onNodesAddedObservable } from "../../tools/observables";
 import { isAbstractMesh, isCamera, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
 
@@ -184,6 +184,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             return;
         }
 
+        const newNodes: Node[] = [];
+
         this._objectsToCopy.forEach((treeNode) => {
             const object = treeNode.nodeData;
 
@@ -230,10 +232,22 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                         .map((light) => light.getShadowGenerator())
                         .forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
                 }
+
+                newNodes.push(node);
             }
         });
 
         this.refresh();
+
+        waitNextAnimationFrame().then(() => {
+            const firstNode = newNodes[0];
+
+            if (isNode(firstNode)) {
+                this.props.editor.layout.graph.setSelectedNode(firstNode);
+                this.props.editor.layout.inspector.setEditedObject(firstNode);
+                this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
+            }
+        });
     }
 
     private _handleSearch(search: string) {

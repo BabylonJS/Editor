@@ -20,6 +20,8 @@ import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight }
 
 import { Editor } from "../../main";
 
+import { removeNodes } from "./remove";
+
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
     editor: Editor;
     object: any | null;
@@ -93,18 +95,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
         return (
             <ContextMenuItem
                 className="flex items-center gap-2 !text-red-400"
-                onClick={() => {
-                    const nodes = this.props.editor.layout.graph.getSelectedNodes();
-                    nodes.forEach((n) => {
-                        if (isNode(n.nodeData)) {
-                            n.nodeData.dispose();
-                        }
-                    });
-
-                    this.props.editor.layout.graph.refresh();
-                    this.props.editor.layout.preview.gizmo.setAttachedNode(null);
-                    this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene);
-                }}
+                onClick={() => removeNodes(this.props.editor)}
             >
                 <AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
             </ContextMenuItem>
@@ -142,8 +133,9 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                 }
                             });
 
+                            this.props.editor.layout.graph.refresh();
+
                             waitNextAnimationFrame().then(() => {
-                                this.props.editor.layout.graph.refresh();
                                 this.props.editor.layout.graph.setSelectedNode(instance);
                                 this.props.editor.layout.inspector.setEditedObject(instance);
                                 this.props.editor.layout.preview.gizmo.setAttachedNode(instance);
