@@ -17,6 +17,9 @@ import { showConfirm } from "../../ui/dialog";
 
 import { saveProject } from "../../project/save/save";
 import { exportProject } from "../../project/export/export";
+import { addArcRotateCamera, addFreeCamera } from "../../project/add/camera";
+import { addTransformNode, addBox, addGroundMesh, addSphereMesh } from "../../project/add/mesh";
+import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
 
 import { Editor } from "../main";
 
@@ -148,6 +151,51 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
                             <MenubarItem onClick={() => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera)}>
                                 Edit Camera
+                            </MenubarItem>
+                        </MenubarContent>
+                    </MenubarMenu>
+
+                    {/* Add */}
+                    <MenubarMenu>
+                        <MenubarTrigger>
+                            Add
+                        </MenubarTrigger>
+                        <MenubarContent className="border-black/50">
+                            <MenubarItem onClick={() => addTransformNode(this.props.editor)}>
+                                Transform Node
+                            </MenubarItem>
+                            <MenubarItem onClick={() => addBox(this.props.editor)}>
+                                Box Mesh
+                            </MenubarItem>
+                            <MenubarItem onClick={() => addSphereMesh(this.props.editor)}>
+                                Sphere Mesh
+                            </MenubarItem>
+                            <MenubarItem onClick={() => addGroundMesh(this.props.editor)}>
+                                Ground Mesh
+                            </MenubarItem>
+
+                            <MenubarSeparator />
+
+                            <MenubarItem onClick={() => addPointLight(this.props.editor)}>
+                                Point Light
+                            </MenubarItem>
+                            <MenubarItem onClick={() => addDirectionalLight(this.props.editor)}>
+                                Directional Light
+                            </MenubarItem>
+                            <MenubarItem onClick={() => addSpotLight(this.props.editor)}>
+                                Spot Light
+                            </MenubarItem>
+                            <MenubarItem onClick={() => addHemisphericLight(this.props.editor)}>
+                                Hemispheric Light
+                            </MenubarItem>
+
+                            <MenubarSeparator />
+
+                            <MenubarItem onClick={() => addFreeCamera(this.props.editor)}>
+                                Free Camera
+                            </MenubarItem>
+                            <MenubarItem onClick={() => addArcRotateCamera(this.props.editor)}>
+                                Arc Rotate Camera
                             </MenubarItem>
                         </MenubarContent>
                     </MenubarMenu>
