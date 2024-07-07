@@ -1,6 +1,7 @@
 import { join, dirname, basename, extname } from "path/posix";
-import { copyFile, pathExists, readJSON, readdir, writeFile, writeJSON } from "fs-extra";
+import { copyFile, pathExists, readFile, readJSON, readdir, writeFile, writeJSON } from "fs-extra";
 
+import md5 from "md5";
 import sharp from "sharp";
 import { SceneSerializer } from "babylonjs";
 
@@ -146,6 +147,13 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
     const progressStep = 100 / files.length;
     const textureCompressionEnabled = editor.state.compressedTexturesEnabled && editor.state.compressedTexturesCliPath !== null;
 
+    let cache: Record<string, string> = {};
+    try {
+        cache = await readJSON(join(projectDir, "assets/.export-cache.json"));
+    } catch (e) {
+        // Catch silently.
+    }
+
     for (const file of files) {
         if (optimize && textureCompressionEnabled && promises.length >= 5) {
             await Promise.all(promises);
@@ -153,13 +161,18 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
         }
 
         promises.push(new Promise<void>(async (resolve) => {
-            await processFile(editor, file as string, optimize, scenePath, projectDir);
+            await processFile(editor, file as string, optimize, scenePath, projectDir, cache);
             progress?.step(progressStep);
             resolve();
         }));
     }
 
     await Promise.all(promises);
+
+    await writeJSON(join(projectDir, "assets/.export-cache.json"), cache, {
+        encoding: "utf-8",
+        spaces: "\t",
+    });
 
     toast.dismiss(toastId);
 
@@ -168,7 +181,7 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
     }
 }
 
-async function processFile(editor: Editor, file: string, optimize: boolean, scenePath: string, projectDir: string): Promise<void> {
+async function processFile(editor: Editor, file: string, optimize: boolean, scenePath: string, projectDir: string, cache: Record<string, string>): Promise<void> {
     const extension = extname(file).toLocaleLowerCase();
     if (!supportedExtensions.includes(extension)) {
         return;
@@ -188,17 +201,25 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
         path = join(path, split[i]);
     }
 
+    const content = await readFile(file);
+    const hash = md5(content);
+    const isNewTexture = !cache[relativePath] || cache[relativePath] !== hash;
+
     const finalPath = join(scenePath, relativePath);
 
-    await copyFile(file, finalPath);
+    if (isNewTexture) {
+        await copyFile(file, finalPath);
+    }
 
     if (optimize) {
-        await compressFileToKtx(editor, finalPath);
+        await compressFileToKtx(editor, finalPath, undefined, isNewTexture);
     }
 
     if (optimize && supportedImagesExtensions.includes(extension)) {
-        await handleComputeExportedTexture(editor, finalPath);
+        await handleComputeExportedTexture(editor, finalPath, isNewTexture);
     }
+
+    cache[relativePath] = hash;
 }
 
 const scriptsTemplate = `
@@ -286,7 +307,7 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
         });
 }
 
-export async function handleComputeExportedTexture(editor: Editor, absolutePath: string): Promise<void> {
+export async function handleComputeExportedTexture(editor: Editor, absolutePath: string, force: boolean): Promise<void> {
     const extension = extname(absolutePath).toLocaleLowerCase();
 
     const metadata = await sharp(absolutePath).metadata();
@@ -325,7 +346,7 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
         const finalName = `${nameWithoutExtension}_${size.width}_${size.height}${extension}`;
         const finalPath = join(dirname(absolutePath), finalName);
 
-        if (!await pathExists(finalPath)) {
+        if (force || !await pathExists(finalPath)) {
             const log = await editor.layout.console.progress(`Exporting scaled image "${finalName}"`);
 
             try {
@@ -346,6 +367,6 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
             }
         }
 
-        await compressFileToKtx(editor, finalPath);
+        await compressFileToKtx(editor, finalPath, undefined, force);
     }
 }

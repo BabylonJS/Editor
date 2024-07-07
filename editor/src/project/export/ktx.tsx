@@ -17,15 +17,19 @@ export const ktxSupportedextensions: string[] = [
     ".png", ".jpg", ".jpeg", ".bmp"
 ];
 
-export async function compressFileToKtx(editor: Editor, absolutePath: string, format?: KTXToolsType): Promise<void> {
+export async function compressFileToKtx(editor: Editor, absolutePath: string, format?: KTXToolsType, force?: boolean): Promise<void> {
     if (format) {
-        await compressFileToKtxFormat(editor, absolutePath, format);
+        await compressFileToKtxFormat(editor, absolutePath, format, force);
     } else {
-        await Promise.all(allKtxFormats.map((f) => compressFileToKtxFormat(editor, absolutePath, f)));
+        await Promise.all(allKtxFormats.map((f) => compressFileToKtxFormat(editor, absolutePath, f, force)));
     }
 }
 
-export async function compressFileToKtxFormat(editor: Editor, absolutePath: string, format: KTXToolsType): Promise<void> {
+export function t() {
+
+}
+
+export async function compressFileToKtxFormat(editor: Editor, absolutePath: string, format: KTXToolsType, force?: boolean): Promise<void> {
     if (!editor.state.compressedTexturesEnabled) {
         return;
     }
@@ -45,7 +49,7 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
     const filename = `${name.substring(0, name.lastIndexOf("."))}${format}`;
     const destination = join(dirname(absolutePath), filename);
 
-    if (await pathExists(destination)) {
+    if (await pathExists(destination) && !force) {
         return;
     }
 
