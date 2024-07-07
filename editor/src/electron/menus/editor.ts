@@ -134,5 +134,56 @@ export function setupEditorMenu(): void {
                 },
             ],
         },
+        {
+            label: "Add",
+            submenu: [
+                {
+                    label: "Transform Node",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:transform-node"),
+                },
+                {
+                    label: "Box Mesh",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:box-mesh"),
+                },
+                {
+                    label: "Sphere Mesh",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:sphere-mesh"),
+                },
+                {
+                    label: "Ground Mesh",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:ground-mesh"),
+                },
+                {
+                    type: "separator",
+                },
+                {
+                    label: "Point Light",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:point-light"),
+                },
+                {
+                    label: "Directional Light",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:directional-light"),
+                },
+                {
+                    label: "Spot Light",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:spot-light"),
+                },
+                {
+                    label: "Hemispheric Light",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:hemispheric-light"),
+                },
+                {
+                    type: "separator",
+                },
+                {
+                    label: "Free Camera",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:free-camera"),
+                },
+                {
+                    label: "Arc Rotate Camera",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:arc-rotate-camera"),
+                },
+            ],
+        },
     ]));
 }
