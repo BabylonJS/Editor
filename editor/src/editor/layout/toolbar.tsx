@@ -36,6 +36,19 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
         ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
         ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
+
+        ipcRenderer.on("add:transform-node", () => addTransformNode(this.props.editor));
+        ipcRenderer.on("add:box-mesh", () => addBox(this.props.editor));
+        ipcRenderer.on("add:sphere-mesh", () => addSphereMesh(this.props.editor));
+        ipcRenderer.on("add:ground-mesh", () => addGroundMesh(this.props.editor));
+
+        ipcRenderer.on("add:point-light", () => addPointLight(this.props.editor));
+        ipcRenderer.on("add:directional-light", () => addDirectionalLight(this.props.editor));
+        ipcRenderer.on("add:spot-light", () => addSpotLight(this.props.editor));
+        ipcRenderer.on("add:hemispheric-light", () => addHemisphericLight(this.props.editor));
+
+        ipcRenderer.on("add:free-camera", () => addFreeCamera(this.props.editor));
+        ipcRenderer.on("add:arc-rotate-camera", () => addArcRotateCamera(this.props.editor));
     }
 
     public render(): ReactNode {
