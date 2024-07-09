@@ -1,7 +1,7 @@
 import { Component, ReactNode } from "react";
 import { Divider } from "@blueprintjs/core";
 
-import { PointLight } from "babylonjs";
+import { PointLight, Vector3 } from "babylonjs";
 
 import { isPointLight } from "../../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
@@ -55,6 +55,9 @@ export class EditorPointLightInspector extends Component<IEditorInspectorImpleme
                     <Divider />
 
                     <EditorInspectorNumberField label="Intensity" object={this.props.object} property="intensity" />
+                    <EditorInspectorNumberField label="Range" object={this.props.object} property="range" min={0} max={this.props.editor.layout.preview.camera.maxZ} step={this.props.editor.layout.preview.camera.maxZ / 1000} onChange={() => {
+                        this._updateShadowMapRenderListPredicate();
+                    }} />
                 </EditorInspectorSectionField>
 
                 <ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
@@ -62,5 +65,17 @@ export class EditorPointLightInspector extends Component<IEditorInspectorImpleme
                 <EditorLightShadowsInspector light={this.props.object} />
             </>
         );
+    }
+
+    private _updateShadowMapRenderListPredicate(): void {
+        const shadowMap = this.props.object.getShadowGenerator()?.getShadowMap();
+        if (!shadowMap) {
+            return;
+        }
+
+        shadowMap.renderListPredicate = (mesh) => {
+            const distance = Vector3.Distance(mesh.getAbsolutePosition(), this.props.object.getAbsolutePosition());
+            return distance <= this.props.object.range;
+        };
     }
 }
