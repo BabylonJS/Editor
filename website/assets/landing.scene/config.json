@@ -90,7 +90,7 @@
         "name": "camera",
         "id": "camera",
         "state": "",
-        "uniqueId": 21,
+        "uniqueId": 3,
         "type": "EditorCamera",
         "inputsmgr": {
             "FreeCameraKeyboardMoveInput": {

@@ -1,4 +1,4 @@
-import { Node } from "babylonjs";
+import { AbstractMesh, Light, Node } from "babylonjs";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
@@ -13,16 +13,32 @@ import { Editor } from "../../main";
 export function removeNodes(editor: Editor): void {
     const scene = editor.layout.preview.scene;
 
-    const nodes = editor.layout.graph.getSelectedNodes()
-        .filter((n) => n.nodeData)
-        .map((n) => n.nodeData!);
+    type _RemoveNodeData = {
+        node: Node;
+        lights: Light[];
+    };
+
+    const data = editor.layout.graph.getSelectedNodes().map((n) => n.nodeData)
+        .filter((n) => n)
+        .map((n) => ({
+            node: n,
+            lights: scene.lights.filter((light) => {
+                return light.getShadowGenerator()?.getShadowMap()?.renderList?.includes(n as AbstractMesh);
+            }),
+        } as _RemoveNodeData));
 
     registerUndoRedo({
         executeRedo: true,
         undo: () => {
-            nodes.forEach((node) => {
+            data.forEach((data) => {
+                const node = data.node;
+
                 if (isAbstractMesh(node)) {
                     scene.addMesh(node);
+
+                    data.lights.forEach((light) => {
+                        light.getShadowGenerator()?.getShadowMap()?.renderList?.push(node);
+                    });
                 }
 
                 if (isTransformNode(node)) {
@@ -41,16 +57,26 @@ export function removeNodes(editor: Editor): void {
             editor.layout.graph.refresh();
 
             waitNextAnimationFrame().then(() => {
-                const firstsNode = nodes.find((n) => isNode(n)) as Node | null ?? null;
+                const firstsNode = data.find((n) => isNode(n.node))?.node;
 
                 editor.layout.preview.gizmo.setAttachedNode(firstsNode ?? null);
                 editor.layout.inspector.setEditedObject(firstsNode ?? editor.layout.preview.scene);
             });
         },
         redo: () => {
-            nodes.forEach((node) => {
+            data.forEach((data) => {
+                const node = data.node;
+
                 if (isAbstractMesh(node)) {
                     scene.removeMesh(node);
+
+                    data.lights.forEach((light) => {
+                        const renderList = light.getShadowGenerator()?.getShadowMap()?.renderList;
+                        const index = renderList?.indexOf(node) ?? -1;
+                        if (index !== -1) {
+                            renderList?.splice(index, 1);
+                        }
+                    });
                 }
 
                 if (isTransformNode(node)) {
