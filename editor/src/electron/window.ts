@@ -57,6 +57,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         height: height,
         webPreferences: {
             nodeIntegration: true,
+            nodeIntegrationInWorker: true,
             preload: __dirname + "/../preload.js",
         },
     });

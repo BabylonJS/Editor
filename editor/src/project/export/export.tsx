@@ -1,13 +1,13 @@
 import { join, dirname, basename, extname } from "path/posix";
-import { copyFile, pathExists, readFile, readJSON, readdir, writeFile, writeJSON } from "fs-extra";
+import { copyFile, pathExists, readJSON, readdir, writeFile, writeJSON } from "fs-extra";
 
-import md5 from "md5";
 import sharp from "sharp";
 import { SceneSerializer } from "babylonjs";
 
 import { toast } from "sonner";
 
 import { isTexture } from "../../tools/guards/texture";
+import { executeSimpleWorker } from "../../tools/worker";
 import { isEditorCamera } from "../../tools/guards/nodes";
 import { getPowerOfTwoUntil } from "../../tools/maths/scalar";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
@@ -145,7 +145,6 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
     // Export assets
     const promises: Promise<void>[] = [];
     const progressStep = 100 / files.length;
-    const textureCompressionEnabled = editor.state.compressedTexturesEnabled && editor.state.compressedTexturesCliPath !== null;
 
     let cache: Record<string, string> = {};
     try {
@@ -155,7 +154,7 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
     }
 
     for (const file of files) {
-        if (optimize && textureCompressionEnabled && promises.length >= 5) {
+        if (promises.length >= 5) {
             await Promise.all(promises);
             promises.length = 0;
         }
@@ -201,8 +200,7 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
         path = join(path, split[i]);
     }
 
-    const content = await readFile(file);
-    const hash = md5(content);
+    const hash = await executeSimpleWorker<string>(join(__dirname, "./workers/md5.js"), file);
     const isNewTexture = !cache[relativePath] || cache[relativePath] !== hash;
 
     const finalPath = join(scenePath, relativePath);
