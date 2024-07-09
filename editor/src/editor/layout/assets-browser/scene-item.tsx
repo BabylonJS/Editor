@@ -1,12 +1,13 @@
-import { copy, readdir } from "fs-extra";
+import { copy } from "fs-extra";
+import { pathExists } from "fs-extra";
 import { join, basename, dirname } from "path/posix";
-import { pathExists, readJSON, writeJson } from "fs-extra";
 
 import { ReactNode } from "react";
 
 import { SiBabylondotjs } from "react-icons/si";
 import { HiOutlineDuplicate } from "react-icons/hi";
 
+import { renameScene } from "../../../tools/scene/rename";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 
 import { ContextMenuItem } from "../../../ui/shadcn/ui/context-menu";
@@ -52,43 +53,7 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
         await copy(this.props.absolutePath, newAbsolutePath);
 
         // Update relative paths related to scene (geometries, etc.).
-        const [meshesFiles, lodsFiles] = await Promise.all([
-            readdir(join(newAbsolutePath, "meshes")),
-            readdir(join(newAbsolutePath, "lods")),
-        ]);
-
-        await Promise.all([
-            Promise.all(meshesFiles.map(async (file) => {
-                const data = await readJSON(join(newAbsolutePath, "meshes", file));
-
-                try {
-                    data.meshes.forEach((mesh) => {
-                        mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
-                    });
-
-                    await writeJson(join(newAbsolutePath, "meshes", file), data, {
-                        spaces: 4
-                    });
-                } catch (e) {
-                    // Catch silently.
-                }
-            })),
-            Promise.all(lodsFiles.map(async (file) => {
-                const data = await readJSON(join(newAbsolutePath, "lods", file));
-
-                try {
-                    data.meshes.forEach((mesh) => {
-                        mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
-                    });
-
-                    await writeJson(join(newAbsolutePath, "lods", file), data, {
-                        spaces: 4
-                    });
-                } catch (e) {
-                    // Catch silently.
-                }
-            })),
-        ]);
+        await renameScene(this.props.absolutePath, newAbsolutePath);
 
         // Refresh
         this.props.onRefresh();
