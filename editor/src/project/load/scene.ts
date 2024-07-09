@@ -18,6 +18,7 @@ import { isMesh } from "../../tools/guards/nodes";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 
 import { showLoadSceneProgressDialog } from "./progress";
+import { updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 export async function loadScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
     const scene = editor.layout.preview.scene;
@@ -256,6 +257,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         if (isTexture(texture) || isCubeTexture(texture)) {
             texture.url = texture.name;
         }
+    });
+
+    // Configure lights
+    scene.lights.forEach((light) => {
+        updatePointLightShadowMapRenderListPredicate(light);
     });
 
     // Configure waiting parent ids.

@@ -5,7 +5,7 @@ import { PNG } from "pngjs";
 import { createReadStream } from "fs";
 
 import { Editor } from "../../editor/main";
-import { execNodePty } from "../../tools/node-pty";
+import { executeAsync } from "../../tools/process";
 
 export type KTXToolsType = "-astc.ktx" | "-dxt.ktx" | "-pvrtc.ktx" | "-etc1.ktx" | "-etc2.ktx";
 
@@ -97,8 +97,7 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 
     const log = await editor.layout.console.progress(`Compressing image "${filename}"`);
 
-    const p = await execNodePty(command);
-    await p.wait();
+    await executeAsync(command);
 
     log.setState({
         done: true,
