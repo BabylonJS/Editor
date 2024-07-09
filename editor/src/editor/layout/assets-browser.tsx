@@ -23,6 +23,7 @@ import { EditorCamera } from "../nodes/camera";
 import { normalizedGlob } from "../../tools/fs";
 import { UniqueNumber } from "../../tools/tools";
 import { isTexture } from "../../tools/guards/texture";
+import { renameScene } from "../../tools/scene/rename";
 import { openMultipleFilesDialog } from "../../tools/dialog";
 
 import { loadScene } from "../../project/load/scene";
@@ -280,6 +281,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
         // Scene
         if (oldAbsolutePath === this.props.editor.state.lastOpenedScenePath) {
+            renameScene(oldAbsolutePath, newAbsolutePath);
             return this.props.editor.setState({ lastOpenedScenePath: newAbsolutePath });
         }
 
@@ -288,6 +290,11 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
         const fStat = await stat(newAbsolutePath);
         if (fStat.isDirectory()) {
+            const extension = extname(newAbsolutePath).toLowerCase();
+            if (extension === ".scene") {
+                renameScene(oldAbsolutePath, newAbsolutePath);
+            }
+
             const files = await normalizedGlob(join(newAbsolutePath, "**"), {
                 ignore: {
                     ignored: (p) => p.isDirectory(),
