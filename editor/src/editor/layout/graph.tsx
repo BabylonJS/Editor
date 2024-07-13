@@ -357,6 +357,31 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             return null;
         }
 
+        // Check is in graph
+        if (isTransformNode(node)) {
+            if (!node._scene.transformNodes.includes(node)) {
+                return null;
+            }
+        }
+
+        if (isAbstractMesh(node)) {
+            if (!node._scene.meshes.includes(node)) {
+                return null;
+            }
+        }
+
+        if (isLight(node)) {
+            if (!node._scene.lights.includes(node)) {
+                return null;
+            }
+        }
+
+        if (isCamera(node)) {
+            if (!node._scene.cameras.includes(node)) {
+                return null;
+            }
+        }
+
         node.id ??= Tools.RandomId();
 
         const info = {
