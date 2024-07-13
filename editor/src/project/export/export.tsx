@@ -211,7 +211,7 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
 
     const finalPath = join(scenePath, relativePath);
 
-    if (isNewTexture) {
+    if (isNewTexture || !await pathExists(finalPath)) {
         await copyFile(file, finalPath);
     }
 
