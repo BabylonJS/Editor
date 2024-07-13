@@ -58,9 +58,7 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
             return editor.layout.console.error(`Scene "${project.lastOpenedScene}" does not exist.`);
         }
 
-        editor.layout.console.log(`Loading project "${project.lastOpenedScene}"`);
         await loadScene(editor, directory, absolutePath);
-        editor.layout.console.log("Project loaded and editor is ready.");
 
         editor.layout.inspector.setEditedObject(editor.layout.preview.scene);
     }

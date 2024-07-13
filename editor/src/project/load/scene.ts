@@ -24,6 +24,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     const scene = editor.layout.preview.scene;
     const relativeScenePath = scenePath.replace(join(projectPath, "/"), "");
 
+    editor.layout.console.log(`Loading scene "${relativeScenePath}"`);
+
     // Prepare directories
     await Promise.all([
         createDirectoryIfNotExist(join(scenePath, "nodes")),
@@ -329,4 +331,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     });
 
     progress.dispose();
+
+    editor.layout.console.log("Scene loaded and editor is ready.");
 }
