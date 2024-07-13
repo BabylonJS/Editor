@@ -2,21 +2,7 @@ import { Component, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
 
-export interface IEditorExportProjectProgressComponentState {
-    progress: number;
-}
-
-export class EditorSaveProjectProgressComponent extends Component<{}, IEditorExportProjectProgressComponentState> {
-    private _step: number = 0;
-
-    public constructor(props: {}) {
-        super(props);
-
-        this.state = {
-            progress: 0,
-        };
-    }
-
+export class EditorSaveProjectProgressComponent extends Component {
     public render(): ReactNode {
         return (
             <div className="flex gap-5 items-center w-full">
@@ -27,10 +13,5 @@ export class EditorSaveProjectProgressComponent extends Component<{}, IEditorExp
                 </div>
             </div>
         );
-    }
-
-    public step(step: number): void {
-        this._step += step;
-        this.setState({ progress: this._step });
     }
 }
