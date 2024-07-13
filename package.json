@@ -44,7 +44,7 @@
     "@types/react-dom": "16.9.5",
     "dts-bundle": "0.7.3",
     "electron": "13.6.6",
-    "electron-builder": "23.0.3",
+    "electron-builder": "24.13.3",
     "electron-rebuild": "3.2.7",
     "mocha": "8.2.1",
     "spectron": "19.0.0",
