@@ -22,6 +22,7 @@ import { EditorCamera } from "../nodes/camera";
 
 import { normalizedGlob } from "../../tools/fs";
 import { UniqueNumber } from "../../tools/tools";
+import { clearUndoRedo } from "../../tools/undoredo";
 import { isTexture } from "../../tools/guards/texture";
 import { renameScene } from "../../tools/scene/rename";
 import { openMultipleFilesDialog } from "../../tools/dialog";
@@ -751,6 +752,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
         if (!accept) {
             return;
         }
+
+        clearUndoRedo();
 
         this.props.editor.layout.preview.reset();
         this.props.editor.setState({
