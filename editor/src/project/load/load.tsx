@@ -7,9 +7,10 @@ import { Editor } from "../../editor/main";
 
 import { IEditorProject } from "../typings";
 
-import { loadScene } from "./scene";
-import { showLoadScenePrepareDialog } from "./prepare";
 import { execNodePty } from "../../tools/node-pty";
+
+import { loadScene } from "./scene";
+import { LoadScenePrepareComponent } from "./prepare";
 
 export async function loadProject(editor: Editor, path: string): Promise<void> {
     const directory = dirname(path);
@@ -25,23 +26,28 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
     });
 
     // Update dependencies
-    const prepareDialog = await showLoadScenePrepareDialog();
-    const p = await execNodePty("yarn", { cwd: directory });
-    p.onGetDataObservable.add((d) => prepareDialog.writeCommandData(d));
-    await p.wait();
-    prepareDialog.dispose();
+    const toastId = toast(<LoadScenePrepareComponent />, {
+        duration: Infinity,
+        dismissible: false,
+    });
 
-    // Load plugins
-    for (const plugin of project.plugins) {
-        try {
-            const result = require(plugin.nameOrPath);
-            result.main(editor);
-            editor.layout.console.log(`Loaded plugin "${result.title ?? plugin.nameOrPath}"`);
-        } catch (e) {
-            console.error(e);
-            editor.layout.console.error(`Failed to load plugin "${plugin.nameOrPath}"`);
+    const p = await execNodePty("yarn", { cwd: directory });
+    p.wait().then(() => {
+        toast.dismiss(toastId);
+        toast.success("Dependencies successfully updated");
+
+        // Load plugins
+        for (const plugin of project.plugins) {
+            try {
+                const result = require(plugin.nameOrPath);
+                result.main(editor);
+                editor.layout.console.log(`Loaded plugin "${result.title ?? plugin.nameOrPath}"`);
+            } catch (e) {
+                console.error(e);
+                editor.layout.console.error(`Failed to load plugin "${plugin.nameOrPath}"`);
+            }
         }
-    }
+    });
 
     if (project.lastOpenedScene) {
         const absolutePath = join(directory, project.lastOpenedScene);

@@ -71,7 +71,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
     public render(): ReactNode {
         return (
             <>
-                <div className={`flex flex-col gap-4 w-screen h-screen p-5 select-none ${platform() === "darwin" ? "pt-8" : "pt-10"}`}>
+                <div className={`flex flex-col gap-4 w-screen h-screen p-5 select-none overflow-x-hidden ${platform() === "darwin" ? "pt-8" : "pt-10"}`}>
                     <WindowControls />
 
                     <Fade delay={0}>
