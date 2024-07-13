@@ -200,8 +200,14 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
         path = join(path, split[i]);
     }
 
-    const hash = await executeSimpleWorker<string>(join(__dirname, "./workers/md5.js"), file);
-    const isNewTexture = !cache[relativePath] || cache[relativePath] !== hash;
+    let isNewTexture = false;
+
+    if (optimize) {
+        const hash = await executeSimpleWorker<string>(join(__dirname, "./workers/md5.js"), file);
+        isNewTexture = !cache[relativePath] || cache[relativePath] !== hash;
+
+        cache[relativePath] = hash;
+    }
 
     const finalPath = join(scenePath, relativePath);
 
@@ -216,8 +222,6 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
     if (optimize && supportedImagesExtensions.includes(extension)) {
         await handleComputeExportedTexture(editor, finalPath, isNewTexture);
     }
-
-    cache[relativePath] = hash;
 }
 
 const scriptsTemplate = `
