@@ -38,7 +38,6 @@ export async function saveProject(editor: Editor): Promise<void> {
         lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath), ""),
 
         compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
-        compressedTexturesCliPath: editor.state.compressedTexturesCliPath,
     };
 
     await writeJSON(editor.state.projectPath, project, {

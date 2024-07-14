@@ -60,8 +60,10 @@ export interface IEditorState {
      */
     plugins: string[];
 
+    /**
+     * Defines wether or not compressed textures are enabled.
+     */
     compressedTexturesEnabled: boolean;
-    compressedTexturesCliPath: string | null;
 
     /**
      * Defines if the project is being edited.
@@ -92,7 +94,6 @@ export class Editor extends Component<{}, IEditorState> {
             lastOpenedScenePath: null,
 
             compressedTexturesEnabled: false,
-            compressedTexturesCliPath: null,
 
             editProject: false,
             editPreferences: false,

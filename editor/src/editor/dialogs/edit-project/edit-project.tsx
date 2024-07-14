@@ -19,6 +19,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Editor } from "../../main";
 
 import { saveProject } from "../../../project/save/save";
+import { getCompressedTexturesCliPath, setCompressedTexturesCliPath } from "../../../project/export/ktx";
 
 import { EditorEditProjectPluginComponent } from "./plugin";
 
@@ -92,7 +93,7 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
                     </div>
 
                     <Button variant="outline" className="justify-start w-[460px] whitespace-nowrap overflow-hidden text-ellipsis" onClick={() => this._handleBrowsePVRTexToolCliPath()}>
-                        {this.props.editor.state.compressedTexturesCliPath ?? "None"}
+                        {getCompressedTexturesCliPath() ?? "None"}
                     </Button>
                 </div>
             </div>
@@ -105,8 +106,10 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
         });
 
         if (file) {
-            this.props.editor.setState({ compressedTexturesCliPath: file });
+            setCompressedTexturesCliPath(file);
         }
+
+        this.forceUpdate();
     }
 
     private _getPluginsComponent(): ReactNode {

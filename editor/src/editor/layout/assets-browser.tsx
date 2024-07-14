@@ -731,11 +731,15 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
         const extension = extname(item.props.absolutePath).toLowerCase();
         switch (extension) {
+            case ".md":
             case ".png":
             case ".jpg":
-            case ".jpeg":
             case ".bmp":
-            case ".md": return this.props.editor.layout.inspector.setEditedObject(new FileInspectorObject(item.props.absolutePath));
+            case ".jpeg":
+            case ".glb":
+            case ".gltf":
+            case ".babylon":
+                return this.props.editor.layout.inspector.setEditedObject(new FileInspectorObject(item.props.absolutePath));
         }
     }
 

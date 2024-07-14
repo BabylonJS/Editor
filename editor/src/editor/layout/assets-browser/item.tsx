@@ -333,17 +333,17 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
             case ".js":
             case ".jsx":
-                return <SiJavascript size="80px" />;
+                return <SiJavascript size="64px" />;
 
             case ".ts":
             case ".tsx":
-                return <SiTypescript size="80px" />;
+                return <SiTypescript size="64px" />;
 
             case ".css":
                 return <BiSolidFileCss size="64px" />;
 
             case ".md":
-                return <AiFillFileMarkdown size="64px" />;
+                return <AiFillFileMarkdown size="80px" />;
 
             case ".png":
             case ".jpg":
@@ -352,7 +352,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
             case ".ico":
                 return <img alt="" src={this.props.absolutePath} className="w-[120px] aspect-square object-contain" />;
 
-            case ".env": return <SiDotenv size="80px" />;
+            case ".env": return <SiDotenv size="64px" />;
 
             case ".bjseditor": return <SiBabylondotjs size="64px" />;
 
