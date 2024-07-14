@@ -17,6 +17,34 @@ export const ktxSupportedextensions: string[] = [
     ".png", ".jpg", ".jpeg", ".bmp"
 ];
 
+/**
+ * Returns the absolute path to the compressed textures CLI path (PVRTexTool).
+ * The value is retrieved from the local storage so it's per computer and not per project.
+ */
+export function getCompressedTexturesCliPath() {
+    let value = "";
+
+    try {
+        value = localStorage.getItem("editor-compressed-textures-cli-path") ?? "";
+    } catch (e) {
+        // Catch silently.
+    }
+
+    return value || null;
+}
+
+/**
+ * Sets the absolute path to the compressed textures CLI path (PVRTexTool).
+ * The value is stored in the local storage so it's per computer and not per project.
+ */
+export function setCompressedTexturesCliPath(absolutePath: string) {
+    try {
+        localStorage.setItem("editor-compressed-textures-cli-path", absolutePath);
+    } catch (e) {
+        // Catch silently.
+    }
+}
+
 export async function compressFileToKtx(editor: Editor, absolutePath: string, format?: KTXToolsType, force?: boolean): Promise<void> {
     if (format) {
         await compressFileToKtxFormat(editor, absolutePath, format, force);
@@ -34,7 +62,7 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
         return;
     }
 
-    const cliPath = editor.state.compressedTexturesCliPath;
+    const cliPath = getCompressedTexturesCliPath();
     if (!cliPath) {
         return;
     }
@@ -97,10 +125,18 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 
     const log = await editor.layout.console.progress(`Compressing image "${filename}"`);
 
-    await executeAsync(command);
+    try {
+        await executeAsync(command);
 
-    log.setState({
-        done: true,
-        message: `Compressed image "${filename}"`,
-    });
+        log.setState({
+            done: true,
+            message: `Compressed image "${filename}"`,
+        });
+    } catch (e) {
+        log.setState({
+            done: true,
+            error: true,
+            message: `Failed to compress image "${filename}"`,
+        });
+    }
 }

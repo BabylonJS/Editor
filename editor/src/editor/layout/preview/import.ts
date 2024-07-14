@@ -91,6 +91,8 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
         });
     });
 
+    const configuredEmbeddedTextures: number[] = [];
+
     result.meshes.forEach((mesh) => {
         if (isMesh(mesh) && mesh.geometry) {
             mesh.geometry.id = Tools.RandomId();
@@ -104,6 +106,12 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 
         textures.forEach((texture) => {
             if (isTexture(texture)) {
+                if (configuredEmbeddedTextures.includes(texture.uniqueId)) {
+                    return;
+                }
+
+                configuredEmbeddedTextures.push(texture.uniqueId);
+
                 configureImportedTexture(texture);
                 configureEmbeddedTexture(texture, absolutePath);
             }
@@ -158,7 +166,7 @@ export async function configureEmbeddedTexture(texture: Texture, absolutePath: s
         buffer = Buffer.from(texture._buffer as Uint8Array);
     }
 
-    const filename = join(dirname(absolutePath), `editor-generated_${Tools.RandomId()}.${extension}`);
+    const filename = join(dirname(absolutePath), `editor-generated_${texture.name}_${Tools.RandomId()}.${extension}`);
     await writeFile(filename, buffer);
 
     const relativePath = filename.replace(join(dirname(projectConfiguration.path!), "/"), "");

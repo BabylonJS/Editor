@@ -8,8 +8,8 @@
     },
     "layout": {
         "type": "row",
-        "width" : "100%",
-        "height" : "calc(100% - 63px)",
+        "width": "100%",
+        "height": "calc(100% - 63px)",
         "children": [
             {
                 "type": "row",
@@ -28,8 +28,8 @@
                                         "id": "graph",
                                         "name": "Graph",
                                         "component": "graph",
-										"enableClose": false,
-										"enableRenderOnDemand": false
+                                        "enableClose": false,
+                                        "enableRenderOnDemand": false
                                     }
                                 ]
                             },
@@ -42,8 +42,8 @@
                                         "id": "preview",
                                         "name": "Preview",
                                         "component": "preview",
-										"enableClose": false,
-										"enableRenderOnDemand": false
+                                        "enableClose": false,
+                                        "enableRenderOnDemand": false
                                     }
                                 ]
                             }
@@ -53,7 +53,7 @@
                         "type": "tabset",
                         "id": "modules-tabset",
                         "weight": 57,
-						"active": true,
+                        "active": true,
                         "children": [
                             {
                                 "type": "tab",
@@ -63,21 +63,21 @@
                                 "enableClose": false,
                                 "enableRenderOnDemand": false
                             },
-							{
+                            {
                                 "type": "tab",
-                                "id": "assets",
-                                "name": "Assets",
-                                "component": "assets",
-								"enableClose": false,
-								"enableRenderOnDemand": false
+                                "id": "animations",
+                                "name": "Animations",
+                                "component": "animations",
+                                "enableClose": false,
+                                "enableRenderOnDemand": false
                             },
                             {
                                 "type": "tab",
                                 "id": "console",
                                 "name": "Console",
                                 "component": "console",
-								"enableClose": false,
-								"enableRenderOnDemand": false
+                                "enableClose": false,
+                                "enableRenderOnDemand": false
                             }
                         ]
                     }
@@ -92,8 +92,8 @@
                         "id": "inspector",
                         "name": "Inspector",
                         "component": "inspector",
-						"enableClose": false,
-						"enableRenderOnDemand": false
+                        "enableClose": false,
+                        "enableRenderOnDemand": false
                     }
                 ]
             }

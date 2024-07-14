@@ -227,6 +227,15 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
         return (
             <div className="flex flex-col gap-2 h-full">
                 <EditorInspectorSectionField title="Common">
+                    <div className="flex justify-between items-center px-2 py-2">
+                        <div className="w-1/2">
+                            Dimensions
+                        </div>
+
+                        <div className="text-white/50 w-full text-end">
+                            {texture.getSize().width}x{texture.getSize().height}
+                        </div>
+                    </div>
                     <EditorInspectorSwitchField label="Gamma Space" object={texture} property="gammaSpace" />
                     <EditorInspectorSwitchField label="Get Alpha From RGB" object={texture} property="getAlphaFromRGB" />
                 </EditorInspectorSectionField>

@@ -1,11 +1,14 @@
 import { readFile } from "fs-extra";
-import { basename, extname } from "path/posix";
+import { basename, extname, dirname, join } from "path/posix";
 
 import { shell } from "electron";
 
-import { Component, ReactNode, useState } from "react";
+import { Engine, Scene, SceneLoader } from "babylonjs";
+
+import { Component, ReactNode, useEffect, useRef, useState } from "react";
 import { Callout, Divider } from "@blueprintjs/core";
 
+import { BiSolidCube } from "react-icons/bi";
 import Markdown, { RuleType } from "markdown-to-jsx";
 import { AiFillFileMarkdown, AiFillPicture } from "react-icons/ai";
 
@@ -54,16 +57,29 @@ export class EditorFileInspector extends Component<IEditorInspectorImplementatio
         switch (this._extension) {
             case ".png":
             case ".jpg":
-            case ".jpeg":
             case ".bmp":
-                return (
-                    <>
-                        <this._getImageComponent {...this.props} />
-                    </>
-                );
+            case ".jpeg":
+                return <this._getImageComponent {...this.props} />;
 
-            case ".md": return this._getMarkdownComponent();
+            case ".md":
+                return this._getMarkdownComponent();
+
+            case ".glb":
+            case ".gltf":
+            case ".babylon":
+                return <this._getSceneRendererComponent {...this.props} />;
+
             default: return null;
+        }
+    }
+
+    public async componentDidMount(): Promise<void> {
+        switch (this._extension) {
+            case ".md":
+                this.setState({
+                    content: await readFile(this.props.object.absolutePath, "utf-8"),
+                });
+                break;
         }
     }
 
@@ -162,13 +178,46 @@ export class EditorFileInspector extends Component<IEditorInspectorImplementatio
         );
     }
 
-    public async componentDidMount(): Promise<void> {
-        switch (this._extension) {
-            case ".md":
-                this.setState({
-                    content: await readFile(this.props.object.absolutePath, "utf-8"),
-                });
-                break;
-        }
+    private _getSceneRendererComponent(props: IEditorInspectorImplementationProps<FileInspectorObject>): ReactNode {
+        const canvasRef = useRef<HTMLCanvasElement>(null);
+
+        useEffect(() => {
+            const engine = new Engine(canvasRef.current!, true, {
+                antialias: true,
+                adaptToDeviceRatio: true,
+                useHighPrecisionFloats: true,
+                useHighPrecisionMatrix: true,
+            });
+
+            const scene = new Scene(engine);
+
+            const rootUrl = dirname(props.object.absolutePath);
+            SceneLoader.Append(join(rootUrl, "/"), basename(props.object.absolutePath), scene, () => {
+                scene.createDefaultCameraOrLight(true, true, true);
+                scene.createDefaultEnvironment();
+
+                engine.runRenderLoop(() => scene.render());
+            });
+
+            return () => {
+                scene.dispose();
+                engine.dispose();
+            };
+        }, []);
+
+        return (
+            <div className="flex flex-col gap-2">
+                <div className="flex gap-2 justify-center items-center text-xl font-bold">
+                    <BiSolidCube size="24px" />
+                    {basename(props.object.absolutePath)}
+                </div>
+
+                <Divider />
+
+                <div className="w-full aspect-square p-5 rounded-lg bg-black/50">
+                    <canvas ref={canvasRef} className="w-full aspect-square object-contain" />
+                </div>
+            </div>
+        );
     }
 }
