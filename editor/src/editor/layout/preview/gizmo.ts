@@ -1,6 +1,5 @@
 import { GizmoCoordinatesMode, Node, Observable, PositionGizmo, Quaternion, RotationGizmo, ScaleGizmo, Scene, UtilityLayerRenderer, Vector3 } from "babylonjs";
 
-import { isLight } from "../../../tools/guards/nodes";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isQuaternion, isVector3 } from "../../../tools/guards/math";
 import { updateLightShadowMapRefreshRate } from "../../../tools/light/shadows";
@@ -128,9 +127,9 @@ export class EditorPreviewGizmo {
         });
 
         gizmo.onDragObservable.add(() => {
-            if (isLight(temporaryNode)) {
-                updateLightShadowMapRefreshRate(temporaryNode);
-            }
+            this._gizmosLayer.originalScene.lights.forEach((light) => {
+                updateLightShadowMapRefreshRate(light);
+            });
         });
 
         gizmo.onDragEndObservable.add(() => {
@@ -187,9 +186,9 @@ export class EditorPreviewGizmo {
         });
 
         gizmo.onDragObservable.add(() => {
-            if (isLight(temporaryNode)) {
-                updateLightShadowMapRefreshRate(temporaryNode);
-            }
+            this._gizmosLayer.originalScene.lights.forEach((light) => {
+                updateLightShadowMapRefreshRate(light);
+            });
         });
 
         gizmo.onDragEndObservable.add(() => {

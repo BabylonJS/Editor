@@ -204,7 +204,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
                                     <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="lensSize" label="Lens Size" step={0.1} />
                                     <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="fStop" label="F-stop" step={0.01} />
-                                    <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="focusDistance" label="Focus Distance" step={10} />
+                                    <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="focusDistance" label="Focus Distance" min={0} max={this.props.editor.layout.preview.scene.activeCamera?.maxZ} step={this.props.editor.layout.preview.camera.maxZ / 1000} />
                                     <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="focalLength" label="Focal Length" step={0.01} />
                                 </>
                             }

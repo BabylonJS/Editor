@@ -567,7 +567,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                 case ".ms3d":
                 case ".blend":
                 case ".babylon":
-                    this.importSceneFile(absolutePath, true);
+                    this.importSceneFile(absolutePath, true).then((result) => {
+                        if (pick.pickedPoint) {
+                            result?.meshes.forEach((m) => !m.parent && m.position.addInPlace(pick.pickedPoint!));
+                            result?.transformNodes.forEach((t) => !t.parent && t.position.addInPlace(pick.pickedPoint!));
+                        }
+                    });
                     break;
 
                 case ".env":
