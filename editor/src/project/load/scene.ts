@@ -1,7 +1,7 @@
 import { join } from "path/posix";
 import { readJSON, readdir } from "fs-extra";
 
-import { AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode } from "babylonjs";
+import { AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager, RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 import { EditorCamera } from "../../editor/nodes/camera";
@@ -245,10 +245,17 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     await Promise.all(shadowGeneratorFiles.map(async (file) => {
         const data = await readJSON(join(scenePath, "shadowGenerators", file), "utf-8");
 
+        let shadowGenerator: ShadowGenerator;
+
         if (data.className === CascadedShadowGenerator.CLASSNAME) {
-            CascadedShadowGenerator.Parse(data, scene);
+            shadowGenerator = CascadedShadowGenerator.Parse(data, scene);
         } else {
-            ShadowGenerator.Parse(data, scene);
+            shadowGenerator = ShadowGenerator.Parse(data, scene);
+        }
+
+        const shadowMap = shadowGenerator.getShadowMap();
+        if (shadowMap) {
+            shadowMap.refreshRate = data.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
         }
 
         progress.step(progressStep);

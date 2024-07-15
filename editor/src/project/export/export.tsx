@@ -2,7 +2,7 @@ import { join, dirname, basename, extname } from "path/posix";
 import { copyFile, pathExists, readJSON, readdir, writeFile, writeJSON } from "fs-extra";
 
 import sharp from "sharp";
-import { SceneSerializer } from "babylonjs";
+import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { toast } from "sonner";
 
@@ -127,6 +127,18 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
             }
         }
     }));
+
+    // Configure lights
+    data.shadowGenerators?.forEach((shadowGenerator) => {
+        const instantiatedLight = scene.getLightById(shadowGenerator.lightId);
+        const instantiatedShadowGenerator = instantiatedLight?.getShadowGenerator();
+
+        const light = data.lights?.find((light) => light.id === shadowGenerator.lightId);
+        if (light && instantiatedShadowGenerator) {
+            light.metadata ??= {};
+            light.metadata.refreshRate = instantiatedShadowGenerator?.getShadowMap()?.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+        }
+    });
 
     // Write final scene file.
     await writeJSON(join(scenePath, `${sceneName}.babylon`), data);

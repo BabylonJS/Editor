@@ -1,7 +1,7 @@
 import { join, basename } from "path/posix";
 import { readJSON, remove, stat, writeJSON } from "fs-extra";
 
-import { SceneSerializer } from "babylonjs";
+import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
@@ -188,7 +188,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             const shadowGeneratorPath = join(scenePath, "shadowGenerators", `${shadowGenerator.id}.json`);
 
             try {
-                await writeJSON(shadowGeneratorPath, shadowGenerator.serialize(), {
+                const shadowGeneratorData = shadowGenerator.serialize();
+                shadowGeneratorData.refreshRate = shadowGenerator.getShadowMap()?.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+
+                await writeJSON(shadowGeneratorPath, shadowGeneratorData, {
                     spaces: 4,
                 });
             } catch (e) {

@@ -6,7 +6,7 @@ import { parseSSAO2RenderingPipeline } from "./rendering/ssao";
 import { parseMotionBlurPostProcess } from "./rendering/motion-blur";
 import { parseDefaultRenderingPipeline } from "./rendering/default-pipeline";
 
-import { configureShadowMapRenderListPredicate } from "./light";
+import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "./light";
 
 import "./texture";
 
@@ -49,6 +49,7 @@ export async function loadScene(rootUrl: string, sceneFilename: string, scene: S
     await SceneLoader.AppendAsync(rootUrl, sceneFilename, scene);
 
     configureShadowMapRenderListPredicate(scene);
+    configureShadowMapRefreshRate(scene);
 
     if (scene.metadata?.rendering) {
         const camera = scene.activeCamera ?? scene.cameras[0];
