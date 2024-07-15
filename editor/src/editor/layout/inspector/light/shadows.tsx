@@ -1,7 +1,7 @@
 import { Divider } from "@blueprintjs/core";
 import { Component, PropsWithChildren, ReactNode } from "react";
 
-import { CascadedShadowGenerator, DirectionalLight, IShadowGenerator, IShadowLight, ShadowGenerator } from "babylonjs";
+import { CascadedShadowGenerator, DirectionalLight, IShadowGenerator, IShadowLight, RenderTargetTexture, ShadowGenerator } from "babylonjs";
 
 import { getPowerOfTwoSizesUntil } from "../../../../tools/maths/scalar";
 import { isDirectionalLight, isPointLight } from "../../../../tools/guards/nodes";
@@ -147,12 +147,22 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
             return null;
         }
 
+        const shadowMap = generator.getShadowMap();
+
         return (
             <>
                 {this.props.children}
                 <EditorInspectorNumberField object={generator} property="bias" step={0.000001} min={0} max={1} label="Bias" />
                 <EditorInspectorNumberField object={generator} property="normalBias" step={0.000001} min={0} max={1} label="Normal Bias" />
                 <EditorInspectorNumberField object={generator} property="darkness" step={0.01} min={0} max={1} label="Darkness" />
+
+                {shadowMap &&
+                    <EditorInspectorListField object={shadowMap} property="refreshRate" label="Refresh Rate" items={[
+                        { text: "Once", value: RenderTargetTexture.REFRESHRATE_RENDER_ONCE },
+                        { text: "2 Frames", value: RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYTWOFRAMES },
+                        { text: "Every Frame", value: RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME },
+                    ]} />
+                }
             </>
         );
     }
