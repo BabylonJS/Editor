@@ -8,7 +8,7 @@ import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
 import {
     ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSub, ContextMenuSubTrigger,
-    ContextMenuSubContent, ContextMenuShortcut,
+    ContextMenuSubContent, ContextMenuShortcut, ContextMenuCheckboxItem
 } from "../../../ui/shadcn/ui/context-menu";
 
 import { isScene } from "../../../tools/guards/scene";
@@ -81,6 +81,20 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                 <>
                                     <ContextMenuSeparator />
 
+                                    <ContextMenuCheckboxItem checked={this.props.object.metadata?.doNotSerialize ?? false} onClick={() => {
+                                        this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
+                                            if (isNode(node.nodeData)) {
+                                                node.nodeData.metadata ??= {};
+                                                node.nodeData.metadata.doNotSerialize = !node.nodeData.metadata.doNotSerialize ?? true;
+                                            }
+                                        });
+                                        this.props.editor.layout.graph.refresh();
+                                    }}>
+                                        Do not serialize
+                                    </ContextMenuCheckboxItem>
+
+                                    <ContextMenuSeparator />
+
                                     {this._getRemoveItems()}
                                 </>
                             }
@@ -111,39 +125,42 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                 </ContextMenuItem>
 
                 {isMesh(this.props.object) &&
-                    <ContextMenuItem
-                        onClick={() => {
-                            const instance = (this.props.object as Mesh).createInstance(`${this.props.object.name} (Mesh Instance)`);
-                            instance.id = Tools.RandomId();
-                            instance.uniqueId = UniqueNumber.Get();
-                            instance.parent = this.props.object.parent;
-                            instance.position.copyFrom(this.props.object.position);
-                            instance.rotation.copyFrom(this.props.object.rotation);
-                            instance.scaling.copyFrom(this.props.object.scaling);
-                            instance.rotationQuaternion = this.props.object.rotationQuaternion?.clone() ?? null;
-                            instance.isVisible = this.props.object.isVisible;
-                            instance.setEnabled(this.props.object.isEnabled());
+                    <>
+                        <ContextMenuSeparator />
+                        <ContextMenuItem
+                            onClick={() => {
+                                const instance = (this.props.object as Mesh).createInstance(`${this.props.object.name} (Mesh Instance)`);
+                                instance.id = Tools.RandomId();
+                                instance.uniqueId = UniqueNumber.Get();
+                                instance.parent = this.props.object.parent;
+                                instance.position.copyFrom(this.props.object.position);
+                                instance.rotation.copyFrom(this.props.object.rotation);
+                                instance.scaling.copyFrom(this.props.object.scaling);
+                                instance.rotationQuaternion = this.props.object.rotationQuaternion?.clone() ?? null;
+                                instance.isVisible = this.props.object.isVisible;
+                                instance.setEnabled(this.props.object.isEnabled());
 
-                            const lights = this.props.editor.layout.preview.scene.lights;
-                            const shadowMaps = lights.map((light) => light.getShadowGenerator()?.getShadowMap()).filter((s) => s);
+                                const lights = this.props.editor.layout.preview.scene.lights;
+                                const shadowMaps = lights.map((light) => light.getShadowGenerator()?.getShadowMap()).filter((s) => s);
 
-                            shadowMaps.forEach((shadowMap) => {
-                                if (shadowMap?.renderList?.includes(this.props.object)) {
-                                    shadowMap.renderList.push(instance);
-                                }
-                            });
+                                shadowMaps.forEach((shadowMap) => {
+                                    if (shadowMap?.renderList?.includes(this.props.object)) {
+                                        shadowMap.renderList.push(instance);
+                                    }
+                                });
 
-                            this.props.editor.layout.graph.refresh();
+                                this.props.editor.layout.graph.refresh();
 
-                            waitNextAnimationFrame().then(() => {
-                                this.props.editor.layout.graph.setSelectedNode(instance);
-                                this.props.editor.layout.inspector.setEditedObject(instance);
-                                this.props.editor.layout.preview.gizmo.setAttachedNode(instance);
-                            });
-                        }}
-                    >
-                        Create Instance
-                    </ContextMenuItem>
+                                waitNextAnimationFrame().then(() => {
+                                    this.props.editor.layout.graph.setSelectedNode(instance);
+                                    this.props.editor.layout.inspector.setEditedObject(instance);
+                                    this.props.editor.layout.preview.gizmo.setAttachedNode(instance);
+                                });
+                            }}
+                        >
+                            Create Instance
+                        </ContextMenuItem>
+                    </>
                 }
             </>
         );

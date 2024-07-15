@@ -138,7 +138,12 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
     return (
         <div
             draggable
-            className={`ml-2 p-1 w-full ${over ? "bg-muted" : ""} transition-all duration-300 ease-in-out`}
+            className={`
+                ml-2 p-1 w-full
+                ${over ? "bg-muted" : ""}
+                ${props.object.metadata?.doNotSerialize ? "text-foreground/35 line-through" : ""}
+                transition-all duration-300 ease-in-out
+            `}
             onDragStart={(ev) => handleDragStart(ev)}
             onDragOver={(ev) => handleDragOver(ev)}
             onDragLeave={(ev) => handleDragLeave(ev)}
