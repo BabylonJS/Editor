@@ -66,7 +66,17 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
         }
     });
 
+    scene.meshes.forEach((mesh) => mesh.doNotSerialize = mesh.metadata?.doNotSerialize ?? false);
+    scene.lights.forEach((light) => light.doNotSerialize = light.metadata?.doNotSerialize ?? false);
+    scene.cameras.forEach((camera) => camera.doNotSerialize = camera.metadata?.doNotSerialize ?? false);
+    scene.transformNodes.forEach((transformNode) => transformNode.doNotSerialize = transformNode.metadata?.doNotSerialize ?? false);
+
     const data = await SceneSerializer.SerializeAsync(scene);
+
+    scene.meshes.forEach((mesh) => mesh.doNotSerialize = false);
+    scene.lights.forEach((light) => light.doNotSerialize = false);
+    scene.cameras.forEach((camera) => camera.doNotSerialize = false);
+    scene.transformNodes.forEach((transformNode) => transformNode.doNotSerialize = false);
 
     const editorCameraIndex = data.cameras?.findIndex((camera) => camera.id === editorCamera?.id);
     if (editorCameraIndex !== -1) {
