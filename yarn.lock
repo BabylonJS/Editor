@@ -1639,7 +1639,7 @@ babylonjs-editor-tools@latest:
   integrity sha512-zHGmpqXOwyqgVsEZUgpeZKl2OqlxG52pvi1URu+wqtvZiGyV9RauBd8oO59Cp5zvvQcSrEj3MdwqdQ2/DOACfA==
 
 "babylonjs-editor-tools@link:tools":
-  version "0.0.4"
+  version "0.0.5"
 
 "babylonjs-editor@link:editor":
   version "5.0.0"
