@@ -35,7 +35,7 @@ export type ScriptMap = Record<
  * Using "medium" or "low" quality levels will reduce the memory usage and improve the performance of the scene
  * especially on mobiles where memory is limited.
  */
-export type SceneLoaderQualitySelector = "low" | "medium" | "hight";
+export type SceneLoaderQualitySelector = "low" | "medium" | "high";
 
 declare module "@babylonjs/core/scene" {
     interface Scene {
@@ -43,7 +43,7 @@ declare module "@babylonjs/core/scene" {
     }
 }
 
-export async function loadScene(rootUrl: string, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, quality: SceneLoaderQualitySelector = "hight") {
+export async function loadScene(rootUrl: string, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, quality: SceneLoaderQualitySelector = "high") {
     scene.loadingQuality = quality;
 
     await SceneLoader.AppendAsync(rootUrl, sceneFilename, scene);

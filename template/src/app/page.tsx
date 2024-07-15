@@ -55,7 +55,7 @@ export default function Home() {
 
         const scene = new Scene(engine);
 
-        loadScene("/scene/", "example.babylon", scene, scriptsMap, "hight").then(() => {
+        loadScene("/scene/", "example.babylon", scene, scriptsMap, "high").then(() => {
             if (scene.activeCamera) {
                 scene.activeCamera.attachControl();
             }
