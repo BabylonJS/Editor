@@ -15,7 +15,7 @@ import { onNodesAddedObservable } from "../../../tools/observables";
 import { projectConfiguration } from "../../../project/configuration";
 
 export async function tryConvertSceneFile(absolutePath: string, progress?: (percent: number) => void): Promise<string> {
-    const toolsUrl = process.env.EDITOR_TOOLS_URL ?? "http://161.35.170.6:3000";
+    const toolsUrl = process.env.EDITOR_TOOLS_URL ?? "https://editor.babylonjs.com";
     const buffer = await readFile(absolutePath);
     const blob = new Blob([buffer], { type: "application/octet-stream" });
     const file = new File([blob], basename(absolutePath), { type: "application/octet-stream" });
@@ -100,11 +100,8 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
         }
 
         const textures = mesh.material?.getActiveTextures();
-        if (!textures?.length) {
-            return;
-        }
 
-        textures.forEach((texture) => {
+        textures?.forEach((texture) => {
             if (isTexture(texture)) {
                 if (configuredEmbeddedTextures.includes(texture.uniqueId)) {
                     return;
