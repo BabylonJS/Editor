@@ -18,19 +18,31 @@ SerializationHelper._TextureParser = (sourceProperty: any, scene: Scene, rootUrl
     const width = sourceProperty.metadata.baseSize.width;
     const height = sourceProperty.metadata.baseSize.height;
 
+    const isPowerOfTwo = width === getPowerOfTwoUntil(width) || height === getPowerOfTwoUntil(height);
+
     let suffix = "";
 
     switch (scene.loadingQuality) {
         case "medium":
-            const midWidth = getPowerOfTwoUntil(width * 0.66);
-            const midHeight = getPowerOfTwoUntil(height * 0.66);
+            let midWidth = (width * 0.66) >> 0;
+            let midHeight = (height * 0.66) >> 0;
+
+            if (isPowerOfTwo) {
+                midWidth = getPowerOfTwoUntil(midWidth);
+                midHeight = getPowerOfTwoUntil(midHeight);
+            }
 
             suffix = `_${midWidth}_${midHeight}`;
             break;
 
         case "low":
-            const lowWidth = getPowerOfTwoUntil(width * 0.33);
-            const lowHeight = getPowerOfTwoUntil(height * 0.33);
+            let lowWidth = (width * 0.33) >> 0;
+            let lowHeight = (height * 0.33) >> 0;
+
+            if (isPowerOfTwo) {
+                lowWidth = getPowerOfTwoUntil(lowWidth);
+                lowHeight = getPowerOfTwoUntil(lowHeight);
+            }
 
             suffix = `_${lowWidth}_${lowHeight}`;
             break;

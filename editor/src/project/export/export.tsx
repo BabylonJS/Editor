@@ -342,6 +342,8 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
     const width = metadata.width;
     const height = metadata.height;
 
+    const isPowerOfTwo = width === getPowerOfTwoUntil(width) || height === getPowerOfTwoUntil(height);
+
     type _DownscaledTextureSize = {
         width: number;
         height: number;
@@ -349,20 +351,30 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
 
     const availableSizes: _DownscaledTextureSize[] = [];
 
-    const midWidth = width * 0.66;
-    const midHeight = height * 0.66;
+    let midWidth = (width * 0.66) >> 0;
+    let midHeight = (height * 0.66) >> 0;
+
+    if (isPowerOfTwo) {
+        midWidth = getPowerOfTwoUntil(midWidth);
+        midHeight = getPowerOfTwoUntil(midHeight);
+    }
 
     availableSizes.push({
-        width: getPowerOfTwoUntil(midWidth),
-        height: getPowerOfTwoUntil(midHeight),
+        width: midWidth,
+        height: midHeight,
     });
 
-    const lowWidth = width * 0.33;
-    const lowHeight = height * 0.33;
+    let lowWidth = (width * 0.33) >> 0;
+    let lowHeight = (height * 0.33) >> 0;
+
+    if (isPowerOfTwo) {
+        lowWidth = getPowerOfTwoUntil(lowWidth);
+        lowHeight = getPowerOfTwoUntil(lowHeight);
+    }
 
     availableSizes.push({
-        width: getPowerOfTwoUntil(lowWidth),
-        height: getPowerOfTwoUntil(lowHeight),
+        width: lowWidth,
+        height: lowHeight,
     });
 
     for (const size of availableSizes) {

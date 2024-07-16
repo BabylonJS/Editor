@@ -146,3 +146,6 @@ website/.env
 # Quixel
 quixel/build
 quixel/declaration
+
+# Test
+/test
