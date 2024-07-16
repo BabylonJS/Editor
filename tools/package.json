@@ -10,7 +10,7 @@
     "typings": "declaration/index.ts",
     "license": "(Apache-2.0)",
     "devDependencies": {
-        "@babylonjs/core": "7.0.0",
+        "@babylonjs/core": "7.15.1",
         "typescript": "5.3.3"
     },
     "dependencies": {}

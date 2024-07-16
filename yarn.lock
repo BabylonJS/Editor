@@ -87,10 +87,20 @@
   resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-7.0.0.tgz#271b092d5dbf6b1c6ad0bae7c384dfd3d0b5ce18"
   integrity sha512-mcRkvl4Ca+hRrKckE8vW9xpO90j8bwMfMXGivDtfzGNTUyVqYL0EVuE8wkSn8bvZRXkw8Lc5T2XVmwdcUm9Nyg==
 
+"@babylonjs/core@7.15.1":
+  version "7.15.1"
+  resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-7.15.1.tgz#af3811327195fc90c8c34d79522a7da37906e69e"
+  integrity sha512-YL/ecq7WnjFJY60xtCocweDeZLz85OE+yX6draSoAnNyY2tPGoLoZW9Tpai8kjocWsr6O2Qa5fSzEnpWBZZElQ==
+
 "@babylonjs/materials@7.0.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-7.0.0.tgz#d7d9fdcb755e6adc8ba651c943dec3820bcefbd7"
   integrity sha512-h3UfThLA6VsFMxiDHIR2N+j8AAZBnfyEDXXl8Hu5RNtbg+bkTFr3b0Ka+I2ac4g5S96qBvk/nV7NxFCmrp3TMg==
+
+"@babylonjs/materials@7.15.1":
+  version "7.15.1"
+  resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-7.15.1.tgz#6267cfac357f7dcd55ab73e2c1245b4eb64f9bb2"
+  integrity sha512-o7430We+fYBZc871yPsi5K/TMkgYG9YtYvCgDfWGkwTd9BZiuhKuosbvxQl9bt305OCgD2couNhcA3JyGnZ06Q==
 
 "@blueprintjs/colors@^5.1.1":
   version "5.1.1"
