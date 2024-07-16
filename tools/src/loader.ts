@@ -6,6 +6,8 @@ import { parseSSAO2RenderingPipeline } from "./rendering/ssao";
 import { parseMotionBlurPostProcess } from "./rendering/motion-blur";
 import { parseDefaultRenderingPipeline } from "./rendering/default-pipeline";
 
+import { applyDecorators } from "./decorators/apply";
+
 import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "./light";
 
 import "./texture";
@@ -46,7 +48,7 @@ declare module "@babylonjs/core/scene" {
 export async function loadScene(rootUrl: string, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, quality: SceneLoaderQualitySelector = "high") {
     scene.loadingQuality = quality;
 
-    await SceneLoader.AppendAsync(rootUrl, sceneFilename, scene);
+    await SceneLoader.AppendAsync(rootUrl, sceneFilename, scene, null, ".babylon");
 
     configureShadowMapRenderListPredicate(scene);
     configureShadowMapRefreshRate(scene);
@@ -95,6 +97,8 @@ export function loadScriptsFor(scene: Scene, object: any, scriptsMap: ScriptMap)
 
         if (exports.default) {
             const instance = new exports.default(object);
+
+            applyDecorators(scene, object, instance);
 
             if (instance.onStart) {
                 scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
