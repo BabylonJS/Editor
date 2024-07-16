@@ -3,8 +3,10 @@ import { Component, PropsWithChildren, ReactNode } from "react";
 
 import { CascadedShadowGenerator, DirectionalLight, IShadowGenerator, IShadowLight, RenderTargetTexture, ShadowGenerator } from "babylonjs";
 
+import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { getPowerOfTwoSizesUntil } from "../../../../tools/maths/scalar";
 import { isDirectionalLight, isPointLight } from "../../../../tools/guards/nodes";
+import { updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 import { isCascadedShadowGenerator, isShadowGenerator } from "../../../../tools/guards/shadows";
 
 import { EditorInspectorNumberField } from "../fields/number";
@@ -113,7 +115,20 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
     }
 
     private _reszeShadowGenerator(size: number): void {
-        this.state.generator?.getShadowMap()?.resize(size);
+        const shadowMap = this.state.generator?.getShadowMap();
+        if (shadowMap) {
+            const refreshRate = shadowMap.refreshRate;
+            shadowMap.resize(size);
+
+            waitNextAnimationFrame().then(() => {
+                updatePointLightShadowMapRenderListPredicate(this.props.light);
+
+                const newShadowMap = this.state.generator?.getShadowMap();
+                if (newShadowMap) {
+                    newShadowMap.refreshRate = refreshRate;
+                }
+            });
+        }
     }
 
     private _getEmptyShadowGeneratorComponent(): ReactNode {

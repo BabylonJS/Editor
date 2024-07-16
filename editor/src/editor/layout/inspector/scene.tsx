@@ -202,10 +202,17 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
                                         { text: "High", value: DepthOfFieldEffectBlurLevel.High },
                                     ]} onChange={() => this.forceUpdate()} />
 
-                                    <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="lensSize" label="Lens Size" step={0.1} />
-                                    <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="fStop" label="F-stop" step={0.01} />
-                                    <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="focusDistance" label="Focus Distance" min={0} max={this.props.editor.layout.preview.scene.activeCamera?.maxZ} step={this.props.editor.layout.preview.camera.maxZ / 1000} />
-                                    <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="focalLength" label="Focal Length" step={0.01} />
+                                    <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="lensSize" label="Lens Size" step={0.1} min={0} />
+                                    <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="fStop" label="F-stop" step={0.01} min={0} />
+                                    <EditorInspectorNumberField
+                                        min={0}
+                                        label="Focus Distance"
+                                        property="focusDistance"
+                                        object={defaultRenderingPipeline.depthOfField}
+                                        step={(this.props.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000}
+                                        max={(this.props.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) * 1000}
+                                    />
+                                    <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="focalLength" label="Focal Length" step={0.01} min={0} />
                                 </>
                             }
                         </EditorInspectorSectionField>
