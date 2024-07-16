@@ -36,11 +36,15 @@ export function serializeMotionBlurPostProcess(): any {
 }
 
 export function parseMotionBlurPostProcess(scene: Scene, camera: Camera, data: any): MotionBlurPostProcess {
-    const motionBlurPostProcess = createMotionBlurPostProcess(scene, camera);
+    if (motionBlurPostProcess) {
+        return motionBlurPostProcess;
+    }
 
-    motionBlurPostProcess.isObjectBased = data.isObjectBased;
-    motionBlurPostProcess.motionStrength = data.motionStrength;
-    motionBlurPostProcess.motionBlurSamples = data.motionBlurSamples;
+    const postProcess = createMotionBlurPostProcess(scene, camera);
 
-    return motionBlurPostProcess;
+    postProcess.isObjectBased = data.isObjectBased;
+    postProcess.motionStrength = data.motionStrength;
+    postProcess.motionBlurSamples = data.motionBlurSamples;
+
+    return postProcess;
 }

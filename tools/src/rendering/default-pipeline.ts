@@ -2,7 +2,6 @@ import { Scene } from "@babylonjs/core/scene";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
 
-
 let defaultRenderingPipeline: DefaultRenderingPipeline | null = null;
 
 /**
@@ -72,42 +71,46 @@ export function serializeDefaultRenderingPipeline(): any {
 }
 
 export function parseDefaultRenderingPipeline(scene: Scene, camera: Camera, data: any): DefaultRenderingPipeline {
-    const defaultRenderingPipeline = createDefaultRenderingPipeline(scene, camera);
-
-    defaultRenderingPipeline.samples = data.samples;
-    defaultRenderingPipeline.fxaaEnabled = data.fxaaEnabled;
-
-    defaultRenderingPipeline.imageProcessingEnabled = data.imageProcessingEnabled;
-    if (defaultRenderingPipeline.imageProcessing) {
-        defaultRenderingPipeline.imageProcessing.exposure = data.exposure;
-        defaultRenderingPipeline.imageProcessing.contrast = data.contrast;
-        defaultRenderingPipeline.imageProcessing.fromLinearSpace = data.fromLinearSpace;
-        defaultRenderingPipeline.imageProcessing.toneMappingEnabled = data.toneMappingEnabled;
-        defaultRenderingPipeline.imageProcessing.toneMappingType = data.toneMappingType;
-        defaultRenderingPipeline.imageProcessing.ditheringEnabled = data.ditheringEnabled;
-        defaultRenderingPipeline.imageProcessing.ditheringIntensity = data.ditheringIntensity;
+    if (defaultRenderingPipeline) {
+        return defaultRenderingPipeline;
     }
 
-    defaultRenderingPipeline.bloomEnabled = data.bloomEnabled;
-    defaultRenderingPipeline.bloomThreshold = data.bloomThreshold;
-    defaultRenderingPipeline.bloomWeight = data.bloomWeight;
-    defaultRenderingPipeline.bloomScale = data.bloomScale;
-    defaultRenderingPipeline.bloomKernel = data.bloomKernel;
+    const pipeline = createDefaultRenderingPipeline(scene, camera);
 
-    defaultRenderingPipeline.sharpenEnabled = data.sharpenEnabled;
-    defaultRenderingPipeline.sharpen.edgeAmount = data.sharpenEdgeAmount;
-    defaultRenderingPipeline.sharpen.colorAmount = data.sharpenColorAmount;
+    pipeline.samples = data.samples;
+    pipeline.fxaaEnabled = data.fxaaEnabled;
 
-    defaultRenderingPipeline.grainEnabled = data.grainEnabled;
-    defaultRenderingPipeline.grain.intensity = data.grainIntensity;
-    defaultRenderingPipeline.grain.animated = data.grainAnimated;
+    pipeline.imageProcessingEnabled = data.imageProcessingEnabled;
+    if (pipeline.imageProcessing) {
+        pipeline.imageProcessing.exposure = data.exposure;
+        pipeline.imageProcessing.contrast = data.contrast;
+        pipeline.imageProcessing.fromLinearSpace = data.fromLinearSpace;
+        pipeline.imageProcessing.toneMappingEnabled = data.toneMappingEnabled;
+        pipeline.imageProcessing.toneMappingType = data.toneMappingType;
+        pipeline.imageProcessing.ditheringEnabled = data.ditheringEnabled;
+        pipeline.imageProcessing.ditheringIntensity = data.ditheringIntensity;
+    }
 
-    defaultRenderingPipeline.depthOfFieldEnabled = data.depthOfFieldEnabled;
-    defaultRenderingPipeline.depthOfFieldBlurLevel = data.depthOfFieldBlurLevel;
-    defaultRenderingPipeline.depthOfField.lensSize = data.lensSize;
-    defaultRenderingPipeline.depthOfField.fStop = data.fStop;
-    defaultRenderingPipeline.depthOfField.focusDistance = data.focusDistance;
-    defaultRenderingPipeline.depthOfField.focalLength = data.focalLength;
+    pipeline.bloomEnabled = data.bloomEnabled;
+    pipeline.bloomThreshold = data.bloomThreshold;
+    pipeline.bloomWeight = data.bloomWeight;
+    pipeline.bloomScale = data.bloomScale;
+    pipeline.bloomKernel = data.bloomKernel;
 
-    return defaultRenderingPipeline;
+    pipeline.sharpenEnabled = data.sharpenEnabled;
+    pipeline.sharpen.edgeAmount = data.sharpenEdgeAmount;
+    pipeline.sharpen.colorAmount = data.sharpenColorAmount;
+
+    pipeline.grainEnabled = data.grainEnabled;
+    pipeline.grain.intensity = data.grainIntensity;
+    pipeline.grain.animated = data.grainAnimated;
+
+    pipeline.depthOfFieldEnabled = data.depthOfFieldEnabled;
+    pipeline.depthOfFieldBlurLevel = data.depthOfFieldBlurLevel;
+    pipeline.depthOfField.lensSize = data.lensSize;
+    pipeline.depthOfField.fStop = data.fStop;
+    pipeline.depthOfField.focusDistance = data.focusDistance;
+    pipeline.depthOfField.focalLength = data.focalLength;
+
+    return pipeline;
 }
