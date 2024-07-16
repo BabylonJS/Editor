@@ -6,8 +6,8 @@ import { CascadedShadowGenerator, DirectionalLight, IShadowGenerator, IShadowLig
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { getPowerOfTwoSizesUntil } from "../../../../tools/maths/scalar";
 import { isDirectionalLight, isPointLight } from "../../../../tools/guards/nodes";
-import { updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 import { isCascadedShadowGenerator, isShadowGenerator } from "../../../../tools/guards/shadows";
+import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSwitchField } from "../fields/switch";
@@ -167,8 +167,8 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
         return (
             <>
                 {this.props.children}
-                <EditorInspectorNumberField object={generator} property="bias" step={0.000001} min={0} max={1} label="Bias" />
-                <EditorInspectorNumberField object={generator} property="normalBias" step={0.000001} min={0} max={1} label="Normal Bias" />
+                <EditorInspectorNumberField object={generator} property="bias" step={0.000001} min={0} max={1} label="Bias" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+                <EditorInspectorNumberField object={generator} property="normalBias" step={0.000001} min={0} max={1} label="Normal Bias" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
                 <EditorInspectorNumberField object={generator} property="darkness" step={0.01} min={0} max={1} label="Darkness" />
 
                 {shadowMap &&
@@ -191,7 +191,10 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 
         return (
             <EditorInspectorSectionField title="Soft Shadows">
-                <EditorInspectorListField object={this} property="_softShadowType" label="Soft Shadows Type" onChange={(v) => this._updateSoftShadowType(v)} items={[
+                <EditorInspectorListField object={this} property="_softShadowType" label="Soft Shadows Type" onChange={(v) => {
+                    this._updateSoftShadowType(v);
+                    updateLightShadowMapRefreshRate(this.props.light);
+                }} items={[
                     { text: "None", value: "none" },
                     ...(isPointLight(this.props.light)
                         ? [
@@ -208,14 +211,18 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
                     <EditorInspectorNumberField object={generator} property="blurScale" step={0.1} min={0} max={10} label="Blur Scale" />
                 }
 
-                {(generator.usePercentageCloserFiltering || generator.useContactHardeningShadow) &&
+                {(generator.usePercentageCloserFiltering && !generator.useContactHardeningShadow) &&
                     <>
                         <EditorInspectorListField object={generator} property="filteringQuality" label="Filtering Quality" items={[
                             { text: "Low", value: ShadowGenerator.QUALITY_LOW },
                             { text: "Medium", value: ShadowGenerator.QUALITY_MEDIUM },
                             { text: "High", value: ShadowGenerator.QUALITY_HIGH },
-                        ]} />
+                        ]} onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
                     </>
+                }
+
+                {generator.useContactHardeningShadow &&
+                    <EditorInspectorNumberField object={generator.contactHardeningLightSizeUVRatio} property="blurScale" step={0.001} min={0} max={1} label="Light Size UV Ratio" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
                 }
             </EditorInspectorSectionField>
         );
@@ -231,15 +238,18 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
         return (
             <>
                 {this.props.children}
-                <EditorInspectorSwitchField object={generator} property="stabilizeCascades" label="Stabilize Cascades" />
-                <EditorInspectorSwitchField object={generator} property="depthClamp" label="Depth Clamp" />
-                <EditorInspectorSwitchField object={generator} property="autoCalcDepthBounds" label="Auto Calc Depth Bounds" onChange={() => this.forceUpdate()} />
+                <EditorInspectorSwitchField object={generator} property="stabilizeCascades" label="Stabilize Cascades" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+                <EditorInspectorSwitchField object={generator} property="depthClamp" label="Depth Clamp" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+                <EditorInspectorSwitchField object={generator} property="autoCalcDepthBounds" label="Auto Calc Depth Bounds" onChange={() => {
+                    this.forceUpdate();
+                    updateLightShadowMapRefreshRate(this.props.light);
+                }} />
                 {generator.autoCalcDepthBounds &&
-                    <EditorInspectorNumberField object={generator} property="autoCalcDepthBoundsRefreshRate" step={1} min={0} max={60} label="Auto Calc Depth Bounds Refresh Rate" />
+                    <EditorInspectorNumberField object={generator} property="autoCalcDepthBoundsRefreshRate" step={1} min={0} max={60} label="Auto Calc Depth Bounds Refresh Rate" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
                 }
-                <EditorInspectorNumberField object={generator} property="lambda" min={0} max={1} label="Lambda" />
-                <EditorInspectorNumberField object={generator} property="cascadeBlendPercentage" min={0} max={1} label="Blend Percentage" />
-                <EditorInspectorNumberField object={generator} property="penumbraDarkness" min={0} max={1} label="Penumbra Darkness" />
+                <EditorInspectorNumberField object={generator} property="lambda" min={0} max={1} label="Lambda" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+                <EditorInspectorNumberField object={generator} property="cascadeBlendPercentage" min={0} max={1} label="Blend Percentage" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+                <EditorInspectorNumberField object={generator} property="penumbraDarkness" min={0} max={1} label="Penumbra Darkness" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
             </>
         );
     }
