@@ -1,7 +1,7 @@
 import { platform } from "os";
 
 import { Component, ReactNode } from "react";
-import { Layout, Model, TabNode } from "flexlayout-react";
+import { IJsonModel, Layout, Model, TabNode } from "flexlayout-react";
 
 import { waitNextAnimationFrame } from "../tools/tools";
 
@@ -53,13 +53,18 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
         "assets-browser": <EditorAssetsBrowser editor={this.props.editor} ref={(r) => this.assets = r!} />,
     };
 
+    private _layoutVersion: string = "5.0.0-alpha.2";
+
     public constructor(props: IEditorLayoutProps) {
         super(props);
 
         try {
-            this._model = Model.fromJson(
-                JSON.parse(localStorage.getItem("babylonjs-editor-layout") as string)
-            );
+            const layoutData = JSON.parse(localStorage.getItem("babylonjs-editor-layout") as string);
+            if (layoutData.version !== this._layoutVersion) {
+                throw new Error("Resetting layout as base layout configuration changed.");
+            }
+
+            this._model = Model.fromJson(layoutData);
         } catch (e) {
             this._model = Model.fromJson(layoutModel as any);
         }
@@ -105,9 +110,15 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
     }
 
     private _saveLayout(model: Model): void {
+        const layoutData = model.toJson() as IJsonModel & {
+            version: string;
+        };
+
+        layoutData.version = this._layoutVersion;
+
         localStorage.setItem(
             "babylonjs-editor-layout",
-            JSON.stringify(model.toJson()),
+            JSON.stringify(layoutData),
         );
     }
 }
