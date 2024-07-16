@@ -57,33 +57,37 @@ export function serializeSSRRenderingPipeline(): any {
 }
 
 export function parseSSRRenderingPipeline(scene: Scene, camera: Camera, data: any): SSRRenderingPipeline {
-    const ssrRenderingPipeline = createSSRRenderingPipeline(scene, camera);
+    if (ssrRenderingPipeline) {
+        return ssrRenderingPipeline;
+    }
 
-    ssrRenderingPipeline.samples = data.samples;
+    const pipeline = createSSRRenderingPipeline(scene, camera);
 
-    ssrRenderingPipeline.step = data.step;
-    ssrRenderingPipeline.thickness = data.thickness;
-    ssrRenderingPipeline.strength = data.strength;
-    ssrRenderingPipeline.reflectionSpecularFalloffExponent = data.reflectionSpecularFalloffExponent;
-    ssrRenderingPipeline.maxSteps = data.maxSteps;
-    ssrRenderingPipeline.maxDistance = data.maxDistance;
+    pipeline.samples = data.samples;
 
-    ssrRenderingPipeline.roughnessFactor = data.roughnessFactor;
-    ssrRenderingPipeline.reflectivityThreshold = data.reflectivityThreshold;
-    ssrRenderingPipeline.blurDispersionStrength = data.blurDispersionStrehgth;
+    pipeline.step = data.step;
+    pipeline.thickness = data.thickness;
+    pipeline.strength = data.strength;
+    pipeline.reflectionSpecularFalloffExponent = data.reflectionSpecularFalloffExponent;
+    pipeline.maxSteps = data.maxSteps;
+    pipeline.maxDistance = data.maxDistance;
 
-    ssrRenderingPipeline.clipToFrustum = data.clipToFrustum;
-    ssrRenderingPipeline.enableSmoothReflections = data.enableSmoothReflections;
-    ssrRenderingPipeline.enableAutomaticThicknessComputation = data.enableAutomaticThicknessComputation;
-    ssrRenderingPipeline.attenuateFacingCamera = data.attenuateFacingCamera;
-    ssrRenderingPipeline.attenuateScreenBorders = data.attenuateScreenBorders;
-    ssrRenderingPipeline.attenuateIntersectionDistance = data.attenuateIntersectionDistance;
-    ssrRenderingPipeline.attenuateBackfaceReflection = data.attenuateBackfaceReflection;
+    pipeline.roughnessFactor = data.roughnessFactor;
+    pipeline.reflectivityThreshold = data.reflectivityThreshold;
+    pipeline.blurDispersionStrength = data.blurDispersionStrehgth;
 
-    ssrRenderingPipeline.blurDownsample = data.blurDownsample;
-    ssrRenderingPipeline.selfCollisionNumSkip = data.selfCollisionNumSkip;
-    ssrRenderingPipeline.ssrDownsample = data.ssrDownsample;
-    ssrRenderingPipeline.backfaceDepthTextureDownsample = data.backfaceDepthTextureDownsample;
+    pipeline.clipToFrustum = data.clipToFrustum;
+    pipeline.enableSmoothReflections = data.enableSmoothReflections;
+    pipeline.enableAutomaticThicknessComputation = data.enableAutomaticThicknessComputation;
+    pipeline.attenuateFacingCamera = data.attenuateFacingCamera;
+    pipeline.attenuateScreenBorders = data.attenuateScreenBorders;
+    pipeline.attenuateIntersectionDistance = data.attenuateIntersectionDistance;
+    pipeline.attenuateBackfaceReflection = data.attenuateBackfaceReflection;
 
-    return ssrRenderingPipeline;
+    pipeline.blurDownsample = data.blurDownsample;
+    pipeline.selfCollisionNumSkip = data.selfCollisionNumSkip;
+    pipeline.ssrDownsample = data.ssrDownsample;
+    pipeline.backfaceDepthTextureDownsample = data.backfaceDepthTextureDownsample;
+
+    return pipeline;
 }

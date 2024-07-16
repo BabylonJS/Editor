@@ -44,20 +44,24 @@ export function serializeSSAO2RenderingPipeline(): any {
 }
 
 export function parseSSAO2RenderingPipeline(scene: Scene, camera: Camera, data: any): SSAO2RenderingPipeline {
-    const ssao2RenderingPipeline = createSSAO2RenderingPipeline(scene, camera);
+    if (ssaoRenderingPipeline) {
+        return ssaoRenderingPipeline;
+    }
 
-    ssao2RenderingPipeline.radius = data.radius;
-    ssao2RenderingPipeline.totalStrength = data.totalStrength;
-    ssao2RenderingPipeline.samples = data.samples;
-    ssao2RenderingPipeline.maxZ = data.maxZ;
-    ssao2RenderingPipeline.minZAspect = data.minZAspect;
-    ssao2RenderingPipeline.epsilon = data.epsilon;
-    ssao2RenderingPipeline.textureSamples = data.textureSamples;
-    ssao2RenderingPipeline.bypassBlur = data.bypassBlur;
-    ssao2RenderingPipeline.bilateralSamples = data.bilateralSamples;
-    ssao2RenderingPipeline.bilateralSoften = data.bilateralSoften;
-    ssao2RenderingPipeline.bilateralTolerance = data.bilateralTolerance;
-    ssao2RenderingPipeline.expensiveBlur = data.expensiveBlur;
+    const pipeline = createSSAO2RenderingPipeline(scene, camera);
 
-    return ssao2RenderingPipeline;
+    pipeline.radius = data.radius;
+    pipeline.totalStrength = data.totalStrength;
+    pipeline.samples = data.samples;
+    pipeline.maxZ = data.maxZ;
+    pipeline.minZAspect = data.minZAspect;
+    pipeline.epsilon = data.epsilon;
+    pipeline.textureSamples = data.textureSamples;
+    pipeline.bypassBlur = data.bypassBlur;
+    pipeline.bilateralSamples = data.bilateralSamples;
+    pipeline.bilateralSoften = data.bilateralSoften;
+    pipeline.bilateralTolerance = data.bilateralTolerance;
+    pipeline.expensiveBlur = data.expensiveBlur;
+
+    return pipeline;
 }
