@@ -1,10 +1,17 @@
-import { join } from "path/posix";
+import { join, basename } from "path/posix";
 import { readJSON, readdir } from "fs-extra";
 
-import { AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager, RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode } from "babylonjs";
+import {
+    AbstractMesh, AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager,
+    RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode,
+} from "babylonjs";
 
 import { Editor } from "../../editor/main";
+
 import { EditorCamera } from "../../editor/nodes/camera";
+import { SceneLinkNode } from "../../editor/nodes/scene-link";
+
+import { createSceneLink } from "../../editor/layout/preview/scene-link";
 
 import { parseSSRRenderingPipeline } from "../../editor/rendering/ssr";
 import { parseSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
@@ -16,13 +23,36 @@ import { createDirectoryIfNotExist } from "../../tools/fs";
 
 import { isMesh } from "../../tools/guards/nodes";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
-
-import { showLoadSceneProgressDialog } from "./progress";
 import { updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
-export async function loadScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
+import { showLoadSceneProgressDialog } from "./progress";
+
+export type SceneLoaderOptions = {
+    /**
+     * Defines wether or not the scene is being loaded as link.
+     */
+    asLink?: boolean;
+};
+
+export type SceneLoadResult = {
+    lights: Light[];
+    cameras: Camera[];
+    meshes: AbstractMesh[];
+    sceneLinks: SceneLinkNode[];
+    transformNodes: TransformNode[];
+};
+
+export async function loadScene(editor: Editor, projectPath: string, scenePath: string, options?: SceneLoaderOptions): Promise<SceneLoadResult> {
     const scene = editor.layout.preview.scene;
     const relativeScenePath = scenePath.replace(join(projectPath, "/"), "");
+
+    const loadResult = {
+        lights: [],
+        meshes: [],
+        cameras: [],
+        sceneLinks: [],
+        transformNodes: [],
+    } as SceneLoadResult;
 
     editor.layout.console.log(`Loading scene "${relativeScenePath}"`);
 
@@ -36,9 +66,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "geometries")),
         createDirectoryIfNotExist(join(scenePath, "skeletons")),
         createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
+        createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
     ]);
 
-    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles] = await Promise.all([
+    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles] = await Promise.all([
         readdir(join(scenePath, "nodes")),
         readdir(join(scenePath, "meshes")),
         readdir(join(scenePath, "lods")),
@@ -46,9 +77,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         readdir(join(scenePath, "cameras")),
         readdir(join(scenePath, "skeletons")),
         readdir(join(scenePath, "shadowGenerators")),
+        readdir(join(scenePath, "sceneLinks")),
     ]);
 
-    const progress = await showLoadSceneProgressDialog();
+    const progress = await showLoadSceneProgressDialog(basename(scenePath));
     const progressStep = 100 / (
         nodesFiles.length +
         meshesFiles.length +
@@ -56,66 +88,72 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         lightsFiles.length +
         cameraFiles.length +
         skeletonFiles.length +
-        shadowGeneratorFiles.length
+        shadowGeneratorFiles.length +
+        sceneLinkFiles.length
     );
 
     SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 
     const config = await readJSON(join(scenePath, "config.json"), "utf-8");
 
-    // Metadata
-    scene.metadata = config.metadata;
+    if (!options?.asLink) {
+        // Metadata
+        scene.metadata = config.metadata;
 
-    // Load camera
-    const camera = Camera.Parse(config.editorCamera, scene) as EditorCamera | null;
+        // Load camera
+        const camera = Camera.Parse(config.editorCamera, scene) as EditorCamera | null;
 
-    if (camera) {
-        editor.layout.preview.camera.dispose();
-        editor.layout.preview.camera = camera;
+        if (camera) {
+            editor.layout.preview.camera.dispose();
+            editor.layout.preview.camera = camera;
 
-        camera.attachControl(true);
-    }
+            camera.attachControl(true);
+        }
 
-    // Load environment
-    scene.environmentIntensity = config.environment.environmentIntensity;
+        // Load environment
+        scene.environmentIntensity = config.environment.environmentIntensity;
 
-    if (config.environment.environmentTexture) {
-        scene.environmentTexture = Texture.Parse(config.environment.environmentTexture, scene, join(projectPath, "/"));
+        if (config.environment.environmentTexture) {
+            scene.environmentTexture = Texture.Parse(config.environment.environmentTexture, scene, join(projectPath, "/"));
 
-        if (isCubeTexture(scene.environmentTexture)) {
-            scene.environmentTexture.url = join(projectPath, scene.environmentTexture.name);
+            if (isCubeTexture(scene.environmentTexture)) {
+                scene.environmentTexture.url = join(projectPath, scene.environmentTexture.name);
+            }
+        }
+
+        // Load fog
+        scene.fogEnabled = config.fog.fogEnabled;
+        scene.fogMode = config.fog.fogMode;
+        scene.fogStart = config.fog.fogStart;
+        scene.fogEnd = config.fog.fogEnd;
+        scene.fogDensity = config.fog.fogDensity;
+        scene.fogColor = Color3.FromArray(config.fog.fogColor);
+
+        // Load pipelines
+        if (config.rendering.ssao2RenderingPipeline) {
+            parseSSAO2RenderingPipeline(editor, config.rendering.ssao2RenderingPipeline);
+        }
+
+        if (config.rendering.ssrRenderingPipeline) {
+            parseSSRRenderingPipeline(editor, config.rendering.ssrRenderingPipeline);
+        }
+
+        if (config.rendering.motionBlurPostProcess) {
+            parseMotionBlurPostProcess(editor, config.rendering.motionBlurPostProcess);
+        }
+
+        if (config.rendering.defaultRenderingPipeline) {
+            parseDefaultRenderingPipeline(editor, config.rendering.defaultRenderingPipeline);
         }
     }
-
-    // Load fog
-    scene.fogEnabled = config.fog.fogEnabled;
-    scene.fogMode = config.fog.fogMode;
-    scene.fogStart = config.fog.fogStart;
-    scene.fogEnd = config.fog.fogEnd;
-    scene.fogDensity = config.fog.fogDensity;
-    scene.fogColor = Color3.FromArray(config.fog.fogColor);
-
-    // Load pipelines
-    if (config.rendering.ssao2RenderingPipeline) {
-        parseSSAO2RenderingPipeline(editor, config.rendering.ssao2RenderingPipeline);
-    }
-
-    if (config.rendering.ssrRenderingPipeline) {
-        parseSSRRenderingPipeline(editor, config.rendering.ssrRenderingPipeline);
-    }
-
-    if (config.rendering.motionBlurPostProcess) {
-        parseMotionBlurPostProcess(editor, config.rendering.motionBlurPostProcess);
-    }
-
-    if (config.rendering.defaultRenderingPipeline) {
-        parseDefaultRenderingPipeline(editor, config.rendering.defaultRenderingPipeline);
-    }
-
 
     // Load transform nodes
     await Promise.all(nodesFiles.map(async (file) => {
         const data = await readJSON(join(scenePath, "nodes", file), "utf-8");
+
+        if (options?.asLink && data.metadata?.doNotSerialize) {
+            return;
+        }
 
         const transformNode = TransformNode.Parse(data, scene, join(projectPath, "/"));
         transformNode.uniqueId = data.uniqueId;
@@ -123,6 +161,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         transformNode.metadata._waitingParentId = data.parentId;
 
         progress.step(progressStep);
+
+        loadResult.transformNodes.push(transformNode);
     }));
 
     // Load skeletons
@@ -134,6 +174,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     // Load meshes
     await Promise.all(meshesFiles.map(async (file) => {
         const data = await readJSON(join(scenePath, "meshes", file), "utf-8");
+
+        if (options?.asLink && data.metadata?.doNotSerialize) {
+            return;
+        }
 
         if (data.morphTargetManager) {
             MorphTargetManager.Parse(data.morphTargetManager, scene);
@@ -151,6 +195,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
             while (meshes.find((m) => m.delayLoadState && m.delayLoadState !== Constants.DELAYLOADSTATE_LOADED)) {
                 await wait(150);
             }
+
+            loadResult.meshes.push(...result.meshes);
 
             meshes.forEach((m) => {
                 const meshData = data.meshes?.find((d) => d.id === m.id);
@@ -172,6 +218,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                         instance.metadata ??= {};
                         instance.metadata._waitingParentId = meshData.parentId;
                     }
+
+                    loadResult.meshes.push(instance);
                 });
 
                 if (m.material) {
@@ -219,11 +267,17 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     await Promise.all(lightsFiles.map(async (file) => {
         const data = await readJSON(join(scenePath, "lights", file), "utf-8");
 
+        if (options?.asLink && data.metadata?.doNotSerialize) {
+            return;
+        }
+
         const light = Light.Parse(data, scene);
         if (light) {
             light.uniqueId = data.uniqueId;
             light.metadata ??= {};
             light.metadata._waitingParentId = data.parentId;
+
+            loadResult.lights.push(light);
         }
 
         progress.step(progressStep);
@@ -233,17 +287,28 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     await Promise.all(cameraFiles.map(async (file) => {
         const data = await readJSON(join(scenePath, "cameras", file), "utf-8");
 
+        if (options?.asLink && data.metadata?.doNotSerialize) {
+            return;
+        }
+
         const camera = Camera.Parse(data, scene);
         camera._waitingParentId = data.parentId;
         camera.metadata ??= {};
         camera.metadata._waitingParentId = data.parentId;
 
         progress.step(progressStep);
+
+        loadResult.cameras.push(camera);
     }));
 
     // Load shadow generators
     await Promise.all(shadowGeneratorFiles.map(async (file) => {
         const data = await readJSON(join(scenePath, "shadowGenerators", file), "utf-8");
+
+        const light = scene.lights.find((light) => light.id === data.lightId);
+        if (!light) {
+            return;
+        }
 
         let shadowGenerator: ShadowGenerator;
 
@@ -256,6 +321,28 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         const shadowMap = shadowGenerator.getShadowMap();
         if (shadowMap) {
             shadowMap.refreshRate = data.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+        }
+
+        progress.step(progressStep);
+    }));
+
+    // Load scene links
+    await Promise.all(sceneLinkFiles.map(async (file) => {
+        const data = await readJSON(join(scenePath, "sceneLinks", file), "utf-8");
+
+        if (options?.asLink && data.metadata?.doNotSerialize) {
+            return;
+        }
+
+        const sceneLink = await createSceneLink(editor, join(projectPath, data._relativePath));
+        if (sceneLink) {
+            sceneLink.parse(data);
+
+            sceneLink.uniqueId = data.uniqueId;
+            sceneLink.metadata ??= {};
+            sceneLink.metadata._waitingParentId = data.parentId;
+
+            loadResult.sceneLinks.push(sceneLink);
         }
 
         progress.step(progressStep);
@@ -340,4 +427,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     progress.dispose();
 
     editor.layout.console.log("Scene loaded and editor is ready.");
+
+    return loadResult;
 }

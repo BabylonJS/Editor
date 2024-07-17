@@ -1,17 +1,19 @@
 import { Component, DragEvent, ReactNode } from "react";
 import { Tree, TreeNodeInfo } from "@blueprintjs/core";
 
+import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
 import { FaCamera } from "react-icons/fa";
 import { FaLightbulb } from "react-icons/fa";
 import { SiBabylondotjs } from "react-icons/si";
-import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { MdOutlineQuestionMark } from "react-icons/md";
+import { HiOutlineCubeTransparent } from "react-icons/hi";
 
 import { Node, Tools } from "babylonjs";
 
 import { Editor } from "../main";
 
+import { isSceneLinkNode } from "../../tools/guards/scene";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { onNodeModifiedObservable, onNodesAddedObservable } from "../../tools/observables";
 import { isAbstractMesh, isCamera, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
@@ -441,6 +443,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
         if (isCamera(object)) {
             return <FaCamera className="w-4 h-4" />;
+        }
+
+        if (isSceneLinkNode(object)) {
+            return <FaLink className="w-4 h-4" />;
         }
 
         return <MdOutlineQuestionMark className="w-4 h-4" />;
