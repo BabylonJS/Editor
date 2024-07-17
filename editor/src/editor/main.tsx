@@ -29,6 +29,7 @@ import { Toaster } from "../ui/shadcn/ui/sonner";
 import { EditorLayout } from "./layout";
 
 import "./nodes/camera";
+import "./nodes/scene-link";
 
 export function createEditor(): void {
     const theme = localStorage.getItem("editor-theme") ?? "dark";

@@ -5,6 +5,8 @@ import {
 
 import { EditorCamera } from "../../editor/nodes/camera";
 
+import { isSceneLinkNode } from "./scene";
+
 /**
  * Returns wether or not the given object is an AbstractMesh.
  * @param object defines the reference to the object to test its class name.
@@ -169,5 +171,5 @@ export function isLight(object: any): object is Light {
  * @param object defines the reference to the object to test its class name.
  */
 export function isNode(object: any): object is Node {
-    return isAbstractMesh(object) || isTransformNode(object) || isLight(object) || isCamera(object);
+    return isAbstractMesh(object) || isTransformNode(object) || isLight(object) || isCamera(object) || isSceneLinkNode(object);
 }

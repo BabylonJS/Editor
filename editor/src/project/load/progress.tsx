@@ -4,17 +4,18 @@ import { Root, createRoot } from "react-dom/client";
 import { Progress } from "../../ui/shadcn/ui/progress";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../ui/shadcn/ui/alert-dialog";
 
-export function showLoadSceneProgressDialog(): Promise<LoadSceneProgressComponent> {
+export function showLoadSceneProgressDialog(name: string): Promise<LoadSceneProgressComponent> {
     return new Promise<LoadSceneProgressComponent>((resolve) => {
         const div = document.createElement("div");
         document.body.appendChild(div);
 
         const root = createRoot(div);
-        root.render(<LoadSceneProgressComponent ref={(r) => r && resolve(r)} root={root} container={div} />);
+        root.render(<LoadSceneProgressComponent name={name} ref={(r) => r && resolve(r)} root={root} container={div} />);
     });
 }
 
 export interface ILoadSceneProgressComponentProps {
+    name: string;
     root: Root;
     container: HTMLDivElement;
 }
@@ -40,7 +41,7 @@ export class LoadSceneProgressComponent extends Component<ILoadSceneProgressComp
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Loading...
+                            Loading {this.props.name}...
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             <Progress value={this.state.progress} />

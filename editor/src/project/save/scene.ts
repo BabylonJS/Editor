@@ -5,6 +5,7 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
+import { isSceneLinkNode } from "../../tools/guards/scene";
 import { isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 
@@ -14,6 +15,8 @@ import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-bl
 import { serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
 
 import { writeBinaryGeometry } from "../geometry";
+
+import { isFromSceneLink } from "./utils";
 
 export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
     const fStat = await stat(scenePath);
@@ -32,6 +35,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "geometries")),
         createDirectoryIfNotExist(join(scenePath, "skeletons")),
         createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
+        createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
     ]);
 
     const scene = editor.layout.preview.scene;
@@ -40,7 +44,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
     const savedFiles: string[] = [];
 
     await Promise.all(scene.meshes.map(async (mesh) => {
-        if (!isMesh(mesh) || mesh._masterMesh) {
+        if (!isMesh(mesh) || mesh._masterMesh || isFromSceneLink(mesh)) {
             return;
         }
 
@@ -141,6 +145,11 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
     // Write skeletons
     await Promise.all(scene.skeletons.map(async (skeleton) => {
+        const meshes = scene.meshes.filter((m) => m.skeleton === skeleton && !isFromSceneLink(m));
+        if (!meshes.length) {
+            return;
+        }
+
         const skeletonPath = join(scenePath, "skeletons", `${skeleton.id}.json`);
 
         try {
@@ -156,6 +165,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
     // Write transform nodes
     await Promise.all(scene.transformNodes.map(async (transformNode) => {
+        if (isFromSceneLink(transformNode)) {
+            return;
+        }
+
         const transformNodePath = join(scenePath, "nodes", `${transformNode.id}.json`);
 
         try {
@@ -171,6 +184,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
     // Write lights
     await Promise.all(scene.lights.map(async (light) => {
+        if (isFromSceneLink(light)) {
+            return;
+        }
+
         const lightPath = join(scenePath, "lights", `${light.id}.json`);
 
         try {
@@ -204,7 +221,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
     // Write cameras
     await Promise.all(scene.cameras.map(async (camera) => {
-        if (isEditorCamera(camera)) {
+        if (isEditorCamera(camera) || isFromSceneLink(camera)) {
             return;
         }
 
@@ -218,6 +235,25 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             editor.layout.console.error(`Failed to write camera ${camera.name}`);
         } finally {
             savedFiles.push(cameraPath);
+        }
+    }));
+
+    // Write scene links
+    await Promise.all(scene.transformNodes.map(async (transformNode) => {
+        if (!isSceneLinkNode(transformNode)) {
+            return;
+        }
+
+        const sceneLinkPath = join(scenePath, "sceneLinks", `${transformNode.id}.json`);
+
+        try {
+            await writeJSON(sceneLinkPath, transformNode.serialize(), {
+                spaces: 4,
+            });
+        } catch (e) {
+            editor.layout.console.error(`Failed to write scene link node ${transformNode.name}`);
+        } finally {
+            savedFiles.push(sceneLinkPath);
         }
     }));
 
@@ -295,4 +331,4 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             encoding: "utf-8",
         });
     }));
-};
+}

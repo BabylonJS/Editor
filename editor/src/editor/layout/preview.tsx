@@ -36,6 +36,7 @@ import { EditorGraphContextMenu } from "./graph/graph";
 
 import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
+import { createSceneLink } from "./preview/scene-link";
 import { applyTextureAssetToObject } from "./preview/texture";
 import { applyMaterialAssetToObject } from "./preview/material";
 import { EditorPreviewConvertProgress } from "./preview/progress";
@@ -585,6 +586,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
                 case ".material":
                     applyMaterialAssetToObject(this.props.editor, mesh, absolutePath);
+                    break;
+
+                case ".scene":
+                    createSceneLink(this.props.editor, absolutePath).then((node) => {
+                        if (pick.pickedPoint) {
+                            node?.position.addInPlace(pick.pickedPoint);
+                        }
+                    });
                     break;
             }
         });
