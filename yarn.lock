@@ -1643,13 +1643,18 @@ babel-plugin-macros@^3.1.0:
     cosmiconfig "^7.0.0"
     resolve "^1.19.0"
 
+babylonjs-editor-tools@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/babylonjs-editor-tools/-/babylonjs-editor-tools-0.0.6.tgz#41bba2f8b31c0cf119595724203c8a13e64387d8"
+  integrity sha512-mtzXSCGUs/iv2BteJtUs93+stVy0vQSPKS+yMRqUTRzub0M/wvax9gYByig/vNPNHTDjuFj+Th/S+FuK1Gw9Qw==
+
 babylonjs-editor-tools@latest:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/babylonjs-editor-tools/-/babylonjs-editor-tools-0.0.2.tgz#d73145bb99b8f884805a823ff968d281fb3abf18"
   integrity sha512-zHGmpqXOwyqgVsEZUgpeZKl2OqlxG52pvi1URu+wqtvZiGyV9RauBd8oO59Cp5zvvQcSrEj3MdwqdQ2/DOACfA==
 
 "babylonjs-editor-tools@link:tools":
-  version "0.0.6"
+  version "0.0.7"
 
 "babylonjs-editor@link:editor":
   version "5.0.0"
