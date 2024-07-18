@@ -11,8 +11,6 @@ import { Editor } from "../../editor/main";
 import { EditorCamera } from "../../editor/nodes/camera";
 import { SceneLinkNode } from "../../editor/nodes/scene-link";
 
-import { createSceneLink } from "../../editor/layout/preview/scene-link";
-
 import { parseSSRRenderingPipeline } from "../../editor/rendering/ssr";
 import { parseSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
 import { parseMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
@@ -22,6 +20,7 @@ import { wait } from "../../tools/tools";
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
 import { isMesh } from "../../tools/guards/nodes";
+import { createSceneLink } from "../../tools/scene/scene-link";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 

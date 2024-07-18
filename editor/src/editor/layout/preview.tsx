@@ -17,7 +17,7 @@ import { Editor } from "../main";
 import { Tween } from "../../tools/animation/tween";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../tools/tools";
-import { getRootSceneLink } from "../../tools/scene/scene-link";
+import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { isAbstractMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
@@ -37,7 +37,6 @@ import { EditorGraphContextMenu } from "./graph/graph";
 
 import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
-import { createSceneLink } from "./preview/scene-link";
 import { applyTextureAssetToObject } from "./preview/texture";
 import { applyMaterialAssetToObject } from "./preview/material";
 import { EditorPreviewConvertProgress } from "./preview/progress";
