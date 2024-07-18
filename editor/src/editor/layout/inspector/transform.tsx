@@ -3,6 +3,7 @@ import { Component, ReactNode } from "react";
 import { AbstractMesh, Node, Observer, TransformNode } from "babylonjs";
 
 import { isTransformNode } from "../../../tools/guards/nodes";
+import { isSceneLinkNode } from "../../../tools/guards/scene";
 import { onNodeModifiedObservable } from "../../../tools/observables";
 
 import { EditorInspectorStringField } from "./fields/string";
@@ -22,7 +23,7 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
      * @returns true if the object is supported by this inspector.
      */
     public static IsSupported(object: unknown): boolean {
-        return isTransformNode(object);
+        return isTransformNode(object) || isSceneLinkNode(object);
     }
 
     public render(): ReactNode {

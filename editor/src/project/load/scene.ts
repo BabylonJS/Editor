@@ -302,29 +302,69 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     }));
 
     // Load shadow generators
-    await Promise.all(shadowGeneratorFiles.map(async (file) => {
-        const data = await readJSON(join(scenePath, "shadowGenerators", file), "utf-8");
+    if (!options?.asLink) {
+        await Promise.all(shadowGeneratorFiles.map(async (file) => {
+            const data = await readJSON(join(scenePath, "shadowGenerators", file), "utf-8");
 
-        const light = scene.lights.find((light) => light.id === data.lightId);
-        if (!light) {
+            const light = scene.lights.find((light) => light.id === data.lightId);
+            if (!light) {
+                return;
+            }
+
+            let shadowGenerator: ShadowGenerator;
+
+            if (data.className === CascadedShadowGenerator.CLASSNAME) {
+                shadowGenerator = CascadedShadowGenerator.Parse(data, scene);
+            } else {
+                shadowGenerator = ShadowGenerator.Parse(data, scene);
+            }
+
+            const shadowMap = shadowGenerator.getShadowMap();
+            if (shadowMap) {
+                shadowMap.refreshRate = data.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+            }
+
+            progress.step(progressStep);
+        }));
+    }
+
+    progress.dispose();
+
+    // Configure textures urls
+    scene.textures.forEach((texture) => {
+        if (isTexture(texture) || isCubeTexture(texture)) {
+            texture.url = texture.name;
+        }
+    });
+
+    // Configure lights
+    scene.lights.forEach((light) => {
+        updatePointLightShadowMapRenderListPredicate(light);
+    });
+
+    // Configure LODs
+    scene.meshes.forEach((mesh) => {
+        if (!mesh._waitingData.lods || !isMesh(mesh)) {
             return;
         }
 
-        let shadowGenerator: ShadowGenerator;
+        const masterMesh = scene.getMeshById(mesh._waitingData.lods.masterMeshId);
+        if (masterMesh && isMesh(masterMesh)) {
+            mesh.material = masterMesh.material;
+            masterMesh.addLODLevel(mesh._waitingData.lods.distanceOrScreenCoverage, mesh);
 
-        if (data.className === CascadedShadowGenerator.CLASSNAME) {
-            shadowGenerator = CascadedShadowGenerator.Parse(data, scene);
-        } else {
-            shadowGenerator = ShadowGenerator.Parse(data, scene);
         }
 
-        const shadowMap = shadowGenerator.getShadowMap();
-        if (shadowMap) {
-            shadowMap.refreshRate = data.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
-        }
+        mesh._waitingData.lods = null;
+    });
 
-        progress.step(progressStep);
-    }));
+    // Animation groups
+    config.animationGroups?.forEach((data) => {
+        const group = AnimationGroup.Parse(data, scene);
+        if (group.targetedAnimations.length === 0) {
+            group.dispose();
+        }
+    });
 
     // Load scene links
     await Promise.all(sceneLinkFiles.map(async (file) => {
@@ -347,18 +387,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
         progress.step(progressStep);
     }));
-
-    // Configure textures urls
-    scene.textures.forEach((texture) => {
-        if (isTexture(texture) || isCubeTexture(texture)) {
-            texture.url = texture.name;
-        }
-    });
-
-    // Configure lights
-    scene.lights.forEach((light) => {
-        updatePointLightShadowMapRenderListPredicate(light);
-    });
 
     // Configure waiting parent ids.
     const allNodes = [
@@ -399,32 +427,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
             delete n.metadata._waitingParentId;
         }
     });
-
-    // Configure LODs
-    scene.meshes.forEach((mesh) => {
-        if (!mesh._waitingData.lods || !isMesh(mesh)) {
-            return;
-        }
-
-        const masterMesh = scene.getMeshById(mesh._waitingData.lods.masterMeshId);
-        if (masterMesh && isMesh(masterMesh)) {
-            mesh.material = masterMesh.material;
-            masterMesh.addLODLevel(mesh._waitingData.lods.distanceOrScreenCoverage, mesh);
-
-        }
-
-        mesh._waitingData.lods = null;
-    });
-
-    // Animation groups
-    config.animationGroups?.forEach((data) => {
-        const group = AnimationGroup.Parse(data, scene);
-        if (group.targetedAnimations.length === 0) {
-            group.dispose();
-        }
-    });
-
-    progress.dispose();
 
     editor.layout.console.log("Scene loaded and editor is ready.");
 

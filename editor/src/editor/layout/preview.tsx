@@ -8,7 +8,7 @@ import { Component, MouseEvent, ReactNode } from "react";
 
 import { GiWireframeGlobe } from "react-icons/gi";
 
-import { AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode, ISceneLoaderAsyncResult, Scene, Vector2, Vector3, Viewport } from "babylonjs";
+import { AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode, ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport } from "babylonjs";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
 
@@ -17,6 +17,7 @@ import { Editor } from "../main";
 import { Tween } from "../../tools/animation/tween";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../tools/tools";
+import { getRootSceneLink } from "../../tools/scene/scene-link";
 import { isAbstractMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
@@ -333,9 +334,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         }
 
         const pick = this.scene.pick(this.scene.pointerX, this.scene.pointerY, (m) => !m._masterMesh);
-        const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
 
+        let mesh = (pick.pickedMesh?._masterMesh ?? pick.pickedMesh) as Node;
         if (mesh) {
+            const sceneLink = getRootSceneLink(mesh);
+            if (sceneLink) {
+                mesh = sceneLink;
+            }
+
             // this.setCameraPreviewActive(null);
 
             this.gizmo.setAttachedNode(mesh);
