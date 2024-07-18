@@ -394,9 +394,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             label: this._getNodeLabelComponent(node, node.name),
         } as TreeNodeInfo;
 
-        const children = node.getDescendants(true);
-        if (children.length) {
-            info.childNodes = children.map((c) => this._parseNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
+        if (!isSceneLinkNode(node)) {
+            const children = node.getDescendants(true);
+            if (children.length) {
+                info.childNodes = children.map((c) => this._parseNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
+            }
         }
 
         if (!node.name.toLowerCase().includes(this.state.search.toLowerCase()) && !info.childNodes?.length) {

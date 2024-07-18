@@ -6,6 +6,7 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 import { Editor } from "../../editor/main";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
+import { isFromSceneLink } from "../../tools/scene/scene-link";
 import { isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 
@@ -15,8 +16,6 @@ import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-bl
 import { serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
 
 import { writeBinaryGeometry } from "../geometry";
-
-import { isFromSceneLink } from "./utils";
 
 export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
     const fStat = await stat(scenePath);
