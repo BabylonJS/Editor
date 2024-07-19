@@ -9,7 +9,7 @@ import { IEditorInspectorImplementationProps } from "./inspector/inspector";
 
 import { EditorSceneInspector } from "./inspector/scene";
 
-import { EditorMeshInspector } from "./inspector/mesh";
+import { EditorMeshInspector } from "./inspector/mesh/mesh";
 import { EditorTransformNodeInspector } from "./inspector/transform";
 
 import { EditorFileInspector } from "./inspector/file";

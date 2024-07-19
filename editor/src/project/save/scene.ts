@@ -7,8 +7,8 @@ import { Editor } from "../../editor/main";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { isFromSceneLink } from "../../tools/scene/scene-link";
-import { isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
+import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 
 import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
 import { serializeSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
@@ -43,7 +43,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
     const savedFiles: string[] = [];
 
     await Promise.all(scene.meshes.map(async (mesh) => {
-        if (!isMesh(mesh) || mesh._masterMesh || isFromSceneLink(mesh)) {
+        if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh)) {
             return;
         }
 
@@ -68,10 +68,27 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 data.morphTargetManager = meshToSerialize.morphTargetManager.serialize();
             }
 
+            // Handle case where the mesh is a collision mesh
+            if (isCollisionMesh(meshToSerialize)) {
+                data.isCollisionMesh = true;
+                data.collisionMeshType = meshToSerialize.type;
+
+                data.meshes?.forEach((meshData: any) => {
+                    meshData.type = "Mesh";
+                });
+            }
+
             data.meshes?.[0]?.instances?.forEach((instanceData: any) => {
                 const instance = meshToSerialize.instances.find((instance) => instance.id === instanceData.id);
                 if (instance) {
+                    if (instance.parent) {
+                        instanceData.metadata ??= {};
+                        instanceData.metadata.parentId = instance.parent.uniqueId;
+                    }
+
                     instanceData.uniqueId = instance.uniqueId;
+
+                    delete instanceData.parentId;
                 }
             });
 
