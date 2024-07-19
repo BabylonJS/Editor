@@ -9,6 +9,7 @@ import {
 import { Editor } from "../../editor/main";
 
 import { EditorCamera } from "../../editor/nodes/camera";
+import { CollisionMesh } from "../../editor/nodes/collision";
 import { SceneLinkNode } from "../../editor/nodes/scene-link";
 
 import { parseSSRRenderingPipeline } from "../../editor/rendering/ssr";
@@ -19,8 +20,8 @@ import { parseDefaultRenderingPipeline } from "../../editor/rendering/default-pi
 import { wait } from "../../tools/tools";
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
-import { isMesh } from "../../tools/guards/nodes";
 import { createSceneLink } from "../../tools/scene/scene-link";
+import { isCollisionMesh, isMesh } from "../../tools/guards/nodes";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
@@ -195,9 +196,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                 await wait(150);
             }
 
-            loadResult.meshes.push(...result.meshes);
+            result.meshes.forEach((m) => {
+                if (!isMesh(m)) {
+                    return;
+                }
 
-            meshes.forEach((m) => {
                 const meshData = data.meshes?.find((d) => d.id === m.id);
 
                 if (data.basePoseMatrix) {
@@ -212,14 +215,33 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
                 m.instances.forEach((instance) => {
                     const instanceData = meshData.instances?.find((d) => d.id === instance.id);
-                    if ((instanceData?.uniqueId ?? null) !== null) {
-                        instance.uniqueId = instanceData.uniqueId;
+                    if (instanceData) {
+                        if ((instanceData?.uniqueId ?? null) !== null) {
+                            instance.uniqueId = instanceData.uniqueId;
+                        }
+
                         instance.metadata ??= {};
-                        instance.metadata._waitingParentId = meshData.parentId;
+                        instance.metadata._waitingParentId = instanceData.metadata?.parentId;
+
+                        delete instance.metadata.parentId;
                     }
 
                     loadResult.meshes.push(instance);
                 });
+
+                // Handle case the data is a collision mesh
+                if (data.isCollisionMesh) {
+                    const collisionMesh = CollisionMesh.CreateFromSourceMesh(m, data.collisionMeshType);
+
+                    m.dispose(false, false);
+                    m = collisionMesh;
+
+                    if (!isCollisionMesh(m)) {
+                        return;
+                    }
+                }
+
+                loadResult.meshes.push(m);
 
                 if (m.material) {
                     const material = data.materials?.find((d) => d.id === m.material!.id);

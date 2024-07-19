@@ -30,5 +30,20 @@ export function setupDashboardMenu(): void {
                 },
             ],
         },
+        {
+            label: "Window",
+            submenu: [
+                {
+                    label: "Minimize",
+                    accelerator: "Command+M",
+                    click: () => BrowserWindow.getFocusedWindow()?.minimize(),
+                },
+                {
+                    label: "Close",
+                    accelerator: "Command+W",
+                    click: () => BrowserWindow.getFocusedWindow()?.close(),
+                },
+            ],
+        }
     ]));
 }

@@ -4,6 +4,7 @@ import {
 } from "babylonjs";
 
 import { EditorCamera } from "../../editor/nodes/camera";
+import { CollisionMesh } from "../../editor/nodes/collision";
 
 import { isSceneLinkNode } from "./scene";
 
@@ -59,6 +60,14 @@ export function isBone(object: any): object is Bone {
  */
 export function isGroundMesh(object: any): object is GroundMesh {
     return object.getClassName?.() === "GroundMesh";
+}
+
+/**
+ * Returns wether or not the given object is a CollisionMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isCollisionMesh(object: any): object is CollisionMesh {
+    return object.getClassName?.() === "CollisionMesh";
 }
 
 /**
