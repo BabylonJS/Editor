@@ -76,6 +76,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 data.meshes?.forEach((meshData: any) => {
                     meshData.type = "Mesh";
                 });
+
+                delete data.materials;
             }
 
             data.meshes?.[0]?.instances?.forEach((instanceData: any) => {

@@ -14,9 +14,10 @@ import { Node, Tools } from "babylonjs";
 import { Editor } from "../main";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
+import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { onNodeModifiedObservable, onNodesAddedObservable } from "../../tools/observables";
-import { isAbstractMesh, isCamera, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
+import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
 
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
 
@@ -205,6 +206,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 instance.scaling.copyFrom(object.scaling);
                 instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
                 instance.parent = object.parent;
+
+                const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
+                collisionMesh?.updateInstances(instance.sourceMesh);
             }
 
             if (isLight(object)) {
@@ -355,7 +359,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
     }
 
     private _parseNode(node: Node): TreeNodeInfo | null {
-        if (isMesh(node) && node._masterMesh) {
+        if (isMesh(node) && node._masterMesh || isCollisionMesh(node) || isCollisionInstancedMesh(node)) {
             return null;
         }
 
@@ -399,6 +403,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             if (children.length) {
                 info.childNodes = children.map((c) => this._parseNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
             }
+
+            info.hasCaret = (info.childNodes?.length ?? 0) > 0;
         }
 
         if (!node.name.toLowerCase().includes(this.state.search.toLowerCase()) && !info.childNodes?.length) {

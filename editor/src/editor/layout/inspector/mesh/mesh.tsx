@@ -2,11 +2,7 @@ import { toast } from "sonner";
 import { Component, ReactNode } from "react";
 
 import { FaCopy } from "react-icons/fa";
-import { RxCube } from "react-icons/rx";
-import { ImSphere } from "react-icons/im";
 import { IoAddSharp } from "react-icons/io5";
-import { RiCapsuleFill } from "react-icons/ri";
-import { GiMeshNetwork } from "react-icons/gi";
 import { IoCloseOutline } from "react-icons/io5";
 
 import { XMarkIcon } from "@heroicons/react/20/solid";
@@ -14,10 +10,9 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
 import { SkyMaterial } from "babylonjs-materials";
 import {
     AbstractMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial,
-    Tools,
 } from "babylonjs";
 
-import { CollisionMesh, CollisionMeshType } from "../../../nodes/collision";
+import { CollisionMesh } from "../../../nodes/collision";
 
 import { showPrompt } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -25,8 +20,8 @@ import { Separator } from "../../../../ui/shadcn/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
+import { isAbstractMesh, isMesh } from "../../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
-import { isAbstractMesh, isCollisionMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
 
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
@@ -47,13 +42,9 @@ import { EditorPBRMaterialInspector } from "../material/pbr";
 import { EditorSkyMaterialInspector } from "../material/sky";
 import { EditorMultiMaterialInspector } from "../material/multi";
 import { EditorStandardMaterialInspector } from "../material/standard";
-import { UniqueNumber } from "../../../../tools/tools";
+import { EditorMeshCollisionInspector } from "./collision";
 
-export interface IEditorMeshInspectorState {
-    computingCollisionMesh: boolean;
-}
-
-export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>, IEditorMeshInspectorState> {
+export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
     /**
      * Returns whether or not the given object is supported by this inspector.
      * @param object defines the object to check.
@@ -73,10 +64,6 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
         this._castShadows = props.editor.layout.preview.scene.lights.some((light) => {
             return light.getShadowGenerator()?.getShadowMap()?.renderList?.includes(props.object);
         });
-
-        this.state = {
-            computingCollisionMesh: false,
-        };
     }
 
     public render(): ReactNode {
@@ -102,7 +89,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                     <EditorInspectorVectorField label={<div className="w-14">Scaling</div>} object={this.props.object} property="scaling" />
                 </EditorInspectorSectionField>
 
-                {this._getCollisionsInspector()}
+                <EditorMeshCollisionInspector {...this.props} />
 
                 {this.props.editor.layout.preview.scene.lights.length > 0 &&
                     <EditorInspectorSectionField title="Shadows">
@@ -384,104 +371,5 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                 });
             },
         });
-    }
-
-    private _getCollisionsInspector(): ReactNode {
-        let mesh = this.props.object._masterMesh ?? this.props.object;
-        if (isInstancedMesh(mesh)) {
-            mesh = mesh.sourceMesh;
-        }
-
-        const collisionMesh = mesh.getDescendants(true, (p) => isCollisionMesh(p))[0] as CollisionMesh | null;
-        this._collisionMesh = collisionMesh;
-
-        return (
-            <EditorInspectorSectionField title="Collisions" isProcessing={this.state.computingCollisionMesh}>
-                <EditorInspectorSwitchField label="Check Collisions" object={this.props.object} property="checkCollisions" onChange={(v) => {
-                    if (!v && isMesh(this.props.object) && collisionMesh) {
-                        collisionMesh.dispose();
-                    }
-
-                    this.forceUpdate();
-                    this.props.editor.layout.graph.refresh();
-                }} />
-
-                {this.props.object.checkCollisions &&
-                    <div
-                        className="flex gap-2 items-center"
-                        onMouseLeave={() => {
-                            mesh.visibility = 1;
-                            if (this._collisionMesh) {
-                                this._collisionMesh.isVisible = false;
-                                this._collisionMesh.instances?.forEach((i) => i.isVisible = false);
-                            }
-                        }}
-                        onMouseMove={() => {
-                            mesh.visibility = 0.35;
-                            if (this._collisionMesh) {
-                                this._collisionMesh.isVisible = true;
-                                this._collisionMesh.instances?.forEach((i) => i.isVisible = true);
-                            }
-                        }}
-                    >
-                        {this._getCollisionType(mesh, collisionMesh, "cube", (
-                            <RxCube size={42} />
-                        ))}
-
-                        {this._getCollisionType(mesh, collisionMesh, "sphere", (
-                            <ImSphere size={42} />
-                        ))}
-
-                        {this._getCollisionType(mesh, collisionMesh, "capsule", (
-                            <RiCapsuleFill size={42} />
-                        ))}
-
-                        {this._getCollisionType(mesh, collisionMesh, "lod", (
-                            <GiMeshNetwork size={42} />
-                        ))}
-                    </div>
-                }
-            </EditorInspectorSectionField>
-        );
-    }
-
-    private _getCollisionType(mesh: AbstractMesh, collisionMesh: CollisionMesh | null, type: CollisionMeshType, children: ReactNode): ReactNode {
-        return (
-            <div
-                onClick={() => this._configureCollisionMesh(collisionMesh, mesh, type)}
-                className={`
-                    flex flex-col gap-2 justify-center items-center w-full aspect-square bg-secondary rounded-lg hover:bg-accent cursor-pointer
-                    ${collisionMesh?.type === type ? "bg-accent" : ""}
-                    transition-all duration-300 ease-in-out
-                `}
-            >
-                {children}
-
-                <div className="capitalize">
-                    {type}
-                </div>
-            </div>
-        );
-    }
-
-    private async _configureCollisionMesh(collisionMesh: CollisionMesh | null, mesh: AbstractMesh, type: CollisionMeshType): Promise<void> {
-        if (collisionMesh?.type === type) {
-            return;
-        }
-
-        this.setState({ computingCollisionMesh: true });
-
-        collisionMesh?.dispose(false, false);
-        collisionMesh = new CollisionMesh(`${mesh.name} Collider`, mesh.getScene(), mesh);
-        collisionMesh.id = Tools.RandomId();
-        collisionMesh.uniqueId = UniqueNumber.Get();
-
-        this._collisionMesh = collisionMesh;
-
-        await collisionMesh.setType(type, mesh);
-
-        this.props.editor.layout.graph.refresh();
-
-        this.setState({ computingCollisionMesh: false });
     }
 }
