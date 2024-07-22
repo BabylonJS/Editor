@@ -69,34 +69,50 @@ export class CollisionMesh extends Mesh {
             this.material = this._createMaterial();
 
             // Manage instances
-            while (this.instances.length) {
-                this.instances[0].dispose(false, false);
-            }
-
             if (isMesh(sourceMesh)) {
-                sourceMesh.instances.forEach((instance) => {
-                    const collisionInstance = this.createInstance(this.name);
-                    collisionInstance.parent = instance;
-                    collisionInstance.id = Tools.RandomId();
-                    collisionInstance.uniqueId = UniqueNumber.Get();
-
-                    switch (type) {
-                        case "cube":
-                            collisionInstance.position.copyFrom(bb.boundingBox.center);
-                            collisionInstance.scaling.copyFrom(bb.boundingBox.maximum.subtract(bb.boundingBox.minimum));
-                            break;
-
-                        case "sphere":
-                            collisionInstance.position.copyFrom(bb.boundingSphere.center);
-                            collisionInstance.scaling.copyFrom(bb.boundingSphere.maximum.subtract(bb.boundingSphere.minimum));
-                            break;
-
-                        case "capsule":
-                            collisionInstance.position.copyFrom(bb.boundingSphere.center);
-                            break;
-                    }
-                });
+                this.updateInstances(sourceMesh, bb);
             }
+        }
+    }
+
+    public updateInstances(sourceMesh: Mesh, boundingInfo?: BoundingInfo): void {
+        if (!boundingInfo) {
+            sourceMesh.refreshBoundingInfo({
+                applyMorph: true,
+                applySkeleton: true,
+            });
+
+            boundingInfo = sourceMesh.getBoundingInfo();
+        }
+
+        // Manage instances
+        while (this.instances.length) {
+            this.instances[0].dispose(false, false);
+        }
+
+        if (isMesh(sourceMesh)) {
+            sourceMesh.instances.forEach((instance) => {
+                const collisionInstance = this.createInstance(this.name);
+                collisionInstance.parent = instance;
+                collisionInstance.id = Tools.RandomId();
+                collisionInstance.uniqueId = UniqueNumber.Get();
+
+                switch (this.type) {
+                    case "cube":
+                        collisionInstance.position.copyFrom(boundingInfo.boundingBox.center);
+                        collisionInstance.scaling.copyFrom(boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum));
+                        break;
+
+                    case "sphere":
+                        collisionInstance.position.copyFrom(boundingInfo.boundingSphere.center);
+                        collisionInstance.scaling.copyFrom(boundingInfo.boundingSphere.maximum.subtract(boundingInfo.boundingSphere.minimum));
+                        break;
+
+                    case "capsule":
+                        collisionInstance.position.copyFrom(boundingInfo.boundingSphere.center);
+                        break;
+                }
+            });
         }
     }
 
@@ -194,6 +210,9 @@ export class CollisionMesh extends Mesh {
         collisionMesh.uniqueId = sourceMesh.uniqueId;
         collisionMesh.type = type;
         collisionMesh.isVisible = false;
+
+        collisionMesh.material?.dispose();
+        collisionMesh.material = collisionMesh._createMaterial();
 
         sourceMesh.instances.forEach((instance) => {
             const collisionInstance = collisionMesh.createInstance(collisionMesh.name);

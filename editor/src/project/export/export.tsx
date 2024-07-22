@@ -8,9 +8,10 @@ import { toast } from "sonner";
 
 import { isTexture } from "../../tools/guards/texture";
 import { executeSimpleWorker } from "../../tools/worker";
-import { isEditorCamera } from "../../tools/guards/nodes";
 import { getPowerOfTwoUntil } from "../../tools/maths/scalar";
+import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
+import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 
 import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
 import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
@@ -110,6 +111,29 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
     // to single JSON file.
     await Promise.all(data.meshes?.map(async (mesh) => {
         const instantiatedMesh = scene.getMeshById(mesh.id);
+
+        if (instantiatedMesh) {
+            if (isMesh(instantiatedMesh)) {
+                const collisionMesh = getCollisionMeshFor(instantiatedMesh);
+                if (collisionMesh) {
+                    mesh.isPickable = false;
+                    mesh.checkCollisions = false;
+
+                    mesh.instances?.forEach((instance) => {
+                        instance.isPickable = false;
+                        instance.checkCollisions = false;
+                    });
+                }
+            }
+
+            if (isCollisionMesh(instantiatedMesh)) {
+                mesh.checkCollisions = true;
+                mesh.instances?.forEach((instance) => {
+                    instance.checkCollisions = true;
+                });
+            }
+        }
+
         const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
 
         if (geometry) {

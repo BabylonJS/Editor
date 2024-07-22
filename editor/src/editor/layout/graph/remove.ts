@@ -3,7 +3,7 @@ import { AbstractMesh, Light, Node, Scene } from "babylonjs";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 import { isSceneLinkNode } from "../../../tools/guards/scene";
-import { isAbstractMesh, isCamera, isLight, isNode, isTransformNode } from "../../../tools/guards/nodes";
+import { isAbstractMesh, isCamera, isInstancedMesh, isLight, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
 import { Editor } from "../../main";
 
@@ -68,6 +68,10 @@ function restoreNodeData(data: _RemoveNodeData, scene: Scene) {
     const node = data.node;
 
     if (isAbstractMesh(node)) {
+        if (isInstancedMesh(node)) {
+            node.sourceMesh.addInstance(node);
+        }
+
         scene.addMesh(node);
 
         data.lights.forEach((light) => {
@@ -92,6 +96,10 @@ function removeNodeData(data: _RemoveNodeData, scene: Scene) {
     const node = data.node;
 
     if (isAbstractMesh(node)) {
+        if (isInstancedMesh(node)) {
+            node.sourceMesh.removeInstance(node);
+        }
+
         scene.removeMesh(node);
 
         data.lights.forEach((light) => {

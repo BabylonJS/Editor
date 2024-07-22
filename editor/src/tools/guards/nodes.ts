@@ -71,6 +71,14 @@ export function isCollisionMesh(object: any): object is CollisionMesh {
 }
 
 /**
+ * Returns wether or not the given object is an InstancedMesh of CollisionMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isCollisionInstancedMesh(object: any): object is InstancedMesh {
+    return isInstancedMesh(object) && isCollisionMesh(object.sourceMesh);
+}
+
+/**
  * Returns wether or not the given object is a TransformNode.
  * @param object defines the reference to the object to test its class name.
  */

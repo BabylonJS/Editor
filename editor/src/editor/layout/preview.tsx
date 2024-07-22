@@ -18,7 +18,7 @@ import { Tween } from "../../tools/animation/tween";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../tools/tools";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
-import { isAbstractMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAbstractMesh, isCollisionInstancedMesh, isCollisionMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
 
@@ -296,7 +296,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     private _mouseMoveTimeoutId: number = -1;
 
     private _handleMouseMove(x: number, y: number): void {
-        const pick = this.scene.pick(x, y, (m) => !m._masterMesh, false);
+        const pick = this.scene.pick(x, y, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
         const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
 
         if (mesh && this._meshUnderPointer !== mesh) {
@@ -332,7 +332,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             return;
         }
 
-        const pick = this.scene.pick(this.scene.pointerX, this.scene.pointerY, (m) => !m._masterMesh);
+        const pick = this.scene.pick(this.scene.pointerX, this.scene.pointerY, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m));
 
         let mesh = (pick.pickedMesh?._masterMesh ?? pick.pickedMesh) as Node;
         if (mesh) {
@@ -510,7 +510,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     }
 
     private _handleGraphNodesDropped(ev: React.DragEvent<HTMLCanvasElement>): void {
-        const pick = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh, false);
+        const pick = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
         const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
 
         if (!mesh || !pick.pickedPoint) {
@@ -554,7 +554,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
         absolutePaths.forEach(async (absolutePath) => {
             await waitNextAnimationFrame();
-            const pick = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh, false);
+            const pick = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
             const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
 
             const extension = extname(absolutePath).toLowerCase();
