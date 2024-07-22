@@ -109,7 +109,7 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
     // Write all geometries as incremental. This makes the scene way less heavy as binary saved geometry
     // is not stored in the JSON scene file. Moreover, this may allow to load geometries on the fly compared
     // to single JSON file.
-    await Promise.all(data.meshes?.map(async (mesh) => {
+    await Promise.all(data.meshes?.map(async (mesh: any) => {
         const instantiatedMesh = scene.getMeshById(mesh.id);
 
         if (instantiatedMesh) {
@@ -127,6 +127,16 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
             }
 
             if (isCollisionMesh(instantiatedMesh)) {
+                if (mesh.materialId) {
+                    const materialIndex = data.materials.findIndex((material: any) => {
+                        return material.id === mesh.materialId;
+                    });
+
+                    if (materialIndex) {
+                        data.materials.splice(materialIndex);
+                    }
+                }
+
                 mesh.checkCollisions = true;
                 mesh.instances?.forEach((instance) => {
                     instance.checkCollisions = true;
