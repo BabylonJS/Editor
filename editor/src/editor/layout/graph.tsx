@@ -1,10 +1,11 @@
 import { Component, DragEvent, ReactNode } from "react";
-import { Tree, TreeNodeInfo } from "@blueprintjs/core";
+import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
 import { FaCamera } from "react-icons/fa";
 import { FaLightbulb } from "react-icons/fa";
+import { IoCheckmark } from "react-icons/io5";
 import { SiBabylondotjs } from "react-icons/si";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
@@ -12,6 +13,8 @@ import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { Node, Tools } from "babylonjs";
 
 import { Editor } from "../main";
+
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
@@ -45,6 +48,11 @@ export interface IEditorGraphState {
      * Defines wether or not the preview is focused.
      */
     isFocused: boolean;
+
+    /**
+     * Defines wether or not instanced meshes should be hidden from the graph.
+     */
+    hideInstancedMeshes: boolean;
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
@@ -57,6 +65,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             nodes: [],
             search: "",
             isFocused: false,
+
+            hideInstancedMeshes: false,
         };
 
         onNodesAddedObservable.add(() => this.refresh());
@@ -73,15 +83,27 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 onClick={() => this.setState({ isFocused: true })}
                 onMouseLeave={() => this.setState({ isFocused: false })}
             >
-                <div className="flex flex-col w-full p-2">
+                <div className="flex justify-between w-full p-2">
                     <input
                         type="text"
                         placeholder="Search..."
                         value={this.state.search}
                         onChange={(ev) => this._handleSearch(ev.currentTarget.value)}
-                        className="px-5 py-2 rounded-lg bg-primary-foreground outline-none"
+                        className="px-5 py-2 w-full rounded-lg bg-primary-foreground outline-none"
                     />
 
+                    <DropdownMenu>
+                        <DropdownMenuTrigger>
+                            <Button minimal icon="settings" className="transition-all duration-300" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
+                                this.setState({ hideInstancedMeshes: !this.state.hideInstancedMeshes }, () => this.refresh());
+                            }}>
+                                {this.state.hideInstancedMeshes ? <IoCheckmark /> : ""} Hide Instanced Meshes
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 <Tree
@@ -364,6 +386,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         }
 
         // Check is in graph
+        if (isInstancedMesh(node) && this.state.hideInstancedMeshes) {
+            return null;
+        }
+
         if (isTransformNode(node)) {
             if (!node._scene.transformNodes.includes(node)) {
                 return null;
