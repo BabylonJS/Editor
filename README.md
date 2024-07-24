@@ -7,13 +7,10 @@ The online documentation is available here: https://doc.babylonjs.com/extensions
 
 ## Download (v4.7.0)
   * x64
-    * Win32 - [download](https://editor.babylonjs.com/electron/4.7.0/BabylonJS%20Editor%20Setup%204.7.0.exe)
-    * MacOS - [download](https://editor.babylonjs.com/electron/4.7.0/BabylonJS%20Editor-4.7.0.dmg)
-    * Linux - [download](https://editor.babylonjs.com/electron/4.7.0/BabylonJS%20Editor-4.7.0.AppImage)
+    * Win32 - [download](https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%204.7.0.exe)
+    * MacOS - [download](https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-4.7.0.dmg)
   * arm64
-    * Win32 - [download](https://editor.babylonjs.com/electron/4.7.0/BabylonJS%20Editor%20Setup%204.7.0-arm64.exe)
-    * MacOS - [download](https://editor.babylonjs.com/electron/4.7.0/BabylonJS%20Editor-4.7.0-arm64.dmg)
-    * Linux - [download](https://editor.babylonjs.com/electron/4.7.0/BabylonJS%20Editor-4.7.0-arm64.AppImage)
+    * MacOS - [download](https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-4.7.0-arm64.dmg)
 
 ## Features
 * Project based to manage multiple scenes
