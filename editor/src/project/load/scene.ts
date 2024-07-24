@@ -23,6 +23,7 @@ import { createDirectoryIfNotExist } from "../../tools/fs";
 import { createSceneLink } from "../../tools/scene/scene-link";
 import { isCollisionMesh, isMesh } from "../../tools/guards/nodes";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
+import { isPBRMaterial, isStandardMaterial } from "../../tools/guards/material";
 import { updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 import { showLoadSceneProgressDialog } from "./progress";
@@ -255,6 +256,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                     const material = data.materials?.find((d) => d.id === m.material!.id);
                     if (material) {
                         m.material.uniqueId = material.uniqueId;
+                    }
+
+                    if (isPBRMaterial(m.material) || isStandardMaterial(m.material)) {
+                        m.material.maxSimultaneousLights = 32;
                     }
                 }
 
