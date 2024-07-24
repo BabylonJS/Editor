@@ -48,6 +48,7 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
         }
     });
 
+    // Load scene?
     if (project.lastOpenedScene) {
         const absolutePath = join(directory, project.lastOpenedScene);
 

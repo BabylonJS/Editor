@@ -11,6 +11,7 @@ import { UniqueNumber } from "../../../tools/tools";
 import { isMesh } from "../../../tools/guards/nodes";
 import { isTexture } from "../../../tools/guards/texture";
 import { onNodesAddedObservable } from "../../../tools/observables";
+import { isPBRMaterial, isStandardMaterial } from "../../../tools/guards/material";
 
 import { projectConfiguration } from "../../../project/configuration";
 
@@ -94,9 +95,17 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
     const configuredEmbeddedTextures: number[] = [];
 
     result.meshes.forEach((mesh) => {
-        if (isMesh(mesh) && mesh.geometry) {
-            mesh.geometry.id = Tools.RandomId();
-            mesh.geometry.uniqueId = UniqueNumber.Get();
+        if (isMesh(mesh)) {
+            if (mesh.geometry) {
+                mesh.geometry.id = Tools.RandomId();
+                mesh.geometry.uniqueId = UniqueNumber.Get();
+            }
+
+            if (mesh.material) {
+                if (isPBRMaterial(mesh.material) || isStandardMaterial(mesh.material)) {
+                    mesh.material.maxSimultaneousLights = 32;
+                }
+            }
         }
 
         const textures = mesh.material?.getActiveTextures();
