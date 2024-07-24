@@ -10,6 +10,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { IoRefresh } from "react-icons/io5";
 import { IoCheckmark } from "react-icons/io5";
+import { IoIosOptions } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
 import { SiBabylondotjs } from "react-icons/si";
 import { FaFolder, FaRegFolderOpen } from "react-icons/fa";
@@ -410,7 +411,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
                     <DropdownMenu>
                         <DropdownMenuTrigger>
-                            <Button minimal icon="settings" className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
+                            <Button minimal icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                             <DropdownMenuItem className="flex gap-1 items-center" onClick={() => {

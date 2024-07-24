@@ -3,9 +3,11 @@ import { extname, basename } from "path/posix";
 import { ipcRenderer } from "electron";
 
 import { toast } from "sonner";
-import { Button, Divider } from "@blueprintjs/core";
+import { Button } from "@blueprintjs/core";
 import { Component, MouseEvent, ReactNode } from "react";
 
+import { FaCheck } from "react-icons/fa6";
+import { IoIosOptions } from "react-icons/io";
 import { GiWireframeGlobe } from "react-icons/gi";
 
 import { AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode, ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport } from "babylonjs";
@@ -19,6 +21,7 @@ import { registerUndoRedo } from "../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../tools/tools";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { isAbstractMesh, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 
 import { EditorCamera } from "../nodes/camera";
 
@@ -27,6 +30,8 @@ import { RotationIcon } from "../../ui/icons/rotation";
 import { ScalingIcon } from "../../ui/icons/scaling";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
+import { Separator } from "../../ui/shadcn/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/shadcn/ui/tooltip";
 
 import { disposeSSRRenderingPipeline } from "../rendering/ssr";
 import { disposeMotionBlurPostProcess } from "../rendering/motion-blur";
@@ -413,52 +418,111 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             <div className="absolute top-0 left-0 w-full h-12 z-10">
                 <div className="flex justify-between h-full bg-background/95 w-full p-1">
                     <div className="flex gap-2 items-center h-10">
-                        <Select
-                            value={this.scene?.activeCamera?.id}
-                            onValueChange={(v) => {
-                                const camera = this.scene.cameras.find((c) => c.id === v) ?? null;
-                                this.scene.activeCamera?.detachControl();
+                        <TooltipProvider>
+                            <Select
+                                value={this.scene?.activeCamera?.id}
+                                onValueChange={(v) => {
+                                    const camera = this.scene.cameras.find((c) => c.id === v) ?? null;
+                                    this.scene.activeCamera?.detachControl();
 
-                                this.scene.activeCamera = camera;
-                                this.scene.activeCamera?.attachControl(true);
-                            }}
-                        >
-                            <SelectTrigger className="w-36 border-none bg-muted/50">
-                                <SelectValue placeholder="Select Value..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {this.scene?.cameras.map((c) => (
-                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                                    this.scene.activeCamera = camera;
+                                    this.scene.activeCamera?.attachControl(true);
+                                }}
+                            >
+                                <SelectTrigger className="w-36 border-none bg-muted/50">
+                                    <SelectValue placeholder="Select Value..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {this.scene?.cameras.map((c) => (
+                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
 
-                        <Divider />
+                            <Separator orientation="vertical" className="mx-2 h-[24px]" />
 
-                        <Button active={this.state.activeGizmo === "position"} onClick={() => this.setActiveGizmo("position")} minimal icon={<PositionIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
-                        <Button active={this.state.activeGizmo === "rotation"} onClick={() => this.setActiveGizmo("rotation")} minimal icon={<RotationIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
-                        <Button active={this.state.activeGizmo === "scaling"} onClick={() => this.setActiveGizmo("scaling")} minimal icon={<ScalingIcon height={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Button active={this.state.activeGizmo === "position"} onClick={() => this.setActiveGizmo("position")} minimal icon={<PositionIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Toggle position gizmo
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Button active={this.state.activeGizmo === "rotation"} onClick={() => this.setActiveGizmo("rotation")} minimal icon={<RotationIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Toggle rotation gizmo
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Button active={this.state.activeGizmo === "scaling"} onClick={() => this.setActiveGizmo("scaling")} minimal icon={<ScalingIcon height={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Toggle scaling gizmo
+                                </TooltipContent>
+                            </Tooltip>
 
-                        <Select
-                            value={this.gizmo?.getCoordinateMode().toString()}
-                            onValueChange={(v) => {
-                                this.gizmo?.setCoordinatesMode(parseInt(v));
-                                this.forceUpdate();
-                            }}
-                        >
-                            <SelectTrigger className="w-32 border-none bg-muted/50">
-                                <SelectValue placeholder="Select Value..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={GizmoCoordinatesMode.World.toString()}>World</SelectItem>
-                                <SelectItem value={GizmoCoordinatesMode.Local.toString()}>Local</SelectItem>
-                            </SelectContent>
-                        </Select>
+                            <Select
+                                value={this.gizmo?.getCoordinateMode().toString()}
+                                onValueChange={(v) => {
+                                    this.gizmo?.setCoordinatesMode(parseInt(v));
+                                    this.forceUpdate();
+                                }}
+                            >
+                                <SelectTrigger className="w-32 border-none bg-muted/50">
+                                    <SelectValue placeholder="Select Value..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={GizmoCoordinatesMode.World.toString()}>World</SelectItem>
+                                    <SelectItem value={GizmoCoordinatesMode.Local.toString()}>Local</SelectItem>
+                                </SelectContent>
+                            </Select>
 
-                        <Button active={this.scene?.forceWireframe} minimal icon={<GiWireframeGlobe className="w-6 h-6" strokeWidth={1} color="white" />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" onClick={() => {
-                            this.scene.forceWireframe = !this.scene.forceWireframe;
-                            this.forceUpdate();
-                        }} />
+                            <Separator orientation="vertical" className="mx-2 h-[24px]" />
+
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Button active={this.scene?.forceWireframe} minimal icon={<GiWireframeGlobe className="w-6 h-6" strokeWidth={1} color="white" />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" onClick={() => {
+                                        this.scene.forceWireframe = !this.scene.forceWireframe;
+                                        this.forceUpdate();
+                                    }} />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Toggle wireframe
+                                </TooltipContent>
+                            </Tooltip>
+
+                            <Separator orientation="vertical" className="mx-2 h-[24px]" />
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger>
+                                    <Button minimal icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent onClick={() => this.forceUpdate()}>
+                                    <DropdownMenuLabel>Render options</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.postProcessesEnabled = !this.scene.postProcessesEnabled}>
+                                        {this.scene?.postProcessesEnabled && <FaCheck className="w-4 h-4" />} Post-processes enabled
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.texturesEnabled = !this.scene.texturesEnabled}>
+                                        {this.scene?.texturesEnabled && <FaCheck className="w-4 h-4" />} Textures enabled
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.lightsEnabled = !this.scene.lightsEnabled}>
+                                        {this.scene?.lightsEnabled && <FaCheck className="w-4 h-4" />} Lights enabled
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => {
+                                        this.scene.shadowsEnabled = !this.scene.shadowsEnabled;
+                                        this.scene.renderTargetsEnabled = this.scene.shadowsEnabled;
+                                    }}>
+                                        {this.scene?.shadowsEnabled && <FaCheck className="w-4 h-4" />} Shadows enabled
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TooltipProvider>
                     </div>
                 </div>
             </div>
