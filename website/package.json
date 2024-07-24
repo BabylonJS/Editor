@@ -9,8 +9,8 @@
         "lint": "next lint"
     },
     "dependencies": {
-        "@babylonjs/core": "7.0.0",
-        "@babylonjs/materials": "7.0.0",
+        "@babylonjs/core": "7.15.1",
+        "@babylonjs/materials": "7.15.1",
         "babylonjs-editor-tools": "link:../tools",
         "is-mobile": "^4.0.0",
         "lenis": "^1.0.45",

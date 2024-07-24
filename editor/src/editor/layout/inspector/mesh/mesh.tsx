@@ -1,15 +1,14 @@
 import { toast } from "sonner";
 import { Component, ReactNode } from "react";
 
-import { FaCopy } from "react-icons/fa";
-import { IoAddSharp } from "react-icons/io5";
-import { IoCloseOutline } from "react-icons/io5";
+import { FaCopy, FaLink } from "react-icons/fa6";
+import { IoAddSharp, IoCloseOutline } from "react-icons/io5";
 
 import { XMarkIcon } from "@heroicons/react/20/solid";
 
 import { SkyMaterial } from "babylonjs-materials";
 import {
-    AbstractMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial,
+    AbstractMesh, InstancedMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial,
 } from "babylonjs";
 
 import { CollisionMesh } from "../../../nodes/collision";
@@ -20,8 +19,8 @@ import { Separator } from "../../../../ui/shadcn/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
-import { isAbstractMesh, isMesh } from "../../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
+import { isAbstractMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
 
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
@@ -75,8 +74,21 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                             Type
                         </div>
 
-                        <div className="text-white/50 w-full">
-                            {this.props.object.getClassName()}
+                        <div className="flex justify-between items-center w-full">
+                            <div className="text-white/50">
+                                {this.props.object.getClassName()}
+                            </div>
+
+                            {isInstancedMesh(this.props.object) &&
+                                <Button variant="ghost" onClick={() => {
+                                    const instance = this.props.object as InstancedMesh;
+                                    this.props.editor.layout.preview.gizmo.setAttachedNode(instance.sourceMesh);
+                                    this.props.editor.layout.graph.setSelectedNode(instance.sourceMesh);
+                                    this.props.editor.layout.inspector.setEditedObject(instance.sourceMesh);
+                                }}>
+                                    <FaLink className="w-4 h-4" />
+                                </Button>
+                            }
                         </div>
                     </div>
                     <EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)} />
