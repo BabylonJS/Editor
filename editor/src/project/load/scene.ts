@@ -27,6 +27,12 @@ import { updatePointLightShadowMapRenderListPredicate } from "../../tools/light/
 
 import { showLoadSceneProgressDialog } from "./progress";
 
+/**
+ * Defines the list of all loaded scenes. This is used to detect cycle references
+ * when computing scene links.
+ */
+const loadedScenes: string[] = [];
+
 export type SceneLoaderOptions = {
     /**
      * Defines wether or not the scene is being loaded as link.
@@ -53,6 +59,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         sceneLinks: [],
         transformNodes: [],
     } as SceneLoadResult;
+
+    options ??= {};
 
     editor.layout.console.log(`Loading scene "${relativeScenePath}"`);
 
@@ -388,11 +396,17 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     });
 
     // Load scene links
+    loadedScenes.push(relativeScenePath);
+
     await Promise.all(sceneLinkFiles.map(async (file) => {
         const data = await readJSON(join(scenePath, "sceneLinks", file), "utf-8");
 
         if (options?.asLink && data.metadata?.doNotSerialize) {
             return;
+        }
+
+        if (loadedScenes.includes(data._relativePath)) {
+            return editor.layout.console.error(`Can't load scene "${data._relativePath}": cycle references detected.`);
         }
 
         const sceneLink = await createSceneLink(editor, join(projectPath, data._relativePath));
@@ -408,6 +422,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
         progress.step(progressStep);
     }));
+
+    loadedScenes.pop();
 
     // Configure waiting parent ids.
     const allNodes = [

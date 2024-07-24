@@ -18,7 +18,7 @@ import { Tween } from "../../tools/animation/tween";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../tools/tools";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
-import { isAbstractMesh, isCollisionInstancedMesh, isCollisionMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAbstractMesh, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
 
@@ -352,10 +352,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     private _highlightCurrentMeshUnderPointer(pickedMesh: AbstractMesh): void {
         Tween.KillTweensOf(pickedMesh);
 
-        const meshes = [pickedMesh];
+        const effectiveMesh = isInstancedMesh(pickedMesh)
+            ? pickedMesh.sourceMesh
+            : pickedMesh;
 
-        if (isMesh(pickedMesh)) {
-            pickedMesh.getLODLevels().forEach((lod) => {
+        const meshes = [effectiveMesh];
+
+        if (isMesh(effectiveMesh)) {
+            effectiveMesh.getLODLevels().forEach((lod) => {
                 if (lod.mesh) {
                     meshes.push(lod.mesh);
                 }
@@ -375,10 +379,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         const mesh = this._meshUnderPointer;
 
         if (mesh) {
-            const meshes = [mesh];
+            const effectiveMesh = isInstancedMesh(mesh)
+                ? mesh.sourceMesh
+                : mesh;
 
-            if (isMesh(mesh)) {
-                mesh.getLODLevels().forEach((lod) => {
+            const meshes = [effectiveMesh];
+
+            if (isMesh(effectiveMesh)) {
+                effectiveMesh.getLODLevels().forEach((lod) => {
                     if (lod.mesh) {
                         meshes.push(lod.mesh);
                     }
