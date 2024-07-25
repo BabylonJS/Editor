@@ -96,6 +96,7 @@ export class CollisionMesh extends Mesh {
                 collisionInstance.parent = instance;
                 collisionInstance.id = Tools.RandomId();
                 collisionInstance.uniqueId = UniqueNumber.Get();
+                collisionInstance.isVisible = false;
 
                 switch (this.type) {
                     case "cube":
