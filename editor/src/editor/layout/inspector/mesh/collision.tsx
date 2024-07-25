@@ -42,14 +42,14 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
         const collisionMesh = getCollisionMeshFor(mesh as Mesh);
         this._collisionMesh = collisionMesh;
 
-        if (collisionMesh && isInstancedMesh(this.props.object)) {
-            return false;
-        }
+        // if (collisionMesh && isInstancedMesh(this.props.object)) {
+        //     return false;
+        // }
 
         return (
             <EditorInspectorSectionField title="Collisions" isProcessing={this.state.computingCollisionMesh}>
-                <EditorInspectorSwitchField label="Check Collisions" object={this.props.object} property="checkCollisions" onChange={(v) => {
-                    if (!v && isMesh(this.props.object) && collisionMesh) {
+                <EditorInspectorSwitchField label="Check Collisions" object={mesh} property="checkCollisions" onChange={(v) => {
+                    if (!v && isMesh(mesh) && collisionMesh) {
                         collisionMesh.dispose();
                     }
 
@@ -57,7 +57,7 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
                     this.props.editor.layout.graph.refresh();
                 }} />
 
-                {this.props.object.checkCollisions &&
+                {mesh.checkCollisions &&
                     <div
                         className="flex gap-2 items-center"
                         onMouseLeave={() => {
