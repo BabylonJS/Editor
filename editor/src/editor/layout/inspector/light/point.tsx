@@ -5,7 +5,7 @@ import { PointLight } from "babylonjs";
 
 import { isPointLight } from "../../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
-import { updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
+import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
@@ -57,6 +57,7 @@ export class EditorPointLightInspector extends Component<IEditorInspectorImpleme
 
                     <EditorInspectorNumberField label="Intensity" object={this.props.object} property="intensity" />
                     <EditorInspectorNumberField label="Range" object={this.props.object} property="range" min={0} max={this.props.editor.layout.preview.camera.maxZ} step={this.props.editor.layout.preview.camera.maxZ / 1000} onChange={() => {
+                        updateLightShadowMapRefreshRate(this.props.object);
                         updatePointLightShadowMapRenderListPredicate(this.props.object);
                     }} />
                 </EditorInspectorSectionField>

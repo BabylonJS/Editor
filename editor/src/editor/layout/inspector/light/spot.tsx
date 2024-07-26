@@ -5,6 +5,7 @@ import { SpotLight } from "babylonjs";
 
 import { isSpotLight } from "../../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
+import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
@@ -53,6 +54,13 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
                 <EditorInspectorSectionField title="Light">
                     <EditorInspectorColorField label={<div className="w-14">Diffuse</div>} object={this.props.object} property="diffuse" />
                     <EditorInspectorColorField label={<div className="w-14">Specular</div>} object={this.props.object} property="specular" />
+
+                    <Divider />
+
+                    <EditorInspectorNumberField label="Range" object={this.props.object} property="range" min={0} max={this.props.editor.layout.preview.camera.maxZ} step={this.props.editor.layout.preview.camera.maxZ / 1000} onChange={() => {
+                        updateLightShadowMapRefreshRate(this.props.object);
+                        updatePointLightShadowMapRenderListPredicate(this.props.object);
+                    }} />
 
                     <Divider />
 

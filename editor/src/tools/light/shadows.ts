@@ -1,6 +1,6 @@
 import { Light, RenderTargetTexture, Vector3 } from "babylonjs";
 
-import { isPointLight } from "../guards/nodes";
+import { isPointLight, isSpotLight } from "../guards/nodes";
 
 /**
  * Updates the shadow map render list predicate of the given point light.
@@ -9,7 +9,7 @@ import { isPointLight } from "../guards/nodes";
  * @param light defines the reference to the point light to configure.
  */
 export function updatePointLightShadowMapRenderListPredicate(light: Light): void {
-    if (!isPointLight(light)) {
+    if (!isPointLight(light) && !isSpotLight(light)) {
         return;
     }
 
