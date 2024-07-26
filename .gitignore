@@ -126,6 +126,9 @@ node_modules
 # For chrome debugging
 .tempChromeProfileForDebug
 
+# Env
+.env
+
 # Babylon.JS Editor
 editor/build
 editor/declaration

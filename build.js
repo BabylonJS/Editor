@@ -4,6 +4,8 @@ const path = require("path");
 const Builder = require("electron-builder");
 const child_process = require("child_process");
 
+require('dotenv').config();
+
 const yargs = require("yargs");
 const args = yargs.argv;
 
@@ -14,13 +16,17 @@ const build = ({ x64, arm64 } = options) => {
         projectDir: "./editor",
         config: {
             mac: {
-                identity: null,
+                hardenedRuntime: true,
+                appId: "com.babylonjs.editor",
+                notarize: {
+                    teamId: process.env.APPLE_TEAM_ID,
+                },
             },
             fileAssociations: [{
                 ext: "bjseditor",
                 name: "Babylon.js Editor Project"
             }],
-            appId: "editor.babylonjs.com",
+            appId: "com.babylonjs.editor",
             productName: "BabylonJS Editor",
             icon: "./icons/babylonjs_icon",
             directories: {
