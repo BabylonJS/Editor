@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
 import { isAbstractMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
+import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
@@ -368,6 +369,9 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                     } else {
                         light.getShadowGenerator()?.getShadowMap()?.renderList?.push(this.props.object);
                     }
+
+                    updateLightShadowMapRefreshRate(light);
+                    updatePointLightShadowMapRenderListPredicate(light);
                 });
             },
             redo: () => {
@@ -380,7 +384,11 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                             light.getShadowGenerator()?.getShadowMap()?.renderList?.splice(index, 1);
                         }
                     }
+
+                    updateLightShadowMapRefreshRate(light);
+                    updatePointLightShadowMapRenderListPredicate(light);
                 });
+
             },
         });
     }
