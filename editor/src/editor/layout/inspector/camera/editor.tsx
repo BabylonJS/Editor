@@ -1,12 +1,11 @@
 import { Component, ReactNode } from "react";
 
-import { Divider } from "@blueprintjs/core";
-
 import { EditorCamera } from "../../../nodes/camera";
+
+import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
-import { EditorInspectorKeyField } from "../fields/key";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
@@ -39,16 +38,9 @@ export class EditorCameraInspector extends Component<IEditorInspectorImplementat
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Keys">
-                    <EditorInspectorKeyField value={this.props.object.keysUp[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysUp = [v]} label="Forward" />
-                    <EditorInspectorKeyField value={this.props.object.keysDown[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysDown = [v]} label="Backward" />
-
-                    <EditorInspectorKeyField value={this.props.object.keysLeft[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysLeft = [v]} label="Left" />
-                    <EditorInspectorKeyField value={this.props.object.keysRight[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysRight = [v]} label="Right" />
-
-                    <Divider />
-
-                    <EditorInspectorKeyField value={this.props.object.keysUpward[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysUpward = [v]} label="Up" />
-                    <EditorInspectorKeyField value={this.props.object.keysDownward[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysDownward = [v]} label="Down" />
+                    <Button variant="secondary" onClick={() => this.props.editor.setState({ editPreferences: true })}>
+                        Configure in preferences...
+                    </Button>
                 </EditorInspectorSectionField>
             </>
         );
