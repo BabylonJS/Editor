@@ -1,8 +1,11 @@
 import { Component, ReactNode } from "react";
 
 import { Label } from "../../../ui/shadcn/ui/label";
+import { Separator } from "../../../ui/shadcn/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
+
+import { EditorInspectorKeyField } from "../../layout/inspector/fields/key";
 
 import { Editor } from "../../main";
 
@@ -36,11 +39,14 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
             <AlertDialog open={this.props.open}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>
+                        <AlertDialogTitle className="text-3xl font-[400]">
                             Edit Preferences
                         </AlertDialogTitle>
-                        <AlertDialogDescription className="flex flex-col gap-[10px]">
+                        <AlertDialogDescription className="flex flex-col gap-[20px]">
+                            <Separator />
                             {this._getThemesComponent()}
+                            <Separator />
+                            {this._getCameraControlPreferences()}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -55,7 +61,7 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
         return (
             <div className="flex flex-col gap-[10px] w-full">
                 <div className="flex flex-col gap-[10px]">
-                    <Label>Theme</Label>
+                    <Label className="text-xl font-[400]">Theme</Label>
                     <Select
                         value={this.state.theme}
                         onValueChange={(v) => {
@@ -78,6 +84,32 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
                             <SelectItem value="dark">Dark</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+            </div>
+        );
+    }
+
+    private _getCameraControlPreferences(): ReactNode {
+        const camera = this.props.editor.layout?.preview?.camera;
+        if (!camera) {
+            return false;
+        }
+
+        return (
+            <div>
+                <div className="flex flex-col gap-[10px] w-full">
+                    <div className="flex flex-col gap-[10px]">
+                        <Label className="text-xl font-[400]">Editor camera control</Label>
+
+                        <EditorInspectorKeyField value={camera.keysUp[0]?.toString() ?? ""} label="Forward" onChange={(v) => camera.keysUp = [v]} />
+                        <EditorInspectorKeyField value={camera.keysDown[0]?.toString() ?? ""} label="Backward" onChange={(v) => camera.keysDown = [v]} />
+
+                        <EditorInspectorKeyField value={camera.keysLeft[0]?.toString() ?? ""} label="Left" onChange={(v) => camera.keysLeft = [v]} />
+                        <EditorInspectorKeyField value={camera.keysRight[0]?.toString() ?? ""} label="Right" onChange={(v) => camera.keysRight = [v]} />
+
+                        <EditorInspectorKeyField value={camera.keysUpward[0]?.toString() ?? ""} label="Up" onChange={(v) => camera.keysUpward = [v]} />
+                        <EditorInspectorKeyField value={camera.keysDownward[0]?.toString() ?? ""} label="Down" onChange={(v) => camera.keysDownward = [v]} />
+                    </div>
                 </div>
             </div>
         );

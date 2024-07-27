@@ -45,7 +45,7 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
             <AlertDialog open={this.props.open}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>
+                        <AlertDialogTitle className="text-3xl font-[400]">
                             Edit Project
                         </AlertDialogTitle>
                         <AlertDialogDescription className="py-5">
@@ -78,6 +78,8 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
         return (
             <div className="flex flex-col gap-[10px] w-full mt-[10px]">
                 <Separator />
+
+                <Label className="text-xl font-[400]">Textures</Label>
 
                 <div className="flex justify-between items-center gap-2">
                     Compress textures using PVRTexTool CLI.
@@ -122,11 +124,11 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
         }
 
         return (
-            <div className="flex flex-col gap-[10px] w-full">
+            <div className="flex flex-col gap-[10px] w-full mt-[10px]">
+                <Separator />
+
                 <div className="flex justify-between items-center w-full">
-                    <div className="text-xl font-[400]">
-                        Plugins
-                    </div>
+                    <Label className="text-xl font-[400]">Plugins</Label>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger>
@@ -144,7 +146,7 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
                 </div>
 
                 {this.props.editor.state.plugins.map((plugin) => (
-                    <EditorEditProjectPluginComponent editor={this.props.editor} pathOrName={plugin} onRemoved={() => this._handlePluginRemoved(plugin)} />
+                    <EditorEditProjectPluginComponent key={plugin} editor={this.props.editor} pathOrName={plugin} onRemoved={() => this._handlePluginRemoved(plugin)} />
                 ))}
             </div>
         );
