@@ -167,6 +167,8 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
                 cwd: projectDir,
             });
 
+            p.onGetDataObservable.add((d) => this.props.editor.layout.console.log(d));
+
             await p.wait();
 
             const pluginBaseDir = join(projectDir, "node_modules", name);
