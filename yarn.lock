@@ -1722,11 +1722,6 @@ babylonjs-materials@7.15.1:
   dependencies:
     babylonjs "^7.15.1"
 
-babylonjs@7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-7.0.0.tgz#c8905f1251cfdf62841cb28d4d8211f236231c86"
-  integrity sha512-tK4qHeuw/Ea161BSwQo4Ni1jE/sr/C2wkuoEEqwv+AdQvnZaATr2QBorj9CtBBY1YssoZRXa+2nNTt2Y8dKApw==
-
 babylonjs@7.15.1, babylonjs@^7.15.1:
   version "7.15.1"
   resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-7.15.1.tgz#0ed1daf592cb12f465a875c2d408fff299c68f1c"

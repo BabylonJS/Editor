@@ -25,7 +25,11 @@
         "watch-editor-css": "yarn workspace babylonjs-editor watch-css",
         "watch-tools": "yarn workspace babylonjs-editor-tools watch",
         "watch-quixel": "yarn workspace babylonjs-editor-quixel-plugin watch",
-        "build": "yarn workspace babylonjs-editor build"
+        "build-editor": "yarn workspace babylonjs-editor build",
+        "build-tools": "yarn workspace babylonjs-editor-tools build",
+        "build-quixel": "yarn workspace babylonjs-editor-quixel-plugin build",
+        "build": "yarn build-editor && yarn build-tools && yarn build-quixel",
+        "package": "yarn && yarn build && node build.js"
     },
     "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
     "license": "(Apache-2.0)",
