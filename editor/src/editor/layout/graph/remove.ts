@@ -3,7 +3,7 @@ import { AbstractMesh, Light, Node, Scene } from "babylonjs";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 import { isSceneLinkNode } from "../../../tools/guards/scene";
-import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isInstancedMesh, isLight, isNode, isTransformNode } from "../../../tools/guards/nodes";
+import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
 import { Editor } from "../../main";
 
@@ -23,15 +23,19 @@ export function removeNodes(editor: Editor): void {
 
     const selectedNodes = editor.layout.graph.getSelectedNodes().map((n) => n.nodeData).filter((n) => isNode(n)) as Node[];
     const data = selectedNodes.map((node) => {
-        const attached = [node].concat(node.getDescendants(false, (n) => isNode(n))).map((descendant) => {
-            return {
-                node: descendant,
-                parent: descendant.parent,
-                lights: scene.lights.filter((light) => {
-                    return light.getShadowGenerator()?.getShadowMap()?.renderList?.includes(descendant as AbstractMesh);
-                }),
-            } as _RemoveNodeData;
-        });
+        const attached = [node]
+            .concat(node.getDescendants(false, (n) => isNode(n)))
+            .map((descendant) => isMesh(descendant) ? [descendant, ...descendant.instances] : [descendant])
+            .flat()
+            .map((descendant) => {
+                return {
+                    node: descendant,
+                    parent: descendant.parent,
+                    lights: scene.lights.filter((light) => {
+                        return light.getShadowGenerator()?.getShadowMap()?.renderList?.includes(descendant as AbstractMesh);
+                    }),
+                } as _RemoveNodeData;
+            });
 
         return attached;
     }).flat();

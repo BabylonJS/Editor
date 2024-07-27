@@ -31,7 +31,7 @@ export function DownloadVersionComponent(props: IDownloadVersionComponentProps) 
                         <WindowsIcon color="#fff" className="w-20 lg:w-32 h-20 lg:h-32" />
 
                         <Link href={props.windowsLink} className="font-semibold font-sans tracking-tighter underline underline-offset-2">
-                            Windows 64bits Installer
+                            64bits Installer
                         </Link>
                     </div>
 
@@ -39,11 +39,11 @@ export function DownloadVersionComponent(props: IDownloadVersionComponentProps) 
                         <AppleIcon color="#fff" className="w-20 lg:w-32 h-20 lg:h-32" />
 
                         <Link href={props.macArm64Link} className="font-semibold font-sans tracking-tighter underline underline-offset-2">
-                            macOS Apple Silicon
+                            Apple Silicon
                         </Link>
 
                         <Link href={props.macIntelLink} className="font-semibold font-sans tracking-tighter underline underline-offset-2">
-                            macOS Intel Chip
+                            Intel Chip
                         </Link>
                     </div>
                 </div>

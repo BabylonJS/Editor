@@ -1,12 +1,15 @@
 import { shell } from "electron";
-import { join } from "path/posix";
+import { join, dirname } from "path/posix";
 
 import { Component, ReactNode } from "react";
 
 import { AiOutlinePlus } from "react-icons/ai";
 import { IoOpenOutline } from "react-icons/io5";
 
+import { execNodePty } from "../../../tools/node-pty";
 import { openSingleFileDialog, openSingleFolderDialog } from "../../../tools/dialog";
+
+import { showPrompt } from "../../../ui/dialog";
 
 import { Label } from "../../../ui/shadcn/ui/label";
 import { Button } from "../../../ui/shadcn/ui/button";
@@ -19,6 +22,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Editor } from "../../main";
 
 import { saveProject } from "../../../project/save/save";
+import { projectConfiguration } from "../../../project/configuration";
 import { getCompressedTexturesCliPath, setCompressedTexturesCliPath } from "../../../project/export/ktx";
 
 import { EditorEditProjectPluginComponent } from "./plugin";
@@ -75,10 +79,10 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
             <div className="flex flex-col gap-[10px] w-full mt-[10px]">
                 <Separator />
 
-                <div className="flex justify-between items-center gap-1">
+                <div className="flex justify-between items-center gap-2">
                     Compress textures using PVRTexTool CLI.
 
-                    <Button variant="secondary" className="flex items-center gap-[5px]" onClick={() => shell.openExternal("https://www.imaginationtech.com/")}>
+                    <Button variant="ghost" className="flex items-center gap-[5px]" onClick={() => shell.openExternal("https://www.imaginationtech.com/")}>
                         <IoOpenOutline className="w-4 h-4" /> Download
                     </Button>
                 </div>
@@ -92,7 +96,7 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
                         </div>
                     </div>
 
-                    <Button variant="outline" className="justify-start w-[460px] whitespace-nowrap overflow-hidden text-ellipsis" onClick={() => this._handleBrowsePVRTexToolCliPath()}>
+                    <Button variant="outline" className="justify-start w-[460px] text-muted whitespace-nowrap overflow-hidden text-ellipsis" onClick={() => this._handleBrowsePVRTexToolCliPath()}>
                         {getCompressedTexturesCliPath() ?? "None"}
                     </Button>
                 </div>
@@ -133,7 +137,7 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
                         <DropdownMenuContent>
                             <DropdownMenuLabel>Add Plugin</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>From npm</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => this._handleAddPluginFromNpm()}>From npm</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => this._handleAddPluginFromLocalDisk()}>From local disk</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -146,19 +150,58 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
         );
     }
 
+    private async _handleAddPluginFromNpm(): Promise<void> {
+        if (!projectConfiguration.path) {
+            return;
+        }
+
+        const name = await showPrompt("Package name", "Please provide the name of the plugin's package on npm", "");
+        if (!name) {
+            return;
+        }
+
+        const projectDir = dirname(projectConfiguration.path);
+
+        try {
+            const p = await execNodePty(`yarn add -D ${name}`, {
+                cwd: projectDir,
+            });
+
+            await p.wait();
+
+            const pluginBaseDir = join(projectDir, "node_modules", name);
+
+            require(join(pluginBaseDir, "package.json"));
+            const result = require(pluginBaseDir);
+            result.main(this.props.editor);
+
+            this.props.editor.setState({
+                plugins: [...this.props.editor.state.plugins, name],
+            });
+        } catch (e) {
+            this.props.editor.layout.console.error("Invalid plugin.");
+            if (e.message) {
+                this.props.editor.layout.console.error(e.message);
+            }
+        }
+    }
+
     private _handleAddPluginFromLocalDisk(): void {
         const directory = openSingleFolderDialog("Select plugin's directory.");
 
         try {
             require(join(directory, "package.json"));
             const result = require(directory);
-            result?.main?.(this.props.editor);
+            result.main(this.props.editor);
 
             this.props.editor.setState({
                 plugins: [...this.props.editor.state.plugins, directory],
             });
         } catch (e) {
-            console.error("Invalid plugin directory.");
+            this.props.editor.layout.console.error("Invalid plugin.");
+            if (e.message) {
+                this.props.editor.layout.console.error(e.message);
+            }
         }
 
         this.forceUpdate();
