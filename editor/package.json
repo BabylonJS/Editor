@@ -5,6 +5,10 @@
     "productName": "Babylon.js Editor",
     "main": "build/src/index.js",
     "typings": "declaration/src/export.d.ts",
+    "author": {
+        "name": "Julien Moreau-Mathis",
+        "url": "https://twitter.com/luaacro"
+    },
     "scripts": {
         "build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css",
         "watch": "tsc -p . --watch",
