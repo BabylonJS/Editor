@@ -31,19 +31,32 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
     });
 
     const p = await execNodePty("yarn", { cwd: directory });
-    p.wait().then(() => {
+    p.wait().then(async () => {
         toast.dismiss(toastId);
         toast.success("Dependencies successfully updated");
 
         // Load plugins
         for (const plugin of project.plugins) {
             try {
-                const result = require(plugin.nameOrPath);
+                const isLocalPlugin = await pathExists(plugin.nameOrPath);
+
+                let requireId = plugin.nameOrPath;
+                if (!isLocalPlugin) {
+                    const projectDir = dirname(path);
+                    requireId = join(projectDir, "node_modules", plugin.nameOrPath);
+                }
+
+                const result = require(requireId);
                 result.main(editor);
-                editor.layout.console.log(`Loaded plugin "${result.title ?? plugin.nameOrPath}"`);
+
+                if (isLocalPlugin) {
+                    editor.layout.console.log(`Loaded plugin from local drive "${result.title ?? plugin.nameOrPath}"`);
+                } else {
+                    editor.layout.console.log(`Loaded plugin "${result.title ?? plugin.nameOrPath}"`);
+                }
             } catch (e) {
                 console.error(e);
-                editor.layout.console.error(`Failed to load plugin "${plugin.nameOrPath}"`);
+                editor.layout.console.error(`Failed to load plugin from project "${plugin.nameOrPath}"`);
             }
         }
     });
