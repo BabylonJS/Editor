@@ -42,6 +42,25 @@ export class EditorCamera extends FreeCamera {
     }
 
     /**
+     * Some preferences for the editor's camera are saved in the local storage in order
+     * to be global for each project. This function tries to get the preferences from the local storage
+     * and applies it to the camera.
+     */
+    public configureFromPreferences(): void {
+        try {
+            const keys = JSON.parse(localStorage.getItem("editor-camera-controls") as string);
+            this.keysUp = keys.keysUp;
+            this.keysDown = keys.keysDown;
+            this.keysLeft = keys.keysLeft;
+            this.keysRight = keys.keysRight;
+            this.keysUpward = keys.keysUpward;
+            this.keysDownward = keys.keysDownward;
+        } catch (e) {
+            // Catch silently.
+        }
+    }
+
+    /**
      * Destroy the camera and release the current resources hold by it.
      */
     public dispose(): void {

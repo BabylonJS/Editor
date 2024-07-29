@@ -101,17 +101,58 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
                     <div className="flex flex-col gap-[10px]">
                         <Label className="text-xl font-[400]">Editor camera control</Label>
 
-                        <EditorInspectorKeyField value={camera.keysUp[0]?.toString() ?? ""} label="Forward" onChange={(v) => camera.keysUp = [v]} />
-                        <EditorInspectorKeyField value={camera.keysDown[0]?.toString() ?? ""} label="Backward" onChange={(v) => camera.keysDown = [v]} />
+                        <EditorInspectorKeyField value={camera.keysUp[0]?.toString() ?? ""} label="Forward" onChange={(v) => {
+                            camera.keysUp = [v];
+                            this._saveCameraControls();
+                        }} />
+                        <EditorInspectorKeyField value={camera.keysDown[0]?.toString() ?? ""} label="Backward" onChange={(v) => {
+                            camera.keysDown = [v];
+                            this._saveCameraControls();
+                        }} />
 
-                        <EditorInspectorKeyField value={camera.keysLeft[0]?.toString() ?? ""} label="Left" onChange={(v) => camera.keysLeft = [v]} />
-                        <EditorInspectorKeyField value={camera.keysRight[0]?.toString() ?? ""} label="Right" onChange={(v) => camera.keysRight = [v]} />
+                        <EditorInspectorKeyField value={camera.keysLeft[0]?.toString() ?? ""} label="Left" onChange={(v) => {
+                            camera.keysLeft = [v];
+                            this._saveCameraControls();
+                        }} />
+                        <EditorInspectorKeyField value={camera.keysRight[0]?.toString() ?? ""} label="Right" onChange={(v) => {
+                            camera.keysRight = [v];
+                            this._saveCameraControls();
+                        }} />
 
-                        <EditorInspectorKeyField value={camera.keysUpward[0]?.toString() ?? ""} label="Up" onChange={(v) => camera.keysUpward = [v]} />
-                        <EditorInspectorKeyField value={camera.keysDownward[0]?.toString() ?? ""} label="Down" onChange={(v) => camera.keysDownward = [v]} />
+                        <EditorInspectorKeyField value={camera.keysUpward[0]?.toString() ?? ""} label="Up" onChange={(v) => {
+                            camera.keysUpward = [v];
+                            this._saveCameraControls();
+                        }} />
+                        <EditorInspectorKeyField value={camera.keysDownward[0]?.toString() ?? ""} label="Down" onChange={(v) => {
+                            camera.keysDownward = [v];
+                            this._saveCameraControls();
+                        }} />
                     </div>
                 </div>
             </div>
         );
+    }
+
+    private _saveCameraControls(): void {
+        const camera = this.props.editor.layout?.preview?.camera;
+        if (!camera) {
+            return;
+        }
+
+        try {
+            localStorage.setItem("editor-camera-controls", JSON.stringify({
+                keysUp: camera.keysUp,
+                keysDown: camera.keysDown,
+                keysLeft: camera.keysLeft,
+                keysRight: camera.keysRight,
+                keysUpward: camera.keysUpward,
+                keysDownward: camera.keysDownward,
+            }));
+        } catch (e) {
+            this.props.editor.layout.console.error("Failed to write editor's camera controls configuration.");
+            if (e.message) {
+                this.props.editor.layout.console.error(e.message);
+            }
+        }
     }
 }

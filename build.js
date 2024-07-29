@@ -21,6 +21,7 @@ const build = ({ x64, arm64 } = options) => {
                 notarize: {
                     teamId: process.env.APPLE_TEAM_ID,
                 },
+                identity: args.noSign ? null : undefined,
             },
             fileAssociations: [{
                 ext: "bjseditor",
@@ -54,6 +55,12 @@ const build = ({ x64, arm64 } = options) => {
 };
 
 (async () => {
+    // Remove old build
+    fs.rmSync(path.join(__dirname, "editor/electron-packages"), {
+        force: true,
+        recursive: true,
+    });
+
     // Pack template
     const templatePackageJson = require(path.join(__dirname, "template/package.json"));
     const tgzName = `${templatePackageJson.name}-v${templatePackageJson.version}.tgz`;
