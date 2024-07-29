@@ -117,6 +117,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
             editor.layout.preview.camera = camera;
 
             camera.attachControl(true);
+            camera.configureFromPreferences();
         }
 
         // Load environment
