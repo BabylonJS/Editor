@@ -159,6 +159,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
     // Load transform nodes
     await Promise.all(nodesFiles.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
         const data = await readJSON(join(scenePath, "nodes", file), "utf-8");
 
         if (options?.asLink && data.metadata?.doNotSerialize) {
@@ -177,12 +181,20 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
     // Load skeletons
     await Promise.all(skeletonFiles.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
         const data = await readJSON(join(scenePath, "skeletons", file), "utf-8");
         Skeleton.Parse(data, scene);
     }));
 
     // Load meshes
     await Promise.all(meshesFiles.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
         const data = await readJSON(join(scenePath, "meshes", file), "utf-8");
 
         if (options?.asLink && data.metadata?.doNotSerialize) {
@@ -243,7 +255,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                 if (data.isCollisionMesh) {
                     const collisionMesh = CollisionMesh.CreateFromSourceMesh(m, data.collisionMeshType);
 
-                    m.dispose(false, false);
+                    m.dispose(true, false);
                     m = collisionMesh;
 
                     if (!isCollisionMesh(m)) {
@@ -300,6 +312,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
     // Load lights
     await Promise.all(lightsFiles.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
         const data = await readJSON(join(scenePath, "lights", file), "utf-8");
 
         if (options?.asLink && data.metadata?.doNotSerialize) {
@@ -320,6 +336,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
     // Load cameras
     await Promise.all(cameraFiles.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
         const data = await readJSON(join(scenePath, "cameras", file), "utf-8");
 
         if (options?.asLink && data.metadata?.doNotSerialize) {
@@ -339,6 +359,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     // Load shadow generators
     if (!options?.asLink) {
         await Promise.all(shadowGeneratorFiles.map(async (file) => {
+            if (file.startsWith(".")) {
+                return;
+            }
+
             const data = await readJSON(join(scenePath, "shadowGenerators", file), "utf-8");
 
             const light = scene.lights.find((light) => light.id === data.lightId);

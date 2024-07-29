@@ -206,11 +206,18 @@ export class CollisionMesh extends Mesh {
      * @param type defines the collision type for the mesh.
      */
     public static CreateFromSourceMesh(sourceMesh: Mesh, type: CollisionMeshType): CollisionMesh {
+        const geometry = sourceMesh.geometry;
+        geometry?.releaseForMesh(sourceMesh);
+
         const collisionMesh = new CollisionMesh(sourceMesh.name, sourceMesh.getScene(), sourceMesh.parent, sourceMesh, true, false);
         collisionMesh.id = sourceMesh.id;
         collisionMesh.uniqueId = sourceMesh.uniqueId;
         collisionMesh.type = type;
         collisionMesh.isVisible = false;
+
+        setTimeout(() => {
+            geometry?.applyToMesh(collisionMesh);
+        }, 0);
 
         collisionMesh.material?.dispose();
         collisionMesh.material = collisionMesh._createMaterial();
