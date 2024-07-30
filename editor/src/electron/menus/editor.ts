@@ -146,6 +146,10 @@ export function setupEditorMenu(): void {
                     click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:box-mesh"),
                 },
                 {
+                    label: "Plane Mesh",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:plane-mesh"),
+                },
+                {
                     label: "Sphere Mesh",
                     click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:sphere-mesh"),
                 },

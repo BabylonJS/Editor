@@ -32,6 +32,9 @@ export class CollisionMesh extends Mesh {
         clonePhysicsImpostor?: boolean,
     ) {
         super(name, scene, parent, source, doNotCloneChildren, clonePhysicsImpostor);
+
+        this.id = Tools.RandomId();
+        this.uniqueId = UniqueNumber.Get();
     }
 
     public async setType(type: CollisionMeshType, sourceMesh: AbstractMesh): Promise<void> {
@@ -120,12 +123,14 @@ export class CollisionMesh extends Mesh {
     private _createMaterial(): PBRMaterial {
         const material = new PBRMaterial(this.name, this._scene);
         material.unlit = true;
+        material.id = Tools.RandomId();
+        material.uniqueId = UniqueNumber.Get();
 
         MeshDebugPluginMaterial.PrepareMeshForTrianglesAndVerticesMode(this);
         new MeshDebugPluginMaterial(material, {
+            wireframeThickness: 1,
             mode: BABYLON.MeshDebugMode.TRIANGLES,
             wireframeTrianglesColor: new BABYLON.Color3(0, 0, 0),
-            wireframeThickness: 0.7
         });
 
         return material;

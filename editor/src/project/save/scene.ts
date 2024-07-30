@@ -80,18 +80,28 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 delete data.materials;
             }
 
-            data.meshes?.[0]?.instances?.forEach((instanceData: any) => {
-                const instance = meshToSerialize.instances.find((instance) => instance.id === instanceData.id);
-                if (instance) {
-                    if (instance.parent) {
-                        instanceData.metadata ??= {};
-                        instanceData.metadata.parentId = instance.parent.uniqueId;
-                    }
+            data.meshes?.forEach((mesh) => {
+                const instantiatedMesh = scene.getMeshById(mesh.id);
+                if (instantiatedMesh?.parent) {
+                    mesh.metadata ??= {};
+                    mesh.metadata.parentId = instantiatedMesh.parent.uniqueId;
 
-                    instanceData.uniqueId = instance.uniqueId;
-
-                    delete instanceData.parentId;
+                    delete mesh.parentId;
                 }
+
+                mesh.instances?.forEach((instanceData: any) => {
+                    const instance = meshToSerialize.instances.find((instance) => instance.id === instanceData.id);
+                    if (instance) {
+                        if (instance.parent) {
+                            instanceData.metadata ??= {};
+                            instanceData.metadata.parentId = instance.parent.uniqueId;
+                        }
+
+                        instanceData.uniqueId = instance.uniqueId;
+
+                        delete instanceData.parentId;
+                    }
+                });
             });
 
             const lodLevel = mesh.getLODLevels().find((lodLevel) => lodLevel.mesh === meshToSerialize);
@@ -190,7 +200,14 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         const transformNodePath = join(scenePath, "nodes", `${transformNode.id}.json`);
 
         try {
-            await writeJSON(transformNodePath, transformNode.serialize(), {
+            const data = transformNode.serialize();
+
+            data.metadata ??= {};
+            data.metadata.parentId = transformNode.parent?.uniqueId;
+
+            delete data.parentId;
+
+            await writeJSON(transformNodePath, data, {
                 spaces: 4,
             });
         } catch (e) {
@@ -209,7 +226,14 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         const lightPath = join(scenePath, "lights", `${light.id}.json`);
 
         try {
-            await writeJSON(lightPath, light.serialize(), {
+            const data = light.serialize();
+
+            data.metadata ??= {};
+            data.metadata.parentId = light.parent?.uniqueId;
+
+            delete data.parentId;
+
+            await writeJSON(lightPath, data, {
                 spaces: 4,
             });
         } catch (e) {
@@ -246,7 +270,14 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         const cameraPath = join(scenePath, "cameras", `${camera.id}.json`);
 
         try {
-            await writeJSON(cameraPath, camera.serialize(), {
+            const data = camera.serialize();
+
+            data.metadata ??= {};
+            data.metadata.parentId = camera.parent?.uniqueId;
+
+            delete data.parentId;
+
+            await writeJSON(cameraPath, data, {
                 spaces: 4,
             });
         } catch (e) {

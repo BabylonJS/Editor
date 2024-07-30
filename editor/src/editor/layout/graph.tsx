@@ -238,6 +238,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
                 node = object.clone(name);
+                if (node) {
+                    node.parent = object.parent;
+                }
+            }
+
+            if (isCamera(object)) {
+                const suffix = "(Clone)";
+                const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+                node = object.clone(name);
+                node.parent = object.parent;
             }
 
             if (isTransformNode(object)) {
@@ -245,6 +256,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
                 node = object.clone(name, null, true);
+                if (node) {
+                    node.parent = object.parent;
+                }
             }
 
             if (node) {

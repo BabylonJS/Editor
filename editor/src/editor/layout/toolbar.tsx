@@ -17,9 +17,10 @@ import { showConfirm } from "../../ui/dialog";
 
 import { saveProject } from "../../project/save/save";
 import { exportProject } from "../../project/export/export";
+
 import { addArcRotateCamera, addFreeCamera } from "../../project/add/camera";
-import { addTransformNode, addBox, addGroundMesh, addSphereMesh } from "../../project/add/mesh";
 import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
+import { addTransformNode, addBoxMesh, addGroundMesh, addSphereMesh, addPlaneMesh } from "../../project/add/mesh";
 
 import { Editor } from "../main";
 
@@ -38,7 +39,8 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
         ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
 
         ipcRenderer.on("add:transform-node", () => addTransformNode(this.props.editor));
-        ipcRenderer.on("add:box-mesh", () => addBox(this.props.editor));
+        ipcRenderer.on("add:box-mesh", () => addBoxMesh(this.props.editor));
+        ipcRenderer.on("add:plane-mesh", () => addPlaneMesh(this.props.editor));
         ipcRenderer.on("add:sphere-mesh", () => addSphereMesh(this.props.editor));
         ipcRenderer.on("add:ground-mesh", () => addGroundMesh(this.props.editor));
 
@@ -177,7 +179,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
                             <MenubarItem onClick={() => addTransformNode(this.props.editor)}>
                                 Transform Node
                             </MenubarItem>
-                            <MenubarItem onClick={() => addBox(this.props.editor)}>
+                            <MenubarItem onClick={() => addBoxMesh(this.props.editor)}>
                                 Box Mesh
                             </MenubarItem>
                             <MenubarItem onClick={() => addSphereMesh(this.props.editor)}>
