@@ -172,7 +172,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         const transformNode = TransformNode.Parse(data, scene, join(projectPath, "/"));
         transformNode.uniqueId = data.uniqueId;
         transformNode.metadata ??= {};
-        transformNode.metadata._waitingParentId = data.parentId;
+        transformNode.metadata._waitingParentId = data.metadata?.parentId;
 
         progress.step(progressStep);
 
@@ -232,12 +232,16 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                 if ((meshData?.uniqueId ?? null) !== null) {
                     m.uniqueId = meshData.uniqueId;
                     m.metadata ??= {};
-                    m.metadata._waitingParentId = meshData.parentId;
+                    m.metadata._waitingParentId = meshData.metadata?.parentId;
                 }
 
                 m.instances.forEach((instance) => {
                     const instanceData = meshData.instances?.find((d) => d.id === instance.id);
                     if (instanceData) {
+                        if ((instanceData?.uniqueId ?? null) !== null) {
+                            instance.id = instanceData.id;
+                        }
+
                         if ((instanceData?.uniqueId ?? null) !== null) {
                             instance.uniqueId = instanceData.uniqueId;
                         }
@@ -326,7 +330,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         if (light) {
             light.uniqueId = data.uniqueId;
             light.metadata ??= {};
-            light.metadata._waitingParentId = data.parentId;
+            light.metadata._waitingParentId = data.metadata?.parentId;
 
             loadResult.lights.push(light);
         }
@@ -349,7 +353,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         const camera = Camera.Parse(data, scene);
         camera._waitingParentId = data.parentId;
         camera.metadata ??= {};
-        camera.metadata._waitingParentId = data.parentId;
+        camera.metadata._waitingParentId = data.metadata?.parentId;
 
         progress.step(progressStep);
 

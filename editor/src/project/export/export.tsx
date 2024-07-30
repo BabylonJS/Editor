@@ -1,5 +1,5 @@
 import { join, dirname, basename, extname } from "path/posix";
-import { copyFile, pathExists, readJSON, readdir, writeFile, writeJSON } from "fs-extra";
+import { copyFile, pathExists, readJSON, readdir, remove, writeFile, writeJSON } from "fs-extra";
 
 import sharp from "sharp";
 import { RenderTargetTexture, SceneSerializer } from "babylonjs";
@@ -54,6 +54,8 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
 
     const scene = editor.layout.preview.scene;
     const editorCamera = scene.cameras.find((camera) => isEditorCamera(camera));
+
+    const savedGeometries: string[] = [];
 
     // Configure textures to store base size. This will be useful for the scene loader located
     // in the `babylonjs-editor-tools` package.
@@ -132,7 +134,7 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
                         return material.id === mesh.materialId;
                     });
 
-                    if (materialIndex) {
+                    if (materialIndex !== -1) {
                         data.materials.splice(materialIndex);
                     }
                 }
@@ -166,6 +168,8 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
                         data.geometries!.vertexData!.splice(geometryIndex, 1);
                     }
                 } while (geometryIndex !== -1);
+
+                savedGeometries.push(geometryFileName);
             } catch (e) {
                 editor.layout.console.error(`Export: Failed to write geometry for mesh ${mesh.name}`);
             }
@@ -186,6 +190,16 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
 
     // Write final scene file.
     await writeJSON(join(scenePath, `${sceneName}.babylon`), data);
+
+    // Clear old geometries
+    const geometriesDir = join(scenePath, sceneName);
+    const geometriesFiles = await readdir(geometriesDir);
+
+    await Promise.all(geometriesFiles.map(async (file) => {
+        if (!savedGeometries.includes(file)) {
+            await remove(join(geometriesDir, file));
+        }
+    }));
 
     // Copy files
     const files = await normalizedGlob(join(projectDir, "/assets/**/*"), {

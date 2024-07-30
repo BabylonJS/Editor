@@ -15,8 +15,8 @@ import { isScene } from "../../../tools/guards/scene";
 import { isMesh, isNode } from "../../../tools/guards/nodes";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
 
-import { addTransformNode } from "../../../project/add/mesh";
 import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../../project/add/light";
+import { addBoxMesh, addGroundMesh, addPlaneMesh, addSphereMesh, addTransformNode } from "../../../project/add/mesh";
 
 import { Editor } from "../../main";
 
@@ -68,6 +68,11 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                     </ContextMenuSubTrigger>
                                     <ContextMenuSubContent>
                                         <ContextMenuItem onClick={() => addTransformNode(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Transform Node</ContextMenuItem>
+                                        <ContextMenuSeparator />
+                                        <ContextMenuItem onClick={() => addBoxMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Box</ContextMenuItem>
+                                        <ContextMenuItem onClick={() => addPlaneMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Plane</ContextMenuItem>
+                                        <ContextMenuItem onClick={() => addGroundMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Ground</ContextMenuItem>
+                                        <ContextMenuItem onClick={() => addSphereMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Sphere</ContextMenuItem>
                                         <ContextMenuSeparator />
                                         <ContextMenuItem onClick={() => addPointLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Point Light</ContextMenuItem>
                                         <ContextMenuItem onClick={() => addDirectionalLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Directional Light</ContextMenuItem>
