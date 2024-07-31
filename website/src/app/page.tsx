@@ -117,7 +117,7 @@ export default function Home() {
                 </div>
 
                 {/* Page 2 */}
-                <div className="flex flex-col justify-center gap-10 lg:gap-32 w-screen min-h-screen max-w-7xl px-5 mx-auto" ref={section2Ref}>
+                <div className="flex flex-col justify-center gap-10 lg:gap-32 pt-10 lg:pt-32 w-screen min-h-screen max-w-7xl px-5 mx-auto" ref={section2Ref}>
                     <div className="flex flex-col lg:flex-row w-full">
                         <Fade triggerOnce className="hidden lg:block w-full">
                             <IoSpeedometer size={128} className="mx-auto" />
@@ -234,7 +234,7 @@ export default function Home() {
                     <div />
                 </div> */}
 
-                <div className="flex flex-col justify-between w-screen h-[50dvh] max-w-3xl px-5 mx-auto" />
+                <div className="flex flex-col justify-between w-screen h-[100dvh] max-w-3xl px-5 mx-auto" />
 
                 {/* Page 4 */}
                 <div className="flex flex-col justify-center items-center gap-5 w-screen min-h-screen max-w-3xl px-5 mx-auto">
