@@ -27,7 +27,7 @@ export default function DownloadPage() {
                     </Fade>
 
                     <DownloadVersionComponent
-                        version="v5.0.0-alpha.3"
+                        version="v5.0.0-alpha.4"
                         windowsLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe"
                         macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.dmg"
                         macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0.dmg"
