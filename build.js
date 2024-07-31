@@ -15,7 +15,7 @@ const build = ({ x64, arm64 } = options) => {
         arm64,
         projectDir: "./editor",
         config: {
-            mac: {
+            mac: os.platform() === "win32" ? null : {
                 hardenedRuntime: true,
                 appId: "com.babylonjs.editor",
                 notarize: {
