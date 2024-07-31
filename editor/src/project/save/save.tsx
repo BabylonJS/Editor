@@ -13,6 +13,7 @@ import { IEditorProject } from "../typings";
 import { exportProject } from "../export/export";
 
 import { projectsKey } from "../../tools/project";
+import { getBase64SceneScreenshot } from "../../tools/scene/screenshot";
 import { tryGetProjectsFromLocalStorage } from "../../tools/local-storage";
 
 import { saveScene } from "./scene";
@@ -54,11 +55,7 @@ export async function saveProject(editor: Editor): Promise<void> {
     toast.success("Project saved");
 
     try {
-        const base64 = await new Promise<string | undefined>((resolve) => {
-            editor.layout.preview.scene.onAfterRenderObservable.addOnce(() => {
-                resolve(editor.layout.preview.engine.getRenderingCanvas()?.toDataURL("image/png"));
-            });
-        });
+        const base64 = await getBase64SceneScreenshot(editor.layout.preview.scene);
 
         const projects = tryGetProjectsFromLocalStorage();
         const project = projects.find((project) => project.absolutePath === editor.state.projectPath);

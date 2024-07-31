@@ -1,5 +1,5 @@
 import { join, basename } from "path/posix";
-import { readJSON, remove, stat, writeJSON } from "fs-extra";
+import { readJSON, remove, stat, writeFile, writeJSON } from "fs-extra";
 
 import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
@@ -7,6 +7,7 @@ import { Editor } from "../../editor/main";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { isFromSceneLink } from "../../tools/scene/scene-link";
+import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 
@@ -380,4 +381,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             encoding: "utf-8",
         });
     }));
+
+    // Update screenshot
+    const screenshotBuffer = await getBufferSceneScreenshot(scene);
+    if (screenshotBuffer) {
+        await writeFile(join(scenePath, "preview.png"), screenshotBuffer);
+    }
 }

@@ -1,8 +1,9 @@
 import { GizmoCoordinatesMode, Node, Observable, PositionGizmo, Quaternion, RotationGizmo, ScaleGizmo, Scene, UtilityLayerRenderer, Vector3 } from "babylonjs";
 
+import { isLight } from "../../../tools/guards/nodes";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isQuaternion, isVector3 } from "../../../tools/guards/math";
-import { updateLightShadowMapRefreshRate } from "../../../tools/light/shadows";
+import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../tools/light/shadows";
 
 export const onGizmoNodeChangedObservable = new Observable<Node>();
 
@@ -127,9 +128,10 @@ export class EditorPreviewGizmo {
         });
 
         gizmo.onDragObservable.add(() => {
-            this._gizmosLayer.originalScene.lights.forEach((light) => {
-                updateLightShadowMapRefreshRate(light);
-            });
+            if (isLight(temporaryNode)) {
+                updateLightShadowMapRefreshRate(temporaryNode);
+                updatePointLightShadowMapRenderListPredicate(temporaryNode);
+            }
         });
 
         gizmo.onDragEndObservable.add(() => {
@@ -152,6 +154,11 @@ export class EditorPreviewGizmo {
                         node[property] = oldValue?.clone() ?? null;
                     }
 
+                    if (isLight(node)) {
+                        updateLightShadowMapRefreshRate(node);
+                        updatePointLightShadowMapRenderListPredicate(node);
+                    }
+
                     this.setAttachedNode(node);
                 },
                 redo: () => {
@@ -160,6 +167,11 @@ export class EditorPreviewGizmo {
                         valueRef.copyFrom(newValue);
                     } else {
                         node[property] = newValue?.clone() ?? null;
+                    }
+
+                    if (isLight(node)) {
+                        updateLightShadowMapRefreshRate(node);
+                        updatePointLightShadowMapRenderListPredicate(node);
                     }
 
                     this.setAttachedNode(node);
@@ -186,9 +198,10 @@ export class EditorPreviewGizmo {
         });
 
         gizmo.onDragObservable.add(() => {
-            this._gizmosLayer.originalScene.lights.forEach((light) => {
-                updateLightShadowMapRefreshRate(light);
-            });
+            if (isLight(temporaryNode)) {
+                updateLightShadowMapRefreshRate(temporaryNode);
+                updatePointLightShadowMapRenderListPredicate(temporaryNode);
+            }
         });
 
         gizmo.onDragEndObservable.add(() => {
@@ -211,6 +224,11 @@ export class EditorPreviewGizmo {
                         valueRef.copyFrom(oldValue);
                     }
 
+                    if (isLight(node)) {
+                        updateLightShadowMapRefreshRate(node);
+                        updatePointLightShadowMapRenderListPredicate(node);
+                    }
+
                     this.setAttachedNode(node);
                 },
                 redo: () => {
@@ -219,6 +237,11 @@ export class EditorPreviewGizmo {
                         valueRef.copyFrom(newValue);
                     } else if (isQuaternion(valueRef) && isQuaternion(newValue)) {
                         valueRef.copyFrom(newValue);
+                    }
+
+                    if (isLight(node)) {
+                        updateLightShadowMapRefreshRate(node);
+                        updatePointLightShadowMapRenderListPredicate(node);
                     }
 
                     this.setAttachedNode(node);

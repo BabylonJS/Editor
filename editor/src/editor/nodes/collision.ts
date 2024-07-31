@@ -68,7 +68,6 @@ export class CollisionMesh extends Mesh {
         this.type = type;
 
         if (this.geometry) {
-            this.material?.dispose();
             this.material = this._createMaterial();
 
             // Manage instances
@@ -120,7 +119,13 @@ export class CollisionMesh extends Mesh {
         }
     }
 
+    private static _DebugMaterial: PBRMaterial | null = null;
+
     private _createMaterial(): PBRMaterial {
+        if (CollisionMesh._DebugMaterial) {
+            return CollisionMesh._DebugMaterial;
+        }
+
         const material = new PBRMaterial(this.name, this._scene);
         material.unlit = true;
         material.id = Tools.RandomId();
@@ -132,6 +137,8 @@ export class CollisionMesh extends Mesh {
             mode: BABYLON.MeshDebugMode.TRIANGLES,
             wireframeTrianglesColor: new BABYLON.Color3(0, 0, 0),
         });
+
+        CollisionMesh._DebugMaterial = material;
 
         return material;
     }
@@ -224,7 +231,6 @@ export class CollisionMesh extends Mesh {
             geometry?.applyToMesh(collisionMesh);
         }, 0);
 
-        collisionMesh.material?.dispose();
         collisionMesh.material = collisionMesh._createMaterial();
 
         sourceMesh.instances.forEach((instance) => {

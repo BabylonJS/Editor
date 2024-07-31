@@ -15,6 +15,8 @@ import { ContextMenuItem } from "../../../ui/shadcn/ui/context-menu";
 import { AssetsBrowserItem } from "./item";
 
 export class AssetBrowserSceneItem extends AssetsBrowserItem {
+    private _previewPath: string | null = null;
+
     /**
      * @override
      */
@@ -32,7 +34,19 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
      * @override
      */
     protected getIcon(): ReactNode {
-        return <SiBabylondotjs size="64px" />;
+        return this._previewPath
+            ? <img alt="" src={this._previewPath} className="w-[120px] aspect-square object-contain ring-purple-500 ring-2 rounded-lg" />
+            : <SiBabylondotjs size="64px" />;
+    }
+
+    public async componentDidMount(): Promise<void> {
+        super.componentDidMount();
+
+        const previewPath = join(this.props.absolutePath, "preview.png");
+        if (await pathExists(previewPath)) {
+            this._previewPath = previewPath;
+            this.forceUpdate();
+        }
     }
 
     private async _handleDuplicate(): Promise<void> {
