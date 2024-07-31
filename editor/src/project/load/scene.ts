@@ -24,7 +24,7 @@ import { createSceneLink } from "../../tools/scene/scene-link";
 import { isCollisionMesh, isMesh } from "../../tools/guards/nodes";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { isPBRMaterial, isStandardMaterial } from "../../tools/guards/material";
-import { updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
+import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 import { showLoadSceneProgressDialog } from "./progress";
 
@@ -500,6 +500,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     });
 
     editor.layout.console.log("Scene loaded and editor is ready.");
+
+    setTimeout(() => {
+        updateAllLights(scene);
+    }, 150);
 
     return loadResult;
 }

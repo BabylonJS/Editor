@@ -1,4 +1,4 @@
-import { Light, RenderTargetTexture, Vector3 } from "babylonjs";
+import { Light, RenderTargetTexture, Scene, Vector3 } from "babylonjs";
 
 import { isPointLight, isSpotLight } from "../guards/nodes";
 
@@ -38,4 +38,15 @@ export function updateLightShadowMapRefreshRate(light: Light): void {
     if (shadowMap.refreshRate === RenderTargetTexture.REFRESHRATE_RENDER_ONCE) {
         shadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
     }
+}
+
+/**
+ * Updates all the lights properties (shadow maps, list predicates etc.).
+ * @param scene defines the reference to the scene that contains all lights to update.
+ */
+export function updateAllLights(scene: Scene) {
+    scene.lights.forEach((light) => {
+        updateLightShadowMapRefreshRate(light);
+        updatePointLightShadowMapRenderListPredicate(light);
+    });
 }

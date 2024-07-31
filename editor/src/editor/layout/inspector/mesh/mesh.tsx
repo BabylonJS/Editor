@@ -21,7 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
 import { isAbstractMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
-import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
+import { updateAllLights, updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
@@ -42,6 +42,7 @@ import { EditorPBRMaterialInspector } from "../material/pbr";
 import { EditorSkyMaterialInspector } from "../material/sky";
 import { EditorMultiMaterialInspector } from "../material/multi";
 import { EditorStandardMaterialInspector } from "../material/standard";
+
 import { EditorMeshCollisionInspector } from "./collision";
 
 export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
@@ -94,6 +95,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                     </div>
                     <EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)} />
                     <EditorInspectorSwitchField label="Pickable" object={this.props.object} property="isPickable" />
+                    <EditorInspectorSwitchField label="Visible" object={this.props.object} property="isVisible" onChange={() => updateAllLights(this.props.editor.layout.preview.scene)} />
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Transforms">
