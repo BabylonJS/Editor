@@ -16,6 +16,16 @@ export function waitNextAnimationFrame(): Promise<void> {
 }
 
 /**
+ * Wait until a given predicate returns true.
+ * @param predicate Defines the predicate to wait for.
+ */
+export async function waitUntil(predicate: () => any): Promise<void> {
+    while (!predicate()) {
+        await wait(150);
+    }
+}
+
+/**
  * Generates a unique number value based on date.
  * Takes care if a number is generated at the same millisecond as the previous one.
  * @example myNode.uniqueId = UniqueNumber.Get();

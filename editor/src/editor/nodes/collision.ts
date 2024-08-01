@@ -222,9 +222,15 @@ export class CollisionMesh extends Mesh {
         geometry?.releaseForMesh(sourceMesh);
 
         const collisionMesh = new CollisionMesh(sourceMesh.name, sourceMesh.getScene(), sourceMesh.parent, sourceMesh, true, false);
+        collisionMesh.type = type;
         collisionMesh.id = sourceMesh.id;
         collisionMesh.uniqueId = sourceMesh.uniqueId;
-        collisionMesh.type = type;
+        collisionMesh.metadata = sourceMesh.metadata;
+
+        collisionMesh.position = sourceMesh.position;
+        collisionMesh.rotation = sourceMesh.rotation;
+        collisionMesh.rotationQuaternion = sourceMesh.rotationQuaternion;
+        collisionMesh.scaling = sourceMesh.scaling;
         collisionMesh.isVisible = false;
 
         setTimeout(() => {
@@ -234,7 +240,7 @@ export class CollisionMesh extends Mesh {
         collisionMesh.material = collisionMesh._createMaterial();
 
         sourceMesh.instances.forEach((instance) => {
-            const collisionInstance = collisionMesh.createInstance(collisionMesh.name);
+            const collisionInstance = collisionMesh.createInstance(instance.name);
             collisionInstance.id = instance.id;
             collisionInstance.uniqueId = instance.uniqueId;
             collisionInstance.metadata = instance.metadata;

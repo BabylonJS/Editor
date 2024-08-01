@@ -1648,6 +1648,7 @@ babylonjs-editor-tools@latest:
 "babylonjs-editor@link:editor":
   version "5.0.0"
   dependencies:
+    "@babylonjs/core" "7.15.1"
     "@blueprintjs/core" "^5.10.0"
     "@blueprintjs/select" "^5.1.2"
     "@emotion/react" "^11.11.4"

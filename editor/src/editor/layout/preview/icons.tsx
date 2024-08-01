@@ -62,25 +62,24 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
         );
     }
 
-    public componentDidMount(): void {
-        requestAnimationFrame(() => {
-            this._tempMesh = new Mesh("editor-preview-icons-temp-node", this.props.editor.layout.preview.scene);
-            this._tempMesh._removeFromSceneRootNodes();
-            this.props.editor.layout.preview.scene.meshes.pop();
-        });
-    }
-
     public componentWillUnmount(): void {
         this.stop();
     }
 
     public run(): void {
-        if (this._renderFunction) {
+        const scene = this.props.editor.layout.preview.scene;
+
+        if (this._renderFunction || !scene) {
             return;
         }
 
+        this._tempMesh?.dispose(true, true);
+
+        this._tempMesh = new Mesh("editor-preview-icons-temp-node", this.props.editor.layout.preview.scene);
+        this._tempMesh._removeFromSceneRootNodes();
+        this.props.editor.layout.preview.scene.meshes.pop();
+
         const buttons: _IButtonData[] = [];
-        const scene = this.props.editor.layout.preview.scene;
 
         scene.getEngine().runRenderLoop(this._renderFunction = () => {
             buttons.splice(0, buttons.length);

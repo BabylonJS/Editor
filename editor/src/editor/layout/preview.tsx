@@ -1,4 +1,4 @@
-import { extname, basename } from "path/posix";
+import { extname, basename, join } from "path/posix";
 
 import { ipcRenderer } from "electron";
 
@@ -10,7 +10,10 @@ import { FaCheck } from "react-icons/fa6";
 import { IoIosOptions } from "react-icons/io";
 import { GiWireframeGlobe } from "react-icons/gi";
 
-import { AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode, ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport } from "babylonjs";
+import {
+    AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
+    ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine,
+} from "babylonjs";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
 
@@ -76,7 +79,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     /**
      * The engine of the preview.
      */
-    public engine: Engine;
+    public engine: AbstractEngine;
     /**
      * The scene of the preview.
      */
@@ -248,7 +251,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         });
     }
 
-    private _onGotCanvasRef(canvas: HTMLCanvasElement): void {
+    private async _onGotCanvasRef(canvas: HTMLCanvasElement): Promise<void> {
         if (this.engine) {
             return;
         }
@@ -256,16 +259,23 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         Animation.AllowMatricesInterpolation = true;
         Animation.AllowMatrixDecomposeForInterpolation = true;
 
-        this.engine = new Engine(canvas, true, {
-            antialias: true,
-            audioEngine: true,
-            adaptToDeviceRatio: true,
-            disableWebGL2Support: false,
-            useHighPrecisionFloats: true,
-            useHighPrecisionMatrix: true,
-            powerPreference: "high-performance",
-            failIfMajorPerformanceCaveat: false,
-        });
+        const webGpuSupported = false;
+        // const webGpuSupported = await WebGPUEngine.IsSupportedAsync;
+
+        if (webGpuSupported) {
+            this.engine = await this._createWebgpuEngine(canvas);
+        } else {
+            this.engine = new Engine(canvas, true, {
+                antialias: true,
+                audioEngine: true,
+                adaptToDeviceRatio: true,
+                disableWebGL2Support: false,
+                useHighPrecisionFloats: true,
+                useHighPrecisionMatrix: true,
+                powerPreference: "high-performance",
+                failIfMajorPerformanceCaveat: false,
+            });
+        }
 
         this.scene = new Scene(this.engine);
         this.scene.autoClear = true;
@@ -291,6 +301,32 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
         this.icons?.run();
         this.forceUpdate();
+    }
+
+    private async _createWebgpuEngine(canvas: HTMLCanvasElement): Promise<WebGPUEngine> {
+        const glslangJs = require("@babylonjs/core/assets/glslang/glslang.cjs");
+        const glslang = await glslangJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/glslang/glslang.wasm"));
+
+        const twgslJs = require("@babylonjs/core/assets/twgsl/twgsl.cjs");
+        const twgsl = await twgslJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/twgsl/twgsl.wasm"));
+
+        const engine = new WebGPUEngine(canvas, {
+            antialias: true,
+            audioEngine: true,
+            adaptToDeviceRatio: true,
+            glslangOptions: {
+                glslang,
+            },
+            twgslOptions: {
+                twgsl,
+            },
+            useHighPrecisionMatrix: true,
+            powerPreference: "high-performance",
+        });
+
+        await engine.initAsync();
+
+        return engine;
     }
 
     private _handleMouseLeave(): void {
