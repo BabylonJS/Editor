@@ -30,7 +30,7 @@
         "typescript": "5.4.5"
     },
     "dependencies": {
-        "@babylonjs/core": "7.15.1",
+        "@babylonjs/core": "7.18.0",
         "@blueprintjs/core": "^5.10.0",
         "@blueprintjs/select": "^5.1.2",
         "@emotion/react": "^11.11.4",
@@ -55,9 +55,9 @@
         "@xterm/xterm": "^5.5.0",
         "assimpjs": "0.0.10",
         "axios": "^1.7.2",
-        "babylonjs": "7.15.1",
-        "babylonjs-loaders": "7.15.1",
-        "babylonjs-materials": "7.15.1",
+        "babylonjs": "7.18.0",
+        "babylonjs-loaders": "7.18.0",
+        "babylonjs-materials": "7.18.0",
         "cannon": "0.6.2",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.0",
