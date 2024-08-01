@@ -43,7 +43,7 @@ export class LoadSceneProgressComponent extends Component<ILoadSceneProgressComp
                         <AlertDialogTitle>
                             Loading {this.props.name}...
                         </AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogDescription asChild>
                             <Progress value={this.state.progress} />
                         </AlertDialogDescription>
                     </AlertDialogHeader>
