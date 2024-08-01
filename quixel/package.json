@@ -1,6 +1,6 @@
 {
     "name": "babylonjs-editor-quixel-plugin",
-    "version": "5.0.0",
+    "version": "5.0.1",
     "description": "",
     "productName": "Babylon.js Editor Quixel Plugin",
     "scripts": {

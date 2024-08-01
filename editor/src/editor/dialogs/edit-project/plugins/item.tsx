@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 import { RxCross1 } from "react-icons/rx";
 import { IoReload, IoCloseOutline } from "react-icons/io5";
 
-import { Button } from "../../../ui/shadcn/ui/button";
+import { Button } from "../../../../ui/shadcn/ui/button";
 
-import { showConfirm } from "../../../ui/dialog";
+import { showConfirm } from "../../../../ui/dialog";
 
-import { Editor } from "../../main";
+import { Editor } from "../../../main";
 
 export interface IEditorEditProjectPluginComponentProps {
     editor: Editor;
@@ -17,7 +17,7 @@ export interface IEditorEditProjectPluginComponentProps {
     onRemoved: () => void;
 }
 
-export function EditorEditProjectPluginComponent(props: IEditorEditProjectPluginComponentProps) {
+export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPluginComponentProps) {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
 
