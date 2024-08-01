@@ -21,9 +21,9 @@ import { wait } from "../../tools/tools";
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
 import { createSceneLink } from "../../tools/scene/scene-link";
-import { isCollisionMesh, isMesh } from "../../tools/guards/nodes";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { isPBRMaterial, isStandardMaterial } from "../../tools/guards/material";
+import { isAbstractMesh, isCollisionMesh, isMesh } from "../../tools/guards/nodes";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 import { showLoadSceneProgressDialog } from "./progress";
@@ -231,8 +231,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
                 if ((meshData?.uniqueId ?? null) !== null) {
                     m.uniqueId = meshData.uniqueId;
+
                     m.metadata ??= {};
                     m.metadata._waitingParentId = meshData.metadata?.parentId;
+
+                    delete m.metadata.parentId;
                 }
 
                 m.instances.forEach((instance) => {
@@ -288,8 +291,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                     if (meshData?.geometryUniqueId) {
                         m.geometry.uniqueId = meshData.geometryUniqueId;
                     }
-
-                    m.refreshBoundingInfo(true, true);
                 }
 
                 if (m.morphTargetManager) {
@@ -493,11 +494,17 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         }
     });
 
-    allNodes.forEach((n) => {
-        if (n.metadata) {
-            delete n.metadata._waitingParentId;
-        }
-    });
+    if (!options?.asLink) {
+        allNodes.forEach((n) => {
+            if (n.metadata) {
+                delete n.metadata._waitingParentId;
+            }
+
+            if (isAbstractMesh(n)) {
+                n.refreshBoundingInfo(true, true);
+            }
+        });
+    }
 
     editor.layout.console.log("Scene loaded and editor is ready.");
 

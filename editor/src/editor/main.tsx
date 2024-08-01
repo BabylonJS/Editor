@@ -7,6 +7,7 @@ import { createRoot } from "react-dom/client";
 
 import { HotkeysTarget2 } from "@blueprintjs/core";
 
+import { waitUntil } from "../tools/tools";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
 
 import { saveProject } from "../project/save/save";
@@ -168,6 +169,8 @@ export class Editor extends Component<{}, IEditorState> {
     }
 
     public async openProject(path: string): Promise<void> {
+        await waitUntil(() => this.layout.preview.scene);
+
         ipcRenderer.send("editor:maximize-window");
 
         path = path.replace(/\\/g, sep);

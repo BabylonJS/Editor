@@ -30,6 +30,7 @@
         "typescript": "5.4.5"
     },
     "dependencies": {
+        "@babylonjs/core": "7.15.1",
         "@blueprintjs/core": "^5.10.0",
         "@blueprintjs/select": "^5.1.2",
         "@emotion/react": "^11.11.4",
