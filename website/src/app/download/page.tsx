@@ -12,9 +12,13 @@ import { DownloadVersionComponent } from "./version";
 export default function DownloadPage() {
     return (
         <main className="min-w-screen min-h-screen p-5 bg-black text-neutral-50">
-            <div className="absolute 2xl:fixed top-0 left-0 w-full px-5">
+            <div className="absolute 2xl:fixed top-0 left-0 flex justify-between items-center w-full px-5">
                 <Link href="/" className="flex justify-between items-center w-full">
                     <img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
+                </Link>
+
+                <Link href="/documentation" className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
+                    Documentation
                 </Link>
             </div>
 
