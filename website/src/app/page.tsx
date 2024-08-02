@@ -20,6 +20,7 @@ import { DownloadWindowsComponent } from "@/components/download-windows";
 import { LandingRendererComponent } from "./renderer";
 
 export default function Home() {
+    const section1Ref = useRef<HTMLDivElement>(null);
     const section2Ref = useRef<HTMLDivElement>(null);
     const section3Ref = useRef<HTMLDivElement>(null);
 
@@ -27,14 +28,23 @@ export default function Home() {
 
     const [featuresVisible, setFeaturesVisible] = useState(false);
 
+    const [section1Visible, setSection1Visible] = useState(true);
     const [section2Visible, setSection2Visible] = useState(false);
     const [section3Visible, setSection3Visible] = useState(false);
 
     useEffect(() => {
         updateScrollRatio();
+
+        window.scrollTo({ top: 0, behavior: "instant" });
     }, []);
 
     useEventListener("scroll", () => {
+        if (section1Ref.current) {
+            const bb = section1Ref.current.getBoundingClientRect();
+
+            setSection1Visible(bb.top <= 0 && bb.bottom > 0);
+        }
+
         if (section2Ref.current) {
             const bb = section2Ref.current.getBoundingClientRect();
 
@@ -73,16 +83,18 @@ export default function Home() {
                     <div className="flex justify-between items-center w-full">
                         <img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
 
-                        <div className={`hidden lg:flex gap-2 ${section2Visible ? "" : "pointer-events-none opacity-0"} transition-all duration-1000 ease-in-out`}>
-                            <Link href="/download" className={`flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2`} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-                                Download
-                            </Link>
-                        </div>
+                        <Link
+                            href="/download"
+                            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                            className={`hidden lg:flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2 ${section2Visible ? "" : "pointer-events-none opacity-0"} transition-all duration-1000 ease-in-out`}
+                        >
+                            Download
+                        </Link>
                     </div>
                 </div>
 
                 {/* Page 1 */}
-                <div className="flex flex-col justify-center md:justify-end items-center gap-5 w-screen min-h-screen max-w-7xl mx-auto">
+                <div className="flex flex-col justify-center md:justify-end items-center gap-5 w-screen min-h-screen max-w-7xl mx-auto" ref={section1Ref}>
                     <div className="flex flex-col gap-4 w-full">
                         <Fade cascade damping={0.1} triggerOnce direction="up">
                             <Fade>
@@ -217,6 +229,14 @@ export default function Home() {
 
                         <Fade triggerOnce className="hidden lg:block w-full">
                             <FaToolbox size={128} className="mx-auto" />
+                        </Fade>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row w-full">
+                        <Fade triggerOnce className="flex justify-center items-center w-full">
+                            <Link href="/documentation" className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
+                                Documentation
+                            </Link>
                         </Fade>
                     </div>
                 </div>
