@@ -28,7 +28,6 @@ export default function Home() {
 
     const [featuresVisible, setFeaturesVisible] = useState(false);
 
-    const [section1Visible, setSection1Visible] = useState(true);
     const [section2Visible, setSection2Visible] = useState(false);
     const [section3Visible, setSection3Visible] = useState(false);
 
@@ -39,12 +38,6 @@ export default function Home() {
     }, []);
 
     useEventListener("scroll", () => {
-        if (section1Ref.current) {
-            const bb = section1Ref.current.getBoundingClientRect();
-
-            setSection1Visible(bb.top <= 0 && bb.bottom > 0);
-        }
-
         if (section2Ref.current) {
             const bb = section2Ref.current.getBoundingClientRect();
 

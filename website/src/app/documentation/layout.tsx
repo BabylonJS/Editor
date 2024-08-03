@@ -2,13 +2,17 @@
 
 import Link from "next/link";
 
+import { ReactLenis } from "lenis/react";
+
 import { PropsWithChildren } from "react";
 
 import { DocumentationSidebar } from "./sidebar/sidebar";
 
 export default function DocumentationLayout(props: PropsWithChildren) {
     return (
-        <div className="flex w-screen">
+        <div className="flex w-screen bg-black">
+            <DocumentationSidebar />
+
             <div className="absolute 2xl:fixed top-0 left-0 flex justify-between items-center w-full px-5">
                 <Link href="/" className="flex justify-between items-center w-full">
                     <img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
@@ -19,9 +23,11 @@ export default function DocumentationLayout(props: PropsWithChildren) {
                 </Link>
             </div>
 
-            <DocumentationSidebar />
-
-            {props.children}
+            <ReactLenis root>
+                <div className="pl-96 w-full">
+                    {props.children}
+                </div>
+            </ReactLenis>
         </div>
     );
 }

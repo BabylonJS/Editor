@@ -113,10 +113,19 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
             });
         });
 
-        let listener: () => void;
-        window.addEventListener("resize", listener = () => {
-            engine.resize();
+        let timeoutId: number | null = null;
+
+        const resizeObserver = new ResizeObserver(() => {
+            if (timeoutId !== null) {
+                clearTimeout(timeoutId);
+            }
+
+            timeoutId = window.setTimeout(() => {
+                timeoutId = null;
+                engine.resize();
+            }, 150);
         });
+        resizeObserver.observe(canvasRef.current);
 
         setScene(scene);
 
@@ -124,7 +133,7 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
             scene.dispose();
             engine.dispose();
 
-            window.removeEventListener("resize", listener);
+            resizeObserver.disconnect();
         };
     }, [canvasRef]);
 
