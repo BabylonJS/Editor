@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Fade } from "react-awesome-reveal";
 
 import { DocumentationSidebarItem } from "./sidebar/item";
+import { NextChapterComponent } from "./components/next-chapter";
 
 export default function DocumentationPage() {
     return (
@@ -40,6 +41,24 @@ export default function DocumentationPage() {
                         </div>
 
                         <div className="text-3xl md:text-2xl lg:text-3xl my-3">
+                            Prerequisite
+                        </div>
+
+                        <div>
+                            <b><Link target="_blank" href="https://nodejs.org" className="underline underline-offset-4">Node.JS</Link></b> must be installed on your computer.
+                            It is recommanded to have LTS version installed <b>{">="} 20</b>
+                        </div>
+
+                        <div>
+                            By default, projects are based on <b>Next.JS</b>. It is highly recommanded to have a basic understanding
+                            of <b><Link target="_blank" href="https://fr.react.dev/" className="underline underline-offset-4">React</Link></b> and <b><Link target="_blank" href="https://nextjs.org" className="underline underline-offset-4">Next.JS</Link></b> before starting.
+                        </div>
+
+                        <div>
+                            Of course, a basic understanding of the <b><Link target="_blank" href="https://babylonjs.com/" className="underline underline-offset-4">Babylon.JS</Link></b> engine. The most powerful, beautiful, simple, and open web rendering engines in the world.
+                        </div>
+
+                        <div className="text-3xl md:text-2xl lg:text-3xl my-3">
                             Table of contents
                         </div>
 
@@ -48,6 +67,8 @@ export default function DocumentationPage() {
                             <DocumentationSidebarItem title="Creating project" href="/documentation/creating-project" />
                             <DocumentationSidebarItem title="Composing scene" href="/documentation/composing-scene" />
                         </div>
+
+                        <NextChapterComponent href="/documentation/creating-project" title="Creating project" />
                     </div>
                 </Fade>
             </div>
