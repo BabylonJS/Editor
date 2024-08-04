@@ -63,9 +63,21 @@ export default function DocumentationPage() {
                         </div>
 
                         <div className="flex flex-col gap-1">
+                            <div className="font-semibold text-xl text-neutral-500 mb-3">
+                                Basics
+                            </div>
+
                             <DocumentationSidebarItem title="Introduction" href="/documentation" />
                             <DocumentationSidebarItem title="Creating project" href="/documentation/creating-project" />
                             <DocumentationSidebarItem title="Composing scene" href="/documentation/composing-scene" />
+
+                            <div className="font-semibold text-xl text-neutral-500 my-3">
+                                Advanced
+                            </div>
+
+                            <DocumentationSidebarItem title="Compressed textures" href="/documentation/advanced/compressing-textures" />
+                            <DocumentationSidebarItem title="LOD collisions" href="/documentation/advanced/lod-collisions" />
+                            <DocumentationSidebarItem title="Optimizing shadows" href="/documentation/advanced/optimizing-shadows" />
                         </div>
 
                         <NextChapterComponent href="/documentation/creating-project" title="Creating project" />

@@ -105,7 +105,7 @@ export default function DocumentationCreatingProjectPage() {
                         <div className="flex gap-4">
                             <img alt="" src="/documentation/creating-project/import-project-browse.png" className="h-64 object-contain rounded-lg" />
 
-                            <div className="flex flex-col gap-4">
+                            <div>
                                 <div>
                                     When importing a project, the dashboard asks for the project file. Just locate the right folder and select the "<b>.bjseditor</b>" file.
                                 </div>
