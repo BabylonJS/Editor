@@ -114,7 +114,7 @@ export function setupEditorMenu(): void {
                 },
                 {
                     label: "Scaling",
-                    accelerator: "CommandOrControl+W",
+                    accelerator: "CommandOrControl+D",
                     click: () => BrowserWindow.getFocusedWindow()?.webContents.send("gizmo:scaling"),
                 },
                 {
