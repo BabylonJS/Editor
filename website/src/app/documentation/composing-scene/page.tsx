@@ -3,8 +3,8 @@
 import Link from "next/link";
 
 import { Fade } from "react-awesome-reveal";
-import { IoIosWarning } from "react-icons/io";
 
+import { CustomLink } from "../components/link";
 import { NextChapterComponent } from "../components/next-chapter";
 
 export default function DocumentationComposingScenePage() {
@@ -48,6 +48,54 @@ export default function DocumentationComposingScenePage() {
                             Each time a node is clicked in the graph or in the preview, the inspector is updated to show the properties of the selected object.
                             <br />
                             The layout of the inspector may change according to the nature of the edited object.
+                        </div>
+
+                        <img alt="" src="/documentation/composing-scene/select-object.gif" className="h-[512px] object-contain" />
+
+                        <div className="text-3xl md:text-2xl lg:text-3xl my-3">
+                            Using gizmos
+                        </div>
+
+                        <div>
+                            In order to move, rotate and scale selected object, gizmos may be used.
+                            <br />
+                            For a complete understanding of gizmos, you can refer to this <b><CustomLink href="https://doc.babylonjs.com/features/featuresDeepDive/mesh/gizmo">Babylon.JS documentation</CustomLink></b>
+                        </div>
+
+                        <div>
+                            In the editor, gizmos are available in the preview's panel toolbar or via shortcut:
+                        </div>
+
+                        <ul className="list-disc">
+                            <li>CTRL+T or ⌘+T for <b>Position</b> gizmos</li>
+                            <li>CTRL+R or ⌘+R for <b>Rotation</b> gizmos</li>
+                            <li>CTRL+D or ⌘+D for <b>Scaling</b> gizmos</li>
+                        </ul>
+
+                        <img alt="" src="/documentation/composing-scene/gizmos-toolbar.gif" />
+
+                        <div className="text-3xl md:text-2xl lg:text-3xl my-3">
+                            Adding objects
+                        </div>
+
+                        <div>
+                            The editor supports adding primitive objects such as meshes, lights and cameras.
+                            <br />
+                            By default, the template already contains an <b><CustomLink href="https://doc.babylonjs.com/features/featuresDeepDive/cameras/camera_introduction#universal-camera">Universal camera</CustomLink></b>,
+                            a <b><CustomLink href="https://doc.babylonjs.com/features/featuresDeepDive/lights/lights_introduction#the-point-light">Point light</CustomLink></b>,
+                            a <b><CustomLink href="https://doc.babylonjs.com/features/featuresDeepDive/mesh/creation/set/box">Box</CustomLink></b> and
+                            a <b><CustomLink href="https://doc.babylonjs.com/features/featuresDeepDive/mesh/creation/set/ground">Ground</CustomLink></b>.
+                        </div>
+
+                        <div>
+                            You can add more objects by clicking on the <b>Add</b> button in the main toolbar of the editor. Each time a new object is added, it is placed at the center of the scene and the graph is updated in order to show the newly added node.
+                        </div>
+
+                        <img alt="" src="/documentation/composing-scene/adding-objects.png" />
+
+                        <div>
+                            Each object can be customized. Those meshes (box, sphere, ground, etc.) are called "primitives" and their geometry is generated automatically by Babylon.JS.
+                            Those geometries are created using default values and you can edit them in the inspector.
                         </div>
 
                         <NextChapterComponent href="/documentation/adding-materials" title="Adding materials" />
