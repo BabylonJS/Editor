@@ -70,6 +70,7 @@ export default function DocumentationPage() {
                             <DocumentationSidebarItem title="Introduction" href="/documentation" />
                             <DocumentationSidebarItem title="Creating project" href="/documentation/creating-project" />
                             <DocumentationSidebarItem title="Composing scene" href="/documentation/composing-scene" />
+                            <DocumentationSidebarItem title="Adding materials" href="/documentation/adding-materials" />
 
                             <div className="font-semibold text-xl text-neutral-500 my-3">
                                 Advanced
