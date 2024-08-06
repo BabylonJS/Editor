@@ -98,6 +98,49 @@ export default function DocumentationComposingScenePage() {
                             Those geometries are created using default values and you can edit them in the inspector.
                         </div>
 
+                        <div className="text-3xl md:text-2xl lg:text-3xl my-3">
+                            Adding custom 3d models
+                        </div>
+
+                        <div>
+                            The editor supports multiple file formats for 3D models such as <b>.glb</b>, <b>.gltf</b>, <b>.obj</b>, <b>.fbx</b>, <b>.babylon</b>, <b>.stl</b> and <b>.blend</b>.
+                        </div>
+
+                        <div className="italic">
+                            <b className="underline underline-offset-4">Note</b>: each time a <b>.fbx</b> is imported, the editor will send the file to our server in order to be converted automatically.
+                            <br />
+                            The server is located at <CustomLink href="https://editor.babylonjs.com/">editor.babylonjs.com</CustomLink> and you can find the sources of the converter <CustomLink href="https://github.com/BabylonJS/Editor/tree/feature/5.0.0/website/src/app/api/converter">here on Github</CustomLink>.
+                        </div>
+
+                        <div>
+                            To do so, let's add our first 3d model in the assets of the project. Using the <b>Assets Browser</b>, click "<b>Import</b>". A file dialog appears, select all the files of the 3d model (3d file and textures) and click "<b>Open</b>".
+                        </div>
+
+                        <img alt="" src="/documentation/composing-scene/import-3d-models.gif" />
+
+                        <div>
+                            In order to keep the assets organized, you can create folders in the assets browser by right-clicking on the panel and by selecting the "<b>New Folder</b>" option. To rename a folder or a file, just double-click on its name.
+                            <br />
+                            Once the folder is created, just double-click on it and import your assets in it.
+                        </div>
+
+                        <img alt="" src="/documentation/composing-scene/creating-folder.gif" />
+
+                        <div>
+                            Here, for this example, we imported a <b>.gltf</b> file with all its associated textures. In oder to import the 3d model, simply drag'n'drop the <b>.gltf</b> file on the preview.
+                            <br />
+                            Once loaded, the editor will place all the root nodes of the 3d model according to where the file was dropped in the preview.
+                        </div>
+
+                        <div>
+                            Sometimes, models are exported with scales that differ from your projects. In order to fix this, simply select the root nodes and re-scale them using the inspector.
+                            <div className="italic">
+                                Note: Here we imported a <b>.gltf</b> file. The GLTF loader of Babylon.JS always creates a <b>__root__</b> node that we can use to re-scale the entire 3d model.
+                            </div>
+                        </div>
+
+                        <img alt="" src="/documentation/composing-scene/importing-model.gif" />
+
                         <NextChapterComponent href="/documentation/adding-materials" title="Adding materials" />
                     </div>
                 </Fade>

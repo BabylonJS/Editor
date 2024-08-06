@@ -23,11 +23,9 @@ export default function DocumentationLayout(props: PropsWithChildren) {
                 </Link>
             </div>
 
-            <ReactLenis root>
-                <div className="pl-96 w-full">
-                    {props.children}
-                </div>
-            </ReactLenis>
+            <div className="pl-96 w-full">
+                {props.children}
+            </div>
         </div>
     );
 }
