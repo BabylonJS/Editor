@@ -1,12 +1,14 @@
-"use client";
-
 import Link from "next/link";
-
-import { ReactLenis } from "lenis/react";
+import type { Metadata } from "next";
 
 import { PropsWithChildren } from "react";
 
 import { DocumentationSidebar } from "./sidebar/sidebar";
+
+export const metadata: Metadata = {
+    title: "Babylon.JS Editor Documentation",
+    description: "Focus more on creating and less on coding.",
+};
 
 export default function DocumentationLayout(props: PropsWithChildren) {
     return (

@@ -9,6 +9,7 @@ import { Fade } from "react-awesome-reveal";
 import { useEffect, useRef, useState } from "react";
 
 import { FaToolbox } from "react-icons/fa6";
+import { GiBookmarklet } from "react-icons/gi";
 import { IoLogoGithub, IoSpeedometer } from "react-icons/io5";
 
 import { AppleIcon } from "@/components/icons/apple";
@@ -34,7 +35,7 @@ export default function Home() {
     useEffect(() => {
         updateScrollRatio();
 
-        window.scrollTo({ top: 0, behavior: "instant" });
+        // window.scrollTo({ top: 0, behavior: "instant" });
     }, []);
 
     useEventListener("scroll", () => {
@@ -227,9 +228,27 @@ export default function Home() {
 
                     <div className="flex flex-col lg:flex-row w-full">
                         <Fade triggerOnce className="flex justify-center items-center w-full">
-                            <Link href="/documentation" className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
-                                Documentation
-                            </Link>
+                            <div className="flex flex-col gap-10">
+                                <GiBookmarklet color="white" className="w-52 h-52 lg:w-96 lg:h-96 mx-auto" />
+
+                                <div className="flex flex-col gap-2">
+                                    <div className="text-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                        Documentation
+                                    </div>
+
+                                    <div className="text-center">
+                                        Learn how to use the Babylon.JS Editor and start building your own video game or app.
+                                        <br />
+                                        Once you have covered all the chapters you will be aware, at a foundation level, of what the Babylon.js Editor has to offer you.
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-center">
+                                    <Link href="/documentation" className="flex justify-center items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
+                                        Go to documentation
+                                    </Link>
+                                </div>
+                            </div>
                         </Fade>
                     </div>
                 </div>
@@ -247,7 +266,7 @@ export default function Home() {
                     <div />
                 </div> */}
 
-                <div className="flex flex-col justify-between w-screen h-[100dvh] max-w-3xl px-5 mx-auto" />
+                <div className="flex flex-col justify-between w-screen h-[50dvh] max-w-3xl px-5 mx-auto" />
 
                 {/* Page 4 */}
                 <div className="flex flex-col justify-center items-center gap-5 w-screen min-h-screen max-w-3xl px-5 mx-auto">
