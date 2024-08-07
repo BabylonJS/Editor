@@ -1,0 +1,390 @@
+import { join, basename } from "path/posix";
+import { readJSON, remove, stat, writeFile, writeJSON } from "fs-extra";
+
+import { RenderTargetTexture, SceneSerializer } from "babylonjs";
+
+import { Editor } from "../../editor/main";
+
+import { isSceneLinkNode } from "../../tools/guards/scene";
+import { isFromSceneLink } from "../../tools/scene/scene-link";
+import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
+import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
+import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+
+import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
+import { serializeSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
+import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
+import { serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
+
+import { writeBinaryGeometry } from "../geometry";
+
+export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
+    const fStat = await stat(scenePath);
+    if (!fStat.isDirectory()) {
+        return editor.layout.console.error("The scene path is not a directory.");
+    }
+
+    const relativeScenePath = scenePath.replace(join(projectPath, "/"), "");
+
+    await Promise.all([
+        createDirectoryIfNotExist(join(scenePath, "lods")),
+        createDirectoryIfNotExist(join(scenePath, "nodes")),
+        createDirectoryIfNotExist(join(scenePath, "meshes")),
+        createDirectoryIfNotExist(join(scenePath, "lights")),
+        createDirectoryIfNotExist(join(scenePath, "cameras")),
+        createDirectoryIfNotExist(join(scenePath, "geometries")),
+        createDirectoryIfNotExist(join(scenePath, "skeletons")),
+        createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
+        createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
+    ]);
+
+    const scene = editor.layout.preview.scene;
+
+    // Write geometries and meshes
+    const savedFiles: string[] = [];
+
+    await Promise.all(scene.meshes.map(async (mesh) => {
+        if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh)) {
+            return;
+        }
+
+        const meshes = [mesh, ...mesh.getLODLevels().map((lodLevel) => lodLevel.mesh)];
+
+        const results = await Promise.all(meshes.map(async (meshToSerialize) => {
+            if (!meshToSerialize) {
+                return null;
+            }
+
+            const data = await SceneSerializer.SerializeMesh(meshToSerialize, false, false);
+            delete data.skeletons;
+
+            if (meshToSerialize._masterMesh) {
+                delete data.materials;
+            }
+
+            data.metadata = meshToSerialize.metadata;
+            data.basePoseMatrix = meshToSerialize.getPoseMatrix().asArray();
+
+            if (meshToSerialize.morphTargetManager) {
+                data.morphTargetManager = meshToSerialize.morphTargetManager.serialize();
+            }
+
+            // Handle case where the mesh is a collision mesh
+            if (isCollisionMesh(meshToSerialize)) {
+                data.isCollisionMesh = true;
+                data.collisionMeshType = meshToSerialize.type;
+
+                data.meshes?.forEach((meshData: any) => {
+                    meshData.type = "Mesh";
+                });
+
+                delete data.materials;
+            }
+
+            data.meshes?.forEach((mesh) => {
+                const instantiatedMesh = scene.getMeshById(mesh.id);
+                if (instantiatedMesh?.parent) {
+                    mesh.metadata ??= {};
+                    mesh.metadata.parentId = instantiatedMesh.parent.uniqueId;
+
+                    delete mesh.parentId;
+                }
+
+                mesh.instances?.forEach((instanceData: any) => {
+                    const instance = meshToSerialize.instances.find((instance) => instance.id === instanceData.id);
+                    if (instance) {
+                        if (instance.parent) {
+                            instanceData.metadata ??= {};
+                            instanceData.metadata.parentId = instance.parent.uniqueId;
+                        }
+
+                        instanceData.uniqueId = instance.uniqueId;
+
+                        delete instanceData.parentId;
+                    }
+                });
+            });
+
+            const lodLevel = mesh.getLODLevels().find((lodLevel) => lodLevel.mesh === meshToSerialize);
+            if (lodLevel) {
+                data.masterMeshId = mesh.id;
+                data.distanceOrScreenCoverage = lodLevel.distanceOrScreenCoverage;
+            }
+
+            await Promise.all(data.meshes?.map(async (mesh) => {
+                const instantiatedMesh = scene.getMeshById(mesh.id);
+                const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
+
+                if (geometry) {
+                    const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
+
+                    mesh.delayLoadingFile = join(relativeScenePath, `geometries/${geometryFileName}`);
+                    mesh.boundingBoxMaximum = instantiatedMesh?.getBoundingInfo()?.maximum?.asArray() ?? [0, 0, 0];
+                    mesh.boundingBoxMinimum = instantiatedMesh?.getBoundingInfo()?.minimum?.asArray() ?? [0, 0, 0];
+                    mesh._binaryInfo = {};
+
+                    const geometryPath = join(scenePath, "geometries", geometryFileName);
+
+                    try {
+                        await writeBinaryGeometry(geometryPath, geometry, mesh);
+
+                        let geometryIndex = -1;
+                        do {
+                            geometryIndex = data.geometries!.vertexData!.findIndex((g) => g.id === mesh.geometryId);
+                            if (geometryIndex !== -1) {
+                                data.geometries!.vertexData!.splice(geometryIndex, 1);
+                            }
+                        } while (geometryIndex !== -1);
+                    } catch (e) {
+                        editor.layout.console.error(`Failed to write geometry for mesh ${mesh.name}`);
+                    } finally {
+                        savedFiles.push(geometryPath);
+                    }
+                }
+            }));
+
+            return data;
+        }));
+
+        await Promise.all(results.slice(0).reverse().map(async (result, index) => {
+            if (!result) {
+                return;
+            }
+
+            let meshPath: string;
+            if (result === results[0]) {
+                meshPath = join(scenePath, "meshes", `${mesh.id}.json`);
+            } else {
+                meshPath = join(scenePath, "lods", `${mesh.id}-lod${index}.json`);
+                results[0].lods ??= [];
+                results[0].lods.push(basename(meshPath));
+            }
+
+            try {
+                await writeJSON(meshPath, result, {
+                    spaces: 4,
+                });
+            } catch (e) {
+                editor.layout.console.error(`Failed to write mesh ${mesh.name}`);
+            } finally {
+                savedFiles.push(meshPath);
+            }
+        }));
+    }));
+
+    // Write skeletons
+    await Promise.all(scene.skeletons.map(async (skeleton) => {
+        const meshes = scene.meshes.filter((m) => m.skeleton === skeleton && !isFromSceneLink(m));
+        if (!meshes.length) {
+            return;
+        }
+
+        const skeletonPath = join(scenePath, "skeletons", `${skeleton.id}.json`);
+
+        try {
+            await writeJSON(skeletonPath, skeleton.serialize(), {
+                spaces: 4,
+            });
+        } catch (e) {
+            editor.layout.console.error(`Failed to write skeleton ${skeleton.name}`);
+        } finally {
+            savedFiles.push(skeletonPath);
+        }
+    }));
+
+    // Write transform nodes
+    await Promise.all(scene.transformNodes.map(async (transformNode) => {
+        if (isFromSceneLink(transformNode)) {
+            return;
+        }
+
+        const transformNodePath = join(scenePath, "nodes", `${transformNode.id}.json`);
+
+        try {
+            const data = transformNode.serialize();
+
+            data.metadata ??= {};
+            data.metadata.parentId = transformNode.parent?.uniqueId;
+
+            delete data.parentId;
+
+            await writeJSON(transformNodePath, data, {
+                spaces: 4,
+            });
+        } catch (e) {
+            editor.layout.console.error(`Failed to write transform node ${transformNode.name}`);
+        } finally {
+            savedFiles.push(transformNodePath);
+        }
+    }));
+
+    // Write lights
+    await Promise.all(scene.lights.map(async (light) => {
+        if (isFromSceneLink(light)) {
+            return;
+        }
+
+        const lightPath = join(scenePath, "lights", `${light.id}.json`);
+
+        try {
+            const data = light.serialize();
+
+            data.metadata ??= {};
+            data.metadata.parentId = light.parent?.uniqueId;
+
+            delete data.parentId;
+
+            await writeJSON(lightPath, data, {
+                spaces: 4,
+            });
+        } catch (e) {
+            editor.layout.console.error(`Failed to write light ${light.name}`);
+        } finally {
+            savedFiles.push(lightPath);
+        }
+
+        const shadowGenerator = light.getShadowGenerator();
+        if (shadowGenerator) {
+            const shadowGeneratorPath = join(scenePath, "shadowGenerators", `${shadowGenerator.id}.json`);
+
+            try {
+                const shadowGeneratorData = shadowGenerator.serialize();
+                shadowGeneratorData.refreshRate = shadowGenerator.getShadowMap()?.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+
+                await writeJSON(shadowGeneratorPath, shadowGeneratorData, {
+                    spaces: 4,
+                });
+            } catch (e) {
+                editor.layout.console.error(`Failed to write shadow generator for light ${light.name}`);
+            } finally {
+                savedFiles.push(shadowGeneratorPath);
+            }
+        }
+    }));
+
+    // Write cameras
+    await Promise.all(scene.cameras.map(async (camera) => {
+        if (isEditorCamera(camera) || isFromSceneLink(camera)) {
+            return;
+        }
+
+        const cameraPath = join(scenePath, "cameras", `${camera.id}.json`);
+
+        try {
+            const data = camera.serialize();
+
+            data.metadata ??= {};
+            data.metadata.parentId = camera.parent?.uniqueId;
+
+            delete data.parentId;
+
+            await writeJSON(cameraPath, data, {
+                spaces: 4,
+            });
+        } catch (e) {
+            editor.layout.console.error(`Failed to write camera ${camera.name}`);
+        } finally {
+            savedFiles.push(cameraPath);
+        }
+    }));
+
+    // Write scene links
+    await Promise.all(scene.transformNodes.map(async (transformNode) => {
+        if (!isSceneLinkNode(transformNode)) {
+            return;
+        }
+
+        const sceneLinkPath = join(scenePath, "sceneLinks", `${transformNode.id}.json`);
+
+        try {
+            await writeJSON(sceneLinkPath, transformNode.serialize(), {
+                spaces: 4,
+            });
+        } catch (e) {
+            editor.layout.console.error(`Failed to write scene link node ${transformNode.name}`);
+        } finally {
+            savedFiles.push(sceneLinkPath);
+        }
+    }));
+
+    // Write configuration
+    const configPath = join(scenePath, "config.json");
+
+    try {
+        await writeJSON(configPath, {
+            environment: {
+                environmentIntensity: scene.environmentIntensity,
+                environmentTexture: scene.environmentTexture ? {
+                    ...scene.environmentTexture.serialize(),
+                    url: scene.environmentTexture.name,
+                } : undefined,
+            },
+            fog: {
+                fogEnabled: scene.fogEnabled,
+                fogMode: scene.fogMode,
+                fogStart: scene.fogStart,
+                fogEnd: scene.fogEnd,
+                fogDensity: scene.fogDensity,
+                fogColor: scene.fogColor.asArray(),
+            },
+            rendering: {
+                ssrRenderingPipeline: serializeSSRRenderingPipeline(),
+                motionBlurPostProcess: serializeMotionBlurPostProcess(),
+                ssao2RenderingPipeline: serializeSSAO2RenderingPipeline(),
+                defaultRenderingPipeline: serializeDefaultRenderingPipeline(),
+            },
+            metadata: scene.metadata,
+            editorCamera: editor.layout.preview.camera.serialize(),
+            animationGroups: scene.animationGroups?.map((animationGroup) => animationGroup.serialize()),
+        }, {
+            spaces: 4,
+        });
+    } catch (e) {
+        editor.layout.console.error(`Failed to write configuration.`);
+    } finally {
+        savedFiles.push(configPath);
+    }
+
+    // Remove old files
+    const files = await normalizedGlob(join(scenePath, "/**"), {
+        nodir: true,
+    });
+
+    await Promise.all(files.map(async (file) => {
+        if (savedFiles.includes(file)) {
+            return;
+        }
+
+        await remove(file);
+    }));
+
+    // Update material files
+    const materialFiles = await normalizedGlob(join(projectPath, "/**/*.material"), {
+        nodir: true,
+    });
+
+    await Promise.all(materialFiles.map(async (file) => {
+        const data = await readJSON(file);
+        const uniqueId = data.uniqueId;
+
+        if (!uniqueId) {
+            return;
+        }
+
+        const material = scene.materials.find((material) => material.uniqueId === uniqueId);
+        if (!material) {
+            return;
+        }
+
+        await writeJSON(file, material.serialize(), {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
+    }));
+
+    // Update screenshot
+    const screenshotBuffer = await getBufferSceneScreenshot(scene);
+    if (screenshotBuffer) {
+        await writeFile(join(scenePath, "preview.png"), screenshotBuffer);
+    }
+}

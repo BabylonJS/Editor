@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --scrollbar-track: black;
+    --scrollbar-thumb: #222;
+}
+
+body {
+    @apply leading-tight;
+    @apply tracking-tighter;
+}
+
+/* SCROLLBARS */
+
+::-webkit-scrollbar {
+    background: transparent none;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track) !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb) !important;
+    border-radius: 0px !important;
+}
