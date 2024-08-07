@@ -163,7 +163,7 @@ export default function DocumentationComposingScenePage() {
                             But in case you have to modify those textures without modifying the original 3d model, you can iterate by replacing the texture directly in the assets browser.
                         </div>
 
-                        <NextChapterComponent href="/documentation/adding-materials" title="Adding materials" />
+                        <NextChapterComponent href="/documentation/managing-assets" title="Managing assets" />
                     </div>
                 </Fade>
             </div>
