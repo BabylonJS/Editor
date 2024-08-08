@@ -141,11 +141,15 @@ export default function DocumentationComposingScenePage() {
 
                         <img alt="" src="/documentation/composing-scene/importing-model.gif" />
 
-                        When you add a 3d model, all its materials and textures are automatically applied on it (most of the time).
+                        <div>
+                            When you add a 3d model, all its materials and textures are automatically applied on it (most of the time).
+                        </div>
+
+                        <div className="text-3xl md:text-2xl lg:text-3xl my-3">
+                            Managing hidden files
+                        </div>
 
                         <div className="flex gap-4">
-                            <img alt="" src="/documentation/composing-scene/show-hidden-files.png" className="w-96 object-contain" />
-
                             <div className="flex flex-col gap-4">
                                 <div>
                                     In cases the loaded 3d model contains <b>embedded</b> textures, typically all <b>.glb</b> and some <b>.fbx</b> files, the editor will automatically extract them and place them in the assets browser in the same folder.
@@ -154,13 +158,15 @@ export default function DocumentationComposingScenePage() {
                                 <div>
                                     In order to keep files organized, those generated texture files are hidden by default in the assets browser. You can show them by clicking on the <b>Filters</b> button on the right side and check "<b className="underline underline-offset-4">Show Generated Files</b>"
                                 </div>
-                            </div>
-                        </div>
 
-                        <div>
-                            To make a file not hidden for the assets browser, just rename the file by removing the prefix "<b>editor-generated_</b>". Most of the time, you'll not need to touch those files.
-                            <br />
-                            But in case you have to modify those textures without modifying the original 3d model, you can iterate by replacing the texture directly in the assets browser.
+                                <div>
+                                    To make a file not hidden for the assets browser, just rename the file by removing the prefix "<b>editor-generated_</b>". Most of the time, you'll not need to touch those files.
+                                    <br />
+                                    But in case you have to modify those textures without modifying the original 3d model, you can iterate by replacing the texture directly in the assets browser.
+                                </div>
+                            </div>
+
+                            <img alt="" src="/documentation/composing-scene/show-hidden-files.png" className="w-96 object-contain" />
                         </div>
 
                         <NextChapterComponent href="/documentation/managing-assets" title="Managing assets" />
