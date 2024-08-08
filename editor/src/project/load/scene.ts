@@ -3,7 +3,7 @@ import { readJSON, readdir } from "fs-extra";
 
 import {
     AbstractMesh, AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager,
-    RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode,
+    RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode, MultiMaterial,
 } from "babylonjs";
 
 import { Editor } from "../../editor/main";
@@ -20,9 +20,10 @@ import { parseDefaultRenderingPipeline } from "../../editor/rendering/default-pi
 import { wait } from "../../tools/tools";
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
+import { isMultiMaterial } from "../../tools/guards/material";
 import { createSceneLink } from "../../tools/scene/scene-link";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
-import { isPBRMaterial, isStandardMaterial } from "../../tools/guards/material";
+import { configureSimultaneousLightsForMaterial } from "../../tools/mesh/material";
 import { isAbstractMesh, isCollisionMesh, isMesh } from "../../tools/guards/nodes";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
@@ -273,14 +274,49 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                 loadResult.meshes.push(m);
 
                 if (m.material) {
-                    const material = data.materials?.find((d) => d.id === m.material!.id);
+                    const material = isMultiMaterial(m.material)
+                        ? data.multiMaterials?.find((d) => d.id === m.material!.id)
+                        : data.materials?.find((d) => d.id === m.material!.id);
+
                     if (material) {
                         m.material.uniqueId = material.uniqueId;
                     }
 
-                    if (isPBRMaterial(m.material) || isStandardMaterial(m.material)) {
-                        m.material.maxSimultaneousLights = 32;
+                    if (isMultiMaterial(m.material)) {
+                        m.material.subMaterials.forEach((subMaterial, index) => {
+                            if (!subMaterial) {
+                                return;
+                            }
+
+                            const material = data.materials?.find((d) => d.id === subMaterial.id);
+                            if (material) {
+                                subMaterial.uniqueId = material.uniqueId;
+                            }
+
+                            configureSimultaneousLightsForMaterial(subMaterial);
+
+                            const existingMaterial = scene.materials.find((material) => {
+                                return material !== m.material && material.id === m.material!.id;
+                            });
+
+                            if (existingMaterial) {
+                                subMaterial.dispose(false, true);
+                                (m.material as MultiMaterial).subMaterials[index] = existingMaterial;
+                            }
+                        });
+                    } else {
+                        configureSimultaneousLightsForMaterial(m.material);
+
+                        const existingMaterial = scene.materials.find((material) => {
+                            return material !== m.material && material.id === m.material!.id;
+                        });
+
+                        if (existingMaterial) {
+                            m.material.dispose(false, true);
+                            m.material = existingMaterial;
+                        }
                     }
+
                 }
 
                 if (m.geometry) {

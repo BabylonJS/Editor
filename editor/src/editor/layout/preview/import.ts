@@ -10,8 +10,9 @@ import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoade
 import { UniqueNumber } from "../../../tools/tools";
 import { isMesh } from "../../../tools/guards/nodes";
 import { isTexture } from "../../../tools/guards/texture";
+import { isMultiMaterial } from "../../../tools/guards/material";
 import { onNodesAddedObservable } from "../../../tools/observables";
-import { isPBRMaterial, isStandardMaterial } from "../../../tools/guards/material";
+import { configureSimultaneousLightsForMaterial } from "../../../tools/mesh/material";
 
 import { projectConfiguration } from "../../../project/configuration";
 
@@ -102,8 +103,17 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
             }
 
             if (mesh.material) {
-                if (isPBRMaterial(mesh.material) || isStandardMaterial(mesh.material)) {
-                    mesh.material.maxSimultaneousLights = 32;
+                configureImportedMaterial(mesh.material);
+
+                if (isMultiMaterial(mesh.material)) {
+                    mesh.material.subMaterials.forEach((subMaterial) => {
+                        if (subMaterial) {
+                            configureImportedMaterial(subMaterial);
+                            configureSimultaneousLightsForMaterial(subMaterial);
+                        }
+                    });
+                } else {
+                    configureSimultaneousLightsForMaterial(mesh.material);
                 }
             }
         }
@@ -132,6 +142,11 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 export function configureImportedNodeIds(node: Node): void {
     node.id = Tools.RandomId();
     node.uniqueId = UniqueNumber.Get();
+}
+
+export function configureImportedMaterial(material: Material): void {
+    material.id = Tools.RandomId();
+    material.uniqueId = UniqueNumber.Get();
 }
 
 export function configureImportedTexture(texture: Texture | CubeTexture): Texture | CubeTexture {
