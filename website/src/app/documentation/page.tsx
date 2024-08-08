@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { Fade } from "react-awesome-reveal";
 
-import { DocumentationSidebarItem } from "./sidebar/item";
 import { NextChapterComponent } from "./components/next-chapter";
 
 export default function DocumentationPage() {
@@ -51,34 +50,11 @@ export default function DocumentationPage() {
 
                         <div>
                             By default, projects are based on <b>Next.JS</b>. It is highly recommanded to have a basic understanding
-                            of <b><Link target="_blank" href="https://fr.react.dev/" className="underline underline-offset-4">React</Link></b> and <b><Link target="_blank" href="https://nextjs.org" className="underline underline-offset-4">Next.JS</Link></b> before starting.
+                            of <b><Link target="_blank" href="https://react.dev/" className="underline underline-offset-4">React</Link></b> and <b><Link target="_blank" href="https://nextjs.org" className="underline underline-offset-4">Next.JS</Link></b> before starting.
                         </div>
 
                         <div>
                             Of course, a basic understanding of the <b><Link target="_blank" href="https://babylonjs.com/" className="underline underline-offset-4">Babylon.JS</Link></b> engine. The most powerful, beautiful, simple, and open web rendering engines in the world.
-                        </div>
-
-                        <div className="text-3xl md:text-2xl lg:text-3xl my-3">
-                            Table of contents
-                        </div>
-
-                        <div className="flex flex-col gap-1">
-                            <div className="font-semibold text-xl text-neutral-500 mb-3">
-                                Basics
-                            </div>
-
-                            <DocumentationSidebarItem title="Introduction" href="/documentation" />
-                            <DocumentationSidebarItem title="Creating project" href="/documentation/creating-project" />
-                            <DocumentationSidebarItem title="Composing scene" href="/documentation/composing-scene" />
-                            <DocumentationSidebarItem title="Managing assets" href="/documentation/managing-assets" />
-
-                            <div className="font-semibold text-xl text-neutral-500 my-3">
-                                Advanced
-                            </div>
-
-                            <DocumentationSidebarItem title="Compressed textures" href="/documentation/advanced/compressing-textures" />
-                            <DocumentationSidebarItem title="LOD collisions" href="/documentation/advanced/lod-collisions" />
-                            <DocumentationSidebarItem title="Optimizing shadows" href="/documentation/advanced/optimizing-shadows" />
                         </div>
 
                         <NextChapterComponent href="/documentation/creating-project" title="Creating project" />
