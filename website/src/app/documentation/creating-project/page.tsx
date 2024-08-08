@@ -96,16 +96,14 @@ export default function DocumentationCreatingProjectPage() {
                             Import project
                         </div>
 
-                        <div>
-                            In case you already created a project and want to import it in your dashboard, you can use the "<b>Import project</b>" button.
-                            <br />
-                            The dashboard configuration is local to the computer. It means that if you have a project on another computer, you can import it in the dashboard of the current computer.
-                        </div>
-
                         <div className="flex gap-4">
-                            <img alt="" src="/documentation/creating-project/import-project-browse.png" className="h-64 object-contain rounded-lg" />
+                            <div className="flex flex-col gap-4">
+                                <div>
+                                    In case you already created a project and want to import it in your dashboard, you can use the "<b>Import project</b>" button.
+                                    <br />
+                                    The dashboard configuration is local to the computer. It means that if you have a project on another computer, you can import it in the dashboard of the current computer.
+                                </div>
 
-                            <div>
                                 <div>
                                     When importing a project, the dashboard asks for the project file. Just locate the right folder and select the "<b>.bjseditor</b>" file.
                                 </div>
@@ -114,6 +112,8 @@ export default function DocumentationCreatingProjectPage() {
                                     Click "<b>Open</b>" and the project will be imported in the dashboard.
                                 </div>
                             </div>
+
+                            <img alt="" src="/documentation/creating-project/import-project-browse.png" className="h-64 object-contain rounded-lg" />
                         </div>
 
                         <NextChapterComponent href="/documentation/composing-scene" title="Composing scene" />
