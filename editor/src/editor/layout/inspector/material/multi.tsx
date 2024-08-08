@@ -1,8 +1,9 @@
-import { BiCaretDown } from "react-icons/bi";
 import { Component, ReactNode } from "react";
 
 import { SkyMaterial } from "babylonjs-materials";
 import { Material, MultiMaterial, PBRMaterial, StandardMaterial } from "babylonjs";
+
+import { Table, TableBody, TableCaption, TableCell, TableRow } from "../../../../ui/shadcn/ui/table";
 
 import { EditorInspectorSectionField } from "../fields/section";
 
@@ -41,23 +42,20 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 
     private _getMaterialSelectorComponent(): ReactNode {
         return (
-            <div className="relative flex gap-4 items-center px-5">
-                <div className="w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
-                    Material
-                </div>
-
-                <select
-                    defaultValue={0}
-                    className="relative w-full p-2 rounded-lg bg-[#222222] text-white appearance-none"
-                    onChange={(ev) => this.setState({ material: this.props.material.subMaterials[parseInt(ev.target.value)] })}
-                >
+            <Table>
+                <TableCaption>Select the material to edit.</TableCaption>
+                <TableBody>
                     {this.props.material.subMaterials.map((material, index) => (
-                        <option key={index} value={index}>{material?.name ?? "Default"}</option>
+                        <TableRow
+                            onClick={() => this.setState({ material: this.props.material.subMaterials[index] })}
+                            className={`cursor-pointer ${material === this.state.material ? "bg-secondary" : ""} transition-all duration-300 ease-in-out`}
+                        >
+                            <TableCell className="font-medium">{index}</TableCell>
+                            <TableCell>{material?.name ?? material?.constructor.name ?? "None"}</TableCell>
+                        </TableRow>
                     ))}
-                </select>
-
-                <BiCaretDown className="absolute right-10 top-2 text-white/50" />
-            </div>
+                </TableBody>
+            </Table>
         );
     }
 
