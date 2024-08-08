@@ -210,7 +210,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
         }
 
         return (
-            <div className="relative">
+            <div className="flex flex-col gap-2 relative">
                 {inspector}
 
                 <div className="absolute top-[14px] left-0 px-5 w-full opacity-0 hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none">

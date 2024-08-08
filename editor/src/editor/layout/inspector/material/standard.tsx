@@ -2,6 +2,7 @@ import { Component, ReactNode } from "react";
 
 import { StandardMaterial } from "babylonjs";
 
+import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
@@ -47,7 +48,13 @@ export class EditorStandardMaterialInspector extends Component<IEditorStandardMa
                     <EditorInspectorTextureField object={this.props.material} title="Ambient Texture" property="ambientTexture" />
 
                     <EditorInspectorTextureField object={this.props.material} title="Reflection Texture" property="reflectionTexture" acceptCubeTexture onChange={() => this.forceUpdate()} />
+                </EditorInspectorSectionField>
 
+                <EditorInspectorSectionField title="Material Colors">
+                    <EditorInspectorColorField label={<div className="w-14">Diffuse</div>} object={this.props.material} property="diffuseColor" />
+                    <EditorInspectorColorField label={<div className="w-14">Specular</div>} object={this.props.material} property="specularColor" />
+                    <EditorInspectorColorField label={<div className="w-14">Ambient</div>} object={this.props.material} property="ambientColor" />
+                    <EditorInspectorColorField label={<div className="w-14">Emissive</div>} object={this.props.material} property="emissiveColor" />
                 </EditorInspectorSectionField>
             </>
         );
