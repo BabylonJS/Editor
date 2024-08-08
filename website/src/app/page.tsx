@@ -35,7 +35,7 @@ export default function Home() {
     useEffect(() => {
         updateScrollRatio();
 
-        // window.scrollTo({ top: 0, behavior: "instant" });
+        window.scrollTo({ top: 0, behavior: "instant" });
     }, []);
 
     useEventListener("scroll", () => {
@@ -123,8 +123,8 @@ export default function Home() {
                 </div>
 
                 {/* Page 2 */}
-                <div className="flex flex-col justify-center gap-10 lg:gap-32 pt-10 lg:pt-32 w-screen min-h-screen max-w-7xl px-5 mx-auto" ref={section2Ref}>
-                    <div className="flex flex-col lg:flex-row w-full">
+                <div className="flex flex-col justify-center pt-10 lg:pt-24 w-screen min-h-screen mx-auto" ref={section2Ref}>
+                    <div className={`flex flex-col lg:flex-row w-full max-w-7xl mx-auto py-24 px-5`}>
                         <Fade triggerOnce className="hidden lg:block w-full">
                             <IoSpeedometer size={128} className="mx-auto" />
                         </Fade>
@@ -147,30 +147,32 @@ export default function Home() {
                         </Fade>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row w-full">
-                        <Fade triggerOnce className="w-full">
-                            <div className="flex flex-col justify-center gap-2">
-                                <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-                                    Open-Source
+                    <div className={`flex flex-col lg:flex-row w-full py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-[3000ms] ease-in-out`}>
+                        <div className="flex justify-center items-center max-w-7xl mx-auto">
+                            <Fade triggerOnce className="w-full">
+                                <div className="flex flex-col justify-center gap-2">
+                                    <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                        Open-Source
 
-                                    <div className="lg:hidden flex gap-2">
-                                        <IoLogoGithub />
+                                        <div className="lg:hidden flex gap-2">
+                                            <IoLogoGithub />
+                                        </div>
+                                    </div>
+                                    <div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                        The Babylon.JS Editor is an open-source project maintained by the community. The sources are available on <Link target="_blank" href="https://github.com/BabylonJS/Editor" className="underline underline-offset-4">Github</Link>.
+                                        <br />
+                                        Enjoy features and improvements driven by community feedbacks and contributions, ensuring the Editor evolves to meet the real-world needs of its users.
                                     </div>
                                 </div>
-                                <div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-                                    The Babylon.JS Editor is an open-source project maintained by the community. The sources are available on <Link target="_blank" href="https://github.com/BabylonJS/Editor" className="underline underline-offset-4">Github</Link>.
-                                    <br />
-                                    Enjoy features and improvements driven by community feedbacks and contributions, ensuring the Editor evolves to meet the real-world needs of its users.
-                                </div>
-                            </div>
-                        </Fade>
+                            </Fade>
 
-                        <Fade triggerOnce className="hidden lg:block w-full">
-                            <IoLogoGithub size={128} className="mx-auto" />
-                        </Fade>
+                            <Fade triggerOnce className="hidden lg:block w-full">
+                                <IoLogoGithub size={128} className="mx-auto" />
+                            </Fade>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row w-full">
+                    <div className={`flex flex-col lg:flex-row w-full max-w-7xl mx-auto py-24 px-5`}>
                         <Fade triggerOnce className="w-full">
                             <div className="hidden lg:block relative w-44 h-44 mx-auto">
                                 <div className="absolute top-1/2 left-1/2 -translate-x-[calc(50%+32px)] -translate-y-[calc(50%+42px)] scale-[2] lg:scale-[5]">
@@ -203,30 +205,32 @@ export default function Home() {
                         </Fade>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row w-full">
-                        <Fade triggerOnce className="w-full">
-                            <div className="flex flex-col justify-center gap-2">
-                                <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-                                    Integrated Tools
+                    <div className={`flex flex-col lg:flex-row w-full py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-[3000ms] ease-in-out`}>
+                        <div className="flex justify-center items-center max-w-7xl mx-auto">
+                            <Fade triggerOnce className="w-full">
+                                <div className="flex flex-col justify-center gap-2">
+                                    <div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                        Integrated Tools
 
-                                    <div className="lg:hidden flex gap-2">
-                                        <FaToolbox />
+                                        <div className="lg:hidden flex gap-2">
+                                            <FaToolbox />
+                                        </div>
+                                    </div>
+                                    <div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
+                                        Enhance your development process, enabling you to bring your most ambitious projects to life with ease and efficiency.
+                                        <br />
+                                        Experience the power of high-resolution textures with support of advanced formats like automatic KTX compressed textures. This feature allows to incorporate stunning 4K textures into your projects, optimizing performance without sacrificing visual quality.
                                     </div>
                                 </div>
-                                <div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-                                    Enhance your development process, enabling you to bring your most ambitious projects to life with ease and efficiency.
-                                    <br />
-                                    Experience the power of high-resolution textures with support of advanced formats like automatic KTX compressed textures. This feature allows to incorporate stunning 4K textures into your projects, optimizing performance without sacrificing visual quality.
-                                </div>
-                            </div>
-                        </Fade>
+                            </Fade>
 
-                        <Fade triggerOnce className="hidden lg:block w-full">
-                            <FaToolbox size={128} className="mx-auto" />
-                        </Fade>
+                            <Fade triggerOnce className="hidden lg:block w-full">
+                                <FaToolbox size={128} className="mx-auto" />
+                            </Fade>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row w-full">
+                    <div className="flex flex-col lg:flex-row w-full py-24 px-5">
                         <Fade triggerOnce className="flex justify-center items-center w-full">
                             <div className="flex flex-col gap-10">
                                 <GiBookmarklet color="white" className="w-52 h-52 lg:w-96 lg:h-96 mx-auto" />
@@ -266,7 +270,7 @@ export default function Home() {
                     <div />
                 </div> */}
 
-                <div className="flex flex-col justify-between w-screen h-[50dvh] max-w-3xl px-5 mx-auto" />
+                <div className="flex flex-col justify-between w-screen h-[100dvh] max-w-3xl px-5 mx-auto" />
 
                 {/* Page 4 */}
                 <div className="flex flex-col justify-center items-center gap-5 w-screen min-h-screen max-w-3xl px-5 mx-auto">
