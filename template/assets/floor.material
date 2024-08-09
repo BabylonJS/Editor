@@ -105,7 +105,7 @@
 	"parallaxScaleBias": 0.05,
 	"disableLighting": false,
 	"forceIrradianceInFragment": false,
-	"maxSimultaneousLights": 4,
+	"maxSimultaneousLights": 32,
 	"invertNormalMapX": false,
 	"invertNormalMapY": false,
 	"twoSidedLighting": false,
@@ -162,7 +162,7 @@
 		"_isEnabled": true
 	},
 	"id": "27c18987-1817-46cd-bdb0-2328f55c7f8b",
-	"name": "New PBR Material",
+	"name": "ground",
 	"checkReadyOnEveryCall": false,
 	"checkReadyOnlyOnce": false,
 	"state": "",

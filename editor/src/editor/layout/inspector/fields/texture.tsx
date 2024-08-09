@@ -315,7 +315,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
         this.setState({ dragOver: false });
     }
 
-    private _handleDrop(ev: React.DragEvent<HTMLDivElement>): void {
+    private _handleDrop(ev: DragEvent<HTMLDivElement>): void {
         ev.preventDefault();
         this.setState({ dragOver: false });
 

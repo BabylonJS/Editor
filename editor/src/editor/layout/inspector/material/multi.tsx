@@ -1,9 +1,15 @@
-import { Component, ReactNode } from "react";
+import { extname } from "path/posix";
+
+import { Component, DragEvent, ReactNode } from "react";
 
 import { SkyMaterial } from "babylonjs-materials";
 import { Material, MultiMaterial, PBRMaterial, StandardMaterial } from "babylonjs";
 
 import { Table, TableBody, TableCaption, TableCell, TableRow } from "../../../../ui/shadcn/ui/table";
+
+import { loadImportedMaterial } from "../../preview/import";
+
+import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { EditorInspectorSectionField } from "../fields/section";
 
@@ -47,6 +53,19 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
                 <TableBody>
                     {this.props.material.subMaterials.map((material, index) => (
                         <TableRow
+                            onDrop={(ev) => {
+                                ev.preventDefault();
+                                ev.currentTarget.classList.remove("bg-muted");
+                                this._handleAssetDropped(ev, index);
+                            }}
+                            onDragOver={(ev) => {
+                                ev.preventDefault();
+                                ev.currentTarget.classList.add("bg-muted");
+                            }}
+                            onDragLeave={(ev) => {
+                                ev.preventDefault();
+                                ev.currentTarget.classList.remove("bg-muted");
+                            }}
                             onClick={() => this.setState({ material: this.props.material.subMaterials[index] })}
                             className={`cursor-pointer ${material === this.state.material ? "bg-secondary" : ""} transition-all duration-300 ease-in-out`}
                         >
@@ -57,6 +76,32 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
                 </TableBody>
             </Table>
         );
+    }
+
+    private async _handleAssetDropped(ev: DragEvent<HTMLDivElement>, index: number): Promise<void> {
+        const absolutePath = JSON.parse(ev.dataTransfer.getData("assets"))[0];
+        const extension = extname(absolutePath).toLowerCase();
+
+        if (extension !== ".material") {
+            return;
+        }
+
+        const subMaterial = await loadImportedMaterial(this.props.material.getScene(), absolutePath);
+        if (subMaterial) {
+            const oldSubMaterial = this.props.material.subMaterials[index];
+            registerUndoRedo({
+                executeRedo: true,
+                undo: () => {
+                    this.props.material.subMaterials[index] = oldSubMaterial;
+                },
+                redo: () => {
+                    this.props.material.subMaterials[index] = subMaterial;
+                },
+                onLost: () => subMaterial.dispose(),
+            });
+
+            this.forceUpdate();
+        }
     }
 
     private _getMaterialComponent(): ReactNode {
