@@ -60,7 +60,7 @@
             ],
             "doNotSyncBoundingInfo": false,
             "isBlocker": false,
-            "overrideMaterialSideOrientation": null,
+            "sideOrientation": 1,
             "isUnIndexed": false,
             "geometryUniqueId": 12,
             "geometryId": "d2a60991-6acc-4d76-b3d8-67e1d6662870",

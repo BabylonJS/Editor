@@ -38,5 +38,6 @@
     "penumbraDarkness": 1,
     "freezeShadowCastersBoundingInfo": false,
     "minDistance": 0,
-    "maxDistance": 1
+    "maxDistance": 1,
+    "refreshRate": 1
 }
