@@ -145,6 +145,9 @@ template/.next
 # Website
 website/.next
 website/.env
+website/public/sitemap-0.xml
+website/public/sitemap.xml
+website/public/robots.txt
 
 # Quixel
 quixel/build
