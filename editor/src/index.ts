@@ -7,10 +7,10 @@ import { setupEditorMenu } from "./electron/menus/editor";
 import { setupDashboardMenu } from "./electron/menus/dashboard";
 import { createDashboardWindow, createEditorWindow } from "./electron/window";
 
-import "./electron/node-pty";
-import "./electron/assimpjs";
-import "./electron/dialog";
 import "./electron/shell";
+import "./electron/dialog";
+import "./electron/node-pty";
+import "./electron/assimp/assimpjs";
 
 try {
     if (process.env.DEBUG) {
