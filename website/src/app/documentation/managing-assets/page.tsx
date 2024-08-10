@@ -72,6 +72,15 @@ export default function DocumentationManagingAssetsPage() {
                             New created materials are empty by default. Now, to assign this material to the box or any other asset, you can drag and drop the material file on the desired mesh in the "<b>Preview</b>" panel.
                         </div>
 
+
+                        <div className="flex gap-2 items-center">
+                            <IoIosWarning size="32px" />
+
+                            <div>
+                                Materials that are created manually are shared across all objects it's applied to. For example, if the material is assigned to 2 distinct meshes and the material properties are edited, both meshes will be updated.
+                            </div>
+                        </div>
+
                         <img alt="" src="/documentation/managing-assets/assigning-material.gif" />
 
                         <div>
@@ -131,7 +140,7 @@ export default function DocumentationManagingAssetsPage() {
 
                         <img alt="" src="/documentation/managing-assets/assigning-texture-preview.gif" />
 
-                        <NextChapterComponent href="/documentation/advanced/compressing-textures" title="Compressing textures" />
+                        <NextChapterComponent href="/documentation/running-project" title="Running project" />
                     </div>
                 </Fade>
             </div>

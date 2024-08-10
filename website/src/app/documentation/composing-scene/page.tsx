@@ -149,14 +149,14 @@ export default function DocumentationComposingScenePage() {
                             Managing hidden files
                         </div>
 
-                        <div className="flex gap-4">
+                        <div className="flex gap-4 items-center">
                             <div className="flex flex-col gap-4">
                                 <div>
                                     In cases the loaded 3d model contains <b>embedded</b> textures, typically all <b>.glb</b> and some <b>.fbx</b> files, the editor will automatically extract them and place them in the assets browser in the same folder.
                                 </div>
 
                                 <div>
-                                    In order to keep files organized, those generated texture files are hidden by default in the assets browser. You can show them by clicking on the <b>Filters</b> button on the right side and check "<b className="underline underline-offset-4">Show Generated Files</b>"
+                                    In order to keep files organized, those generated texture files are hidden by default in the assets browser. You can show them by clicking on the <b>Filters</b> button on the right side and check "<b className="underline underline-offset-4">Show Generated Files</b>".
                                 </div>
 
                                 <div>

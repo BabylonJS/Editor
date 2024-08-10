@@ -20,7 +20,7 @@ import { DownloadWindowsComponent } from "@/components/download-windows";
 
 import { LandingRendererComponent } from "./renderer";
 
-export default function Home() {
+export default function HomePage() {
     const section1Ref = useRef<HTMLDivElement>(null);
     const section2Ref = useRef<HTMLDivElement>(null);
     const section3Ref = useRef<HTMLDivElement>(null);

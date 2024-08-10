@@ -14,6 +14,7 @@ export function DocumentationSidebar() {
                 <DocumentationSidebarItem title="Creating project" href="/documentation/creating-project" />
                 <DocumentationSidebarItem title="Composing scene" href="/documentation/composing-scene" />
                 <DocumentationSidebarItem title="Managing assets" href="/documentation/managing-assets" />
+                <DocumentationSidebarItem title="Running project" href="/documentation/running-project" />
 
                 <div className="font-semibold text-xl text-neutral-500 my-3">
                     Advanced

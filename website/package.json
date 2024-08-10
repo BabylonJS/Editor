@@ -6,7 +6,8 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "postbuild": "next-sitemap"
     },
     "dependencies": {
         "@babylonjs/core": "7.18.0",
@@ -15,6 +16,7 @@
         "is-mobile": "^4.0.0",
         "lenis": "^1.0.45",
         "next": "14.0.4",
+        "next-sitemap": "^4.2.3",
         "raw-loader": "^4.0.2",
         "react": "^18",
         "react-awesome-reveal": "^4.2.11",

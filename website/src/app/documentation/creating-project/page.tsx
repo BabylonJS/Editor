@@ -96,7 +96,7 @@ export default function DocumentationCreatingProjectPage() {
                             Import project
                         </div>
 
-                        <div className="flex gap-4">
+                        <div className="flex gap-4 items-center">
                             <div className="flex flex-col gap-4">
                                 <div>
                                     In case you already created a project and want to import it in your dashboard, you can use the "<b>Import project</b>" button.
