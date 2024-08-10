@@ -571,7 +571,6 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
             case ".scene":
                 return <SceneSelectable {...props} />;
 
-
             case ".png":
             case ".jpg":
             case ".jpeg":
