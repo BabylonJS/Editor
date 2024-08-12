@@ -124,7 +124,7 @@ export default function HomePage() {
 
                 {/* Page 2 */}
                 <div className="flex flex-col justify-center pt-10 lg:pt-24 w-screen min-h-screen mx-auto" ref={section2Ref}>
-                    <div className={`flex flex-col lg:flex-row w-full max-w-7xl mx-auto py-24 px-5`}>
+                    <div className={`flex flex-col lg:flex-row w-full max-w-7xl mx-auto pt-10 py-10 lg:py-24 px-5`}>
                         <Fade triggerOnce className="hidden lg:block w-full">
                             <IoSpeedometer size={128} className="mx-auto" />
                         </Fade>
@@ -147,7 +147,7 @@ export default function HomePage() {
                         </Fade>
                     </div>
 
-                    <div className={`flex flex-col lg:flex-row w-full py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-[3000ms] ease-in-out`}>
+                    <div className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-[3000ms] ease-in-out`}>
                         <div className="flex justify-center items-center max-w-7xl mx-auto">
                             <Fade triggerOnce className="w-full">
                                 <div className="flex flex-col justify-center gap-2">
@@ -172,7 +172,7 @@ export default function HomePage() {
                         </div>
                     </div>
 
-                    <div className={`flex flex-col lg:flex-row w-full max-w-7xl mx-auto py-24 px-5`}>
+                    <div className={`flex flex-col lg:flex-row w-full max-w-7xl mx-auto py-10 lg:py-24 px-5`}>
                         <Fade triggerOnce className="w-full">
                             <div className="hidden lg:block relative w-44 h-44 mx-auto">
                                 <div className="absolute top-1/2 left-1/2 -translate-x-[calc(50%+32px)] -translate-y-[calc(50%+42px)] scale-[2] lg:scale-[5]">
@@ -205,7 +205,7 @@ export default function HomePage() {
                         </Fade>
                     </div>
 
-                    <div className={`flex flex-col lg:flex-row w-full py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-[3000ms] ease-in-out`}>
+                    <div className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-[3000ms] ease-in-out`}>
                         <div className="flex justify-center items-center max-w-7xl mx-auto">
                             <Fade triggerOnce className="w-full">
                                 <div className="flex flex-col justify-center gap-2">
@@ -230,7 +230,7 @@ export default function HomePage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row w-full py-24 px-5">
+                    <div className="flex flex-col lg:flex-row w-full py-10 lg:py-24 px-5">
                         <Fade triggerOnce className="flex justify-center items-center w-full">
                             <div className="flex flex-col gap-10">
                                 <GiBookmarklet color="white" className="w-52 h-52 lg:w-96 lg:h-96 mx-auto" />
