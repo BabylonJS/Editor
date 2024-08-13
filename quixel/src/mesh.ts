@@ -64,7 +64,7 @@ export async function importMeshes(editor: Editor, json: QuixelJsonType, assetsF
     return results[0]!.meshes as Mesh[];
 }
 
-export async function saveMeshesAsBabylonFormat(meshes: Mesh[], assetFolder: string): Promise<void> {
+export async function saveMeshesAsBabylonFormat(editor: Editor, meshes: Mesh[], assetFolder: string): Promise<void> {
     meshes.forEach((mesh) => {
         if (mesh._masterMesh) {
             return;
@@ -103,6 +103,8 @@ export async function saveMeshesAsBabylonFormat(meshes: Mesh[], assetFolder: str
             json.meshes.push(firstMesh);
 
             writeJson(join(assetFolder, `${mesh.name}.babylon`), json);
+
+            editor.layout.console.log(`Successfully saved mesh as Babylon format: ${mesh.name}.babylon`);
         } catch (e) {
             // Catch silently.   
         }
