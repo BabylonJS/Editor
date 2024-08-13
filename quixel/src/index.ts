@@ -4,9 +4,9 @@ import { dirname, join, basename } from "path/posix";
 
 import { Editor } from "babylonjs-editor";
 
-import { importMeshes } from "./mesh";
 import { QuixelJsonType } from "./typings";
 import { importMaterial } from "./material";
+import { importMeshes, saveMeshesAsBabylonFormat } from "./mesh";
 
 export const title = "Quixel Bridge";
 export const description = "Quixel Bridge integration for Babylon.JS Editor";
@@ -95,6 +95,8 @@ async function handleParsedAsset(editor: Editor, json: QuixelJsonType) {
                 }
             });
         });
+
+        saveMeshesAsBabylonFormat(meshes, assetFolder);
     }
 
     editor.layout.graph.refresh();
