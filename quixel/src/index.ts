@@ -96,7 +96,7 @@ async function handleParsedAsset(editor: Editor, json: QuixelJsonType) {
             });
         });
 
-        saveMeshesAsBabylonFormat(meshes, assetFolder);
+        saveMeshesAsBabylonFormat(editor, meshes, assetFolder);
     }
 
     editor.layout.graph.refresh();
