@@ -1,7 +1,7 @@
 import { Material } from "babylonjs";
 
+import { registerUndoRedo } from "../../../tools/undoredo";
 import { isAbstractMesh } from "../../../tools/guards/nodes";
-import { registerSimpleUndoRedo } from "../../../tools/undoredo";
 
 import { Editor } from "../../main";
 
@@ -36,12 +36,26 @@ export function applyMaterialToObject(editor: Editor, object: any, material: Mat
         return;
     }
 
-    registerSimpleUndoRedo({
-        object,
-        property: "material",
-        oldValue: object.material,
-        newValue: material,
+    const oldMaterial = object.material;
+
+    registerUndoRedo({
         executeRedo: true,
+        undo: () => {
+            object.material = oldMaterial;
+            object.getLODLevels().forEach((lod) => {
+                if (lod.mesh) {
+                    lod.mesh.material = oldMaterial;
+                }
+            });
+        },
+        redo: () => {
+            object.material = material;
+            object.getLODLevels().forEach((lod) => {
+                if (lod.mesh) {
+                    lod.mesh.material = material;
+                }
+            });
+        },
         onLost: () => {
             const bindedMeshes = material.getBindedMeshes();
             if (!bindedMeshes.length) {

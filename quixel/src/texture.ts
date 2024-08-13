@@ -8,13 +8,14 @@ import { PBRMaterial, Texture } from "babylonjs";
 
 import { QuixelJsonType } from "./typings";
 
+import { UniqueNumber } from "./tools/id";
+
 import { MaskPacker } from "./packers/mask";
 import { AlbedoOpacityPacker } from "./packers/albedo-opacity";
 import { MetallicAmbientPacker } from "./packers/metallic-ambient";
 import { MetallicRoughnessPacker } from "./packers/metallic-roughness";
 import { NormalDisplacementPacker } from "./packers/normal-displacement";
 import { ReflectivityGlossinessPacker } from "./packers/reflectivity-glossiness";
-import { UniqueNumber } from "./tools/id";
 
 const supportedTexturesTypes: string[] = [
     "albedo", "normal", "specular", "ao", "metalness", "opacity", "roughness", "specular",
