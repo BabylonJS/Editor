@@ -92,7 +92,7 @@ export default function HomePage() {
                     <div className="flex flex-col gap-4 w-full">
                         <Fade cascade damping={0.1} triggerOnce direction="up">
                             <Fade>
-                                <div className="text-5xl md:text-8xl lg:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
+                                <div className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
                                     Babylon.js Editor
                                 </div>
                             </Fade>

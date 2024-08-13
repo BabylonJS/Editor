@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { Fade } from "react-awesome-reveal";
 
 import { AppleIcon } from "@/components/icons/apple";
@@ -30,21 +28,21 @@ export function DownloadVersionComponent(props: IDownloadVersionComponentProps) 
                     <div className="flex flex-col gap-4 items-center w-full">
                         <WindowsIcon color="#fff" className="w-20 lg:w-32 h-20 lg:h-32" />
 
-                        <Link href={props.windowsLink} className="font-semibold font-sans tracking-tighter underline underline-offset-2">
-                            64bits Installer
-                        </Link>
+                        <a href={props.windowsLink} download className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+                            x64 Installer
+                        </a>
                     </div>
 
                     <div className="flex flex-col gap-4 items-center w-full">
                         <AppleIcon color="#fff" className="w-20 lg:w-32 h-20 lg:h-32" />
 
-                        <Link href={props.macArm64Link} className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+                        <a href={props.macArm64Link} download className="font-semibold font-sans tracking-tighter underline underline-offset-2">
                             Apple Silicon
-                        </Link>
+                        </a>
 
-                        <Link href={props.macIntelLink} className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+                        <a href={props.macIntelLink} download className="font-semibold font-sans tracking-tighter underline underline-offset-2">
                             Intel Chip
-                        </Link>
+                        </a>
                     </div>
                 </div>
             </Fade>
