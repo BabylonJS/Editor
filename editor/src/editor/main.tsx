@@ -25,6 +25,8 @@ import { CommandPalette } from "./dialogs/command-palette/command-palette";
 import { EditorEditProjectComponent } from "./dialogs/edit-project/edit-project";
 import { EditorEditPreferencesComponent } from "./dialogs/edit-preferences/edit-preferences";
 
+import { showConfirm } from "../ui/dialog";
+
 import { Toaster } from "../ui/shadcn/ui/sonner";
 
 import { EditorLayout } from "./layout";
@@ -86,6 +88,8 @@ export class Editor extends Component<{}, IEditorState> {
      * The command palette of the editor.
      */
     public commandPalette: CommandPalette;
+
+    private _closeConfirmationVisible: boolean = false;
 
     public constructor(props: {}) {
         super(props);
@@ -151,6 +155,9 @@ export class Editor extends Component<{}, IEditorState> {
 
         ipcRenderer.on("editor:open", (_, path) => this.openProject(join(path)));
 
+        ipcRenderer.on("editor:quit-app", () => this.quitApp());
+        ipcRenderer.on("editor:close-window", () => this.close());
+
         ipcRenderer.send("editor:ready");
 
         // Undo-redo
@@ -168,22 +175,62 @@ export class Editor extends Component<{}, IEditorState> {
         });
     }
 
-    public async openProject(path: string): Promise<void> {
+    /**
+     * Opens the project located at the given absolute path.
+     * @param absolutePath defines the absolute path to the project to open.
+     */
+    public async openProject(absolutePath: string): Promise<void> {
         await waitUntil(() => this.layout.preview.scene);
 
         ipcRenderer.send("editor:maximize-window");
 
-        path = path.replace(/\\/g, sep);
+        absolutePath = absolutePath.replace(/\\/g, sep);
 
-        projectConfiguration.path = path;
+        projectConfiguration.path = absolutePath;
 
         disposeSSRRenderingPipeline();
         disposeMotionBlurPostProcess();
         disposeSSAO2RenderingPipeline();
         disposeDefaultRenderingPipeline();
 
-        await loadProject(this, path);
+        await loadProject(this, absolutePath);
 
         onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
+    }
+
+    /**
+     * Closes the current editor window after asking for confirmation.
+     */
+    public async close(): Promise<void> {
+        if (this._closeConfirmationVisible) {
+            return;
+        }
+
+        this._closeConfirmationVisible = true;
+
+        const confirm = await showConfirm("Close window", "Are you sure you want to close the window?");
+        if (confirm) {
+            ipcRenderer.send("window:close");
+        }
+
+        this._closeConfirmationVisible = false;
+    }
+
+    /**
+     * Quits the app after asking for confirmation.
+     */
+    public async quitApp(): Promise<void> {
+        if (this._closeConfirmationVisible) {
+            return;
+        }
+
+        this._closeConfirmationVisible = true;
+
+        const confirm = await showConfirm("Quit app", "Are you sure you want to quit the app?");
+        if (confirm) {
+            ipcRenderer.send("app:quit");
+        }
+
+        this._closeConfirmationVisible = false;
     }
 }

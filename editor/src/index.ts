@@ -63,6 +63,10 @@ ipcMain.on("dashboard:update-projects", () => {
     dashboardWindow?.webContents.send("dashboard:update-projects");
 });
 
+ipcMain.on("app:quit", () => {
+    app.quit();
+});
+
 let dashboardWindow: BrowserWindow | null = null;
 
 async function openDashboard(): Promise<void> {
