@@ -1,4 +1,4 @@
-import { extname, basename, join } from "path/posix";
+import { extname, basename, join, dirname } from "path/posix";
 
 import { ipcRenderer } from "electron";
 
@@ -6,8 +6,11 @@ import { toast } from "sonner";
 import { Button } from "@blueprintjs/core";
 import { Component, MouseEvent, ReactNode } from "react";
 
+import { Grid } from "react-loader-spinner";
+
 import { FaCheck } from "react-icons/fa6";
 import { IoIosOptions } from "react-icons/io";
+import { IoPlay, IoStop } from "react-icons/io5";
 import { GiWireframeGlobe } from "react-icons/gi";
 
 import {
@@ -19,9 +22,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 import { Editor } from "../main";
 
+import { projectConfiguration } from "../../project/configuration";
+
 import { Tween } from "../../tools/animation/tween";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../tools/tools";
+import { execNodePty, NodePtyInstance } from "../../tools/node-pty";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { isAbstractMesh, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
@@ -73,6 +79,15 @@ export interface IEditorPreviewState {
      * Defines wether or not the preview is focused.
      */
     isFocused: boolean;
+
+    /**
+     * Defines wether or not the game / application is playing in the editor.
+     */
+    playing: boolean;
+    /**
+     * Defines the address of the game / application being played.
+     */
+    playingAddress: string;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -103,6 +118,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
     private _meshUnderPointer: AbstractMesh | null;
 
+    private _playProcess: NodePtyInstance | null = null;
+
     public constructor(props: IEditorPreviewProps) {
         super(props);
 
@@ -111,6 +128,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
             isFocused: false,
             informationMessage: "",
+
+            playing: false,
+            playingAddress: "",
         };
 
         ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
@@ -132,6 +152,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
                     <EditorGraphContextMenu editor={this.props.editor} object={this._meshUnderPointer}>
                         <canvas
+                            hidden={this.state.playing}
                             ref={(r) => this._onGotCanvasRef(r!)}
                             onDrop={(ev) => this._handleDrop(ev)}
                             onDragOver={(ev) => {
@@ -146,6 +167,20 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             onMouseMove={() => this._handleMouseMove(this.scene.pointerX, this.scene.pointerY)}
                             className="w-full h-full select-none outline-none"
                         />
+
+                        {this.state.playing &&
+                            <>
+                                {this.state.playingAddress &&
+                                    <iframe src={this.state.playingAddress} className="w-full h-full select-none outline-none" />
+                                }
+
+                                {!this.state.playingAddress &&
+                                    <div className="flex justify-center items-center w-full h-full">
+                                        <Grid width={24} height={24} color="gray" />
+                                    </div>
+                                }
+                            </>
+                        }
                     </EditorGraphContextMenu>
                 </div>
 
@@ -456,6 +491,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                     <div className="flex gap-2 items-center h-10">
                         <TooltipProvider>
                             <Select
+                                disabled={this.state.playing}
                                 value={this.scene?.activeCamera?.id}
                                 onValueChange={(v) => {
                                     const camera = this.scene.cameras.find((c) => c.id === v) ?? null;
@@ -479,7 +515,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Button active={this.state.activeGizmo === "position"} onClick={() => this.setActiveGizmo("position")} minimal icon={<PositionIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                                    <Button active={this.state.activeGizmo === "position"} disabled={this.state.playing} onClick={() => this.setActiveGizmo("position")} minimal icon={<PositionIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     Toggle position gizmo
@@ -487,7 +523,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Button active={this.state.activeGizmo === "rotation"} onClick={() => this.setActiveGizmo("rotation")} minimal icon={<RotationIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                                    <Button active={this.state.activeGizmo === "rotation"} disabled={this.state.playing} onClick={() => this.setActiveGizmo("rotation")} minimal icon={<RotationIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     Toggle rotation gizmo
@@ -495,7 +531,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Button active={this.state.activeGizmo === "scaling"} onClick={() => this.setActiveGizmo("scaling")} minimal icon={<ScalingIcon height={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                                    <Button active={this.state.activeGizmo === "scaling"} disabled={this.state.playing} onClick={() => this.setActiveGizmo("scaling")} minimal icon={<ScalingIcon height={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     Toggle scaling gizmo
@@ -503,6 +539,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             </Tooltip>
 
                             <Select
+                                disabled={this.state.playing}
                                 value={this.gizmo?.getCoordinateMode().toString()}
                                 onValueChange={(v) => {
                                     this.gizmo?.setCoordinatesMode(parseInt(v));
@@ -522,7 +559,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Button active={this.scene?.forceWireframe} minimal icon={<GiWireframeGlobe className="w-6 h-6" strokeWidth={1} color="white" />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" onClick={() => {
+                                    <Button active={this.scene?.forceWireframe} minimal disabled={this.state.playing} icon={<GiWireframeGlobe className="w-6 h-6" strokeWidth={1} color="white" />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" onClick={() => {
                                         this.scene.forceWireframe = !this.scene.forceWireframe;
                                         this.forceUpdate();
                                     }} />
@@ -535,8 +572,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             <Separator orientation="vertical" className="mx-2 h-[24px]" />
 
                             <DropdownMenu>
-                                <DropdownMenuTrigger>
-                                    <Button minimal icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" />
+                                <DropdownMenuTrigger disabled={this.state.playing}>
+                                    <Button minimal disabled={this.state.playing} icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" />
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent onClick={() => this.forceUpdate()}>
                                     <DropdownMenuLabel>Render options</DropdownMenuLabel>
@@ -560,9 +597,67 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             </DropdownMenu>
                         </TooltipProvider>
                     </div>
+
+                    <div className="flex gap-2 items-center h-10">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Button
+                                        minimal
+                                        active={this.state.playing}
+                                        icon={
+                                            this.state.playing
+                                                ? <IoStop className="w-6 h-6" strokeWidth={1} color="red" />
+                                                : <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
+                                        }
+                                        onClick={() => this.playOrStopApplication()}
+                                        className={`w-10 h-10 bg-muted/50 !rounded-lg ${this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"} transition-all duration-300`}
+                                    />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Play the game / application
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                 </div>
             </div>
         );
+    }
+
+    /**
+     * Sets the game / application to play or stop.
+     * If stopped, the process created to server the game / application keeps alive in order to be played again but faster than the first launch.
+     */
+    public async playOrStopApplication(): Promise<void> {
+        if (!projectConfiguration.path) {
+            return;
+        }
+
+        if (!this._playProcess) {
+            this._playProcess = await execNodePty("yarn dev", {
+                cwd: dirname(projectConfiguration.path),
+            });
+
+            const localhostString = "http://localhost:";
+
+            let playingAddress = "";
+
+            this._playProcess.onGetDataObservable.add((data) => {
+                const readyIndex = data.indexOf("Ready");
+                const addressIndex = data.indexOf(localhostString);
+
+                if (addressIndex !== -1) {
+                    playingAddress = data.substring(addressIndex, data.indexOf("\n", addressIndex));
+                }
+
+                if (readyIndex !== -1 && playingAddress) {
+                    this.setState({ playingAddress });
+                }
+            });
+        }
+
+        this.setState({ playing: !this.state.playing });
     }
 
     public setActiveGizmo(gizmo: "position" | "rotation" | "scaling" | "none"): void {

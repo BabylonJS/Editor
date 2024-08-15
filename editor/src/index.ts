@@ -18,6 +18,9 @@ try {
     }
 } catch (_) { /* Catch silently */ }
 
+// Enable remote debugging of both the Editor and the edited Project.
+app.commandLine.appendSwitch("remote-debugging-port", "8315");
+
 app.addListener("ready", async () => {
     nativeTheme.themeSource = "system";
 
