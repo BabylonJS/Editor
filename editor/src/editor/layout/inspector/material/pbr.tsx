@@ -24,7 +24,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
     public render(): ReactNode {
         return (
             <>
-                <EditorInspectorSectionField title="Material">
+                <EditorInspectorSectionField title="Material" label={this.props.material.getClassName()}>
                     <EditorInspectorStringField label="Name" object={this.props.material} property="name" />
                     <EditorInspectorSwitchField label="Back Face Culling" object={this.props.material} property="backFaceCulling" />
                     <EditorInspectorNumberField label="Alpha" object={this.props.material} property="alpha" min={0} max={1} />
