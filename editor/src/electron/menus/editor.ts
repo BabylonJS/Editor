@@ -1,5 +1,5 @@
 import { platform } from "os";
-import { BrowserWindow, Menu, app } from "electron";
+import { BrowserWindow, Menu } from "electron";
 
 export function setupEditorMenu(): void {
     Menu.setApplicationMenu(Menu.buildFromTemplate([
@@ -7,9 +7,9 @@ export function setupEditorMenu(): void {
             label: "Babylon.JS Editor",
             submenu: [
                 {
-                    click: () => app.quit(),
                     label: "Exit BabylonJS Editor",
                     accelerator: "CommandOrControl+Q",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:quit-app"),
                 },
             ],
         },
@@ -200,7 +200,7 @@ export function setupEditorMenu(): void {
                 {
                     label: "Close",
                     accelerator: "Command+W",
-                    click: () => BrowserWindow.getFocusedWindow()?.close(),
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:close-window"),
                 },
             ],
         }
