@@ -11,14 +11,26 @@ import { importMeshes, saveMeshesAsBabylonFormat } from "./mesh";
 export const title = "Quixel Bridge";
 export const description = "Quixel Bridge integration for Babylon.JS Editor";
 
+let server: Server | null = null;
+
 export function main(editor: Editor): void {
     createRootFolder(editor);
 
-    const server = new Server((s) => {
+    server = new Server((s) => {
         handeServerEvents(editor, s);
     });
 
     server.listen(24981);
+}
+
+export function close(): void {
+    try {
+        server?.close();
+    } catch (e) {
+        // Catch silently
+    } finally {
+        server = null;
+    }
 }
 
 function handeServerEvents(editor: Editor, socket: Socket): void {

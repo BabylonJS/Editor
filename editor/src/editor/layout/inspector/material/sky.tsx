@@ -24,7 +24,7 @@ export class EditorSkyMaterialInspector extends Component<IEditorSkyMaterialInsp
                     <EditorInspectorSwitchField label="Back Face Culling" object={this.props.material} property="backFaceCulling" />
                 </EditorInspectorSectionField>
 
-                <EditorInspectorSectionField title="Sky" label={this.props.material.getClassName()}>
+                <EditorInspectorSectionField title="Sky">
                     <EditorInspectorNumberField object={this.props.material} property="inclination" label="Inclination" min={-0.6} max={0.6} />
                     <EditorInspectorNumberField object={this.props.material} property="azimuth" label="azimuth" min={0} max={1} />
                     <EditorInspectorNumberField object={this.props.material} property="luminance" label="Luminance" min={0.01} />

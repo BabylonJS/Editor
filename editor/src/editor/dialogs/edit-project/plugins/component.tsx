@@ -9,6 +9,7 @@ import { showPrompt } from "../../../../ui/dialog";
 import { Label } from "../../../../ui/shadcn/ui/label";
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Separator } from "../../../../ui/shadcn/ui/separator";
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../../ui/shadcn/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
 
 import { execNodePty } from "../../../../tools/node-pty";
@@ -19,7 +20,6 @@ import { projectConfiguration } from "../../../../project/configuration";
 import { Editor } from "../../../main";
 
 import { EditorEditProjectPluginItemComponent } from "./item";
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../../ui/shadcn/ui/alert-dialog";
 
 export interface IEditorEditProjectPluginComponentProps {
     /**

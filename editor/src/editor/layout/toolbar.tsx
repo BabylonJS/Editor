@@ -179,8 +179,14 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
                             <MenubarItem onClick={() => addTransformNode(this.props.editor)}>
                                 Transform Node
                             </MenubarItem>
+
+                            <MenubarSeparator />
+
                             <MenubarItem onClick={() => addBoxMesh(this.props.editor)}>
                                 Box Mesh
+                            </MenubarItem>
+                            <MenubarItem onClick={() => addPlaneMesh(this.props.editor)}>
+                                Plane Mesh
                             </MenubarItem>
                             <MenubarItem onClick={() => addSphereMesh(this.props.editor)}>
                                 Sphere Mesh
@@ -211,6 +217,21 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
                             </MenubarItem>
                             <MenubarItem onClick={() => addArcRotateCamera(this.props.editor)}>
                                 Arc Rotate Camera
+                            </MenubarItem>
+                        </MenubarContent>
+                    </MenubarMenu>
+
+                    {/* Window */}
+                    <MenubarMenu>
+                        <MenubarTrigger>
+                            Window
+                        </MenubarTrigger>
+                        <MenubarContent className="border-black/50">
+                            <MenubarItem onClick={() => ipcRenderer.send("window:minimize")}>
+                                Minimize <MenubarShortcut>CTRL+M</MenubarShortcut>
+                            </MenubarItem>
+                            <MenubarItem onClick={() => this.props.editor.close()}>
+                                Close <MenubarShortcut>CTRL+W</MenubarShortcut>
                             </MenubarItem>
                         </MenubarContent>
                     </MenubarMenu>
