@@ -36,7 +36,7 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 
     public render(): ReactNode {
         return (
-            <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+            <div hidden={this.props.editor.layout.preview?.state.playing} className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
                 {this.state.buttons.map((button) => (
                     <div
                         key={button.node.id}
