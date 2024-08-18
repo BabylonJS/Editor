@@ -70,5 +70,5 @@ export async function saveProject(editor: Editor): Promise<void> {
         // Catch silently.
     }
 
-    await exportProject(editor, false);
+    await exportProject(editor, { optimize: false, noProgress: true });
 }

@@ -1,6 +1,5 @@
+import { ipcRenderer, shell } from "electron";
 import { extname, basename, join, dirname } from "path/posix";
-
-import { ipcRenderer } from "electron";
 
 import { toast } from "sonner";
 import { Button } from "@blueprintjs/core";
@@ -22,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 import { Editor } from "../main";
 
+import { exportProject } from "../../project/export/export";
 import { projectConfiguration } from "../../project/configuration";
 
 import { Tween } from "../../tools/animation/tween";
@@ -323,7 +323,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         this.engine.hideLoadingUI();
 
         this.engine.runRenderLoop(() => {
-            if (this._renderScene) {
+            if (this._renderScene && !this.state.playing) {
                 this.scene.render();
             }
         });
@@ -635,26 +635,43 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         }
 
         if (!this._playProcess) {
+            const log = await this.props.editor.layout.console.progress("Starting the game / application...");
+
             this._playProcess = await execNodePty("yarn dev", {
                 cwd: dirname(projectConfiguration.path),
             });
 
-            const localhostString = "http://localhost:";
+            const localhostRegex = /http:\/\/localhost:(\d+)/;
 
             let playingAddress = "";
 
             this._playProcess.onGetDataObservable.add((data) => {
-                const readyIndex = data.indexOf("Ready");
-                const addressIndex = data.indexOf(localhostString);
-
-                if (addressIndex !== -1) {
-                    playingAddress = data.substring(addressIndex, data.indexOf("\n", addressIndex));
+                if (!playingAddress) {
+                    const match = data.match(localhostRegex);
+                    if (match) {
+                        playingAddress = `http://localhost:${match[1]}`;
+                    }
                 }
 
+                const readyIndex = data.indexOf("Ready");
                 if (readyIndex !== -1 && playingAddress) {
                     this.setState({ playingAddress });
+                    log.setState({
+                        done: true,
+                        message: (
+                            <div>
+                                Game / application is ready at <a className="underline underline-offset-4" onClick={() => shell.openExternal(playingAddress)}>{playingAddress}</a>
+                            </div>
+                        ),
+                    });
+
+                    this._playProcess?.onGetDataObservable.clear();
                 }
             });
+        }
+
+        if (!this.state.playing) {
+            await exportProject(this.props.editor, { optimize: false });
         }
 
         this.setState({ playing: !this.state.playing });

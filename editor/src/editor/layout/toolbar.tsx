@@ -89,7 +89,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
                                 Save <MenubarShortcut>CTRL+S</MenubarShortcut>
                             </MenubarItem>
 
-                            <MenubarItem onClick={() => exportProject(this.props.editor, true)}>
+                            <MenubarItem onClick={() => exportProject(this.props.editor, { optimize: true })}>
                                 Export <MenubarShortcut>CTRL+G</MenubarShortcut>
                             </MenubarItem>
 
