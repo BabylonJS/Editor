@@ -41,7 +41,12 @@ const supportedExtensions: string[] = [
     ...supportedCubeTexturesExtensions,
 ];
 
-export async function exportProject(editor: Editor, optimize: boolean): Promise<void> {
+export type IExportProjectOptions = {
+    optimize: boolean;
+    noProgress?: boolean;
+};
+
+export async function exportProject(editor: Editor, options: IExportProjectOptions): Promise<void> {
     if (!editor.state.projectPath || !editor.state.lastOpenedScenePath) {
         return;
     }
@@ -49,7 +54,7 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
     let progress: EditorExportProjectProgressComponent | null = null;
     const toastId = toast(<EditorExportProjectProgressComponent ref={(r) => progress = r} />, {
         dismissible: false,
-        duration: optimize ? Infinity : -1,
+        duration: options.noProgress ? -1 : Infinity,
     });
 
     const scene = editor.layout.preview.scene;
@@ -230,7 +235,7 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
         }
 
         promises.push(new Promise<void>(async (resolve) => {
-            await processFile(editor, file as string, optimize, scenePath, projectDir, cache);
+            await processFile(editor, file as string, options.optimize, scenePath, projectDir, cache);
             progress?.step(progressStep);
             resolve();
         }));
@@ -245,7 +250,7 @@ export async function exportProject(editor: Editor, optimize: boolean): Promise<
 
     toast.dismiss(toastId);
 
-    if (optimize) {
+    if (options.optimize) {
         toast.success("Project exported");
     }
 }

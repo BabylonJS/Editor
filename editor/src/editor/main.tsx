@@ -148,7 +148,7 @@ export class Editor extends Component<{}, IEditorState> {
 
     public componentDidMount(): void {
         ipcRenderer.on("save", () => saveProject(this));
-        ipcRenderer.on("export", () => exportProject(this, true));
+        ipcRenderer.on("export", () => exportProject(this, { optimize: true }));
 
         ipcRenderer.on("editor:edit-project", () => this.setState({ editProject: true }));
         ipcRenderer.on("editor:edit-preferences", () => this.setState({ editPreferences: true }));
