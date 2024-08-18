@@ -66,6 +66,10 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         window.menuBarVisible = false;
     }
 
+    window.on("close", () => {
+        window.webContents.send("editor:closed");
+    });
+
     window.loadURL("file://" + __dirname + "/../../../index.html");
 
     if (process.env.DEBUG) {
