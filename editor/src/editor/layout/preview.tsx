@@ -88,6 +88,10 @@ export interface IEditorPreviewState {
      * Defines the address of the game / application being played.
      */
     playingAddress: string;
+    /**
+     * Defines wether or not the player is being prepared.
+     */
+    preparingPlay: boolean;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -131,6 +135,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
             playing: false,
             playingAddress: "",
+            preparingPlay: false,
         };
 
         ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
@@ -198,6 +203,16 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                 </div>
             </div>
         );
+    }
+
+    public componentDidMount(): void {
+        ipcRenderer.once("editor:closed", () => {
+            try {
+                this._playProcess?.kill();
+            } catch (e) {
+                // Catch silently.
+            }
+        });
     }
 
     /**
@@ -605,13 +620,25 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                                     <Button
                                         minimal
                                         active={this.state.playing}
+                                        disabled={this.state.preparingPlay}
                                         icon={
-                                            this.state.playing
-                                                ? <IoStop className="w-6 h-6" strokeWidth={1} color="red" />
-                                                : <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
+                                            this.state.preparingPlay
+                                                ? <Grid width={24} height={24} color="gray" />
+                                                : this.state.playing
+                                                    ? <IoStop className="w-6 h-6" strokeWidth={1} color="red" />
+                                                    : <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
                                         }
                                         onClick={() => this.playOrStopApplication()}
-                                        className={`w-10 h-10 bg-muted/50 !rounded-lg ${this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"} transition-all duration-300`}
+                                        className={`
+                                            w-10 h-10 bg-muted/50 !rounded-lg
+                                            ${this.state.preparingPlay
+                                                ? "bg-muted/50"
+                                                : this.state.playing
+                                                    ? "!bg-red-500/35"
+                                                    : "hover:!bg-green-500/35"
+                                            }
+                                            transition-all duration-300 ease-in-out
+                                        `}
                                     />
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -630,51 +657,58 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
      * If stopped, the process created to server the game / application keeps alive in order to be played again but faster than the first launch.
      */
     public async playOrStopApplication(): Promise<void> {
-        if (!projectConfiguration.path) {
-            return;
-        }
-
-        if (!this._playProcess) {
-            const log = await this.props.editor.layout.console.progress("Starting the game / application...");
-
-            this._playProcess = await execNodePty("yarn dev", {
-                cwd: dirname(projectConfiguration.path),
-            });
-
-            const localhostRegex = /http:\/\/localhost:(\d+)/;
-
-            let playingAddress = "";
-
-            this._playProcess.onGetDataObservable.add((data) => {
-                if (!playingAddress) {
-                    const match = data.match(localhostRegex);
-                    if (match) {
-                        playingAddress = `http://localhost:${match[1]}`;
-                    }
-                }
-
-                const readyIndex = data.indexOf("Ready");
-                if (readyIndex !== -1 && playingAddress) {
-                    this.setState({ playingAddress });
-                    log.setState({
-                        done: true,
-                        message: (
-                            <div>
-                                Game / application is ready at <a className="underline underline-offset-4" onClick={() => shell.openExternal(playingAddress)}>{playingAddress}</a>
-                            </div>
-                        ),
-                    });
-
-                    this._playProcess?.onGetDataObservable.clear();
-                }
-            });
-        }
-
         if (!this.state.playing) {
-            await exportProject(this.props.editor, { optimize: false });
+            this.setState({ preparingPlay: true });
+
+            await Promise.all([
+                this._preparePlayProcess(),
+                exportProject(this.props.editor, { optimize: false }),
+            ]);
+
+            this.setState({ preparingPlay: false });
         }
 
         this.setState({ playing: !this.state.playing });
+    }
+
+    private async _preparePlayProcess(): Promise<void> {
+        if (this._playProcess || !projectConfiguration.path) {
+            return;
+        }
+
+        const log = await this.props.editor.layout.console.progress("Starting the game / application...");
+
+        this._playProcess = await execNodePty("yarn dev", {
+            cwd: dirname(projectConfiguration.path),
+        });
+
+        const localhostRegex = /http:\/\/localhost:(\d+)/;
+
+        let playingAddress = "";
+
+        this._playProcess.onGetDataObservable.add((data) => {
+            if (!playingAddress) {
+                const match = data.match(localhostRegex);
+                if (match) {
+                    playingAddress = `http://localhost:${match[1]}`;
+                }
+            }
+
+            const readyIndex = data.indexOf("Ready");
+            if (readyIndex !== -1 && playingAddress) {
+                this.setState({ playingAddress });
+                log.setState({
+                    done: true,
+                    message: (
+                        <div>
+                            Game / application is ready at <a className="underline underline-offset-4" onClick={() => shell.openExternal(playingAddress)}>{playingAddress}</a>
+                        </div>
+                    ),
+                });
+
+                this._playProcess?.onGetDataObservable.clear();
+            }
+        });
     }
 
     public setActiveGizmo(gizmo: "position" | "rotation" | "scaling" | "none"): void {
