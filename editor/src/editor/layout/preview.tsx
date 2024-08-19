@@ -110,6 +110,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
     private _meshUnderPointer: AbstractMesh | null;
 
+    private _playIframeRef: HTMLIFrameElement | null = null;
+
     public constructor(props: IEditorPreviewProps) {
         super(props);
 
@@ -158,7 +160,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                         {this.play?.state.playing &&
                             <>
                                 {this.play.state.playingAddress &&
-                                    <iframe src={this.play.state.playingAddress} className="w-full h-full select-none outline-none" />
+                                    <iframe ref={(r) => this._playIframeRef = r} src={this.play.state.playingAddress} className="w-full h-full select-none outline-none" />
                                 }
 
                                 {!this.play.state.playingAddress &&
@@ -586,7 +588,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                     </div>
 
                     <div className="flex gap-2 items-center h-10">
-                        <EditorPreviewPlayComponent ref={(r) => this.play = r!} editor={this.props.editor} />
+                        <EditorPreviewPlayComponent
+                            editor={this.props.editor}
+                            ref={(r) => this.play = r!}
+                            onRestart={() => {
+                                if (this._playIframeRef) {
+                                    this._playIframeRef.src = this._playIframeRef.src;
+                                }
+                            }}
+                        />
                     </div>
                 </div>
             </div>

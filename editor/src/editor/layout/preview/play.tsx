@@ -5,7 +5,7 @@ import { Button } from "@blueprintjs/core";
 import { Component, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
-import { IoPlay, IoStop } from "react-icons/io5";
+import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 
 import { exportProject } from "../../../project/export/export";
 import { projectConfiguration } from "../../../project/configuration";
@@ -21,6 +21,11 @@ export interface IEditorPreviewPlayComponentProps {
      * The editor reference.
      */
     editor: Editor;
+
+    /**
+     * Called on the user wants to restart the game / application (aka. refresh the page of the game / application).
+     */
+    onRestart: () => void;
 }
 
 export interface IEditorPreviewPlayComponentState {
@@ -54,6 +59,23 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
     public render(): ReactNode {
         return (
             <TooltipProvider>
+                {this.state.playing && this.state.playingAddress && !this.state.preparingPlay &&
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Button
+                                minimal
+                                onClick={() => this.props.onRestart()}
+                                icon={<IoRefresh className="w-6 h-6" strokeWidth={1} color="red" />}
+                                className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300 ease-in-out"
+
+                            />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Restart the game / application
+                        </TooltipContent>
+                    </Tooltip>
+                }
+
                 <Tooltip>
                     <TooltipTrigger>
                         <Button
@@ -69,15 +91,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
                             }
                             onClick={() => this.playOrStopApplication()}
                             className={`
-                                            w-10 h-10 bg-muted/50 !rounded-lg
-                                            ${this.state.preparingPlay
-                                    ? "bg-muted/50"
-                                    : this.state.playing
-                                        ? "!bg-red-500/35"
-                                        : "hover:!bg-green-500/35"
-                                }
-                                            transition-all duration-300 ease-in-out
-                                        `}
+                                w-10 h-10 bg-muted/50 !rounded-lg
+                                ${this.state.preparingPlay ? "bg-muted/50" : this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
+                                transition-all duration-300 ease-in-out
+                            `}
                         />
                     </TooltipTrigger>
                     <TooltipContent>
