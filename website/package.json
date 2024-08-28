@@ -10,8 +10,8 @@
         "postbuild": "next-sitemap"
     },
     "dependencies": {
-        "@babylonjs/core": "7.18.0",
-        "@babylonjs/materials": "7.18.0",
+        "@babylonjs/core": "7.22.5",
+        "@babylonjs/materials": "7.22.5",
         "babylonjs-editor-tools": "link:../tools",
         "is-mobile": "^4.0.0",
         "lenis": "^1.0.45",

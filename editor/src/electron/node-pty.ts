@@ -9,7 +9,7 @@ const spawnsMap = new Map<string, IPty>();
 ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
     const shell = process.env[platform() === "win32" ? "COMSPEC" : "SHELL"] ?? null;
     if (!shell) {
-        ev.sender.send("editor:create-node-pty", null);
+        return ev.sender.send("editor:create-node-pty", null);
     }
 
     const args: string[] = [];
