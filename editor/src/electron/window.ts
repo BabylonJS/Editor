@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, screen } from "electron";
+import { BrowserWindow, dialog, ipcMain, screen } from "electron";
 
 export async function createDashboardWindow(): Promise<BrowserWindow> {
     const window = new BrowserWindow({
@@ -36,6 +36,11 @@ export async function createDashboardWindow(): Promise<BrowserWindow> {
 }
 
 /**
+ * Defines the list of all available editor windows that are opened.
+ */
+export const editorWindows: BrowserWindow[] = [];
+
+/**
  * Creates a new window that takes up the entire screen.
  * @returns The newly created window.
  */
@@ -62,12 +67,37 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         },
     });
 
+    editorWindows.push(window);
+
     if (process.env.DEBUG !== "true") {
         window.menuBarVisible = false;
     }
 
-    window.on("close", () => {
+    let checkClose = true;
+
+    window.on("close", (event) => {
+        if (!checkClose) {
+            return;
+        }
+
+        window.restore();
+        window.focus();
+
+        const close = showCloseEditorWindowsDialog(window);
+
+        if (!close) {
+            return event.preventDefault();
+        }
+
+        checkClose = false;
+
         window.webContents.send("editor:closed");
+
+        const index = editorWindows.indexOf(window);
+        if (index !== -1) {
+            editorWindows.splice(index, 1);
+        }
+
     });
 
     window.loadURL("file://" + __dirname + "/../../../index.html");
@@ -108,6 +138,22 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
     window.focus();
 
     return window;
+}
+
+/**
+ * Shows the close editor window dialog. This is used to get a confirmation from the user that the window
+ * should be closed and is not due to a miss-click or bad keyboard shortcut.
+ * @param window defines the reference to the window to show the dialog in.
+ */
+export function showCloseEditorWindowsDialog(window: BrowserWindow): boolean {
+    const result = dialog.showMessageBoxSync(window, {
+        type: "question",
+        buttons: ["Yes", "No"],
+        title: "Close window",
+        message: "Are you sure you want to close the window?",
+    });
+
+    return result === 0;
 }
 
 ipcMain.on("window:minimize", async (ev) => {

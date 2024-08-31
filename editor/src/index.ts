@@ -5,7 +5,7 @@ import { getFilePathArgument } from "./tools/process";
 
 import { setupEditorMenu } from "./electron/menus/editor";
 import { setupDashboardMenu } from "./electron/menus/dashboard";
-import { createDashboardWindow, createEditorWindow } from "./electron/window";
+import { createDashboardWindow, createEditorWindow, editorWindows } from "./electron/window";
 
 import "./electron/shell";
 import "./electron/dialog";
@@ -67,7 +67,17 @@ ipcMain.on("dashboard:update-projects", () => {
 });
 
 ipcMain.on("app:quit", () => {
-    app.quit();
+    for (const window of editorWindows.slice()) {
+        window.close();
+
+        if (editorWindows.includes(window)) {
+            return;
+        }
+    }
+
+    if (!editorWindows.length) {
+        app.quit();
+    }
 });
 
 let dashboardWindow: BrowserWindow | null = null;

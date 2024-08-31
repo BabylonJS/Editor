@@ -25,8 +25,6 @@ import { CommandPalette } from "./dialogs/command-palette/command-palette";
 import { EditorEditProjectComponent } from "./dialogs/edit-project/edit-project";
 import { EditorEditPreferencesComponent } from "./dialogs/edit-preferences/edit-preferences";
 
-import { showConfirm } from "../ui/dialog";
-
 import { Toaster } from "../ui/shadcn/ui/sonner";
 
 import { EditorLayout } from "./layout";
@@ -88,8 +86,6 @@ export class Editor extends Component<{}, IEditorState> {
      * The command palette of the editor.
      */
     public commandPalette: CommandPalette;
-
-    private _closeConfirmationVisible: boolean = false;
 
     public constructor(props: {}) {
         super(props);
@@ -202,35 +198,13 @@ export class Editor extends Component<{}, IEditorState> {
      * Closes the current editor window after asking for confirmation.
      */
     public async close(): Promise<void> {
-        if (this._closeConfirmationVisible) {
-            return;
-        }
-
-        this._closeConfirmationVisible = true;
-
-        const confirm = await showConfirm("Close window", "Are you sure you want to close the window?");
-        if (confirm) {
-            ipcRenderer.send("window:close");
-        }
-
-        this._closeConfirmationVisible = false;
+        ipcRenderer.send("window:close");
     }
 
     /**
      * Quits the app after asking for confirmation.
      */
     public async quitApp(): Promise<void> {
-        if (this._closeConfirmationVisible) {
-            return;
-        }
-
-        this._closeConfirmationVisible = true;
-
-        const confirm = await showConfirm("Quit app", "Are you sure you want to quit the app?");
-        if (confirm) {
-            ipcRenderer.send("app:quit");
-        }
-
-        this._closeConfirmationVisible = false;
+        ipcRenderer.send("app:quit");
     }
 }
