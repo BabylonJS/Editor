@@ -1,4 +1,4 @@
-import { BrowserWindow, Menu, app } from "electron";
+import { BrowserWindow, Menu, ipcMain } from "electron";
 
 export function setupDashboardMenu(): void {
     Menu.setApplicationMenu(Menu.buildFromTemplate([
@@ -6,7 +6,7 @@ export function setupDashboardMenu(): void {
             label: "Babylon.JS Editor",
             submenu: [
                 {
-                    click: () => app.quit(),
+                    click: () => ipcMain.emit("app:quit"),
                     label: "Exit BabylonJS Editor",
                     accelerator: "CommandOrControl+Q",
                 },
