@@ -1,3 +1,4 @@
+import { platform } from "os";
 import { BrowserWindow, dialog, ipcMain, screen } from "electron";
 
 export async function createDashboardWindow(): Promise<BrowserWindow> {
@@ -80,7 +81,6 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
             return;
         }
 
-        window.restore();
         window.focus();
 
         const close = showCloseEditorWindowsDialog(window);
@@ -151,6 +151,7 @@ export function showCloseEditorWindowsDialog(window: BrowserWindow): boolean {
         buttons: ["Yes", "No"],
         title: "Close window",
         message: "Are you sure you want to close the window?",
+        icon: platform() === "win32" ? "assets/babylonjs_icon.png" : undefined,
     });
 
     return result === 0;
