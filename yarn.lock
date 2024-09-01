@@ -1643,9 +1643,9 @@ babel-plugin-macros@^3.1.0:
     resolve "^1.19.0"
 
 babylonjs-editor-tools@latest:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/babylonjs-editor-tools/-/babylonjs-editor-tools-0.0.2.tgz#d73145bb99b8f884805a823ff968d281fb3abf18"
-  integrity sha512-zHGmpqXOwyqgVsEZUgpeZKl2OqlxG52pvi1URu+wqtvZiGyV9RauBd8oO59Cp5zvvQcSrEj3MdwqdQ2/DOACfA==
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/babylonjs-editor-tools/-/babylonjs-editor-tools-0.0.7.tgz#d7af25586c499e6969fd462854837c4ce1432ecf"
+  integrity sha512-+BwvVgR8sYPQNyUO9xNcGEYadbTVSB6QQ0rVmv2X6eW2sJTRxenS89pjQqu9xHvDMht3GBZoFQON+IpNTnjqfg==
 
 "babylonjs-editor-tools@link:tools":
   version "0.0.7"
