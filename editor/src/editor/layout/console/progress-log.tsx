@@ -47,7 +47,7 @@ export class EditorConsoleProgressLogComponent extends Component<IEditorConsoleP
 
     public render(): ReactNode {
         return (
-            <div className={`flex items-center gap-[5px] ${this.state.error ? "text-red-500" : ""}`}>
+            <div className={`flex items-center gap-[5px] ${this.state.error ? "text-red-500" : ""} hover:bg-secondary/50 hover:py-1 transition-all duration-300 ease-in-out`}>
                 {!this.state.done &&
                     <Grid width={14} height={14} color="#ffffff" />
                 }

@@ -88,27 +88,34 @@ export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPl
 
         setUpgrading(true);
 
+        const requireId = await getRequireId();
+        if (!requireId) {
+            return;
+        }
+
         try {
-            const requireId = await getRequireId();
-            if (!requireId) {
-                return;
-            }
-
-            let result = require(requireId);
+            const result = require(requireId);
             result.close?.();
+        } catch (e) {
+            props.editor.layout.console.error("Invalid plugin. Failed to close plugin before upgrading.");
+            if (e.message) {
+                props.editor.layout.console.error(e.message);
+            }
+        }
 
+        try {
             const p = await execNodePty(`yarn upgrade ${props.pathOrName}`, {
                 cwd: projectDir,
             });
 
             await p.wait();
 
-            result = require(requireId);
+            const result = require(requireId);
             result.main(props.editor);
         } catch (e) {
-            this.props.editor.layout.console.error("Invalid plugin.");
+            props.editor.layout.console.error("Invalid plugin.");
             if (e.message) {
-                this.props.editor.layout.console.error(e.message);
+                props.editor.layout.console.error(e.message);
             }
         }
 
