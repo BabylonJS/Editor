@@ -1,7 +1,11 @@
+import { clipboard } from "electron";
+
 import { Button } from "@blueprintjs/core";
 import { Component, ReactNode } from "react";
 
 import { Editor } from "../main";
+
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../ui/shadcn/ui/context-menu";
 
 import { EditorConsoleProgressLogComponent } from "./console/progress-log";
 
@@ -46,7 +50,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
      */
     public log(message: ReactNode): void {
         this._addLog(
-            <div key={this.state.logs.length + 1} className="whitespace-break-spaces">
+            <div key={this.state.logs.length + 1} className="whitespace-break-spaces hover:bg-secondary/50 hover:py-1 transition-all duration-300 ease-in-out">
                 {message}
             </div>
         );
@@ -54,7 +58,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 
     public error(message: ReactNode): void {
         this._addLog(
-            <div key={this.state.logs.length + 1} className="whitespace-break-spaces text-red-500">
+            <div key={this.state.logs.length + 1} className="whitespace-break-spaces text-red-500 hover:bg-secondary/50 hover:py-1 transition-all duration-300 ease-in-out">
                 {message}
             </div>
         );
@@ -65,7 +69,20 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
     }
 
     private _addLog(log: ReactNode): void {
-        this.state.logs.push(log);
+        let ref: HTMLDivElement | null = null;
+
+        this.state.logs.push(
+            <ContextMenu>
+                <ContextMenuTrigger>
+                    <div ref={(r) => ref = r}>
+                        {log}
+                    </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                    <ContextMenuItem onClick={() => clipboard.writeText(ref?.innerText ?? "")}>Copy</ContextMenuItem>
+                </ContextMenuContent>
+            </ContextMenu>
+        );
 
         this.setState({ logs: this.state.logs }, () => {
             if (this._div?.parentElement) {

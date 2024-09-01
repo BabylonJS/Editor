@@ -1,6 +1,7 @@
-import { platform } from "os";
 import { join } from "path/posix";
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, screen } from "electron";
+
+import { isWindows } from "../tools/os";
 
 export async function createDashboardWindow(): Promise<BrowserWindow> {
     const window = new BrowserWindow({
@@ -152,7 +153,7 @@ export function showCloseEditorWindowsDialog(window: BrowserWindow): boolean {
         buttons: ["Yes", "No"],
         title: "Close window",
         message: "Are you sure you want to close the window?",
-        icon: platform() === "win32"
+        icon: isWindows()
             ? nativeImage.createFromPath(join(app.getAppPath(), "assets/babylonjs_icon.png"))
             : undefined,
     });

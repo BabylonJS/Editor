@@ -19,6 +19,10 @@ export function getFilePathArgument(argv?: string[] | null): string | null {
     return index < argv.length ? argv[index] : null;
 }
 
+/**
+ * Executes the given command asynchronously using `child_process`
+ * @param command defines the command to execute.
+ */
 export function executeAsync(command: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         exec(command, (error, stdout, stderr) => {
