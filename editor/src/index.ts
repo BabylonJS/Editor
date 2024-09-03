@@ -5,11 +5,13 @@ import { getFilePathArgument } from "./tools/process";
 
 import { setupEditorMenu } from "./electron/menus/editor";
 import { setupDashboardMenu } from "./electron/menus/dashboard";
-import { createDashboardWindow, createEditorWindow, editorWindows } from "./electron/window";
+
+import { createDashboardWindow, createEditorWindow, editorWindows } from "./electron/window/window";
 
 import "./electron/shell";
 import "./electron/dialog";
 import "./electron/node-pty";
+import "./electron/window/events";
 import "./electron/assimp/assimpjs";
 
 try {
