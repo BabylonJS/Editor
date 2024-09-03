@@ -1,7 +1,7 @@
 import { dirname, join, extname, basename } from "path/posix";
 import { copyFile, mkdir, move, pathExists, readdir, stat, writeJSON } from "fs-extra";
 
-import { Camera, Material, PBRMaterial, StandardMaterial, Tools } from "babylonjs";
+import { Camera, Material, NodeMaterial, PBRMaterial, StandardMaterial, Tools } from "babylonjs";
 
 import { Fade } from "react-awesome-reveal";
 import { Component, MouseEvent, ReactNode } from "react";
@@ -40,12 +40,14 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, C
 
 import { FileInspectorObject } from "./inspector/file";
 
-import { AssetBrowserHDRItem } from "./assets-browser/hdr-item";
-import { AssetBrowserMeshItem } from "./assets-browser/mesh-item";
-import { AssetBrowserSceneItem } from "./assets-browser/scene-item";
-import { AssetBrowserImageItem } from "./assets-browser/image-item";
-import { AssetBrowserMaterialItem } from "./assets-browser/material-item";
-import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/item";
+import { AssetBrowserHDRItem } from "./assets-browser/items/hdr-item";
+import { AssetBrowserMeshItem } from "./assets-browser/items/mesh-item";
+import { AssetBrowserSceneItem } from "./assets-browser/items/scene-item";
+import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
+import { AssetBrowserMaterialItem } from "./assets-browser/items/material-item";
+import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/items/item";
+
+import { listenMaterialAssetsEvents } from "./assets-browser/events/material";
 
 import "babylonjs-loaders";
 
@@ -147,6 +149,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                 this.setState({ selectedKeys: this.state.files.map((f) => join(this.state.browsedPath!, f)) });
             }
         });
+
+        listenMaterialAssetsEvents(this.props.editor);
     }
 
     private async _refreshFilesTreeNodes(path: string): Promise<void> {
@@ -519,6 +523,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                                 <ContextMenuSeparator />
                                 <ContextMenuItem onClick={() => this._handleAddMaterial("PBRMaterial")}>PBR Material</ContextMenuItem>
                                 <ContextMenuItem onClick={() => this._handleAddMaterial("StandardMaterial")}>Standard Material</ContextMenuItem>
+                                <ContextMenuItem onClick={() => this._handleAddMaterial("NodeMaterial")}>Node Material</ContextMenuItem>
                             </ContextMenuSubContent>
                         </ContextMenuSub>
 
@@ -662,6 +667,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                 break;
             case "StandardMaterial":
                 material = new StandardMaterial("New Standard Material", this.props.editor.layout.preview.scene);
+                break;
+            case "NodeMaterial":
+                const nodeMaterial = new NodeMaterial("New Node Material", this.props.editor.layout.preview.scene);
+                nodeMaterial.setToDefault();
+
+                material = nodeMaterial;
                 break;
         }
 

@@ -4,8 +4,8 @@ import { MdOutlineHdrOn } from "react-icons/md";
 
 import { EnvironmentTextureTools, HDRCubeTexture } from "babylonjs";
 
-import { SpinnerUIComponent } from "../../../ui/spinner";
-import { ContextMenuItem } from "../../../ui/shadcn/ui/context-menu";
+import { SpinnerUIComponent } from "../../../../ui/spinner";
+import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { AssetsBrowserItem } from "./item";
 import { writeFile } from "fs-extra";

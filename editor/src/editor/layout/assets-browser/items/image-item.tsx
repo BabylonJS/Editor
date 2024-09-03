@@ -8,12 +8,12 @@ import { ISize } from "babylonjs";
 
 import { IoResizeSharp } from "react-icons/io5";
 
-import { getPowerOfTwoUntil } from "../../../tools/maths/scalar";
+import { getPowerOfTwoUntil } from "../../../../tools/maths/scalar";
 
-import { SpinnerUIComponent } from "../../../ui/spinner";
+import { SpinnerUIComponent } from "../../../../ui/spinner";
 import {
     ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger,
-} from "../../../ui/shadcn/ui/context-menu";
+} from "../../../../ui/shadcn/ui/context-menu";
 
 import { AssetsBrowserItem } from "./item";
 

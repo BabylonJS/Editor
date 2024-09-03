@@ -93,13 +93,18 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
 
         checkClose = false;
 
+        BrowserWindow.getAllWindows().slice(0).forEach((w) => {
+            if (w.getParentWindow() === window) {
+                w.close();
+            }
+        });
+
         window.webContents.send("editor:closed");
 
         const index = editorWindows.indexOf(window);
         if (index !== -1) {
             editorWindows.splice(index, 1);
         }
-
     });
 
     window.loadURL(join("file://", app.getAppPath(), "index.html"));
@@ -144,11 +149,12 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
 
 /**
  * Opens a new custom window that will require the given index.js file and will instantiate the content of it using the given options.
+ * @param parent defines the parent window to open the new window in.
  * @param indexPath defines the path to the index.js file to require for the window (entry point). The path is relative to the app path.
  * @param options defines the optional options to pass to the window main component exported by default by the index.js required file.
  * @example ipcRenderer.send("window:open", "build/src/editor/windows/nme", { filePath: "my-material.material"  });
  */
-export async function createCustomWindow(indexPath: string, options: any): Promise<BrowserWindow> {
+export async function createCustomWindow(parent: BrowserWindow, indexPath: string, options: any): Promise<BrowserWindow> {
     const window = new BrowserWindow({
         show: true,
         frame: false,
@@ -179,6 +185,8 @@ export async function createCustomWindow(indexPath: string, options: any): Promi
     window.webContents.on("did-finish-load", () => {
         window.webContents.send("editor:window-launch-data", join(app.getAppPath(), indexPath), options);
     });
+
+    window.setParentWindow(parent);
 
     return window;
 }

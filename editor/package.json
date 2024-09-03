@@ -58,6 +58,7 @@
         "babylonjs": "7.22.5",
         "babylonjs-loaders": "7.22.5",
         "babylonjs-materials": "7.22.5",
+        "babylonjs-node-editor": "7.22.5",
         "cannon": "0.6.2",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.0",

@@ -1681,6 +1681,7 @@ babylonjs-editor-tools@latest:
     babylonjs "7.22.5"
     babylonjs-loaders "7.22.5"
     babylonjs-materials "7.22.5"
+    babylonjs-node-editor "7.22.5"
     cannon "0.6.2"
     class-variance-authority "^0.7.0"
     clsx "^2.1.0"
@@ -1725,6 +1726,13 @@ babylonjs-materials@7.22.5:
   version "7.22.5"
   resolved "https://registry.yarnpkg.com/babylonjs-materials/-/babylonjs-materials-7.22.5.tgz#b7ff45f7aee708718941d2baf872be0c99d8190c"
   integrity sha512-0TZ29R7RDw04jaHN83h5IPj8qH8bJjkQ+YcyizvFmnKyQPG+izNet7fDKfSFnUh0SNFWU+oJlOBhzDzGpueOkw==
+  dependencies:
+    babylonjs "^7.22.5"
+
+babylonjs-node-editor@7.22.5:
+  version "7.22.5"
+  resolved "https://registry.yarnpkg.com/babylonjs-node-editor/-/babylonjs-node-editor-7.22.5.tgz#e71263e9e710de97253b62e603747ea2ca27e757"
+  integrity sha512-5CP4KXKaD02m0q6VDLOoTXgpQIesiPepAL2swRwO12xAnOOOwsnEKLJnHGZ+QFJtBjaknUSZg9fOCY4KGf0yAQ==
   dependencies:
     babylonjs "^7.22.5"
 

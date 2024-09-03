@@ -23,6 +23,11 @@ ipcMain.on("window:close", async (ev) => {
     window?.close();
 });
 
-ipcMain.on("window:open", (_, indexPath, options) => {
-    createCustomWindow(indexPath, options);
+ipcMain.on("window:open", (ev, indexPath, options) => {
+    const window = BrowserWindow.getAllWindows().find((w) => w.webContents.id === ev.sender.id);
+    if (!window) {
+        return;
+    }
+
+    createCustomWindow(window, indexPath, options);
 });

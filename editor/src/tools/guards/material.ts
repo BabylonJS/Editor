@@ -1,4 +1,4 @@
-import { MultiMaterial, PBRMaterial, StandardMaterial } from "babylonjs";
+import { MultiMaterial, NodeMaterial, PBRMaterial, StandardMaterial } from "babylonjs";
 
 /**
  * Returns wether or not the given object is a StandardMaterial.
@@ -14,6 +14,14 @@ export function isStandardMaterial(object: any): object is StandardMaterial {
  */
 export function isPBRMaterial(object: any): object is PBRMaterial {
     return object.getClassName?.() === "PBRMaterial";
+}
+
+/**
+ * Returns wether or not the given object is a NodeMaterial.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isNodeMaterial(object: any): object is NodeMaterial {
+    return object.getClassName?.() === "NodeMaterial";
 }
 
 /**

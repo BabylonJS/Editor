@@ -5,7 +5,9 @@ import "babylonjs-materials";
 window["CANNON"] = require("cannon");
 
 window.addEventListener("DOMContentLoaded", () => {
-    const { ipcRenderer } = require("electron");
+    const { ipcRenderer, webFrame } = require("electron");
+
+    webFrame.setZoomFactor(0.8);
 
     const theme = localStorage.getItem("editor-theme") ?? "dark";
     if (theme === "dark") {
