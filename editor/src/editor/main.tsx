@@ -197,14 +197,14 @@ export class Editor extends Component<{}, IEditorState> {
     /**
      * Closes the current editor window after asking for confirmation.
      */
-    public async close(): Promise<void> {
+    public close(): void {
         ipcRenderer.send("window:close");
     }
 
     /**
      * Quits the app after asking for confirmation.
      */
-    public async quitApp(): Promise<void> {
+    public quitApp(): void {
         ipcRenderer.send("app:quit");
     }
 }

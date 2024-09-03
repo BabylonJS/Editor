@@ -5,6 +5,8 @@
 @import "flexlayout-react/style/dark.css";
 @import "@blueprintjs/core/lib/css/blueprint.css";
 
+@import "src/editor/windows/nme/index.css";
+
 @layer base {
     :root {
         --background: 0 0% 100%;
@@ -125,10 +127,6 @@ input {
 }
 
 /* FLEX LAYOUT */
-
-/* .flexlayout__layout {
-    top: 40px;
-} */
 
 .flexlayout__tabset-selected {
     background-image: unset;

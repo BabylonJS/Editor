@@ -21,10 +21,10 @@ import { SiBabylondotjs, SiDotenv, SiJavascript, SiTypescript } from "react-icon
 
 import { FolderIcon } from "@heroicons/react/20/solid";
 
-import { Input } from "../../../ui/shadcn/ui/input";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "../../../ui/shadcn/ui/context-menu";
+import { Input } from "../../../../ui/shadcn/ui/input";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "../../../../ui/shadcn/ui/context-menu";
 
-import { Editor } from "../../main";
+import { Editor } from "../../../main";
 
 export interface IAssetsBrowserItemProps {
     /**
@@ -114,7 +114,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
                                 }
                             }}
                             onContextMenu={(ev) => !this.state.isLoading && !this.state.isRenaming && this.props.onClick(ev, this, true)}
-                            onDoubleClick={() => !this.state.isLoading && !this.state.isRenaming && this.props.onDoubleClick(this)}
+                            onDoubleClick={() => this._handleDoubleClick()}
                             className={`
                                 flex flex-col gap-2 w-[120px] h-[120px] py-2 cursor-pointer rounded-lg
                                 ${this.state.isRenaming ? "px-1 scale-150" : "px-5 scale-100"}
@@ -189,6 +189,25 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
         } catch (e) {
             // Catch silently.
         }
+    }
+
+    private _handleDoubleClick(): void {
+        if (!this.state.isLoading && !this.state.isRenaming) {
+            this.props.onDoubleClick(this);
+
+            try {
+                this.onDoubleClick();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    }
+
+    /**
+     * Called on the item is double-clicked. To be overriden by the specialized items implementations.
+     */
+    protected onDoubleClick(): void | Promise<void> {
+        // Nothing to do by default.
     }
 
     private _handleDragStart(ev: React.DragEvent<HTMLDivElement>): void {

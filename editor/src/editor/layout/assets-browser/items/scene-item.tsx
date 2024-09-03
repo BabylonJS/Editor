@@ -7,10 +7,10 @@ import { ReactNode } from "react";
 import { SiBabylondotjs } from "react-icons/si";
 import { HiOutlineDuplicate } from "react-icons/hi";
 
-import { renameScene } from "../../../tools/scene/rename";
-import { waitNextAnimationFrame } from "../../../tools/tools";
+import { renameScene } from "../../../../tools/scene/rename";
+import { waitNextAnimationFrame } from "../../../../tools/tools";
 
-import { ContextMenuItem } from "../../../ui/shadcn/ui/context-menu";
+import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { AssetsBrowserItem } from "./item";
 

@@ -7,10 +7,10 @@ import { BiSolidCube } from "react-icons/bi";
 
 import { Scene, SceneSerializer } from "babylonjs";
 
-import { SpinnerUIComponent } from "../../../ui/spinner";
-import { ContextMenuItem } from "../../../ui/shadcn/ui/context-menu";
+import { SpinnerUIComponent } from "../../../../ui/spinner";
+import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
-import { loadImportedSceneFile } from "../preview/import";
+import { loadImportedSceneFile } from "../../preview/import";
 
 import { AssetsBrowserItem } from "./item";
 

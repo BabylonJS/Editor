@@ -10,6 +10,7 @@ import { createDashboardWindow, createEditorWindow, editorWindows } from "./elec
 
 import "./electron/shell";
 import "./electron/dialog";
+import "./electron/events";
 import "./electron/node-pty";
 import "./electron/window/events";
 import "./electron/assimp/assimpjs";
