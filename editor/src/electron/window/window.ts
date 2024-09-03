@@ -1,7 +1,7 @@
 import { join } from "path/posix";
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, screen } from "electron";
 
-import { isWindows } from "../tools/os";
+import { isWindows } from "../../tools/os";
 
 export async function createDashboardWindow(): Promise<BrowserWindow> {
     const window = new BrowserWindow({
@@ -15,7 +15,7 @@ export async function createDashboardWindow(): Promise<BrowserWindow> {
         height: 800,
         webPreferences: {
             nodeIntegration: true,
-            preload: __dirname + "/../dashboard/preload.js",
+            preload: join(app.getAppPath(), "build/src/dashboard/preload.js"),
         },
     });
 
@@ -23,7 +23,7 @@ export async function createDashboardWindow(): Promise<BrowserWindow> {
         window.menuBarVisible = false;
     }
 
-    window.loadURL("file://" + __dirname + "/../../../index.html");
+    window.loadURL(join("file://", app.getAppPath(), "index.html"));
 
     if (process.env.DEBUG) {
         setTimeout(() => {
@@ -66,7 +66,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         webPreferences: {
             nodeIntegration: true,
             nodeIntegrationInWorker: true,
-            preload: __dirname + "/../preload.js",
+            preload: join(app.getAppPath(), "build/src/preload.js"),
         },
     });
 
@@ -102,7 +102,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
 
     });
 
-    window.loadURL("file://" + __dirname + "/../../../index.html");
+    window.loadURL(join("file://", app.getAppPath(), "index.html"));
 
     if (process.env.DEBUG) {
         setTimeout(() => {
@@ -118,11 +118,11 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         alwaysOnTop: true,
         webPreferences: {
             nodeIntegration: true,
-            preload: __dirname + "/../splash/preload.js",
+            preload: join(app.getAppPath(), "build/src/splash/preload.js"),
         }
     });
 
-    splash.loadURL("file://" + __dirname + "/../../../index.html");
+    splash.loadURL(join("file://", app.getAppPath(), "index.html"));
     splash.center();
 
     await Promise.all([
@@ -138,6 +138,47 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
 
     window.show();
     window.focus();
+
+    return window;
+}
+
+/**
+ * Opens a new custom window that will require the given index.js file and will instantiate the content of it using the given options.
+ * @param indexPath defines the path to the index.js file to require for the window (entry point). The path is relative to the app path.
+ * @param options defines the optional options to pass to the window main component exported by default by the index.js required file.
+ * @example ipcRenderer.send("window:open", "build/src/editor/windows/nme", { filePath: "my-material.material"  });
+ */
+export async function createCustomWindow(indexPath: string, options: any): Promise<BrowserWindow> {
+    const window = new BrowserWindow({
+        show: true,
+        frame: false,
+        closable: true,
+        minimizable: true,
+        maximizable: true,
+        titleBarStyle: "hidden",
+        width: 1280,
+        height: 800,
+        webPreferences: {
+            nodeIntegration: true,
+            preload: join(app.getAppPath(), "build/src/editor/windows/preload.js"),
+        },
+    });
+
+    if (process.env.DEBUG !== "true") {
+        window.menuBarVisible = false;
+    }
+
+    window.loadURL(join("file://", app.getAppPath(), "index.html"));
+
+    if (process.env.DEBUG) {
+        setTimeout(() => {
+            window.webContents.openDevTools();
+        }, 1000);
+    }
+
+    window.webContents.on("did-finish-load", () => {
+        window.webContents.send("editor:window-launch-data", join(app.getAppPath(), indexPath), options);
+    });
 
     return window;
 }
@@ -160,24 +201,3 @@ export function showCloseEditorWindowsDialog(window: BrowserWindow): boolean {
 
     return result === 0;
 }
-
-ipcMain.on("window:minimize", async (ev) => {
-    const window = BrowserWindow.getAllWindows().find((w) => w.webContents.id === ev.sender.id);
-    window?.minimize();
-});
-
-ipcMain.on("window:maximize", async (ev) => {
-    const window = BrowserWindow.getAllWindows().find((w) => w.webContents.id === ev.sender.id);
-    if (window) {
-        if (window.isMaximized()) {
-            window.unmaximize();
-        } else {
-            window.maximize();
-        }
-    }
-});
-
-ipcMain.on("window:close", async (ev) => {
-    const window = BrowserWindow.getAllWindows().find((w) => w.webContents.id === ev.sender.id);
-    window?.close();
-});
