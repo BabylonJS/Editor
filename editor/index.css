@@ -6,6 +6,7 @@
 @import "@blueprintjs/core/lib/css/blueprint.css";
 
 @import "src/editor/windows/nme/index.css";
+@import "src/editor/windows/ge/index.css";
 
 @layer base {
     :root {

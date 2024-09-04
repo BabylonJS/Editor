@@ -3,7 +3,7 @@ import { ipcRenderer } from "electron";
 
 import { ReactNode } from "react";
 
-import { GiGuitar } from "react-icons/gi";
+import { CgIfDesign } from "react-icons/cg";
 
 import { AssetsBrowserItem } from "./item";
 
@@ -11,13 +11,17 @@ export class AssetBrowserGUIItem extends AssetsBrowserItem {
     private _base64Value: string | null;
 
     public async componentDidMount(): Promise<void> {
-        super.componentDidMount();
-
-        const data = await readJSON(this.props.absolutePath);
-        if (data.base64String) {
-            this._base64Value = data.base64String;
-            this.forceUpdate();
+        try {
+            const data = await readJSON(this.props.absolutePath);
+            if (data.base64String) {
+                this._base64Value = data.base64String;
+                this.forceUpdate();
+            }
+        } catch (e) {
+            // Catch silently.
         }
+
+        return super.componentDidMount();
     }
 
     /**
@@ -25,8 +29,8 @@ export class AssetBrowserGUIItem extends AssetsBrowserItem {
      */
     protected getIcon(): ReactNode {
         return this._base64Value
-            ? <img src={this._base64Value} className="w-[64px] h-[64px] object-contain" />
-            : <GiGuitar size="64px" />;
+            ? <img src={this._base64Value} className="w-[120px] aspect-square object-contain" />
+            : <CgIfDesign size="64px" />;
     }
 
     /**
