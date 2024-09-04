@@ -114,7 +114,7 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
         data.guiType = "fullscreen";
         data.uniqueId = this._gui.uniqueId;
         data.content = this._gui.serializeContent();
-        data.base64String = this._gui.getContext().canvas.toDataURL("image/png");
+        data.base64String = globalState.guiTexture.getContext().canvas.toDataURL("image/png");
 
         await writeJSON(this.props.filePath, data, { spaces: 4 });
 
