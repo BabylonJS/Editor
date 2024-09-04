@@ -56,6 +56,8 @@
         "assimpjs": "0.0.10",
         "axios": "^1.7.2",
         "babylonjs": "7.22.5",
+        "babylonjs-gui": "7.22.5",
+        "babylonjs-gui-editor": "7.22.5",
         "babylonjs-loaders": "7.22.5",
         "babylonjs-materials": "7.22.5",
         "babylonjs-node-editor": "7.22.5",
