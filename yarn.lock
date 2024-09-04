@@ -1679,6 +1679,8 @@ babylonjs-editor-tools@latest:
     assimpjs "0.0.10"
     axios "^1.7.2"
     babylonjs "7.22.5"
+    babylonjs-gui "7.22.5"
+    babylonjs-gui-editor "7.22.5"
     babylonjs-loaders "7.22.5"
     babylonjs-materials "7.22.5"
     babylonjs-node-editor "7.22.5"
@@ -1714,6 +1716,28 @@ babylonjs-gltf2interface@^7.22.5:
   resolved "https://registry.yarnpkg.com/babylonjs-gltf2interface/-/babylonjs-gltf2interface-7.22.5.tgz#e4d8acbbeb143a953011fe34c813525bc8f855ef"
   integrity sha512-xN14Na2DBwSGLjLmyan8KV8nB5xuZVSFuyVgtPwzBvD8xzDPyZq/QUF5XhV091PlSmYA6+sXbjOOqI7UorrJlQ==
 
+babylonjs-gui-editor@7.22.5:
+  version "7.22.5"
+  resolved "https://registry.yarnpkg.com/babylonjs-gui-editor/-/babylonjs-gui-editor-7.22.5.tgz#223789e8a2b372b04f068e839b2c9ae697d16a59"
+  integrity sha512-jNioInjm0LZWPFaU7f4EQhChYP01NR/xQG3gMn01Gan1d4Sjb529Sx2uFwm+ChrUfnTDYK1bY30MmfrmnUaoRg==
+  dependencies:
+    babylonjs "^7.22.5"
+    babylonjs-gui "^7.22.5"
+
+babylonjs-gui@7.22.5:
+  version "7.22.5"
+  resolved "https://registry.yarnpkg.com/babylonjs-gui/-/babylonjs-gui-7.22.5.tgz#306e304806ce6400e094579f4b65392b69ab6649"
+  integrity sha512-+jiCKGqcWKmdHeiahgLITC1vh7W0krCHgd3pkrtezRpdrX6TIxtIgolvkR7itBMlffaqzehzlFRx6RbgFm8nMg==
+  dependencies:
+    babylonjs "^7.22.5"
+
+babylonjs-gui@^7.22.5:
+  version "7.23.0"
+  resolved "https://registry.yarnpkg.com/babylonjs-gui/-/babylonjs-gui-7.23.0.tgz#d0acc3000b78d5469e43f58e641c3738e15f5209"
+  integrity sha512-9RtGsY1j/5bbv059aRPOZHaROSEJV9I8PoKo7CIUpaykf9i2gSrWWZgAtsh5lAGT2yAHCi8G0u7mjldTLh5nIg==
+  dependencies:
+    babylonjs "^7.23.0"
+
 babylonjs-loaders@7.22.5:
   version "7.22.5"
   resolved "https://registry.yarnpkg.com/babylonjs-loaders/-/babylonjs-loaders-7.22.5.tgz#3756d68f618b5be9776199fb771aa0209a250331"
@@ -1740,6 +1764,11 @@ babylonjs@7.22.5, babylonjs@^7.22.5:
   version "7.22.5"
   resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-7.22.5.tgz#1b72b587f3da61de7dcaf6fd7ffec9d781bd7339"
   integrity sha512-5RgDBowdPql2UDADTD/PepgvnXISwoDmsG+TDhg5WCmarCJu1zLYJKsvLfdchsyYjnq9qWUqhaA7apEBwd87EA==
+
+babylonjs@^7.23.0:
+  version "7.23.0"
+  resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-7.23.0.tgz#a8168d4bc2ee1389f6f868b515311457e7fb2c81"
+  integrity sha512-7RAg/Z/GrIzHq8elPWbGoMUriPmYn2DmreZ+9tkn9ZYS74G/2muXjshtBL7zhNXBOCLsEvYUnpUtgfIW2lN3ow==
 
 balanced-match@^1.0.0:
   version "1.0.2"

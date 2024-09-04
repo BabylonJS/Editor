@@ -1,6 +1,7 @@
 import { dirname, join, extname, basename } from "path/posix";
 import { copyFile, mkdir, move, pathExists, readdir, stat, writeJSON } from "fs-extra";
 
+import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { Camera, Material, NodeMaterial, PBRMaterial, StandardMaterial, Tools } from "babylonjs";
 
 import { Fade } from "react-awesome-reveal";
@@ -40,6 +41,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, C
 
 import { FileInspectorObject } from "./inspector/file";
 
+import { AssetBrowserGUIItem } from "./assets-browser/items/gui-item";
 import { AssetBrowserHDRItem } from "./assets-browser/items/hdr-item";
 import { AssetBrowserMeshItem } from "./assets-browser/items/mesh-item";
 import { AssetBrowserSceneItem } from "./assets-browser/items/scene-item";
@@ -54,6 +56,7 @@ import "babylonjs-loaders";
 import "../../loader/assimpjs";
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
+const GuiSelectable = createSelectable(AssetBrowserGUIItem);
 const DefaultSelectable = createSelectable(AssetsBrowserItem);
 const MeshSelectable = createSelectable(AssetBrowserMeshItem);
 const ImageSelectable = createSelectable(AssetBrowserImageItem);
@@ -524,6 +527,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                                 <ContextMenuItem onClick={() => this._handleAddMaterial("PBRMaterial")}>PBR Material</ContextMenuItem>
                                 <ContextMenuItem onClick={() => this._handleAddMaterial("StandardMaterial")}>Standard Material</ContextMenuItem>
                                 <ContextMenuItem onClick={() => this._handleAddMaterial("NodeMaterial")}>Node Material</ContextMenuItem>
+                                <ContextMenuSeparator />
+                                <ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
                             </ContextMenuSubContent>
                         </ContextMenuSub>
 
@@ -583,6 +588,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
             case ".hdr":
                 return <HDRSelectable {...props} />;
+
+            case ".gui":
+                return <GuiSelectable {...props} />;
 
             default:
                 return <DefaultSelectable {...props} />;
@@ -696,6 +704,36 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
         });
 
         material.dispose();
+
+        return this._refreshItems(this.state.browsedPath);
+    }
+
+    private async _handleAddFullScreenGUI(): Promise<void> {
+        if (!this.state.browsedPath) {
+            return;
+        }
+
+        const gui = AdvancedDynamicTexture.CreateFullscreenUI("New GUI", true, this.props.editor.layout.preview.scene);
+        gui.uniqueId = UniqueNumber.Get();
+
+        let index: number | undefined = undefined;
+        while (await pathExists(join(this.state.browsedPath, `${gui.name}${index !== undefined ? ` ${index}` : ""}.gui`))) {
+            index ??= 0;
+            ++index;
+        }
+
+        const data = gui.serialize();
+        data.uniqueId = gui.uniqueId;
+        data.content = gui.serializeContent();
+        data.guiType = "fullscreen";
+
+        const name = `${gui.name}${index !== undefined ? ` ${index}` : ""}.gui`;
+        await writeJSON(join(this.state.browsedPath, name), data, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
+
+        gui.dispose();
 
         return this._refreshItems(this.state.browsedPath);
     }
