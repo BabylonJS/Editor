@@ -73,14 +73,14 @@ export async function loadScene(rootUrl: string, sceneFilename: string, scene: S
         }
     }
 
-    loadScriptsFor(scene, scene, scriptsMap);
-    scene.transformNodes.forEach((transformNode) => loadScriptsFor(scene, transformNode, scriptsMap));
-    scene.meshes.forEach((mesh) => loadScriptsFor(scene, mesh, scriptsMap));
-    scene.lights.forEach((light) => loadScriptsFor(scene, light, scriptsMap));
-    scene.cameras.forEach((camera) => loadScriptsFor(scene, camera, scriptsMap));
+    loadScriptsFor(scene, scene, scriptsMap, rootUrl);
+    scene.transformNodes.forEach((transformNode) => loadScriptsFor(scene, transformNode, scriptsMap, rootUrl));
+    scene.meshes.forEach((mesh) => loadScriptsFor(scene, mesh, scriptsMap, rootUrl));
+    scene.lights.forEach((light) => loadScriptsFor(scene, light, scriptsMap, rootUrl));
+    scene.cameras.forEach((camera) => loadScriptsFor(scene, camera, scriptsMap, rootUrl));
 }
 
-export function loadScriptsFor(scene: Scene, object: any, scriptsMap: ScriptMap): void {
+export function loadScriptsFor(scene: Scene, object: any, scriptsMap: ScriptMap, rootUrl: string): void {
     if (!object.metadata) {
         return;
     }
@@ -98,7 +98,7 @@ export function loadScriptsFor(scene: Scene, object: any, scriptsMap: ScriptMap)
         if (exports.default) {
             const instance = new exports.default(object);
 
-            applyDecorators(scene, object, instance);
+            applyDecorators(scene, object, instance, rootUrl);
 
             if (instance.onStart) {
                 scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
