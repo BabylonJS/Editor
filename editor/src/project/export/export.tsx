@@ -36,9 +36,14 @@ const supportedCubeTexturesExtensions: string[] = [
     ".env", ".dds",
 ];
 
+const supportedJsonExtensions: string[] = [
+    ".gui",
+];
+
 const supportedExtensions: string[] = [
     ...supportedImagesExtensions,
     ...supportedCubeTexturesExtensions,
+    ...supportedJsonExtensions,
 ];
 
 export type IExportProjectOptions = {
@@ -275,26 +280,26 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
         path = join(path, split[i]);
     }
 
-    let isNewTexture = false;
+    let isNewFile = false;
 
     if (optimize) {
         const hash = await executeSimpleWorker<string>(join(__dirname, "./workers/md5.js"), file);
-        isNewTexture = !cache[relativePath] || cache[relativePath] !== hash;
+        isNewFile = !cache[relativePath] || cache[relativePath] !== hash;
 
         cache[relativePath] = hash;
     }
 
     const finalPath = join(scenePath, relativePath);
 
-    if (isNewTexture || !await pathExists(finalPath)) {
+    if (isNewFile || !await pathExists(finalPath)) {
         await copyFile(file, finalPath);
     }
 
     if (optimize) {
-        await compressFileToKtx(editor, finalPath, undefined, isNewTexture);
+        await compressFileToKtx(editor, finalPath, undefined, isNewFile);
     }
 
     if (optimize && supportedImagesExtensions.includes(extension)) {
-        await handleComputeExportedTexture(editor, finalPath, isNewTexture);
+        await handleComputeExportedTexture(editor, finalPath, isNewFile);
     }
 }

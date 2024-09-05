@@ -6,3 +6,4 @@ export * from "./rendering/motion-blur";
 export * from "./rendering/default-pipeline";
 
 export * from "./decorators/scene";
+export * from "./decorators/gui";

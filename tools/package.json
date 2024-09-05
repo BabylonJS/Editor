@@ -12,6 +12,7 @@
     "license": "(Apache-2.0)",
     "devDependencies": {
         "@babylonjs/core": "7.22.5",
+        "@babylonjs/gui": "7.22.5",
         "typescript": "5.3.3"
     },
     "dependencies": {}

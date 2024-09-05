@@ -87,6 +87,11 @@
   resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-7.22.5.tgz#f7a15d97a62b53b9413c3110be581a1c9bebefb6"
   integrity sha512-wHzKsgcSEYLAEMhPswDLbKYi5jJ+uRPsaak0aDVAtb9PVp5vrkRJWlRgNj+I5tvZf9CWVtRMNGueV9tGMPHHkQ==
 
+"@babylonjs/gui@7.22.5":
+  version "7.22.5"
+  resolved "http://otto:8081/nexus/repository/npmjs-all/@babylonjs/gui/-/gui-7.22.5.tgz#c066239b84a5c47e84989f2864040feb80ca127f"
+  integrity sha512-UB+Gewg1OzOHobIPrVEBIzs1ICwJWXLAv82rc/FdN3dIJYk3IfkkAC4hFhUsKLPHDbzbVT+sPAUfk+qoT/zF3Q==
+
 "@babylonjs/materials@7.22.5":
   version "7.22.5"
   resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-7.22.5.tgz#67cbf8e473a50215078249584d4766a673264a39"
