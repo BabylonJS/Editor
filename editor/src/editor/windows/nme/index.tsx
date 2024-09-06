@@ -33,12 +33,10 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
                 <div className="flex flex-col w-screen h-screen">
                     <ToolbarComponent>
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                            <div className="flex flex-col items-center select-none">
-                                <div className="font-semibold text-lg">
-                                    Node Material Editor
-                                </div>
-                                <div className="font-thin text-sm w-full overflow-hidden whitespace-nowrap text-ellipsis">
-                                    ...{this.props.filePath.substring(this.props.filePath.length - 60)}
+                            <div className="flex items-center gap-1 font-semibold text-lg select-none">
+                                Node Material Editor
+                                <div className="text-sm font-thin">
+                                    (...{this.props.filePath.substring(this.props.filePath.length - 30)})
                                 </div>
                             </div>
                         </div>

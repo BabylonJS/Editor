@@ -149,12 +149,11 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
 
 /**
  * Opens a new custom window that will require the given index.js file and will instantiate the content of it using the given options.
- * @param parent defines the parent window to open the new window in.
  * @param indexPath defines the path to the index.js file to require for the window (entry point). The path is relative to the app path.
  * @param options defines the optional options to pass to the window main component exported by default by the index.js required file.
  * @example ipcRenderer.send("window:open", "build/src/editor/windows/nme", { filePath: "my-material.material"  });
  */
-export async function createCustomWindow(parent: BrowserWindow, indexPath: string, options: any): Promise<BrowserWindow> {
+export async function createCustomWindow(indexPath: string, options: any): Promise<BrowserWindow> {
     const window = new BrowserWindow({
         show: true,
         frame: false,
@@ -185,8 +184,6 @@ export async function createCustomWindow(parent: BrowserWindow, indexPath: strin
     window.webContents.on("did-finish-load", () => {
         window.webContents.send("editor:window-launch-data", join(app.getAppPath(), indexPath), options);
     });
-
-    window.setParentWindow(parent);
 
     return window;
 }
