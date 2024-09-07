@@ -10,6 +10,7 @@
     },
     "dependencies": {
         "@babylonjs/core": "7.22.5",
+        "@babylonjs/gui": "7.22.5",
         "@babylonjs/materials": "7.22.5",
         "babylonjs-editor-tools": "latest",
         "next": "14.0.4",

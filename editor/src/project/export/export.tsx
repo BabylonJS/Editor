@@ -290,8 +290,18 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
     }
 
     const finalPath = join(scenePath, relativePath);
+    const finalPathExists = await pathExists(finalPath);
 
-    if (isNewFile || !await pathExists(finalPath)) {
+    defer: {
+        if (
+            supportedImagesExtensions.includes(extension) ||
+            supportedCubeTexturesExtensions.includes(extension)
+        ) {
+            if (!isNewFile && finalPathExists) {
+                break defer;
+            }
+        }
+
         await copyFile(file, finalPath);
     }
 

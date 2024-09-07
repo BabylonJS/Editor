@@ -43,10 +43,19 @@ export function applyDecorators(scene: Scene, object: any, instance: any, rootUr
 
     // @guiFromAsset
     ctor._GuiFromAsset?.forEach(async (params) => {
-        const response = await fetch(`${rootUrl}assets/${params.pathInAssets}`);
-        const data = await response.json();
+        const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
 
-        const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
-        gui.parseSerializedObject(data.content, false);
+        try {
+            const response = await fetch(guiUrl);
+            const data = await response.json();
+
+            const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
+            gui.parseSerializedObject(data.content, false);
+
+            instance[params.propertyKey.toString()] = gui;
+        } catch (e) {
+            console.error(`Failed to load GUI from asset: ${guiUrl}`);
+            throw e;
+        }
     });
 }

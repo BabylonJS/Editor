@@ -30,3 +30,13 @@
 #ge-propertyTab .floatLine .label {
     color: #666666 !important;
 }
+
+#ge-propertyTab input:focus,
+#ge-propertyTab select:focus {
+    border-color: black !important;
+}
+
+#ge-propertyTab input,
+#ge-propertyTab select {
+    color: black !important;
+}
