@@ -20,6 +20,7 @@ export interface ISceneDecoratorData {
     // @guiFromAsset
     _GuiFromAsset: {
         pathInAssets: string;
+        onGuiCreated?: (instance: unknown, gui: AdvancedDynamicTexture) => unknown;
         propertyKey: string | Symbol;
     }[];
 }
@@ -53,6 +54,7 @@ export function applyDecorators(scene: Scene, object: any, instance: any, rootUr
             gui.parseSerializedObject(data.content, false);
 
             instance[params.propertyKey.toString()] = gui;
+            params.onGuiCreated?.(instance, gui);
         } catch (e) {
             console.error(`Failed to load GUI from asset: ${guiUrl}`);
             throw e;
