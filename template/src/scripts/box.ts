@@ -1,6 +1,8 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
-export default class SceneComponent {
+import { IScript } from "babylonjs-editor-tools";
+
+export default class SceneComponent implements IScript {
     public constructor(public mesh: Mesh) { }
 
     public onStart(): void {
