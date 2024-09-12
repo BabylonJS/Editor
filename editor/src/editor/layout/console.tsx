@@ -50,20 +50,45 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
      */
     public log(message: ReactNode): void {
         this._addLog(
-            <div key={this.state.logs.length + 1} className="whitespace-break-spaces hover:bg-secondary/50 hover:py-1 transition-all duration-300 ease-in-out">
+            <div key={this.state.logs.length + 1} className="whitespace-break-spaces hover:bg-secondary/50 transition-all duration-300 ease-in-out">
                 {message}
             </div>
         );
     }
 
+    /**
+     * Logs a message to the console in yellow to indicate a warning.
+     * @param message defines the message to log.
+     */
+    public warn(message: ReactNode): void {
+        this._addLog(
+            <div key={this.state.logs.length + 1} className="whitespace-break-spaces text-yellow-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">
+                {message}
+            </div>
+        );
+    }
+
+    /**
+     * Logs a message to the console in red to indicate an error.
+     * @param message defines the message to log.
+     */
     public error(message: ReactNode): void {
         this._addLog(
-            <div key={this.state.logs.length + 1} className="whitespace-break-spaces text-red-500 hover:bg-secondary/50 hover:py-1 transition-all duration-300 ease-in-out">
+            <div key={this.state.logs.length + 1} className="whitespace-break-spaces text-red-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">
                 {message}
             </div>
         );
     }
 
+    /**
+     * Logs a message to the console with a spinner indicator to indicate a progress.
+     * This method returns the reference to the log component that can be modified later.
+     * @param message defines the message to log by default.
+     * @returns the reference to the progress log component that can be modified later.
+     * @example
+     *  const progress = await editor.layout.console.progress("Loading...");
+     *  progress.setState({ done: true, message: "" });
+     */
     public progress(message: ReactNode): Promise<EditorConsoleProgressLogComponent> {
         return EditorConsoleProgressLogComponent.Create(this.props.editor, message);
     }

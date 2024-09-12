@@ -80,7 +80,7 @@
         "react-dom": "18.2.0",
         "react-icons": "4.12.0",
         "react-loader-spinner": "6.1.6",
-        "react-resizable-panels": "2.0.16",
+        "react-resizable-panels": "^2.1.2",
         "react-selectable": "^2.1.1",
         "sharp": "0.32.6",
         "sonner": "^1.4.41",
