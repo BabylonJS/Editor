@@ -163,11 +163,13 @@ export class Editor extends Component<{}, IEditorState> {
         onUndoObservable.add(() => {
             this.layout.graph.refresh();
             this.layout.inspector.forceUpdate();
+            this.layout.animations.forceUpdate();
         });
 
         onRedoObservable.add(() => {
             this.layout.graph.refresh();
             this.layout.inspector.forceUpdate();
+            this.layout.animations.forceUpdate();
         });
     }
 

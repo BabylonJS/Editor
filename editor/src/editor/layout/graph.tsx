@@ -287,6 +287,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             if (isNode(firstNode)) {
                 this.props.editor.layout.graph.setSelectedNode(firstNode);
                 this.props.editor.layout.inspector.setEditedObject(firstNode);
+                this.props.editor.layout.animations.setEditedObject(firstNode);
                 this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
             }
         });
@@ -300,6 +301,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
     private _handleNodeClicked(node: TreeNodeInfo, ev: React.MouseEvent<HTMLElement>): void {
         this.props.editor.layout.inspector.setEditedObject(node.nodeData);
+        this.props.editor.layout.animations.setEditedObject(node.nodeData);
 
         if (isNode(node.nodeData)) {
             this.props.editor.layout.preview.gizmo.setAttachedNode(node.nodeData);

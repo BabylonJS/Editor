@@ -44,6 +44,10 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
      * The assets browser of the editor.
      */
     public assets: EditorAssetsBrowser;
+    /**
+     * The animation editor of the editor.
+     */
+    public animations: EditorAnimation;
 
     private _model: Model = Model.fromJson(layoutModel as any);
     private _components: Record<string, React.ReactNode> = {
@@ -52,7 +56,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
         "inspector": <EditorInspector editor={this.props.editor} ref={(r) => this.inspector = r!} />,
         "graph": <EditorGraph editor={this.props.editor} ref={(r) => this.graph = r!} />,
         "assets-browser": <EditorAssetsBrowser editor={this.props.editor} ref={(r) => this.assets = r!} />,
-        "animations": <EditorAnimation />,
+        "animations": <EditorAnimation editor={this.props.editor} ref={(r) => this.animations = r!} />,
     };
 
     private _layoutVersion: string = "5.0.0-alpha.2";

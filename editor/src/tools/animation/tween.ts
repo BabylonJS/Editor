@@ -1,4 +1,4 @@
-import { Animatable, Animation, Color3, Color4, EasingFunction, IAnimationKey, Nullable, Quaternion, Scene, Size, Vector2, Vector3 } from "babylonjs";
+import { Animatable, Animation, EasingFunction, IAnimationKey, Nullable, Scene } from "babylonjs";
 
 import {
     tweensMap,
@@ -6,6 +6,7 @@ import {
     registerTween,
     checkTargetTweens,
     registerTweenEnded,
+    getAnimationTypeForObject,
 } from "./tools";
 
 export interface ITweenEasingConfiguration {
@@ -295,7 +296,7 @@ export class Tween {
                     k,
                     k,
                     60,
-                    this._GetAnimationType(animatedProperty)!,
+                    getAnimationTypeForObject(animatedProperty)!,
                     Animation.ANIMATIONLOOPMODE_RELATIVE
                 );
                 a.setKeys(keys);
@@ -352,29 +353,6 @@ export class Tween {
         });
 
         return tween;
-    }
-
-    /**
-     * Returns the animation type according to the given animated property type.
-     */
-    private static _GetAnimationType(effectiveProperty: any): Nullable<number> {
-        if (!isNaN(parseFloat(effectiveProperty)) && isFinite(effectiveProperty)) {
-            return Animation.ANIMATIONTYPE_FLOAT;
-        } else if (effectiveProperty instanceof Quaternion) {
-            return Animation.ANIMATIONTYPE_QUATERNION;
-        } else if (effectiveProperty instanceof Vector3) {
-            return Animation.ANIMATIONTYPE_VECTOR3;
-        } else if (effectiveProperty instanceof Vector2) {
-            return Animation.ANIMATIONTYPE_VECTOR2;
-        } else if (effectiveProperty instanceof Color3) {
-            return Animation.ANIMATIONTYPE_COLOR3;
-        } else if (effectiveProperty instanceof Color4) {
-            return Animation.ANIMATIONTYPE_COLOR4;
-        } else if (effectiveProperty instanceof Size) {
-            return Animation.ANIMATIONTYPE_SIZE;
-        }
-
-        return null;
     }
 
     /**
