@@ -1,10 +1,10 @@
 import { Component, ReactNode } from "react";
 
-import { IAnimatable } from "babylonjs";
+import { Animation, IAnimatable } from "babylonjs";
 
 import { EditorAnimationToolbar } from "./animation/toolbar";
-import { EditorAnimationTimelinePanel } from "./animation/timeline";
 import { EditorAnimationTracksPanel } from "./animation/tracks/tracks";
+import { EditorAnimationTimelinePanel } from "./animation/timeline/timeline";
 
 import { isNode } from "../../tools/guards/nodes";
 
@@ -19,6 +19,7 @@ export interface IEditorAnimationProps {
 
 export interface IEditorAnimationState {
     animatable: IAnimatable | null;
+    selectedAnimation: Animation | null;
 }
 
 const isEnabled = false;
@@ -29,6 +30,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 
         this.state = {
             animatable: null,
+            selectedAnimation: null,
         };
     }
 
@@ -58,11 +60,17 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
                 </div>
 
                 <div className="flex w-full h-full">
-                    <EditorAnimationTracksPanel animatable={this.state.animatable} />
+                    <EditorAnimationTracksPanel
+                        animationEditor={this}
+                        animatable={this.state.animatable}
+                    />
 
                     <div className="w-1 h-full bg-primary-foreground" />
 
-                    <EditorAnimationTimelinePanel animatable={this.state.animatable} />
+                    <EditorAnimationTimelinePanel
+                        animationEditor={this}
+                        animatable={this.state.animatable}
+                    />
                 </div>
             </div>
         );

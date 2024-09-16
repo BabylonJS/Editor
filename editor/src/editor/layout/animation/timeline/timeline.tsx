@@ -1,0 +1,66 @@
+import { Component, ReactNode } from "react";
+
+import { Animation, IAnimatable } from "babylonjs";
+
+import { EditorAnimation } from "../../animation";
+
+import { EditorAnimationTimelineItem } from "./track";
+
+export interface IEditorAnimationTimelinePanelProps {
+    animatable: IAnimatable | null;
+    animationEditor: EditorAnimation;
+}
+
+export interface IEditorAnimationTimelinePanelState {
+    scale: number;
+}
+
+export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTimelinePanelProps, IEditorAnimationTimelinePanelState> {
+    public constructor(props: IEditorAnimationTimelinePanelProps) {
+        super(props);
+
+        this.state = {
+            scale: 1,
+        };
+    }
+
+    public render(): ReactNode {
+        if (this.props.animatable) {
+            return this._getAnimationsList(this.props.animatable.animations!);
+        }
+
+        return this._getEmpty();
+    }
+
+    private _getEmpty(): ReactNode {
+        return (
+            <div className="flex justify-center items-center font-semibold text-xl w-full h-full">
+                No object selected.
+            </div>
+        );
+    }
+
+    private _getAnimationsList(animations: Animation[]): ReactNode {
+        return (
+            <div className="flex flex-col w-full h-full">
+                <div className="flex justify-between items-center h-10 p-2">
+                    {/* TODO */}
+                </div>
+
+                <div
+                    className="flex flex-col w-full"
+                    onWheel={(ev) => (ev.ctrlKey || ev.metaKey) && this.setState({ scale: Math.max(0.1, Math.min(10, this.state.scale + ev.deltaY * 0.001)) })}
+                >
+                    {animations.map((animation, index) => (
+                        <EditorAnimationTimelineItem
+                            key={`${animation.targetProperty}${index}`}
+                            animation={animation}
+                            scale={this.state.scale}
+                            animationEditor={this.props.animationEditor}
+                        />
+                    ))}
+                </div>
+            </div>
+        );
+    }
+}
