@@ -11,10 +11,13 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
+import { EditorAnimation } from "../../animation";
+
 import { EditorAnimationTrackItem } from "./item";
 
 export interface IEditorAnimationTracksPanelProps {
     animatable: IAnimatable | null;
+    animationEditor: EditorAnimation;
 }
 
 export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracksPanelProps> {
@@ -49,7 +52,11 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
 
                 <div className="flex flex-col">
                     {animations.map((animation, index) => (
-                        <EditorAnimationTrackItem key={`${animation.targetProperty}${index}`} animation={animation} />
+                        <EditorAnimationTrackItem
+                            key={`${animation.targetProperty}${index}`}
+                            animation={animation}
+                            animationEditor={this.props.animationEditor}
+                        />
                     ))}
                 </div>
             </div>
