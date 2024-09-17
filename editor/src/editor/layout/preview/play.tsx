@@ -1,4 +1,4 @@
-import { ipcRenderer, shell } from "electron";
+import { shell } from "electron";
 import { dirname } from "path/posix";
 
 import { Button } from "@blueprintjs/core";
@@ -103,16 +103,6 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
                 </Tooltip>
             </TooltipProvider>
         );
-    }
-
-    public componentDidMount(): void {
-        ipcRenderer.once("editor:closed", () => {
-            try {
-                this._playProcess?.kill();
-            } catch (e) {
-                // Catch silently.
-            }
-        });
     }
 
     /**

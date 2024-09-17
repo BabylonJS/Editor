@@ -29,6 +29,7 @@
         "build-tools": "yarn workspace babylonjs-editor-tools build",
         "build-quixel": "yarn workspace babylonjs-editor-quixel-plugin build",
         "build": "yarn build-editor && yarn build-tools && yarn build-quixel",
+        "start": "electron ./editor",
         "package": "yarn && yarn build && node build.js",
         "clean": "rm -rf editor/build editor/declaration editor/electron-packages quixel/build quixel/declaration tools/build tools/declaration",
         "clean:node_modules": "rm -rf node_modules editor/node_modules quixel/node_modules tools/node_modules template/node_modules website/node_modules"
