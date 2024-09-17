@@ -3,6 +3,8 @@ import { app, BrowserWindow, dialog, ipcMain, nativeImage, screen } from "electr
 
 import { isWindows } from "../../tools/os";
 
+import { closeAllNodePtyForWebContentsId } from "../node-pty";
+
 export async function createDashboardWindow(): Promise<BrowserWindow> {
     const window = new BrowserWindow({
         show: false,
@@ -96,6 +98,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         BrowserWindow.getAllWindows().slice(0).forEach((w) => {
             if (w.getParentWindow() === window) {
                 w.close();
+                closeAllNodePtyForWebContentsId(w.webContents.id);
             }
         });
 
@@ -105,6 +108,8 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         if (index !== -1) {
             editorWindows.splice(index, 1);
         }
+
+        closeAllNodePtyForWebContentsId(window.webContents.id);
     });
 
     window.loadURL(join("file://", app.getAppPath(), "index.html"));

@@ -3,7 +3,26 @@ import { platform } from "os";
 import { ipcMain } from "electron";
 import { spawn, IPty } from "node-pty";
 
-const spawnsMap = new Map<string, IPty>();
+interface IStoredNodePty {
+    pty: IPty;
+    webContentsId: number;
+}
+
+const spawnsMap = new Map<string, IStoredNodePty>();
+
+/**
+ * Closes all the process started by the window identified by the given web contents id.
+ * @param id defines the id of the web contents to close all node pty processes for.
+ * @example closeAllNodePtyForWebContentsId(window.webContents.id);
+ */
+export function closeAllNodePtyForWebContentsId(id: number) {
+    for (const [key, value] of spawnsMap) {
+        if (value.webContentsId === id) {
+            value.pty.kill();
+            spawnsMap.delete(key);
+        }
+    }
+}
 
 // On create a new pty process
 ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
@@ -45,7 +64,10 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
 
     p.write("exit\n\r");
 
-    spawnsMap.set(id, p);
+    spawnsMap.set(id, {
+        pty: p,
+        webContentsId: ev.sender.id,
+    });
 
     ev.sender.send(`editor:create-node-pty-${id}`);
 });
@@ -53,14 +75,14 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
 // On write on a pty process
 ipcMain.on("editor:node-pty-write", (_, id, data) => {
     const p = spawnsMap.get(id);
-    p?.write(data);
+    p?.pty.write(data);
 });
 
 // On kill a pty process
 ipcMain.on("editor:kill-node-pty", (_, id) => {
     const p = spawnsMap.get(id);
     if (p) {
-        p.kill();
+        p.pty.kill();
         spawnsMap.delete(id);
     }
 });
