@@ -20,6 +20,7 @@ export type UndoRedoStackItem = {
     undo: () => void;
     redo: () => void;
 
+    action?: () => void;
     onLost?: () => void;
 
     executeRedo?: boolean;
@@ -59,6 +60,7 @@ export function registerUndoRedo(configuration: UndoRedoStackItem) {
 
     if (configuration.executeRedo) {
         configuration.redo();
+        configuration.action?.();
     }
 }
 
@@ -81,6 +83,7 @@ export function undo() {
     }
 
     stack[index].undo();
+    stack[index].action?.();
 
     --index;
 
@@ -94,6 +97,7 @@ export function redo() {
 
     ++index;
     stack[index].redo();
+    stack[index].action?.();
 
     onRedoObservable.notifyObservers();
 }

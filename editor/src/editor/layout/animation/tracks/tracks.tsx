@@ -124,7 +124,7 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
             executeRedo: true,
         });
 
-        this.forceUpdate();
+        this.props.animationEditor.forceUpdate();
     }
 
     private _handleRemoveTrack(animation: Animation): void {
@@ -147,5 +147,7 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
                 animatable.animations?.splice(index, 1);
             },
         });
+
+        this.props.animationEditor.forceUpdate();
     }
 }

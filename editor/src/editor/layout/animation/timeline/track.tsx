@@ -4,6 +4,8 @@ import { Animation, IAnimationKey } from "babylonjs";
 
 import { TooltipProvider } from "../../../../ui/shadcn/ui/tooltip";
 
+import { registerUndoRedo } from "../../../../tools/undoredo";
+
 import { EditorAnimation } from "../../animation";
 
 import { EditorAnimationTimelineKey } from "./key";
@@ -44,7 +46,8 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
                             key={index}
                             animationKey={key}
                             scale={this.props.scale}
-                            onAnimationKeyMoved={(key) => this._onAnimationKeyMoved(key)}
+                            onRemoved={(key) => this._onAnimationKeyRemoved(key)}
+                            onMoved={(key, newFrame, oldFrame) => this._onAnimationKeyMoved(key, newFrame, oldFrame)}
                         />
                     ))}
                 </TooltipProvider>
@@ -52,7 +55,31 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
         );
     }
 
-    private _onAnimationKeyMoved(_: IAnimationKey): void {
-        this.props.animation.getKeys().sort((a, b) => a.frame - b.frame);
+    private _onAnimationKeyMoved(key: IAnimationKey, newFrame: number, oldFrame: number): void {
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => key.frame = oldFrame,
+            redo: () => key.frame = newFrame,
+            action: () => this.props.animation.getKeys().sort((a, b) => a.frame - b.frame),
+        });
+
+        this.forceUpdate();
+    }
+
+    private _onAnimationKeyRemoved(key: IAnimationKey): void {
+        const keys = this.props.animation.getKeys();
+
+        const index = keys.indexOf(key);
+        if (index === -1) {
+            return;
+        }
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => keys.splice(index, 0, key),
+            redo: () => keys.splice(index, 1),
+        });
+
+        this.forceUpdate();
     }
 }
