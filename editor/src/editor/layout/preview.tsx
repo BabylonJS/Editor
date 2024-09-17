@@ -411,6 +411,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             this.gizmo.setAttachedNode(mesh);
             this.props.editor.layout.graph.setSelectedNode(mesh);
             this.props.editor.layout.inspector.setEditedObject(mesh);
+            this.props.editor.layout.animations.setEditedObject(mesh);
         }
     }
 

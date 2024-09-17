@@ -40,7 +40,7 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
     private _getAnimationsList(animations: Animation[]): ReactNode {
         return (
             <div className="flex flex-col w-96 h-full">
-                <div className="flex justify-between items-center h-10 p-2">
+                <div className="flex justify-between items-center w-full h-10 p-2">
                     <div className="font-thin text-muted-foreground">
                         ({animations.length} tracks)
                     </div>
@@ -50,12 +50,13 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
                     </Button>
                 </div>
 
-                <div className="flex flex-col">
+                <div className="flex flex-col w-full">
                     {animations.map((animation, index) => (
                         <EditorAnimationTrackItem
                             key={`${animation.targetProperty}${index}`}
                             animation={animation}
                             animationEditor={this.props.animationEditor}
+                            onRemove={(animation) => this._handleRemoveTrack(animation)}
                         />
                     ))}
                 </div>
@@ -124,5 +125,27 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
         });
 
         this.forceUpdate();
+    }
+
+    private _handleRemoveTrack(animation: Animation): void {
+        const animatable = this.props.animatable;
+        if (!animatable) {
+            return;
+        }
+
+        const index = animatable.animations?.indexOf(animation) ?? -1;
+        if (index === -1) {
+            return;
+        }
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                animatable.animations?.splice(index, 0, animation);
+            },
+            redo: () => {
+                animatable.animations?.splice(index, 1);
+            },
+        });
     }
 }
