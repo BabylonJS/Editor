@@ -44,7 +44,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
         }
 
         return (
-            <div className="flex flex-col w-full h-full">
+            <div className="flex flex-col min-w-full h-full">
                 <EditorAnimationToolbar />
 
                 <div className="flex w-full h-10">
@@ -59,7 +59,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
                     </div>
                 </div>
 
-                <div className="flex w-full h-full">
+                <div className="flex w-full h-full overflow-x-hidden overflow-y-auto">
                     <EditorAnimationTracksPanel
                         animationEditor={this}
                         animatable={this.state.animatable}

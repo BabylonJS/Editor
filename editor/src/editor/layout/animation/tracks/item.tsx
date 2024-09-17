@@ -1,12 +1,17 @@
 import { Component, ReactNode } from "react";
+import { HiOutlineTrash } from "react-icons/hi";
 
 import { Animation } from "babylonjs";
+
+import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { EditorAnimation } from "../../animation";
 
 export interface IEditorAnimationTrackItemProps {
     animation: Animation;
     animationEditor: EditorAnimation;
+
+    onRemove: (animation: Animation) => void;
 }
 
 export class EditorAnimationTrackItem extends Component<IEditorAnimationTrackItemProps> {
@@ -16,12 +21,18 @@ export class EditorAnimationTrackItem extends Component<IEditorAnimationTrackIte
                 onMouseLeave={() => this.props.animationEditor.setState({ selectedAnimation: null })}
                 onMouseEnter={() => this.props.animationEditor.setState({ selectedAnimation: this.props.animation })}
                 className={`
-                    flex items-center w-full h-10 p-2 ring-accent ring-1
-                    ${this.props.animationEditor.state.selectedAnimation === this.props.animation ? "bg-accent" : ""}
+                    flex justify-between items-center w-full h-10 p-2 ring-accent ring-1
+                    ${this.props.animationEditor.state.selectedAnimation === this.props.animation ? "bg-secondary" : ""}
                     transition-all duration-300 ease-in-out
                 `}
             >
-                {this.props.animation.targetProperty}
+                <div>
+                    {this.props.animation.targetProperty}
+                </div>
+
+                <Button variant="ghost" className="w-8 h-8 p-1" onClick={() => this.props.onRemove(this.props.animation)}>
+                    <HiOutlineTrash className="w-5 h-5" />
+                </Button>
             </div>
         );
     }
