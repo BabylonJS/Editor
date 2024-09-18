@@ -68,6 +68,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
                             key={`${animation.targetProperty}${index}`}
                             animation={animation}
                             scale={this.state.scale}
+                            animatable={this.props.animatable}
                             animationEditor={this.props.animationEditor}
                         />
                     ))}

@@ -55,7 +55,6 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
                             </ContextMenuItem>
                         </ContextMenuContent>
                     </ContextMenu>
-
                 </TooltipTrigger>
                 <TooltipContent>
                     {this.props.animationKey.frame}

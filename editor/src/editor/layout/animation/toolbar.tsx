@@ -6,7 +6,7 @@ export class EditorAnimationToolbar extends Component {
     public render(): ReactNode {
         return (
             <div className="w-full h-10 bg-primary-foreground">
-                <Menubar className="border-none rounded-none pl-3 my-auto bg-primary-foreground">
+                <Menubar className="border-none rounded-none pl-3 my-auto bg-primary-foreground h-10">
                     {/* File */}
                     <MenubarMenu>
                         <MenubarTrigger disabled>
