@@ -97,12 +97,14 @@
 body * {
     font-family: 'Inter', sans-serif;
 
+    @apply select-none;
     @apply text-foreground;
     @apply !outline-none;
 }
 
 input {
     line-height: normal;
+    @apply select-auto;
 }
 
 /* SCROLLBARS */
