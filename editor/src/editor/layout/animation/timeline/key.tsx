@@ -3,6 +3,8 @@ import { Component, MouseEvent, ReactNode } from "react";
 
 import { IAnimationKey } from "babylonjs";
 
+import { waitNextAnimationFrame } from "../../../../tools/tools";
+
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
@@ -10,6 +12,7 @@ export interface IEditorAnimationTimelineKeyProps {
     scale: number;
     animationKey: IAnimationKey;
 
+    onClicked: (key: IAnimationKey) => void;
     onRemoved: (key: IAnimationKey) => void;
     onMoved: (key: IAnimationKey, newFrame: number, oldFrame: number) => void;
 }
@@ -64,6 +67,8 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
     }
 
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
+        ev.stopPropagation();
+
         if (ev.button !== 0) {
             return;
         }
@@ -72,9 +77,10 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
 
         document.body.style.cursor = "ew-resize";
 
-        let mouseUpListener: () => void;
+        let mouseUpListener: (event: globalThis.MouseEvent) => void;
         let mouseMoveListener: (event: globalThis.MouseEvent) => void;
 
+        let moving = false;
         let clientX: number | null = null;
 
         const startPosition = this.props.animationKey.frame;
@@ -85,6 +91,11 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
             }
 
             const delta = clientX - ev.clientX;
+            if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
+                moving = true;
+            } else {
+                return;
+            }
 
             this.props.animationKey.frame = Math.round(
                 Math.max(0, startPosition - delta / this.props.scale),
@@ -93,7 +104,9 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
             this.forceUpdate();
         });
 
-        document.body.addEventListener("mouseup", mouseUpListener = () => {
+        document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
+            ev.stopPropagation();
+
             document.body.style.cursor = "auto";
 
             document.body.removeEventListener("mouseup", mouseUpListener);
@@ -101,7 +114,13 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
 
             this.setState({ moving: undefined });
 
-            this.props.onMoved(this.props.animationKey, this.props.animationKey.frame, startPosition);
+            waitNextAnimationFrame().then(() => {
+                this.props.onClicked(this.props.animationKey);
+
+                if (moving) {
+                    this.props.onMoved(this.props.animationKey, this.props.animationKey.frame, startPosition);
+                }
+            });
         });
     }
 }

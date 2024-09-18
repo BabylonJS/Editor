@@ -56,6 +56,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
                                     animationKey={key}
                                     scale={this.props.scale}
                                     onRemoved={(key) => this._onAnimationKeyRemoved(key)}
+                                    onClicked={() => this.props.animationEditor.inspector.setEditedKey(key)}
                                     onMoved={(key, newFrame, oldFrame) => this._onAnimationKeyMoved(key, newFrame, oldFrame)}
                                 />
                             ))}

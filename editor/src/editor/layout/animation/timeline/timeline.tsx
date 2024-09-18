@@ -1,29 +1,42 @@
 import { Component, ReactNode } from "react";
-import { AiOutlinePlus } from "react-icons/ai";
 
 import { Animation, IAnimatable } from "babylonjs";
 
-import { Button } from "../../../../ui/shadcn/ui/button";
+import { Editor } from "../../../main";
 
 import { EditorAnimation } from "../../animation";
 
+import { EditorAnimationTracker } from "./tracker";
 import { EditorAnimationTimelineItem } from "./track";
 
 export interface IEditorAnimationTimelinePanelProps {
+    editor: Editor;
     animatable: IAnimatable | null;
     animationEditor: EditorAnimation;
 }
 
 export interface IEditorAnimationTimelinePanelState {
     scale: number;
+    currentTime: number;
 }
 
 export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTimelinePanelProps, IEditorAnimationTimelinePanelState> {
+    /**
+     * This class acts as an IAnimatable. This is used to animate the currentTime value on the state
+     * and be synchronized with the animations being edited and played by Babylon.JS.
+     */
+    public animations: Animation[] = [];
+
+    private _animation!: Animation;
+    private _animatedCurrentTime: number = 0;
+    private _renderLoop: (() => void) | null = null;
+
     public constructor(props: IEditorAnimationTimelinePanelProps) {
         super(props);
 
         this.state = {
             scale: 1,
+            currentTime: 60,
         };
     }
 
@@ -35,6 +48,10 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
         return this._getEmpty();
     }
 
+    public componentDidMount(): void {
+        this._animation = new Animation("editor-currentTime", "_animatedCurrentTime", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
+    }
+
     private _getEmpty(): ReactNode {
         return (
             <div className="flex justify-center items-center font-semibold text-xl w-full h-full">
@@ -44,21 +61,30 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
     }
 
     private _getAnimationsList(animations: Animation[]): ReactNode {
-        return (
-            <div className="flex flex-col w-full h-full overflow-x-auto overflow-y-hidden">
-                <div className="flex justify-between items-center h-10 p-2">
-                    <div className="font-thin text-muted-foreground">
-                        ({animations.length} tracks)
-                    </div>
+        const width = this._getMaxWidthForTimeline();
 
-                    <Button variant="ghost" className="w-8 h-8 p-1">
-                        <AiOutlinePlus className="w-5 h-5" />
-                    </Button>
-                </div>
+        return (
+            <div
+                onClick={() => this.props.animationEditor.inspector.setEditedKey(null)}
+                className="relative flex flex-col w-full h-full overflow-x-auto overflow-y-hidden"
+            >
+                <EditorAnimationTracker
+                    width={width}
+                    scale={this.state.scale}
+                    currentTime={this.state.currentTime}
+                    onTimeChange={(currentTime) => this.setCurrentTime(currentTime)}
+                />
 
                 <div
                     style={{
-                        width: `${this._getMaxWidthForTimeline()}px`,
+                        left: `${this.state.currentTime * this.state.scale - 1}px`,
+                    }}
+                    className="absolute top-10 h-full w-[3px] bg-secondary/35"
+                />
+
+                <div
+                    style={{
+                        width: `${width}px`,
                     }}
                     className="flex flex-col min-w-full"
                     onWheel={(ev) => this._onWheelEvent(ev)}
@@ -78,19 +104,90 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
     }
 
     private _getMaxWidthForTimeline(): number {
-        let width = 0;
+        return this._getMaxFrameForTimeline() * this.state.scale;
+    }
+
+    private _getMaxFrameForTimeline(): number {
+        let frame = 0;
         this.props.animatable?.animations?.forEach((animation) => {
             animation.getKeys().forEach((key) => {
-                width = Math.max(width, key.frame * this.state.scale);
+                frame = Math.max(frame, key.frame);
             });
         });
 
-        return width;
+        return frame;
     }
 
     private _onWheelEvent(ev: React.WheelEvent<HTMLDivElement>): void {
         if (ev.ctrlKey || ev.metaKey) {
             this.setState({ scale: Math.max(0.1, Math.min(10, this.state.scale + ev.deltaY * 0.001)) });
         }
+    }
+
+    public setCurrentTime(currentTime: number): void {
+        this.setState({ currentTime });
+
+        if (!this.props.animatable?.animations) {
+            return;
+        }
+
+        this.props.animationEditor.stop();
+
+        this.props.animatable.animations.forEach((animation) => {
+            const keys = animation.getKeys();
+            const frame = keys[keys.length - 1].frame < currentTime ? keys[keys.length - 1].frame : currentTime;
+
+            this.props.editor.layout.preview.scene.beginDirectAnimation(this.props.animatable, [animation], frame, frame, false, 1.0);
+        });
+    }
+
+    /**
+     * Plays the current timeline starting from the current tracker position.
+     */
+    public play(): void {
+        if (!this.props.animatable?.animations) {
+            return;
+        }
+
+        const scene = this.props.editor.layout.preview.scene;
+        const engine = this.props.editor.layout.preview.engine;
+
+        const currentTime = this.state.currentTime;
+        const maxFrame = this._getMaxFrameForTimeline();
+
+        this._animation.setKeys([
+            { frame: currentTime, value: currentTime },
+            { frame: maxFrame, value: maxFrame },
+        ]);
+
+        scene.stopAnimation(this.props.animatable);
+
+        this.props.animatable.animations.forEach((animation) => {
+            const keys = animation.getKeys();
+            const frame = keys[keys.length - 1].frame < currentTime ? keys[keys.length - 1].frame : currentTime;
+
+            this.props.editor.layout.preview.scene.beginDirectAnimation(this.props.animatable, [animation], frame, maxFrame, false, 1.0);
+        });
+
+        this.props.editor.layout.preview.scene.beginDirectAnimation(this, [this._animation], currentTime, maxFrame, false, 1.0);
+
+        engine.runRenderLoop(this._renderLoop = () => {
+            this.setState({ currentTime: this._animatedCurrentTime });
+        });
+    }
+
+    /**
+     * Stops the current timeline being played
+     */
+    public stop(): void {
+        const scene = this.props.editor.layout.preview.scene;
+        const engine = this.props.editor.layout.preview.engine;
+
+        if (this._renderLoop) {
+            engine.stopRenderLoop(this._renderLoop);
+            this._renderLoop = null;
+        }
+
+        scene.stopAnimation(this.props.animatable);
     }
 }

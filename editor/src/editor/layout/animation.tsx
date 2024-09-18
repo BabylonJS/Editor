@@ -2,13 +2,15 @@ import { Component, ReactNode } from "react";
 
 import { Animation, IAnimatable } from "babylonjs";
 
-import { EditorAnimationToolbar } from "./animation/toolbar";
-import { EditorAnimationTracksPanel } from "./animation/tracks/tracks";
-import { EditorAnimationTimelinePanel } from "./animation/timeline/timeline";
-
 import { isNode } from "../../tools/guards/nodes";
+import { waitNextAnimationFrame } from "../../tools/tools";
 
 import { Editor } from "../main";
+
+import { EditorAnimationToolbar } from "./animation/toolbar";
+import { EditorAnimationTracksPanel } from "./animation/tracks/tracks";
+import { EditorAnimationInspector } from "./animation/inspector/inspector";
+import { EditorAnimationTimelinePanel } from "./animation/timeline/timeline";
 
 export interface IEditorAnimationProps {
     /**
@@ -18,6 +20,7 @@ export interface IEditorAnimationProps {
 }
 
 export interface IEditorAnimationState {
+    playing: boolean;
     animatable: IAnimatable | null;
     selectedAnimation: Animation | null;
 }
@@ -25,10 +28,22 @@ export interface IEditorAnimationState {
 const isEnabled = false;
 
 export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAnimationState> {
+    /**
+     * Defines the reference to the inspector used to edit animations properties.
+     */
+    public inspector!: EditorAnimationInspector;
+    /**
+     * Defines the reference to the timelines panel component used to display the animations timeline.
+     */
+    public timelines!: EditorAnimationTimelinePanel;
+
+    private _currentTimeBeforePlay: number | null = null;
+
     public constructor(props: IEditorAnimationProps) {
         super(props);
 
         this.state = {
+            playing: false,
             animatable: null,
             selectedAnimation: null,
         };
@@ -45,7 +60,11 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 
         return (
             <div className="flex flex-col min-w-full h-full">
-                <EditorAnimationToolbar />
+                <EditorAnimationToolbar
+                    animationEditor={this}
+                    playing={this.state.playing}
+                    animatable={this.state.animatable}
+                />
 
                 <div className="flex w-full h-10">
                     <div className="flex justify-center items-center font-semibold w-96 h-full bg-secondary">
@@ -59,7 +78,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
                     </div>
                 </div>
 
-                <div className="flex w-full h-full overflow-x-hidden overflow-y-auto">
+                <div className="relative flex w-full h-full overflow-x-hidden overflow-y-auto">
                     <EditorAnimationTracksPanel
                         animationEditor={this}
                         animatable={this.state.animatable}
@@ -69,7 +88,14 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 
                     <EditorAnimationTimelinePanel
                         animationEditor={this}
+                        editor={this.props.editor}
+                        ref={(r) => this.timelines = r!}
                         animatable={this.state.animatable}
+                    />
+
+                    <EditorAnimationInspector
+                        animationEditor={this}
+                        ref={(r) => this.inspector = r!}
                     />
                 </div>
             </div>
@@ -88,5 +114,36 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 
             this.setState({ animatable: object });
         }
+    }
+
+    /**
+     * Plays the current timeline starting from the current tracker position.
+     */
+    public play(): void {
+        this.setState({ playing: true });
+
+        this._currentTimeBeforePlay = this.timelines.state.currentTime;
+        this.timelines.play();
+    }
+
+    /**
+     * Stops the current timeline being played and returns to the previous tracker position
+     * saved before the timeline was played.
+     */
+    public stop(): void {
+        if (!this.state.playing) {
+            return;
+        }
+
+        this.setState({ playing: false });
+
+        waitNextAnimationFrame().then(() => {
+            this.timelines.stop();
+
+            if (this._currentTimeBeforePlay !== null) {
+                this.timelines.setCurrentTime(this._currentTimeBeforePlay);
+                this._currentTimeBeforePlay = null;
+            }
+        });
     }
 }
