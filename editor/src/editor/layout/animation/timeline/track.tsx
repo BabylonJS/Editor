@@ -55,6 +55,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
                                     key={index}
                                     animationKey={key}
                                     scale={this.props.scale}
+                                    animationEditor={this.props.animationEditor}
                                     onRemoved={(key) => this._onAnimationKeyRemoved(key)}
                                     onClicked={() => this.props.animationEditor.inspector.setEditedKey(key)}
                                     onMoved={(key, newFrame, oldFrame) => this._onAnimationKeyMoved(key, newFrame, oldFrame)}
@@ -64,7 +65,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
                     </div>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
-                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this._onAddAnimationKey()}>
+                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey()}>
                         <AiOutlinePlus className="w-5 h-5" /> Add Key
                     </ContextMenuItem>
                 </ContextMenuContent>
@@ -72,8 +73,14 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
         );
     }
 
-    private _onAddAnimationKey(): void {
-        if (this._rightClickPositionX === null) {
+    /**
+     * Adds a new animation key for this track located at the current time selected in
+     * the animation editor using the time tracker.
+     */
+    public addAnimationKey(positionX?: number | null): void {
+        positionX ??= this._rightClickPositionX;
+
+        if (positionX === null) {
             return;
         }
 
@@ -81,8 +88,13 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
 
         const key = {
             value: value.clone?.() ?? value,
-            frame: Math.round(this._rightClickPositionX / this.props.scale),
+            frame: Math.round(positionX / this.props.scale),
         } as IAnimationKey;
+
+        const existingKey = this.props.animation.getKeys().find((k) => k.frame === key.frame);
+        if (existingKey) {
+            return;
+        }
 
         registerUndoRedo({
             executeRedo: true,

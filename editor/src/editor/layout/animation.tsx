@@ -3,6 +3,7 @@ import { Component, ReactNode } from "react";
 import { Animation, IAnimatable } from "babylonjs";
 
 import { isNode } from "../../tools/guards/nodes";
+import { isScene } from "../../tools/guards/scene";
 import { waitNextAnimationFrame } from "../../tools/tools";
 
 import { Editor } from "../main";
@@ -107,7 +108,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
      * @param object defines the reference to the object that has been selected somewhere in the graph or the preview.
      */
     public setEditedObject(object: unknown): void {
-        if (isNode(object)) {
+        if (isNode(object) || isScene(object)) {
             if (!object.animations) {
                 object.animations = [];
             }

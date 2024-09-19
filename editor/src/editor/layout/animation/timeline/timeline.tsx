@@ -1,6 +1,9 @@
 import { Component, ReactNode } from "react";
 
-import { Animation, IAnimatable } from "babylonjs";
+import { Animation, IAnimatable, IAnimationKey } from "babylonjs";
+
+import { registerUndoRedo } from "../../../../tools/undoredo";
+import { getInspectorPropertyValue } from "../../../../tools/property";
 
 import { Editor } from "../../../main";
 
@@ -26,6 +29,10 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
      * and be synchronized with the animations being edited and played by Babylon.JS.
      */
     public animations: Animation[] = [];
+    /**
+     * Defines the list of all available track items in the timeline.
+     */
+    public tracks: (EditorAnimationTimelineItem | null)[] = [];
 
     private _animation!: Animation;
     private _animatedCurrentTime: number = 0;
@@ -63,6 +70,9 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
     private _getAnimationsList(animations: Animation[]): ReactNode {
         const width = this._getMaxWidthForTimeline();
 
+        this.tracks.splice(0, this.tracks.length);
+        this.tracks.length = animations.length;
+
         return (
             <div
                 onClick={() => this.props.animationEditor.inspector.setEditedKey(null)}
@@ -77,7 +87,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
                 <div
                     style={{
-                        left: `${this.state.currentTime * this.state.scale - 1}px`,
+                        left: `${this.state.currentTime * this.state.scale - 1.5}px`,
                     }}
                     className="absolute top-10 h-full w-[3px] bg-secondary/35"
                 />
@@ -91,6 +101,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
                 >
                     {animations.map((animation, index) => (
                         <EditorAnimationTimelineItem
+                            ref={(r) => this.tracks[index] = r}
                             key={`${animation.targetProperty}${index}`}
                             animation={animation}
                             scale={this.state.scale}
@@ -124,6 +135,17 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
         }
     }
 
+    /**
+     * Updates all the track using the current time as reference.
+     */
+    public updateTracksAtCurrentTime(): void {
+        this.setCurrentTime(this.state.currentTime);
+    }
+
+    /**
+     * Sets the current time being edited in the timeline.
+     * @param currentTime defines the current time expressed in frame.
+     */
     public setCurrentTime(currentTime: number): void {
         this.setState({ currentTime });
 
@@ -139,6 +161,53 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
             this.props.editor.layout.preview.scene.beginDirectAnimation(this.props.animatable, [animation], frame, frame, false, 1.0);
         });
+    }
+
+    /**
+     * Adds a key at the current time for all tracks in the timeline.
+     * Checks for each track if a key already exists at the current time and if not, adds a new key.
+     * For the value, sets the current value of the animatable object property being animated.
+     */
+    public addKeysAtCurrentTime(): void {
+        const frame = Math.round(this.state.currentTime / this.state.scale);
+
+        const tracks = this.tracks.filter((track) => !track?.props.animation.getKeys().find((k) => k.frame === frame)) as EditorAnimationTimelineItem[];
+        if (!tracks.length) {
+            return;
+        }
+
+        const keys = tracks.map((track) => {
+            const value = getInspectorPropertyValue(this.props.animatable, track.props.animation.targetProperty);
+
+            return {
+                frame,
+                value: value.clone?.() ?? value,
+            } as IAnimationKey;
+        });
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                tracks.forEach((track, index) => {
+                    const keyIndex = track.props.animation.getKeys().indexOf(keys[index]);
+                    if (keyIndex !== -1) {
+                        track.props.animation.getKeys().splice(keyIndex, 1);
+                    }
+                });
+            },
+            redo: () => {
+                tracks.forEach((track, index) => {
+                    track.props.animation.getKeys().push(keys[index]);
+                });
+            },
+            action: () => {
+                tracks.forEach((track) => {
+                    track.props.animation.getKeys().sort((a, b) => a.frame - b.frame);
+                });
+            },
+        });
+
+        this.forceUpdate();
     }
 
     /**
@@ -170,6 +239,10 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
         });
 
         this.props.editor.layout.preview.scene.beginDirectAnimation(this, [this._animation], currentTime, maxFrame, false, 1.0);
+
+        if (this._renderLoop) {
+            engine.stopRenderLoop(this._renderLoop);
+        }
 
         engine.runRenderLoop(this._renderLoop = () => {
             this.setState({ currentTime: this._animatedCurrentTime });
