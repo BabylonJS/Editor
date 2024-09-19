@@ -21,17 +21,34 @@ export class EditorAnimationToolbar extends Component<IEditorAnimationToolbarPro
                 <Menubar className="border-none rounded-none pl-3 my-auto bg-primary-foreground h-10">
                     {/* File */}
                     <MenubarMenu>
-                        <MenubarTrigger disabled>
+                        <MenubarTrigger disabled={this.props.animatable === null}>
                             File
                         </MenubarTrigger>
 
                         <MenubarContent className="border-black/50">
                             <MenubarItem>
-                                Load Animation From...
+                                Load Animations From...
                             </MenubarItem>
                             <MenubarSeparator />
                             <MenubarItem>
-                                Save Animation As...
+                                Save Animations As...
+                            </MenubarItem>
+                        </MenubarContent>
+                    </MenubarMenu>
+
+                    {/* Edit */}
+                    <MenubarMenu>
+                        <MenubarTrigger disabled={this.props.animatable === null}>
+                            Edit
+                        </MenubarTrigger>
+
+                        <MenubarContent className="border-black/50">
+                            <MenubarItem onClick={() => this.props.animationEditor.timelines.addKeysAtCurrentTime()}>
+                                Add Key Frame At Current Time
+                            </MenubarItem>
+                            <MenubarSeparator />
+                            <MenubarItem className="text-red-400">
+                                Remove Selected Key Frames
                             </MenubarItem>
                         </MenubarContent>
                     </MenubarMenu>

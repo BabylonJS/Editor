@@ -8,9 +8,12 @@ import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
+import { EditorAnimation } from "../../animation";
+
 export interface IEditorAnimationTimelineKeyProps {
     scale: number;
     animationKey: IAnimationKey;
+    animationEditor: EditorAnimation;
 
     onClicked: (key: IAnimationKey) => void;
     onRemoved: (key: IAnimationKey) => void;
@@ -46,6 +49,7 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
                         <ContextMenuTrigger>
                             <div
                                 onMouseDown={(ev) => this._handlePointerDown(ev)}
+                                onDoubleClick={() => this.props.animationEditor.timelines.setCurrentTime(this.props.animationKey.frame)}
                                 className="w-4 h-4 rotate-45 bg-muted-foreground hover:scale-125 transition-transform duration-300 ease-in-out"
                             />
                         </ContextMenuTrigger>

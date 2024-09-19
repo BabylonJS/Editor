@@ -1,11 +1,14 @@
 import { Component, ReactNode } from "react";
 
-import { Animation, IAnimationKey } from "babylonjs";
+import { Animation, Color3, Color4, IAnimationKey, Quaternion, Vector2, Vector3 } from "babylonjs";
 
+import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
+import { EditorInspectorColorField } from "../../inspector/fields/color";
 import { EditorInspectorNumberField } from "../../inspector/fields/number";
 import { EditorInspectorVectorField } from "../../inspector/fields/vector";
+import { EditorInspectorSwitchField } from "../../inspector/fields/switch";
 import { EditorInspectorSectionField } from "../../inspector/fields/section";
 
 import { EditorAnimation } from "../../animation";
@@ -63,17 +66,82 @@ export class EditorAnimationInspector extends Component<IEditorAnimationInspecto
                 </div>
 
                 <EditorInspectorSectionField title="Properties">
-                    <EditorInspectorNumberField object={this.state.key} property="frame" label="Frame" step={1} min={0} onChange={() => this.props.animationEditor.timelines.forceUpdate()} />
+                    <EditorInspectorNumberField object={this.state.key} property="frame" label="Frame" step={1} min={0} onChange={() => {
+                        this.props.animationEditor.timelines.forceUpdate();
+                        this.props.animationEditor.timelines.updateTracksAtCurrentTime();
+                    }} />
 
                     {animationType === Animation.ANIMATIONTYPE_FLOAT &&
-                        <EditorInspectorNumberField object={this.state.key} property="value" label="Value" />
+                        <EditorInspectorNumberField object={this.state.key} property="value" label="Value" onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />
                     }
 
                     {animationType === Animation.ANIMATIONTYPE_VECTOR3 &&
-                        <EditorInspectorVectorField object={this.state.key} property="value" label="Value" />
+                        <EditorInspectorVectorField object={this.state.key} property="value" label="Value" onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />
                     }
+
+                    {(animationType === Animation.ANIMATIONTYPE_COLOR3 || animationType === Animation.ANIMATIONTYPE_COLOR4) &&
+                        <EditorInspectorColorField label={<div className="w-14">Value</div>} object={this.state.key} property="value" onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />
+                    }
+                </EditorInspectorSectionField>
+
+                <EditorInspectorSectionField title="Tangents">
+                    <EditorInspectorSwitchField label="In Tangents" object={{ checked: (this.state.key.inTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
+                        registerSimpleUndoRedo({
+                            object: this.state.key,
+                            property: "inTangent",
+                            oldValue: this.state.key?.inTangent,
+                            newValue: v ? this._getTangentDefaultValue(this.state.key!) : undefined,
+                            executeRedo: true,
+                        });
+
+                        this.forceUpdate();
+                    }} />
+
+                    {(this.state.key.inTangent ?? null) !== null && this._getTangentInspector(this.state.key, "inTangent")}
+
+                    <EditorInspectorSwitchField label="Out Tangents" object={{ checked: (this.state.key.outTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
+                        registerSimpleUndoRedo({
+                            object: this.state.key,
+                            property: "outTangent",
+                            oldValue: this.state.key?.outTangent,
+                            newValue: v ? this._getTangentDefaultValue(this.state.key!) : undefined,
+                            executeRedo: true,
+                        });
+
+                        this.forceUpdate();
+                    }} />
+
+                    {(this.state.key.outTangent ?? null) !== null && this._getTangentInspector(this.state.key, "outTangent")}
                 </EditorInspectorSectionField>
             </div>
         );
+    }
+
+    private _getTangentDefaultValue(key: IAnimationKey): number | Vector2 | Vector3 | Quaternion | Color3 | Color4 | null {
+        const animationType = getAnimationTypeForObject(key.value);
+
+        switch (animationType) {
+            case Animation.ANIMATIONTYPE_FLOAT: return 0;
+            case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.Zero();
+            case Animation.ANIMATIONTYPE_VECTOR3: return Vector3.Zero();
+            case Animation.ANIMATIONTYPE_QUATERNION: return Quaternion.Zero();
+            case Animation.ANIMATIONTYPE_COLOR3: return Color3.Black();
+            case Animation.ANIMATIONTYPE_COLOR4: return Color3.Black().toColor4(0);
+            default: return null;
+        }
+    }
+
+    private _getTangentInspector(key: IAnimationKey, property: "inTangent" | "outTangent"): ReactNode {
+        const animationType = getAnimationTypeForObject(key.value);
+
+        switch (animationType) {
+            case Animation.ANIMATIONTYPE_FLOAT: return <EditorInspectorNumberField object={key} property={property} onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />;
+            case Animation.ANIMATIONTYPE_VECTOR3: return <EditorInspectorVectorField object={key} property={property} onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />;
+
+            case Animation.ANIMATIONTYPE_COLOR3:
+            case Animation.ANIMATIONTYPE_COLOR4:
+                return <EditorInspectorColorField object={key} property={property} onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />;
+            default: return null;
+        }
     }
 }
