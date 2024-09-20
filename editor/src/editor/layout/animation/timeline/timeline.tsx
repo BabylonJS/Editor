@@ -1,4 +1,4 @@
-import { Component, ReactNode } from "react";
+import { Component, MouseEvent, ReactNode } from "react";
 
 import { Animation, IAnimatable, IAnimationKey } from "babylonjs";
 
@@ -75,6 +75,8 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
         return (
             <div
+                onWheel={(ev) => this._onWheelEvent(ev)}
+                onMouseDown={(ev) => this._handlePointerDown(ev)}
                 onClick={() => this.props.animationEditor.inspector.setEditedKey(null)}
                 className="relative flex flex-col w-full h-full overflow-x-auto overflow-y-hidden"
             >
@@ -97,7 +99,6 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
                         width: `${width}px`,
                     }}
                     className="flex flex-col min-w-full"
-                    onWheel={(ev) => this._onWheelEvent(ev)}
                 >
                     {animations.map((animation, index) => (
                         <EditorAnimationTimelineItem
@@ -131,7 +132,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
     private _onWheelEvent(ev: React.WheelEvent<HTMLDivElement>): void {
         if (ev.ctrlKey || ev.metaKey) {
-            this.setState({ scale: Math.max(0.1, Math.min(10, this.state.scale + ev.deltaY * 0.001)) });
+            this.setScale(Math.max(0.1, Math.min(10, this.state.scale + ev.deltaY * 0.001)));
         }
     }
 
@@ -147,19 +148,29 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
      * @param currentTime defines the current time expressed in frame.
      */
     public setCurrentTime(currentTime: number): void {
-        this.setState({ currentTime });
-
         if (!this.props.animatable?.animations) {
             return;
         }
 
         this.props.animationEditor.stop();
 
+        this.setState({ currentTime });
+
         this.props.animatable.animations.forEach((animation) => {
             const keys = animation.getKeys();
             const frame = keys[keys.length - 1].frame < currentTime ? keys[keys.length - 1].frame : currentTime;
 
             this.props.editor.layout.preview.scene.beginDirectAnimation(this.props.animatable, [animation], frame, frame, false, 1.0);
+        });
+    }
+
+    /**
+     * Sets the new scale of the timeline.
+     * @param scale defines the new scale value to apply on the timeline.
+     */
+    public setScale(scale: number): void {
+        this.setState({ scale }, () => {
+            this.props.animationEditor.forceUpdate();
         });
     }
 
@@ -262,5 +273,51 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
         }
 
         scene.stopAnimation(this.props.animatable);
+    }
+
+    private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
+        if (ev.button !== 0) {
+            return;
+        }
+
+        document.body.style.cursor = "ew-resize";
+
+        let mouseUpListener: (event: globalThis.MouseEvent) => void;
+        let mouseMoveListener: (event: globalThis.MouseEvent) => void;
+
+        let moving = false;
+        let clientX: number | null = null;
+
+        const startPosition = ev.nativeEvent.offsetX / this.state.scale;
+
+        this.setCurrentTime(startPosition);
+
+        document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
+            if (clientX === null) {
+                clientX = ev.clientX;
+            }
+
+            const delta = clientX - ev.clientX;
+            if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
+                moving = true;
+            } else {
+                return;
+            }
+
+            const currentTime = Math.round(
+                Math.max(0, startPosition - delta / this.state.scale),
+            );
+
+            this.setCurrentTime(currentTime);
+        });
+
+        document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
+            ev.stopPropagation();
+
+            document.body.style.cursor = "auto";
+
+            document.body.removeEventListener("mouseup", mouseUpListener);
+            document.body.removeEventListener("mousemove", mouseMoveListener);
+        });
     }
 }

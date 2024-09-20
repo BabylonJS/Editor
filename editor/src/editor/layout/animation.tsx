@@ -4,7 +4,7 @@ import { Animation, IAnimatable } from "babylonjs";
 
 import { isNode } from "../../tools/guards/nodes";
 import { isScene } from "../../tools/guards/scene";
-import { waitNextAnimationFrame } from "../../tools/tools";
+import { isDomElementFocusable } from "../../tools/dom";
 
 import { Editor } from "../main";
 
@@ -22,6 +22,7 @@ export interface IEditorAnimationProps {
 
 export interface IEditorAnimationState {
     playing: boolean;
+    focused: boolean;
     animatable: IAnimatable | null;
     selectedAnimation: Animation | null;
 }
@@ -38,13 +39,17 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
      */
     public timelines!: EditorAnimationTimelinePanel;
 
+    private _playing: boolean = false;
     private _currentTimeBeforePlay: number | null = null;
+
+    private _onKeyUpListener: (event: KeyboardEvent) => void;
 
     public constructor(props: IEditorAnimationProps) {
         super(props);
 
         this.state = {
             playing: false,
+            focused: false,
             animatable: null,
             selectedAnimation: null,
         };
@@ -79,7 +84,11 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
                     </div>
                 </div>
 
-                <div className="relative flex w-full h-full overflow-x-hidden overflow-y-auto">
+                <div
+                    onClick={() => this.setState({ focused: true })}
+                    onMouseLeave={() => this.setState({ focused: false })}
+                    className="relative flex w-full h-full overflow-x-hidden overflow-y-auto"
+                >
                     <EditorAnimationTracksPanel
                         animationEditor={this}
                         animatable={this.state.animatable}
@@ -103,6 +112,26 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
         );
     }
 
+    public componentDidMount(): void {
+        window.addEventListener("keyup", this._onKeyUpListener = (ev) => {
+            if (ev.key !== " " || !this.state.focused) {
+                return;
+            }
+
+            if (!isDomElementFocusable(document.activeElement)) {
+                if (this.state.playing) {
+                    this.stop();
+                } else {
+                    this.play();
+                }
+            }
+        });
+    }
+
+    public componentWillUnmount(): void {
+        window.removeEventListener("keyup", this._onKeyUpListener);
+    }
+
     /**
      * Sets the reference to the edited object, selected somewhere in the graph or the preview, to edit its animations.
      * @param object defines the reference to the object that has been selected somewhere in the graph or the preview.
@@ -121,9 +150,15 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
      * Plays the current timeline starting from the current tracker position.
      */
     public play(): void {
+        if (this._playing) {
+            return;
+        }
+
         this.setState({ playing: true });
 
+        this._playing = true;
         this._currentTimeBeforePlay = this.timelines.state.currentTime;
+
         this.timelines.play();
     }
 
@@ -132,19 +167,18 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
      * saved before the timeline was played.
      */
     public stop(): void {
-        if (!this.state.playing) {
+        if (!this._playing) {
             return;
         }
 
+        this._playing = false;
         this.setState({ playing: false });
 
-        waitNextAnimationFrame().then(() => {
-            this.timelines.stop();
+        this.timelines.stop();
 
-            if (this._currentTimeBeforePlay !== null) {
-                this.timelines.setCurrentTime(this._currentTimeBeforePlay);
-                this._currentTimeBeforePlay = null;
-            }
-        });
+        if (this._currentTimeBeforePlay !== null) {
+            this.timelines.setCurrentTime(this._currentTimeBeforePlay);
+            this._currentTimeBeforePlay = null;
+        }
     }
 }
