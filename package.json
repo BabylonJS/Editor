@@ -39,6 +39,7 @@
     "devDependencies": {},
     "dependencies": {},
     "resolutions": {
+        "node-abi": "3.68.0",
         "wrap-ansi": "7.0.0"
     }
 }
