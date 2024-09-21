@@ -35,6 +35,10 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
      */
     public inspector!: EditorAnimationInspector;
     /**
+     * Defines the reference to the tracks panel component used to display the animations tracks.
+     */
+    public tracks!: EditorAnimationTracksPanel;
+    /**
      * Defines the reference to the timelines panel component used to display the animations timeline.
      */
     public timelines!: EditorAnimationTimelinePanel;
@@ -91,6 +95,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
                 >
                     <EditorAnimationTracksPanel
                         animationEditor={this}
+                        ref={(r) => this.tracks = r!}
                         animatable={this.state.animatable}
                     />
 

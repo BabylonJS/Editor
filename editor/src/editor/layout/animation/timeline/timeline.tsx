@@ -1,6 +1,9 @@
+import { AiOutlinePlus } from "react-icons/ai";
 import { Component, MouseEvent, ReactNode } from "react";
 
 import { Animation, IAnimatable, IAnimationKey } from "babylonjs";
+
+import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
@@ -49,6 +52,10 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
     public render(): ReactNode {
         if (this.props.animatable) {
+            if (!this.props.animatable.animations?.length) {
+                return this._getEmptyAnimations();
+            }
+
             return this._getAnimationsList(this.props.animatable.animations!);
         }
 
@@ -63,6 +70,20 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
         return (
             <div className="flex justify-center items-center font-semibold text-xl w-full h-full">
                 No object selected.
+            </div>
+        );
+    }
+
+    private _getEmptyAnimations(): ReactNode {
+        return (
+            <div className="flex flex-col gap-2 justify-center items-center font-semibold text-xl w-full h-full">
+                <div className="">
+                    No animations found on this object.
+                </div>
+
+                <Button variant="secondary" className="flex items-center gap-2" onClick={() => this.props.animationEditor.tracks.addTrack()}>
+                    <AiOutlinePlus className="w-5 h-5" /> Add Track
+                </Button>
             </div>
         );
     }
