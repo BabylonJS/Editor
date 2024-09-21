@@ -4,13 +4,13 @@ import { Component, ReactNode } from "react";
 import { IAnimatable } from "babylonjs";
 
 import { Button } from "../../../ui/shadcn/ui/button";
+import { Slider } from "../../../ui/shadcn/ui/slider";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from "../../../ui/shadcn/ui/menubar";
 
 import { EditorAnimation } from "../animation";
 
 import { exportAnimationsAs } from "./tools/export";
 import { importAnimationsFrom } from "./tools/import";
-import { Slider } from "../../../ui/shadcn/ui/slider";
 
 export interface IEditorAnimationToolbarProps {
     playing: boolean;
@@ -30,7 +30,7 @@ export class EditorAnimationToolbar extends Component<IEditorAnimationToolbarPro
                         </MenubarTrigger>
 
                         <MenubarContent className="border-black/50">
-                            <MenubarItem onClick={() => importAnimationsFrom()}>
+                            <MenubarItem onClick={() => importAnimationsFrom(this.props.animationEditor, this.props.animatable)}>
                                 Load Animations From...
                             </MenubarItem>
                             <MenubarSeparator />

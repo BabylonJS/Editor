@@ -45,7 +45,7 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
                         ({animations.length} tracks)
                     </div>
 
-                    <Button variant="ghost" className="w-8 h-8 p-1" onClick={() => this._handleAddTrack()}>
+                    <Button variant="ghost" className="w-8 h-8 p-1" onClick={() => this.addTrack()}>
                         <AiOutlinePlus className="w-5 h-5" />
                     </Button>
                 </div>
@@ -64,7 +64,11 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
         );
     }
 
-    private async _handleAddTrack(): Promise<unknown> {
+    /**
+     * Shows a prompt to add a new track to the animatable object.
+     * Aka. animate a property on the currently selected animatable.
+     */
+    public async addTrack(): Promise<unknown> {
         const animatable = this.props.animatable;
         if (!animatable) {
             return;
