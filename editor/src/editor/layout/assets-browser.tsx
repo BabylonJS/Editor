@@ -788,6 +788,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
             case ".glb":
             case ".gltf":
             case ".babylon":
+            case ".mp3":
+            case ".wav":
+            case ".wave":
                 return this.props.editor.layout.inspector.setEditedObject(new FileInspectorObject(item.props.absolutePath));
         }
     }

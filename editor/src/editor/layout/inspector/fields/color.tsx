@@ -29,7 +29,10 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
                 color={value.toHexString(false)}
                 alpha={color instanceof Color4}
                 onFinish={(color) => handleColorPickerChange(color)}
-                onChange={(newColor) => color.set(newColor.r, newColor.g, newColor.b, newColor.a)}
+                onChange={(newColor) => {
+                    color.set(newColor.r, newColor.g, newColor.b, newColor.a);
+                    props.onChange?.(color);
+                }}
             />
         );
     }
@@ -53,6 +56,8 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
     function handleChanelChange(value: number, channel: "r" | "g" | "b" | "a") {
         color[channel] = value;
         setValue(color.clone());
+
+        props.onChange?.(color);
     }
 
     return (

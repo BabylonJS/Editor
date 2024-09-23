@@ -15,25 +15,22 @@ export class ColorPicker extends Component<IColorPickerProps> {
 
     public render(): ReactNode {
         return (
-            <div className={this.props.className} ref={(r) => this._onGotDivRef(r)} />
+            <div className={this.props.className} ref={(r) => this._divRef = r} />
         );
     }
 
-    public onComponentWillUnmount(): void {
+    public componentDidMount(): void {
+        if (this._divRef) {
+            this._onGotDivRef(this._divRef);
+        }
+    }
+
+    public componentWillUnmount(): void {
         this._colorXplr?.destroy();
     }
 
-    private _onGotDivRef(div: HTMLDivElement | null): void {
-        if (this._divRef === div) {
-            return;
-        }
-
-        this._divRef = div;
+    private _onGotDivRef(div: HTMLDivElement): void {
         this._colorXplr?.destroy();
-
-        if (!this._divRef) {
-            return;
-        }
 
         this._colorXplr = createColorXplr({
             style: {
@@ -45,6 +42,6 @@ export class ColorPicker extends Component<IColorPickerProps> {
             onFinish: ({ color }) => this.props.onFinish?.(color),
         });
 
-        this._divRef.append(this._colorXplr.element);
+        div.append(this._colorXplr.element);
     }
 }

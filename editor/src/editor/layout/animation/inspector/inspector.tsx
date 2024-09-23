@@ -35,11 +35,11 @@ export class EditorAnimationInspector extends Component<IEditorAnimationInspecto
             <div
                 className={`
                     absolute top-0 right-0 w-96 h-full p-2 bg-background border-l-primary-foreground border-l-4
-                    ${this.state.key ? "translate-x-0" : "translate-x-full pointer-events-none"}
-                    transition-all duration-300 ease-in-out
+                    ${this.state.key ? "translate-x-0" : "opacity-0 translate-x-full pointer-events-none"}
+                    transition-all duration-150 ease-in-out
                 `}
             >
-                {this.state.key && this._getKeyInspector()}
+                {this._getKeyInspector()}
             </div>
         );
     }
@@ -49,7 +49,9 @@ export class EditorAnimationInspector extends Component<IEditorAnimationInspecto
      * @param key defines the reference to the key to edit.
      */
     public setEditedKey(key: IAnimationKey | null): void {
-        this.setState({ key });
+        if (key !== this.state.key) {
+            this.setState({ key });
+        }
     }
 
     private _getKeyInspector(): ReactNode {

@@ -6,6 +6,7 @@ import { Animation, IAnimatable, IAnimationKey } from "babylonjs";
 import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
+import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
 import { Editor } from "../../../main";
@@ -23,6 +24,7 @@ export interface IEditorAnimationTimelinePanelProps {
 
 export interface IEditorAnimationTimelinePanelState {
     scale: number;
+    moving: boolean;
     currentTime: number;
 }
 
@@ -46,6 +48,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
         this.state = {
             scale: 1,
+            moving: false,
             currentTime: 60,
         };
     }
@@ -98,8 +101,8 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
             <div
                 onWheel={(ev) => this._onWheelEvent(ev)}
                 onMouseDown={(ev) => this._handlePointerDown(ev)}
-                onClick={() => this.props.animationEditor.inspector.setEditedKey(null)}
                 className="relative flex flex-col w-full h-full overflow-x-auto overflow-y-hidden"
+                onClick={() => !this.state.moving && this.props.animationEditor.inspector.setEditedKey(null)}
             >
                 <EditorAnimationTracker
                     width={width}
@@ -321,6 +324,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
             const delta = clientX - ev.clientX;
             if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
                 moving = true;
+                this.setState({ moving: true });
             } else {
                 return;
             }
@@ -339,6 +343,10 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
             document.body.removeEventListener("mouseup", mouseUpListener);
             document.body.removeEventListener("mousemove", mouseMoveListener);
+
+            waitNextAnimationFrame().then(() => {
+                this.setState({ moving: false });
+            });
         });
     }
 }
