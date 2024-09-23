@@ -198,3 +198,25 @@ input {
     color: white;
     background-color: #333333;
 }
+
+/* AUDIO */
+audio::-webkit-media-controls-panel {
+    @apply bg-secondary;
+    @apply border-secondary;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-seek-back-button,
+audio::-webkit-media-controls-seek-forward-button,
+audio::-webkit-media-controls-fullscreen-button,
+audio::-webkit-media-controls-rewind-button,
+audio::-webkit-media-controls-mute-button {
+    @apply bg-white;
+    @apply rounded-full;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+    text-shadow: none;
+    @apply text-foreground;
+}

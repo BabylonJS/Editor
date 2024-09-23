@@ -27,22 +27,19 @@ export class AssetBrowserImageItem extends AssetsBrowserItem {
      * @override
      */
     protected getContextMenuContent(): ReactNode {
-
         return this._availableResizes.length > 0 && (
-            <>
-                <ContextMenuSub>
-                    <ContextMenuSubTrigger className="flex items-center gap-2">
-                        <IoResizeSharp className="w-5 h-5" /> Resize
-                    </ContextMenuSubTrigger>
-                    <ContextMenuSubContent>
-                        <ContextMenuItem disabled>Current: {this._size.width}x{this._size.height}</ContextMenuItem>
-                        <ContextMenuSeparator />
-                        {this._availableResizes.map((size) => (
-                            <ContextMenuItem onClick={() => this._handleResize(size.width, size.height)}>{size.width}x{size.height}</ContextMenuItem>
-                        ))}
-                    </ContextMenuSubContent>
-                </ContextMenuSub>
-            </>
+            <ContextMenuSub>
+                <ContextMenuSubTrigger className="flex items-center gap-2">
+                    <IoResizeSharp className="w-5 h-5" /> Resize
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent>
+                    <ContextMenuItem disabled>Current: {this._size.width}x{this._size.height}</ContextMenuItem>
+                    <ContextMenuSeparator />
+                    {this._availableResizes.map((size) => (
+                        <ContextMenuItem onClick={() => this._handleResize(size.width, size.height)}>{size.width}x{size.height}</ContextMenuItem>
+                    ))}
+                </ContextMenuSubContent>
+            </ContextMenuSub>
         );
     }
 
