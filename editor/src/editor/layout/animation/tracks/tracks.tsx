@@ -3,7 +3,7 @@ import { AiOutlinePlus } from "react-icons/ai";
 
 import { Animation, IAnimatable } from "babylonjs";
 
-import { showAlert, showPrompt } from "../../../../ui/dialog";
+import { showAlert } from "../../../../ui/dialog";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 
@@ -13,6 +13,7 @@ import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { EditorAnimation } from "../../animation";
 
+import { showAddTrackPrompt } from "./add";
 import { EditorAnimationTrackItem } from "./item";
 
 export interface IEditorAnimationTracksPanelProps {
@@ -74,7 +75,7 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
             return;
         }
 
-        const property = await showPrompt("Property", "Enter the property to animate.");
+        const property = await showAddTrackPrompt(animatable);
         if (!property) {
             return;
         }
