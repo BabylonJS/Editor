@@ -30,7 +30,15 @@ export class EditorAnimationTrackItem extends Component<IEditorAnimationTrackIte
                     {this.props.animation.targetProperty}
                 </div>
 
-                <Button variant="ghost" className="w-8 h-8 p-1" onClick={() => this.props.onRemove(this.props.animation)}>
+                <Button
+                    variant="ghost"
+                    className={`
+                        w-8 h-8 p-1
+                        ${this.props.animationEditor.state.selectedAnimation === this.props.animation ? "opacity-100" : "opacity-0"}
+                        transition-all duration-300 ease-in-out
+                    `}
+                    onClick={() => this.props.onRemove(this.props.animation)}
+                >
                     <HiOutlineTrash className="w-5 h-5" />
                 </Button>
             </div>

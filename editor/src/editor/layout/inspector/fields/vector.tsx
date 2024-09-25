@@ -1,3 +1,5 @@
+import { Vector2, Vector3, Vector4 } from "babylonjs";
+
 import { IEditorInspectorFieldProps } from "./field";
 import { EditorInspectorNumberField } from "./number";
 
@@ -9,6 +11,8 @@ export interface IEditorInspectorVectorFieldProps extends IEditorInspectorFieldP
 }
 
 export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldProps) {
+    const value = props.object[props.property] as Vector2 | Vector3 | Vector4;
+
     return (
         <div className="flex gap-2 items-center px-2">
             <div>
@@ -18,7 +22,14 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
             <div className="flex gap-2">
                 <EditorInspectorNumberField object={props.object} property={`${props.property}.x`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
                 <EditorInspectorNumberField object={props.object} property={`${props.property}.y`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
-                <EditorInspectorNumberField object={props.object} property={`${props.property}.z`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
+
+                {(value.getClassName() === "Vector3" || value.getClassName() === "Vector4") &&
+                    <EditorInspectorNumberField object={props.object} property={`${props.property}.z`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
+                }
+
+                {value.getClassName() === "Vector4" &&
+                    <EditorInspectorNumberField object={props.object} property={`${props.property}.w`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
+                }
             </div>
         </div>
     );
