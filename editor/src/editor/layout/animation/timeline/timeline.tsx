@@ -7,6 +7,7 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
+import { isDomElementDescendantOf } from "../../../../tools/dom";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
 import { Editor } from "../../../main";
@@ -42,6 +43,8 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
     private _animation!: Animation;
     private _animatedCurrentTime: number = 0;
     private _renderLoop: (() => void) | null = null;
+
+    private _divRef: HTMLDivElement | null = null;
 
     public constructor(props: IEditorAnimationTimelinePanelProps) {
         super(props);
@@ -99,6 +102,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
         return (
             <div
+                ref={(r) => this._divRef = r}
                 onWheel={(ev) => this._onWheelEvent(ev)}
                 onMouseDown={(ev) => this._handlePointerDown(ev)}
                 className="relative flex flex-col w-full h-full overflow-x-auto overflow-y-hidden"
@@ -131,6 +135,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
                             animation={animation}
                             scale={this.state.scale}
                             animatable={this.props.animatable}
+                            currentTime={this.state.currentTime}
                             animationEditor={this.props.animationEditor}
                         />
                     ))}
@@ -300,7 +305,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
     }
 
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
-        if (ev.button !== 0) {
+        if (ev.button !== 0 || !isDomElementDescendantOf(ev.nativeEvent.target as HTMLElement, this._divRef!)) {
             return;
         }
 
