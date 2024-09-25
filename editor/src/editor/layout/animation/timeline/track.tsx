@@ -15,32 +15,31 @@ import { EditorAnimationTimelineKey } from "./key";
 
 export interface IEditorAnimationTimelineItemProps {
     scale: number;
+    currentTime: number;
     animation: Animation;
     animatable: IAnimatable | null;
     animationEditor: EditorAnimation;
 }
 
 export interface IEditorAnimationTimelineItemState {
-    // ...
+    rightClickPositionX: number | null;
 }
 
 export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimelineItemProps, IEditorAnimationTimelineItemState> {
-    private _rightClickPositionX: number | null = null;
-
     public constructor(props: IEditorAnimationTimelineItemProps) {
         super(props);
 
         this.state = {
-            scale: 1,
+            rightClickPositionX: null,
         };
     }
 
     public render(): ReactNode {
         return (
-            <ContextMenu onOpenChange={(o) => !o && (this._rightClickPositionX = null)}>
+            <ContextMenu onOpenChange={(o) => !o && this.setState({ rightClickPositionX: null })}>
                 <ContextMenuTrigger>
                     <div
-                        onContextMenu={(ev) => this._rightClickPositionX = ev.nativeEvent.offsetX}
+                        onContextMenu={(ev) => this.setState({ rightClickPositionX: ev.nativeEvent.offsetX })}
                         onMouseLeave={() => this.props.animationEditor.setState({ selectedAnimation: null })}
                         onMouseEnter={() => this.props.animationEditor.setState({ selectedAnimation: this.props.animation })}
                         className={`
@@ -61,12 +60,24 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
                                     onMoved={(key, newFrame, oldFrame) => this._onAnimationKeyMoved(key, newFrame, oldFrame)}
                                 />
                             ))}
+
+                            {this.state.rightClickPositionX &&
+                                <div
+                                    style={{
+                                        left: `${this.state.rightClickPositionX}px`,
+                                    }}
+                                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-muted-foreground/35 border-foreground/35 border-2"
+                                />
+                            }
                         </TooltipProvider>
                     </div>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
                     <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey()}>
-                        <AiOutlinePlus className="w-5 h-5" /> Add Key
+                        <AiOutlinePlus className="w-5 h-5" /> Add Key Here
+                    </ContextMenuItem>
+                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey(this.props.currentTime * this.props.scale)}>
+                        <AiOutlinePlus className="w-5 h-5" /> Add Key at Tracker Position
                     </ContextMenuItem>
                 </ContextMenuContent>
             </ContextMenu >
@@ -78,7 +89,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
      * the animation editor using the time tracker.
      */
     public addAnimationKey(positionX?: number | null): void {
-        positionX ??= this._rightClickPositionX;
+        positionX ??= this.state.rightClickPositionX;
 
         if (positionX === null) {
             return;
@@ -108,9 +119,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
             action: () => this.props.animation.getKeys().sort((a, b) => a.frame - b.frame),
         });
 
-        this._rightClickPositionX = null;
-
-        this.forceUpdate();
+        this.setState({ rightClickPositionX: null });
     }
 
     private _onAnimationKeyMoved(key: IAnimationKey, newFrame: number, oldFrame: number): void {
