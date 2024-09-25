@@ -335,6 +335,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             },
             metadata: scene.metadata,
             editorCamera: editor.layout.preview.camera.serialize(),
+            animations: scene.animations.map((animation) => animation.serialize()),
             animationGroups: scene.animationGroups?.map((animationGroup) => animationGroup.serialize()),
         }, {
             spaces: 4,

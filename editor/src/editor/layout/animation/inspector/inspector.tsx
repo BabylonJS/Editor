@@ -137,12 +137,14 @@ export class EditorAnimationInspector extends Component<IEditorAnimationInspecto
         const animationType = getAnimationTypeForObject(key.value);
 
         switch (animationType) {
-            case Animation.ANIMATIONTYPE_FLOAT: return <EditorInspectorNumberField object={key} property={property} onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />;
-            case Animation.ANIMATIONTYPE_VECTOR3: return <EditorInspectorVectorField object={key} property={property} onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />;
+            case Animation.ANIMATIONTYPE_FLOAT:
+                return <EditorInspectorNumberField object={key} property={property} onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />;
+            case Animation.ANIMATIONTYPE_VECTOR3:
+                return <EditorInspectorVectorField object={key} property={property} onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />;
 
             case Animation.ANIMATIONTYPE_COLOR3:
             case Animation.ANIMATIONTYPE_COLOR4:
-                return <EditorInspectorColorField object={key} property={property} onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />;
+                return <EditorInspectorColorField object={key} property={property} noColorPicker noClamp onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />;
             default: return null;
         }
     }

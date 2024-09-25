@@ -3,7 +3,7 @@ import { readJSON, readdir } from "fs-extra";
 
 import {
     AbstractMesh, AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager,
-    RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode, MultiMaterial,
+    RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode, MultiMaterial, Animation,
 } from "babylonjs";
 
 import { Editor } from "../../editor/main";
@@ -458,7 +458,13 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         mesh._waitingData.lods = null;
     });
 
-    // Animation groups
+    // Scene animations
+    scene.animations ??= [];
+    config.animations?.forEach((data) => {
+        scene.animations.push(Animation.Parse(data));
+    });
+
+    // Scene animation groups
     config.animationGroups?.forEach((data) => {
         const group = AnimationGroup.Parse(data, scene);
         if (group.targetedAnimations.length === 0) {

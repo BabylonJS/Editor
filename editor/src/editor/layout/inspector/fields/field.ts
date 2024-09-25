@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-export interface IEditorInspectorFieldProps<T = unknown> {
+export interface IEditorInspectorFieldProps<T = any> {
     object: T;
     property: string;
 

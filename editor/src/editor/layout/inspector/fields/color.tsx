@@ -14,6 +14,9 @@ import { EditorInspectorNumberField } from "./number";
 import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorColorFieldProps extends IEditorInspectorFieldProps {
+    noClamp?: boolean;
+    noColorPicker?: boolean;
+
     onChange?: (value: Color3 | Color4) => void;
 }
 
@@ -67,18 +70,24 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
             </div>
 
             <div className="flex gap-2">
-                <EditorInspectorNumberField object={props.object} property={`${props.property}.r`} min={0} max={1} onChange={(v) => handleChanelChange(v, "r")} />
-                <EditorInspectorNumberField object={props.object} property={`${props.property}.g`} min={0} max={1} onChange={(v) => handleChanelChange(v, "g")} />
-                <EditorInspectorNumberField object={props.object} property={`${props.property}.b`} min={0} max={1} onChange={(v) => handleChanelChange(v, "b")} />
+                <EditorInspectorNumberField object={props.object} property={`${props.property}.r`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "r")} />
+                <EditorInspectorNumberField object={props.object} property={`${props.property}.g`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "g")} />
+                <EditorInspectorNumberField object={props.object} property={`${props.property}.b`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "b")} />
 
-                <Popover minimal usePortal fill hasBackdrop interactionKind="click" position="left" content={getPopoverContent()}>
-                    <Button
-                        style={{
-                            backgroundColor: `rgba(${value.r * 255}, ${value.g * 255}, ${value.b * 255}, ${(value as Color4).a ?? 1})`,
-                        }}
-                        className="h-full aspect-square rounded-lg p-1"
-                    />
-                </Popover>
+                {(props.noColorPicker && color.getClassName() === "Color4") &&
+                    <EditorInspectorNumberField object={props.object} property={`${props.property}.a`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "a")} />
+                }
+
+                {!props.noColorPicker &&
+                    <Popover minimal usePortal fill hasBackdrop interactionKind="click" position="left" content={getPopoverContent()}>
+                        <Button
+                            style={{
+                                backgroundColor: `rgba(${value.r * 255}, ${value.g * 255}, ${value.b * 255}, ${(value as Color4).a ?? 1})`,
+                            }}
+                            className="h-full aspect-square rounded-lg p-1"
+                        />
+                    </Popover>
+                }
             </div>
         </div>
     );
