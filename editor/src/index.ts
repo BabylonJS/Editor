@@ -125,7 +125,7 @@ async function openProject(filePath: string): Promise<void> {
         }
     });
 
-    if (platform() === "win32" && filePath) {
+    if (filePath) {
         window.maximize();
     }
 

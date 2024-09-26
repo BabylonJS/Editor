@@ -47,6 +47,7 @@ import { AssetBrowserMeshItem } from "./assets-browser/items/mesh-item";
 import { AssetBrowserSceneItem } from "./assets-browser/items/scene-item";
 import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
 import { AssetBrowserMaterialItem } from "./assets-browser/items/material-item";
+import { AssetBrowserCinematicItem } from "./assets-browser/items/cinematic-item";
 import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/items/item";
 
 import { listenMaterialAssetsEvents } from "./assets-browser/events/material";
@@ -62,6 +63,7 @@ const MeshSelectable = createSelectable(AssetBrowserMeshItem);
 const ImageSelectable = createSelectable(AssetBrowserImageItem);
 const SceneSelectable = createSelectable(AssetBrowserSceneItem);
 const MaterialSelectable = createSelectable(AssetBrowserMaterialItem);
+const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
 
 export interface IEditorAssetsBrowserProps {
     /**
@@ -591,6 +593,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
             case ".gui":
                 return <GuiSelectable {...props} />;
+
+            case ".cinematic":
+                return <CinematicSelectable {...props} />;
 
             default:
                 return <DefaultSelectable {...props} />;
