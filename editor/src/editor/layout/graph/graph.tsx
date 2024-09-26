@@ -11,8 +11,8 @@ import {
     ContextMenuSubContent, ContextMenuShortcut, ContextMenuCheckboxItem
 } from "../../../ui/shadcn/ui/context-menu";
 
-import { isScene } from "../../../tools/guards/scene";
 import { isMesh, isNode } from "../../../tools/guards/nodes";
+import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
 
 import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../../project/add/light";
@@ -61,7 +61,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                 </>
                             }
 
-                            {(isNode(this.props.object) || isScene(this.props.object)) &&
+                            {((isNode(this.props.object) || isScene(this.props.object)) && !isSceneLinkNode(this.props.object)) &&
                                 <ContextMenuSub>
                                     <ContextMenuSubTrigger className="flex items-center gap-2">
                                         <AiOutlinePlus className="w-5 h-5" /> Add
