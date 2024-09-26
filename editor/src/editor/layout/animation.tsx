@@ -13,6 +13,8 @@ import { EditorAnimationTracksPanel } from "./animation/tracks/tracks";
 import { EditorAnimationInspector } from "./animation/inspector/inspector";
 import { EditorAnimationTimelinePanel } from "./animation/timeline/timeline";
 
+import { ICinematic } from "./animation/cinematic/typings";
+
 export interface IEditorAnimationProps {
     /**
      * Defines the reference to the editor.
@@ -23,7 +25,10 @@ export interface IEditorAnimationProps {
 export interface IEditorAnimationState {
     playing: boolean;
     focused: boolean;
+
+    cinematic: ICinematic | null;
     animatable: IAnimatable | null;
+
     selectedAnimation: Animation | null;
 }
 
@@ -54,6 +59,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
         this.state = {
             playing: false,
             focused: false,
+            cinematic: null,
             animatable: null,
             selectedAnimation: null,
         };
@@ -147,8 +153,22 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
                 object.animations = [];
             }
 
-            this.setState({ animatable: object });
+            this.setState({
+                cinematic: null,
+                animatable: object,
+            });
         }
+    }
+
+    /**
+     * Sets the reference to the edited cinematic object to edit its animations.
+     * @param cinematic defines the reference to the cinematic object to edit.
+     */
+    public setEditedCinematic(cinematic: ICinematic): void {
+        this.setState({
+            cinematic,
+            animatable: null,
+        });
     }
 
     /**

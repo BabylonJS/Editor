@@ -5,7 +5,6 @@ import { ReactNode } from "react";
 import { FaFilm } from "react-icons/fa";
 
 import { parseCinematic } from "../../animation/cinematic/parse";
-import { generateCinematicAnimationGroup } from "../../animation/cinematic/generate";
 
 import { AssetsBrowserItem } from "./item";
 
@@ -22,6 +21,8 @@ export class AssetBrowserCinematicItem extends AssetsBrowserItem {
      */
     protected async onDoubleClick(): Promise<void> {
         const cinematic = parseCinematic(await readJSON(this.props.absolutePath), this.props.editor.layout.preview.scene);
-        generateCinematicAnimationGroup(cinematic, this.props.editor.layout.preview.scene);
+
+        this.props.editor.layout.selectTab("animations");
+        this.props.editor.layout.animations.setEditedCinematic(cinematic);
     }
 }
