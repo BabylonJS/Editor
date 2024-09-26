@@ -1,7 +1,7 @@
 import { AiOutlineClose } from "react-icons/ai";
 import { Component, MouseEvent, ReactNode } from "react";
 
-import { IAnimationKey } from "babylonjs";
+import { IAnimatable, IAnimationKey } from "babylonjs";
 
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 
@@ -12,16 +12,22 @@ import { EditorAnimation } from "../../animation";
 
 export interface IEditorAnimationTimelineKeyProps {
     scale: number;
+    animatable: IAnimatable;
     animationKey: IAnimationKey;
     animationEditor: EditorAnimation;
 
     onClicked: (key: IAnimationKey) => void;
     onRemoved: (key: IAnimationKey) => void;
-    onMoved: (key: IAnimationKey, newFrame: number, oldFrame: number) => void;
+    onMoved: (movedKeys: IAnimationKeyConfigurationToMove[][]) => void;
 }
 
 export interface IEditorAnimationTimelineKeyState {
     moving: boolean | undefined;
+}
+
+export interface IAnimationKeyConfigurationToMove {
+    key: IAnimationKey;
+    startPosition: number;
 }
 
 export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimelineKeyProps, IEditorAnimationTimelineKeyState> {
@@ -88,6 +94,23 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
         let clientX: number | null = null;
 
         const startPosition = this.props.animationKey.frame;
+        const animationsKeyConfigurationsToMove: IAnimationKeyConfigurationToMove[][] = [];
+
+        if (ev.shiftKey) {
+            const keys = this.props.animatable.animations!.map<IAnimationKeyConfigurationToMove[]>((animation) => {
+                return animation.getKeys().filter((key) => key.frame >= startPosition).map((key) => ({
+                    key,
+                    startPosition: key.frame,
+                }));
+            });
+
+            animationsKeyConfigurationsToMove.push(...keys);
+        } else {
+            animationsKeyConfigurationsToMove.push([{
+                key: this.props.animationKey,
+                startPosition: this.props.animationKey.frame,
+            }]);
+        }
 
         document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
             if (clientX === null) {
@@ -101,11 +124,15 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
                 return;
             }
 
-            this.props.animationKey.frame = Math.round(
-                Math.max(0, startPosition - delta / this.props.scale),
-            );
+            animationsKeyConfigurationsToMove.forEach((configuration) => {
+                configuration.forEach((key) => {
+                    key.key.frame = Math.round(
+                        Math.max(0, key.startPosition - delta / this.props.scale),
+                    );
+                });
+            });
 
-            this.forceUpdate();
+            this.props.animationEditor.timelines.forceUpdate();
         });
 
         document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
@@ -118,11 +145,17 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
 
             this.setState({ moving: undefined });
 
+            this.props.animationEditor.timelines.tracks.forEach((track) => {
+                track?.keyFrames.forEach((key) => {
+                    key?.setState({ moving: undefined });
+                });
+            });
+
             waitNextAnimationFrame().then(() => {
                 this.props.onClicked(this.props.animationKey);
 
                 if (moving) {
-                    this.props.onMoved(this.props.animationKey, this.props.animationKey.frame, startPosition);
+                    this.props.onMoved(animationsKeyConfigurationsToMove);
                 }
             });
         });
