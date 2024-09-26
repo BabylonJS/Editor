@@ -11,7 +11,7 @@ import { getInspectorPropertyValue } from "../../../../tools/property";
 
 import { EditorAnimation } from "../../animation";
 
-import { EditorAnimationTimelineKey } from "./key";
+import { EditorAnimationTimelineKey, IAnimationKeyConfigurationToMove } from "./key";
 
 export interface IEditorAnimationTimelineItemProps {
     scale: number;
@@ -26,6 +26,11 @@ export interface IEditorAnimationTimelineItemState {
 }
 
 export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimelineItemProps, IEditorAnimationTimelineItemState> {
+    /**
+     * Defines the list of all available key frames in the track.
+     */
+    public keyFrames: (EditorAnimationTimelineKey | null)[] = [];
+
     public constructor(props: IEditorAnimationTimelineItemProps) {
         super(props);
 
@@ -35,6 +40,9 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
     }
 
     public render(): ReactNode {
+        this.keyFrames.splice(0, this.keyFrames.length);
+        this.keyFrames.length = this.props.animation.getKeys().length;
+
         return (
             <ContextMenu onOpenChange={(o) => !o && this.setState({ rightClickPositionX: null })}>
                 <ContextMenuTrigger>
@@ -54,10 +62,12 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
                                     key={index}
                                     animationKey={key}
                                     scale={this.props.scale}
+                                    animatable={this.props.animatable!}
+                                    ref={(r) => this.keyFrames[index] = r}
                                     animationEditor={this.props.animationEditor}
                                     onRemoved={(key) => this._onAnimationKeyRemoved(key)}
                                     onClicked={() => this.props.animationEditor.inspector.setEditedKey(key)}
-                                    onMoved={(key, newFrame, oldFrame) => this._onAnimationKeyMoved(key, newFrame, oldFrame)}
+                                    onMoved={(animationsKeyConfigurationsToMove) => this._onAnimationKeyMoved(animationsKeyConfigurationsToMove)}
                                 />
                             ))}
 
@@ -122,12 +132,32 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
         this.setState({ rightClickPositionX: null });
     }
 
-    private _onAnimationKeyMoved(key: IAnimationKey, newFrame: number, oldFrame: number): void {
+    private _onAnimationKeyMoved(animationsKeyConfigurationsToMove: IAnimationKeyConfigurationToMove[][]): void {
+        const newKeyFrames = animationsKeyConfigurationsToMove.map((configuration) => {
+            return configuration.map((key) => key.key.frame);
+        });
+
         registerUndoRedo({
             executeRedo: true,
-            undo: () => key.frame = oldFrame,
-            redo: () => key.frame = newFrame,
-            action: () => this.props.animation.getKeys().sort((a, b) => a.frame - b.frame),
+            undo: () => {
+                animationsKeyConfigurationsToMove.forEach((configurations) => {
+                    configurations.forEach((key) => {
+                        key.key.frame = key.startPosition;
+                    });
+                });
+            },
+            redo: () => {
+                animationsKeyConfigurationsToMove.forEach((configurations, configurationIndex) => {
+                    configurations.forEach((key, keyIndex) => {
+                        key.key.frame = newKeyFrames[configurationIndex][keyIndex];
+                    });
+                });
+            },
+            action: () => {
+                this.props.animatable?.animations?.forEach((animation) => {
+                    animation.getKeys().sort((a, b) => a.frame - b.frame);
+                });
+            },
         });
 
         this.forceUpdate();
