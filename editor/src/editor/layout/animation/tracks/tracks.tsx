@@ -11,23 +11,44 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
+import { ICinematic, ICinematicTrack } from "../cinematic/typings";
+
 import { EditorAnimation } from "../../animation";
 
 import { showAddTrackPrompt } from "./add";
 import { EditorAnimationTrackItem } from "./item";
 
 export interface IEditorAnimationTracksPanelProps {
+    cinematic: ICinematic | null;
     animatable: IAnimatable | null;
+
     animationEditor: EditorAnimation;
 }
 
 export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracksPanelProps> {
     public render(): ReactNode {
-        if (this.props.animatable) {
-            return this._getAnimationsList(this.props.animatable.animations!);
+        if (!this.props.animatable && !this.props.cinematic) {
+            return this._getEmpty();
         }
 
-        return this._getEmpty();
+        return (
+            <div className="flex flex-col w-96 h-full">
+                <div className="flex justify-between items-center w-full h-10 p-2">
+                    <div className="font-thin text-muted-foreground">
+                        ({this.props.animatable?.animations?.length ?? this.props.cinematic?.tracks.length} tracks)
+                    </div>
+
+                    <Button variant="ghost" className="w-8 h-8 p-1" onClick={() => this._handleAddTrack()}>
+                        <AiOutlinePlus className="w-5 h-5" />
+                    </Button>
+                </div>
+
+                <div className="flex flex-col w-full">
+                    {this.props.animatable && this._getAnimationsList(this.props.animatable.animations!)}
+                    {this.props.cinematic && this._getCinematicTracksList(this.props.cinematic.tracks)}
+                </div>
+            </div>
+        );
     }
 
     private _getEmpty(): ReactNode {
@@ -38,38 +59,45 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
         );
     }
 
-    private _getAnimationsList(animations: Animation[]): ReactNode {
-        return (
-            <div className="flex flex-col w-96 h-full">
-                <div className="flex justify-between items-center w-full h-10 p-2">
-                    <div className="font-thin text-muted-foreground">
-                        ({animations.length} tracks)
-                    </div>
+    private _getAnimationsList(animations: Animation[]): ReactNode[] {
+        return animations.map((animation, index) => (
+            <EditorAnimationTrackItem
+                key={`${animation.targetProperty}${index}`}
+                animation={animation}
+                cinematicTrack={null}
+                animationEditor={this.props.animationEditor}
+                onRemoveAnimation={(animation) => this._handleRemoveAnimationTrack(animation)}
+            />
+        ));
+    }
 
-                    <Button variant="ghost" className="w-8 h-8 p-1" onClick={() => this.addTrack()}>
-                        <AiOutlinePlus className="w-5 h-5" />
-                    </Button>
-                </div>
+    private _getCinematicTracksList(tracks: ICinematicTrack[]): ReactNode[] {
+        return tracks.map((track, index) => (
+            <EditorAnimationTrackItem
+                key={`${track.propertyPath}${index}`}
+                animation={null}
+                cinematicTrack={track}
+                animationEditor={this.props.animationEditor}
+                onRemoveAnimation={(animation) => this._handleRemoveAnimationTrack(animation)}
+            />
+        ));
+    }
 
-                <div className="flex flex-col w-full">
-                    {animations.map((animation, index) => (
-                        <EditorAnimationTrackItem
-                            key={`${animation.targetProperty}${index}`}
-                            animation={animation}
-                            animationEditor={this.props.animationEditor}
-                            onRemove={(animation) => this._handleRemoveTrack(animation)}
-                        />
-                    ))}
-                </div>
-            </div>
-        );
+    private _handleAddTrack(): void {
+        if (this.props.animatable) {
+            this.addAnimationTrack();
+        }
+
+        if (this.props.cinematic) {
+            // TODO: Add cinematic track
+        }
     }
 
     /**
      * Shows a prompt to add a new track to the animatable object.
      * Aka. animate a property on the currently selected animatable.
      */
-    public async addTrack(): Promise<unknown> {
+    public async addAnimationTrack(): Promise<unknown> {
         const animatable = this.props.animatable;
         if (!animatable) {
             return;
@@ -132,7 +160,7 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
         this.props.animationEditor.forceUpdate();
     }
 
-    private _handleRemoveTrack(animation: Animation): void {
+    private _handleRemoveAnimationTrack(animation: Animation): void {
         const animatable = this.props.animatable;
         if (!animatable) {
             return;

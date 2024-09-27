@@ -102,6 +102,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
                     <EditorAnimationTracksPanel
                         animationEditor={this}
                         ref={(r) => this.tracks = r!}
+                        cinematic={this.state.cinematic}
                         animatable={this.state.animatable}
                     />
 
@@ -111,6 +112,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
                         animationEditor={this}
                         editor={this.props.editor}
                         ref={(r) => this.timelines = r!}
+                        cinematic={this.state.cinematic}
                         animatable={this.state.animatable}
                     />
 
