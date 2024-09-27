@@ -12,7 +12,8 @@ import { getInspectorPropertyValue } from "../../../../tools/property";
 
 import { Editor } from "../../../main";
 
-import { ICinematic } from "../cinematic/typings";
+import { ICinematic, ICinematicTrack } from "../cinematic/typings";
+import { generateCinematicAnimationGroup } from "../cinematic/generate";
 
 import { EditorAnimation } from "../../animation";
 
@@ -55,20 +56,62 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
         this.state = {
             scale: 1,
             moving: false,
-            currentTime: 60,
+            currentTime: 0,
         };
     }
 
     public render(): ReactNode {
-        if (this.props.animatable) {
-            if (!this.props.animatable.animations?.length) {
-                return this._getEmptyAnimations();
-            }
-
-            return this._getAnimationsList(this.props.animatable.animations!);
+        if (!this.props.animatable && !this.props.cinematic) {
+            return this._getEmpty();
         }
 
-        return this._getEmpty();
+        if (this.props.animatable && !this.props.animatable.animations?.length) {
+            return this._getEmptyAnimations();
+        }
+
+        if (this.props.cinematic && !this.props.cinematic.tracks.length) {
+            return this._getEmptyAnimations();
+        }
+
+        const width = this._getMaxWidthForTimeline();
+        const tracksLength = this.props.animatable?.animations?.length ?? this.props.cinematic?.tracks.length ?? 0;
+
+        this.tracks.splice(0, this.tracks.length);
+        this.tracks.length = tracksLength;
+
+        return (
+            <div
+                ref={(r) => this._divRef = r}
+                onWheel={(ev) => this._onWheelEvent(ev)}
+                onMouseDown={(ev) => this._handlePointerDown(ev)}
+                className="relative flex flex-col w-full h-full overflow-x-auto overflow-y-hidden"
+                onClick={() => !this.state.moving && this.props.animationEditor.inspector.setEditedAnimationKey(null)}
+            >
+                <EditorAnimationTracker
+                    width={width}
+                    scale={this.state.scale}
+                    currentTime={this.state.currentTime}
+                    onTimeChange={(currentTime) => this.setCurrentTime(currentTime)}
+                />
+
+                <div
+                    style={{
+                        left: `${this.state.currentTime * this.state.scale - 1.5}px`,
+                    }}
+                    className="absolute top-10 h-full w-[3px] bg-secondary/35"
+                />
+
+                <div
+                    style={{
+                        width: `${width}px`,
+                    }}
+                    className="flex flex-col min-w-full"
+                >
+                    {this.props.animatable && this._getAnimationsList(this.props.animatable.animations!)}
+                    {this.props.cinematic && this._getCinematicTracksList(this.props.cinematic.tracks)}
+                </div>
+            </div>
+        );
     }
 
     public componentDidMount(): void {
@@ -97,6 +140,38 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
         );
     }
 
+    private _getAnimationsList(animations: Animation[]): ReactNode[] {
+        return animations.map((animation, index) => (
+            <EditorAnimationTimelineItem
+                cinematic={null}
+                cinematicTrack={null}
+                ref={(r) => this.tracks[index] = r}
+                key={`${animation.targetProperty}${index}`}
+                animation={animation}
+                scale={this.state.scale}
+                animatable={this.props.animatable}
+                currentTime={this.state.currentTime}
+                animationEditor={this.props.animationEditor}
+            />
+        ));
+    }
+
+    private _getCinematicTracksList(tracks: ICinematicTrack[]): ReactNode[] {
+        return tracks.map((track, index) => (
+            <EditorAnimationTimelineItem
+                cinematicTrack={track}
+                cinematic={this.props.cinematic}
+                ref={(r) => this.tracks[index] = r}
+                key={`${track.propertyPath}${index}`}
+                animation={null}
+                scale={this.state.scale}
+                animatable={this.props.animatable}
+                currentTime={this.state.currentTime}
+                animationEditor={this.props.animationEditor}
+            />
+        ));
+    }
+
     private _handleAddTrack(): void {
         if (this.props.animatable) {
             this.props.animationEditor.tracks.addAnimationTrack();
@@ -105,56 +180,6 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
         if (this.props.cinematic) {
             // TODO: Add cinematic track
         }
-    }
-
-    private _getAnimationsList(animations: Animation[]): ReactNode {
-        const width = this._getMaxWidthForTimeline();
-
-        this.tracks.splice(0, this.tracks.length);
-        this.tracks.length = animations.length;
-
-        return (
-            <div
-                ref={(r) => this._divRef = r}
-                onWheel={(ev) => this._onWheelEvent(ev)}
-                onMouseDown={(ev) => this._handlePointerDown(ev)}
-                className="relative flex flex-col w-full h-full overflow-x-auto overflow-y-hidden"
-                onClick={() => !this.state.moving && this.props.animationEditor.inspector.setEditedKey(null)}
-            >
-                <EditorAnimationTracker
-                    width={width}
-                    scale={this.state.scale}
-                    currentTime={this.state.currentTime}
-                    onTimeChange={(currentTime) => this.setCurrentTime(currentTime)}
-                />
-
-                <div
-                    style={{
-                        left: `${this.state.currentTime * this.state.scale - 1.5}px`,
-                    }}
-                    className="absolute top-10 h-full w-[3px] bg-secondary/35"
-                />
-
-                <div
-                    style={{
-                        width: `${width}px`,
-                    }}
-                    className="flex flex-col min-w-full"
-                >
-                    {animations.map((animation, index) => (
-                        <EditorAnimationTimelineItem
-                            ref={(r) => this.tracks[index] = r}
-                            key={`${animation.targetProperty}${index}`}
-                            animation={animation}
-                            scale={this.state.scale}
-                            animatable={this.props.animatable}
-                            currentTime={this.state.currentTime}
-                            animationEditor={this.props.animationEditor}
-                        />
-                    ))}
-                </div>
-            </div>
-        );
     }
 
     private _getMaxWidthForTimeline(): number {
@@ -197,20 +222,29 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
      * @param currentTime defines the current time expressed in frame.
      */
     public setCurrentTime(currentTime: number): void {
-        if (!this.props.animatable?.animations) {
-            return;
-        }
-
         this.props.animationEditor.stop();
 
         this.setState({ currentTime });
 
-        this.props.animatable.animations.forEach((animation) => {
-            const keys = animation.getKeys();
-            const frame = keys[keys.length - 1].frame < currentTime ? keys[keys.length - 1].frame : currentTime;
+        if (this.props.animatable?.animations) {
+            this.props.animatable.animations.forEach((animation) => {
+                const keys = animation.getKeys();
+                const frame = keys[keys.length - 1].frame < currentTime ? keys[keys.length - 1].frame : currentTime;
 
-            this.props.editor.layout.preview.scene.beginDirectAnimation(this.props.animatable, [animation], frame, frame, false, 1.0);
-        });
+                this.props.editor.layout.preview.scene.beginDirectAnimation(this.props.animatable, [animation], frame, frame, false, 1.0);
+            });
+        }
+
+        if (this.props.cinematic) {
+            const group = generateCinematicAnimationGroup(this.props.cinematic, this.props.editor.layout.preview.scene);
+            group.start(false);
+            group.goToFrame(currentTime > group.to ? group.to : currentTime);
+            group.pause();
+
+            waitNextAnimationFrame().then(() => {
+                group.dispose();
+            });
+        }
     }
 
     /**
@@ -229,15 +263,25 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
      * For the value, sets the current value of the animatable object property being animated.
      */
     public addKeysAtCurrentTime(): void {
+        if (this.props.animatable) {
+            return this._addAnimationKeysAtCurrentTime();
+        }
+
+        if (this.props.cinematic) {
+            // TODO: add cinematic keys
+        }
+    }
+
+    private _addAnimationKeysAtCurrentTime(): void {
         const frame = Math.round(this.state.currentTime / this.state.scale);
 
-        const tracks = this.tracks.filter((track) => !track?.props.animation.getKeys().find((k) => k.frame === frame)) as EditorAnimationTimelineItem[];
+        const tracks = this.tracks.filter((track) => !track?.props.animation!.getKeys().find((k) => k.frame === frame)) as EditorAnimationTimelineItem[];
         if (!tracks.length) {
             return;
         }
 
         const keys = tracks.map((track) => {
-            const value = getInspectorPropertyValue(this.props.animatable, track.props.animation.targetProperty);
+            const value = getInspectorPropertyValue(this.props.animatable, track.props.animation!.targetProperty);
 
             return {
                 frame,
@@ -249,20 +293,20 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
             executeRedo: true,
             undo: () => {
                 tracks.forEach((track, index) => {
-                    const keyIndex = track.props.animation.getKeys().indexOf(keys[index]);
+                    const keyIndex = track.props.animation!.getKeys().indexOf(keys[index]);
                     if (keyIndex !== -1) {
-                        track.props.animation.getKeys().splice(keyIndex, 1);
+                        track.props.animation!.getKeys().splice(keyIndex, 1);
                     }
                 });
             },
             redo: () => {
                 tracks.forEach((track, index) => {
-                    track.props.animation.getKeys().push(keys[index]);
+                    track.props.animation!.getKeys().push(keys[index]);
                 });
             },
             action: () => {
                 tracks.forEach((track) => {
-                    track.props.animation.getKeys().sort((a, b) => a.frame - b.frame);
+                    track.props.animation!.getKeys().sort((a, b) => a.frame - b.frame);
                 });
             },
         });

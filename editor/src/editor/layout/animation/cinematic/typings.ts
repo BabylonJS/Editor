@@ -15,6 +15,7 @@ export interface ICinematicTrack {
 }
 
 export interface ICinematicAnimationGroup {
+    type: "group";
     name: string;
     frame: number;
 }
