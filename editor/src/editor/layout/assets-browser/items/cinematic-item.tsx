@@ -20,7 +20,8 @@ export class AssetBrowserCinematicItem extends AssetsBrowserItem {
      * @override
      */
     protected async onDoubleClick(): Promise<void> {
-        const cinematic = parseCinematic(await readJSON(this.props.absolutePath), this.props.editor.layout.preview.scene);
+        const data = await readJSON(this.props.absolutePath);
+        const cinematic = parseCinematic(data, this.props.editor.layout.preview.scene);
 
         this.props.editor.layout.selectTab("animations");
         this.props.editor.layout.animations.setEditedCinematic(cinematic);

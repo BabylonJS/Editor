@@ -12,13 +12,15 @@ import { EditorInspectorSwitchField } from "../../inspector/fields/switch";
 import { EditorInspectorSectionField } from "../../inspector/fields/section";
 
 import { EditorAnimation } from "../../animation";
+import { ICinematicKey, ICinematicKeyCut } from "../cinematic/typings";
 
 export interface IEditorAnimationInspectorProps {
     animationEditor: EditorAnimation;
 }
 
 export interface IEditorAnimationInspectorState {
-    key: IAnimationKey | null;
+    animationKey: IAnimationKey | null;
+    cinematicKey: ICinematicKey | ICinematicKeyCut | null;
 }
 
 export class EditorAnimationInspector extends Component<IEditorAnimationInspectorProps, IEditorAnimationInspectorState> {
@@ -26,7 +28,8 @@ export class EditorAnimationInspector extends Component<IEditorAnimationInspecto
         super(props);
 
         this.state = {
-            key: null,
+            animationKey: null,
+            cinematicKey: null,
         };
     }
 
@@ -35,7 +38,7 @@ export class EditorAnimationInspector extends Component<IEditorAnimationInspecto
             <div
                 className={`
                     absolute top-0 right-0 w-96 h-full p-2 bg-background border-l-primary-foreground border-l-4
-                    ${this.state.key ? "translate-x-0" : "opacity-0 translate-x-full pointer-events-none"}
+                    ${this.state.animationKey ? "translate-x-0" : "opacity-0 translate-x-full pointer-events-none"}
                     transition-all duration-150 ease-in-out
                 `}
             >
@@ -48,18 +51,34 @@ export class EditorAnimationInspector extends Component<IEditorAnimationInspecto
      * Sets the rerefence to the key to edit.
      * @param key defines the reference to the key to edit.
      */
-    public setEditedKey(key: IAnimationKey | null): void {
-        if (key !== this.state.key) {
-            this.setState({ key });
+    public setEditedAnimationKey(key: IAnimationKey | null): void {
+        if (key !== this.state.animationKey) {
+            this.setState({
+                animationKey: key,
+                cinematicKey: null,
+            });
+        }
+    }
+
+    /**
+     * Sets the reference to the key to edit.
+     * @param key defines the reference to the key to edit.
+     */
+    public setEditedCinematicKey(key: ICinematicKey | ICinematicKeyCut | null): void {
+        if (key !== this.state.cinematicKey) {
+            this.setState({
+                cinematicKey: key,
+                animationKey: null,
+            });
         }
     }
 
     private _getKeyInspector(): ReactNode {
-        if (!this.state.key) {
+        if (!this.state.animationKey) {
             return null;
         }
 
-        const animationType = getAnimationTypeForObject(this.state.key.value);
+        const animationType = getAnimationTypeForObject(this.state.animationKey.value);
 
         return (
             <div className="flex flex-col gap-2 h-full">
@@ -68,52 +87,52 @@ export class EditorAnimationInspector extends Component<IEditorAnimationInspecto
                 </div>
 
                 <EditorInspectorSectionField title="Properties">
-                    <EditorInspectorNumberField object={this.state.key} property="frame" label="Frame" step={1} min={0} onChange={() => {
+                    <EditorInspectorNumberField object={this.state.animationKey} property="frame" label="Frame" step={1} min={0} onChange={() => {
                         this.props.animationEditor.timelines.forceUpdate();
                         this.props.animationEditor.timelines.updateTracksAtCurrentTime();
                     }} />
 
                     {animationType === Animation.ANIMATIONTYPE_FLOAT &&
-                        <EditorInspectorNumberField object={this.state.key} property="value" label="Value" onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />
+                        <EditorInspectorNumberField object={this.state.animationKey} property="value" label="Value" onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />
                     }
 
                     {animationType === Animation.ANIMATIONTYPE_VECTOR3 &&
-                        <EditorInspectorVectorField object={this.state.key} property="value" label="Value" onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />
+                        <EditorInspectorVectorField object={this.state.animationKey} property="value" label="Value" onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />
                     }
 
                     {(animationType === Animation.ANIMATIONTYPE_COLOR3 || animationType === Animation.ANIMATIONTYPE_COLOR4) &&
-                        <EditorInspectorColorField label={<div className="w-14">Value</div>} object={this.state.key} property="value" onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />
+                        <EditorInspectorColorField label={<div className="w-14">Value</div>} object={this.state.animationKey} property="value" onChange={() => this.props.animationEditor.timelines.updateTracksAtCurrentTime()} />
                     }
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Tangents">
-                    <EditorInspectorSwitchField label="In Tangents" object={{ checked: (this.state.key.inTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
+                    <EditorInspectorSwitchField label="In Tangents" object={{ checked: (this.state.animationKey.inTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
                         registerSimpleUndoRedo({
-                            object: this.state.key,
+                            object: this.state.animationKey,
                             property: "inTangent",
-                            oldValue: this.state.key?.inTangent,
-                            newValue: v ? this._getTangentDefaultValue(this.state.key!) : undefined,
+                            oldValue: this.state.animationKey?.inTangent,
+                            newValue: v ? this._getTangentDefaultValue(this.state.animationKey!) : undefined,
                             executeRedo: true,
                         });
 
                         this.forceUpdate();
                     }} />
 
-                    {(this.state.key.inTangent ?? null) !== null && this._getTangentInspector(this.state.key, "inTangent")}
+                    {(this.state.animationKey.inTangent ?? null) !== null && this._getTangentInspector(this.state.animationKey, "inTangent")}
 
-                    <EditorInspectorSwitchField label="Out Tangents" object={{ checked: (this.state.key.outTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
+                    <EditorInspectorSwitchField label="Out Tangents" object={{ checked: (this.state.animationKey.outTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
                         registerSimpleUndoRedo({
-                            object: this.state.key,
+                            object: this.state.animationKey,
                             property: "outTangent",
-                            oldValue: this.state.key?.outTangent,
-                            newValue: v ? this._getTangentDefaultValue(this.state.key!) : undefined,
+                            oldValue: this.state.animationKey?.outTangent,
+                            newValue: v ? this._getTangentDefaultValue(this.state.animationKey!) : undefined,
                             executeRedo: true,
                         });
 
                         this.forceUpdate();
                     }} />
 
-                    {(this.state.key.outTangent ?? null) !== null && this._getTangentInspector(this.state.key, "outTangent")}
+                    {(this.state.animationKey.outTangent ?? null) !== null && this._getTangentInspector(this.state.animationKey, "outTangent")}
                 </EditorInspectorSectionField>
             </div>
         );

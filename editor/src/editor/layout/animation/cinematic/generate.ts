@@ -62,6 +62,8 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
         });
 
         animation.setKeys(keys);
+
+        result.addTargetedAnimation(animation, node);
     });
 
     return result;
