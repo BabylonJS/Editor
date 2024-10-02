@@ -51,6 +51,7 @@ export function EditorAnimationAddTrackPrompt(props: IEditorAnimationAddTrackPro
 
                 <Command className="border-muted border-[1px]">
                     <CommandInput
+                        ref={(r) => r?.focus()}
                         onValueChange={(v) => setValue(v)}
                         placeholder="Search for a property to animate..."
                     />

@@ -3,7 +3,7 @@ import { Animation, AnimationGroup, IAnimationKey, Scene } from "babylonjs";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
-import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
+import { ICinematic, ICinematicKey, ICinematicKeyCut } from "../typings";
 
 export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Scene): AnimationGroup {
     const result = new AnimationGroup(cinematic.name, scene);
