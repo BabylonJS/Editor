@@ -3,7 +3,7 @@ import { Animation, Color3, Color4, Matrix, Node, Quaternion, Scene, Vector2, Ve
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
-import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
+import { ICinematic, ICinematicKey, ICinematicKeyCut } from "../typings";
 
 /**
  * Parses the given JSON data and returns a new cinematic object.

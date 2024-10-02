@@ -4,8 +4,8 @@ import { ReactNode } from "react";
 
 import { FaFilm } from "react-icons/fa";
 
-import { parseCinematic } from "../../animation/cinematic/parse";
-import { generateCinematicAnimationGroup } from "../../animation/cinematic/generate";
+import { parseCinematic } from "../../cinematic/serialization/parse";
+import { generateCinematicAnimationGroup } from "../../cinematic/generate/generate";
 
 import { AssetsBrowserItem } from "./item";
 
