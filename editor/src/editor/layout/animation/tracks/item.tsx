@@ -6,15 +6,12 @@ import { Animation } from "babylonjs";
 import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { EditorAnimation } from "../../animation";
-import { ICinematicTrack } from "../cinematic/typings";
 
 export interface IEditorAnimationTrackItemProps {
-    animation: Animation | null;
-    cinematicTrack: ICinematicTrack | null;
-
+    animation: Animation;
     animationEditor: EditorAnimation;
 
-    onRemoveAnimation: (animation: Animation) => void;
+    onRemove: (animation: Animation) => void;
 }
 
 export class EditorAnimationTrackItem extends Component<IEditorAnimationTrackItemProps> {
@@ -30,45 +27,21 @@ export class EditorAnimationTrackItem extends Component<IEditorAnimationTrackIte
                 `}
             >
                 <div>
-                    {this._getTitle()}
+                    {this.props.animation.targetProperty}
                 </div>
 
                 <Button
                     variant="ghost"
-                    onClick={() => this._handleRemove()}
                     className={`
                         w-8 h-8 p-1
                         ${this.props.animationEditor.state.selectedAnimation === this.props.animation ? "opacity-100" : "opacity-0"}
                         transition-all duration-300 ease-in-out
                     `}
+                    onClick={() => this.props.onRemove(this.props.animation)}
                 >
                     <HiOutlineTrash className="w-5 h-5" />
                 </Button>
             </div>
         );
-    }
-
-    private _getTitle(): string {
-        if (this.props.animation) {
-            return this.props.animation.targetProperty;
-        }
-
-        if (this.props.cinematicTrack) {
-            if (this.props.cinematicTrack.propertyPath) {
-                return this.props.cinematicTrack.propertyPath;
-            }
-
-            if (this.props.cinematicTrack.animationGroups) {
-                return "Animation Groups";
-            }
-        }
-
-        return "Unknown property.";
-    }
-
-    private _handleRemove(): void {
-        if (this.props.animation) {
-            this.props.onRemoveAnimation(this.props.animation);
-        }
     }
 }

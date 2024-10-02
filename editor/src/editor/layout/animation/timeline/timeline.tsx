@@ -12,8 +12,6 @@ import { getInspectorPropertyValue } from "../../../../tools/property";
 
 import { Editor } from "../../../main";
 
-import { ICinematic } from "../cinematic/typings";
-
 import { EditorAnimation } from "../../animation";
 
 import { EditorAnimationTracker } from "./tracker";
@@ -21,7 +19,6 @@ import { EditorAnimationTimelineItem } from "./track";
 
 export interface IEditorAnimationTimelinePanelProps {
     editor: Editor;
-    cinematic: ICinematic | null;
     animatable: IAnimatable | null;
     animationEditor: EditorAnimation;
 }
@@ -90,21 +87,11 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
                     No animations found on this object.
                 </div>
 
-                <Button variant="secondary" className="flex items-center gap-2" onClick={() => this._handleAddTrack()}>
+                <Button variant="secondary" className="flex items-center gap-2" onClick={() => this.props.animationEditor.tracks.addTrack()}>
                     <AiOutlinePlus className="w-5 h-5" /> Add Track
                 </Button>
             </div>
         );
-    }
-
-    private _handleAddTrack(): void {
-        if (this.props.animatable) {
-            this.props.animationEditor.tracks.addAnimationTrack();
-        }
-
-        if (this.props.cinematic) {
-            // TODO: Add cinematic track
-        }
     }
 
     private _getAnimationsList(animations: Animation[]): ReactNode {
@@ -163,18 +150,11 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
     private _getMaxFrameForTimeline(): number {
         let frame = 0;
-
-        if (this.props.animatable) {
-            this.props.animatable.animations?.forEach((animation) => {
-                animation.getKeys().forEach((key) => {
-                    frame = Math.max(frame, key.frame);
-                });
+        this.props.animatable?.animations?.forEach((animation) => {
+            animation.getKeys().forEach((key) => {
+                frame = Math.max(frame, key.frame);
             });
-        }
-
-        if (this.props.cinematic) {
-            // TODO: get max frame for cinematic
-        }
+        });
 
         return frame;
     }
@@ -289,22 +269,16 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
             { frame: maxFrame, value: maxFrame },
         ]);
 
-        if (this.props.animatable) {
-            scene.stopAnimation(this.props.animatable);
+        scene.stopAnimation(this.props.animatable);
 
-            this.props.animatable.animations.forEach((animation) => {
-                const keys = animation.getKeys();
-                const frame = keys[keys.length - 1].frame < currentTime ? keys[keys.length - 1].frame : currentTime;
+        this.props.animatable.animations.forEach((animation) => {
+            const keys = animation.getKeys();
+            const frame = keys[keys.length - 1].frame < currentTime ? keys[keys.length - 1].frame : currentTime;
 
-                this.props.editor.layout.preview.scene.beginDirectAnimation(this.props.animatable, [animation], frame, maxFrame, false, 1.0);
-            });
+            this.props.editor.layout.preview.scene.beginDirectAnimation(this.props.animatable, [animation], frame, maxFrame, false, 1.0);
+        });
 
-            this.props.editor.layout.preview.scene.beginDirectAnimation(this, [this._animation], currentTime, maxFrame, false, 1.0);
-        }
-
-        if (this.props.cinematic) {
-            // TODO: stop cinematic
-        }
+        this.props.editor.layout.preview.scene.beginDirectAnimation(this, [this._animation], currentTime, maxFrame, false, 1.0);
 
         if (this._renderLoop) {
             engine.stopRenderLoop(this._renderLoop);
@@ -327,13 +301,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
             this._renderLoop = null;
         }
 
-        if (this.props.animatable) {
-            scene.stopAnimation(this.props.animatable);
-        }
-
-        if (this.props.cinematic) {
-            // TODO: stop cinematic
-        }
+        scene.stopAnimation(this.props.animatable);
     }
 
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
