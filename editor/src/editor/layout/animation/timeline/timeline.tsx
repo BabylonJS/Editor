@@ -143,13 +143,12 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
     private _getAnimationsList(animations: Animation[]): ReactNode[] {
         return animations.map((animation, index) => (
             <EditorAnimationTimelineItem
-                ref={(r) => this.tracks[index] = r}
-                key={`${animation.targetProperty}${index}`}
                 cinematic={null}
                 cinematicTrack={null}
+                ref={(r) => this.tracks[index] = r}
+                key={`${animation.targetProperty}${index}`}
                 animation={animation}
                 scale={this.state.scale}
-                editor={this.props.editor}
                 animatable={this.props.animatable}
                 currentTime={this.state.currentTime}
                 animationEditor={this.props.animationEditor}
@@ -160,13 +159,12 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
     private _getCinematicTracksList(tracks: ICinematicTrack[]): ReactNode[] {
         return tracks.map((track, index) => (
             <EditorAnimationTimelineItem
+                cinematicTrack={track}
+                cinematic={this.props.cinematic}
                 ref={(r) => this.tracks[index] = r}
                 key={`${track.propertyPath}${index}`}
                 animation={null}
-                cinematicTrack={track}
                 scale={this.state.scale}
-                editor={this.props.editor}
-                cinematic={this.props.cinematic}
                 animatable={this.props.animatable}
                 currentTime={this.state.currentTime}
                 animationEditor={this.props.animationEditor}

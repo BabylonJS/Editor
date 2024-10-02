@@ -4,12 +4,10 @@ import { AiOutlinePlus } from "react-icons/ai";
 import { Animation, IAnimatable, IAnimationKey } from "babylonjs";
 
 import { TooltipProvider } from "../../../../ui/shadcn/ui/tooltip";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
-
-import { Editor } from "../../../main";
 
 import { isCinematicKeyCut } from "../cinematic/guards";
 import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../cinematic/typings";
@@ -20,7 +18,6 @@ import { EditorAnimationTimelineKey, IAnimationKeyConfigurationToMove, ICinemati
 
 export interface IEditorAnimationTimelineItemProps {
     scale: number;
-    editor: Editor;
     currentTime: number;
     animation: Animation | null;
     cinematic: ICinematic | null;
@@ -87,20 +84,10 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
                     </div>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
-                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("key")}>
+                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey()}>
                         <AiOutlinePlus className="w-5 h-5" /> Add Key Here
                     </ContextMenuItem>
-
-                    {this.props.cinematicTrack &&
-                        <>
-                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("cut")}>
-                                <AiOutlinePlus className="w-5 h-5" /> Add Cut Key Here
-                            </ContextMenuItem>
-                            <ContextMenuSeparator />
-                        </>
-                    }
-
-                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("key", this.props.currentTime * this.props.scale)}>
+                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey(this.props.currentTime * this.props.scale)}>
                         <AiOutlinePlus className="w-5 h-5" /> Add Key at Tracker Position
                     </ContextMenuItem>
                 </ContextMenuContent>
@@ -148,13 +135,13 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
      * Adds a new animation key for this track located at the current time selected in
      * the animation editor using the time tracker.
      */
-    public addAnimationKey(type: "key" | "cut", positionX?: number | null): void {
+    public addAnimationKey(positionX?: number | null): void {
         if (this.props.animation) {
             this._addAnimationKey(positionX);
         }
 
         if (this.props.cinematicTrack) {
-            this._addCinematicKey(type, positionX);
+            // TODO: add cinematic track key
         }
     }
 
@@ -187,75 +174,6 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
             },
             redo: () => this.props.animation!.getKeys().push(key),
             action: () => this.props.animation!.getKeys().sort((a, b) => a.frame - b.frame),
-        });
-
-        this.setState({ rightClickPositionX: null });
-    }
-
-    private _addCinematicKey(type: "key" | "cut", positionX?: number | null): void {
-        positionX ??= this.state.rightClickPositionX;
-
-        if (positionX === null || !this.props.cinematicTrack?.nodeId || !this.props.cinematicTrack?.propertyPath) {
-            return;
-        }
-
-
-        const node = this.props.editor.layout.preview.scene.getNodeById(this.props.cinematicTrack.nodeId);
-        if (!node) {
-            return;
-        }
-
-        const value = getInspectorPropertyValue(node, this.props.cinematicTrack.propertyPath);
-
-        const existingKey = this.props.cinematicTrack.keyFrameAnimations?.find((k) => {
-            if (isCinematicKeyCut(k)) {
-                return k.key1.frame === Math.round(positionX / this.props.scale) || k.key2.frame === Math.round(positionX / this.props.scale);
-            }
-
-            return k.frame === Math.round(positionX / this.props.scale);
-        });
-
-        if (existingKey) {
-            return;
-        }
-
-        const key = type === "key"
-            ? {
-                type: "key",
-                value: value.clone?.() ?? value,
-                frame: Math.round(positionX / this.props.scale),
-            } as ICinematicKey
-            : {
-                type: "cut",
-                key1: {
-                    value: value.clone?.() ?? value,
-                    frame: Math.round(positionX / this.props.scale),
-                } as IAnimationKey,
-                key2: {
-                    value: value.clone?.() ?? value,
-                    frame: Math.round(positionX / this.props.scale),
-                } as IAnimationKey,
-            } as ICinematicKeyCut;
-
-        registerUndoRedo({
-            executeRedo: true,
-            undo: () => {
-                const index = this.props.cinematicTrack!.keyFrameAnimations!.indexOf(key);
-                if (index !== -1) {
-                    this.props.cinematicTrack?.keyFrameAnimations!.splice(index, 1);
-                }
-            },
-            redo: () => {
-                this.props.cinematicTrack!.keyFrameAnimations!.push(key);
-            },
-            action: () => {
-                this.props.cinematicTrack!.keyFrameAnimations!.sort((a, b) => {
-                    const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
-                    const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
-
-                    return frameA - frameB;
-                });
-            },
         });
 
         this.setState({ rightClickPositionX: null });
