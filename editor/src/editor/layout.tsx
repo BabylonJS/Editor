@@ -1,7 +1,7 @@
 import { platform } from "os";
 
 import { Component, ReactNode } from "react";
-import { Actions, IJsonModel, Layout, Model, TabNode } from "flexlayout-react";
+import { IJsonModel, Layout, Model, TabNode } from "flexlayout-react";
 
 import { waitNextAnimationFrame } from "../tools/tools";
 
@@ -49,8 +49,6 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
      */
     public animations: EditorAnimation;
 
-    private _layoutRef: Layout | null = null;
-
     private _model: Model = Model.fromJson(layoutModel as any);
     private _components: Record<string, React.ReactNode> = {
         "console": <EditorConsole editor={this.props.editor} ref={(r) => this.console = r!} />,
@@ -86,7 +84,6 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
                 <div className="relative w-full h-full">
                     <Layout
                         model={this._model}
-                        ref={(r) => this._layoutRef = r}
                         factory={(n) => this._layoutFactory(n)}
                         onModelChange={(m) => this._saveLayout(m)}
                     />
@@ -98,15 +95,6 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
     public componentDidCatch(): void {
         localStorage.removeItem("babylonjs-editor-layout");
         window.location.reload();
-    }
-
-    /**
-     * Makes the tab identified by the given id active.
-     * If the tab is hidden, makes it visible and selected.
-     * @param tabId defines the id of the tab to make active.
-     */
-    public selectTab(tabId: string): void {
-        this._layoutRef?.props.model.doAction(Actions.selectTab(tabId));
     }
 
     private _layoutFactory(node: TabNode): React.ReactNode {
