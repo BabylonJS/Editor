@@ -4,8 +4,8 @@ import { ReactNode } from "react";
 
 import { FaFilm } from "react-icons/fa";
 
+import { CinematicEditor } from "../../cinematic/editor";
 import { parseCinematic } from "../../cinematic/serialization/parse";
-import { generateCinematicAnimationGroup } from "../../cinematic/generate/generate";
 
 import { AssetsBrowserItem } from "./item";
 
@@ -21,7 +21,14 @@ export class AssetBrowserCinematicItem extends AssetsBrowserItem {
      * @override
      */
     protected async onDoubleClick(): Promise<void> {
-        const cinematic = parseCinematic(await readJSON(this.props.absolutePath), this.props.editor.layout.preview.scene);
-        generateCinematicAnimationGroup(cinematic, this.props.editor.layout.preview.scene);
+        const data = await readJSON(this.props.absolutePath);
+        const cinematic = parseCinematic(data, this.props.editor.layout.preview.scene);
+
+        this.props.editor.layout.addLayoutTab("Cinematic Editor", (
+            <CinematicEditor
+                cinematic={cinematic}
+                editor={this.props.editor}
+            />
+        ));
     }
 }
