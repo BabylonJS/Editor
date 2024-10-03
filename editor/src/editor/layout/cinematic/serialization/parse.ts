@@ -18,8 +18,8 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
             let node: Node | null = null;
             let animationType: number | null = null;
 
-            if (track.nodeId) {
-                node = scene.getNodeById(track.nodeId);
+            if (track.node) {
+                node = scene.getNodeById(track.node);
             }
 
             if (track.propertyPath) {
@@ -28,7 +28,7 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
             }
 
             return {
-                nodeId: track.nodeId,
+                node,
                 propertyPath: track.propertyPath,
                 animationGroups: track.animationGroups,
                 keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
