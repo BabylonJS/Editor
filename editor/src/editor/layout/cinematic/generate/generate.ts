@@ -29,16 +29,11 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
         });
 
         // Key frames
-        if (!track.nodeId || !track.propertyPath || !track.keyFrameAnimations) {
+        if (!track.node || !track.propertyPath || !track.keyFrameAnimations) {
             return;
         }
 
-        const node = scene.getNodeById(track.nodeId);
-        if (!node) {
-            return;
-        }
-
-        const value = getInspectorPropertyValue(node, track.propertyPath);
+        const value = getInspectorPropertyValue(track.node, track.propertyPath);
         const animationType = getAnimationTypeForObject(value);
 
         if (animationType === null) {
@@ -63,7 +58,7 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 
         animation.setKeys(keys);
 
-        result.addTargetedAnimation(animation, node);
+        result.addTargetedAnimation(animation, track.node);
     });
 
     return result;

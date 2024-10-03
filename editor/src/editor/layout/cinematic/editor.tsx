@@ -73,6 +73,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                 >
                     <CinematicEditorTracksPanel
                         cinematicEditor={this}
+                        editor={this.props.editor}
                         ref={(r) => this.tracks = r!}
                         cinematic={this.props.cinematic}
                     />

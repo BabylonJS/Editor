@@ -9,7 +9,7 @@ export interface ICinematic {
 export interface ICinematicTrack {
     animationGroups?: ICinematicAnimationGroup[];
 
-    nodeId?: string;
+    node?: any;
     propertyPath?: string;
     keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[];
 }

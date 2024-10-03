@@ -5,6 +5,8 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 
+import { Editor } from "../../../main";
+
 import { ICinematic, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEditor } from "../editor";
@@ -12,6 +14,7 @@ import { CinematicEditor } from "../editor";
 import { CinematicEditorTrackItem } from "./item";
 
 export interface ICinematicEditorTracksPanelProps {
+    editor: Editor;
     cinematic: ICinematic;
     cinematicEditor: CinematicEditor;
 }
@@ -35,6 +38,8 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
                         <CinematicEditorTrackItem
                             key={`${track.propertyPath}${index}`}
                             track={track}
+                            editor={this.props.editor}
+                            cinematic={this.props.cinematic}
                             cinematicEditor={this.props.cinematicEditor}
                             onRemove={(track) => this._handleRemoveTrack(track)}
                         />

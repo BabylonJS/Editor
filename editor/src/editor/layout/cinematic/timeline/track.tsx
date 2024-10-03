@@ -110,17 +110,12 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
     public addAnimationKey(type: "key" | "cut", positionX?: number | null): void {
         positionX ??= this.state.rightClickPositionX;
 
-        if (positionX === null || !this.props.track.nodeId || !this.props.track.propertyPath) {
-            return;
-        }
-
-        const node = this.props.editor.layout.preview.scene.getNodeById(this.props.track.nodeId);
-        if (!node) {
+        if (positionX === null || !this.props.track.node || !this.props.track.propertyPath) {
             return;
         }
 
         const frame = Math.round(positionX / this.props.scale);
-        const value = getInspectorPropertyValue(node, this.props.track.propertyPath);
+        const value = getInspectorPropertyValue(this.props.track.node, this.props.track.propertyPath);
 
         const key = type === "key"
             ? {
