@@ -75,9 +75,9 @@ export class EditorAnimationToolbar extends Component<IEditorAnimationToolbarPro
 
                     <Button
                         variant="ghost"
-                        className="w-8 h-8 p-1 disabled:opacity-25 transition-all duration-150 ease-in-out"
                         onClick={() => this.props.animationEditor.play()}
                         disabled={this.props.animatable === null || this.props.playing}
+                        className="w-8 h-8 p-1 disabled:opacity-25 transition-all duration-150 ease-in-out"
                     >
                         <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
                     </Button>

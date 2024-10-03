@@ -11,12 +11,11 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
     cinematic.tracks.forEach((track) => {
         // Animation groups
         track.animationGroups?.forEach((configuration) => {
-            const animationGroup = scene.getAnimationGroupByName(configuration.name);
-            if (!animationGroup) {
+            if (!track.animationGroup) {
                 return;
             }
 
-            animationGroup.targetedAnimations.forEach((targetedAnimation) => {
+            track.animationGroup.targetedAnimations.forEach((targetedAnimation) => {
                 const animation = targetedAnimation.animation.clone();
                 const normalizedFps = cinematic.framesPerSecond / targetedAnimation.animation.framePerSecond;
 

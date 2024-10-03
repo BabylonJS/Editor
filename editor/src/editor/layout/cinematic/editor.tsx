@@ -2,6 +2,7 @@ import { Component, ReactNode } from "react";
 
 import { Observer } from "babylonjs";
 
+import { isDomElementFocusable } from "../../../tools/dom";
 import { onRedoObservable, onUndoObservable } from "../../../tools/undoredo";
 
 import { Editor } from "../../main";
@@ -35,6 +36,11 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
     private _undoObserver: Observer<void> | null = null;
     private _redoObserver: Observer<void> | null = null;
+
+    private _playing: boolean = false;
+    private _currentTimeBeforePlay: number | null = null;
+
+    private _onKeyUpListener: (event: KeyboardEvent) => void;
 
     public constructor(props: ICinematicEditorProps) {
         super(props);
@@ -94,6 +100,20 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
     public componentDidMount(): void {
         this._undoObserver = onUndoObservable.add(() => this.forceUpdate());
         this._redoObserver = onRedoObservable.add(() => this.forceUpdate());
+
+        window.addEventListener("keyup", this._onKeyUpListener = (ev) => {
+            if (ev.key !== " " || !this.state.focused) {
+                return;
+            }
+
+            if (!isDomElementFocusable(document.activeElement)) {
+                if (this.state.playing) {
+                    this.stop();
+                } else {
+                    this.play();
+                }
+            }
+        });
     }
 
     public componentWillUnmount(): void {
@@ -103,6 +123,44 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
         if (this._redoObserver) {
             onRedoObservable.remove(this._redoObserver);
+        }
+
+        window.removeEventListener("keyup", this._onKeyUpListener);
+    }
+
+    /**
+     * Plays the current timeline starting from the current tracker position.
+     */
+    public play(): void {
+        if (this._playing) {
+            return;
+        }
+
+        this.setState({ playing: true });
+
+        this._playing = true;
+        this._currentTimeBeforePlay = this.timelines.state.currentTime;
+
+        this.timelines.play();
+    }
+
+    /**
+     * Stops the current timeline being played and returns to the previous tracker position
+     * saved before the timeline was played.
+     */
+    public stop(): void {
+        if (!this._playing) {
+            return;
+        }
+
+        this._playing = false;
+        this.setState({ playing: false });
+
+        this.timelines.stop();
+
+        if (this._currentTimeBeforePlay !== null) {
+            this.timelines.setCurrentTime(this._currentTimeBeforePlay);
+            this._currentTimeBeforePlay = null;
         }
     }
 }

@@ -61,7 +61,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                     `}
                     >
                         <TooltipProvider>
-                            {this.props.track.keyFrameAnimations?.map((key, index) => (
+                            {(this.props.track.keyFrameAnimations ?? this.props.track.animationGroups)?.map((key, index) => (
                                 <CinematicEditorTimelineKey
                                     key={index}
                                     cinematicKey={key}
@@ -88,16 +88,31 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                     </div>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
-                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("key")}>
-                        <AiOutlinePlus className="w-5 h-5" /> Add Key Here
-                    </ContextMenuItem>
-                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("cut")}>
-                        <AiOutlinePlus className="w-5 h-5" /> Add Key Cut Here
-                    </ContextMenuItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("key", this.props.currentTime * this.props.scale)}>
-                        <AiOutlinePlus className="w-5 h-5" /> Add Key at Tracker Position
-                    </ContextMenuItem>
+                    {this.props.track.animationGroups &&
+                        <>
+                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationGroupKey()}>
+                                <AiOutlinePlus className="w-5 h-5" /> Add Key Here
+                            </ContextMenuItem>
+                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationGroupKey(this.props.currentTime * this.props.scale)}>
+                                <AiOutlinePlus className="w-5 h-5" /> Add Key at Tracker Position
+                            </ContextMenuItem>
+                        </>
+                    }
+
+                    {this.props.track.keyFrameAnimations &&
+                        <>
+                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("key")}>
+                                <AiOutlinePlus className="w-5 h-5" /> Add Key Here
+                            </ContextMenuItem>
+                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("cut")}>
+                                <AiOutlinePlus className="w-5 h-5" /> Add Key Cut Here
+                            </ContextMenuItem>
+                            <ContextMenuSeparator />
+                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("key", this.props.currentTime * this.props.scale)}>
+                                <AiOutlinePlus className="w-5 h-5" /> Add Key at Tracker Position
+                            </ContextMenuItem>
+                        </>
+                    }
                 </ContextMenuContent>
             </ContextMenu>
         );
@@ -164,6 +179,40 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                     return frameA - frameB;
                 });
             },
+        });
+
+        this.setState({ rightClickPositionX: null });
+    }
+
+    public addAnimationGroupKey(positionX?: number | null): void {
+        positionX ??= this.state.rightClickPositionX;
+
+        if (positionX === null || !this.props.track.animationGroup) {
+            return;
+        }
+
+        const frame = Math.round(positionX / this.props.scale);
+        const existingKey = this.props.track.animationGroups!.find((k) => k.frame === frame);
+
+        if (existingKey) {
+            return;
+        }
+
+        const key = {
+            frame,
+            type: "group",
+        } as ICinematicAnimationGroup;
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                const index = this.props.track.animationGroups!.indexOf(key);
+                if (index !== -1) {
+                    this.props.track.animationGroups!.splice(index, 1);
+                }
+            },
+            redo: () => this.props.track.animationGroups!.push(key),
+            action: () => this.props.track.animationGroups?.sort((a, b) => a.frame - b.frame),
         });
 
         this.setState({ rightClickPositionX: null });

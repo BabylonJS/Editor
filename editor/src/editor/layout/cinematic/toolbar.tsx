@@ -54,11 +54,14 @@ export class CinematicEditorToolbar extends Component<IEditorAnimationToolbarPro
 
                 {/* Buttons */}
                 <div className="flex gap-2 items-center pr-2">
-                    <Slider min={1} max={20} step={0.01} className="w-32" value={[0]} />
+                    <Slider min={1} max={20} step={0.01} className="w-32" value={[this.props.cinematicEditor.timelines?.state.scale]} onValueChange={(v) => {
+                        this.props.cinematicEditor.timelines?.setScale(v[0]);
+                    }} />
 
                     <Button
                         variant="ghost"
                         disabled={!this.props.playing}
+                        onClick={() => this.props.cinematicEditor.stop()}
                         className="w-8 h-8 p-1 disabled:opacity-25 transition-all duration-150 ease-in-out"
                     >
                         <IoStop className="w-6 h-6" strokeWidth={1} color="green" />
@@ -66,8 +69,9 @@ export class CinematicEditorToolbar extends Component<IEditorAnimationToolbarPro
 
                     <Button
                         variant="ghost"
-                        className="w-8 h-8 p-1 disabled:opacity-25 transition-all duration-150 ease-in-out"
                         disabled={this.props.playing}
+                        onClick={() => this.props.cinematicEditor.play()}
+                        className="w-8 h-8 p-1 disabled:opacity-25 transition-all duration-150 ease-in-out"
                     >
                         <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
                     </Button>

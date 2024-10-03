@@ -1,5 +1,7 @@
 import { Component, MouseEvent, ReactNode } from "react";
 
+import { Animation, AnimationGroup } from "babylonjs";
+
 import { Editor } from "../../../main";
 
 import { waitNextAnimationFrame } from "../../../../tools/tools";
@@ -28,12 +30,17 @@ export interface ICinematicEditorTimelinePanelState {
 }
 
 export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTimelinePanelProps, ICinematicEditorTimelinePanelState> {
-    private _divRef: HTMLDivElement | null = null;
-
     /**
      * Defines the list of all available track items in the timeline.
-     */
+    */
     public tracks: (CinematicEditorTimelineItem | null)[] = [];
+
+    private _animation!: Animation;
+    private _animatedCurrentTime: number = 0;
+    private _renderLoop: (() => void) | null = null;
+    private _generateAnimationGroup: AnimationGroup | null = null;
+
+    private _divRef: HTMLDivElement | null = null;
 
     public constructor(props: ICinematicEditorTimelinePanelProps) {
         super(props);
@@ -95,6 +102,10 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
                 </div>
             </div>
         );
+    }
+
+    public componentDidMount(): void {
+        this._animation = new Animation("editor-currentTime", "_animatedCurrentTime", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
     }
 
     private _getMaxWidthForTimeline(): number {
@@ -209,5 +220,54 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
                 this.setState({ moving: false });
             });
         });
+    }
+
+    /**
+     * Plays the current timeline starting from the current tracker position.
+     */
+    public play(): void {
+        if (!this.props.cinematic?.tracks.length) {
+            return;
+        }
+
+        const scene = this.props.editor.layout.preview.scene;
+        const engine = this.props.editor.layout.preview.engine;
+
+        const currentTime = this.state.currentTime;
+        const maxFrame = this._getMaxFrameForTimeline();
+
+        this._animation.setKeys([
+            { frame: currentTime, value: currentTime },
+            { frame: maxFrame, value: maxFrame },
+        ]);
+
+        const frame = Math.min(currentTime, maxFrame);
+
+        this._generateAnimationGroup = generateCinematicAnimationGroup(this.props.cinematic, scene);
+        this._generateAnimationGroup.start(false, 1.0, frame);
+
+        this.props.editor.layout.preview.scene.beginDirectAnimation(this, [this._animation], currentTime, maxFrame, false, 1.0);
+
+        if (this._renderLoop) {
+            engine.stopRenderLoop(this._renderLoop);
+        }
+
+        engine.runRenderLoop(this._renderLoop = () => {
+            this.setState({ currentTime: this._animatedCurrentTime });
+        });
+    }
+
+    /**
+     * Stops the current timeline being played
+     */
+    public stop(): void {
+        const engine = this.props.editor.layout.preview.engine;
+
+        if (this._renderLoop) {
+            engine.stopRenderLoop(this._renderLoop);
+            this._renderLoop = null;
+        }
+
+        this._generateAnimationGroup?.dispose();
     }
 }
