@@ -1,0 +1,65 @@
+import { Component, ReactNode } from "react";
+import { AiOutlinePlus } from "react-icons/ai";
+
+import { registerUndoRedo } from "../../../../tools/undoredo";
+
+import { Button } from "../../../../ui/shadcn/ui/button";
+
+import { ICinematic, ICinematicTrack } from "../schema/typings";
+
+import { CinematicEditor } from "../editor";
+
+import { CinematicEditorTrackItem } from "./item";
+
+export interface ICinematicEditorTracksPanelProps {
+    cinematic: ICinematic;
+    cinematicEditor: CinematicEditor;
+}
+
+export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracksPanelProps> {
+    public render(): ReactNode {
+        return (
+            <div className="flex flex-col w-96 h-full">
+                <div className="flex justify-between items-center w-full h-10 p-2">
+                    <div className="font-thin text-muted-foreground">
+                        ({this.props.cinematic.tracks.length} tracks)
+                    </div>
+
+                    <Button variant="ghost" className="w-8 h-8 p-1">
+                        <AiOutlinePlus className="w-5 h-5" />
+                    </Button>
+                </div>
+
+                <div className="flex flex-col w-full">
+                    {this.props.cinematic.tracks.map((track, index) => (
+                        <CinematicEditorTrackItem
+                            key={`${track.propertyPath}${index}`}
+                            track={track}
+                            cinematicEditor={this.props.cinematicEditor}
+                            onRemove={(track) => this._handleRemoveTrack(track)}
+                        />
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    private _handleRemoveTrack(track: ICinematicTrack): void {
+        const index = this.props.cinematic.tracks?.indexOf(track) ?? -1;
+        if (index === -1) {
+            return;
+        }
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                this.props.cinematic.tracks.splice(index, 0, track);
+            },
+            redo: () => {
+                this.props.cinematic.tracks.splice(index, 1);
+            },
+        });
+
+        this.props.cinematicEditor.forceUpdate();
+    }
+}

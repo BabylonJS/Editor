@@ -79,7 +79,7 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
         ev.stopPropagation();
 
-        if (ev.button !== 0) {
+        if (ev.button !== 0 || this.props.animationKey.frame === 0) {
             return;
         }
 

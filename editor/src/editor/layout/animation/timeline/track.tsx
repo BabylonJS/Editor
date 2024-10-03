@@ -90,7 +90,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
                         <AiOutlinePlus className="w-5 h-5" /> Add Key at Tracker Position
                     </ContextMenuItem>
                 </ContextMenuContent>
-            </ContextMenu >
+            </ContextMenu>
         );
     }
 

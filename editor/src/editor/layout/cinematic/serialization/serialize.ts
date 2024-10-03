@@ -1,5 +1,9 @@
-import { ICinematic } from "../typings";
+import { ICinematic } from "../schema/typings";
 
-export function serializeCinematic(_data: ICinematic): any {
-    // TODO: Implement serialization
+export function serializeCinematic(cinematic: ICinematic): ICinematic {
+    return {
+        name: cinematic.name,
+        framesPerSecond: cinematic.framesPerSecond,
+        tracks: [], // TODO: serialize tracks
+    };
 }

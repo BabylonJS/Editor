@@ -52,7 +52,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
         this.state = {
             scale: 1,
             moving: false,
-            currentTime: 60,
+            currentTime: 0,
         };
     }
 
@@ -119,6 +119,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
                     style={{
                         left: `${this.state.currentTime * this.state.scale - 1.5}px`,
                     }}
+                    onMouseDown={(ev) => ev.stopPropagation()}
                     className="absolute top-10 h-full w-[3px] bg-secondary/35"
                 />
 
