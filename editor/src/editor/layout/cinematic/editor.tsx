@@ -1,5 +1,9 @@
 import { Component, ReactNode } from "react";
 
+import { Observer } from "babylonjs";
+
+import { onRedoObservable, onUndoObservable } from "../../../tools/undoredo";
+
 import { Editor } from "../../main";
 
 import { ICinematic, ICinematicTrack } from "./schema/typings";
@@ -20,6 +24,18 @@ export interface ICinematicEditorState {
 }
 
 export class CinematicEditor extends Component<ICinematicEditorProps, ICinematicEditorState> {
+    /**
+     * Defines the reference to the tracks panel component used to display the animations tracks.
+     */
+    public tracks!: CinematicEditorTracksPanel;
+    /**
+     * Defines the reference to the timelines panel component used to display the animations timeline.
+     */
+    public timelines!: CinematicEditorTimelinePanel;
+
+    private _undoObserver: Observer<void> | null = null;
+    private _redoObserver: Observer<void> | null = null;
+
     public constructor(props: ICinematicEditorProps) {
         super(props);
 
@@ -57,6 +73,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                 >
                     <CinematicEditorTracksPanel
                         cinematicEditor={this}
+                        ref={(r) => this.tracks = r!}
                         cinematic={this.props.cinematic}
                     />
 
@@ -65,10 +82,26 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                     <CinematicEditorTimelinePanel
                         cinematicEditor={this}
                         editor={this.props.editor}
+                        ref={(r) => this.timelines = r!}
                         cinematic={this.props.cinematic}
                     />
                 </div>
             </div>
         );
+    }
+
+    public componentDidMount(): void {
+        this._undoObserver = onUndoObservable.add(() => this.forceUpdate());
+        this._redoObserver = onRedoObservable.add(() => this.forceUpdate());
+    }
+
+    public componentWillUnmount(): void {
+        if (this._undoObserver) {
+            onUndoObservable.remove(this._undoObserver);
+        }
+
+        if (this._redoObserver) {
+            onRedoObservable.remove(this._redoObserver);
+        }
     }
 }
