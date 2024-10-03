@@ -85,10 +85,11 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
                             ref={(r) => this.tracks[index] = r}
                             key={`${track.propertyPath}${index}`}
                             track={track}
-                            cinematic={this.props.cinematic}
                             scale={this.state.scale}
+                            editor={this.props.editor}
+                            cinematic={this.props.cinematic}
                             currentTime={this.state.currentTime}
-                            animationEditor={this.props.cinematicEditor}
+                            cinematicEditor={this.props.cinematicEditor}
                         />
                     ))}
                 </div>
