@@ -7,6 +7,7 @@ export interface ICinematic {
 }
 
 export interface ICinematicTrack {
+    animationGroup?: any;
     animationGroups?: ICinematicAnimationGroup[];
 
     node?: any;
@@ -16,7 +17,6 @@ export interface ICinematicTrack {
 
 export interface ICinematicAnimationGroup {
     type: "group";
-    name: string;
     frame: number;
 }
 

@@ -15,10 +15,10 @@ export interface ICinematicEditorTimelineKeyProps {
     scale: number;
     cinematic: ICinematic;
     cinematicEditor: CinematicEditor;
-    cinematicKey: ICinematicKey | ICinematicKeyCut;
+    cinematicKey: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup;
 
-    onClicked: (key: ICinematicKey | ICinematicKeyCut) => void;
-    onRemoved: (key: ICinematicKey | ICinematicKeyCut) => void;
+    onClicked: (key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup) => void;
+    onRemoved: (key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup) => void;
     onMoved: (movedKeys: ICinematicKeyConfigurationToMove[][]) => void;
 }
 
@@ -48,21 +48,35 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                         left: `${this._getFrame() * this.props.scale}px`,
                     }}
                     className={`
-                        absolute top-1/2 -translate-y-1/2 -translate-x-1/2
+                        absolute top-1/2 -translate-y-1/2
+                        ${this.props.cinematicKey.type === "group" ? "" : "-translate-x-1/2"}
                         ${this.state.moving ? "" : "transition-all duration-150 ease-in-out"}
                     `}
                 >
                     <ContextMenu>
                         <ContextMenuTrigger>
-                            <div
-                                onMouseDown={(ev) => this._handlePointerDown(ev)}
-                                onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}
-                                className={`
-                                     w-4 h-4 rotate-45 hover:scale-125
-                                    ${isCinematicKeyCut(this.props.cinematicKey) ? "border-[2px] border-orange-500 bg-muted" : "bg-muted-foreground"}
-                                    transition-transform duration-300 ease-in-out    
-                                `}
-                            />
+                            {this.props.cinematicKey.type === "group" &&
+                                <div
+                                    style={{
+                                        width: `${120 * this.props.scale}px`,
+                                    }}
+                                    onMouseDown={(ev) => this._handlePointerDown(ev)}
+                                    onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}
+                                    className="h-4 hover:scale-125 rounded-md bg-muted-foreground transition-transform duration-300 ease-in-out"
+                                />
+                            }
+
+                            {(this.props.cinematicKey.type === "key" || this.props.cinematicKey.type === "cut") &&
+                                <div
+                                    onMouseDown={(ev) => this._handlePointerDown(ev)}
+                                    onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}
+                                    className={`
+                                        w-4 h-4 rotate-45 hover:scale-125
+                                        ${isCinematicKeyCut(this.props.cinematicKey) ? "border-[2px] border-orange-500 bg-muted" : "bg-muted-foreground"}
+                                        transition-transform duration-300 ease-in-out    
+                                    `}
+                                />
+                            }
                         </ContextMenuTrigger>
                         <ContextMenuContent>
                             <ContextMenuItem
@@ -92,7 +106,11 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
         ev.stopPropagation();
 
-        if (ev.button !== 0 || this._getFrame() === 0) {
+        if (ev.button !== 0) {
+            return;
+        }
+
+        if (this.props.cinematicKey.type !== "group" && this._getFrame() === 0) {
             return;
         }
 

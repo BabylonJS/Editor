@@ -62,7 +62,7 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                             transition-all duration-300 ease-in-out    
                         `}
                     >
-                        {this.props.track.node.name}
+                        {this.props.track.node?.name ?? "No object"}
                     </div>
 
                     {this.props.track.node &&
