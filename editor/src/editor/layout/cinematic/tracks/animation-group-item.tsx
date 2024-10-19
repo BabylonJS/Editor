@@ -1,6 +1,8 @@
 import { Component, ReactNode } from "react";
 import { HiOutlineTrash } from "react-icons/hi";
 
+import { registerUndoRedo } from "../../../../tools/undoredo";
+
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../ui/shadcn/ui/select";
 
@@ -42,7 +44,10 @@ export class CinematicEditorAnimationGroupTrackItem extends Component<ICinematic
                     transition-all duration-300 ease-in-out
                 `}
             >
-                <Select value={this.props.track.animationGroup?.name}>
+                <Select
+                    value={this.props.track.animationGroup?.name}
+                    onValueChange={(v) => this._handleAnimationGroupChanged(v)}
+                >
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Animation Group..." />
                     </SelectTrigger>
@@ -68,5 +73,22 @@ export class CinematicEditorAnimationGroupTrackItem extends Component<ICinematic
                 </Button>
             </div>
         );
+    }
+
+    private _handleAnimationGroupChanged(name: string): void {
+        const animationGroup = this.props.editor.layout.preview.scene.getAnimationGroupByName(name);
+        if (!animationGroup) {
+            return;
+        }
+
+        const oldAnimationGroup = this.props.track.animationGroup;
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => this.props.track.animationGroup = oldAnimationGroup,
+            redo: () => this.props.track.animationGroup = animationGroup,
+        });
+
+        this.props.cinematicEditor.forceUpdate();
     }
 }

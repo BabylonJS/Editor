@@ -116,8 +116,12 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         let frame = 0;
         this.props.cinematic.tracks.forEach((track) => {
             track.animationGroups?.forEach((animationGroup) => {
-                // TODO: take animation group length into account.
-                frame = Math.max(frame, animationGroup.frame);
+                const animationGroupRef = track.animationGroup as AnimationGroup;
+                const animationGroupFramesCount = animationGroupRef
+                    ? animationGroupRef.to - animationGroupRef.from
+                    : 0;
+
+                frame = Math.max(frame, animationGroup.frame + animationGroupFramesCount);
             });
 
             track.keyFrameAnimations?.forEach((key) => {

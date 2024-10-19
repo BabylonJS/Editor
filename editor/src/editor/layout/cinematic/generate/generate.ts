@@ -1,5 +1,6 @@
-import { Animation, AnimationGroup, IAnimationKey, Scene } from "babylonjs";
+import { Animation, AnimationGroup, IAnimationKey, Scene, Tools } from "babylonjs";
 
+import { UniqueNumber } from "../../../../tools/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
@@ -10,18 +11,45 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 
     cinematic.tracks.forEach((track) => {
         // Animation groups
+        const animationGroup = track.animationGroup as AnimationGroup;
+        if (!animationGroup) {
+            return;
+        }
+
         track.animationGroups?.forEach((configuration) => {
-            if (!track.animationGroup) {
-                return;
-            }
+            animationGroup.targetedAnimations.forEach((targetedAnimation) => {
+                let animation: Animation | null = null;
 
-            track.animationGroup.targetedAnimations.forEach((targetedAnimation) => {
-                const animation = targetedAnimation.animation.clone();
-                const normalizedFps = cinematic.framesPerSecond / targetedAnimation.animation.framePerSecond;
+                defer: {
+                    const existingTargetedAnimations = result.targetedAnimations.filter((ta2) => ta2.target === targetedAnimation.target);
+                    if (existingTargetedAnimations.length) {
+                        const existingTargetedAnimationsPair = existingTargetedAnimations.find((et) => et.animation.targetProperty === targetedAnimation.animation.targetProperty);
+                        if (existingTargetedAnimationsPair) {
+                            animation = existingTargetedAnimationsPair.animation;
+                            break defer;
+                        }
+                    }
 
-                animation.getKeys().forEach((key) => {
-                    key.frame += configuration.frame * normalizedFps;
+                    animation = targetedAnimation.animation.clone();
+                    animation.setKeys([]);
+                    animation.name = Tools.RandomId();
+                    animation.uniqueId = UniqueNumber.Get();
+                    animation.framePerSecond = cinematic.framesPerSecond;
+                }
+
+                const keys = animation.getKeys();
+                const sourceKeys = targetedAnimation.animation.getKeys();
+
+                const normalizedFps = (cinematic.framesPerSecond / targetedAnimation.animation.framePerSecond);
+
+                sourceKeys.forEach((k) => {
+                    keys.push({
+                        ...cloneKey(targetedAnimation.animation.dataType, k),
+                        frame: configuration.frame + k.frame * normalizedFps,
+                    });
                 });
+
+                animation.setKeys(keys);
 
                 result.addTargetedAnimation(animation, targetedAnimation.target);
             });
@@ -60,5 +88,23 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
         result.addTargetedAnimation(animation, track.node);
     });
 
+    result.normalize();
+
     return result;
+}
+
+function cloneKey(dataType: number, key: IAnimationKey): IAnimationKey {
+    let value: any;
+    switch (dataType) {
+        case Animation.ANIMATIONTYPE_FLOAT: value = key.value; break;
+        default: value = key.value.clone(); break;
+    }
+
+    return {
+        value,
+        frame: key.frame,
+        interpolation: key.interpolation,
+        inTangent: dataType === Animation.ANIMATIONTYPE_FLOAT ? key.inTangent : key.inTangent?.clone(),
+        outTangent: dataType === Animation.ANIMATIONTYPE_FLOAT ? key.outTangent : key.outTangent?.clone(),
+    };
 }
