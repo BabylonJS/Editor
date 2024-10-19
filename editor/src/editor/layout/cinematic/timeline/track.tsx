@@ -9,12 +9,12 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 
 import { Editor } from "../../../main";
 
+import { isCinematicGroup, isCinematicKeyCut } from "../schema/guards";
 import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEditor } from "../editor";
 
 import { CinematicEditorTimelineKey, ICinematicKeyConfigurationToMove } from "./key";
-import { isCinematicGroup, isCinematicKeyCut } from "../schema/guards";
 
 export interface ICinematicEditorTimelineItemProps {
     scale: number;
@@ -67,6 +67,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                                     cinematicKey={key}
                                     scale={this.props.scale}
                                     cinematic={this.props.cinematic}
+                                    cinematicTrack={this.props.track}
                                     ref={(r) => this.keyFrames[index] = r}
                                     cinematicEditor={this.props.cinematicEditor}
                                     onRemoved={(key) => this._onAnimationKeyRemoved(key)}

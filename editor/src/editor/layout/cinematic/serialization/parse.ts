@@ -31,6 +31,7 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
                 node,
                 propertyPath: track.propertyPath,
                 animationGroups: track.animationGroups,
+                animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
                 keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
                     const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
                     if (animationKey) {

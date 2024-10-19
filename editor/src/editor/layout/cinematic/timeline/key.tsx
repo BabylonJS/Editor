@@ -1,19 +1,22 @@
 import { AiOutlineClose } from "react-icons/ai";
 import { Component, MouseEvent, ReactNode } from "react";
 
+import { AnimationGroup } from "babylonjs";
+
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
 import { isCinematicKeyCut } from "../schema/guards";
-import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut } from "../schema/typings";
+import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEditor } from "../editor";
 
 export interface ICinematicEditorTimelineKeyProps {
     scale: number;
     cinematic: ICinematic;
+    cinematicTrack: ICinematicTrack;
     cinematicEditor: CinematicEditor;
     cinematicKey: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup;
 
@@ -58,7 +61,7 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                             {this.props.cinematicKey.type === "group" &&
                                 <div
                                     style={{
-                                        width: `${120 * this.props.scale}px`,
+                                        width: `${this._getAnimationGroupFramesCount() * this.props.scale}px`,
                                     }}
                                     onMouseDown={(ev) => this._handlePointerDown(ev)}
                                     onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}
@@ -101,6 +104,15 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
         }
 
         return this.props.cinematicKey.frame;
+    }
+
+    private _getAnimationGroupFramesCount(): number {
+        const animationGroup = this.props.cinematicTrack.animationGroup as AnimationGroup;
+        if (!animationGroup) {
+            return 0;
+        }
+
+        return animationGroup.to - animationGroup.from;
     }
 
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
