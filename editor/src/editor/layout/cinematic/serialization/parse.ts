@@ -68,6 +68,14 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
  * @example [0, 0, 0] with type Animation.ANIMATIONTYPE_VECTOR3 will return a new Vector3(0, 0, 0) object.
  */
 export function parseCinematicKeyValue(value: any, type: number): any {
+    if (value === null) {
+        return null;
+    }
+
+    if (value === undefined) {
+        return undefined;
+    }
+
     switch (type) {
         case Animation.ANIMATIONTYPE_FLOAT: return value;
         case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.FromArray(value);

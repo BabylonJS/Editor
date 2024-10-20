@@ -28,6 +28,9 @@ export class CinematicEditorToolbar extends Component<IEditorAnimationToolbarPro
                                 Load From File...
                             </MenubarItem>
                             <MenubarSeparator />
+                            <MenubarItem onClick={() => this.props.cinematicEditor.save()}>
+                                Save
+                            </MenubarItem>
                             <MenubarItem>
                                 Save As...
                             </MenubarItem>

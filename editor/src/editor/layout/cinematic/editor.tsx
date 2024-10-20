@@ -1,3 +1,6 @@
+import { writeJSON } from "fs-extra";
+
+import { toast } from "sonner";
 import { Component, ReactNode } from "react";
 
 import { Observer } from "babylonjs";
@@ -11,10 +14,12 @@ import { ICinematic, ICinematicTrack } from "./schema/typings";
 
 import { CinematicEditorToolbar } from "./toolbar";
 import { CinematicEditorTracksPanel } from "./tracks/tracks";
+import { serializeCinematic } from "./serialization/serialize";
 import { CinematicEditorTimelinePanel } from "./timeline/timeline";
 
 export interface ICinematicEditorProps {
     editor: Editor;
+    absolutePath: string;
     cinematic: ICinematic;
 }
 
@@ -162,5 +167,16 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
             this.timelines.setCurrentTime(this._currentTimeBeforePlay);
             this._currentTimeBeforePlay = null;
         }
+    }
+
+    public async save(): Promise<void> {
+        const data = serializeCinematic(this.props.cinematic);
+
+        await writeJSON(this.props.absolutePath, data, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
+
+        toast.success("Cinematic file saved.");
     }
 }

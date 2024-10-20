@@ -157,6 +157,8 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
      * @param currentTime defines the current time expressed in frame.
      */
     public setCurrentTime(currentTime: number): void {
+        this.props.cinematicEditor.stop();
+
         this.setState({ currentTime });
 
         const frame = Math.min(currentTime, this._getMaxFrameForTimeline());
