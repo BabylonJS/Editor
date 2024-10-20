@@ -28,6 +28,7 @@ export class AssetBrowserCinematicItem extends AssetsBrowserItem {
             <CinematicEditor
                 cinematic={cinematic}
                 editor={this.props.editor}
+                absolutePath={this.props.absolutePath}
             />
         ));
     }
