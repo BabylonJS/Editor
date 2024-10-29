@@ -43,10 +43,12 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
                 const normalizedFps = (cinematic.framesPerSecond / targetedAnimation.animation.framePerSecond);
 
                 sourceKeys.forEach((k) => {
-                    keys.push({
-                        ...cloneKey(targetedAnimation.animation.dataType, k),
-                        frame: configuration.frame + k.frame * normalizedFps,
-                    });
+                    if (k.frame >= configuration.startFrame && k.frame <= configuration.endFrame) {
+                        keys.push({
+                            ...cloneKey(targetedAnimation.animation.dataType, k),
+                            frame: configuration.frame + k.frame * normalizedFps,
+                        });
+                    }
                 });
 
                 animation.setKeys(keys);

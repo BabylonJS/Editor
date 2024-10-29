@@ -18,6 +18,9 @@ export interface ICinematicTrack {
 export interface ICinematicAnimationGroup {
     type: "group";
     frame: number;
+
+    startFrame: number;
+    endFrame: number;
 }
 
 export interface ICinematicKey extends IAnimationKey {

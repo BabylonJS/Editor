@@ -71,8 +71,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                                     ref={(r) => this.keyFrames[index] = r}
                                     cinematicEditor={this.props.cinematicEditor}
                                     onRemoved={(key) => this._onAnimationKeyRemoved(key)}
-                                    // onClicked={() => this.props.cinematicEditor.inspector.setEditedKey(key)}
-                                    onClicked={() => { }}
+                                    onClicked={() => this.props.cinematicEditor.inspector.setEditedKey(this.props.track, key)}
                                     onMoved={(animationsKeyConfigurationsToMove) => this._onAnimationKeyMoved(animationsKeyConfigurationsToMove)}
                                 />
                             ))}
@@ -92,10 +91,10 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                     {this.props.track.animationGroups &&
                         <>
                             <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationGroupKey()}>
-                                <AiOutlinePlus className="w-5 h-5" /> Add Key Here
+                                <AiOutlinePlus className="w-5 h-5" /> Add Group Here
                             </ContextMenuItem>
                             <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationGroupKey(this.props.currentTime * this.props.scale)}>
-                                <AiOutlinePlus className="w-5 h-5" /> Add Key at Tracker Position
+                                <AiOutlinePlus className="w-5 h-5" /> Add Group at Tracker Position
                             </ContextMenuItem>
                         </>
                     }
@@ -202,6 +201,8 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
         const key = {
             frame,
             type: "group",
+            startFrame: this.props.track.animationGroup.from,
+            endFrame: this.props.track.animationGroup.to,
         } as ICinematicAnimationGroup;
 
         registerUndoRedo({

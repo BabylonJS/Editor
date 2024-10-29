@@ -1,14 +1,12 @@
 import { AiOutlineClose } from "react-icons/ai";
 import { Component, MouseEvent, ReactNode } from "react";
 
-import { AnimationGroup } from "babylonjs";
-
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
-import { isCinematicKeyCut } from "../schema/guards";
+import { isCinematicGroup, isCinematicKeyCut } from "../schema/guards";
 import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEditor } from "../editor";
@@ -65,7 +63,7 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                                     }}
                                     onMouseDown={(ev) => this._handlePointerDown(ev)}
                                     onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}
-                                    className="h-4 hover:scale-125 rounded-md bg-muted-foreground transition-transform duration-300 ease-in-out"
+                                    className="h-4 rounded-md bg-muted-foreground"
                                 />
                             }
 
@@ -107,12 +105,11 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
     }
 
     private _getAnimationGroupFramesCount(): number {
-        const animationGroup = this.props.cinematicTrack.animationGroup as AnimationGroup;
-        if (!animationGroup) {
+        if (!isCinematicGroup(this.props.cinematicKey)) {
             return 0;
         }
 
-        return animationGroup.to - animationGroup.from;
+        return this.props.cinematicKey.endFrame - this.props.cinematicKey.startFrame;
     }
 
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {

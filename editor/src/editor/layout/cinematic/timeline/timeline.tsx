@@ -63,8 +63,8 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
                 ref={(r) => this._divRef = r}
                 onWheel={(ev) => this._onWheelEvent(ev)}
                 onMouseDown={(ev) => this._handlePointerDown(ev)}
-                // onClick={() => !this.state.moving && this.props.animationEditor.inspector.setEditedKey(null)}
                 className="relative flex flex-col w-full h-full overflow-x-auto overflow-y-hidden"
+                onClick={() => !this.state.moving && this.props.cinematicEditor.inspector.setEditedKey(null, null)}
             >
                 <CinematicEditorTracker
                     width={width}
@@ -150,6 +150,13 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         this.setState({ scale }, () => {
             this.props.cinematicEditor.forceUpdate();
         });
+    }
+
+    /**
+     * Updates all the track using the current time as reference.
+     */
+    public updateTracksAtCurrentTime(): void {
+        this.setCurrentTime(this.state.currentTime);
     }
 
     /**

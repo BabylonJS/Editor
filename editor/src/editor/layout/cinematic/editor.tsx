@@ -16,6 +16,7 @@ import { CinematicEditorToolbar } from "./toolbar";
 import { CinematicEditorTracksPanel } from "./tracks/tracks";
 import { serializeCinematic } from "./serialization/serialize";
 import { CinematicEditorTimelinePanel } from "./timeline/timeline";
+import { CinematicEditorInspector } from "./inspector/inspector";
 
 export interface ICinematicEditorProps {
     editor: Editor;
@@ -30,6 +31,10 @@ export interface ICinematicEditorState {
 }
 
 export class CinematicEditor extends Component<ICinematicEditorProps, ICinematicEditorState> {
+    /**
+     * Defines the reference to the inspector used to edit animations properties.
+     */
+    public inspector!: CinematicEditorInspector;
     /**
      * Defines the reference to the tracks panel component used to display the animations tracks.
      */
@@ -96,6 +101,12 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                         editor={this.props.editor}
                         ref={(r) => this.timelines = r!}
                         cinematic={this.props.cinematic}
+                    />
+
+
+                    <CinematicEditorInspector
+                        cinematicEditor={this}
+                        ref={(r) => this.inspector = r!}
                     />
                 </div>
             </div>
