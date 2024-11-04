@@ -1,9 +1,9 @@
 import { Material } from "babylonjs";
 
-import { registerUndoRedo } from "../../../tools/undoredo";
-import { isAbstractMesh } from "../../../tools/guards/nodes";
+import { registerUndoRedo } from "../../../../tools/undoredo";
+import { isAbstractMesh } from "../../../../tools/guards/nodes";
 
-import { Editor } from "../../main";
+import { Editor } from "../../../main";
 
 import { loadImportedMaterial } from "./import";
 

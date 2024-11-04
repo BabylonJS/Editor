@@ -2,16 +2,16 @@ import { extname } from "path/posix";
 
 import { CubeTexture, Texture } from "babylonjs";
 
-import { showDialog } from "../../../ui/dialog";
-import { Button } from "../../../ui/shadcn/ui/button";
+import { showDialog } from "../../../../ui/dialog";
+import { Button } from "../../../../ui/shadcn/ui/button";
 
-import { isScene } from "../../../tools/guards/scene";
-import { isAbstractMesh } from "../../../tools/guards/nodes";
-import { isCubeTexture } from "../../../tools/guards/texture";
-import { registerSimpleUndoRedo } from "../../../tools/undoredo";
-import { isPBRMaterial, isStandardMaterial } from "../../../tools/guards/material";
+import { isScene } from "../../../../tools/guards/scene";
+import { isAbstractMesh } from "../../../../tools/guards/nodes";
+import { isCubeTexture } from "../../../../tools/guards/texture";
+import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+import { isPBRMaterial, isStandardMaterial } from "../../../../tools/guards/material";
 
-import { Editor } from "../../main";
+import { Editor } from "../../../main";
 
 import { configureImportedTexture } from "./import";
 

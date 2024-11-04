@@ -50,6 +50,7 @@ import { AssetBrowserMaterialItem } from "./assets-browser/items/material-item";
 import { AssetBrowserCinematicItem } from "./assets-browser/items/cinematic-item";
 import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/items/item";
 
+import { listenGuiAssetsEvents } from "./assets-browser/events/gui";
 import { listenMaterialAssetsEvents } from "./assets-browser/events/material";
 
 import "babylonjs-loaders";
@@ -155,6 +156,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
             }
         });
 
+        listenGuiAssetsEvents(this.props.editor);
         listenMaterialAssetsEvents(this.props.editor);
     }
 

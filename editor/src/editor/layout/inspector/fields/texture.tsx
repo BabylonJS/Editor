@@ -16,7 +16,7 @@ import { isCubeTexture, isTexture } from "../../../../tools/guards/texture";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
-import { configureImportedTexture } from "../../preview/import";
+import { configureImportedTexture } from "../../preview/import/import";
 
 import { SpinnerUIComponent } from "../../../../ui/spinner";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../../ui/shadcn/ui/popover";

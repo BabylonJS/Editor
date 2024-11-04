@@ -6,11 +6,12 @@ import { IoMdCube } from "react-icons/io";
 import { FaCamera } from "react-icons/fa";
 import { FaLightbulb } from "react-icons/fa";
 import { IoCheckmark } from "react-icons/io5";
-import { SiBabylondotjs } from "react-icons/si";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
+import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
-import { Node, Tools } from "babylonjs";
+import { AdvancedDynamicTexture } from "babylonjs-gui";
+import { BaseTexture, Node, Scene, Tools } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -18,8 +19,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
+import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
-import { onNodeModifiedObservable, onNodesAddedObservable } from "../../tools/observables";
+import { onNodeModifiedObservable, onNodesAddedObservable, onTextureModifiedObservable } from "../../tools/observables";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
 
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
@@ -71,6 +73,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
         onNodesAddedObservable.add(() => this.refresh());
         onNodeModifiedObservable.add((node) => this._handleNodeModified(node));
+        onTextureModifiedObservable.add((texture) => this._handleNodeModified(texture));
 
         document.addEventListener("copy", () => this.state.isFocused && this.copySelectedNodes());
         document.addEventListener("paste", () => this.state.isFocused && this.pasteSelectedNodes());
@@ -137,7 +140,12 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         const scene = this.props.editor.layout.preview.scene;
         const nodes = scene.rootNodes
             .filter((n) => !isEditorCamera(n))
-            .map((n) => this._parseNode(n));
+            .map((n) => this._parseSceneNode(n));
+
+        const guiNode = this._parseGuiNode(scene);
+        if (guiNode) {
+            nodes.splice(0, 0, guiNode);
+        }
 
         nodes.splice(0, 0, {
             id: "__editor__scene__",
@@ -396,7 +404,59 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         }
     }
 
-    private _parseNode(node: Node): TreeNodeInfo | null {
+    private _parseGuiNode(scene: Scene): TreeNodeInfo | null {
+        const guiTextures = scene.textures.filter((texture) => texture.getClassName() === "AdvancedDynamicTexture") as AdvancedDynamicTexture[];
+        if (!guiTextures.length) {
+            return null!;
+        }
+
+        const childNodes: TreeNodeInfo[] = [];
+
+        guiTextures.forEach((texture) => {
+            if (!texture.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+                return;
+            }
+
+            const info = {
+                nodeData: texture,
+                id: texture.uniqueId,
+                icon: this._getAdvancedTextureIconComponent(texture),
+                label: this._getNodeLabelComponent(texture, texture.name, false),
+            } as TreeNodeInfo;
+
+            this._forEachNode(this.state.nodes, (n) => {
+                if (n.id === info.id) {
+                    info.isSelected = n.isSelected;
+                    info.isExpanded = n.isExpanded;
+                }
+            });
+
+            childNodes.push(info);
+        });
+
+        if (!childNodes.length) {
+            return null;
+        }
+
+        const rootGuiNode = {
+            childNodes,
+            nodeData: scene,
+            id: "__editor__gui__",
+            icon: <SiAdobeindesign className="w-4 h-4" />,
+            label: this._getNodeLabelComponent(scene, "GUI", false),
+        } as TreeNodeInfo;
+
+        this._forEachNode(this.state.nodes, (n) => {
+            if (n.id === rootGuiNode.id) {
+                rootGuiNode.isSelected = n.isSelected;
+                rootGuiNode.isExpanded = n.isExpanded;
+            }
+        });
+
+        return rootGuiNode;
+    }
+
+    private _parseSceneNode(node: Node): TreeNodeInfo | null {
         if (isMesh(node) && node._masterMesh || isCollisionMesh(node) || isCollisionInstancedMesh(node)) {
             return null;
         }
@@ -443,7 +503,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         if (!isSceneLinkNode(node)) {
             const children = node.getDescendants(true);
             if (children.length) {
-                info.childNodes = children.map((c) => this._parseNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
+                info.childNodes = children.map((c) => this._parseSceneNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
             }
 
             info.hasCaret = (info.childNodes?.length ?? 0) > 0;
@@ -478,6 +538,26 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         );
     }
 
+    private _getAdvancedTextureIconComponent(texture: AdvancedDynamicTexture): ReactNode {
+        const layer = this.props.editor.layout.preview.scene.layers.find((l) => l.texture === texture);
+        if (!layer) {
+            return null;
+        }
+
+        return (
+            <div
+                onClick={(ev) => {
+                    layer.isEnabled = !layer.isEnabled;
+                    this.refresh();
+                    ev.stopPropagation();
+                }}
+                className={`cursor-pointer ${layer?.isEnabled ? "opacity-100" : "opacity-20"} transition-all duration-100 ease-in-out`}
+            >
+                {this._getIcon(texture)}
+            </div>
+        );
+    }
+
     private _getIcon(object: any): ReactNode {
         if (isTransformNode(object)) {
             return <HiOutlineCubeTransparent className="w-4 h-4" />;
@@ -497,6 +577,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
         if (isSceneLinkNode(object)) {
             return <FaLink className="w-4 h-4" />;
+        }
+
+        if (isAdvancedDynamicTexture(object)) {
+            return <SiAdobeindesign className="w-4 h-4" />;
         }
 
         return <MdOutlineQuestionMark className="w-4 h-4" />;
@@ -522,7 +606,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         );
     }
 
-    private _handleNodeModified(node: Node): void {
+    private _handleNodeModified(node: Node | BaseTexture): void {
         this._forEachNode(this.state.nodes, (n) => {
             if (n.nodeData === node) {
                 n.label = this._getNodeLabelComponent(node, node.name);

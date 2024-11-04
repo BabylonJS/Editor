@@ -7,7 +7,7 @@ import { Material, MultiMaterial, PBRMaterial, StandardMaterial } from "babylonj
 
 import { Table, TableBody, TableCaption, TableCell, TableRow } from "../../../../ui/shadcn/ui/table";
 
-import { loadImportedMaterial } from "../../preview/import";
+import { loadImportedMaterial } from "../../preview/import/import";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 

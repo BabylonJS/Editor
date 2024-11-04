@@ -46,11 +46,13 @@ import { EditorGraphContextMenu } from "./graph/graph";
 
 import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
-import { applyTextureAssetToObject } from "./preview/texture";
-import { applyMaterialAssetToObject } from "./preview/material";
-import { EditorPreviewConvertProgress } from "./preview/progress";
-import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import";
 import { EditorPreviewPlayComponent } from "./preview/play";
+
+// import { applyImportedGuiFile } from "./preview/import/gui";
+import { applyTextureAssetToObject } from "./preview/import/texture";
+import { applyMaterialAssetToObject } from "./preview/import/material";
+import { EditorPreviewConvertProgress } from "./preview/import/progress";
+import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
 
 export interface IEditorPreviewProps {
     /**
@@ -747,6 +749,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                         }
                     });
                     break;
+
+                // case ".gui":
+                //     applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
+                //         this.props.editor.layout.graph.refresh();
+                //     });
+                //     break;
             }
         });
     }

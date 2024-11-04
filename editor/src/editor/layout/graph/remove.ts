@@ -1,8 +1,10 @@
+import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { AbstractMesh, Light, Node, Scene } from "babylonjs";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 import { isSceneLinkNode } from "../../../tools/guards/scene";
+import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
 import { Editor } from "../../main";
@@ -22,6 +24,8 @@ export function removeNodes(editor: Editor): void {
     const scene = editor.layout.preview.scene;
 
     const selectedNodes = editor.layout.graph.getSelectedNodes().map((n) => n.nodeData).filter((n) => isNode(n)) as Node[];
+    const selectedGuiNodes = editor.layout.graph.getSelectedNodes().map((n) => n.nodeData).filter((n) => isAdvancedDynamicTexture(n)) as AdvancedDynamicTexture[];
+
     const data = selectedNodes.map((node) => {
         const attached = [node]
             .concat(node.getDescendants(false, (n) => isNode(n)))
@@ -47,6 +51,15 @@ export function removeNodes(editor: Editor): void {
                 restoreNodeData(d, scene);
             });
 
+            selectedGuiNodes.forEach((node) => {
+                scene.addTexture(node);
+
+                const layer = scene.layers.find((layer) => layer.texture === node);
+                if (layer) {
+                    layer.isEnabled = true;
+                }
+            });
+
             editor.layout.graph.refresh();
 
             waitNextAnimationFrame().then(() => {
@@ -59,6 +72,15 @@ export function removeNodes(editor: Editor): void {
         redo: () => {
             data.forEach((d) => {
                 removeNodeData(d, scene);
+            });
+
+            selectedGuiNodes.forEach((node) => {
+                scene.removeTexture(node);
+
+                const layer = scene.layers.find((layer) => layer.texture === node);
+                if (layer) {
+                    layer.isEnabled = false;
+                }
             });
 
             editor.layout.graph.refresh();

@@ -17,6 +17,8 @@ import { parseSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
 import { parseMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
 import { parseDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
 
+import { applyImportedGuiFile } from "../../editor/layout/preview/import/gui";
+
 import { wait } from "../../tools/tools";
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
@@ -77,9 +79,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "skeletons")),
         createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
         createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
+        createDirectoryIfNotExist(join(scenePath, "gui")),
     ]);
 
-    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles] = await Promise.all([
+    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles, guiFiles] = await Promise.all([
         readdir(join(scenePath, "nodes")),
         readdir(join(scenePath, "meshes")),
         readdir(join(scenePath, "lods")),
@@ -88,6 +91,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         readdir(join(scenePath, "skeletons")),
         readdir(join(scenePath, "shadowGenerators")),
         readdir(join(scenePath, "sceneLinks")),
+        readdir(join(scenePath, "gui")),
     ]);
 
     const progress = await showLoadSceneProgressDialog(basename(scenePath));
@@ -99,7 +103,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         cameraFiles.length +
         skeletonFiles.length +
         shadowGeneratorFiles.length +
-        sceneLinkFiles.length
+        sceneLinkFiles.length +
+        guiFiles.length
     );
 
     SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
@@ -427,6 +432,27 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
             progress.step(progressStep);
         }));
     }
+
+    // Load GUI files
+    await Promise.all(guiFiles.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
+        const data = await readJSON(join(scenePath, "gui", file), "utf-8");
+
+        try {
+            const gui = await applyImportedGuiFile(editor, join(projectPath, "assets", data.relativePath));
+
+            if (gui) {
+                gui.name = data.name;
+            }
+        } catch (e) {
+            editor.layout.console.error(`Failed to load GUI file "${file}": ${e.message}`);
+        }
+
+        progress.step(progressStep);
+    }));
 
     progress.dispose();
 

@@ -7,14 +7,14 @@ import { toast } from "sonner";
 
 import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools } from "babylonjs";
 
-import { UniqueNumber } from "../../../tools/tools";
-import { isMesh } from "../../../tools/guards/nodes";
-import { isTexture } from "../../../tools/guards/texture";
-import { isMultiMaterial } from "../../../tools/guards/material";
-import { onNodesAddedObservable } from "../../../tools/observables";
-import { configureSimultaneousLightsForMaterial } from "../../../tools/mesh/material";
+import { UniqueNumber } from "../../../../tools/tools";
+import { isMesh } from "../../../../tools/guards/nodes";
+import { isTexture } from "../../../../tools/guards/texture";
+import { isMultiMaterial } from "../../../../tools/guards/material";
+import { onNodesAddedObservable } from "../../../../tools/observables";
+import { configureSimultaneousLightsForMaterial } from "../../../../tools/mesh/material";
 
-import { projectConfiguration } from "../../../project/configuration";
+import { projectConfiguration } from "../../../../project/configuration";
 
 export async function tryConvertSceneFile(absolutePath: string, progress?: (percent: number) => void): Promise<string> {
     const toolsUrl = process.env.EDITOR_TOOLS_URL ?? "https://editor.babylonjs.com";

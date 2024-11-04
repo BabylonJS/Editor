@@ -8,8 +8,8 @@ import { isNode } from "../../../tools/guards/nodes";
 import { isScene } from "../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../tools/undoredo";
 
-import { applyTextureAssetToObject } from "../preview/texture";
-import { applyMaterialAssetToObject } from "../preview/material";
+import { applyTextureAssetToObject } from "../preview/import/texture";
+import { applyMaterialAssetToObject } from "../preview/import/material";
 
 import { Editor } from "../../main";
 

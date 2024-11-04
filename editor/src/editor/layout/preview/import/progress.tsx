@@ -2,7 +2,7 @@ import { basename } from "path/posix";
 
 import { Component, ReactNode } from "react";
 
-import { Progress } from "../../../ui/shadcn/ui/progress";
+import { Progress } from "../../../../ui/shadcn/ui/progress";
 
 export interface IEditorPreviewConvertProgressProps {
     absolutePath: string;

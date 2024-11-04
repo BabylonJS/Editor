@@ -23,6 +23,8 @@ import { EditorCameraInspector } from "./inspector/camera/editor";
 import { EditorFreeCameraInspector } from "./inspector/camera/free";
 import { EditorArcRotateCameraInspector } from "./inspector/camera/arc-rotate";
 
+import { EditorAdvancedDynamicTextureInspector } from "./inspector/gui/gui";
+
 export interface IEditorInspectorProps {
     /**
      * The editor reference.
@@ -51,6 +53,8 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
         EditorArcRotateCameraInspector,
 
         EditorSceneInspector,
+
+        EditorAdvancedDynamicTextureInspector,
     ];
 
     public constructor(props: IEditorInspectorProps) {

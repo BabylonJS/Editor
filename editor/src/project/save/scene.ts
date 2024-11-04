@@ -36,6 +36,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "skeletons")),
         createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
         createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
+        createDirectoryIfNotExist(join(scenePath, "gui")),
     ]);
 
     const scene = editor.layout.preview.scene;
@@ -306,6 +307,47 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             savedFiles.push(sceneLinkPath);
         }
     }));
+
+    // Save scene files
+    const guiTextures = scene.textures.filter((texture) => texture.getClassName() === "AdvancedDynamicTexture");
+    if (guiTextures.length) {
+        const allGuiFiles = await normalizedGlob(join(projectPath, "assets/**/*.gui"), {
+            nodir: true,
+        });
+
+        const guiConfigurations = await Promise.all(allGuiFiles.map(async (file) => {
+            const data = await readJSON(file, {
+                encoding: "utf8",
+            });
+
+            return {
+                file,
+                uniqueId: data.uniqueId,
+            };
+        }));
+
+        await Promise.all(guiTextures.map(async (guiTexture) => {
+            const absolutePath = guiConfigurations.find((config) => config.uniqueId === guiTexture.uniqueId)?.file;
+            const relativePath = absolutePath?.replace(join(projectPath, "assets", "/"), "");
+
+            if (relativePath) {
+                const guiPath = join(scenePath, "gui", `${guiTexture.uniqueId}.json`);
+
+                try {
+                    await writeJSON(guiPath, {
+                        relativePath,
+                        name: guiTexture.name,
+                    }, {
+                        spaces: 4,
+                    });
+                } catch (e) {
+                    editor.layout.console.error(`Failed to write gui node ${guiTexture.name}`);
+                } finally {
+                    savedFiles.push(guiPath);
+                }
+            }
+        }));
+    }
 
     // Write configuration
     const configPath = join(scenePath, "config.json");
