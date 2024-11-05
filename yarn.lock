@@ -1202,6 +1202,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/dom-webcodecs@^0.1.4":
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/@types/dom-webcodecs/-/dom-webcodecs-0.1.13.tgz#d8be5da4f01b20721307b08ad2cca903ccf4f47f"
+  integrity sha512-O5hkiFIcjjszPIYyUSyvScyvrBoV3NOEEZx/pMlsu44TKzWNkLVBBxnxJz42in5n3QIolYOcBYFCPZZ0h8SkwQ==
+
 "@types/fs-extra@9.0.13", "@types/fs-extra@^9.0.11":
   version "9.0.13"
   resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-9.0.13.tgz#7594fbae04fe7f1918ce8b3d213f74ff44ac1f45"
@@ -1319,6 +1324,11 @@
   version "1.10.9"
   resolved "https://registry.yarnpkg.com/@types/verror/-/verror-1.10.9.tgz#420c32adb9a2dd50b3db4c8f96501e05a0e72941"
   integrity sha512-MLx9Z+9lGzwEuW16ubGeNkpBDE84RpB/NyGgg6z2BTpWzKkGU451cAY3UkUzZEp72RHF585oJ3V8JVNqIplcAQ==
+
+"@types/wicg-file-system-access@^2020.9.5":
+  version "2020.9.8"
+  resolved "https://registry.yarnpkg.com/@types/wicg-file-system-access/-/wicg-file-system-access-2020.9.8.tgz#a8b739854ccb74b8048ef607d3701e9d506830e7"
+  integrity sha512-ggMz8nOygG7d/stpH40WVaNvBwuyYLnrg5Mbyf6bmsj/8+gb6Ei4ZZ9/4PNpcPNTT8th9Q8sM8wYmWGjMWLX/A==
 
 "@types/yauzl@^2.9.1":
   version "2.10.3"
@@ -1806,6 +1816,7 @@ babylonjs-editor-tools@latest:
     tailwind-merge "^2.2.1"
     tailwindcss-animate "^1.0.7"
     usehooks-ts "^3.0.2"
+    webm-muxer "^5.0.2"
 
 babylonjs-gltf2interface@^7.22.5:
   version "7.22.5"
@@ -6530,6 +6541,14 @@ wcwidth@^1.0.1:
   integrity sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==
   dependencies:
     defaults "^1.0.3"
+
+webm-muxer@^5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/webm-muxer/-/webm-muxer-5.0.2.tgz#57ce83caafe7942678ce1d123b09a37fd30c7563"
+  integrity sha512-/1m0ZGOcx8TvEmqY+U7GromXTKtto4pi5ou+ZvaQXEjb+G/v1cln2ZbKK3T4fpWhLBYjKBeYWza/y1Nxccm5pg==
+  dependencies:
+    "@types/dom-webcodecs" "^0.1.4"
+    "@types/wicg-file-system-access" "^2020.9.5"
 
 which-boxed-primitive@^1.0.2:
   version "1.0.2"

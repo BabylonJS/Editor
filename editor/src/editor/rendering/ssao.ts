@@ -16,7 +16,7 @@ export function disposeSSAO2RenderingPipeline(): void {
 }
 
 export function createSSAO2RenderingPipeline(editor: Editor): SSAO2RenderingPipeline {
-    ssaoRenderingPipeline = new SSAO2RenderingPipeline("SSAO2RenderingPipeline", editor.layout.preview.scene, 1.0, [editor.layout.preview.camera]);
+    ssaoRenderingPipeline = new SSAO2RenderingPipeline("SSAO2RenderingPipeline", editor.layout.preview.scene, 1.0, [editor.layout.preview.scene.activeCamera!]);
     ssaoRenderingPipeline.samples = 4;
 
     return ssaoRenderingPipeline;

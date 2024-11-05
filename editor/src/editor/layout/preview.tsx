@@ -13,7 +13,7 @@ import { GiWireframeGlobe } from "react-icons/gi";
 
 import {
     AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
-    ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine,
+    ISceneLoaderAsyncResult, ISize, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine,
 } from "babylonjs";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
@@ -37,10 +37,10 @@ import { SpinnerUIComponent } from "../../ui/spinner";
 import { Separator } from "../../ui/shadcn/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/shadcn/ui/tooltip";
 
-import { disposeSSRRenderingPipeline } from "../rendering/ssr";
-import { disposeMotionBlurPostProcess } from "../rendering/motion-blur";
-import { disposeSSAO2RenderingPipeline } from "../rendering/ssao";
-import { disposeDefaultRenderingPipeline } from "../rendering/default-pipeline";
+import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../rendering/ssr";
+import { disposeMotionBlurPostProcess, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "../rendering/motion-blur";
+import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline } from "../rendering/ssao";
+import { disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
 import { EditorGraphContextMenu } from "./graph/graph";
 
@@ -77,6 +77,11 @@ export interface IEditorPreviewState {
      * Defines wether or not the preview is focused.
      */
     isFocused: boolean;
+
+    /**
+     * Defines the fixed size of the preview.
+     */
+    fixedSize: ISize | null;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -120,6 +125,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         this.state = {
             activeGizmo: "none",
 
+            fixedSize: null,
             isFocused: false,
             informationMessage: "",
         };
@@ -156,7 +162,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             onPointerDown={(ev) => this._handleMouseDown(ev)}
                             onMouseLeave={() => this._handleMouseLeave()}
                             onMouseMove={() => this._handleMouseMove(this.scene.pointerX, this.scene.pointerY)}
-                            className="w-full h-full select-none outline-none"
+                            style={{
+                                width: this.state.fixedSize?.width ? `${this.state.fixedSize.width}px` : undefined,
+                                height: this.state.fixedSize?.height ? `${this.state.fixedSize.height}px` : undefined,
+                            }}
+                            className={`
+                                select-none outline-none
+                                ${this.state.fixedSize ? "object-contain" : "w-full h-full"}    
+                            `}
                         />
 
                         {this.play?.state.playing &&
@@ -485,13 +498,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             <Select
                                 disabled={this.play?.state.playing}
                                 value={this.scene?.activeCamera?.id}
-                                onValueChange={(v) => {
-                                    const camera = this.scene.cameras.find((c) => c.id === v) ?? null;
-                                    this.scene.activeCamera?.detachControl();
-
-                                    this.scene.activeCamera = camera;
-                                    this.scene.activeCamera?.attachControl(true);
-                                }}
+                                onValueChange={(v) => this._switchToCamera(v)}
                             >
                                 <SelectTrigger className="w-36 border-none bg-muted/50">
                                     <SelectValue placeholder="Select Value..." />
@@ -606,6 +613,45 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         );
     }
 
+    private _switchToCamera(id: string): void {
+        const camera = this.scene.cameras.find((c) => c.id === id) ?? null;
+        this.scene.activeCamera?.detachControl();
+
+        this.scene.activeCamera = camera;
+        this.scene.activeCamera?.attachControl(true);
+
+        // Post-processes
+        const ssao2Pipeline = serializeSSAO2RenderingPipeline();
+        const ssrPipeline = serializeSSRRenderingPipeline();
+        const motionBlurPipeline = serializeMotionBlurPostProcess();
+        const defaultRenderingPipeline = serializeDefaultRenderingPipeline();
+
+        disposeSSAO2RenderingPipeline();
+        disposeSSRRenderingPipeline();
+        disposeMotionBlurPostProcess();
+        disposeDefaultRenderingPipeline();
+
+        if (ssao2Pipeline) {
+            parseSSAO2RenderingPipeline(this.props.editor, ssao2Pipeline);
+        }
+
+        if (ssrPipeline) {
+            parseSSRRenderingPipeline(this.props.editor, ssrPipeline);
+        }
+
+        if (motionBlurPipeline) {
+            parseMotionBlurPostProcess(this.props.editor, motionBlurPipeline);
+        }
+
+        if (defaultRenderingPipeline) {
+            parseDefaultRenderingPipeline(this.props.editor, defaultRenderingPipeline);
+        }
+    }
+
+    /**
+     * Sets the currently active gizmo. Set "none" to deactivate the gizmo.
+     * @param gizmo defines the type of gizmo to activate.
+     */
     public setActiveGizmo(gizmo: "position" | "rotation" | "scaling" | "none"): void {
         if (this.state.activeGizmo === gizmo) {
             gizmo = "none";

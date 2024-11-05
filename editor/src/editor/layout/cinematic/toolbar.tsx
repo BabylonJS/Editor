@@ -5,9 +5,12 @@ import { Button } from "../../../ui/shadcn/ui/button";
 import { Slider } from "../../../ui/shadcn/ui/slider";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from "../../../ui/shadcn/ui/menubar";
 
+import { Editor } from "../../main";
+
 import { CinematicEditor } from "./editor";
 
 export interface IEditorAnimationToolbarProps {
+    editor: Editor;
     playing: boolean;
     cinematicEditor: CinematicEditor;
 }
@@ -50,6 +53,19 @@ export class CinematicEditorToolbar extends Component<IEditorAnimationToolbarPro
                             <MenubarSeparator />
                             <MenubarItem className="text-red-400">
                                 Remove Selected Key Frames (TODO)
+                            </MenubarItem>
+                        </MenubarContent>
+                    </MenubarMenu>
+
+                    {/* Render */}
+                    <MenubarMenu>
+                        <MenubarTrigger>
+                            Render
+                        </MenubarTrigger>
+
+                        <MenubarContent className="border-black/50">
+                            <MenubarItem onClick={() => this.props.cinematicEditor.renderCinematic("1080p")}>
+                                Render 1080p
                             </MenubarItem>
                         </MenubarContent>
                     </MenubarMenu>

@@ -16,7 +16,7 @@ export function disposeSSRRenderingPipeline(): void {
 }
 
 export function createSSRRenderingPipeline(editor: Editor): SSRRenderingPipeline {
-    ssrRenderingPipeline = new SSRRenderingPipeline("SSRRenderingPipeline", editor.layout.preview.scene, [editor.layout.preview.camera]);
+    ssrRenderingPipeline = new SSRRenderingPipeline("SSRRenderingPipeline", editor.layout.preview.scene, [editor.layout.preview.scene.activeCamera!]);
     ssrRenderingPipeline.samples = 4;
 
     return ssrRenderingPipeline;

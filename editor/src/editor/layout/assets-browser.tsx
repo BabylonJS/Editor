@@ -41,7 +41,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, C
 
 import { FileInspectorObject } from "./inspector/file";
 
-import { ICinematic } from "./cinematic/schema/typings";
+// import { ICinematic } from "./cinematic/schema/typings";
 
 import { AssetBrowserGUIItem } from "./assets-browser/items/gui-item";
 import { AssetBrowserHDRItem } from "./assets-browser/items/hdr-item";
@@ -719,33 +719,33 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
         return this._refreshItems(this.state.browsedPath);
     }
 
-    private async _handleAddCinematic(): Promise<void> {
-        if (!this.state.browsedPath) {
-            return;
-        }
+    // private async _handleAddCinematic(): Promise<void> {
+    //     if (!this.state.browsedPath) {
+    //         return;
+    //     }
 
-        const cinematic = {
-            framesPerSecond: 60,
-            name: "New Cinematic",
-            tracks: [],
-        } as ICinematic;
+    //     const cinematic = {
+    //         framesPerSecond: 60,
+    //         name: "New Cinematic",
+    //         tracks: [],
+    //     } as ICinematic;
 
-        let index: number | undefined = undefined;
-        while (await pathExists(join(this.state.browsedPath, `${cinematic.name}${index !== undefined ? ` ${index}` : ""}.cinematic`))) {
-            index ??= 0;
-            ++index;
-        }
+    //     let index: number | undefined = undefined;
+    //     while (await pathExists(join(this.state.browsedPath, `${cinematic.name}${index !== undefined ? ` ${index}` : ""}.cinematic`))) {
+    //         index ??= 0;
+    //         ++index;
+    //     }
 
-        const name = `${cinematic.name}${index !== undefined ? ` ${index}` : ""}.cinematic`;
-        await writeJSON(join(this.state.browsedPath, name), cinematic, {
-            spaces: "\t",
-            encoding: "utf-8",
-        });
+    //     const name = `${cinematic.name}${index !== undefined ? ` ${index}` : ""}.cinematic`;
+    //     await writeJSON(join(this.state.browsedPath, name), cinematic, {
+    //         spaces: "\t",
+    //         encoding: "utf-8",
+    //     });
 
-        this.props.editor.layout.preview.scene;
+    //     this.props.editor.layout.preview.scene;
 
-        return this._refreshItems(this.state.browsedPath);
-    }
+    //     return this._refreshItems(this.state.browsedPath);
+    // }
 
     private async _handleAddFullScreenGUI(): Promise<void> {
         if (!this.state.browsedPath) {

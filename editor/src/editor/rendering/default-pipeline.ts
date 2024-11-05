@@ -19,7 +19,7 @@ export function disposeDefaultRenderingPipeline(): void {
 }
 
 export function createDefaultRenderingPipeline(editor: Editor): DefaultRenderingPipeline {
-    defaultRenderingPipeline = new DefaultRenderingPipeline("DefaultRenderingPipeline", true, editor.layout.preview.scene, [editor.layout.preview.camera]);
+    defaultRenderingPipeline = new DefaultRenderingPipeline("DefaultRenderingPipeline", true, editor.layout.preview.scene, [editor.layout.preview.scene.activeCamera!]);
     defaultRenderingPipeline.samples = 4;
 
     defaultRenderingPipeline.depthOfField.lensSize = 512;

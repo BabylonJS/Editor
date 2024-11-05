@@ -59,6 +59,7 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                                 ? "bg-accent"
                                 : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary"
                             }
+                            whitespace-nowrap overflow-hidden overflow-ellipsis
                             transition-all duration-300 ease-in-out    
                         `}
                     >

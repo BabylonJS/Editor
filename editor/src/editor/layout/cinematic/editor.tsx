@@ -13,6 +13,7 @@ import { Editor } from "../../main";
 import { ICinematic, ICinematicTrack } from "./schema/typings";
 
 import { CinematicEditorToolbar } from "./toolbar";
+import { CinematicRenderer, RenderType } from "./render/render";
 import { CinematicEditorTracksPanel } from "./tracks/tracks";
 import { serializeCinematic } from "./serialization/serialize";
 import { CinematicEditorTimelinePanel } from "./timeline/timeline";
@@ -43,6 +44,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
      * Defines the reference to the timelines panel component used to display the animations timeline.
      */
     public timelines!: CinematicEditorTimelinePanel;
+    /**
+     * Defines the reference to the cinematic renderer used to render cinematic into video file.
+     */
+    public cinematicRenderer!: CinematicRenderer;
 
     private _undoObserver: Observer<void> | null = null;
     private _redoObserver: Observer<void> | null = null;
@@ -64,9 +69,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
     public render(): ReactNode {
         return (
-            <div className="flex flex-col min-w-full h-full">
+            <div className="relative flex flex-col min-w-full h-full">
                 <CinematicEditorToolbar
                     cinematicEditor={this}
+                    editor={this.props.editor}
                     playing={this.state.playing}
                 />
 
@@ -109,6 +115,12 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                         ref={(r) => this.inspector = r!}
                     />
                 </div>
+
+                <CinematicRenderer
+                    cinematicEditor={this}
+                    editor={this.props.editor}
+                    ref={(r) => this.cinematicRenderer = r!}
+                />
             </div>
         );
     }
@@ -189,5 +201,13 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
         });
 
         toast.success("Cinematic file saved.");
+    }
+
+    /**
+     * Renders the current cinematic into a video file.
+     * @param type defines the type of render to perform.
+     */
+    public renderCinematic(type: RenderType): void {
+        this.cinematicRenderer.renderCinematic(this.props.cinematic, type);
     }
 }
