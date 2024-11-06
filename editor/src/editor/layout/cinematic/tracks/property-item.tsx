@@ -6,6 +6,7 @@ import { getInspectorPropertyValue } from "../../../../tools/property";
 
 import { showAlert } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
@@ -56,7 +57,7 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                         onDragOver={(ev) => this._handleDragOver(ev)}
                         onDragLeave={(ev) => this._handleDragLeave(ev)}
                         className={`
-                            w-full p-2 rounded-md
+                            w-[7rem] p-2 rounded-md
                             ${this.state.dragOver
                                 ? "bg-accent"
                                 : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary"
@@ -69,9 +70,21 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                     </div>
 
                     {(this.props.track.node || this.props.track.defaultRenderingPipeline) &&
-                        <Button variant="ghost" className="w-full whitespace-nowrap overflow-hidden overflow-ellipsis" onClick={() => this._selectPropertyToAnimate()}>
-                            {this.props.track.propertyPath ?? "No property"}
-                        </Button>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Button variant="ghost" className="w-[7rem]" onClick={() => this._selectPropertyToAnimate()}>
+                                        <span className="w-full whitespace-nowrap overflow-hidden overflow-ellipsis">
+                                            {this.props.track.propertyPath ?? "No property"}
+                                        </span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {this.props.track.propertyPath ?? "No property"}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+
                     }
                 </div>
 

@@ -119,6 +119,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
                     <CinematicEditorInspector
                         cinematicEditor={this}
+                        editor={this.props.editor}
                         ref={(r) => this.inspector = r!}
                     />
                 </div>

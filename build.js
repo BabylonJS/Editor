@@ -42,6 +42,7 @@ const build = ({ x64, arm64 } = options) => {
             asar: true,
             compression: "normal",
             extraFiles: [
+                "bin/**",
                 "templates/**",
             ],
             files: [

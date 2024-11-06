@@ -18,6 +18,8 @@ import { CinematicEditor } from "../editor";
 import { ICinematic } from "../schema/typings";
 import { generateCinematicAnimationGroup } from "../generate/generate";
 
+import { convertVideoToMp4 } from "./convert";
+
 export type RenderType = "720p" | "1080p" | "4k";
 
 export interface ICinematicRendererProps {
@@ -27,7 +29,7 @@ export interface ICinematicRendererProps {
 
 export interface ICinematicRendererState {
     progress: number;
-    running: boolean;
+    step: "rendering" | "converting" | "void";
 }
 
 export class CinematicRenderer extends Component<ICinematicRendererProps, ICinematicRendererState> {
@@ -39,7 +41,7 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
 
         this.state = {
             progress: 0,
-            running: false,
+            step: "void",
         };
     }
 
@@ -49,7 +51,7 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
                 className={`
                     flex flex-col justify-center items-center gap-5
                     fixed top-0 left-0 w-full h-full z-50
-                    ${this.state.running
+                    ${this.state.step !== "void"
                         ? "opacity-100 bg-black/50 backdrop-blur-sm"
                         : "opacity-0 bg-transparent backdrop-blur-none pointer-events-none"
                     }
@@ -59,14 +61,15 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
                 <Grid width={64} height={64} color="gray" />
 
                 <div>
-                    Rendering cinematic...
+                    {this.state.step === "rendering" && "Rendering cinematic..."}
+                    {this.state.step === "converting" && "Converting video to MP4..."}
                 </div>
 
                 <div className="w-64">
                     <Progress value={this.state.progress} />
                 </div>
 
-                <Button onClick={() => this.setState({ running: false })}>
+                <Button onClick={() => this.setState({ step: "void" })}>
                     Cancel
                 </Button>
             </div>
@@ -94,7 +97,9 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
     }
 
     private async _renderCinematic(cinematic: ICinematic, type: RenderType, destination: string) {
-        this.setState({ running: true });
+        this.setState({
+            step: "rendering",
+        });
 
         const animationGroup = generateCinematicAnimationGroup(
             cinematic,
@@ -117,7 +122,7 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
 
         // Idea to improve quality of the render
         const scalingLevel = preview.engine._hardwareScalingLevel;
-        preview.engine.setHardwareScalingLevel(scalingLevel * 0.5);
+        preview.engine.setHardwareScalingLevel(scalingLevel * 0.25);
 
         preview.engine.setSize(width, height);
 
@@ -144,7 +149,7 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
                 progress: ((i / framesCount) * 100) >> 0,
             });
 
-            if (!this.state.running) {
+            if (this.state.step !== "rendering") {
                 break;
             }
         }
@@ -164,17 +169,31 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
         preview.engine.resize();
 
         // Write video result?
-        if (this.state.running) {
+        if (this.state.step === "rendering") {
             try {
                 await writeFile(destination, Buffer.from(this._muxer.target.buffer));
             } catch (e) {
                 this.props.editor.layout.console.error(`Failed to write cinematic video at: ${destination}`);
             }
+
+            try {
+                this.setState({
+                    step: "converting",
+                });
+
+                await convertVideoToMp4(this.props.editor, destination, (p) => {
+                    this.setState({
+                        progress: ((p / framesCount) * 100) >> 0,
+                    });
+                });
+            } catch (e) {
+                this.props.editor.layout.console.error(`Failed to convert cinematic video at: ${destination.replace(".webm", ".mp4")}`);
+            }
         }
 
         this.setState({
             progress: 0,
-            running: false,
+            step: "void",
         });
     }
 

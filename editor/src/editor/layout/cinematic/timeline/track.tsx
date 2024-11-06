@@ -7,6 +7,8 @@ import { getInspectorPropertyValue } from "../../../../tools/property";
 import { TooltipProvider } from "../../../../ui/shadcn/ui/tooltip";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
+import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
+
 import { Editor } from "../../../main";
 
 import { isCinematicGroup, isCinematicKeyCut } from "../schema/guards";
@@ -125,12 +127,16 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
     public addAnimationKey(type: "key" | "cut", positionX?: number | null): void {
         positionX ??= this.state.rightClickPositionX;
 
-        if (positionX === null || !this.props.track.node || !this.props.track.propertyPath) {
+        const node = this.props.track.defaultRenderingPipeline
+            ? getDefaultRenderingPipeline()
+            : this.props.track.node;
+
+        if (positionX === null || !node || !this.props.track.propertyPath) {
             return;
         }
 
         const frame = Math.round(positionX / this.props.scale);
-        const value = getInspectorPropertyValue(this.props.track.node, this.props.track.propertyPath);
+        const value = getInspectorPropertyValue(node, this.props.track.propertyPath);
 
         const key = type === "key"
             ? {

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { MdOutlineInfo } from "react-icons/md";
 
+import { useEventListener } from "usehooks-ts";
+
 import { Scalar, Tools } from "babylonjs";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
@@ -22,6 +24,7 @@ export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldP
 }
 
 export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldProps) {
+    const [shiftDown, setShiftDown] = useState(false);
     const [pointerDown, setPointerDown] = useState(false);
 
     const step = props.step ?? 0.01;
@@ -39,6 +42,18 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 
     const hasMinMax = props.min !== undefined && props.max !== undefined;
     const ratio = hasMinMax ? (Scalar.InverseLerp(props.min!, props.max!, parseFloat(value)) * 100).toFixed(0) : 0;
+
+    useEventListener("keydown", (ev) => {
+        if (ev.key === "Shift") {
+            setShiftDown(true);
+        }
+    });
+
+    useEventListener("keyup", (ev) => {
+        if (ev.key === "Shift") {
+            setShiftDown(false);
+        }
+    });
 
     return (
         <div className="flex gap-2 items-center px-2">
@@ -147,7 +162,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
                     let mouseMoveListener: (ev: MouseEvent) => void;
 
                     document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
-                        v += (ev.clientX - startX) * step;
+                        v += (ev.clientX - startX) * step * (shiftDown ? 10 : 1);
                         startX = ev.clientX;
 
                         if (props.min !== undefined && v < props.min) {

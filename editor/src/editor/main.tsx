@@ -87,6 +87,12 @@ export class Editor extends Component<{}, IEditorState> {
      */
     public commandPalette: CommandPalette;
 
+    /**
+     * Defines the path to the editor application.
+     * This comes from electron `app.getAppPath();`
+     */
+    public path: string | null = null;
+
     public constructor(props: {}) {
         super(props);
 
@@ -153,6 +159,8 @@ export class Editor extends Component<{}, IEditorState> {
 
         ipcRenderer.on("editor:quit-app", () => this.quitApp());
         ipcRenderer.on("editor:close-window", () => this.close());
+
+        ipcRenderer.on("editor:path", (_, path) => this.path = path);
 
         ipcRenderer.send("editor:ready");
 

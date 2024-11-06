@@ -1,27 +1,30 @@
 import { Component, ReactNode } from "react";
 
-import { Animation, AnimationGroup, IAnimationKey } from "babylonjs";
+import { Animation, AnimationGroup, Color3, Color4, IAnimationKey, Quaternion, Vector2, Vector3 } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
+
+import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
+
+import { Editor } from "../../../main";
 
 import { CinematicEditor } from "../editor";
 
 import { EditorInspectorColorField } from "../../inspector/fields/color";
 import { EditorInspectorVectorField } from "../../inspector/fields/vector";
 import { EditorInspectorNumberField } from "../../inspector/fields/number";
+import { EditorInspectorSwitchField } from "../../inspector/fields/switch";
 import { EditorInspectorSectionField } from "../../inspector/fields/section";
 
-import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
+import { registerSimpleUndoRedo, registerUndoRedo } from "../../../../tools/undoredo";
 
 import { isCinematicGroup, isCinematicKey, isCinematicKeyCut } from "../schema/guards";
 import { ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
 
 export interface ICinematicEditorInspectorProps {
-    /**
-     * Defines the reference to the editor.
-     */
+    editor: Editor;
     cinematicEditor: CinematicEditor;
 }
 
@@ -104,6 +107,10 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
     }
 
     private _getKeyInspector(key: IAnimationKey): ReactNode {
+        if (!this.state.track) {
+            return null;
+        }
+
         const animationType = getAnimationTypeForObject(key.value);
 
         return (
@@ -114,7 +121,17 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                 }} />
 
                 {animationType === Animation.ANIMATIONTYPE_FLOAT &&
-                    <EditorInspectorNumberField object={key} property="value" label="Value" onChange={() => this.props.cinematicEditor.timelines.updateTracksAtCurrentTime()} />
+                    <EditorInspectorNumberField
+                        object={key}
+                        label="Value"
+                        property="value"
+                        step={
+                            this.state.track.propertyPath === "depthOfField.focusDistance"
+                                ? (this.props.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000
+                                : 0.01
+                        }
+                        onChange={() => this.props.cinematicEditor.timelines.updateTracksAtCurrentTime()}
+                    />
                 }
 
                 {animationType === Animation.ANIMATIONTYPE_VECTOR3 &&
@@ -128,20 +145,25 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                 <Button variant="secondary" onClick={() => this._copyCurrentValue(key)}>
                     Set current value
                 </Button>
+
+                {this._getAnimationKeyTangentsInspector(key)}
             </>
         );
     }
 
     private _copyCurrentValue(key: IAnimationKey): void {
-        debugger;
-        if (!this.state.key || !this.state.track?.node || !this.state.track.propertyPath) {
+        const node = this.state.track?.defaultRenderingPipeline
+            ? getDefaultRenderingPipeline()
+            : this.state.track?.node;
+
+        if (!this.state.key || !node || !this.state.track?.propertyPath) {
             return;
         }
 
-        const oldValue = key.value?.clone() ?? key.value;
+        const oldValue = key.value.clone?.() ?? key.value;
 
-        let newValue = getInspectorPropertyValue(this.state.track.node, this.state.track.propertyPath);
-        newValue = newValue?.clone() ?? newValue;
+        let newValue = getInspectorPropertyValue(node, this.state.track.propertyPath);
+        newValue = newValue.clone?.() ?? newValue;
 
         registerUndoRedo({
             executeRedo: true,
@@ -155,6 +177,8 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                 key.value = newValue;
             },
         });
+
+        this.forceUpdate();
     }
 
     private _getKeyCutInspector(key: ICinematicKeyCut): ReactNode {
@@ -197,5 +221,69 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                 }} />
             </>
         );
+    }
+
+    private _getTangentDefaultValue(key: IAnimationKey): number | Vector2 | Vector3 | Quaternion | Color3 | Color4 | null {
+        const animationType = getAnimationTypeForObject(key.value);
+
+        switch (animationType) {
+            case Animation.ANIMATIONTYPE_FLOAT: return 0;
+            case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.Zero();
+            case Animation.ANIMATIONTYPE_VECTOR3: return Vector3.Zero();
+            case Animation.ANIMATIONTYPE_QUATERNION: return Quaternion.Zero();
+            case Animation.ANIMATIONTYPE_COLOR3: return Color3.Black();
+            case Animation.ANIMATIONTYPE_COLOR4: return Color3.Black().toColor4(0);
+            default: return null;
+        }
+    }
+
+    private _getAnimationKeyTangentsInspector(key: IAnimationKey): ReactNode {
+        return (
+            <>
+                <EditorInspectorSwitchField label="In Tangents" object={{ checked: (key.inTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
+                    registerSimpleUndoRedo({
+                        object: key,
+                        property: "inTangent",
+                        oldValue: key?.inTangent,
+                        newValue: v ? this._getTangentDefaultValue(key!) : undefined,
+                        executeRedo: true,
+                    });
+
+                    this.forceUpdate();
+                }} />
+
+                {(key.inTangent ?? null) !== null && this._getTangentInspector(key, "inTangent")}
+
+                <EditorInspectorSwitchField label="Out Tangents" object={{ checked: (key.outTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
+                    registerSimpleUndoRedo({
+                        object: key,
+                        property: "outTangent",
+                        oldValue: key?.outTangent,
+                        newValue: v ? this._getTangentDefaultValue(key!) : undefined,
+                        executeRedo: true,
+                    });
+
+                    this.forceUpdate();
+                }} />
+
+                {(key.outTangent ?? null) !== null && this._getTangentInspector(key, "outTangent")}
+            </>
+        );
+    }
+
+    private _getTangentInspector(key: IAnimationKey, property: "inTangent" | "outTangent"): ReactNode {
+        const animationType = getAnimationTypeForObject(key.value);
+
+        switch (animationType) {
+            case Animation.ANIMATIONTYPE_FLOAT:
+                return <EditorInspectorNumberField object={key} property={property} onChange={() => this.props.cinematicEditor.timelines.updateTracksAtCurrentTime()} />;
+            case Animation.ANIMATIONTYPE_VECTOR3:
+                return <EditorInspectorVectorField object={key} property={property} onChange={() => this.props.cinematicEditor.timelines.updateTracksAtCurrentTime()} />;
+
+            case Animation.ANIMATIONTYPE_COLOR3:
+            case Animation.ANIMATIONTYPE_COLOR4:
+                return <EditorInspectorColorField object={key} property={property} noColorPicker noClamp onChange={() => this.props.cinematicEditor.timelines.updateTracksAtCurrentTime()} />;
+            default: return null;
+        }
     }
 }
