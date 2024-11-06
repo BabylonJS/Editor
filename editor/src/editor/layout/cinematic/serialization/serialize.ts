@@ -3,6 +3,8 @@ import { Animation, Color3, Color4, Matrix, Quaternion, Vector2, Vector3 } from 
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
+import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
+
 import { isCinematicKey } from "../schema/guards";
 import { ICinematic, ICinematicKey, ICinematicKeyCut } from "../schema/typings";
 
@@ -13,8 +15,10 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
         tracks: cinematic.tracks.map((track) => {
             let animationType: number | null = null;
 
-            if (track.node && track.propertyPath) {
-                const value = getInspectorPropertyValue(track.node, track.propertyPath);
+            const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
+
+            if (node && track.propertyPath) {
+                const value = getInspectorPropertyValue(node, track.propertyPath);
                 animationType = getAnimationTypeForObject(value);
             }
 
@@ -24,6 +28,8 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
 
                 animationGroups: track.animationGroups,
                 animationGroup: track.animationGroup?.name,
+
+                defaultRenderingPipeline: track.defaultRenderingPipeline,
 
                 keyFrameAnimations: animationType === null ? undefined : track.keyFrameAnimations?.map((keyFrame) => {
                     if (isCinematicKey(keyFrame)) {

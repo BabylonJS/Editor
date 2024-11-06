@@ -4,7 +4,7 @@ import { AiOutlinePlus } from "react-icons/ai";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
 
 import { Editor } from "../../../main";
 
@@ -37,15 +37,20 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => this._handleAddPropertyTrack()}>
+                            <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(false)}>
                                 Property Track
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => this._handleAddAnimationGroupTrack()}>
                                 Animation Group Track
                             </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true)}>
+                                Default Rendering Pipeline
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-
                 </div>
 
                 <div className="flex flex-col w-full">
@@ -74,11 +79,12 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
         );
     }
 
-    private _handleAddPropertyTrack(): void {
+    private _handleAddPropertyTrack(defaultRenderingPipeline: boolean): void {
         const track = {
             node: null,
             propertyPath: "",
             keyFrameAnimations: [],
+            defaultRenderingPipeline,
         } as ICinematicTrack;
 
         registerUndoRedo({

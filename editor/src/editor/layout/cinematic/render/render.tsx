@@ -1,16 +1,18 @@
+import { writeFile } from "fs-extra";
+
 import { Component, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
 import { ArrayBufferTarget, Muxer } from "webm-muxer";
 
-import { Tools } from "babylonjs";
+import { ISize } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Progress } from "../../../../ui/shadcn/ui/progress";
 
-import { Editor } from "../../../main";
+import { saveSingleFileDialog } from "../../../../tools/dialog";
 
-import { waitNextAnimationFrame } from "../../../../tools/tools";
+import { Editor } from "../../../main";
 
 import { CinematicEditor } from "../editor";
 import { ICinematic } from "../schema/typings";
@@ -46,7 +48,7 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
             <div
                 className={`
                     flex flex-col justify-center items-center gap-5
-                    absolute top-0 left-0 w-full h-full
+                    fixed top-0 left-0 w-full h-full z-50
                     ${this.state.running
                         ? "opacity-100 bg-black/50 backdrop-blur-sm"
                         : "opacity-0 bg-transparent backdrop-blur-none pointer-events-none"
@@ -76,7 +78,22 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
      * @param cinematic defines the reference to the cinematic to render.
      * @param type defines the type of render to perform.
      */
-    public async renderCinematic(cinematic: ICinematic, _type: RenderType) {
+    public renderCinematic(cinematic: ICinematic, type: RenderType) {
+        const destination = saveSingleFileDialog({
+            title: "Save cinematic video as...",
+            filters: [
+                { name: "WebM Video", extensions: ["webm"] },
+            ],
+        });
+
+        if (!destination) {
+            return;
+        }
+
+        return this._renderCinematic(cinematic, type, destination);
+    }
+
+    private async _renderCinematic(cinematic: ICinematic, type: RenderType, destination: string) {
         this.setState({ running: true });
 
         const animationGroup = generateCinematicAnimationGroup(
@@ -85,21 +102,10 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
         );
 
         const preview = this.props.editor.layout.preview;
-
-        const width = 1920;
-        const height = 1080;
+        const { width, height } = this._getVideoDimensions(type);
         const framesCount = animationGroup.to - animationGroup.from;
 
         // Setup canvas and video encoder.
-        this.props.editor.layout.preview.setState({
-            fixedSize: {
-                width,
-                height,
-            },
-        });
-
-        await waitNextAnimationFrame();
-
         this._createVideoEncoder(width, height);
         if (!this._muxer || !this._videoEncoder) {
             return;
@@ -113,7 +119,7 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
         const scalingLevel = preview.engine._hardwareScalingLevel;
         preview.engine.setHardwareScalingLevel(scalingLevel * 0.5);
 
-        preview.engine.resize();
+        preview.engine.setSize(width, height);
 
         // Play cinematic
         animationGroup.play(false);
@@ -143,6 +149,9 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
             }
         }
 
+        animationGroup.stop();
+        animationGroup.dispose();
+
         // Finalize video encoder and restore canvas
         await this._videoEncoder.flush();
         this._muxer.finalize();
@@ -151,22 +160,16 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
         preview.engine.renderEvenInBackground = false;
         preview.scene.useConstantAnimationDeltaTime = false;
 
-        preview.setState({
-            fixedSize: null,
-        });
-
-        await waitNextAnimationFrame();
-
         preview.engine.setHardwareScalingLevel(scalingLevel);
         preview.engine.resize();
 
         // Write video result?
         if (this.state.running) {
-            const file = new File([new Blob([this._muxer.target.buffer])], "video.webm", {
-                type: "video/webm",
-            });
-
-            Tools.Download(file, "video.webm");
+            try {
+                await writeFile(destination, Buffer.from(this._muxer.target.buffer));
+            } catch (e) {
+                this.props.editor.layout.console.error(`Failed to write cinematic video at: ${destination}`);
+            }
         }
 
         this.setState({
@@ -185,6 +188,28 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
         });
 
         videoFrame.close();
+    }
+
+    private _getVideoDimensions(type: RenderType): ISize {
+        switch (type) {
+            case "720p":
+                return {
+                    width: 1280,
+                    height: 720,
+                };
+
+            case "1080p":
+                return {
+                    width: 1920,
+                    height: 1080,
+                };
+
+            case "4k":
+                return {
+                    width: 3840,
+                    height: 2160,
+                };
+        }
     }
 
     private _createVideoEncoder(width: number, height: number): void {

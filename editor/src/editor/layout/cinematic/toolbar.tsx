@@ -64,8 +64,14 @@ export class CinematicEditorToolbar extends Component<IEditorAnimationToolbarPro
                         </MenubarTrigger>
 
                         <MenubarContent className="border-black/50">
+                            <MenubarItem onClick={() => this.props.cinematicEditor.renderCinematic("720p")}>
+                                Render 720p
+                            </MenubarItem>
                             <MenubarItem onClick={() => this.props.cinematicEditor.renderCinematic("1080p")}>
                                 Render 1080p
+                            </MenubarItem>
+                            <MenubarItem onClick={() => this.props.cinematicEditor.renderCinematic("4k")}>
+                                Render 4K
                             </MenubarItem>
                         </MenubarContent>
                     </MenubarMenu>
@@ -73,7 +79,7 @@ export class CinematicEditorToolbar extends Component<IEditorAnimationToolbarPro
 
                 {/* Buttons */}
                 <div className="flex gap-2 items-center pr-2">
-                    <Slider min={1} max={20} step={0.01} className="w-32" value={[this.props.cinematicEditor.timelines?.state.scale]} onValueChange={(v) => {
+                    <Slider min={0.1} max={20} step={0.01} className="w-32" value={[this.props.cinematicEditor.timelines?.state.scale]} onValueChange={(v) => {
                         this.props.cinematicEditor.timelines?.setScale(v[0]);
                     }} />
 

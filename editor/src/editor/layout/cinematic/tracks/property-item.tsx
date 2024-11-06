@@ -7,6 +7,8 @@ import { getInspectorPropertyValue } from "../../../../tools/property";
 import { showAlert } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
 
+import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
+
 import { Editor } from "../../../main";
 
 import { showAddTrackPrompt } from "../../animation/tracks/add";
@@ -63,11 +65,11 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                             transition-all duration-300 ease-in-out    
                         `}
                     >
-                        {this.props.track.node?.name ?? "No object"}
+                        {this.props.track.node?.name ?? (this.props.track.defaultRenderingPipeline ? "Pipeline" : "No object")}
                     </div>
 
-                    {this.props.track.node &&
-                        <Button variant="ghost" className="w-full" onClick={() => this._selectPropertyToAnimate()}>
+                    {(this.props.track.node || this.props.track.defaultRenderingPipeline) &&
+                        <Button variant="ghost" className="w-full whitespace-nowrap overflow-hidden overflow-ellipsis" onClick={() => this._selectPropertyToAnimate()}>
                             {this.props.track.propertyPath ?? "No property"}
                         </Button>
                     }
@@ -136,16 +138,20 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
     }
 
     private async _selectPropertyToAnimate(): Promise<unknown> {
-        if (!this.props.track.node) {
+        const node = this.props.track.defaultRenderingPipeline
+            ? getDefaultRenderingPipeline()
+            : this.props.track.node;
+
+        if (!node) {
             return;
         }
 
-        const property = await showAddTrackPrompt(this.props.track.node);
+        const property = await showAddTrackPrompt(node);
         if (!property || property === this.props.track.propertyPath) {
             return;
         }
 
-        const value = getInspectorPropertyValue(this.props.track.node, property);
+        const value = getInspectorPropertyValue(node, property);
         if (value === null || value === undefined) {
             return showAlert("Property not found", `The property to animate "${property}" was not found on the object.`);
         }

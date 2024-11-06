@@ -11,6 +11,8 @@ export interface ICinematicTrack {
     animationGroups?: ICinematicAnimationGroup[];
 
     node?: any;
+    defaultRenderingPipeline?: boolean;
+
     propertyPath?: string;
     keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[];
 }

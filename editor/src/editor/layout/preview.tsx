@@ -13,7 +13,7 @@ import { GiWireframeGlobe } from "react-icons/gi";
 
 import {
     AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
-    ISceneLoaderAsyncResult, ISize, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine,
+    ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine,
 } from "babylonjs";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
@@ -77,11 +77,6 @@ export interface IEditorPreviewState {
      * Defines wether or not the preview is focused.
      */
     isFocused: boolean;
-
-    /**
-     * Defines the fixed size of the preview.
-     */
-    fixedSize: ISize | null;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -125,7 +120,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         this.state = {
             activeGizmo: "none",
 
-            fixedSize: null,
             isFocused: false,
             informationMessage: "",
         };
@@ -162,14 +156,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             onPointerDown={(ev) => this._handleMouseDown(ev)}
                             onMouseLeave={() => this._handleMouseLeave()}
                             onMouseMove={() => this._handleMouseMove(this.scene.pointerX, this.scene.pointerY)}
-                            style={{
-                                width: this.state.fixedSize?.width ? `${this.state.fixedSize.width}px` : undefined,
-                                height: this.state.fixedSize?.height ? `${this.state.fixedSize.height}px` : undefined,
-                            }}
-                            className={`
-                                select-none outline-none
-                                ${this.state.fixedSize ? "object-contain" : "w-full h-full"}    
-                            `}
+                            className="select-none outline-none w-full h-full object-contain"
                         />
 
                         {this.play?.state.playing &&

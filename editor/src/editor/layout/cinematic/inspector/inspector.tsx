@@ -2,6 +2,8 @@ import { Component, ReactNode } from "react";
 
 import { Animation, AnimationGroup, IAnimationKey } from "babylonjs";
 
+import { Button } from "../../../../ui/shadcn/ui/button";
+
 import { CinematicEditor } from "../editor";
 
 import { EditorInspectorColorField } from "../../inspector/fields/color";
@@ -9,6 +11,8 @@ import { EditorInspectorVectorField } from "../../inspector/fields/vector";
 import { EditorInspectorNumberField } from "../../inspector/fields/number";
 import { EditorInspectorSectionField } from "../../inspector/fields/section";
 
+import { registerUndoRedo } from "../../../../tools/undoredo";
+import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { isCinematicGroup, isCinematicKey, isCinematicKeyCut } from "../schema/guards";
@@ -40,7 +44,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         return (
             <div
                 className={`
-                absolute top-0 right-0 w-96 h-full p-2 bg-background border-l-primary-foreground border-l-4
+                absolute top-0 right-0 w-96 h-full p-2 bg-background border-l-primary-foreground border-l-2 rounded-l-xl
                 ${this.state.key ? "translate-x-0" : "opacity-0 translate-x-full pointer-events-none"}
                 transition-all duration-150 ease-in-out
             `}
@@ -120,8 +124,37 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                 {(animationType === Animation.ANIMATIONTYPE_COLOR3 || animationType === Animation.ANIMATIONTYPE_COLOR4) &&
                     <EditorInspectorColorField label={<div className="w-14">Value</div>} object={key} property="value" onChange={() => this.props.cinematicEditor.timelines.updateTracksAtCurrentTime()} />
                 }
+
+                <Button variant="secondary" onClick={() => this._copyCurrentValue(key)}>
+                    Set current value
+                </Button>
             </>
         );
+    }
+
+    private _copyCurrentValue(key: IAnimationKey): void {
+        debugger;
+        if (!this.state.key || !this.state.track?.node || !this.state.track.propertyPath) {
+            return;
+        }
+
+        const oldValue = key.value?.clone() ?? key.value;
+
+        let newValue = getInspectorPropertyValue(this.state.track.node, this.state.track.propertyPath);
+        newValue = newValue?.clone() ?? newValue;
+
+        registerUndoRedo({
+            executeRedo: true,
+            action: () => {
+                this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+            },
+            undo: () => {
+                key.value = oldValue;
+            },
+            redo: () => {
+                key.value = newValue;
+            },
+        });
     }
 
     private _getKeyCutInspector(key: ICinematicKeyCut): ReactNode {

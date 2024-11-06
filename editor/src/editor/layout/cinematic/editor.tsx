@@ -1,9 +1,12 @@
 import { writeJSON } from "fs-extra";
 
 import { toast } from "sonner";
+import { FaGear } from "react-icons/fa6";
 import { Component, ReactNode } from "react";
 
 import { Observer } from "babylonjs";
+
+import { Button } from "../../../ui/shadcn/ui/button";
 
 import { isDomElementFocusable } from "../../../tools/dom";
 import { onRedoObservable, onUndoObservable } from "../../../tools/undoredo";
@@ -13,11 +16,11 @@ import { Editor } from "../../main";
 import { ICinematic, ICinematicTrack } from "./schema/typings";
 
 import { CinematicEditorToolbar } from "./toolbar";
-import { CinematicRenderer, RenderType } from "./render/render";
 import { CinematicEditorTracksPanel } from "./tracks/tracks";
 import { serializeCinematic } from "./serialization/serialize";
-import { CinematicEditorTimelinePanel } from "./timeline/timeline";
+import { CinematicRenderer, RenderType } from "./render/render";
 import { CinematicEditorInspector } from "./inspector/inspector";
+import { CinematicEditorTimelinePanel } from "./timeline/timeline";
 
 export interface ICinematicEditorProps {
     editor: Editor;
@@ -83,8 +86,12 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
                     <div className="w-1 h-full bg-primary-foreground" />
 
-                    <div className="flex justify-center items-center font-semibold w-full h-full bg-secondary">
+                    <div className="flex justify-center items-center gap-2 font-semibold w-full h-full bg-secondary">
                         Timeline
+
+                        <Button variant="ghost" className="rounded-full px-2">
+                            <FaGear className="w-4 h-4" />
+                        </Button>
                     </div>
                 </div>
 

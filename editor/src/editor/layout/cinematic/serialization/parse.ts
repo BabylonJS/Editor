@@ -1,7 +1,9 @@
-import { Animation, Color3, Color4, Matrix, Node, Quaternion, Scene, Vector2, Vector3 } from "babylonjs";
+import { Animation, Color3, Color4, Matrix, Quaternion, Scene, Vector2, Vector3 } from "babylonjs";
 
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
+
+import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
 import { ICinematic, ICinematicKey, ICinematicKeyCut } from "../schema/typings";
 
@@ -15,11 +17,13 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
         name: data.name,
         framesPerSecond: data.framesPerSecond,
         tracks: data.tracks.map((track) => {
-            let node: Node | null = null;
+            let node: any = null;
             let animationType: number | null = null;
 
             if (track.node) {
                 node = scene.getNodeById(track.node);
+            } else if (track.defaultRenderingPipeline) {
+                node = getDefaultRenderingPipeline();
             }
 
             if (track.propertyPath) {
@@ -31,6 +35,7 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
                 node,
                 propertyPath: track.propertyPath,
                 animationGroups: track.animationGroups,
+                defaultRenderingPipeline: track.defaultRenderingPipeline,
                 animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
                 keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
                     const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
