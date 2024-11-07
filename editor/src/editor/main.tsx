@@ -9,6 +9,7 @@ import { HotkeysTarget2 } from "@blueprintjs/core";
 
 import { waitUntil } from "../tools/tools";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
+import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
 
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
@@ -68,6 +69,11 @@ export interface IEditorState {
     compressedTexturesEnabled: boolean;
 
     /**
+     * Defines wether or not experimental features are enabled.
+     */
+    enableExperimentalFeatures: boolean;
+
+    /**
      * Defines if the project is being edited.
      */
     editProject: boolean;
@@ -102,6 +108,7 @@ export class Editor extends Component<{}, IEditorState> {
             lastOpenedScenePath: null,
 
             compressedTexturesEnabled: false,
+            enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
 
             editProject: false,
             editPreferences: false,

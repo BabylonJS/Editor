@@ -48,7 +48,7 @@ import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
 import { EditorPreviewPlayComponent } from "./preview/play";
 
-// import { applyImportedGuiFile } from "./preview/import/gui";
+import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
@@ -792,11 +792,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                     });
                     break;
 
-                // case ".gui":
-                //     applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
-                //         this.props.editor.layout.graph.refresh();
-                //     });
-                //     break;
+                case ".gui":
+                    if (this.props.editor.state.enableExperimentalFeatures) {
+                        applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
+                            this.props.editor.layout.graph.refresh();
+                        });
+                    }
+                    break;
             }
         });
     }

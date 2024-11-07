@@ -27,8 +27,6 @@ export interface IEditorAnimationState {
     selectedAnimation: Animation | null;
 }
 
-const isEnabled = false;
-
 export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAnimationState> {
     /**
      * Defines the reference to the inspector used to edit animations properties.
@@ -60,7 +58,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
     }
 
     public render(): ReactNode {
-        if (!isEnabled) {
+        if (!this.props.editor.state.enableExperimentalFeatures) {
             return (
                 <div className="flex justify-center items-center w-full h-full font-semibold text-3xl">
                     Coming Soon

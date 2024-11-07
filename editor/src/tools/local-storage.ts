@@ -16,3 +16,26 @@ export function tryGetProjectsFromLocalStorage(): ProjectType[] {
         return [];
     }
 }
+
+/**
+ * Returns wether or not experimental features are enabled in the editor.
+ */
+export function tryGetExperimentalFeaturesEnabledFromLocalStorage(): boolean {
+    try {
+        return localStorage.getItem("editor-experimental-features") === "true";
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
+ * Sets wether or not experimental features are enabled in the local storage.
+ * @param enabled defines wether or not experimental features are enabled.
+ */
+export function trySetExperimentalFeaturesEnabledInLocalStorage(enabled: boolean): void {
+    try {
+        localStorage.setItem("editor-experimental-features", JSON.stringify(enabled));
+    } catch (e) {
+        // Catch silently.
+    }
+}

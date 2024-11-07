@@ -1,9 +1,12 @@
 import { Component, ReactNode } from "react";
 
 import { Label } from "../../../ui/shadcn/ui/label";
+import { Switch } from "../../../ui/shadcn/ui/switch";
 import { Separator } from "../../../ui/shadcn/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
+
+import { trySetExperimentalFeaturesEnabledInLocalStorage } from "../../../tools/local-storage";
 
 import { EditorInspectorKeyField } from "../../layout/inspector/fields/key";
 
@@ -47,6 +50,8 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
                             {this._getThemesComponent()}
                             <Separator />
                             {this._getCameraControlPreferences()}
+                            <Separator />
+                            {this._getExperimentalComponent()}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -154,5 +159,32 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
                 this.props.editor.layout.console.error(e.message);
             }
         }
+    }
+
+    private _getExperimentalComponent(): ReactNode {
+        return (
+            <div className="flex flex-col gap-[10px] w-full">
+                <div className="flex flex-col gap-[10px]">
+                    <Label className="text-xl font-[400]">Experimental features</Label>
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={this.props.editor.state.enableExperimentalFeatures}
+                            onCheckedChange={(v) => {
+                                this.props.editor.setState({ enableExperimentalFeatures: v });
+
+                                trySetExperimentalFeaturesEnabledInLocalStorage(v);
+
+                                this.props.editor.layout.graph.forceUpdate();
+                                this.props.editor.layout.assets.forceUpdate();
+                                this.props.editor.layout.preview.forceUpdate();
+                                this.props.editor.layout.inspector.forceUpdate();
+                                this.props.editor.layout.animations.forceUpdate();
+                            }}
+                        />
+                        Enable experimental features
+                    </div>
+                </div>
+            </div>
+        );
     }
 }
