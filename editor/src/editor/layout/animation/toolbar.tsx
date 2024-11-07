@@ -50,10 +50,6 @@ export class EditorAnimationToolbar extends Component<IEditorAnimationToolbarPro
                             <MenubarItem onClick={() => this.props.animationEditor.timelines.addKeysAtCurrentTime()}>
                                 Add Key Frames At Current Time
                             </MenubarItem>
-                            <MenubarSeparator />
-                            <MenubarItem className="text-red-400">
-                                Remove Selected Key Frames (TODO)
-                            </MenubarItem>
                         </MenubarContent>
                     </MenubarMenu>
                 </Menubar>

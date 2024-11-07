@@ -9,6 +9,7 @@ import { Observer } from "babylonjs";
 import { Button } from "../../../ui/shadcn/ui/button";
 
 import { isDomElementFocusable } from "../../../tools/dom";
+import { saveSingleFileDialog } from "../../../tools/dialog";
 import { onRedoObservable, onUndoObservable } from "../../../tools/undoredo";
 
 import { Editor } from "../../main";
@@ -200,10 +201,38 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
         }
     }
 
+    /**
+     * Saves the current cinematic into the currently opened file.
+     */
     public async save(): Promise<void> {
         const data = serializeCinematic(this.props.cinematic);
 
         await writeJSON(this.props.absolutePath, data, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
+
+        toast.success("Cinematic file saved.");
+    }
+
+    /**
+     * Saves the current cinematic into a chosen file.
+     */
+    public async saveAs(): Promise<void> {
+        const destination = saveSingleFileDialog({
+            title: "Save Cinematic File",
+            filters: [
+                { name: "Cinematic Files", extensions: ["cinematic"] },
+            ],
+        });
+
+        if (!destination) {
+            return;
+        }
+
+        const data = serializeCinematic(this.props.cinematic);
+
+        await writeJSON(destination, data, {
             spaces: "\t",
             encoding: "utf-8",
         });

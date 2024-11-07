@@ -34,25 +34,8 @@ export class CinematicEditorToolbar extends Component<IEditorAnimationToolbarPro
                             <MenubarItem onClick={() => this.props.cinematicEditor.save()}>
                                 Save
                             </MenubarItem>
-                            <MenubarItem>
+                            <MenubarItem onClick={() => this.props.cinematicEditor.saveAs()}>
                                 Save As...
-                            </MenubarItem>
-                        </MenubarContent>
-                    </MenubarMenu>
-
-                    {/* Edit */}
-                    <MenubarMenu>
-                        <MenubarTrigger>
-                            Edit
-                        </MenubarTrigger>
-
-                        <MenubarContent className="border-black/50">
-                            <MenubarItem>
-                                Add Keys at Current Time
-                            </MenubarItem>
-                            <MenubarSeparator />
-                            <MenubarItem className="text-red-400">
-                                Remove Selected Key Frames (TODO)
                             </MenubarItem>
                         </MenubarContent>
                     </MenubarMenu>

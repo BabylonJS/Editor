@@ -55,7 +55,9 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                     `}
                 >
                     <ContextMenu>
-                        <ContextMenuTrigger>
+                        <ContextMenuTrigger
+                            onContextMenu={(ev) => ev.stopPropagation()}
+                        >
                             {this.props.cinematicKey.type === "group" &&
                                 <div
                                     style={{

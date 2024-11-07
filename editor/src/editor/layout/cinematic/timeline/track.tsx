@@ -57,10 +57,10 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                         onMouseLeave={() => this.props.cinematicEditor.setState({ selectedTrack: null })}
                         onMouseEnter={() => this.props.cinematicEditor.setState({ selectedTrack: this.props.track })}
                         className={`
-                        relative flex items-center w-full h-10 p-2 ring-accent ring-1
-                        ${this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-accent" : ""}
-                        transition-all duration-300 ease-in-out
-                    `}
+                            relative flex items-center w-full h-10 p-2 ring-accent ring-1
+                            ${this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-accent" : ""}
+                            transition-all duration-300 ease-in-out
+                        `}
                     >
                         <TooltipProvider>
                             {(this.props.track.keyFrameAnimations ?? this.props.track.animationGroups)?.map((key, index) => (
@@ -78,7 +78,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                                 />
                             ))}
 
-                            {this.state.rightClickPositionX &&
+                            {this.state.rightClickPositionX !== null &&
                                 <div
                                     style={{
                                         left: `${this.state.rightClickPositionX}px`,
@@ -104,14 +104,21 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                     {this.props.track.keyFrameAnimations &&
                         <>
                             <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("key")}>
-                                <AiOutlinePlus className="w-5 h-5" /> Add Key Here
+                                <div className="w-4 h-4 rotate-45 border-[2px] bg-muted-foreground" />
+                                Add Key Here
                             </ContextMenuItem>
                             <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("cut")}>
-                                <AiOutlinePlus className="w-5 h-5" /> Add Key Cut Here
+                                <div className="w-4 h-4 rotate-45 border-[2px] border-orange-500 bg-muted" />
+                                Add Key Cut Here
                             </ContextMenuItem>
                             <ContextMenuSeparator />
                             <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("key", this.props.currentTime * this.props.scale)}>
-                                <AiOutlinePlus className="w-5 h-5" /> Add Key at Tracker Position
+                                <div className="w-4 h-4 rotate-45 border-[2px] bg-muted-foreground" />
+                                Add Key at Tracker Position
+                            </ContextMenuItem>
+                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("cut", this.props.currentTime * this.props.scale)}>
+                                <div className="w-4 h-4 rotate-45 border-[2px] border-orange-500 bg-muted" />
+                                Add Key Cut at Tracker Position
                             </ContextMenuItem>
                         </>
                     }

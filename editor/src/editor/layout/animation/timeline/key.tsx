@@ -52,7 +52,9 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
                     `}
                 >
                     <ContextMenu>
-                        <ContextMenuTrigger>
+                        <ContextMenuTrigger
+                            onContextMenu={(ev) => ev.stopPropagation()}
+                        >
                             <div
                                 onMouseDown={(ev) => this._handlePointerDown(ev)}
                                 onDoubleClick={() => this.props.animationEditor.timelines.setCurrentTime(this.props.animationKey.frame)}
