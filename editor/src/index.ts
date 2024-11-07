@@ -131,9 +131,11 @@ async function openProject(filePath: string): Promise<void> {
 
     if (filePath) {
         window.webContents.send("editor:open", filePath);
+        window.webContents.send("editor:path", app.getAppPath());
 
         window.webContents.on("did-finish-load", () => {
             window.webContents.send("editor:open", filePath);
+            window.webContents.send("editor:path", app.getAppPath());
         });
     }
 }

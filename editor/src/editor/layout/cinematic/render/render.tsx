@@ -18,7 +18,7 @@ import { CinematicEditor } from "../editor";
 import { ICinematic } from "../schema/typings";
 import { generateCinematicAnimationGroup } from "../generate/generate";
 
-import { convertVideoToMp4 } from "./convert";
+import { convertCinematicVideoToMp4 } from "./convert";
 
 export type RenderType = "720p" | "1080p" | "4k";
 
@@ -62,7 +62,6 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
 
                 <div>
                     {this.state.step === "rendering" && "Rendering cinematic..."}
-                    {this.state.step === "converting" && "Converting video to MP4..."}
                 </div>
 
                 <div className="w-64">
@@ -176,19 +175,10 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
                 this.props.editor.layout.console.error(`Failed to write cinematic video at: ${destination}`);
             }
 
-            try {
-                this.setState({
-                    step: "converting",
+            convertCinematicVideoToMp4(this.props.editor, destination, framesCount)
+                .catch(() => {
+                    this.props.editor.layout.console.error(`Failed to convert cinematic video at: ${destination.replace(".webm", ".mp4")}`);
                 });
-
-                await convertVideoToMp4(this.props.editor, destination, (p) => {
-                    this.setState({
-                        progress: ((p / framesCount) * 100) >> 0,
-                    });
-                });
-            } catch (e) {
-                this.props.editor.layout.console.error(`Failed to convert cinematic video at: ${destination.replace(".webm", ".mp4")}`);
-            }
         }
 
         this.setState({

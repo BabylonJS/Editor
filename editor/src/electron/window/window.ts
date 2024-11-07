@@ -144,8 +144,6 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         }),
     ]);
 
-    window.webContents.send("editor:path", app.getAppPath());
-
     splash.close();
 
     window.show();

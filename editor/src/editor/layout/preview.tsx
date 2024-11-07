@@ -633,6 +633,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         if (defaultRenderingPipeline) {
             parseDefaultRenderingPipeline(this.props.editor, defaultRenderingPipeline);
         }
+
+        this.scene.lights.forEach((light) => {
+            light.getShadowGenerators()?.forEach((shadowGenerator) => {
+                const shadowMap = shadowGenerator.getShadowMap();
+                if (shadowMap) {
+                    shadowMap.activeCamera = camera;
+                }
+            });
+        });
     }
 
     /**
