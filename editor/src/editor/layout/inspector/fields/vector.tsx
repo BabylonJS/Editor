@@ -15,11 +15,11 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
 
     return (
         <div className="flex gap-2 items-center px-2">
-            <div>
+            <div className="w-32">
                 {props.label}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex">
                 <EditorInspectorNumberField object={props.object} property={`${props.property}.x`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
                 <EditorInspectorNumberField object={props.object} property={`${props.property}.y`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
 

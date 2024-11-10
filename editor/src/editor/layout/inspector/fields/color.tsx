@@ -65,11 +65,11 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 
     return (
         <div className="flex gap-2 items-center px-2">
-            <div>
+            <div className="w-32">
                 {props.label}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex">
                 <EditorInspectorNumberField object={props.object} property={`${props.property}.r`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "r")} />
                 <EditorInspectorNumberField object={props.object} property={`${props.property}.g`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "g")} />
                 <EditorInspectorNumberField object={props.object} property={`${props.property}.b`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "b")} />

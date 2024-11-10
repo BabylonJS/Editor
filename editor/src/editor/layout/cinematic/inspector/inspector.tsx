@@ -166,7 +166,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         newValue = newValue.clone?.() ?? newValue;
 
         registerUndoRedo({
-            executeRedo: true,
+            executeRedo: false,
             action: () => {
                 this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
             },
@@ -178,6 +178,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
             },
         });
 
+        key.value = newValue;
         this.forceUpdate();
     }
 

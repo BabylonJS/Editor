@@ -51,31 +51,31 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                     transition-all duration-300 ease-in-out
                 `}
             >
-                <div className="flex gap-2 items-center w-full">
-                    <div
-                        onDrop={(ev) => this._handleDrop(ev)}
-                        onDragOver={(ev) => this._handleDragOver(ev)}
-                        onDragLeave={(ev) => this._handleDragLeave(ev)}
-                        className={`
-                            w-[7rem] p-2 rounded-md
-                            ${this.state.dragOver
-                                ? "bg-accent"
-                                : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary"
-                            }
-                            whitespace-nowrap overflow-hidden overflow-ellipsis
-                            transition-all duration-300 ease-in-out    
-                        `}
-                    >
-                        {this.props.track.node?.name ?? (this.props.track.defaultRenderingPipeline ? "Pipeline" : "No object")}
-                    </div>
+                <TooltipProvider delayDuration={0} disableHoverableContent>
+                    <div className="flex gap-2 items-center w-full">
+                        <div
+                            onDrop={(ev) => this._handleDrop(ev)}
+                            onDragOver={(ev) => this._handleDragOver(ev)}
+                            onDragLeave={(ev) => this._handleDragLeave(ev)}
+                            className={`
+                                w-[7rem] p-2 rounded-md
+                                ${this.state.dragOver
+                                    ? "bg-accent"
+                                    : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary"
+                                }
+                                whitespace-nowrap overflow-hidden overflow-ellipsis
+                                transition-all duration-300 ease-in-out    
+                            `}
+                        >
+                            {this.props.track.node?.name ?? (this.props.track.defaultRenderingPipeline ? "Pipeline" : "No object")}
+                        </div>
 
-                    {(this.props.track.node || this.props.track.defaultRenderingPipeline) &&
-                        <TooltipProvider>
+                        {(this.props.track.node || this.props.track.defaultRenderingPipeline) &&
                             <Tooltip>
                                 <TooltipTrigger>
                                     <Button variant="ghost" className="w-[7rem]" onClick={() => this._selectPropertyToAnimate()}>
-                                        <span className="w-full whitespace-nowrap overflow-hidden overflow-ellipsis">
-                                            {this.props.track.propertyPath ?? "No property"}
+                                        <span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">
+                                            {this.props.track.propertyPath?.split(".").pop() ?? "No property"}
                                         </span>
                                     </Button>
                                 </TooltipTrigger>
@@ -83,10 +83,9 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                                     {this.props.track.propertyPath ?? "No property"}
                                 </TooltipContent>
                             </Tooltip>
-                        </TooltipProvider>
-
-                    }
-                </div>
+                        }
+                    </div>
+                </TooltipProvider>
 
                 <Button
                     variant="ghost"

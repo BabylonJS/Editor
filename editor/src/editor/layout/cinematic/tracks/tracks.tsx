@@ -1,10 +1,13 @@
 import { Component, ReactNode } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 
-import { registerUndoRedo } from "../../../../tools/undoredo";
-
 import { Button } from "../../../../ui/shadcn/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
+
+import { registerUndoRedo } from "../../../../tools/undoredo";
+import { getInspectorPropertyValue } from "../../../../tools/property";
+
+import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
 import { Editor } from "../../../main";
 
@@ -46,9 +49,39 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
 
                             <DropdownMenuSeparator />
 
-                            <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true)}>
+                            {/* <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true)}>
                                 Default Rendering Pipeline
-                            </DropdownMenuItem>
+                            </DropdownMenuItem> */}
+                            <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                    Default Rendering Pipeline
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent>
+                                    <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true, "imageProcessing.exposure")}>
+                                        Exposure
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true, "imageProcessing.contrast")}>
+                                        Contrast
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true, "depthOfField.focusDistance")}>
+                                        Depth-of-field Focus Distance
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true, "depthOfField.fStop")}>
+                                        Depth-of-field F-Stop
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true, "depthOfField.lensSize")}>
+                                        Depth-of-field Lens Size
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true, "depthOfField.focalLength")}>
+                                        Depth-of-field Focal Length
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => this._handleAddPropertyTrack(true)}>
+                                        Custom
+                                    </DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                            </DropdownMenuSub>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -79,13 +112,23 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
         );
     }
 
-    private _handleAddPropertyTrack(defaultRenderingPipeline: boolean): void {
+    private _handleAddPropertyTrack(defaultRenderingPipeline: boolean, propertyPath?: string): void {
         const track = {
             node: null,
-            propertyPath: "",
             keyFrameAnimations: [],
             defaultRenderingPipeline,
+            propertyPath: propertyPath ?? "",
         } as ICinematicTrack;
+
+        if (defaultRenderingPipeline && propertyPath) {
+            const value = getInspectorPropertyValue(getDefaultRenderingPipeline(), propertyPath);
+            if (value !== null && value !== undefined) {
+                track.keyFrameAnimations = [
+                    { type: "key", frame: 0, value: value.clone?.() ?? value },
+                    { type: "key", frame: 60, value: value.clone?.() ?? value },
+                ];
+            }
+        }
 
         registerUndoRedo({
             executeRedo: true,
