@@ -1,4 +1,6 @@
 import { Component, ReactNode } from "react";
+
+import { MdAnimation } from "react-icons/md";
 import { HiOutlineTrash } from "react-icons/hi";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
@@ -39,16 +41,29 @@ export class CinematicEditorAnimationGroupTrackItem extends Component<ICinematic
                 onMouseLeave={() => this.props.cinematicEditor.setState({ selectedTrack: null })}
                 onMouseEnter={() => this.props.cinematicEditor.setState({ selectedTrack: this.props.track })}
                 className={`
-                    flex justify-between items-center w-full h-10 p-2 ring-accent ring-1
+                    flex items-center gap-2 w-full h-10 p-2 ring-accent ring-1
                     ${this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-secondary" : ""}
                     transition-all duration-300 ease-in-out
                 `}
             >
+                <div
+                    className={`
+                        w-8 h-8 p-2 rounded-md
+                        ${this.state.dragOver
+                            ? "bg-accent"
+                            : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary"
+                        }
+                        transition-all duration-300 ease-in-out    
+                    `}
+                >
+                    <MdAnimation className="w-4 h-4" />
+                </div>
+
                 <Select
                     value={this.props.track.animationGroup?.name}
                     onValueChange={(v) => this._handleAnimationGroupChanged(v)}
                 >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-[12rem]">
                         <SelectValue placeholder="Animation Group..." />
                     </SelectTrigger>
                     <SelectContent>

@@ -114,10 +114,10 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
 
     private _handleAddPropertyTrack(defaultRenderingPipeline: boolean, propertyPath?: string): void {
         const track = {
-            node: null,
             keyFrameAnimations: [],
             defaultRenderingPipeline,
             propertyPath: propertyPath ?? "",
+            node: defaultRenderingPipeline ? getDefaultRenderingPipeline() : null,
         } as ICinematicTrack;
 
         if (defaultRenderingPipeline && propertyPath) {

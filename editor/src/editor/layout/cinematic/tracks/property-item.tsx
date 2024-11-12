@@ -1,8 +1,16 @@
-import { HiOutlineTrash } from "react-icons/hi";
 import { Component, DragEvent, ReactNode } from "react";
+
+import { IoMdCube } from "react-icons/io";
+import { FaCamera } from "react-icons/fa";
+import { FaLightbulb } from "react-icons/fa";
+import { HiOutlineTrash } from "react-icons/hi";
+import { PiApertureFill } from "react-icons/pi";
+import { MdOutlineQuestionMark } from "react-icons/md";
+import { HiOutlineCubeTransparent } from "react-icons/hi";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
+import { isAbstractMesh, isCamera, isLight, isTransformNode } from "../../../../tools/guards/nodes";
 
 import { showAlert } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -53,27 +61,33 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
             >
                 <TooltipProvider delayDuration={0} disableHoverableContent>
                     <div className="flex gap-2 items-center w-full">
-                        <div
-                            onDrop={(ev) => this._handleDrop(ev)}
-                            onDragOver={(ev) => this._handleDragOver(ev)}
-                            onDragLeave={(ev) => this._handleDragLeave(ev)}
-                            className={`
-                                w-[7rem] p-2 rounded-md
-                                ${this.state.dragOver
-                                    ? "bg-accent"
-                                    : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary"
-                                }
-                                whitespace-nowrap overflow-hidden overflow-ellipsis
-                                transition-all duration-300 ease-in-out    
-                            `}
-                        >
-                            {this.props.track.node?.name ?? (this.props.track.defaultRenderingPipeline ? "Pipeline" : "No object")}
-                        </div>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <div
+                                    onDrop={(ev) => this._handleDrop(ev)}
+                                    onDragOver={(ev) => this._handleDragOver(ev)}
+                                    onDragLeave={(ev) => this._handleDragLeave(ev)}
+                                    className={`
+                                        w-8 h-8 p-2 rounded-md
+                                        ${this.state.dragOver
+                                            ? "bg-accent"
+                                            : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary"
+                                        }
+                                        transition-all duration-300 ease-in-out    
+                                    `}
+                                >
+                                    {this._getTargetIcon(this.props.track.node ?? (this.props.track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : null))}
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {this.props.track.node?.name ?? (this.props.track.defaultRenderingPipeline ? "Pipeline" : "No object")}
+                            </TooltipContent>
+                        </Tooltip>
 
                         {(this.props.track.node || this.props.track.defaultRenderingPipeline) &&
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Button variant="ghost" className="w-[7rem]" onClick={() => this._selectPropertyToAnimate()}>
+                                    <Button variant="ghost" className="w-[12rem]" onClick={() => this._selectPropertyToAnimate()}>
                                         <span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">
                                             {this.props.track.propertyPath?.split(".").pop() ?? "No property"}
                                         </span>
@@ -147,6 +161,32 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
         }
 
         this.forceUpdate();
+    }
+
+    private _getTargetIcon(object: any): ReactNode {
+        if (object) {
+            if (isTransformNode(object)) {
+                return <HiOutlineCubeTransparent className="w-4 h-4" />;
+            }
+
+            if (isAbstractMesh(object)) {
+                return <IoMdCube className="w-4 h-4" />;
+            }
+
+            if (isLight(object)) {
+                return <FaLightbulb className="w-4 h-4" />;
+            }
+
+            if (isCamera(object)) {
+                return <FaCamera className="w-4 h-4" />;
+            }
+
+            if (object === getDefaultRenderingPipeline()) {
+                return <PiApertureFill className="w-4 h-4" />;
+            }
+        }
+
+        return <MdOutlineQuestionMark className="w-4 h-4" />;
     }
 
     private async _selectPropertyToAnimate(): Promise<unknown> {

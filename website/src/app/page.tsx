@@ -35,7 +35,7 @@ export default function HomePage() {
     useEffect(() => {
         updateScrollRatio();
 
-        window.scrollTo({ top: 0, behavior: "instant" });
+        // window.scrollTo({ top: 0, behavior: "instant" });
     }, []);
 
     useEventListener("scroll", () => {
@@ -73,7 +73,7 @@ export default function HomePage() {
                     />
                 </div>
 
-                <div className="absolute 2xl:fixed top-0 left-0 w-full px-5">
+                <div className="absolute 2xl:fixed top-0 left-0 w-full px-5 z-50">
                     <div className="flex justify-between items-center w-full">
                         <img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
 
@@ -230,17 +230,21 @@ export default function HomePage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row w-full py-10 lg:py-24 px-5">
+                    <div className="relative flex flex-col lg:flex-row w-full py-10 lg:py-24 px-5">
+                        <video className="absolute top-0 left-0 bg-white w-screen h-screen object-cover brightness-50" autoPlay muted playsInline loop>
+                            <source src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/bjs_showcases.mp4" type="video/mp4" />
+                        </video>
+
                         <Fade triggerOnce className="flex justify-center items-center w-full">
                             <div className="flex flex-col gap-10">
-                                <GiBookmarklet color="white" className="w-52 h-52 lg:w-96 lg:h-96 mx-auto" />
+                                <GiBookmarklet color="white" className="w-52 h-52 lg:w-96 lg:h-96 mx-auto drop-shadow-[0_1px_1px_rgba(0,0,0,1)]" />
 
                                 <div className="flex flex-col gap-2">
                                     <div className="text-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
                                         Documentation
                                     </div>
 
-                                    <div className="text-center">
+                                    <div className="text-center drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
                                         Learn how to use the Babylon.JS Editor and start building your own video game or app.
                                         <br />
                                         Once you have covered all the chapters you will be aware, at a foundation level, of what the Babylon.js Editor has to offer you.
