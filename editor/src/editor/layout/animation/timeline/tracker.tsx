@@ -32,7 +32,7 @@ export class EditorAnimationTracker extends Component<IEditorAnimationTrackerPro
                     style={{
                         width: `${this.props.width}px`,
                     }}
-                    className="relative h-10 min-w-full"
+                    className="relative h-10 min-w-full pointer-events-none"
                     onClick={(ev) => this._handleClick(ev)}
                 >
                     <Tooltip delayDuration={0} open={this.state.moving}>
@@ -40,7 +40,7 @@ export class EditorAnimationTracker extends Component<IEditorAnimationTrackerPro
                             style={{
                                 left: `${this.props.currentTime * this.props.scale}px`,
                             }}
-                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 pointer-events-auto"
                         >
                             <div
                                 onMouseDown={(ev) => this._handlePointerDown(ev)}
@@ -61,7 +61,11 @@ export class EditorAnimationTracker extends Component<IEditorAnimationTrackerPro
 
     private _handleClick(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
         if (!this.state.moving) {
-            this.props.onTimeChange(Math.max(0, ev.nativeEvent.offsetX / this.props.scale));
+            const currentTime = Math.round(
+                Math.max(0, ev.nativeEvent.offsetX / this.props.scale),
+            );
+
+            this.props.onTimeChange(currentTime);
         }
     }
 
@@ -90,7 +94,11 @@ export class EditorAnimationTracker extends Component<IEditorAnimationTrackerPro
 
             const delta = clientX - ev.clientX;
 
-            this.props.onTimeChange(Math.max(0, startPosition - delta / this.props.scale));
+            const currentTime = Math.round(
+                Math.max(0, startPosition - delta / this.props.scale),
+            );
+
+            this.props.onTimeChange(currentTime);
         });
 
         document.body.addEventListener("mouseup", mouseUpListener = (ev) => {

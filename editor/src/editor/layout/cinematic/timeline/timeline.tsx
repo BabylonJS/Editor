@@ -197,7 +197,8 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         let moving = false;
         let clientX: number | null = null;
 
-        const startPosition = ev.nativeEvent.offsetX / this.state.scale;
+        const scrollLeft = this._divRef!.scrollLeft;
+        const startPosition = (ev.nativeEvent.offsetX + scrollLeft) / this.state.scale;
 
         this.setCurrentTime(startPosition);
 
