@@ -43,6 +43,8 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
                         return {
                             ...animationKey,
                             value: parseCinematicKeyValue(animationKey.value, animationType),
+                            inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
+                            outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
                         } as ICinematicKey;
                     }
 
@@ -53,10 +55,14 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
                             key1: {
                                 ...animationKeyCut.key1,
                                 value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
+                                inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
+                                outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
                             } as ICinematicKey,
                             key2: {
                                 ...animationKeyCut.key2,
                                 value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
+                                inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
+                                outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
                             },
                         } as ICinematicKeyCut;
                     }
