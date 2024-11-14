@@ -50,6 +50,11 @@ export async function loadScene(rootUrl: string, sceneFilename: string, scene: S
 
     await SceneLoader.AppendAsync(rootUrl, sceneFilename, scene, null, ".babylon");
 
+    // Wait until scene is ready.
+    while (!scene.isReady()) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 150));
+    }
+
     configureShadowMapRenderListPredicate(scene);
     configureShadowMapRefreshRate(scene);
 

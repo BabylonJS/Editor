@@ -130,7 +130,7 @@ export class CinematicEditorTracker extends Component<ICinematicEditorTrackerPro
                             {minutes >> 0}min
                         </>
                     }
-                    {(seconds - minutes * 60).toFixed(1)}s
+                    {(seconds - minutes * 60).toFixed(2)}s
                 </div>
             </div>
         );

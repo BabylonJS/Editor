@@ -36,6 +36,10 @@ const supportedCubeTexturesExtensions: string[] = [
     ".env", ".dds",
 ];
 
+const supportedAudioExtensions: string[] = [
+    ".mp3", ".wav", ".ogg",
+];
+
 const supportedJsonExtensions: string[] = [
     ".gui",
 ];
@@ -43,6 +47,7 @@ const supportedJsonExtensions: string[] = [
 const supportedExtensions: string[] = [
     ...supportedImagesExtensions,
     ...supportedCubeTexturesExtensions,
+    ...supportedAudioExtensions,
     ...supportedJsonExtensions,
 ];
 

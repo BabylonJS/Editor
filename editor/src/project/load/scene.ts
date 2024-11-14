@@ -4,6 +4,7 @@ import { readJSON, readdir } from "fs-extra";
 import {
     AbstractMesh, AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager,
     RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode, MultiMaterial, Animation,
+    Sound,
 } from "babylonjs";
 
 import { Editor } from "../../editor/main";
@@ -80,9 +81,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
         createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
         createDirectoryIfNotExist(join(scenePath, "gui")),
+        createDirectoryIfNotExist(join(scenePath, "sounds")),
     ]);
 
-    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles, guiFiles] = await Promise.all([
+    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles, guiFiles, soundFiles] = await Promise.all([
         readdir(join(scenePath, "nodes")),
         readdir(join(scenePath, "meshes")),
         readdir(join(scenePath, "lods")),
@@ -92,6 +94,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         readdir(join(scenePath, "shadowGenerators")),
         readdir(join(scenePath, "sceneLinks")),
         readdir(join(scenePath, "gui")),
+        readdir(join(scenePath, "sounds")),
     ]);
 
     const progress = await showLoadSceneProgressDialog(basename(scenePath));
@@ -104,7 +107,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         skeletonFiles.length +
         shadowGeneratorFiles.length +
         sceneLinkFiles.length +
-        guiFiles.length
+        guiFiles.length +
+        soundFiles.length
     );
 
     SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
@@ -449,6 +453,24 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
             }
         } catch (e) {
             editor.layout.console.error(`Failed to load GUI file "${file}": ${e.message}`);
+        }
+
+        progress.step(progressStep);
+    }));
+
+    // Load sound files
+    await Promise.all(soundFiles.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
+        const data = await readJSON(join(scenePath, "sounds", file), "utf-8");
+
+        try {
+            const sound = Sound.Parse(data, scene, join(projectPath, "/"));
+            sound["_url"] = data.url;
+        } catch (e) {
+            editor.layout.console.error(`Failed to load sound file "${file}": ${e.message}`);
         }
 
         progress.step(progressStep);

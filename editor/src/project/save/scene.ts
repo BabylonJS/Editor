@@ -37,6 +37,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
         createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
         createDirectoryIfNotExist(join(scenePath, "gui")),
+        createDirectoryIfNotExist(join(scenePath, "sounds")),
     ]);
 
     const scene = editor.layout.preview.scene;
@@ -348,6 +349,25 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             }
         }));
     }
+
+    // Write sounds
+    const soundtracks = scene.soundTracks ?? [];
+
+    await Promise.all(soundtracks.map(async (soundtrack) => {
+        await Promise.all(soundtrack.soundCollection.map(async (sound) => {
+            const soundPath = join(scenePath, "sounds", `${sound.name.replace("/", "_")}.json`);
+
+            try {
+                await writeJSON(soundPath, sound.serialize(), {
+                    spaces: 4,
+                });
+            } catch (e) {
+                editor.layout.console.error(`Failed to write scene link node ${sound.name}`);
+            } finally {
+                savedFiles.push(soundPath);
+            }
+        }));
+    }));
 
     // Write configuration
     const configPath = join(scenePath, "config.json");

@@ -3,6 +3,8 @@ import { Scene } from "@babylonjs/core/scene";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
+import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
+
 export interface ISceneDecoratorData {
     // @nodeFromScene
     _NodesFromScene: {
@@ -15,6 +17,12 @@ export interface ISceneDecoratorData {
         nodeName: string;
         propertyKey: string | Symbol;
         directDescendantsOnly: boolean;
+    }[];
+
+    // @soundFromScene
+    _SoundsFromScene: {
+        soundName: string;
+        propertyKey: string | Symbol;
     }[];
 
     // @guiFromAsset
@@ -40,6 +48,12 @@ export function applyDecorators(scene: Scene, object: any, instance: any, rootUr
     ctor._NodesFromDescendants?.forEach((params) => {
         const descendant = (object as Partial<Node>).getDescendants?.(params.directDescendantsOnly, (node) => node.name === params.nodeName)[0];
         instance[params.propertyKey.toString()] = descendant ?? null;
+    });
+
+    // soundFromScene
+    ctor._SoundsFromScene?.forEach((params) => {
+        const sound = scene.getSoundByName?.(params.soundName);
+        instance[params.propertyKey.toString()] = sound ?? null;
     });
 
     // @guiFromAsset

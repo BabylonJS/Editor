@@ -48,6 +48,7 @@ import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
 import { EditorPreviewPlayComponent } from "./preview/play";
 
+import { applySoundAsset } from "./preview/import/sound";
 import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
@@ -305,6 +306,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
         this.scene = new Scene(this.engine);
         this.scene.autoClear = true;
+
+        if (!this.scene.soundTracks && this.scene.mainSoundTrack) {
+            this.scene.soundTracks = [this.scene.mainSoundTrack];
+        }
 
         this.camera = new EditorCamera("camera", Vector3.Zero(), this.scene);
         this.camera.attachControl(true);
@@ -795,6 +800,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                 case ".gui":
                     if (this.props.editor.state.enableExperimentalFeatures) {
                         applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
+                            this.props.editor.layout.graph.refresh();
+                        });
+                    }
+                    break;
+
+                case ".mp3":
+                case ".wav":
+                    if (this.props.editor.state.enableExperimentalFeatures) {
+                        applySoundAsset(this.props.editor, absolutePath).then(() => {
                             this.props.editor.layout.graph.refresh();
                         });
                     }

@@ -1,10 +1,12 @@
+import { FaExchangeAlt } from "react-icons/fa";
 import { AiOutlineClose } from "react-icons/ai";
+
 import { Component, MouseEvent, ReactNode } from "react";
 
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
 import { isCinematicGroup, isCinematicKeyCut } from "../schema/guards";
 import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
@@ -82,6 +84,17 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                             }
                         </ContextMenuTrigger>
                         <ContextMenuContent>
+                            {(this.props.cinematicKey.type === "key" || this.props.cinematicKey.type === "cut") &&
+                                <>
+                                    <ContextMenuItem
+                                        className="flex items-center gap-2"
+                                    >
+                                        <FaExchangeAlt className="w-5 h-5" />
+                                        Transform as {this.props.cinematicKey.type === "key" ? "Cut Key" : "Simple Key"}
+                                    </ContextMenuItem>
+                                    <ContextMenuSeparator />
+                                </>
+                            }
                             <ContextMenuItem
                                 className="flex items-center gap-2 !text-red-400"
                                 onClick={() => this.props.onRemoved(this.props.cinematicKey)}
@@ -92,7 +105,7 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                     </ContextMenu>
                 </TooltipTrigger>
                 <TooltipContent>
-                    {this._getFrame()}
+                    {this._getTooltipContent()}
                 </TooltipContent>
             </Tooltip>
         );
@@ -104,6 +117,27 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
         }
 
         return this.props.cinematicKey.frame;
+    }
+
+    private _getTooltipContent(): ReactNode {
+        const seconds = this._getFrame() / 60;
+        const minutes = Math.floor(seconds / 60);
+
+        return (
+            <div className="flex flex-col gap-2 justify-center items-center p-2">
+                <div className="font-semibold text-primary-foreground">
+                    {this._getFrame()}
+                </div>
+                <div className="flex gap-1 items-center text-primary-foreground">
+                    {minutes >= 1 &&
+                        <>
+                            {minutes >> 0}min
+                        </>
+                    }
+                    {(seconds - minutes * 60).toFixed(2)}s
+                </div>
+            </div>
+        );
     }
 
     private _getAnimationGroupFramesCount(): number {

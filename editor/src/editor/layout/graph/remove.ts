@@ -1,6 +1,7 @@
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { AbstractMesh, Light, Node, Scene } from "babylonjs";
+import { AbstractMesh, Light, Node, Scene, Sound } from "babylonjs";
 
+import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 import { isSceneLinkNode } from "../../../tools/guards/scene";
@@ -44,11 +45,24 @@ export function removeNodes(editor: Editor): void {
         return attached;
     }).flat();
 
+    const soundData =
+        editor.layout.graph.getSelectedNodes()
+            .map((n) => n.nodeData as Sound)
+            .filter((n) => isSound(n))
+            .map((sound) => ({
+                sound,
+                soundtrack: scene.soundTracks?.[sound.soundTrackId + 1],
+            }));
+
     registerUndoRedo({
         executeRedo: true,
         undo: () => {
             data.forEach((d) => {
                 restoreNodeData(d, scene);
+            });
+
+            soundData.forEach((d) => {
+                d.soundtrack?.addSound(d.sound);
             });
 
             selectedGuiNodes.forEach((node) => {
@@ -72,6 +86,10 @@ export function removeNodes(editor: Editor): void {
         redo: () => {
             data.forEach((d) => {
                 removeNodeData(d, scene);
+            });
+
+            soundData.forEach((d) => {
+                d.soundtrack?.removeSound(d.sound);
             });
 
             selectedGuiNodes.forEach((node) => {

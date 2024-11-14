@@ -5,7 +5,9 @@ import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
 import { FaCamera } from "react-icons/fa";
 import { FaLightbulb } from "react-icons/fa";
+import { BsSoundwave } from "react-icons/bs";
 import { IoCheckmark } from "react-icons/io5";
+import { HiSpeakerWave } from "react-icons/hi2";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
@@ -17,6 +19,7 @@ import { Editor } from "../main";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 
+import { isSound } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
@@ -145,6 +148,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         const guiNode = this._parseGuiNode(scene);
         if (guiNode) {
             nodes.splice(0, 0, guiNode);
+        }
+
+        const soundNode = this._parseSoundNode(scene);
+        if (soundNode) {
+            nodes.splice(0, 0, soundNode);
         }
 
         nodes.splice(0, 0, {
@@ -404,6 +412,64 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         }
     }
 
+    private _parseSoundNode(scene: Scene): TreeNodeInfo | null {
+        const soundTracks = scene.soundTracks;
+        if (!soundTracks?.length) {
+            return null;
+        }
+
+        const childNodes: TreeNodeInfo[] = [];
+
+        soundTracks.forEach((soundtrack) => {
+            soundtrack.soundCollection.forEach((sound) => {
+                if (sound.spatialSound) {
+                    return;
+                }
+
+                if (!sound.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+                    return;
+                }
+
+                const info = {
+                    nodeData: sound,
+                    id: sound.name,
+                    icon: this._getIcon(sound),
+                    label: this._getNodeLabelComponent(sound, sound.name, false),
+                } as TreeNodeInfo;
+
+                this._forEachNode(this.state.nodes, (n) => {
+                    if (n.id === info.id) {
+                        info.isSelected = n.isSelected;
+                        info.isExpanded = n.isExpanded;
+                    }
+                });
+
+                childNodes.push(info);
+            });
+        });
+
+        if (!childNodes.length) {
+            return null;
+        }
+
+        const rootSoundNode = {
+            childNodes,
+            nodeData: scene,
+            id: "__editor__sounds__",
+            icon: <BsSoundwave className="w-4 h-4" />,
+            label: this._getNodeLabelComponent(scene, "Sounds", false),
+        } as TreeNodeInfo;
+
+        this._forEachNode(this.state.nodes, (n) => {
+            if (n.id === rootSoundNode.id) {
+                rootSoundNode.isSelected = n.isSelected;
+                rootSoundNode.isExpanded = n.isExpanded;
+            }
+        });
+
+        return rootSoundNode;
+    }
+
     private _parseGuiNode(scene: Scene): TreeNodeInfo | null {
         const guiTextures = scene.textures.filter((texture) => texture.getClassName() === "AdvancedDynamicTexture") as AdvancedDynamicTexture[];
         if (!guiTextures.length) {
@@ -443,7 +509,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             nodeData: scene,
             id: "__editor__gui__",
             icon: <SiAdobeindesign className="w-4 h-4" />,
-            label: this._getNodeLabelComponent(scene, "GUI", false),
+            label: this._getNodeLabelComponent(scene, "Gui", false),
         } as TreeNodeInfo;
 
         this._forEachNode(this.state.nodes, (n) => {
@@ -581,6 +647,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
         if (isAdvancedDynamicTexture(object)) {
             return <SiAdobeindesign className="w-4 h-4" />;
+        }
+
+        if (isSound(object)) {
+            return <HiSpeakerWave className="w-4 h-4" />;
         }
 
         return <MdOutlineQuestionMark className="w-4 h-4" />;
