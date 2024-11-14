@@ -13,7 +13,7 @@
         "babylonjs-editor": "link:../editor"
     },
     "dependencies": {
-        "babylonjs": "7.22.5",
+        "babylonjs": "7.34.1",
         "fs-extra": "^11.2.0",
         "sharp": "0.32.6"
     }

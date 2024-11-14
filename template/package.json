@@ -9,9 +9,9 @@
         "lint": "next lint"
     },
     "dependencies": {
-        "@babylonjs/core": "7.22.5",
-        "@babylonjs/gui": "7.22.5",
-        "@babylonjs/materials": "7.22.5",
+        "@babylonjs/core": "7.34.1",
+        "@babylonjs/gui": "7.34.1",
+        "@babylonjs/materials": "7.34.1",
         "babylonjs-editor-tools": "latest",
         "next": "14.0.4",
         "react": "^18",

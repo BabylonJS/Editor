@@ -82,20 +82,20 @@
     "@babel/helper-validator-identifier" "^7.22.20"
     to-fast-properties "^2.0.0"
 
-"@babylonjs/core@7.22.5":
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-7.22.5.tgz#f7a15d97a62b53b9413c3110be581a1c9bebefb6"
-  integrity sha512-wHzKsgcSEYLAEMhPswDLbKYi5jJ+uRPsaak0aDVAtb9PVp5vrkRJWlRgNj+I5tvZf9CWVtRMNGueV9tGMPHHkQ==
+"@babylonjs/core@7.34.1":
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-7.34.1.tgz#2958ebd4054d7626758713e52e01855eab2ca091"
+  integrity sha512-QAGgD8Csw8J/nnZ4EK0n5jD7L/EFv4eJQL3eXzr9oq6NNxFyBPXxmkNhot83hWOX5V/xgRuUaRfsjKNwqpTmlw==
 
-"@babylonjs/gui@7.22.5":
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-7.22.5.tgz#c066239b84a5c47e84989f2864040feb80ca127f"
-  integrity sha512-UB+Gewg1OzOHobIPrVEBIzs1ICwJWXLAv82rc/FdN3dIJYk3IfkkAC4hFhUsKLPHDbzbVT+sPAUfk+qoT/zF3Q==
+"@babylonjs/gui@7.34.1":
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-7.34.1.tgz#3475c1ba1d412f082a391b35cd18b094a86cd5be"
+  integrity sha512-8d3iAJ6lofwb6JfKKZdgQhF1k7qNTL2lJpKi+DYH25vlu937KDJi1W04XFE9inuqe9bpEeD2YBtIpJT8P23WUA==
 
-"@babylonjs/materials@7.22.5":
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-7.22.5.tgz#67cbf8e473a50215078249584d4766a673264a39"
-  integrity sha512-nLciEJev0tgOaQ9khbExQnZn2Pfnu4H35ULTwfXDMMuJvzUEqeqZJfPxdDynlOGjHpm5KWdT9Jw8NuFpelz4Fg==
+"@babylonjs/materials@7.34.1":
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-7.34.1.tgz#d35b12dec0bfafc1603e82a45d76040dfe2c524a"
+  integrity sha512-81b8v4BgdrCMkpxZYnj8GBDXwl3nHC22/2wAdKZ8lGNubOm6p8HMluCTST1Hn3ENVPeqsDw+OHnSdnjh4LhjEA==
 
 "@blueprintjs/colors@^5.1.1":
   version "5.1.1"
@@ -1770,7 +1770,7 @@ babylonjs-editor-tools@latest:
 "babylonjs-editor@link:editor":
   version "5.0.0"
   dependencies:
-    "@babylonjs/core" "7.22.5"
+    "@babylonjs/core" "7.34.1"
     "@blueprintjs/core" "^5.10.0"
     "@blueprintjs/select" "^5.1.2"
     "@emotion/react" "^11.11.4"
@@ -1796,12 +1796,12 @@ babylonjs-editor-tools@latest:
     "@xterm/xterm" "^5.5.0"
     assimpjs "0.0.10"
     axios "^1.7.2"
-    babylonjs "7.22.5"
-    babylonjs-gui "7.22.5"
-    babylonjs-gui-editor "7.22.5"
-    babylonjs-loaders "7.22.5"
-    babylonjs-materials "7.22.5"
-    babylonjs-node-editor "7.22.5"
+    babylonjs "7.34.1"
+    babylonjs-gui "7.34.1"
+    babylonjs-gui-editor "7.34.1"
+    babylonjs-loaders "7.34.1"
+    babylonjs-materials "7.34.1"
+    babylonjs-node-editor "7.34.1"
     cannon "0.6.2"
     class-variance-authority "^0.7.0"
     clsx "^2.1.0"
@@ -1831,64 +1831,52 @@ babylonjs-editor-tools@latest:
     usehooks-ts "^3.0.2"
     webm-muxer "^5.0.2"
 
-babylonjs-gltf2interface@^7.22.5:
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/babylonjs-gltf2interface/-/babylonjs-gltf2interface-7.22.5.tgz#e4d8acbbeb143a953011fe34c813525bc8f855ef"
-  integrity sha512-xN14Na2DBwSGLjLmyan8KV8nB5xuZVSFuyVgtPwzBvD8xzDPyZq/QUF5XhV091PlSmYA6+sXbjOOqI7UorrJlQ==
+babylonjs-gltf2interface@^7.34.1:
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-gltf2interface/-/babylonjs-gltf2interface-7.34.1.tgz#b8edcd7d7893f37720bcff2106a3f1f03a50381e"
+  integrity sha512-gCfGIVAp8C5WQtst2vUeOYFVGQi56cqEHxq3uk1T7KTJVAyCqHKm9bNw+h2tw9d4dlfe6fhCxntnz33hCMqH/w==
 
-babylonjs-gui-editor@7.22.5:
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/babylonjs-gui-editor/-/babylonjs-gui-editor-7.22.5.tgz#223789e8a2b372b04f068e839b2c9ae697d16a59"
-  integrity sha512-jNioInjm0LZWPFaU7f4EQhChYP01NR/xQG3gMn01Gan1d4Sjb529Sx2uFwm+ChrUfnTDYK1bY30MmfrmnUaoRg==
+babylonjs-gui-editor@7.34.1:
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-gui-editor/-/babylonjs-gui-editor-7.34.1.tgz#bfa247acaf0a4ed0b78aba12bc35e64a169870d3"
+  integrity sha512-b93pIgtIgJeTUdHPfLqTUAafpE8d8z/sjphCP/KjCbxMZlxPvS7RCSzGd0R02DeCvh2HOXCPI1Rw/D3Dlmb5Ag==
   dependencies:
-    babylonjs "^7.22.5"
-    babylonjs-gui "^7.22.5"
+    babylonjs "^7.34.1"
+    babylonjs-gui "^7.34.1"
 
-babylonjs-gui@7.22.5:
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/babylonjs-gui/-/babylonjs-gui-7.22.5.tgz#306e304806ce6400e094579f4b65392b69ab6649"
-  integrity sha512-+jiCKGqcWKmdHeiahgLITC1vh7W0krCHgd3pkrtezRpdrX6TIxtIgolvkR7itBMlffaqzehzlFRx6RbgFm8nMg==
+babylonjs-gui@7.34.1, babylonjs-gui@^7.34.1:
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-gui/-/babylonjs-gui-7.34.1.tgz#a456ce3684b1316c96a06460a6058b19b3453ed0"
+  integrity sha512-X1f5u0erxdebHPnggvfRLJ3+j5XtGaKQUmJLXT46oAy5IjiLLkQicN6lkiMa9Tn+RQ//jcjCx2+sG9TbPPYHlQ==
   dependencies:
-    babylonjs "^7.22.5"
+    babylonjs "^7.34.1"
 
-babylonjs-gui@^7.22.5:
-  version "7.23.0"
-  resolved "https://registry.yarnpkg.com/babylonjs-gui/-/babylonjs-gui-7.23.0.tgz#d0acc3000b78d5469e43f58e641c3738e15f5209"
-  integrity sha512-9RtGsY1j/5bbv059aRPOZHaROSEJV9I8PoKo7CIUpaykf9i2gSrWWZgAtsh5lAGT2yAHCi8G0u7mjldTLh5nIg==
+babylonjs-loaders@7.34.1:
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-loaders/-/babylonjs-loaders-7.34.1.tgz#9071928a167bcb66d06dc80eeb7ea82dfe744345"
+  integrity sha512-wWbqp6m2cRwBr3BrF0e1eUKy74nMH8f5lin3j5+JLrAsqMCqID9H6OJ4ZSBP1c4rBdGeqGMhE4LJCnw3Dblc2g==
   dependencies:
-    babylonjs "^7.23.0"
+    babylonjs "^7.34.1"
+    babylonjs-gltf2interface "^7.34.1"
 
-babylonjs-loaders@7.22.5:
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/babylonjs-loaders/-/babylonjs-loaders-7.22.5.tgz#3756d68f618b5be9776199fb771aa0209a250331"
-  integrity sha512-4FNYoj8oRQ2ICkGNu5oDor+IJAvhiVh8YcQNt8IAUS07tPommhMTG3exAk5m7umRPrefEM/IE8X0VncksmawRA==
+babylonjs-materials@7.34.1:
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-materials/-/babylonjs-materials-7.34.1.tgz#8d79ab4cc94419769729f337836a2d4641e7d180"
+  integrity sha512-QRsY/Iq8crZxGR+m9EEhlx8I7gazKN0Gd0d02wwGHWPqT6TYm4+xZ/dUpqi7uEfvpKl3fOOxrWqpt2+TvafwFA==
   dependencies:
-    babylonjs "^7.22.5"
-    babylonjs-gltf2interface "^7.22.5"
+    babylonjs "^7.34.1"
 
-babylonjs-materials@7.22.5:
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/babylonjs-materials/-/babylonjs-materials-7.22.5.tgz#b7ff45f7aee708718941d2baf872be0c99d8190c"
-  integrity sha512-0TZ29R7RDw04jaHN83h5IPj8qH8bJjkQ+YcyizvFmnKyQPG+izNet7fDKfSFnUh0SNFWU+oJlOBhzDzGpueOkw==
+babylonjs-node-editor@7.34.1:
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-node-editor/-/babylonjs-node-editor-7.34.1.tgz#b38601c03f579cf0a1fec5620915bd5c31fa6e38"
+  integrity sha512-7jIS+GgUfpjDci9HrbWoZ24zgIy5fG+3JOxY43/JJDNrO7qC36rS+suxuBnfbZfHdbLRFTFBTCXFHWjDLY9Biw==
   dependencies:
-    babylonjs "^7.22.5"
+    babylonjs "^7.34.1"
 
-babylonjs-node-editor@7.22.5:
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/babylonjs-node-editor/-/babylonjs-node-editor-7.22.5.tgz#e71263e9e710de97253b62e603747ea2ca27e757"
-  integrity sha512-5CP4KXKaD02m0q6VDLOoTXgpQIesiPepAL2swRwO12xAnOOOwsnEKLJnHGZ+QFJtBjaknUSZg9fOCY4KGf0yAQ==
-  dependencies:
-    babylonjs "^7.22.5"
-
-babylonjs@7.22.5, babylonjs@^7.22.5:
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-7.22.5.tgz#1b72b587f3da61de7dcaf6fd7ffec9d781bd7339"
-  integrity sha512-5RgDBowdPql2UDADTD/PepgvnXISwoDmsG+TDhg5WCmarCJu1zLYJKsvLfdchsyYjnq9qWUqhaA7apEBwd87EA==
-
-babylonjs@^7.23.0:
-  version "7.23.0"
-  resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-7.23.0.tgz#a8168d4bc2ee1389f6f868b515311457e7fb2c81"
-  integrity sha512-7RAg/Z/GrIzHq8elPWbGoMUriPmYn2DmreZ+9tkn9ZYS74G/2muXjshtBL7zhNXBOCLsEvYUnpUtgfIW2lN3ow==
+babylonjs@7.34.1, babylonjs@^7.34.1:
+  version "7.34.1"
+  resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-7.34.1.tgz#1d6f915421304f523936513a13e9a2eb640f1c7d"
+  integrity sha512-n5m8HxKMHFkOy7EbEcQwHYdtjenYMgVMAWZ5C1tvQAcwDpSh1A0fX94P82pJn9LbbIO/O6uBSweO3dTq7vq1fA==
 
 balanced-match@^1.0.0:
   version "1.0.2"
