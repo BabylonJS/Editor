@@ -8,10 +8,11 @@ import { SiDotenv } from "react-icons/si";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { MdOutlineQuestionMark } from "react-icons/md";
 
-import { CubeTexture, Material, Scene, SpotLight, Texture } from "babylonjs";
+import { CubeTexture, Scene, Texture } from "babylonjs";
 
 import { isScene } from "../../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../../tools/undoredo";
+import { onSelectedAssetChanged } from "../../../../tools/observables";
 import { isCubeTexture, isTexture } from "../../../../tools/guards/texture";
 
 import { projectConfiguration } from "../../../../project/configuration";
@@ -30,8 +31,9 @@ export interface IEditorInspectorTextureFieldProps extends PropsWithChildren {
     title: string;
     property: string;
     acceptCubeTexture?: boolean;
-    object: Material | Scene | SpotLight;
+    object: any;
 
+    scene?: Scene;
     onChange?: (texture: Texture | CubeTexture | null) => void;
 }
 
@@ -236,6 +238,18 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
                             {texture.getSize().width}x{texture.getSize().height}
                         </div>
                     </div>
+                    <div className="flex justify-between items-center px-2 py-2">
+                        <div className="w-1/2">
+                            Path
+                        </div>
+
+                        <div
+                            onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
+                            className="text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis underline-offset-2 cursor-pointer hover:underline"
+                        >
+                            {texture.name}
+                        </div>
+                    </div>
                     <EditorInspectorSwitchField label="Gamma Space" object={texture} property="gammaSpace" />
                     <EditorInspectorSwitchField label="Get Alpha From RGB" object={texture} property="getAlphaFromRGB" />
                 </EditorInspectorSectionField>
@@ -329,7 +343,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
             case ".bmp":
                 const oldTexture = this.props.object[this.props.property];
                 const newTexture = configureImportedTexture(
-                    new Texture(absolutePath, isScene(this.props.object) ? this.props.object : this.props.object.getScene()),
+                    new Texture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),
                 );
 
                 this.props.object[this.props.property] = newTexture;
@@ -356,7 +370,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
                 if (this.props.acceptCubeTexture) {
                     const oldTexture = this.props.object[this.props.property];
                     const newTexture = configureImportedTexture(
-                        CubeTexture.CreateFromPrefilteredData(absolutePath, isScene(this.props.object) ? this.props.object : this.props.object.getScene()),
+                        CubeTexture.CreateFromPrefilteredData(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),
                     );
 
                     this.props.object[this.props.property] = newTexture;

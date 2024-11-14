@@ -46,6 +46,7 @@ export class EditorStandardMaterialInspector extends Component<IEditorStandardMa
 
                     <EditorInspectorTextureField object={this.props.material} title="Specular Texture" property="specularTexture" />
                     <EditorInspectorTextureField object={this.props.material} title="Ambient Texture" property="ambientTexture" />
+                    <EditorInspectorTextureField object={this.props.material} title="Opacity Texture" property="opacityTexture" />
 
                     <EditorInspectorTextureField object={this.props.material} title="Reflection Texture" property="reflectionTexture" acceptCubeTexture onChange={() => this.forceUpdate()} />
                 </EditorInspectorSectionField>

@@ -28,6 +28,7 @@ import { clearUndoRedo } from "../../tools/undoredo";
 import { isTexture } from "../../tools/guards/texture";
 import { renameScene } from "../../tools/scene/rename";
 import { openMultipleFilesDialog } from "../../tools/dialog";
+import { onSelectedAssetChanged } from "../../tools/observables";
 
 import { loadScene } from "../../project/load/scene";
 import { saveProject } from "../../project/save/save";
@@ -156,6 +157,11 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                 ev.preventDefault();
                 this.setState({ selectedKeys: this.state.files.map((f) => join(this.state.browsedPath!, f)) });
             }
+        });
+
+        onSelectedAssetChanged.add(async (path) => {
+            await this.setBrowsePath(dirname(path));
+            this.setSelectedFile(path);
         });
 
         listenGuiAssetsEvents(this.props.editor);
@@ -325,6 +331,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
         } else {
             this._handleFileRenamed(oldRelativePath, newRelativePath);
         }
+
+        this.props.editor.layout.graph.refresh();
+        this.props.editor.layout.inspector.forceUpdate();
     }
 
     private _handleFileRenamed(oldRelativePath: string, newRelativePath: string): void {
@@ -338,6 +347,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                     texture.url = newRelativePath;
                 }
             }
+        });
+
+        // Sounds
+        scene.soundTracks?.forEach((soundtrack) => {
+            soundtrack.soundCollection.forEach((sound) => {
+                if (sound.name === oldRelativePath) {
+                    sound.name = newRelativePath;
+                    sound["_url"] = newRelativePath;
+                }
+            });
         });
     }
 

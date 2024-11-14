@@ -14,3 +14,13 @@ export const onNodeModifiedObservable = new Observable<Node>();
  * Observable for when a texture has been modified in the editor.
  */
 export const onTextureModifiedObservable = new Observable<BaseTexture>();
+
+/**
+ * Observable used for when the path browsed by "Assets Browser" has changed.
+ */
+export const onAssetsBrowsedPathChanged = new Observable<string>();
+
+/**
+ * Observable used for when the selected asset in "Assets Browser" has changed.
+ */
+export const onSelectedAssetChanged = new Observable<string>();
