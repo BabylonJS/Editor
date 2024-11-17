@@ -3,12 +3,13 @@ import { AiOutlineClose } from "react-icons/ai";
 
 import { Component, MouseEvent, ReactNode } from "react";
 
+import { registerUndoRedo } from "../../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
-import { isCinematicGroup, isCinematicKeyCut } from "../schema/guards";
+import { isCinematicGroup, isCinematicKey, isCinematicKeyCut } from "../schema/guards";
 import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEditor } from "../editor";
@@ -86,9 +87,7 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                         <ContextMenuContent>
                             {(this.props.cinematicKey.type === "key" || this.props.cinematicKey.type === "cut") &&
                                 <>
-                                    <ContextMenuItem
-                                        className="flex items-center gap-2"
-                                    >
+                                    <ContextMenuItem className="flex items-center gap-2" onClick={() => this._transformAs()} >
                                         <FaExchangeAlt className="w-5 h-5" />
                                         Transform as {this.props.cinematicKey.type === "key" ? "Cut Key" : "Simple Key"}
                                     </ContextMenuItem>
@@ -146,6 +145,68 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
         }
 
         return this.props.cinematicKey.endFrame - this.props.cinematicKey.startFrame;
+    }
+
+    private _transformAs(): void {
+        const cloneKey = { ...this.props.cinematicKey } as ICinematicKey;
+        const cloneKeyCut = { ...this.props.cinematicKey } as ICinematicKeyCut;
+
+        const oldKey = { ...this.props.cinematicKey } as ICinematicKey | ICinematicKeyCut;
+        const resultKey = {} as ICinematicKey | ICinematicKeyCut;
+
+        switch (oldKey.type) {
+            case "cut":
+                resultKey.type = "key";
+                if (isCinematicKey(resultKey)) {
+                    resultKey.frame = cloneKeyCut.key1.frame;
+                    resultKey.value = cloneKeyCut.key1.value;
+                    resultKey.inTangent = cloneKeyCut.key1.inTangent;
+                    resultKey.outTangent = cloneKeyCut.key1.outTangent;
+                }
+                break;
+
+            case "key":
+                resultKey.type = "cut";
+                if (isCinematicKeyCut(resultKey)) {
+                    resultKey.key1 = {
+                        frame: cloneKey.frame,
+                        value: cloneKey.value,
+                        inTangent: cloneKey.inTangent,
+                        outTangent: cloneKey.outTangent,
+                    };
+                    resultKey.key2 = {
+                        frame: cloneKey.frame,
+                        value: cloneKey.value,
+                        inTangent: cloneKey.inTangent,
+                        outTangent: cloneKey.outTangent,
+                    };
+                }
+                break;
+        }
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                Object.keys(this.props.cinematicKey).forEach((key) => {
+                    delete this.props.cinematicKey[key];
+                });
+
+                Object.keys(oldKey).forEach((key) => {
+                    this.props.cinematicKey[key] = oldKey[key];
+                });
+            },
+            redo: () => {
+                Object.keys(this.props.cinematicKey).forEach((key) => {
+                    delete this.props.cinematicKey[key];
+                });
+
+                Object.keys(resultKey).forEach((key) => {
+                    this.props.cinematicKey[key] = resultKey[key];
+                });
+            },
+        });
+
+        this.props.cinematicEditor.forceUpdate();
     }
 
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
