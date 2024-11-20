@@ -13,7 +13,7 @@ import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Tools } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -61,6 +61,7 @@ export interface IEditorGraphState {
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
+    private _soundsList: Sound[] = [];
     private _objectsToCopy: TreeNodeInfo<unknown>[] = [];
 
     public constructor(props: IEditorGraphProps) {
@@ -141,6 +142,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
      */
     public refresh(): void {
         const scene = this.props.editor.layout.preview.scene;
+
+        this._soundsList = scene.soundTracks?.map((st) => st.soundCollection).flat() ?? [];
+
         const nodes = scene.rootNodes
             .filter((n) => !isEditorCamera(n))
             .map((n) => this._parseSceneNode(n));
@@ -172,13 +176,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
      * become unselected to have only the given node selected. All parents are expanded.
      * @param node defines the reference tot the node to select in the graph.
      */
-    public setSelectedNode(node: Node): void {
+    public setSelectedNode(node: Node | Sound): void {
         this._forEachNode(this.state.nodes, (n) => {
-            if (isNode(n.nodeData)) {
-                const descendants = n.nodeData.getDescendants(false);
-                if (descendants.includes(node)) {
-                    n.isExpanded = true;
-                }
+            if (n.childNodes?.find((c) => c.nodeData === node)) {
+                n.isExpanded = true;
             }
 
             n.isSelected = n.nodeData === node;
@@ -420,32 +421,16 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
         const childNodes: TreeNodeInfo[] = [];
 
-        soundTracks.forEach((soundtrack) => {
-            soundtrack.soundCollection.forEach((sound) => {
-                if (sound.spatialSound) {
-                    return;
-                }
+        this._soundsList.forEach((sound) => {
+            if (sound.spatialSound) {
+                return;
+            }
 
-                if (!sound.name.toLowerCase().includes(this.state.search.toLowerCase())) {
-                    return;
-                }
+            if (!sound.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+                return;
+            }
 
-                const info = {
-                    nodeData: sound,
-                    id: sound.name,
-                    icon: this._getIcon(sound),
-                    label: this._getNodeLabelComponent(sound, sound.name, false),
-                } as TreeNodeInfo;
-
-                this._forEachNode(this.state.nodes, (n) => {
-                    if (n.id === info.id) {
-                        info.isSelected = n.isSelected;
-                        info.isExpanded = n.isExpanded;
-                    }
-                });
-
-                childNodes.push(info);
-            });
+            childNodes.push(this._getSoundNode(sound));
         });
 
         if (!childNodes.length) {
@@ -468,6 +453,24 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         });
 
         return rootSoundNode;
+    }
+
+    private _getSoundNode(sound: Sound): TreeNodeInfo {
+        const info = {
+            nodeData: sound,
+            id: sound.id,
+            icon: this._getIcon(sound),
+            label: this._getNodeLabelComponent(sound, sound.name, false),
+        } as TreeNodeInfo;
+
+        this._forEachNode(this.state.nodes, (n) => {
+            if (n.id === info.id) {
+                info.isSelected = n.isSelected;
+                info.isExpanded = n.isExpanded;
+            }
+        });
+
+        return info;
     }
 
     private _parseGuiNode(scene: Scene): TreeNodeInfo | null {
@@ -562,6 +565,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             id: node.id,
             nodeData: node,
             isSelected: false,
+            childNodes: [],
             icon: this._getNodeIconComponent(node),
             label: this._getNodeLabelComponent(node, node.name),
         } as TreeNodeInfo;
@@ -572,7 +576,20 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 info.childNodes = children.map((c) => this._parseSceneNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
             }
 
-            info.hasCaret = (info.childNodes?.length ?? 0) > 0;
+            // Handle sounds
+            if (isTransformNode(node) || isMesh(node) || isInstancedMesh(node)) {
+                const sounds = this._soundsList.filter((s) => s["_connectedTransformNode"] === node);
+
+                sounds?.forEach((sound) => {
+                    info.childNodes?.push(this._getSoundNode(sound));
+                });
+            }
+
+            if (info.childNodes?.length) {
+                info.hasCaret = true;
+            } else {
+                info.childNodes = undefined;
+            }
         }
 
         if (!node.name.toLowerCase().includes(this.state.search.toLowerCase()) && !info.childNodes?.length) {

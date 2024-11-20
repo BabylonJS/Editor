@@ -2,12 +2,14 @@ import { extname } from "path/posix";
 
 import { DragEvent, useState } from "react";
 
-import { Node } from "babylonjs";
+import { Node, TransformNode } from "babylonjs";
 
-import { isNode } from "../../../tools/guards/nodes";
 import { isScene } from "../../../tools/guards/scene";
+import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
+import { isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
+import { applySoundAsset } from "../preview/import/sound";
 import { applyTextureAssetToObject } from "../preview/import/texture";
 import { applyMaterialAssetToObject } from "../preview/import/material";
 
@@ -81,8 +83,14 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
         const oldHierarchyMap = new Map<unknown, unknown>();
 
         nodesToMove.forEach((n) => {
-            if (n.nodeData && isNode(n.nodeData)) {
-                oldHierarchyMap.set(n.nodeData, n.nodeData.parent);
+            if (n.nodeData) {
+                if (isNode(n.nodeData)) {
+                    return oldHierarchyMap.set(n.nodeData, n.nodeData.parent);
+                }
+
+                if (isSound(n.nodeData)) {
+                    return oldHierarchyMap.set(n.nodeData, n.nodeData["_connectedTransformNode"]);
+                }
             }
         });
 
@@ -90,9 +98,21 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
             executeRedo: true,
             undo: () => {
                 nodesToMove.forEach((n) => {
-                    if (n.nodeData && isNode(n.nodeData)) {
-                        if (oldHierarchyMap.has(n.nodeData)) {
-                            n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node;
+                    if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
+                        if (isNode(n.nodeData)) {
+                            return n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node;
+                        }
+
+                        if (isSound(n.nodeData)) {
+                            const oldSoundNode = oldHierarchyMap.get(n.nodeData);
+
+                            if (oldSoundNode) {
+                                return n.nodeData.attachToMesh(oldSoundNode as TransformNode);
+                            } else {
+                                n.nodeData.detachFromMesh();
+                                n.nodeData.spatialSound = false;
+                                return n.nodeData["_connectedTransformNode"] = null;
+                            }
                         }
                     }
                 });
@@ -103,8 +123,22 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
                         return;
                     }
 
-                    if (n.nodeData && isNode(n.nodeData)) {
-                        n.nodeData.parent = isScene(props.object) ? null : newParent;
+                    if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
+                        if (isNode(n.nodeData)) {
+                            return n.nodeData.parent = isScene(props.object) ? null : newParent;
+                        }
+
+                        if (isSound(n.nodeData)) {
+                            if (isTransformNode(newParent) || isMesh(newParent) || isInstancedMesh(newParent)) {
+                                return n.nodeData.attachToMesh(newParent);
+                            }
+
+                            if (isScene(newParent)) {
+                                n.nodeData.detachFromMesh();
+                                n.nodeData.spatialSound = false;
+                                return n.nodeData["_connectedTransformNode"] = null;
+                            }
+                        }
                     }
                 });
             },
@@ -130,6 +164,17 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
                 case ".bmp":
                 case ".jpeg":
                     applyTextureAssetToObject(props.editor, props.object, absolutePath);
+                    break;
+
+                case ".mp3":
+                case ".ogg":
+                case ".wav":
+                case ".wave":
+                    if (isScene(props.object) || isTransformNode(props.object) || isMesh(props.object) || isInstancedMesh(props.object)) {
+                        applySoundAsset(props.editor, props.object, absolutePath).then(() => {
+                            props.editor.layout.graph.refresh();
+                        });
+                    }
                     break;
             }
         });

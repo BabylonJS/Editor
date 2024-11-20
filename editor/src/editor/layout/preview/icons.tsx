@@ -1,13 +1,15 @@
 import { Component, ReactNode } from "react";
 
+import { HiSpeakerWave } from "react-icons/hi2";
 import { FaCamera, FaLightbulb } from "react-icons/fa";
 
-import { Mesh, Node, Scene, Vector2 } from "babylonjs";
+import { Mesh, Node, Scene, Vector2, Sound } from "babylonjs";
 
 import { Editor } from "../../main";
 
+import { isSound } from "../../../tools/guards/sound";
 import { projectVectorOnScreen } from "../../../tools/maths/projection";
-import { isCamera, isEditorCamera, isLight } from "../../../tools/guards/nodes";
+import { isCamera, isEditorCamera, isLight, isNode } from "../../../tools/guards/nodes";
 
 export interface IEditorPreviewIconsProps {
     editor: Editor;
@@ -18,8 +20,8 @@ export interface IEditorPreviewIconsState {
 }
 
 interface _IButtonData {
-    node: Node;
     position: Vector2;
+    node: Node | Sound;
 }
 
 export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEditorPreviewIconsState> {
@@ -51,7 +53,10 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 
                             this.props.editor.layout.graph.setSelectedNode(button.node);
                             this.props.editor.layout.inspector.setEditedObject(button.node);
-                            this.props.editor.layout.preview.gizmo.setAttachedNode(button.node);
+
+                            if (isNode(button.node)) {
+                                this.props.editor.layout.preview.gizmo.setAttachedNode(button.node);
+                            }
                         }}
                         className="absolute w-16 h-16 pointer-events-auto rounded-lg -translate-x-1/2 hover:bg-black/20 transition-colors duration-300"
                     >
@@ -117,6 +122,19 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
                 });
             });
 
+            scene.soundTracks?.forEach((soundtrack) => {
+                soundtrack.soundCollection.forEach((sound) => {
+                    if (!sound.spatialSound) {
+                        return;
+                    }
+
+                    buttons.push({
+                        node: sound as any,
+                        position: projectVectorOnScreen(sound["_connectedTransformNode"].computeWorldMatrix().getTranslation(), scene),
+                    });
+                });
+            });
+
             this.setState({ buttons });
         });
     }
@@ -134,13 +152,17 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
         this._renderFunction = null;
     }
 
-    private _getIcon(node: Node): ReactNode {
+    private _getIcon(node: Node | Sound): ReactNode {
         if (isLight(node)) {
             return <FaLightbulb color="white" stroke="black" strokeWidth={0.35} className="w-full h-full" />;
         }
 
         if (isCamera(node)) {
             return <FaCamera color="white" stroke="black" strokeWidth={0.1} className="w-full h-full" />;
+        }
+
+        if (isSound(node)) {
+            return <HiSpeakerWave color="white" stroke="black" strokeWidth={0.1} className="w-full h-full" />;
         }
     }
 };

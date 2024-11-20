@@ -806,9 +806,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                     break;
 
                 case ".mp3":
+                case ".ogg":
                 case ".wav":
+                case ".wave":
                     if (this.props.editor.state.enableExperimentalFeatures) {
-                        applySoundAsset(this.props.editor, absolutePath).then(() => {
+                        applySoundAsset(this.props.editor, mesh ?? this.scene, absolutePath).then(() => {
                             this.props.editor.layout.graph.refresh();
                         });
                     }

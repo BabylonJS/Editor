@@ -469,6 +469,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         try {
             const sound = Sound.Parse(data, scene, join(projectPath, "/"));
             sound["_url"] = data.url;
+            sound.id = data.id;
+            sound.uniqueId = data.uniqueId;
         } catch (e) {
             editor.layout.console.error(`Failed to load sound file "${file}": ${e.message}`);
         }

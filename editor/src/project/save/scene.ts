@@ -355,10 +355,14 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
     await Promise.all(soundtracks.map(async (soundtrack) => {
         await Promise.all(soundtrack.soundCollection.map(async (sound) => {
-            const soundPath = join(scenePath, "sounds", `${sound.name.replace("/", "_")}.json`);
+            const soundPath = join(scenePath, "sounds", `${sound.id}.json`);
 
             try {
-                await writeJSON(soundPath, sound.serialize(), {
+                await writeJSON(soundPath, {
+                    ...sound.serialize(),
+                    id: sound.id,
+                    uniqueId: sound.uniqueId,
+                }, {
                     spaces: 4,
                 });
             } catch (e) {
