@@ -4,6 +4,8 @@ import ffmpeg from "fluent-ffmpeg";
 
 import { toast } from "sonner";
 
+import { isWindows } from "../../../../tools/os";
+
 import { Editor } from "../../../main";
 
 import { CinematicConvertProgressComponent } from "./progress";
@@ -23,9 +25,13 @@ export async function convertCinematicVideoToMp4(
         return;
     }
 
-    const ffmpegPath = process.env.DEBUG
+    let ffmpegPath = process.env.DEBUG
         ? "bin/ffmpeg"
         : "../../bin/ffmpeg";
+
+    if (isWindows()) {
+        ffmpegPath = ffmpegPath + ".exe";
+    }
 
     const command = ffmpeg(absolutePath)
         .setFfmpegPath(join(editor.path, ffmpegPath));
