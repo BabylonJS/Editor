@@ -17,7 +17,7 @@ export interface IEditorInspectorListFieldItem {
 export interface IEditorInspectorListFieldProps extends IEditorInspectorFieldProps {
     items: IEditorInspectorListFieldItem[];
 
-    onChange?: (value: any) => void;
+    onChange?: (value: any, oldValue: any) => void;
 }
 
 export function EditorInspectorListField(props: IEditorInspectorListFieldProps) {
@@ -36,10 +36,12 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
             return;
         }
 
-        setSelectedItem(item);
+        const oldValue = getInspectorPropertyValue(props.object, props.property);
 
+        setSelectedItem(item);
         setInspectorEffectivePropertyValue(props.object, props.property, item.value);
-        props.onChange?.(item.value);
+
+        props.onChange?.(item.value, oldValue);
 
         if (oldSelectedItem && item.value !== oldSelectedItem.value && !props.noUndoRedo) {
             registerSimpleUndoRedo({

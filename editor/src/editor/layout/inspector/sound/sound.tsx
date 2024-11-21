@@ -10,9 +10,12 @@ import { Sound } from "babylonjs";
 import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { isSound } from "../../../../tools/guards/sound";
+import { registerUndoRedo } from "../../../../tools/undoredo";
 
+import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
+import { EditorSpatialSoundInspectorComponent } from "./spatial";
 import { IEditorInspectorImplementationProps } from "../inspector";
 
 export class EditorSoundInspector extends Component<IEditorInspectorImplementationProps<Sound>> {
@@ -27,30 +30,53 @@ export class EditorSoundInspector extends Component<IEditorInspectorImplementati
 
     public render(): ReactNode {
         return (
-            <EditorInspectorSectionField title="Common">
-                <div className="flex justify-between items-center px-2 py-2">
-                    <div className="w-1/2">
-                        Name
-                    </div>
-
-                    <div className="flex justify-between items-center w-full">
-                        <div className="text-white/50">
-                            {this.props.object.name}
+            <>
+                <EditorInspectorSectionField title="Common">
+                    <div className="flex justify-between items-center px-2 py-2">
+                        <div className="w-1/2">
+                            Name
                         </div>
 
-                        <Button variant="ghost" onClick={() => this._handleCopyName()}>
-                            <FaCopy className="w-4 h-4" />
-                        </Button>
-                    </div>
-                </div>
+                        <div className="flex justify-between items-center w-full">
+                            <div className="text-white/50">
+                                {this.props.object.name}
+                            </div>
 
-                <Button
-                    variant={this.props.object.isPlaying ? "default" : "secondary"}
-                    onClick={() => this.props.object.isPlaying ? this._handleStop() : this._handlePlay()}
-                >
-                    {this.props.object.isPlaying ? "Stop" : "Play"}
-                </Button>
-            </EditorInspectorSectionField>
+                            <Button variant="ghost" onClick={() => this._handleCopyName()}>
+                                <FaCopy className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+
+                    <EditorInspectorNumberField
+                        noUndoRedo
+                        min={0}
+                        max={1}
+                        label="Volume"
+                        property="value"
+                        object={{ value: this.props.object.getVolume() }}
+                        onChange={(value) => this.props.object.setVolume(value)}
+                        onFinishChange={(value, oldValue) => {
+                            registerUndoRedo({
+                                executeRedo: true,
+                                undo: () => this.props.object.setVolume(oldValue),
+                                redo: () => this.props.object.setVolume(value),
+                            });
+                        }}
+                    />
+
+                    <Button
+                        variant={this.props.object.isPlaying ? "default" : "secondary"}
+                        onClick={() => this.props.object.isPlaying ? this._handleStop() : this._handlePlay()}
+                    >
+                        {this.props.object.isPlaying ? "Stop" : "Play"}
+                    </Button>
+                </EditorInspectorSectionField>
+
+                {this.props.object.spatialSound &&
+                    <EditorSpatialSoundInspectorComponent sound={this.props.object} />
+                }
+            </>
         );
     }
 

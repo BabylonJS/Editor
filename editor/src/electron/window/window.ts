@@ -136,8 +136,8 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
     splash.center();
 
     await Promise.all([
-        new Promise((resolve) => {
-            window.webContents.once("did-finish-load", resolve);
+        new Promise<void>((resolve) => {
+            window.webContents.once("did-finish-load", () => resolve());
         }),
         new Promise<void>((resolve) => {
             ipcMain.once("editor:ready", () => resolve());
