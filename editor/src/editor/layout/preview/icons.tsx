@@ -105,7 +105,10 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
                     return;
                 }
 
-                if (!this._isInFrustrum(camera.computeWorldMatrix().getTranslation(), scene)) {
+                if (
+                    !this._isInFrustrum(camera.computeWorldMatrix().getTranslation(), scene) ||
+                    this.props.editor.layout.preview.gizmo.attachedNode === camera
+                ) {
                     return;
                 }
 

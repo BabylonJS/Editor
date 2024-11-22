@@ -1,7 +1,10 @@
-import { GizmoCoordinatesMode, Node, Observable, PositionGizmo, Quaternion, RotationGizmo, ScaleGizmo, Scene, UtilityLayerRenderer, Vector3 } from "babylonjs";
+import {
+    GizmoCoordinatesMode, Node, Observable, PositionGizmo, Quaternion, RotationGizmo, ScaleGizmo, Scene,
+    UtilityLayerRenderer, Vector3, CameraGizmo,
+} from "babylonjs";
 
-import { isLight } from "../../../tools/guards/nodes";
 import { registerUndoRedo } from "../../../tools/undoredo";
+import { isCamera, isLight } from "../../../tools/guards/nodes";
 import { isQuaternion, isVector3 } from "../../../tools/guards/math";
 import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../tools/light/shadows";
 
@@ -18,6 +21,8 @@ export class EditorPreviewGizmo {
     private _rotationGizmo: RotationGizmo | null = null;
 
     private _coordinatesMode: GizmoCoordinatesMode = GizmoCoordinatesMode.Local;
+
+    private _cameraGizmo: CameraGizmo | null = null;
 
     private _attachedNode: Node | null = null;
 
@@ -81,11 +86,26 @@ export class EditorPreviewGizmo {
     }
 
     /**
+     * Gets the reference to the node that is attached and controlled by the gizmo.
+     */
+    public get attachedNode(): Node | null {
+        return this._attachedNode;
+    }
+
+    /**
      * Sets the node that is attached and controlled by the gizmo.
      * @param node The node to attach to the gizmo.
      */
     public setAttachedNode(node: Node | null): void {
         this._attachedNode = node;
+
+        if (isCamera(node)) {
+            this._cameraGizmo ??= new CameraGizmo(this._gizmosLayer);
+            this._cameraGizmo.camera = node;
+            this._cameraGizmo.attachedNode = node;
+        } else {
+            this._cameraGizmo?.dispose();
+        }
 
         if (this.currentGizmo) {
             this.currentGizmo.attachedNode = node;
@@ -110,7 +130,6 @@ export class EditorPreviewGizmo {
             case GizmoCoordinatesMode.Local: return "Local";
         }
     }
-
 
     private _attachVector3UndoRedoEvents(gizmo: PositionGizmo | ScaleGizmo | RotationGizmo, property: "position" | "scaling"): void {
         let temporaryNode: Node | null = null;
