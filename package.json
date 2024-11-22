@@ -20,7 +20,7 @@
         "test"
     ],
     "scripts": {
-        "postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && rm -rf template/node_modules/babylonjs-editor-tools",
+        "postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && rm -rf template/node_modules/babylonjs-editor-tools && node ./postinstall.mjs",
         "watch-editor": "yarn workspace babylonjs-editor watch",
         "watch-editor-css": "yarn workspace babylonjs-editor watch-css",
         "watch-tools": "yarn workspace babylonjs-editor-tools watch",
@@ -30,13 +30,16 @@
         "build-quixel": "yarn workspace babylonjs-editor-quixel-plugin build",
         "build": "yarn build-editor && yarn build-tools && yarn build-quixel",
         "start": "electron ./editor",
-        "package": "yarn && yarn build && node build.js",
-        "clean": "rm -rf editor/build editor/declaration editor/electron-packages quixel/build quixel/declaration tools/build tools/declaration",
-        "clean:node_modules": "rm -rf node_modules editor/node_modules quixel/node_modules tools/node_modules template/node_modules website/node_modules"
+        "package": "yarn && yarn build && node build.mjs",
+        "clean": "rm -rf editor/build editor/declaration editor/electron-packages quixel/build quixel/declaration tools/build tools/declaration template/.next website/.next",
+        "clean:node_modules": "rm -rf ./node_modules ./editor/node_modules ./quixel/node_modules ./tools/node_modules ./template/node_modules ./website/node_modules"
     },
     "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
     "license": "(Apache-2.0)",
-    "devDependencies": {},
+    "devDependencies": {
+        "dotenv": "16.4.5",
+        "minimist": "1.2.8"
+    },
     "dependencies": {},
     "resolutions": {
         "node-abi": "3.71.0",

@@ -3,7 +3,7 @@ import { Component, ReactNode } from "react";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { FaCamera, FaLightbulb } from "react-icons/fa";
 
-import { Mesh, Node, Scene, Vector2, Sound } from "babylonjs";
+import { Mesh, Node, Scene, Vector2, Sound, Vector3 } from "babylonjs";
 
 import { Editor } from "../../main";
 
@@ -90,12 +90,8 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
             buttons.splice(0, buttons.length);
 
             scene.lights.forEach((light) => {
-                if (this._tempMesh && scene.activeCamera) {
-                    this._tempMesh.setAbsolutePosition(light.getAbsolutePosition());
-
-                    if (!this._isInFrustrum(scene)) {
-                        return;
-                    }
+                if (!this._isInFrustrum(light.getAbsolutePosition(), scene)) {
+                    return;
                 }
 
                 buttons.push({
@@ -109,11 +105,8 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
                     return;
                 }
 
-                if (this._tempMesh) {
-                    this._tempMesh.setAbsolutePosition(camera.computeWorldMatrix().getTranslation());
-                    if (!this._isInFrustrum(scene)) {
-                        return;
-                    }
+                if (!this._isInFrustrum(camera.computeWorldMatrix().getTranslation(), scene)) {
+                    return;
                 }
 
                 buttons.push({
@@ -128,6 +121,10 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
                         return;
                     }
 
+                    if (!this._isInFrustrum(sound["_connectedTransformNode"].getAbsolutePosition(), scene)) {
+                        return;
+                    }
+
                     buttons.push({
                         node: sound as any,
                         position: projectVectorOnScreen(sound["_connectedTransformNode"].computeWorldMatrix().getTranslation(), scene),
@@ -139,7 +136,11 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
         });
     }
 
-    private _isInFrustrum(scene: Scene): boolean {
+    private _isInFrustrum(absolutePosition: Vector3, scene: Scene): boolean {
+        if (this._tempMesh && scene.activeCamera) {
+            this._tempMesh.setAbsolutePosition(absolutePosition);
+        }
+
         this._tempMesh!.computeWorldMatrix(true);
         return scene.activeCamera!.isInFrustum(this._tempMesh!);
     }

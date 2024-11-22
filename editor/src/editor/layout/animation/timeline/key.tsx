@@ -81,16 +81,28 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
         ev.stopPropagation();
 
-        if (ev.button !== 0 || this.props.animationKey.frame === 0) {
+        if (ev.button !== 0) {
             return;
+        }
+
+        let mouseUpListener: (event: globalThis.MouseEvent) => void;
+        let mouseMoveListener: (event: globalThis.MouseEvent) => void;
+
+        if (this.props.animationKey.frame === 0) {
+            return document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
+                ev.stopPropagation();
+
+                document.body.removeEventListener("mouseup", mouseUpListener);
+
+                waitNextAnimationFrame().then(() => {
+                    this.props.onClicked(this.props.animationKey);
+                });
+            });
         }
 
         this.setState({ moving: true });
 
         document.body.style.cursor = "ew-resize";
-
-        let mouseUpListener: (event: globalThis.MouseEvent) => void;
-        let mouseMoveListener: (event: globalThis.MouseEvent) => void;
 
         let moving = false;
         let clientX: number | null = null;

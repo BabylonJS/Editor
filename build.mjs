@@ -1,13 +1,16 @@
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
-const Builder = require("electron-builder");
-const child_process = require("child_process");
+import { join } from "node:path";
+import { platform, arch } from "node:os";
+import { execSync } from "node:child_process";
+import { existsSync, copyFileSync, rmSync, mkdirSync } from "node:fs";
 
-require('dotenv').config();
+import dotEnv from "dotenv";
+import yargs from "minimist";
+import Builder from "electron-builder";
 
-const yargs = require("yargs");
-const args = yargs.argv;
+import templatePackageJson from "./template/package.json" with { type: 'json' };
+
+dotEnv.config();
+const args = yargs(process.argv.slice(2));
 
 const build = ({ x64, arm64 } = options) => {
     return Builder.build({
@@ -15,7 +18,7 @@ const build = ({ x64, arm64 } = options) => {
         arm64,
         projectDir: "./editor",
         config: {
-            mac: os.platform() === "win32" ? null : {
+            mac: platform() === "win32" ? null : {
                 hardenedRuntime: true,
                 appId: "com.babylonjs.editor",
                 notarize: {
@@ -57,29 +60,28 @@ const build = ({ x64, arm64 } = options) => {
 
 (async () => {
     // Remove old build
-    fs.rmSync(path.join(__dirname, "editor/electron-packages"), {
+    rmSync(join(import.meta.dirname, "editor/electron-packages"), {
         force: true,
         recursive: true,
     });
 
     // Pack template
-    const templatePackageJson = require(path.join(__dirname, "template/package.json"));
     const tgzName = `${templatePackageJson.name}-v${templatePackageJson.version}.tgz`;
 
-    child_process.execSync("yarn pack", {
-        cwd: path.join(__dirname, "template"),
+    execSync("yarn pack", {
+        cwd: join(import.meta.dirname, "template"),
     });
 
-    if (!fs.existsSync(path.join(__dirname, "editor/templates"))) {
-        fs.mkdirSync(path.join(__dirname, "editor/templates"));
+    if (!existsSync(join(import.meta.dirname, "editor/templates"))) {
+        mkdirSync(join(import.meta.dirname, "editor/templates"));
     }
 
-    fs.copyFileSync(
-        path.join(__dirname, "template", tgzName),
-        path.join(__dirname, "editor/templates/template.tgz"),
+    copyFileSync(
+        join(import.meta.dirname, "template", tgzName),
+        join(import.meta.dirname, "editor/templates/template.tgz"),
     );
 
-    fs.rmSync(path.join(__dirname, "template", tgzName));
+    rmSync(join(import.meta.dirname, "template", tgzName));
 
     // Create build(s)
     const archs = [
@@ -92,9 +94,9 @@ const build = ({ x64, arm64 } = options) => {
             await build({ [a.type]: true });
         }
     } else {
-        const arch = os.arch();
-        const x64 = arch === "x64";
-        const arm64 = arch === "arm64";
+        const architecture = arch();
+        const x64 = architecture === "x64";
+        const arm64 = architecture === "arm64";
 
         await build({ x64, arm64 });
     }
