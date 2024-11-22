@@ -17,7 +17,12 @@ export class EditorSpatialSoundInspectorComponent extends Component<IEditorSpati
         return (
             <EditorInspectorSectionField title="Spatial">
                 {this._getDistanceModelComponent()}
-                {this._getMaxDistanceComponent()}
+
+                {this.props.sound.distanceModel === "linear"
+                    ? this._getMaxDistanceComponent()
+                    : [this._getRollOffFactorComponent(), this._getRefDistanceComponent()]
+                }
+
                 {this._getPanningModelComponent()}
             </EditorInspectorSectionField>
         );
@@ -36,6 +41,8 @@ export class EditorSpatialSoundInspectorComponent extends Component<IEditorSpati
                     { text: "Exponential", value: "exponential" },
                 ]}
                 onChange={(value, oldValue) => {
+                    this.forceUpdate();
+
                     registerUndoRedo({
                         executeRedo: true,
                         undo: () => this._updateOptions({ distanceModel: oldValue }),
@@ -67,6 +74,48 @@ export class EditorSpatialSoundInspectorComponent extends Component<IEditorSpati
         );
     }
 
+    private _getRollOffFactorComponent(): ReactNode {
+        return (
+            <EditorInspectorNumberField
+                min={0}
+                max={100000000}
+                step={1}
+                label="Rolloff Factor"
+                object={this.props.sound}
+                property="rolloffFactor"
+                onChange={(value) => this._updateOptions({ rolloffFactor: value })}
+                onFinishChange={(value, oldValue) => {
+                    registerUndoRedo({
+                        executeRedo: true,
+                        undo: () => this._updateOptions({ rolloffFactor: oldValue }),
+                        redo: () => this._updateOptions({ rolloffFactor: value }),
+                    });
+                }}
+            />
+        );
+    }
+
+    private _getRefDistanceComponent(): ReactNode {
+        return (
+            <EditorInspectorNumberField
+                min={0}
+                max={100000000}
+                step={1}
+                label="Ref Distance"
+                object={this.props.sound}
+                property="refDistance"
+                onChange={(value) => this._updateOptions({ refDistance: value })}
+                onFinishChange={(value, oldValue) => {
+                    registerUndoRedo({
+                        executeRedo: true,
+                        undo: () => this._updateOptions({ refDistance: oldValue }),
+                        redo: () => this._updateOptions({ refDistance: value }),
+                    });
+                }}
+            />
+        );
+    }
+
     private _getPanningModelComponent(): ReactNode {
         return (
             <EditorInspectorListField
@@ -92,6 +141,8 @@ export class EditorSpatialSoundInspectorComponent extends Component<IEditorSpati
     private _updateOptions(options: ISoundOptions): void {
         this.props.sound.updateOptions({
             maxDistance: this.props.sound.maxDistance,
+            refDistance: this.props.sound.refDistance,
+            rolloffFactor: this.props.sound.rolloffFactor,
             distanceModel: this.props.sound.distanceModel,
             ...options,
         });
