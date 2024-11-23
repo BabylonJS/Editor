@@ -80,7 +80,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                     playing={this.state.playing}
                 />
 
-                <div className="flex w-full h-10">
+                <div className="relative flex w-full h-10 overflow-hidden">
                     <div className="flex justify-center items-center font-semibold w-96 h-full bg-secondary">
                         Tracks
                     </div>

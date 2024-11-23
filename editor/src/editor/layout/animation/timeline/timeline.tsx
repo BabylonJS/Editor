@@ -74,7 +74,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
     private _getEmpty(): ReactNode {
         return (
-            <div className="flex justify-center items-center font-semibold text-xl w-full h-full">
+            <div className="flex justify-center items-center text-center font-semibold text-xl w-full h-full">
                 No object selected.
             </div>
         );
@@ -82,8 +82,8 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
     private _getEmptyAnimations(): ReactNode {
         return (
-            <div className="flex flex-col gap-2 justify-center items-center font-semibold text-xl w-full h-full">
-                <div className="">
+            <div className="flex flex-col gap-2 justify-center items-center text-center font-semibold text-xl w-full h-full">
+                <div>
                     No animations found on this object.
                 </div>
 

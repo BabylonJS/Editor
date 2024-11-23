@@ -3,6 +3,7 @@ import { Component, ReactNode } from "react";
 import { Animation, AnimationGroup, Color3, Color4, IAnimationKey, Quaternion, Vector2, Vector3 } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../ui/shadcn/ui/tabs";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
@@ -185,13 +186,24 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
     private _getKeyCutInspector(key: ICinematicKeyCut): ReactNode {
         return (
             <>
-                <EditorInspectorSectionField title="Last Frame">
-                    {this._getKeyInspector(key.key1)}
-                </EditorInspectorSectionField>
+                <Tabs defaultValue="key1" className="w-full">
+                    <TabsList className="w-full">
+                        <TabsTrigger className="w-full" value="key1">Last Frame</TabsTrigger>
+                        <TabsTrigger className="w-full" value="key2">New Frame</TabsTrigger>
+                    </TabsList>
 
-                <EditorInspectorSectionField title="New Frame">
-                    {this._getKeyInspector(key.key2)}
-                </EditorInspectorSectionField>
+                    <TabsContent value="key1">
+                        <EditorInspectorSectionField title="Properties">
+                            {this._getKeyInspector(key.key1)}
+                        </EditorInspectorSectionField>
+                    </TabsContent>
+
+                    <TabsContent value="key2">
+                        <EditorInspectorSectionField title="Properties">
+                            {this._getKeyInspector(key.key2)}
+                        </EditorInspectorSectionField>
+                    </TabsContent>
+                </Tabs>
             </>
         );
     }

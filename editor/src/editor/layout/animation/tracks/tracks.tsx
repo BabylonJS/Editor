@@ -32,7 +32,7 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
 
     private _getEmpty(): ReactNode {
         return (
-            <div className="flex justify-center items-center font-semibold text-xl w-96 h-full">
+            <div className="flex justify-center items-center text-center font-semibold text-xl w-96 h-full">
                 No object selected.
             </div>
         );

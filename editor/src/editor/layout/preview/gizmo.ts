@@ -1,11 +1,11 @@
 import {
     GizmoCoordinatesMode, Node, Observable, PositionGizmo, Quaternion, RotationGizmo, ScaleGizmo, Scene,
-    UtilityLayerRenderer, Vector3, CameraGizmo,
+    UtilityLayerRenderer, Vector3, CameraGizmo, AbstractMesh,
 } from "babylonjs";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
-import { isCamera, isLight } from "../../../tools/guards/nodes";
 import { isQuaternion, isVector3 } from "../../../tools/guards/math";
+import { isAbstractMesh, isCamera, isLight } from "../../../tools/guards/nodes";
 import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../tools/light/shadows";
 
 export const onGizmoNodeChangedObservable = new Observable<Node>();
@@ -131,6 +131,16 @@ export class EditorPreviewGizmo {
         }
     }
 
+    private _updateShadowMapsForMesh(mesh: AbstractMesh): void {
+        const scene = this._gizmosLayer.originalScene;
+        const lights = scene.lights.filter((light) => light.getShadowGenerator()?.getShadowMap()?.renderList?.includes(mesh));
+
+        lights.forEach((light) => {
+            updateLightShadowMapRefreshRate(light);
+            updatePointLightShadowMapRenderListPredicate(light);
+        });
+    }
+
     private _attachVector3UndoRedoEvents(gizmo: PositionGizmo | ScaleGizmo | RotationGizmo, property: "position" | "scaling"): void {
         let temporaryNode: Node | null = null;
         let temporaryOldValue: Vector3 | null = null;
@@ -150,6 +160,8 @@ export class EditorPreviewGizmo {
             if (isLight(temporaryNode)) {
                 updateLightShadowMapRefreshRate(temporaryNode);
                 updatePointLightShadowMapRenderListPredicate(temporaryNode);
+            } else if (isAbstractMesh(temporaryNode)) {
+                this._updateShadowMapsForMesh(temporaryNode);
             }
         });
 
@@ -220,6 +232,8 @@ export class EditorPreviewGizmo {
             if (isLight(temporaryNode)) {
                 updateLightShadowMapRefreshRate(temporaryNode);
                 updatePointLightShadowMapRenderListPredicate(temporaryNode);
+            } else if (isAbstractMesh(temporaryNode)) {
+                this._updateShadowMapsForMesh(temporaryNode);
             }
         });
 
