@@ -64,7 +64,7 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                             {this.props.cinematicKey.type === "group" &&
                                 <div
                                     style={{
-                                        width: `${this._getAnimationGroupFramesCount() * this.props.scale}px`,
+                                        width: `${this._getAnimationGroupFramesCount() * this.props.scale / this.props.cinematicKey.speed}px`,
                                     }}
                                     onMouseDown={(ev) => this._handlePointerDown(ev)}
                                     onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}

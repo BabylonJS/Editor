@@ -21,6 +21,7 @@ export interface ICinematicAnimationGroup {
     type: "group";
     frame: number;
 
+    speed: number;
     startFrame: number;
     endFrame: number;
 }

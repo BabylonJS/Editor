@@ -214,6 +214,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
         const key = {
             frame,
             type: "group",
+            speed: 1,
             startFrame: this.props.track.animationGroup.from,
             endFrame: this.props.track.animationGroup.to,
         } as ICinematicAnimationGroup;

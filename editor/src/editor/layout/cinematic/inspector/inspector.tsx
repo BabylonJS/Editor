@@ -221,6 +221,11 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                     this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
                 }} />
 
+                <EditorInspectorNumberField object={key} property="speed" label="Speed" step={0.01} min={0.1} onChange={() => {
+                    this.props.cinematicEditor.timelines.forceUpdate();
+                    this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+                }} />
+
                 <EditorInspectorNumberField object={key} property="startFrame" label="Start Frame" step={1} min={animationGroup.from} max={key.endFrame} onChange={() => {
                     this.forceUpdate();
                     this.props.cinematicEditor.timelines.forceUpdate();

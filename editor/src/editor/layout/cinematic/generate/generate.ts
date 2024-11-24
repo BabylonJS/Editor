@@ -41,7 +41,8 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
                     const keys = animation.getKeys();
                     const sourceKeys = targetedAnimation.animation.getKeys();
 
-                    const normalizedFps = (cinematic.framesPerSecond / targetedAnimation.animation.framePerSecond);
+                    const speed = configuration.speed;
+                    const normalizedFps = (cinematic.framesPerSecond / targetedAnimation.animation.framePerSecond) / speed;
 
                     sourceKeys.forEach((k) => {
                         if (k.frame >= configuration.startFrame && k.frame <= configuration.endFrame) {
