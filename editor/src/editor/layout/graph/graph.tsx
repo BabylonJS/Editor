@@ -1,6 +1,6 @@
 import { platform } from "os";
 
-import { Mesh, Tools } from "babylonjs";
+import { Mesh, Tools, SubMesh } from "babylonjs";
 
 import { Component, PropsWithChildren, ReactNode } from "react";
 
@@ -11,6 +11,9 @@ import {
     ContextMenuSubContent, ContextMenuShortcut, ContextMenuCheckboxItem
 } from "../../../ui/shadcn/ui/context-menu";
 
+import { SceneAssetBrowserDialogMode, showAssetBrowserDialog } from "../../../ui/scene-asset-browser";
+
+import { registerUndoRedo } from "../../../tools/undoredo";
 import { isMesh, isNode } from "../../../tools/guards/nodes";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
@@ -90,7 +93,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                         this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
                                             if (isNode(node.nodeData)) {
                                                 node.nodeData.metadata ??= {};
-                                                node.nodeData.metadata.doNotSerialize = !node.nodeData.metadata.doNotSerialize ?? true;
+                                                node.nodeData.metadata.doNotSerialize = node.nodeData.metadata.doNotSerialize ? false : true;
                                             }
                                         });
                                         this.props.editor.layout.graph.refresh();
@@ -132,42 +135,117 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                 {isMesh(this.props.object) &&
                     <>
                         <ContextMenuSeparator />
-                        <ContextMenuItem
-                            onClick={() => {
-                                const instance = (this.props.object as Mesh).createInstance(`${this.props.object.name} (Mesh Instance)`);
-                                instance.id = Tools.RandomId();
-                                instance.uniqueId = UniqueNumber.Get();
-                                instance.parent = this.props.object.parent;
-                                instance.position.copyFrom(this.props.object.position);
-                                instance.rotation.copyFrom(this.props.object.rotation);
-                                instance.scaling.copyFrom(this.props.object.scaling);
-                                instance.rotationQuaternion = this.props.object.rotationQuaternion?.clone() ?? null;
-                                instance.isVisible = this.props.object.isVisible;
-                                instance.setEnabled(this.props.object.isEnabled());
-
-                                const lights = this.props.editor.layout.preview.scene.lights;
-                                const shadowMaps = lights.map((light) => light.getShadowGenerator()?.getShadowMap()).filter((s) => s);
-
-                                shadowMaps.forEach((shadowMap) => {
-                                    if (shadowMap?.renderList?.includes(this.props.object)) {
-                                        shadowMap.renderList.push(instance);
-                                    }
-                                });
-
-                                this.props.editor.layout.graph.refresh();
-
-                                waitNextAnimationFrame().then(() => {
-                                    this.props.editor.layout.graph.setSelectedNode(instance);
-                                    this.props.editor.layout.inspector.setEditedObject(instance);
-                                    this.props.editor.layout.preview.gizmo.setAttachedNode(instance);
-                                });
-                            }}
-                        >
+                        <ContextMenuItem onClick={() => this._createMeshInstance(this.props.object)}  >
                             Create Instance
+                        </ContextMenuItem>
+
+                        <ContextMenuItem onClick={() => this._updateMeshGeometry(this.props.object)}>
+                            Update Geometry...
                         </ContextMenuItem>
                     </>
                 }
             </>
         );
+    }
+
+    private _createMeshInstance(mesh: Mesh): void {
+        const instance = mesh.createInstance(`${mesh.name} (Mesh Instance)`);
+        instance.id = Tools.RandomId();
+        instance.uniqueId = UniqueNumber.Get();
+        instance.parent = mesh.parent;
+        instance.position.copyFrom(mesh.position);
+        instance.rotation.copyFrom(mesh.rotation);
+        instance.scaling.copyFrom(mesh.scaling);
+        instance.rotationQuaternion = mesh.rotationQuaternion?.clone() ?? null;
+        instance.isVisible = mesh.isVisible;
+        instance.setEnabled(mesh.isEnabled());
+
+        const lights = this.props.editor.layout.preview.scene.lights;
+        const shadowMaps = lights.map((light) => light.getShadowGenerator()?.getShadowMap()).filter((s) => s);
+
+        shadowMaps.forEach((shadowMap) => {
+            if (shadowMap?.renderList?.includes(mesh)) {
+                shadowMap.renderList.push(instance);
+            }
+        });
+
+        this.props.editor.layout.graph.refresh();
+
+        waitNextAnimationFrame().then(() => {
+            this.props.editor.layout.graph.setSelectedNode(instance);
+            this.props.editor.layout.inspector.setEditedObject(instance);
+            this.props.editor.layout.preview.gizmo.setAttachedNode(instance);
+        });
+    }
+
+    private async _updateMeshGeometry(mesh: Mesh): Promise<void> {
+        const result = await showAssetBrowserDialog(
+            this.props.editor,
+            {
+                multiSelect: false,
+                filter: SceneAssetBrowserDialogMode.Meshes,
+            },
+        );
+
+        const selectedMesh = result.selectedMeshes[0];
+        if (!selectedMesh?.geometry) {
+            return;
+        }
+
+        const scene = this.props.editor.layout.preview.scene;
+
+        scene.addGeometry(selectedMesh.geometry);
+        if (selectedMesh.skeleton) {
+            scene.addSkeleton(selectedMesh.skeleton);
+        }
+
+        const oldkeleton = mesh.skeleton;
+        const oldGeometry = mesh.geometry;
+
+        const oldSubMeshes = mesh.subMeshes.slice(0);
+        const newSubMeshes = selectedMesh.subMeshes.slice(0);
+
+        const newSkeleton = selectedMesh.skeleton;
+        const newGeometry = selectedMesh.geometry;
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                newGeometry.releaseForMesh(mesh, false);
+                oldGeometry?.applyToMesh(mesh);
+
+                mesh.skeleton = oldkeleton;
+                mesh.subMeshes = oldSubMeshes.map((subMesh, index) => new SubMesh(
+                    index,
+                    subMesh.verticesStart,
+                    subMesh.verticesCount,
+                    subMesh.indexStart,
+                    subMesh.indexCount,
+                    mesh,
+                    mesh,
+                    true,
+                    false,
+                ));
+            },
+            redo: () => {
+                oldGeometry?.releaseForMesh(mesh, false);
+                newGeometry.applyToMesh(mesh);
+
+                mesh.skeleton = newSkeleton;
+                mesh.subMeshes = newSubMeshes.map((subMesh, index) => new SubMesh(
+                    index,
+                    subMesh.verticesStart,
+                    subMesh.verticesCount,
+                    subMesh.indexStart,
+                    subMesh.indexCount,
+                    mesh,
+                    mesh,
+                    true,
+                    false,
+                ));
+            },
+        });
+
+        result.container.dispose();
     }
 }

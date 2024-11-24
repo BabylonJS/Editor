@@ -2,7 +2,12 @@ import { DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator } from "babylon
 
 import { Component, ReactNode } from "react";
 
+import { Grid } from "react-loader-spinner";
+import { IoPlay, IoStop } from "react-icons/io5";
+
 import { Divider } from "@blueprintjs/core";
+
+import { Button } from "../../../ui/shadcn/ui/button";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
 
@@ -81,6 +86,8 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
                 {this._getSSAO2RenderingPipelineComponent()}
                 {this._getMotionBlurPostProcessComponent()}
                 {this._getSSRPipelineComponent()}
+
+                {this._getAnimationGroupsComponent()}
             </>
         );
     }
@@ -399,6 +406,61 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
                         <EditorInspectorNumberField object={ssrRenderingPipeline} property="backfaceDepthTextureDownsample" label="Backface Depth Texture Sample" step={1} min={1} max={5} />
                     </>
                 }
+            </EditorInspectorSectionField>
+        );
+    }
+
+    private _getAnimationGroupsComponent(): ReactNode {
+        return (
+            <EditorInspectorSectionField title="Animation Groups">
+                {!this.props.object.animationGroups.length &&
+                    <div className="text-center text-xl">
+                        No animation groups
+                    </div>
+                }
+                <div className="flex flex-col">
+                    {this.props.object.animationGroups.map((animationGroup) => (
+                        <div key={animationGroup.name} className="flex flex-col">
+                            <div
+                                className={`
+                                    flex gap-2 justify-between items-center p-2 rounded-lg
+                                    hover:bg-accent
+                                    transition-all duration-300 ease-in-out
+                                `}
+                            >
+                                <div className="flex gap-2 items-center">
+                                    <Button
+                                        variant="ghost"
+                                        className="w-8 h-8 p-1"
+                                        onClick={() => {
+                                            animationGroup.isPlaying ? animationGroup.stop() : animationGroup.start();
+                                            this.forceUpdate();
+                                        }}
+                                    >
+                                        {animationGroup.isPlaying
+                                            ? <IoStop className="w-6 h-6" strokeWidth={1} />
+                                            : <IoPlay className="w-6 h-6" strokeWidth={1} />
+                                        }
+                                    </Button>
+
+                                    <div className="flex flex-col">
+                                        <div>
+                                            {animationGroup.name}
+                                        </div>
+
+                                        <div className="text-xs">
+                                            Duration: {Math.round(animationGroup.to - animationGroup.from)} frames
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {animationGroup.isPlaying &&
+                                    <Grid width={16} height={16} color="gray" />
+                                }
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </EditorInspectorSectionField>
         );
     }
