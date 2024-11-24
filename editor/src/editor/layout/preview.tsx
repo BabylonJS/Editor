@@ -675,12 +675,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                         ),
                     });
 
-                    absolutePath = await tryConvertSceneFile(absolutePath, (value) => progressRef?.setState({ value }));
+                    const newAbsolutePath = await tryConvertSceneFile(absolutePath, (value) => progressRef?.setState({ value }));
 
-                    if (!absolutePath) {
-                        toast.error("Failed to convert the file.");
-                        this.setState({ informationMessage: null });
-                        return null;
+                    if (newAbsolutePath) {
+                        absolutePath = newAbsolutePath;
+                    } else {
+                        useCloudConverter = false;
+
+                        toast.error("Failed to convert the file. Fallback on local Assimp loader.");
+                        this.setState({
+                            informationMessage: null,
+                        });
                     }
                     break;
             }
