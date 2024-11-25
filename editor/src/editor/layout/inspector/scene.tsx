@@ -1,11 +1,12 @@
-import { DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator } from "babylonjs";
-
 import { Component, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
+import { HiOutlineTrash } from "react-icons/hi2";
 import { IoPlay, IoStop } from "react-icons/io5";
 
 import { Divider } from "@blueprintjs/core";
+
+import { DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator, AnimationGroup } from "babylonjs";
 
 import { Button } from "../../../ui/shadcn/ui/button";
 
@@ -454,14 +455,30 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
                                     </div>
                                 </div>
 
-                                {animationGroup.isPlaying &&
-                                    <Grid width={16} height={16} color="gray" />
-                                }
+                                <div className="flex gap-2 items-center">
+                                    {animationGroup.isPlaying &&
+                                        <Grid width={16} height={16} color="gray" />
+                                    }
+
+                                    <Button variant="ghost" onClick={() => this._handleRemoveAnimationGroup(animationGroup)}>
+                                        <HiOutlineTrash className="w-5 h-5" />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     ))}
                 </div>
             </EditorInspectorSectionField>
         );
+    }
+
+    private _handleRemoveAnimationGroup(animationGroup: AnimationGroup): void {
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => this.props.editor.layout.preview.scene.addAnimationGroup(animationGroup),
+            redo: () => this.props.editor.layout.preview.scene.removeAnimationGroup(animationGroup),
+        });
+
+        this.forceUpdate();
     }
 }
