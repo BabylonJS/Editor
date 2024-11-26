@@ -4,12 +4,13 @@ import { Animation, AnimationGroup } from "babylonjs";
 
 import { Editor } from "../../../main";
 
+import { registerUndoRedo } from "../../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { isDomElementDescendantOf } from "../../../../tools/dom";
 import { updateLightShadowMapRefreshRate } from "../../../../tools/light/shadows";
 
-import { ICinematic } from "../schema/typings";
 import { isCinematicKeyCut } from "../schema/guards";
+import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
 
 import { generateCinematicAnimationGroup } from "../generate/generate";
 
@@ -64,7 +65,7 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
                 ref={(r) => this._divRef = r}
                 onWheel={(ev) => this._onWheelEvent(ev)}
                 onMouseDown={(ev) => this._handlePointerDown(ev)}
-                className="relative flex flex-col w-full h-fit overflow-x-auto overflow-y-hidden"
+                className="relative flex flex-col w-full min-h-full h-fit overflow-x-auto overflow-y-hidden"
                 onClick={() => !this.state.moving && this.props.cinematicEditor.inspector.setEditedKey(null, null)}
             >
                 <div className="w-full h-10">
@@ -189,6 +190,57 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         waitNextAnimationFrame().then(() => {
             animationGroup.dispose();
         });
+    }
+
+    /**
+     * Adds a new key frame at the current time in the timeline for each track.
+     */
+    public addKeysAtCurrentTrackerPosition(): void {
+        // TODO
+    }
+
+    /**
+     * Removes all the keys at the current tracker position for each track.
+     */
+    public removeKeysAtCurrentTrackerPosition(): void {
+        const configuration: Map<ICinematicTrack, ICinematicKey | ICinematicKeyCut> = new Map();
+
+        this.props.cinematic.tracks.forEach((track) => {
+            const key = track.keyFrameAnimations?.find((key) => {
+                if (isCinematicKeyCut(key)) {
+                    return key.key1.frame === this.state.currentTime;
+                }
+
+                return key.frame === this.state.currentTime;
+            });
+
+            if (key) {
+                configuration.set(track, key);
+            }
+        });
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                configuration.forEach((key, track) => {
+                    track.keyFrameAnimations!.push(key);
+                });
+
+                this.tracks.forEach((track) => {
+                    track?.sortKeyFrameAnimationsKeys();
+                });
+            },
+            redo: () => {
+                configuration.forEach((key, track) => {
+                    const index = track.keyFrameAnimations!.indexOf(key);
+                    if (index !== -1) {
+                        track.keyFrameAnimations!.splice(index, 1);
+                    }
+                });
+            },
+        });
+
+        this.props.cinematicEditor.forceUpdate();
     }
 
     private _handlePointerDown(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {

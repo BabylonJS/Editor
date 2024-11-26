@@ -128,6 +128,18 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
     }
 
     /**
+     * Sorts all the keys in the track based on their frame value.
+     */
+    public sortKeyFrameAnimationsKeys(): void {
+        this.props.track.keyFrameAnimations?.sort((a, b) => {
+            const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
+            const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
+
+            return frameA - frameB;
+        });
+    }
+
+    /**
      * Adds a new animation key for this track located at the current time selected in
      * the animation editor using the time tracker.
      */
@@ -144,6 +156,18 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
 
         const frame = Math.round(positionX / this.props.scale);
         const value = getInspectorPropertyValue(node, this.props.track.propertyPath);
+
+        const existingKey = this.props.track.keyFrameAnimations!.find((k) => {
+            if (isCinematicKeyCut(k)) {
+                return k.key1.frame === frame;
+            } else {
+                return k.frame === frame;
+            }
+        });
+
+        if (existingKey) {
+            return;
+        }
 
         const key = type === "key"
             ? {
@@ -163,18 +187,6 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                 },
             } as ICinematicKeyCut;
 
-        const existingKey = this.props.track.keyFrameAnimations!.find((k) => {
-            if (isCinematicKeyCut(k)) {
-                return k.key1.frame === frame;
-            } else {
-                return k.frame === frame;
-            }
-        });
-
-        if (existingKey) {
-            return;
-        }
-
         registerUndoRedo({
             executeRedo: true,
             undo: () => {
@@ -185,12 +197,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
             },
             redo: () => this.props.track.keyFrameAnimations!.push(key),
             action: () => {
-                this.props.track.keyFrameAnimations?.sort((a, b) => {
-                    const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
-                    const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
-
-                    return frameA - frameB;
-                });
+                this.sortKeyFrameAnimationsKeys();
             },
         });
 

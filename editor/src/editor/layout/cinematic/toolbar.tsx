@@ -40,6 +40,23 @@ export class CinematicEditorToolbar extends Component<IEditorAnimationToolbarPro
                         </MenubarContent>
                     </MenubarMenu>
 
+                    {/* Edit */}
+                    <MenubarMenu>
+                        <MenubarTrigger>
+                            Edit
+                        </MenubarTrigger>
+
+                        <MenubarContent className="border-black/50">
+                            <MenubarItem disabled onClick={() => this.props.cinematicEditor.timelines.addKeysAtCurrentTrackerPosition()}>
+                                Add Key Frames At Current Time
+                            </MenubarItem>
+                            <MenubarSeparator />
+                            <MenubarItem className="text-red-500" onClick={() => this.props.cinematicEditor.timelines.removeKeysAtCurrentTrackerPosition()}>
+                                Remove Key Frames At Current Tracker Position
+                            </MenubarItem>
+                        </MenubarContent>
+                    </MenubarMenu>
+
                     {/* Render */}
                     <MenubarMenu>
                         <MenubarTrigger>

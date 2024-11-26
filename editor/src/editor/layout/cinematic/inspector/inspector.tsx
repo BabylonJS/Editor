@@ -1,5 +1,7 @@
 import { Component, ReactNode } from "react";
 
+import { Icon, NonIdealState } from "@blueprintjs/core";
+
 import { Animation, AnimationGroup, Color3, Color4, IAnimationKey, Quaternion, Vector2, Vector3 } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -46,13 +48,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
 
     public render(): ReactNode {
         return (
-            <div
-                className={`
-                absolute top-0 right-0 w-96 h-full p-2 bg-background border-l-primary-foreground border-l-2 rounded-l-xl
-                ${this.state.key ? "translate-x-0" : "opacity-0 translate-x-full pointer-events-none"}
-                transition-all duration-150 ease-in-out
-            `}
-            >
+            <div className="w-96 h-full p-2 bg-background border-l-primary-foreground border-l-2 rounded-l-xl">
                 {this._getInspectorContent()}
             </div>
         );
@@ -72,28 +68,39 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
     }
 
     private _getInspectorContent(): ReactNode {
-        if (!this.state.key) {
-            return null;
-        }
-
         return (
-            <div className="flex flex-col gap-2 h-full">
-                <div className="mx-auto font-semibold text-xl py-2">
-                    {this._getTitle(this.state.key)}
-                </div>
+            <div className="flex flex-col gap-2 w-96 h-full">
+                {this.state.key &&
+                    <>
+                        <div className="mx-auto font-semibold text-xl py-2">
+                            {this._getTitle(this.state.key)}
+                        </div>
 
-                {isCinematicKey(this.state.key) &&
-                    <EditorInspectorSectionField title="Properties">
-                        {this._getKeyInspector(this.state.key)}
-                    </EditorInspectorSectionField>
+                        {isCinematicKey(this.state.key) &&
+                            <EditorInspectorSectionField title="Properties">
+                                {this._getKeyInspector(this.state.key)}
+                            </EditorInspectorSectionField>
+                        }
+
+                        {isCinematicKeyCut(this.state.key) && this._getKeyCutInspector(this.state.key)}
+
+                        {isCinematicGroup(this.state.key) &&
+                            <EditorInspectorSectionField title="Properties">
+                                {this._getKeyGroupInspector(this.state.key)}
+                            </EditorInspectorSectionField>
+                        }
+                    </>
                 }
 
-                {isCinematicKeyCut(this.state.key) && this._getKeyCutInspector(this.state.key)}
-
-                {isCinematicGroup(this.state.key) &&
-                    <EditorInspectorSectionField title="Properties">
-                        {this._getKeyGroupInspector(this.state.key)}
-                    </EditorInspectorSectionField>
+                {!this.state.key &&
+                    <NonIdealState
+                        icon={<Icon icon="search" size={96} />}
+                        title={
+                            <div className="text-white">
+                                No key to edit
+                            </div>
+                        }
+                    />
                 }
             </div>
         );

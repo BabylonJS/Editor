@@ -80,7 +80,9 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
                 <div className="relative flex w-full h-10 overflow-hidden">
                     <div className="flex justify-center items-center font-semibold w-96 h-full bg-secondary">
-                        Tracks
+                        <div className="w-96">
+                            Tracks
+                        </div>
                     </div>
 
                     <div className="w-1 h-full bg-primary-foreground" />

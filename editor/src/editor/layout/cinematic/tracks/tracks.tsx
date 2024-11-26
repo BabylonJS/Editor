@@ -28,7 +28,7 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
     public render(): ReactNode {
         return (
             <div className="flex flex-col w-96 h-full">
-                <div className="flex justify-between items-center w-full h-10 p-2">
+                <div className="flex justify-between items-center w-96 h-10 p-2">
                     <div className="font-thin text-muted-foreground">
                         ({this.props.cinematic.tracks.length} tracks)
                     </div>
