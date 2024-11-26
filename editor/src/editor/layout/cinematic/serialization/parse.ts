@@ -16,6 +16,7 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
     return {
         name: data.name,
         framesPerSecond: data.framesPerSecond,
+        outputFramesPerSecond: data.outputFramesPerSecond,
         tracks: data.tracks.map((track) => {
             let node: any = null;
             let animationType: number | null = null;

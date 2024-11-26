@@ -1,12 +1,9 @@
 import { writeJSON } from "fs-extra";
 
 import { toast } from "sonner";
-import { FaGear } from "react-icons/fa6";
 import { Component, ReactNode } from "react";
 
 import { Observer } from "babylonjs";
-
-import { Button } from "../../../ui/shadcn/ui/button";
 
 import { isDomElementFocusable } from "../../../tools/dom";
 import { saveSingleFileDialog } from "../../../tools/dialog";
@@ -22,6 +19,7 @@ import { serializeCinematic } from "./serialization/serialize";
 import { CinematicRenderer, RenderType } from "./render/render";
 import { CinematicEditorInspector } from "./inspector/inspector";
 import { CinematicEditorTimelinePanel } from "./timeline/timeline";
+import { CinematicEditorConfiguration } from "./timeline/configuration";
 
 export interface ICinematicEditorProps {
     editor: Editor;
@@ -90,9 +88,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                     <div className="flex justify-center items-center gap-2 font-semibold w-full h-full bg-secondary">
                         Timeline
 
-                        <Button variant="ghost" className="rounded-full px-2">
-                            <FaGear className="w-4 h-4" />
-                        </Button>
+                        <CinematicEditorConfiguration
+                            cinematicEditor={this}
+                            cinematic={this.props.cinematic}
+                        />
                     </div>
                 </div>
 

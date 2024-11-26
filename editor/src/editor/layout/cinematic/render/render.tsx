@@ -175,7 +175,7 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
                 this.props.editor.layout.console.error(`Failed to write cinematic video at: ${destination}`);
             }
 
-            convertCinematicVideoToMp4(this.props.editor, destination, framesCount)
+            convertCinematicVideoToMp4(this.props.editor, destination, framesCount, cinematic.outputFramesPerSecond)
                 .catch(() => {
                     this.props.editor.layout.console.error(`Failed to convert cinematic video at: ${destination.replace(".webm", ".mp4")}`);
                 });

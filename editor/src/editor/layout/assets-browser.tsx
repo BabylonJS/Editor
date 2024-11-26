@@ -750,9 +750,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
         }
 
         const cinematic = {
-            framesPerSecond: 60,
             name: "New Cinematic",
             tracks: [],
+            framesPerSecond: 60,
+            outputFramesPerSecond: 60,
         } as ICinematic;
 
         let index: number | undefined = undefined;

@@ -4,6 +4,8 @@ export interface ICinematic {
     name: string;
     framesPerSecond: number;
     tracks: ICinematicTrack[];
+
+    outputFramesPerSecond: number;
 }
 
 export interface ICinematicTrack {

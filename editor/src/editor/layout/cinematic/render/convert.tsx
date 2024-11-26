@@ -20,6 +20,7 @@ export async function convertCinematicVideoToMp4(
     editor: Editor,
     absolutePath: string,
     framesCount: number,
+    framesPerSecond: number,
 ) {
     if (!editor.path) {
         return;
@@ -37,7 +38,8 @@ export async function convertCinematicVideoToMp4(
         .setFfmpegPath(join(editor.path, ffmpegPath));
 
     command
-        .output(absolutePath.replace(".webm", ".mp4"));
+        .output(absolutePath.replace(".webm", ".mp4"))
+        .fpsOutput(framesPerSecond);
 
     let converting = true;
     const intervalId = window.setInterval(() => {

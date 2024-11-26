@@ -12,6 +12,7 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
     return {
         name: cinematic.name,
         framesPerSecond: cinematic.framesPerSecond,
+        outputFramesPerSecond: cinematic.outputFramesPerSecond,
         tracks: cinematic.tracks.map((track) => {
             let animationType: number | null = null;
 
