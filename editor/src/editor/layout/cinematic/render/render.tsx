@@ -11,6 +11,7 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 import { Progress } from "../../../../ui/shadcn/ui/progress";
 
 import { saveSingleFileDialog } from "../../../../tools/dialog";
+import { updateLightShadowMapRefreshRate } from "../../../../tools/light/shadows";
 
 import { Editor } from "../../../main";
 
@@ -131,6 +132,11 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
         // Render each frame into video
         for (let i = 0; i < framesCount; ++i) {
             preview.setRenderScene(true);
+
+            preview.scene.lights.forEach((light) => {
+                updateLightShadowMapRefreshRate(light);
+            });
+
             preview.engine.beginFrame();
             preview.engine.activeRenderLoops.forEach((fn) => fn());
             preview.engine.endFrame();

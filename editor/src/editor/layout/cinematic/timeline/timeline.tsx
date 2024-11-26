@@ -6,6 +6,7 @@ import { Editor } from "../../../main";
 
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { isDomElementDescendantOf } from "../../../../tools/dom";
+import { updateLightShadowMapRefreshRate } from "../../../../tools/light/shadows";
 
 import { ICinematic } from "../schema/typings";
 import { isCinematicKeyCut } from "../schema/guards";
@@ -63,15 +64,17 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
                 ref={(r) => this._divRef = r}
                 onWheel={(ev) => this._onWheelEvent(ev)}
                 onMouseDown={(ev) => this._handlePointerDown(ev)}
-                className="relative flex flex-col w-full h-full overflow-x-auto overflow-y-hidden"
+                className="relative flex flex-col w-full h-fit overflow-x-auto overflow-y-hidden"
                 onClick={() => !this.state.moving && this.props.cinematicEditor.inspector.setEditedKey(null, null)}
             >
-                <CinematicEditorTracker
-                    width={width}
-                    scale={this.state.scale}
-                    currentTime={this.state.currentTime}
-                    onTimeChange={(currentTime) => this.setCurrentTime(currentTime)}
-                />
+                <div className="w-full h-10">
+                    <CinematicEditorTracker
+                        width={width}
+                        scale={this.state.scale}
+                        currentTime={this.state.currentTime}
+                        onTimeChange={(currentTime) => this.setCurrentTime(currentTime)}
+                    />
+                </div>
 
                 <div
                     style={{
@@ -178,6 +181,10 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         animationGroup.start(false);
         animationGroup.goToFrame(frame);
         animationGroup.pause();
+
+        this.props.editor.layout.preview.scene.lights.forEach((light) => {
+            updateLightShadowMapRefreshRate(light);
+        });
 
         waitNextAnimationFrame().then(() => {
             animationGroup.dispose();

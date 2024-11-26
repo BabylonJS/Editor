@@ -116,7 +116,6 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                         cinematic={this.props.cinematic}
                     />
 
-
                     <CinematicEditorInspector
                         cinematicEditor={this}
                         editor={this.props.editor}
