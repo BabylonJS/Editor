@@ -4,8 +4,6 @@ import { Component, ReactNode } from "react";
 import { FaCopy, FaLink } from "react-icons/fa6";
 import { IoAddSharp, IoCloseOutline } from "react-icons/io5";
 
-import { XMarkIcon } from "@heroicons/react/20/solid";
-
 import { SkyMaterial } from "babylonjs-materials";
 import {
     AbstractMesh, InstancedMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial,
@@ -16,7 +14,6 @@ import { CollisionMesh } from "../../../nodes/collision";
 import { showPrompt } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Separator } from "../../../../ui/shadcn/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
@@ -212,37 +209,6 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
         return (
             <div className="flex flex-col gap-2 relative">
                 {inspector}
-
-                <div className="absolute top-[14px] left-0 px-5 w-full opacity-0 hover:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none">
-                    <div className="flex justify-end w-full pointer-events-none">
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <div
-                                        onClick={() => {
-                                            const mesh = this.props.object;
-                                            const material = this.props.object.material;
-
-                                            registerUndoRedo({
-                                                executeRedo: true,
-                                                undo: () => mesh.material = material,
-                                                redo: () => mesh.material = null,
-                                            });
-
-                                            this.forceUpdate();
-                                        }}
-                                        className="cursor-pointer rounded-lg pointer-events-auto hover:bg-destructive transition-colors duration-300 ease-in-out"
-                                    >
-                                        <XMarkIcon className="w-6 h-6" />
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
-                                    Remove this material from the mesh.
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                </div>
             </div>
         );
     }

@@ -78,6 +78,11 @@ export interface IEditorPreviewState {
      * Defines wether or not the preview is focused.
      */
     isFocused: boolean;
+
+    /**
+     * Defines the reference to the object that was right-clicked.
+     */
+    rightClickedObject?: any;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -142,7 +147,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                 <div className="flex flex-col w-full h-full">
                     {this._getToolbar()}
 
-                    <EditorGraphContextMenu editor={this.props.editor} object={this._meshUnderPointer}>
+                    <EditorGraphContextMenu
+                        editor={this.props.editor}
+                        object={this.state.rightClickedObject}
+                        onOpenChange={(o) => !o && this._resetPointerContextInfo()}
+                    >
                         <canvas
                             hidden={this.play?.state.playing}
                             ref={(r) => this._onGotCanvasRef(r!)}
@@ -153,7 +162,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             }}
                             onBlur={() => this.setState({ isFocused: false })}
                             onFocus={() => this.setState({ isFocused: true })}
-                            onPointerUp={(ev) => this._handleMouseClick(ev)}
+                            onPointerUp={(ev) => this._handleMouseUp(ev)}
                             onPointerDown={(ev) => this._handleMouseDown(ev)}
                             onMouseLeave={() => this._handleMouseLeave()}
                             onMouseMove={() => this._handleMouseMove(this.scene.pointerX, this.scene.pointerY)}
@@ -304,6 +313,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             });
         }
 
+        this.engine.disableContextMenu = false;
+
         this.scene = new Scene(this.engine);
         this.scene.autoClear = true;
 
@@ -390,11 +401,22 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     private _handleMouseDown(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
         this._mouseDownPosition.set(event.clientX, event.clientY);
 
+        if (event.button === 2) {
+            this.setState({
+                rightClickedObject: this._meshUnderPointer,
+            });
+        }
+
         this._restoreCurrentMeshUnderPointer();
         this._meshUnderPointer = null;
+
+        if (event.button === 2) {
+            this.scene.activeCamera?.inputs.detachElement();
+            this._handleMouseUp(event);
+        }
     }
 
-    private _handleMouseClick(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+    private _handleMouseUp(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
         const distance = Vector2.Distance(
             this._mouseDownPosition,
             new Vector2(event.clientX, event.clientY),
@@ -419,6 +441,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             this.props.editor.layout.graph.setSelectedNode(mesh);
             this.props.editor.layout.inspector.setEditedObject(mesh);
             this.props.editor.layout.animations.setEditedObject(mesh);
+        }
+    }
+
+    private _resetPointerContextInfo(): void {
+        if (this.state.rightClickedObject) {
+            this.setState({ rightClickedObject: null });
+            this.scene.activeCamera?.inputs.attachElement();
         }
     }
 

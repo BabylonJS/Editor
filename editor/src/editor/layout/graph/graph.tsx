@@ -28,12 +28,14 @@ import { removeNodes } from "./remove";
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
     editor: Editor;
     object: any | null;
+
+    onOpenChange?(open: boolean): void;
 }
 
 export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuProps> {
     public render(): ReactNode {
         return (
-            <ContextMenu>
+            <ContextMenu onOpenChange={(o) => this.props.onOpenChange?.(o)}>
                 <ContextMenuTrigger className="w-full h-full">
                     {this.props.children}
                 </ContextMenuTrigger>

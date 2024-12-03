@@ -34,7 +34,7 @@ export class EditorStandardMaterialInspector extends Component<IEditorStandardMa
                     />
                 </EditorInspectorSectionField>
 
-                <EditorInspectorSectionField title="Material Textures" label={this.props.material.getClassName()}>
+                <EditorInspectorSectionField title="Material Textures">
                     <EditorInspectorTextureField object={this.props.material} title="Diffuse Texture" property="diffuseTexture" onChange={() => this.forceUpdate()}>
                         <EditorInspectorSwitchField label="Use Alpha" object={this.props.material} property="useAlphaFromDiffuseTexture" />
                     </EditorInspectorTextureField>
