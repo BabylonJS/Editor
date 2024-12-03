@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
 
-import { StandardMaterial } from "babylonjs";
+import { StandardMaterial, AbstractMesh } from "babylonjs";
 
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
@@ -9,7 +9,10 @@ import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSectionField } from "../fields/section";
 
+import { EditorMaterialInspectorUtilsComponent } from "./utils";
+
 export interface IEditorStandardMaterialInspectorProps {
+    mesh?: AbstractMesh;
     material: StandardMaterial;
 }
 
@@ -24,6 +27,11 @@ export class EditorStandardMaterialInspector extends Component<IEditorStandardMa
                 <EditorInspectorSectionField title="Material" label={this.props.material.getClassName()}>
                     <EditorInspectorStringField label="Name" object={this.props.material} property="name" />
                     <EditorInspectorSwitchField label="Back Face Culling" object={this.props.material} property="backFaceCulling" />
+
+                    <EditorMaterialInspectorUtilsComponent
+                        mesh={this.props.mesh}
+                        material={this.props.material}
+                    />
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Material Textures" label={this.props.material.getClassName()}>

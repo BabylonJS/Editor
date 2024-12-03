@@ -226,6 +226,10 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                     true,
                     false,
                 ));
+
+                result.selectedAnimationGroups.forEach((animationGroup) => {
+                    scene.removeAnimationGroup(animationGroup);
+                });
             },
             redo: () => {
                 oldGeometry?.releaseForMesh(mesh, false);
@@ -243,6 +247,10 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                     true,
                     false,
                 ));
+
+                result.selectedAnimationGroups.forEach((animationGroup) => {
+                    scene.addAnimationGroup(animationGroup);
+                });
             },
         });
 

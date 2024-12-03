@@ -29,10 +29,11 @@ ipcMain.on("editor:open-single-folder-dialog", async (ev, title) => {
     ev.returnValue = result.filePaths[0]?.replace(/\\/g, "/") ?? "";
 });
 
-ipcMain.on("editor:save-single-file-dialog", async (ev, title, filters) => {
+ipcMain.on("editor:save-single-file-dialog", async (ev, title, filters, defaultPath) => {
     const result = await dialog.showSaveDialog({
         title,
         filters,
+        defaultPath,
         properties: ["createDirectory", "showOverwriteConfirmation"]
     });
 

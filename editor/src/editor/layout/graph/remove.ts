@@ -5,6 +5,7 @@ import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 import { isSceneLinkNode } from "../../../tools/guards/scene";
+import { updateAllLights } from "../../../tools/light/shadows";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
@@ -104,6 +105,8 @@ export function removeNodes(editor: Editor): void {
             editor.layout.graph.refresh();
             editor.layout.preview.gizmo.setAttachedNode(null);
             editor.layout.inspector.setEditedObject(editor.layout.preview.scene);
+
+            updateAllLights(scene);
         },
     });
 }

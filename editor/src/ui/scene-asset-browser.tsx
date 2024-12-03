@@ -1,18 +1,18 @@
 import { Component, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { AssetContainer, SceneLoader, Mesh, Skeleton } from "babylonjs";
+import { Node, AssetContainer, SceneLoader, Mesh, Skeleton, AnimationGroup } from "babylonjs";
 
 import { Editor } from "../editor/main";
 
 import { isMesh } from "../tools/guards/nodes";
 import { openSingleFileDialog } from "../tools/dialog";
-import { waitNextAnimationFrame } from "../tools/tools";
+import { unique, waitNextAnimationFrame } from "../tools/tools";
 
 import { Checkbox } from "./shadcn/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./shadcn/ui/tabs";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "./shadcn/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./shadcn/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./shadcn/ui/alert-dialog";
 
 import { showAlert } from "./dialog";
 import { SpinnerUIComponent } from "./spinner";
@@ -38,8 +38,10 @@ export type AssetsBrowserDialogOptions = {
 
 export type AssetsBrowserDialogResult = {
     container: AssetContainer;
+
     selectedMeshes: Mesh[];
     selectedSkeletons: Skeleton[];
+    selectedAnimationGroups: AnimationGroup[];
 };
 
 /**
@@ -70,13 +72,19 @@ export function showAssetBrowserDialog(editor: Editor, options: AssetsBrowserDia
 
     const root = createRoot(div);
 
-    return new Promise<AssetsBrowserDialogResult>((resolve) => {
+    return new Promise<AssetsBrowserDialogResult>((resolve, reject) => {
         root.render(
             <SceneAssetBrowserDialog
                 editor={editor}
                 filename={filename}
                 filter={options.filter}
                 multiSelect={options.multiSelect}
+                onClose={() => {
+                    reject("User decided to close the dialog without selecting any asset.");
+
+                    root.unmount();
+                    document.body.removeChild(div);
+                }}
                 onSelectedAssets={(result) => {
                     resolve(result);
 
@@ -108,6 +116,10 @@ export interface ISceneAssetBrowserDialogProps {
     filter: SceneAssetBrowserDialogMode;
 
     /**
+     * Defines the callback called on the user wants to close the dialog.
+     */
+    onClose: () => void;
+    /**
      * Defines the callback called on the user wants to import some assets.
      */
     onSelectedAssets: (result: AssetsBrowserDialogResult) => void;
@@ -126,6 +138,10 @@ export interface ISceneAssetBrowserDialogState {
      * Defines the list of all selected skeletons.
      */
     selectedSkeletons: Skeleton[];
+    /**
+     * Defines the list of all selected animation groups.
+     */
+    selectedAnimationGroups: AnimationGroup[];
 }
 
 export class SceneAssetBrowserDialog extends Component<ISceneAssetBrowserDialogProps, ISceneAssetBrowserDialogState> {
@@ -138,6 +154,7 @@ export class SceneAssetBrowserDialog extends Component<ISceneAssetBrowserDialogP
             loading: true,
             selectedMeshes: [],
             selectedSkeletons: [],
+            selectedAnimationGroups: [],
         };
     }
 
@@ -181,6 +198,9 @@ export class SceneAssetBrowserDialog extends Component<ISceneAssetBrowserDialogP
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => this.props.onClose()}>
+                            Cancel
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             disabled={this.state.loading}
                             onClick={() => this._handleImport()}
@@ -222,11 +242,55 @@ export class SceneAssetBrowserDialog extends Component<ISceneAssetBrowserDialogP
             }
         });
 
+        const animationGroups = this._getAnimationGroupsToImport();
+        animationGroups.forEach((ag) => {
+            this._container?.animationGroups.splice(this._container?.animationGroups.indexOf(ag), 1);
+        });
+
         this.props.onSelectedAssets({
             container: this._container,
+            selectedAnimationGroups: animationGroups,
+
             selectedMeshes: this.state.selectedMeshes,
             selectedSkeletons: this.state.selectedSkeletons,
         });
+    }
+
+    private _getAnimationGroupsToImport(): AnimationGroup[] {
+        if (!this._container) {
+            return [];
+        }
+
+        let nodes: Node[] = [];
+        this.state.selectedMeshes.forEach((m) => {
+            nodes.push(m);
+
+            m.skeleton?.bones.forEach((b) => {
+                nodes.push(b);
+                if (b._linkedTransformNode) {
+                    nodes.push(b._linkedTransformNode);
+                }
+            });
+        });
+
+        this.state.selectedSkeletons.forEach((s) => {
+            s.bones.forEach((b) => {
+                nodes.push(b);
+                if (b._linkedTransformNode) {
+                    nodes.push(b._linkedTransformNode);
+                }
+            });
+        });
+
+        nodes = unique(nodes);
+
+        const animationGroups = this._container.animationGroups.filter((ag) => {
+            return ag.targetedAnimations.find((ta) => nodes.includes(ta.target));
+        });
+
+        animationGroups.push(...this.state.selectedAnimationGroups);
+
+        return unique(animationGroups);
     }
 
     private async _handleSelectedAsset<T>(asset: T, array: T[]): Promise<T[]> {
@@ -234,6 +298,7 @@ export class SceneAssetBrowserDialog extends Component<ISceneAssetBrowserDialogP
             this.setState({
                 selectedMeshes: [],
                 selectedSkeletons: [],
+                selectedAnimationGroups: [],
             });
 
             await waitNextAnimationFrame();

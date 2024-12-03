@@ -19,9 +19,10 @@ export function openSingleFolderDialog(title?: string): string {
 
 export type SaveFileDialogOptions = {
     title?: string;
+    defaultPath?: string;
     filters?: FileFilter[];
 };
 
 export function saveSingleFileDialog(options?: SaveFileDialogOptions): string {
-    return ipcRenderer.sendSync("editor:save-single-file-dialog", options?.title, options?.filters);
+    return ipcRenderer.sendSync("editor:save-single-file-dialog", options?.title, options?.filters, options?.defaultPath);
 }

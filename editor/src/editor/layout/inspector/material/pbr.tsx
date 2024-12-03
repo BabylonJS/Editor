@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
 
-import { Constants, PBRMaterial } from "babylonjs";
+import { Constants, PBRMaterial, AbstractMesh } from "babylonjs";
 
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 
@@ -12,7 +12,10 @@ import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSectionField } from "../fields/section";
 
+import { EditorMaterialInspectorUtilsComponent } from "./utils";
+
 export interface IEditorPBRMaterialInspectorProps {
+    mesh?: AbstractMesh;
     material: PBRMaterial;
 }
 
@@ -49,6 +52,11 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
                         { text: "Alpha Blend", value: PBRMaterial.MATERIAL_ALPHABLEND },
                         { text: "Alpha Test and Blend", value: PBRMaterial.MATERIAL_ALPHATESTANDBLEND },
                     ]} />
+
+                    <EditorMaterialInspectorUtilsComponent
+                        mesh={this.props.mesh}
+                        material={this.props.material}
+                    />
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Material Textures">

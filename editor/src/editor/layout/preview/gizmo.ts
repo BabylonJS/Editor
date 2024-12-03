@@ -99,7 +99,7 @@ export class EditorPreviewGizmo {
     public setAttachedNode(node: Node | null): void {
         this._attachedNode = node;
 
-        if (isCamera(node)) {
+        if (node && isCamera(node)) {
             this._cameraGizmo ??= new CameraGizmo(this._gizmosLayer);
             this._cameraGizmo.camera = node;
             this._cameraGizmo.attachedNode = node;

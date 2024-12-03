@@ -177,8 +177,19 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
      * @param node defines the reference tot the node to select in the graph.
      */
     public setSelectedNode(node: Node | Sound): void {
+        let source = isSound(node) ? node["_connectedTransformNode"] : node;
+        if (!source) {
+            return;
+        }
+
+        const idsToExpand: string[] = [];
+        while (source) {
+            idsToExpand.push(source.id);
+            source = source.parent;
+        }
+
         this._forEachNode(this.state.nodes, (n) => {
-            if (n.childNodes?.find((c) => c.nodeData === node)) {
+            if (typeof (n.id) === "string" && idsToExpand.includes(n.id)) {
                 n.isExpanded = true;
             }
 
