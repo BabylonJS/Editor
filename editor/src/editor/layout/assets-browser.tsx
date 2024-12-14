@@ -13,8 +13,7 @@ import { IoRefresh } from "react-icons/io5";
 import { IoCheckmark } from "react-icons/io5";
 import { IoIosOptions } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
-import { SiBabylondotjs } from "react-icons/si";
-import { FaFolder, FaRegFolderOpen } from "react-icons/fa";
+import { FaFolder, FaFolderOpen, FaRegFolderOpen } from "react-icons/fa";
 
 import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
@@ -241,7 +240,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                 nodeData: "/",
                 isExpanded: true,
                 childNodes: filesTreeNodes,
-                icon: <SiBabylondotjs className="w-4 h-4" />,
+                icon: <FaFolderOpen className="w-4 h-4" />,
             }],
         });
     }
@@ -481,7 +480,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                         {split.filter((s) => s !== "").map((s, i) => (
                             <Fade key={i} delay={0} duration={300}>
                                 <BreadcrumbItem className="flex gap-[5px] items-center">
-                                    {i < split.length - 1 &&
+                                    {(i === 0 || i < split.length - 1) &&
                                         <FaRegFolderOpen className="text-foreground w-[20px] h-[20px]" />
                                     }
 
@@ -644,8 +643,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
             ++index;
         }
 
-        await mkdir(join(this.state.browsedPath, `New folder${index !== undefined ? ` ${index}` : ""}`));
-        this._refreshItems(this.state.browsedPath);
+        const folderName = `New folder${index !== undefined ? ` ${index}` : ""}`;
+
+        await mkdir(join(this.state.browsedPath, folderName));
+        await this._refreshItems(this.state.browsedPath);
+
+        this.setState({
+            selectedKeys: [
+                join(this.state.browsedPath, folderName),
+            ],
+        });
     }
 
     private async _handleImportFiles(): Promise<void> {
@@ -826,9 +833,58 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
             } else {
                 this.setState({ selectedKeys: [...this.state.selectedKeys, item.props.selectableKey] });
             }
+        } else if (event.shiftKey) {
+            this._handleShiftItemClick(item);
         } else {
             this.setState({ selectedKeys: [item.props.selectableKey] });
         }
+    }
+
+    private _handleShiftItemClick(item: AssetsBrowserItem): void {
+        let lastSelected!: string;
+        let firstSelected!: string;
+
+        this.state.files.forEach((path) => {
+            const absolutePath = join(this.state.browsedPath!, path);
+
+            if (absolutePath === item.props.selectableKey) {
+                if (!firstSelected) {
+                    firstSelected = path;
+                } else {
+                    lastSelected = path;
+                }
+            } else if (this.state.selectedKeys.includes(absolutePath)) {
+                if (!firstSelected) {
+                    firstSelected = path;
+                } else {
+                    lastSelected = path;
+                }
+            }
+        });
+
+        if (!lastSelected || !firstSelected) {
+            return;
+        }
+
+        const selectedKeys: string[] = [];
+
+        let select = false;
+
+        this.state.files.forEach((path) => {
+            if (path === firstSelected) {
+                select = true;
+            }
+
+            if (select) {
+                selectedKeys.push(join(this.state.browsedPath!, path));
+            }
+
+            if (path === lastSelected) {
+                select = false;
+            }
+        });
+
+        this.setState({ selectedKeys });
     }
 
     private async _handleItemDoubleClick(item: AssetsBrowserItem): Promise<void> {

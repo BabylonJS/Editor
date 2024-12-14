@@ -18,7 +18,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
     ipcRenderer.once("editor:window-launch-data", (_, indexPath, options) => {
         const result = require(indexPath) as any;
-        new result.default(options);
 
         const root = createRoot(div);
         root.render(
