@@ -49,6 +49,7 @@ export class EditorFileInspector extends Component<IEditorInspectorImplementatio
             case ".glb":
             case ".gltf":
             case ".babylon":
+            case ".fbx":
                 return <EditorInspectorSceneComponent object={this.props.object} />;
 
             case ".mp3":

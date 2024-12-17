@@ -40,7 +40,9 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
     private _animation!: Animation;
     private _animatedCurrentTime: number = 0;
     private _renderLoop: (() => void) | null = null;
+
     private _generateAnimationGroup: AnimationGroup | null = null;
+    private _temporaryAnimationGroup: AnimationGroup | null = null;
 
     private _divRef: HTMLDivElement | null = null;
 
@@ -71,6 +73,7 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
                 <div className="w-full h-10">
                     <CinematicEditorTracker
                         width={width}
+                        timeline={this}
                         scale={this.state.scale}
                         currentTime={this.state.currentTime}
                         onTimeChange={(currentTime) => this.setCurrentTime(currentTime)}
@@ -164,6 +167,27 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
     }
 
     /**
+     * Creates a temoporary animation that is used when moving in the timeline.
+     * This temporary animation group is disposed on the user releases the mouse button.
+     */
+    public createTemporaryAnimationGroup(): void {
+        this.disposeTemporaryAnimationGroup();
+
+        this._temporaryAnimationGroup = generateCinematicAnimationGroup(
+            this.props.cinematic,
+            this.props.editor.layout.preview.scene,
+        );
+    }
+
+    /**
+     * Disposes the temporary animation group used when moving in the timeline.
+     */
+    public disposeTemporaryAnimationGroup(): void {
+        this._temporaryAnimationGroup?.dispose();
+        this._temporaryAnimationGroup = null;
+    }
+
+    /**
      * Sets the current time being edited in the timeline.
      * @param currentTime defines the current time expressed in frame.
      */
@@ -174,7 +198,7 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
 
         const frame = Math.min(currentTime, this._getMaxFrameForTimeline());
 
-        const animationGroup = generateCinematicAnimationGroup(
+        const animationGroup = this._temporaryAnimationGroup ?? generateCinematicAnimationGroup(
             this.props.cinematic,
             this.props.editor.layout.preview.scene,
         );
@@ -188,7 +212,9 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         });
 
         waitNextAnimationFrame().then(() => {
-            animationGroup.dispose();
+            if (animationGroup !== this._temporaryAnimationGroup) {
+                animationGroup.dispose();
+            }
         });
     }
 
@@ -256,9 +282,9 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         let moving = false;
         let clientX: number | null = null;
 
-        const scrollLeft = this._divRef!.scrollLeft;
-        const startPosition = (ev.nativeEvent.offsetX + scrollLeft) / this.state.scale;
+        const startPosition = ev.nativeEvent.offsetX / this.state.scale;
 
+        this.createTemporaryAnimationGroup();
         this.setCurrentTime(startPosition);
 
         document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
@@ -292,6 +318,8 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
             waitNextAnimationFrame().then(() => {
                 this.setState({ moving: false });
             });
+
+            this.disposeTemporaryAnimationGroup();
         });
     }
 
@@ -327,6 +355,10 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
 
         engine.runRenderLoop(this._renderLoop = () => {
             this.setState({ currentTime: this._animatedCurrentTime });
+
+            this.props.editor.layout.preview.scene.lights.forEach((light) => {
+                updateLightShadowMapRefreshRate(light);
+            });
         });
     }
 

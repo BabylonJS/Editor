@@ -1,9 +1,13 @@
 import { Component, ReactNode } from "react";
 import { Icon, NonIdealState } from "@blueprintjs/core";
 
+import { FaCube, FaSprayCanSparkles } from "react-icons/fa6";
+
 import { Tools } from "babylonjs";
 
 import { Editor } from "../main";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/shadcn/ui/tabs";
 
 import { IEditorInspectorImplementationProps } from "./inspector/inspector";
 
@@ -26,6 +30,8 @@ import { EditorArcRotateCameraInspector } from "./inspector/camera/arc-rotate";
 import { EditorSoundInspector } from "./inspector/sound/sound";
 
 import { EditorAdvancedDynamicTextureInspector } from "./inspector/gui/gui";
+
+import { EditorDecalsInspector } from "./inspector/decals/decals";
 
 export interface IEditorInspectorProps {
     /**
@@ -71,15 +77,33 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
     public render(): ReactNode {
         return (
             <div className="flex flex-col gap-2 w-full h-full p-2 text-foreground">
-                <input
-                    type="text"
-                    placeholder="Search..."
-                    className="px-5 py-2 rounded-lg bg-primary-foreground outline-none"
-                />
+                <Tabs defaultValue="entity" className="flex flex-col gap-2 w-full">
+                    <TabsList className="w-full">
+                        <TabsTrigger value="entity" className="flex gap-2 items-center w-full">
+                            <FaCube className="w-4 h-4" /> Entity
+                        </TabsTrigger>
 
-                <div className="flex flex-col gap-2 h-full">
-                    {this._getContent()}
-                </div>
+                        <TabsTrigger value="decals" className="flex gap-2 items-center w-full">
+                            <FaSprayCanSparkles className="w-4 h-4" /> Decal
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        className="px-5 py-2 rounded-lg bg-primary-foreground outline-none w-full"
+                    />
+
+                    <TabsContent value="entity">
+                        <div className="flex flex-col gap-2 h-full">
+                            {this._getContent()}
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="decals">
+                        <EditorDecalsInspector editor={this.props.editor} />
+                    </TabsContent>
+                </Tabs>
             </div>
         );
     }

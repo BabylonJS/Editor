@@ -151,7 +151,6 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
     private _getPreviewComponent(textureUrl: false | string | null): ReactNode {
         return (
             <div className={`flex justify-center items-center ${textureUrl ? "w-24 h-24" : "w-8 h-8"} aspect-square`}>
-
                 {textureUrl &&
                     <Popover>
                         <PopoverTrigger>

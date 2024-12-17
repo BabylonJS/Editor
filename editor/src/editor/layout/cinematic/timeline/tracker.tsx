@@ -4,10 +4,13 @@ import { waitNextAnimationFrame } from "../../../../tools/tools";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
+import { CinematicEditorTimelinePanel } from "./timeline";
+
 export interface ICinematicEditorTrackerProps {
     width: number;
     scale: number;
     currentTime: number;
+    timeline: CinematicEditorTimelinePanel;
 
     onTimeChange: (currentTime: number) => void;
 }
@@ -87,6 +90,9 @@ export class CinematicEditorTracker extends Component<ICinematicEditorTrackerPro
 
         const startPosition = this.props.currentTime;
 
+        this.props.timeline.createTemporaryAnimationGroup();
+        this.props.onTimeChange(startPosition);
+
         document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
             if (clientX === null) {
                 clientX = ev.clientX;
@@ -112,6 +118,8 @@ export class CinematicEditorTracker extends Component<ICinematicEditorTrackerPro
             waitNextAnimationFrame().then(() => {
                 this.setState({ moving: false });
             });
+
+            this.props.timeline.disposeTemporaryAnimationGroup();
         });
     }
 

@@ -909,6 +909,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
             case ".glb":
             case ".gltf":
             case ".babylon":
+            case ".fbx":
             case ".mp3":
             case ".wav":
             case ".wave":
