@@ -64,11 +64,14 @@ export interface IEditorPreviewProps {
 
 export interface IEditorPreviewState {
     /**
-     * Defines the information message drawn over the preview to tell
-     * the user what is happening.
+     * Defines the information message drawn over the preview to tell the user what is happening.
      */
     informationMessage: ReactNode;
 
+    /**
+     * Defines wether or not picking is enabled.
+     */
+    pickingEnabled: boolean;
     /**
      * Defines the active gizmo.
      */
@@ -125,6 +128,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
         this.state = {
             activeGizmo: "none",
+            pickingEnabled: true,
 
             isFocused: false,
             informationMessage: "",
@@ -379,6 +383,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     private _mouseMoveTimeoutId: number = -1;
 
     private _handleMouseMove(x: number, y: number): void {
+        if (!this.state.pickingEnabled) {
+            return;
+        }
+
         const pick = this.scene.pick(x, y, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
         const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
 
@@ -399,6 +407,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     }
 
     private _handleMouseDown(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+        if (!this.state.pickingEnabled) {
+            return;
+        }
+
         this._mouseDownPosition.set(event.clientX, event.clientY);
 
         if (event.button === 2) {
@@ -417,6 +429,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     }
 
     private _handleMouseUp(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+        if (!this.state.pickingEnabled) {
+            return;
+        }
+
         const distance = Vector2.Distance(
             this._mouseDownPosition,
             new Vector2(event.clientX, event.clientY),

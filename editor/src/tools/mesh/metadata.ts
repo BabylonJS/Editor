@@ -1,0 +1,11 @@
+import { AbstractMesh } from "babylonjs";
+
+/**
+ * Sets the metadata of the given mesh to not be serializable or not.
+ * @param mesh defines the reference to the mesh to set the metadata to.
+ * @param value defines the value to set to the metadata.
+ */
+export function setMeshMetadataNotSerializable(mesh: AbstractMesh, value: boolean): void {
+    mesh.metadata ??= {};
+    mesh.metadata.doNotSerialize = value;
+}
