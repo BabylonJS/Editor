@@ -188,7 +188,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
                     <EditorInspectorSwitchField label="Use Radiance Occlusion" object={this.props.material} property="useRadianceOcclusion" />
                     <EditorInspectorSwitchField label="Use Physical Light Falloff" object={this.props.material} property="usePhysicalLightFalloff" />
                     <EditorInspectorSwitchField label="Separate Culling Pass" object={this.props.material} property="separateCullingPass" />
-                    <EditorInspectorNumberField label="Z Offset" object={this.props.material} property="zOffset" min={0} />
+                    <EditorInspectorNumberField label="Z Offset" object={this.props.material} property="zOffset" />
                 </EditorInspectorSectionField>
             </>
         );

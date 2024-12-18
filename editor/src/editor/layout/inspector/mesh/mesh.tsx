@@ -26,8 +26,6 @@ import { EditorInspectorVectorField } from "../fields/vector";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
-import { GeometryInspector } from "../geometry/geometry";
-
 import { ScriptInspectorComponent } from "../script/script";
 
 import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
@@ -40,6 +38,8 @@ import { EditorSkyMaterialInspector } from "../material/sky";
 import { EditorMultiMaterialInspector } from "../material/multi";
 import { EditorStandardMaterialInspector } from "../material/standard";
 
+import { MeshDecalInspector } from "./decal";
+import { MeshGeometryInspector } from "./geometry";
 import { EditorMeshCollisionInspector } from "./collision";
 
 export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
@@ -114,7 +114,8 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
                 {isMesh(this.props.object) &&
                     <>
-                        <GeometryInspector object={this.props.object} />
+                        <MeshGeometryInspector object={this.props.object} />
+                        <MeshDecalInspector object={this.props.object} />
                         {this._getLODsComponent()}
                     </>
                 }

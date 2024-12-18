@@ -9,8 +9,9 @@ import { AbstractMesh, Mesh, Material, MeshBuilder, Vector2, Vector3, Tools } fr
 
 import { Editor } from "../../../main";
 
+import { registerUndoRedo } from "../../../../tools/undoredo";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../../tools/tools";
-import { setMeshMetadataNotSerializable } from "../../../../tools/mesh/metadata";
+import { setMeshMetadataNotSerializable, setMeshMetadataNotVisibleInGraph } from "../../../../tools/mesh/metadata";
 
 import { loadImportedMaterial } from "../../preview/import/import";
 
@@ -70,10 +71,10 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
                 {this._getMaterialDragAndDropComponent()}
 
                 <EditorInspectorSectionField title="Options">
-                    <EditorInspectorNumberField object={decalsConfiguration.size} property="x" step={1} label="Width" onChange={() => this._handleUpdateCurrentDecalMesh()} />
-                    <EditorInspectorNumberField object={decalsConfiguration.size} property="y" step={1} label="Height" onChange={() => this._handleUpdateCurrentDecalMesh()} />
+                    <EditorInspectorNumberField object={decalsConfiguration.size} property="x" step={1} label="Width" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
+                    <EditorInspectorNumberField object={decalsConfiguration.size} property="y" step={1} label="Height" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
 
-                    <EditorInspectorNumberField object={decalsConfiguration} property="angle" asDegrees step={0.1} label="Angle" onChange={() => this._handleUpdateCurrentDecalMesh()} />
+                    <EditorInspectorNumberField object={decalsConfiguration} property="angle" asDegrees step={0.1} label="Angle" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
                 </EditorInspectorSectionField>
             </div>
         );
@@ -256,6 +257,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
         this._decalMesh.visibility = this.state.ctrlOrMetaKeyDown ? 1 : 0.35;
 
         setMeshMetadataNotSerializable(this._decalMesh, true);
+        setMeshMetadataNotVisibleInGraph(this._decalMesh, true);
 
         if (this.state.material.zOffset === 0) {
             this.state.material.zOffset = -2;
@@ -285,21 +287,33 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
         this._handleMouseMove(event.offsetX, event.offsetY);
 
         if (this._decalMesh) {
-            this._decalMesh.id = Tools.RandomId();
-            this._decalMesh.name = this.state.material!.name;
-            this._decalMesh.uniqueId = UniqueNumber.Get();
+            const decalMesh = this._decalMesh;
+            const scene = this.props.editor.layout.preview.scene;
 
-            this._decalMesh.metadata = {
+            decalMesh.name = this.state.material!.name;
+            decalMesh.id = Tools.RandomId();
+            decalMesh.uniqueId = UniqueNumber.Get();
+
+            decalMesh.metadata = {
                 decal: {
                     angle: decalsConfiguration.angle,
-                    size: decalsConfiguration.size.asArray(),
-                    meshId: EditorDecalsInspector._lastPickedMesh?.name,
+                    sizeX: decalsConfiguration.size.x,
+                    sizeY: decalsConfiguration.size.y,
+                    sizeZ: decalsConfiguration.size.z,
+                    meshId: EditorDecalsInspector._lastPickedMesh?.id,
                     position: EditorDecalsInspector._lastPickPosition?.asArray(),
                     normal: EditorDecalsInspector._lastPickedNormal?.asArray(),
                 },
             };
 
-            setMeshMetadataNotSerializable(this._decalMesh, false);
+            setMeshMetadataNotSerializable(decalMesh, false);
+            setMeshMetadataNotVisibleInGraph(decalMesh, false);
+
+            registerUndoRedo({
+                executeRedo: false,
+                undo: () => scene.removeMesh(decalMesh),
+                redo: () => scene.addMesh(decalMesh),
+            });
 
             this.props.editor.layout.graph.refresh();
         }

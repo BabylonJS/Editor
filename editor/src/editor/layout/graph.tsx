@@ -24,6 +24,7 @@ import { isSceneLinkNode } from "../../tools/guards/scene";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
+import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { onNodeModifiedObservable, onNodesAddedObservable, onTextureModifiedObservable } from "../../tools/observables";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
 
@@ -537,7 +538,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
     }
 
     private _parseSceneNode(node: Node): TreeNodeInfo | null {
-        if (isMesh(node) && node._masterMesh || isCollisionMesh(node) || isCollisionInstancedMesh(node)) {
+        if (
+            isMesh(node) && (node._masterMesh || isMeshMetadataNotVisibleInGraph(node)) ||
+            isCollisionMesh(node) ||
+            isCollisionInstancedMesh(node)
+        ) {
             return null;
         }
 

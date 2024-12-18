@@ -9,6 +9,7 @@ import { isSceneLinkNode } from "../../tools/guards/scene";
 import { isFromSceneLink } from "../../tools/scene/scene-link";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
+import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 
 import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
@@ -46,7 +47,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
     const savedFiles: string[] = [];
 
     await Promise.all(scene.meshes.map(async (mesh) => {
-        if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh)) {
+        if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || isMeshMetadataNotVisibleInGraph(mesh)) {
             return;
         }
 

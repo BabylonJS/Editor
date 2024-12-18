@@ -5,11 +5,11 @@ import { CreateBoxVertexData, CreateGroundVertexData, Mesh } from "babylonjs";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
-export interface IGeometryInspectorProps {
+export interface IMeshGeometryInspectorProps {
     object: Mesh;
 }
 
-export class GeometryInspector extends Component<IGeometryInspectorProps> {
+export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps> {
     public render(): ReactNode {
         if (this.props.object.metadata?.type === "Box") {
             return this._getBoxInspectorComponent();
