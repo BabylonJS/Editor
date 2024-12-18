@@ -39,7 +39,7 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
             <div className="flex justify-end w-14 my-auto">
                 <Switch
                     checked={value}
-                    className="mt-3"
+                    className="mt-2"
                     onChange={(ev) => {
                         setValue(ev.currentTarget.checked);
                         setInspectorEffectivePropertyValue(props.object, props.property, ev.currentTarget.checked);

@@ -9,6 +9,7 @@ import { Editor } from "../main";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/shadcn/ui/tabs";
 
+import { setInspectorSearch } from "./inspector/fields/field";
 import { IEditorInspectorImplementationProps } from "./inspector/inspector";
 
 import { EditorSceneInspector } from "./inspector/scene";
@@ -41,6 +42,7 @@ export interface IEditorInspectorProps {
 }
 
 export interface IEditorInspectorState {
+    search: string;
     editedObject: unknown | null;
 }
 
@@ -70,14 +72,15 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
         super(props);
 
         this.state = {
+            search: "",
             editedObject: null,
         };
     }
 
     public render(): ReactNode {
         return (
-            <div className="flex flex-col gap-2 w-full h-full p-2 text-foreground">
-                <Tabs defaultValue="entity" className="flex flex-col gap-2 w-full">
+            <div className="flex flex-col gap-2 w-full h-full p-2 text-foreground overflow-hidden">
+                <Tabs defaultValue="entity" className="flex flex-col gap-2 w-full h-full">
                     <TabsList className="w-full">
                         <TabsTrigger value="entity" className="flex gap-2 items-center w-full">
                             <FaCube className="w-4 h-4" /> Entity
@@ -91,16 +94,18 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
                     <input
                         type="text"
                         placeholder="Search..."
+                        value={this.state.search}
+                        onChange={(e) => this._handleSearchChanged(e.currentTarget.value)}
                         className="px-5 py-2 rounded-lg bg-primary-foreground outline-none w-full"
                     />
 
-                    <TabsContent value="entity">
+                    <TabsContent value="entity" className="w-full h-full overflow-auto">
                         <div className="flex flex-col gap-2 h-full">
                             {this._getContent()}
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="decals">
+                    <TabsContent value="decals" className="w-full h-full overflow-auto">
                         <EditorDecalsInspector editor={this.props.editor} />
                     </TabsContent>
                 </Tabs>
@@ -139,5 +144,10 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
                 object={this.state.editedObject}
             />
         ));
+    }
+
+    private _handleSearchChanged(search: string): void {
+        setInspectorSearch(search);
+        this.setState({ search });
     }
 }

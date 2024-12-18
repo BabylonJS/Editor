@@ -1,14 +1,17 @@
 import { readJSON } from "fs-extra";
 import { extname } from "path/posix";
 
+import { Fade } from "react-awesome-reveal";
 import { Component, DragEvent, ReactNode } from "react";
 
+import { GiMaterialsScience } from "react-icons/gi";
 import { MdOutlineQuestionMark } from "react-icons/md";
 
 import { AbstractMesh, Mesh, Material, MeshBuilder, Vector2, Vector3, Tools } from "babylonjs";
 
 import { Editor } from "../../../main";
 
+import { isDarwin } from "../../../../tools/os";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../../tools/tools";
 import { setMeshMetadataNotSerializable, setMeshMetadataNotVisibleInGraph } from "../../../../tools/mesh/metadata";
@@ -70,12 +73,14 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
             <div className="flex flex-col gap-2 w-full h-full">
                 {this._getMaterialDragAndDropComponent()}
 
-                <EditorInspectorSectionField title="Options">
-                    <EditorInspectorNumberField object={decalsConfiguration.size} property="x" step={1} label="Width" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
-                    <EditorInspectorNumberField object={decalsConfiguration.size} property="y" step={1} label="Height" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
+                {this.state.material &&
+                    <EditorInspectorSectionField title="Options">
+                        <EditorInspectorNumberField object={decalsConfiguration.size} property="x" step={1} label="Width" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
+                        <EditorInspectorNumberField object={decalsConfiguration.size} property="y" step={1} label="Height" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
 
-                    <EditorInspectorNumberField object={decalsConfiguration} property="angle" asDegrees step={0.1} label="Angle" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
-                </EditorInspectorSectionField>
+                        <EditorInspectorNumberField object={decalsConfiguration} property="angle" asDegrees step={0.1} label="Angle" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
+                    </EditorInspectorSectionField>
+                }
             </div>
         );
     }
@@ -157,20 +162,32 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
                 <div
                     className={`
                         flex justify-center items-center w-24 h-24 rounded-lg
-                        ${decalsConfiguration.materialPath ? "" : "bg-accent"}
+                        ${decalsConfiguration.materialPath ? "bg-secondary" : "bg-accent"}
+                        transition-all duration-300 ease-in-out
                     `}
                 >
                     {!decalsConfiguration.materialPath &&
                         <MdOutlineQuestionMark className="w-8 h-8" />
                     }
+
+                    {decalsConfiguration.materialPath &&
+                        <GiMaterialsScience className="w-8 h-8" />
+                    }
                 </div>
 
                 <div className="flex flex-1 flex-col gap-2 justify-center items-center">
                     <div className="text-xl font-semibold text-center w-full">
-                        No material set
+                        {this.state.material?.name ?? "No material set"}
                     </div>
                     <div className="font-thin">
-                        Drag and drop a material asset here.
+                        {this.state.material
+                            ? (
+                                <Fade className="text-center">
+                                    {`${isDarwin() ? "Cmd" : "Ctrl"} + Click in the preview panel to place the decal.`}
+                                </Fade>
+                            )
+                            : "Drag and drop a material asset here."
+                        }
                     </div>
                 </div>
             </div>
@@ -247,6 +264,8 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 
         this._decalMesh = MeshBuilder.CreateDecal("decal", EditorDecalsInspector._lastPickedMesh, {
             localMode: true,
+            captureUVS: false,
+            cullBackFaces: true,
             size: decalsConfiguration.size,
             angle: decalsConfiguration.angle,
             position: EditorDecalsInspector._lastPickPosition,
@@ -316,6 +335,9 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
             });
 
             this.props.editor.layout.graph.refresh();
+            waitNextAnimationFrame().then(() => {
+                this.props.editor.layout.graph.setSelectedNode(decalMesh);
+            });
         }
 
         this._decalMesh = null;
