@@ -279,7 +279,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
         setMeshMetadataNotVisibleInGraph(this._decalMesh, true);
 
         if (this.state.material.zOffset === 0) {
-            this.state.material.zOffset = -2;
+            this.state.material.zOffset = -3;
         }
 
         this._decalMesh.material = this.state.material;

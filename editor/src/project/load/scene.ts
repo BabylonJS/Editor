@@ -305,7 +305,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                             configureSimultaneousLightsForMaterial(subMaterial);
 
                             const existingMaterial = scene.materials.find((material) => {
-                                return material !== m.material && material.id === m.material!.id;
+                                return material !== m.material && material.uniqueId === m.material!.uniqueId;
                             });
 
                             if (existingMaterial) {
@@ -317,15 +317,14 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                         configureSimultaneousLightsForMaterial(m.material);
 
                         const existingMaterial = scene.materials.find((material) => {
-                            return material !== m.material && material.id === m.material!.id;
+                            return material !== m.material && material.uniqueId === m.material!.uniqueId;
                         });
 
                         if (existingMaterial) {
-                            m.material.dispose(false, true);
+                            m.material.dispose(false, false);
                             m.material = existingMaterial;
                         }
                     }
-
                 }
 
                 if (m.geometry) {
