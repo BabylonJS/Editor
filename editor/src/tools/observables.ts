@@ -1,6 +1,11 @@
 import { BaseTexture, Node, Observable } from "babylonjs";
 
 /**
+ * Observable for when the project has been saved.
+ */
+export const onProjectSavedObservable = new Observable<void>();
+
+/**
  * Observable for when new nodes have been added to the scene.
  */
 export const onNodesAddedObservable = new Observable<void>();

@@ -44,9 +44,21 @@ export function createEditor(): void {
     const root = createRoot(div);
     root.render(
         <div className="w-screen h-screen">
-            <Editor />
+            <Editor projectPath={null} />
         </div>
     );
+}
+
+export interface IEditorProps {
+    /**
+     * The path of the project.
+     */
+    projectPath: string | null;
+
+    /**
+     * Defines the path to the currently edited scene path.
+     */
+    editedScenePath?: string | null;
 }
 
 export interface IEditorState {
@@ -83,7 +95,7 @@ export interface IEditorState {
     editPreferences: boolean;
 }
 
-export class Editor extends Component<{}, IEditorState> {
+export class Editor extends Component<IEditorProps, IEditorState> {
     /**
      * The layout of the editor.
      */
@@ -99,13 +111,13 @@ export class Editor extends Component<{}, IEditorState> {
      */
     public path: string | null = null;
 
-    public constructor(props: {}) {
+    public constructor(props: IEditorProps) {
         super(props);
 
         this.state = {
             plugins: [],
-            projectPath: null,
             lastOpenedScenePath: null,
+            projectPath: props.projectPath,
 
             compressedTexturesEnabled: false,
             enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),

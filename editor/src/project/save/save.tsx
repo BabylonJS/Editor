@@ -13,6 +13,7 @@ import { IEditorProject } from "../typings";
 import { exportProject } from "../export/export";
 
 import { projectsKey } from "../../tools/project";
+import { onProjectSavedObservable } from "../../tools/observables";
 import { getBase64SceneScreenshot } from "../../tools/scene/screenshot";
 import { tryGetProjectsFromLocalStorage } from "../../tools/local-storage";
 
@@ -41,9 +42,11 @@ export async function saveProject(editor: Editor): Promise<void> {
         compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
     };
 
-    await writeJSON(editor.state.projectPath, project, {
-        spaces: 4,
-    });
+    if (!editor.props.editedScenePath) {
+        await writeJSON(editor.state.projectPath, project, {
+            spaces: 4,
+        });
+    }
 
     if (editor.state.lastOpenedScenePath) {
         editor.layout.console.log(`Saving project "${project.lastOpenedScene}"`);
@@ -54,18 +57,26 @@ export async function saveProject(editor: Editor): Promise<void> {
     toast.dismiss(toastId);
     toast.success("Project saved");
 
-    try {
-        const base64 = await getBase64SceneScreenshot(editor.layout.preview.scene);
+    if (!editor.props.editedScenePath) {
+        try {
+            const base64 = await getBase64SceneScreenshot(editor.layout.preview.scene);
 
-        const projects = tryGetProjectsFromLocalStorage();
-        const project = projects.find((project) => project.absolutePath === editor.state.projectPath);
-        if (project) {
-            project.preview = base64;
-            project.updatedAt = new Date();
+            const projects = tryGetProjectsFromLocalStorage();
+            const project = projects.find((project) => project.absolutePath === editor.state.projectPath);
+            if (project) {
+                project.preview = base64;
+                project.updatedAt = new Date();
 
-            localStorage.setItem(projectsKey, JSON.stringify(projects));
-            ipcRenderer.send("dashboard:update-projects");
+                localStorage.setItem(projectsKey, JSON.stringify(projects));
+                ipcRenderer.send("dashboard:update-projects");
+            }
+        } catch (e) {
+            // Catch silently.
         }
+    }
+
+    try {
+        onProjectSavedObservable.notifyObservers();
     } catch (e) {
         // Catch silently.
     }

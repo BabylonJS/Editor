@@ -34,18 +34,36 @@ export class SceneLinkNode extends TransformNode {
     }
 
     public async setRelativePath(relativePath: string): Promise<SceneLoadResult | null> {
-        if (relativePath === this._relativePath || !projectConfiguration.path) {
+        if (relativePath === this._relativePath) {
             return null;
         }
 
         this._relativePath = relativePath;
 
+        return this.reload();
+    }
+
+    public async reload(): Promise<SceneLoadResult | null> {
+        if (!projectConfiguration.path || !this._relativePath) {
+            return null;
+        }
+
+        const descendants = this.getDescendants(false);
+        descendants.forEach((descendant) => {
+            descendant.dispose(true, true);
+        });
+
         const projectDir = dirname(projectConfiguration.path);
-        const absolutePath = join(projectDir, relativePath);
+        const absolutePath = join(projectDir, this._relativePath);
 
         const result = await loadScene(this._editor, projectDir, absolutePath, {
             asLink: true,
         });
+
+        result?.meshes.forEach((mesh) => !mesh.parent && (mesh.parent = this));
+        result?.lights.forEach((light) => !light.parent && (light.parent = this));
+        result?.cameras.forEach((camera) => !camera.parent && (camera.parent = this));
+        result?.transformNodes.forEach((transformNode) => !transformNode.parent && (transformNode.parent = this));
 
         return result;
     }

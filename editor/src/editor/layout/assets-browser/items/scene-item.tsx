@@ -1,11 +1,12 @@
 import { copy } from "fs-extra";
 import { pathExists } from "fs-extra";
+import { ipcRenderer } from "electron";
 import { join, basename, dirname } from "path/posix";
 
 import { ReactNode } from "react";
 
 import { SiBabylondotjs } from "react-icons/si";
-import { HiOutlineDuplicate } from "react-icons/hi";
+import { HiOutlineDuplicate, HiOutlineExternalLink } from "react-icons/hi";
 
 import { renameScene } from "../../../../tools/scene/rename";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
@@ -25,6 +26,9 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
             <>
                 <ContextMenuItem className="flex items-center gap-2" onClick={() => this._handleDuplicate()}>
                     <HiOutlineDuplicate className="w-5 h-5" /> Duplicate
+                </ContextMenuItem>
+                <ContextMenuItem className="flex items-center gap-2" onClick={() => this._handleEdit()}>
+                    <HiOutlineExternalLink className="w-5 h-5" /> Edit...
                 </ContextMenuItem>
             </>
         );
@@ -73,6 +77,13 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
         this.props.onRefresh();
         waitNextAnimationFrame().then(() => {
             this.props.editor.layout.assets.setSelectedFile(newAbsolutePath);
+        });
+    }
+
+    private async _handleEdit(): Promise<void> {
+        ipcRenderer.send("window:open", "build/src/editor/windows/scene", {
+            scenePath: this.props.absolutePath,
+            projectPath: this.props.editor.state.projectPath,
         });
     }
 }

@@ -53,6 +53,7 @@ import { AssetBrowserCinematicItem } from "./assets-browser/items/cinematic-item
 import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/items/item";
 
 import { listenGuiAssetsEvents } from "./assets-browser/events/gui";
+import { listenSceneAssetsEvents } from "./assets-browser/events/scene";
 import { listenMaterialAssetsEvents } from "./assets-browser/events/material";
 
 import "babylonjs-loaders";
@@ -165,6 +166,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
         listenGuiAssetsEvents(this.props.editor);
         listenMaterialAssetsEvents(this.props.editor);
+        listenSceneAssetsEvents(this.props.editor);
     }
 
     private async _refreshFilesTreeNodes(path: string): Promise<void> {
