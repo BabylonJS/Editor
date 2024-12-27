@@ -1,13 +1,12 @@
-import { platform } from "os";
 import { ipcRenderer } from "electron";
 
 import { PropsWithChildren } from "react";
 import { IoCloseOutline } from "react-icons/io5";
 import { VscChromeMinimize, VscMultipleWindows } from "react-icons/vsc";
 
-import { Button } from "./shadcn/ui/button";
+import { isDarwin } from "../tools/os";
 
-const isWin32 = platform() === "win32";
+import { Button } from "./shadcn/ui/button";
 
 export interface IToolbarComponentProps extends PropsWithChildren {
 
@@ -20,7 +19,7 @@ export function ToolbarComponent(props: IToolbarComponentProps) {
 
             <div className="w-full h-10 electron-draggable" />
 
-            {isWin32 &&
+            {(!isDarwin() || process.env.DEBUG) &&
                 <div className="flex z-50 pr-3 my-auto">
                     <Button variant="ghost" className="w-12 aspect-square !p-0 hover:bg-muted" onClick={() => ipcRenderer.send("window:minimize")}>
                         <VscChromeMinimize className="w-5 h-5" />

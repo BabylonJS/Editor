@@ -71,7 +71,17 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
         this.stop();
     }
 
-    public run(): void {
+    /**
+     * Gets wether or not icons are enabled.
+     */
+    public get enabled(): boolean {
+        return this._renderFunction !== null;
+    }
+
+    /**
+     * Starts rendering icons on the preview scene.
+     */
+    public start(): void {
         const scene = this.props.editor.layout.preview.scene;
 
         if (this._renderFunction || !scene) {
@@ -148,12 +158,19 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
         return scene.activeCamera!.isInFrustum(this._tempMesh!);
     }
 
+    /**
+     * Stops rendering icons on the preview scene.
+     */
     public stop(): void {
         if (this._renderFunction) {
             this.props.editor.layout.preview.engine.stopRenderLoop(this._renderFunction);
         }
 
         this._renderFunction = null;
+
+        this.setState({
+            buttons: [],
+        });
     }
 
     private _getIcon(node: Node | Sound): ReactNode {

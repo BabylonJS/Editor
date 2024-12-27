@@ -287,7 +287,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
         waitNextAnimationFrame().then(() => {
             this.icons = ref;
-            this.icons?.run();
+            this.icons?.start();
         });
     }
 
@@ -345,7 +345,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             mode: EasingFunction.EASINGMODE_EASEINOUT,
         };
 
-        this.icons?.run();
+        this.icons?.start();
         this.forceUpdate();
     }
 
@@ -613,6 +613,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent onClick={() => this.forceUpdate()}>
                                     <DropdownMenuLabel>Render options</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.icons.enabled ? this.icons.stop() : this.icons.start()}>
+                                        {this.icons?.enabled && <FaCheck className="w-4 h-4" />} Helper Icons
+                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.postProcessesEnabled = !this.scene.postProcessesEnabled}>
                                         {this.scene?.postProcessesEnabled && <FaCheck className="w-4 h-4" />} Post-processes enabled

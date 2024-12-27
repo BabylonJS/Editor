@@ -12,6 +12,8 @@ import { Editor } from "../main";
 export class SceneLinkNode extends TransformNode {
     private _editor: Editor;
 
+    private _lastLoadResult: SceneLoadResult | null = null;
+
     @serialize()
     private _relativePath: string | null = null;
 
@@ -48,30 +50,41 @@ export class SceneLinkNode extends TransformNode {
             return null;
         }
 
-        const descendants = this.getDescendants(false);
-        descendants.forEach((descendant) => {
-            descendant.dispose(true, true);
-        });
+        this._disposeLastLoadResult();
 
         const projectDir = dirname(projectConfiguration.path);
         const absolutePath = join(projectDir, this._relativePath);
 
-        const result = await loadScene(this._editor, projectDir, absolutePath, {
+        this._lastLoadResult = await loadScene(this._editor, projectDir, absolutePath, {
             asLink: true,
         });
 
-        result?.meshes.forEach((mesh) => !mesh.parent && (mesh.parent = this));
-        result?.lights.forEach((light) => !light.parent && (light.parent = this));
-        result?.cameras.forEach((camera) => !camera.parent && (camera.parent = this));
-        result?.transformNodes.forEach((transformNode) => !transformNode.parent && (transformNode.parent = this));
+        this._lastLoadResult?.meshes.forEach((mesh) => !mesh.parent && (mesh.parent = this));
+        this._lastLoadResult?.lights.forEach((light) => !light.parent && (light.parent = this));
+        this._lastLoadResult?.cameras.forEach((camera) => !camera.parent && (camera.parent = this));
+        this._lastLoadResult?.transformNodes.forEach((transformNode) => !transformNode.parent && (transformNode.parent = this));
 
-        return result;
+        return this._lastLoadResult;
+    }
+
+    private _disposeLastLoadResult(): void {
+        if (this._lastLoadResult) {
+            this._lastLoadResult.meshes.forEach((mesh) => mesh.dispose(true, true));
+            this._lastLoadResult.lights.forEach((light) => light.dispose(true, true));
+            this._lastLoadResult.cameras.forEach((camera) => camera.dispose(true, true));
+            this._lastLoadResult.transformNodes.forEach((transformNode) => transformNode.dispose(true, true));
+            this._lastLoadResult.sceneLinks.forEach((sceneLink) => sceneLink.dispose());
+            this._lastLoadResult.animationGroups.forEach((animationGroup) => animationGroup.dispose());
+
+            this._lastLoadResult = null;
+        }
     }
 
     /**
      * Releases resources associated with this scene link.
      */
     public dispose(): void {
+        this._disposeLastLoadResult();
         super.dispose(false, true);
     }
 

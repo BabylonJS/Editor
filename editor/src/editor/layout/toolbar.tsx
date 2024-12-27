@@ -1,4 +1,3 @@
-import { platform } from "os";
 import { ipcRenderer } from "electron";
 import { dirname, join } from "path/posix";
 
@@ -6,6 +5,7 @@ import { Component, ReactNode } from "react";
 
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
 
+import { isDarwin } from "../../tools/os";
 import { execNodePty } from "../../tools/node-pty";
 import { openSingleFileDialog } from "../../tools/dialog";
 
@@ -20,8 +20,6 @@ import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight }
 import { addTransformNode, addBoxMesh, addGroundMesh, addSphereMesh, addPlaneMesh } from "../../project/add/mesh";
 
 import { Editor } from "../main";
-
-const isDarwin = platform() === "darwin";
 
 export interface IEditorToolbarProps {
     editor: Editor;
@@ -52,11 +50,11 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
     public render(): ReactNode {
         return (
             <>
-                {isDarwin &&
+                {isDarwin() &&
                     <div className="absolute top-0 left-0 w-screen h-10 electron-draggable" />
                 }
 
-                {(!isDarwin || process.env.DEBUG) &&
+                {(!isDarwin() || process.env.DEBUG) &&
                     this._getToolbar()
                 }
             </>

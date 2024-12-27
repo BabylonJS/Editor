@@ -51,6 +51,7 @@ export type SceneLoadResult = {
     meshes: AbstractMesh[];
     sceneLinks: SceneLinkNode[];
     transformNodes: TransformNode[];
+    animationGroups: AnimationGroup[];
 };
 
 export async function loadScene(editor: Editor, projectPath: string, scenePath: string, options?: SceneLoaderOptions): Promise<SceneLoadResult> {
@@ -63,6 +64,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         cameras: [],
         sceneLinks: [],
         transformNodes: [],
+        animationGroups: [],
     } as SceneLoadResult;
 
     options ??= {};
@@ -518,6 +520,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         const group = AnimationGroup.Parse(data, scene);
         if (group.targetedAnimations.length === 0) {
             group.dispose();
+        } else {
+            loadResult.animationGroups.push(group);
         }
     });
 

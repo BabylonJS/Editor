@@ -23,6 +23,11 @@ ipcMain.on("window:close", async (ev) => {
     window?.close();
 });
 
-ipcMain.on("window:open", (_, indexPath, options) => {
-    createCustomWindow(indexPath, options);
+ipcMain.on("window:open", async (ev, indexPath, options) => {
+    const newWindow = await createCustomWindow(indexPath, options);
+
+    if (options.tabbed) {
+        const parentWindow = BrowserWindow.fromWebContents(ev.sender);
+        parentWindow?.addTabbedWindow(newWindow);
+    }
 });
