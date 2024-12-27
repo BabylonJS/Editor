@@ -17,7 +17,7 @@ import { BaseTexture, Node, Scene, Sound, Tools } from "babylonjs";
 
 import { Editor } from "../main";
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 
 import { isSound } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
@@ -56,6 +56,15 @@ export interface IEditorGraphState {
     isFocused: boolean;
 
     /**
+     * Defines wether or not only lights should be shown in the graph.
+     */
+    showOnlyLights: boolean;
+    /**
+     * Defines wether or not only decals should be shown in the graph.
+     */
+    showOnlyDecals: boolean;
+
+    /**
      * Defines wether or not instanced meshes should be hidden from the graph.
      */
     hideInstancedMeshes: boolean;
@@ -72,6 +81,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             nodes: [],
             search: "",
             isFocused: false,
+
+            showOnlyLights: false,
+            showOnlyDecals: false,
 
             hideInstancedMeshes: false,
         };
@@ -110,6 +122,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                             }}>
                                 {this.state.hideInstancedMeshes ? <IoCheckmark /> : ""} Hide Instanced Meshes
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
+                                this.setState({ showOnlyLights: !this.state.showOnlyLights }, () => this.refresh());
+                            }}>
+                                {this.state.showOnlyLights ? <IoCheckmark /> : ""} Show Only Lights
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
+                                this.setState({ showOnlyDecals: !this.state.showOnlyDecals }, () => this.refresh());
+                            }}>
+                                {this.state.showOnlyDecals ? <IoCheckmark /> : ""} Show Only Decals
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -146,9 +169,24 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
         this._soundsList = scene.soundTracks?.map((st) => st.soundCollection).flat() ?? [];
 
-        const nodes = scene.rootNodes
-            .filter((n) => !isEditorCamera(n))
-            .map((n) => this._parseSceneNode(n));
+        let nodes: (TreeNodeInfo | null)[] = [];
+
+        if (this.state.showOnlyLights || this.state.showOnlyDecals) {
+            if (this.state.showOnlyLights) {
+                nodes.push(...scene.lights.map((light) => this._parseSceneNode(light, true)));
+            }
+
+            if (this.state.showOnlyDecals) {
+                nodes.push(...scene.meshes
+                    .filter((mesh) => mesh.metadata?.decal)
+                    .map((mesh) => this._parseSceneNode(mesh, true))
+                );
+            }
+        } else {
+            nodes = scene.rootNodes
+                .filter((n) => !isEditorCamera(n))
+                .map((n) => this._parseSceneNode(n));
+        }
 
         const guiNode = this._parseGuiNode(scene);
         if (guiNode) {
@@ -537,7 +575,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         return rootGuiNode;
     }
 
-    private _parseSceneNode(node: Node): TreeNodeInfo | null {
+    private _parseSceneNode(node: Node, noChildren?: boolean): TreeNodeInfo | null {
         if (
             isMesh(node) && (node._masterMesh || isMeshMetadataNotVisibleInGraph(node)) ||
             isCollisionMesh(node) ||
@@ -582,11 +620,12 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             nodeData: node,
             isSelected: false,
             childNodes: [],
+            hasCaret: false,
             icon: this._getNodeIconComponent(node),
             label: this._getNodeLabelComponent(node, node.name),
         } as TreeNodeInfo;
 
-        if (!isSceneLinkNode(node)) {
+        if (!isSceneLinkNode(node) && !noChildren) {
             const children = node.getDescendants(true);
             if (children.length) {
                 info.childNodes = children.map((c) => this._parseSceneNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
