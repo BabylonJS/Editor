@@ -11,8 +11,8 @@
     "typings": "declaration/index.ts",
     "license": "(Apache-2.0)",
     "devDependencies": {
-        "@babylonjs/core": "7.34.1",
-        "@babylonjs/gui": "7.34.1",
+        "@babylonjs/core": "7.44.0",
+        "@babylonjs/gui": "7.44.0",
         "typescript": "5.3.3"
     },
     "dependencies": {}
