@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { VscJson } from "react-icons/vsc";
 import { RiFinderFill } from "react-icons/ri";
 import { BiSolidFileCss } from "react-icons/bi";
+import { GiCeilingLight } from "react-icons/gi";
 import { GrStatusUnknown } from "react-icons/gr";
 import { BsFiletypeMp3, BsFiletypeWav } from "react-icons/bs";
 import { AiFillFileMarkdown, AiOutlineClose } from "react-icons/ai";
@@ -356,15 +357,18 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
             case ".ico":
                 return <img alt="" src={this.props.absolutePath} className="w-[120px] aspect-square object-contain" />;
 
-            case ".env": return <SiDotenv size="64px" />;
+            case ".env":
+                return <SiDotenv size="64px" />;
 
-            case ".mp3": return <BsFiletypeMp3 size="64px" />;
+            case ".mp3":
+                return <BsFiletypeMp3 size="64px" />;
 
             case ".wav":
             case ".wave":
                 return <BsFiletypeWav size="64px" />;
 
-            case ".json": return <VscJson size="64px" />;
+            case ".json":
+                return <VscJson size="64px" />;
 
             case ".js":
             case ".jsx":
@@ -380,7 +384,11 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
             case ".md":
                 return <AiFillFileMarkdown size="80px" />;
 
-            case ".bjseditor": return <SiBabylondotjs size="64px" />;
+            case ".bjseditor":
+                return <SiBabylondotjs size="64px" />;
+
+            case ".ies":
+                return <GiCeilingLight size="64px" />;
 
             default: return null;
         }

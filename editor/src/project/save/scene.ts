@@ -379,6 +379,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
     try {
         await writeJSON(configPath, {
+            clearColor: scene.clearColor.asArray(),
+            ambientColor: scene.ambientColor.asArray(),
             environment: {
                 environmentIntensity: scene.environmentIntensity,
                 environmentTexture: scene.environmentTexture ? {

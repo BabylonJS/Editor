@@ -17,6 +17,7 @@ export function disposeMotionBlurPostProcess(): void {
 
 export function createMotionBlurPostProcess(editor: Editor): MotionBlurPostProcess {
     motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", editor.layout.preview.scene, 1.0, editor.layout.preview.scene.activeCamera);
+    motionBlurPostProcess.samples = 16;
     motionBlurPostProcess.motionStrength = 1.0;
     motionBlurPostProcess.isObjectBased = true;
 
@@ -29,6 +30,7 @@ export function serializeMotionBlurPostProcess(): any {
     }
 
     return {
+        samples: motionBlurPostProcess.samples,
         isObjectBased: motionBlurPostProcess.isObjectBased,
         motionStrength: motionBlurPostProcess.motionStrength,
         motionBlurSamples: motionBlurPostProcess.motionBlurSamples,
@@ -41,6 +43,10 @@ export function parseMotionBlurPostProcess(editor: Editor, data: any): MotionBlu
     motionBlurPostProcess.isObjectBased = data.isObjectBased;
     motionBlurPostProcess.motionStrength = data.motionStrength;
     motionBlurPostProcess.motionBlurSamples = data.motionBlurSamples;
+
+    if (data.samples) {
+        motionBlurPostProcess.samples = data.samples;
+    }
 
     return motionBlurPostProcess;
 }

@@ -4,7 +4,7 @@ import { readJSON, readdir } from "fs-extra";
 import {
     AbstractMesh, AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager,
     RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode, MultiMaterial, Animation,
-    Sound,
+    Sound, Color4,
 } from "babylonjs";
 
 import { Editor } from "../../editor/main";
@@ -150,6 +150,15 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         scene.fogEnd = config.fog.fogEnd;
         scene.fogDensity = config.fog.fogDensity;
         scene.fogColor = Color3.FromArray(config.fog.fogColor);
+
+        // Colors
+        if (config.clearColor) {
+            scene.clearColor = Color4.FromArray(config.clearColor);
+        }
+
+        if (config.ambientColor) {
+            scene.ambientColor = Color3.FromArray(config.ambientColor);
+        }
 
         // Load pipelines
         if (config.rendering.ssao2RenderingPipeline) {

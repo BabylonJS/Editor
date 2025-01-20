@@ -1,6 +1,7 @@
 import { dirname, join, extname, basename } from "path/posix";
 import { copyFile, mkdir, move, pathExists, readdir, stat, writeJSON } from "fs-extra";
 
+import { SkyMaterial } from "babylonjs-materials";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { Camera, Material, NodeMaterial, PBRMaterial, StandardMaterial, Tools } from "babylonjs";
 
@@ -553,6 +554,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                                 <ContextMenuItem onClick={() => this._handleAddMaterial("PBRMaterial")}>PBR Material</ContextMenuItem>
                                 <ContextMenuItem onClick={() => this._handleAddMaterial("StandardMaterial")}>Standard Material</ContextMenuItem>
                                 <ContextMenuItem onClick={() => this._handleAddMaterial("NodeMaterial")}>Node Material</ContextMenuItem>
+                                <ContextMenuItem onClick={() => this._handleAddMaterial("SkyMaterial")}>Sky Material</ContextMenuItem>
 
                                 {this.props.editor.state.enableExperimentalFeatures &&
                                     <>
@@ -726,6 +728,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                 nodeMaterial.setToDefault();
 
                 material = nodeMaterial;
+                break;
+
+            case "SkyMaterial":
+                material = new SkyMaterial("New Sky Material", this.props.editor.layout.preview.scene);
                 break;
         }
 
