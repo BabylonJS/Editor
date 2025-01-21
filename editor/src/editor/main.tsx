@@ -8,6 +8,7 @@ import { createRoot } from "react-dom/client";
 import { HotkeysTarget2 } from "@blueprintjs/core";
 
 import { waitUntil } from "../tools/tools";
+import { initializeHavok } from "../tools/physics/init";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
 import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
 
@@ -181,8 +182,6 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
         ipcRenderer.on("editor:path", (_, path) => this.path = path);
 
-        ipcRenderer.send("editor:ready");
-
         // Undo-redo
         ipcRenderer.on("undo", () => undo());
         ipcRenderer.on("redo", () => redo());
@@ -198,6 +197,9 @@ export class Editor extends Component<IEditorProps, IEditorState> {
             this.layout.inspector.forceUpdate();
             this.layout.animations.forceUpdate();
         });
+
+        // Ready
+        ipcRenderer.send("editor:ready");
     }
 
     /**
@@ -205,7 +207,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
      * @param absolutePath defines the absolute path to the project to open.
      */
     public async openProject(absolutePath: string): Promise<void> {
-        await waitUntil(() => this.layout.preview.scene);
+        await waitUntil(() => this.layout.preview.scene && this.path);
 
         ipcRenderer.send("editor:maximize-window");
 
@@ -217,6 +219,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
         disposeMotionBlurPostProcess();
         disposeSSAO2RenderingPipeline();
         disposeDefaultRenderingPipeline();
+
+        await initializeHavok(this.path!);
 
         await loadProject(this, absolutePath);
 
