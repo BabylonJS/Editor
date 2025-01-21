@@ -13,7 +13,7 @@ import { GiWireframeGlobe } from "react-icons/gi";
 
 import {
     AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
-    ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine,
+    ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin,
 } from "babylonjs";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
@@ -344,6 +344,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             type: new CubicEase(),
             mode: EasingFunction.EASINGMODE_EASEINOUT,
         };
+
+        this.scene.enablePhysics(new Vector3(0, -9.81, 0), new HavokPlugin());
 
         this.icons?.start();
         this.forceUpdate();

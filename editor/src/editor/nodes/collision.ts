@@ -233,6 +233,10 @@ export class CollisionMesh extends Mesh {
         collisionMesh.scaling = sourceMesh.scaling;
         collisionMesh.isVisible = false;
 
+        collisionMesh.metadata = {
+            isCollisionMesh: true,
+        };
+
         setTimeout(() => {
             geometry?.applyToMesh(collisionMesh);
         }, 0);
@@ -250,6 +254,10 @@ export class CollisionMesh extends Mesh {
             collisionInstance.rotationQuaternion = instance.rotationQuaternion;
             collisionInstance.scaling = instance.scaling;
             collisionInstance.isVisible = false;
+
+            collisionInstance.metadata = {
+                isCollisionMesh: true,
+            };
         });
 
         return collisionMesh;
