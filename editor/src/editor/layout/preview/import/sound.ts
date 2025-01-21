@@ -12,13 +12,6 @@ import { projectConfiguration } from "../../../../project/configuration";
 
 import { Editor } from "../../../main";
 
-declare module "babylonjs" {
-    export interface Sound {
-        id: string;
-        uniqueId: number;
-    }
-}
-
 export async function applySoundAsset(editor: Editor, object: any, absolutePath: string) {
     const relativePath = absolutePath.replace(join(dirname(projectConfiguration.path!), "/"), "");
 
