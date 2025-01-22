@@ -11,6 +11,7 @@ import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 
 import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
 import { serializeSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
@@ -106,6 +107,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                         delete instanceData.parentId;
                     }
                 });
+
+                if (instantiatedMesh?.physicsAggregate) {
+                    mesh.physicsAggregate = serializePhysicsAggregate(instantiatedMesh.physicsAggregate);
+                }
             });
 
             const lodLevel = mesh.getLODLevels().find((lodLevel) => lodLevel.mesh === meshToSerialize);

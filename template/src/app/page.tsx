@@ -4,6 +4,10 @@ import { useEffect, useRef } from "react";
 
 import { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
+
+import HavokPhysics from "@babylonjs/havok";
 
 import "@babylonjs/core/Loading/loadingScreen";
 import "@babylonjs/core/Loading/Plugins/babylonFileLoader";
@@ -17,11 +21,14 @@ import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 
 import "@babylonjs/core/Materials/PBR/pbrMaterial";
 import "@babylonjs/core/Materials/standardMaterial";
+import "@babylonjs/core/XR/features/WebXRDepthSensing";
 
 import "@babylonjs/core/Rendering/depthRendererSceneComponent";
 import "@babylonjs/core/Rendering/prePassRendererSceneComponent";
 
 import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
+
+import "@babylonjs/core/Physics";
 
 import "@babylonjs/materials/sky";
 
@@ -55,15 +62,7 @@ export default function Home() {
 
         const scene = new Scene(engine);
 
-        loadScene("/scene/", "example.babylon", scene, scriptsMap, "high").then(() => {
-            if (scene.activeCamera) {
-                scene.activeCamera.attachControl();
-            }
-
-            engine.runRenderLoop(() => {
-                scene.render();
-            });
-        });
+        handleLoad(engine, scene);
 
         let listener: () => void;
         window.addEventListener("resize", listener = () => {
@@ -77,6 +76,22 @@ export default function Home() {
             window.removeEventListener("resize", listener);
         };
     }, [canvasRef]);
+
+    async function handleLoad(engine: Engine, scene: Scene) {
+        const havok = await HavokPhysics();
+
+        scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(undefined, havok));
+
+        await loadScene("/scene/", "example.babylon", scene, scriptsMap, "high");
+
+        if (scene.activeCamera) {
+            scene.activeCamera.attachControl();
+        }
+
+        engine.runRenderLoop(() => {
+            scene.render();
+        });
+    }
 
     return (
         <main className="flex w-screen h-screen flex-col items-center justify-between">

@@ -28,6 +28,7 @@ import { createSceneLink } from "../../tools/scene/scene-link";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { configureSimultaneousLightsForMaterial } from "../../tools/mesh/material";
 import { isAbstractMesh, isCollisionMesh, isMesh } from "../../tools/guards/nodes";
+import { parsePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 import { showLoadSceneProgressDialog } from "./progress";
@@ -289,6 +290,12 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                     if (!isCollisionMesh(m)) {
                         return;
                     }
+                }
+
+                // Handle physics
+                if (meshData?.physicsAggregate) {
+                    m.physicsAggregate = parsePhysicsAggregate(m, meshData.physicsAggregate);
+                    m.physicsAggregate.body.disableSync = true;
                 }
 
                 loadResult.meshes.push(m);

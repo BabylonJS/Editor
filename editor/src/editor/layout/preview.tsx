@@ -349,7 +349,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             mode: EasingFunction.EASINGMODE_EASEINOUT,
         };
 
-        this.scene.enablePhysics(new Vector3(0, -9.81, 0), new HavokPlugin());
+        this.scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin());
 
         this.icons?.start();
         this.forceUpdate();

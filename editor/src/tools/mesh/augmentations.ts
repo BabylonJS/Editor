@@ -1,9 +1,9 @@
 import { PhysicsAggregate } from "babylonjs";
 
-export { Mesh } from "babylonjs";
+export { AbstractMesh } from "babylonjs";
 
 declare module "babylonjs" {
-    export interface Mesh {
-        physicsAggregate?: PhysicsAggregate;
+    export interface AbstractMesh {
+        physicsAggregate?: PhysicsAggregate | null;
     }
 }

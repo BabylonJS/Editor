@@ -1,12 +1,12 @@
 import { Component, ReactNode } from "react";
 
-import { AbstractMesh, PhysicsAggregate, PhysicsBody, PhysicsShapeType } from "babylonjs";
+import { AbstractMesh, PhysicsAggregate, PhysicsShapeType } from "babylonjs";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { EditorInspectorSwitchField } from "../fields/switch";
-import { EditorInspectorSectionField } from "../fields/section";
 import { EditorInspectorNumberField } from "../fields/number";
+import { EditorInspectorSectionField } from "../fields/section";
 
 export interface IEditorMeshPhysicsInspectorProps {
     mesh: AbstractMesh;
@@ -22,31 +22,33 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
             <EditorInspectorSectionField title="Physics">
                 <EditorInspectorSwitchField object={o} property="hasPhysicsBody" label="Enabled" noUndoRedo onChange={() => this._handleHasPhysicsAggregateChange()} />
 
-                {this.props.mesh.physicsBody &&
-                    this._getPhysicsInspector(this.props.mesh.physicsBody)
+                {this.props.mesh.physicsAggregate &&
+                    this._getPhysicsInspector(this.props.mesh.physicsAggregate)
                 }
             </EditorInspectorSectionField>
         );
     }
 
     private _handleHasPhysicsAggregateChange(): void {
-        const body = this.props.mesh.physicsBody;
+        const aggregate = this.props.mesh.physicsAggregate;
 
         registerUndoRedo({
             executeRedo: true,
             undo: () => {
-                this.props.mesh.physicsBody = body;
+                this.props.mesh.physicsAggregate = aggregate;
+                this.props.mesh.physicsBody = aggregate?.body ?? null;
             },
             redo: () => {
-                if (body) {
+                if (aggregate) {
                     this.props.mesh.physicsBody = null;
+                    this.props.mesh.physicsAggregate = null;
                 } else {
                     const aggregate = new PhysicsAggregate(this.props.mesh, this._getPhysicsShape(), {
                         mass: 1,
                     });
                     aggregate.body.disableSync = true;
 
-                    this.props.mesh.physicsBody = aggregate.body;
+                    this.props.mesh.physicsAggregate = aggregate;
                 }
             },
         });
@@ -55,21 +57,27 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
     }
 
     private _getPhysicsShape(): PhysicsShapeType {
-        if (this.props.mesh.metadata?.type === "Box") {
-            return PhysicsShapeType.BOX;
+        switch (this.props.mesh.metadata?.type) {
+            case "Box":
+            case "Ground":
+                return PhysicsShapeType.BOX;
         }
 
         return PhysicsShapeType.MESH;
     }
 
-    private _getPhysicsInspector(body: PhysicsBody): ReactNode {
-        const material = body.shape?.material;
-        const massProperties = body.getMassProperties();
+    private _getPhysicsInspector(aggregate: PhysicsAggregate): ReactNode {
+        const material = aggregate.material;
+        const massProperties = aggregate.body.getMassProperties();
 
         return (
             <>
-                <EditorInspectorNumberField object={massProperties} property="mass" label="Mass" min={0} onChange={() => body.computeMassProperties()} />
+                <EditorInspectorNumberField object={massProperties} property="mass" label="Mass" min={0} onChange={() => aggregate.body.setMassProperties({
+                    ...aggregate.body.getMassProperties(),
+                    mass: massProperties.mass,
+                })} />
                 <EditorInspectorNumberField object={material} property="friction" label="Friction" min={0} max={1} />
+                <EditorInspectorNumberField object={material} property="restitution" label="Restitution" min={0} max={1} />
             </>
         );
     }

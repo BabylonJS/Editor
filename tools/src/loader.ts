@@ -8,6 +8,7 @@ import { parseDefaultRenderingPipeline } from "./rendering/default-pipeline";
 
 import { applyDecorators } from "./decorators/apply";
 
+import { configurePhysicsAggregate } from "./physics";
 import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "./light";
 
 import "./texture";
@@ -79,10 +80,23 @@ export async function loadScene(rootUrl: string, sceneFilename: string, scene: S
     }
 
     loadScriptsFor(scene, scene, scriptsMap, rootUrl);
-    scene.transformNodes.forEach((transformNode) => loadScriptsFor(scene, transformNode, scriptsMap, rootUrl));
-    scene.meshes.forEach((mesh) => loadScriptsFor(scene, mesh, scriptsMap, rootUrl));
-    scene.lights.forEach((light) => loadScriptsFor(scene, light, scriptsMap, rootUrl));
-    scene.cameras.forEach((camera) => loadScriptsFor(scene, camera, scriptsMap, rootUrl));
+
+    scene.transformNodes.forEach((transformNode) => {
+        loadScriptsFor(scene, transformNode, scriptsMap, rootUrl);
+    });
+
+    scene.meshes.forEach((mesh) => {
+        configurePhysicsAggregate(mesh);
+        loadScriptsFor(scene, mesh, scriptsMap, rootUrl);
+    });
+
+    scene.lights.forEach((light) => {
+        loadScriptsFor(scene, light, scriptsMap, rootUrl);
+    });
+
+    scene.cameras.forEach((camera) => {
+        loadScriptsFor(scene, camera, scriptsMap, rootUrl);
+    });
 }
 
 export function loadScriptsFor(scene: Scene, object: any, scriptsMap: ScriptMap, rootUrl: string): void {

@@ -23,6 +23,7 @@ import { writeBinaryGeometry } from "../geometry";
 import { compressFileToKtx } from "./ktx";
 import { configureMeshesLODs } from "./lod";
 import { handleExportScripts } from "./scripts";
+import { configureMeshesPhysics } from "./physics";
 import { handleComputeExportedTexture } from "./texture";
 import { EditorExportProjectProgressComponent } from "./progress";
 
@@ -112,6 +113,7 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
     delete data.postProcesses;
 
     configureMeshesLODs(data, scene);
+    configureMeshesPhysics(data, scene);
 
     const projectDir = dirname(editor.state.projectPath);
     const publicPath = join(projectDir, "public");
