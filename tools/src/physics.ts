@@ -2,6 +2,8 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 
+import { isMesh } from "./guards";
+
 /**
  * Parses and loads the physics aggregate data for the given mesh.
  * @param mesh defines the reference to the mesh object.
@@ -12,7 +14,12 @@ export function configurePhysicsAggregate(mesh: AbstractMesh) {
         return;
     }
 
-    const aggregate = new PhysicsAggregate(mesh, data.shape.type);
+    const shapeType = data.shape.type;
+
+    const aggregate = new PhysicsAggregate(mesh, shapeType, {
+        mass: data.massProperties.mass,
+        mesh: isMesh(mesh) ? mesh : undefined,
+    });
 
     aggregate.body.setMassProperties({
         mass: data.massProperties.mass,
@@ -23,7 +30,7 @@ export function configurePhysicsAggregate(mesh: AbstractMesh) {
 
     aggregate.shape.density = data.shape.density;
     aggregate.body.setMotionType(data.body.motionType);
-    aggregate.material = data.material;
+    aggregate.shape.material = data.material;
 
     mesh.metadata.physicsAggregate = undefined;
 }

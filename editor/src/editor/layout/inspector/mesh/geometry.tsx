@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
 
-import { CreateBoxVertexData, CreateGroundVertexData, Mesh } from "babylonjs";
+import { CreateBoxVertexData, CreateSphereVertexData, CreateGroundVertexData, Mesh } from "babylonjs";
 
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
@@ -13,6 +13,10 @@ export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps
     public render(): ReactNode {
         if (this.props.object.metadata?.type === "Box") {
             return this._getBoxInspectorComponent();
+        }
+
+        if (this.props.object.metadata?.type === "Sphere") {
+            return this._getSphereInspectorComponent();
         }
 
         if (this.props.object.metadata?.type === "Ground") {
@@ -36,6 +40,22 @@ export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps
                 <EditorInspectorNumberField object={proxy} property="width" label="Width" step={0.1} />
                 <EditorInspectorNumberField object={proxy} property="height" label="Height" step={0.1} />
                 <EditorInspectorNumberField object={proxy} property="depth" label="Depth" step={0.1} />
+            </EditorInspectorSectionField>
+        );
+    }
+
+    private _getSphereInspectorComponent(): ReactNode {
+        const proxy = this._getProxy(() => {
+            this.props.object.geometry?.setAllVerticesData(CreateSphereVertexData({
+                diameter: this.props.object.metadata.diameter,
+                segments: this.props.object.metadata.segments,
+            }), false);
+        });
+
+        return (
+            <EditorInspectorSectionField title="Sphere">
+                <EditorInspectorNumberField object={proxy} property="diameter" label="Diameter" step={0.1} min={0.01} />
+                <EditorInspectorNumberField object={proxy} property="segments" label="Segments" step={0.1} min={2} />
             </EditorInspectorSectionField>
         );
     }

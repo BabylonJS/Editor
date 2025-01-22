@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
 
 import HavokPhysics from "@babylonjs/havok";
@@ -79,9 +80,9 @@ export default function Home() {
 
     async function handleLoad(engine: Engine, scene: Scene) {
         const havok = await HavokPhysics();
+        scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
 
-        scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(undefined, havok));
-
+        SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
         await loadScene("/scene/", "example.babylon", scene, scriptsMap, "high");
 
         if (scene.activeCamera) {

@@ -105,6 +105,11 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                         instanceData.uniqueId = instance.uniqueId;
 
                         delete instanceData.parentId;
+
+                        if (instance?.physicsAggregate) {
+                            instanceData.metadata ??= {};
+                            instanceData.metadata.physicsAggregate = serializePhysicsAggregate(instance.physicsAggregate);
+                        }
                     }
                 });
 

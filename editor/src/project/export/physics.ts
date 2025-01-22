@@ -15,11 +15,21 @@ export function configureMeshesPhysics(data: any, scene: Scene) {
         }
 
         const mesh = scene.getMeshById(m.id);
-        if (!mesh || !isMesh(mesh) || !mesh.physicsAggregate) {
+        if (!mesh || !isMesh(mesh)) {
             return;
         }
 
-        m.metadata ??= {};
-        m.metadata.physicsAggregate = serializePhysicsAggregate(mesh.physicsAggregate);
+        if (mesh.physicsAggregate) {
+            m.metadata ??= {};
+            m.metadata.physicsAggregate = serializePhysicsAggregate(mesh.physicsAggregate);
+        }
+
+        m.instances?.forEach((instance) => {
+            const instancedMesh = mesh.instances.find((i) => i.id === instance.id);
+            if (instancedMesh?.physicsAggregate) {
+                instance.metadata ??= {};
+                instance.metadata.physicsAggregate = serializePhysicsAggregate(instancedMesh.physicsAggregate);
+            }
+        });
     });
 }

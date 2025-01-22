@@ -275,6 +275,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                         instance.metadata._waitingParentId = instanceData.metadata?.parentId;
 
                         delete instance.metadata.parentId;
+
+                        if (instanceData.metadata?.physicsAggregate) {
+                            instance.physicsAggregate = parsePhysicsAggregate(m, instanceData.metadata.physicsAggregate);
+                            instance.physicsAggregate.body.disableSync = true;
+                        }
                     }
 
                     loadResult.meshes.push(instance);

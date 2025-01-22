@@ -1,5 +1,11 @@
 import { TransformNode, PhysicsAggregate, Vector3, Quaternion } from "babylonjs";
 
+import { isMesh } from "../../guards/nodes";
+
+/**
+ * Returns the JSON representation of the given physics aggregate.
+ * @param aggregate defines the reference to the physics aggregate object to serialize.
+ */
 export function serializePhysicsAggregate(aggregate: PhysicsAggregate) {
     return {
         shape: {
@@ -16,17 +22,25 @@ export function serializePhysicsAggregate(aggregate: PhysicsAggregate) {
             inertiaOrientation: aggregate.body.getMassProperties().inertiaOrientation?.asArray(),
         },
         material: {
-            friction: aggregate.material.friction,
-            restitution: aggregate.material.restitution,
-            staticFriction: aggregate.material.staticFriction,
-            frictionCombine: aggregate.material.frictionCombine,
-            restitutionCombine: aggregate.material.restitutionCombine,
+            friction: aggregate.shape.material.friction,
+            restitution: aggregate.shape.material.restitution,
+            staticFriction: aggregate.shape.material.staticFriction,
+            frictionCombine: aggregate.shape.material.frictionCombine,
+            restitutionCombine: aggregate.shape.material.restitutionCombine,
         },
     };
 }
 
+/**
+ * Returns a new instance of PhysicsAggregate from the given JSON representation.
+ * @param transformNode defines the reference to the transform node to setup the physics aggregate.
+ * @param data defines the JSON representation of the physics aggregate to parse.
+ */
 export function parsePhysicsAggregate(transformNode: TransformNode, data: any) {
-    const aggregate = new PhysicsAggregate(transformNode, data.shape.type);
+    const aggregate = new PhysicsAggregate(transformNode, data.shape.type, {
+        mass: data.massProperties.mass,
+        mesh: isMesh(transformNode) ? transformNode : undefined,
+    });
 
     aggregate.body.setMassProperties({
         mass: data.massProperties.mass,
@@ -37,7 +51,7 @@ export function parsePhysicsAggregate(transformNode: TransformNode, data: any) {
 
     aggregate.shape.density = data.shape.density;
     aggregate.body.setMotionType(data.body.motionType);
-    aggregate.material = data.material;
+    aggregate.shape.material = data.material;
 
     return aggregate;
 }
