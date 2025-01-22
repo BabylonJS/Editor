@@ -7,7 +7,7 @@ export function serializePhysicsAggregate(aggregate: PhysicsAggregate) {
             density: aggregate.shape.density,
         },
         body: {
-            motionType: aggregate.body.motionType,
+            motionType: aggregate.body.getMotionType(),
         },
         massProperties: {
             mass: aggregate.body.getMassProperties().mass,
@@ -26,10 +26,7 @@ export function serializePhysicsAggregate(aggregate: PhysicsAggregate) {
 }
 
 export function parsePhysicsAggregate(transformNode: TransformNode, data: any) {
-    const aggregate = new PhysicsAggregate(
-        transformNode,
-        data.shape.type,
-    );
+    const aggregate = new PhysicsAggregate(transformNode, data.shape.type);
 
     aggregate.body.setMassProperties({
         mass: data.massProperties.mass,

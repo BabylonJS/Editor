@@ -109,7 +109,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 });
 
                 if (instantiatedMesh?.physicsAggregate) {
-                    mesh.physicsAggregate = serializePhysicsAggregate(instantiatedMesh.physicsAggregate);
+                    mesh.metadata ??= {};
+                    mesh.metadata.physicsAggregate = serializePhysicsAggregate(instantiatedMesh.physicsAggregate);
                 }
             });
 
