@@ -22,7 +22,8 @@ import { Editor } from "../main";
 
 import { Tween } from "../../tools/animation/tween";
 import { registerUndoRedo } from "../../tools/undoredo";
-import { waitNextAnimationFrame } from "../../tools/tools";
+import { initializeHavok } from "../../tools/physics/init";
+import { waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { isAbstractMesh, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
@@ -295,6 +296,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         if (this.engine) {
             return;
         }
+
+        await waitUntil(() => this.props.editor.path);
+        await initializeHavok(this.props.editor.path!);
 
         Animation.AllowMatricesInterpolation = true;
         Animation.AllowMatrixDecomposeForInterpolation = true;

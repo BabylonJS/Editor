@@ -40,6 +40,7 @@ import { EditorStandardMaterialInspector } from "../material/standard";
 
 import { MeshDecalInspector } from "./decal";
 import { MeshGeometryInspector } from "./geometry";
+import { EditorMeshPhysicsInspector } from "./physics";
 import { EditorMeshCollisionInspector } from "./collision";
 
 export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
@@ -119,6 +120,8 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                         {this._getLODsComponent()}
                     </>
                 }
+
+                <EditorMeshPhysicsInspector mesh={this.props.object} />
 
                 {this._getMaterialComponent()}
                 {this._getSkeletonComponent()}

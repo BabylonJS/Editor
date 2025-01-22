@@ -8,7 +8,6 @@ import { createRoot } from "react-dom/client";
 import { HotkeysTarget2 } from "@blueprintjs/core";
 
 import { waitUntil } from "../tools/tools";
-import { initializeHavok } from "../tools/physics/init";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
 import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
 
@@ -207,7 +206,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
      * @param absolutePath defines the absolute path to the project to open.
      */
     public async openProject(absolutePath: string): Promise<void> {
-        await waitUntil(() => this.layout.preview.scene && this.path);
+        await waitUntil(() => this.layout.preview.scene);
 
         ipcRenderer.send("editor:maximize-window");
 
@@ -219,8 +218,6 @@ export class Editor extends Component<IEditorProps, IEditorState> {
         disposeMotionBlurPostProcess();
         disposeSSAO2RenderingPipeline();
         disposeDefaultRenderingPipeline();
-
-        await initializeHavok(this.path!);
 
         await loadProject(this, absolutePath);
 
