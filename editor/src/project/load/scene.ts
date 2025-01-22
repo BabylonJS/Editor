@@ -298,7 +298,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                 }
 
                 // Handle physics
-                if (meshData?.metadata.physicsAggregate) {
+                if (meshData?.metadata?.physicsAggregate) {
                     m.physicsAggregate = parsePhysicsAggregate(m, meshData.metadata.physicsAggregate);
                     m.physicsAggregate.body.disableSync = true;
                 }
