@@ -67,12 +67,12 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
         const material = aggregate.shape.material;
         const massProperties = aggregate.body.getMassProperties();
 
-        function setMassProperties(properties: Partial<PhysicsMassProperties>) {
+        const setMassProperties = (properties: Partial<PhysicsMassProperties>) => {
             aggregate.body.setMassProperties({
                 ...aggregate.body.getMassProperties(),
                 ...properties,
             });
-        }
+        };
 
         return (
             <>
@@ -114,7 +114,7 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
             { text: "Mesh", value: PhysicsShapeType.MESH },
         ];
 
-        function configureShape(value: PhysicsShapeType) {
+        const configureShape = (value: PhysicsShapeType) => {
             aggregate.shape = new PhysicsShape({
                 type: value,
                 parameters: {
@@ -123,7 +123,7 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
             }, this.props.mesh.getScene());
 
             aggregate.body.disableSync = true;
-        }
+        };
 
         return (
             <EditorInspectorListField noUndoRedo object={o} property="type" label="Shape Type" items={items} onChange={(value, oldValue) => {
@@ -141,10 +141,10 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
             type: aggregate.body.getMotionType(),
         };
 
-        function configureMotionType(value: PhysicsMotionType) {
+        const configureMotionType = (value: PhysicsMotionType) => {
             aggregate.body.setMotionType(value);
             aggregate.body.disableSync = true;
-        }
+        };
 
         return (
             <EditorInspectorListField noUndoRedo object={o} property="type" label="Shape Type" items={[

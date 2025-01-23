@@ -103,7 +103,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 onClick={() => this.setState({ isFocused: true })}
                 onMouseLeave={() => this.setState({ isFocused: false })}
             >
-                <div className="flex justify-between w-full p-2">
+                <div className="flex justify-between gap-2 w-full p-2">
                     <input
                         type="text"
                         placeholder="Search..."
