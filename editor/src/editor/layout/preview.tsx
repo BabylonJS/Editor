@@ -217,7 +217,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     /**
      * Resets the preview component by re-creating the engine and an empty scene.
      */
-    public reset(): void {
+    public async reset(): Promise<void> {
         const canvas = this.engine?.getRenderingCanvas();
         if (!canvas) {
             return;
@@ -236,7 +236,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         this.scene = null!;
         this.engine = null!;
 
-        this._onGotCanvasRef(canvas);
+        return this._onGotCanvasRef(canvas);
     }
 
     /**

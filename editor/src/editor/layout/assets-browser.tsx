@@ -688,7 +688,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
         const serializedCamera = this.props.editor.layout.preview.camera.serialize();
 
-        this.props.editor.layout.preview.reset();
+        await this.props.editor.layout.preview.reset();
 
         const camera = Camera.Parse(serializedCamera, this.props.editor.layout.preview.scene) as EditorCamera | null;
         if (camera) {
@@ -941,7 +941,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
         clearUndoRedo();
 
-        this.props.editor.layout.preview.reset();
+        await this.props.editor.layout.preview.reset();
         this.props.editor.setState({
             lastOpenedScenePath: item.props.absolutePath,
         });

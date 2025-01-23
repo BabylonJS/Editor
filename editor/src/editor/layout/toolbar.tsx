@@ -251,8 +251,8 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
             return;
         }
 
-        this.props.editor.layout.preview.reset();
-        this.props.editor.openProject(file);
+        await this.props.editor.layout.preview.reset();
+        await this.props.editor.openProject(file);
     }
 
     private async _handleOpenVisualStudioCode(): Promise<void> {
