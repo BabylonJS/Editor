@@ -669,6 +669,11 @@
   resolved "https://registry.yarnpkg.com/@radix-ui/primitive/-/primitive-1.1.0.tgz#42ef83b3b56dccad5d703ae8c42919a68798bbe2"
   integrity sha512-4Z8dn6Upk0qk4P74xBhZ6Hd/w0mPEzOOLxy4xiPXOXqjF7jZS0VAKk7/x/H6FyY2zCkYJqePf1G5KmkmNJ4RBA==
 
+"@radix-ui/primitive@1.1.1":
+  version "1.1.1"
+  resolved "http://otto:8081/nexus/repository/npmjs-all/@radix-ui/primitive/-/primitive-1.1.1.tgz#fc169732d755c7fbad33ba8d0cd7fd10c90dc8e3"
+  integrity sha512-SJ31y+Q/zAyShtXJc8x83i9TYdbAfHZ++tUZnvjJJqFjzsdUnKsxPL6IEtBlxKkU7yzer//GQtZSV4GbldL3YA==
+
 "@radix-ui/react-alert-dialog@^1.0.5":
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-alert-dialog/-/react-alert-dialog-1.0.5.tgz#70dd529cbf1e4bff386814d3776901fcaa131b8c"
@@ -736,6 +741,11 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.0.tgz#656432461fc8283d7b591dcf0d79152fae9ecc74"
   integrity sha512-b4inOtiaOnYf9KWyO3jAeeCG6FeyfY6ldiEPanbUjWd+xIk5wZeHa8yVwmrJ2vderhu/BQvzCrJI0lHd+wIiqw==
+
+"@radix-ui/react-compose-refs@1.1.1":
+  version "1.1.1"
+  resolved "http://otto:8081/nexus/repository/npmjs-all/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.1.tgz#6f766faa975f8738269ebb8a23bad4f5a8d2faec"
+  integrity sha512-Y9VzoRDSJtgFMUCoiZBDVo084VQ5hfpXxVE+NgkdNsjiDBByiImMZKKhxMwCbdHvhlENG6a833CbFkOQvTricw==
 
 "@radix-ui/react-context-menu@^2.1.5":
   version "2.1.5"
@@ -985,6 +995,13 @@
   dependencies:
     "@radix-ui/react-slot" "1.1.0"
 
+"@radix-ui/react-primitive@2.0.1":
+  version "2.0.1"
+  resolved "http://otto:8081/nexus/repository/npmjs-all/@radix-ui/react-primitive/-/react-primitive-2.0.1.tgz#6d9efc550f7520135366f333d1e820cf225fad9e"
+  integrity sha512-sHCWTtxwNn3L3fH8qAfnF3WbUZycW93SM1j3NFDzXBiz8D6F5UTTy8G1+WFEaiCdvCVRJWj6N2R4Xq6HdiHmDg==
+  dependencies:
+    "@radix-ui/react-slot" "1.1.1"
+
 "@radix-ui/react-progress@^1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-progress/-/react-progress-1.0.3.tgz#8380272fdc64f15cbf263a294dea70a7d5d9b4fa"
@@ -1078,6 +1095,13 @@
   dependencies:
     "@radix-ui/react-compose-refs" "1.1.0"
 
+"@radix-ui/react-slot@1.1.1":
+  version "1.1.1"
+  resolved "http://otto:8081/nexus/repository/npmjs-all/@radix-ui/react-slot/-/react-slot-1.1.1.tgz#ab9a0ffae4027db7dc2af503c223c978706affc3"
+  integrity sha512-RApLLOcINYJA+dMVbOju7MYv1Mb2EBp2nH4HdDzXTSyaR5optlm6Otrz1euW3HbdOR8UmmFK06TD+A9frYWv+g==
+  dependencies:
+    "@radix-ui/react-compose-refs" "1.1.1"
+
 "@radix-ui/react-switch@^1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-switch/-/react-switch-1.0.3.tgz#6119f16656a9eafb4424c600fdb36efa5ec5837e"
@@ -1106,6 +1130,15 @@
     "@radix-ui/react-primitive" "1.0.3"
     "@radix-ui/react-roving-focus" "1.0.4"
     "@radix-ui/react-use-controllable-state" "1.0.1"
+
+"@radix-ui/react-toggle@^1.1.1":
+  version "1.1.1"
+  resolved "http://otto:8081/nexus/repository/npmjs-all/@radix-ui/react-toggle/-/react-toggle-1.1.1.tgz#939162f87d2c6cfba912a9908ed5ee651bd1ce8f"
+  integrity sha512-i77tcgObYr743IonC1hrsnnPmszDRn8p+EGUsUt+5a/JFn28fxaM88Py6V2mc8J5kELMWishI0rLnuGLFD/nnQ==
+  dependencies:
+    "@radix-ui/primitive" "1.1.1"
+    "@radix-ui/react-primitive" "2.0.1"
+    "@radix-ui/react-use-controllable-state" "1.1.0"
 
 "@radix-ui/react-tooltip@^1.0.7":
   version "1.0.7"
@@ -1882,6 +1915,7 @@ babylonjs-editor-tools@latest:
     "@radix-ui/react-slot" "^1.0.2"
     "@radix-ui/react-switch" "^1.0.3"
     "@radix-ui/react-tabs" "^1.0.4"
+    "@radix-ui/react-toggle" "^1.1.1"
     "@radix-ui/react-tooltip" "^1.0.7"
     "@xterm/addon-fit" "^0.10.0"
     "@xterm/xterm" "^5.5.0"
@@ -4811,7 +4845,7 @@ no-case@^3.0.4:
 
 node-abi@3.71.0, node-abi@^3.3.0, node-abi@^3.45.0:
   version "3.71.0"
-  resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-3.71.0.tgz#52d84bbcd8575efb71468fbaa1f9a49b2c242038"
+  resolved "http://otto:8081/nexus/repository/npmjs-all/node-abi/-/node-abi-3.71.0.tgz#52d84bbcd8575efb71468fbaa1f9a49b2c242038"
   integrity sha512-SZ40vRiy/+wRTf21hxkkEjPJZpARzUMVcJoQse2EF8qkUWbbO2z7vd5oA/H6bVH6SZQ5STGcu0KRDS7biNRfxw==
   dependencies:
     semver "^7.3.5"
@@ -6777,7 +6811,7 @@ wide-align@^1.1.5:
 
 wrap-ansi@7.0.0, wrap-ansi@^7.0.0, wrap-ansi@^8.1.0:
   version "7.0.0"
-  resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
+  resolved "http://otto:8081/nexus/repository/npmjs-all/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
   dependencies:
     ansi-styles "^4.0.0"

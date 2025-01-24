@@ -1,3 +1,5 @@
+import { webFrame } from "electron";
+
 import { Component, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -21,17 +23,23 @@ export function createSplash(): void {
 }
 
 export class Splash extends Component {
+    public constructor() {
+        super({});
+
+        webFrame.setZoomFactor(0.8);
+    }
+
     public render(): ReactNode {
         return (
             <div className="flex flex-col justify-between gap-[10px] w-full h-full p-5 electron-draggable">
                 <div />
 
                 <Fade>
-                    <img alt="" src="assets/babylonjs_icon.png" className="w-[170px] object-contain mx-auto" />
+                    <img alt="" src="assets/babylonjs_icon.png" className="w-[200px] object-contain mx-auto" />
                 </Fade>
 
                 <Fade delay={500}>
-                    <div className="text-center w-full text-2xl">
+                    <div className="text-center w-full text-3xl">
                         Babylon.JS Editor
                     </div>
                 </Fade>

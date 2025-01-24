@@ -2,7 +2,6 @@ import { ipcRenderer } from "electron";
 import { extname, basename, join } from "path/posix";
 
 import { toast } from "sonner";
-import { Button } from "@blueprintjs/core";
 import { Component, MouseEvent, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
@@ -16,6 +15,7 @@ import {
     ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin,
 } from "babylonjs";
 
+import { Toggle } from "../../ui/shadcn/ui/toggle";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
 
 import { Editor } from "../main";
@@ -55,6 +55,7 @@ import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
 import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
+import { Button } from "../../ui/shadcn/ui/button";
 
 export interface IEditorPreviewProps {
     /**
@@ -557,7 +558,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Button active={this.state.activeGizmo === "position"} disabled={this.play?.state.playing} onClick={() => this.setActiveGizmo("position")} minimal icon={<PositionIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                                    <Toggle pressed={this.state.activeGizmo === "position"} disabled={this.play?.state.playing} onPressedChange={() => this.setActiveGizmo("position")}>
+                                        <PositionIcon height={16} />
+                                    </Toggle>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     Toggle position gizmo
@@ -565,7 +568,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Button active={this.state.activeGizmo === "rotation"} disabled={this.play?.state.playing} onClick={() => this.setActiveGizmo("rotation")} minimal icon={<RotationIcon width={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                                    <Toggle pressed={this.state.activeGizmo === "rotation"} disabled={this.play?.state.playing} onPressedChange={() => this.setActiveGizmo("rotation")}>
+                                        <RotationIcon height={16} />
+                                    </Toggle>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     Toggle rotation gizmo
@@ -573,7 +578,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Button active={this.state.activeGizmo === "scaling"} disabled={this.play?.state.playing} onClick={() => this.setActiveGizmo("scaling")} minimal icon={<ScalingIcon height={16} />} className={`w-10 h-10 transition-all duration-300 ${this.state.activeGizmo === "position" ? "bg-muted/50" : ""} !rounded-lg`} />
+                                    <Toggle pressed={this.state.activeGizmo === "scaling"} disabled={this.play?.state.playing} onPressedChange={() => this.setActiveGizmo("scaling")}>
+                                        <ScalingIcon height={16} />
+                                    </Toggle>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     Toggle scaling gizmo
@@ -601,10 +608,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Button active={this.scene?.forceWireframe} minimal disabled={this.play?.state.playing} icon={<GiWireframeGlobe className="w-6 h-6" strokeWidth={1} color="white" />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" onClick={() => {
-                                        this.scene.forceWireframe = !this.scene.forceWireframe;
-                                        this.forceUpdate();
-                                    }} />
+                                    <Toggle
+                                        className="!px-2 !py-2"
+                                        pressed={this.scene?.forceWireframe}
+                                        disabled={this.play?.state.playing}
+                                        onPressedChange={() => {
+                                            this.scene.forceWireframe = !this.scene.forceWireframe;
+                                            this.forceUpdate();
+                                        }}
+                                    >
+                                        <GiWireframeGlobe className="w-6 h-6 scale-125" strokeWidth={1} color="white" />
+                                    </Toggle>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     Toggle wireframe
@@ -615,7 +629,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger disabled={this.play?.state.playing}>
-                                    <Button minimal disabled={this.play?.state.playing} icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300" />
+                                    <Button variant="ghost" disabled={this.play?.state.playing} className="px-1 py-1 w-9 h-9">
+                                        <IoIosOptions className="w-6 h-6" strokeWidth={1} />
+                                    </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent onClick={() => this.forceUpdate()}>
                                     <DropdownMenuLabel>Render options</DropdownMenuLabel>

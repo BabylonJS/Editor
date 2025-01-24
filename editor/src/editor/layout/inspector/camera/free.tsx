@@ -51,6 +51,12 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
                     <EditorInspectorNumberField object={this.props.object} property="fov" label="Fov" min={0.01} max={Math.PI - 0.01} />
                 </EditorInspectorSectionField>
 
+                <EditorInspectorSectionField title="Camera">
+                    <EditorInspectorNumberField object={this.props.object} property="speed" label="Speed" min={0} />
+                    <EditorInspectorNumberField object={this.props.object} property="inertia" label="Inertia" min={0} max={0.99} />
+                    <EditorInspectorNumberField object={this.props.object} property="angularSensibility" label="Angular Sensibility" min={0} />
+                </EditorInspectorSectionField>
+
                 <ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
                 <EditorInspectorSectionField title="Keys">

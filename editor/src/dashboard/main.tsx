@@ -1,7 +1,6 @@
-import { platform } from "os";
 import { join } from "path/posix";
 import { pathExists } from "fs-extra";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, webFrame } from "electron";
 
 import decompress from "decompress";
 import decompressTargz from "decompress-targz";
@@ -66,12 +65,14 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
             createProjectPath: "",
             creatingProject: false,
         };
+
+        webFrame.setZoomFactor(0.8);
     }
 
     public render(): ReactNode {
         return (
             <>
-                <div className={`flex flex-col gap-4 w-screen h-screen p-5 select-none overflow-x-hidden ${platform() === "darwin" ? "pt-8" : "pt-10"}`}>
+                <div className="flex flex-col gap-4 w-screen h-screen p-5 select-none overflow-x-hidden pt-10">
                     <WindowControls />
 
                     <Fade delay={0}>
