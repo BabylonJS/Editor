@@ -1,5 +1,5 @@
 import { platform } from "os";
-import { rename, stat } from "fs-extra";
+import { readdir, rename, stat } from "fs-extra";
 import { basename, extname, dirname, join } from "path/posix";
 
 import { ipcRenderer } from "electron";
@@ -83,6 +83,11 @@ export interface IAssetsBrowserItemState {
      * Defines whether or not the item is being renamed.
      */
     isRenaming: boolean;
+
+    /**
+     * Defines the optional preview image.
+     */
+    previewImage: string | null;
 }
 
 export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAssetsBrowserItemState> {
@@ -93,6 +98,8 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
             isLoading: true,
             isRenaming: false,
             isDirectory: false,
+
+            previewImage: null,
         };
     }
 
@@ -185,6 +192,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
             const fStat = await stat(this.props.absolutePath);
             if (fStat.isDirectory()) {
                 this.setState({ isDirectory: true });
+                await this._computePreviewImage();
             }
 
             this.setState({ isLoading: false });
@@ -343,9 +351,24 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
         }
     }
 
+    private async _computePreviewImage(): Promise<void> {
+        const files = await readdir(this.props.absolutePath);
+        const previewImage = files.find((f) => f.startsWith("editor_preview") && (f.endsWith(".png") || f.endsWith(".jpg") || f.endsWith(".jpeg")));
+
+        if (previewImage) {
+            this.setState({
+                previewImage: join(this.props.absolutePath, previewImage),
+            });
+        }
+    }
+
     protected getIcon(): ReactNode {
         if (this.state.isDirectory) {
-            return <FolderIcon width="80px" />;
+            if (this.state.previewImage) {
+                return <img src={this.state.previewImage} className="p-2 w-20 h-20 object-contain bg-secondary rounded-lg" />;
+            } else {
+                return <FolderIcon width="80px" />;
+            }
         }
 
         const extension = extname(this.props.absolutePath).toLowerCase();

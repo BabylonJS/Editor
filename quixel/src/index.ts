@@ -1,6 +1,6 @@
 import { Server, Socket } from "net";
-import { mkdir, pathExists } from "fs-extra";
-import { dirname, join, basename } from "path/posix";
+import { copyFile, mkdir, pathExists } from "fs-extra";
+import { dirname, join, basename, extname } from "path/posix";
 
 import { Editor } from "babylonjs-editor";
 
@@ -109,6 +109,12 @@ async function handleParsedAsset(editor: Editor, json: QuixelJsonType) {
         });
 
         saveMeshesAsBabylonFormat(editor, meshes, assetFolder);
+    }
+
+    // Write preview for folder
+    if (json.previewImage) {
+        const extension = extname(json.previewImage);
+        await copyFile(json.previewImage, join(assetFolder, `editor_preview${extension}`));
     }
 
     editor.layout.graph.refresh();

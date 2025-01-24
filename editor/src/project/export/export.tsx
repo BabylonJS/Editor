@@ -273,6 +273,10 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
         return;
     }
 
+    if (basename(file).startsWith("editor_preview")) {
+        return;
+    }
+
     const relativePath = file.replace(join(projectDir, "/"), "");
     const split = relativePath.split("/");
 

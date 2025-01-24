@@ -5,6 +5,8 @@ export type QuixelJsonType = {
     lodList: QuixelLodListType[];
     components: QuixelComponentType[];
     packedTextures: QuixelPackTextureType[];
+
+    previewImage?: string;
 };
 
 export type QuixelLodListType = {
