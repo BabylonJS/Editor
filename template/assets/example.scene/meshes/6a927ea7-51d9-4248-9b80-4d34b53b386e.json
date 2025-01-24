@@ -198,7 +198,15 @@
                 "enabled": false
             },
             "uniqueId": 1705193880869.0974,
-            "plugins": {},
+            "plugins": {
+                "DepthSensingMaterialPlugin": {
+                    "tags": null,
+                    "name": "DepthSensing",
+                    "priority": 222,
+                    "resolveIncludes": false,
+                    "registerForExtraEvents": false
+                }
+            },
             "customType": "BABYLON.SkyMaterial"
         }
     ],

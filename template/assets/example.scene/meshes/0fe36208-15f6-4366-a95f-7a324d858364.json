@@ -469,6 +469,13 @@
                     "priority": 140,
                     "resolveIncludes": false,
                     "registerForExtraEvents": false
+                },
+                "DepthSensingMaterialPlugin": {
+                    "tags": null,
+                    "name": "DepthSensing",
+                    "priority": 222,
+                    "resolveIncludes": false,
+                    "registerForExtraEvents": false
                 }
             },
             "customType": "BABYLON.PBRMaterial"

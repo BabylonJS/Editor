@@ -12,12 +12,14 @@
     ],
     "checkCollisions": false,
     "applyGravity": false,
+    "ignoreParentScaling": false,
+    "updateUpVectorFromRotation": false,
     "rotation": [
         0.13716683763979895,
         -0.7570271357244759,
         0
     ],
-    "speed": 200,
+    "speed": 500,
     "position": [
         461.58465792469366,
         140.63771402557663,
@@ -32,7 +34,7 @@
     "projectionPlaneTilt": 0,
     "minZ": 1,
     "maxZ": 1000000,
-    "inertia": 0.9,
+    "inertia": 0,
     "mode": 0,
     "layerMask": 268435455,
     "fovMode": 0,
@@ -77,7 +79,7 @@
                 1,
                 2
             ],
-            "angularSensibility": 2000
+            "angularSensibility": 500
         }
     },
     "animations": [],

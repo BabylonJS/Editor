@@ -1,4 +1,15 @@
 {
+    "clearColor": [
+        0.2,
+        0.2,
+        0.3,
+        1
+    ],
+    "ambientColor": [
+        0,
+        0,
+        0
+    ],
     "environment": {
         "environmentIntensity": 1,
         "environmentTexture": {
@@ -124,6 +135,8 @@
         ],
         "checkCollisions": false,
         "applyGravity": false,
+        "ignoreParentScaling": false,
+        "updateUpVectorFromRotation": false,
         "rotation": [
             0.1371668477935948,
             -0.7570271652108816,
@@ -143,7 +156,7 @@
         "fov": 0.8,
         "projectionPlaneTilt": 0,
         "minZ": 1,
-        "maxZ": 1000000,
+        "maxZ": 1500000,
         "inertia": 0.5,
         "mode": 0,
         "layerMask": 268435455,
@@ -158,7 +171,7 @@
             "FreeCameraKeyboardMoveInput": {
                 "tags": null,
                 "keysUp": [
-                    87
+                    90
                 ],
                 "keysUpward": [
                     69
@@ -167,10 +180,10 @@
                     83
                 ],
                 "keysDownward": [
-                    81
+                    65
                 ],
                 "keysLeft": [
-                    65
+                    81
                 ],
                 "keysRight": [
                     68
@@ -203,5 +216,6 @@
         "ranges": [],
         "isEnabled": true
     },
+    "animations": [],
     "animationGroups": []
 }
