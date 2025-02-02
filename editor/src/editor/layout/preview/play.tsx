@@ -1,5 +1,5 @@
-import { shell } from "electron";
 import { dirname } from "path/posix";
+import { ipcRenderer, shell } from "electron";
 
 import { Button } from "@blueprintjs/core";
 import { Component, ReactNode } from "react";
@@ -54,6 +54,14 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
             playingAddress: "",
             preparingPlay: false,
         };
+
+        ipcRenderer.on("preview:run-project", () => {
+            if (this.state.playing) {
+                this.props.onRestart();
+            } else if (!this.state.preparingPlay) {
+                this.playOrStopApplication();
+            }
+        });
     }
 
     public render(): ReactNode {

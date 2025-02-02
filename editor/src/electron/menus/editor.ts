@@ -132,6 +132,14 @@ export function setupEditorMenu(): void {
                     label: "Edit Camera",
                     click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:edit-camera"),
                 },
+                {
+                    type: "separator",
+                },
+                {
+                    label: "Run Project",
+                    accelerator: "CommandOrControl+B",
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:run-project"),
+                },
             ],
         },
         {
