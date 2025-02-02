@@ -12,7 +12,8 @@
     "scripts": {
         "build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css",
         "watch": "tsc -p . --watch",
-        "watch-css": "tailwindcss -i ./index.css -o ./build/index.css --watch"
+        "watch-css": "tailwindcss -i ./index.css -o ./build/index.css --watch",
+        "watch-all": "concurrently \"yarn watch\" \"yarn watch-css\" -c bgYellow.bold,bgBlue.bold --names editor-ts,editor-css"
     },
     "license": "(Apache-2.0)",
     "devDependencies": {
@@ -22,6 +23,7 @@
         "@types/pngjs": "6.0.5",
         "@types/react": "18.2.47",
         "@types/react-dom": "18.2.18",
+        "concurrently": "^9.1.2",
         "electron": "32.2.5",
         "electron-builder": "25.1.8",
         "electron-reloader": "1.2.3",

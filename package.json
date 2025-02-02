@@ -23,6 +23,7 @@
         "postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && rm -rf template/node_modules/babylonjs-editor-tools && node ./postinstall.mjs",
         "watch-editor": "yarn workspace babylonjs-editor watch",
         "watch-editor-css": "yarn workspace babylonjs-editor watch-css",
+        "watch-editor-all": "yarn workspace babylonjs-editor watch-all",
         "watch-tools": "yarn workspace babylonjs-editor-tools watch",
         "watch-quixel": "yarn workspace babylonjs-editor-quixel-plugin watch",
         "build-editor": "yarn workspace babylonjs-editor build",
