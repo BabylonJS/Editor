@@ -1,8 +1,12 @@
 import { extname } from "path/posix";
 
-import { DragEvent, useState } from "react";
+import { DragEvent, useEffect, useRef, useState } from "react";
+
+import { useEventListener } from "usehooks-ts";
 
 import { Node, TransformNode } from "babylonjs";
+
+import { Input } from "../../../ui/shadcn/ui/input";
 
 import { isScene } from "../../../tools/guards/scene";
 import { isSound } from "../../../tools/guards/sound";
@@ -23,6 +27,35 @@ export interface IEditorGraphLabelProps {
 
 export function EditorGraphLabel(props: IEditorGraphLabelProps) {
     const [over, setOver] = useState(false);
+
+    const [name, setName] = useState("");
+    const [doubleClicked, setDoubleClicked] = useState(false);
+
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        setName(props.name);
+    }, [props.name]);
+
+    useEffect(() => {
+        if (doubleClicked) {
+            setTimeout(() => {
+                inputRef.current?.select();
+                inputRef.current?.focus();
+            }, 0);
+        }
+    }, [doubleClicked]);
+
+    useEventListener("keyup", (ev) => {
+        if (ev.key === "Escape" && doubleClicked) {
+            setName(props.name);
+            setDoubleClicked(false);
+        }
+
+        if (ev.key === "Enter" && doubleClicked) {
+            handleInputNameBlurred();
+        }
+    });
 
     function handleDragStart(ev: DragEvent<HTMLDivElement>) {
         const selectedNodes = props.editor.layout.graph.getSelectedNodes();
@@ -180,6 +213,23 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
         });
     }
 
+    function handleDoubleClick() {
+        if (props.object.name) {
+            setDoubleClicked(!doubleClicked);
+        }
+    }
+
+    function handleInputNameBlurred() {
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => props.object.name = props.name,
+            redo: () => props.object.name = name,
+        });
+
+        setDoubleClicked(false);
+        props.editor.layout.graph.refresh();
+    }
+
     return (
         <div
             draggable
@@ -193,8 +243,22 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
             onDragOver={(ev) => handleDragOver(ev)}
             onDragLeave={(ev) => handleDragLeave(ev)}
             onDrop={(ev) => handleDrop(ev)}
+            onDoubleClick={() => handleDoubleClick()}
+            onBlur={() => handleInputNameBlurred()}
         >
-            {props.name}
+            {doubleClicked
+                ? (
+                    <Input
+                        value={name}
+                        ref={inputRef}
+                        className="w-fit h-7"
+                        onCopy={(ev) => ev.stopPropagation()}
+                        onPaste={(ev) => ev.stopPropagation()}
+                        onChange={(ev) => setName(ev.currentTarget.value)}
+                    />
+                )
+                : props.name
+            }
         </div>
     );
 }
