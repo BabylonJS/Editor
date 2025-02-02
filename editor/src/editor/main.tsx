@@ -179,7 +179,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
         ipcRenderer.on("editor:quit-app", () => this.quitApp());
         ipcRenderer.on("editor:close-window", () => this.close());
 
-        ipcRenderer.on("editor:path", (_, path) => this.path = path);
+        ipcRenderer.on("editor:path", (_, path) => this.path = path.replace(/\\/g, sep));
 
         // Undo-redo
         ipcRenderer.on("undo", () => undo());

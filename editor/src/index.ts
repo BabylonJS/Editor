@@ -1,4 +1,5 @@
 import { platform } from "os";
+import { join } from "path/posix";
 import { BrowserWindow, app, globalShortcut, ipcMain, nativeTheme } from "electron";
 
 import { getFilePathArgument } from "./tools/process";
@@ -131,11 +132,11 @@ async function openProject(filePath: string): Promise<void> {
 
     if (filePath) {
         window.webContents.send("editor:open", filePath);
-        window.webContents.send("editor:path", app.getAppPath());
+        window.webContents.send("editor:path", join(app.getAppPath()));
 
         window.webContents.on("did-finish-load", () => {
             window.webContents.send("editor:open", filePath);
-            window.webContents.send("editor:path", app.getAppPath());
+            window.webContents.send("editor:path", join(app.getAppPath()));
         });
     }
 }
