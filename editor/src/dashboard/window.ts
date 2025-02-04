@@ -8,6 +8,7 @@ export async function createDashboardWindow(): Promise<BrowserWindow> {
         closable: true,
         minimizable: true,
         maximizable: true,
+        transparent: true,
         titleBarStyle: "hidden",
         width: 1280,
         height: 800,
@@ -22,6 +23,7 @@ export async function createDashboardWindow(): Promise<BrowserWindow> {
     }
 
     window.loadURL(join("file://", app.getAppPath(), "index.html"));
+    window.center();
 
     if (process.env.DEBUG) {
         setTimeout(() => {
