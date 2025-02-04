@@ -1,28 +1,22 @@
-import { join } from "path/posix";
 import { pathExists } from "fs-extra";
 import { ipcRenderer, webFrame } from "electron";
-
-import decompress from "decompress";
-import decompressTargz from "decompress-targz";
 
 import { Component, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 
 import { Fade } from "react-awesome-reveal";
-import { Grid } from "react-loader-spinner";
 
-import { Input } from "../ui/shadcn/ui/input";
 import { Button } from "../ui/shadcn/ui/button";
 import { Separator } from "../ui/shadcn/ui/separator";
 import { showConfirm, showAlert } from "../ui/dialog";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "../ui/shadcn/ui/dialog";
 
+import { openSingleFileDialog } from "../tools/dialog";
 import { ProjectType, projectsKey } from "../tools/project";
-import { tryGetProjectsFromLocalStorage } from "../tools/local-storage";
-import { openSingleFileDialog, openSingleFolderDialog } from "../tools/dialog";
+import { tryAddProjectToLocalStorage, tryGetProjectsFromLocalStorage } from "../tools/local-storage";
 
 import { ProjectTile } from "./tile";
 import { WindowControls } from "./window-controls";
+import { DashboardCreateProjectDialog } from "./create";
 
 export function createDashboard(): void {
     const theme = localStorage.getItem("editor-theme") ?? "dark";
@@ -41,7 +35,7 @@ export function createDashboard(): void {
 }
 
 export interface IDashboardProps {
-
+    // ...
 }
 
 export interface IDashboardState {
@@ -49,8 +43,6 @@ export interface IDashboardState {
     openedProjects: string[];
 
     createProject: boolean;
-    creatingProject: boolean;
-    createProjectPath: string;
 }
 
 export class Dashboard extends Component<IDashboardProps, IDashboardState> {
@@ -62,8 +54,6 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
             projects: tryGetProjectsFromLocalStorage(),
 
             createProject: false,
-            createProjectPath: "",
-            creatingProject: false,
         };
 
         webFrame.setZoomFactor(0.8);
@@ -130,7 +120,16 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                     </Fade>
                 </div>
 
-                {this._getCreateProjectComponent()}
+                {/* {this._getCreateProjectComponent()} */}
+                <DashboardCreateProjectDialog
+                    isOpened={this.state.createProject}
+                    onClose={() => {
+                        this.setState({
+                            createProject: false,
+                            projects: tryGetProjectsFromLocalStorage(),
+                        });
+                    }}
+                />
             </>
         );
     }
@@ -150,59 +149,12 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                 const index = this.state.projects.indexOf(project);
                 if (index !== -1) {
                     this.state.projects.splice(index, 1);
-                    this.setState({ projects: this.state.projects.slice() });
+                    this.setState({
+                        projects: this.state.projects.slice(),
+                    });
                 }
             }
         }));
-    }
-
-    private _getCreateProjectComponent(): ReactNode {
-        return (
-            <Dialog open={this.state.createProject} onOpenChange={(o) => !o && this.setState({ createProject: false })}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
-                            Create project
-                        </DialogTitle>
-                        <DialogDescription className="flex flex-col gap-[10px]">
-                            {!this.state.creatingProject &&
-                                <>
-                                    <div>
-                                        Select the folder where to create the project.
-                                    </div>
-
-                                    <div className="flex gap-[10px]">
-                                        <Input value={this.state.createProjectPath} disabled placeholder="Folder path..." />
-                                        <Button variant="secondary" onClick={() => this._handleBrowseCreateProjectFolderPath()}>
-                                            Browse...
-                                        </Button>
-                                    </div>
-                                </>
-                            }
-
-                            {this.state.creatingProject &&
-                                <div className="flex flex-col gap-[10px] justify-center items-center pt-5">
-                                    <Grid width={24} height={24} color="#ffffff" />
-
-                                    <div>
-                                        Creating project...
-                                    </div>
-                                </div>
-                            }
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="default"
-                            onClick={() => this._handleCreateProject()}
-                            disabled={this.state.createProjectPath === "" || this.state.creatingProject}
-                        >
-                            Create
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        );
     }
 
     private _handleImportProject(): unknown {
@@ -222,55 +174,10 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
             return showAlert("Project already exists", "The project you are trying to import already exists in the dashboard.");
         }
 
-        this._tryAddProjectToLocalStorage(file);
-    }
-
-    private _handleBrowseCreateProjectFolderPath(): void {
-        const folder = openSingleFolderDialog("Select folder to create the project in");
-
-        if (folder) {
-            this.setState({ createProjectPath: folder });
-        }
-    }
-
-    private async _handleCreateProject(): Promise<void> {
-        this.setState({ creatingProject: true });
-
-        const templatePath = process.env.DEBUG
-            ? "templates/template.tgz"
-            : "../../templates/template.tgz";
-
-        const templateBlob = await fetch(templatePath).then(r => r.blob());
-        const buffer = Buffer.from(await templateBlob.arrayBuffer());
-
-        await decompress(buffer, this.state.createProjectPath, {
-            plugins: [
-                decompressTargz(),
-            ],
-            map: (file) => {
-                file.path = file.path.replace("package/", "");
-                return file;
-            }
+        tryAddProjectToLocalStorage(file);
+        this.setState({
+            projects: tryGetProjectsFromLocalStorage(),
         });
-
-        const file = join(this.state.createProjectPath, "project.bjseditor");
-
-        this._tryAddProjectToLocalStorage(file);
-        this.setState({ createProject: false });
-    }
-
-    private _tryAddProjectToLocalStorage(absolutePath: string) {
-        try {
-            localStorage.setItem(projectsKey, JSON.stringify(this.state.projects.concat([{
-                absolutePath,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            }])));
-
-            this.setState({ projects: tryGetProjectsFromLocalStorage() });
-        } catch (e) {
-            alert("Failed to import project.");
-        }
     }
 
     private async _tryRemoveProjectFromLocalStorage(project: ProjectType): Promise<void> {
@@ -285,7 +192,9 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
             localStorage.setItem(projectsKey, JSON.stringify(this.state.projects));
 
-            this.setState({ projects: tryGetProjectsFromLocalStorage() });
+            this.setState({
+                projects: tryGetProjectsFromLocalStorage(),
+            });
         }
     }
 }

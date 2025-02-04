@@ -2,7 +2,7 @@ import { ProjectType, projectsKey } from "./project";
 
 /**
  * Returns the list of projects that were stored in the local storage in order to display them in the dashboard.
- * Those proejcts are sorted by the last updated date.
+ * Those projects are sorted by the last updated date.
  */
 export function tryGetProjectsFromLocalStorage(): ProjectType[] {
     try {
@@ -14,6 +14,24 @@ export function tryGetProjectsFromLocalStorage(): ProjectType[] {
         return data;
     } catch (e) {
         return [];
+    }
+}
+
+/**
+ * Adds the project located at the given absolute path to the local storage in order to display them in the dashboard.
+ * @param absolutePath defines the absolute path to the project file to add to the local storage.
+ */
+export function tryAddProjectToLocalStorage(absolutePath: string): void {
+    try {
+        const projects = tryGetProjectsFromLocalStorage();
+
+        localStorage.setItem(projectsKey, JSON.stringify(projects.concat([{
+            absolutePath,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        }])));
+    } catch (e) {
+        alert("Failed to import project.");
     }
 }
 
