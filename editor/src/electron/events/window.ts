@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain } from "electron";
 
-import { createCustomWindow } from "./window";
+import { createCustomWindow } from "../../editor/window";
 
 ipcMain.on("window:minimize", async (ev) => {
     const window = BrowserWindow.getAllWindows().find((w) => w.webContents.id === ev.sender.id);

@@ -1,44 +1,9 @@
 import { join } from "path/posix";
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, screen } from "electron";
 
-import { isWindows } from "../../tools/os";
+import { isWindows } from "../tools/os";
 
-import { closeAllNodePtyForWebContentsId } from "../node-pty";
-
-export async function createDashboardWindow(): Promise<BrowserWindow> {
-    const window = new BrowserWindow({
-        show: false,
-        frame: false,
-        closable: true,
-        minimizable: true,
-        maximizable: true,
-        titleBarStyle: "hidden",
-        width: 1280,
-        height: 800,
-        webPreferences: {
-            nodeIntegration: true,
-            preload: join(app.getAppPath(), "build/src/dashboard/preload.js"),
-        },
-    });
-
-    if (process.env.DEBUG !== "true") {
-        window.menuBarVisible = false;
-    }
-
-    window.loadURL(join("file://", app.getAppPath(), "index.html"));
-
-    if (process.env.DEBUG) {
-        setTimeout(() => {
-            window.webContents.openDevTools();
-        }, 1000);
-    }
-
-    await new Promise<void>((resolve) => {
-        ipcMain.once("dashboard:ready", () => resolve());
-    });
-
-    return window;
-}
+import { closeAllNodePtyForWebContentsId } from "../electron/node-pty";
 
 /**
  * Defines the list of all available editor windows that are opened.
@@ -68,7 +33,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         webPreferences: {
             nodeIntegration: true,
             nodeIntegrationInWorker: true,
-            preload: join(app.getAppPath(), "build/src/preload.js"),
+            preload: join(app.getAppPath(), "build/src/editor/preload.js"),
         },
     });
 

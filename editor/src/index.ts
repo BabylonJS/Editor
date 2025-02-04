@@ -4,16 +4,18 @@ import { BrowserWindow, app, globalShortcut, ipcMain, nativeTheme } from "electr
 
 import { getFilePathArgument } from "./tools/process";
 
-import { setupEditorMenu } from "./electron/menus/editor";
-import { setupDashboardMenu } from "./electron/menus/dashboard";
+import { setupEditorMenu } from "./editor/menu";
 
-import { createDashboardWindow, createEditorWindow, editorWindows } from "./electron/window/window";
+import { setupDashboardMenu } from "./dashboard/menu";
+import { createDashboardWindow } from "./dashboard/window";
 
-import "./electron/shell";
-import "./electron/dialog";
-import "./electron/events";
+import { createEditorWindow, editorWindows } from "./editor/window";
+
 import "./electron/node-pty";
-import "./electron/window/events";
+import "./electron/events/shell";
+import "./electron/events/dialog";
+import "./electron/events/editor";
+import "./electron/events/window";
 import "./electron/assimp/assimpjs";
 
 try {
