@@ -7,6 +7,7 @@ import { createRoot } from "react-dom/client";
 import { Fade } from "react-awesome-reveal";
 
 import { Button } from "../ui/shadcn/ui/button";
+import { Toaster } from "../ui/shadcn/ui/sonner";
 import { Separator } from "../ui/shadcn/ui/separator";
 import { showConfirm, showAlert } from "../ui/dialog";
 
@@ -14,8 +15,8 @@ import { openSingleFileDialog } from "../tools/dialog";
 import { ProjectType, projectsKey } from "../tools/project";
 import { tryAddProjectToLocalStorage, tryGetProjectsFromLocalStorage } from "../tools/local-storage";
 
-import { ProjectTile } from "./tile";
-import { WindowControls } from "./window-controls";
+import { DashboardProjectItem } from "./item";
+import { DashboardWindowControls } from "./window-controls";
 import { DashboardCreateProjectDialog } from "./create";
 
 export function createDashboard(): void {
@@ -63,7 +64,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
         return (
             <>
                 <div className="flex flex-col gap-4 w-screen h-screen p-5 select-none overflow-x-hidden pt-10">
-                    <WindowControls />
+                    <DashboardWindowControls />
 
                     <Fade delay={0}>
                         <div className="flex justify-between items-center w-full">
@@ -108,7 +109,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                         {this.state.projects.length &&
                             <div className="grid sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
                                 {this.state.projects.map((project) => (
-                                    <ProjectTile
+                                    <DashboardProjectItem
                                         project={project}
                                         key={project.absolutePath}
                                         isOpened={this.state.openedProjects.includes(project.absolutePath)}
@@ -120,7 +121,6 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                     </Fade>
                 </div>
 
-                {/* {this._getCreateProjectComponent()} */}
                 <DashboardCreateProjectDialog
                     isOpened={this.state.createProject}
                     onClose={() => {
@@ -130,6 +130,8 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                         });
                     }}
                 />
+
+                <Toaster />
             </>
         );
     }

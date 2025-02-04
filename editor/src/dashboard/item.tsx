@@ -8,6 +8,8 @@ import { FaQuestion } from "react-icons/fa";
 import { AiOutlineClose } from "react-icons/ai";
 import { IoPlay, IoStop } from "react-icons/io5";
 
+import { toast } from "sonner";
+
 import { Button } from "../ui/shadcn/ui/button";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../ui/shadcn/ui/context-menu";
 
@@ -15,14 +17,16 @@ import { isDarwin } from "../tools/os";
 import { ProjectType } from "../tools/project";
 import { execNodePty, NodePtyInstance } from "../tools/node-pty";
 
-export interface IProjectTileProps {
+import { DashboardProgressComponent } from "./progress";
+
+export interface IDashboardProjectItemProps {
     isOpened: boolean;
     project: ProjectType;
 
     onRemove: () => void;
 }
 
-export function ProjectTile(props: IProjectTileProps) {
+export function DashboardProjectItem(props: IDashboardProjectItemProps) {
     const [launching, setLaunching] = useState(false);
 
     const [playingAddress, setPlayingAddress] = useState("");
@@ -43,22 +47,44 @@ export function ProjectTile(props: IProjectTileProps) {
     async function handleLaunchProject() {
         setLaunching(true);
 
-        const p = await execNodePty("yarn dev", {
+        const projectName = basename(dirname(props.project.absolutePath));
+
+        let progressRef: DashboardProgressComponent = null!;
+        const toastId = toast(<DashboardProgressComponent ref={(r) => progressRef = r!} name={projectName} />, {
+            duration: Infinity,
+            dismissible: false,
+        });
+
+        // Install dependencies
+        const installProcess = await execNodePty("yarn install", {
             cwd: dirname(props.project.absolutePath),
         });
 
-        const observable = p.onGetDataObservable.add((data) => {
+        progressRef?.setState({ message: `Installing dependencies...` });
+
+        await installProcess.wait();
+
+        // Run process
+        const runProcess = await execNodePty("yarn dev", {
+            cwd: dirname(props.project.absolutePath),
+        });
+
+        progressRef?.setState({ message: `Running project...` });
+
+        const observable = runProcess.onGetDataObservable.add((data) => {
             const localhostRegex = /http:\/\/localhost:(\d+)/;
             const match = data.match(localhostRegex);
             if (match) {
-                p.onGetDataObservable.remove(observable);
+                runProcess.onGetDataObservable.remove(observable);
+
+                toast.dismiss(toastId);
 
                 setLaunching(false);
                 setPlayingAddress(`http://localhost:${match[1]}`);
             }
         });
 
-        setNodePtyInstance(p);
+        setNodePtyInstance(runProcess);
     }
 
     async function handleStopProject() {

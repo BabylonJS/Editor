@@ -7,7 +7,7 @@ import { Button } from "../ui/shadcn/ui/button";
 
 import { isDarwin } from "../tools/os";
 
-export function WindowControls() {
+export function DashboardWindowControls() {
     return (
         <div className={`absolute top-0 left-0 w-full ${!isDarwin() ? "h-28" : "h-24"}`}>
             <div className="flex w-full h-full">
