@@ -4,6 +4,7 @@
 
 @import "flexlayout-react/style/dark.css";
 @import "@blueprintjs/core/lib/css/blueprint.css";
+@import "@xterm/xterm/css/xterm.css";
 
 @import "src/editor/windows/nme/index.css";
 @import "src/editor/windows/ge/index.css";
@@ -219,4 +220,14 @@ audio::-webkit-media-controls-current-time-display,
 audio::-webkit-media-controls-time-remaining-display {
     text-shadow: none;
     @apply text-foreground;
+}
+
+/* XTERM */
+.xterm {
+    width: 100%;
+    height: 100%;
+}
+
+.xterm .xterm-viewport {
+    background-color: transparent !important;
 }

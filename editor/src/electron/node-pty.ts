@@ -55,21 +55,19 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
         ev.sender.send(`editor:node-pty-exit:${id}`);
     });
 
-    const hasBackSlashes = shell!.toLowerCase() === process.env["COMSPEC"]?.toLowerCase();
-    if (hasBackSlashes) {
-        p.write(`${command.replace(/\//g, "\\")}\n\r`);
-    } else {
-        p.write(`${command}\n\r`);
-    }
-
-    p.write("exit\n\r");
-
     spawnsMap.set(id, {
         pty: p,
         webContentsId: ev.sender.id,
     });
 
     ev.sender.send(`editor:create-node-pty-${id}`);
+
+    const hasBackSlashes = shell!.toLowerCase() === process.env["COMSPEC"]?.toLowerCase();
+    if (hasBackSlashes) {
+        p.write(`${command.replace(/\//g, "\\")} && exit\n\r`);
+    } else {
+        p.write(`${command} && exit\n\r`);
+    }
 });
 
 // On write on a pty process
@@ -84,5 +82,13 @@ ipcMain.on("editor:kill-node-pty", (_, id) => {
     if (p) {
         p.pty.kill();
         spawnsMap.delete(id);
+    }
+});
+
+// On resize node-pty process is requested
+ipcMain.on("editor:resize-node-pty", (_, id, cols, rows) => {
+    const p = spawnsMap.get(id);
+    if (p) {
+        p.pty.resize(cols, rows);
     }
 });

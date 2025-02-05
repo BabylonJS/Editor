@@ -60,6 +60,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
             cwd: dirname(props.project.absolutePath),
         });
 
+        progressRef?.setProcess(installProcess);
         progressRef?.setState({ message: `Installing dependencies...` });
 
         await installProcess.wait();
@@ -69,6 +70,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
             cwd: dirname(props.project.absolutePath),
         });
 
+        progressRef?.setProcess(runProcess);
         progressRef?.setState({ message: `Running project...` });
 
         const observable = runProcess.onGetDataObservable.add((data) => {

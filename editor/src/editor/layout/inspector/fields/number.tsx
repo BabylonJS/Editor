@@ -72,7 +72,6 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
-
                     }
                 </div>
             }

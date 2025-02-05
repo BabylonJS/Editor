@@ -82,4 +82,11 @@ export class NodePtyInstance {
             ipcRenderer.once(`editor:node-pty-exit:${this.id}`, () => resolve());
         });
     }
+
+    /**
+     * Resizes the node-pty process in case it is used using xterm.
+     */
+    public resize(cols: number, rows: number): void {
+        ipcRenderer.send("editor:resize-node-pty", this.id, cols, rows);
+    }
 }
