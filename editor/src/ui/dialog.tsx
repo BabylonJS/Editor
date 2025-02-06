@@ -49,7 +49,14 @@ export function showDialog(title: ReactNode, children: ReactNode): DialogReturnT
     return returnValue;
 }
 
-export function showConfirm(title: string, children: ReactNode): Promise<boolean> {
+export function showConfirm(
+    title: string,
+    children: ReactNode,
+    options?: {
+        cancelText?: string;
+        confirmText?: string;
+    },
+): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
         const div = document.createElement("div");
         document.body.appendChild(div);
@@ -65,19 +72,19 @@ export function showConfirm(title: string, children: ReactNode): Promise<boolean
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => {
+                        <AlertDialogCancel className="min-w-24" onClick={() => {
                             root.unmount();
                             document.body.removeChild(div);
                             resolve(false);
                         }}>
-                            Cancel
+                            {options?.cancelText ?? "Cancel"}
                         </AlertDialogCancel>
-                        <AlertDialogAction onClick={() => {
+                        <AlertDialogAction className="min-w-24" onClick={() => {
                             root.unmount();
                             document.body.removeChild(div);
                             resolve(true);
                         }}>
-                            Continue
+                            {options?.confirmText ?? "Continue"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

@@ -39,7 +39,7 @@ export class DashboardProgressComponent extends Component<IDashboardProgressComp
                 <Grid width={24} height={24} color="gray" />
 
                 <div className="flex flex-col flex-1">
-                    <div className="text-xl font-[400]">
+                    <div className="text-xl w-56 font-[400] text-ellipsis overflow-hidden whitespace-nowrap">
                         {this.props.name}
                     </div>
                     <div className="font-[400] text-muted-foreground">

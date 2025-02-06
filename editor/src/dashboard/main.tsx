@@ -16,8 +16,10 @@ import { ProjectType, projectsKey } from "../tools/project";
 import { tryAddProjectToLocalStorage, tryGetProjectsFromLocalStorage } from "../tools/local-storage";
 
 import { DashboardProjectItem } from "./item";
-import { DashboardWindowControls } from "./window-controls";
 import { DashboardCreateProjectDialog } from "./create";
+import { DashboardWindowControls } from "./window-controls";
+
+import packageJson from "../../package.json";
 
 export function createDashboard(): void {
     const theme = localStorage.getItem("editor-theme") ?? "dark";
@@ -67,13 +69,16 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                     <DashboardWindowControls />
 
                     <Fade delay={0}>
-                        <div className="flex justify-between items-center w-full">
+                        <div className="flex justify-between items-end w-full">
                             <div className="text-5xl font-semibold">
                                 Dashboard
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-col items-end gap-2">
                                 <img alt="" src="assets/babylonjs_icon.png" className="w-[48px] object-contain" />
+                                <div className="text-xs">
+                                    Babylon.JS Editor v{packageJson.version}
+                                </div>
                             </div>
                         </div>
                     </Fade>

@@ -27,6 +27,8 @@ export interface IDashboardProjectItemProps {
 }
 
 export function DashboardProjectItem(props: IDashboardProjectItemProps) {
+    const [contextMenuOpen, setContextMenuOpen] = useState(false);
+
     const [launching, setLaunching] = useState(false);
 
     const [playingAddress, setPlayingAddress] = useState("");
@@ -98,14 +100,15 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
     }
 
     return (
-        <ContextMenu>
+        <ContextMenu onOpenChange={(o) => setContextMenuOpen(o)}>
             <ContextMenuTrigger>
                 <div
                     onDoubleClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}
                     className={`
                         group
                         flex flex-col w-full rounded-lg cursor-pointer select-none
-                        ring-muted-foreground hover:ring-2
+                        ${contextMenuOpen ? "ring-primary ring-2" : "ring-muted-foreground"}
+                        hover:ring-2
                         transition-all duration-300 ease-in-out
                         ${props.isOpened ? "opacity-15 pointer-events-none" : ""}
                     `}
@@ -120,8 +123,8 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
                     </div>
 
                     <div className="flex flex-col gap-1 p-2 bg-secondary rounded-b-lg select-none">
-                        <div className="flex justify-between items-center">
-                            <div className="text-lg font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
+                        <div className="flex justify-between items-center gap-2">
+                            <div className="text-lg flex-1 font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
                                 {basename(dirname(props.project.absolutePath))}
                             </div>
 

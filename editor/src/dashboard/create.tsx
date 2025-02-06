@@ -1,4 +1,5 @@
 import { join } from "path/posix";
+import { ipcRenderer } from "electron";
 
 import decompress from "decompress";
 import decompressTargz from "decompress-targz";
@@ -7,7 +8,7 @@ import { useState } from "react";
 
 import { Grid } from "react-loader-spinner";
 
-import { showAlert } from "../ui/dialog";
+import { showAlert, showConfirm } from "../ui/dialog";
 
 import { Input } from "../ui/shadcn/ui/input";
 import { Button } from "../ui/shadcn/ui/button";
@@ -54,11 +55,19 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
                 }
             });
 
-            tryAddProjectToLocalStorage(
-                join(destination, "project.bjseditor")
-            );
+            const projectAbsolutePath = join(destination, "project.bjseditor");
+            tryAddProjectToLocalStorage(projectAbsolutePath);
 
             props.onClose();
+
+            const result = await showConfirm("Open project?", "Do you want to open the newly created project?", {
+                cancelText: "No",
+                confirmText: "Yes",
+            });
+
+            if (result) {
+                ipcRenderer.send("dashboard:open-project", projectAbsolutePath);
+            }
         } catch (e) {
             showAlert("An unexpected error occured", e.message);
         }
@@ -83,7 +92,7 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 
                                 <div className="flex gap-[10px]">
                                     <Input value={destination} disabled placeholder="Folder path..." />
-                                    <Button variant="secondary" onClick={() => handleBrowseFolderPath()}>
+                                    <Button variant="secondary" className="w-24" onClick={() => handleBrowseFolderPath()}>
                                         Browse...
                                     </Button>
                                 </div>
@@ -104,6 +113,7 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
                 <DialogFooter>
                     <Button
                         variant="default"
+                        className="w-24"
                         onClick={() => handleCreateProject()}
                         disabled={destination === "" || creating}
                     >
