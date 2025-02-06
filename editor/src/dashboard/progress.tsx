@@ -7,6 +7,7 @@ import { MdOutlineInfo } from "react-icons/md";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 
+import { isDarwin } from "../tools/os";
 import { NodePtyInstance } from "../tools/node-pty";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/shadcn/ui/tooltip";
@@ -79,10 +80,10 @@ export class DashboardProgressComponent extends Component<IDashboardProgressComp
             this._terminal = new Terminal({
                 fontSize: 12,
                 lineHeight: 1,
-                letterSpacing: -6,
                 fontWeight: "400",
                 fontWeightBold: "600",
                 allowTransparency: true,
+                letterSpacing: isDarwin() ? -6 : 0,
                 fontFamily: "'Inter var', sans-serif",
                 windowOptions: {
                     getWinSizePixels: true,
