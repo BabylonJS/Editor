@@ -1,12 +1,11 @@
 import { join, dirname, basename, extname } from "path/posix";
-import { copyFile, pathExists, readJSON, readdir, remove, writeJSON } from "fs-extra";
+import { copyFile, pathExists, readJSON, readdir, remove, stat, writeJSON } from "fs-extra";
 
 import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { toast } from "sonner";
 
 import { isTexture } from "../../tools/guards/texture";
-import { executeSimpleWorker } from "../../tools/worker";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
@@ -294,7 +293,9 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
     let isNewFile = false;
 
     if (optimize) {
-        const hash = await executeSimpleWorker<string>(join(__dirname, "./workers/md5.js"), file);
+        const fileStat = await stat(file);
+        const hash = fileStat.mtimeMs.toString();
+
         isNewFile = !cache[relativePath] || cache[relativePath] !== hash;
 
         cache[relativePath] = hash;
@@ -303,17 +304,13 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
     const finalPath = join(scenePath, relativePath);
     const finalPathExists = await pathExists(finalPath);
 
-    defer: {
-        if (
-            supportedImagesExtensions.includes(extension) ||
-            supportedCubeTexturesExtensions.includes(extension)
-        ) {
-            if (!isNewFile && finalPathExists) {
-                break defer;
-            }
+    if (
+        supportedImagesExtensions.includes(extension) ||
+        supportedCubeTexturesExtensions.includes(extension)
+    ) {
+        if (isNewFile || !finalPathExists) {
+            await copyFile(file, finalPath);
         }
-
-        await copyFile(file, finalPath);
     }
 
     if (optimize) {
