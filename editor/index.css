@@ -85,7 +85,11 @@
     }
 
     body {
-        @apply bg-background text-foreground;
+        @apply text-foreground;
+    }
+
+    #babylonjs-editor-main-div {
+        @apply bg-background;
     }
 }
 
@@ -128,6 +132,10 @@ input {
 /* Electron */
 .electron-draggable {
     -webkit-app-region: drag;
+}
+
+.electron-rounded-corners {
+    @apply rounded-xl;
 }
 
 /* FLEX LAYOUT */

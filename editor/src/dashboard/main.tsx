@@ -11,6 +11,7 @@ import { Toaster } from "../ui/shadcn/ui/sonner";
 import { Separator } from "../ui/shadcn/ui/separator";
 import { showConfirm, showAlert } from "../ui/dialog";
 
+import { isDarwin } from "../tools/os";
 import { openSingleFileDialog } from "../tools/dialog";
 import { ProjectType, projectsKey } from "../tools/project";
 import { tryAddProjectToLocalStorage, tryGetProjectsFromLocalStorage } from "../tools/local-storage";
@@ -28,6 +29,9 @@ export function createDashboard(): void {
     }
 
     const div = document.getElementById("babylonjs-editor-main-div")!;
+    if (!isDarwin()) {
+        div.classList.add("electron-rounded-corners");
+    }
 
     const root = createRoot(div);
     root.render(

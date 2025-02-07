@@ -14,7 +14,7 @@ export function DashboardWindowControls() {
                 <div className="w-full electron-draggable h-full" />
 
                 {(!isDarwin() || process.env.DEBUG) &&
-                    <div className="flex z-50">
+                    <div className="flex z-50 pr-3 pt-1">
                         <Button variant="ghost" className="w-12 aspect-square !p-0 hover:bg-muted" onClick={() => ipcRenderer.send("window:minimize")}>
                             <VscChromeMinimize className="w-5 h-5" />
                         </Button>

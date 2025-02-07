@@ -6,6 +6,8 @@ import { createRoot } from "react-dom/client";
 import { Grid } from "react-loader-spinner";
 import { Fade } from "react-awesome-reveal";
 
+import { isDarwin } from "../tools/os";
+
 export function createSplash(): void {
     const theme = localStorage.getItem("editor-theme") ?? "dark";
     if (theme === "dark") {
@@ -13,6 +15,9 @@ export function createSplash(): void {
     }
 
     const div = document.getElementById("babylonjs-editor-main-div")!;
+    if (!isDarwin()) {
+        div.classList.add("electron-rounded-corners");
+    }
 
     const root = createRoot(div);
     root.render(
