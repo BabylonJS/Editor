@@ -53,17 +53,8 @@ export async function compressFileToKtx(editor: Editor, absolutePath: string, fo
     }
 }
 
-export function t() {
-
-}
-
 export async function compressFileToKtxFormat(editor: Editor, absolutePath: string, format: KTXToolsType, force?: boolean): Promise<void> {
     if (!editor.state.compressedTexturesEnabled) {
-        return;
-    }
-
-    const cliPath = getCompressedTexturesCliPath();
-    if (!cliPath) {
         return;
     }
 
@@ -95,6 +86,11 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
                 stream.close();
             });
     });
+
+    const cliPath = getCompressedTexturesCliPath();
+    if (!cliPath) {
+        return;
+    }
 
     let command: string | null = null;
     switch (format) {

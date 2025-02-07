@@ -31,7 +31,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
     public render(): ReactNode {
         return (
             <div className="relative">
-                <div className="sticky top-0 left-0 w-full h-10 bg-primary-foreground">
+                <div className="sticky z-50 top-0 left-0 w-full h-10 bg-primary-foreground">
                     <div className="flex gap-2 h-full">
                         <Button minimal icon="trash" text="Clear" onClick={() => this.setState({ logs: [] })} />
                     </div>

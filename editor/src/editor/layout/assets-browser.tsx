@@ -14,6 +14,7 @@ import { IoRefresh } from "react-icons/io5";
 import { IoCheckmark } from "react-icons/io5";
 import { IoIosOptions } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FaFolder, FaFolderOpen, FaRegFolderOpen } from "react-icons/fa";
 
 import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
@@ -36,6 +37,7 @@ import { onProjectConfigurationChangedObservable, projectConfiguration } from ".
 
 import { showConfirm } from "../../ui/dialog";
 
+import { Input } from "../../ui/shadcn/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../../ui/shadcn/ui/breadcrumb";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSubTrigger, ContextMenuSub, ContextMenuSubContent } from "../../ui/shadcn/ui/context-menu";
@@ -86,6 +88,10 @@ export interface IEditorAssetsBrowserState {
     files: string[];
     selectedKeys: string[];
     selectionEnabled: boolean;
+
+    treeSearch: string;
+    gridSearch: string;
+
     showGeneratedFiles: boolean;
 
     browsedPath?: string;
@@ -104,6 +110,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
             files: [],
             sizes: [25, 75],
 
+            treeSearch: "",
+            gridSearch: "",
+
             selectedKeys: [],
             filesTreeNodes: [],
 
@@ -121,14 +130,37 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                     className="w-full h-full"
                     defaultSize={this.state.sizes[0]}
                 >
-                    <div className="w-full h-full overflow-auto">
-                        <Tree
-                            contents={this.state.filesTreeNodes}
-                            onNodeClick={(n) => this._handleNodeClicked(n)}
-                            onNodeExpand={(n) => this._handleNodeExpanded(n)}
-                            onNodeCollapse={(n) => this._handleNodeCollapsed(n)}
-                            onNodeDoubleClick={(n) => this._handleNodeDoubleClicked(n)}
-                        />
+                    <div className="flex flex-col w-full h-full">
+                        <div className="relative flex items-center w-full h-10 px-1">
+                            <Input
+                                placeholder="Search"
+                                value={this.state.treeSearch}
+                                onChange={(e) => {
+                                    this.setState({ treeSearch: e.currentTarget.value }, () => {
+                                        if (projectConfiguration.path) {
+                                            this._refreshFilesTreeNodes(projectConfiguration.path!);
+                                        }
+                                    });
+                                }}
+                                className={`
+                                    w-full h-8 !border-none pl-7
+                                    hover:border-border focus:border-border
+                                    transition-all duration-300 ease-in-out    
+                                `}
+                            />
+
+                            <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 left-2 w-4 h-4" />
+                        </div>
+
+                        <div className="flex-1 w-full h-full overflow-auto">
+                            <Tree
+                                contents={this.state.filesTreeNodes}
+                                onNodeClick={(n) => this._handleNodeClicked(n)}
+                                onNodeExpand={(n) => this._handleNodeExpanded(n)}
+                                onNodeCollapse={(n) => this._handleNodeCollapsed(n)}
+                                onNodeDoubleClick={(n) => this._handleNodeDoubleClicked(n)}
+                            />
+                        </div>
                     </div>
                 </Panel>
 
@@ -181,9 +213,15 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
         const allNodes: TreeNodeInfo[] = [];
         const filesTreeNodes: TreeNodeInfo[] = [];
 
+        const search = this.state.treeSearch.toLowerCase();
+
         files.forEach((f) => {
             const relative = f.replace(join(dirname(path), "/"), "");
-            const split = relative.split("/");
+            const split = relative.split("/") as string[];
+
+            if (!split.find((s) => s.toLowerCase().includes(search))) {
+                return;
+            }
 
             for (let i = 0, len = split.length; i < len; ++i) {
                 const relativePath = split.slice(0, i + 1).join("/");
@@ -194,7 +232,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                         label: (
                             <div
                                 draggable
-                                className="ml-2 p-1 w-full h-full pointer-events-auto"
+                                className={`
+                                    ml-2 p-1 w-full h-full pointer-events-auto
+                                    ${relativePath.startsWith("public") || relativePath.startsWith("node_modules") ? "opacity-35" : ""}
+                                `}
                                 onDragOver={(ev) => ev.preventDefault()}
                                 onDrop={
                                     relativePath.startsWith("assets")
@@ -229,6 +270,24 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
                     allNodes.push(node);
                 }
+
+                const hitsSearch = search && split[i].toLocaleLowerCase().includes(search);
+
+                if (hitsSearch && !relativePath.startsWith("public") && !relativePath.startsWith("node_modules")) {
+                    let tempNode = node;
+                    let parent: TreeNodeInfo | undefined = undefined;
+
+                    do {
+                        parent = allNodes.find((n) => {
+                            return n.childNodes?.find((c) => c.id === tempNode.id);
+                        });
+
+                        if (parent) {
+                            tempNode = parent;
+                            parent.isExpanded = true;
+                        }
+                    } while (parent !== undefined);
+                }
             }
         });
 
@@ -252,7 +311,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
      * Sets the new path being browsed by the assets browser.
      */
     public async setBrowsePath(path: string): Promise<void> {
-        this.setState({ browsedPath: path });
+        this.setState({
+            gridSearch: "",
+            browsedPath: path,
+        });
 
         return this._refreshItems(path);
     }
@@ -443,18 +505,35 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                         <Button minimal icon="import" text="Import" onClick={() => this._handleImportFiles()} />
                     </div>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <Button minimal icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
-                                this.setState({ showGeneratedFiles: !this.state.showGeneratedFiles }, () => this.refresh());
-                            }}>
-                                {this.state.showGeneratedFiles ? <IoCheckmark /> : ""} Show Generated Files
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2 items-center">
+                        <div className="relative">
+                            <Input
+                                placeholder="Search"
+                                value={this.state.gridSearch}
+                                onChange={(e) => this.setState({ gridSearch: e.currentTarget.value })}
+                                className={`
+                                    max-w-52 w-full h-8 !border-none pl-7
+                                    hover:border-border focus:border-border
+                                    transition-all duration-300 ease-in-out    
+                                `}
+                            />
+
+                            <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 left-2 w-4 h-4" />
+                        </div>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger>
+                                <Button minimal icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
+                                    this.setState({ showGeneratedFiles: !this.state.showGeneratedFiles }, () => this.refresh());
+                                }}>
+                                    {this.state.showGeneratedFiles ? <IoCheckmark /> : ""} Show Generated Files
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
 
                 {this._getBreadcrumbComponent()}
@@ -525,12 +604,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                             onMouseLeave={() => this._isMouseOver = false}
                             className="grid gap-4 justify-left w-full h-full p-5 overflow-y-auto pb-10"
                         >
-                            {this.state.files.map((f) => {
-                                const key = join(this.state.browsedPath!, f);
-                                const selected = this.state.selectedKeys.indexOf(key) > -1;
+                            {
+                                this.state.files
+                                    .filter((f) => f.toLowerCase().includes(this.state.gridSearch.toLowerCase()))
+                                    .map((f) => {
+                                        const key = join(this.state.browsedPath!, f);
+                                        const selected = this.state.selectedKeys.indexOf(key) > -1;
 
-                                return this._getAssetBrowserItem(f, key, selected);
-                            })}
+                                        return this._getAssetBrowserItem(f, key, selected);
+                                    })
+                            }
                         </div>
                     </ContextMenuTrigger>
                     <ContextMenuContent>

@@ -65,7 +65,7 @@ export async function executeBlender(pythonScript: string, inputFilename: string
     }
 
     try {
-        const buffer = Buffer.from(await readFile(outputFile));
+        const buffer = await readFile(outputFile);
         await unlink(outputFile);
         return buffer;
     } catch (e) {
