@@ -73,7 +73,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                     <DashboardWindowControls />
 
                     <Fade delay={0}>
-                        <div className="flex justify-between items-end w-full">
+                        <div className="flex justify-between items-end w-full mt-1">
                             <div className="text-5xl font-semibold">
                                 Dashboard
                             </div>
