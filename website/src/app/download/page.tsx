@@ -19,7 +19,7 @@ export default function DownloadPage() {
                 </Link>
             </div>
 
-            <div className="flex flex-col gap-10 max-w-3xl mx-auto pt-32">
+            <div className="flex flex-col gap-10 max-w-4xl mx-auto pt-32">
                 <Fade cascade damping={0.1} triggerOnce className="w-full">
                     <Fade>
                         <div className="text-3xl md:text-5xl lg:text-6xl font-semibold font-sans tracking-tighter text-center">
@@ -28,15 +28,18 @@ export default function DownloadPage() {
                     </Fade>
 
                     <DownloadVersionComponent
-                        version="v5.0.0-alpha.6"
-                        windowsLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe"
+                        version="v5.0.0-alpha.7"
+                        windowsx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe"
                         macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.dmg"
                         macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0.dmg"
+
+                        linuxx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-4.7.0.AppImage"
+                        linuxArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.AppImage"
                     />
 
                     <DownloadVersionComponent
                         version="v4.7.0"
-                        windowsLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%204.7.0.exe"
+                        windowsx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%204.7.0.exe"
                         macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-4.7.0-arm64.dmg"
                         macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-4.7.0.dmg"
                     />
