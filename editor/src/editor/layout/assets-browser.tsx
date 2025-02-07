@@ -665,7 +665,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
     private _getAssetBrowserItem(filename: string, key: string, selected: boolean): ReactNode {
         const extension = extname(filename).toLowerCase();
 
-        const props: IAssetsBrowserItemProps & { key: string; selectableKey: string; selected: boolean; } = {
+        const props: IAssetsBrowserItemProps & { key: string; } = {
             key,
             selected,
             absolutePath: key,

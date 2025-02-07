@@ -4,7 +4,7 @@ import { basename, extname, dirname, join } from "path/posix";
 
 import { ipcRenderer } from "electron";
 
-import { Component, MouseEvent, ReactNode } from "react";
+import { Component, DragEvent, MouseEvent, ReactNode } from "react";
 
 import { Tooltip } from "@blueprintjs/core";
 
@@ -13,7 +13,7 @@ import { Grid } from "react-loader-spinner";
 import { toast } from "sonner";
 
 import { VscJson } from "react-icons/vsc";
-import { RiFinderFill } from "react-icons/ri";
+import { ImFinder } from "react-icons/im";
 import { BiSolidFileCss } from "react-icons/bi";
 import { GiCeilingLight } from "react-icons/gi";
 import { GrStatusUnknown } from "react-icons/gr";
@@ -91,6 +91,8 @@ export interface IAssetsBrowserItemState {
 }
 
 export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAssetsBrowserItemState> {
+    private _renameValue: string = "";
+
     public constructor(props: IAssetsBrowserItemProps) {
         super(props);
 
@@ -107,7 +109,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
         const icon = this.getIcon();
 
         return (
-            <Tooltip position="bottom" content={basename(this.props.absolutePath)}>
+            <Tooltip position="bottom" content={basename(this.props.absolutePath)} disabled={this.state.isRenaming}>
                 <ContextMenu>
                     <ContextMenuTrigger>
                         <div
@@ -153,12 +155,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
                                 style={{
                                     color: icon ? undefined : "gray",
                                 }}
-                                onDoubleClick={(ev) => {
-                                    if (!this.state.isRenaming) {
-                                        ev.stopPropagation();
-                                        this.setState({ isRenaming: true });
-                                    }
-                                }}
+                                onDoubleClick={(ev) => this._handleNameDoubleClicked(ev)}
                                 className={`select-none text-center w-full ${this.state.isRenaming ? "" : "text-ellipsis overflow-hidden whitespace-nowrap"}`}
                             >
                                 {this.state.isRenaming &&
@@ -170,7 +167,10 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
                                                 r?.select();
                                             }, 0);
                                         }}
+                                        onClick={(ev) => ev.stopPropagation()}
+                                        onChange={(ev) => this._renameValue = ev.currentTarget.value}
                                         defaultValue={basename(this.props.absolutePath)}
+                                        onFocus={(ev) => this._renameValue = ev.currentTarget.value}
                                         onBlur={(ev) => this._handleRenameFileOrFolder(ev.currentTarget.value)}
                                         onKeyDown={(ev) => ev.key === "Enter" && this._handleRenameFileOrFolder(ev.currentTarget.value)}
                                     />
@@ -220,7 +220,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
         // Nothing to do by default.
     }
 
-    private _handleDragStart(ev: React.DragEvent<HTMLDivElement>): void {
+    private _handleDragStart(ev: DragEvent<HTMLDivElement>): void {
         const extension = extname(this.props.absolutePath).toLowerCase();
         const files = this.props.editor.layout.assets.state.selectedKeys.filter((key) => extname(key).toLowerCase() === extension);
 
@@ -241,7 +241,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
         ev.dataTransfer.setData("assets", JSON.stringify(files));
     }
 
-    private async _handleDrop(ev: React.DragEvent<HTMLDivElement>): Promise<void> {
+    private async _handleDrop(ev: DragEvent<HTMLDivElement>): Promise<void> {
         ev.preventDefault();
         ev.stopPropagation();
 
@@ -256,6 +256,34 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
         }
 
         return this.props.editor.layout.assets.handleMoveSelectedFilesTo(this.props.absolutePath);
+    }
+
+    private _renameMouseListener: ((ev: globalThis.MouseEvent) => void) | null = null;
+    private _renameKeyboardListener: ((ev: KeyboardEvent) => void) | null = null;
+
+    private _handleNameDoubleClicked(ev: MouseEvent<HTMLDivElement>): void {
+        if (!this.state.isRenaming) {
+            ev.stopPropagation();
+
+            this.setState({
+                isRenaming: true,
+            });
+
+            window.addEventListener("keyup", this._renameKeyboardListener = (ev) => {
+                if (ev.key === "Escape") {
+                    this.setState({
+                        isRenaming: false,
+                    });
+                    this._removeRenameEventListeners();
+
+                    this.props.setSelectionEnabled(true);
+                }
+            });
+
+            window.addEventListener("click", this._renameMouseListener = () => {
+                this._handleRenameFileOrFolder(this._renameValue);
+            });
+        }
     }
 
     private async _handleRenameFileOrFolder(value: string): Promise<void> {
@@ -284,8 +312,24 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
             });
         }
 
-        this.setState({ isRenaming: false });
+        this.setState({
+            isRenaming: false,
+        });
+        this._removeRenameEventListeners();
+
         this.props.setSelectionEnabled(true);
+    }
+
+    private _removeRenameEventListeners(): void {
+        if (this._renameKeyboardListener) {
+            window.removeEventListener("keyup", this._renameKeyboardListener);
+            this._renameKeyboardListener = null;
+        }
+
+        if (this._renameMouseListener) {
+            window.removeEventListener("click", this._renameMouseListener);
+            this._renameMouseListener = null;
+        }
     }
 
     /**
@@ -303,7 +347,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
         return (
             <ContextMenuContent>
                 <ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", this.props.absolutePath)}>
-                    <RiFinderFill className="w-5 h-5" /> {`Show in ${isDarwin ? "Finder" : "Explorer"}`}
+                    <ImFinder className="w-4 h-4" /> {`Show in ${isDarwin ? "Finder" : "Explorer"}`}
                 </ContextMenuItem>
 
                 <ContextMenuSeparator />
