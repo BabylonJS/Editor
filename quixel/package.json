@@ -10,7 +10,8 @@
     "main": "build/index.js",
     "license": "(Apache-2.0)",
     "devDependencies": {
-        "babylonjs-editor": "link:../editor"
+        "babylonjs-editor": "link:../editor",
+        "typescript": "5.4.5"
     },
     "dependencies": {
         "babylonjs": "7.44.0",

@@ -13,7 +13,7 @@
     "devDependencies": {
         "@babylonjs/core": "7.44.0",
         "@babylonjs/gui": "7.44.0",
-        "typescript": "5.3.3"
+        "typescript": "5.4.5"
     },
     "dependencies": {}
 }
