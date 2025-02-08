@@ -154,16 +154,22 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
         ipcRenderer.on("dashboard:opened-projects", (_, openedProjects) => this.setState({ openedProjects }));
         ipcRenderer.on("dashboard:update-projects", () => this.setState({ projects: tryGetProjectsFromLocalStorage() }));
 
-        await Promise.all(this.state.projects.map(async (project) => {
+        const projects = this.state.projects.slice();
+
+        await Promise.all(projects.map(async (project) => {
             const exists = await pathExists(project.absolutePath);
-            if (!exists) {
-                const index = this.state.projects.indexOf(project);
-                if (index !== -1) {
-                    this.state.projects.splice(index, 1);
-                    this.setState({
-                        projects: this.state.projects.slice(),
-                    });
-                }
+            if (exists) {
+                return;
+            }
+
+            const index = projects.indexOf(project);
+            if (index !== -1) {
+                projects.splice(index, 1);
+                localStorage.setItem(projectsKey, JSON.stringify(projects));
+
+                this.setState({
+                    projects,
+                });
             }
         }));
     }
