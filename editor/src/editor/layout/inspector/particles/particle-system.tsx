@@ -63,6 +63,8 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 
                     <EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onParticleSystemModifiedObservable.notifyObservers(this.props.object)} />
 
+                    <EditorInspectorSwitchField object={this.props.object} property="preventAutoStart" label="Prevent Auto Start" />
+
                     <EditorInspectorVectorField object={this.props.object} property="worldOffset" label="Offset" />
                     <EditorInspectorVectorField object={this.props.object} property="gravity" label="Gravity" />
 
@@ -145,6 +147,21 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
                 </EditorInspectorSectionField>
 
                 {this._getEmitterTypeInspector()}
+
+                <EditorInspectorSectionField title="Animation Sheet">
+                    <EditorInspectorSwitchField object={this.props.object} property="isAnimationSheetEnabled" label="Is Animation Sheet Enabled" onChange={() => this.forceUpdate()} />
+
+                    {this.props.object.isAnimationSheetEnabled &&
+                        <>
+                            <EditorInspectorNumberField object={this.props.object} property="startSpriteCellID" label="Start Cell Id" min={0} />
+                            <EditorInspectorNumberField object={this.props.object} property="endSpriteCellID" label="End Cell Id" min={0} />
+                            <EditorInspectorNumberField object={this.props.object} property="spriteCellChangeSpeed" label="Cell Change Speed" min={0} />
+                            <EditorInspectorNumberField object={this.props.object} property="spriteCellWidth" label="Cell Width" min={0} />
+                            <EditorInspectorNumberField object={this.props.object} property="spriteCellHeight" label="Cell Height" min={0} />
+                            <EditorInspectorSwitchField object={this.props.object} property="spriteRandomStartCell" label="Random Start Cell" />
+                        </>
+                    }
+                </EditorInspectorSectionField>
             </>
         );
     }
