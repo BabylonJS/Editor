@@ -4,14 +4,15 @@ import { DragEvent, useEffect, useRef, useState } from "react";
 
 import { useEventListener } from "usehooks-ts";
 
-import { Node, TransformNode } from "babylonjs";
+import { Node, TransformNode, AbstractMesh } from "babylonjs";
 
 import { Input } from "../../../ui/shadcn/ui/input";
 
 import { isScene } from "../../../tools/guards/scene";
 import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
-import { isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
+import { isParticleSystem } from "../../../tools/guards/particles";
+import { isAbstractMesh, isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
 import { applySoundAsset } from "../preview/import/sound";
 import { applyTextureAssetToObject } from "../preview/import/texture";
@@ -124,6 +125,10 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
                 if (isSound(n.nodeData)) {
                     return oldHierarchyMap.set(n.nodeData, n.nodeData["_connectedTransformNode"]);
                 }
+
+                if (isParticleSystem(n.nodeData)) {
+                    return oldHierarchyMap.set(n.nodeData, n.nodeData.emitter);
+                }
             }
         });
 
@@ -146,6 +151,10 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
                                 n.nodeData.spatialSound = false;
                                 return n.nodeData["_connectedTransformNode"] = null;
                             }
+                        }
+
+                        if (isParticleSystem(n.nodeData)) {
+                            return n.nodeData.emitter = oldHierarchyMap.get(n.nodeData) as AbstractMesh;
                         }
                     }
                 });
@@ -170,6 +179,12 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
                                 n.nodeData.detachFromMesh();
                                 n.nodeData.spatialSound = false;
                                 return n.nodeData["_connectedTransformNode"] = null;
+                            }
+                        }
+
+                        if (isParticleSystem(n.nodeData)) {
+                            if (isAbstractMesh(newParent)) {
+                                return n.nodeData.emitter = newParent;
                             }
                         }
                     }

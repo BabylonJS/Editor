@@ -1,11 +1,12 @@
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { AbstractMesh, Light, Node, Scene, Sound } from "babylonjs";
+import { AbstractMesh, Light, Node, Scene, Sound, ParticleSystem } from "babylonjs";
 
 import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 import { isSceneLinkNode } from "../../../tools/guards/scene";
 import { updateAllLights } from "../../../tools/light/shadows";
+import { isParticleSystem } from "../../../tools/guards/particles";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
@@ -55,6 +56,11 @@ export function removeNodes(editor: Editor): void {
                 soundtrack: scene.soundTracks?.[sound.soundTrackId + 1],
             }));
 
+    const particlesData =
+        editor.layout.graph.getSelectedNodes()
+            .map((n) => n.nodeData as ParticleSystem)
+            .filter((n) => isParticleSystem(n));
+
     registerUndoRedo({
         executeRedo: true,
         undo: () => {
@@ -64,6 +70,10 @@ export function removeNodes(editor: Editor): void {
 
             soundData.forEach((d) => {
                 d.soundtrack?.addSound(d.sound);
+            });
+
+            particlesData.forEach((particleSystem) => {
+                scene.addParticleSystem(particleSystem);
             });
 
             selectedGuiNodes.forEach((node) => {
@@ -91,6 +101,10 @@ export function removeNodes(editor: Editor): void {
 
             soundData.forEach((d) => {
                 d.soundtrack?.removeSound(d.sound);
+            });
+
+            particlesData.forEach((particleSystem) => {
+                scene.removeParticleSystem(particleSystem);
             });
 
             selectedGuiNodes.forEach((node) => {

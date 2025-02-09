@@ -13,7 +13,7 @@ import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -219,7 +219,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
      * become unselected to have only the given node selected. All parents are expanded.
      * @param node defines the reference tot the node to select in the graph.
      */
-    public setSelectedNode(node: Node | Sound): void {
+    public setSelectedNode(node: Node | Sound | ParticleSystem): void {
         let source = isSound(node) ? node["_connectedTransformNode"] : node;
         if (!source) {
             return;
@@ -280,12 +280,12 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             return;
         }
 
-        const newNodes: Node[] = [];
+        const newNodes: (Node | ParticleSystem)[] = [];
 
         this._objectsToCopy.forEach((treeNode) => {
             const object = treeNode.nodeData;
 
-            let node: Node | null = null;
+            let node: Node | ParticleSystem | null = null;
 
             if (isAbstractMesh(object)) {
                 const suffix = "(Instanced Mesh)";
@@ -332,11 +332,18 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 }
             }
 
+            if (isParticleSystem(object) && isAbstractMesh(parent)) {
+                const suffix = "(Clone)";
+                const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+                node = object.clone(name, parent, false);
+            }
+
             if (node) {
                 node.id = Tools.RandomId();
                 node.uniqueId = UniqueNumber.Get();
 
-                if (parent) {
+                if (parent && isNode(node)) {
                     node.parent = parent;
                 }
 
@@ -355,9 +362,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         waitNextAnimationFrame().then(() => {
             const firstNode = newNodes[0];
 
+            this.props.editor.layout.graph.setSelectedNode(firstNode);
+            this.props.editor.layout.inspector.setEditedObject(firstNode);
+
             if (isNode(firstNode)) {
-                this.props.editor.layout.graph.setSelectedNode(firstNode);
-                this.props.editor.layout.inspector.setEditedObject(firstNode);
                 this.props.editor.layout.animations.setEditedObject(firstNode);
                 this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
             }
