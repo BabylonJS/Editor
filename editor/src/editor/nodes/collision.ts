@@ -43,6 +43,8 @@ export class CollisionMesh extends Mesh {
             applySkeleton: true,
         });
 
+        this.type = type;
+
         const bb = sourceMesh.getBoundingInfo();
 
         switch (type) {
@@ -64,8 +66,6 @@ export class CollisionMesh extends Mesh {
                 }
                 break;
         }
-
-        this.type = type;
 
         if (this.geometry) {
             this.material = this._createMaterial();

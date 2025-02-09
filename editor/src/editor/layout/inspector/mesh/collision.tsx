@@ -120,7 +120,9 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
             return;
         }
 
-        this.setState({ computingCollisionMesh: true });
+        this.setState({
+            computingCollisionMesh: true,
+        });
 
         collisionMesh?.dispose(false, false);
         collisionMesh = new CollisionMesh(`${mesh.name} Collider`, mesh.getScene(), mesh);
@@ -133,6 +135,8 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
 
         this.props.editor.layout.graph.refresh();
 
-        this.setState({ computingCollisionMesh: false });
+        this.setState({
+            computingCollisionMesh: false,
+        });
     }
 }
