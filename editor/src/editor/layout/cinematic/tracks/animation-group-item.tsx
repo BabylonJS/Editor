@@ -51,19 +51,25 @@ export class CinematicEditorAnimationGroupTrackItem extends Component<ICinematic
                         w-8 h-8 p-2 rounded-md
                         ${this.state.dragOver
                             ? "bg-accent"
-                            : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary"
+                            : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary-foreground"
                         }
                         transition-all duration-300 ease-in-out    
                     `}
                 >
-                    <MdAnimation className="w-4 h-4" />
+                    <MdAnimation
+                        className={`
+                            w-4 h-4
+                            ${this.props.cinematicEditor.state.selectedTrack === this.props.track ? "" : "invert"}
+                            transition-all duration-300 ease-in-out    
+                        `}
+                    />
                 </div>
 
                 <Select
                     value={this.props.track.animationGroup?.name}
                     onValueChange={(v) => this._handleAnimationGroupChanged(v)}
                 >
-                    <SelectTrigger className="w-[12rem]">
+                    <SelectTrigger className="flex-1 h-8 border-none [&>span]:text-center [&>span]:w-full [&>span]:text-xs [&>svg]:invisible [&>svg]:hover:visible">
                         <SelectValue placeholder="Animation Group..." />
                     </SelectTrigger>
                     <SelectContent>

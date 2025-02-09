@@ -86,8 +86,8 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
 
                         {(this.props.track.node || this.props.track.defaultRenderingPipeline) &&
                             <Tooltip>
-                                <TooltipTrigger>
-                                    <Button variant="ghost" className="w-[12rem]" onClick={() => this._selectPropertyToAnimate()}>
+                                <TooltipTrigger className="flex items-center flex-1">
+                                    <Button variant="ghost" className="w-full h-8" onClick={() => this._selectPropertyToAnimate()}>
                                         <span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">
                                             {this.props.track.propertyPath?.split(".").pop() ?? "No property"}
                                         </span>
@@ -98,20 +98,24 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                                 </TooltipContent>
                             </Tooltip>
                         }
+
+                        {(!this.props.track.node && !this.props.track.defaultRenderingPipeline) &&
+                            <div className="flex-1" />
+                        }
+
+                        <Button
+                            variant="ghost"
+                            className={`
+                                w-8 h-8 p-1
+                                ${this.props.cinematicEditor.state.selectedTrack === this.props.track ? "opacity-100" : "opacity-0"}
+                                transition-all duration-300 ease-in-out
+                            `}
+                            onClick={() => this.props.onRemove(this.props.track)}
+                        >
+                            <HiOutlineTrash className="w-5 h-5" />
+                        </Button>
                     </div>
                 </TooltipProvider>
-
-                <Button
-                    variant="ghost"
-                    className={`
-                        w-8 h-8 p-1
-                        ${this.props.cinematicEditor.state.selectedTrack === this.props.track ? "opacity-100" : "opacity-0"}
-                        transition-all duration-300 ease-in-out
-                    `}
-                    onClick={() => this.props.onRemove(this.props.track)}
-                >
-                    <HiOutlineTrash className="w-5 h-5" />
-                </Button>
             </div>
         );
     }
