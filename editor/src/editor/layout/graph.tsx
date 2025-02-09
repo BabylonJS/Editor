@@ -6,14 +6,14 @@ import { IoMdCube } from "react-icons/io";
 import { FaCamera } from "react-icons/fa";
 import { FaLightbulb } from "react-icons/fa";
 import { BsSoundwave } from "react-icons/bs";
-import { IoCheckmark } from "react-icons/io5";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
+import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -21,11 +21,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 
 import { isSound } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
+import { isParticleSystem } from "../../tools/guards/particles";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
-import { onNodeModifiedObservable, onNodesAddedObservable, onTextureModifiedObservable } from "../../tools/observables";
+import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
 
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
@@ -89,8 +90,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         };
 
         onNodesAddedObservable.add(() => this.refresh());
+        onParticleSystemAddedObservable.add(() => this.refresh());
+
         onNodeModifiedObservable.add((node) => this._handleNodeModified(node));
         onTextureModifiedObservable.add((texture) => this._handleNodeModified(texture));
+        onParticleSystemModifiedObservable.add((particleSystem) => this._handleNodeModified(particleSystem));
 
         document.addEventListener("copy", () => this.state.isFocused && this.copySelectedNodes());
         document.addEventListener("paste", () => this.state.isFocused && this.pasteSelectedNodes());
@@ -523,6 +527,24 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         return info;
     }
 
+    private _getParticleSystemNode(particleSystem: IParticleSystem): TreeNodeInfo {
+        const info = {
+            nodeData: particleSystem,
+            id: particleSystem.id,
+            icon: this._getIcon(particleSystem),
+            label: this._getNodeLabelComponent(particleSystem, particleSystem.name, false),
+        } as TreeNodeInfo;
+
+        this._forEachNode(this.state.nodes, (n) => {
+            if (n.id === info.id) {
+                info.isSelected = n.isSelected;
+                info.isExpanded = n.isExpanded;
+            }
+        });
+
+        return info;
+    }
+
     private _parseGuiNode(scene: Scene): TreeNodeInfo | null {
         const guiTextures = scene.textures.filter((texture) => texture.getClassName() === "AdvancedDynamicTexture") as AdvancedDynamicTexture[];
         if (!guiTextures.length) {
@@ -640,6 +662,14 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 });
             }
 
+            // Handle particle systems
+            if (isAbstractMesh(node) && !noChildren) {
+                const particleSystems = this.props.editor.layout.preview.scene.particleSystems.filter((ps) => ps.emitter === node);
+                particleSystems.forEach((particleSystem) => {
+                    info.childNodes?.push(this._getParticleSystemNode(particleSystem));
+                });
+            }
+
             if (info.childNodes?.length) {
                 info.hasCaret = true;
             } else {
@@ -725,6 +755,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             return <HiSpeakerWave className="w-4 h-4" />;
         }
 
+        if (isParticleSystem(object)) {
+            return <IoSparklesSharp className="w-4 h-4" />;
+        }
+
         return <MdOutlineQuestionMark className="w-4 h-4" />;
     }
 
@@ -748,7 +782,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
         );
     }
 
-    private _handleNodeModified(node: Node | BaseTexture): void {
+    private _handleNodeModified(node: Node | BaseTexture | IParticleSystem): void {
         this._forEachNode(this.state.nodes, (n) => {
             if (n.nodeData === node) {
                 n.label = this._getNodeLabelComponent(node, node.name);

@@ -11,6 +11,7 @@ import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 
 import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
@@ -40,13 +41,14 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
         createDirectoryIfNotExist(join(scenePath, "gui")),
         createDirectoryIfNotExist(join(scenePath, "sounds")),
+        createDirectoryIfNotExist(join(scenePath, "particleSystems")),
     ]);
 
     const scene = editor.layout.preview.scene;
 
-    // Write geometries and meshes
     const savedFiles: string[] = [];
 
+    // Write geometries and meshes
     await Promise.all(scene.meshes.map(async (mesh) => {
         if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || isMeshMetadataNotVisibleInGraph(mesh)) {
             return;
@@ -383,6 +385,29 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 savedFiles.push(soundPath);
             }
         }));
+    }));
+
+    // Write particle systems
+    await Promise.all(scene.particleSystems.map(async (particleSystem) => {
+        const particleSystemPath = join(scenePath, "particleSystems", `${particleSystem.id}.json`);
+
+        try {
+            const data = particleSystem.serialize(true);
+
+            if (isParticleSystem(particleSystem) || isGPUParticleSystem(particleSystem)) {
+                data.uniqueId = particleSystem.uniqueId;
+            }
+
+            data.className = particleSystem.getClassName();
+
+            await writeJSON(particleSystemPath, data, {
+                spaces: 4,
+            });
+        } catch (e) {
+            editor.layout.console.error(`Failed to write particle system ${particleSystem.name}`);
+        } finally {
+            savedFiles.push(particleSystemPath);
+        }
     }));
 
     // Write configuration

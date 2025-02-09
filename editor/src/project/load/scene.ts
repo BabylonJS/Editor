@@ -4,7 +4,7 @@ import { readJSON, readdir } from "fs-extra";
 import {
     AbstractMesh, AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager,
     RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode, MultiMaterial, Animation,
-    Sound, Color4,
+    Sound, Color4, IParticleSystem, ParticleSystem, GPUParticleSystem,
 } from "babylonjs";
 
 import { Editor } from "../../editor/main";
@@ -53,6 +53,7 @@ export type SceneLoadResult = {
     sceneLinks: SceneLinkNode[];
     transformNodes: TransformNode[];
     animationGroups: AnimationGroup[];
+    particleSystems: IParticleSystem[];
 };
 
 export async function loadScene(editor: Editor, projectPath: string, scenePath: string, options?: SceneLoaderOptions): Promise<SceneLoadResult> {
@@ -66,6 +67,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         sceneLinks: [],
         transformNodes: [],
         animationGroups: [],
+        particleSystems: [],
     } as SceneLoadResult;
 
     options ??= {};
@@ -85,9 +87,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
         createDirectoryIfNotExist(join(scenePath, "gui")),
         createDirectoryIfNotExist(join(scenePath, "sounds")),
+        createDirectoryIfNotExist(join(scenePath, "particleSystems")),
     ]);
 
-    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles, guiFiles, soundFiles] = await Promise.all([
+    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles, guiFiles, soundFiles, particleSystemFiles] = await Promise.all([
         readdir(join(scenePath, "nodes")),
         readdir(join(scenePath, "meshes")),
         readdir(join(scenePath, "lods")),
@@ -98,6 +101,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         readdir(join(scenePath, "sceneLinks")),
         readdir(join(scenePath, "gui")),
         readdir(join(scenePath, "sounds")),
+        readdir(join(scenePath, "particleSystems")),
     ]);
 
     const progress = await showLoadSceneProgressDialog(basename(scenePath));
@@ -111,7 +115,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         shadowGeneratorFiles.length +
         sceneLinkFiles.length +
         guiFiles.length +
-        soundFiles.length
+        soundFiles.length +
+        particleSystemFiles.length
     );
 
     SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
@@ -500,6 +505,33 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         progress.step(progressStep);
     }));
 
+    // Load particle systems
+    await Promise.all(particleSystemFiles.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
+        const data = await readJSON(join(scenePath, "particleSystems", file), "utf-8");
+
+        let particleSystem: ParticleSystem | GPUParticleSystem;
+
+        switch (data.className) {
+            case "GPUParticleSystem":
+                // TODO: Implement GPU particle system
+                break;
+
+            default:
+                particleSystem = ParticleSystem.Parse(data, scene, join(projectPath, "/"));
+                break;
+        }
+
+        particleSystem!.uniqueId = data.uniqueId;
+
+        progress.step(progressStep);
+
+        loadResult.particleSystems.push(particleSystem!);
+    }));
+
     progress.dispose();
 
     // Configure textures urls
@@ -524,7 +556,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         if (masterMesh && isMesh(masterMesh)) {
             mesh.material = masterMesh.material;
             masterMesh.addLODLevel(mesh._waitingData.lods.distanceOrScreenCoverage, mesh);
-
         }
 
         mesh._waitingData.lods = null;

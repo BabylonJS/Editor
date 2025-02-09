@@ -1,4 +1,4 @@
-import { BaseTexture, Node, Observable } from "babylonjs";
+import { BaseTexture, Node, Observable, IParticleSystem } from "babylonjs";
 
 /**
  * Observable for when the project has been saved.
@@ -19,6 +19,16 @@ export const onNodeModifiedObservable = new Observable<Node>();
  * Observable for when a texture has been modified in the editor.
  */
 export const onTextureModifiedObservable = new Observable<BaseTexture>();
+
+/**
+ * Observable for when new particle systems have been added to the scene.
+ */
+export const onParticleSystemAddedObservable = new Observable<IParticleSystem>();
+
+/**
+ * Observable for when a particle system has been modified in the editor.
+ */
+export const onParticleSystemModifiedObservable = new Observable<IParticleSystem>();
 
 /**
  * Observable used for when the path browsed by "Assets Browser" has changed.

@@ -34,6 +34,8 @@ import { EditorAdvancedDynamicTextureInspector } from "./inspector/gui/gui";
 
 import { EditorDecalsInspector } from "./inspector/decals/decals";
 
+import { EditorParticleSystemInspector } from "./inspector/particles/particle-system";
+
 export interface IEditorInspectorProps {
     /**
      * The editor reference.
@@ -66,6 +68,8 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 
         EditorSoundInspector,
         EditorAdvancedDynamicTextureInspector,
+
+        EditorParticleSystemInspector,
     ];
 
     public constructor(props: IEditorInspectorProps) {

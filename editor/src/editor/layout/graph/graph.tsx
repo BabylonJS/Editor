@@ -14,10 +14,11 @@ import {
 import { SceneAssetBrowserDialogMode, showAssetBrowserDialog } from "../../../ui/scene-asset-browser";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
-import { isMesh, isNode } from "../../../tools/guards/nodes";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
+import { isAbstractMesh, isMesh, isNode } from "../../../tools/guards/nodes";
 
+import { addParticleSystem } from "../../../project/add/particles";
 import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../../project/add/light";
 import { addBoxMesh, addGroundMesh, addPlaneMesh, addSphereMesh, addTransformNode } from "../../../project/add/mesh";
 
@@ -83,6 +84,13 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                         <ContextMenuItem onClick={() => addDirectionalLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Directional Light</ContextMenuItem>
                                         <ContextMenuItem onClick={() => addSpotLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Spot Light</ContextMenuItem>
                                         <ContextMenuItem onClick={() => addHemisphericLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Hemispheric Light</ContextMenuItem>
+
+                                        {isAbstractMesh(this.props.object) &&
+                                            <>
+                                                <ContextMenuSeparator />
+                                                <ContextMenuItem onClick={() => addParticleSystem(this.props.editor, this.props.object)}>Particle System</ContextMenuItem>
+                                            </>
+                                        }
                                     </ContextMenuSubContent>
                                 </ContextMenuSub>
                             }

@@ -75,6 +75,7 @@ export class SceneLinkNode extends TransformNode {
             this._lastLoadResult.transformNodes.forEach((transformNode) => transformNode.dispose(true, true));
             this._lastLoadResult.sceneLinks.forEach((sceneLink) => sceneLink.dispose());
             this._lastLoadResult.animationGroups.forEach((animationGroup) => animationGroup.dispose());
+            this._lastLoadResult.particleSystems.forEach((particleSystem) => particleSystem.dispose());
 
             this._lastLoadResult = null;
         }
