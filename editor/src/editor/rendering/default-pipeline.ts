@@ -1,4 +1,4 @@
-import { DefaultRenderingPipeline } from "babylonjs";
+import { DefaultRenderingPipeline, Color4, Vector2 } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -67,6 +67,21 @@ export function serializeDefaultRenderingPipeline(): any {
         fStop: defaultRenderingPipeline.depthOfField.fStop,
         focusDistance: defaultRenderingPipeline.depthOfField.focusDistance,
         focalLength: defaultRenderingPipeline.depthOfField.focalLength,
+
+        // Since v5.0.0-alpha.9
+        vignetteEnabled: defaultRenderingPipeline.imageProcessing?.vignetteEnabled,
+        vignetteColor: defaultRenderingPipeline.imageProcessing?.vignetteColor.asArray(),
+        vignetteWeight: defaultRenderingPipeline.imageProcessing?.vignetteWeight,
+
+        chromaticAberrationEnabled: defaultRenderingPipeline.chromaticAberrationEnabled,
+        aberrationAmount: defaultRenderingPipeline.chromaticAberration.aberrationAmount,
+        radialIntensity: defaultRenderingPipeline.chromaticAberration.radialIntensity,
+        direction: defaultRenderingPipeline.chromaticAberration.direction.asArray(),
+        centerPosition: defaultRenderingPipeline.chromaticAberration.centerPosition.asArray(),
+
+        glowLayerEnabled: defaultRenderingPipeline.glowLayerEnabled,
+        glowLayerIntensity: defaultRenderingPipeline.glowLayer?.intensity,
+        glowLayerBlurKernelSize: defaultRenderingPipeline.glowLayer?.blurKernelSize,
     };
 }
 
@@ -85,6 +100,11 @@ export function parseDefaultRenderingPipeline(editor: Editor, data: any): Defaul
         defaultRenderingPipeline.imageProcessing.toneMappingType = data.toneMappingType;
         defaultRenderingPipeline.imageProcessing.ditheringEnabled = data.ditheringEnabled;
         defaultRenderingPipeline.imageProcessing.ditheringIntensity = data.ditheringIntensity;
+
+        // Since v5.0.0-alpha.9
+        defaultRenderingPipeline.imageProcessing.vignetteEnabled = data.vignetteEnabled ?? false;
+        defaultRenderingPipeline.imageProcessing.vignetteColor = Color4.FromArray(data.vignetteColor ?? [0, 0, 0]);
+        defaultRenderingPipeline.imageProcessing.vignetteWeight = data.vignetteWeight ?? 0.3;
     }
 
     defaultRenderingPipeline.bloomEnabled = data.bloomEnabled;
@@ -107,6 +127,19 @@ export function parseDefaultRenderingPipeline(editor: Editor, data: any): Defaul
     defaultRenderingPipeline.depthOfField.fStop = data.fStop;
     defaultRenderingPipeline.depthOfField.focusDistance = data.focusDistance;
     defaultRenderingPipeline.depthOfField.focalLength = data.focalLength;
+
+    // Since v5.0.0-alpha.9
+    defaultRenderingPipeline.chromaticAberrationEnabled = data.chromaticAberrationEnabled ?? false;
+    defaultRenderingPipeline.chromaticAberration.aberrationAmount = data.aberrationAmount ?? 10;
+    defaultRenderingPipeline.chromaticAberration.radialIntensity = data.radialIntensity ?? 1;
+    defaultRenderingPipeline.chromaticAberration.direction = Vector2.FromArray(data.direction ?? [0, 0]);
+    defaultRenderingPipeline.chromaticAberration.centerPosition = Vector2.FromArray(data.centerPosition ?? [0, 0]);
+
+    defaultRenderingPipeline.glowLayerEnabled = data.glowLayerEnabled ?? false;
+    if (defaultRenderingPipeline.glowLayer) {
+        defaultRenderingPipeline.glowLayer.intensity = data.glowLayerIntensity ?? 1;
+        defaultRenderingPipeline.glowLayer.blurKernelSize = data.glowLayerBlurKernelSize ?? 32;
+    }
 
     return defaultRenderingPipeline;
 }

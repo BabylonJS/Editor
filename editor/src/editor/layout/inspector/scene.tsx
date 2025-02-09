@@ -25,6 +25,7 @@ import { EditorInspectorListField } from "./fields/list";
 import { EditorInspectorColorField } from "./fields/color";
 import { EditorInspectorSwitchField } from "./fields/switch";
 import { EditorInspectorNumberField } from "./fields/number";
+import { EditorInspectorVectorField } from "./fields/vector";
 import { EditorInspectorTextureField } from "./fields/texture";
 
 import { ScriptInspectorComponent } from "./script/script";
@@ -221,6 +222,44 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
                                         max={(this.props.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) * 1000}
                                     />
                                     <EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="focalLength" label="Focal Length" step={0.01} min={0} />
+                                </>
+                            }
+                        </EditorInspectorSectionField>
+
+                        {defaultRenderingPipeline.imageProcessingEnabled &&
+                            <EditorInspectorSectionField title="Vignette">
+                                <EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="vignetteEnabled" label="Vignette Enabled" onChange={() => this.forceUpdate()} />
+
+                                {defaultRenderingPipeline.imageProcessing.vignetteEnabled &&
+                                    <>
+                                        <EditorInspectorNumberField object={defaultRenderingPipeline.imageProcessing} property="vignetteWeight" label="Weight" step={0.01} min={0} />
+                                        <EditorInspectorColorField object={defaultRenderingPipeline.imageProcessing} property="vignetteColor" label="Color" />
+                                    </>
+                                }
+                            </EditorInspectorSectionField>
+                        }
+
+                        <EditorInspectorSectionField title="Chromatic Aberration">
+                            <EditorInspectorSwitchField object={defaultRenderingPipeline} property="chromaticAberrationEnabled" label="Chromatic Aberration Enabled" onChange={() => this.forceUpdate()} />
+
+                            {defaultRenderingPipeline.chromaticAberrationEnabled &&
+                                <>
+                                    <EditorInspectorNumberField object={defaultRenderingPipeline.chromaticAberration} property="aberrationAmount" label="Aberration Amount" step={0.01} min={0} />
+                                    <EditorInspectorNumberField object={defaultRenderingPipeline.chromaticAberration} property="radialIntensity" label="Radial Intensity" step={0.01} min={0} />
+
+                                    <EditorInspectorVectorField object={defaultRenderingPipeline.chromaticAberration} property="direction" label="Direction" />
+                                    <EditorInspectorVectorField object={defaultRenderingPipeline.chromaticAberration} property="centerPosition" label="Center" />
+                                </>
+                            }
+                        </EditorInspectorSectionField>
+
+                        <EditorInspectorSectionField title="Glow Layer">
+                            <EditorInspectorSwitchField object={defaultRenderingPipeline} property="glowLayerEnabled" label="Glow Layer Enabled" onChange={() => this.forceUpdate()} />
+
+                            {defaultRenderingPipeline.glowLayerEnabled && defaultRenderingPipeline.glowLayer &&
+                                <>
+                                    <EditorInspectorNumberField object={defaultRenderingPipeline.glowLayer} property="intensity" label="Intensity" step={0.01} min={0} />
+                                    <EditorInspectorNumberField object={defaultRenderingPipeline.glowLayer} property="blurKernelSize" label="Blur Kernel Size" step={1} min={0} max={512} />
                                 </>
                             }
                         </EditorInspectorSectionField>

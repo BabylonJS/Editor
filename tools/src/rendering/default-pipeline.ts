@@ -1,5 +1,7 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Camera } from "@babylonjs/core/Cameras/camera";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { Vector2 } from "@babylonjs/core/Maths/math.vector";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
 
 let defaultRenderingPipeline: DefaultRenderingPipeline | null = null;
@@ -67,6 +69,21 @@ export function serializeDefaultRenderingPipeline(): any {
         fStop: defaultRenderingPipeline.depthOfField.fStop,
         focusDistance: defaultRenderingPipeline.depthOfField.focusDistance,
         focalLength: defaultRenderingPipeline.depthOfField.focalLength,
+
+        // Since v5.0.0-alpha.9
+        vignetteEnabled: defaultRenderingPipeline.imageProcessing?.vignetteEnabled,
+        vignetteColor: defaultRenderingPipeline.imageProcessing?.vignetteColor.asArray(),
+        vignetteWeight: defaultRenderingPipeline.imageProcessing?.vignetteWeight,
+
+        chromaticAberrationEnabled: defaultRenderingPipeline.chromaticAberrationEnabled,
+        aberrationAmount: defaultRenderingPipeline.chromaticAberration.aberrationAmount,
+        radialIntensity: defaultRenderingPipeline.chromaticAberration.radialIntensity,
+        direction: defaultRenderingPipeline.chromaticAberration.direction.asArray(),
+        centerPosition: defaultRenderingPipeline.chromaticAberration.centerPosition.asArray(),
+
+        glowLayerEnabled: defaultRenderingPipeline.glowLayerEnabled,
+        glowLayerIntensity: defaultRenderingPipeline.glowLayer?.intensity,
+        glowLayerBlurKernelSize: defaultRenderingPipeline.glowLayer?.blurKernelSize,
     };
 }
 
@@ -89,6 +106,11 @@ export function parseDefaultRenderingPipeline(scene: Scene, camera: Camera, data
         pipeline.imageProcessing.toneMappingType = data.toneMappingType;
         pipeline.imageProcessing.ditheringEnabled = data.ditheringEnabled;
         pipeline.imageProcessing.ditheringIntensity = data.ditheringIntensity;
+
+        // Since v5.0.0-alpha.9
+        pipeline.imageProcessing.vignetteEnabled = data.vignetteEnabled ?? false;
+        pipeline.imageProcessing.vignetteColor = Color4.FromArray(data.vignetteColor ?? [0, 0, 0]);
+        pipeline.imageProcessing.vignetteWeight = data.vignetteWeight ?? 0.3;
     }
 
     pipeline.bloomEnabled = data.bloomEnabled;
@@ -111,6 +133,19 @@ export function parseDefaultRenderingPipeline(scene: Scene, camera: Camera, data
     pipeline.depthOfField.fStop = data.fStop;
     pipeline.depthOfField.focusDistance = data.focusDistance;
     pipeline.depthOfField.focalLength = data.focalLength;
+
+    // Since v5.0.0-alpha.9
+    pipeline.chromaticAberrationEnabled = data.chromaticAberrationEnabled ?? false;
+    pipeline.chromaticAberration.aberrationAmount = data.aberrationAmount ?? 10;
+    pipeline.chromaticAberration.radialIntensity = data.radialIntensity ?? 1;
+    pipeline.chromaticAberration.direction = Vector2.FromArray(data.direction ?? [0, 0]);
+    pipeline.chromaticAberration.centerPosition = Vector2.FromArray(data.centerPosition ?? [0, 0]);
+
+    pipeline.glowLayerEnabled = data.glowLayerEnabled ?? false;
+    if (pipeline.glowLayer) {
+        pipeline.glowLayer.intensity = data.glowLayerIntensity ?? 1;
+        pipeline.glowLayer.blurKernelSize = data.glowLayerBlurKernelSize ?? 32;
+    }
 
     return pipeline;
 }

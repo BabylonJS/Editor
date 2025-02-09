@@ -131,7 +131,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                     defaultSize={this.state.sizes[0]}
                 >
                     <div className="flex flex-col w-full h-full">
-                        <div className="relative flex items-center w-full h-10 px-1">
+                        <div className="relative flex items-center px-1 w-full h-10 min-h-10 bg-primary-foreground">
                             <Input
                                 placeholder="Search"
                                 value={this.state.treeSearch}
