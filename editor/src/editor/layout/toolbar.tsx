@@ -8,6 +8,7 @@ import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, Me
 import { isDarwin } from "../../tools/os";
 import { execNodePty } from "../../tools/node-pty";
 import { openSingleFileDialog } from "../../tools/dialog";
+import { visualStudioCodeAvailable } from "../../tools/process";
 
 import { showConfirm } from "../../ui/dialog";
 import { ToolbarComponent } from "../../ui/toolbar";
@@ -89,7 +90,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
                             <MenubarSeparator />
 
-                            <MenubarItem onClick={() => this._handleOpenVisualStudioCode()}>
+                            <MenubarItem disabled={!visualStudioCodeAvailable} onClick={() => this._handleOpenVisualStudioCode()}>
                                 Open in Visual Studio Code
                             </MenubarItem>
                         </MenubarContent>

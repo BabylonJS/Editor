@@ -27,12 +27,55 @@ export function executeAsync(command: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         exec(command, (error, stdout, stderr) => {
             if (error) {
-                console.error(stderr);
+                console.error(command, stderr);
                 reject(error);
+            } else {
+                console.log(command, stdout);
+                resolve();
             }
-
-            console.log(stdout);
-            resolve();
         });
     });
+}
+
+export let nodeJSAvailable: boolean = false;
+export let yarnAvailable: boolean = false;
+export let visualStudioCodeAvailable: boolean = false;
+
+/**
+ * Checks wether or not Node.js is available on the system.
+ * Updates the `nodeJSAvailable` variable that can be imported from this file.
+ */
+export async function checkNodeJSAvailable(): Promise<void> {
+    try {
+        await executeAsync("node --version");
+        nodeJSAvailable = true;
+    } catch (e) {
+        // Catch silently.
+    }
+}
+
+/**
+ * Checks wether or not Yarn is available on the system.
+ * Updates the `yarnAvailable` variable that can be imported from this file.
+ */
+export async function checkYarnAvailable(): Promise<void> {
+    try {
+        await executeAsync("yarn --version");
+        yarnAvailable = true;
+    } catch (e) {
+        // Catch silently.
+    }
+}
+
+/**
+ * Checks wether or not Visual Studio Code is available on the system.
+ * Updates the `visualStudioCodeAvailable` variable that can be imported from this file.
+ */
+export async function checkVisualStudioCodeAvailable(): Promise<void> {
+    try {
+        await executeAsync("code --version");
+        visualStudioCodeAvailable = true;
+    } catch (e) {
+        // Catch silently.
+    }
 }

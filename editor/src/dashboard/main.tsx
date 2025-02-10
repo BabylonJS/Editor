@@ -1,5 +1,5 @@
 import { pathExists } from "fs-extra";
-import { ipcRenderer, webFrame } from "electron";
+import { ipcRenderer, shell, webFrame } from "electron";
 
 import { Component, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
@@ -15,6 +15,7 @@ import { isDarwin } from "../tools/os";
 import { openSingleFileDialog } from "../tools/dialog";
 import { ProjectType, projectsKey } from "../tools/project";
 import { tryAddProjectToLocalStorage, tryGetProjectsFromLocalStorage } from "../tools/local-storage";
+import { checkNodeJSAvailable, checkYarnAvailable, nodeJSAvailable, yarnAvailable } from "../tools/process";
 
 import { DashboardProjectItem } from "./item";
 import { DashboardCreateProjectDialog } from "./create";
@@ -154,6 +155,9 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
         ipcRenderer.on("dashboard:opened-projects", (_, openedProjects) => this.setState({ openedProjects }));
         ipcRenderer.on("dashboard:update-projects", () => this.setState({ projects: tryGetProjectsFromLocalStorage() }));
 
+        this._checkSystemAvailabilities();
+
+        // Update list of projects to remove those that were deleted from the hard drive
         const projects = this.state.projects.slice();
 
         await Promise.all(projects.map(async (project) => {
@@ -172,6 +176,42 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                 });
             }
         }));
+    }
+
+    private async _checkSystemAvailabilities(): Promise<void> {
+        await Promise.all([
+            await checkNodeJSAvailable(),
+            await checkYarnAvailable(),
+        ]);
+
+        if (!nodeJSAvailable) {
+            await showAlert(
+                "Node.js not found",
+                <div className="flex flex-col">
+                    <div>
+                        Node.js was not found on your system.
+                    </div>
+                    <div>
+                        Node.js is required to build and run projects. You can install Node.js following <a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://nodejs.org/en/download")}>this link</a>.
+                    </div>
+                </div>
+            ).wait();
+        }
+
+        if (!yarnAvailable) {
+            await showAlert(
+                "Yarn not found",
+                <div className="flex flex-col">
+                    <div>
+                        Yarn was not found on your system.
+                    </div>
+                    <div>
+                        Yarn is required to install dependencies of the project and install plugins.
+                        You can install Yarn following <a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://classic.yarnpkg.com/en/docs/install")}>this link</a>.
+                    </div>
+                </div>
+            ).wait();
+        }
     }
 
     private _handleImportProject(): unknown {

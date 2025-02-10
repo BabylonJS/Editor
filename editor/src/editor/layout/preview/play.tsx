@@ -5,11 +5,14 @@ import { Button } from "@blueprintjs/core";
 import { Component, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
+
+import { IoIosWarning } from "react-icons/io";
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 
 import { exportProject } from "../../../project/export/export";
 import { projectConfiguration } from "../../../project/configuration";
 
+import { yarnAvailable } from "../../../tools/process";
 import { execNodePty, NodePtyInstance } from "../../../tools/node-pty";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/shadcn/ui/tooltip";
@@ -89,7 +92,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
                         <Button
                             minimal
                             active={this.state.playing}
-                            disabled={this.state.preparingPlay}
+                            disabled={this.state.preparingPlay || !yarnAvailable}
                             icon={
                                 this.state.preparingPlay
                                     ? <Grid width={24} height={24} color="gray" />
@@ -100,13 +103,19 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
                             onClick={() => this.playOrStopApplication()}
                             className={`
                                 w-10 h-10 bg-muted/50 !rounded-lg
-                                ${this.state.preparingPlay ? "bg-muted/50" : this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
+                                ${this.state.preparingPlay || !yarnAvailable ? "bg-muted/50" : this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
                                 transition-all duration-300 ease-in-out
                             `}
                         />
                     </TooltipTrigger>
-                    <TooltipContent>
-                        Play the game / application
+                    <TooltipContent className="flex gap-2 items-center">
+                        {yarnAvailable && "Play the game / application"}
+
+                        {!yarnAvailable &&
+                            <>
+                                <IoIosWarning className="w-4 h-4 invert" /> Yarn is required to play the game / application
+                            </>
+                        }
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>

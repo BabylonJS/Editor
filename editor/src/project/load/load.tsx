@@ -8,6 +8,9 @@ import { Editor } from "../../editor/main";
 import { IEditorProject } from "../typings";
 
 import { execNodePty } from "../../tools/node-pty";
+import {
+    checkNodeJSAvailable, checkVisualStudioCodeAvailable, checkYarnAvailable, yarnAvailable,
+} from "../../tools/process";
 
 import { loadScene } from "./scene";
 import { LoadScenePrepareComponent } from "./prepare";
@@ -24,42 +27,31 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
         compressedTexturesEnabled: project.compressedTexturesEnabled ?? false,
     });
 
+    await Promise.all([
+        await checkNodeJSAvailable(),
+        await checkYarnAvailable(),
+        await checkVisualStudioCodeAvailable(),
+    ]);
+
+    editor.layout.forceUpdate();
+
     // Update dependencies
-    const toastId = toast(<LoadScenePrepareComponent />, {
-        duration: Infinity,
-        dismissible: false,
-    });
+    if (yarnAvailable) {
+        const toastId = toast(<LoadScenePrepareComponent />, {
+            duration: Infinity,
+            dismissible: false,
+        });
 
-    const p = await execNodePty("yarn", { cwd: directory });
-    p.wait().then(async () => {
-        toast.dismiss(toastId);
-        toast.success("Dependencies successfully updated");
+        const p = await execNodePty("yarn", { cwd: directory });
+        p.wait().then(async () => {
+            toast.dismiss(toastId);
+            toast.success("Dependencies successfully updated");
 
-        // Load plugins
-        for (const plugin of project.plugins) {
-            try {
-                const isLocalPlugin = await pathExists(plugin.nameOrPath);
-
-                let requireId = plugin.nameOrPath;
-                if (!isLocalPlugin) {
-                    const projectDir = dirname(path);
-                    requireId = join(projectDir, "node_modules", plugin.nameOrPath);
-                }
-
-                const result = require(requireId);
-                result.main(editor);
-
-                if (isLocalPlugin) {
-                    editor.layout.console.log(`Loaded plugin from local drive "${result.title ?? plugin.nameOrPath}"`);
-                } else {
-                    editor.layout.console.log(`Loaded plugin "${result.title ?? plugin.nameOrPath}"`);
-                }
-            } catch (e) {
-                console.error(e);
-                editor.layout.console.error(`Failed to load plugin from project "${plugin.nameOrPath}"`);
-            }
-        }
-    });
+            loadProjectPlugins(editor, path, project);
+        });
+    } else {
+        toast.warning("Yarn is not available on your system. Dependencies will not be updated.");
+    }
 
     // Load scene?
     if (project.lastOpenedScene) {
@@ -74,5 +66,31 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
         await loadScene(editor, directory, absolutePath);
 
         editor.layout.inspector.setEditedObject(editor.layout.preview.scene);
+    }
+}
+
+export async function loadProjectPlugins(editor: Editor, path: string, project: IEditorProject) {
+    for (const plugin of project.plugins) {
+        try {
+            const isLocalPlugin = await pathExists(plugin.nameOrPath);
+
+            let requireId = plugin.nameOrPath;
+            if (!isLocalPlugin) {
+                const projectDir = dirname(path);
+                requireId = join(projectDir, "node_modules", plugin.nameOrPath);
+            }
+
+            const result = require(requireId);
+            result.main(editor);
+
+            if (isLocalPlugin) {
+                editor.layout.console.log(`Loaded plugin from local drive "${result.title ?? plugin.nameOrPath}"`);
+            } else {
+                editor.layout.console.log(`Loaded plugin "${result.title ?? plugin.nameOrPath}"`);
+            }
+        } catch (e) {
+            console.error(e);
+            editor.layout.console.error(`Failed to load plugin from project "${plugin.nameOrPath}"`);
+        }
     }
 }

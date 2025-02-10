@@ -64,10 +64,12 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
 
     const hasBackSlashes = shell!.toLowerCase() === process.env["COMSPEC"]?.toLowerCase();
     if (hasBackSlashes) {
-        p.write(`${command.replace(/\//g, "\\")} && exit\n\r`);
+        p.write(`${command.replace(/\//g, "\\")}\n\r`);
     } else {
-        p.write(`${command} && exit\n\r`);
+        p.write(`${command}\n\r`);
     }
+
+    p.write("exit\n\r");
 });
 
 // On write on a pty process

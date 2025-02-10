@@ -15,6 +15,7 @@ import { Input } from "./shadcn/ui/input";
 
 export type DialogReturnType = {
     close: () => void;
+    wait: () => Promise<void>;
 };
 
 export function showDialog(title: ReactNode, children: ReactNode): DialogReturnType {
@@ -23,10 +24,20 @@ export function showDialog(title: ReactNode, children: ReactNode): DialogReturnT
 
     const root = createRoot(div);
 
+    let _resolve: () => void;
+    const promise = new Promise<void>((resolve) => {
+        _resolve = resolve;
+    });
+
     const returnValue = {
-        close() {
+        close: () => {
+            _resolve();
+
             root.unmount();
             document.body.removeChild(div);
+        },
+        wait: () => {
+            return promise;
         },
     } as DialogReturnType;
 
@@ -146,11 +157,21 @@ export function showAlert(title: ReactNode, children: ReactNode): DialogReturnTy
 
     const root = createRoot(div);
 
+    let _resolve: () => void;
+    const promise = new Promise<void>((resolve) => {
+        _resolve = resolve;
+    });
+
     const returnValue = {
-        close() {
+        close: () => {
+            _resolve();
+
             root.unmount();
             document.body.removeChild(div);
         },
+        wait: () => {
+            return promise;
+        }
     } as DialogReturnType;
 
     root.render(
