@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { Vector2, Vector3, Vector4 } from "babylonjs";
 
 import { IEditorInspectorFieldProps } from "./field";
@@ -7,15 +9,29 @@ export interface IEditorInspectorVectorFieldProps extends IEditorInspectorFieldP
     step?: number;
     asDegrees?: boolean;
 
+    grayLabel?: boolean;
+
     onChange?: () => void;
 }
 
 export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldProps) {
     const value = props.object[props.property] as Vector2 | Vector3 | Vector4;
 
+    const [pointerOver, setPointerOver] = useState(false);
+
     return (
-        <div className="flex gap-2 items-center px-2">
-            <div className="w-32">
+        <div
+            className="flex gap-2 items-center px-2"
+            onMouseOver={() => setPointerOver(true)}
+            onMouseLeave={() => setPointerOver(false)}
+        >
+            <div
+                className={`
+                    w-32
+                    ${props.grayLabel && !pointerOver ? "text-muted" : ""}
+                    transition-all duration-300 ease-in-out
+                `}
+            >
                 {props.label}
             </div>
 

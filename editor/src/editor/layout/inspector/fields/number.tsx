@@ -19,6 +19,8 @@ export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldP
     step?: number;
     asDegrees?: boolean;
 
+    grayLabel?: boolean;
+
     onChange?: (value: number) => void;
     onFinishChange?: (value: number, oldValue: number) => void;
 }
@@ -26,6 +28,8 @@ export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldP
 export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldProps) {
     const [shiftDown, setShiftDown] = useState(false);
     const [pointerDown, setPointerDown] = useState(false);
+
+    const [pointerOver, setPointerOver] = useState(false);
 
     const step = props.step ?? 0.01;
     const digitCount = props.step?.toString().split(".")[1]?.length ?? 2;
@@ -56,10 +60,21 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
     });
 
     return (
-        <div className="flex gap-2 items-center px-2">
+        <div
+            className="flex gap-2 items-center px-2"
+            onMouseOver={() => setPointerOver(true)}
+            onMouseLeave={() => setPointerOver(false)}
+        >
             {props.label &&
                 <div className="flex items-center gap-1 w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
-                    {props.label}
+                    <div
+                        className={`
+                            ${props.grayLabel && !pointerOver ? "text-muted" : ""}
+                            transition-all duration-300 ease-in-out
+                        `}
+                    >
+                        {props.label}
+                    </div>
 
                     {props.tooltip &&
                         <TooltipProvider delayDuration={0}>

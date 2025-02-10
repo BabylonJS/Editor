@@ -16,6 +16,7 @@ import { onParticleSystemModifiedObservable } from "../../../../tools/observable
 
 import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
+import { EditorInspectorBlockField } from "../fields/block";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorVectorField } from "../fields/vector";
 import { EditorInspectorNumberField } from "../fields/number";
@@ -62,23 +63,7 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
                     </div>
 
                     <EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onParticleSystemModifiedObservable.notifyObservers(this.props.object)} />
-
                     <EditorInspectorSwitchField object={this.props.object} property="preventAutoStart" label="Prevent Auto Start" />
-
-                    <EditorInspectorVectorField object={this.props.object} property="worldOffset" label="Offset" />
-                    <EditorInspectorVectorField object={this.props.object} property="gravity" label="Gravity" />
-
-                    <EditorInspectorSwitchField object={this.props.object} property="isLocal" label="Is Local" onChange={() => this.forceUpdate()} />
-                    <EditorInspectorSwitchField object={this.props.object} property="isBillboardBased" label="Is Billboard Based" onChange={() => this.forceUpdate()} />
-
-                    {this.props.object.isBillboardBased &&
-                        <EditorInspectorListField object={this.props.object} property="billboardMode" label="Billboard Mode" items={[
-                            { text: "All", value: ParticleSystem.BILLBOARDMODE_ALL },
-                            { text: "Y", value: ParticleSystem.BILLBOARDMODE_Y },
-                            { text: "Stretched", value: ParticleSystem.BILLBOARDMODE_STRETCHED },
-                            { text: "Stretched Local", value: ParticleSystem.BILLBOARDMODE_STRETCHED_LOCAL },
-                        ]} />
-                    }
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Actions">
@@ -100,15 +85,32 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
                         <Button
                             onClick={() => this.props.object.reset()}
                             className="w-10 h-10 bg-muted/50 !rounded-lg p-0.5"
-
                         >
                             <IoRefresh className="w-6 h-6" strokeWidth={1} color="red" />
                         </Button>
                     </div>
                 </EditorInspectorSectionField>
 
+                <EditorInspectorSectionField title="Transforms">
+                    <EditorInspectorVectorField object={this.props.object} property="worldOffset" label="Offset" />
+                    <EditorInspectorVectorField object={this.props.object} property="gravity" label="Gravity" />
+
+                    <EditorInspectorSwitchField object={this.props.object} property="isLocal" label="Is Local" onChange={() => this.forceUpdate()} />
+                    <EditorInspectorSwitchField object={this.props.object} property="isBillboardBased" label="Is Billboard Based" onChange={() => this.forceUpdate()} />
+
+                    {this.props.object.isBillboardBased &&
+                        <EditorInspectorListField object={this.props.object} property="billboardMode" label="Billboard Mode" items={[
+                            { text: "All", value: ParticleSystem.BILLBOARDMODE_ALL },
+                            { text: "Y", value: ParticleSystem.BILLBOARDMODE_Y },
+                            { text: "Stretched", value: ParticleSystem.BILLBOARDMODE_STRETCHED },
+                            { text: "Stretched Local", value: ParticleSystem.BILLBOARDMODE_STRETCHED_LOCAL },
+                        ]} />
+                    }
+                </EditorInspectorSectionField>
+
                 <EditorInspectorSectionField title="Textures">
-                    <EditorInspectorTextureField object={this.props.object} property="particleTexture" title="Base Texture" />
+                    <EditorInspectorTextureField hideLevel hideSize object={this.props.object} property="particleTexture" title="Base Texture" />
+
                     <EditorInspectorListField object={this.props.object} property="blendMode" label="Blend Mode" items={[
                         { text: "Add", value: ParticleSystem.BLENDMODE_ADD },
                         { text: "Multiply", value: ParticleSystem.BLENDMODE_MULTIPLY },
@@ -123,27 +125,51 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 
                     <EditorInspectorNumberField object={this.props.object} property="emitRate" label="Rate" />
 
-                    <EditorInspectorNumberField object={this.props.object} property="minEmitPower" label="Min Power" min={0} max={this.props.object.maxEmitPower} onChange={() => this.forceUpdate()} />
-                    <EditorInspectorNumberField object={this.props.object} property="maxEmitPower" label="Max Power" min={this.props.object.minEmitPower} onChange={() => this.forceUpdate()} />
+                    <EditorInspectorBlockField>
+                        <div className="px-2">
+                            Emit Power
+                        </div>
+                        <div className="flex items-center">
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="minEmitPower" label="Min" min={0} />
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="maxEmitPower" label="Max" min={0} />
+                        </div>
+                    </EditorInspectorBlockField>
 
-                    <EditorInspectorNumberField object={this.props.object} property="minAngularSpeed" label="Min Augular Speed" min={0} max={this.props.object.maxAngularSpeed} onChange={() => this.forceUpdate()} />
-                    <EditorInspectorNumberField object={this.props.object} property="maxAngularSpeed" label="Max Angular Speed" min={this.props.object.minAngularSpeed} onChange={() => this.forceUpdate()} />
-                </EditorInspectorSectionField>
+                    <EditorInspectorBlockField>
+                        <div className="px-2">
+                            Angular Speed
+                        </div>
+                        <div className="flex items-center">
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="minAngularSpeed" label="Min" min={0} />
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="maxAngularSpeed" label="Max" min={0} />
+                        </div>
+                    </EditorInspectorBlockField>
 
-                <EditorInspectorSectionField title="Size">
-                    <EditorInspectorNumberField object={this.props.object} property="minSize" label="Min Size" min={0} max={this.props.object.maxSize} onChange={() => this.forceUpdate()} />
-                    <EditorInspectorNumberField object={this.props.object} property="maxSize" label="Max Size" min={this.props.object.minSize} onChange={() => this.forceUpdate()} />
+                    <EditorInspectorBlockField>
+                        <div className="px-2">
+                            Size
+                        </div>
+                        <div className="flex items-center">
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="minSize" label="Min" min={0} />
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="maxSize" label="Max" min={0} />
+                        </div>
+                    </EditorInspectorBlockField>
+
+                    <EditorInspectorBlockField>
+                        <div className="px-2">
+                            Lifetime
+                        </div>
+                        <div className="flex items-center">
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="minLifeTime" label="Min" min={0} />
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="maxLifeTime" label="Max" min={0} />
+                        </div>
+                    </EditorInspectorBlockField>
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Colors">
                     <EditorInspectorColorField object={this.props.object} property="color1" label="Color 1" />
                     <EditorInspectorColorField object={this.props.object} property="color2" label="Color 2" />
                     <EditorInspectorColorField object={this.props.object} property="colorDead" label="Dead" />
-                </EditorInspectorSectionField>
-
-                <EditorInspectorSectionField title="Lifetime">
-                    <EditorInspectorNumberField object={this.props.object} property="minLifeTime" label="Min Lifetime" min={0} max={this.props.object.maxLifeTime} onChange={() => this.forceUpdate()} />
-                    <EditorInspectorNumberField object={this.props.object} property="maxLifeTime" label="Max Lifetime" min={this.props.object.minLifeTime} onChange={() => this.forceUpdate()} />
                 </EditorInspectorSectionField>
 
                 {this._getEmitterTypeInspector()}
@@ -274,11 +300,21 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 
                 {emitter.getClassName() === "BoxParticleEmitter" &&
                     <>
-                        <EditorInspectorVectorField object={emitter} property="direction1" label="Direction 1" />
-                        <EditorInspectorVectorField object={emitter} property="direction2" label="Direction 2" />
+                        <EditorInspectorBlockField>
+                            <div className="px-2">
+                                Direction
+                            </div>
+                            <EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
+                            <EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
+                        </EditorInspectorBlockField>
 
-                        <EditorInspectorVectorField object={emitter} property="minEmitBox" label="Min Emit Box" />
-                        <EditorInspectorVectorField object={emitter} property="maxEmitBox" label="Max Emit Box" />
+                        <EditorInspectorBlockField>
+                            <div className="px-2">
+                                Emit Box
+                            </div>
+                            <EditorInspectorVectorField grayLabel object={emitter} property="minEmitBox" label="Min" />
+                            <EditorInspectorVectorField grayLabel object={emitter} property="maxEmitBox" label="Max" />
+                        </EditorInspectorBlockField>
                     </>
                 }
 
@@ -294,8 +330,13 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 
                         {emitter.getClassName() === "ConeDirectedParticleEmitter" &&
                             <>
-                                <EditorInspectorVectorField object={emitter} property="direction1" label="Direction 1" />
-                                <EditorInspectorVectorField object={emitter} property="direction2" label="Direction 2" />
+                                <EditorInspectorBlockField>
+                                    <div className="px-2">
+                                        Direction
+                                    </div>
+                                    <EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
+                                    <EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
+                                </EditorInspectorBlockField>
                             </>
                         }
                     </>
@@ -311,8 +352,13 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 
                         {emitter.getClassName() === "CylinderDirectedParticleEmitter" &&
                             <>
-                                <EditorInspectorVectorField object={emitter} property="direction1" label="Direction 1" />
-                                <EditorInspectorVectorField object={emitter} property="direction2" label="Direction 2" />
+                                <EditorInspectorBlockField>
+                                    <div className="px-2">
+                                        Direction
+                                    </div>
+                                    <EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
+                                    <EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
+                                </EditorInspectorBlockField>
                             </>
                         }
                     </>
@@ -326,8 +372,13 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 
                         {emitter.getClassName() === "SphereDirectedParticleEmitter" &&
                             <>
-                                <EditorInspectorVectorField object={emitter} property="direction1" label="Direction 1" />
-                                <EditorInspectorVectorField object={emitter} property="direction2" label="Direction 2" />
+                                <EditorInspectorBlockField>
+                                    <div className="px-2">
+                                        Direction
+                                    </div>
+                                    <EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
+                                    <EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
+                                </EditorInspectorBlockField>
                             </>
                         }
                     </>
@@ -335,8 +386,13 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 
                 {emitter.getClassName() === "PointParticleEmitter" &&
                     <>
-                        <EditorInspectorVectorField object={emitter} property="direction1" label="Direction 1" />
-                        <EditorInspectorVectorField object={emitter} property="direction2" label="Direction 2" />
+                        <EditorInspectorBlockField>
+                            <div className="px-2">
+                                Direction
+                            </div>
+                            <EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
+                            <EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
+                        </EditorInspectorBlockField>
                     </>
                 }
 

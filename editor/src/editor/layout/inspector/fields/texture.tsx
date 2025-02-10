@@ -33,6 +33,9 @@ export interface IEditorInspectorTextureFieldProps extends PropsWithChildren {
     acceptCubeTexture?: boolean;
     object: any;
 
+    hideLevel?: boolean;
+    hideSize?: boolean;
+
     scene?: Scene;
     onChange?: (texture: Texture | CubeTexture | null) => void;
 }
@@ -79,13 +82,17 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
                         {textureUrl &&
                             <div className="flex flex-col gap-1 mt-1 w-full">
-                                <EditorInspectorNumberField label="Level" object={texture} property="level" />
+                                {!this.props.hideLevel &&
+                                    <EditorInspectorNumberField label="Level" object={texture} property="level" />
+                                }
 
                                 {!isCubeTexture(texture) &&
                                     <>
-                                        <EditorInspectorNumberField label="Size" object={texture} property="uScale" onChange={(v) => {
-                                            texture.vScale = v;
-                                        }} />
+                                        {!this.props.hideSize &&
+                                            <EditorInspectorNumberField label="Size" object={texture} property="uScale" onChange={(v) => {
+                                                texture.vScale = v;
+                                            }} />
+                                        }
                                         <EditorInspectorSwitchField label="Invert Y" object={texture} property="_invertY" onChange={() => {
                                             this._handleReloadTexture(texture);
                                         }} />
