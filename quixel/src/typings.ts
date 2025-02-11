@@ -12,6 +12,8 @@ export type QuixelJsonType = {
 export type QuixelLodListType = {
     lod: string;
     path: string;
+
+    variation?: number;
 };
 
 export type QuixelComponentType = {

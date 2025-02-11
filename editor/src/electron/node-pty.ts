@@ -49,10 +49,10 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
         ev.sender.send(`editor:node-pty-data:${id}`, data);
     });
 
-    p.onExit(() => {
+    p.onExit((event) => {
         spawnsMap.delete(id);
         p.kill();
-        ev.sender.send(`editor:node-pty-exit:${id}`);
+        ev.sender.send(`editor:node-pty-exit:${id}`, event.exitCode);
     });
 
     spawnsMap.set(id, {

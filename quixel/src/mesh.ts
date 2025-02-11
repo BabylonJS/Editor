@@ -7,14 +7,14 @@ import { Mesh, SceneSerializer, Tools } from "babylonjs";
 import { isMesh } from "./tools/guards";
 import { UniqueNumber } from "./tools/id";
 
-import { QuixelJsonType } from "./typings";
+import { QuixelLodListType } from "./typings";
 
-export async function importMeshes(editor: Editor, json: QuixelJsonType, assetsFolder: string): Promise<Mesh[]> {
+export async function importMeshes(editor: Editor, lodList: QuixelLodListType[], assetsFolder: string): Promise<Mesh[]> {
     if (!editor.state.projectPath) {
         return [];
     }
 
-    const results = await Promise.all(json.lodList.filter((lod) => lod.lod !== "high").map(async (lod) => {
+    const results = await Promise.all(lodList.filter((lod) => lod.lod !== "high").map(async (lod) => {
         const path = lod.path.replace(/\\/g, "/");
         await copyFile(path, join(assetsFolder, basename(path)));
         return editor.layout.preview.importSceneFile(path, false);
@@ -64,8 +64,8 @@ export async function importMeshes(editor: Editor, json: QuixelJsonType, assetsF
     return results[0]!.meshes as Mesh[];
 }
 
-export async function saveMeshesAsBabylonFormat(editor: Editor, meshes: Mesh[], assetFolder: string): Promise<void> {
-    meshes.forEach((mesh) => {
+export async function saveMeshesAsBabylonFormat(editor: Editor, meshes: Mesh[], assetFolder: string, variation?: number): Promise<void> {
+    await Promise.all(meshes.map(async (mesh) => {
         if (mesh._masterMesh) {
             return;
         }
@@ -102,11 +102,11 @@ export async function saveMeshesAsBabylonFormat(editor: Editor, meshes: Mesh[], 
             const firstMesh = json.meshes.shift();
             json.meshes.push(firstMesh);
 
-            writeJson(join(assetFolder, `${mesh.name}.babylon`), json);
+            await writeJson(join(assetFolder, `${mesh.name}${variation ?? ""}.babylon`), json);
 
-            editor.layout.console.log(`Successfully saved mesh as Babylon format: ${mesh.name}.babylon`);
+            editor.layout.console.log(`Successfully saved mesh as Babylon format: ${mesh.name}${variation ?? ""}.babylon`);
         } catch (e) {
             // Catch silently.   
         }
-    });
+    }));
 }

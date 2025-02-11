@@ -3,9 +3,10 @@ import { copyFile, mkdir, pathExists } from "fs-extra";
 import { dirname, join, basename, extname } from "path/posix";
 
 import { Editor } from "babylonjs-editor";
+import { PBRMaterial } from "babylonjs";
 
-import { QuixelJsonType } from "./typings";
 import { importMaterial } from "./material";
+import { QuixelJsonType, QuixelLodListType } from "./typings";
 import { importMeshes, saveMeshesAsBabylonFormat } from "./mesh";
 
 export const title = "Quixel Bridge";
@@ -96,19 +97,14 @@ async function handleParsedAsset(editor: Editor, json: QuixelJsonType) {
 
     const material = await importMaterial(editor, json, assetFolder);
 
-    if (json.type === "3d") {
-        const meshes = await importMeshes(editor, json, assetFolder);
-        meshes.forEach((mesh) => {
-            mesh.material = material;
+    switch (json.type) {
+        case "3d":
+            await handleParse3d(editor, json, assetFolder, material);
+            break;
 
-            mesh.getLODLevels().forEach((lodLevel) => {
-                if (lodLevel.mesh) {
-                    lodLevel.mesh.material = material;
-                }
-            });
-        });
-
-        saveMeshesAsBabylonFormat(editor, meshes, assetFolder);
+        case "3dplant":
+            await handleImport3dPlant(editor, json, assetFolder, material);
+            break;
     }
 
     // Write preview for folder
@@ -119,4 +115,51 @@ async function handleParsedAsset(editor: Editor, json: QuixelJsonType) {
 
     editor.layout.graph.refresh();
     editor.layout.assets.refresh();
+}
+
+async function handleParse3d(editor: Editor, json: QuixelJsonType, assetFolder: string, material: PBRMaterial | null) {
+    const meshes = await importMeshes(editor, json.lodList, assetFolder);
+    meshes.forEach((mesh) => {
+        mesh.material = material;
+
+        mesh.getLODLevels().forEach((lodLevel) => {
+            if (lodLevel.mesh) {
+                lodLevel.mesh.material = material;
+            }
+        });
+    });
+
+    saveMeshesAsBabylonFormat(editor, meshes, assetFolder);
+}
+
+async function handleImport3dPlant(editor: Editor, json: QuixelJsonType, assetFolder: string, material: PBRMaterial | null) {
+    const variationsMap = new Map<number, QuixelLodListType[]>();
+    json.lodList.forEach((lod) => {
+        if (lod.variation === undefined) {
+            return;
+        }
+
+        let variations = variationsMap.get(lod.variation);
+        if (!variations) {
+            variations = [lod];
+            variationsMap.set(lod.variation, variations);
+        } else {
+            variations.push(lod);
+        }
+    });
+
+    for (const [variation, lodList] of variationsMap) {
+        const meshes = await importMeshes(editor, lodList, assetFolder);
+        meshes.forEach((mesh) => {
+            mesh.material = material;
+
+            mesh.getLODLevels().forEach((lodLevel) => {
+                if (lodLevel.mesh) {
+                    lodLevel.mesh.material = material;
+                }
+            });
+        });
+
+        saveMeshesAsBabylonFormat(editor, meshes, assetFolder, variation);
+    }
 }

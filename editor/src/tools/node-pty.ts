@@ -37,6 +37,7 @@ export class NodePtyInstance {
     public onGetDataObservable: Observable<string> = new Observable<string>();
 
     private _exited: boolean = false;
+    private _exitCode: number = -1;
 
     /**
      * Constructor.
@@ -45,8 +46,9 @@ export class NodePtyInstance {
     public constructor(id: string) {
         this.id = id;
 
-        ipcRenderer.once(`editor:node-pty-exit:${this.id}`, () => {
+        ipcRenderer.once(`editor:node-pty-exit:${this.id}`, (_, code) => {
             this._exited = true;
+            this._exitCode = code;
         });
 
         ipcRenderer.on(`editor:node-pty-data:${id}`, (_, data) => {
@@ -73,13 +75,13 @@ export class NodePtyInstance {
     /**
      * Waits until the 
      */
-    public wait(): Promise<void> {
+    public wait(): Promise<number> {
         if (this._exited) {
-            return Promise.resolve();
+            return Promise.resolve(this._exitCode);
         }
 
-        return new Promise<void>((resolve) => {
-            ipcRenderer.once(`editor:node-pty-exit:${this.id}`, () => resolve());
+        return new Promise<number>((resolve) => {
+            ipcRenderer.once(`editor:node-pty-exit:${this.id}`, () => resolve(this._exitCode));
         });
     }
 

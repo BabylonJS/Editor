@@ -1,6 +1,8 @@
 import { platform } from "os";
 import { exec } from "child_process";
 
+import { execNodePty } from "./node-pty";
+
 /**
  * Get the file path argument from the command line arguments.
  * @param argv The command line arguments.
@@ -47,8 +49,12 @@ export let visualStudioCodeAvailable: boolean = false;
  */
 export async function checkNodeJSAvailable(): Promise<void> {
     try {
-        await executeAsync("node --version");
-        nodeJSAvailable = true;
+        const p = await execNodePty("node --version");
+        const code = await p.wait();
+
+        if (code === 0) {
+            nodeJSAvailable = true;
+        }
     } catch (e) {
         // Catch silently.
     }
@@ -60,8 +66,12 @@ export async function checkNodeJSAvailable(): Promise<void> {
  */
 export async function checkYarnAvailable(): Promise<void> {
     try {
-        await executeAsync("yarn --version");
-        yarnAvailable = true;
+        const p = await execNodePty("yarn --version");
+        const code = await p.wait();
+
+        if (code === 0) {
+            yarnAvailable = true;
+        }
     } catch (e) {
         // Catch silently.
     }
@@ -73,8 +83,12 @@ export async function checkYarnAvailable(): Promise<void> {
  */
 export async function checkVisualStudioCodeAvailable(): Promise<void> {
     try {
-        await executeAsync("code --version");
-        visualStudioCodeAvailable = true;
+        const p = await execNodePty("code --version");
+        const code = await p.wait();
+
+        if (code === 0) {
+            visualStudioCodeAvailable = true;
+        }
     } catch (e) {
         // Catch silently.
     }
