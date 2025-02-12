@@ -71,7 +71,9 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                                         w-8 h-8 p-2 rounded-md
                                         ${this.state.dragOver
                                             ? "bg-accent"
-                                            : this.props.cinematicEditor.state.selectedTrack === this.props.track ? "bg-background" : "bg-secondary"
+                                            : this.props.cinematicEditor.state.selectedTrack === this.props.track
+                                                ? "bg-background"
+                                                : this.props.track.defaultRenderingPipeline ? "bg-slate-400 dark:bg-slate-900" : "bg-secondary"
                                         }
                                         transition-all duration-300 ease-in-out    
                                     `}

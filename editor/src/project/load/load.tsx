@@ -8,9 +8,7 @@ import { Editor } from "../../editor/main";
 import { IEditorProject } from "../typings";
 
 import { execNodePty } from "../../tools/node-pty";
-import {
-    checkNodeJSAvailable, checkVisualStudioCodeAvailable, checkYarnAvailable, yarnAvailable,
-} from "../../tools/process";
+import { yarnAvailable } from "../../tools/process";
 
 import { loadScene } from "./scene";
 import { LoadScenePrepareComponent } from "./prepare";
@@ -26,12 +24,6 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 
         compressedTexturesEnabled: project.compressedTexturesEnabled ?? false,
     });
-
-    await Promise.all([
-        await checkNodeJSAvailable(),
-        await checkYarnAvailable(),
-        await checkVisualStudioCodeAvailable(),
-    ]);
 
     editor.layout.forceUpdate();
 

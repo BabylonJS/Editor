@@ -11,6 +11,7 @@ import { isDarwin } from "../tools/os";
 import { waitUntil } from "../tools/tools";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
 import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
+import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, checkYarnAvailable } from "../tools/process";
 
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
@@ -171,7 +172,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
         );
     }
 
-    public componentDidMount(): void {
+    public async componentDidMount(): Promise<void> {
         ipcRenderer.on("save", () => saveProject(this));
         ipcRenderer.on("export", () => exportProject(this, { optimize: true }));
 
@@ -200,6 +201,12 @@ export class Editor extends Component<IEditorProps, IEditorState> {
             this.layout.inspector.forceUpdate();
             this.layout.animations.forceUpdate();
         });
+
+        await Promise.all([
+            await checkNodeJSAvailable(),
+            await checkYarnAvailable(),
+            await checkVisualStudioCodeAvailable(),
+        ]);
 
         // Ready
         ipcRenderer.send("editor:ready");
