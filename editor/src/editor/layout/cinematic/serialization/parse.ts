@@ -1,5 +1,8 @@
-import { Animation, Color3, Color4, Matrix, Quaternion, Scene, Vector2, Vector3 } from "babylonjs";
+import {
+    Animation, Color3, Color4, Matrix, Quaternion, Scene, Vector2, Vector3, Sound,
+} from "babylonjs";
 
+import { getSoundById } from "../../../../tools/sound/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
@@ -32,12 +35,19 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
                 animationType = getAnimationTypeForObject(value);
             }
 
+            let sound: Sound | null = null;
+            if (track.sound) {
+                sound = getSoundById(track.sound, scene);
+            }
+
             return {
                 node,
+                sound,
                 propertyPath: track.propertyPath,
-                animationGroups: track.animationGroups,
                 defaultRenderingPipeline: track.defaultRenderingPipeline,
                 animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
+                animationGroups: track.animationGroups,
+                sounds: track.sounds,
                 keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
                     const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
                     if (animationKey) {

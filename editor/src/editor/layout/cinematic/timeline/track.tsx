@@ -1,8 +1,12 @@
 import { Component, ReactNode } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 
+import { Sound, AnimationGroup } from "babylonjs";
+
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
+
+import { showAlert } from "../../../../ui/dialog";
 
 import { TooltipProvider } from "../../../../ui/shadcn/ui/tooltip";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
@@ -11,8 +15,8 @@ import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline
 
 import { Editor } from "../../../main";
 
-import { isCinematicGroup, isCinematicKeyCut } from "../schema/guards";
-import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
+import { isCinematicGroup, isCinematicKeyCut, isCinematicSound } from "../schema/guards";
+import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicSound, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEditor } from "../editor";
 
@@ -63,7 +67,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                         `}
                     >
                         <TooltipProvider>
-                            {(this.props.track.keyFrameAnimations ?? this.props.track.animationGroups)?.map((key, index) => (
+                            {(this.props.track.keyFrameAnimations ?? this.props.track.animationGroups ?? this.props.track.sounds)?.map((key, index) => (
                                 <CinematicEditorTimelineKey
                                     key={index}
                                     cinematicKey={key}
@@ -119,6 +123,17 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                             <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addAnimationKey("cut", this.props.currentTime * this.props.scale)}>
                                 <div className="w-4 h-4 rotate-45 border-[2px] border-orange-500 bg-muted" />
                                 Add Key Cut at Tracker Position
+                            </ContextMenuItem>
+                        </>
+                    }
+
+                    {this.props.track.sounds &&
+                        <>
+                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addSoundKey()}>
+                                <AiOutlinePlus className="w-5 h-5" /> Add Sound Here
+                            </ContextMenuItem>
+                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addSoundKey(this.props.currentTime * this.props.scale)}>
+                                <AiOutlinePlus className="w-5 h-5" /> Add Sound at Tracker Position
                             </ContextMenuItem>
                         </>
                     }
@@ -218,12 +233,14 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
             return;
         }
 
+        const animationGroup = this.props.track.animationGroup as AnimationGroup;
+
         const key = {
             frame,
             type: "group",
             speed: 1,
-            startFrame: this.props.track.animationGroup.from,
-            endFrame: this.props.track.animationGroup.to,
+            startFrame: animationGroup.from,
+            endFrame: animationGroup.to,
         } as ICinematicAnimationGroup;
 
         registerUndoRedo({
@@ -236,6 +253,56 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
             },
             redo: () => this.props.track.animationGroups!.push(key),
             action: () => this.props.track.animationGroups?.sort((a, b) => a.frame - b.frame),
+        });
+
+        this.setState({ rightClickPositionX: null });
+    }
+
+    public addSoundKey(positionX?: number | null): unknown {
+        positionX ??= this.state.rightClickPositionX;
+
+        if (positionX === null || !this.props.track.sound) {
+            return;
+        }
+
+        const frame = Math.round(positionX / this.props.scale);
+        const existingKey = this.props.track.sounds!.find((k) => k.frame === frame);
+
+        if (existingKey) {
+            return;
+        }
+
+        const sound = this.props.track.sound as Sound;
+        const buffer = sound.getAudioBuffer();
+
+        if (!buffer) {
+            return showAlert(
+                "Can't add sound track",
+                "The sound track is not ready yet, please wait until the sound is loaded. If this problem persists, please verify the sound file is correctly loaded.",
+            );
+        }
+
+        const duration = buffer.duration;
+        const fps = this.props.cinematic.framesPerSecond;
+
+        const key = {
+            frame,
+            type: "sound",
+            speed: 1,
+            startFrame: 0,
+            endFrame: duration * fps,
+        } as ICinematicSound;
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                const index = this.props.track.sounds!.indexOf(key);
+                if (index !== -1) {
+                    this.props.track.sounds!.splice(index, 1);
+                }
+            },
+            redo: () => this.props.track.sounds!.push(key),
+            action: () => this.props.track.sounds?.sort((a, b) => a.frame - b.frame),
         });
 
         this.setState({ rightClickPositionX: null });
@@ -294,7 +361,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
         this.forceUpdate();
     }
 
-    private _onAnimationKeyRemoved(key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup): void {
+    private _onAnimationKeyRemoved(key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound): void {
         if (isCinematicGroup(key)) {
             const index = this.props.track.animationGroups!.indexOf(key);
             if (index === -1) {
@@ -305,6 +372,17 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                 executeRedo: true,
                 undo: () => this.props.track.animationGroups!.splice(index, 0, key),
                 redo: () => this.props.track.animationGroups!.splice(index, 1),
+            });
+        } else if (isCinematicSound(key)) {
+            const index = this.props.track.sounds!.indexOf(key);
+            if (index === -1) {
+                return;
+            }
+
+            registerUndoRedo({
+                executeRedo: true,
+                undo: () => this.props.track.sounds!.splice(index, 0, key),
+                redo: () => this.props.track.sounds!.splice(index, 1),
             });
         } else {
             const index = this.props.track.keyFrameAnimations!.indexOf(key);

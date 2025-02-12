@@ -32,6 +32,9 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
 
                 defaultRenderingPipeline: track.defaultRenderingPipeline,
 
+                sound: track.sound?.id,
+                sounds: track.sounds,
+
                 keyFrameAnimations: animationType === null ? undefined : track.keyFrameAnimations?.map((keyFrame) => {
                     if (isCinematicKey(keyFrame)) {
                         return {

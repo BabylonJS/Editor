@@ -16,6 +16,7 @@ import { ICinematic, ICinematicTrack } from "../schema/typings";
 import { CinematicEditor } from "../editor";
 
 import { CinematicEditorTrackItem } from "./property-item";
+import { CinematicEditorSoundTrackItem } from "./sound-item";
 import { CinematicEditorAnimationGroupTrackItem } from "./animation-group-item";
 
 export interface ICinematicEditorTracksPanelProps {
@@ -45,6 +46,9 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => this._handleAddAnimationGroupTrack()}>
                                 Animation Group Track
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => this._handleAddSoundTrack()}>
+                                Sound Track
                             </DropdownMenuItem>
 
                             <DropdownMenuSeparator />
@@ -99,13 +103,26 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
                             />;
                         }
 
-                        return <CinematicEditorAnimationGroupTrackItem
-                            key={`${track.animationGroup?.name}${index}`}
-                            track={track}
-                            editor={this.props.editor}
-                            cinematicEditor={this.props.cinematicEditor}
-                            onRemove={(track) => this._handleRemoveTrack(track)}
-                        />;
+                        if (track.animationGroups) {
+                            return <CinematicEditorAnimationGroupTrackItem
+                                key={`${track.animationGroup?.name}${index}`}
+                                track={track}
+                                editor={this.props.editor}
+                                cinematicEditor={this.props.cinematicEditor}
+                                onRemove={(track) => this._handleRemoveTrack(track)}
+                            />;
+                        }
+
+                        if (track.sounds) {
+                            return <CinematicEditorSoundTrackItem
+                                key={`${track.sound?.id}${index}`}
+                                track={track}
+                                editor={this.props.editor}
+                                cinematic={this.props.cinematic}
+                                cinematicEditor={this.props.cinematicEditor}
+                                onRemove={(track) => this._handleRemoveTrack(track)}
+                            />;
+                        }
                     })}
                 </div>
             </div>
@@ -147,6 +164,25 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
     private _handleAddAnimationGroupTrack(): void {
         const track = {
             animationGroups: [],
+        } as ICinematicTrack;
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                const index = this.props.cinematic.tracks.indexOf(track);
+                if (index !== -1) {
+                    this.props.cinematic.tracks.splice(index, 1);
+                }
+            },
+            redo: () => this.props.cinematic.tracks.push(track),
+        });
+
+        this.forceUpdate();
+    }
+
+    private _handleAddSoundTrack(): void {
+        const track = {
+            sounds: [],
         } as ICinematicTrack;
 
         registerUndoRedo({

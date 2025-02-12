@@ -15,6 +15,9 @@ export interface ICinematicTrack {
     node?: any;
     defaultRenderingPipeline?: boolean;
 
+    sound?: any;
+    sounds?: ICinematicSound[];
+
     propertyPath?: string;
     keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[];
 }
@@ -36,4 +39,13 @@ export interface ICinematicKeyCut {
     type: "cut";
     key1: IAnimationKey;
     key2: IAnimationKey;
+}
+
+export interface ICinematicSound {
+    type: "sound";
+
+    frame: number;
+
+    startFrame: number;
+    endFrame: number;
 }

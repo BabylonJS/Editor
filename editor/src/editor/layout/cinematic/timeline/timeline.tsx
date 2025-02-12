@@ -1,6 +1,6 @@
 import { Component, MouseEvent, ReactNode } from "react";
 
-import { Animation, AnimationGroup } from "babylonjs";
+import { Animation, AnimationGroup, Sound } from "babylonjs";
 
 import { Editor } from "../../../main";
 
@@ -129,6 +129,15 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
                     : 0;
 
                 frame = Math.max(frame, animationGroup.frame + animationGroupFramesCount);
+            });
+
+            track.sounds?.forEach((sound) => {
+                const soundRef = track.sound as Sound;
+                const buffer = soundRef.getAudioBuffer();
+
+                if (buffer) {
+                    frame = Math.max(frame, sound.frame + buffer.duration * this.props.cinematic.framesPerSecond);
+                }
             });
 
             track.keyFrameAnimations?.forEach((key) => {

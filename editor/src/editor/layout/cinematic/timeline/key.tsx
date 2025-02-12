@@ -9,8 +9,8 @@ import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
-import { isCinematicGroup, isCinematicKey, isCinematicKeyCut } from "../schema/guards";
-import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
+import { isCinematicGroup, isCinematicKey, isCinematicKeyCut, isCinematicSound } from "../schema/guards";
+import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicSound, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEditor } from "../editor";
 
@@ -19,10 +19,10 @@ export interface ICinematicEditorTimelineKeyProps {
     cinematic: ICinematic;
     cinematicTrack: ICinematicTrack;
     cinematicEditor: CinematicEditor;
-    cinematicKey: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup;
+    cinematicKey: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound;
 
-    onClicked: (key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup) => void;
-    onRemoved: (key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup) => void;
+    onClicked: (key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound) => void;
+    onRemoved: (key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound) => void;
     onMoved: (movedKeys: ICinematicKeyConfigurationToMove[][]) => void;
 }
 
@@ -32,7 +32,7 @@ export interface ICinematicEditorTimelineKeyState {
 
 export interface ICinematicKeyConfigurationToMove {
     startPosition: number;
-    key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup;
+    key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound;
 }
 
 export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimelineKeyProps, ICinematicEditorTimelineKeyState> {
@@ -81,6 +81,17 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                                         ${isCinematicKeyCut(this.props.cinematicKey) ? "border-[2px] border-orange-500 bg-muted" : "bg-muted-foreground"}
                                         transition-transform duration-300 ease-in-out    
                                     `}
+                                />
+                            }
+
+                            {this.props.cinematicKey.type === "sound" &&
+                                <div
+                                    style={{
+                                        width: `${this._getSoundFramesCount() * this.props.scale}px`,
+                                    }}
+                                    onMouseDown={(ev) => this._handlePointerDown(ev)}
+                                    onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}
+                                    className="h-4 rounded-md bg-muted-foreground"
                                 />
                             }
                         </ContextMenuTrigger>
@@ -141,6 +152,14 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
 
     private _getAnimationGroupFramesCount(): number {
         if (!isCinematicGroup(this.props.cinematicKey)) {
+            return 0;
+        }
+
+        return this.props.cinematicKey.endFrame - this.props.cinematicKey.startFrame;
+    }
+
+    private _getSoundFramesCount(): number {
+        if (!isCinematicSound(this.props.cinematicKey)) {
             return 0;
         }
 
