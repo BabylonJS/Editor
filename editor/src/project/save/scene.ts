@@ -20,6 +20,7 @@ import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-bl
 import { serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
 
 import { writeBinaryGeometry } from "../geometry";
+import { writeBinaryMorphTarget } from "../morph-target";
 
 export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
     const fStat = await stat(scenePath);
@@ -42,6 +43,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "gui")),
         createDirectoryIfNotExist(join(scenePath, "sounds")),
         createDirectoryIfNotExist(join(scenePath, "particleSystems")),
+        createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
+        createDirectoryIfNotExist(join(scenePath, "morphTargets")),
     ]);
 
     const scene = editor.layout.preview.scene;
@@ -70,10 +73,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
             data.metadata = meshToSerialize.metadata;
             data.basePoseMatrix = meshToSerialize.getPoseMatrix().asArray();
-
-            if (meshToSerialize.morphTargetManager) {
-                data.morphTargetManager = meshToSerialize.morphTargetManager.serialize();
-            }
 
             // Handle case where the mesh is a collision mesh
             if (isCollisionMesh(meshToSerialize)) {
@@ -205,6 +204,49 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             editor.layout.console.error(`Failed to write skeleton ${skeleton.name}`);
         } finally {
             savedFiles.push(skeletonPath);
+        }
+    }));
+
+    // Write morph targets
+    await Promise.all(scene.meshes.map(async (mesh) => {
+        if (!mesh.morphTargetManager || isFromSceneLink(mesh) || isMeshMetadataNotVisibleInGraph(mesh)) {
+            return;
+        }
+
+        const morphTargetManagerPath = join(scenePath, "morphTargetManagers", `${mesh.id}.json`);
+
+        try {
+            const data = mesh.morphTargetManager.serialize();
+            data.meshId = mesh.id;
+            data.uniqueId = mesh.morphTargetManager.uniqueId;
+
+            await Promise.all(data.targets.map(async (target, targetIndex) => {
+                const effectiveTarget = mesh.morphTargetManager!.getTarget(targetIndex);
+                if (effectiveTarget) {
+                    target.uniqueId = effectiveTarget.uniqueId;
+                }
+
+                const morphTargetFileName = `${target.id}.babylonbinarymeshdata`;
+                const targetPath = join(scenePath, "morphTargets", morphTargetFileName);
+
+                target.delayLoadingFile = join(relativeScenePath, `morphTargets/${morphTargetFileName}`);
+
+                try {
+                    await writeBinaryMorphTarget(targetPath, target);
+                } catch (e) {
+                    editor.layout.console.error(`Failed to write morph target binary geometry for mesh ${mesh.name}`);
+                } finally {
+                    savedFiles.push(targetPath);
+                }
+            }));
+
+            await writeJSON(morphTargetManagerPath, data, {
+                spaces: 4,
+            });
+        } catch (e) {
+            editor.layout.console.error(`Failed to write morph target manager for mesh ${mesh.name}`);
+        } finally {
+            savedFiles.push(morphTargetManagerPath);
         }
     }));
 

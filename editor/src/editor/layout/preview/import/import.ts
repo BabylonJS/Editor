@@ -77,6 +77,21 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
             mesh.skeleton.id = Tools.RandomId();
             mesh.skeleton.bones.forEach((bone) => configureImportedNodeIds(bone));
         }
+
+        if (mesh.morphTargetManager) {
+            mesh.morphTargetManager["_uniqueId"] = UniqueNumber.Get();
+
+            for (let i = 0, len = mesh.morphTargetManager.numTargets; i < len; i++) {
+                const target = mesh.morphTargetManager.getTarget(i);
+                if (!target) {
+                    continue;
+                }
+
+                target.id = Tools.RandomId();
+                target["_uniqueId"] = UniqueNumber.Get();
+                target.name = `${mesh.name}_${target.name}`;
+            }
+        }
     });
 
     result.lights.forEach((light) => configureImportedNodeIds(light));

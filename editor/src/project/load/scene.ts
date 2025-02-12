@@ -1,5 +1,5 @@
 import { join, basename } from "path/posix";
-import { readJSON, readdir } from "fs-extra";
+import { readFile, readJSON, readdir } from "fs-extra";
 
 import {
     AbstractMesh, AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager,
@@ -88,9 +88,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "gui")),
         createDirectoryIfNotExist(join(scenePath, "sounds")),
         createDirectoryIfNotExist(join(scenePath, "particleSystems")),
+        createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
+        createDirectoryIfNotExist(join(scenePath, "morphTargets")),
     ]);
 
-    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles, guiFiles, soundFiles, particleSystemFiles] = await Promise.all([
+    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles, guiFiles, soundFiles, particleSystemFiles, morphTargetManagers] = await Promise.all([
         readdir(join(scenePath, "nodes")),
         readdir(join(scenePath, "meshes")),
         readdir(join(scenePath, "lods")),
@@ -102,6 +104,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         readdir(join(scenePath, "gui")),
         readdir(join(scenePath, "sounds")),
         readdir(join(scenePath, "particleSystems")),
+        readdir(join(scenePath, "morphTargetManagers")),
     ]);
 
     const progress = await showLoadSceneProgressDialog(basename(scenePath));
@@ -116,7 +119,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         sceneLinkFiles.length +
         guiFiles.length +
         soundFiles.length +
-        particleSystemFiles.length
+        particleSystemFiles.length +
+        morphTargetManagers.length
     );
 
     SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
@@ -364,12 +368,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                         m.geometry.uniqueId = meshData.geometryUniqueId;
                     }
                 }
-
-                if (m.morphTargetManager) {
-                    for (let i = 0, len = m.morphTargetManager.numTargets; i < len; ++i) {
-                        scene.beginAnimation(m.morphTargetManager.getTarget(i), 0, Infinity, true, 1.0);
-                    }
-                }
             });
 
             if (index > 0) {
@@ -385,6 +383,55 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
             progress.step(progressStep);
         }));
+    }));
+
+    // Load morph target managers
+    await Promise.all(morphTargetManagers.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
+        const data = await readJSON(join(scenePath, "morphTargetManagers", file), "utf-8");
+
+        await Promise.all(data.targets.map(async (target) => {
+            const binaryFileData = join(scenePath, "morphTargets", basename(target.delayLoadingFile));
+            const buffer = (await readFile(binaryFileData)).buffer;
+
+            if (target.positionsCount) {
+                target.positions = new Float32Array(buffer, target.positionsOffset, target.positionsCount);
+            }
+
+            if (target.normalsCount) {
+                target.normals = new Float32Array(buffer, target.normalsOffset, target.normalsCount);
+            }
+
+            if (target.tangentsCount) {
+                target.tangents = new Float32Array(buffer, target.tangentsOffset, target.tangentsCount);
+            }
+
+            if (target.uvsCount) {
+                target.uvs = new Float32Array(buffer, target.uvsOffset, target.uvsCount);
+            }
+
+            if (target.uv2sCount) {
+                target.uv2s = new Float32Array(buffer, target.uv2sOffset, target.uv2sCount);
+            }
+        }));
+
+        const mesh = scene.getMeshById(data.meshId);
+        if (mesh) {
+            const morphTargetManager = MorphTargetManager.Parse(data, scene);
+            morphTargetManager["_uniqueId"] = data.uniqueId;
+
+            for (let i = 0, len = morphTargetManager.numTargets; i < len; i++) {
+                const target = morphTargetManager.getTarget(i);
+                target["_uniqueId"] = data.targets[i].uniqueId;
+            }
+
+            mesh.morphTargetManager = morphTargetManager;
+        }
+
+        progress.step(progressStep);
     }));
 
     // Load lights
