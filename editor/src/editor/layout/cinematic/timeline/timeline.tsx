@@ -1,6 +1,6 @@
 import { Component, MouseEvent, ReactNode } from "react";
 
-import { Animation, AnimationGroup, Sound } from "babylonjs";
+import { Animation, AnimationGroup } from "babylonjs";
 
 import { Editor } from "../../../main";
 
@@ -123,21 +123,11 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         let frame = 0;
         this.props.cinematic.tracks.forEach((track) => {
             track.animationGroups?.forEach((animationGroup) => {
-                const animationGroupRef = track.animationGroup as AnimationGroup;
-                const animationGroupFramesCount = animationGroupRef
-                    ? animationGroupRef.to - animationGroupRef.from
-                    : 0;
-
-                frame = Math.max(frame, animationGroup.frame + animationGroupFramesCount);
+                frame = Math.max(frame, animationGroup.frame + (animationGroup.endFrame - animationGroup.startFrame));
             });
 
             track.sounds?.forEach((sound) => {
-                const soundRef = track.sound as Sound;
-                const buffer = soundRef.getAudioBuffer();
-
-                if (buffer) {
-                    frame = Math.max(frame, sound.frame + buffer.duration * this.props.cinematic.framesPerSecond);
-                }
+                frame = Math.max(frame, sound.frame + (sound.endFrame - sound.startFrame));
             });
 
             track.keyFrameAnimations?.forEach((key) => {
@@ -356,6 +346,21 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         this._generateAnimationGroup = generateCinematicAnimationGroup(this.props.cinematic, scene);
         this._generateAnimationGroup.start(false, 1.0, frame);
 
+        // Start all sounds that were created before the current frame
+        this.props.cinematic.tracks.forEach((track) => {
+            track.sounds?.forEach((sound) => {
+                const endFrame = sound.frame + (sound.endFrame - sound.startFrame);
+                if (sound.frame > frame || endFrame < frame) {
+                    return;
+                }
+
+                const frameDiff = frame - sound.frame;
+                const offset = frameDiff / this.props.cinematic.framesPerSecond;
+
+                track.sound?.play(0, offset);
+            });
+        });
+
         this.props.editor.layout.preview.scene.beginDirectAnimation(this, [this._animation], currentTime, maxFrame, false, 1.0);
 
         if (this._renderLoop) {
@@ -383,5 +388,10 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         }
 
         this._generateAnimationGroup?.dispose();
+
+        // Stop all sounds
+        this.props.cinematic.tracks.forEach((track) => {
+            track.sound?.stop();
+        });
     }
 }

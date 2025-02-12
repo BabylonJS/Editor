@@ -2,7 +2,9 @@ import { Component, ReactNode } from "react";
 
 import { Icon, NonIdealState } from "@blueprintjs/core";
 
-import { Animation, AnimationGroup, Color3, Color4, IAnimationKey, Quaternion, Vector2, Vector3 } from "babylonjs";
+import {
+    Animation, AnimationGroup, Color3, Color4, IAnimationKey, Quaternion, Vector2, Vector3, Sound,
+} from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../ui/shadcn/ui/tabs";
@@ -23,8 +25,8 @@ import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 import { registerSimpleUndoRedo, registerUndoRedo } from "../../../../tools/undoredo";
 
-import { isCinematicGroup, isCinematicKey, isCinematicKeyCut } from "../schema/guards";
-import { ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "../schema/typings";
+import { isCinematicGroup, isCinematicKey, isCinematicKeyCut, isCinematicSound } from "../schema/guards";
+import { ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicSound, ICinematicTrack } from "../schema/typings";
 
 export interface ICinematicEditorInspectorProps {
     editor: Editor;
@@ -89,6 +91,12 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                                 {this._getKeyGroupInspector(this.state.key)}
                             </EditorInspectorSectionField>
                         }
+
+                        {isCinematicSound(this.state.key) &&
+                            <EditorInspectorSectionField title="Properties">
+                                {this._getKeySoundInspector(this.state.key)}
+                            </EditorInspectorSectionField>
+                        }
                     </>
                 }
 
@@ -106,11 +114,12 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         );
     }
 
-    private _getTitle(key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup): string {
+    private _getTitle(key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound): string {
         switch (key.type) {
             case "key": return "Key";
             case "cut": return "Key Cut";
             case "group": return "Group";
+            case "sound": return "Sound";
         }
     }
 
@@ -240,6 +249,38 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                 }} />
 
                 <EditorInspectorNumberField object={key} property="endFrame" label="End Frame" step={1} min={key.startFrame} max={animationGroup.to} onChange={() => {
+                    this.forceUpdate();
+                    this.props.cinematicEditor.timelines.forceUpdate();
+                    this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+                }} />
+            </>
+        );
+    }
+
+    private _getKeySoundInspector(key: ICinematicSound): ReactNode {
+        const sound = this.state.track?.sound as Sound;
+        const buffer = sound?.getAudioBuffer();
+
+        if (!sound || !buffer) {
+            return null;
+        }
+
+        const endFrame = buffer.duration * this.props.cinematicEditor.props.cinematic.framesPerSecond;
+
+        return (
+            <>
+                <EditorInspectorNumberField object={key} property="frame" label="Frame" step={1} min={0} onChange={() => {
+                    this.props.cinematicEditor.timelines.forceUpdate();
+                    this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+                }} />
+
+                <EditorInspectorNumberField object={key} property="startFrame" label="Start Frame" step={1} min={0} max={key.endFrame} onChange={() => {
+                    this.forceUpdate();
+                    this.props.cinematicEditor.timelines.forceUpdate();
+                    this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+                }} />
+
+                <EditorInspectorNumberField object={key} property="endFrame" label="End Frame" step={1} min={key.startFrame} max={endFrame} onChange={() => {
                     this.forceUpdate();
                     this.props.cinematicEditor.timelines.forceUpdate();
                     this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();

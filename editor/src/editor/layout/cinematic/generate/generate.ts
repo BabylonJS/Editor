@@ -1,4 +1,4 @@
-import { Animation, AnimationGroup, IAnimationKey, Scene, Tools } from "babylonjs";
+import { Animation, AnimationGroup, IAnimationKey, Scene, Tools, Sound, AnimationEvent } from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
@@ -58,6 +58,37 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
                     result.addTargetedAnimation(animation, targetedAnimation.target);
                 });
             });
+        }
+
+        const sound = track.sound as Sound;
+        const soundBuffer = sound?.getAudioBuffer();
+
+        if (sound && soundBuffer && track.sounds?.length) {
+            const dummyObject = {
+                dummy: 0,
+            };
+
+            const soundAnimation = new Animation(sound.name, "dummy", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, false);
+
+            let maxFrame = 0;
+            track.sounds?.forEach((configuration) => {
+                maxFrame = Math.max(maxFrame, configuration.frame + (configuration.endFrame - configuration.startFrame));
+
+                soundAnimation.addEvent(new AnimationEvent(configuration.frame, (currentFrame) => {
+                    const frameDiff = currentFrame - configuration.frame;
+                    const offset = (frameDiff + configuration.startFrame) / cinematic.framesPerSecond;
+
+                    sound.stop();
+                    sound.play(0, offset);
+                }, false));
+            });
+
+            soundAnimation.setKeys([
+                { frame: 0, value: 0 },
+                { frame: maxFrame, value: maxFrame },
+            ]);
+
+            result.addTargetedAnimation(soundAnimation, dummyObject);
         }
 
         const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;

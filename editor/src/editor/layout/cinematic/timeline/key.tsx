@@ -53,7 +53,7 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                     }}
                     className={`
                         absolute top-1/2 -translate-y-1/2
-                        ${this.props.cinematicKey.type === "group" ? "" : "-translate-x-1/2"}
+                        ${this.props.cinematicKey.type === "group" || this.props.cinematicKey.type === "sound" ? "" : "-translate-x-1/2"}
                         ${this.state.moving ? "" : "transition-all duration-150 ease-in-out"}
                     `}
                 >
@@ -72,6 +72,17 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                                 />
                             }
 
+                            {this.props.cinematicKey.type === "sound" &&
+                                <div
+                                    style={{
+                                        width: `${this._getSoundFramesCount() * this.props.scale}px`,
+                                    }}
+                                    onMouseDown={(ev) => this._handlePointerDown(ev)}
+                                    onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}
+                                    className="h-4 rounded-md bg-gradient-to-t from-green-400 dark:from-green-800 to-muted-foreground dark:to-muted-foreground"
+                                />
+                            }
+
                             {(this.props.cinematicKey.type === "key" || this.props.cinematicKey.type === "cut") &&
                                 <div
                                     onMouseDown={(ev) => this._handlePointerDown(ev)}
@@ -81,17 +92,6 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                                         ${isCinematicKeyCut(this.props.cinematicKey) ? "border-[2px] border-orange-500 bg-muted" : "bg-muted-foreground"}
                                         transition-transform duration-300 ease-in-out    
                                     `}
-                                />
-                            }
-
-                            {this.props.cinematicKey.type === "sound" &&
-                                <div
-                                    style={{
-                                        width: `${this._getSoundFramesCount() * this.props.scale}px`,
-                                    }}
-                                    onMouseDown={(ev) => this._handlePointerDown(ev)}
-                                    onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}
-                                    className="h-4 rounded-md bg-muted-foreground"
                                 />
                             }
                         </ContextMenuTrigger>
@@ -121,14 +121,6 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
         );
     }
 
-    private _getFrame(): number {
-        if (isCinematicKeyCut(this.props.cinematicKey)) {
-            return this.props.cinematicKey.key1.frame;
-        }
-
-        return this.props.cinematicKey.frame;
-    }
-
     private _getTooltipContent(): ReactNode {
         const seconds = this._getFrame() / 60;
         const minutes = Math.floor(seconds / 60);
@@ -148,6 +140,14 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                 </div>
             </div>
         );
+    }
+
+    private _getFrame(): number {
+        if (isCinematicKeyCut(this.props.cinematicKey)) {
+            return this.props.cinematicKey.key1.frame;
+        }
+
+        return this.props.cinematicKey.frame;
     }
 
     private _getAnimationGroupFramesCount(): number {
@@ -238,7 +238,7 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
         let mouseUpListener: (event: globalThis.MouseEvent) => void;
         let mouseMoveListener: (event: globalThis.MouseEvent) => void;
 
-        if (this.props.cinematicKey.type !== "group" && this._getFrame() === 0) {
+        if (this.props.cinematicKey.type !== "group" && this.props.cinematicKey.type !== "sound" && this._getFrame() === 0) {
             return document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
                 ev.stopPropagation();
 
@@ -269,6 +269,15 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                         result.push({
                             key: animationGroup,
                             startPosition: animationGroup.frame,
+                        });
+                    }
+                });
+
+                track.sounds?.forEach((sound) => {
+                    if (sound.frame >= startPosition) {
+                        result.push({
+                            key: sound,
+                            startPosition: sound.frame,
                         });
                     }
                 });
