@@ -26,6 +26,8 @@ import { EditorInspectorTextureField } from "../fields/texture";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
+import { ParticleSystemGradientInspector } from "./property-gradient";
+
 export interface IEditorParticleSystemInspectorState {
     started: boolean;
 }
@@ -137,26 +139,6 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 
                     <EditorInspectorBlockField>
                         <div className="px-2">
-                            Angular Speed
-                        </div>
-                        <div className="flex items-center">
-                            <EditorInspectorNumberField grayLabel object={this.props.object} property="minAngularSpeed" label="Min" min={0} />
-                            <EditorInspectorNumberField grayLabel object={this.props.object} property="maxAngularSpeed" label="Max" min={0} />
-                        </div>
-                    </EditorInspectorBlockField>
-
-                    <EditorInspectorBlockField>
-                        <div className="px-2">
-                            Size
-                        </div>
-                        <div className="flex items-center">
-                            <EditorInspectorNumberField grayLabel object={this.props.object} property="minSize" label="Min" min={0} />
-                            <EditorInspectorNumberField grayLabel object={this.props.object} property="maxSize" label="Max" min={0} />
-                        </div>
-                    </EditorInspectorBlockField>
-
-                    <EditorInspectorBlockField>
-                        <div className="px-2">
                             Lifetime
                         </div>
                         <div className="flex items-center">
@@ -164,12 +146,52 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
                             <EditorInspectorNumberField grayLabel object={this.props.object} property="maxLifeTime" label="Max" min={0} />
                         </div>
                     </EditorInspectorBlockField>
+
+                    <ParticleSystemGradientInspector
+                        title="Angular Speed"
+                        label="Use Angular Speed Gradients"
+                        particleSystem={this.props.object}
+                        getGradients={() => this.props.object.getAngularSpeedGradients()}
+                        createGradient={() => this.props.object.addAngularSpeedGradient(0, this.props.object.minAngularSpeed, this.props.object.maxAngularSpeed)}
+                        addGradient={(gradient, value1, value2) => this.props.object.addAngularSpeedGradient(gradient, value1, value2)}
+                        onUpdate={() => this.forceUpdate()}
+                    >
+                        <div className="flex items-center">
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="minSize" label="Min" min={0} />
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="maxSize" label="Max" min={0} />
+                        </div>
+                    </ParticleSystemGradientInspector>
+
+                    <ParticleSystemGradientInspector
+                        title="Size"
+                        label="Use Size Gradients"
+                        particleSystem={this.props.object}
+                        getGradients={() => this.props.object.getSizeGradients()}
+                        createGradient={() => this.props.object.addSizeGradient(0, this.props.object.minSize, this.props.object.maxSize)}
+                        addGradient={(gradient, value1, value2) => this.props.object.addSizeGradient(gradient, value1, value2)}
+                        onUpdate={() => this.forceUpdate()}
+                    >
+                        <div className="flex items-center">
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="minSize" label="Min" min={0} />
+                            <EditorInspectorNumberField grayLabel object={this.props.object} property="maxSize" label="Max" min={0} />
+                        </div>
+                    </ParticleSystemGradientInspector>
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Colors">
-                    <EditorInspectorColorField object={this.props.object} property="color1" label="Color 1" />
-                    <EditorInspectorColorField object={this.props.object} property="color2" label="Color 2" />
-                    <EditorInspectorColorField object={this.props.object} property="colorDead" label="Dead" />
+                    <ParticleSystemGradientInspector
+                        title=""
+                        label="Use Color Gradients"
+                        particleSystem={this.props.object}
+                        getGradients={() => this.props.object.getColorGradients()}
+                        createGradient={() => this.props.object.addColorGradient(0, this.props.object.color1.clone(), this.props.object.color2.clone())}
+                        addGradient={(gradient, value1, value2) => this.props.object.addColorGradient(gradient, value1, value2)}
+                        onUpdate={() => this.forceUpdate()}
+                    >
+                        <EditorInspectorColorField object={this.props.object} property="color1" label="Color 1" />
+                        <EditorInspectorColorField object={this.props.object} property="color2" label="Color 2" />
+                        <EditorInspectorColorField object={this.props.object} property="colorDead" label="Dead" />
+                    </ParticleSystemGradientInspector>
                 </EditorInspectorSectionField>
 
                 {this._getEmitterTypeInspector()}
