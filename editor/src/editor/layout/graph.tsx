@@ -26,8 +26,8 @@ import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
-import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
+import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
 
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
 
@@ -666,7 +666,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                 const sounds = this._soundsList.filter((s) => s["_connectedTransformNode"] === node);
 
                 sounds?.forEach((sound) => {
-                    info.childNodes?.push(this._getSoundNode(sound));
+                    if (sound.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+                        info.childNodes?.push(this._getSoundNode(sound));
+                    }
                 });
             }
 
@@ -674,7 +676,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
             if (isAbstractMesh(node) && !noChildren) {
                 const particleSystems = this.props.editor.layout.preview.scene.particleSystems.filter((ps) => ps.emitter === node);
                 particleSystems.forEach((particleSystem) => {
-                    info.childNodes?.push(this._getParticleSystemNode(particleSystem));
+                    if (particleSystem.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+                        info.childNodes?.push(this._getParticleSystemNode(particleSystem));
+                    }
                 });
             }
 
