@@ -33,7 +33,7 @@ import "@babylonjs/core/Materials/Textures/Loaders/ktxTextureLoader";
 
 import "@babylonjs/materials/sky";
 
-import { loadScene } from "babylonjs-editor-tools";
+import { loadScene, configureEngineToUseCompressedTextures } from "babylonjs-editor-tools";
 
 import { Tween } from "@/tween/tween";
 
@@ -79,13 +79,8 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
             failIfMajorPerformanceCaveat: false,
         });
 
-        engine.setTextureFormatToUse([
-            "-dxt.ktx",
-            "-astc.ktx",
-            "-pvrtc.ktx",
-            "-etc1.ktx",
-            "-etc2.ktx",
-        ]);
+        debugger;
+        configureEngineToUseCompressedTextures(engine);
 
         const scene = new Scene(engine);
 
