@@ -72,7 +72,9 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 
             let maxFrame = 0;
             track.sounds?.forEach((configuration) => {
-                maxFrame = Math.max(maxFrame, configuration.frame + (configuration.endFrame - configuration.startFrame));
+                const duration = configuration.endFrame - configuration.startFrame;
+
+                maxFrame = Math.max(maxFrame, configuration.frame + duration);
 
                 soundAnimation.addEvent(new AnimationEvent(configuration.frame, (currentFrame) => {
                     const frameDiff = currentFrame - configuration.frame;
@@ -81,6 +83,10 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
                     sound.stop();
                     sound.play(0, offset);
                 }, false));
+
+                soundAnimation.addEvent(new AnimationEvent(configuration.frame + duration, () => {
+                    sound.stop();
+                }));
             });
 
             soundAnimation.setKeys([
