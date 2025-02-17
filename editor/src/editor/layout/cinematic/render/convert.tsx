@@ -1,4 +1,5 @@
-import { join } from "path/posix";
+import { extname, join } from "path/posix";
+import { readdir, ensureDir } from "fs-extra";
 
 import ffmpeg from "fluent-ffmpeg";
 
@@ -18,6 +19,7 @@ import { CinematicConvertProgressComponent } from "./progress";
  */
 export async function convertCinematicVideoToMp4(
     editor: Editor,
+    folderAbsolutePath: string,
     absolutePath: string,
     framesCount: number,
     framesPerSecond: number,
@@ -26,19 +28,33 @@ export async function convertCinematicVideoToMp4(
         return;
     }
 
+    let files = await readdir(folderAbsolutePath);
+    files = files.filter((file) => extname(file) === ".webm");
+    files.sort((a, b) => parseInt(a) - parseInt(b));
+
     let ffmpegPath = process.env.DEBUG
         ? "bin/ffmpeg"
         : "../../bin/ffmpeg";
 
+    let ffprobePath = process.env.DEBUG
+        ? "bin/ffprobe"
+        : "../../bin/ffprobe";
+
     if (isWindows()) {
         ffmpegPath = ffmpegPath + ".exe";
+        ffprobePath = ffprobePath + ".exe";
     }
 
-    const command = ffmpeg(absolutePath)
-        .setFfmpegPath(join(editor.path, ffmpegPath));
+    const command = ffmpeg()
+        .setFfmpegPath(join(editor.path, ffmpegPath))
+        .setFfprobePath(join(editor.path, ffprobePath));
+
+    files.forEach((file) => {
+        command.addInput(join(folderAbsolutePath, file));
+    });
 
     command
-        .output(absolutePath.replace(".webm", ".mp4"))
+        // .output(absolutePath.replace(".webm", ".mp4"))
         .fpsOutput(framesPerSecond);
 
     let converting = true;
@@ -58,6 +74,9 @@ export async function convertCinematicVideoToMp4(
             dismissible: false,
             duration: Infinity,
         });
+
+    const tmpDirectory = join(folderAbsolutePath, "tmp");
+    await ensureDir(tmpDirectory);
 
     await new Promise<void>((resolve, reject) => {
         command.on("end", (stdout, stderr) => {
@@ -88,7 +107,7 @@ export async function convertCinematicVideoToMp4(
             }
         });
 
-        command.run();
+        command.mergeToFile(absolutePath.replace(".webm", ".mp4"), tmpDirectory);
     });
 
     clearInterval(intervalId);

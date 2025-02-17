@@ -1,11 +1,12 @@
-import { writeFile } from "fs-extra";
+import { join, dirname } from "path/posix";
+import { writeFile, ensureDir, remove } from "fs-extra";
 
 import { Component, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
 import { ArrayBufferTarget, Muxer } from "webm-muxer";
 
-import { ISize } from "babylonjs";
+import { ISize, Tools } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Progress } from "../../../../ui/shadcn/ui/progress";
@@ -101,6 +102,9 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
             step: "rendering",
         });
 
+        const destinationFolder = join(dirname(destination), Tools.RandomId());
+        await ensureDir(destinationFolder);
+
         const animationGroup = generateCinematicAnimationGroup(
             cinematic,
             this.props.editor.layout.preview.scene,
@@ -122,12 +126,15 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
 
         // Idea to improve quality of the render
         const scalingLevel = preview.engine._hardwareScalingLevel;
-        preview.engine.setHardwareScalingLevel(scalingLevel * 0.25);
 
+        preview.engine.setHardwareScalingLevel(scalingLevel * 0.25);
         preview.engine.setSize(width, height);
+        preview.scene.render();
 
         // Play cinematic
         animationGroup.play(false);
+
+        let videoIndex = 1;
 
         // Render each frame into video
         for (let i = 0; i < framesCount; ++i) {
@@ -157,14 +164,18 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
             if (this.state.step !== "rendering") {
                 break;
             }
+
+            if (i > 0 && i % 60 === 0) {
+                await this._flushVideoEncoder(destinationFolder, videoIndex, width, height);
+                ++videoIndex;
+            }
         }
 
         animationGroup.stop();
         animationGroup.dispose();
 
         // Finalize video encoder and restore canvas
-        await this._videoEncoder.flush();
-        this._muxer.finalize();
+        await this._flushVideoEncoder(destinationFolder, videoIndex, width, height);
 
         preview.setRenderScene(true);
         preview.engine.renderEvenInBackground = false;
@@ -175,15 +186,12 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
 
         // Write video result?
         if (this.state.step === "rendering") {
-            try {
-                await writeFile(destination, Buffer.from(this._muxer.target.buffer));
-            } catch (e) {
-                this.props.editor.layout.console.error(`Failed to write cinematic video at: ${destination}`);
-            }
-
-            convertCinematicVideoToMp4(this.props.editor, destination, framesCount, cinematic.outputFramesPerSecond)
+            convertCinematicVideoToMp4(this.props.editor, destinationFolder, destination, framesCount, cinematic.outputFramesPerSecond)
                 .catch(() => {
                     this.props.editor.layout.console.error(`Failed to convert cinematic video at: ${destination.replace(".webm", ".mp4")}`);
+                })
+                .finally(() => {
+                    remove(destinationFolder);
                 });
         }
 
@@ -191,6 +199,24 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
             progress: 0,
             step: "void",
         });
+    }
+
+    private async _flushVideoEncoder(destinationFolder: string, videoIndex: number, width: number, height: number): Promise<void> {
+        if (!this._videoEncoder || !this._muxer) {
+            return;
+        }
+
+        await this._videoEncoder.flush();
+        this._muxer.finalize();
+
+        await writeFile(join(destinationFolder, `${videoIndex}.webm`), Buffer.from(this._muxer.target.buffer));
+
+        this._createVideoEncoder(width, height);
+        if (!this._muxer || !this._videoEncoder) {
+            this.setState({
+                step: "void",
+            });
+        }
     }
 
     private _encodeVideoFrame(canvas: HTMLCanvasElement, videoEncoder: VideoEncoder, frame: number): void {
