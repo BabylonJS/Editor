@@ -16,6 +16,7 @@ import {
 } from "babylonjs";
 
 import { Toggle } from "../../ui/shadcn/ui/toggle";
+import { Button } from "../../ui/shadcn/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
 
 import { Editor } from "../main";
@@ -55,7 +56,7 @@ import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
 import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
-import { Button } from "../../ui/shadcn/ui/button";
+
 
 export interface IEditorPreviewProps {
     /**
@@ -88,6 +89,12 @@ export interface IEditorPreviewState {
      * Defines the reference to the object that was right-clicked.
      */
     rightClickedObject?: any;
+
+    /**
+     * Defines the fixed dimensions of the preview canvas.
+     * "fit" means the canvas will fit the entire panel container.
+     */
+    fixedDimensions: "720p" | "1080p" | "4k" | "fit";
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -134,6 +141,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
             isFocused: false,
             informationMessage: "",
+
+            fixedDimensions: "fit",
         };
 
         ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
@@ -172,7 +181,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             onPointerDown={(ev) => this._handleMouseDown(ev)}
                             onMouseLeave={() => this._handleMouseLeave()}
                             onMouseMove={() => this._handleMouseMove(this.scene.pointerX, this.scene.pointerY)}
-                            className="select-none outline-none w-full h-full object-contain"
+                            className={`
+                                select-none outline-none w-full h-full object-contain
+                                ${this.state.fixedDimensions !== "fit" ? "bg-black" : "bg-background"}
+                                transition-all duration-300 ease-in-out
+                            `}
                         />
 
                         {this.play?.state.playing &&
@@ -216,6 +229,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     }
 
     /**
+     * Resizes the engine.
+     */
+    public resize(): void {
+        if (this.state.fixedDimensions === "fit") {
+            this.engine?.resize();
+        }
+    }
+
+    /**
      * Resets the preview component by re-creating the engine and an empty scene.
      */
     public async reset(): Promise<void> {
@@ -238,6 +260,31 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         this.engine = null!;
 
         return this._onGotCanvasRef(canvas);
+    }
+
+    /**
+     * Sets the fixed dimensions of the renderer. This is particularly useful to test the rendering
+     * performances and the aspect ratio of the scene in case it'll be renderer in fullscreen.
+     */
+    public setFixedDimensions(fixedDimensions: "720p" | "1080p" | "4k" | "fit"): void {
+        this.setState({
+            fixedDimensions,
+        });
+
+        switch (fixedDimensions) {
+            case "720p":
+                this.engine?.setSize(1280, 720);
+                break;
+            case "1080p":
+                this.engine?.setSize(1920, 1080);
+                break;
+            case "4k":
+                this.engine?.setSize(3840, 2160);
+                break;
+            default:
+                this.engine?.resize();
+                break;
+        }
     }
 
     /**
@@ -654,6 +701,21 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                                         this.scene.renderTargetsEnabled = this.scene.shadowsEnabled;
                                     }}>
                                         {this.scene?.shadowsEnabled && <FaCheck className="w-4 h-4" />} Shadows enabled
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuLabel>Renderer dimensions</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("720p")}>
+                                        {this.state.fixedDimensions === "720p" && <FaCheck className="w-4 h-4" />} 720p
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("1080p")}>
+                                        {this.state.fixedDimensions === "1080p" && <FaCheck className="w-4 h-4" />} 1080p
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("4k")}>
+                                        {this.state.fixedDimensions === "4k" && <FaCheck className="w-4 h-4" />} 4K (UHD)
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("fit")}>
+                                        {this.state.fixedDimensions === "fit" && <FaCheck className="w-4 h-4" />} Fit
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>

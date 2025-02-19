@@ -117,7 +117,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
         }
 
         node.setEventListener("resize", () => {
-            waitNextAnimationFrame().then(() => this.preview?.engine?.resize());
+            waitNextAnimationFrame().then(() => this.preview?.resize());
         });
 
         return component;

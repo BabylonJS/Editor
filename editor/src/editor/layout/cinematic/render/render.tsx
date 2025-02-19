@@ -120,6 +120,8 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
             return;
         }
 
+        const fixedDimensionsType = preview.state.fixedDimensions;
+
         preview.setRenderScene(false);
         preview.engine.renderEvenInBackground = true;
         preview.scene.useConstantAnimationDeltaTime = true;
@@ -128,7 +130,7 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
         const scalingLevel = preview.engine._hardwareScalingLevel;
 
         preview.engine.setHardwareScalingLevel(scalingLevel * 0.25);
-        preview.engine.setSize(width, height);
+        preview.setFixedDimensions(type);
         preview.scene.render();
 
         // Play cinematic
@@ -182,7 +184,7 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
         preview.scene.useConstantAnimationDeltaTime = false;
 
         preview.engine.setHardwareScalingLevel(scalingLevel);
-        preview.engine.resize();
+        preview.setFixedDimensions(fixedDimensionsType);
 
         // Write video result?
         if (this.state.step === "rendering") {
