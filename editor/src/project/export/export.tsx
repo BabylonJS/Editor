@@ -10,6 +10,7 @@ import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 
+import { serializeVLSPostProcess } from "../../editor/rendering/vls";
 import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
 import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
 import { serializeSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
@@ -37,7 +38,7 @@ const supportedCubeTexturesExtensions: string[] = [
 ];
 
 const supportedAudioExtensions: string[] = [
-    ".mp3", ".wav", ".ogg",
+    ".mp3", ".wav", ".wave", ".ogg",
 ];
 
 const supportedJsonExtensions: string[] = [
@@ -107,6 +108,7 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
         motionBlurPostProcess: serializeMotionBlurPostProcess(),
         ssao2RenderingPipeline: serializeSSAO2RenderingPipeline(),
         defaultRenderingPipeline: serializeDefaultRenderingPipeline(),
+        vlsPostProcess: serializeVLSPostProcess(),
     };
 
     delete data.postProcesses;
@@ -272,6 +274,10 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
         return;
     }
 
+    if (extension === ".wav") {
+        debugger;
+    }
+
     if (basename(file).startsWith("editor_preview")) {
         return;
     }
@@ -304,10 +310,7 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
     const finalPath = join(scenePath, relativePath);
     const finalPathExists = await pathExists(finalPath);
 
-    if (
-        supportedImagesExtensions.includes(extension) ||
-        supportedCubeTexturesExtensions.includes(extension)
-    ) {
+    if (supportedExtensions.includes(extension)) {
         if (isNewFile || !finalPathExists) {
             await copyFile(file, finalPath);
         }
