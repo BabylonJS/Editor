@@ -1,22 +1,25 @@
-import { Component, ReactNode } from "react";
+import { Component, DragEvent, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
+import { IoMdCube } from "react-icons/io";
 import { HiOutlineTrash } from "react-icons/hi2";
 import { IoPlay, IoStop } from "react-icons/io5";
 
 import { Divider } from "@blueprintjs/core";
 
-import { DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator, AnimationGroup } from "babylonjs";
+import { DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator, AnimationGroup, VolumetricLightScatteringPostProcess } from "babylonjs";
 
 import { Button } from "../../../ui/shadcn/ui/button";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
 
+import { createVLSPostProcess, disposeVLSPostProcess, getVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../../rendering/vls";
 import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../../rendering/ssr";
 import { createSSAO2RenderingPipeline, disposeSSAO2RenderingPipeline, getSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline } from "../../rendering/ssao";
 import { createMotionBlurPostProcess, disposeMotionBlurPostProcess, getMotionBlurPostProcess, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "../../rendering/motion-blur";
 import { createDefaultRenderingPipeline, disposeDefaultRenderingPipeline, getDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "../../rendering/default-pipeline";
 
+import { isMesh } from "../../../tools/guards/nodes";
 import { isScene } from "../../../tools/guards/scene";
 
 import { EditorInspectorSectionField } from "./fields/section";
@@ -32,7 +35,11 @@ import { ScriptInspectorComponent } from "./script/script";
 
 import { IEditorInspectorImplementationProps } from "./inspector";
 
-export class EditorSceneInspector extends Component<IEditorInspectorImplementationProps<Scene>> {
+export interface IEditorSceneInspectorState {
+    dragOverVlsMesh: boolean;
+}
+
+export class EditorSceneInspector extends Component<IEditorInspectorImplementationProps<Scene>, IEditorSceneInspectorState> {
     /**
      * Returns whether or not the given object is supported by this inspector.
      * @param object defines the object to check.
@@ -40,6 +47,14 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
      */
     public static IsSupported(object: unknown): boolean {
         return isScene(object);
+    }
+
+    public constructor(props: IEditorInspectorImplementationProps<Scene>) {
+        super(props);
+
+        this.state = {
+            dragOverVlsMesh: false,
+        };
     }
 
     public render(): ReactNode {
@@ -88,6 +103,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
                 {this._getSSAO2RenderingPipelineComponent()}
                 {this._getMotionBlurPostProcessComponent()}
                 {this._getSSRPipelineComponent()}
+                {this._getVLSComponent()}
 
                 {this._getAnimationGroupsComponent()}
             </>
@@ -448,6 +464,123 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
                 }
             </EditorInspectorSectionField>
         );
+    }
+
+    private _getVLSComponent(): ReactNode {
+        const vlsPostProcess = getVLSPostProcess();
+
+        const config = {
+            enabled: vlsPostProcess ? true : false,
+        };
+
+        return (
+            <EditorInspectorSectionField title="Volumetric Light Scattering">
+                <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
+                    const pipeline = vlsPostProcess;
+                    const serializedPostProcess = serializeVLSPostProcess();
+
+                    registerUndoRedo({
+                        executeRedo: true,
+                        undo: () => {
+                            if (!pipeline) {
+                                disposeVLSPostProcess(this.props.editor);
+                            } else if (serializedPostProcess) {
+                                parseVLSPostProcess(this.props.editor, serializedPostProcess);
+                            }
+                        },
+                        redo: () => {
+                            if (pipeline) {
+                                disposeVLSPostProcess(this.props.editor);
+                            } else if (serializedPostProcess) {
+                                parseVLSPostProcess(this.props.editor, serializedPostProcess);
+                            } else {
+                                createVLSPostProcess(this.props.editor);
+                            }
+                        },
+                    });
+
+                    this.forceUpdate();
+                }} />
+
+                {vlsPostProcess &&
+                    <>
+                        <EditorInspectorNumberField object={vlsPostProcess} property="exposure" label="Exposure" min={0} />
+                        <EditorInspectorNumberField object={vlsPostProcess} property="weight" label="Weight" min={0} />
+                        <EditorInspectorNumberField object={vlsPostProcess} property="decay" label="Decay" step={0.001} min={0} />
+                        <EditorInspectorNumberField object={vlsPostProcess} property="density" label="Density" step={0.001} min={0} />
+
+                        <EditorInspectorSwitchField object={vlsPostProcess} property="invert" label="Invert" />
+
+                        <div
+                            onDrop={(ev) => this._handleDropVlsMesh(ev, vlsPostProcess)}
+                            onDragOver={(ev) => this._handleDragOverVlsMesh(ev)}
+                            onDragLeave={() => this.setState({ dragOverVlsMesh: false })}
+                            className={`flex flex-col justify-center items-center w-full h-[64px] rounded-lg border-[1px] border-secondary-foreground/35 border-dashed ${this.state.dragOverVlsMesh ? "bg-secondary-foreground/35" : ""} transition-all duration-300 ease-in-out`}
+                        >
+                            {!vlsPostProcess.mesh &&
+                                <div>
+                                    Drag'n'drop a mesh here
+                                </div>
+                            }
+
+                            {vlsPostProcess.mesh &&
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <IoMdCube className="w-4 h-4" />{vlsPostProcess.mesh.name}
+                                    </div>
+                                    <div className="text-xs">
+                                        Drag'n'drop a mesh here
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </>
+                }
+            </EditorInspectorSectionField>
+        );
+    }
+
+    private _handleDragOverVlsMesh(event: DragEvent<HTMLDivElement>): void {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.setState({
+            dragOverVlsMesh: true,
+        });
+    }
+
+    private _handleDropVlsMesh(event: DragEvent<HTMLDivElement>, vlsPostProcess: VolumetricLightScatteringPostProcess): void {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.setState({
+            dragOverVlsMesh: false,
+        });
+
+        const eventData = event.dataTransfer.getData("graph/node");
+        const node = this.props.editor.layout.graph.getSelectedNodes()[0].nodeData;
+
+        if (eventData && node && isMesh(node)) {
+            const oldMesh = vlsPostProcess.mesh;
+
+            registerUndoRedo({
+                executeRedo: true,
+                undo: () => {
+                    vlsPostProcess.mesh = oldMesh;
+                    const serializationObject = serializeVLSPostProcess();
+                    disposeVLSPostProcess(this.props.editor);
+                    parseVLSPostProcess(this.props.editor, serializationObject);
+                },
+                redo: () => {
+                    vlsPostProcess.mesh = node;
+                    const serializationObject = serializeVLSPostProcess();
+                    disposeVLSPostProcess(this.props.editor);
+                    parseVLSPostProcess(this.props.editor, serializationObject);
+                },
+            });
+
+            this.forceUpdate();
+        }
     }
 
     private _getAnimationGroupsComponent(): ReactNode {

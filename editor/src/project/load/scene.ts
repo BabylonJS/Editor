@@ -13,6 +13,7 @@ import { EditorCamera } from "../../editor/nodes/camera";
 import { CollisionMesh } from "../../editor/nodes/collision";
 import { SceneLinkNode } from "../../editor/nodes/scene-link";
 
+import { parseVLSPostProcess } from "../../editor/rendering/vls";
 import { parseSSRRenderingPipeline } from "../../editor/rendering/ssr";
 import { parseSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
 import { parseMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
@@ -168,23 +169,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
         if (config.ambientColor) {
             scene.ambientColor = Color3.FromArray(config.ambientColor);
-        }
-
-        // Load pipelines
-        if (config.rendering.ssao2RenderingPipeline) {
-            parseSSAO2RenderingPipeline(editor, config.rendering.ssao2RenderingPipeline);
-        }
-
-        if (config.rendering.ssrRenderingPipeline) {
-            parseSSRRenderingPipeline(editor, config.rendering.ssrRenderingPipeline);
-        }
-
-        if (config.rendering.motionBlurPostProcess) {
-            parseMotionBlurPostProcess(editor, config.rendering.motionBlurPostProcess);
-        }
-
-        if (config.rendering.defaultRenderingPipeline) {
-            parseDefaultRenderingPipeline(editor, config.rendering.defaultRenderingPipeline);
         }
     }
 
@@ -698,6 +682,27 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                 n.refreshBoundingInfo(true, true);
             }
         });
+
+        // Load pipelines
+        if (config.rendering.ssao2RenderingPipeline) {
+            parseSSAO2RenderingPipeline(editor, config.rendering.ssao2RenderingPipeline);
+        }
+
+        if (config.rendering.vlsPostProcess) {
+            parseVLSPostProcess(editor, config.rendering.vlsPostProcess);
+        }
+
+        if (config.rendering.ssrRenderingPipeline) {
+            parseSSRRenderingPipeline(editor, config.rendering.ssrRenderingPipeline);
+        }
+
+        if (config.rendering.motionBlurPostProcess) {
+            parseMotionBlurPostProcess(editor, config.rendering.motionBlurPostProcess);
+        }
+
+        if (config.rendering.defaultRenderingPipeline) {
+            parseDefaultRenderingPipeline(editor, config.rendering.defaultRenderingPipeline);
+        }
     }
 
     editor.layout.console.log("Scene loaded and editor is ready.");

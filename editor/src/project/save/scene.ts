@@ -14,6 +14,7 @@ import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/node
 import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 
+import { serializeVLSPostProcess } from "../../editor/rendering/vls";
 import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
 import { serializeSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
 import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
@@ -479,6 +480,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 motionBlurPostProcess: serializeMotionBlurPostProcess(),
                 ssao2RenderingPipeline: serializeSSAO2RenderingPipeline(),
                 defaultRenderingPipeline: serializeDefaultRenderingPipeline(),
+                vlsPostProcess: serializeVLSPostProcess(),
             },
             metadata: scene.metadata,
             editorCamera: editor.layout.preview.camera.serialize(),
