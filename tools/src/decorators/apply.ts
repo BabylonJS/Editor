@@ -31,6 +31,12 @@ export interface ISceneDecoratorData {
         onGuiCreated?: (instance: unknown, gui: AdvancedDynamicTexture) => unknown;
         propertyKey: string | Symbol;
     }[];
+
+    // @fromParticleSystems
+    _ParticleSystemsFromScene: {
+        particleSystemName: string;
+        propertyKey: string | Symbol;
+    }[];
 }
 
 export function applyDecorators(scene: Scene, object: any, instance: any, rootUrl: string) {
@@ -73,5 +79,14 @@ export function applyDecorators(scene: Scene, object: any, instance: any, rootUr
             console.error(`Failed to load GUI from asset: ${guiUrl}`);
             throw e;
         }
+    });
+
+    // @fromParticleSystems
+    ctor._ParticleSystemsFromScene?.forEach((params) => {
+        const particleSystem = scene.particleSystems?.find((particleSystem) => {
+            return particleSystem.name === params.particleSystemName;
+        });
+
+        instance[params.propertyKey.toString()] = particleSystem;
     });
 }

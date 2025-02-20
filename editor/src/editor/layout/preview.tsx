@@ -39,6 +39,7 @@ import { SpinnerUIComponent } from "../../ui/spinner";
 import { Separator } from "../../ui/shadcn/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/shadcn/ui/tooltip";
 
+import { disposeVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../rendering/vls";
 import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../rendering/ssr";
 import { disposeMotionBlurPostProcess, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "../rendering/motion-blur";
 import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline } from "../rendering/ssao";
@@ -56,7 +57,6 @@ import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
 import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
-
 
 export interface IEditorPreviewProps {
     /**
@@ -748,24 +748,30 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         // Post-processes
         const ssao2Pipeline = serializeSSAO2RenderingPipeline();
         const ssrPipeline = serializeSSRRenderingPipeline();
-        const motionBlurPipeline = serializeMotionBlurPostProcess();
+        const motionBlurPostProcess = serializeMotionBlurPostProcess();
         const defaultRenderingPipeline = serializeDefaultRenderingPipeline();
+        const vlsPostProcess = serializeVLSPostProcess();
 
         disposeSSAO2RenderingPipeline();
         disposeSSRRenderingPipeline();
         disposeMotionBlurPostProcess();
         disposeDefaultRenderingPipeline();
+        disposeVLSPostProcess(this.props.editor);
 
         if (ssao2Pipeline) {
             parseSSAO2RenderingPipeline(this.props.editor, ssao2Pipeline);
+        }
+
+        if (vlsPostProcess) {
+            parseVLSPostProcess(this.props.editor, vlsPostProcess);
         }
 
         if (ssrPipeline) {
             parseSSRRenderingPipeline(this.props.editor, ssrPipeline);
         }
 
-        if (motionBlurPipeline) {
-            parseMotionBlurPostProcess(this.props.editor, motionBlurPipeline);
+        if (motionBlurPostProcess) {
+            parseMotionBlurPostProcess(this.props.editor, motionBlurPostProcess);
         }
 
         if (defaultRenderingPipeline) {

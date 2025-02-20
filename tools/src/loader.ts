@@ -1,6 +1,7 @@
 import { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 
+import { parseVLSPostProcess } from "./rendering/vls";
 import { parseSSRRenderingPipeline } from "./rendering/ssr";
 import { parseSSAO2RenderingPipeline } from "./rendering/ssao";
 import { parseMotionBlurPostProcess } from "./rendering/motion-blur";
@@ -64,6 +65,10 @@ export async function loadScene(rootUrl: string, sceneFilename: string, scene: S
 
         if (scene.metadata.rendering.ssao2RenderingPipeline) {
             parseSSAO2RenderingPipeline(scene, camera, scene.metadata.rendering.ssao2RenderingPipeline);
+        }
+
+        if (scene.metadata.rendering.vlsPostProcess) {
+            parseVLSPostProcess(scene, scene.metadata.rendering.vlsPostProcess);
         }
 
         if (scene.metadata.rendering.ssrRenderingPipeline) {

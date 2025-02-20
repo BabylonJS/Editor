@@ -26,10 +26,9 @@ import "@babylonjs/core/Materials/standardMaterial";
 import "@babylonjs/core/Rendering/depthRendererSceneComponent";
 import "@babylonjs/core/Rendering/prePassRendererSceneComponent";
 
-import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
-
 import "@babylonjs/core/Engines/Extensions/engine.textureSelector";
 import "@babylonjs/core/Materials/Textures/Loaders/ktxTextureLoader";
+import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 
 import "@babylonjs/materials/sky";
 
@@ -79,7 +78,6 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
             failIfMajorPerformanceCaveat: false,
         });
 
-        debugger;
         configureEngineToUseCompressedTextures(engine);
 
         const scene = new Scene(engine);
