@@ -1,7 +1,6 @@
 import { Component, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
-import { Fade } from "react-awesome-reveal";
 
 import { FaCheckCircle } from "react-icons/fa";
 
@@ -50,17 +49,13 @@ export class EditorConsoleProgressLogComponent extends Component<IEditorConsoleP
     public render(): ReactNode {
         return (
             <div className={`flex items-center gap-[5px] ${this.state.error ? "text-red-500" : ""} hover:bg-secondary/50 hover:py-1 transition-all duration-300 ease-in-out`}>
-                <div className="relative w-4 h-4">
-                    <Fade reverse={this.state.done} triggerOnce duration={300} className="absolute top-1/2 -translate-y-1/2">
-                        <Grid width={14} height={14} color="#ffffff" />
-                    </Fade>
+                {!this.state.done &&
+                    <Grid width={14} height={14} color="#ffffff" />
+                }
 
-                    {this.state.done &&
-                        <Fade triggerOnce duration={300} delay={300} className="absolute top-1/2 -translate-y-1/2">
-                            <FaCheckCircle className="w-[14px] h-[14px]" />
-                        </Fade>
-                    }
-                </div>
+                {this.state.done &&
+                    <FaCheckCircle className="w-[14px] h-[14px]" />
+                }
 
                 <div className="whitespace-nowrap">
                     {this.state.message}

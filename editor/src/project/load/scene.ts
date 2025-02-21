@@ -553,6 +553,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
             default:
                 particleSystem = ParticleSystem.Parse(data, scene, join(projectPath, "/"));
+                if (!particleSystem.emitter) {
+                    editor.layout.console.warn(`No emitter found for particle system "${particleSystem.name}". Skipping.`);
+                    particleSystem.dispose(true, true, true);
+                    return;
+                }
                 break;
         }
 

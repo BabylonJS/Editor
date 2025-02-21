@@ -4,6 +4,7 @@ import { Component, ReactNode } from "react";
 
 import { FaFileAlt } from "react-icons/fa";
 import { FaCirclePlus } from "react-icons/fa6";
+import { IoSparklesSharp } from "react-icons/io5";
 import { HiMiniCommandLine } from "react-icons/hi2";
 
 import { normalizedGlob } from "../../../tools/fs";
@@ -16,6 +17,7 @@ import { getMeshCommands } from "./mesh";
 import { getLightCommands } from "./light";
 import { getCameraCommands } from "./camera";
 import { getProjectCommands } from "./project";
+import { getParticleSystemsCommands } from "./particle-systems";
 
 export interface ICommandPaletteProps {
     editor: Editor;
@@ -76,6 +78,12 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
                         {getCameraCommands(this.props.editor).map((command) => (
                             <CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
                                 <FaCirclePlus className="w-10 h-10" /> {command.text}
+                            </CommandItem>
+                        ))}
+
+                        {getParticleSystemsCommands(this.props.editor).map((command) => (
+                            <CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+                                <IoSparklesSharp className="w-10 h-10" /> {command.text}
                             </CommandItem>
                         ))}
                     </CommandGroup>

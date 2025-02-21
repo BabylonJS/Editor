@@ -94,6 +94,10 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
     }
 
     private _addLog(log: ReactNode): void {
+        if (this.state.logs.length === 1000) {
+            this.state.logs.shift();
+        }
+
         let ref: HTMLDivElement | null = null;
 
         this.state.logs.push(
@@ -109,9 +113,17 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
             </ContextMenu>
         );
 
+        const div = this._div?.parentElement?.parentElement;
+        if (!div || !this._div) {
+            return;
+        }
+
+        const limit = div.scrollHeight - div.clientHeight - 10;
+        const isAtBottom = div.scrollTop >= limit;
+
         this.setState({ logs: this.state.logs }, () => {
-            if (this._div?.parentElement) {
-                this._div.parentElement.scrollTop = this._div.scrollHeight + 25;
+            if (isAtBottom) {
+                div.scrollTo(0, div.scrollHeight);
             }
         });
     }
