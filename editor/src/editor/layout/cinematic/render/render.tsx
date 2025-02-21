@@ -6,20 +6,19 @@ import { Component, ReactNode } from "react";
 import { Grid } from "react-loader-spinner";
 import { ArrayBufferTarget, Muxer } from "webm-muxer";
 
-import { ISize, Tools } from "babylonjs";
+import { ISize, Tools, AnimationGroup } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Progress } from "../../../../ui/shadcn/ui/progress";
 
-import { saveSingleFileDialog } from "../../../../tools/dialog";
 import { updateLightShadowMapRefreshRate } from "../../../../tools/light/shadows";
 
 import { Editor } from "../../../main";
 
 import { CinematicEditor } from "../editor";
 import { ICinematic } from "../schema/typings";
-import { generateCinematicAnimationGroup } from "../generate/generate";
 
+import { CinematicRendererDialog } from "./dialog";
 import { convertCinematicVideoToMp4 } from "./convert";
 
 export type RenderType = "720p" | "1080p" | "4k";
@@ -30,6 +29,10 @@ export interface ICinematicRendererProps {
 }
 
 export interface ICinematicRendererState {
+    dialogOpen: boolean;
+    type?: RenderType;
+    cinematic?: ICinematic;
+
     progress: number;
     step: "rendering" | "converting" | "void";
 }
@@ -38,10 +41,15 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
     private _muxer: Muxer<ArrayBufferTarget> | null = null;
     private _videoEncoder: VideoEncoder | null = null;
 
+    public from: number = 0;
+    public to: number = 0;
+
     public constructor(props: ICinematicRendererProps) {
         super(props);
 
         this.state = {
+            dialogOpen: false,
+
             progress: 0,
             step: "void",
         };
@@ -49,94 +57,98 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
 
     public render(): ReactNode {
         return (
-            <div
-                className={`
+            <>
+                <div
+                    className={`
                     flex flex-col justify-center items-center gap-5
                     fixed top-0 left-0 w-full h-full z-50
                     ${this.state.step !== "void"
-                        ? "opacity-100 bg-black/50 backdrop-blur-sm"
-                        : "opacity-0 bg-transparent backdrop-blur-none pointer-events-none"
-                    }
+                            ? "opacity-100 bg-black/50 backdrop-blur-sm"
+                            : "opacity-0 bg-transparent backdrop-blur-none pointer-events-none"
+                        }
                     transition-all duration-300 ease-in-out
                 `}
-            >
-                <Grid width={64} height={64} color="gray" />
+                >
+                    <Grid width={64} height={64} color="gray" />
 
-                <div>
-                    {this.state.step === "rendering" && "Rendering cinematic..."}
+                    <div>
+                        {this.state.step === "rendering" && "Rendering cinematic..."}
+                    </div>
+
+                    <div className="w-64">
+                        <Progress value={this.state.progress} />
+                    </div>
+
+                    <Button onClick={() => this.setState({ step: "void" })}>
+                        Cancel
+                    </Button>
                 </div>
 
-                <div className="w-64">
-                    <Progress value={this.state.progress} />
-                </div>
-
-                <Button onClick={() => this.setState({ step: "void" })}>
-                    Cancel
-                </Button>
-            </div>
+                <CinematicRendererDialog
+                    open={this.state.dialogOpen}
+                    onClose={() => this.setState({ dialogOpen: false })}
+                    cinematic={this.state.cinematic}
+                    type={this.state.type}
+                    renderer={this}
+                    editor={this.props.editor}
+                />
+            </>
         );
     }
 
     /**
-     * Renders the current cinematic into a video file.
+     * Opens the render dialog to perform last options before rendering the cinematic.
      * @param cinematic defines the reference to the cinematic to render.
      * @param type defines the type of render to perform.
      */
-    public renderCinematic(cinematic: ICinematic, type: RenderType) {
-        const destination = saveSingleFileDialog({
-            title: "Save cinematic video as...",
-            filters: [
-                { name: "WebM Video", extensions: ["webm"] },
-            ],
+    public async openRenderDialog(cinematic: ICinematic, type: RenderType): Promise<void> {
+        this.setState({
+            type,
+            cinematic,
+            dialogOpen: true,
         });
-
-        if (!destination) {
-            return;
-        }
-
-        return this._renderCinematic(cinematic, type, destination);
     }
 
-    private async _renderCinematic(cinematic: ICinematic, type: RenderType, destination: string) {
+    /**
+     * Renders the given cinematic in the given type and saves the file at the given destination.
+     * @param cinematic defines the reference to the cinematic object to render.
+     * @param type defines the type of cinematic (720p, 1080p, 4k, etc.).
+     * @param destination defines the absolute path where to save the cinematic video.
+     * @param animationGroup defines the reference to the generated animation group for the cinematic.
+     */
+    public async renderCinematic(cinematic: ICinematic, type: RenderType, destination: string, animationGroup: AnimationGroup): Promise<void> {
         this.setState({
             step: "rendering",
+            dialogOpen: false,
         });
 
         const destinationFolder = join(dirname(destination), Tools.RandomId());
         await ensureDir(destinationFolder);
 
-        const animationGroup = generateCinematicAnimationGroup(
-            cinematic,
-            this.props.editor.layout.preview.scene,
-        );
-
         const preview = this.props.editor.layout.preview;
-        const { width, height } = this._getVideoDimensions(type);
         const framesCount = animationGroup.to - animationGroup.from;
 
-        // Setup canvas and video encoder.
-        this._createVideoEncoder(width, height);
-        if (!this._muxer || !this._videoEncoder) {
-            return;
-        }
+        const { width, height } = this._getVideoDimensions(type);
 
+        const scalingLevel = preview.engine._hardwareScalingLevel;
         const fixedDimensionsType = preview.state.fixedDimensions;
 
         preview.setRenderScene(false);
         preview.engine.renderEvenInBackground = true;
         preview.scene.useConstantAnimationDeltaTime = true;
 
-        // Idea to improve quality of the render
-        const scalingLevel = preview.engine._hardwareScalingLevel;
-
         preview.engine.setHardwareScalingLevel(scalingLevel * 0.25);
         preview.setFixedDimensions(type);
         preview.scene.render();
 
-        // Play cinematic
-        animationGroup.play(false);
+        this._createVideoEncoder(width, height);
+        if (!this._muxer || !this._videoEncoder) {
+            return;
+        }
 
+        // Play cinematic
         let videoIndex = 1;
+        animationGroup.play(false);
 
         // Render each frame into video
         for (let i = 0; i < framesCount; ++i) {

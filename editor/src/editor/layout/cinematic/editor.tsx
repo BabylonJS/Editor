@@ -245,6 +245,6 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
      * @param type defines the type of render to perform.
      */
     public renderCinematic(type: RenderType): void {
-        this.cinematicRenderer.renderCinematic(this.props.cinematic, type);
+        this.cinematicRenderer.openRenderDialog(this.props.cinematic, type);
     }
 }

@@ -274,10 +274,6 @@ async function processFile(editor: Editor, file: string, optimize: boolean, scen
         return;
     }
 
-    if (extension === ".wav") {
-        debugger;
-    }
-
     if (basename(file).startsWith("editor_preview")) {
         return;
     }

@@ -64,6 +64,8 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                         <Tooltip>
                             <TooltipTrigger>
                                 <div
+                                    draggable
+                                    onDragStart={(ev) => this._handleDragStart(ev)}
                                     onDrop={(ev) => this._handleDrop(ev)}
                                     onDragOver={(ev) => this._handleDragOver(ev)}
                                     onDragLeave={(ev) => this._handleDragLeave(ev)}
@@ -120,6 +122,12 @@ export class CinematicEditorTrackItem extends Component<ICinematicEditorTrackIte
                 </TooltipProvider>
             </div>
         );
+    }
+
+    private _handleDragStart(ev: DragEvent<HTMLDivElement>) {
+        if (this.props.track.node) {
+            ev.dataTransfer.setData("graph/node", JSON.stringify([this.props.track.node.id]));
+        }
     }
 
     private _handleDragOver(ev: DragEvent<HTMLDivElement>) {
