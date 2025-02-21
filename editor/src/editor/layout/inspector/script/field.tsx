@@ -76,10 +76,13 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
             const outputAbsolutePath = `${srcSplit.join(".")}.js`;
 
-            const output = await executeSimpleWorker<VisibleInInspectorDecoratorObject[] | null>(join(__dirname, "../../../../tools/workers/script.js"), {
-                srcAbsolutePath,
-                outputAbsolutePath,
-            });
+            const output = await executeSimpleWorker<VisibleInInspectorDecoratorObject[] | null>(
+                join(__dirname.replace(/\\/g, "/"), "../../../../tools/workers/script.js"),
+                {
+                    srcAbsolutePath,
+                    outputAbsolutePath,
+                },
+            );
 
             if (output) {
                 cachedScripts[srcAbsolutePath] = {
