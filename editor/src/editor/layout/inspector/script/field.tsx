@@ -6,13 +6,17 @@ import { SiTypescript } from "react-icons/si";
 
 import { XMarkIcon } from "@heroicons/react/20/solid";
 
+import { Vector2, Vector3 } from "babylonjs";
+
 import { execNodePty } from "../../../../tools/node-pty";
+import { registerUndoRedo } from "../../../../tools/undoredo";
 import { executeSimpleWorker } from "../../../../tools/worker";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
+import { EditorInspectorVectorField } from "../fields/vector";
 
 import { VisibleInInspectorDecoratorObject, computeDefaultValuesForObject, scriptValues } from "./tools";
 
@@ -28,20 +32,24 @@ export interface IInspectorScriptFieldProps {
 }
 
 export function InspectorScriptField(props: IInspectorScriptFieldProps) {
+    let srcAbsolutePath = "";
+    if (projectConfiguration.path) {
+        srcAbsolutePath = join(dirname(projectConfiguration.path), "src", props.script.key);
+    }
+
     const [exists, setExists] = useState<boolean | null>(null);
     const [enabled, setEnabled] = useState(props.script.enabled);
-    const [srcAbsolutePath, setSrcAbsolutePath] = useState<string | null>(null);
-    const [output, setOutput] = useState<VisibleInInspectorDecoratorObject[] | null>(null);
+    const [output, setOutput] = useState<VisibleInInspectorDecoratorObject[] | null>(cachedScripts[srcAbsolutePath]?.output);
 
     useEffect(() => {
         checkExists();
     }, [props.script]);
 
     useEffect(() => {
-        if (exists && srcAbsolutePath) {
+        if (exists) {
             handleParseVisibleProperties();
         }
-    }, [exists, srcAbsolutePath]);
+    }, [exists]);
 
     async function checkExists() {
         if (!projectConfiguration.path) {
@@ -52,11 +60,10 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
         const exists = await pathExists(src);
 
         setExists(exists);
-        setSrcAbsolutePath(src);
     }
 
     async function handleParseVisibleProperties() {
-        if (!projectConfiguration.path || !srcAbsolutePath) {
+        if (!projectConfiguration.path) {
             return;
         }
 
@@ -135,6 +142,34 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
                                         step={value.configuration.step}
                                     />
                                 );
+
+                            case "vector2":
+                            case "vector3":
+                                const o = {
+                                    value: value.configuration.type === "vector2"
+                                        ? Vector2.FromArray(props.script[scriptValues][value.propertyKey].value)
+                                        : Vector3.FromArray(props.script[scriptValues][value.propertyKey].value),
+                                };
+
+                                return (
+                                    <EditorInspectorVectorField
+                                        noUndoRedo
+                                        object={o}
+                                        property="value"
+                                        label={value.label ?? value.propertyKey}
+                                        asDegrees={value.configuration.asDegrees}
+                                        onFinishChange={() => {
+                                            const oldValue = props.script[scriptValues][value.propertyKey].value.slice();
+
+                                            registerUndoRedo({
+                                                executeRedo: true,
+                                                undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
+                                                redo: () => props.script[scriptValues][value.propertyKey].value = o.value.asArray(),
+                                            });
+                                        }}
+                                    />
+                                );
+
                             default:
                                 return null;
                         }

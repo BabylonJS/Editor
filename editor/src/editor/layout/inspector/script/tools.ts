@@ -10,6 +10,8 @@ export type VisibleInInspectorDecoratorConfiguration = {
     min?: number;
     max?: number;
     step?: number;
+
+    asDegrees?: boolean;
 };
 
 export const scriptValues = "values";
@@ -33,14 +35,35 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
             case "boolean":
                 attachedScripts[value.propertyKey] = {
                     type: value.configuration.type,
-                    value: attachedScripts[value.propertyKey].value ?? false,
+                    value: attachedScripts[value.propertyKey]?.value ?? false,
                 };
                 break;
 
             case "number":
                 attachedScripts[value.propertyKey] = {
                     type: value.configuration.type,
-                    value: attachedScripts[value.propertyKey].value ?? value.configuration.min ?? value.configuration.max ?? 0,
+                    value: attachedScripts[value.propertyKey]?.value ?? value.configuration.min ?? value.configuration.max ?? 0,
+                };
+                break;
+
+            case "vector2":
+                attachedScripts[value.propertyKey] = {
+                    type: value.configuration.type,
+                    value: [
+                        attachedScripts[value.propertyKey]?.value[0] ?? value.configuration.min ?? value.configuration.max ?? 0,
+                        attachedScripts[value.propertyKey]?.value[1] ?? value.configuration.min ?? value.configuration.max ?? 0,
+                    ],
+                };
+                break;
+
+            case "vector3":
+                attachedScripts[value.propertyKey] = {
+                    type: value.configuration.type,
+                    value: [
+                        attachedScripts[value.propertyKey]?.value[0] ?? value.configuration.min ?? value.configuration.max ?? 0,
+                        attachedScripts[value.propertyKey]?.value[1] ?? value.configuration.min ?? value.configuration.max ?? 0,
+                        attachedScripts[value.propertyKey]?.value[2] ?? value.configuration.min ?? value.configuration.max ?? 0,
+                    ],
                 };
                 break;
         }

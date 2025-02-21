@@ -12,6 +12,7 @@ export interface IEditorInspectorVectorFieldProps extends IEditorInspectorFieldP
     grayLabel?: boolean;
 
     onChange?: () => void;
+    onFinishChange?: () => void;
 }
 
 export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldProps) {
@@ -36,15 +37,48 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
             </div>
 
             <div className="flex">
-                <EditorInspectorNumberField object={props.object} property={`${props.property}.x`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
-                <EditorInspectorNumberField object={props.object} property={`${props.property}.y`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
+                <EditorInspectorNumberField
+                    object={props.object}
+                    property={`${props.property}.x`}
+                    noUndoRedo={props.noUndoRedo}
+                    asDegrees={props.asDegrees}
+                    step={props.step}
+                    onChange={() => props.onChange?.()}
+                    onFinishChange={() => props.onFinishChange?.()}
+                />
+
+                <EditorInspectorNumberField
+                    object={props.object}
+                    property={`${props.property}.y`}
+                    noUndoRedo={props.noUndoRedo}
+                    asDegrees={props.asDegrees}
+                    step={props.step}
+                    onChange={() => props.onChange?.()}
+                    onFinishChange={() => props.onFinishChange?.()}
+                />
 
                 {(value.getClassName() === "Vector3" || value.getClassName() === "Vector4") &&
-                    <EditorInspectorNumberField object={props.object} property={`${props.property}.z`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
+                    <EditorInspectorNumberField
+                        object={props.object}
+                        property={`${props.property}.z`}
+                        noUndoRedo={props.noUndoRedo}
+                        asDegrees={props.asDegrees}
+                        step={props.step}
+                        onChange={() => props.onChange?.()}
+                        onFinishChange={() => props.onFinishChange?.()}
+                    />
                 }
 
                 {value.getClassName() === "Vector4" &&
-                    <EditorInspectorNumberField object={props.object} property={`${props.property}.w`} noUndoRedo={props.noUndoRedo} asDegrees={props.asDegrees} step={props.step} onChange={() => props.onChange?.()} />
+                    <EditorInspectorNumberField
+                        object={props.object}
+                        property={`${props.property}.w`}
+                        noUndoRedo={props.noUndoRedo}
+                        asDegrees={props.asDegrees}
+                        step={props.step}
+                        onChange={() => props.onChange?.()}
+                        onFinishChange={() => props.onFinishChange?.()}
+                    />
                 }
             </div>
         </div>
