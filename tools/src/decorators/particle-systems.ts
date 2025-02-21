@@ -7,7 +7,7 @@ import { ISceneDecoratorData } from "./apply";
  * This can be used only by scripts using Classes.
  * @param particleSystemName defines the name of the sound to retrieve in scene.
  */
-export function soundFromScene(particleSystemName: string) {
+export function particleSystemFromScene(particleSystemName: string) {
     return function (target: any, propertyKey: string | Symbol) {
         const ctor = target.constructor as ISceneDecoratorData;
 

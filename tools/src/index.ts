@@ -10,5 +10,7 @@ export * from "./rendering/vls";
 export * from "./decorators/scene";
 export * from "./decorators/gui";
 export * from "./decorators/sound";
+export * from "./decorators/particle-systems";
+export * from "./decorators/inspector";
 
 export * from "./script";

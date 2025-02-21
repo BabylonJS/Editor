@@ -5,6 +5,8 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 
 import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
 
+import { VisibleInInspectorDecoratorConfiguration } from "./inspector";
+
 export interface ISceneDecoratorData {
     // @nodeFromScene
     _NodesFromScene: {
@@ -37,9 +39,16 @@ export interface ISceneDecoratorData {
         particleSystemName: string;
         propertyKey: string | Symbol;
     }[];
+
+    // @visibleAsNumber, @visibleAsBoolean etc.
+    _VisibleInInspector: {
+        label?: string;
+        propertyKey: string | Symbol;
+        configuration: VisibleInInspectorDecoratorConfiguration;
+    }[];
 }
 
-export function applyDecorators(scene: Scene, object: any, instance: any, rootUrl: string) {
+export function applyDecorators(scene: Scene, object: any, script: any, instance: any, rootUrl: string) {
     const ctor = instance.constructor as ISceneDecoratorData;
     if (!ctor) {
         return;
@@ -88,5 +97,25 @@ export function applyDecorators(scene: Scene, object: any, instance: any, rootUr
         });
 
         instance[params.propertyKey.toString()] = particleSystem;
+    });
+
+    // @visibleAsNumber, @visibleAsBoolean etc.
+    ctor._VisibleInInspector?.forEach((params) => {
+        const propertyKey = params.propertyKey.toString();
+        const attachedScripts = script.values;
+
+        if (
+            attachedScripts.hasOwnProperty(propertyKey) &&
+            attachedScripts[propertyKey].hasOwnProperty("value")
+        ) {
+            const value = attachedScripts[propertyKey].value;
+
+            switch (params.configuration.type) {
+                case "number":
+                case "boolean":
+                    instance[propertyKey] = value;
+                    break;
+            }
+        }
     });
 }

@@ -122,7 +122,7 @@ export function loadScriptsFor(scene: Scene, object: any, scriptsMap: ScriptMap,
         if (exports.default) {
             const instance = new exports.default(object);
 
-            applyDecorators(scene, object, instance, rootUrl);
+            applyDecorators(scene, object, script, instance, rootUrl);
 
             if (instance.onStart) {
                 scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
