@@ -11,8 +11,8 @@ import { UniqueNumber } from "../../../../tools/tools";
 import { isMesh } from "../../../../tools/guards/nodes";
 import { isTexture } from "../../../../tools/guards/texture";
 import { isMultiMaterial } from "../../../../tools/guards/material";
-import { onNodesAddedObservable } from "../../../../tools/observables";
 import { configureSimultaneousLightsForMaterial } from "../../../../tools/mesh/material";
+import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
@@ -173,9 +173,13 @@ export function configureImportedTexture(texture: Texture | CubeTexture): Textur
     return texture;
 }
 
-export async function configureEmbeddedTexture(texture: Texture, absolutePath: string): Promise<void> {
-    if (!texture._buffer || !texture.mimeType || !projectConfiguration.path) {
+export async function configureEmbeddedTexture(texture: Texture, absolutePath: string): Promise<unknown> {
+    if (!projectConfiguration.path) {
         return;
+    }
+
+    if (!texture._buffer || !texture.mimeType) {
+        return onTextureAddedObservable.notifyObservers(texture);
     }
 
     let extension = "";
@@ -210,6 +214,8 @@ export async function configureEmbeddedTexture(texture: Texture, absolutePath: s
     texture.url = relativePath;
 
     texture._buffer = null;
+
+    onTextureAddedObservable.notifyObservers(texture);
 }
 
 export async function loadImportedMaterial(scene: Scene, absolutePath: string): Promise<Material | null> {

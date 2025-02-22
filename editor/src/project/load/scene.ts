@@ -27,12 +27,15 @@ import { createDirectoryIfNotExist } from "../../tools/fs";
 import { isMultiMaterial } from "../../tools/guards/material";
 import { createSceneLink } from "../../tools/scene/scene-link";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
+import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
 import { configureSimultaneousLightsForMaterial } from "../../tools/mesh/material";
 import { isAbstractMesh, isCollisionMesh, isMesh } from "../../tools/guards/nodes";
 import { parsePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 import { showLoadSceneProgressDialog } from "./progress";
+
+import "./texture";
 
 /**
  * Defines the list of all loaded scenes. This is used to detect cycle references
@@ -714,6 +717,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
     setTimeout(() => {
         updateAllLights(scene);
+
+        if (!options.asLink) {
+            checkProjectCachedCompressedTextures(editor);
+        }
     }, 150);
 
     return loadResult;

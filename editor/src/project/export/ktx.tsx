@@ -45,31 +45,37 @@ export function setCompressedTexturesCliPath(absolutePath: string) {
     }
 }
 
-export async function compressFileToKtx(editor: Editor, absolutePath: string, format?: KTXToolsType, force?: boolean): Promise<void> {
+export function getCompressedTextureFilename(path: string, format: KTXToolsType) {
+    return `${path.substring(0, path.lastIndexOf("."))}${format}`;
+}
+
+export async function compressFileToKtx(editor: Editor, absolutePath: string, format?: KTXToolsType, force?: boolean, destinationFolder?: string): Promise<void> {
     if (format) {
         await compressFileToKtxFormat(editor, absolutePath, format, force);
     } else {
-        await Promise.all(allKtxFormats.map((f) => compressFileToKtxFormat(editor, absolutePath, f, force)));
+        await Promise.all(allKtxFormats.map((f) => compressFileToKtxFormat(editor, absolutePath, f, force, destinationFolder)));
     }
 }
 
-export async function compressFileToKtxFormat(editor: Editor, absolutePath: string, format: KTXToolsType, force?: boolean): Promise<void> {
+export async function compressFileToKtxFormat(editor: Editor, absolutePath: string, format: KTXToolsType, force?: boolean, destinationFolder?: string): Promise<string | null> {
     if (!editor.state.compressedTexturesEnabled) {
-        return;
+        return null;
     }
 
     const name = basename(absolutePath);
     const extension = extname(name).toLocaleLowerCase();
 
     if (!ktxSupportedextensions.includes(extension)) {
-        return;
+        return null;
     }
 
-    const filename = `${name.substring(0, name.lastIndexOf("."))}${format}`;
-    const destination = join(dirname(absolutePath), filename);
+    const filename = getCompressedTextureFilename(name, format);
 
-    if (await pathExists(destination) && !force) {
-        return;
+    destinationFolder ??= dirname(absolutePath);
+    destinationFolder = join(destinationFolder, filename);
+
+    if (await pathExists(destinationFolder) && !force) {
+        return null;
     }
 
     const hasAlpha = await new Promise<boolean>((resolve) => {
@@ -89,34 +95,34 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 
     const cliPath = getCompressedTexturesCliPath();
     if (!cliPath) {
-        return;
+        return null;
     }
 
     let command: string | null = null;
     switch (format) {
         case "-astc.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q astcveryfast -o "${destination}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q astcveryfast -o "${destinationFolder}"`;
             break;
 
         case "-dxt.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${destination}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${destinationFolder}"`;
             break;
 
         case "-pvrtc.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q pvrtcfastest -o "${destination}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q pvrtcfastest -o "${destinationFolder}"`;
             break;
 
         case "-etc1.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q etcfast -o "${destination}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q etcfast -o "${destinationFolder}"`;
             break;
 
         case "-etc2.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q etcfast -o "${destination}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q etcfast -o "${destinationFolder}"`;
             break;
     }
 
     if (!command) {
-        return;
+        return null;
     }
 
     const log = await editor.layout.console.progress(`Compressing image "${filename}"`);
@@ -135,4 +141,6 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
             message: `Failed to compress image "${filename}"`,
         });
     }
+
+    return destinationFolder;
 }

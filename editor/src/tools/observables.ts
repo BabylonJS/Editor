@@ -16,6 +16,11 @@ export const onNodesAddedObservable = new Observable<void>();
 export const onNodeModifiedObservable = new Observable<Node>();
 
 /**
+ * Observable for when new textures have been added to the scene.
+ */
+export const onTextureAddedObservable = new Observable<BaseTexture>();
+
+/**
  * Observable for when a texture has been modified in the editor.
  */
 export const onTextureModifiedObservable = new Observable<BaseTexture>();

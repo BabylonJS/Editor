@@ -12,8 +12,8 @@ import { CubeTexture, Scene, Texture } from "babylonjs";
 
 import { isScene } from "../../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../../tools/undoredo";
-import { onSelectedAssetChanged } from "../../../../tools/observables";
 import { isCubeTexture, isTexture } from "../../../../tools/guards/texture";
+import { onSelectedAssetChanged, onTextureAddedObservable } from "../../../../tools/observables";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
@@ -367,6 +367,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
                         },
                         onLost: () => newTexture?.dispose(),
                     });
+
+                    onTextureAddedObservable.notifyObservers(newTexture);
                 }
 
                 this._computeTemporaryPreview();

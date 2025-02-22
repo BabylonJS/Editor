@@ -24,7 +24,9 @@ import { Editor } from "../main";
 import { Tween } from "../../tools/animation/tween";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
+import { onTextureAddedObservable } from "../../tools/observables";
 import { waitNextAnimationFrame, waitUntil } from "../../tools/tools";
+import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { isAbstractMesh, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
@@ -154,6 +156,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
         ipcRenderer.on("preview:focus", () => this.state.isFocused && this.focusObject());
         ipcRenderer.on("preview:edit-camera", () => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera));
+
+        onTextureAddedObservable.add(() => checkProjectCachedCompressedTextures(props.editor));
     }
 
     public render(): ReactNode {

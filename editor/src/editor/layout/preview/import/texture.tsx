@@ -9,6 +9,7 @@ import { isScene } from "../../../../tools/guards/scene";
 import { isAbstractMesh } from "../../../../tools/guards/nodes";
 import { isCubeTexture } from "../../../../tools/guards/texture";
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+import { onTextureAddedObservable } from "../../../../tools/observables";
 import { isPBRMaterial, isStandardMaterial } from "../../../../tools/guards/material";
 
 import { Editor } from "../../../main";
@@ -49,7 +50,10 @@ export function applyTextureAssetToObject(editor: Editor, object: any, absoluteP
                 absolutePath,
                 isScene(object) ? object : object.getScene(),
             ));
+
             applyTextureToObject(editor, object, newTexture);
+
+            onTextureAddedObservable.notifyObservers(newTexture);
             break;
     }
 }
