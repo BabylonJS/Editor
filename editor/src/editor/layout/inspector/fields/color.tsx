@@ -18,6 +18,7 @@ export interface IEditorInspectorColorFieldProps extends IEditorInspectorFieldPr
     noColorPicker?: boolean;
 
     onChange?: (value: Color3 | Color4) => void;
+    onFinishChange?: (value: Color3 | Color4) => void;
 }
 
 export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps) {
@@ -54,6 +55,8 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 
             setOldValue(color.clone());
         }
+
+        props.onFinishChange?.(color);
     }
 
     function handleChanelChange(value: number, channel: "r" | "g" | "b" | "a") {

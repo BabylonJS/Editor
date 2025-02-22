@@ -6,14 +6,18 @@ import { SiTypescript } from "react-icons/si";
 
 import { XMarkIcon } from "@heroicons/react/20/solid";
 
-import { Vector2, Vector3 } from "babylonjs";
+import { Vector2, Vector3, Color3, Color4 } from "babylonjs";
+
+import { Editor } from "../../../main";
 
 import { execNodePty } from "../../../../tools/node-pty";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { executeSimpleWorker } from "../../../../tools/worker";
+import { ensureTemporaryDirectoryExists } from "../../../../tools/project";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
+import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorVectorField } from "../fields/vector";
@@ -28,6 +32,8 @@ const cachedScripts: Record<string, {
 export interface IInspectorScriptFieldProps {
     object: any;
     script: any;
+    editor: Editor;
+
     onRemove: () => void;
 }
 
@@ -71,26 +77,35 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
         const cached = cachedScripts[srcAbsolutePath];
 
         if (!cached || cached.time !== fStat.mtimeMs) {
-            const srcSplit = srcAbsolutePath.split(".");
-            srcSplit.pop();
+            const temporaryDirectory = await ensureTemporaryDirectoryExists(projectConfiguration.path);
+            const outputAbsolutePath = join(temporaryDirectory, "scripts", `${props.script.key.replace(/\//g, "_")}.js`);
 
-            const outputAbsolutePath = `${srcSplit.join(".")}.js`;
+            const workerPath = join(__dirname.replace(/\\/g, "/"), "../../../../tools/workers/script.js");
 
-            const output = await executeSimpleWorker<VisibleInInspectorDecoratorObject[] | null>(
-                join(__dirname.replace(/\\/g, "/"), "../../../../tools/workers/script.js"),
-                {
+            if (!await pathExists(outputAbsolutePath)) {
+                const compilationSuccess = await executeSimpleWorker<{ success: boolean; error?: string; }>(workerPath, {
+                    action: "compile",
                     srcAbsolutePath,
                     outputAbsolutePath,
-                },
-            );
+                });
 
-            if (output) {
+                if (!compilationSuccess.success) {
+                    return props.editor.layout.console.error(`An unexpected error occurred while compiling the script:\n ${compilationSuccess.error}`);
+                }
+            }
+
+            const extractOutput = await executeSimpleWorker<VisibleInInspectorDecoratorObject[] | null>(workerPath, {
+                action: "extract",
+                outputAbsolutePath,
+            });
+
+            if (extractOutput) {
                 cachedScripts[srcAbsolutePath] = {
-                    output,
                     time: fStat.mtimeMs,
+                    output: extractOutput,
                 };
 
-                computeDefaultValuesForObject(props.script, output);
+                computeDefaultValuesForObject(props.script, extractOutput);
             }
         }
 
@@ -148,7 +163,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
                             case "vector2":
                             case "vector3":
-                                const o = {
+                                const tempVector = {
                                     value: value.configuration.type === "vector2"
                                         ? Vector2.FromArray(props.script[scriptValues][value.propertyKey].value)
                                         : Vector3.FromArray(props.script[scriptValues][value.propertyKey].value),
@@ -157,7 +172,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
                                 return (
                                     <EditorInspectorVectorField
                                         noUndoRedo
-                                        object={o}
+                                        object={tempVector}
                                         property="value"
                                         label={value.label ?? value.propertyKey}
                                         asDegrees={value.configuration.asDegrees}
@@ -167,7 +182,35 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
                                             registerUndoRedo({
                                                 executeRedo: true,
                                                 undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
-                                                redo: () => props.script[scriptValues][value.propertyKey].value = o.value.asArray(),
+                                                redo: () => props.script[scriptValues][value.propertyKey].value = tempVector.value.asArray(),
+                                            });
+                                        }}
+                                    />
+                                );
+
+                            case "color3":
+                            case "color4":
+                                const tempColor = {
+                                    value: value.configuration.type === "color3"
+                                        ? Color3.FromArray(props.script[scriptValues][value.propertyKey].value)
+                                        : Color4.FromArray(props.script[scriptValues][value.propertyKey].value),
+                                };
+
+                                return (
+                                    <EditorInspectorColorField
+                                        noUndoRedo
+                                        object={tempColor}
+                                        property="value"
+                                        label={value.label ?? value.propertyKey}
+                                        noClamp={value.configuration.noClamp}
+                                        noColorPicker={value.configuration.noColorPicker}
+                                        onFinishChange={() => {
+                                            const oldValue = props.script[scriptValues][value.propertyKey].value.slice();
+
+                                            registerUndoRedo({
+                                                executeRedo: true,
+                                                undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
+                                                redo: () => props.script[scriptValues][value.propertyKey].value = tempColor.value.asArray(),
                                             });
                                         }}
                                     />

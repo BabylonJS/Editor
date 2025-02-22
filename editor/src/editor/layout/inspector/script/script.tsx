@@ -34,7 +34,13 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
         return (
             <EditorInspectorSectionField title="Scripts">
                 {this.props.object.metadata?.scripts?.map((script: any, index: number) => (
-                    <InspectorScriptField object={this.props.object} key={`${script}_${index}`} script={script} onRemove={() => this._handleRemoveScript(index)} />
+                    <InspectorScriptField
+                        script={script}
+                        key={`${script}_${index}`}
+                        editor={this.props.editor}
+                        object={this.props.object}
+                        onRemove={() => this._handleRemoveScript(index)}
+                    />
                 ))}
 
                 {this._getEmptyComponent()}

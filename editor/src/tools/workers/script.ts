@@ -1,5 +1,4 @@
 const esbuild = require("esbuild");
-const { remove } = require("fs-extra");
 
 const replaceImportMetaDirname = {
     name: "replaceImportMetaDirname",
@@ -17,16 +16,16 @@ const replaceImportMetaDirname = {
     },
 };
 
-addEventListener("message", async (event) => {
+async function compile(srcAbsolutePath: string, outputAbsolutePath: string) {
     const buildOptions = {
         entryPoints: [
-            event.data.srcAbsolutePath,
+            srcAbsolutePath,
         ],
         bundle: true,
         platform: "node",
         target: "node20",
         format: "cjs",
-        outfile: event.data.outputAbsolutePath,
+        outfile: outputAbsolutePath,
         treeShaking: false,
         loader: {
             ".ts": "ts",
@@ -41,21 +40,41 @@ addEventListener("message", async (event) => {
         ],
     };
 
+    try {
+        await esbuild.build(buildOptions);
+
+        postMessage({
+            success: true,
+        });
+    } catch (e) {
+        postMessage({
+            success: false,
+            error: e.toString(),
+        });
+    }
+}
+
+function extract(outputAbsolutePath: string) {
     let inspectorProperties: any = null;
 
     try {
-        await esbuild.build(buildOptions);
-        const output = require(event.data.outputAbsolutePath) as any;
+        const output = require(outputAbsolutePath) as any;
         inspectorProperties = output.default?._VisibleInInspector ?? null;
     } catch (e) {
         // Catch silently.
     }
 
-    try {
-        await remove(event.data.outputAbsolutePath);
-    } catch (e) {
-        // Catch silently.
-    }
-
     postMessage(inspectorProperties);
+}
+
+addEventListener("message", async (event) => {
+    switch (event.data.action) {
+        case "compile":
+            await compile(event.data.srcAbsolutePath, event.data.outputAbsolutePath);
+            break;
+
+        case "extract":
+            extract(event.data.outputAbsolutePath);
+            break;
+    }
 });

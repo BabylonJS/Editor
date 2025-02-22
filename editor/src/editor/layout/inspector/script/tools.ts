@@ -12,6 +12,9 @@ export type VisibleInInspectorDecoratorConfiguration = {
     step?: number;
 
     asDegrees?: boolean;
+
+    noClamp?: boolean;
+    noColorPicker?: boolean;
 };
 
 export const scriptValues = "values";
@@ -63,6 +66,29 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
                         attachedScripts[value.propertyKey]?.value[0] ?? value.configuration.min ?? value.configuration.max ?? 0,
                         attachedScripts[value.propertyKey]?.value[1] ?? value.configuration.min ?? value.configuration.max ?? 0,
                         attachedScripts[value.propertyKey]?.value[2] ?? value.configuration.min ?? value.configuration.max ?? 0,
+                    ],
+                };
+                break;
+
+            case "color3":
+                attachedScripts[value.propertyKey] = {
+                    type: value.configuration.type,
+                    value: [
+                        attachedScripts[value.propertyKey]?.value[0] ?? 1,
+                        attachedScripts[value.propertyKey]?.value[1] ?? 1,
+                        attachedScripts[value.propertyKey]?.value[2] ?? 1,
+                    ],
+                };
+                break;
+
+            case "color4":
+                attachedScripts[value.propertyKey] = {
+                    type: value.configuration.type,
+                    value: [
+                        attachedScripts[value.propertyKey]?.value[0] ?? 1,
+                        attachedScripts[value.propertyKey]?.value[1] ?? 1,
+                        attachedScripts[value.propertyKey]?.value[2] ?? 1,
+                        attachedScripts[value.propertyKey]?.value[3] ?? 1,
                     ],
                 };
                 break;

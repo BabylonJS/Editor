@@ -36,10 +36,15 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 
     let startValue = getInspectorPropertyValue(props.object, props.property) ?? 0;
     if (props.asDegrees) {
-        startValue = Tools.ToDegrees(startValue).toFixed(digitCount);
-    } else {
-        startValue = startValue.toFixed(digitCount);
+        startValue = Tools.ToDegrees(startValue);
     }
+
+    // Determine if the value should be fixed at "step" digit counts or kept as-is.
+    // if (props.asDegrees) {
+    //     startValue = Tools.ToDegrees(startValue).toFixed(digitCount);
+    // } else {
+    //     startValue = startValue.toFixed(digitCount);
+    // }
 
     const [value, setValue] = useState<string>(startValue);
     const [oldValue, setOldValue] = useState<string>(startValue);

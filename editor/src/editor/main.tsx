@@ -19,6 +19,7 @@ import { onProjectConfigurationChangedObservable, projectConfiguration } from ".
 import { loadProject } from "../project/load/load";
 import { exportProject } from "../project/export/export";
 
+import { disposeVLSPostProcess } from "./rendering/vls";
 import { disposeSSRRenderingPipeline } from "./rendering/ssr";
 import { disposeSSAO2RenderingPipeline } from "./rendering/ssao";
 import { disposeMotionBlurPostProcess } from "./rendering/motion-blur";
@@ -225,6 +226,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
         projectConfiguration.path = absolutePath;
 
+        disposeVLSPostProcess(this);
         disposeSSRRenderingPipeline();
         disposeMotionBlurPostProcess();
         disposeSSAO2RenderingPipeline();
