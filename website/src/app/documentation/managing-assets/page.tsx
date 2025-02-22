@@ -2,9 +2,10 @@
 
 import { Fade } from "react-awesome-reveal";
 
-import { NextChapterComponent } from "../components/next-chapter";
-import { CustomLink } from "../components/link";
 import { IoIosWarning } from "react-icons/io";
+
+import { CustomLink } from "../components/link";
+import { NextChapterComponent } from "../components/next-chapter";
 
 export default function DocumentationManagingAssetsPage() {
     return (

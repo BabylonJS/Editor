@@ -20,6 +20,7 @@
         "raw-loader": "^4.0.2",
         "react": "^18",
         "react-awesome-reveal": "^4.2.11",
+        "react-code-blocks": "^0.1.6",
         "react-dom": "^18",
         "react-icons": "^5.2.1",
         "react-loader-spinner": "^6.1.6",

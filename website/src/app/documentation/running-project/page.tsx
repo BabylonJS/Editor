@@ -22,7 +22,7 @@ export default function DocumentationRunningProjectPage() {
                             Coming soon
                         </div>
 
-                        <NextChapterComponent href="/documentation/advanced/compressing-textures" title="Compressing textures" />
+                        <NextChapterComponent href="/documentation/adding-scripts" title="Adding scripts" />
                     </div>
                 </Fade>
             </div>
