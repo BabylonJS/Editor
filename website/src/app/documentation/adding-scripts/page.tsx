@@ -7,6 +7,9 @@ import { IoIosWarning } from "react-icons/io";
 
 import { NextChapterComponent } from "../components/next-chapter";
 
+import { tsClassDecoratorsExample } from "./from-scene";
+import { tsClassBasedExample, tsFunctionBasedExample } from "./examples";
+
 github.codeColor = "rgb(250, 250, 250)";
 github.backgroundColor = "rgb(250, 250, 250)";
 
@@ -39,6 +42,7 @@ export default function DocumentationAddingScriptsPage() {
                         </ul>
 
                         <div>
+                            Scripts are made to be attached to objects and multiple scripts can be attached to the same object.
                             Linked with the <b>babylonjs-editor-tools</b> package installed with the project, some useful decorators are available
                             to help retrieving objects and customizing the scripts.
                         </div>
@@ -73,6 +77,67 @@ export default function DocumentationAddingScriptsPage() {
                             text={tsFunctionBasedExample}
                         />
 
+                        <div className="text-3xl md:text-2xl lg:text-3xl my-3">
+                            Adding script
+                        </div>
+
+                        <div>
+                            The first steps consists on creating a new script before it can be applied on an object.
+                            <br />
+                            To do so, right-click somewhere in the <b>src</b> folder of the project using the <b>Assets Browser</b> panel in the editor and select <b>Add {"->"} Script {"->"} Class based</b> or <b>Add {"->"} Script {"->"} Function based</b>
+                        </div>
+
+                        <img alt="" src="/documentation/adding-scripts/adding-script.gif" />
+
+                        <div className="text-3xl md:text-2xl lg:text-3xl my-3">
+                            Attaching script
+                        </div>
+
+                        <div>
+                            Once a script is available in the sources folder, just select an object in the scene (a mesh for example) so the inspector shows the properties of the mesh
+                            and then drag'n'drop the script file from the <b>Assets Browser</b> panel to the <b>Scripts</b> section in the inspector.
+                        </div>
+
+                        <div>
+                            Once done, the script is attached to be object and will be executed automatically when running the application.
+                        </div>
+
+                        <img alt="" src="/documentation/adding-scripts/attaching-script.gif" />
+
+                        <div className="text-3xl md:text-2xl lg:text-3xl my-3">
+                            Using decorators
+                        </div>
+
+                        <div>
+                            The <b>babylonjs-editor-tools</b> package provides some useful decorators to help retrieving objects and customizing the scripts.
+                        </div>
+
+                        <div>
+                            Available decorators are:
+                        </div>
+
+                        <ul className="list-disc">
+                            <li><b>@nodeFromScene</b>: Retrieve the reference of the first node that has the given name by traversing the entire scene graph.</li>
+                            <li><b>@nodeFromDescendants</b>: Retrieve the reference of the first node that has the given name but only if the node is a descendant of the object the script is attached to.</li>
+                            <li><b>@particleSystemFromScene</b>: Retrieve the reference of the first particle system that has the given name by traversing the entire scene graph.</li>
+                            <li><b>@soundFromScene</b>: Retrieve the reference of the first sound that has the given name.</li>
+                        </ul>
+
+                        <div>
+                            Those decorators are equivalent to calling the associated methods like <b>scene.getMeshById("...")</b>, <b>scene.getTransformNodeById("...")</b>.
+                        </div>
+
+                        <div>
+                            Example:
+                        </div>
+
+                        <CopyBlock
+                            theme={github}
+                            language="typescript"
+                            showLineNumbers={false}
+                            text={tsClassDecoratorsExample}
+                        />
+
                         <NextChapterComponent href="/documentation/advanced/compressing-textures" title="Compressing textures" />
                     </div>
                 </Fade>
@@ -80,31 +145,3 @@ export default function DocumentationAddingScriptsPage() {
         </main>
     );
 }
-
-const tsClassBasedExample = `
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
-
-export default class MyScriptComponent {
-    public constructor(public mesh: Mesh) { }
-
-    public onStart(): void {
-        // Do something when the script is loaded
-    }
-
-    public onUpdate(): void {
-        this.mesh.rotation.y += 0.04 * this.mesh.getScene().getAnimationRatio();
-    }
-}
-`;
-
-const tsFunctionBasedExample = `
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
-
-export function onStart(mesh: Mesh): void {
-    // Do something when the script is loaded
-}
-
-export function onUpdate(mesh: Mesh): void {
-    mesh.rotation.y += 0.04 * mesh.getScene().getAnimationRatio();
-}
-`;
