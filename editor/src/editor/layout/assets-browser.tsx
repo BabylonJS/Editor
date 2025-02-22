@@ -1,5 +1,5 @@
 import { dirname, join, extname, basename } from "path/posix";
-import { copyFile, mkdir, move, pathExists, readdir, stat, writeJSON } from "fs-extra";
+import { copyFile, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON } from "fs-extra";
 
 import { SkyMaterial } from "babylonjs-materials";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
@@ -648,6 +648,21 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
                                 <ContextMenuSeparator />
                                 <ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
+
+                                {this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) &&
+                                    <>
+                                        <ContextMenuSeparator />
+                                        <ContextMenuSub>
+                                            <ContextMenuSubTrigger className="flex items-center gap-2">
+                                                Script
+                                            </ContextMenuSubTrigger>
+                                            <ContextMenuSubContent>
+                                                <ContextMenuItem onClick={() => this._handleAddScript("class")}>Class-based</ContextMenuItem>
+                                                <ContextMenuItem onClick={() => this._handleAddScript("function")}>Function-based</ContextMenuItem>
+                                            </ContextMenuSubContent>
+                                        </ContextMenuSub>
+                                    </>
+                                }
                             </ContextMenuSubContent>
                         </ContextMenuSub>
 
@@ -897,6 +912,37 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
         });
 
         gui.dispose();
+
+        return this._refreshItems(this.state.browsedPath);
+    }
+
+    private async _handleAddScript(type: "class" | "function"): Promise<void> {
+        if (!this.state.browsedPath) {
+            return;
+        }
+
+        const url = type === "class"
+            ? "assets/class-based-script.ts"
+            : "assets/function-based-script.ts";
+
+        const content = await fetch(url).then(r => r.text());
+
+        let index: number | undefined = undefined;
+        while (await pathExists(join(this.state.browsedPath, `new-script${index !== undefined ? ` ${index}` : ""}.ts`))) {
+            index ??= 0;
+            ++index;
+        }
+
+        const name = `new-script${index !== undefined ? ` ${index}` : ""}.ts`;
+        const scriptPath = join(this.state.browsedPath, name);
+
+        await writeFile(scriptPath, content, {
+            encoding: "utf-8",
+        });
+
+        this.setState({
+            selectedKeys: [scriptPath],
+        });
 
         return this._refreshItems(this.state.browsedPath);
     }
