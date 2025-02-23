@@ -5,10 +5,11 @@ import { toast } from "sonner";
 
 import { Editor } from "../../editor/main";
 
-import { IEditorProject } from "../typings";
-
 import { execNodePty } from "../../tools/node-pty";
 import { yarnAvailable } from "../../tools/process";
+
+import { IEditorProject } from "../typings";
+import { projectConfiguration } from "../configuration";
 
 import { loadScene } from "./scene";
 import { LoadScenePrepareComponent } from "./prepare";
@@ -26,6 +27,8 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
     });
 
     editor.layout.forceUpdate();
+
+    projectConfiguration.compressedTexturesEnabled = project.compressedTexturesEnabled ?? false;
 
     // Update dependencies
     if (yarnAvailable) {

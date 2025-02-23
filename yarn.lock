@@ -2102,7 +2102,7 @@ babylonjs-editor-tools@latest:
     markdown-to-jsx "7.6.2"
     md5 "^2.3.0"
     next-themes "^0.3.0"
-    node-pty "1.1.0-beta22"
+    node-pty "1.1.0-beta30"
     pngjs "^7.0.0"
     react "18.2.0"
     react-awesome-reveal "4.2.14"
@@ -5184,10 +5184,10 @@ node-gyp@^9.0.0:
     tar "^6.1.2"
     which "^2.0.2"
 
-node-pty@1.1.0-beta22:
-  version "1.1.0-beta22"
-  resolved "https://registry.yarnpkg.com/node-pty/-/node-pty-1.1.0-beta22.tgz#911997e416c8dcc0d908e65154238af8d8b5e01c"
-  integrity sha512-CpT334H2oAIULlENvd9U+VBW4ZL+G3clOnpXYzUIurlPCLnl/9xen/KDHBLRcwhZuWcHxIrsCxR1TDCdVDtr0w==
+node-pty@1.1.0-beta30:
+  version "1.1.0-beta30"
+  resolved "https://registry.yarnpkg.com/node-pty/-/node-pty-1.1.0-beta30.tgz#be8cf2b9ca5f905e764368149cca56a54f3a124c"
+  integrity sha512-cmNYVWfbf961aOqnxIFXssvw6Fp6/78BQBNlwYRWUHBenJjUhCJ1wMZpJy+SegoLC07P9D6HTtq39Kd89rpv/w==
   dependencies:
     node-addon-api "^7.1.0"
 

@@ -21,6 +21,7 @@ SerializationHelper._TextureParser = (source, scene, rootUrl) => {
     if (
         !source.name ||
         !projectConfiguration.path ||
+        !projectConfiguration.compressedTexturesEnabled ||
         !ktxSupportedextensions.includes(extension) ||
         !(engine instanceof Engine)
     ) {

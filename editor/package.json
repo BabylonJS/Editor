@@ -81,7 +81,7 @@
         "markdown-to-jsx": "7.6.2",
         "md5": "^2.3.0",
         "next-themes": "^0.3.0",
-        "node-pty": "1.1.0-beta22",
+        "node-pty": "1.1.0-beta30",
         "pngjs": "^7.0.0",
         "react": "18.2.0",
         "react-awesome-reveal": "4.2.14",

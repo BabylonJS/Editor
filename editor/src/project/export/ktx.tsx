@@ -75,7 +75,7 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
     destinationFolder = join(destinationFolder, filename);
 
     if (await pathExists(destinationFolder) && !force) {
-        return null;
+        return destinationFolder;
     }
 
     const hasAlpha = await new Promise<boolean>((resolve) => {

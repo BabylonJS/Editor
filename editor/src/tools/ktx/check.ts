@@ -15,12 +15,7 @@ import { temporaryDirectoryName } from "../project";
 let processingCompressedTextures = false;
 
 export async function checkProjectCachedCompressedTextures(editor: Editor) {
-    if (
-        processingCompressedTextures ||
-        !projectConfiguration.path ||
-        !editor.state.compressedTexturesEnabled ||
-        !getCompressedTexturesCliPath()
-    ) {
+    if (processingCompressedTextures || !projectConfiguration.path) {
         return;
     }
 
@@ -62,21 +57,40 @@ export async function checkProjectCachedCompressedTextures(editor: Editor) {
             continue;
         }
 
-        const fileStat = await stat(join(projectDirectory, name));
-        const hash = fileStat.mtimeMs.toString();
+        const internalTexture = texture.getInternalTexture();
+        if (!internalTexture) {
+            continue;
+        }
 
-        const isNewFile = !cache[name] || cache[name] !== hash;
+        const internalTextureExtension = extname(internalTexture.url).toLowerCase();
 
-        cache[name] = hash;
+        if (editor.state.compressedTexturesEnabled && getCompressedTexturesCliPath() && internalTextureExtension !== ".ktx") {
+            const fileStat = await stat(join(projectDirectory, name));
+            const hash = fileStat.mtimeMs.toString();
 
-        const destinationFolder = join(texturesDirectory, dirname(name));
-        await ensureDir(destinationFolder);
+            const isNewFile = !cache[name] || cache[name] !== hash;
 
-        const result = await compressFileToKtxFormat(editor, join(projectDirectory, name), supportedType, isNewFile, destinationFolder);
+            cache[name] = hash;
 
-        if (result) {
+            const destinationFolder = join(texturesDirectory, dirname(name));
+            await ensureDir(destinationFolder);
+
+            const result = await compressFileToKtxFormat(editor, join(projectDirectory, name), supportedType, isNewFile, destinationFolder);
+
+            if (result) {
+                const previousUrl = texture.url;
+                texture.updateURL(result);
+                texture.url = previousUrl;
+
+                computedTextures.push(name);
+            }
+
+            continue;
+        }
+
+        if (!editor.state.compressedTexturesEnabled && internalTextureExtension === ".ktx") {
             const previousUrl = texture.url;
-            texture.updateURL(result);
+            texture.updateURL(join(projectDirectory, name));
             texture.url = previousUrl;
 
             computedTextures.push(name);

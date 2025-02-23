@@ -5,7 +5,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 import { Editor } from "../../main";
 
+import { checkProjectCachedCompressedTextures } from "../../../tools/ktx/check";
+
 import { saveProject } from "../../../project/save/save";
+import { projectConfiguration } from "../../../project/configuration";
 
 import { EditorEditProjectPluginComponent } from "./plugins/component";
 import { EditorEditProjectTextureComponent } from "./textures/component";
@@ -57,7 +60,11 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
     }
 
     private _handleSave(): void {
+        projectConfiguration.compressedTexturesEnabled = this.props.editor.state.compressedTexturesEnabled;
+
         saveProject(this.props.editor);
+        checkProjectCachedCompressedTextures(this.props.editor);
+
         this.props.onClose();
     }
 }
