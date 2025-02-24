@@ -96,6 +96,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 
     result.lights.forEach((light) => configureImportedNodeIds(light));
     result.transformNodes.forEach((transformNode) => configureImportedNodeIds(transformNode));
+    result.animationGroups.forEach((animationGroup) => animationGroup.uniqueId = UniqueNumber.Get());
 
     scene.lights.forEach((light) => {
         const shadowMap = light.getShadowGenerator()?.getShadowMap();

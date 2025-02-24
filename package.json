@@ -31,9 +31,10 @@
         "build-quixel": "yarn workspace babylonjs-editor-quixel-plugin build",
         "build-template": "yarn workspace babylonjs-editor-template build",
         "build-website": "yarn workspace babylonjs-editor-website build",
-        "build": "yarn build-editor && yarn build-tools && yarn build-quixel && yarn build-template && yarn build-website",
+        "build": "yarn build-editor && yarn build-tools && yarn build-quixel",
+        "build-all": "yarn build && yarn build-template && yarn build-website",
         "start": "electron ./editor",
-        "package": "yarn && yarn build && node build.mjs",
+        "package": "yarn && yarn clean && yarn build && node build.mjs",
         "clean": "rm -rf editor/build editor/declaration editor/electron-packages quixel/build quixel/declaration tools/build tools/declaration template/.next website/.next",
         "clean:node_modules": "rm -rf ./node_modules ./editor/node_modules ./quixel/node_modules ./tools/node_modules ./template/node_modules ./website/node_modules"
     },

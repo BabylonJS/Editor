@@ -1,6 +1,8 @@
 import { join, basename } from "path/posix";
 import { readJSON, remove, stat, writeFile, writeJSON } from "fs-extra";
 
+import filenamify from "filenamify";
+
 import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { Editor } from "../../editor/main";
@@ -46,6 +48,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "particleSystems")),
         createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
         createDirectoryIfNotExist(join(scenePath, "morphTargets")),
+        createDirectoryIfNotExist(join(scenePath, "animationGroups")),
     ]);
 
     const scene = editor.layout.preview.scene;
@@ -453,6 +456,22 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
         }
     }));
 
+    // Write animation groups
+    await Promise.all(scene.animationGroups?.map(async (animationGroup) => {
+        const animationGroupPath = join(scenePath, "animationGroups", `${filenamify(animationGroup.name)}_${animationGroup.uniqueId}.json`);
+
+        try {
+            const data = animationGroup.serialize();
+            data.uniqueId = animationGroup.uniqueId;
+
+            await writeJSON(animationGroupPath, data);
+        } catch (e) {
+            editor.layout.console.error(`Failed to write particle system ${animationGroup.name}`);
+        } finally {
+            savedFiles.push(animationGroupPath);
+        }
+    }));
+
     // Write configuration
     const configPath = join(scenePath, "config.json");
 
@@ -485,7 +504,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
             metadata: scene.metadata,
             editorCamera: editor.layout.preview.camera.serialize(),
             animations: scene.animations.map((animation) => animation.serialize()),
-            animationGroups: scene.animationGroups?.map((animationGroup) => animationGroup.serialize()),
         }, {
             spaces: 4,
         });

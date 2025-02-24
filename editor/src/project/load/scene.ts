@@ -94,9 +94,14 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         createDirectoryIfNotExist(join(scenePath, "particleSystems")),
         createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
         createDirectoryIfNotExist(join(scenePath, "morphTargets")),
+        createDirectoryIfNotExist(join(scenePath, "animationGroups")),
     ]);
 
-    const [nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles, shadowGeneratorFiles, sceneLinkFiles, guiFiles, soundFiles, particleSystemFiles, morphTargetManagers] = await Promise.all([
+    const [
+        nodesFiles, meshesFiles, lodsFiles, lightsFiles, cameraFiles, skeletonFiles,
+        shadowGeneratorFiles, sceneLinkFiles, guiFiles, soundFiles, particleSystemFiles,
+        morphTargetManagers, animationGroups,
+    ] = await Promise.all([
         readdir(join(scenePath, "nodes")),
         readdir(join(scenePath, "meshes")),
         readdir(join(scenePath, "lods")),
@@ -109,6 +114,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         readdir(join(scenePath, "sounds")),
         readdir(join(scenePath, "particleSystems")),
         readdir(join(scenePath, "morphTargetManagers")),
+        readdir(join(scenePath, "animationGroups")),
     ]);
 
     const progress = await showLoadSceneProgressDialog(basename(scenePath));
@@ -124,7 +130,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         guiFiles.length +
         soundFiles.length +
         particleSystemFiles.length +
-        morphTargetManagers.length
+        morphTargetManagers.length +
+        animationGroups.length
     );
 
     SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
@@ -213,24 +220,22 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
             return;
         }
 
-        const data = await readJSON(join(scenePath, "meshes", file), "utf-8");
+        const initialData = await readJSON(join(scenePath, "meshes", file), "utf-8");
 
-        if (options?.asLink && data.metadata?.doNotSerialize) {
+        if (options?.asLink && initialData.metadata?.doNotSerialize) {
             return;
-        }
-
-        if (data.morphTargetManager) {
-            MorphTargetManager.Parse(data.morphTargetManager, scene);
         }
 
         const filesToLoad = [
             join(relativeScenePath, "meshes", file),
-            ...(data.lods?.map((file) => join(relativeScenePath, "lods", file)) ?? [])
+            ...(initialData.lods?.map((file) => join(relativeScenePath, "lods", file)) ?? [])
         ];
 
         await Promise.all(filesToLoad.map(async (filename, index) => {
             const result = await SceneLoader.ImportMeshAsync("", join(projectPath, "/"), filename, scene, null, ".babylon");
             const meshes = result.meshes.filter((m) => isMesh(m)) as Mesh[];
+
+            const data = index === 0 ? initialData : await readJSON(join(projectPath, filename), "utf-8");
 
             while (meshes.find((m) => m.delayLoadState && m.delayLoadState !== Constants.DELAYLOADSTATE_LOADED)) {
                 await wait(150);
@@ -358,7 +363,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
             });
 
             if (index > 0) {
-                const data = await readJSON(join(projectPath, filename), "utf-8");
+                // const data = await readJSON(join(projectPath, filename), "utf-8");
 
                 if (data.masterMeshId && data.distanceOrScreenCoverage !== undefined) {
                     meshes[0]._waitingData.lods = {
@@ -571,6 +576,24 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         loadResult.particleSystems.push(particleSystem!);
     }));
 
+    // Load animation groups
+    await Promise.all(animationGroups.map(async (file) => {
+        if (file.startsWith(".")) {
+            return;
+        }
+
+        try {
+            const data = await readJSON(join(scenePath, "animationGroups", file), "utf-8");
+
+            const animationGroup = AnimationGroup.Parse(data, scene);
+            animationGroup.uniqueId = data.uniqueId;
+        } catch (e) {
+            editor.layout.console.error(`Failed to load animation group file "${file}": ${e.message}`);
+        }
+
+        progress.step(progressStep);
+    }));
+
     progress.dispose();
 
     // Configure textures urls
@@ -607,6 +630,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
     });
 
     // Scene animation groups
+    // TODO: legacy
     config.animationGroups?.forEach((data) => {
         const group = AnimationGroup.Parse(data, scene);
         if (group.targetedAnimations.length === 0) {
