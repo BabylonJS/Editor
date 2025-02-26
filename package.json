@@ -31,7 +31,7 @@
         "build-quixel": "yarn workspace babylonjs-editor-quixel-plugin build",
         "build-template": "yarn workspace babylonjs-editor-template build",
         "build-website": "yarn workspace babylonjs-editor-website build",
-        "build": "yarn build-editor && yarn build-tools && yarn build-quixel",
+        "build": "yarn build-tools && yarn build-editor && yarn build-quixel",
         "build-all": "yarn build && yarn build-template && yarn build-website",
         "start": "electron ./editor",
         "package": "yarn && yarn clean && yarn build && node build.mjs",

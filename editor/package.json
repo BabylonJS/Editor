@@ -62,6 +62,7 @@
         "assimpjs": "0.0.10",
         "axios": "^1.7.7",
         "babylonjs": "7.44.0",
+        "babylonjs-editor-tools": "link:../tools",
         "babylonjs-gui": "7.44.0",
         "babylonjs-gui-editor": "7.44.0",
         "babylonjs-loaders": "7.44.0",
