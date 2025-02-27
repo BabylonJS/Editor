@@ -30,7 +30,7 @@ import "@babylonjs/core/Lights/pointLight";
 import "@babylonjs/core/Lights/directionalLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 
-import "@babylonjs/core/Materials/PBR/pbrMaterial";
+import "@babylonjs/core/Materials/PBR";
 import "@babylonjs/core/Materials/standardMaterial";
 import "@babylonjs/core/XR/features/WebXRDepthSensing";
 
@@ -62,7 +62,7 @@ import { scriptsMap } from "@/scripts";
 
 import { Tween } from "@/tween/tween";
 
-const rootUrl = "https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/mansion/";
+const rootUrl = process.env.MANSION_EXPERIMENT_ROOT_URL ?? "https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/mansion/";
 
 export default function MansionExperimentPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -239,6 +239,10 @@ export default function MansionExperimentPage() {
             setTimeout(() => {
                 videoRef.current!.style.visibility = "visible";
                 videoRef.current!.play();
+
+                Tween.CreateForCSS(videoRef.current!, 0.5, {
+                    "opacity": { from: 0, to: 1 },
+                });
             }, 11000);
 
             setTimeout(async () => {
@@ -258,7 +262,7 @@ export default function MansionExperimentPage() {
         <main className="relative w-screen h-screen">
             <canvas ref={canvasRef} className="w-full h-full outline-none border-none select-none" />
 
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col justify-center items-center gap-5">
+            <div className="absolute top-1/2 lg:top-1/3 left-1/2 lg:left-3/4 -translate-x-1/2 -translate-y-1/2 flex flex-col justify-center items-center gap-5">
                 <div ref={titleRef} className="text-5xl md:text-9xl font-semibold text-white font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter opacity-0">
                     Mansion
                 </div>
