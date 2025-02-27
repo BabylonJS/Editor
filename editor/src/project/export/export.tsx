@@ -42,7 +42,7 @@ const supportedAudioExtensions: string[] = [
 ];
 
 const supportedJsonExtensions: string[] = [
-    ".gui",
+    ".gui", ".cinematic",
 ];
 
 const supportedExtensions: string[] = [
@@ -203,6 +203,15 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
         if (light && instantiatedShadowGenerator) {
             light.metadata ??= {};
             light.metadata.refreshRate = instantiatedShadowGenerator?.getShadowMap()?.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+        }
+    });
+
+    // Configure sounds
+    data.sounds?.forEach((sound) => {
+        const instantiatedSound = scene.getSoundByName(sound.name);
+        if (instantiatedSound) {
+            sound.id = instantiatedSound.id;
+            sound.uniqueId = instantiatedSound.uniqueId;
         }
     });
 

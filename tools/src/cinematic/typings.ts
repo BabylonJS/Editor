@@ -1,0 +1,51 @@
+import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
+
+export interface ICinematic {
+    name: string;
+    framesPerSecond: number;
+    tracks: ICinematicTrack[];
+
+    outputFramesPerSecond: number;
+}
+
+export interface ICinematicTrack {
+    animationGroup?: any;
+    animationGroups?: ICinematicAnimationGroup[];
+
+    node?: any;
+    defaultRenderingPipeline?: boolean;
+
+    sound?: any;
+    sounds?: ICinematicSound[];
+
+    propertyPath?: string;
+    keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[];
+}
+
+export interface ICinematicAnimationGroup {
+    type: "group";
+    frame: number;
+
+    speed: number;
+    startFrame: number;
+    endFrame: number;
+}
+
+export interface ICinematicKey extends IAnimationKey {
+    type: "key" | "cut";
+}
+
+export interface ICinematicKeyCut {
+    type: "cut";
+    key1: IAnimationKey;
+    key2: IAnimationKey;
+}
+
+export interface ICinematicSound {
+    type: "sound";
+
+    frame: number;
+
+    startFrame: number;
+    endFrame: number;
+}

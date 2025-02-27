@@ -79,7 +79,7 @@ export class CinematicEditorToolbar extends Component<IEditorAnimationToolbarPro
 
                 {/* Buttons */}
                 <div className="flex gap-2 items-center pr-2">
-                    <Slider min={0.1} max={20} step={0.01} className="w-32" value={[this.props.cinematicEditor.timelines?.state.scale]} onValueChange={(v) => {
+                    <Slider min={0.1} max={5} step={0.01} className="w-32" value={[this.props.cinematicEditor.timelines?.state.scale]} onValueChange={(v) => {
                         this.props.cinematicEditor.timelines?.setScale(v[0]);
                     }} />
 
