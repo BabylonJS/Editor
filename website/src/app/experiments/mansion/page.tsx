@@ -174,7 +174,7 @@ export default function MansionExperimentPage() {
         scene.executeWhenReady(async () => {
             setLoading(false);
 
-            Tween.Create(getDefaultRenderingPipeline().imageProcessing, 3, {
+            Tween.Create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
                 "exposure": { from: 0, to: 1 },
             });
 
@@ -195,7 +195,7 @@ export default function MansionExperimentPage() {
 
     async function handleExitMenu() {
         await Promise.all([
-            Tween.Create(getDefaultRenderingPipeline().imageProcessing, 3, {
+            Tween.Create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
                 exposure: 0,
             }),
             Tween.CreateForCSS(startButtonRef.current!, 1, {

@@ -10,6 +10,7 @@
     "main": "build/index.js",
     "exports": {
         ".": {
+            "types": "./declaration/index.d.ts",
             "import": "./build/index.js",
             "require": "./build/index.node.js"
         }

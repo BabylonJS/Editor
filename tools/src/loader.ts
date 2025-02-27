@@ -9,6 +9,8 @@ import { parseDefaultRenderingPipeline } from "./rendering/default-pipeline";
 
 import { applyDecorators } from "./decorators/apply";
 
+import { isMesh } from "./guards";
+
 import { configurePhysicsAggregate } from "./physics";
 import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "./light";
 
@@ -55,6 +57,11 @@ export async function loadScene(rootUrl: string, sceneFilename: string, scene: S
     // Wait until scene is ready.
     while (!scene.isReady()) {
         await new Promise<void>((resolve) => setTimeout(resolve, 150));
+    }
+
+    // Ensure all meshes perform their delay state check
+    if (SceneLoader.ForceFullSceneLoadingForIncremental) {
+        scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
     }
 
     configureShadowMapRenderListPredicate(scene);
