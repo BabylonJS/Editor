@@ -1,8 +1,13 @@
-import { SSRRenderingPipeline } from "babylonjs";
+import { SSRRenderingPipeline, Camera } from "babylonjs";
 
 import { Editor } from "../main";
 
 let ssrRenderingPipeline: SSRRenderingPipeline | null = null;
+
+/**
+ * Defines the configuration of the ssr rendering pipeline per camera.
+ */
+export const ssrRenderingPipelineCameraConfigurations = new Map<Camera, any>();
 
 export function getSSRRenderingPipeline(): SSRRenderingPipeline | null {
     return ssrRenderingPipeline;
@@ -57,7 +62,7 @@ export function serializeSSRRenderingPipeline(): any {
 }
 
 export function parseSSRRenderingPipeline(editor: Editor, data: any): SSRRenderingPipeline {
-    const ssrRenderingPipeline = createSSRRenderingPipeline(editor);
+    const ssrRenderingPipeline = getSSRRenderingPipeline() ?? createSSRRenderingPipeline(editor);
 
     ssrRenderingPipeline.samples = data.samples;
 

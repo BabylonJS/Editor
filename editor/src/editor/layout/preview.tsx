@@ -41,11 +41,12 @@ import { SpinnerUIComponent } from "../../ui/spinner";
 import { Separator } from "../../ui/shadcn/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/shadcn/ui/tooltip";
 
-import { disposeVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../rendering/vls";
-import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../rendering/ssr";
-import { disposeMotionBlurPostProcess, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "../rendering/motion-blur";
-import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline } from "../rendering/ssao";
-import { disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "../rendering/default-pipeline";
+import { saveRenderingConfigurationForCamera } from "../rendering/tools";
+import { disposeVLSPostProcess, parseVLSPostProcess, vlsPostProcessCameraConfigurations } from "../rendering/vls";
+import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../rendering/ssr";
+import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../rendering/ssao";
+import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess } from "../rendering/motion-blur";
+import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
 import { EditorGraphContextMenu } from "./graph/graph";
 
@@ -743,41 +744,47 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     }
 
     private _switchToCamera(id: string): void {
-        const camera = this.scene.cameras.find((c) => c.id === id) ?? null;
+        const camera = this.scene.cameras.find((c) => c.id === id);
+        if (!camera) {
+            return;
+        }
+
+        if (this.scene.activeCamera) {
+            saveRenderingConfigurationForCamera(this.scene.activeCamera);
+        }
+
         this.scene.activeCamera?.detachControl();
 
         this.scene.activeCamera = camera;
         this.scene.activeCamera?.attachControl(true);
 
-        // Post-processes
-        const ssao2Pipeline = serializeSSAO2RenderingPipeline();
-        const ssrPipeline = serializeSSRRenderingPipeline();
-        const motionBlurPostProcess = serializeMotionBlurPostProcess();
-        const defaultRenderingPipeline = serializeDefaultRenderingPipeline();
-        const vlsPostProcess = serializeVLSPostProcess();
-
         disposeSSAO2RenderingPipeline();
+        disposeVLSPostProcess(this.props.editor);
         disposeSSRRenderingPipeline();
         disposeMotionBlurPostProcess();
         disposeDefaultRenderingPipeline();
-        disposeVLSPostProcess(this.props.editor);
 
+        const ssao2Pipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
         if (ssao2Pipeline) {
             parseSSAO2RenderingPipeline(this.props.editor, ssao2Pipeline);
         }
 
+        const vlsPostProcess = vlsPostProcessCameraConfigurations.get(camera);
         if (vlsPostProcess) {
             parseVLSPostProcess(this.props.editor, vlsPostProcess);
         }
 
+        const ssrPipeline = ssrRenderingPipelineCameraConfigurations.get(camera);
         if (ssrPipeline) {
             parseSSRRenderingPipeline(this.props.editor, ssrPipeline);
         }
 
+        const motionBlurPostProcess = motionBlurPostProcessCameraConfigurations.get(camera);
         if (motionBlurPostProcess) {
             parseMotionBlurPostProcess(this.props.editor, motionBlurPostProcess);
         }
 
+        const defaultRenderingPipeline = defaultPipelineCameraConfigurations.get(camera);
         if (defaultRenderingPipeline) {
             parseDefaultRenderingPipeline(this.props.editor, defaultRenderingPipeline);
         }
@@ -790,6 +797,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                 }
             });
         });
+
+        this.props.editor.layout.inspector.forceUpdate();
     }
 
     /**

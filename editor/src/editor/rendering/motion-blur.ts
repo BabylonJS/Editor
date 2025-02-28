@@ -1,8 +1,13 @@
-import { MotionBlurPostProcess } from "babylonjs";
+import { MotionBlurPostProcess, Camera } from "babylonjs";
 
 import { Editor } from "../main";
 
 let motionBlurPostProcess: MotionBlurPostProcess | null = null;
+
+/**
+ * Defines the configuration of the motion blur post-process per camera.
+ */
+export const motionBlurPostProcessCameraConfigurations = new Map<Camera, any>();
 
 export function getMotionBlurPostProcess(): MotionBlurPostProcess | null {
     return motionBlurPostProcess;
@@ -38,7 +43,7 @@ export function serializeMotionBlurPostProcess(): any {
 }
 
 export function parseMotionBlurPostProcess(editor: Editor, data: any): MotionBlurPostProcess {
-    const motionBlurPostProcess = createMotionBlurPostProcess(editor);
+    const motionBlurPostProcess = getMotionBlurPostProcess() ?? createMotionBlurPostProcess(editor);
 
     motionBlurPostProcess.isObjectBased = data.isObjectBased;
     motionBlurPostProcess.motionStrength = data.motionStrength;

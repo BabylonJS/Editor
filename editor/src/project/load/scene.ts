@@ -13,11 +13,11 @@ import { EditorCamera } from "../../editor/nodes/camera";
 import { CollisionMesh } from "../../editor/nodes/collision";
 import { SceneLinkNode } from "../../editor/nodes/scene-link";
 
-import { parseVLSPostProcess } from "../../editor/rendering/vls";
-import { parseSSRRenderingPipeline } from "../../editor/rendering/ssr";
-import { parseSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
-import { parseMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
-import { parseDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
+import { parseVLSPostProcess, vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
+import { parseSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
+import { parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
+import { parseMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
+import { parseDefaultRenderingPipeline, defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 
 import { applyImportedGuiFile } from "../../editor/layout/preview/import/gui";
 
@@ -29,8 +29,8 @@ import { createSceneLink } from "../../tools/scene/scene-link";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
 import { configureSimultaneousLightsForMaterial } from "../../tools/mesh/material";
-import { isAbstractMesh, isCollisionMesh, isMesh } from "../../tools/guards/nodes";
 import { parsePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
+import { isAbstractMesh, isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 import { showLoadSceneProgressDialog } from "./progress";
@@ -715,26 +715,45 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
             }
         });
 
-        // Load pipelines
-        if (config.rendering.ssao2RenderingPipeline) {
-            parseSSAO2RenderingPipeline(editor, config.rendering.ssao2RenderingPipeline);
-        }
+        // For each camera
+        const postProcessConfigurations = Array.isArray(config.rendering)
+            ? config.rendering
+            : [];
 
-        if (config.rendering.vlsPostProcess) {
-            parseVLSPostProcess(editor, config.rendering.vlsPostProcess);
-        }
+        postProcessConfigurations.forEach((configuration) => {
+            const camera = scene.getCameraById(configuration.cameraId);
+            if (!camera) {
+                return;
+            }
 
-        if (config.rendering.ssrRenderingPipeline) {
-            parseSSRRenderingPipeline(editor, config.rendering.ssrRenderingPipeline);
-        }
+            ssaoRenderingPipelineCameraConfigurations.set(camera, configuration.ssao2RenderingPipeline);
+            vlsPostProcessCameraConfigurations.set(camera, configuration.vlsPostProcess);
+            ssrRenderingPipelineCameraConfigurations.set(camera, configuration.ssrRenderingPipeline);
+            motionBlurPostProcessCameraConfigurations.set(camera, configuration.motionBlurPostProcess);
+            defaultPipelineCameraConfigurations.set(camera, configuration.defaultRenderingPipeline);
 
-        if (config.rendering.motionBlurPostProcess) {
-            parseMotionBlurPostProcess(editor, config.rendering.motionBlurPostProcess);
-        }
+            if (isEditorCamera(camera)) {
+                if (configuration.ssao2RenderingPipeline) {
+                    parseSSAO2RenderingPipeline(editor, configuration.ssao2RenderingPipeline);
+                }
 
-        if (config.rendering.defaultRenderingPipeline) {
-            parseDefaultRenderingPipeline(editor, config.rendering.defaultRenderingPipeline);
-        }
+                if (configuration.vlsPostProcess) {
+                    parseVLSPostProcess(editor, configuration.vlsPostProcess);
+                }
+
+                if (configuration.ssrRenderingPipeline) {
+                    parseSSRRenderingPipeline(editor, configuration.ssrRenderingPipeline);
+                }
+
+                if (configuration.motionBlurPostProcess) {
+                    parseMotionBlurPostProcess(editor, configuration.motionBlurPostProcess);
+                }
+
+                if (configuration.defaultRenderingPipeline) {
+                    parseDefaultRenderingPipeline(editor, configuration.defaultRenderingPipeline);
+                }
+            }
+        });
     }
 
     editor.layout.console.log("Scene loaded and editor is ready.");

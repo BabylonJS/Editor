@@ -1,8 +1,13 @@
-import { DefaultRenderingPipeline, Color4, Vector2 } from "babylonjs";
+import { DefaultRenderingPipeline, Color4, Vector2, Camera } from "babylonjs";
 
 import { Editor } from "../main";
 
 let defaultRenderingPipeline: DefaultRenderingPipeline | null = null;
+
+/**
+ * Defines the configuration of the default rendering pipeline per camera.
+ */
+export const defaultPipelineCameraConfigurations = new Map<Camera, any>();
 
 /**
  * Returns the reference to the default rendering pipeline if exists.
@@ -86,7 +91,7 @@ export function serializeDefaultRenderingPipeline(): any {
 }
 
 export function parseDefaultRenderingPipeline(editor: Editor, data: any): DefaultRenderingPipeline {
-    const defaultRenderingPipeline = createDefaultRenderingPipeline(editor);
+    const defaultRenderingPipeline = getDefaultRenderingPipeline() ?? createDefaultRenderingPipeline(editor);
 
     defaultRenderingPipeline.samples = data.samples;
     defaultRenderingPipeline.fxaaEnabled = data.fxaaEnabled;

@@ -16,11 +16,12 @@ import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/node
 import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 
-import { serializeVLSPostProcess } from "../../editor/rendering/vls";
-import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
-import { serializeSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
-import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
-import { serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
+import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
+import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
+import { ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
+import { ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
+import { defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
+import { motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
 
 import { writeBinaryGeometry } from "../geometry";
 import { writeBinaryMorphTarget } from "../morph-target";
@@ -476,6 +477,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
     const configPath = join(scenePath, "config.json");
 
     try {
+        if (scene.activeCamera) {
+            saveRenderingConfigurationForCamera(scene.activeCamera);
+        }
+
         await writeJSON(configPath, {
             clearColor: scene.clearColor.asArray(),
             ambientColor: scene.ambientColor.asArray(),
@@ -494,13 +499,14 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 fogDensity: scene.fogDensity,
                 fogColor: scene.fogColor.asArray(),
             },
-            rendering: {
-                ssrRenderingPipeline: serializeSSRRenderingPipeline(),
-                motionBlurPostProcess: serializeMotionBlurPostProcess(),
-                ssao2RenderingPipeline: serializeSSAO2RenderingPipeline(),
-                defaultRenderingPipeline: serializeDefaultRenderingPipeline(),
-                vlsPostProcess: serializeVLSPostProcess(),
-            },
+            rendering: scene.cameras.map((camera) => ({
+                cameraId: camera.id,
+                ssao2RenderingPipeline: ssaoRenderingPipelineCameraConfigurations.get(camera),
+                vlsPostProcess: vlsPostProcessCameraConfigurations.get(camera),
+                ssrRenderingPipeline: ssrRenderingPipelineCameraConfigurations.get(camera),
+                motionBlurPostProcess: motionBlurPostProcessCameraConfigurations.get(camera),
+                defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
+            })),
             metadata: scene.metadata,
             editorCamera: editor.layout.preview.camera.serialize(),
             animations: scene.animations.map((animation) => animation.serialize()),

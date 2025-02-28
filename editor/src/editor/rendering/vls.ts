@@ -1,10 +1,15 @@
-import { VolumetricLightScatteringPostProcess, Vector3, Mesh, Texture } from "babylonjs";
+import { VolumetricLightScatteringPostProcess, Vector3, Mesh, Texture, Camera } from "babylonjs";
 
 import { isMesh } from "../../tools/guards/nodes";
 
 import { Editor } from "../main";
 
 let vlsPostProcess: VolumetricLightScatteringPostProcess | null = null;
+
+/**
+ * Defines the configuration of the motion blur post-process per camera.
+ */
+export const vlsPostProcessCameraConfigurations = new Map<Camera, any>();
 
 export function getVLSPostProcess(): VolumetricLightScatteringPostProcess | null {
     return vlsPostProcess;

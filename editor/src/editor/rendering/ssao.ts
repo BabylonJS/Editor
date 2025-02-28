@@ -1,8 +1,13 @@
-import { SSAO2RenderingPipeline } from "babylonjs";
+import { SSAO2RenderingPipeline, Camera } from "babylonjs";
 
 import { Editor } from "../main";
 
 let ssaoRenderingPipeline: SSAO2RenderingPipeline | null = null;
+
+/**
+ * Defines the configuration of the SSAO rendering pipeline per camera.
+ */
+export const ssaoRenderingPipelineCameraConfigurations = new Map<Camera, any>();
 
 export function getSSAO2RenderingPipeline(): SSAO2RenderingPipeline | null {
     return ssaoRenderingPipeline;
@@ -44,7 +49,7 @@ export function serializeSSAO2RenderingPipeline(): any {
 }
 
 export function parseSSAO2RenderingPipeline(editor: Editor, data: any): SSAO2RenderingPipeline {
-    const ssao2RenderingPipeline = createSSAO2RenderingPipeline(editor);
+    const ssao2RenderingPipeline = getSSAO2RenderingPipeline() ?? createSSAO2RenderingPipeline(editor);
 
     ssao2RenderingPipeline.radius = data.radius;
     ssao2RenderingPipeline.totalStrength = data.totalStrength;

@@ -10,11 +10,12 @@ import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 
-import { serializeVLSPostProcess } from "../../editor/rendering/vls";
-import { serializeSSRRenderingPipeline } from "../../editor/rendering/ssr";
-import { serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
-import { serializeSSAO2RenderingPipeline } from "../../editor/rendering/ssao";
-import { serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
+import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
+import { serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
+import { serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
+import { serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
+import { motionBlurPostProcessCameraConfigurations, serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
+import { defaultPipelineCameraConfigurations, serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
 
 import { Editor } from "../../editor/main";
 
@@ -71,6 +72,10 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
     const scene = editor.layout.preview.scene;
     const editorCamera = scene.cameras.find((camera) => isEditorCamera(camera));
 
+    if (scene.activeCamera) {
+        saveRenderingConfigurationForCamera(scene.activeCamera);
+    }
+
     const savedGeometries: string[] = [];
 
     // Configure textures to store base size. This will be useful for the scene loader located
@@ -110,6 +115,17 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
         defaultRenderingPipeline: serializeDefaultRenderingPipeline(),
         vlsPostProcess: serializeVLSPostProcess(),
     };
+
+    data.metadata.rendering = scene.cameras
+        .filter((camera) => !isEditorCamera(camera))
+        .map((camera) => ({
+            cameraId: camera.id,
+            ssao2RenderingPipeline: ssaoRenderingPipelineCameraConfigurations.get(camera),
+            vlsPostProcess: vlsPostProcessCameraConfigurations.get(camera),
+            ssrRenderingPipeline: ssrRenderingPipelineCameraConfigurations.get(camera),
+            motionBlurPostProcess: motionBlurPostProcessCameraConfigurations.get(camera),
+            defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
+        }));
 
     delete data.postProcesses;
 

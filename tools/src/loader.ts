@@ -68,27 +68,33 @@ export async function loadScene(rootUrl: string, sceneFilename: string, scene: S
     configureShadowMapRefreshRate(scene);
 
     if (scene.metadata?.rendering) {
-        const camera = scene.activeCamera ?? scene.cameras[0];
+        const postProcessConfigurations = Array.isArray(scene.metadata?.rendering)
+            ? scene.metadata?.rendering
+            : [];
 
-        if (scene.metadata.rendering.ssao2RenderingPipeline) {
-            parseSSAO2RenderingPipeline(scene, camera, scene.metadata.rendering.ssao2RenderingPipeline);
-        }
+        postProcessConfigurations.forEach((configuration) => {
+            const camera = scene.activeCamera ?? scene.cameras[0];
 
-        if (scene.metadata.rendering.vlsPostProcess) {
-            parseVLSPostProcess(scene, scene.metadata.rendering.vlsPostProcess);
-        }
+            if (configuration.ssao2RenderingPipeline) {
+                parseSSAO2RenderingPipeline(scene, camera, configuration.ssao2RenderingPipeline);
+            }
 
-        if (scene.metadata.rendering.ssrRenderingPipeline) {
-            parseSSRRenderingPipeline(scene, camera, scene.metadata.rendering.ssrRenderingPipeline);
-        }
+            if (configuration.vlsPostProcess) {
+                parseVLSPostProcess(scene, configuration.vlsPostProcess);
+            }
 
-        if (scene.metadata.rendering.motionBlurPostProcess) {
-            parseMotionBlurPostProcess(scene, camera, scene.metadata.rendering.motionBlurPostProcess);
-        }
+            if (configuration.ssrRenderingPipeline) {
+                parseSSRRenderingPipeline(scene, camera, configuration.ssrRenderingPipeline);
+            }
 
-        if (scene.metadata.rendering.defaultRenderingPipeline) {
-            parseDefaultRenderingPipeline(scene, camera, scene.metadata.rendering.defaultRenderingPipeline);
-        }
+            if (configuration.motionBlurPostProcess) {
+                parseMotionBlurPostProcess(scene, camera, configuration.motionBlurPostProcess);
+            }
+
+            if (configuration.defaultRenderingPipeline) {
+                parseDefaultRenderingPipeline(scene, camera, configuration.defaultRenderingPipeline);
+            }
+        });
     }
 
     loadScriptsFor(scene, scene, scriptsMap, rootUrl);
