@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Component, ReactNode } from "react";
 
 import isMobile from "is-mobile";
-import { Grid } from "react-loader-spinner";
 
 import { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
@@ -62,28 +61,71 @@ import { scriptsMap } from "@/scripts";
 
 import { Tween } from "@/tween/tween";
 
+import { LoaderComponent } from "./loader";
+import { MainMenuComponent } from "./menu";
+import { BlackBarsComponent } from "./black-bars";
+import { CinematicComponent } from "./cinematic";
+
+export type ExperimentStep = "menu" | "menu-exit" | "cinematic";
+
 const rootUrl = process.env.MANSION_EXPERIMENT_ROOT_URL ?? "https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/mansion/";
 
 export default function MansionExperimentPage() {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    return (
+        <main className="relative w-screen h-screen">
+            <MansionExperimentComponent />
+        </main>
+    );
+}
 
-    const titleRef = useRef<HTMLDivElement>(null);
-    const startButtonRef = useRef<HTMLButtonElement>(null);
+export interface IMansionExperimentComponentState {
+    loading: boolean;
+    step: ExperimentStep;
+}
 
-    const introRef = useRef<HTMLDivElement>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
+export class MansionExperimentComponent extends Component<unknown, IMansionExperimentComponentState> {
+    private _canvas: HTMLCanvasElement = null!;
 
-    const [engine, setEngine] = useState<Engine | null>(null);
+    private _engine: Engine = null!;
+    private _scene: Scene = null!;
 
-    const [loading, setLoading] = useState(true);
-    const [step, setStep] = useState<"menu" | "cinematic">("menu");
+    private _resizeListener: () => void = null!;
 
-    useEffect(() => {
-        if (!canvasRef.current) {
-            return;
-        }
+    private _mainMenuComponents: MainMenuComponent = null!;
+    private _cinematicComponents: CinematicComponent = null!;
 
-        const engine = new Engine(canvasRef.current, true, {
+    public constructor(props: unknown) {
+        super(props);
+
+        this.state = {
+            step: "menu",
+            loading: true,
+        };
+    }
+
+    public render(): ReactNode {
+        return (
+            <>
+                <canvas ref={(r) => this._canvas = r!} className="w-full h-full outline-none border-none select-none" />
+
+                <MainMenuComponent
+                    step={this.state.step}
+                    onStart={() => this._handleStart()}
+                    ref={(r) => this._mainMenuComponents = r!}
+                />
+
+                <CinematicComponent
+                    ref={(r) => this._cinematicComponents = r!}
+                />
+
+                <BlackBarsComponent />
+                <LoaderComponent loading={this.state.loading} />
+            </>
+        );
+    }
+
+    public componentDidMount(): void {
+        this._engine = new Engine(this._canvas, true, {
             stencil: true,
             antialias: true,
             audioEngine: true,
@@ -96,228 +138,157 @@ export default function MansionExperimentPage() {
             failIfMajorPerformanceCaveat: false,
         });
 
-        setEngine(engine);
-        configureEngineToUseCompressedTextures(engine);
-
-        let resizeListener: () => void;
-        window.addEventListener("resize", resizeListener = () => {
-            engine.resize();
-        });
-
-        return () => {
-            engine.dispose();
-            window.removeEventListener("resize", resizeListener);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!engine) {
-            return;
-        }
-
-        setLoading(true);
-
-        const scene = new Scene(engine);
-
-        configureEngineToUseCompressedTextures(engine);
+        configureEngineToUseCompressedTextures(this._engine);
 
         SceneLoader.ShowLoadingScreen = false;
         SceneLoader.ForceFullSceneLoadingForIncremental = true;
 
-        Tween.Scene = scene;
         Tween.DefaultEasing = {
             type: new CubicEase(),
             mode: CubicEase.EASINGMODE_EASEINOUT,
         };
 
-        switch (step) {
+        window.addEventListener("resize", this._resizeListener = () => {
+            this._engine.resize();
+        });
+
+        switch (this.state.step) {
             case "menu":
-                handleLoadMenu(engine, scene);
+                this._loadMainMenu();
                 break;
 
             case "cinematic":
-                handleLoadCinematic(scene);
+                this._loadCinematic();
                 break;
         }
-
-        return () => {
-            disposeSSAO2RenderingPipeline();
-            disposeDefaultRenderingPipeline();
-            disposeMotionBlurPostProcess();
-            disposeVLSPostProcess(scene);
-            disposeSSRRenderingPipeline();
-
-            scene.dispose();
-            engine.stopRenderLoop();
-        };
-    }, [step, engine]);
-
-    useEffect(() => {
-        if (step === "cinematic") {
-            // TODO: load cinematic
-        }
-    }, [step]);
-
-    async function setupHavok(scene: Scene) {
-        const havok = await HavokPhysics();
-        scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
     }
 
-    async function handleLoadMenu(engine: Engine, scene: Scene) {
-        await setupHavok(scene);
-        await loadScene(rootUrl, "menu.babylon", scene, scriptsMap, isMobile() ? "low" : "high");
+    public componentWillUnmount(): void {
+        this._scene?.dispose();
+        this._engine?.dispose();
 
-        scene.animationGroups.forEach((animationGroup) => {
+        window.removeEventListener("resize", this._resizeListener);
+    }
+
+    private async _loadMainMenu(): Promise<void> {
+        this.setState({
+            step: "menu",
+            loading: true,
+        });
+
+        await this._disposeCurrentScene();
+        await loadScene(rootUrl, "menu.babylon", this._scene, scriptsMap, isMobile() ? "low" : "high");
+
+        this._forceCompileAllMaterials();
+
+        this._scene.animationGroups.forEach((animationGroup) => {
             animationGroup.play(true);
         });
 
-        scene.executeWhenReady(async () => {
-            setLoading(false);
+        this._scene.executeWhenReady(async () => {
+            this.setState({
+                loading: false,
+            });
 
             Tween.Create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
                 "exposure": { from: 0, to: 1 },
             });
 
-            engine.runRenderLoop(() => {
-                scene.render();
+            this._engine.runRenderLoop(() => {
+                this._scene.render();
             });
         });
 
-        Tween.CreateForCSS(titleRef.current!, 3, {
-            "opacity": { from: 0, to: 1 },
-        });
-
-        Tween.CreateForCSS(startButtonRef.current!, 1, {
-            delay: 3,
-            "opacity": { from: 0, to: 1, },
-        });
+        this._mainMenuComponents.show();
     }
 
-    async function handleExitMenu() {
-        await Promise.all([
-            Tween.Create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
-                exposure: 0,
-            }),
-            Tween.CreateForCSS(startButtonRef.current!, 1, {
-                "opacity": { from: 1, to: 0 },
-            }),
-        ]);
-
-        await Tween.CreateForCSS(titleRef.current!, 3, {
-            "opacity": { from: 1, to: 0 },
+    private async _handleStart(): Promise<void> {
+        this.setState({
+            step: "menu-exit",
         });
 
-        setStep("cinematic");
+        this._mainMenuComponents.hideStartButton();
+
+        await Tween.Create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
+            exposure: 0,
+        });
+
+        await this._mainMenuComponents.hideTitle();
+
+        this._loadCinematic();
     }
 
-    async function handleLoadCinematic(scene: Scene) {
-        await setupHavok(scene);
-        await loadScene(rootUrl, "outside.babylon", scene, scriptsMap, isMobile() ? "low" : "high");
+    private async _loadCinematic(): Promise<void> {
+        this.setState({
+            loading: true,
+            step: "cinematic",
+        });
+
+        await this._disposeCurrentScene();
+        await loadScene(rootUrl, "outside.babylon", this._scene, scriptsMap, isMobile() ? "low" : "high");
+
+        this._forceCompileAllMaterials();
 
         const response = await fetch(`${rootUrl}assets/cinematic.cinematic`);
         const data = await response.json();
-        const cinematic = parseCinematic(data, scene);
+        const cinematic = parseCinematic(data, this._scene);
 
-        scene.executeWhenReady(async () => {
-            setLoading(false);
+        this._scene.executeWhenReady(async () => {
+            this.setState({
+                loading: false,
+            });
 
-            const group = generateCinematicAnimationGroup(cinematic, scene);
+            const group = generateCinematicAnimationGroup(cinematic, this._scene);
             group.play(false);
 
             setTimeout(() => {
-                Tween.CreateForCSS(introRef.current!, 1, {
-                    "opacity": { from: 0, to: 1 },
-                });
+                this._cinematicComponents.showIntro();
             }, 2000);
 
             setTimeout(() => {
-                Tween.CreateForCSS(introRef.current!, 2, {
-                    "opacity": { from: 1, to: 0 },
-                });
+                this._cinematicComponents.hideIntro();
             }, 9000);
 
             setTimeout(() => {
-                videoRef.current!.style.visibility = "visible";
-                videoRef.current!.play();
-
-                Tween.CreateForCSS(videoRef.current!, 0.5, {
-                    "opacity": { from: 0, to: 1 },
-                });
+                this._cinematicComponents.showVideo();
             }, 11000);
 
             setTimeout(async () => {
-                await Tween.CreateForCSS(videoRef.current!, 3, {
-                    "opacity": { from: 1, to: 0 },
-                    onComplete: () => videoRef.current!.style.visibility = "hidden",
-                });
+                this._cinematicComponents.hideVideo();
             }, 19000);
 
-            engine!.runRenderLoop(() => {
-                scene.render();
+            this._engine.runRenderLoop(() => {
+                this._scene.render();
             });
         });
     }
 
-    return (
-        <main className="relative w-screen h-screen">
-            <canvas ref={canvasRef} className="w-full h-full outline-none border-none select-none" />
+    private async _disposeCurrentScene(): Promise<void> {
+        disposeSSAO2RenderingPipeline();
+        disposeDefaultRenderingPipeline();
+        disposeMotionBlurPostProcess();
+        disposeVLSPostProcess(this._scene);
+        disposeSSRRenderingPipeline();
 
-            <div className="absolute top-1/2 lg:top-1/3 left-1/2 lg:left-3/4 -translate-x-1/2 -translate-y-1/2 flex flex-col justify-center items-center gap-5">
-                <div ref={titleRef} className="text-5xl md:text-9xl font-semibold text-white font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter opacity-0">
-                    Mansion
-                </div>
+        this._scene?.dispose();
+        this._engine.stopRenderLoop();
 
-                <button
-                    ref={startButtonRef}
-                    onClick={() => handleExitMenu()}
-                    className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2 opacity-0"
-                >
-                    Start
-                </button>
-            </div>
+        this._scene = new Scene(this._engine);
 
-            <div ref={introRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex flex-col justify-center items-center gap-10 opacity-0 pointer-events-none">
-                <div className="text-white text-center w-full text-sm md:text-base lg:text-xl 2xl:text-3xl">
-                    May contain content inappropriate for children. The following cinematic is a proof of
-                    <br />
-                    concept, created entirely in real-time using Babylon.js Editor.
-                </div>
+        Tween.Scene = this._scene;
 
-                <div className="text-white italic text-center w-full text-sm md:text-base lg:text-xl 2xl:text-3xl">
-                    Experience the power of web-based rendering—crafted without a single line of code.
-                </div>
-            </div>
+        const havok = await HavokPhysics();
+        this._scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
+    }
 
-            <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center pointer-events-none">
-                <video
-                    muted
-                    ref={videoRef}
-                    className="w-full h-full object-cover pointer-events-none invisible"
-                    src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/Babylonjs_introBumper.mp4"
-                />
-            </div>
-
-            <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center pointer-events-none">
-                <img
-                    src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/UHD_235.png"
-                    className="w-full h-full object-cover pointer-events-none"
-                />
-            </div>
-
-            <div
-                className={`
-                    absolute top-0 left-0 w-full h-full bg-black pointer-events-none
-                    ${loading ? "opacity-100" : "opacity-0"}
-                    transition-all duration-1000 ease-in-out
-                `}
-            >
-                <Grid
-                    width={24}
-                    height={24}
-                    color="#ffffff"
-                    wrapperClass="absolute right-5 bottom-5 pointer-events-none"
-                />
-            </div>
-        </main>
-    );
+    private _forceCompileAllMaterials(): void {
+        this._scene.materials.forEach((material) => {
+            const bindedMeshes = material.getBindedMeshes();
+            bindedMeshes.forEach((mesh) => {
+                material.forceCompilation(mesh, undefined, {
+                    useInstances: mesh.hasInstances,
+                });
+            });
+        });
+    }
 }
