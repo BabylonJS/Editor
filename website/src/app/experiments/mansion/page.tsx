@@ -80,6 +80,8 @@ export default function MansionExperimentPage() {
 
 interface IMansionExperimentComponentState {
     loading: boolean;
+    loadingProgress: number;
+
     step: ExperimentStep;
 }
 
@@ -99,7 +101,9 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
         this.state = {
             step: "menu",
+
             loading: true,
+            loadingProgress: 0,
         };
     }
 
@@ -119,7 +123,10 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
                 />
 
                 <BlackBarsComponent />
-                <LoaderComponent loading={this.state.loading} />
+                <LoaderComponent
+                    loading={this.state.loading}
+                    progress={this.state.loadingProgress}
+                />
             </>
         );
     }
@@ -143,7 +150,7 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
         SceneLoader.ShowLoadingScreen = false;
         SceneLoader.ForceFullSceneLoadingForIncremental = true;
 
-        Tween.DefaultEasing = {
+        Tween.defaultEasing = {
             type: new CubicEase(),
             mode: CubicEase.EASINGMODE_EASEINOUT,
         };
@@ -173,11 +180,16 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
     private async _loadMainMenu(): Promise<void> {
         this.setState({
             step: "menu",
+
             loading: true,
+            loadingProgress: 0,
         });
 
         await this._disposeCurrentScene();
-        await loadScene(rootUrl, "menu.babylon", this._scene, scriptsMap, isMobile() ? "low" : "high");
+        await loadScene(rootUrl, "menu.babylon", this._scene, scriptsMap, {
+            quality: isMobile() ? "low" : "high",
+            onProgress: (loadingProgress) => this.setState({ loadingProgress }),
+        });
 
         this._forceCompileAllMaterials();
 
@@ -190,16 +202,18 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
                 loading: false,
             });
 
-            Tween.Create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
+            await Tween.wait(1);
+
+            Tween.create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
                 "exposure": { from: 0, to: 1 },
             });
+
+            this._mainMenuComponents.show();
 
             this._engine.runRenderLoop(() => {
                 this._scene.render();
             });
         });
-
-        this._mainMenuComponents.show();
     }
 
     private async _handleStart(): Promise<void> {
@@ -209,7 +223,7 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
         this._mainMenuComponents.hideStartButton();
 
-        await Tween.Create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
+        await Tween.create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
             exposure: 0,
         });
 
@@ -220,12 +234,17 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
     private async _loadCinematic(): Promise<void> {
         this.setState({
-            loading: true,
             step: "cinematic",
+
+            loading: true,
+            loadingProgress: 0,
         });
 
         await this._disposeCurrentScene();
-        await loadScene(rootUrl, "outside.babylon", this._scene, scriptsMap, isMobile() ? "low" : "high");
+        await loadScene(rootUrl, "outside.babylon", this._scene, scriptsMap, {
+            quality: isMobile() ? "low" : "high",
+            onProgress: (loadingProgress) => this.setState({ loadingProgress }),
+        });
 
         this._forceCompileAllMaterials();
 
@@ -275,7 +294,7 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
         this._scene = new Scene(this._engine);
 
-        Tween.Scene = this._scene;
+        Tween.scene = this._scene;
 
         const havok = await HavokPhysics();
         this._scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));

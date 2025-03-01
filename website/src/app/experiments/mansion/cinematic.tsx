@@ -11,7 +11,7 @@ export class CinematicComponent extends Component {
                     ref={(r) => this._cinematicIntro = r!}
                     className={`
                         absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex flex-col justify-center items-center gap-10 opacity-0 pointer-events-none
-                        transition-opacity duration-[1s] ease-in-out
+                        transition-opacity duration-1000 ease-in-out
                     `}
                 >
                     <div className="text-white text-center w-full text-sm md:text-base lg:text-xl 2xl:text-3xl">
@@ -29,7 +29,7 @@ export class CinematicComponent extends Component {
                     <video
                         muted
                         ref={(r) => this._cinematicVideo = r!}
-                        className="w-full h-full object-cover pointer-events-none invisible transition-opacity duration-[2s] ease-in-out"
+                        className="w-full h-full object-cover pointer-events-none invisible transition-opacity duration-2000 ease-in-out"
                         src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/Babylonjs_introBumper.mp4"
                     />
                 </div>

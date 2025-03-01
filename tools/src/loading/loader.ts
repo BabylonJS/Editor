@@ -1,0 +1,101 @@
+import { Scene } from "@babylonjs/core/scene";
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+
+import { isMesh } from "../tools/guards";
+
+import { applyScriptForObject } from "./script";
+import { configurePhysicsAggregate } from "./physics";
+import { applyRenderingConfigurations } from "./rendering";
+import { applyRenderingConfigurationForCamera } from "../rendering/tools";
+import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "../tools/light";
+
+import "./texture";
+
+/**
+ * Defines the possible output type of a script.
+ * `default` is a class that will be instantiated with the object as parameter.
+ * `onStart` is a function that will be called once before the first render passing the reference to the object the script is attached to.
+ * `onUpdate` is a function that will be called every frame passing the reference to the object the script is attached to
+ */
+export type ScriptMap = Record<
+    string,
+    {
+        default?: new (object: any) => {
+            onStart?(): void;
+            onUpdate?(): void;
+        };
+        onStart?: (object: any) => void;
+        onUpdate?: (object: any) => void;
+    }
+>;
+
+/**
+ * Defines the overall desired quality of the scene.
+ * In other words, defines the quality of textures that will be loaded in terms of dimensions.
+ * The editor computes automatic "hight (untouched)", "medium (half)", and "low (quarter)" quality levels for textures.
+ * Using "medium" or "low" quality levels will reduce the memory usage and improve the performance of the scene
+ * especially on mobiles where memory is limited.
+ */
+export type SceneLoaderQualitySelector = "low" | "medium" | "high";
+
+export type SceneLoaderOptions = {
+    quality?: SceneLoaderQualitySelector;
+    onProgress?: (value: number) => void;
+};
+
+declare module "@babylonjs/core/scene" {
+    interface Scene {
+        loadingQuality: SceneLoaderQualitySelector;
+    }
+}
+
+export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
+    scene.loadingQuality = options?.quality ?? "high";
+
+    await SceneLoader.AppendAsync(rootUrl, sceneFilename, scene, (event) => {
+        const progress = Math.min(event.loaded / event.total, 0.99);
+        options?.onProgress?.(progress);
+    }, ".babylon");
+
+    // Wait until scene is ready.
+    while (!scene.isReady() || scene.getWaitingItemsCount() > 0) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 150));
+    }
+
+    options?.onProgress?.(1);
+
+    // Ensure all meshes perform their delay state check
+    if (SceneLoader.ForceFullSceneLoadingForIncremental) {
+        scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
+    }
+
+    configureShadowMapRenderListPredicate(scene);
+    configureShadowMapRefreshRate(scene);
+
+    if (scene.metadata?.rendering) {
+        applyRenderingConfigurations(scene, scene.metadata.rendering);
+
+        if (scene.activeCamera) {
+            applyRenderingConfigurationForCamera(scene.activeCamera);
+        }
+    }
+
+    applyScriptForObject(scene, scene, scriptsMap, rootUrl);
+
+    scene.transformNodes.forEach((transformNode) => {
+        applyScriptForObject(scene, transformNode, scriptsMap, rootUrl);
+    });
+
+    scene.meshes.forEach((mesh) => {
+        configurePhysicsAggregate(mesh);
+        applyScriptForObject(scene, mesh, scriptsMap, rootUrl);
+    });
+
+    scene.lights.forEach((light) => {
+        applyScriptForObject(scene, light, scriptsMap, rootUrl);
+    });
+
+    scene.cameras.forEach((camera) => {
+        applyScriptForObject(scene, camera, scriptsMap, rootUrl);
+    });
+}

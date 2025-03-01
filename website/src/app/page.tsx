@@ -65,7 +65,7 @@ export default function HomePage() {
                     style={{
                         filter: `brightness(${featuresVisible ? 0 : 1})`,
                     }}
-                    className="fixed top-0 left-0 w-screen h-screen z-0 transition-all duration-[1000ms] ease-in-out"
+                    className="fixed top-0 left-0 w-screen h-screen z-0 transition-all duration-1000 ease-in-out"
                 >
                     <LandingRendererComponent
                         scrollRatio={scrollRatio}
@@ -147,7 +147,7 @@ export default function HomePage() {
                         </Fade>
                     </div>
 
-                    <div className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-[3000ms] ease-in-out`}>
+                    <div className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-3000 ease-in-out`}>
                         <div className="flex justify-center items-center max-w-7xl mx-auto">
                             <Fade triggerOnce className="w-full">
                                 <div className="flex flex-col justify-center gap-2">
@@ -205,7 +205,7 @@ export default function HomePage() {
                         </Fade>
                     </div>
 
-                    <div className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-[3000ms] ease-in-out`}>
+                    <div className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-3000 ease-in-out`}>
                         <div className="flex justify-center items-center max-w-7xl mx-auto">
                             <Fade triggerOnce className="w-full">
                                 <div className="flex flex-col justify-center gap-2">

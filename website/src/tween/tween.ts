@@ -128,19 +128,19 @@ export class Tween {
     /**
      * Defines the reference to the scene where to play the tweens.
      */
-    public static Scene: Nullable<Scene> = null;
+    public static scene: Nullable<Scene> = null;
 
     /**
      * Defines the default easing function used when playing tweens.
      */
-    public static DefaultEasing: Nullable<ITweenEasingConfiguration> = null;
+    public static defaultEasing: Nullable<ITweenEasingConfiguration> = null;
 
     /**
      * Kills (stops) all the tweens that animate to given target.
      * @param target defines the reference to the target to kill all its attached tweens.
      * @returns true if at least one tween has been killed.
      */
-    public static KillTweensOf<T>(target: T | T[]): boolean {
+    public static killTweensOf<T>(target: T | T[]): boolean {
         target = Array.isArray(target) ? target : [target];
 
         const result = target.map((t) => {
@@ -173,12 +173,12 @@ export class Tween {
      * @param properties defines the dictionary of all animated properties.
      * @returns a reference to a tween.
      */
-    public static CreateForCSS(
+    public static createForCSS(
         target: HTMLElement,
         duration: number,
         options: ITweenConfiguration
     ): Tween {
-        this._ConfigureOptions(options);
+        this._configureOptions(options);
 
         const keys = Object.keys(options.properties!);
         const values: { [propertyPath: string]: number; } = {};
@@ -187,7 +187,7 @@ export class Tween {
             values[k] = options.properties![k].from ?? (parseFloat(target.style[k]) || 0);
         });
 
-        return this.Create<any>(values, duration, {
+        return this.create<any>(values, duration, {
             ...options,
             onUpdate: () => {
                 keys.forEach((k: any) => {
@@ -197,7 +197,17 @@ export class Tween {
         });
     }
 
-    private static _ConfigureOptions(options: ITweenConfiguration): void {
+    /**
+     * Waits for the given duration expressed in seconds.
+     * @param duration defines the duration expressed in seconds.
+     */
+    public static wait(duration: number): Promise<void> {
+        return new Promise<void>((resolve) => {
+            setTimeout(resolve, duration * 1000);
+        });
+    }
+
+    private static _configureOptions(options: ITweenConfiguration): void {
         options.properties ??= {};
 
         Object.keys(options).forEach((k) => {
@@ -216,27 +226,27 @@ export class Tween {
      * @param options defines the options the tween (easing, delay, etc.).
      * @returns a reference to a tween.
      */
-    public static Create<T>(
+    public static create<T>(
         target: Nullable<T> | Nullable<T>[],
         duration: number,
         options: ITweenConfiguration
     ): Tween {
-        if (!this.Scene) {
+        if (!this.scene) {
             throw new Error("Scene not available for tween");
         }
 
         if (options.killAllTweensOfTarget) {
-            this.KillTweensOf(target);
+            this.killTweensOf(target);
         }
 
-        this._ConfigureOptions(options);
+        this._configureOptions(options);
 
         target = Array.isArray(target) ? target : [target];
 
         const animations: Animation[] = [];
         const animatables: Animatable[] = [];
 
-        const scene = options.scene ?? Tween.Scene!;
+        const scene = options.scene ?? Tween.scene!;
         const properties = Object.keys(options.properties!);
 
         let maxFrame = 0;
@@ -256,7 +266,7 @@ export class Tween {
                 }
 
                 const targetProperty = k.split(".").pop()!;
-                const effectiveTarget = this._GetEffectiveTarget(t, k);
+                const effectiveTarget = this._getEffectiveTarget(t, k);
                 const animatedProperty = effectiveTarget?.[targetProperty];
 
                 if ((animatedProperty ?? null) === null) {
@@ -305,13 +315,13 @@ export class Tween {
                     k,
                     k,
                     60,
-                    this._GetAnimationType(animatedProperty)!,
+                    this._getAnimationType(animatedProperty)!,
                     Animation.ANIMATIONLOOPMODE_RELATIVE
                 );
                 a.setKeys(keys);
 
                 // Easing
-                const easing = property.easing ?? options.easing ?? Tween.DefaultEasing;
+                const easing = property.easing ?? options.easing ?? Tween.defaultEasing;
                 if (easing?.type) {
                     if ((easing.mode ?? null) !== null) {
                         easing.type.setEasingMode(easing.mode);
@@ -367,7 +377,7 @@ export class Tween {
     /**
      * Returns the animation type according to the given animated property type.
      */
-    private static _GetAnimationType(effectiveProperty: any): Nullable<number> {
+    private static _getAnimationType(effectiveProperty: any): Nullable<number> {
         if (!isNaN(parseFloat(effectiveProperty)) && isFinite(effectiveProperty)) {
             return Animation.ANIMATIONTYPE_FLOAT;
         } else if (effectiveProperty instanceof Quaternion) {
@@ -390,7 +400,7 @@ export class Tween {
     /**
      * Given a path to a property, return the effective property by deconstructing the path.
      */
-    private static _GetEffectiveTarget(target: any, propertyPath: string): any {
+    private static _getEffectiveTarget(target: any, propertyPath: string): any {
         const properties = propertyPath.split(".");
 
         for (let index = 0; index < properties.length - 1; index++) {

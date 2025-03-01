@@ -82,8 +82,8 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
 
         const scene = new Scene(engine);
 
-        Tween.Scene = scene;
-        Tween.DefaultEasing = {
+        Tween.scene = scene;
+        Tween.defaultEasing = {
             type: new CubicEase(),
             mode: CubicEase.EASINGMODE_EASEINOUT,
         };
@@ -132,11 +132,11 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
 
     useEffect(() => {
         if (lightsPostProcess && circlePostProcess) {
-            Tween.Create(lightsPostProcess, 1, {
+            Tween.create(lightsPostProcess, 1, {
                 killAllTweensOfTarget: true,
                 "alpha": props.postProcessVisible ? 1 : 0,
             });
-            Tween.Create(circlePostProcess, 1, {
+            Tween.create(circlePostProcess, 1, {
                 killAllTweensOfTarget: true,
                 "alpha": props.postProcessVisible ? 1 : 0,
             });
@@ -161,7 +161,7 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
                     w-full h-full outline-none select-none
                     ${ready ? "" : "brightness-0"}
                     ${props.postProcessVisible ? "scale-150 blur-lg" : ""}
-                    transition-all duration-[3000ms] ease-in-out
+                    transition-all duration-3000 ease-in-out
                 `}
             />
 

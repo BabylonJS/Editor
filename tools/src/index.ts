@@ -1,5 +1,6 @@
-export * from "./loader";
-export * from "./texture";
+export * from "./loading/loader";
+
+export * from "./tools/texture";
 
 export * from "./rendering/ssao";
 export * from "./rendering/ssr";

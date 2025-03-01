@@ -4,6 +4,11 @@ import { SSAO2RenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipe
 
 let ssaoRenderingPipeline: SSAO2RenderingPipeline | null = null;
 
+/**
+ * Defines the configuration of the SSAO rendering pipeline per camera.
+ */
+export const ssaoRenderingPipelineCameraConfigurations = new Map<Camera, any>();
+
 export function getSSAO2RenderingPipeline(): SSAO2RenderingPipeline | null {
     return ssaoRenderingPipeline;
 }

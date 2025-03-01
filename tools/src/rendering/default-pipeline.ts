@@ -7,6 +7,11 @@ import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPi
 let defaultRenderingPipeline: DefaultRenderingPipeline | null = null;
 
 /**
+ * Defines the configuration of the default rendering pipeline per camera.
+ */
+export const defaultPipelineCameraConfigurations = new Map<Camera, any>();
+
+/**
  * Returns the reference to the default rendering pipeline if exists.
  */
 export function getDefaultRenderingPipeline(): DefaultRenderingPipeline | null {

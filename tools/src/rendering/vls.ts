@@ -1,12 +1,18 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Camera } from "@babylonjs/core/Cameras/camera";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { VolumetricLightScatteringPostProcess } from "@babylonjs/core/PostProcesses/volumetricLightScatteringPostProcess";
 
-import { isMesh } from "../guards";
+import { isMesh } from "../tools/guards";
 
 let vlsPostProcess: VolumetricLightScatteringPostProcess | null = null;
+
+/**
+ * Defines the configuration of the motion blur post-process per camera.
+ */
+export const vlsPostProcessCameraConfigurations = new Map<Camera, any>();
 
 export function getVLSPostProcess(): VolumetricLightScatteringPostProcess | null {
     return vlsPostProcess;

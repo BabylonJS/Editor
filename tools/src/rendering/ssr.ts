@@ -4,6 +4,11 @@ import { SSRRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeli
 
 let ssrRenderingPipeline: SSRRenderingPipeline | null = null;
 
+/**
+ * Defines the configuration of the ssr rendering pipeline per camera.
+ */
+export const ssrRenderingPipelineCameraConfigurations = new Map<Camera, any>();
+
 export function getSSRRenderingPipeline(): SSRRenderingPipeline | null {
     return ssrRenderingPipeline;
 }

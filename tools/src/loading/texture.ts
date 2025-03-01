@@ -1,26 +1,9 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Nullable } from "@babylonjs/core/types";
-import { Engine } from "@babylonjs/core/Engines/engine";
 import { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators.serialization";
 
-import { getPowerOfTwoUntil } from "./tools/scalar";
-
-/**
- * Set the compressed texture format to use, based on the formats you have, and the formats
- * supported by the hardware / browser.
- * @param engine defines the reference to the engine to configure the texture format to use.
- * @see `@babylonjs/core/Engines/Extensions/engine.textureSelector.d.ts` for more information.
- */
-export function configureEngineToUseCompressedTextures(engine: Engine) {
-    engine.setTextureFormatToUse([
-        "-dxt.ktx",
-        "-astc.ktx",
-        "-pvrtc.ktx",
-        "-etc1.ktx",
-        "-etc2.ktx",
-    ]);
-}
+import { getPowerOfTwoUntil } from "../tools/scalar";
 
 /**
  * Defines the reference to the original texture parser function.

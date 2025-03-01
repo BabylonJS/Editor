@@ -2,7 +2,7 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 
-import { isMesh } from "./guards";
+import { isMesh } from "../tools/guards";
 
 /**
  * Parses and loads the physics aggregate data for the given mesh.

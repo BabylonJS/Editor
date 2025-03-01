@@ -4,6 +4,11 @@ import { MotionBlurPostProcess } from "@babylonjs/core/PostProcesses/motionBlurP
 
 let motionBlurPostProcess: MotionBlurPostProcess | null = null;
 
+/**
+ * Defines the configuration of the motion blur post-process per camera.
+ */
+export const motionBlurPostProcessCameraConfigurations = new Map<Camera, any>();
+
 export function getMotionBlurPostProcess(): MotionBlurPostProcess | null {
     return motionBlurPostProcess;
 }

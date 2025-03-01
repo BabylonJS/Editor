@@ -83,7 +83,9 @@ export default function Home() {
         scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
 
         SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
-        await loadScene("/scene/", "example.babylon", scene, scriptsMap, "high");
+        await loadScene("/scene/", "example.babylon", scene, scriptsMap, {
+            quality: "high",
+        });
 
         if (scene.activeCamera) {
             scene.activeCamera.attachControl();
