@@ -9,7 +9,12 @@ import { Editor } from "../../editor/main";
 
 import { compressFileToKtx } from "./ktx";
 
-export async function handleComputeExportedTexture(editor: Editor, absolutePath: string, force: boolean): Promise<void> {
+export type ComputeExportedTextureOptions = {
+    force: boolean;
+    exportedAssets: string[];
+};
+
+export async function processExportedTexture(editor: Editor, absolutePath: string, options: ComputeExportedTextureOptions): Promise<void> {
     const extension = extname(absolutePath).toLocaleLowerCase();
 
     const metadata = await sharp(absolutePath).metadata();
@@ -60,7 +65,9 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
         const finalName = `${nameWithoutExtension}_${size.width}_${size.height}${extension}`;
         const finalPath = join(dirname(absolutePath), finalName);
 
-        if (force || !await pathExists(finalPath)) {
+        options.exportedAssets.push(finalPath);
+
+        if (options.force || !await pathExists(finalPath)) {
             const log = await editor.layout.console.progress(`Exporting scaled image "${finalName}"`);
 
             try {
@@ -81,6 +88,9 @@ export async function handleComputeExportedTexture(editor: Editor, absolutePath:
             }
         }
 
-        await compressFileToKtx(editor, finalPath, undefined, force);
+        await compressFileToKtx(editor, finalPath, {
+            force: options.force,
+            exportedAssets: options.exportedAssets,
+        });
     }
 }

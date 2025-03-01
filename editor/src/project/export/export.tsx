@@ -1,5 +1,5 @@
 import { join, dirname, basename, extname } from "path/posix";
-import { copyFile, pathExists, readJSON, readdir, remove, stat, writeJSON } from "fs-extra";
+import { readJSON, readdir, remove, writeJSON } from "fs-extra";
 
 import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
@@ -21,37 +21,11 @@ import { Editor } from "../../editor/main";
 
 import { writeBinaryGeometry } from "../geometry";
 
-import { compressFileToKtx } from "./ktx";
+import { processAssetFile } from "./assets";
 import { configureMeshesLODs } from "./lod";
 import { handleExportScripts } from "./scripts";
 import { configureMeshesPhysics } from "./physics";
-import { handleComputeExportedTexture } from "./texture";
 import { EditorExportProjectProgressComponent } from "./progress";
-
-const supportedImagesExtensions: string[] = [
-    ".jpg", ".jpeg",
-    ".png",
-    ".bmp",
-];
-
-const supportedCubeTexturesExtensions: string[] = [
-    ".env", ".dds",
-];
-
-const supportedAudioExtensions: string[] = [
-    ".mp3", ".wav", ".wave", ".ogg",
-];
-
-const supportedJsonExtensions: string[] = [
-    ".gui", ".cinematic",
-];
-
-const supportedExtensions: string[] = [
-    ...supportedImagesExtensions,
-    ...supportedCubeTexturesExtensions,
-    ...supportedAudioExtensions,
-    ...supportedJsonExtensions,
-];
 
 export type IExportProjectOptions = {
     optimize: boolean;
@@ -256,6 +230,7 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
     await handleExportScripts(editor);
 
     // Export assets
+    const exportedAssets: string[] = [];
     const promises: Promise<void>[] = [];
     const progressStep = 100 / files.length;
 
@@ -273,7 +248,13 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
         }
 
         promises.push(new Promise<void>(async (resolve) => {
-            await processFile(editor, file as string, options.optimize, scenePath, projectDir, cache);
+            await processAssetFile(editor, file.toString(), {
+                cache,
+                scenePath,
+                projectDir,
+                exportedAssets,
+                optimize: options.optimize,
+            });
             progress?.step(progressStep);
             resolve();
         }));
@@ -290,58 +271,15 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
 
     if (options.optimize) {
         toast.success("Project exported");
-    }
-}
 
-async function processFile(editor: Editor, file: string, optimize: boolean, scenePath: string, projectDir: string, cache: Record<string, string>): Promise<void> {
-    const extension = extname(file).toLocaleLowerCase();
-    if (!supportedExtensions.includes(extension)) {
-        return;
-    }
+        const publicFiles = await normalizedGlob(join(projectDir, "/public/scene/assets/**/*"), {
+            nodir: true,
+        });
 
-    if (basename(file).startsWith("editor_preview")) {
-        return;
-    }
-
-    const relativePath = file.replace(join(projectDir, "/"), "");
-    const split = relativePath.split("/");
-
-    let path = "";
-    for (let i = 0; i < split.length - 1; ++i) {
-        try {
-            await createDirectoryIfNotExist(join(scenePath, path, split[i]));
-        } catch (e) {
-            // Catch silently.
-        }
-
-        path = join(path, split[i]);
-    }
-
-    let isNewFile = false;
-
-    if (optimize) {
-        const fileStat = await stat(file);
-        const hash = fileStat.mtimeMs.toString();
-
-        isNewFile = !cache[relativePath] || cache[relativePath] !== hash;
-
-        cache[relativePath] = hash;
-    }
-
-    const finalPath = join(scenePath, relativePath);
-    const finalPathExists = await pathExists(finalPath);
-
-    if (supportedExtensions.includes(extension)) {
-        if (isNewFile || !finalPathExists) {
-            await copyFile(file, finalPath);
-        }
-    }
-
-    if (optimize) {
-        await compressFileToKtx(editor, finalPath, undefined, isNewFile);
-    }
-
-    if (optimize && supportedImagesExtensions.includes(extension)) {
-        await handleComputeExportedTexture(editor, finalPath, isNewFile);
+        publicFiles.forEach((file) => {
+            if (!exportedAssets.includes(file.toString())) {
+                remove(file);
+            }
+        });
     }
 }

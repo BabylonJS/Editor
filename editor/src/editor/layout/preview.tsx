@@ -12,7 +12,7 @@ import { GiWireframeGlobe } from "react-icons/gi";
 
 import {
     AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
-    ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin,
+    ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin, PickingInfo,
 } from "babylonjs";
 
 import { Toggle } from "../../ui/shadcn/ui/toggle";
@@ -446,8 +446,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             return;
         }
 
-        const pick = this.scene.pick(x, y, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
-        const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
+        const pickingInfo = this._getPickingInfo(x, y);
+        const mesh = pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh;
 
         if (mesh && this._meshUnderPointer !== mesh) {
             this._restoreCurrentMeshUnderPointer();
@@ -501,9 +501,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             return;
         }
 
-        const pick = this.scene.pick(this.scene.pointerX, this.scene.pointerY, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m));
+        const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
 
-        let mesh = (pick.pickedMesh?._masterMesh ?? pick.pickedMesh) as Node;
+        let mesh = (pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh) as Node;
         if (mesh) {
             const sceneLink = getRootSceneLink(mesh);
             if (sceneLink) {
@@ -517,6 +517,28 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             this.props.editor.layout.inspector.setEditedObject(mesh);
             this.props.editor.layout.animations.setEditedObject(mesh);
         }
+    }
+
+    private _getPickingInfo(x: number, y: number): PickingInfo {
+        const decalPick = this.scene.pick(x, y, (m) => {
+            return m.metadata?.decal && m.isVisible && m.isEnabled();
+        }, false);
+
+        const meshPick = this.scene.pick(x, y, (m) => {
+            return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
+        }, false);
+
+        let pickingInfo = meshPick;
+        if (decalPick?.pickedPoint && meshPick?.pickedPoint) {
+            const distance = Vector3.Distance(decalPick.pickedPoint, meshPick.pickedPoint);
+            const zOffset = decalPick.pickedMesh?.material?.zOffset ?? 0;
+
+            if (distance <= zOffset + 0.01) {
+                pickingInfo = decalPick;
+            }
+        }
+
+        return pickingInfo;
     }
 
     private _resetPointerContextInfo(): void {

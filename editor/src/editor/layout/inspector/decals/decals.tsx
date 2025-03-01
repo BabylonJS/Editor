@@ -239,7 +239,9 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
         this._disposeTemporaryDecalMesh();
 
         const scene = this.props.editor.layout.preview.scene;
-        const pick = scene.pick(offsetX, offsetY, (m) => !m.metadata?.decal, false);
+        const pick = scene.pick(offsetX, offsetY, (m) => {
+            return m !== this._decalMesh && !m.metadata?.decal && m.isVisible && m.isEnabled();
+        }, false);
 
         if (pick.pickedMesh && pick.pickedPoint) {
             EditorDecalsInspector._lastPickedMesh = pick.pickedMesh;

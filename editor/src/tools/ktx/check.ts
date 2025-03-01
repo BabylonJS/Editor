@@ -75,7 +75,11 @@ export async function checkProjectCachedCompressedTextures(editor: Editor) {
             const destinationFolder = join(texturesDirectory, dirname(name));
             await ensureDir(destinationFolder);
 
-            const result = await compressFileToKtxFormat(editor, join(projectDirectory, name), supportedType, isNewFile, destinationFolder);
+            const result = await compressFileToKtxFormat(editor, join(projectDirectory, name), {
+                force: isNewFile,
+                destinationFolder,
+                format: supportedType,
+            });
 
             if (result) {
                 const previousUrl = texture.url;

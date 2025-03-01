@@ -45,23 +45,35 @@ export function setCompressedTexturesCliPath(absolutePath: string) {
     }
 }
 
+/**
+ * Returns the filename of the compressed texture according to the given path and the destination format.
+ * @param path defines the path of the texture to get its final name.
+ * @param format defines the destination format of the texture.
+ * @example image.png -> image-asct.ktx
+ */
 export function getCompressedTextureFilename(path: string, format: KTXToolsType) {
     return `${path.substring(0, path.lastIndexOf("."))}${format}`;
 }
 
-export async function compressFileToKtx(editor: Editor, absolutePath: string, format?: KTXToolsType, force?: boolean, destinationFolder?: string): Promise<void> {
-    if (format) {
-        await compressFileToKtxFormat(editor, absolutePath, format, force);
+export type CompressFileToKtxOptions = {
+    format: KTXToolsType;
+    force?: boolean;
+    exportedAssets?: string[];
+    destinationFolder?: string;
+};
+
+export async function compressFileToKtx(editor: Editor, absolutePath: string, options: Partial<CompressFileToKtxOptions>): Promise<void> {
+    if (options.format) {
+        await compressFileToKtxFormat(editor, absolutePath, options as CompressFileToKtxOptions);
     } else {
-        await Promise.all(allKtxFormats.map((f) => compressFileToKtxFormat(editor, absolutePath, f, force, destinationFolder)));
+        await Promise.all(allKtxFormats.map((f) => compressFileToKtxFormat(editor, absolutePath, {
+            ...options,
+            format: f,
+        })));
     }
 }
 
-export async function compressFileToKtxFormat(editor: Editor, absolutePath: string, format: KTXToolsType, force?: boolean, destinationFolder?: string): Promise<string | null> {
-    if (!editor.state.compressedTexturesEnabled) {
-        return null;
-    }
-
+export async function compressFileToKtxFormat(editor: Editor, absolutePath: string, options: CompressFileToKtxOptions): Promise<string | null> {
     const name = basename(absolutePath);
     const extension = extname(name).toLocaleLowerCase();
 
@@ -69,13 +81,19 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
         return null;
     }
 
-    const filename = getCompressedTextureFilename(name, format);
+    const filename = getCompressedTextureFilename(name, options.format);
 
-    destinationFolder ??= dirname(absolutePath);
-    destinationFolder = join(destinationFolder, filename);
+    options.destinationFolder ??= dirname(absolutePath);
+    options.destinationFolder = join(options.destinationFolder, filename);
 
-    if (await pathExists(destinationFolder) && !force) {
-        return destinationFolder;
+    if (!editor.state.compressedTexturesEnabled) {
+        options.exportedAssets?.push(options.destinationFolder);
+        return null;
+    }
+
+    if (await pathExists(options.destinationFolder) && !options.force) {
+        options.exportedAssets?.push(options.destinationFolder);
+        return options.destinationFolder;
     }
 
     const hasAlpha = await new Promise<boolean>((resolve) => {
@@ -99,25 +117,25 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
     }
 
     let command: string | null = null;
-    switch (format) {
+    switch (options.format) {
         case "-astc.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q astcveryfast -o "${destinationFolder}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q astcveryfast -o "${options.destinationFolder}"`;
             break;
 
         case "-dxt.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${destinationFolder}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${options.destinationFolder}"`;
             break;
 
         case "-pvrtc.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q pvrtcfastest -o "${destinationFolder}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q pvrtcfastest -o "${options.destinationFolder}"`;
             break;
 
         case "-etc1.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q etcfast -o "${destinationFolder}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q etcfast -o "${options.destinationFolder}"`;
             break;
 
         case "-etc2.ktx":
-            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q etcfast -o "${destinationFolder}"`;
+            command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q etcfast -o "${options.destinationFolder}"`;
             break;
     }
 
@@ -134,6 +152,8 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
             done: true,
             message: `Compressed image "${filename}"`,
         });
+
+        options.exportedAssets?.push(options.destinationFolder);
     } catch (e) {
         log.setState({
             done: true,
@@ -142,5 +162,5 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
         });
     }
 
-    return destinationFolder;
+    return options.destinationFolder;
 }

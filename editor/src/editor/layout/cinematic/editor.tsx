@@ -137,12 +137,12 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
     public componentDidMount(): void {
         this._undoObserver = onUndoObservable.add(() => {
             this.forceUpdate();
-            this.inspector.forceUpdate();
+            this.timelines.updateTracksAtCurrentTime();
         });
 
         this._redoObserver = onRedoObservable.add(() => {
             this.forceUpdate();
-            this.inspector.forceUpdate();
+            this.timelines.updateTracksAtCurrentTime();
         });
 
         window.addEventListener("keyup", this._onKeyUpListener = (ev) => {
