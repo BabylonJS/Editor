@@ -78,12 +78,12 @@ export default function MansionExperimentPage() {
     );
 }
 
-export interface IMansionExperimentComponentState {
+interface IMansionExperimentComponentState {
     loading: boolean;
     step: ExperimentStep;
 }
 
-export class MansionExperimentComponent extends Component<unknown, IMansionExperimentComponentState> {
+class MansionExperimentComponent extends Component<unknown, IMansionExperimentComponentState> {
     private _canvas: HTMLCanvasElement = null!;
 
     private _engine: Engine = null!;
@@ -129,7 +129,7 @@ export class MansionExperimentComponent extends Component<unknown, IMansionExper
             stencil: true,
             antialias: true,
             audioEngine: true,
-            adaptToDeviceRatio: true,
+            adaptToDeviceRatio: !isMobile(),
             premultipliedAlpha: false,
             disableWebGL2Support: false,
             preserveDrawingBuffer: true,
