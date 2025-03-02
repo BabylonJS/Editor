@@ -53,21 +53,29 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
     scene.loadingQuality = options?.quality ?? "high";
 
     await SceneLoader.AppendAsync(rootUrl, sceneFilename, scene, (event) => {
-        const progress = Math.min(event.loaded / event.total, 0.99);
+        const progress = Math.min((event.loaded / event.total) * 0.5);
         options?.onProgress?.(progress);
     }, ".babylon");
-
-    // Wait until scene is ready.
-    while (!scene.isReady() || scene.getWaitingItemsCount() > 0) {
-        await new Promise<void>((resolve) => setTimeout(resolve, 150));
-    }
-
-    options?.onProgress?.(1);
 
     // Ensure all meshes perform their delay state check
     if (SceneLoader.ForceFullSceneLoadingForIncremental) {
         scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
     }
+
+    const waitingItemsCount = scene.getWaitingItemsCount();
+
+    // Wait until scene is ready.
+    while (!scene.isReady() || scene.getWaitingItemsCount() > 0) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 150));
+
+        const loadedItemsCount = waitingItemsCount - scene.getWaitingItemsCount();
+
+        options?.onProgress?.(
+            0.5 + (loadedItemsCount / waitingItemsCount) * 0.5,
+        );
+    }
+
+    options?.onProgress?.(1);
 
     configureShadowMapRenderListPredicate(scene);
     configureShadowMapRefreshRate(scene);

@@ -102,7 +102,7 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
         this.state = {
             step: "menu",
 
-            loading: true,
+            loading: false,
             loadingProgress: 0,
         };
     }
@@ -227,7 +227,8 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
             exposure: 0,
         });
 
-        await this._mainMenuComponents.hideTitle();
+        this._mainMenuComponents.hideTitle();
+        await Tween.wait(4);
 
         this._loadCinematic();
     }
