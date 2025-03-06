@@ -17,6 +17,7 @@ import { CinematicEditor } from "../editor";
 
 import { CinematicEditorTrackItem } from "./property-item";
 import { CinematicEditorSoundTrackItem } from "./sound-item";
+import { CinematicEditorEventTrackItem } from "./event-item";
 import { CinematicEditorAnimationGroupTrackItem } from "./animation-group-item";
 
 export interface ICinematicEditorTracksPanelProps {
@@ -49,6 +50,9 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => this._handleAddSoundTrack()}>
                                 Sound Track
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => this._handleAddEventTrack()}>
+                                Event Track
                             </DropdownMenuItem>
 
                             <DropdownMenuSeparator />
@@ -123,6 +127,17 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
                                 onRemove={(track) => this._handleRemoveTrack(track)}
                             />;
                         }
+
+                        if (track.keyFrameEvents) {
+                            return <CinematicEditorEventTrackItem
+                                key={`${track.propertyPath}${index}`}
+                                track={track}
+                                editor={this.props.editor}
+                                cinematic={this.props.cinematic}
+                                cinematicEditor={this.props.cinematicEditor}
+                                onRemove={(track) => this._handleRemoveTrack(track)}
+                            />;
+                        }
                     })}
                 </div>
             </div>
@@ -183,6 +198,25 @@ export class CinematicEditorTracksPanel extends Component<ICinematicEditorTracks
     private _handleAddSoundTrack(): void {
         const track = {
             sounds: [],
+        } as ICinematicTrack;
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                const index = this.props.cinematic.tracks.indexOf(track);
+                if (index !== -1) {
+                    this.props.cinematic.tracks.splice(index, 1);
+                }
+            },
+            redo: () => this.props.cinematic.tracks.push(track),
+        });
+
+        this.forceUpdate();
+    }
+
+    private _handleAddEventTrack(): void {
+        const track = {
+            keyFrameEvents: [],
         } as ICinematicTrack;
 
         registerUndoRedo({

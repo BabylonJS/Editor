@@ -35,6 +35,12 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
                 sound: track.sound?.id,
                 sounds: track.sounds,
 
+                keyFrameEvents: track.keyFrameEvents?.map((key) => ({
+                    type: "event",
+                    frame: key.frame,
+                    data: key.data?.serialize(),
+                })),
+
                 keyFrameAnimations: animationType === null ? undefined : track.keyFrameAnimations?.map((keyFrame) => {
                     if (isCinematicKey(keyFrame)) {
                         return {

@@ -1,9 +1,10 @@
 import { Component, MouseEvent, ReactNode } from "react";
 
-import { Animation, AnimationGroup } from "babylonjs";
+import { Animation, AnimationGroup, HavokPlugin, Node } from "babylonjs";
 
 import { Editor } from "../../../main";
 
+import { isMesh } from "../../../../tools/guards/nodes";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { isDomElementDescendantOf } from "../../../../tools/dom";
@@ -45,6 +46,8 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
     private _temporaryAnimationGroup: AnimationGroup | null = null;
 
     private _divRef: HTMLDivElement | null = null;
+
+    private _sceneState: Map<Node, any> = new Map();
 
     public constructor(props: ICinematicEditorTimelinePanelProps) {
         super(props);
@@ -252,7 +255,7 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
                 });
 
                 this.tracks.forEach((track) => {
-                    track?.sortKeyFrameAnimationsKeys();
+                    track?.sortAnimationsKeys();
                 });
             },
             redo: () => {
@@ -330,6 +333,8 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
             return;
         }
 
+        this._saveSceneState();
+
         const scene = this.props.editor.layout.preview.scene;
         const engine = this.props.editor.layout.preview.engine;
 
@@ -393,5 +398,70 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         this.props.cinematic.tracks.forEach((track) => {
             track.sound?.stop();
         });
+
+        this._restoreSceneState();
+    }
+
+    private _saveSceneState(): void {
+        const scene = this.props.editor.layout.preview.scene;
+        const nodes = [...scene.meshes, ...scene.lights, ...scene.cameras];
+
+        nodes.forEach((node) => {
+            this._sceneState.set(node, {
+                isEnabled: node.isEnabled(),
+
+                position: isMesh(node) ? node.position.clone() : null,
+                rotation: isMesh(node) ? node.rotation.clone() : null,
+                scaling: isMesh(node) ? node.scaling.clone() : null,
+                rotationQuaternion: isMesh(node) ? node.rotationQuaternion?.clone() : null,
+            });
+
+            if (isMesh(node) && node.physicsAggregate?.body) {
+                node.physicsAggregate.body.disableSync = false;
+
+                const position = node.getAbsolutePosition();
+                const orientation = node.rotationQuaternion ?? node.rotation.toQuaternion();
+
+                const physicsEngine = scene.getPhysicsEngine()?.getPhysicsPlugin() as HavokPlugin | null;
+
+                physicsEngine?._hknp.HP_Body_SetQTransform(
+                    node.physicsAggregate.body._pluginData.hpBodyId,
+                    [
+                        [position.x, position.y, position.z],
+                        [orientation.x, orientation.y, orientation.z, orientation.w],
+                    ],
+                );
+            }
+        });
+    }
+
+    private _restoreSceneState(): void {
+        this._sceneState.forEach((config, node) => {
+            node.setEnabled(config.isEnabled);
+
+            if (isMesh(node)) {
+                if (config.position) {
+                    node.position.copyFrom(config.position);
+                }
+
+                if (config.rotation) {
+                    node.rotation.copyFrom(config.rotation);
+                }
+
+                if (config.rotationQuaternion) {
+                    node.rotationQuaternion?.copyFrom(config.rotationQuaternion);
+                }
+
+                if (config.scaling) {
+                    node.scaling.copyFrom(config.scaling);
+                }
+
+                if (node.physicsAggregate?.body) {
+                    node.physicsAggregate.body.disableSync = true;
+                }
+            }
+        });
+
+        this._sceneState = new Map();
     }
 }

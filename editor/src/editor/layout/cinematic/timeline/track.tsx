@@ -15,8 +15,8 @@ import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline
 
 import { Editor } from "../../../main";
 
-import { isCinematicGroup, isCinematicKeyCut, isCinematicSound } from "../schema/guards";
-import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicSound, ICinematicTrack } from "../schema/typings";
+import { isCinematicGroup, isCinematicKeyCut, isCinematicKeyEvent, isCinematicSound } from "../schema/guards";
+import { ICinematic, ICinematicKeyAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent, ICinematicKeySound, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEditor } from "../editor";
 
@@ -67,7 +67,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                         `}
                     >
                         <TooltipProvider>
-                            {(this.props.track.keyFrameAnimations ?? this.props.track.animationGroups ?? this.props.track.sounds)?.map((key, index) => (
+                            {(this.props.track.keyFrameAnimations ?? this.props.track.animationGroups ?? this.props.track.sounds ?? this.props.track.keyFrameEvents)?.map((key, index) => (
                                 <CinematicEditorTimelineKey
                                     key={index}
                                     cinematicKey={key}
@@ -137,6 +137,14 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                             </ContextMenuItem>
                         </>
                     }
+
+                    {this.props.track.keyFrameEvents &&
+                        <>
+                            <ContextMenuItem className="flex items-center gap-2" onClick={() => this.addEventKey()}>
+                                <AiOutlinePlus className="w-5 h-5" /> Add Event Here
+                            </ContextMenuItem>
+                        </>
+                    }
                 </ContextMenuContent>
             </ContextMenu>
         );
@@ -145,12 +153,24 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
     /**
      * Sorts all the keys in the track based on their frame value.
      */
-    public sortKeyFrameAnimationsKeys(): void {
+    public sortAnimationsKeys(): void {
         this.props.track.keyFrameAnimations?.sort((a, b) => {
             const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
             const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
 
             return frameA - frameB;
+        });
+
+        this.props.track.keyFrameEvents?.sort((a, b) => {
+            return a.frame - b.frame;
+        });
+
+        this.props.track.animationGroups?.sort((a, b) => {
+            return a.frame - b.frame;
+        });
+
+        this.props.track.sounds?.sort((a, b) => {
+            return a.frame - b.frame;
         });
     }
 
@@ -212,7 +232,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
             },
             redo: () => this.props.track.keyFrameAnimations!.push(key),
             action: () => {
-                this.sortKeyFrameAnimationsKeys();
+                this.sortAnimationsKeys();
             },
         });
 
@@ -241,7 +261,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
             speed: 1,
             startFrame: animationGroup.from,
             endFrame: animationGroup.to,
-        } as ICinematicAnimationGroup;
+        } as ICinematicKeyAnimationGroup;
 
         registerUndoRedo({
             executeRedo: true,
@@ -291,7 +311,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
             speed: 1,
             startFrame: 0,
             endFrame: duration * fps,
-        } as ICinematicSound;
+        } as ICinematicKeySound;
 
         registerUndoRedo({
             executeRedo: true,
@@ -303,6 +323,49 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
             },
             redo: () => this.props.track.sounds!.push(key),
             action: () => this.props.track.sounds?.sort((a, b) => a.frame - b.frame),
+        });
+
+        this.setState({ rightClickPositionX: null });
+    }
+
+    /**
+     * Adds a new event key for this track located at the current time selected in
+     * the animation editor using the time tracker.
+     */
+    public addEventKey(positionX?: number | null): void {
+        positionX ??= this.state.rightClickPositionX;
+
+        if (positionX === null) {
+            return;
+        }
+
+        const frame = Math.round(positionX / this.props.scale);
+
+        const existingKey = this.props.track.keyFrameEvents!.find((k) => {
+            return k.frame === frame;
+        });
+
+        if (existingKey) {
+            return;
+        }
+
+        const key = {
+            frame,
+            type: "event",
+        } as ICinematicKeyEvent;
+
+        registerUndoRedo({
+            executeRedo: true,
+            undo: () => {
+                const index = this.props.track.keyFrameEvents!.indexOf(key);
+                if (index !== -1) {
+                    this.props.track.keyFrameEvents!.splice(index, 1);
+                }
+            },
+            redo: () => this.props.track.keyFrameEvents!.push(key),
+            action: () => {
+                this.sortAnimationsKeys();
+            },
         });
 
         this.setState({ rightClickPositionX: null });
@@ -361,7 +424,7 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
         this.forceUpdate();
     }
 
-    private _onAnimationKeyRemoved(key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound): void {
+    private _onAnimationKeyRemoved(key: ICinematicKey | ICinematicKeyCut | ICinematicKeyAnimationGroup | ICinematicKeySound | ICinematicKeyEvent): void {
         if (isCinematicGroup(key)) {
             const index = this.props.track.animationGroups!.indexOf(key);
             if (index === -1) {
@@ -383,6 +446,17 @@ export class CinematicEditorTimelineItem extends Component<ICinematicEditorTimel
                 executeRedo: true,
                 undo: () => this.props.track.sounds!.splice(index, 0, key),
                 redo: () => this.props.track.sounds!.splice(index, 1),
+            });
+        } else if (isCinematicKeyEvent(key)) {
+            const index = this.props.track.keyFrameEvents!.indexOf(key);
+            if (index === -1) {
+                return;
+            }
+
+            registerUndoRedo({
+                executeRedo: true,
+                undo: () => this.props.track.keyFrameEvents!.splice(index, 0, key),
+                redo: () => this.props.track.keyFrameEvents!.splice(index, 1),
             });
         } else {
             const index = this.props.track.keyFrameAnimations!.indexOf(key);

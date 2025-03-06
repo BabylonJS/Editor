@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/u
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
 import { isCinematicGroup, isCinematicKey, isCinematicKeyCut, isCinematicSound } from "../schema/guards";
-import { ICinematic, ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicSound, ICinematicTrack } from "../schema/typings";
+import { ICinematic, ICinematicKeyAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent, ICinematicKeySound, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEditor } from "../editor";
 
@@ -19,10 +19,10 @@ export interface ICinematicEditorTimelineKeyProps {
     cinematic: ICinematic;
     cinematicTrack: ICinematicTrack;
     cinematicEditor: CinematicEditor;
-    cinematicKey: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound;
+    cinematicKey: ICinematicKey | ICinematicKeyCut | ICinematicKeyAnimationGroup | ICinematicKeySound | ICinematicKeyEvent;
 
-    onClicked: (key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound) => void;
-    onRemoved: (key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound) => void;
+    onClicked: (key: ICinematicKey | ICinematicKeyCut | ICinematicKeyAnimationGroup | ICinematicKeySound | ICinematicKeyEvent) => void;
+    onRemoved: (key: ICinematicKey | ICinematicKeyCut | ICinematicKeyAnimationGroup | ICinematicKeySound | ICinematicKeyEvent) => void;
     onMoved: (movedKeys: ICinematicKeyConfigurationToMove[][]) => void;
 }
 
@@ -32,7 +32,7 @@ export interface ICinematicEditorTimelineKeyState {
 
 export interface ICinematicKeyConfigurationToMove {
     startPosition: number;
-    key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound;
+    key: ICinematicKey | ICinematicKeyCut | ICinematicKeyAnimationGroup | ICinematicKeySound | ICinematicKeyEvent;
 }
 
 export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimelineKeyProps, ICinematicEditorTimelineKeyState> {
@@ -83,7 +83,7 @@ export class CinematicEditorTimelineKey extends Component<ICinematicEditorTimeli
                                 />
                             }
 
-                            {(this.props.cinematicKey.type === "key" || this.props.cinematicKey.type === "cut") &&
+                            {(this.props.cinematicKey.type === "key" || this.props.cinematicKey.type === "cut" || this.props.cinematicKey.type === "event") &&
                                 <div
                                     onMouseDown={(ev) => this._handlePointerDown(ev)}
                                     onDoubleClick={() => this.props.cinematicEditor.timelines.setCurrentTime(this._getFrame())}

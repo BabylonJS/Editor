@@ -15,6 +15,7 @@ import { Editor } from "../../../main";
 
 import { CinematicEditor } from "../editor";
 
+import { EditorInspectorListField } from "../../inspector/fields/list";
 import { EditorInspectorColorField } from "../../inspector/fields/color";
 import { EditorInspectorVectorField } from "../../inspector/fields/vector";
 import { EditorInspectorNumberField } from "../../inspector/fields/number";
@@ -25,8 +26,11 @@ import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 import { registerSimpleUndoRedo, registerUndoRedo } from "../../../../tools/undoredo";
 
-import { isCinematicGroup, isCinematicKey, isCinematicKeyCut, isCinematicSound } from "../schema/guards";
-import { ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicSound, ICinematicTrack } from "../schema/typings";
+import { isCinematicGroup, isCinematicKey, isCinematicKeyCut, isCinematicKeyEvent, isCinematicSound } from "../schema/guards";
+import { ICinematicKeyAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicKeySound, ICinematicTrack, ICinematicKeyEvent } from "../schema/typings";
+
+import { CinematicEventSetEnabled } from "../events/set-enabled";
+import { CinematicEventApplyImpulse } from "../events/apply-impulse";
 
 export interface ICinematicEditorInspectorProps {
     editor: Editor;
@@ -35,7 +39,7 @@ export interface ICinematicEditorInspectorProps {
 
 export interface ICinematicEditorInspectorState {
     track: ICinematicTrack | null;
-    key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | null;
+    key: ICinematicKey | ICinematicKeyCut | ICinematicKeyAnimationGroup | ICinematicKeySound | ICinematicKeyEvent | null;
 }
 
 export class CinematicEditorInspector extends Component<ICinematicEditorInspectorProps, ICinematicEditorInspectorState> {
@@ -62,7 +66,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
      */
     public setEditedKey(
         track: ICinematicTrack | null,
-        key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | null,
+        key: ICinematicKey | ICinematicKeyCut | ICinematicKeyAnimationGroup | null,
     ): void {
         if (key !== this.state.key) {
             this.setState({ track, key });
@@ -97,6 +101,12 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                                 {this._getKeySoundInspector(this.state.key)}
                             </EditorInspectorSectionField>
                         }
+
+                        {isCinematicKeyEvent(this.state.key) &&
+                            <EditorInspectorSectionField title="Properties">
+                                {this._keyKeyEventInspector(this.state.key)}
+                            </EditorInspectorSectionField>
+                        }
                     </>
                 }
 
@@ -114,12 +124,13 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         );
     }
 
-    private _getTitle(key: ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound): string {
+    private _getTitle(key: ICinematicKey | ICinematicKeyCut | ICinematicKeyAnimationGroup | ICinematicKeySound | ICinematicKeyEvent): string {
         switch (key.type) {
             case "key": return "Key";
             case "cut": return "Key Cut";
             case "group": return "Group";
             case "sound": return "Sound";
+            case "event": return "Event";
         }
     }
 
@@ -224,7 +235,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         );
     }
 
-    private _getKeyGroupInspector(key: ICinematicAnimationGroup): ReactNode {
+    private _getKeyGroupInspector(key: ICinematicKeyAnimationGroup): ReactNode {
         const animationGroup = this.state.track?.animationGroup as AnimationGroup;
         if (!animationGroup) {
             return null;
@@ -257,7 +268,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         );
     }
 
-    private _getKeySoundInspector(key: ICinematicSound): ReactNode {
+    private _getKeySoundInspector(key: ICinematicKeySound): ReactNode {
         const sound = this.state.track?.sound as Sound;
         const buffer = sound?.getAudioBuffer();
 
@@ -285,6 +296,61 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
                     this.props.cinematicEditor.timelines.forceUpdate();
                     this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
                 }} />
+            </>
+        );
+    }
+
+    private _keyKeyEventInspector(key: ICinematicKeyEvent): ReactNode {
+        const o = {
+            type: key.data?.type ?? "none",
+        };
+
+        return (
+            <>
+                <EditorInspectorNumberField object={key} property="frame" label="Frame" step={1} min={0} onChange={() => {
+                    this.props.cinematicEditor.timelines.forceUpdate();
+                    this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+                }} />
+
+                <EditorInspectorListField
+                    noUndoRedo
+                    object={o}
+                    property="type"
+                    label="Event Type"
+                    items={[
+                        { text: "None", value: "none" },
+                        { text: "Set Enabled", value: "set-enabled" },
+                        { text: "Apply Impulse", value: "apply-impulse" },
+                    ]}
+                    onChange={(value) => {
+                        const oldData = key.data;
+
+                        registerUndoRedo({
+                            executeRedo: true,
+                            undo: () => {
+                                key.data = oldData;
+                            },
+                            redo: () => {
+                                switch (value) {
+                                    case "set-enabled":
+                                        key.data = new CinematicEventSetEnabled(this.props.editor.layout.preview.scene);
+                                        break;
+                                    case "apply-impulse":
+                                        key.data = new CinematicEventApplyImpulse(this.props.editor.layout.preview.scene);
+                                        break;
+
+                                    default:
+                                        key.data = undefined;
+                                        break;
+                                }
+                            },
+                        });
+
+                        this.forceUpdate();
+                    }}
+                />
+
+                {key.data?.getInspector()}
             </>
         );
     }

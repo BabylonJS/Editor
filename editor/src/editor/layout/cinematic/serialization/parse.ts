@@ -8,7 +8,10 @@ import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
-import { ICinematic, ICinematicKey, ICinematicKeyCut } from "../schema/typings";
+import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent } from "../schema/typings";
+
+import { CinematicEventSetEnabled } from "../events/set-enabled";
+import { CinematicEventApplyImpulse } from "../events/apply-impulse";
 
 /**
  * Parses the given JSON data and returns a new cinematic object.
@@ -48,6 +51,23 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
                 animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
                 animationGroups: track.animationGroups,
                 sounds: track.sounds,
+                keyFrameEvents: track.keyFrameEvents?.map((keyFrame) => {
+                    const eventKey = {
+                        type: keyFrame.type,
+                        frame: keyFrame.frame,
+                    } as ICinematicKeyEvent;
+
+                    switch (keyFrame.data?.type) {
+                        case "set-enabled":
+                            eventKey.data = CinematicEventSetEnabled.parse(scene, keyFrame.data);
+                            break;
+                        case "apply-impulse":
+                            eventKey.data = CinematicEventApplyImpulse.parse(scene, keyFrame.data);
+                            break;
+                    }
+
+                    return eventKey;
+                }),
                 keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
                     const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
                     if (animationKey) {

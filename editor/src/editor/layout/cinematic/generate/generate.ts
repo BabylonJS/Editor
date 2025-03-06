@@ -97,6 +97,42 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
             result.addTargetedAnimation(soundAnimation, dummyObject);
         }
 
+        if (track.keyFrameEvents) {
+            const dummyObject = {
+                dummy: 0,
+            };
+
+            const eventsAnimation = new Animation("events", "dummy", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, false);
+
+            let maxFrame = 0;
+            track.keyFrameEvents.forEach((configuration) => {
+                maxFrame = Math.max(maxFrame, configuration.frame);
+
+                eventsAnimation.addEvent(new AnimationEvent(configuration.frame, () => {
+                    switch (configuration.data?.type) {
+                        case "set-enabled":
+                            if (configuration.data.node) {
+                                configuration.data.node.setEnabled(configuration.data.value);
+                            }
+                            break;
+
+                        case "apply-impulse":
+                            if (configuration.data.mesh?.physicsAggregate?.body) {
+                                configuration.data.mesh.physicsAggregate.body.applyImpulse(configuration.data.force, configuration.data.contactPoint);
+                            }
+                            break;
+                    }
+                }));
+            });
+
+            eventsAnimation.setKeys([
+                { frame: 0, value: 0 },
+                { frame: maxFrame, value: maxFrame },
+            ]);
+
+            result.addTargetedAnimation(eventsAnimation, dummyObject);
+        }
+
         const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
 
         if (!node || !track.propertyPath || !track.keyFrameAnimations) {

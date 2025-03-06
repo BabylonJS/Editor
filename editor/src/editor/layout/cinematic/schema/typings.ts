@@ -1,4 +1,5 @@
 import { IAnimationKey } from "babylonjs";
+import { ICinematicKeyEventData } from "./event";
 
 export interface ICinematic {
     name: string;
@@ -10,19 +11,20 @@ export interface ICinematic {
 
 export interface ICinematicTrack {
     animationGroup?: any;
-    animationGroups?: ICinematicAnimationGroup[];
+    animationGroups?: ICinematicKeyAnimationGroup[];
 
     node?: any;
     defaultRenderingPipeline?: boolean;
 
     sound?: any;
-    sounds?: ICinematicSound[];
+    sounds?: ICinematicKeySound[];
 
     propertyPath?: string;
     keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[];
+    keyFrameEvents?: ICinematicKeyEvent[];
 }
 
-export interface ICinematicAnimationGroup {
+export interface ICinematicKeyAnimationGroup {
     type: "group";
     frame: number;
 
@@ -41,7 +43,14 @@ export interface ICinematicKeyCut {
     key2: IAnimationKey;
 }
 
-export interface ICinematicSound {
+export interface ICinematicKeyEvent {
+    type: "event";
+    frame: number;
+
+    data?: ICinematicKeyEventData;
+}
+
+export interface ICinematicKeySound {
     type: "sound";
 
     frame: number;
