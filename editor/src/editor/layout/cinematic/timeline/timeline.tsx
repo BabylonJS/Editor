@@ -404,11 +404,11 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
 
     private _saveSceneState(): void {
         const scene = this.props.editor.layout.preview.scene;
-        const nodes = [...scene.meshes, ...scene.lights, ...scene.cameras];
+        const nodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
 
         nodes.forEach((node) => {
             this._sceneState.set(node, {
-                isEnabled: node.isEnabled(),
+                isEnabled: node.isEnabled(false),
 
                 position: isMesh(node) ? node.position.clone() : null,
                 rotation: isMesh(node) ? node.rotation.clone() : null,
