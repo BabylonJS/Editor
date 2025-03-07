@@ -1,11 +1,8 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Sound } from "@babylonjs/core/Audio/sound";
-import { AssetContainer } from "@babylonjs/core/assetContainer";
 import { Animation } from "@babylonjs/core/Animations/animation";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
-import { SceneComponentConstants } from "@babylonjs/core/sceneComponent";
 import { Quaternion, Vector2, Vector3, Matrix } from "@babylonjs/core/Maths/math.vector";
-import { GetParser, AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.function";
 
 import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
@@ -52,6 +49,7 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
                 animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
                 animationGroups: track.animationGroups,
                 sounds: track.sounds,
+                keyFrameEvents: track.keyFrameEvents,
                 keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
                     const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
                     if (animationKey) {
@@ -112,17 +110,3 @@ export function parseCinematicKeyValue(value: any, type: number): any {
         case Animation.ANIMATIONTYPE_MATRIX: return Matrix.FromArray(value);
     }
 }
-
-const audioParser = GetParser(SceneComponentConstants.NAME_AUDIO);
-
-AddParser(SceneComponentConstants.NAME_AUDIO, (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-    audioParser?.(parsedData, scene, container, rootUrl);
-
-    parsedData.sounds?.forEach((sound) => {
-        const instance = container.sounds?.find((s) => s.name === sound.name);
-        if (instance) {
-            instance.id = sound.id;
-            instance.uniqueId = sound.uniqueId;
-        }
-    });
-});

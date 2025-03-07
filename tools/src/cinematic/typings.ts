@@ -20,6 +20,7 @@ export interface ICinematicTrack {
 
     propertyPath?: string;
     keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[];
+    keyFrameEvents?: ICinematicKeyEvent[];
 }
 
 export interface ICinematicAnimationGroup {
@@ -48,4 +49,11 @@ export interface ICinematicSound {
 
     startFrame: number;
     endFrame: number;
+}
+
+export interface ICinematicKeyEvent {
+    type: "event";
+    frame: number;
+
+    data?: any;
 }

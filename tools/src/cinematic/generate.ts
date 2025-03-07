@@ -8,6 +8,8 @@ import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 
 import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
+import { handleSetEnabledEvent } from "./events/set-enabled";
+
 import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
 import { cloneKey, getAnimationTypeForObject, getPropertyValue } from "./tools";
 
@@ -100,6 +102,35 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
             ]);
 
             result.addTargetedAnimation(soundAnimation, dummyObject);
+        }
+
+        if (track.keyFrameEvents) {
+            const dummyObject = {
+                dummy: 0,
+            };
+
+            const eventsAnimation = new Animation("events", "dummy", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, false);
+
+            let maxFrame = 0;
+            track.keyFrameEvents?.forEach((configuration) => {
+                maxFrame = Math.max(maxFrame, configuration.frame);
+
+                eventsAnimation.addEvent(new AnimationEvent(configuration.frame, () => {
+                    switch (configuration.data?.type) {
+                        case "set-enabled":
+                            handleSetEnabledEvent(scene, configuration.data);
+                            break;
+                    }
+                }));
+
+            });
+
+            eventsAnimation.setKeys([
+                { frame: 0, value: 0 },
+                { frame: maxFrame, value: maxFrame },
+            ]);
+
+            result.addTargetedAnimation(eventsAnimation, dummyObject);
         }
 
         const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;

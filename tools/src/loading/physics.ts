@@ -14,9 +14,7 @@ export function configurePhysicsAggregate(mesh: AbstractMesh) {
         return;
     }
 
-    const shapeType = data.shape.type;
-
-    const aggregate = new PhysicsAggregate(mesh, shapeType, {
+    const aggregate = new PhysicsAggregate(mesh, data.shape.type, {
         mass: data.massProperties.mass,
         mesh: isMesh(mesh) ? mesh : undefined,
     });

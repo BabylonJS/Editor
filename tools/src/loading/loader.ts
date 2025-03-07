@@ -9,6 +9,7 @@ import { applyRenderingConfigurations } from "./rendering";
 import { applyRenderingConfigurationForCamera } from "../rendering/tools";
 import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "../tools/light";
 
+import "./sound";
 import "./texture";
 
 /**
