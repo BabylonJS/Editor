@@ -1,4 +1,4 @@
-import { Animation, AnimationGroup, IAnimationKey, Scene, Tools, Sound, AnimationEvent } from "babylonjs";
+import { Animation, AnimationGroup, IAnimationKey, Scene, Tools, Sound, AnimationEvent, AbstractMesh } from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
@@ -117,9 +117,13 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
                             break;
 
                         case "apply-impulse":
-                            if (configuration.data.mesh?.physicsAggregate?.body) {
-                                configuration.data.mesh.physicsAggregate.body.applyImpulse(configuration.data.force, configuration.data.contactPoint);
-                            }
+                            const mesh = configuration.data.mesh as AbstractMesh;
+                            const meshes = mesh ? [mesh] : scene.meshes;
+                            meshes.forEach((m) => {
+                                if (m.physicsAggregate?.body) {
+                                    m.physicsAggregate.body.applyImpulse(configuration.data!.force, configuration.data!.contactPoint);
+                                }
+                            });
                             break;
                     }
                 }));

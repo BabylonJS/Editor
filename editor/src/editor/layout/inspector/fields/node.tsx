@@ -1,6 +1,10 @@
 import { DragEvent, useState } from "react";
 
+import { HiOutlineTrash } from "react-icons/hi2";
+
 import { Scene, Node } from "babylonjs";
+
+import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from "../../../../tools/property";
@@ -35,27 +39,30 @@ export function EditorInspectorNodeField(props: IEditorInspectorNodeFieldProps) 
             return;
         }
 
-        const node = props.scene.getNodeById(data[0]);
-        if (node) {
-            setValue(node);
-            setInspectorEffectivePropertyValue(props.object, props.property, node);
+        handleSetNode(
+            props.scene.getNodeById(data[0]),
+        );
+    }
 
-            if (node !== value) {
-                registerSimpleUndoRedo({
-                    object: props.object,
-                    property: props.property,
+    function handleSetNode(node: Node | null) {
+        setValue(node);
+        setInspectorEffectivePropertyValue(props.object, props.property, node);
 
-                    oldValue: value,
-                    newValue: node,
-                });
-            }
+        if (node !== value) {
+            registerSimpleUndoRedo({
+                object: props.object,
+                property: props.property,
+
+                oldValue: value,
+                newValue: node,
+            });
         }
     }
 
     return (
         <div className="flex gap-2 items-center px-2">
             {props.label &&
-                <div className="w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
+                <div className="w-32 text-ellipsis overflow-hidden whitespace-nowrap">
                     {props.label}
                 </div>
             }
@@ -65,12 +72,22 @@ export function EditorInspectorNodeField(props: IEditorInspectorNodeFieldProps) 
                 onDragLeave={(ev) => handleDragLeave(ev)}
                 onDrop={(ev) => handleDrop(ev)}
                 className={`
-                    w-full p-2 rounded-lg text-center
+                    flex p-2 rounded-lg text-center
                     ${dragOver ? "bg-background" : " bg-secondary"}
                     transition-all duration-300 ease-in-out
                 `}
             >
-                {value?.name ?? "None"}
+                <div className="w-48 text-ellipsis overflow-hidden whitespace-nowrap">
+                    {value?.name ?? "None"}
+                </div>
+
+                <Button
+                    variant="ghost"
+                    className="w-6 h-6 p-1"
+                    onClick={() => handleSetNode(null)}
+                >
+                    <HiOutlineTrash className="w-5 h-5" />
+                </Button>
             </div>
         </div>
     );

@@ -146,6 +146,8 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
             return;
         }
 
+        this.props.cinematicEditor.timelines._saveSceneState();
+
         // Play cinematic
         let videoIndex = 1;
         animationGroup.play(false);
@@ -187,6 +189,8 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
 
         animationGroup.stop();
         animationGroup.dispose();
+
+        this.props.cinematicEditor.timelines._restoreSceneState();
 
         // Finalize video encoder and restore canvas
         await this._flushVideoEncoder(destinationFolder, videoIndex, width, height);

@@ -99,6 +99,8 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
                 <ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
+                {this._getPhysicsComponent()}
+
                 {this._getDefaultRenderingPipelineComponent()}
                 {this._getSSAO2RenderingPipelineComponent()}
                 {this._getMotionBlurPostProcessComponent()}
@@ -107,6 +109,43 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
                 {this._getAnimationGroupsComponent()}
             </>
+        );
+    }
+
+    private _getPhysicsComponent(): ReactNode {
+        const physicsEngine = this.props.editor.layout.preview.scene.getPhysicsEngine();
+        if (!physicsEngine) {
+            return null;
+        }
+
+        const o = {
+            gravity: physicsEngine.gravity.clone(),
+        };
+
+        return (
+            <EditorInspectorSectionField title="Physics">
+                <EditorInspectorVectorField
+                    noUndoRedo
+                    object={o}
+                    property="gravity"
+                    label="Gravity"
+                    onFinishChange={() => {
+                        const oldGravity = physicsEngine.gravity.clone();
+
+                        registerUndoRedo({
+                            executeRedo: true,
+                            undo: () => {
+                                physicsEngine.setGravity(oldGravity);
+                                physicsEngine.gravity.copyFrom(oldGravity);
+                            },
+                            redo: () => {
+                                physicsEngine.setGravity(o.gravity);
+                                physicsEngine.gravity.copyFrom(o.gravity);
+                            },
+                        });
+                    }}
+                />
+            </EditorInspectorSectionField>
         );
     }
 

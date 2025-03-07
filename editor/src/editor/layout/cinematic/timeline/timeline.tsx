@@ -402,7 +402,7 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         this._restoreSceneState();
     }
 
-    private _saveSceneState(): void {
+    public _saveSceneState(): void {
         const scene = this.props.editor.layout.preview.scene;
         const nodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
 
@@ -435,7 +435,7 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         });
     }
 
-    private _restoreSceneState(): void {
+    public _restoreSceneState(): void {
         this._sceneState.forEach((config, node) => {
             node.setEnabled(config.isEnabled);
 
