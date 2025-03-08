@@ -9,6 +9,7 @@ import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
 import { handleSetEnabledEvent } from "./events/set-enabled";
+import { handleApplyImpulseEvent } from "./events/apply-impulse";
 
 import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
 import { cloneKey, getAnimationTypeForObject, getPropertyValue } from "./tools";
@@ -120,9 +121,11 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
                         case "set-enabled":
                             handleSetEnabledEvent(scene, configuration.data);
                             break;
+                        case "apply-impulse":
+                            handleApplyImpulseEvent(scene, configuration.data);
+                            break;
                     }
                 }));
-
             });
 
             eventsAnimation.setKeys([
