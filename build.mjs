@@ -1,18 +1,15 @@
 import { join } from "node:path";
+import { rm } from "node:fs/promises";
 import { platform, arch } from "node:os";
-import { execSync } from "node:child_process";
-import { existsSync, copyFileSync, rmSync, mkdirSync } from "node:fs";
 
 import dotEnv from "dotenv";
 import yargs from "minimist";
 import Builder from "electron-builder";
 
-import templatePackageJson from "./template/package.json" with { type: 'json' };
-
 dotEnv.config();
 const args = yargs(process.argv.slice(2));
 
-const build = ({ x64, arm64 } = options) => {
+function build({ x64, arm64 } = options) {
     return Builder.build({
         x64,
         arm64,
@@ -21,9 +18,7 @@ const build = ({ x64, arm64 } = options) => {
             mac: platform() === "win32" ? null : {
                 hardenedRuntime: true,
                 appId: "com.babylonjs.editor",
-                notarize: {
-                    teamId: process.env.APPLE_TEAM_ID,
-                },
+                notarize: args.noSign ? false : true,
                 identity: args.noSign ? null : undefined,
             },
             fileAssociations: [{
@@ -60,28 +55,10 @@ const build = ({ x64, arm64 } = options) => {
 
 (async () => {
     // Remove old build
-    rmSync(join(import.meta.dirname, "editor/electron-packages"), {
+    await rm(join(import.meta.dirname, "editor/electron-packages"), {
         force: true,
         recursive: true,
     });
-
-    // Pack template
-    const tgzName = `${templatePackageJson.name}-v${templatePackageJson.version}.tgz`;
-
-    execSync("yarn pack", {
-        cwd: join(import.meta.dirname, "template"),
-    });
-
-    if (!existsSync(join(import.meta.dirname, "editor/templates"))) {
-        mkdirSync(join(import.meta.dirname, "editor/templates"));
-    }
-
-    copyFileSync(
-        join(import.meta.dirname, "template", tgzName),
-        join(import.meta.dirname, "editor/templates/template.tgz"),
-    );
-
-    rmSync(join(import.meta.dirname, "template", tgzName));
 
     // Create build(s)
     const archs = [
