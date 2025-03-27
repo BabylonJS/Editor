@@ -1,3 +1,4 @@
+import { readJSON } from "fs-extra";
 import { ipcRenderer, shell } from "electron";
 import { basename, dirname } from "path/posix";
 
@@ -16,6 +17,8 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { isDarwin } from "../tools/os";
 import { ProjectType } from "../tools/project";
 import { execNodePty, NodePtyInstance } from "../tools/node-pty";
+
+import { IEditorProject } from "../project/typings";
 
 import { DashboardProgressComponent } from "./progress";
 
@@ -57,8 +60,31 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
             dismissible: false,
         });
 
+        let installCommand = "";
+        let devCommand = "";
+
+        const project = await readJSON(props.project.absolutePath) as IEditorProject;
+        switch (project.packageManager) {
+            case "npm":
+                installCommand = "npm i";
+                devCommand = "npm run dev";
+                break;
+            case "pnpm":
+                installCommand = "pnpm i";
+                devCommand = "pnpm dev";
+                break;
+            case "bun":
+                installCommand = "bun i";
+                devCommand = "bun run dev";
+                break;
+            default:
+                installCommand = "yarn";
+                devCommand = "yarn dev";
+                break;
+        }
+
         // Install dependencies
-        const installProcess = await execNodePty("yarn install", {
+        const installProcess = await execNodePty(installCommand, {
             cwd: dirname(props.project.absolutePath),
         });
 
@@ -68,7 +94,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
         await installProcess.wait();
 
         // Run process
-        const runProcess = await execNodePty("yarn dev", {
+        const runProcess = await execNodePty(devCommand, {
             cwd: dirname(props.project.absolutePath),
         });
 

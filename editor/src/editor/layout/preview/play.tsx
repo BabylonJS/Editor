@@ -150,7 +150,15 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
         const log = await this.props.editor.layout.console.progress("Starting the game / application...");
 
-        this._playProcess = await execNodePty("yarn dev", {
+        let command = "";
+        switch (this.props.editor.state.packageManager) {
+            case "npm": command = "npm run dev"; break;
+            case "pnpm": command = "pnpm dev"; break;
+            case "bun": command = "bun run dev"; break;
+            default: command = "yarn dev"; break;
+        }
+
+        this._playProcess = await execNodePty(command, {
             cwd: dirname(projectConfiguration.path),
         });
 

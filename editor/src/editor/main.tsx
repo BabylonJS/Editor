@@ -18,6 +18,7 @@ import { onProjectConfigurationChangedObservable, projectConfiguration } from ".
 
 import { loadProject } from "../project/load/load";
 import { exportProject } from "../project/export/export";
+import { EditorProjectPackageManager } from "../project/typings";
 
 import { disposeVLSPostProcess } from "./rendering/vls";
 import { disposeSSRRenderingPipeline } from "./rendering/ssr";
@@ -80,6 +81,10 @@ export interface IEditorState {
      * Defines the list of all plugins to load.
      */
     plugins: string[];
+    /**
+     * Defines the current package manager being used by the editor.
+     */
+    packageManager?: EditorProjectPackageManager;
 
     /**
      * Defines wether or not compressed textures are enabled.

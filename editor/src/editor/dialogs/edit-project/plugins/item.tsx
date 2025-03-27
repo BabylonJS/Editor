@@ -104,7 +104,15 @@ export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPl
         }
 
         try {
-            const p = await execNodePty(`yarn upgrade ${props.pathOrName}`, {
+            let command = "";
+            switch (props.editor.state.packageManager) {
+                case "npm": command = `npm update ${props.pathOrName}`; break;
+                case "pnpm": command = `pnpm up ${props.pathOrName}`; break;
+                case "bun": command = `bun update ${props.pathOrName}`; break;
+                default: command = `yarn upgrade ${props.pathOrName}`; break;
+            }
+
+            const p = await execNodePty(command, {
                 cwd: projectDir,
             });
 

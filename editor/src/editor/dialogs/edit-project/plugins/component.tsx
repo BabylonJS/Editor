@@ -108,7 +108,15 @@ export class EditorEditProjectPluginComponent extends Component<IEditorEditProje
         this.setState({ installing: true });
 
         try {
-            const p = await execNodePty(`yarn add -D ${name}`, {
+            let command = "";
+            switch (this.props.editor.state.packageManager) {
+                case "npm": command = `npm i ${name} --save-dev`; break;
+                case "pnpm": command = `pnpm add -D ${name}`; break;
+                case "bun": command = `bun add -d ${name}`; break;
+                default: command = `yarn add -D ${name}`; break;
+            }
+
+            const p = await execNodePty(command, {
                 cwd: projectDir,
             });
 

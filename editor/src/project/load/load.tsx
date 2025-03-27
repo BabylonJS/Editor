@@ -20,6 +20,7 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 
     editor.setState({
         projectPath: path,
+        packageManager: project.packageManager ?? "yarn",
         plugins: project.plugins.map((plugin) => plugin.nameOrPath),
         lastOpenedScenePath: project.lastOpenedScene ? join(directory, project.lastOpenedScene) : null,
 
@@ -37,7 +38,15 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
             dismissible: false,
         });
 
-        const p = await execNodePty("yarn", { cwd: directory });
+        let command = "";
+        switch (project.packageManager) {
+            case "npm": command = "npm i"; break;
+            case "pnpm": command = "pnpm i"; break;
+            case "bun": command = "bun i"; break;
+            default: command = "yarn"; break;
+        }
+
+        const p = await execNodePty(command, { cwd: directory });
         p.wait().then(async () => {
             toast.dismiss(toastId);
             toast.success("Dependencies successfully updated");

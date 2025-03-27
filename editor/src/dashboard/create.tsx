@@ -1,5 +1,6 @@
 import { join } from "path/posix";
 import { ipcRenderer } from "electron";
+import { readJSON, remove, writeJSON } from "fs-extra";
 
 import decompress from "decompress";
 import decompressTargz from "decompress-targz";
@@ -12,10 +13,13 @@ import { showAlert, showConfirm } from "../ui/dialog";
 
 import { Input } from "../ui/shadcn/ui/input";
 import { Button } from "../ui/shadcn/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/shadcn/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "../ui/shadcn/ui/dialog";
 
 import { openSingleFolderDialog } from "../tools/dialog";
 import { tryAddProjectToLocalStorage } from "../tools/local-storage";
+
+import { EditorProjectPackageManager, IEditorProject } from "../project/typings";
 
 export interface IDashboardCreateProjectDialogProps {
     isOpened: boolean;
@@ -24,6 +28,8 @@ export interface IDashboardCreateProjectDialogProps {
 
 export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialogProps) {
     const [destination, setDestination] = useState("");
+    const [packageManager, setPackageManager] = useState<EditorProjectPackageManager>("yarn");
+
     const [creating, setCreating] = useState(false);
 
     async function handleBrowseFolderPath() {
@@ -55,7 +61,18 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
                 }
             });
 
+            await remove(join(destination, "package"));
+
             const projectAbsolutePath = join(destination, "project.bjseditor");
+
+            const projectContent = await readJSON(projectAbsolutePath) as IEditorProject;
+            projectContent.packageManager = packageManager;
+
+            await writeJSON(projectAbsolutePath, projectContent, {
+                spaces: "\t",
+                encoding: "utf-8",
+            });
+
             tryAddProjectToLocalStorage(projectAbsolutePath);
 
             props.onClose();
@@ -83,18 +100,41 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
                     <DialogTitle>
                         Create project
                     </DialogTitle>
-                    <DialogDescription className="flex flex-col gap-[10px]">
+                    <DialogDescription className="flex flex-col gap-4 py-5">
                         {!creating &&
                             <>
-                                <div>
-                                    Select the folder where to create the project.
+                                <div className="flex flex-col gap-2">
+                                    <div>
+                                        Select the folder where to create the project.
+                                    </div>
+
+                                    <div className="flex gap-[10px]">
+                                        <Input value={destination} disabled placeholder="Folder path..." />
+                                        <Button variant="secondary" className="w-24" onClick={() => handleBrowseFolderPath()}>
+                                            Browse...
+                                        </Button>
+                                    </div>
                                 </div>
 
-                                <div className="flex gap-[10px]">
-                                    <Input value={destination} disabled placeholder="Folder path..." />
-                                    <Button variant="secondary" className="w-24" onClick={() => handleBrowseFolderPath()}>
-                                        Browse...
-                                    </Button>
+                                <div className="flex flex-col gap-2">
+                                    <div>
+                                        Package manager
+                                    </div>
+
+                                    <Select
+                                        value={packageManager}
+                                        onValueChange={(v) => setPackageManager(v as EditorProjectPackageManager)}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Package manager" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="npm">npm</SelectItem>
+                                            <SelectItem value="yarn">yarn</SelectItem>
+                                            <SelectItem value="pnpm">pnpm</SelectItem>
+                                            <SelectItem value="bun">bun</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </>
                         }

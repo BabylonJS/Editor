@@ -33,6 +33,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         webPreferences: {
             nodeIntegration: true,
             nodeIntegrationInWorker: true,
+            contextIsolation: process.env.DEBUG !== "true",
             preload: join(app.getAppPath(), "build/src/editor/preload.js"),
         },
     });
@@ -93,6 +94,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         alwaysOnTop: true,
         webPreferences: {
             nodeIntegration: true,
+            contextIsolation: process.env.DEBUG !== "true",
             preload: join(app.getAppPath(), "build/src/splash/preload.js"),
         }
     });

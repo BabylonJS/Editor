@@ -37,6 +37,7 @@ export async function saveProject(editor: Editor): Promise<void> {
             nameOrPath: plugin,
         })),
         version: packageJson.version,
+        packageManager: editor.state.packageManager,
         lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath), ""),
 
         compressedTexturesEnabled: editor.state.compressedTexturesEnabled,

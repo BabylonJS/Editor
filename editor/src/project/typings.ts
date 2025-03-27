@@ -17,10 +17,8 @@ export interface IEditorProject {
      * If the compressed textures are enabled using PVRTexTool.
      */
     compressedTexturesEnabled: boolean;
-    /**
-     * The path to the PVRTexTool CLI used when `compressedTexturesEnabled` is set to `true`.
-     */
-    compressedTexturesCliPath: string | null;
+
+    packageManager?: EditorProjectPackageManager;
 }
 
 export interface IEditorProjectPlugin {
@@ -29,3 +27,5 @@ export interface IEditorProjectPlugin {
      */
     nameOrPath: string;
 }
+
+export type EditorProjectPackageManager = "npm" | "yarn" | "pnpm" | "bun";

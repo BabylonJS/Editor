@@ -14,6 +14,7 @@ export async function createDashboardWindow(): Promise<BrowserWindow> {
         height: 800,
         webPreferences: {
             nodeIntegration: true,
+            contextIsolation: process.env.DEBUG !== "true",
             preload: join(app.getAppPath(), "build/src/dashboard/preload.js"),
         },
     });

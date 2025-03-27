@@ -2,6 +2,5 @@
     "plugins": [],
     "version": "5.0.0",
     "lastOpenedScene": "/assets/landing.scene",
-    "compressedTexturesEnabled": false,
-    "compressedTexturesCliPath": null
+    "compressedTexturesEnabled": false
 }
