@@ -7,7 +7,6 @@ import { createRoot } from "react-dom/client";
 
 import { HotkeysTarget2 } from "@blueprintjs/core";
 
-import { isDarwin } from "../tools/os";
 import { waitUntil } from "../tools/tools";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
 import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
@@ -44,9 +43,6 @@ export function createEditor(): void {
     }
 
     const div = document.getElementById("babylonjs-editor-main-div")!;
-    if (!isDarwin()) {
-        div.classList.add("electron-rounded-corners");
-    }
 
     const root = createRoot(div);
     root.render(

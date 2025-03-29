@@ -134,10 +134,6 @@ input {
     -webkit-app-region: drag;
 }
 
-.electron-rounded-corners {
-    @apply rounded-xl;
-}
-
 /* FLEX LAYOUT */
 
 .flexlayout__tabset-selected {

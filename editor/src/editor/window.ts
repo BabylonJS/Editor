@@ -27,6 +27,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         closable: true,
         minimizable: true,
         maximizable: true,
+        transparent: false,
         titleBarStyle: "hidden",
         width: width,
         height: height,

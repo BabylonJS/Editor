@@ -8,7 +8,7 @@ export async function createDashboardWindow(): Promise<BrowserWindow> {
         closable: true,
         minimizable: true,
         maximizable: true,
-        transparent: true,
+        transparent: false,
         titleBarStyle: "hidden",
         width: 1280,
         height: 800,
