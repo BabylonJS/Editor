@@ -91,8 +91,8 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
         width: 480,
         height: 320,
         frame: false,
-        transparent: true,
         alwaysOnTop: true,
+        transparent: true,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: process.env.DEBUG !== "true",
