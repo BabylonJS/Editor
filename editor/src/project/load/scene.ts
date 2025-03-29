@@ -18,6 +18,7 @@ import { parseSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } f
 import { parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
 import { parseMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
 import { parseDefaultRenderingPipeline, defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
+import { iblShadowsRenderingPipelineCameraConfigurations, parseIblShadowsRenderingPipeline } from "../../editor/rendering/ibl-shadows";
 
 import { applyImportedGuiFile } from "../../editor/layout/preview/import/gui";
 
@@ -27,6 +28,7 @@ import { createDirectoryIfNotExist } from "../../tools/fs";
 import { isMultiMaterial } from "../../tools/guards/material";
 import { createSceneLink } from "../../tools/scene/scene-link";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
+import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
 import { configureSimultaneousLightsForMaterial } from "../../tools/mesh/material";
 import { parsePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
@@ -731,8 +733,13 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
             ssrRenderingPipelineCameraConfigurations.set(camera, configuration.ssrRenderingPipeline);
             motionBlurPostProcessCameraConfigurations.set(camera, configuration.motionBlurPostProcess);
             defaultPipelineCameraConfigurations.set(camera, configuration.defaultRenderingPipeline);
+            iblShadowsRenderingPipelineCameraConfigurations.set(camera, configuration.iblShadowsRenderPipeline);
 
             if (isEditorCamera(camera)) {
+                if (configuration.iblShadowsRenderPipeline) {
+                    parseIblShadowsRenderingPipeline(editor, configuration.iblShadowsRenderPipeline);
+                }
+
                 if (configuration.ssao2RenderingPipeline) {
                     parseSSAO2RenderingPipeline(editor, configuration.ssao2RenderingPipeline);
                 }
@@ -760,6 +767,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
     setTimeout(() => {
         updateAllLights(scene);
+        updateIblShadowsRenderPipeline(scene);
 
         if (!options.asLink) {
             checkProjectCachedCompressedTextures(editor);

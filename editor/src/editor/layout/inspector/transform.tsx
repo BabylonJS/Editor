@@ -60,7 +60,7 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
         }
     }
 
-    public static GetRotationInspector(object: TransformNode): ReactNode {
+    public static GetRotationInspector(object: TransformNode, onFinishChange?: () => void): ReactNode {
         if (object.rotationQuaternion) {
             const valueRef = object.rotationQuaternion.toEulerAngles();
 
@@ -79,12 +79,12 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
             const o = { proxy };
 
             return (
-                <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={o} property="proxy" asDegrees step={0.1} />
+                <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={o} property="proxy" asDegrees step={0.1} onFinishChange={() => onFinishChange?.()} />
             );
         }
 
         return (
-            <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={object} property="rotation" asDegrees step={0.1} />
+            <EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={object} property="rotation" asDegrees step={0.1} onFinishChange={() => onFinishChange?.()} />
         );
     }
 }

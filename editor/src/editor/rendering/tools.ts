@@ -5,6 +5,7 @@ import { serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations
 import { serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "./ssao";
 import { defaultPipelineCameraConfigurations, serializeDefaultRenderingPipeline } from "./default-pipeline";
 import { motionBlurPostProcessCameraConfigurations, serializeMotionBlurPostProcess } from "./motion-blur";
+import { iblShadowsRenderingPipelineCameraConfigurations, serializeIblShadowsRenderingPipeline } from "./ibl-shadows";
 
 /**
  * Saves the rendering configurations for the given camera. This is useful to restore the rendering configurations
@@ -17,4 +18,5 @@ export function saveRenderingConfigurationForCamera(camera: Camera) {
     ssrRenderingPipelineCameraConfigurations.set(camera, serializeSSRRenderingPipeline());
     motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
     defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
+    iblShadowsRenderingPipelineCameraConfigurations.set(camera, serializeIblShadowsRenderingPipeline());
 }

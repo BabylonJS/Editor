@@ -215,15 +215,19 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
                             }
 
                             if (!isNaN(v) && !isNaN(oldV)) {
+                                const oldValue = props.asDegrees ? Tools.ToRadians(oldV) : oldV;
+
                                 registerSimpleUndoRedo({
                                     object: props.object,
                                     property: props.property,
 
                                     newValue: finalValue,
-                                    oldValue: props.asDegrees ? Tools.ToRadians(oldV) : oldV,
+                                    oldValue,
                                 });
 
                                 setOldValue(v.toFixed(digitCount));
+
+                                props.onFinishChange?.(finalValue, oldValue);
                             }
                         }
 

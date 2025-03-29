@@ -11,16 +11,18 @@ import { DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator, AnimationGroup
 
 import { Button } from "../../../ui/shadcn/ui/button";
 
+import { isMesh } from "../../../tools/guards/nodes";
+import { isScene } from "../../../tools/guards/scene";
+
 import { registerUndoRedo } from "../../../tools/undoredo";
+import { updateAllLights } from "../../../tools/light/shadows";
 
 import { createVLSPostProcess, disposeVLSPostProcess, getVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../../rendering/vls";
 import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../../rendering/ssr";
 import { createSSAO2RenderingPipeline, disposeSSAO2RenderingPipeline, getSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline } from "../../rendering/ssao";
 import { createMotionBlurPostProcess, disposeMotionBlurPostProcess, getMotionBlurPostProcess, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "../../rendering/motion-blur";
 import { createDefaultRenderingPipeline, disposeDefaultRenderingPipeline, getDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "../../rendering/default-pipeline";
-
-import { isMesh } from "../../../tools/guards/nodes";
-import { isScene } from "../../../tools/guards/scene";
+import { createIblShadowsRenderingPipeline, disposeIblShadowsRenderingPipeline, getIblShadowsRenderingPipeline, parseIblShadowsRenderingPipeline, serializeIblShadowsRenderingPipeline } from "../../rendering/ibl-shadows";
 
 import { EditorInspectorSectionField } from "./fields/section";
 
@@ -106,6 +108,8 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
                 {this._getMotionBlurPostProcessComponent()}
                 {this._getSSRPipelineComponent()}
                 {this._getVLSComponent()}
+
+                {this.props.editor.state.enableExperimentalFeatures && this._getIblShadowsRenderingPipelineComponent()}
 
                 {this._getAnimationGroupsComponent()}
             </>
@@ -620,6 +624,57 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
             this.forceUpdate();
         }
+    }
+
+    private _getIblShadowsRenderingPipelineComponent(): ReactNode {
+        const iblShadowsRenderPipeline = getIblShadowsRenderingPipeline();
+
+        const config = {
+            enabled: iblShadowsRenderPipeline ? true : false,
+        };
+
+        return (
+            <EditorInspectorSectionField title="IBL Shadows">
+                <EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
+                    const pipeline = iblShadowsRenderPipeline;
+                    const serializedPipeline = serializeIblShadowsRenderingPipeline();
+
+                    registerUndoRedo({
+                        executeRedo: true,
+                        action: () => {
+                            updateAllLights(this.props.editor.layout.preview.scene);
+                        },
+                        undo: () => {
+                            if (!pipeline) {
+                                disposeIblShadowsRenderingPipeline();
+                            } else if (serializedPipeline) {
+                                parseIblShadowsRenderingPipeline(this.props.editor, serializedPipeline);
+                            }
+                        },
+                        redo: () => {
+                            if (pipeline) {
+                                disposeIblShadowsRenderingPipeline();
+                            } else if (serializedPipeline) {
+                                parseIblShadowsRenderingPipeline(this.props.editor, serializedPipeline);
+                            } else {
+                                createIblShadowsRenderingPipeline(this.props.editor);
+                            }
+                        },
+                    });
+
+                    this.forceUpdate();
+                }} />
+
+                {iblShadowsRenderPipeline &&
+                    <>
+                        <EditorInspectorNumberField object={iblShadowsRenderPipeline} property="shadowRemanence" label="Shadow Remanence" min={0} max={1} />
+                        <EditorInspectorNumberField object={iblShadowsRenderPipeline} property="shadowOpacity" label="Shadow Opacity" min={0} max={1} />
+                        <EditorInspectorNumberField object={iblShadowsRenderPipeline} property="resolutionExp" label="Resolution Exponent" step={1} min={1} max={14} />
+                        <EditorInspectorNumberField object={iblShadowsRenderPipeline} property="sampleDirections" label="Sample Directions" step={1} min={1} max={4} />
+                    </>
+                }
+            </EditorInspectorSectionField>
+        );
     }
 
     private _getAnimationGroupsComponent(): ReactNode {

@@ -94,33 +94,20 @@
             0.640006735140596
         ]
     },
-    "rendering": {
-        "ssrRenderingPipeline": null,
-        "motionBlurPostProcess": null,
-        "ssao2RenderingPipeline": null,
-        "defaultRenderingPipeline": {
-            "samples": 4,
-            "fxaaEnabled": true,
-            "imageProcessingEnabled": false,
-            "bloomEnabled": false,
-            "bloomThreshold": 0.9,
-            "bloomWeight": 0.15,
-            "bloomScale": 0.5,
-            "bloomKernel": 64,
-            "sharpenEnabled": false,
-            "sharpenEdgeAmount": 0.3,
-            "sharpenColorAmount": 1,
-            "grainEnabled": false,
-            "grainIntensity": 30,
-            "grainAnimated": false,
-            "depthOfFieldEnabled": false,
-            "depthOfFieldBlurLevel": 2,
-            "lensSize": 512,
-            "fStop": 0.25,
-            "focusDistance": 100000,
-            "focalLength": 50
+    "rendering": [
+        {
+            "cameraId": "3cc9ef80-8c60-43e0-bcc4-1b55ff36010d",
+            "ssao2RenderingPipeline": null,
+            "vlsPostProcess": null,
+            "ssrRenderingPipeline": null,
+            "motionBlurPostProcess": null,
+            "defaultRenderingPipeline": null,
+            "iblShadowsRenderPipeline": null
+        },
+        {
+            "cameraId": "3ee0f345-7bea-4f59-a657-28c90a7d5e74"
         }
-    },
+    ],
     "editorCamera": {
         "tags": null,
         "ellipsoid": [
@@ -216,6 +203,5 @@
         "ranges": [],
         "isEnabled": true
     },
-    "animations": [],
-    "animationGroups": []
+    "animations": []
 }

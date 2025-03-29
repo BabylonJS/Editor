@@ -216,6 +216,7 @@
                 1,
                 1
             ],
+            "baseWeight": 1,
             "reflectivity": [
                 1,
                 1,
@@ -351,6 +352,7 @@
                     "useSmithVisibilityHeightCorrelated": true,
                     "useSphericalHarmonics": true,
                     "useSpecularGlossinessInputEnergyConservation": true,
+                    "mixIblRadianceWithIrradiance": true,
                     "name": "PBRBRDF",
                     "priority": 90,
                     "resolveIncludes": false,
@@ -452,6 +454,7 @@
                     ],
                     "useMaskFromThicknessTexture": false,
                     "useGltfStyleTextures": false,
+                    "applyAlbedoAfterSubSurface": false,
                     "name": "PBRSubSurface",
                     "priority": 130,
                     "resolveIncludes": false,

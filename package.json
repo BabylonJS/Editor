@@ -16,8 +16,7 @@
         "tools",
         "template",
         "quixel",
-        "website",
-        "test"
+        "website"
     ],
     "scripts": {
         "postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && rm -rf template/node_modules/babylonjs-editor-tools && node ./postinstall.mjs",

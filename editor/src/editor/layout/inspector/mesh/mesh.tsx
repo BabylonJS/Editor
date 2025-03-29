@@ -17,6 +17,7 @@ import { Separator } from "../../../../ui/shadcn/ui/separator";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
+import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
 import { isAbstractMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
 import { updateAllLights, updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
@@ -97,9 +98,9 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Transforms">
-                    <EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" />
-                    {EditorTransformNodeInspector.GetRotationInspector(this.props.object)}
-                    <EditorInspectorVectorField label={<div className="w-14">Scaling</div>} object={this.props.object} property="scaling" />
+                    <EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" onFinishChange={() => this._handleTransformsUpdated()} />
+                    {EditorTransformNodeInspector.GetRotationInspector(this.props.object, () => this._handleTransformsUpdated())}
+                    <EditorInspectorVectorField label={<div className="w-14">Scaling</div>} object={this.props.object} property="scaling" onFinishChange={() => this._handleTransformsUpdated()} />
                 </EditorInspectorSectionField>
 
                 <EditorMeshCollisionInspector {...this.props} />
@@ -151,6 +152,12 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
         if (this._gizmoObserver) {
             onGizmoNodeChangedObservable.remove(this._gizmoObserver);
+        }
+    }
+
+    private _handleTransformsUpdated(): void {
+        if (isMesh(this.props.object)) {
+            updateIblShadowsRenderPipeline(this.props.object.getScene());
         }
     }
 

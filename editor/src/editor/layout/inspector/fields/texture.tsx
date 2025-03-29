@@ -13,6 +13,7 @@ import { CubeTexture, Scene, Texture } from "babylonjs";
 import { isScene } from "../../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { isCubeTexture, isTexture } from "../../../../tools/guards/texture";
+import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
 import { onSelectedAssetChanged, onTextureAddedObservable } from "../../../../tools/observables";
 
 import { projectConfiguration } from "../../../../project/configuration";
@@ -352,19 +353,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
                     new Texture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),
                 );
 
-                this.props.object[this.props.property] = newTexture;
                 this.props.onChange?.(this.props.object[this.props.property]);
 
                 if (oldTexture !== newTexture) {
                     registerUndoRedo({
-                        undo: () => {
-                            this.props.object[this.props.property] = oldTexture;
-                            this._computeTemporaryPreview();
-                        },
-                        redo: () => {
-                            this.props.object[this.props.property] = newTexture;
-                            this._computeTemporaryPreview();
-                        },
+                        executeRedo: true,
+                        undo: () => this.props.object[this.props.property] = oldTexture,
+                        redo: () => this.props.object[this.props.property] = newTexture,
                         onLost: () => newTexture?.dispose(),
                     });
 
@@ -381,13 +376,25 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
                         CubeTexture.CreateFromPrefilteredData(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),
                     );
 
-                    this.props.object[this.props.property] = newTexture;
+                    const scene = newTexture.getScene();
+
                     this.props.onChange?.(this.props.object[this.props.property]);
 
                     if (oldTexture !== newTexture) {
                         registerUndoRedo({
-                            undo: () => this.props.object[this.props.property] = oldTexture,
-                            redo: () => this.props.object[this.props.property] = newTexture,
+                            executeRedo: true,
+                            undo: () => {
+                                this.props.object[this.props.property] = oldTexture;
+                                if (scene) {
+                                    updateIblShadowsRenderPipeline(scene);
+                                }
+                            },
+                            redo: () => {
+                                this.props.object[this.props.property] = newTexture;
+                                if (scene) {
+                                    updateIblShadowsRenderPipeline(scene);
+                                }
+                            },
                             onLost: () => newTexture?.dispose(),
                         });
                     }

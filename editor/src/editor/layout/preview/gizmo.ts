@@ -5,6 +5,7 @@ import {
 
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isQuaternion, isVector3 } from "../../../tools/guards/math";
+import { updateIblShadowsRenderPipeline } from "../../../tools/light/ibl";
 import { isAbstractMesh, isCamera, isLight } from "../../../tools/guards/nodes";
 import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../tools/light/shadows";
 
@@ -190,6 +191,8 @@ export class EditorPreviewGizmo {
                         updatePointLightShadowMapRenderListPredicate(node);
                     }
 
+                    updateIblShadowsRenderPipeline(node.getScene());
+
                     this.setAttachedNode(node);
                 },
                 redo: () => {
@@ -205,9 +208,13 @@ export class EditorPreviewGizmo {
                         updatePointLightShadowMapRenderListPredicate(node);
                     }
 
+                    updateIblShadowsRenderPipeline(node.getScene());
+
                     this.setAttachedNode(node);
                 },
             });
+
+            updateIblShadowsRenderPipeline(node.getScene());
 
             onGizmoNodeChangedObservable.notifyObservers(node);
         });
@@ -262,6 +269,8 @@ export class EditorPreviewGizmo {
                         updatePointLightShadowMapRenderListPredicate(node);
                     }
 
+                    updateIblShadowsRenderPipeline(node.getScene());
+
                     this.setAttachedNode(node);
                 },
                 redo: () => {
@@ -277,9 +286,13 @@ export class EditorPreviewGizmo {
                         updatePointLightShadowMapRenderListPredicate(node);
                     }
 
+                    updateIblShadowsRenderPipeline(node.getScene());
+
                     this.setAttachedNode(node);
                 },
             });
+
+            updateIblShadowsRenderPipeline(node.getScene());
 
             onGizmoNodeChangedObservable.notifyObservers(node);
         });

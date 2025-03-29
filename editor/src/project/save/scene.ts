@@ -22,6 +22,7 @@ import { ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering
 import { ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
 import { defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 import { motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
+import { iblShadowsRenderingPipelineCameraConfigurations } from "../../editor/rendering/ibl-shadows";
 
 import { writeBinaryGeometry } from "../geometry";
 import { writeBinaryMorphTarget } from "../morph-target";
@@ -506,6 +507,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 ssrRenderingPipeline: ssrRenderingPipelineCameraConfigurations.get(camera),
                 motionBlurPostProcess: motionBlurPostProcessCameraConfigurations.get(camera),
                 defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
+                iblShadowsRenderPipeline: iblShadowsRenderingPipelineCameraConfigurations.get(camera),
             })),
             metadata: scene.metadata,
             editorCamera: editor.layout.preview.camera.serialize(),
