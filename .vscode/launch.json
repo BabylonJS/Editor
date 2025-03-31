@@ -30,6 +30,13 @@
             "cwd": "${workspaceFolder}/website",
             "request": "launch",
             "command": "yarn dev -p 3000"
+        },
+        {
+            "name": "Debug Tests",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/tools",
+            "request": "launch",
+            "command": "yarn test"
         }
     ],
     "compounds": [

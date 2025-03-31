@@ -32,3 +32,19 @@ export function nodeFromDescendants(nodeName: string, directDescendantsOnly: boo
         ctor._NodesFromDescendants.push({ propertyKey, nodeName, directDescendantsOnly });
     };
 }
+
+/**
+ * Makes the decorated property linked to an animation group that has the given name.
+ * Once the script is instantiated, the reference to the animation group is retrieved from the scene
+ * and assigned to the property. Animation group link cant' be used in constructor.
+ * This can be used only by scripts using Classes.
+ * @param animationGroupName defines the name of the animation group to retrieve in scene.
+ */
+export function animationGroupFromScene(animationGroupName: string) {
+    return function (target: any, propertyKey: string | Symbol) {
+        const ctor = target.constructor as ISceneDecoratorData;
+
+        ctor._AnimationGroups ??= [];
+        ctor._AnimationGroups.push({ animationGroupName, propertyKey });
+    };
+}

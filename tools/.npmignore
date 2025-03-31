@@ -1,3 +1,8 @@
 node_modules
 src
+!build/src
+
 tsconfig.json
+test
+babel.config.mjs
+esbuild.mjs

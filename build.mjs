@@ -53,28 +53,26 @@ function build({ x64, arm64 } = options) {
     });
 };
 
-(async () => {
-    // Remove old build
-    await rm(join(import.meta.dirname, "editor/electron-packages"), {
-        force: true,
-        recursive: true,
-    });
+// Remove old build
+await rm(join(import.meta.dirname, "editor/electron-packages"), {
+    force: true,
+    recursive: true,
+});
 
-    // Create build(s)
-    const archs = [
-        { type: "x64", enabled: args.x64 },
-        { type: "arm64", enabled: args.arm64 },
-    ];
+// Create build(s)
+const archs = [
+    { type: "x64", enabled: args.x64 },
+    { type: "arm64", enabled: args.arm64 },
+];
 
-    if (archs.find((a) => a.enabled)) {
-        for (const a of archs.filter((a) => a.enabled)) {
-            await build({ [a.type]: true });
-        }
-    } else {
-        const architecture = arch();
-        const x64 = architecture === "x64";
-        const arm64 = architecture === "arm64";
-
-        await build({ x64, arm64 });
+if (archs.find((a) => a.enabled)) {
+    for (const a of archs.filter((a) => a.enabled)) {
+        await build({ [a.type]: true });
     }
-})();
+} else {
+    const architecture = arch();
+    const x64 = architecture === "x64";
+    const arm64 = architecture === "arm64";
+
+    await build({ x64, arm64 });
+}

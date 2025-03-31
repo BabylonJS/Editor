@@ -1,5 +1,6 @@
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
+import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
@@ -19,6 +20,12 @@ export interface ISceneDecoratorData {
         nodeName: string;
         propertyKey: string | Symbol;
         directDescendantsOnly: boolean;
+    }[];
+
+    // @fromAnimationGroups
+    _AnimationGroups: {
+        animationGroupName: string;
+        propertyKey: string | Symbol;
     }[];
 
     // @soundFromScene
@@ -65,7 +72,12 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
         instance[params.propertyKey.toString()] = descendant ?? null;
     });
 
-    // soundFromScene
+    // @fromAnimationGroups
+    ctor._AnimationGroups?.forEach((params) => {
+        instance[params.propertyKey.toString()] = scene.getAnimationGroupByName(params.animationGroupName);
+    });
+
+    // @soundFromScene
     ctor._SoundsFromScene?.forEach((params) => {
         const sound = scene.getSoundByName?.(params.soundName);
         instance[params.propertyKey.toString()] = sound ?? null;
@@ -114,6 +126,13 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
                 case "number":
                 case "boolean":
                     instance[propertyKey] = value;
+                    break;
+
+                case "vector2":
+                    instance[propertyKey] = Vector2.FromArray(value);
+                    break;
+                case "vector3":
+                    instance[propertyKey] = Vector3.FromArray(value);
                     break;
             }
         }
