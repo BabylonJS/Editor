@@ -138,6 +138,7 @@ editor/electron-packages
 # Babylon.JS Editor Tools
 tools/build
 tools/declaration
+tools/coverage
 
 # Template
 template/.next
