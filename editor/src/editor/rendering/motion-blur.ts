@@ -21,7 +21,7 @@ export function disposeMotionBlurPostProcess(): void {
 }
 
 export function createMotionBlurPostProcess(editor: Editor): MotionBlurPostProcess {
-    motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", editor.layout.preview.scene, 1.0, editor.layout.preview.scene.activeCamera, undefined, undefined, undefined, undefined, undefined, true);
+    motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", editor.layout.preview.scene, 1.0, editor.layout.preview.scene.activeCamera);
     motionBlurPostProcess.samples = 16;
     motionBlurPostProcess.motionStrength = 1.0;
     motionBlurPostProcess.isObjectBased = true;

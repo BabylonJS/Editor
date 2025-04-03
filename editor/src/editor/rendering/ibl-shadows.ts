@@ -40,7 +40,8 @@ export function createIblShadowsRenderingPipeline(editor: Editor): IblShadowsRen
         ssShadowsEnabled: true,
         shadowRemanence: 0.8,
         triPlanarVoxelization: true,
-        shadowOpacity: 1.0
+        shadowOpacity: 1.0,
+        voxelShadowOpacity: 1.0,
     }, [scene.activeCamera!]);
 
     iblShadowsRenderingPipeline.addShadowReceivingMaterial();
