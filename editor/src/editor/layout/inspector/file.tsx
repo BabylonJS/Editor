@@ -3,7 +3,6 @@ import { extname } from "path/posix";
 import { Component, ReactNode } from "react";
 
 import { EditorInspectorSoundComponent } from "./file/sound";
-import { EditorInspectorSceneComponent } from "./file/scene";
 import { EditorInspectorImageComponent } from "./file/image";
 import { EditorInspectorMarkdownComponent } from "./file/markdown";
 
@@ -45,12 +44,6 @@ export class EditorFileInspector extends Component<IEditorInspectorImplementatio
 
             case ".md":
                 return <EditorInspectorMarkdownComponent object={this.props.object} />;
-
-            case ".glb":
-            case ".gltf":
-            case ".babylon":
-            case ".fbx":
-                return <EditorInspectorSceneComponent object={this.props.object} />;
 
             case ".mp3":
             case ".wav":

@@ -45,7 +45,7 @@ export function createIblShadowsRenderingPipeline(editor: Editor): IblShadowsRen
 
     iblShadowsRenderingPipeline.addShadowReceivingMaterial();
 
-    updateIblShadowsRenderPipeline(scene);
+    updateIblShadowsRenderPipeline(scene, true);
 
     return iblShadowsRenderingPipeline;
 }

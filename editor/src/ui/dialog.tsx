@@ -176,7 +176,7 @@ export function showAlert(title: ReactNode, children: ReactNode): DialogReturnTy
 
     root.render(
         <AlertDialog open onOpenChange={(o) => !o && returnValue.close()}>
-            <AlertDialogContent className="w-fit h-fit">
+            <AlertDialogContent className="w-fit h-fit max-w-[95vw] max-h-[95vh]">
                 <AlertDialogHeader>
                     <AlertDialogTitle>{title}</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -188,7 +188,7 @@ export function showAlert(title: ReactNode, children: ReactNode): DialogReturnTy
                         root.unmount();
                         document.body.removeChild(div);
                     }}>
-                        Ok
+                        Continue
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

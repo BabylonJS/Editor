@@ -59,6 +59,10 @@ import { listenGuiAssetsEvents } from "./assets-browser/events/gui";
 import { listenSceneAssetsEvents } from "./assets-browser/events/scene";
 import { listenMaterialAssetsEvents } from "./assets-browser/events/material";
 
+import { openEnvViewer } from "./assets-browser/viewers/env-viewer";
+import { openModelViewer } from "./assets-browser/viewers/model-viewer";
+import { openMaterialViewer } from "./assets-browser/viewers/material-viewer";
+
 import "babylonjs-loaders";
 
 import "../../loader/assimpjs";
@@ -1043,14 +1047,22 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
             case ".jpg":
             case ".bmp":
             case ".jpeg":
-            case ".glb":
-            case ".gltf":
-            case ".babylon":
-            case ".fbx":
             case ".mp3":
             case ".wav":
             case ".wave":
                 return this.props.editor.layout.inspector.setEditedObject(new FileInspectorObject(item.props.absolutePath));
+
+            case ".glb":
+            case ".gltf":
+            case ".babylon":
+            case ".fbx":
+                return openModelViewer(this.props.editor, item.props.absolutePath);
+
+            case ".env":
+                return openEnvViewer(item.props.absolutePath);
+
+            case ".material":
+                return openMaterialViewer(this.props.editor, item.props.absolutePath);
         }
     }
 

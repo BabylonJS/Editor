@@ -16,6 +16,7 @@ import { isScene } from "../../../tools/guards/scene";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { updateAllLights } from "../../../tools/light/shadows";
+import { updateIblShadowsRenderPipeline } from "../../../tools/light/ibl";
 
 import { createVLSPostProcess, disposeVLSPostProcess, getVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../../rendering/vls";
 import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../../rendering/ssr";
@@ -671,6 +672,10 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
                         <EditorInspectorNumberField object={iblShadowsRenderPipeline} property="shadowOpacity" label="Shadow Opacity" min={0} max={1} />
                         <EditorInspectorNumberField object={iblShadowsRenderPipeline} property="resolutionExp" label="Resolution Exponent" step={1} min={1} max={14} />
                         <EditorInspectorNumberField object={iblShadowsRenderPipeline} property="sampleDirections" label="Sample Directions" step={1} min={1} max={4} />
+
+                        <Button variant="ghost" size="sm" onClick={() => updateIblShadowsRenderPipeline(this.props.editor.layout.preview.scene, true)}>
+                            Update voxelization
+                        </Button>
                     </>
                 }
             </EditorInspectorSectionField>

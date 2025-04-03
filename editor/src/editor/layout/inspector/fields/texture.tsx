@@ -386,13 +386,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
                             undo: () => {
                                 this.props.object[this.props.property] = oldTexture;
                                 if (scene) {
-                                    updateIblShadowsRenderPipeline(scene);
+                                    updateIblShadowsRenderPipeline(scene, true);
                                 }
                             },
                             redo: () => {
                                 this.props.object[this.props.property] = newTexture;
                                 if (scene) {
-                                    updateIblShadowsRenderPipeline(scene);
+                                    updateIblShadowsRenderPipeline(scene, true);
                                 }
                             },
                             onLost: () => newTexture?.dispose(),

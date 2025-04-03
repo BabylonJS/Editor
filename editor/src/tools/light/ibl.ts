@@ -6,7 +6,7 @@ import { unique } from "../tools";
 
 import { isMesh } from "../guards/nodes";
 
-export function updateIblShadowsRenderPipeline(scene: Scene) {
+export function updateIblShadowsRenderPipeline(scene: Scene, updateVoxelization?: boolean) {
     const iblShadowRenderPipeline = getIblShadowsRenderingPipeline();
     if (!iblShadowRenderPipeline) {
         return;
@@ -36,5 +36,8 @@ export function updateIblShadowsRenderPipeline(scene: Scene) {
     });
 
     iblShadowRenderPipeline.updateSceneBounds();
-    iblShadowRenderPipeline.updateVoxelization();
+
+    if (updateVoxelization) {
+        iblShadowRenderPipeline.updateVoxelization();
+    }
 }

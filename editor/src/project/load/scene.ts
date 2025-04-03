@@ -767,7 +767,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
     setTimeout(() => {
         updateAllLights(scene);
-        updateIblShadowsRenderPipeline(scene);
+        updateIblShadowsRenderPipeline(scene, true);
 
         if (!options.asLink) {
             checkProjectCachedCompressedTextures(editor);
