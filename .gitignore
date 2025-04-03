@@ -134,6 +134,7 @@ editor/build
 editor/declaration
 editor/templates
 editor/electron-packages
+editor/coverage
 
 # Babylon.JS Editor Tools
 tools/build

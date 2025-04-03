@@ -32,9 +32,16 @@
             "command": "yarn dev -p 3000"
         },
         {
-            "name": "Debug Tests",
+            "name": "Debug Tools Tests",
             "type": "node-terminal",
             "cwd": "${workspaceFolder}/tools",
+            "request": "launch",
+            "command": "yarn test"
+        },
+        {
+            "name": "Debug Editor Tests",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/editor",
             "request": "launch",
             "command": "yarn test"
         }
