@@ -589,6 +589,12 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
             const animationGroup = AnimationGroup.Parse(data, scene);
             animationGroup.uniqueId = data.uniqueId;
+
+            if (animationGroup.targetedAnimations.length === 0) {
+                animationGroup.dispose();
+            } else {
+                loadResult.animationGroups.push(animationGroup);
+            }
         } catch (e) {
             editor.layout.console.error(`Failed to load animation group file "${file}": ${e.message}`);
         }
