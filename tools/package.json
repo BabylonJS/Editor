@@ -6,8 +6,8 @@
     "scripts": {
         "build": "tsc -p . && node esbuild.mjs",
         "watch": "concurrently \"tsc -p . --watch\" \"node esbuild.mjs --watch\"",
-        "test": "jest test/**/*.test.ts",
-        "coverage": "jest test/**/*.test.ts --coverage"
+        "test": "jest test/*",
+        "coverage": "jest test/* --coverage"
     },
     "main": "build/index.js",
     "exports": {

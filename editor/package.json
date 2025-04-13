@@ -14,8 +14,8 @@
         "watch": "tsc -p . --watch",
         "watch-css": "tailwindcss -i ./index.css -o ./build/index.css --watch",
         "watch-all": "concurrently \"yarn watch\" \"yarn watch-css\" -c bgYellow.bold,bgBlue.bold --names editor-ts,editor-css",
-        "test": "jest test/**/*.test.ts --silent",
-        "coverage": "jest test/**/*.test.ts --coverage"
+        "test": "jest test/* --silent",
+        "coverage": "jest test/* --silent --coverage"
     },
     "license": "(Apache-2.0)",
     "devDependencies": {
