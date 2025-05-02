@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { CubicEase } from "@babylonjs/core/Animations/easing";
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 
 import "@babylonjs/core/Loading/loadingScreen";
 import "@babylonjs/core/Loading/Plugins/babylonFileLoader";
@@ -88,8 +88,8 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
             mode: CubicEase.EASINGMODE_EASEINOUT,
         };
 
-        SceneLoader.ShowLoadingScreen = false;
-        SceneLoader.ForceFullSceneLoadingForIncremental = false;
+        SceneLoaderFlags.ShowLoadingScreen = false;
+        SceneLoaderFlags.ForceFullSceneLoadingForIncremental = false;
 
         loadScene("/scene/", "landing.babylon", scene, scriptsMap).then(() => {
             if (scene.activeCamera) {

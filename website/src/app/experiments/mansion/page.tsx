@@ -8,7 +8,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { CubicEase } from "@babylonjs/core/Animations/easing";
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
 
 import HavokPhysics from "@babylonjs/havok";
@@ -147,8 +147,8 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
         configureEngineToUseCompressedTextures(this._engine);
 
-        SceneLoader.ShowLoadingScreen = false;
-        SceneLoader.ForceFullSceneLoadingForIncremental = true;
+        SceneLoaderFlags.ShowLoadingScreen = false;
+        SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 
         Tween.defaultEasing = {
             type: new CubicEase(),

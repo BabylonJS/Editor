@@ -1,5 +1,6 @@
 import { Scene } from "@babylonjs/core/scene";
-import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { AppendSceneAsync } from "@babylonjs/core/Loading/sceneLoader";
+import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 
 import { isMesh } from "../tools/guards";
 
@@ -53,13 +54,16 @@ declare module "@babylonjs/core/scene" {
 export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
     scene.loadingQuality = options?.quality ?? "high";
 
-    await SceneLoader.AppendAsync(rootUrl, sceneFilename, scene, (event) => {
-        const progress = Math.min((event.loaded / event.total) * 0.5);
-        options?.onProgress?.(progress);
-    }, ".babylon");
+    await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
+        pluginExtension: ".babylon",
+        onProgress: (event) => {
+            const progress = Math.min((event.loaded / event.total) * 0.5);
+            options?.onProgress?.(progress);
+        },
+    });
 
     // Ensure all meshes perform their delay state check
-    if (SceneLoader.ForceFullSceneLoadingForIncremental) {
+    if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
         scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
     }
 
