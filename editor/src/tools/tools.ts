@@ -4,7 +4,9 @@
  * @returns A promise that resolves after the given amount of time.
  */
 export function wait(timeMs: number): Promise<void> {
-    return new Promise<void>((resolve) => setTimeout(() => resolve(), timeMs));
+    return new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), timeMs);
+    });
 }
 
 /**
@@ -12,7 +14,9 @@ export function wait(timeMs: number): Promise<void> {
  * @returns A promise that resolves after the next animation frame.
  */
 export function waitNextAnimationFrame(): Promise<void> {
-    return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    return new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+    });
 }
 
 /**
