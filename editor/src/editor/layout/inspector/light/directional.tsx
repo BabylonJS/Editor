@@ -5,6 +5,7 @@ import { DirectionalLight } from "babylonjs";
 
 import { isDirectionalLight } from "../../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
+import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
@@ -45,8 +46,14 @@ export class EditorDirectionalLightInspector extends Component<IEditorInspectorI
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Transforms">
-                    <EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" />
-                    <EditorInspectorVectorField label={<div className="w-14">Direction</div>} object={this.props.object} property="direction" />
+                    <EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" onChange={() => {
+                        updateLightShadowMapRefreshRate(this.props.object);
+                        updatePointLightShadowMapRenderListPredicate(this.props.object);
+                    }} />
+                    <EditorInspectorVectorField label={<div className="w-14">Direction</div>} object={this.props.object} property="direction" onChange={() => {
+                        updateLightShadowMapRefreshRate(this.props.object);
+                        updatePointLightShadowMapRenderListPredicate(this.props.object);
+                    }} />
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Light">

@@ -21,9 +21,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 
 import { isSound } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
+import { updateAllLights } from "../../tools/light/shadows";
 import { isParticleSystem } from "../../tools/guards/particles";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
+import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
@@ -710,6 +712,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                     node.setEnabled(!node.isEnabled());
                     this.refresh();
                     ev.stopPropagation();
+
+                    updateAllLights(this.props.editor.layout.preview.scene);
+                    updateIblShadowsRenderPipeline(this.props.editor.layout.preview.scene);
                 }}
                 className={`cursor-pointer ${node.isEnabled() ? "opacity-100" : "opacity-20"} transition-all duration-100 ease-in-out`}
             >

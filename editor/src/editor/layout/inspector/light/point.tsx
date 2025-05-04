@@ -46,7 +46,10 @@ export class EditorPointLightInspector extends Component<IEditorInspectorImpleme
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Transforms">
-                    <EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" />
+                    <EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" onChange={() => {
+                        updateLightShadowMapRefreshRate(this.props.object);
+                        updatePointLightShadowMapRenderListPredicate(this.props.object);
+                    }} />
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Light">
