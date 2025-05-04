@@ -15,6 +15,7 @@ import {
     ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin, PickingInfo,
 } from "babylonjs";
 
+import { Input } from "../../ui/shadcn/ui/input";
 import { Toggle } from "../../ui/shadcn/ui/toggle";
 import { Button } from "../../ui/shadcn/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
@@ -610,144 +611,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
     private _getToolbar(): ReactNode {
         return (
             <div className="absolute top-0 left-0 w-full h-12 z-10">
-                <div className="flex justify-between h-full bg-background/95 w-full p-1">
-                    <div className="flex gap-2 items-center h-10">
-                        <TooltipProvider>
-                            <Select
-                                disabled={this.play?.state.playing}
-                                value={this.scene?.activeCamera?.id}
-                                onValueChange={(v) => this._switchToCamera(v)}
-                            >
-                                <SelectTrigger className="w-36 border-none bg-muted/50">
-                                    <SelectValue placeholder="Select Value..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {this.scene?.cameras.map((c) => (
-                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            <Separator orientation="vertical" className="mx-2 h-[24px]" />
-
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Toggle pressed={this.state.activeGizmo === "position"} disabled={this.play?.state.playing} onPressedChange={() => this.setActiveGizmo("position")}>
-                                        <PositionIcon height={16} />
-                                    </Toggle>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Toggle position gizmo
-                                </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Toggle pressed={this.state.activeGizmo === "rotation"} disabled={this.play?.state.playing} onPressedChange={() => this.setActiveGizmo("rotation")}>
-                                        <RotationIcon height={16} />
-                                    </Toggle>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Toggle rotation gizmo
-                                </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Toggle pressed={this.state.activeGizmo === "scaling"} disabled={this.play?.state.playing} onPressedChange={() => this.setActiveGizmo("scaling")}>
-                                        <ScalingIcon height={16} />
-                                    </Toggle>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Toggle scaling gizmo
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <Select
-                                disabled={this.play?.state.playing}
-                                value={this.gizmo?.getCoordinateMode().toString()}
-                                onValueChange={(v) => {
-                                    this.gizmo?.setCoordinatesMode(parseInt(v));
-                                    this.forceUpdate();
-                                }}
-                            >
-                                <SelectTrigger className="w-32 border-none bg-muted/50">
-                                    <SelectValue placeholder="Select Value..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={GizmoCoordinatesMode.World.toString()}>World</SelectItem>
-                                    <SelectItem value={GizmoCoordinatesMode.Local.toString()}>Local</SelectItem>
-                                </SelectContent>
-                            </Select>
-
-                            <Separator orientation="vertical" className="mx-2 h-[24px]" />
-
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Toggle
-                                        className="!px-2 !py-2"
-                                        pressed={this.scene?.forceWireframe}
-                                        disabled={this.play?.state.playing}
-                                        onPressedChange={() => {
-                                            this.scene.forceWireframe = !this.scene.forceWireframe;
-                                            this.forceUpdate();
-                                        }}
-                                    >
-                                        <GiWireframeGlobe className="w-6 h-6 scale-125" strokeWidth={1} color="white" />
-                                    </Toggle>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Toggle wireframe
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <Separator orientation="vertical" className="mx-2 h-[24px]" />
-
-                            <DropdownMenu>
-                                <DropdownMenuTrigger disabled={this.play?.state.playing}>
-                                    <Button variant="ghost" disabled={this.play?.state.playing} className="px-1 py-1 w-9 h-9">
-                                        <IoIosOptions className="w-6 h-6" strokeWidth={1} />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent onClick={() => this.forceUpdate()}>
-                                    <DropdownMenuLabel>Render options</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.icons.enabled ? this.icons.stop() : this.icons.start()}>
-                                        {this.icons?.enabled && <FaCheck className="w-4 h-4" />} Helper Icons
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.postProcessesEnabled = !this.scene.postProcessesEnabled}>
-                                        {this.scene?.postProcessesEnabled && <FaCheck className="w-4 h-4" />} Post-processes enabled
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.texturesEnabled = !this.scene.texturesEnabled}>
-                                        {this.scene?.texturesEnabled && <FaCheck className="w-4 h-4" />} Textures enabled
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.lightsEnabled = !this.scene.lightsEnabled}>
-                                        {this.scene?.lightsEnabled && <FaCheck className="w-4 h-4" />} Lights enabled
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => {
-                                        this.scene.shadowsEnabled = !this.scene.shadowsEnabled;
-                                        this.scene.renderTargetsEnabled = this.scene.shadowsEnabled;
-                                    }}>
-                                        {this.scene?.shadowsEnabled && <FaCheck className="w-4 h-4" />} Shadows enabled
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuLabel>Renderer dimensions</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("720p")}>
-                                        {this.state.fixedDimensions === "720p" && <FaCheck className="w-4 h-4" />} 720p
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("1080p")}>
-                                        {this.state.fixedDimensions === "1080p" && <FaCheck className="w-4 h-4" />} 1080p
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("4k")}>
-                                        {this.state.fixedDimensions === "4k" && <FaCheck className="w-4 h-4" />} 4K (UHD)
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("fit")}>
-                                        {this.state.fixedDimensions === "fit" && <FaCheck className="w-4 h-4" />} Fit
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TooltipProvider>
-                    </div>
+                <div className="flex justify-between gap-4 h-full bg-background/95 w-full p-1">
+                    {this.play?.state.playing
+                        ? this._getPlayToolbar()
+                        : this._getEditToolbar()
+                    }
 
                     <div className="flex gap-2 items-center h-10">
                         <EditorPreviewPlayComponent
@@ -761,6 +629,161 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                         />
                     </div>
                 </div>
+            </div>
+        );
+    }
+
+    private _getPlayToolbar(): ReactNode {
+        return (
+            <div className="flex gap-2 items-center h-10 flex-1">
+                <Input
+                    className="w-full"
+                    value={this.play?.state.playingAddress}
+                    onChange={(ev) => {
+                        this.play?.setState({ playingAddress: ev.currentTarget.value }, () => {
+                            this.forceUpdate();
+                        });
+                    }}
+                />
+            </div>
+        );
+    }
+
+    private _getEditToolbar(): ReactNode {
+        return (
+            <div className="flex gap-2 items-center h-10">
+                <TooltipProvider>
+                    <Select
+                        value={this.scene?.activeCamera?.id}
+                        onValueChange={(v) => this._switchToCamera(v)}
+                    >
+                        <SelectTrigger className="w-36 border-none bg-muted/50">
+                            <SelectValue placeholder="Select Value..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {this.scene?.cameras.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Separator orientation="vertical" className="mx-2 h-[24px]" />
+
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Toggle pressed={this.state.activeGizmo === "position"} onPressedChange={() => this.setActiveGizmo("position")}>
+                                <PositionIcon height={16} />
+                            </Toggle>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Toggle position gizmo
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Toggle pressed={this.state.activeGizmo === "rotation"} onPressedChange={() => this.setActiveGizmo("rotation")}>
+                                <RotationIcon height={16} />
+                            </Toggle>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Toggle rotation gizmo
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Toggle pressed={this.state.activeGizmo === "scaling"} onPressedChange={() => this.setActiveGizmo("scaling")}>
+                                <ScalingIcon height={16} />
+                            </Toggle>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Toggle scaling gizmo
+                        </TooltipContent>
+                    </Tooltip>
+
+                    <Select
+                        value={this.gizmo?.getCoordinateMode().toString()}
+                        onValueChange={(v) => {
+                            this.gizmo?.setCoordinatesMode(parseInt(v));
+                            this.forceUpdate();
+                        }}
+                    >
+                        <SelectTrigger className="w-32 border-none bg-muted/50">
+                            <SelectValue placeholder="Select Value..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={GizmoCoordinatesMode.World.toString()}>World</SelectItem>
+                            <SelectItem value={GizmoCoordinatesMode.Local.toString()}>Local</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Separator orientation="vertical" className="mx-2 h-[24px]" />
+
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Toggle
+                                className="!px-2 !py-2"
+                                pressed={this.scene?.forceWireframe}
+                                onPressedChange={() => {
+                                    this.scene.forceWireframe = !this.scene.forceWireframe;
+                                    this.forceUpdate();
+                                }}
+                            >
+                                <GiWireframeGlobe className="w-6 h-6 scale-125" strokeWidth={1} color="white" />
+                            </Toggle>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            Toggle wireframe
+                        </TooltipContent>
+                    </Tooltip>
+
+                    <Separator orientation="vertical" className="mx-2 h-[24px]" />
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger >
+                            <Button variant="ghost" className="px-1 py-1 w-9 h-9">
+                                <IoIosOptions className="w-6 h-6" strokeWidth={1} />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent onClick={() => this.forceUpdate()}>
+                            <DropdownMenuLabel>Render options</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.icons.enabled ? this.icons.stop() : this.icons.start()}>
+                                {this.icons?.enabled && <FaCheck className="w-4 h-4" />} Helper Icons
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.postProcessesEnabled = !this.scene.postProcessesEnabled}>
+                                {this.scene?.postProcessesEnabled && <FaCheck className="w-4 h-4" />} Post-processes enabled
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.texturesEnabled = !this.scene.texturesEnabled}>
+                                {this.scene?.texturesEnabled && <FaCheck className="w-4 h-4" />} Textures enabled
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.lightsEnabled = !this.scene.lightsEnabled}>
+                                {this.scene?.lightsEnabled && <FaCheck className="w-4 h-4" />} Lights enabled
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex gap-2 items-center" onClick={() => {
+                                this.scene.shadowsEnabled = !this.scene.shadowsEnabled;
+                                this.scene.renderTargetsEnabled = this.scene.shadowsEnabled;
+                            }}>
+                                {this.scene?.shadowsEnabled && <FaCheck className="w-4 h-4" />} Shadows enabled
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>Renderer dimensions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("720p")}>
+                                {this.state.fixedDimensions === "720p" && <FaCheck className="w-4 h-4" />} 720p
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("1080p")}>
+                                {this.state.fixedDimensions === "1080p" && <FaCheck className="w-4 h-4" />} 1080p
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("4k")}>
+                                {this.state.fixedDimensions === "4k" && <FaCheck className="w-4 h-4" />} 4K (UHD)
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("fit")}>
+                                {this.state.fixedDimensions === "fit" && <FaCheck className="w-4 h-4" />} Fit
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </TooltipProvider>
             </div>
         );
     }
