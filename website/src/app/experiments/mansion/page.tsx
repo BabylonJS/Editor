@@ -4,6 +4,7 @@ import { Component, ReactNode } from "react";
 
 import isMobile from "is-mobile";
 
+import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -302,6 +303,19 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
     }
 
     private _forceCompileAllMaterials(): void {
+        const enabledMap = new Map<Node, boolean>();
+        const objects = [
+            ...this._scene.meshes,
+            ...this._scene.transformNodes,
+            ...this._scene.lights,
+            ...this._scene.cameras,
+        ];
+
+        objects.forEach((object) => {
+            enabledMap.set(object, object.isEnabled());
+            object.setEnabled(true);
+        });
+
         this._scene.materials.forEach((material) => {
             const bindedMeshes = material.getBindedMeshes();
             bindedMeshes.forEach((mesh) => {
@@ -309,6 +323,10 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
                     useInstances: mesh.hasInstances,
                 });
             });
+        });
+
+        enabledMap.forEach((enabled, object) => {
+            object.setEnabled(enabled);
         });
     }
 }

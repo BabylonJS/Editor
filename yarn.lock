@@ -3558,7 +3558,7 @@ babylonjs-editor-tools@latest:
   integrity sha512-+BwvVgR8sYPQNyUO9xNcGEYadbTVSB6QQ0rVmv2X6eW2sJTRxenS89pjQqu9xHvDMht3GBZoFQON+IpNTnjqfg==
 
 "babylonjs-editor-tools@link:tools":
-  version "0.0.8"
+  version "0.0.9"
 
 "babylonjs-editor@link:editor":
   version "5.0.0"
@@ -3612,6 +3612,7 @@ babylonjs-editor-tools@latest:
     fs-extra "11.2.0"
     glob "11.0.0"
     markdown-to-jsx "7.6.2"
+    math-expression-evaluator "^2.0.6"
     md5 "^2.3.0"
     next-themes "^0.3.0"
     node-pty "1.1.0-beta33"
@@ -7123,6 +7124,11 @@ matcher@^3.0.0:
   integrity sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng==
   dependencies:
     escape-string-regexp "^4.0.0"
+
+math-expression-evaluator@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/math-expression-evaluator/-/math-expression-evaluator-2.0.6.tgz#a33028e4d55e7dcfcca17a696738e1a25b8e2c22"
+  integrity sha512-DRung1qNcKbgkhFeQ0fBPUFB6voRUMY7KyRyp1TRQ2v95Rp2egC823xLRooM1mDx1rmbkY7ym6ZWmpaE/VimOA==
 
 md5@^2.3.0:
   version "2.3.0"

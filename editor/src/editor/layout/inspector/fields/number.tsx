@@ -5,12 +5,16 @@ import { useEventListener } from "usehooks-ts";
 
 import { Scalar, Tools } from "babylonjs";
 
+import Mexp from "math-expression-evaluator";
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from "../../../../tools/property";
 
 import { IEditorInspectorFieldProps } from "./field";
+
+const mexp = new Mexp();
 
 export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldProps {
     min?: number;
@@ -103,6 +107,13 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
                     setValue(ev.currentTarget.value);
 
                     let float = parseFloat(ev.currentTarget.value);
+
+                    try {
+                        float = mexp.eval(ev.currentTarget.value);
+                    } catch (e) {
+                        console.warn("Error parsing value", ev.currentTarget.value, e);
+                    }
+
                     if (!isNaN(float)) {
                         if (props.min !== undefined && float < props.min) {
                             float = props.min;
