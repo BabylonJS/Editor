@@ -4,6 +4,9 @@ import { UniqueNumber } from "../../../../tools/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
+import { isCamera } from "../../../../tools/guards/nodes";
+
+import { getMotionBlurPostProcess } from "../../../rendering/motion-blur";
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
 import { ICinematic, ICinematicKey, ICinematicKeyCut } from "../schema/typings";
@@ -163,6 +166,23 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
             if (animationKeyCut) {
                 keys.push(animationKeyCut.key1);
                 keys.push(animationKeyCut.key2);
+
+                if (isCamera(node) && track.propertyPath === "position") {
+                    animation.addEvent(new AnimationEvent(animationKeyCut.key1.frame, () => {
+                        const motionBlur = getMotionBlurPostProcess();
+                        if (!motionBlur) {
+                            return;
+                        }
+
+                        let motionStrength = motionBlur.motionStrength;
+                        motionBlur.motionStrength = 0;
+
+                        requestAnimationFrame(() => {
+                            motionBlur.motionStrength = motionStrength;
+                        });
+                    }));
+                }
+
             }
         });
 

@@ -6,6 +6,9 @@ import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
 import { AnimationEvent } from "@babylonjs/core/Animations/animationEvent";
 import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 
+import { isCamera } from "../tools/guards";
+
+import { getMotionBlurPostProcess } from "../rendering/motion-blur";
 import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
 import { handleSetEnabledEvent } from "./events/set-enabled";
@@ -162,6 +165,22 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
             if (animationKeyCut) {
                 keys.push(animationKeyCut.key1);
                 keys.push(animationKeyCut.key2);
+
+                if (isCamera(node) && track.propertyPath === "position") {
+                    animation.addEvent(new AnimationEvent(animationKeyCut.key1.frame, () => {
+                        const motionBlur = getMotionBlurPostProcess();
+                        if (!motionBlur) {
+                            return;
+                        }
+
+                        let motionStrength = motionBlur.motionStrength;
+                        motionBlur.motionStrength = 0;
+
+                        requestAnimationFrame(() => {
+                            motionBlur.motionStrength = motionStrength;
+                        });
+                    }));
+                }
             }
         });
 
