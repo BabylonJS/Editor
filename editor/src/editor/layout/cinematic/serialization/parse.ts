@@ -33,7 +33,7 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
                 node = getDefaultRenderingPipeline();
             }
 
-            if (track.propertyPath) {
+            if (node && track.propertyPath) {
                 const value = getInspectorPropertyValue(node, track.propertyPath);
                 animationType = getAnimationTypeForObject(value);
             }
