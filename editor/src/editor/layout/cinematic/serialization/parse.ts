@@ -8,7 +8,7 @@ import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
-import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent } from "../schema/typings";
+import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent, ICinematicTrack } from "../schema/typings";
 
 import { CinematicEventSetEnabled } from "../events/set-enabled";
 import { CinematicEventApplyImpulse } from "../events/apply-impulse";
@@ -19,88 +19,97 @@ import { CinematicEventApplyImpulse } from "../events/apply-impulse";
  * @param scene defines the reference to the scene used to retrieve cinematic's data.
  */
 export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
+    const tracks = data.tracks.map((track) => {
+        return parseCinematicTrack(track, scene);
+    });
+
     return {
         name: data.name,
         framesPerSecond: data.framesPerSecond,
+        tracks: tracks.filter((track) => track !== null),
         outputFramesPerSecond: data.outputFramesPerSecond,
-        tracks: data.tracks.map((track) => {
-            let node: any = null;
-            let animationType: number | null = null;
-
-            if (track.node) {
-                node = scene.getNodeById(track.node);
-            } else if (track.defaultRenderingPipeline) {
-                node = getDefaultRenderingPipeline();
-            }
-
-            if (node && track.propertyPath) {
-                const value = getInspectorPropertyValue(node, track.propertyPath);
-                animationType = getAnimationTypeForObject(value);
-            }
-
-            let sound: Sound | null = null;
-            if (track.sound) {
-                sound = getSoundById(track.sound, scene);
-            }
-
-            return {
-                node,
-                sound,
-                propertyPath: track.propertyPath,
-                defaultRenderingPipeline: track.defaultRenderingPipeline,
-                animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
-                animationGroups: track.animationGroups,
-                sounds: track.sounds,
-                keyFrameEvents: track.keyFrameEvents?.map((keyFrame) => {
-                    const eventKey = {
-                        type: keyFrame.type,
-                        frame: keyFrame.frame,
-                    } as ICinematicKeyEvent;
-
-                    switch (keyFrame.data?.type) {
-                        case "set-enabled":
-                            eventKey.data = CinematicEventSetEnabled.parse(scene, keyFrame.data);
-                            break;
-                        case "apply-impulse":
-                            eventKey.data = CinematicEventApplyImpulse.parse(scene, keyFrame.data);
-                            break;
-                    }
-
-                    return eventKey;
-                }),
-                keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
-                    const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
-                    if (animationKey) {
-                        return {
-                            ...animationKey,
-                            value: parseCinematicKeyValue(animationKey.value, animationType),
-                            inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
-                            outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
-                        } as ICinematicKey;
-                    }
-
-                    const animationKeyCut = keyFrame.type === "cut" ? keyFrame as ICinematicKeyCut : null;
-                    if (animationKeyCut) {
-                        return {
-                            ...animationKeyCut,
-                            key1: {
-                                ...animationKeyCut.key1,
-                                value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
-                                inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
-                                outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
-                            } as ICinematicKey,
-                            key2: {
-                                ...animationKeyCut.key2,
-                                value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
-                                inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
-                                outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
-                            },
-                        } as ICinematicKeyCut;
-                    }
-                }),
-            };
-        }),
     } as ICinematic;
+}
+
+export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
+    let node: any = null;
+    let animationType: number | null = null;
+
+    if (track.node) {
+        node = scene.getNodeById(track.node);
+    } else if (track.defaultRenderingPipeline) {
+        node = getDefaultRenderingPipeline();
+    }
+
+    if (track.propertyPath) {
+        if (!node) {
+            return null;
+        }
+        const value = getInspectorPropertyValue(node, track.propertyPath);
+        animationType = getAnimationTypeForObject(value);
+    }
+
+    let sound: Sound | null = null;
+    if (track.sound) {
+        sound = getSoundById(track.sound, scene);
+    }
+
+    return {
+        node,
+        sound,
+        propertyPath: track.propertyPath,
+        defaultRenderingPipeline: track.defaultRenderingPipeline,
+        animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
+        animationGroups: track.animationGroups,
+        sounds: track.sounds,
+        keyFrameEvents: track.keyFrameEvents?.map((keyFrame) => {
+            const eventKey = {
+                type: keyFrame.type,
+                frame: keyFrame.frame,
+            } as ICinematicKeyEvent;
+
+            switch (keyFrame.data?.type) {
+                case "set-enabled":
+                    eventKey.data = CinematicEventSetEnabled.parse(scene, keyFrame.data);
+                    break;
+                case "apply-impulse":
+                    eventKey.data = CinematicEventApplyImpulse.parse(scene, keyFrame.data);
+                    break;
+            }
+
+            return eventKey;
+        }),
+        keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
+            const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
+            if (animationKey) {
+                return {
+                    ...animationKey,
+                    value: parseCinematicKeyValue(animationKey.value, animationType),
+                    inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
+                    outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
+                } as ICinematicKey;
+            }
+
+            const animationKeyCut = keyFrame.type === "cut" ? keyFrame as ICinematicKeyCut : null;
+            if (animationKeyCut) {
+                return {
+                    ...animationKeyCut,
+                    key1: {
+                        ...animationKeyCut.key1,
+                        value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
+                        inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
+                        outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
+                    } as ICinematicKey,
+                    key2: {
+                        ...animationKeyCut.key2,
+                        value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
+                        inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
+                        outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
+                    },
+                } as ICinematicKeyCut;
+            }
+        }),
+    };
 }
 
 /**
