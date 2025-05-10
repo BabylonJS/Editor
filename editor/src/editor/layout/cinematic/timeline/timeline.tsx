@@ -4,8 +4,8 @@ import { Animation, AnimationGroup, HavokPlugin, Node } from "babylonjs";
 
 import { Editor } from "../../../main";
 
-import { isMesh } from "../../../../tools/guards/nodes";
 import { registerUndoRedo } from "../../../../tools/undoredo";
+import { isAbstractMesh } from "../../../../tools/guards/nodes";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { isDomElementDescendantOf } from "../../../../tools/dom";
 import { updateLightShadowMapRefreshRate } from "../../../../tools/light/shadows";
@@ -410,13 +410,13 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
             this._sceneState.set(node, {
                 isEnabled: node.isEnabled(false),
 
-                position: isMesh(node) ? node.position.clone() : null,
-                rotation: isMesh(node) ? node.rotation.clone() : null,
-                scaling: isMesh(node) ? node.scaling.clone() : null,
-                rotationQuaternion: isMesh(node) ? node.rotationQuaternion?.clone() : null,
+                position: isAbstractMesh(node) ? node.position.clone() : null,
+                rotation: isAbstractMesh(node) ? node.rotation.clone() : null,
+                scaling: isAbstractMesh(node) ? node.scaling.clone() : null,
+                rotationQuaternion: isAbstractMesh(node) ? node.rotationQuaternion?.clone() : null,
             });
 
-            if (isMesh(node) && node.physicsAggregate?.body) {
+            if (isAbstractMesh(node) && node.physicsAggregate?.body) {
                 node.physicsAggregate.body.disableSync = false;
 
                 const position = node.getAbsolutePosition();
@@ -439,7 +439,7 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
         this._sceneState.forEach((config, node) => {
             node.setEnabled(config.isEnabled);
 
-            if (isMesh(node)) {
+            if (isAbstractMesh(node)) {
                 if (config.position) {
                     node.position.copyFrom(config.position);
                 }

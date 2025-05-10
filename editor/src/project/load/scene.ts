@@ -263,6 +263,12 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                     delete m.metadata.parentId;
                 }
 
+                // Handle physics
+                if (meshData?.metadata?.physicsAggregate) {
+                    m.physicsAggregate = parsePhysicsAggregate(m, meshData.metadata.physicsAggregate);
+                    m.physicsAggregate.body.disableSync = true;
+                }
+
                 m.instances.forEach((instance) => {
                     const instanceData = meshData.instances?.find((d) => d.id === instance.id);
                     if (instanceData) {
@@ -280,7 +286,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                         delete instance.metadata.parentId;
 
                         if (instanceData.metadata?.physicsAggregate) {
-                            instance.physicsAggregate = parsePhysicsAggregate(m, instanceData.metadata.physicsAggregate);
+                            instance.physicsAggregate = parsePhysicsAggregate(instance, instanceData.metadata.physicsAggregate);
                             instance.physicsAggregate.body.disableSync = true;
                         }
                     }
@@ -298,12 +304,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
                     if (!isCollisionMesh(m)) {
                         return;
                     }
-                }
-
-                // Handle physics
-                if (meshData?.metadata?.physicsAggregate) {
-                    m.physicsAggregate = parsePhysicsAggregate(m, meshData.metadata.physicsAggregate);
-                    m.physicsAggregate.body.disableSync = true;
                 }
 
                 loadResult.meshes.push(m);

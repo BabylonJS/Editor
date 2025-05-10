@@ -1,6 +1,6 @@
-import { TransformNode, PhysicsAggregate, Vector3, Quaternion } from "babylonjs";
+import { TransformNode, PhysicsAggregate, Vector3, Quaternion, Mesh } from "babylonjs";
 
-import { isMesh } from "../../guards/nodes";
+import { isInstancedMesh, isMesh } from "../../guards/nodes";
 
 /**
  * Returns the JSON representation of the given physics aggregate.
@@ -37,9 +37,16 @@ export function serializePhysicsAggregate(aggregate: PhysicsAggregate) {
  * @param data defines the JSON representation of the physics aggregate to parse.
  */
 export function parsePhysicsAggregate(transformNode: TransformNode, data: any) {
+    let mesh: Mesh | undefined = undefined;
+    if (isMesh(transformNode)) {
+        mesh = transformNode;
+    } else if (isInstancedMesh(transformNode)) {
+        mesh = transformNode.sourceMesh;
+    }
+
     const aggregate = new PhysicsAggregate(transformNode, data.shape.type, {
+        mesh,
         mass: data.massProperties.mass,
-        mesh: isMesh(transformNode) ? transformNode : undefined,
     });
 
     aggregate.body.setMassProperties({
