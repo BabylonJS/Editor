@@ -13,6 +13,7 @@ import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorNodeFieldProps extends IEditorInspectorFieldProps {
     scene: Scene;
+    onChange?: (value: Node | null) => void;
 }
 
 export function EditorInspectorNodeField(props: IEditorInspectorNodeFieldProps) {
@@ -39,6 +40,8 @@ export function EditorInspectorNodeField(props: IEditorInspectorNodeFieldProps) 
             return;
         }
 
+        setDragOver(false);
+
         handleSetNode(
             props.scene.getNodeById(data[0]),
         );
@@ -49,6 +52,8 @@ export function EditorInspectorNodeField(props: IEditorInspectorNodeFieldProps) 
         setInspectorEffectivePropertyValue(props.object, props.property, node);
 
         if (node !== value) {
+            props.onChange?.(node);
+
             registerSimpleUndoRedo({
                 object: props.object,
                 property: props.property,

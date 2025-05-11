@@ -1,6 +1,7 @@
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { GroundMesh } from "@babylonjs/core/Meshes/groundMesh";
+import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 
 /**
@@ -15,6 +16,14 @@ export function isMesh(object: any): object is Mesh {
     }
 
     return false;
+}
+
+/**
+ * Returns wether or not the given object is a InstancedMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isInstancedMesh(object: any): object is InstancedMesh {
+    return object.getClassName?.() === "InstancedMesh";
 }
 
 /**
