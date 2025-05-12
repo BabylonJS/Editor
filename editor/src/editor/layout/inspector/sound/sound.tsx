@@ -10,6 +10,7 @@ import { Sound } from "babylonjs";
 import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { isSound } from "../../../../tools/guards/sound";
+import { reloadSound } from "../../../../tools/sound/tools";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { EditorInspectorNumberField } from "../fields/number";
@@ -71,6 +72,10 @@ export class EditorSoundInspector extends Component<IEditorInspectorImplementati
                     >
                         {this.props.object.isPlaying ? "Stop" : "Play"}
                     </Button>
+
+                    <Button variant="secondary" onClick={() => this._handleReload()}>
+                        Reload
+                    </Button>
                 </EditorInspectorSectionField>
 
                 {this.props.object.spatialSound &&
@@ -98,5 +103,11 @@ export class EditorSoundInspector extends Component<IEditorInspectorImplementati
     private _handleStop(): void {
         this.props.object.pause();
         this.forceUpdate();
+    }
+
+    private _handleReload(): void {
+        this.props.editor.layout.inspector.setEditedObject(
+            reloadSound(this.props.editor, this.props.object),
+        );
     }
 }

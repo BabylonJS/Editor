@@ -1,4 +1,10 @@
-import { Scene } from "babylonjs";
+import { join, dirname } from "path/posix";
+
+import { Scene, Sound } from "babylonjs";
+
+import { Editor } from "../../editor/main";
+
+import { projectConfiguration } from "../../project/configuration";
 
 /**
  * Searches for a sound by its id in the scene by traversing all soundtracks.
@@ -18,4 +24,35 @@ export function getSoundById(id: string, scene: Scene) {
     }
 
     return null;
+}
+
+/**
+ * Reloads the given sound. This is useful when the sound has been modified externally and needs to be reloaded in the editor.
+ * @param editor defines the reference to the editor.
+ * @param sound defines the reference to the sound to reload.
+ * @returns the new sound instance.
+ */
+export function reloadSound(editor: Editor, sound: Sound) {
+    const url = sound["_url"];
+    if (!url || !projectConfiguration.path) {
+        return;
+    }
+
+    const serializationObject = sound.serialize();
+
+    const newSound = Sound.Parse(
+        serializationObject,
+        editor.layout.preview.scene,
+        join(dirname(projectConfiguration.path), "/"),
+    );
+
+    newSound["_url"] = serializationObject.url;
+    newSound.id = sound.id;
+    newSound.uniqueId = sound.uniqueId;
+
+    sound.dispose();
+
+    editor.layout.graph.refresh();
+
+    return newSound;
 }
