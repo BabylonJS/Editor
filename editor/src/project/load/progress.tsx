@@ -21,6 +21,7 @@ export interface ILoadSceneProgressComponentProps {
 }
 
 export interface ILoadSceneProgressComponentState {
+    name: string;
     progress: number;
 }
 
@@ -32,6 +33,7 @@ export class LoadSceneProgressComponent extends Component<ILoadSceneProgressComp
 
         this.state = {
             progress: 0,
+            name: props.name,
         };
     }
 
@@ -41,7 +43,7 @@ export class LoadSceneProgressComponent extends Component<ILoadSceneProgressComp
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Loading {this.props.name}...
+                            {this.state.name}...
                         </AlertDialogTitle>
                         <AlertDialogDescription asChild>
                             <Progress value={this.state.progress} />
@@ -57,6 +59,10 @@ export class LoadSceneProgressComponent extends Component<ILoadSceneProgressComp
     public step(step: number): void {
         this._step += step;
         this.setState({ progress: this._step });
+    }
+
+    public setName(name: string): void {
+        this.setState({ name });
     }
 
     public dispose(): void {

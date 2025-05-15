@@ -29,6 +29,7 @@ import { isMultiMaterial } from "../../tools/guards/material";
 import { createSceneLink } from "../../tools/scene/scene-link";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
+import { forceCompileAllSceneMaterials } from "../../tools/scene/materials";
 import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
 import { configureSimultaneousLightsForMaterial } from "../../tools/mesh/material";
 import { parsePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
@@ -78,6 +79,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
     options ??= {};
 
+    editor.layout.preview.setRenderScene(false);
     editor.layout.console.log(`Loading scene "${relativeScenePath}"`);
 
     // Prepare directories
@@ -119,7 +121,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         readdir(join(scenePath, "animationGroups")),
     ]);
 
-    const progress = await showLoadSceneProgressDialog(basename(scenePath));
+    const progress = await showLoadSceneProgressDialog(`Loading ${basename(scenePath)}...`);
     const progressStep = 100 / (
         nodesFiles.length +
         meshesFiles.length +
@@ -602,8 +604,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         progress.step(progressStep);
     }));
 
-    progress.dispose();
-
     // Configure textures urls
     scene.textures.forEach((texture) => {
         if (isTexture(texture) || isCubeTexture(texture)) {
@@ -769,16 +769,24 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
         });
     }
 
-    editor.layout.console.log("Scene loaded and editor is ready.");
-
     setTimeout(() => {
         updateAllLights(scene);
         updateIblShadowsRenderPipeline(scene, true);
 
         if (!options.asLink) {
             checkProjectCachedCompressedTextures(editor);
+            editor.layout.preview.setRenderScene(true);
         }
     }, 150);
+
+    if (!options?.asLink) {
+        progress.setName("Compiling materials...");
+        await forceCompileAllSceneMaterials(scene);
+    }
+
+    progress.dispose();
+
+    editor.layout.console.log("Scene loaded and editor is ready.");
 
     return loadResult;
 }

@@ -72,8 +72,10 @@ export class EditorSoundInspector extends Component<IEditorInspectorImplementati
                     >
                         {this.props.object.isPlaying ? "Stop" : "Play"}
                     </Button>
+                </EditorInspectorSectionField>
 
-                    <Button variant="secondary" onClick={() => this._handleReload()}>
+                <EditorInspectorSectionField title="Helpers">
+                    <Button variant="ghost" onClick={() => this._handleReload()}>
                         Reload
                     </Button>
                 </EditorInspectorSectionField>

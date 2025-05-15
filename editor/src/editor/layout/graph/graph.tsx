@@ -13,6 +13,8 @@ import {
 
 import { SceneAssetBrowserDialogMode, showAssetBrowserDialog } from "../../../ui/scene-asset-browser";
 
+import { isSound } from "../../../tools/guards/sound";
+import { reloadSound } from "../../../tools/sound/tools";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
@@ -35,6 +37,10 @@ export interface IEditorGraphContextMenuProps extends PropsWithChildren {
 
 export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuProps> {
     public render(): ReactNode {
+        if (!this.props.object) {
+            return this.props.children;
+        }
+
         return (
             <ContextMenu onOpenChange={(o) => this.props.onOpenChange?.(o)}>
                 <ContextMenuTrigger className="w-full h-full">
@@ -51,7 +57,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                 </>
                             }
 
-                            {!isScene(this.props.object) &&
+                            {!isScene(this.props.object) && !isSound(this.props.object) &&
                                 <>
                                     <ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
                                         Copy  <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
@@ -65,6 +71,12 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 
                                     <ContextMenuSeparator />
                                 </>
+                            }
+
+                            {isSound(this.props.object) &&
+                                <ContextMenuItem onClick={() => this._reloadSound()}>
+                                    Reload
+                                </ContextMenuItem>
                             }
 
                             {((isNode(this.props.object) || isScene(this.props.object)) && !isSceneLinkNode(this.props.object)) &&
@@ -95,7 +107,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                 </ContextMenuSub>
                             }
 
-                            {!isScene(this.props.object) &&
+                            {!isScene(this.props.object) && !isSound(this.props.object) &&
                                 <>
                                     <ContextMenuSeparator />
 
@@ -110,9 +122,13 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                     }}>
                                         Do not serialize
                                     </ContextMenuCheckboxItem>
+                                </>
+                            }
 
+
+                            {!isScene(this.props.object) &&
+                                <>
                                     <ContextMenuSeparator />
-
                                     {this._getRemoveItems()}
                                 </>
                             }
@@ -265,5 +281,13 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
         });
 
         result.container.dispose();
+    }
+
+    private _reloadSound(): void {
+        reloadSound(this.props.editor, this.props.object);
+
+        if (this.props.editor.layout.inspector.state.editedObject === this.props.object) {
+            this.props.editor.layout.inspector.setEditedObject(this.props.object);
+        }
     }
 }

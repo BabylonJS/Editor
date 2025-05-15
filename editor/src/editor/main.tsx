@@ -233,9 +233,9 @@ export class Editor extends Component<IEditorProps, IEditorState> {
         disposeSSAO2RenderingPipeline();
         disposeDefaultRenderingPipeline();
 
-        await loadProject(this, absolutePath);
-
         onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
+
+        await loadProject(this, absolutePath);
     }
 
     /**
