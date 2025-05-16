@@ -4,16 +4,17 @@ import { ipcRenderer, shell } from "electron";
 import { Button } from "@blueprintjs/core";
 import { Component, ReactNode } from "react";
 
+import { toast } from "sonner";
+
 import { Grid } from "react-loader-spinner";
 
-import { IoIosWarning } from "react-icons/io";
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 
 import { exportProject } from "../../../project/export/export";
 import { projectConfiguration } from "../../../project/configuration";
 
-import { yarnAvailable } from "../../../tools/process";
 import { execNodePty, NodePtyInstance } from "../../../tools/node-pty";
+import { checkPackageManagerAvailable, packageManagerAvailable } from "../../../tools/process";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/shadcn/ui/tooltip";
 
@@ -92,7 +93,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
                         <Button
                             minimal
                             active={this.state.playing}
-                            disabled={this.state.preparingPlay || !yarnAvailable}
+                            disabled={this.state.preparingPlay}
                             icon={
                                 this.state.preparingPlay
                                     ? <Grid width={24} height={24} color="gray" />
@@ -103,19 +104,13 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
                             onClick={() => this.playOrStopApplication()}
                             className={`
                                 w-10 h-10 bg-muted/50 !rounded-lg
-                                ${this.state.preparingPlay || !yarnAvailable ? "bg-muted/50" : this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
+                                ${this.state.preparingPlay ? "bg-muted/50" : this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
                                 transition-all duration-300 ease-in-out
                             `}
                         />
                     </TooltipTrigger>
                     <TooltipContent className="flex gap-2 items-center">
-                        {yarnAvailable && "Play the game / application"}
-
-                        {!yarnAvailable &&
-                            <>
-                                <IoIosWarning className="w-4 h-4 invert" /> Yarn is required to play the game / application
-                            </>
-                        }
+                        Play the game / application
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
@@ -149,6 +144,25 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
         }
 
         const log = await this.props.editor.layout.console.progress("Starting the game / application...");
+
+        await checkPackageManagerAvailable(this.props.editor.state.packageManager!);
+
+        if (!packageManagerAvailable) {
+            const message = `Package manager not available. Please install ${this.props.editor.state.packageManager} that is required by the project.`;
+
+            log.setState({
+                error: true,
+                message: message,
+            });
+
+            this.setState({
+                preparingPlay: false
+            });
+
+            toast.error(message);
+
+            throw new Error(message);
+        }
 
         let command = "";
         switch (this.props.editor.state.packageManager) {

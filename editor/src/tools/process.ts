@@ -1,6 +1,8 @@
 import { platform } from "os";
 import { exec } from "child_process";
 
+import { EditorProjectPackageManager } from "../project/typings";
+
 import { execNodePty } from "./node-pty";
 
 /**
@@ -40,7 +42,7 @@ export function executeAsync(command: string): Promise<void> {
 }
 
 export let nodeJSAvailable: boolean = false;
-export let yarnAvailable: boolean = false;
+export let packageManagerAvailable: boolean = false;
 export let visualStudioCodeAvailable: boolean = false;
 
 /**
@@ -61,23 +63,6 @@ export async function checkNodeJSAvailable(): Promise<void> {
 }
 
 /**
- * Checks wether or not Yarn is available on the system.
- * Updates the `yarnAvailable` variable that can be imported from this file.
- */
-export async function checkYarnAvailable(): Promise<void> {
-    try {
-        const p = await execNodePty("yarn --version");
-        const code = await p.wait();
-
-        if (code === 0) {
-            yarnAvailable = true;
-        }
-    } catch (e) {
-        // Catch silently.
-    }
-}
-
-/**
  * Checks wether or not Visual Studio Code is available on the system.
  * Updates the `visualStudioCodeAvailable` variable that can be imported from this file.
  */
@@ -88,6 +73,36 @@ export async function checkVisualStudioCodeAvailable(): Promise<void> {
 
         if (code === 0) {
             visualStudioCodeAvailable = true;
+        }
+    } catch (e) {
+        // Catch silently.
+    }
+}
+
+/**
+ * Checks wether or not the used package manager (yarn, npm, etc.) is available on the system.
+ * Updates the `packageManagerAvailable` variable that can be imported from this file.
+ * @param packageManager The package manager to check for availability.
+ */
+export async function checkPackageManagerAvailable(packageManager: EditorProjectPackageManager): Promise<void> {
+    if (packageManagerAvailable) {
+        return;
+    }
+
+    try {
+        let command = "";
+        switch (packageManager) {
+            case "npm": command = "npm -v"; break;
+            case "pnpm": command = "pnpm -v"; break;
+            case "bun": command = "bun -v"; break;
+            default: command = "yarn -v"; break;
+        }
+
+        const p = await execNodePty(command);
+        const code = await p.wait();
+
+        if (code === 0) {
+            packageManagerAvailable = true;
         }
     } catch (e) {
         // Catch silently.

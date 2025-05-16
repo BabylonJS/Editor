@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Editor } from "../../editor/main";
 
 import { execNodePty } from "../../tools/node-pty";
-import { yarnAvailable } from "../../tools/process";
 
 import { IEditorProject } from "../typings";
 import { projectConfiguration } from "../configuration";
@@ -17,10 +16,11 @@ import { LoadScenePrepareComponent } from "./prepare";
 export async function loadProject(editor: Editor, path: string): Promise<void> {
     const directory = dirname(path);
     const project = await readJSON(path, "utf-8") as IEditorProject;
+    const packageManager = project.packageManager ?? "yarn";
 
     editor.setState({
+        packageManager,
         projectPath: path,
-        packageManager: project.packageManager ?? "yarn",
         plugins: project.plugins.map((plugin) => plugin.nameOrPath),
         lastOpenedScenePath: project.lastOpenedScene ? join(directory, project.lastOpenedScene) : null,
 
@@ -32,30 +32,32 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
     projectConfiguration.compressedTexturesEnabled = project.compressedTexturesEnabled ?? false;
 
     // Update dependencies
-    if (yarnAvailable) {
-        const toastId = toast(<LoadScenePrepareComponent />, {
-            duration: Infinity,
-            dismissible: false,
-        });
+    const toastId = toast(<LoadScenePrepareComponent />, {
+        duration: Infinity,
+        dismissible: false,
+    });
 
-        let command = "";
-        switch (project.packageManager) {
-            case "npm": command = "npm i"; break;
-            case "pnpm": command = "pnpm i"; break;
-            case "bun": command = "bun i"; break;
-            default: command = "yarn"; break;
-        }
+    let command = "";
+    switch (packageManager) {
+        case "npm": command = "npm i"; break;
+        case "pnpm": command = "pnpm i"; break;
+        case "bun": command = "bun i"; break;
+        default: command = "yarn"; break;
+    }
 
-        const p = await execNodePty(command, { cwd: directory });
-        p.wait().then(async () => {
+    const p = await execNodePty(command, { cwd: directory });
+    p.wait()
+        .then(async (code) => {
             toast.dismiss(toastId);
-            toast.success("Dependencies successfully updated");
+
+            if (code !== 0) {
+                toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
+            } else {
+                toast.success("Dependencies successfully updated");
+            }
 
             loadProjectPlugins(editor, path, project);
         });
-    } else {
-        toast.warning("Yarn is not available on your system. Dependencies will not be updated.");
-    }
 
     // Load scene?
     if (project.lastOpenedScene) {

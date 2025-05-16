@@ -9,8 +9,8 @@ import { HotkeysTarget2 } from "@blueprintjs/core";
 
 import { waitUntil } from "../tools/tools";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
+import { checkNodeJSAvailable, checkVisualStudioCodeAvailable } from "../tools/process";
 import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
-import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, checkYarnAvailable } from "../tools/process";
 
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
@@ -206,7 +206,6 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
         await Promise.all([
             await checkNodeJSAvailable(),
-            await checkYarnAvailable(),
             await checkVisualStudioCodeAvailable(),
         ]);
 

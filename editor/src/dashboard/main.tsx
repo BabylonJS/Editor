@@ -13,8 +13,8 @@ import { showConfirm, showAlert } from "../ui/dialog";
 
 import { openSingleFileDialog } from "../tools/dialog";
 import { ProjectType, projectsKey } from "../tools/project";
+import { checkNodeJSAvailable, nodeJSAvailable } from "../tools/process";
 import { tryAddProjectToLocalStorage, tryGetProjectsFromLocalStorage } from "../tools/local-storage";
-import { checkNodeJSAvailable, checkYarnAvailable, nodeJSAvailable, yarnAvailable } from "../tools/process";
 
 import { DashboardProjectItem } from "./item";
 import { DashboardCreateProjectDialog } from "./create";
@@ -175,10 +175,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
     }
 
     private async _checkSystemAvailabilities(): Promise<void> {
-        await Promise.all([
-            await checkNodeJSAvailable(),
-            await checkYarnAvailable(),
-        ]);
+        await checkNodeJSAvailable();
 
         if (!nodeJSAvailable) {
             await showAlert(
@@ -189,21 +186,6 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
                     </div>
                     <div>
                         Node.js is required to build and run projects. You can install Node.js following <a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://nodejs.org/en/download")}>this link</a>.
-                    </div>
-                </div>
-            ).wait();
-        }
-
-        if (!yarnAvailable) {
-            await showAlert(
-                "Yarn not found",
-                <div className="flex flex-col">
-                    <div>
-                        Yarn was not found on your system.
-                    </div>
-                    <div>
-                        Yarn is required to install dependencies of the project and install plugins.
-                        You can install Yarn following <a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://classic.yarnpkg.com/en/docs/install")}>this link</a>.
                     </div>
                 </div>
             ).wait();

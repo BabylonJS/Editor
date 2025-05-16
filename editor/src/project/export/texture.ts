@@ -81,7 +81,6 @@ export async function processExportedTexture(editor: Editor, absolutePath: strin
                 });
             } catch (e) {
                 log.setState({
-                    done: true,
                     error: true,
                     message: `Failed to export image scaled image "${finalName}"`,
                 });

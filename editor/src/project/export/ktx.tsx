@@ -156,7 +156,6 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
         options.exportedAssets?.push(options.destinationFolder);
     } catch (e) {
         log.setState({
-            done: true,
             error: true,
             message: `Failed to compress image "${filename}"`,
         });

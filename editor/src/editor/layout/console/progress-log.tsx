@@ -48,16 +48,16 @@ export class EditorConsoleProgressLogComponent extends Component<IEditorConsoleP
 
     public render(): ReactNode {
         return (
-            <div className={`flex items-center gap-[5px] ${this.state.error ? "text-red-500" : ""} hover:bg-secondary/50 hover:py-1 transition-all duration-300 ease-in-out`}>
-                {!this.state.done &&
+            <div className={`flex items-center gap-[5px] hover:bg-secondary/50 hover:py-1 transition-all duration-300 ease-in-out`}>
+                {!this.state.done && !this.state.error &&
                     <Grid width={14} height={14} color="#ffffff" />
                 }
 
-                {this.state.done &&
+                {this.state.done && !this.state.error &&
                     <FaCheckCircle className="w-[14px] h-[14px]" />
                 }
 
-                <div className="whitespace-nowrap">
+                <div className={`whitespace-nowrap ${this.state.error ? "text-red-500" : ""}`}>
                     {this.state.message}
                 </div>
             </div>
