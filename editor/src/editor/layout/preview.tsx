@@ -7,8 +7,8 @@ import { Component, MouseEvent, ReactNode } from "react";
 import { Grid } from "react-loader-spinner";
 
 import { FaCheck } from "react-icons/fa6";
-import { IoIosOptions } from "react-icons/io";
 import { GiWireframeGlobe } from "react-icons/gi";
+import { IoIosOptions, IoIosStats } from "react-icons/io";
 
 import {
     AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
@@ -55,6 +55,10 @@ import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
 import { EditorPreviewPlayComponent } from "./preview/play";
 
+import { Stats } from "./preview/stats/stats";
+import { StatRow } from "./preview/stats/row";
+import { StatsValuesType } from "./preview/stats/types";
+
 import { applySoundAsset } from "./preview/import/sound";
 import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
@@ -75,18 +79,9 @@ export interface IEditorPreviewState {
      */
     informationMessage: ReactNode;
 
-    /**
-     * Defines wether or not picking is enabled.
-     */
     pickingEnabled: boolean;
-    /**
-     * Defines the active gizmo.
-     */
     activeGizmo: "position" | "rotation" | "scaling" | "none";
 
-    /**
-     * Defines wether or not the preview is focused.
-     */
     isFocused: boolean;
 
     /**
@@ -99,6 +94,9 @@ export interface IEditorPreviewState {
      * "fit" means the canvas will fit the entire panel container.
      */
     fixedDimensions: "720p" | "1080p" | "4k" | "fit";
+
+    showStatsValues: boolean;
+    statsValues?: StatsValuesType;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -129,6 +127,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
      */
     public play: EditorPreviewPlayComponent;
 
+    /**
+     * The current statistics of the preview.
+     * This is used to display the FPS and other values.
+     */
+    public statistics: Stats;
+
     private _renderScene: boolean = true;
     private _mouseDownPosition: Vector2 = Vector2.Zero();
 
@@ -147,6 +151,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
             informationMessage: "",
 
             fixedDimensions: "fit",
+
+            showStatsValues: false,
         };
 
         ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
@@ -404,6 +410,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
         };
 
         this.scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin());
+
+        this.statistics = new Stats(this.props.editor);
+        this.statistics.onValuesChangedObservable.add((values) => {
+            if (this.state.showStatsValues) {
+                this.setState({
+                    statsValues: { ...values },
+                });
+            }
+        });
 
         this.icons?.start();
         this.forceUpdate();
@@ -781,6 +796,39 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             <DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("fit")}>
                                 {this.state.fixedDimensions === "fit" && <FaCheck className="w-4 h-4" />} Fit
                             </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <DropdownMenu onOpenChange={(o) => this.setState({ showStatsValues: o })}>
+                        <DropdownMenuTrigger>
+                            <Button variant="ghost" className="px-1 py-1 w-9 h-9">
+                                <IoIosStats className="w-6 h-6" strokeWidth={1} />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-72" onClick={() => this.forceUpdate()}>
+                            <DropdownMenuLabel>Statistics</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="flex flex-col gap-1">
+                                <StatRow label="Average FPS" value={this.state.statsValues?.averageFPS} />
+                                <StatRow label="Instantaneous FPS" value={this.state.statsValues?.instantaneousFPS} />
+                                <StatRow label="Draw Calls" value={this.state.statsValues?.drawCalls} />
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="flex flex-col gap-1">
+                                <StatRow label="Active Faces" value={this.state.statsValues?.activeFaces} />
+                                <StatRow label="Active Meshes" value={this.state.statsValues?.activeMeshes} />
+                                <StatRow label="Active Indices" value={this.state.statsValues?.activeIndices} />
+                                <StatRow label="Active Bones" value={this.state.statsValues?.activeBones} />
+                                <StatRow label="Active Particles" value={this.state.statsValues?.activeParticles} />
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="flex flex-col gap-1">
+                                <StatRow label="Total Meshes" value={this.state.statsValues?.totalMeshes} />
+                                <StatRow label="Total Vertices" value={this.state.statsValues?.totalVertices} />
+                                <StatRow label="Total Materials" value={this.state.statsValues?.totalMaterials} />
+                                <StatRow label="Total Textures" value={this.state.statsValues?.totalTextures} />
+                                <StatRow label="Total Lights" value={this.state.statsValues?.totalLights} />
+                            </DropdownMenuLabel>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </TooltipProvider>
