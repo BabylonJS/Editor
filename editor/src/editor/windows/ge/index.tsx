@@ -12,6 +12,8 @@ import { ToolbarComponent } from "../../../ui/toolbar";
 
 import { Toaster } from "../../../ui/shadcn/ui/sonner";
 
+import { waitNextAnimationFrame } from "../../../tools/tools";
+
 const { GUIEditor } = require("babylonjs-gui-editor");
 
 export interface INodeMaterialEditorWindowProps {
@@ -87,7 +89,12 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
             },
         });
 
-        GUIEditor["_CurrentState"].workbench.guiSize = this._gui.getSize();
+        await waitNextAnimationFrame();
+
+        GUIEditor["_CurrentState"].workbench.guiSize = {
+            width: data.content.width,
+            height: data.content.height,
+        };
 
         ipcRenderer.on("save", () => this._save());
         ipcRenderer.on("editor:close-window", () => this.close());
