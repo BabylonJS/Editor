@@ -4,7 +4,7 @@ import { readFile, readJSON, readdir } from "fs-extra";
 import {
     AbstractMesh, AnimationGroup, Camera, CascadedShadowGenerator, Color3, Constants, Light, Matrix, Mesh, MorphTargetManager,
     RenderTargetTexture, SceneLoader, SceneLoaderFlags, ShadowGenerator, Skeleton, Texture, TransformNode, MultiMaterial, Animation,
-    Sound, Color4, IParticleSystem, ParticleSystem, GPUParticleSystem,
+    Sound, Color4, IParticleSystem, ParticleSystem, GPUParticleSystem, Vector3,
 } from "babylonjs";
 
 import { Editor } from "../../editor/main";
@@ -183,6 +183,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
         if (config.ambientColor) {
             scene.ambientColor = Color3.FromArray(config.ambientColor);
+        }
+
+        // Physics
+        if (config.physics) {
+            scene.getPhysicsEngine()?.setGravity(Vector3.FromArray(config.physics.gravity));
         }
     }
 

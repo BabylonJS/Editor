@@ -500,6 +500,9 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
                 fogDensity: scene.fogDensity,
                 fogColor: scene.fogColor.asArray(),
             },
+            physics: {
+                gravity: scene.getPhysicsEngine()?.gravity?.asArray(),
+            },
             rendering: scene.cameras.map((camera) => ({
                 cameraId: camera.id,
                 ssao2RenderingPipeline: ssaoRenderingPipelineCameraConfigurations.get(camera),
