@@ -192,7 +192,7 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
             onProgress: (loadingProgress) => this.setState({ loadingProgress }),
         });
 
-        this._forceCompileAllMaterials();
+        this._configureSceneAndMaterials();
 
         this._scene.animationGroups.forEach((animationGroup) => {
             animationGroup.play(true);
@@ -248,7 +248,16 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
             onProgress: (loadingProgress) => this.setState({ loadingProgress }),
         });
 
-        this._forceCompileAllMaterials();
+        const outisde = this._scene.getTransformNodeByName("outside");
+        const inside = this._scene.getTransformNodeByName("inside");
+
+        outisde?.setEnabled(false);
+        inside?.setEnabled(true);
+        this._configureSceneAndMaterials();
+
+        outisde?.setEnabled(true);
+        inside?.setEnabled(false);
+        this._configureSceneAndMaterials();
 
         const response = await fetch(`${rootUrl}assets/cinematic.cinematic`);
         const data = await response.json();
@@ -302,31 +311,23 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
         this._scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
     }
 
-    private _forceCompileAllMaterials(): void {
-        const enabledMap = new Map<Node, boolean>();
-        const objects = [
-            ...this._scene.meshes,
-            ...this._scene.transformNodes,
-            ...this._scene.lights,
-            ...this._scene.cameras,
-        ];
-
-        objects.forEach((object) => {
-            enabledMap.set(object, object.isEnabled());
-            object.setEnabled(true);
+    private _configureSceneAndMaterials(): void {
+        this._scene.meshes.forEach((mesh) => {
+            mesh.geometry?.clearCachedData();
         });
 
         this._scene.materials.forEach((material) => {
             const bindedMeshes = material.getBindedMeshes();
             bindedMeshes.forEach((mesh) => {
+                if (!mesh.isEnabled()) {
+                    return;
+                }
+
                 material.forceCompilation(mesh, undefined, {
+                    clipPlane: false,
                     useInstances: mesh.hasInstances,
                 });
             });
-        });
-
-        enabledMap.forEach((enabled, object) => {
-            object.setEnabled(enabled);
         });
     }
 }

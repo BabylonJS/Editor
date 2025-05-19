@@ -1,4 +1,5 @@
 import { Scene } from "@babylonjs/core/scene";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AppendSceneAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 
@@ -91,6 +92,10 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
         if (scene.activeCamera) {
             applyRenderingConfigurationForCamera(scene.activeCamera);
         }
+    }
+
+    if (scene.metadata?.physicsGravity) {
+        scene.getPhysicsEngine()?.setGravity(Vector3.FromArray(scene.metadata?.physicsGravity));
     }
 
     applyScriptForObject(scene, scene, scriptsMap, rootUrl);

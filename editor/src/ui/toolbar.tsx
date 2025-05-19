@@ -14,7 +14,7 @@ export interface IToolbarComponentProps extends PropsWithChildren {
 
 export function ToolbarComponent(props: IToolbarComponentProps) {
     return (
-        <div className="relative flex justify-between w-screen h-12 bg-background text-foreground">
+        <div className="relative flex justify-between w-screen h-12 bg-background text-foreground z-[9999] pointer-events-auto">
             {props.children}
 
             <div className="w-full h-10 electron-draggable" />

@@ -103,6 +103,8 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
 
     delete data.postProcesses;
 
+    data.metadata.physicsGravity = scene.getPhysicsEngine()?.gravity?.asArray();
+
     configureMeshesLODs(data, scene);
     configureMeshesPhysics(data, scene);
 

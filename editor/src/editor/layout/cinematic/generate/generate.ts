@@ -121,7 +121,7 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 
                         case "apply-impulse":
                             const mesh = configuration.data.mesh as AbstractMesh;
-                            const contactPoint = configuration.data!.contactPoint;
+                            const contactPoint = configuration.data!.contactPoint as Vector3;
 
                             let meshes = mesh
                                 ? [mesh]
@@ -136,7 +136,18 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 
                             meshes.forEach((m) => {
                                 if (m.physicsAggregate?.body) {
-                                    m.physicsAggregate.body.applyImpulse(configuration.data!.force, contactPoint);
+                                    m.refreshBoundingInfo({
+                                        applyMorph: true,
+                                        applySkeleton: true,
+                                        updatePositionsArray: true,
+                                    });
+
+                                    const direction = contactPoint.subtract(m.getBoundingInfo().boundingBox.centerWorld);
+                                    direction.multiplyInPlace(configuration.data!.force);
+
+                                    m.physicsAggregate.body.setLinearVelocity(Vector3.Zero());
+                                    m.physicsAggregate.body.setAngularVelocity(Vector3.Zero());
+                                    m.physicsAggregate.body.applyImpulse(direction.negateInPlace(), contactPoint);
                                 }
                             });
                             break;

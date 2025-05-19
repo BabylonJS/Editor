@@ -1,6 +1,6 @@
 import { Component, MouseEvent, ReactNode } from "react";
 
-import { Animation, AnimationGroup, HavokPlugin, Node } from "babylonjs";
+import { Animation, AnimationGroup, HavokPlugin, Node, Vector3 } from "babylonjs";
 
 import { Editor } from "../../../main";
 
@@ -458,6 +458,8 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
 
                 if (node.physicsAggregate?.body) {
                     node.physicsAggregate.body.disableSync = true;
+                    node.physicsAggregate.body.setLinearVelocity(Vector3.Zero());
+                    node.physicsAggregate.body.setAngularVelocity(Vector3.Zero());
                 }
             }
         });

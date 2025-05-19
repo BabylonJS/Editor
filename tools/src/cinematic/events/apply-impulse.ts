@@ -9,6 +9,8 @@ export type SetEnabledEventType = {
     contactPoint: number[];
 };
 
+const zeroVector = Vector3.Zero();
+
 export function handleApplyImpulseEvent(scene: Scene, config: SetEnabledEventType) {
     const force = Vector3.FromArray(config.force);
     const contactPoint = Vector3.FromArray(config.contactPoint);
@@ -18,13 +20,21 @@ export function handleApplyImpulseEvent(scene: Scene, config: SetEnabledEventTyp
         : scene.meshes.filter((m) => m.physicsAggregate);
 
     if (config.radius) {
-        meshes = meshes.filter((m) => {
-            const centerWorld = m.getBoundingInfo().boundingBox.centerWorld;
+        meshes = meshes.filter((mesh) => {
+            const centerWorld = mesh.getBoundingInfo().boundingBox.centerWorld;
             return Vector3.Distance(centerWorld, contactPoint) <= config.radius;
         });
     }
 
     meshes.forEach((mesh) => {
-        mesh.physicsAggregate?.body?.applyImpulse(force, contactPoint);
+        if (mesh.physicsAggregate?.body) {
+            const direction = contactPoint.subtract(mesh.getBoundingInfo().boundingBox.centerWorld);
+            direction.multiplyInPlace(force);
+
+            mesh.physicsAggregate.body.setLinearVelocity(zeroVector);
+            mesh.physicsAggregate.body.setAngularVelocity(zeroVector);
+
+            mesh.physicsAggregate.body.applyImpulse(direction.negateInPlace(), contactPoint);
+        }
     });
 }
