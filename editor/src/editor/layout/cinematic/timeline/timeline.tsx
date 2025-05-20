@@ -366,16 +366,18 @@ export class CinematicEditorTimelinePanel extends Component<ICinematicEditorTime
             });
         });
 
-        this.props.editor.layout.preview.scene.beginDirectAnimation(this, [this._animation], currentTime, maxFrame, false, 1.0);
+        scene.beginDirectAnimation(this, [this._animation], currentTime, maxFrame, false, 1.0);
 
         if (this._renderLoop) {
             engine.stopRenderLoop(this._renderLoop);
         }
 
         engine.runRenderLoop(this._renderLoop = () => {
-            this.setState({ currentTime: this._animatedCurrentTime });
+            this.setState({
+                currentTime: this._animatedCurrentTime,
+            });
 
-            this.props.editor.layout.preview.scene.lights.forEach((light) => {
+            scene.lights.forEach((light) => {
                 updateLightShadowMapRefreshRate(light);
             });
         });

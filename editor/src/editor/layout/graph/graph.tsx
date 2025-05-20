@@ -37,18 +37,14 @@ export interface IEditorGraphContextMenuProps extends PropsWithChildren {
 
 export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuProps> {
     public render(): ReactNode {
-        if (!this.props.object) {
-            return this.props.children;
-        }
-
         return (
             <ContextMenu onOpenChange={(o) => this.props.onOpenChange?.(o)}>
                 <ContextMenuTrigger className="w-full h-full">
                     {this.props.children}
                 </ContextMenuTrigger>
 
-                <ContextMenuContent className="w-48">
-                    {this.props.object &&
+                {this.props.object &&
+                    <ContextMenuContent className="w-48">
                         <>
                             {isNode(this.props.object) &&
                                 <>
@@ -133,8 +129,8 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
                                 </>
                             }
                         </>
-                    }
-                </ContextMenuContent>
+                    </ContextMenuContent>
+                }
             </ContextMenu>
         );
     }

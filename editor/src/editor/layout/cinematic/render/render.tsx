@@ -296,9 +296,12 @@ export class CinematicRenderer extends Component<ICinematicRendererProps, ICinem
             width,
             height,
             framerate: 60,
-            bitrate: 20_000_000,
+            bitrate: 50_000_000,
             codec: "vp09.00.10.08",
             latencyMode: "quality",
+            avc: {
+                format: 'annexb',
+            },
         });
     }
 }

@@ -378,6 +378,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                 useHighPrecisionMatrix: true,
                 powerPreference: "high-performance",
                 failIfMajorPerformanceCaveat: false,
+                useExactSrgbConversions: true,
             });
         }
 
