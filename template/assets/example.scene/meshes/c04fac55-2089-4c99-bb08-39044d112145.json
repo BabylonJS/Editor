@@ -74,7 +74,13 @@
                 "scripts": [
                     {
                         "enabled": true,
-                        "key": "scripts/box.ts"
+                        "key": "scripts/box.ts",
+                        "values": {
+                            "_speed": {
+                                "type": "number",
+                                "value": 0.04
+                            }
+                        }
                     }
                 ]
             },
@@ -169,6 +175,12 @@
                 "homogeneousRotationInUVTransform": false,
                 "isBlocking": true,
                 "name": "assets/amiga.jpg",
+                "metadata": {
+                    "baseSize": {
+                        "width": 128,
+                        "height": 128
+                    }
+                },
                 "hasAlpha": false,
                 "getAlphaFromRGB": false,
                 "level": 1,
@@ -308,7 +320,9 @@
                 "_ditheringIntensity": 0.00392156862745098,
                 "_skipFinalColorClamp": false,
                 "_applyByPostProcess": false,
-                "_isEnabled": true
+                "_isEnabled": true,
+                "outputTextureWidth": 0,
+                "outputTextureHeight": 0
             },
             "id": "9f2b8769-ac8e-4289-b8a4-171c5b7d3139",
             "name": "box",
@@ -455,6 +469,7 @@
                     "useMaskFromThicknessTexture": false,
                     "useGltfStyleTextures": false,
                     "applyAlbedoAfterSubSurface": false,
+                    "legacyTransluceny": false,
                     "name": "PBRSubSurface",
                     "priority": 130,
                     "resolveIncludes": false,
@@ -501,7 +516,13 @@
         "scripts": [
             {
                 "enabled": true,
-                "key": "scripts/box.ts"
+                "key": "scripts/box.ts",
+                "values": {
+                    "_speed": {
+                        "type": "number",
+                        "value": 0.04
+                    }
+                }
             }
         ]
     },

@@ -94,6 +94,13 @@
             0.640006735140596
         ]
     },
+    "physics": {
+        "gravity": [
+            0,
+            -981,
+            0
+        ]
+    },
     "rendering": [
         {
             "cameraId": "3cc9ef80-8c60-43e0-bcc4-1b55ff36010d",

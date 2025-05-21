@@ -41,7 +41,9 @@
     "name": "sun",
     "id": "9242a5b8-a8b8-41d2-94ea-968e4fc3dd61",
     "state": "",
-    "metadata": {},
+    "metadata": {
+        "refreshRate": 1
+    },
     "uniqueId": 1711817431327,
     "type": 1,
     "animations": [],
