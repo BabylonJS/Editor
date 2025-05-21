@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { MdOutlineInfo } from "react-icons/md";
 
 import { Vector2, Vector3, Vector4 } from "babylonjs";
+
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 import { IEditorInspectorFieldProps } from "./field";
 import { EditorInspectorNumberField } from "./number";
@@ -33,7 +36,22 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
                     transition-all duration-300 ease-in-out
                 `}
             >
-                {props.label}
+                <div className="flex gap-2 items-center">
+                    {props.label}
+
+                    {props.tooltip &&
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <MdOutlineInfo size={24} />
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
+                                    {props.tooltip}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    }
+                </div>
             </div>
 
             <div className="flex">

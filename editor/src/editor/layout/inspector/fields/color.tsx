@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { MdOutlineInfo } from "react-icons/md";
+
 import { Button, Popover } from "@blueprintjs/core";
 
 import { Color3, Color4 } from "babylonjs";
@@ -6,12 +8,13 @@ import { Color3, Color4 } from "babylonjs";
 import { Color } from "@jniac/color-xplr";
 
 import { ColorPicker } from "../../../../ui/color-picker";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
-import { EditorInspectorNumberField } from "./number";
 import { IEditorInspectorFieldProps } from "./field";
+import { EditorInspectorNumberField } from "./number";
 
 export interface IEditorInspectorColorFieldProps extends IEditorInspectorFieldProps {
     noClamp?: boolean;
@@ -68,8 +71,21 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 
     return (
         <div className="flex gap-2 items-center px-2">
-            <div className="w-32">
+            <div className="flex gap-2 items-center w-32">
                 {props.label}
+
+                {props.tooltip &&
+                    <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <MdOutlineInfo size={24} />
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
+                                {props.tooltip}
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                }
             </div>
 
             <div className="flex">

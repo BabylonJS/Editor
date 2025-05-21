@@ -75,7 +75,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
             onMouseLeave={() => setPointerOver(false)}
         >
             {props.label &&
-                <div className="flex items-center gap-1 w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
+                <div className="flex items-center gap-2 w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
                     <div
                         className={`
                             ${props.grayLabel && !pointerOver ? "text-muted" : ""}

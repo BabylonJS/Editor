@@ -161,6 +161,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
                                         object={props.script[scriptValues][value.propertyKey]}
                                         property="value"
                                         label={value.label ?? value.propertyKey}
+                                        tooltip={value.configuration.description}
                                     />
                                 );
 
@@ -173,6 +174,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
                                         min={value.configuration.min}
                                         max={value.configuration.max}
                                         step={value.configuration.step}
+                                        tooltip={value.configuration.description}
                                     />
                                 );
 
@@ -200,6 +202,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
                                                 redo: () => props.script[scriptValues][value.propertyKey].value = tempVector.value.asArray(),
                                             });
                                         }}
+                                        tooltip={value.configuration.description}
                                     />
                                 );
 
@@ -228,6 +231,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
                                                 redo: () => props.script[scriptValues][value.propertyKey].value = tempColor.value.asArray(),
                                             });
                                         }}
+                                        tooltip={value.configuration.description}
                                     />
                                 );
 

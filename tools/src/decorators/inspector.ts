@@ -4,6 +4,7 @@ export type VisibleInInspectorDecoratorType = "number" | "boolean" | "vector2" |
 
 export type VisibleInInspectorDecoratorConfiguration = {
     type: VisibleInInspectorDecoratorType;
+    description?: string;
 };
 
 /**
@@ -12,8 +13,12 @@ export type VisibleInInspectorDecoratorConfiguration = {
  * once the script is invoked at runtime in the game/application.
  * This can be used only by scripts using Classes.
  * @param label defines the optional label displayed in the inspector in the editor.
+ * @param configuration defines the optional configuration for the field in the inspector (description, etc.).
  */
-export function visibleAsBoolean(label?: string) {
+export function visibleAsBoolean(
+    label?: string,
+    configuration?: Omit<VisibleInInspectorDecoratorNumberConfiguration, "type">,
+) {
     return function (target: any, propertyKey: string | Symbol) {
         const ctor = target.constructor as ISceneDecoratorData;
 
@@ -22,6 +27,7 @@ export function visibleAsBoolean(label?: string) {
             label,
             propertyKey,
             configuration: {
+                ...configuration,
                 type: "boolean",
             },
         });
