@@ -1,5 +1,5 @@
 import { glob } from "glob";
-import { mkdir, pathExists } from "fs-extra";
+import { FSWatcher, mkdir, pathExists, watch } from "fs-extra";
 
 /**
  * Creates a directory if it doesn't exist.
@@ -22,4 +22,31 @@ export async function normalizedGlob(...args: Parameters<typeof glob>): ReturnTy
     });
 
     return result;
+}
+
+/**
+ * Creates a new FS watcher and returns its reference. Takes care of waiting enought time in order
+ * to notify the "change" event only once.
+ * @param absolutePath defines the absolute path to the file to watch.
+ * @param onChange defines the callback called when the file changed.
+ */
+export function watchFile(absolutePath: string, onChange: () => void): FSWatcher {
+    const watcher = watch(absolutePath, {
+        persistent: true,
+    });
+
+    let timeoutId: number | null = null;
+
+    watcher.on("change", () => {
+        if (timeoutId) {
+            window.clearTimeout(timeoutId);
+        }
+
+        timeoutId = window.setTimeout(() => {
+            timeoutId = null;
+            onChange();
+        }, 1000);
+    });
+
+    return watcher;
 }

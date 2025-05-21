@@ -1,5 +1,5 @@
 import { join, dirname } from "path/posix";
-import { pathExists, stat } from "fs-extra";
+import { pathExists, stat, FSWatcher } from "fs-extra";
 
 import { useEffect, useState } from "react";
 import { SiTypescript } from "react-icons/si";
@@ -10,6 +10,7 @@ import { Vector2, Vector3, Color3, Color4 } from "babylonjs";
 
 import { Editor } from "../../../main";
 
+import { watchFile } from "../../../../tools/fs";
 import { execNodePty } from "../../../../tools/node-pty";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { executeSimpleWorker } from "../../../../tools/worker";
@@ -26,7 +27,7 @@ import { VisibleInInspectorDecoratorObject, computeDefaultValuesForObject, scrip
 
 const cachedScripts: Record<string, {
     time: number;
-    output: VisibleInInspectorDecoratorObject[];
+    output: VisibleInInspectorDecoratorObject[] | null;
 }> = {};
 
 export interface IInspectorScriptFieldProps {
@@ -47,6 +48,14 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
     const [enabled, setEnabled] = useState(props.script.enabled);
     const [output, setOutput] = useState<VisibleInInspectorDecoratorObject[] | null>(cachedScripts[srcAbsolutePath]?.output);
 
+    const [watcher, setWatcher] = useState<FSWatcher | null>(null);
+
+    useEffect(() => {
+        return () => {
+            watcher?.close();
+        };
+    }, [watcher]);
+
     useEffect(() => {
         checkExists();
     }, [props.script]);
@@ -66,6 +75,14 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
         const exists = await pathExists(src);
 
         setExists(exists);
+
+        if (exists) {
+            const watcher = watchFile(src, () => {
+                handleParseVisibleProperties();
+            });
+
+            setWatcher(watcher);
+        }
     }
 
     async function handleParseVisibleProperties() {
@@ -82,16 +99,14 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
             const workerPath = join(__dirname.replace(/\\/g, "/"), "../../../../tools/workers/script.js");
 
-            if (!await pathExists(outputAbsolutePath)) {
-                const compilationSuccess = await executeSimpleWorker<{ success: boolean; error?: string; }>(workerPath, {
-                    action: "compile",
-                    srcAbsolutePath,
-                    outputAbsolutePath,
-                });
+            const compilationSuccess = await executeSimpleWorker<{ success: boolean; error?: string; }>(workerPath, {
+                action: "compile",
+                srcAbsolutePath,
+                outputAbsolutePath,
+            });
 
-                if (!compilationSuccess.success) {
-                    return props.editor.layout.console.error(`An unexpected error occurred while compiling the script:\n ${compilationSuccess.error}`);
-                }
+            if (!compilationSuccess.success) {
+                return props.editor.layout.console.error(`An unexpected error occurred while compiling the script:\n ${compilationSuccess.error}`);
             }
 
             const extractOutput = await executeSimpleWorker<VisibleInInspectorDecoratorObject[] | null>(workerPath, {
@@ -99,12 +114,12 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
                 outputAbsolutePath,
             });
 
-            if (extractOutput) {
-                cachedScripts[srcAbsolutePath] = {
-                    time: fStat.mtimeMs,
-                    output: extractOutput,
-                };
+            cachedScripts[srcAbsolutePath] = {
+                time: fStat.mtimeMs,
+                output: extractOutput,
+            };
 
+            if (extractOutput) {
                 computeDefaultValuesForObject(props.script, extractOutput);
             }
         }
