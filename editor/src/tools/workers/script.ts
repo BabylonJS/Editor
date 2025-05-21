@@ -1,3 +1,14 @@
+const child_process = require("child_process");
+const spawn = child_process.spawn;
+
+child_process.spawn = function (...args: any[]) {
+    if (args[0]?.includes("app.asar")) {
+        args[0] = args[0].replace("app.asar", "app.asar.unpacked");
+    }
+
+    return spawn.apply(this, args);
+};
+
 const esbuild = require("esbuild");
 
 const replaceImportMetaDirname = {
