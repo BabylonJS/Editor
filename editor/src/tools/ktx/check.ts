@@ -12,7 +12,7 @@ import { compressFileToKtxFormat, getCompressedTexturesCliPath, ktxSupportedexte
 
 import { temporaryDirectoryName } from "../project";
 
-let processingCompressedTextures = false;
+export let processingCompressedTextures = false;
 
 export async function checkProjectCachedCompressedTextures(editor: Editor) {
     if (processingCompressedTextures || !projectConfiguration.path) {

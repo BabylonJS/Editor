@@ -6,6 +6,7 @@ import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { Camera, Material, NodeMaterial, PBRMaterial, StandardMaterial, Tools } from "babylonjs";
 
 import { Fade } from "react-awesome-reveal";
+import { Grid } from "react-loader-spinner";
 import { Component, MouseEvent, ReactNode } from "react";
 import { SelectableGroup, createSelectable } from "react-selectable";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -30,6 +31,7 @@ import { isTexture } from "../../tools/guards/texture";
 import { renameScene } from "../../tools/scene/rename";
 import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
+import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/ktx/check";
 
 import { loadScene } from "../../project/load/scene";
 import { saveProject } from "../../project/save/save";
@@ -38,8 +40,8 @@ import { onProjectConfigurationChangedObservable, projectConfiguration } from ".
 import { showConfirm } from "../../ui/dialog";
 
 import { Input } from "../../ui/shadcn/ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../../ui/shadcn/ui/breadcrumb";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSubTrigger, ContextMenuSub, ContextMenuSubContent } from "../../ui/shadcn/ui/context-menu";
 
 import { FileInspectorObject } from "./inspector/file";
@@ -525,7 +527,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                             <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 left-2 w-4 h-4" />
                         </div>
 
-                        <DropdownMenu>
+                        <DropdownMenu onOpenChange={(o) => o && this.forceUpdate()}>
                             <DropdownMenuTrigger>
                                 <Button minimal icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
                             </DropdownMenuTrigger>
@@ -534,6 +536,13 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                                     this.setState({ showGeneratedFiles: !this.state.showGeneratedFiles }, () => this.refresh());
                                 }}>
                                     {this.state.showGeneratedFiles ? <IoCheckmark /> : ""} Show Generated Files
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem disabled={processingCompressedTextures} className="flex gap-2 items-center" onClick={() => checkProjectCachedCompressedTextures(this.props.editor)}>
+                                    {processingCompressedTextures &&
+                                        <Grid width={14} height={14} color="#ffffff" />
+                                    }
+                                    Check Compressed Textures
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

@@ -161,5 +161,5 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
         });
     }
 
-    return options.destinationFolder;
+    return null;
 }
