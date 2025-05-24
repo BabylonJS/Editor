@@ -274,6 +274,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
                 <MenuItem text="Sphere" icon={<Icon src="circle.svg" />} onClick={() => this._onAddMeshClicked("sphere", parent)} />
                 <MenuItem text="Cylinder" icon={<Icon src="cylinder.svg" />} onClick={() => this._onAddMeshClicked("cylinder", parent)} />
                 <MenuItem text="Plane" icon={<Icon src="square-full.svg" />} onClick={() => this._onAddMeshClicked("plane", parent)} />
+                <MenuItem text="Model" icon={<Icon src="model.svg" />} onClick={() => this._onAddMeshClicked("model", parent)} />
                 <MenuDivider />
                 <MenuItem text="Ground" icon={<Icon src="vector-square.svg" />} onClick={() => this._onAddMeshClicked("ground", parent)} />
                 <MenuItem text="Terrain From Height Map..." icon={<Icon src="terrain.svg" style={{ filter: "none" }} />} onClick={() => this._onAddMeshClicked("heightmap", parent)} />
@@ -482,6 +483,7 @@ export class MainToolbar extends React.Component<IToolbarProps, IToolbarState> {
             case "sphere": mesh = SceneFactory.AddSphere(this._editor); break;
             case "cylinder": mesh = SceneFactory.AddCynlinder(this._editor); break;
             case "plane": mesh = SceneFactory.AddPlane(this._editor); break;
+            case "model": mesh = await SceneFactory.AddModel(this._editor); break;
 
             case "ground": mesh = SceneFactory.AddGround(this._editor); break;
             case "heightmap": mesh = await SceneFactory.AddTerrainFromHeightMap(this._editor); break;
