@@ -1,6 +1,7 @@
 import { extname, join } from "path";
 import { writeJSON } from "fs-extra";
 import filenamify from "filenamify";
+import "@babylonjs/loaders";
 
 import {
     Mesh,
@@ -9,6 +10,7 @@ import {
     Vector3,
     FreeCamera, ArcRotateCamera,
     Texture, VertexData, Color3, ReflectionProbe, TargetCamera,
+    SceneLoader,
 } from "babylonjs";
 import { SkyMaterial } from "babylonjs-materials";
 
@@ -77,6 +79,20 @@ export class SceneFactory {
      */
     public static AddGround(editor: Editor): GroundMesh {
         return this._ConfigureNode(Mesh.CreateGround("New Ground", 512, 512, 32, editor.scene!, true) as GroundMesh);
+    }
+
+    /**
+     * Adds a new ground to the scene.
+     * @param editor the editor reference.
+     */
+    public static async AddModel(editor: Editor): Promise<Mesh> {
+        const fileObject = await Tools.ShowNativeOpenFileDialog();
+        if (!fileObject) {
+            throw new Error("Can't create model with no file selected");
+        }
+
+        const scene = await SceneLoader.ImportMeshAsync("", "", fileObject, editor.scene!, null, extname(fileObject.name));
+        return this._ConfigureNode(scene.meshes[0] as Mesh);
     }
 
     /**
