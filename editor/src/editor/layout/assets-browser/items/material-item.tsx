@@ -1,9 +1,18 @@
-import { readJSON } from "fs-extra";
+import { readJSON, writeJSON } from "fs-extra";
 import { ipcRenderer } from "electron";
+import { basename, join, dirname } from "path/posix";
 
 import { ReactNode } from "react";
 
+import { FaRegClone } from "react-icons/fa6";
 import { GiMaterialsScience } from "react-icons/gi";
+
+import { Tools } from "babylonjs";
+
+import { UniqueNumber } from "../../../../tools/tools";
+
+import { showPrompt } from "../../../../ui/dialog";
+import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { AssetsBrowserItem } from "./item";
 
@@ -25,5 +34,48 @@ export class AssetBrowserMaterialItem extends AssetsBrowserItem {
                 filePath: this.props.absolutePath,
             });
         }
+    }
+
+    /**
+     * Returns the context menu content for the current item.
+     * To be overriden by the specialized items implementations.
+     */
+    protected getContextMenuContent(): ReactNode {
+        return (
+            <>
+                <ContextMenuItem className="flex items-center gap-2" onClick={() => this._handleClone()}>
+                    <FaRegClone className="w-4 h-4" /> Clone...
+                </ContextMenuItem>
+            </>
+        );
+    }
+
+    private async _handleClone(): Promise<void> {
+        const data = await readJSON(this.props.absolutePath);
+        data.id = Tools.RandomId();
+        data.uniqueId = UniqueNumber.Get();
+
+        let name = await showPrompt(
+            "Enter the name for the cloned material",
+            undefined,
+            basename(this.props.absolutePath).replace(".material", ""),
+        );
+
+        if (!name) {
+            return;
+        }
+
+        if (!name.endsWith(".material")) {
+            name += ".material";
+        }
+
+        const path = join(dirname(this.props.absolutePath), name);
+        await writeJSON(path, data, {
+            spaces: "\t",
+            encoding: "utf-8",
+        });
+
+        this.props.editor.layout.assets.refresh();
+        this.props.editor.layout.assets.setSelectedFile(path);
     }
 }
