@@ -555,6 +555,12 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
                         <EditorInspectorSwitchField object={vlsPostProcess} property="invert" label="Invert" />
 
+                        <EditorInspectorSwitchField object={vlsPostProcess} property="useCustomMeshPosition" label="Use Custom Mesh Position" onChange={() => this.forceUpdate()} />
+
+                        {vlsPostProcess.useCustomMeshPosition &&
+                            <EditorInspectorVectorField object={vlsPostProcess} property="customMeshPosition" label="Custom Mesh Position" step={1} />
+                        }
+
                         <div
                             onDrop={(ev) => this._handleDropVlsMesh(ev, vlsPostProcess)}
                             onDragOver={(ev) => this._handleDragOverVlsMesh(ev)}
