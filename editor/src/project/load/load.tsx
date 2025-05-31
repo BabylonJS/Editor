@@ -25,6 +25,7 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
         lastOpenedScenePath: project.lastOpenedScene ? join(directory, project.lastOpenedScene) : null,
 
         compressedTexturesEnabled: project.compressedTexturesEnabled ?? false,
+        compressedTexturesEnabledInPreview: project.compressedTexturesEnabledInPreview ?? false,
     });
 
     editor.layout.forceUpdate();

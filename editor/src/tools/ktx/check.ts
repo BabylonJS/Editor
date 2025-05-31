@@ -64,7 +64,7 @@ export async function checkProjectCachedCompressedTextures(editor: Editor) {
 
         const internalTextureExtension = extname(internalTexture.url).toLowerCase();
 
-        if (editor.state.compressedTexturesEnabled && getCompressedTexturesCliPath() && internalTextureExtension !== ".ktx") {
+        if (editor.state.compressedTexturesEnabledInPreview && getCompressedTexturesCliPath() && internalTextureExtension !== ".ktx") {
             const fileStat = await stat(join(projectDirectory, name));
             const hash = fileStat.mtimeMs.toString();
 
@@ -92,7 +92,7 @@ export async function checkProjectCachedCompressedTextures(editor: Editor) {
             continue;
         }
 
-        if (!editor.state.compressedTexturesEnabled && internalTextureExtension === ".ktx") {
+        if (!editor.state.compressedTexturesEnabledInPreview && internalTextureExtension === ".ktx") {
             const previousUrl = texture.url;
             texture.updateURL(join(projectDirectory, name));
             texture.url = previousUrl;

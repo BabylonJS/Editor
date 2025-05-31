@@ -17,6 +17,10 @@ export interface IEditorProject {
      * If the compressed textures are enabled using PVRTexTool.
      */
     compressedTexturesEnabled: boolean;
+    /**
+     * If the compressed textures are enabled in the preview.
+     */
+    compressedTexturesEnabledInPreview: boolean;
 
     packageManager?: EditorProjectPackageManager;
 }

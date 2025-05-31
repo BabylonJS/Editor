@@ -86,6 +86,10 @@ export interface IEditorState {
      * Defines wether or not compressed textures are enabled.
      */
     compressedTexturesEnabled: boolean;
+    /**
+     * Defines wether or not compressed textures are enabled in the preview.
+     */
+    compressedTexturesEnabledInPreview: boolean;
 
     /**
      * Defines wether or not experimental features are enabled.
@@ -127,6 +131,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
             projectPath: props.projectPath,
 
             compressedTexturesEnabled: false,
+            compressedTexturesEnabledInPreview: false,
             enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
 
             editProject: false,

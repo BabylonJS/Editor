@@ -41,6 +41,7 @@ export async function saveProject(editor: Editor): Promise<void> {
         lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath), ""),
 
         compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
+        compressedTexturesEnabledInPreview: editor.state.compressedTexturesEnabledInPreview,
     };
 
     if (!editor.props.editedScenePath) {
