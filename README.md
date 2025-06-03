@@ -64,11 +64,7 @@ Using the command line at the root of the repository, just type:
 yarn start
 ```
 
-To automatically open Electron's devtools for each opened window, add the environment variable:
-
-```bash
-DEBUG=true yarn start
-```
+The devtools will open automatically.
 
 ## Developing
 

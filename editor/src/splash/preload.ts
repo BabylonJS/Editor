@@ -1,4 +1,6 @@
 window.addEventListener("DOMContentLoaded", () => {
-    const { createSplash } = require("./main");
+    const { createSplash } = process.env.DEBUG
+        ? require("./main")
+        : require("../../splash");
     createSplash();
 });

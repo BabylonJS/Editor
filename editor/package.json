@@ -10,10 +10,11 @@
         "url": "https://twitter.com/luaacro"
     },
     "scripts": {
-        "build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css",
+        "build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css && node esbuild.mjs",
         "watch": "tsc -p . --watch",
         "watch-css": "tailwindcss -i ./index.css -o ./build/index.css --watch",
         "watch-all": "concurrently \"yarn watch\" \"yarn watch-css\" -c bgYellow.bold,bgBlue.bold --names editor-ts,editor-css",
+        "start": "electron .",
         "test": "jest test/* --silent",
         "coverage": "jest test/* --silent --coverage"
     },

@@ -1,4 +1,7 @@
 window.addEventListener("DOMContentLoaded", () => {
-    const { createDashboard } = require("./main");
+    const { createDashboard } = process.env.DEBUG
+        ? require("./main")
+        : require("../../dashboard");
+
     createDashboard();
 });

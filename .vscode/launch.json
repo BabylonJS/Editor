@@ -12,7 +12,6 @@
                 "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
             },
             "env": {
-                "DEBUG": "true",
                 "EDITOR_TOOLS_URL": "http://localhost:3000"
             },
             "args": [

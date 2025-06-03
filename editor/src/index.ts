@@ -19,6 +19,10 @@ import "./electron/events/window";
 import "./electron/assimp/assimpjs";
 
 try {
+    if (!app.isPackaged) {
+        process.env.DEBUG ??= "true";
+    }
+
     if (process.env.DEBUG) {
         require("electron-reloader")(module);
     }
