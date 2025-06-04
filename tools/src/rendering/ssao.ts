@@ -13,6 +13,14 @@ export function getSSAO2RenderingPipeline(): SSAO2RenderingPipeline | null {
     return ssaoRenderingPipeline;
 }
 
+/**
+ * Sets the reference to the SSAO rendering pipeline.
+ * @access editor only.
+ */
+export function setSSAO2RenderingPipelineRef(pipeline: SSAO2RenderingPipeline | null): void {
+    ssaoRenderingPipeline = pipeline;
+}
+
 export function disposeSSAO2RenderingPipeline(): void {
     if (ssaoRenderingPipeline) {
         ssaoRenderingPipeline.dispose();

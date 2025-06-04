@@ -9,6 +9,8 @@ export interface ICinematic {
 }
 
 export interface ICinematicTrack {
+    _id?: string;
+
     animationGroup?: any;
     animationGroups?: ICinematicAnimationGroup[];
 
@@ -57,3 +59,5 @@ export interface ICinematicKeyEvent {
 
     data?: any;
 }
+
+export type CinematicKeyType = ICinematicKey | ICinematicKeyCut | ICinematicAnimationGroup | ICinematicSound | ICinematicKeyEvent;

@@ -84,7 +84,7 @@
         "cmdk": "^1.0.0",
         "decompress": "^4.2.1",
         "decompress-targz": "^4.1.1",
-        "esbuild": "^0.25.0",
+        "esbuild": "0.25.5",
         "filenamify": "4.3.0",
         "flexlayout-react": "0.7.15",
         "fluent-ffmpeg": "^2.1.3",

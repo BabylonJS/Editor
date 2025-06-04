@@ -125,6 +125,10 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
         setPlayingAddress("");
     }
 
+    function handleOpenInVisualStudioCode() {
+        execNodePty(`code "${dirname(props.project.absolutePath)}"`);
+    }
+
     return (
         <ContextMenu onOpenChange={(o) => setContextMenuOpen(o)}>
             <ContextMenuTrigger>
@@ -187,6 +191,10 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
                 </ContextMenuItem>
                 <ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
                     {`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem className="flex items-center gap-2" onClick={() => handleOpenInVisualStudioCode()}>
+                    Open in Visual Studio Code
                 </ContextMenuItem>
                 <ContextMenuSeparator />
                 <ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => props.onRemove()}>

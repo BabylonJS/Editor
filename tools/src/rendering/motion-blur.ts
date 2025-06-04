@@ -13,6 +13,14 @@ export function getMotionBlurPostProcess(): MotionBlurPostProcess | null {
     return motionBlurPostProcess;
 }
 
+/**
+ * Sets the reference to the motion blur post-process.
+ * @access editor only.
+ */
+export function setMotionBlurPostProcessRef(postProcess: MotionBlurPostProcess | null): void {
+    motionBlurPostProcess = postProcess;
+}
+
 export function disposeMotionBlurPostProcess(): void {
     if (motionBlurPostProcess) {
         motionBlurPostProcess.dispose();

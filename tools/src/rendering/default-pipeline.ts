@@ -18,6 +18,14 @@ export function getDefaultRenderingPipeline(): DefaultRenderingPipeline | null {
     return defaultRenderingPipeline;
 }
 
+/**
+ * Sets the reference to the default rendering pipeline.
+ * @access editor only.
+ */
+export function setDefaultRenderingPipelineRef(pipeline: DefaultRenderingPipeline | null): void {
+    defaultRenderingPipeline = pipeline;
+}
+
 export function disposeDefaultRenderingPipeline(): void {
     if (defaultRenderingPipeline) {
         defaultRenderingPipeline.dispose();

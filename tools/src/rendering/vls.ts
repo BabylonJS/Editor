@@ -18,6 +18,14 @@ export function getVLSPostProcess(): VolumetricLightScatteringPostProcess | null
     return vlsPostProcess;
 }
 
+/**
+ * Sets the reference to the volumetric light scattering post-process.
+ * @access editor only.
+ */
+export function setVLSPostProcessRef(postProcess: VolumetricLightScatteringPostProcess | null): void {
+    vlsPostProcess = postProcess;
+}
+
 export function disposeVLSPostProcess(scene: Scene): void {
     if (vlsPostProcess && scene.activeCamera) {
         vlsPostProcess.dispose(scene.activeCamera);

@@ -13,6 +13,14 @@ export function getSSRRenderingPipeline(): SSRRenderingPipeline | null {
     return ssrRenderingPipeline;
 }
 
+/**
+ * Sets the reference to the ssr rendering pipeline.
+ * @access editor only.
+ */
+export function setSSRRenderingPipelineRef(pipeline: SSRRenderingPipeline | null): void {
+    ssrRenderingPipeline = pipeline;
+}
+
 export function disposeSSRRenderingPipeline(): void {
     if (ssrRenderingPipeline) {
         ssrRenderingPipeline.dispose();

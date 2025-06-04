@@ -22,3 +22,4 @@ export * from "./script";
 export * from "./cinematic/parse";
 export * from "./cinematic/typings";
 export * from "./cinematic/generate";
+export * from "./cinematic/guards";
