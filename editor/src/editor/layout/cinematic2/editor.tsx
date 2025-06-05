@@ -54,6 +54,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
      * Defines the reference to the timelines panel used to display and edit the cinematic timelines.
      */
     public timelines: CinematicEditorTimelines;
+    /**
+     * Defines the reference to the inspector used to display and edit the cinematic properties.
+     */
+    public inspector: CinematicEditorInspector;
 
     /**
      * Defines the reference to the editor instance that owns this cinematic editor.
@@ -107,7 +111,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                             </div>
                         </div>
 
-                        <div className="flex flex-1 overflow-y-auto">
+                        <div className="flex flex-1 overflow-auto">
                             <TooltipProvider>
                                 <CinematicEditorTracks
                                     cinematicEditor={this}
@@ -122,7 +126,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                         </div>
                     </div>
 
-                    <CinematicEditorInspector />
+                    <CinematicEditorInspector
+                        cinematicEditor={this}
+                        ref={(r) => this.inspector = r!}
+                    />
                 </div>
             </div>
         );

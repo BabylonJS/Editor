@@ -104,9 +104,10 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                         {track.keyFrameAnimations?.map((keyframe, index) => (
                             <CinematicEditorKeyBase
                                 key={index}
-                                cinematicEditor={this.props.cinematicEditor}
-                                scale={this.state.scale}
+                                track={track}
                                 cinematicKey={keyframe}
+                                scale={this.state.scale}
+                                cinematicEditor={this.props.cinematicEditor}
                                 onRemoved={() => this.removeAnimationKey(track, keyframe)}
                             />
                         ))}
@@ -114,9 +115,10 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                         {track.sounds?.map((sound, index) => (
                             <CinematicEditorKeyBase
                                 key={index}
-                                cinematicEditor={this.props.cinematicEditor}
-                                scale={this.state.scale}
+                                track={track}
                                 cinematicKey={sound}
+                                scale={this.state.scale}
+                                cinematicEditor={this.props.cinematicEditor}
                                 onRemoved={() => this.removeSoundKey(track, sound)}
                             />
                         ))}
@@ -124,9 +126,10 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                         {track.keyFrameEvents?.map((event, index) => (
                             <CinematicEditorKeyBase
                                 key={index}
-                                cinematicEditor={this.props.cinematicEditor}
-                                scale={this.state.scale}
+                                track={track}
                                 cinematicKey={event}
+                                scale={this.state.scale}
+                                cinematicEditor={this.props.cinematicEditor}
                                 onRemoved={() => this.removeEventKey(track, event)}
                             />
                         ))}
@@ -134,9 +137,10 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                         {track.animationGroups?.map((animationGroup, index) => (
                             <CinematicEditorKeyBase
                                 key={index}
-                                cinematicEditor={this.props.cinematicEditor}
+                                track={track}
                                 scale={this.state.scale}
                                 cinematicKey={animationGroup}
+                                cinematicEditor={this.props.cinematicEditor}
                                 onRemoved={() => this.removeAnimationGroupKey(track, animationGroup)}
                             />
                         ))}
@@ -225,6 +229,10 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                     frame = Math.max(frame, key.frame);
                 }
             });
+
+            track.keyFrameEvents?.forEach((event) => {
+                frame = Math.max(frame, event.frame);
+            });
         });
 
         return frame;
@@ -245,6 +253,10 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
         this.props.cinematicEditor.editor.layout.preview.scene.lights.forEach((light) => {
             updateLightShadowMapRefreshRate(light);
         });
+    }
+
+    public updateTracksAtCurrentTime(): void {
+        this.setCurrentTime(this.state.currentTime);
     }
 
     public addAnimationKey(type: "key" | "cut", track: ICinematicTrack, positionX?: number | null) {

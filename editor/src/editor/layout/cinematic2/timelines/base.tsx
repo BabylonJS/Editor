@@ -3,7 +3,7 @@ import { Component, ReactNode } from "react";
 import { FaExchangeAlt } from "react-icons/fa";
 import { AiOutlineClose } from "react-icons/ai";
 
-import { CinematicKeyType, isCinematicGroup, isCinematicKey, isCinematicKeyCut, isCinematicKeyEvent, isCinematicSound } from "babylonjs-editor-tools";
+import { CinematicKeyType, ICinematicTrack, isCinematicGroup, isCinematicKey, isCinematicKeyCut, isCinematicKeyEvent, isCinematicSound } from "babylonjs-editor-tools";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
@@ -23,6 +23,7 @@ import { CinematicEditorAnimationGroupKey } from "./animation-group";
 export interface ICinematicEditorKeyBaseProps {
     cinematicEditor: CinematicEditor;
     scale: number;
+    track: ICinematicTrack;
     cinematicKey: CinematicKeyType;
 
     onRemoved: () => void;
@@ -66,6 +67,7 @@ export class CinematicEditorKeyBase extends Component<ICinematicEditorKeyBasePro
                             <div
                                 ref={(div) => this._divRef = div}
                                 onDoubleClick={() => this._handleDoubleClick()}
+                                onClick={() => !this.state.move && this.props.cinematicEditor.inspector.setEditedObject(this.props.cinematicKey, this.props.track)}
                             >
                                 {component}
                             </div>
@@ -109,6 +111,8 @@ export class CinematicEditorKeyBase extends Component<ICinematicEditorKeyBasePro
                 this.props.cinematicEditor.timelines.forceUpdate();
             },
             onMoveEnd: () => {
+                this.props.cinematicEditor.inspector.setEditedObject(this.props.cinematicKey, this.props.track);
+
                 waitNextAnimationFrame().then(() => {
                     this.setState({ move: false });
 
