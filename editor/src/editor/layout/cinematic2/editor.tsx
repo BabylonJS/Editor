@@ -30,8 +30,9 @@ import { restoreSceneState, saveSceneState } from "./tools/state";
 
 import { CinematicEditorTimelineOptions } from "./timelines/options";
 
+import { RenderType } from "./render/render";
+import { CinematicEditorRenderer } from "./render/renderer";
 import { CinematicEditorRenderDialog } from "./render/dialog";
-import { CinematicEditorRenderer, RenderType } from "./render/renderer";
 
 import { CinematicEditorTracks } from "./tracks";
 import { CinematicEditorToolbar } from "./toolbar";

@@ -17,12 +17,22 @@ import { handleApplyImpulseEvent } from "./events/apply-impulse";
 import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
 import { cloneKey, getAnimationTypeForObject, getPropertyValue } from "./tools";
 
+export type GenerateCinematicAnimationGroupOptions = {
+    /**
+     * Defines wether or not sounds should be ignored when generating the animation group.
+     * This means that no sound will be played during the cinematic playback.
+     * @default false
+     */
+    ignoreSounds?: boolean;
+};
+
 /**
  * Parses the given cinematic object and generates a new playable animation group.
  * @param cinematic defines the cinematic object to parse that was previously loaded.
  * @param scene defines the reference to the scene where to retrieve the animated objects.
+ * @param options defines the options to use when generating the animation group.
  */
-export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Scene): AnimationGroup {
+export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Scene, options?: GenerateCinematicAnimationGroupOptions): AnimationGroup {
     const result = new AnimationGroup(cinematic.name, scene);
 
     cinematic.tracks.forEach((track) => {
@@ -74,7 +84,7 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
         const sound = track.sound as Sound;
         const soundBuffer = sound?.getAudioBuffer();
 
-        if (sound && soundBuffer && track.sounds?.length) {
+        if (!options?.ignoreSounds && sound && soundBuffer && track.sounds?.length) {
             const dummyObject = {
                 dummy: 0,
             };
