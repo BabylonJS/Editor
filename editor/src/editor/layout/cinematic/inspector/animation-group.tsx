@@ -10,7 +10,6 @@ export interface ICinematicEditorAnimationGroupKeyInspectorProps {
     cinematicEditor: CinematicEditor;
     cinematicKey: ICinematicAnimationGroup;
     track: ICinematicTrack;
-    title: string;
 }
 
 export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEditorAnimationGroupKeyInspectorProps) {

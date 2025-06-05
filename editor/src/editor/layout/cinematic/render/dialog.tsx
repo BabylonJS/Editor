@@ -1,128 +1,100 @@
-import { useEffect, useState } from "react";
+import { Component, ReactNode } from "react";
 
 import { AnimationGroup } from "babylonjs";
+import { generateCinematicAnimationGroup } from "babylonjs-editor-tools";
 
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "../../../../ui/shadcn/ui/alert-dialog";
-
-import { Editor } from "../../../main";
-
-import { saveSingleFileDialog } from "../../../../tools/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../../ui/shadcn/ui/alert-dialog";
 
 import { EditorInspectorNumberField } from "../../inspector/fields/number";
 
-import { ICinematic } from "../schema/typings";
-import { generateCinematicAnimationGroup } from "../generate/generate";
+import { CinematicEditor } from "../editor";
 
-import { CinematicRenderer, RenderType } from "./render";
-
-export interface ICinematicRendererDialogProps {
-    open: boolean;
-    type?: RenderType;
-    cinematic?: ICinematic;
-
-    editor: Editor;
-    renderer: CinematicRenderer;
-
-    onClose: () => void;
+export interface ICinematicEditorRenderDialogProps {
+    cinematicEditor: CinematicEditor;
+    onRender: (from: number, to: number) => void;
 }
 
-export function CinematicRendererDialog(props: ICinematicRendererDialogProps) {
-    const [animationGroup, setAnimationGroup] = useState<AnimationGroup | null>(null);
+export interface ICinematicEditorRenderDialogState {
+    open: boolean;
+    animationGroup: AnimationGroup | null;
+}
 
-    useEffect(() => {
-        if (animationGroup && !props.open && props.renderer.state.step !== "rendering") {
-            animationGroup?.dispose();
-            setAnimationGroup(null);
-        }
-    }, [props.open, animationGroup]);
+export class CinematicEditorRenderDialog extends Component<ICinematicEditorRenderDialogProps, ICinematicEditorRenderDialogState> {
+    private _from: number = 0;
+    private _to: number = 0;
 
-    useEffect(() => {
-        if (props.open && props.cinematic) {
-            const animationGroup = generateCinematicAnimationGroup(props.cinematic, props.editor.layout.preview.scene);
+    public constructor(props: ICinematicEditorRenderDialogProps) {
+        super(props);
 
-            if (props.renderer.from === 0) {
-                props.renderer.from = animationGroup.from;
-            } else if (props.renderer.from < animationGroup.from) {
-                props.renderer.from = animationGroup.from;
-            }
-
-            if (props.renderer.to === 0) {
-                props.renderer.to = animationGroup.to;
-            } else if (props.renderer.to > animationGroup.to) {
-                props.renderer.to = animationGroup.to;
-            }
-
-            setAnimationGroup(animationGroup);
-        }
-    }, [props.open, props.cinematic]);
-
-    async function handleRender() {
-        if (!props.cinematic || !props.type || !animationGroup) {
-            return;
-        }
-
-        const destination = saveSingleFileDialog({
-            title: "Save cinematic video as...",
-            filters: [
-                { name: "Mpeg-4 Video", extensions: ["mp4"] },
-            ],
-        });
-
-        if (!destination) {
-            return;
-        }
-
-        if (
-            props.renderer.from >= props.renderer.to ||
-            props.renderer.to <= props.renderer.from
-        ) {
-            props.renderer.from = animationGroup.from;
-            props.renderer.to = animationGroup.to;
-        }
-
-        animationGroup.from = props.renderer.from;
-        animationGroup.to = props.renderer.to;
-
-        setAnimationGroup(null);
-
-        props.renderer.renderCinematic(props.cinematic, props.type, destination, animationGroup);
+        this.state = {
+            open: false,
+            animationGroup: null,
+        };
     }
 
-    return (
-        <AlertDialog open={props.open} onOpenChange={(o) => !o && props.onClose()}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>
-                        Render cinematic
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="flex flex-col gap-2 py-5">
-                        {/* Range */}
-                        {animationGroup &&
-                            <div className="flex flex-col gap-2">
-                                <EditorInspectorNumberField noUndoRedo object={props.renderer} property="from" label="Start frame" step={1} min={animationGroup?.from} max={animationGroup?.to} />
-                                <EditorInspectorNumberField noUndoRedo object={props.renderer} property="to" label="End frame" step={1} min={animationGroup?.from} max={animationGroup?.to} />
-                            </div>
-                        }
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel className="min-w-24" onClick={() => props.onClose()}>
-                        Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction className="min-w-24" onClick={() => handleRender()}>
-                        Render
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-    );
+    public render(): ReactNode {
+        return (
+            <AlertDialog open={this.state.open} onOpenChange={(o) => !o && this.close()}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Render cinematic
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="flex flex-col gap-2 py-5">
+                            {/* Range */}
+                            {this.state.animationGroup &&
+                                <div className="flex flex-col gap-2">
+                                    <EditorInspectorNumberField noUndoRedo object={this} property="_from" label="Start frame" step={1} min={this.state.animationGroup.from} max={this.state.animationGroup.to} />
+                                    <EditorInspectorNumberField noUndoRedo object={this} property="_to" label="End frame" step={1} min={this.state.animationGroup.from} max={this.state.animationGroup.to} />
+                                </div>
+                            }
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="min-w-24" onClick={() => this.close()}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction className="min-w-24" onClick={() => this.props.onRender(this._from, this._to)}>
+                            Render
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        );
+    }
+
+    public open(): void {
+        this.props.cinematicEditor.prepareTemporaryAnimationGroup();
+
+        const animationGroup = generateCinematicAnimationGroup(
+            this.props.cinematicEditor.cinematic,
+            this.props.cinematicEditor.editor.layout.preview.scene as any,
+        ) as any;
+
+        if (this._from === 0) {
+            this._from = animationGroup.from;
+        } else if (this._from < animationGroup.from) {
+            this._from = animationGroup.from;
+        }
+
+        if (this._to === 0) {
+            this._to = animationGroup.to;
+        } else if (this._to > animationGroup.to) {
+            this._to = animationGroup.to;
+        }
+
+        this.setState({
+            open: true,
+            animationGroup,
+        });
+    }
+
+    public close(): void {
+        this.state.animationGroup?.dispose();
+
+        this.setState({
+            open: false,
+            animationGroup: null,
+        });
+    }
 }

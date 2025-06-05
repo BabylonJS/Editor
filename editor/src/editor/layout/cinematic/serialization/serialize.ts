@@ -1,12 +1,10 @@
 import { Animation, Color3, Color4, Matrix, Quaternion, Vector2, Vector3 } from "babylonjs";
+import { ICinematic, ICinematicKey, ICinematicKeyCut, isCinematicKey } from "babylonjs-editor-tools";
 
 import { getInspectorPropertyValue } from "../../../../tools/property";
 import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
-
-import { isCinematicKey } from "../schema/guards";
-import { ICinematic, ICinematicKey, ICinematicKeyCut } from "../schema/typings";
 
 export function serializeCinematic(cinematic: ICinematic): ICinematic {
     return {
@@ -35,11 +33,33 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
                 sound: track.sound?.id,
                 sounds: track.sounds,
 
-                keyFrameEvents: track.keyFrameEvents?.map((key) => ({
-                    type: "event",
-                    frame: key.frame,
-                    data: key.data?.serialize(),
-                })),
+                keyFrameEvents: track.keyFrameEvents?.map((event) => {
+                    const result = {
+                        ...event,
+                    };
+
+                    switch (event.data?.type) {
+                        case "set-enabled":
+                            result.data = {
+                                type: "set-enabled",
+                                value: event.data.value,
+                                node: event.data.node?.id,
+                            };
+                            break;
+
+                        case "apply-impulse":
+                            result.data = {
+                                type: "apply-impulse",
+                                radius: event.data.radius,
+                                mesh: event.data.mesh?.id,
+                                force: event.data.force.asArray(),
+                                contactPoint: event.data.contactPoint.asArray(),
+                            };
+                            break;
+                    }
+
+                    return result;
+                }),
 
                 keyFrameAnimations: animationType === null ? undefined : track.keyFrameAnimations?.map((keyFrame) => {
                     if (isCinematicKey(keyFrame)) {

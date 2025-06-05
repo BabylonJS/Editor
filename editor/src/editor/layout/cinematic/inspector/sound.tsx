@@ -10,7 +10,6 @@ export interface ICinematicEditorSoundKeyInspectorProps {
     cinematicEditor: CinematicEditor;
     cinematicKey: ICinematicSound;
     track: ICinematicTrack;
-    title: string;
 }
 
 export function CinematicEditorSoundKeyInspector(props: ICinematicEditorSoundKeyInspectorProps) {

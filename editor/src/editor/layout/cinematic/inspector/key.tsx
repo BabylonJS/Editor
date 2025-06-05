@@ -21,7 +21,6 @@ export interface ICinematicEditorKeyInspectorProps {
     cinematicEditor: CinematicEditor;
     cinematicKey: IAnimationKey;
     track: ICinematicTrack;
-    title: string;
 }
 
 export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorProps) {
@@ -59,7 +58,7 @@ export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorP
     }
 
     return (
-        <EditorInspectorSectionField title={props.title}>
+        <EditorInspectorSectionField title="Key">
             <EditorInspectorNumberField object={props.cinematicKey} property="frame" label="Frame" min={0} step={1} onChange={() => {
                 props.cinematicEditor.timelines.sortAnimationsKeys();
                 props.cinematicEditor.timelines.updateTracksAtCurrentTime();

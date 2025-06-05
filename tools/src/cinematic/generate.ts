@@ -132,7 +132,7 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
                 eventsAnimation.addEvent(new AnimationEvent(configuration.frame, () => {
                     switch (configuration.data?.type) {
                         case "set-enabled":
-                            handleSetEnabledEvent(scene, configuration.data);
+                            handleSetEnabledEvent(configuration.data);
                             break;
                         case "apply-impulse":
                             handleApplyImpulseEvent(scene, configuration.data);

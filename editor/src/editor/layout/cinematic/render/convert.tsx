@@ -9,26 +9,20 @@ import { isWindows } from "../../../../tools/os";
 
 import { Editor } from "../../../main";
 
-import { CinematicConvertProgressComponent } from "./progress";
+export type CinematicEditorConvertOptions = {
+    editor: Editor;
+    folderAbsolutePath: string;
+    absolutePath: string;
+    framesCount: number;
+    framesPerSecond: number;
+};
 
-/**
- * Converts the video located at the given aboslute path to mp4.
- * @param editor defines the reference to the editor.
- * @param absolutePath defines the absolute path to the video file to convert to mp4. Typically the webm video previously rendered.
- * @param framesCount defines the total number of frames to convert.
- */
-export async function convertCinematicVideoToMp4(
-    editor: Editor,
-    folderAbsolutePath: string,
-    absolutePath: string,
-    framesCount: number,
-    framesPerSecond: number,
-) {
-    if (!editor.path) {
+export async function convertCinematicVideoToMp4(options: CinematicEditorConvertOptions) {
+    if (!options.editor.path) {
         return;
     }
 
-    let files = await readdir(folderAbsolutePath);
+    let files = await readdir(options.folderAbsolutePath);
     files = files.filter((file) => extname(file) === ".webm");
     files.sort((a, b) => parseInt(a) - parseInt(b));
 
@@ -46,16 +40,15 @@ export async function convertCinematicVideoToMp4(
     }
 
     const command = ffmpeg()
-        .setFfmpegPath(join(editor.path, ffmpegPath))
-        .setFfprobePath(join(editor.path, ffprobePath));
+        .setFfmpegPath(join(options.editor.path, ffmpegPath))
+        .setFfprobePath(join(options.editor.path, ffprobePath));
 
     files.forEach((file) => {
-        command.addInput(join(folderAbsolutePath, file));
+        command.addInput(join(options.folderAbsolutePath, file));
     });
 
     command
-        // .output(absolutePath.replace(".webm", ".mp4"))
-        .fpsOutput(framesPerSecond);
+        .fpsOutput(options.framesPerSecond);
 
     let converting = true;
     const intervalId = window.setInterval(() => {
@@ -75,29 +68,29 @@ export async function convertCinematicVideoToMp4(
             duration: Infinity,
         });
 
-    const tmpDirectory = join(folderAbsolutePath, "tmp");
+    const tmpDirectory = join(options.folderAbsolutePath, "tmp");
     await ensureDir(tmpDirectory);
 
     await new Promise<void>((resolve, reject) => {
         command.on("end", (stdout, stderr) => {
             if (stdout) {
-                editor.layout.console.log(stdout);
+                options.editor.layout.console.log(stdout);
             }
 
             if (stderr) {
-                editor.layout.console.log(stderr);
+                options.editor.layout.console.log(stderr);
             }
 
             resolve();
         });
 
         command.on("progress", (p) => {
-            progress?.setProgress(((p.frames / framesCount) * 100) >> 0);
+            progress?.setProgress(((p.frames / options.framesCount) * 100) >> 0);
         });
 
         command.on("error", (err, _, stderr) => {
             if (stderr) {
-                editor.layout.console.error(stderr);
+                options.editor.layout.console.error(stderr);
             }
 
             if (!converting) {
@@ -107,10 +100,57 @@ export async function convertCinematicVideoToMp4(
             }
         });
 
-        command.mergeToFile(absolutePath.replace(".webm", ".mp4"), tmpDirectory);
+        command.mergeToFile(options.absolutePath.replace(".webm", ".mp4"), tmpDirectory);
     });
 
     clearInterval(intervalId);
 
     toast.dismiss(toastId);
+}
+
+import { Component, ReactNode } from "react";
+
+import { Grid } from "react-loader-spinner";
+
+import { Button } from "../../../../ui/shadcn/ui/button";
+import { Progress } from "../../../../ui/shadcn/ui/progress";
+
+export interface ICinematicConvertProgressComponentProps {
+    onCancel: () => void;
+}
+
+export interface IEditorExportProjectProgressComponentState {
+    progress: number;
+}
+
+export class CinematicConvertProgressComponent extends Component<ICinematicConvertProgressComponentProps, IEditorExportProjectProgressComponentState> {
+    public constructor(props: ICinematicConvertProgressComponentProps) {
+        super(props);
+
+        this.state = {
+            progress: 0,
+        };
+    }
+
+    public render(): ReactNode {
+        return (
+            <div className="flex gap-5 items-center w-full">
+                <Grid width={24} height={24} color="gray" />
+
+                <div className="flex flex-col gap-2 w-full">
+                    <div className="flex gap-5 items-center justify-between text-lg font-[400]">
+                        Converting mp4...
+                        <Button variant="ghost" onClick={() => this.props.onCancel()}>
+                            Cancel
+                        </Button>
+                    </div>
+                    <Progress value={this.state.progress} />
+                </div>
+            </div>
+        );
+    }
+
+    public setProgress(progress: number): void {
+        this.setState({ progress });
+    }
 }

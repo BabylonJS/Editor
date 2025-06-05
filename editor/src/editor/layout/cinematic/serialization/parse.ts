@@ -1,6 +1,7 @@
+import { Scene, Sound, Vector3 } from "babylonjs";
 import {
-    Animation, Color3, Color4, Matrix, Quaternion, Scene, Vector2, Vector3, Sound,
-} from "babylonjs";
+    ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCinematicKeyValue,
+} from "babylonjs-editor-tools";
 
 import { getSoundById } from "../../../../tools/sound/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
@@ -8,17 +9,7 @@ import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
-import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent, ICinematicTrack } from "../schema/typings";
-
-import { CinematicEventSetEnabled } from "../events/set-enabled";
-import { CinematicEventApplyImpulse } from "../events/apply-impulse";
-
-/**
- * Parses the given JSON data and returns a new cinematic object.
- * @param data defines the JSON data of the cinematic to parse.
- * @param scene defines the reference to the scene used to retrieve cinematic's data.
- */
-export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
+export function parseCinematic(data: ICinematic, scene: Scene) {
     const tracks = data.tracks.map((track) => {
         return parseCinematicTrack(track, scene);
     });
@@ -45,6 +36,7 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
         if (!node) {
             return null;
         }
+
         const value = getInspectorPropertyValue(node, track.propertyPath);
         animationType = getAnimationTypeForObject(value);
     }
@@ -62,23 +54,36 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
         animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
         animationGroups: track.animationGroups,
         sounds: track.sounds,
-        keyFrameEvents: track.keyFrameEvents?.map((keyFrame) => {
-            const eventKey = {
-                type: keyFrame.type,
-                frame: keyFrame.frame,
-            } as ICinematicKeyEvent;
 
-            switch (keyFrame.data?.type) {
+        keyFrameEvents: track.keyFrameEvents?.map((event) => {
+            const result = {
+                ...event,
+            };
+
+            switch (event.data?.type) {
                 case "set-enabled":
-                    eventKey.data = CinematicEventSetEnabled.parse(scene, keyFrame.data);
+                    result.data = {
+                        type: "set-enabled",
+                        value: event.data.value,
+                        node: scene.getNodeById(event.data.node),
+                    };
                     break;
+
                 case "apply-impulse":
-                    eventKey.data = CinematicEventApplyImpulse.parse(scene, keyFrame.data);
+                    result.data = {
+                        type: "apply-impulse",
+                        radius: event.data.radius,
+                        mesh: scene.getMeshById(event.data.mesh),
+                        force: Vector3.FromArray(event.data.force),
+                        contactPoint: Vector3.FromArray(event.data.contactPoint),
+                    };
                     break;
+
             }
 
-            return eventKey;
+            return result;
         }),
+
         keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
             const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
             if (animationKey) {
@@ -110,30 +115,4 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
             }
         }),
     };
-}
-
-/**
- * Parses the given value and returns the reference to the right value to be animated.
- * @param value defines the raw value to parse (ie. number or array for vectors).
- * @param type defines the type of the property animated.
- * @example [0, 0, 0] with type Animation.ANIMATIONTYPE_VECTOR3 will return a new Vector3(0, 0, 0) object.
- */
-export function parseCinematicKeyValue(value: any, type: number): any {
-    if (value === null) {
-        return null;
-    }
-
-    if (value === undefined) {
-        return undefined;
-    }
-
-    switch (type) {
-        case Animation.ANIMATIONTYPE_FLOAT: return value;
-        case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.FromArray(value);
-        case Animation.ANIMATIONTYPE_VECTOR3: return Vector3.FromArray(value);
-        case Animation.ANIMATIONTYPE_QUATERNION: return Quaternion.FromArray(value);
-        case Animation.ANIMATIONTYPE_COLOR3: return Color3.FromArray(value);
-        case Animation.ANIMATIONTYPE_COLOR4: return Color4.FromArray(value);
-        case Animation.ANIMATIONTYPE_MATRIX: return Matrix.FromArray(value);
-    }
 }

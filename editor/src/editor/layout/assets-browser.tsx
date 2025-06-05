@@ -5,6 +5,8 @@ import { SkyMaterial } from "babylonjs-materials";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { Camera, Material, NodeMaterial, PBRMaterial, StandardMaterial, Tools } from "babylonjs";
 
+import { ICinematic } from "babylonjs-editor-tools";
+
 import { Fade } from "react-awesome-reveal";
 import { Grid } from "react-loader-spinner";
 import { Component, MouseEvent, ReactNode } from "react";
@@ -45,8 +47,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSubTrigger, ContextMenuSub, ContextMenuSubContent } from "../../ui/shadcn/ui/context-menu";
 
 import { FileInspectorObject } from "./inspector/file";
-
-import { ICinematic } from "./cinematic/schema/typings";
 
 import { AssetBrowserGUIItem } from "./assets-browser/items/gui-item";
 import { AssetBrowserHDRItem } from "./assets-browser/items/hdr-item";

@@ -15,7 +15,6 @@ export interface ICinematicEditorKeyCutInspectorProps {
     cinematicEditor: CinematicEditor;
     cinematicKey: ICinematicKeyCut;
     track: ICinematicTrack;
-    title: string;
 }
 
 export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInspectorProps) {

@@ -1,11 +1,10 @@
-import { Scene } from "@babylonjs/core/scene";
+import { Node } from "@babylonjs/core/node";
 
 export type SetEnabledEventType = {
     value: boolean;
-    node: string;
+    node: Node;
 };
 
-export function handleSetEnabledEvent(scene: Scene, config: SetEnabledEventType) {
-    const node = scene.getNodeById(config.node);
-    node?.setEnabled(config.value);
+export function handleSetEnabledEvent(config: SetEnabledEventType) {
+    config.node?.setEnabled(config.value);
 }

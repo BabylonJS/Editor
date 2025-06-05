@@ -1,7 +1,7 @@
 import { Component, ReactNode } from "react";
 
 import { Tools } from "babylonjs";
-import { ICinematicTrack, isCinematicKey, isCinematicKeyCut, isCinematicSound, isCinematicGroup } from "babylonjs-editor-tools";
+import { ICinematicTrack, isCinematicKey, isCinematicKeyCut, isCinematicSound, isCinematicGroup, isCinematicKeyEvent } from "babylonjs-editor-tools";
 
 import { CinematicEditor } from "./editor";
 
@@ -9,6 +9,7 @@ import { CinematicEditorKeyInspector } from "./inspector/key";
 import { CinematicEditorKeyCutInspector } from "./inspector/key-cut";
 import { CinematicEditorSoundKeyInspector } from "./inspector/sound";
 import { CinematicEditorAnimationGroupKeyInspector } from "./inspector/animation-group";
+import { CinematicEditorEventKeyInspector } from "./inspector/events/event";
 
 export interface ICinematicEditorInspectorProps {
     cinematicEditor: CinematicEditor;
@@ -30,9 +31,19 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
     }
 
     public render(): ReactNode {
+        const component = this._getComponent();
+
+        if (!component) {
+            return (
+                <div className="flex justify-center items-center w-96 h-full border-l border-l-border">
+                    <div className="text-center text-muted-foreground">Select an object to edit</div>
+                </div>
+            );
+        }
+
         return (
             <div className="flex flex-col gap-2 w-96 h-full p-2 text-foreground overflow-y-auto">
-                {this._getComponent()}
+                {component}
             </div>
         );
     }
@@ -52,7 +63,6 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         if (isCinematicKey(this.state.editedObject)) {
             return <CinematicEditorKeyInspector
                 key={Tools.RandomId()}
-                title="Key"
                 track={this.state.editedTrack}
                 cinematicKey={this.state.editedObject}
                 cinematicEditor={this.props.cinematicEditor}
@@ -62,7 +72,6 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         if (isCinematicKeyCut(this.state.editedObject)) {
             return <CinematicEditorKeyCutInspector
                 key={Tools.RandomId()}
-                title="Cut Key"
                 track={this.state.editedTrack}
                 cinematicKey={this.state.editedObject}
                 cinematicEditor={this.props.cinematicEditor}
@@ -72,7 +81,6 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         if (isCinematicSound(this.state.editedObject)) {
             return <CinematicEditorSoundKeyInspector
                 key={Tools.RandomId()}
-                title="Sound Key"
                 track={this.state.editedTrack}
                 cinematicKey={this.state.editedObject}
                 cinematicEditor={this.props.cinematicEditor}
@@ -82,7 +90,15 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
         if (isCinematicGroup(this.state.editedObject)) {
             return <CinematicEditorAnimationGroupKeyInspector
                 key={Tools.RandomId()}
-                title="Animation Group"
+                track={this.state.editedTrack}
+                cinematicKey={this.state.editedObject}
+                cinematicEditor={this.props.cinematicEditor}
+            />;
+        }
+
+        if (isCinematicKeyEvent(this.state.editedObject)) {
+            return <CinematicEditorEventKeyInspector
+                key={Tools.RandomId()}
                 track={this.state.editedTrack}
                 cinematicKey={this.state.editedObject}
                 cinematicEditor={this.props.cinematicEditor}
