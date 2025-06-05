@@ -1,6 +1,6 @@
 import { ICinematicKey, ICinematicKeyCut, isCinematicKeyCut } from "babylonjs-editor-tools";
 
-import { CinematicEditor } from "../editor";
+import { CinematicEditor } from "../../editor";
 
 export interface ICinematicEditorPropertyKeyProps {
     cinematicEditor: CinematicEditor;

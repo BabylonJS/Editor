@@ -17,7 +17,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 
 import { CinematicEditor } from "./editor";
 
-import { CinematicEditorKeyBase } from "./timelines/base";
+import { CinematicEditorKeyBase } from "./timelines/keys/base";
 
 export interface ICinematicEditorTimelinesProps {
     cinematicEditor: CinematicEditor;
@@ -75,11 +75,11 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                     style={{
                         left: `${this.state.currentTime * this.state.scale}px`,
                     }}
-                    className="absolute w-[1px] ml-2 mt-10 bg-border h-full pointer-events-none"
+                    className="absolute w-[1px] ml-2 mt-10 bg-muted h-full pointer-events-none"
                 >
                     <div
                         className={`
-                            absolute w-7 h-7 rotate-45 -translate-x-1/2 -translate-y-8 bg-accent
+                            absolute w-7 h-7 rotate-45 -translate-x-1/2 -translate-y-8 bg-muted
                         `}
                         style={{
                             mask: "linear-gradient(135deg, transparent 0%, transparent 50%, black 50%, black 100%)",
@@ -106,7 +106,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                             border-b border-b-border/50
                             border-r border-r-border/50
                             border-l border-l-border/50
-                            ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-secondary" : ""}
+                            ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-primary-foreground" : ""}
                             transition-all duration-300 ease-in-out
                         `}
                         style={{
@@ -254,10 +254,6 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
     }
 
     public setCurrentTime(time: number): void {
-        this.setState({
-            currentTime: time,
-        });
-
         this.props.cinematicEditor.stop();
 
         const group = this.props.cinematicEditor.createTemporaryAnimationGroup();
@@ -267,6 +263,10 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 
         this.props.cinematicEditor.editor.layout.preview.scene.lights.forEach((light) => {
             updateLightShadowMapRefreshRate(light);
+        });
+
+        this.setState({
+            currentTime: time,
         });
     }
 

@@ -1,4 +1,4 @@
-import { Animation, IAnimationKey } from "babylonjs";
+import { IAnimationKey } from "babylonjs";
 import { ICinematicTrack } from "babylonjs-editor-tools";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -11,22 +11,17 @@ import { registerSimpleUndoRedo, registerUndoRedo } from "../../../../tools/undo
 
 import { CinematicEditor } from "../editor";
 
-import { EditorInspectorColorField } from "../../inspector/fields/color";
 import { EditorInspectorNumberField } from "../../inspector/fields/number";
 import { EditorInspectorSwitchField } from "../../inspector/fields/switch";
-import { EditorInspectorVectorField } from "../../inspector/fields/vector";
 import { EditorInspectorSectionField } from "../../inspector/fields/section";
 
-import { getTangentDefaultValue, getTangentInspector } from "./tools";
+import { getPropertyInspector, getTangentDefaultValue, getTangentInspector } from "./tools";
 
 export interface ICinematicEditorKeyInspectorProps {
     cinematicEditor: CinematicEditor;
     cinematicKey: IAnimationKey;
     track: ICinematicTrack;
     title: string;
-
-    hideInTangent?: boolean;
-    hideOutTangent?: boolean;
 }
 
 export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorProps) {
@@ -70,65 +65,50 @@ export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorP
                 props.cinematicEditor.timelines.updateTracksAtCurrentTime();
             }} />
 
-            {animationType === Animation.ANIMATIONTYPE_FLOAT &&
-                <EditorInspectorNumberField
-                    object={props.cinematicKey}
-                    label="Value"
-                    property="value"
-                    step={
-                        props.track.propertyPath === "depthOfField.focusDistance"
-                            ? (props.cinematicEditor.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000
-                            : 0.01
-                    }
-                    onChange={() => props.cinematicEditor.timelines.updateTracksAtCurrentTime()}
-                />
-            }
-
-            {(animationType === Animation.ANIMATIONTYPE_VECTOR2 || animationType === Animation.ANIMATIONTYPE_VECTOR3) &&
-                <EditorInspectorVectorField object={props.cinematicKey} property="value" label="Value" onChange={() => props.cinematicEditor.timelines.updateTracksAtCurrentTime()} />
-            }
-
-            {(animationType === Animation.ANIMATIONTYPE_COLOR3 || animationType === Animation.ANIMATIONTYPE_COLOR4) &&
-                <EditorInspectorColorField label={<div className="w-14">Value</div>} object={props.cinematicKey} property="value" onChange={() => props.cinematicEditor.timelines.updateTracksAtCurrentTime()} />
-            }
+            {getPropertyInspector({
+                animationType,
+                object: props.cinematicKey,
+                property: "value",
+                label: "Value",
+                step: props.track.propertyPath === "depthOfField.focusDistance"
+                    ? (props.cinematicEditor.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000
+                    : 0.01,
+                onChange: () => props.cinematicEditor.timelines.updateTracksAtCurrentTime(),
+            })}
 
             <Button variant="secondary" onClick={() => copyCurrentValue()}>
                 Set current value
             </Button>
 
-            {!props.hideInTangent &&
-                <EditorInspectorSwitchField label="In Tangents" object={{ checked: (props.cinematicKey.inTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
-                    registerSimpleUndoRedo({
-                        object: props.cinematicKey,
-                        property: "inTangent",
-                        oldValue: props.cinematicKey?.inTangent,
-                        newValue: v ? getTangentDefaultValue(props.cinematicKey!) : undefined,
-                        executeRedo: true,
-                    });
+            <EditorInspectorSwitchField label="In Tangents" object={{ checked: (props.cinematicKey.inTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
+                registerSimpleUndoRedo({
+                    object: props.cinematicKey,
+                    property: "inTangent",
+                    oldValue: props.cinematicKey?.inTangent,
+                    newValue: v ? getTangentDefaultValue(props.cinematicKey!) : undefined,
+                    executeRedo: true,
+                });
 
-                    props.cinematicEditor.inspector.forceUpdate();
-                }} />
-            }
+                props.cinematicEditor.inspector.forceUpdate();
+            }} />
 
-            {!props.hideInTangent && (props.cinematicKey.inTangent ?? null) !== null &&
+            {(props.cinematicKey.inTangent ?? null) !== null &&
                 getTangentInspector(props.cinematicKey, "inTangent", props.cinematicEditor)
             }
 
-            {!props.hideOutTangent &&
-                <EditorInspectorSwitchField label="Out Tangents" object={{ checked: (props.cinematicKey.outTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
-                    registerSimpleUndoRedo({
-                        object: props.cinematicKey,
-                        property: "outTangent",
-                        oldValue: props.cinematicKey?.outTangent,
-                        newValue: v ? getTangentDefaultValue(props.cinematicKey!) : undefined,
-                        executeRedo: true,
-                    });
+            <EditorInspectorSwitchField label="Out Tangents" object={{ checked: (props.cinematicKey.outTangent ?? null) !== null }} property="checked" noUndoRedo onChange={(v) => {
+                registerSimpleUndoRedo({
+                    object: props.cinematicKey,
+                    property: "outTangent",
+                    oldValue: props.cinematicKey?.outTangent,
+                    newValue: v ? getTangentDefaultValue(props.cinematicKey!) : undefined,
+                    executeRedo: true,
+                });
 
-                    props.cinematicEditor.inspector.forceUpdate();
-                }} />
-            }
+                props.cinematicEditor.inspector.forceUpdate();
+            }} />
 
-            {!props.hideOutTangent && (props.cinematicKey.outTangent ?? null) !== null &&
+            {(props.cinematicKey.outTangent ?? null) !== null &&
                 getTangentInspector(props.cinematicKey, "outTangent", props.cinematicEditor)
             }
         </EditorInspectorSectionField>

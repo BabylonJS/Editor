@@ -5,15 +5,15 @@ import { AiOutlineClose } from "react-icons/ai";
 
 import { CinematicKeyType, ICinematicTrack, isCinematicGroup, isCinematicKey, isCinematicKeyCut, isCinematicKeyEvent, isCinematicSound } from "babylonjs-editor-tools";
 
-import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../../ui/shadcn/ui/tooltip";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../../ui/shadcn/ui/context-menu";
 
-import { waitNextAnimationFrame } from "../../../../tools/tools";
+import { waitNextAnimationFrame } from "../../../../../tools/tools";
 
-import { CinematicEditor } from "../editor";
+import { CinematicEditor } from "../../editor";
 
-import { configureDivEvents } from "./move";
-import { getKeyFrame, transformKeyAs } from "./tools";
+import { configureDivEvents } from "../move";
+import { getKeyFrame, transformKeyAs } from "../tools";
 
 import { CinematicEditorSoundKey } from "./sound";
 import { CinematicEditorEventKey } from "./event";

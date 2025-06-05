@@ -1,6 +1,6 @@
 import { ICinematicAnimationGroup } from "babylonjs-editor-tools";
 
-import { CinematicEditor } from "../editor";
+import { CinematicEditor } from "../../editor";
 
 export interface ICinematicEditorAnimationGroupKeyProps {
     cinematicEditor: CinematicEditor;

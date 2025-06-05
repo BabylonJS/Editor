@@ -57,7 +57,7 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
                     flex items-center w-full h-10 px-2 py-2
                     ${borderTop ? "border-t border-t-border/50" : ""}
                     border-b border-b-border/50
-                    ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-secondary" : ""}
+                    ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-primary-foreground" : ""}
                     transition-all duration-300 ease-in-out
                 `}
                 onMouseEnter={() => this.props.cinematicEditor.setState({ hoverTrack: track })}

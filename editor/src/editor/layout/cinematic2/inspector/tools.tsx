@@ -8,6 +8,45 @@ import { EditorInspectorNumberField } from "../../inspector/fields/number";
 
 import { CinematicEditor } from "../editor";
 
+export type PropertyInspectorType = {
+    animationType: number | null;
+    object: any;
+    property: string;
+    label: string;
+    step: number;
+    onChange: () => void;
+};
+
+export function getPropertyInspector(options: PropertyInspectorType) {
+    if (options.animationType === Animation.ANIMATIONTYPE_FLOAT) {
+        return <EditorInspectorNumberField
+            object={options.object}
+            label={options.label}
+            property={options.property}
+            step={options.step}
+            onChange={() => options.onChange()}
+        />;
+    }
+
+    if (options.animationType === Animation.ANIMATIONTYPE_VECTOR2 || options.animationType === Animation.ANIMATIONTYPE_VECTOR3) {
+        return <EditorInspectorVectorField
+            object={options.object}
+            property={options.property}
+            label={options.label}
+            onChange={() => options.onChange()}
+        />;
+    }
+
+    if (options.animationType === Animation.ANIMATIONTYPE_COLOR3 || options.animationType === Animation.ANIMATIONTYPE_COLOR4) {
+        return <EditorInspectorColorField
+            label={<div className="w-14">{options.label}</div>}
+            object={options.object}
+            property={options.property}
+            onChange={() => options.onChange()}
+        />;
+    }
+}
+
 export function getTangentDefaultValue(key: IAnimationKey): number | Vector2 | Vector3 | Quaternion | Color3 | Color4 | null {
     const animationType = getAnimationTypeForObject(key.value);
 

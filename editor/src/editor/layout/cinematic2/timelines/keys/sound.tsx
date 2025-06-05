@@ -1,6 +1,6 @@
 import { ICinematicSound } from "babylonjs-editor-tools";
 
-import { CinematicEditor } from "../editor";
+import { CinematicEditor } from "../../editor";
 
 export interface ICinematicEditorSoundKeyProps {
     cinematicEditor: CinematicEditor;

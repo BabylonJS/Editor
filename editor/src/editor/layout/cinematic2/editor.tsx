@@ -239,9 +239,11 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                 }
 
                 const frameDiff = frame - sound.frame;
-                const offset = frameDiff / this.cinematic.framesPerSecond;
 
-                track.sound?.play(0, offset);
+                if (frameDiff > 0) {
+                    const offset = frameDiff / this.cinematic.framesPerSecond;
+                    track.sound?.play(0, offset);
+                }
             });
         });
 
