@@ -65,13 +65,13 @@ export function CinematicEditorTracker(props: ICinematicEditorTrackerProps) {
             style={{
                 width: `${props.width}px`,
             }}
-            className="relative h-10 mx-2 py-5"
+            className="fixed min-w-full h-10 px-2 py-5 bg-background"
             onClick={handleMainDivClick}
         >
             <div
                 ref={divRef}
                 style={{
-                    left: `${props.currentTime * props.scale}px`,
+                    left: `${props.currentTime * props.scale + 8}px`,
                 }}
                 className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 pointer-events-auto"
             >

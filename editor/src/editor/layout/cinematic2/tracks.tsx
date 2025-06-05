@@ -29,14 +29,14 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
         const cinematic = this.props.cinematicEditor.cinematic;
 
         return (
-            <div className="relative flex flex-col w-96 border-r-2 border-r-border overflow-x-hidden overflow-y-hidden">
+            <div className="relative flex flex-col w-96 min-h-fit h-full border-r-2 border-r-border">
                 <div className="flex w-full h-10 py-5" />
 
                 {cinematic.tracks.map((track, index) => {
                     return this._getTrack(track, index === 0);
                 })}
 
-                <div className="absolute flex justify-between items-center w-96 h-10 px-2 border-r-2 border-r-border">
+                <div className="fixed flex justify-between items-center w-96 h-10 bg-background px-2 border-r-2 border-r-border">
                     <div className="italic font-thin">
                         {cinematic.tracks.length} track{cinematic.tracks.length !== 1 ? "s" : ""}
                     </div>

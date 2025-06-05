@@ -18,7 +18,6 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { CinematicEditor } from "./editor";
 
 import { CinematicEditorKeyBase } from "./timelines/base";
-import { CinematicEditorTracker } from "./timelines/tracker";
 
 export interface ICinematicEditorTimelinesProps {
     cinematicEditor: CinematicEditor;
@@ -52,13 +51,24 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
             <div
                 ref={(r) => this._divRef = r}
                 onMouseDown={(ev) => this._handlePointerDown(ev)}
-                className="relative flex flex-col flex-1 h-full overflow-x-auto overflow-y-hidden"
+                className="relative flex flex-col flex-1 w-full min-h-fit h-full overflow-x-auto overflow-y-hidden"
             >
-                <CinematicEditorTracker
-                    cinematicEditor={this.props.cinematicEditor}
-                    width={width}
-                    scale={this.state.scale}
-                    currentTime={this.state.currentTime}
+                <div
+                    style={{
+                        width: `${width}px`,
+                    }}
+                    className="relative min-w-full h-10 mx-2 py-2"
+                />
+
+                {cinematic.tracks.map((track, index) => {
+                    return this._getTrack(track, width, index === 0);
+                })}
+
+                <div
+                    style={{
+                        width: this._divRef?.getBoundingClientRect().width + "px",
+                    }}
+                    className="fixed h-10 bg-background pointer-events-none"
                 />
 
                 <div
@@ -66,11 +76,16 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                         left: `${this.state.currentTime * this.state.scale}px`,
                     }}
                     className="absolute w-[1px] ml-2 mt-10 bg-border h-full pointer-events-none"
-                />
-
-                {cinematic.tracks.map((track, index) => {
-                    return this._getTrack(track, width, index === 0);
-                })}
+                >
+                    <div
+                        className={`
+                            absolute w-7 h-7 rotate-45 -translate-x-1/2 -translate-y-8 bg-accent
+                        `}
+                        style={{
+                            mask: "linear-gradient(135deg, transparent 0%, transparent 50%, black 50%, black 100%)",
+                        }}
+                    />
+                </div>
             </div>
         );
     }

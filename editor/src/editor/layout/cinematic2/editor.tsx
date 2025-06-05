@@ -111,7 +111,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                             </div>
                         </div>
 
-                        <div className="flex flex-1 overflow-auto">
+                        <div className="flex flex-1 overflow-y-auto">
                             <TooltipProvider>
                                 <CinematicEditorTracks
                                     cinematicEditor={this}
