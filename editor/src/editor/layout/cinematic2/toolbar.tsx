@@ -38,23 +38,23 @@ export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps): Rea
                 </MenubarMenu>
 
                 {/* Render */}
-                {/* <MenubarMenu>
+                <MenubarMenu>
                     <MenubarTrigger>
                         Render
                     </MenubarTrigger>
 
                     <MenubarContent className="border-black/50">
-                        <MenubarItem onClick={() => props.cinematicEditor.renderCinematic("720p")}>
+                        <MenubarItem onClick={() => props.cinematicEditor.openRenderDialog("720p")}>
                             Render 720p
                         </MenubarItem>
-                        <MenubarItem onClick={() => props.cinematicEditor.renderCinematic("1080p")}>
+                        <MenubarItem onClick={() => props.cinematicEditor.openRenderDialog("1080p")}>
                             Render 1080p
                         </MenubarItem>
-                        <MenubarItem onClick={() => props.cinematicEditor.renderCinematic("4k")}>
+                        <MenubarItem onClick={() => props.cinematicEditor.openRenderDialog("4k")}>
                             Render 4K
                         </MenubarItem>
                     </MenubarContent>
-                </MenubarMenu> */}
+                </MenubarMenu>
             </Menubar>
 
             {/* Buttons */}

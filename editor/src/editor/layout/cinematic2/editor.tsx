@@ -28,11 +28,15 @@ import { serializeCinematic } from "./serialization/serialize";
 
 import { restoreSceneState, saveSceneState } from "./tools/state";
 
+import { CinematicEditorTimelineOptions } from "./timelines/options";
+
+import { CinematicEditorRenderDialog } from "./render/dialog";
+import { CinematicEditorRenderer, RenderType } from "./render/renderer";
+
 import { CinematicEditorTracks } from "./tracks";
 import { CinematicEditorToolbar } from "./toolbar";
 import { CinematicEditorTimelines } from "./timelines";
 import { CinematicEditorInspector } from "./inspector";
-
 
 export interface ICinematicEditorProps {
     editor: Editor;
@@ -44,6 +48,8 @@ export interface ICinematicEditorState {
     playing: boolean;
     focused: boolean;
     hoverTrack: ICinematicTrack | null;
+
+    renderType: RenderType;
 }
 
 export class CinematicEditor extends Component<ICinematicEditorProps, ICinematicEditorState> {
@@ -69,6 +75,9 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
      */
     public readonly cinematic: ICinematic;
 
+    private _renderer: CinematicEditorRenderer;
+    private _renderDialog: CinematicEditorRenderDialog;
+
     private _undoObserver: Observer<void> | null = null;
     private _redoObserver: Observer<void> | null = null;
     private _keydownListener: ((event: KeyboardEvent) => void) | null = null;
@@ -90,6 +99,8 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
             playing: false,
             focused: false,
             hoverTrack: null,
+
+            renderType: "1080p",
         };
     }
 
@@ -109,12 +120,16 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                     <div className="flex flex-col flex-1 overflow-hidden">
                         {/* Headers */}
                         <div className="flex w-full h-10">
-                            <div className="flex justify-center items-center w-96 h-10 font-semibold bg-secondary border-r-2 border-r-border">
+                            <div className="flex justify-center items-center w-96 h-10 font-semibold bg-secondary border-r-2 border-r-muted">
                                 Tracks
                             </div>
 
                             <div className="flex flex-1 justify-center items-center gap-2 w-full h-10 font-semibold bg-secondary">
-                                Timelines
+                                <div>
+                                    Timelines
+                                </div>
+
+                                <CinematicEditorTimelineOptions cinematicEditor={this} />
                             </div>
                         </div>
 
@@ -138,6 +153,17 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
                         ref={(r) => this.inspector = r!}
                     />
                 </div>
+
+                <CinematicEditorRenderDialog
+                    ref={(r) => this._renderDialog = r!}
+                    cinematicEditor={this}
+                    onRender={(from, to) => this.renderCinematic(from, to)}
+                />
+
+                <CinematicEditorRenderer
+                    ref={(r) => this._renderer = r!}
+                    cinematicEditor={this}
+                />
             </div>
         );
     }
@@ -179,12 +205,16 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
         this.timelines.forceUpdate();
     }
 
-    public createTemporaryAnimationGroup(): AnimationGroup {
+    public prepareTemporaryAnimationGroup(): void {
         setDefaultRenderingPipelineRef(getDefaultRenderingPipeline() as any);
         setSSAO2RenderingPipelineRef(getSSAO2RenderingPipeline() as any);
         setSSRRenderingPipelineRef(getSSRRenderingPipeline() as any);
         setMotionBlurPostProcessRef(getMotionBlurPostProcess() as any);
         setVLSPostProcessRef(getVLSPostProcess() as any);
+    }
+
+    public createTemporaryAnimationGroup(): AnimationGroup {
+        this.prepareTemporaryAnimationGroup();
 
         this._temporaryAnimationGroup ??= generateCinematicAnimationGroup(
             this.props.cinematic,
@@ -328,5 +358,20 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
         });
 
         toast.success("Cinematic file saved.");
+    }
+
+    public openRenderDialog(renderType: RenderType): void {
+        this._renderDialog.open();
+        this.setState({ renderType });
+    }
+
+    public renderCinematic(from: number, to: number): void {
+        this._renderDialog.close();
+
+        this._renderer.renderCinematic({
+            from,
+            to,
+            type: this.state.renderType,
+        });
     }
 }
