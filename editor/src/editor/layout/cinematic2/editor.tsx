@@ -42,6 +42,7 @@ export interface ICinematicEditorProps {
 
 export interface ICinematicEditorState {
     playing: boolean;
+    focused: boolean;
     hoverTrack: ICinematicTrack | null;
 }
 
@@ -70,6 +71,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
     private _undoObserver: Observer<void> | null = null;
     private _redoObserver: Observer<void> | null = null;
+    private _keydownListener: ((event: KeyboardEvent) => void) | null = null;
 
     private _temporaryAnimationGroup: AnimationGroup | null = null;
 
@@ -86,13 +88,18 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
         this.state = {
             playing: false,
+            focused: false,
             hoverTrack: null,
         };
     }
 
     public render(): ReactNode {
         return (
-            <div className="flex flex-col w-full h-full overflow-hidden">
+            <div
+                onMouseEnter={() => this.setState({ focused: true })}
+                onMouseLeave={() => this.setState({ focused: false })}
+                className="flex flex-col w-full h-full overflow-hidden"
+            >
                 <CinematicEditorToolbar
                     cinematicEditor={this}
                     playing={this.state.playing}
@@ -143,11 +150,27 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
         this._redoObserver = onRedoObservable.add(() => {
             this.forceUpdate();
         });
+
+        window.addEventListener("keydown", this._keydownListener = (event) => {
+            if (event.key === " ") {
+                event.preventDefault();
+
+                if (this.state.playing && this.state.focused) {
+                    this.stop();
+                } else {
+                    this.play();
+                }
+            }
+        });
     }
 
     public componentWillUnmount(): void {
         onUndoObservable.remove(this._undoObserver);
         onRedoObservable.remove(this._redoObserver);
+
+        if (this._keydownListener) {
+            window.removeEventListener("keydown", this._keydownListener);
+        }
     }
 
     public forceUpdate(): void {
