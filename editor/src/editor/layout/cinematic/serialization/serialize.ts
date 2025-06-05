@@ -1,8 +1,7 @@
 import { Animation, Color3, Color4, Matrix, Quaternion, Vector2, Vector3 } from "babylonjs";
-import { ICinematic, ICinematicKey, ICinematicKeyCut, isCinematicKey } from "babylonjs-editor-tools";
+import { ICinematic, ICinematicKey, ICinematicKeyCut, isCinematicKey, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
 import { getInspectorPropertyValue } from "../../../../tools/property";
-import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 

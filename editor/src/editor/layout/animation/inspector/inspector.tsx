@@ -1,9 +1,9 @@
 import { Component, ReactNode } from "react";
 
+import { getAnimationTypeForObject } from "babylonjs-editor-tools";
 import { Animation, Color3, Color4, IAnimationKey, Quaternion, Vector2, Vector3 } from "babylonjs";
 
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
-import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { EditorInspectorColorField } from "../../inspector/fields/color";
 import { EditorInspectorNumberField } from "../../inspector/fields/number";

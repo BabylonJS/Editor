@@ -7,6 +7,7 @@ import { AnimationEvent } from "@babylonjs/core/Animations/animationEvent";
 import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 
 import { isCamera } from "../tools/guards";
+import { getAnimationTypeForObject } from "../tools/animation";
 
 import { getMotionBlurPostProcess } from "../rendering/motion-blur";
 import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
@@ -14,8 +15,8 @@ import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
 import { handleSetEnabledEvent } from "./events/set-enabled";
 import { handleApplyImpulseEvent } from "./events/apply-impulse";
 
+import { cloneKey, getPropertyValue } from "./tools";
 import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
-import { cloneKey, getAnimationTypeForObject, getPropertyValue } from "./tools";
 
 export type GenerateCinematicAnimationGroupOptions = {
     /**

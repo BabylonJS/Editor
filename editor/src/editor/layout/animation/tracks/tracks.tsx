@@ -2,6 +2,7 @@ import { Component, ReactNode } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 
 import { Animation, IAnimatable } from "babylonjs";
+import { getAnimationTypeForObject } from "babylonjs-editor-tools";
 
 import { showAlert } from "../../../../ui/dialog";
 
@@ -9,7 +10,6 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
-import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { EditorAnimation } from "../../animation";
 

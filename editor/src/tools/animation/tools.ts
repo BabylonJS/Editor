@@ -1,5 +1,3 @@
-import { Animation, Color3, Color4, Quaternion, Size, Vector2, Vector3 } from "babylonjs";
-
 import { Tween } from "./tween";
 
 /**
@@ -52,28 +50,4 @@ export function registerTweenEnded<T>(target: T, tween: Tween): void {
 
         checkTargetTweens(target);
     });
-}
-
-/**
- * Returns the animation type according to the given animated property type.
- * @param effectiveProperty defines the reference to the animated property to get its animation type.
- */
-export function getAnimationTypeForObject(effectiveProperty: any): number | null {
-    if (!isNaN(parseFloat(effectiveProperty)) && isFinite(effectiveProperty)) {
-        return Animation.ANIMATIONTYPE_FLOAT;
-    } else if (effectiveProperty instanceof Quaternion) {
-        return Animation.ANIMATIONTYPE_QUATERNION;
-    } else if (effectiveProperty instanceof Vector3) {
-        return Animation.ANIMATIONTYPE_VECTOR3;
-    } else if (effectiveProperty instanceof Vector2) {
-        return Animation.ANIMATIONTYPE_VECTOR2;
-    } else if (effectiveProperty instanceof Color3) {
-        return Animation.ANIMATIONTYPE_COLOR3;
-    } else if (effectiveProperty instanceof Color4) {
-        return Animation.ANIMATIONTYPE_COLOR4;
-    } else if (effectiveProperty instanceof Size) {
-        return Animation.ANIMATIONTYPE_SIZE;
-    }
-
-    return null;
 }

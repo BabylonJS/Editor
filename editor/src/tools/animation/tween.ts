@@ -1,3 +1,4 @@
+import { getAnimationTypeForObject } from "babylonjs-editor-tools";
 import { Animatable, Animation, EasingFunction, IAnimationKey, Nullable, Scene } from "babylonjs";
 
 import {
@@ -6,7 +7,6 @@ import {
     registerTween,
     checkTargetTweens,
     registerTweenEnded,
-    getAnimationTypeForObject,
 } from "./tools";
 
 export interface ITweenEasingConfiguration {

@@ -1,4 +1,4 @@
-import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
+import { getAnimationTypeForObject } from "babylonjs-editor-tools";
 
 /**
  * Returns all the possible animatable properties for the given object.

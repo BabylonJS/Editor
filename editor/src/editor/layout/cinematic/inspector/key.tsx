@@ -1,12 +1,11 @@
 import { IAnimationKey } from "babylonjs";
-import { ICinematicTrack } from "babylonjs-editor-tools";
+import { ICinematicTrack, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
 import { getInspectorPropertyValue } from "../../../../tools/property";
-import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 import { registerSimpleUndoRedo, registerUndoRedo } from "../../../../tools/undoredo";
 
 import { CinematicEditor } from "../editor";

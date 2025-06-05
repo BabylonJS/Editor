@@ -30,7 +30,6 @@ export function CinematicEditorEventKeyInspector(props: ICinematicEditorEventKey
             executeRedo: true,
             undo: () => props.cinematicKey.data = oldData,
             redo: () => {
-                debugger;
                 switch (value) {
                     case "set-enabled":
                         props.cinematicKey.data = {

@@ -4,6 +4,7 @@ export * from "./tools/guards";
 export * from "./tools/texture";
 export * from "./tools/light";
 export * from "./tools/scalar";
+export * from "./tools/animation";
 
 export * from "./rendering/ssao";
 export * from "./rendering/ssr";

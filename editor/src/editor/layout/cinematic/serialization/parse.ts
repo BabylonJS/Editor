@@ -1,11 +1,10 @@
 import { Scene, Sound, Vector3 } from "babylonjs";
 import {
-    ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCinematicKeyValue,
+    ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCinematicKeyValue, getAnimationTypeForObject
 } from "babylonjs-editor-tools";
 
 import { getSoundById } from "../../../../tools/sound/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
-import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 

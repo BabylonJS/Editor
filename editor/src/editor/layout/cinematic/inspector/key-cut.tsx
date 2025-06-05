@@ -1,7 +1,6 @@
-import { ICinematicKeyCut, ICinematicTrack } from "babylonjs-editor-tools";
+import { ICinematicKeyCut, ICinematicTrack, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
-import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { CinematicEditor } from "../editor";
 

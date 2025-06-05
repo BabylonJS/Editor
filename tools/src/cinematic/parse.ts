@@ -7,8 +7,9 @@ import { Quaternion, Vector2, Vector3, Matrix } from "@babylonjs/core/Maths/math
 import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
 import { getSoundById } from "../tools/sound";
+import { getAnimationTypeForObject } from "../tools/animation";
 
-import { getAnimationTypeForObject, getPropertyValue } from "./tools";
+import { getPropertyValue } from "./tools";
 import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
 
 /**

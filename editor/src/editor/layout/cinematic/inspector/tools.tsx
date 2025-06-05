@@ -1,6 +1,5 @@
+import { getAnimationTypeForObject } from "babylonjs-editor-tools";
 import { Animation, IAnimationKey, Vector2, Vector3, Quaternion, Color3, Color4 } from "babylonjs";
-
-import { getAnimationTypeForObject } from "../../../../tools/animation/tools";
 
 import { EditorInspectorColorField } from "../../inspector/fields/color";
 import { EditorInspectorVectorField } from "../../inspector/fields/vector";
