@@ -7,7 +7,8 @@ const mainBuildOptions = {
     platform: "node",
     target: "node20", // target version of Node.js
     format: "cjs", // output format as CommonJS
-    treeShaking: false,
+    treeShaking: true,
+    minify: true,
     loader: {
         ".ts": "ts",
         ".tsx": "tsx",

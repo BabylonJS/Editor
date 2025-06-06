@@ -21,6 +21,9 @@ const replaceBabylonJsImports = {
     },
 };
 
+const args = argv.slice(2);
+const isWatch = args.includes("--watch");
+
 const mainBuildOptions = {
     entryPoints: [
         "./src/index.ts",
@@ -39,12 +42,11 @@ const mainBuildOptions = {
         "babylonjs-gui",
     ],
     keepNames: true,
+    minify: !isWatch,
     plugins: [
         replaceBabylonJsImports
     ],
 };
-
-const args = argv.slice(2);
 
 if (args.includes("--watch")) {
     esbuild

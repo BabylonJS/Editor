@@ -15,7 +15,7 @@ function build({ x64, arm64 } = options) {
         arm64,
         projectDir: "./editor",
         config: {
-            mac: platform() === "win32" ? null : {
+            mac: platform() !== "darwin" ? null : {
                 hardenedRuntime: true,
                 appId: "com.babylonjs.editor",
                 notarize: args.noSign ? false : true,
