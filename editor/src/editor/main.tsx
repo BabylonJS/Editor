@@ -36,6 +36,8 @@ import { EditorLayout } from "./layout";
 import "./nodes/camera";
 import "./nodes/scene-link";
 
+export * from "../export";
+
 export function createEditor(): void {
     const theme = localStorage.getItem("editor-theme") ?? "dark";
     if (theme === "dark") {

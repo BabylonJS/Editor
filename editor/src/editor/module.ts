@@ -5,7 +5,11 @@ const originalLoad = Module["_load"];
 
 Module["_load"] = function (request: string, parent: typeof Module, isMain: boolean) {
     if (request.startsWith("babylonjs-editor")) {
-        return originalLoad(join(__dirname.replace(/\\/g, "/"), "../export.js"), parent, isMain);
+        const editorPath = process.env.DEBUG
+            ? join(__dirname.replace(/\\/g, "/"), "../export.js")
+            : join(__dirname.replace(/\\/g, "/"), "../../editor.js");
+
+        return originalLoad(editorPath, parent, isMain);
     }
 
     return originalLoad(request, parent, isMain);
