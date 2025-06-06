@@ -1,5 +1,10 @@
 jest.mock("@babylonjs/gui/2D/advancedDynamicTexture", () => ({
-
+    AdvancedDynamicTexture: class {
+        static CreateFullscreenUI = jest.fn().mockImplementation((name) => ({
+            name,
+            parseSerializedObject: jest.fn(),
+        }));
+    }
 }));
 
 jest.mock("@babylonjs/core/Maths/math.vector", () => ({
@@ -47,11 +52,14 @@ import { Scene } from "@babylonjs/core/scene";
 import { Sound } from "@babylonjs/core/Audio/sound";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 
+import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
+
+import { guiFromAsset } from "../../src/decorators/gui";
 import { soundFromScene } from "../../src/decorators/sound";
 import { applyDecorators } from "../../src/decorators/apply";
-import { visibleAsBoolean, visibleAsNumber, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
 import { particleSystemFromScene } from "../../src/decorators/particle-systems";
 import { animationGroupFromScene, nodeFromDescendants, nodeFromScene } from "../../src/decorators/scene";
+import { visibleAsBoolean, visibleAsNumber, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
 
 describe("decorators/apply", () => {
     class EmptyTarget { }
@@ -80,6 +88,9 @@ describe("decorators/apply", () => {
         public vector2Property: Vector2 = Vector2.Zero();
         @visibleAsVector3("test")
         public vector3Property: Vector3 = Vector3.Zero();
+
+        @guiFromAsset("path/file.gui")
+        public gui: AdvancedDynamicTexture = null!;
     }
 
     const soundObject = {};
@@ -123,6 +134,13 @@ describe("decorators/apply", () => {
         }
     } as unknown as Node;
 
+    const mockedGuiResult = {
+        name: "testGui",
+    };
+    globalThis.fetch = jest.fn().mockImplementation(() => Promise.resolve({
+        json: () => Promise.resolve(mockedGuiResult),
+    }));
+
     describe("applyDecorators", () => {
         test("should do nothing when no decorated properties in target", () => {
             const target = new EmptyTarget();
@@ -162,6 +180,10 @@ describe("decorators/apply", () => {
             expect(target.vector3Property.x).toBe(10);
             expect(target.vector3Property.y).toBe(20);
             expect(target.vector3Property.z).toBe(30);
+
+            setTimeout(() => {
+                expect(target.gui.name).toBe(mockedGuiResult.name);
+            }, 0);
         });
     });
 });

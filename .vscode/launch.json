@@ -35,14 +35,14 @@
             "type": "node-terminal",
             "cwd": "${workspaceFolder}/tools",
             "request": "launch",
-            "command": "yarn test"
+            "command": "yarn test --watch"
         },
         {
             "name": "Debug Editor Tests",
             "type": "node-terminal",
             "cwd": "${workspaceFolder}/editor",
             "request": "launch",
-            "command": "yarn test"
+            "command": "yarn test --watch"
         }
     ],
     "compounds": [

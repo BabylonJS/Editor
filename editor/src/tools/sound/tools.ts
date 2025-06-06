@@ -35,7 +35,7 @@ export function getSoundById(id: string, scene: Scene) {
 export function reloadSound(editor: Editor, sound: Sound) {
     const url = sound["_url"];
     if (!url || !projectConfiguration.path) {
-        return;
+        return null;
     }
 
     const serializationObject = sound.serialize();
