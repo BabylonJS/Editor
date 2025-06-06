@@ -2,8 +2,8 @@ import { Server, Socket } from "net";
 import { copyFile, mkdir, pathExists } from "fs-extra";
 import { dirname, join, basename, extname } from "path/posix";
 
-import { Editor } from "babylonjs-editor";
 import { PBRMaterial } from "babylonjs";
+import { Editor } from "babylonjs-editor";
 
 import { importMaterial } from "./material";
 import { QuixelJsonType, QuixelLodListType } from "./typings";

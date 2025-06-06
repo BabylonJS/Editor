@@ -13,16 +13,16 @@ import { Editor } from "../../../main";
 export function openModelViewer(editor: Editor, absolutePath: string) {
     showAlert(
         basename(absolutePath),
-        <AssetBrowserMaterialViewer editor={editor} absolutePath={absolutePath} />,
+        <AssetBrowserModelViewer editor={editor} absolutePath={absolutePath} />,
     );
 }
 
-export interface IAssetBrowserMaterialViewerProps {
+export interface IAssetBrowserModelViewerProps {
     editor: Editor;
     absolutePath: string;
 }
 
-function AssetBrowserMaterialViewer(props: IAssetBrowserMaterialViewerProps) {
+function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
