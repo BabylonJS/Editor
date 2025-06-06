@@ -198,6 +198,8 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
         if (this._keydownListener) {
             window.removeEventListener("keydown", this._keydownListener);
         }
+
+        this.stop();
     }
 
     public forceUpdate(): void {
