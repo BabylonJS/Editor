@@ -126,15 +126,34 @@ node_modules
 # For chrome debugging
 .tempChromeProfileForDebug
 
-# Build
-build
-declaration
-electron-packages
-dist
-photoshop-extension/.build
-photoshop-extension/.declaration
-module/index.d.ts
-website/_doc
+# Env
+.env
 
-# Tests
-testOutput
+# Babylon.JS Editor
+editor/build
+editor/declaration
+editor/templates
+editor/electron-packages
+editor/coverage
+
+# Babylon.JS Editor Tools
+tools/build
+tools/declaration
+tools/coverage
+
+# Template
+template/.next
+
+# Website
+website/.next
+website/.env
+website/public/sitemap-0.xml
+website/public/sitemap.xml
+website/public/robots.txt
+
+# Quixel
+quixel/build
+quixel/declaration
+
+# Test
+/test

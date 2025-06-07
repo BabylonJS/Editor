@@ -1,0 +1,241 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@import "flexlayout-react/style/dark.css";
+@import "@blueprintjs/core/lib/css/blueprint.css";
+@import "@xterm/xterm/css/xterm.css";
+
+@import "src/editor/windows/nme/index.css";
+@import "src/editor/windows/ge/index.css";
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 0 0% 13.9%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 13.9%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 13.9%;
+
+        --primary: 0 0% 19%;
+        --primary-foreground: 0 0% 98%;
+
+        --secondary: 0 0% 96.1%;
+        --secondary-foreground: 0 0% 19%;
+
+        --muted: 0 0% 96.1%;
+        --muted-foreground: 0 0% 45.1%;
+
+        --accent: 0 0% 86.1%;
+        --accent-foreground: 0 0% 19%;
+
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+
+        --border: 0 0% 89.8%;
+        --input: 0 0% 89.8%;
+        --ring: 0 0% 13.9%;
+
+        --radius: 0.5rem;
+
+        --scrollbar-track: white;
+        --scrollbar-thumb: #ddd;
+    }
+
+    .dark {
+        --background: 0 0% 13.9%;
+        --foreground: 0 0% 98%;
+
+        --card: 0 0% 13.9%;
+        --card-foreground: 0 0% 98%;
+
+        --popover: 0 0% 13.9%;
+        --popover-foreground: 0 0% 98%;
+
+        --primary: 0 0% 98%;
+        --primary-foreground: 0 0% 9%;
+
+        --secondary: 0 0% 24.9%;
+        --secondary-foreground: 0 0% 98%;
+
+        --muted: 0 0% 24.9%;
+        --muted-foreground: 0 0% 63.9%;
+
+        --accent: 0 0% 19.9%;
+        --accent-foreground: 0 0% 98%;
+
+        --destructive: 0 62.8% 40.6%;
+        --destructive-foreground: 0 0% 98%;
+
+        --border: 0 0% 24.9%;
+        --input: 0 0% 24.9%;
+        --ring: 0 0% 83.1%;
+
+        --scrollbar-track: hsl(var(--background));
+        --scrollbar-thumb: hsl(var(--secondary));
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply text-foreground;
+    }
+
+    #babylonjs-editor-main-div {
+        @apply bg-background;
+    }
+}
+
+@supports (font-variation-settings: normal) {
+    :root {
+        font-family: 'Inter var', sans-serif;
+    }
+}
+
+body * {
+    font-family: 'Inter', sans-serif;
+
+    @apply select-none;
+    @apply text-foreground;
+    @apply !outline-none;
+}
+
+input {
+    line-height: normal;
+    @apply select-auto;
+}
+
+/* SCROLLBARS */
+
+::-webkit-scrollbar {
+    /* background: transparent none; */
+    width: 8px !important;
+    height: 8px !important;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track) !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb) !important;
+    border-radius: 0px !important;
+}
+
+/* Electron */
+.electron-draggable {
+    -webkit-app-region: drag;
+}
+
+.electron-rounded-corners {
+    @apply rounded-xl;
+}
+
+/* FLEX LAYOUT */
+
+.flexlayout__tabset-selected {
+    background-image: unset;
+    background-color: hsl(var(--background));
+}
+
+.flexlayout__tab {
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+}
+
+.flexlayout__splitter {
+    background-color: hsl(var(--border) / 0.1);
+}
+
+.flexlayout__tabset_tabbar_outer {
+    background-color: hsl(var(--background) / 0.9);
+}
+
+.dark .flexlayout__tabset_tabbar_outer {
+    background-color: hsl(var(--background) / 0.5);
+}
+
+.flexlayout__tab_button--selected {
+    color: hsl(var(--muted-foreground));
+    background-color: hsl(var(--primary-foreground));
+}
+
+.flexlayout__tabset_tabbar_outer_top {
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.flexlayout__tab_button--unselected {
+    background-color: hsl(var(--secondary) / 0.1);
+}
+
+.flexlayout__tab_button_content {
+    min-width: 80px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.flexlayout__tabset_tabbar_inner_tab_container_top {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+/* BLUEPRINTJS */
+
+.bp5-button-text {
+    color: hsl(var(--foreground));
+}
+
+.bp5-button .bp5-icon,
+.bp5-button .bp5-icon-standard,
+.bp5-button .bp5-icon-large {
+    color: hsl(var(--foreground));
+}
+
+.bp5-popover .bp5-popover-content {
+    color: white;
+    background-color: #222222;
+}
+
+.bp5-menu {
+    color: white;
+    background-color: #333333;
+}
+
+/* AUDIO */
+audio::-webkit-media-controls-panel {
+    @apply bg-secondary;
+    @apply border-secondary;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-seek-back-button,
+audio::-webkit-media-controls-seek-forward-button,
+audio::-webkit-media-controls-fullscreen-button,
+audio::-webkit-media-controls-rewind-button,
+audio::-webkit-media-controls-mute-button {
+    @apply bg-white;
+    @apply rounded-full;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+    text-shadow: none;
+    @apply text-foreground;
+}
+
+/* XTERM */
+.xterm {
+    width: 100%;
+    height: 100%;
+}
+
+.xterm .xterm-viewport {
+    background-color: transparent !important;
+}
