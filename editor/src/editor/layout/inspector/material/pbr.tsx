@@ -119,6 +119,8 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
                             </>
                         }
                     </EditorInspectorTextureField>
+
+                    <EditorInspectorTextureField object={this.props.material} title="Emissive Texture" property="emissiveTexture" />
                 </EditorInspectorSectionField>
 
                 <EditorInspectorSectionField title="Material Colors">
