@@ -1,3 +1,4 @@
+import { webUtils } from "electron";
 import { dirname, join, extname, basename } from "path/posix";
 import { copyFile, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON } from "fs-extra";
 
@@ -9,7 +10,7 @@ import { ICinematic } from "babylonjs-editor-tools";
 
 import { Fade } from "react-awesome-reveal";
 import { Grid } from "react-loader-spinner";
-import { Component, MouseEvent, ReactNode } from "react";
+import { Component, DragEvent, MouseEvent, ReactNode } from "react";
 import { SelectableGroup, createSelectable } from "react-selectable";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
@@ -103,6 +104,8 @@ export interface IEditorAssetsBrowserState {
     browsedPath?: string;
 
     filesTreeNodes: TreeNodeInfo[];
+
+    dragAndDroppingFiles: boolean;
 }
 
 export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IEditorAssetsBrowserState> {
@@ -124,6 +127,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
             selectionEnabled: true,
             showGeneratedFiles: false,
+
+            dragAndDroppingFiles: false,
         };
     }
 
@@ -615,7 +620,14 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                             }}
                             onMouseMove={() => this._isMouseOver = true}
                             onMouseLeave={() => this._isMouseOver = false}
-                            className="grid gap-4 justify-left w-full h-full p-5 overflow-y-auto pb-10"
+                            onDragOver={(ev) => this._handleDragOver(ev)}
+                            onDragLeave={() => this.setState({ dragAndDroppingFiles: false })}
+                            onDrop={(ev) => this._handleDrop(ev)}
+                            className={`
+                                grid gap-4 justify-left w-full h-full p-5 overflow-y-auto pb-10
+                                ${this.state.dragAndDroppingFiles ? "bg-primary/10" : ""}
+                                transition-colors duration-300 ease-in-out    
+                            `}
                         >
                             {
                                 this.state.files
@@ -745,6 +757,45 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
             default:
                 return <DefaultSelectable {...props} />;
         }
+    }
+
+    private _handleDragOver(event: DragEvent<HTMLDivElement>): void {
+        event.preventDefault();
+        this.setState({
+            dragAndDroppingFiles: event.dataTransfer.types.includes("Files")
+        });
+    }
+
+    private async _handleDrop(event: DragEvent<HTMLDivElement>): Promise<void> {
+        event.preventDefault();
+
+        this.setState({
+            dragAndDroppingFiles: false,
+        });
+
+        if (!this.state.browsedPath) {
+            return;
+        }
+
+        const filesToCopy: Record<string, string> = {};
+
+        for (let i = 0, len = event.dataTransfer.files.length; i < len; ++i) {
+            const file = event.dataTransfer.files.item(i);
+            if (!file) {
+                continue;
+            }
+
+            const path = webUtils.getPathForFile(file);
+            const absolutePath = join(this.state.browsedPath, basename(path));
+
+            filesToCopy[path] = absolutePath;
+        }
+
+        await Promise.all(Object.entries(filesToCopy).map(async ([source, destination]) => {
+            await copyFile(source, destination);
+        }));
+
+        this.refresh();
     }
 
     private async _handleCreateDirectory(): Promise<void> {
