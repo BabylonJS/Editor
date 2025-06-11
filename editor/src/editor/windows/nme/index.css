@@ -1,0 +1,28 @@
+.nme-right-panel #propertyTab .textInputLine .value input {
+    color: black !important;
+    padding: 2px 5px;
+}
+
+.nme-right-panel #propertyTab .listLine .options select {
+    color: black !important;
+    padding: 2px 5px;
+}
+
+.nme-right-panel #propertyTab .textInputArea textarea {
+    color: black !important;
+    padding: 2px 5px;
+}
+
+.nme-right-panel #propertyTab .sliderLine .floatLine .short input[type=number] {
+    color: black !important;
+    padding: 2px 5px;
+}
+
+.nme-right-panel #propertyTab .floatLine .value input[type=number] {
+    color: black !important;
+    padding: 2px 5px;
+}
+
+.nme-right-panel #propertyTab .checkBoxLine .checkBox {
+    padding: 2px 5px;
+}
