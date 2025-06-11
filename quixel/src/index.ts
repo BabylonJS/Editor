@@ -118,7 +118,7 @@ async function handleParsedAsset(editor: Editor, json: QuixelJsonType) {
 }
 
 async function handleParse3d(editor: Editor, json: QuixelJsonType, assetFolder: string, material: PBRMaterial | null) {
-    const meshes = await importMeshes(editor, json.lodList, assetFolder);
+    const meshes = await importMeshes(editor, json.lodList);
     meshes.forEach((mesh) => {
         mesh.material = material;
 
@@ -149,7 +149,7 @@ async function handleImport3dPlant(editor: Editor, json: QuixelJsonType, assetFo
     });
 
     for (const [variation, lodList] of variationsMap) {
-        const meshes = await importMeshes(editor, lodList, assetFolder);
+        const meshes = await importMeshes(editor, lodList);
         meshes.forEach((mesh) => {
             mesh.material = material;
 

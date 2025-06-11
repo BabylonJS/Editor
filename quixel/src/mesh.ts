@@ -1,19 +1,18 @@
-import { join, basename } from "path/posix";
-import { copyFile, writeJson } from "fs-extra";
+import { join } from "path/posix";
+import { writeJson } from "fs-extra";
 
 import { Mesh, SceneSerializer, Tools } from "babylonjs";
 import { Editor, isMesh, UniqueNumber } from "babylonjs-editor";
 
 import { QuixelLodListType } from "./typings";
 
-export async function importMeshes(editor: Editor, lodList: QuixelLodListType[], assetsFolder: string): Promise<Mesh[]> {
+export async function importMeshes(editor: Editor, lodList: QuixelLodListType[]): Promise<Mesh[]> {
     if (!editor.state.projectPath) {
         return [];
     }
 
     const results = await Promise.all(lodList.filter((lod) => lod.lod !== "high").map(async (lod) => {
         const path = lod.path.replace(/\\/g, "/");
-        await copyFile(path, join(assetsFolder, basename(path)));
         return editor.layout.preview.importSceneFile(path, false);
     }));
 
