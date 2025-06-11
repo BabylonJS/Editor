@@ -1,11 +1,8 @@
 import { join, basename } from "path/posix";
 import { copyFile, writeJson } from "fs-extra";
 
-import { Editor } from "babylonjs-editor";
 import { Mesh, SceneSerializer, Tools } from "babylonjs";
-
-import { isMesh } from "./tools/guards";
-import { UniqueNumber } from "./tools/id";
+import { Editor, isMesh, UniqueNumber } from "babylonjs-editor";
 
 import { QuixelLodListType } from "./typings";
 

@@ -4,17 +4,19 @@
     "description": "",
     "productName": "Babylon.js Editor Quixel Plugin",
     "scripts": {
-        "build": "tsc -p .",
-        "watch": "tsc -p . --watch"
+        "build": "tsc -p . && node esbuild.mjs",
+        "watch": "concurrently \"tsc -p . --watch\" \"node esbuild.mjs --watch\""
     },
-    "main": "build/index.js",
+    "main": "build/index.node.js",
+    "typings": "declaration/index.d.ts",
     "license": "(Apache-2.0)",
     "devDependencies": {
-        "babylonjs-editor": "link:../editor",
+        "esbuild": "0.25.5",
         "typescript": "5.4.5"
     },
     "dependencies": {
         "babylonjs": "8.6.1",
+        "babylonjs-editor": "link:../editor",
         "fs-extra": "^11.2.0",
         "sharp": "0.32.6"
     }

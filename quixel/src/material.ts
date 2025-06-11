@@ -1,10 +1,8 @@
 import { writeJSON } from "fs-extra";
 import { join, basename } from "path/posix";
 
-import { Editor } from "babylonjs-editor";
 import { PBRMaterial, Tools } from "babylonjs";
-
-import { UniqueNumber } from "./tools/id";
+import { Editor, UniqueNumber } from "babylonjs-editor";
 
 import { QuixelJsonType } from "./typings";
 import { copyTextures, setupTextures } from "./texture";

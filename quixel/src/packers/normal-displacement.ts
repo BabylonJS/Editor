@@ -1,10 +1,9 @@
 import { remove } from "fs-extra";
 import { basename, join, dirname } from "path";
 
-import { Editor } from "babylonjs-editor";
 import { PBRMaterial, Texture } from "babylonjs";
+import { Editor, UniqueNumber } from "babylonjs-editor";
 
-import { UniqueNumber } from "../tools/id";
 import { TextureUtils } from "../tools/textureMerger";
 
 export class NormalDisplacementPacker {

@@ -3,12 +3,10 @@ import { copyFile, writeFile } from "fs-extra";
 
 import sharp from "sharp";
 
-import { Editor } from "babylonjs-editor";
 import { PBRMaterial, Texture } from "babylonjs";
+import { Editor, UniqueNumber } from "babylonjs-editor";
 
 import { QuixelJsonType } from "./typings";
-
-import { UniqueNumber } from "./tools/id";
 
 import { MaskPacker } from "./packers/mask";
 import { AlbedoOpacityPacker } from "./packers/albedo-opacity";

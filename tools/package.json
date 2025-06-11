@@ -17,7 +17,7 @@
             "require": "./build/index.node.js"
         }
     },
-    "typings": "declaration/src/index.ts",
+    "typings": "declaration/src/index.d.ts",
     "license": "(Apache-2.0)",
     "devDependencies": {
         "@babel/core": "^7.26.10",
