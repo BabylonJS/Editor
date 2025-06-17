@@ -87,7 +87,11 @@ export default function DocumentationAddingScriptsPage() {
                             To do so, right-click somewhere in the <b>src</b> folder of the project using the <b>Assets Browser</b> panel in the editor and select <b>Add {"->"} Script {"->"} Class based</b> or <b>Add {"->"} Script {"->"} Function based</b>
                         </div>
 
-                        <img alt="" src="/documentation/adding-scripts/adding-script.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/adding-scripts/adding-script.mp4" />
+                            </video>
+                        </div>
 
                         <div className="text-3xl md:text-2xl lg:text-3xl my-3">
                             Attaching script
@@ -102,7 +106,11 @@ export default function DocumentationAddingScriptsPage() {
                             Once done, the script is attached to be object and will be executed automatically when running the application.
                         </div>
 
-                        <img alt="" src="/documentation/adding-scripts/attaching-script.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/adding-scripts/attaching-script.mp4" />
+                            </video>
+                        </div>
 
                         <div className="text-3xl md:text-2xl lg:text-3xl my-3">
                             Using decorators

@@ -67,7 +67,11 @@ export default function DocumentationManagingAssetsPage() {
                             Always keeping a constant and logical naming of assets is important to keep your assets organized.
                         </div>
 
-                        <img alt="" src="/documentation/managing-assets/creating-pbr-material.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/managing-assets/creating-pbr-material.mp4" />
+                            </video>
+                        </div>
 
                         <div>
                             New created materials are empty by default. Now, to assign this material to the box or any other asset, you can drag and drop the material file on the desired mesh in the "<b>Preview</b>" panel.
@@ -82,7 +86,11 @@ export default function DocumentationManagingAssetsPage() {
                             </div>
                         </div>
 
-                        <img alt="" src="/documentation/managing-assets/assigning-material.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/managing-assets/assigning-material.mp4" />
+                            </video>
+                        </div>
 
                         <div>
                             Your own material is now applied on the box! Now the goal is to edit the material properties using the "<b>Inspector</b>" panel. To do so, just click on the box in the "<b>Preview</b>" panel in order to edit the object.
@@ -100,7 +108,11 @@ export default function DocumentationManagingAssetsPage() {
                             Let's create a "<b>pbr</b>" folder in the "<b>assets</b>" folder using the "<b>Assets Browser</b>" panel and import textures in it.
                         </div>
 
-                        <img alt="" src="/documentation/managing-assets/importing-textures.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/managing-assets/importing-textures.mp4" />
+                            </video>
+                        </div>
 
                         <div>
                             Here, 3 textures were imported:
@@ -125,7 +137,11 @@ export default function DocumentationManagingAssetsPage() {
                             Once a texture is assigned, the slot is updated to show the preview of the texture and its potential properties to edit.
                         </div>
 
-                        <img alt="" src="/documentation/managing-assets/assigning-textures.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/managing-assets/assigning-textures.mp4" />
+                            </video>
+                        </div>
 
                         <div>
                             As an advanced user, you may want to edit the properties of a texture in a material, just click on the preview of the texture in the "<b>Inspector</b>" panel.
@@ -133,13 +149,21 @@ export default function DocumentationManagingAssetsPage() {
                             A new panel appears showing all the properties of the texture. Here you can edit the properties of the texture to fit your needs.
                         </div>
 
-                        <img alt="" src="/documentation/managing-assets/editing-texture.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/managing-assets/editing-texture.mp4" />
+                            </video>
+                        </div>
 
                         <div>
                             Tip: you can also drag'n'drop a texture file directly on a mesh in the "<b>Preview</b>" panel. The editor will ask for the slot where to assign the texture.
                         </div>
 
-                        <img alt="" src="/documentation/managing-assets/assigning-texture-preview.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/managing-assets/assigning-texture-preview.mp4" />
+                            </video>
+                        </div>
 
                         <NextChapterComponent href="/documentation/running-project" title="Running project" />
                     </div>

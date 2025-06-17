@@ -50,7 +50,11 @@ export default function DocumentationComposingScenePage() {
                             The layout of the inspector may change according to the nature of the edited object.
                         </div>
 
-                        <img alt="" src="/documentation/composing-scene/select-object.gif" className="h-[512px] object-contain" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/composing-scene/select-object.mp4" />
+                            </video>
+                        </div>
 
                         <div className="text-3xl md:text-2xl lg:text-3xl my-3">
                             Using gizmos
@@ -72,7 +76,11 @@ export default function DocumentationComposingScenePage() {
                             <li>CTRL+D or ⌘+D for <b>Scaling</b> gizmos</li>
                         </ul>
 
-                        <img alt="" src="/documentation/composing-scene/gizmos-toolbar.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/composing-scene/gizmos-toolbar.mp4" />
+                            </video>
+                        </div>
 
                         <div className="text-3xl md:text-2xl lg:text-3xl my-3">
                             Adding objects
@@ -91,7 +99,9 @@ export default function DocumentationComposingScenePage() {
                             You can add more objects by clicking on the <b>Add</b> button in the main toolbar of the editor. Each time a new object is added, it is placed at the center of the scene and the graph is updated in order to show the newly added node.
                         </div>
 
-                        <img alt="" src="/documentation/composing-scene/adding-objects.png" />
+                        <div className="p-10">
+                            <img alt="" src="/documentation/composing-scene/adding-objects.png" className="rounded-lg" />
+                        </div>
 
                         <div>
                             Each object can be customized. Those meshes (box, sphere, ground, etc.) are called "primitives" and their geometry is generated automatically by Babylon.JS.
@@ -116,7 +126,11 @@ export default function DocumentationComposingScenePage() {
                             To do so, let's add our first 3d model in the assets of the project. Using the <b>Assets Browser</b>, click "<b>Import</b>". A file dialog appears, select all the files of the 3d model (3d file and textures) and click "<b>Open</b>".
                         </div>
 
-                        <img alt="" src="/documentation/composing-scene/import-3d-models.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/composing-scene/import-3d-models.mp4" />
+                            </video>
+                        </div>
 
                         <div>
                             In order to keep the assets organized, you can create folders in the assets browser by right-clicking on the panel and by selecting the "<b>New Folder</b>" option. To rename a folder or a file, just double-click on its name.
@@ -124,7 +138,11 @@ export default function DocumentationComposingScenePage() {
                             Once the folder is created, just double-click on it and import your assets in it.
                         </div>
 
-                        <img alt="" src="/documentation/composing-scene/creating-folder.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/composing-scene/creating-folder.mp4" />
+                            </video>
+                        </div>
 
                         <div>
                             Here, for this example, we imported a <b>.gltf</b> file with all its associated textures. In oder to import the 3d model, simply drag'n'drop the <b>.gltf</b> file on the preview.
@@ -139,7 +157,11 @@ export default function DocumentationComposingScenePage() {
                             </div>
                         </div>
 
-                        <img alt="" src="/documentation/composing-scene/importing-model.gif" />
+                        <div className="mx-auto p-10 w-full object-contain">
+                            <video muted autoPlay loop controls className="rounded-lg">
+                                <source src="/documentation/composing-scene/importing-model.mp4" />
+                            </video>
+                        </div>
 
                         <div>
                             When you add a 3d model, all its materials and textures are automatically applied on it (most of the time).
