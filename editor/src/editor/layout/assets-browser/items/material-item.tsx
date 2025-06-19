@@ -1,6 +1,6 @@
-import { readJSON, writeJSON } from "fs-extra";
 import { ipcRenderer } from "electron";
 import { basename, join, dirname } from "path/posix";
+import { pathExists, readJSON, writeJSON } from "fs-extra";
 
 import { ReactNode } from "react";
 
@@ -11,7 +11,7 @@ import { Tools } from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
 
-import { showPrompt } from "../../../../ui/dialog";
+import { showAlert, showPrompt } from "../../../../ui/dialog";
 import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { AssetsBrowserItem } from "./item";
@@ -50,7 +50,7 @@ export class AssetBrowserMaterialItem extends AssetsBrowserItem {
         );
     }
 
-    private async _handleClone(): Promise<void> {
+    private async _handleClone(): Promise<unknown> {
         const data = await readJSON(this.props.absolutePath);
         data.id = Tools.RandomId();
         data.uniqueId = UniqueNumber.Get();
@@ -69,13 +69,21 @@ export class AssetBrowserMaterialItem extends AssetsBrowserItem {
             name += ".material";
         }
 
-        const path = join(dirname(this.props.absolutePath), name);
-        await writeJSON(path, data, {
+        const absoluteDestination = join(dirname(this.props.absolutePath), name);
+
+        if (await pathExists(absoluteDestination)) {
+            return showAlert(
+                "Can't clone material",
+                `A material with name ("${name}") already exists in the current folder.`,
+            );
+        }
+
+        await writeJSON(absoluteDestination, data, {
             spaces: "\t",
             encoding: "utf-8",
         });
 
         this.props.editor.layout.assets.refresh();
-        this.props.editor.layout.assets.setSelectedFile(path);
+        this.props.editor.layout.assets.setSelectedFile(absoluteDestination);
     }
 }

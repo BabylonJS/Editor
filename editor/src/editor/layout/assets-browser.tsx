@@ -29,6 +29,7 @@ import { EditorCamera } from "../nodes/camera";
 
 import { normalizedGlob } from "../../tools/fs";
 import { UniqueNumber } from "../../tools/tools";
+import { execNodePty } from "../../tools/node-pty";
 import { clearUndoRedo } from "../../tools/undoredo";
 import { isTexture } from "../../tools/guards/texture";
 import { renameScene } from "../../tools/scene/rename";
@@ -1088,7 +1089,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
         this.setState({ selectedKeys });
     }
 
-    private async _handleItemDoubleClick(item: AssetsBrowserItem): Promise<void> {
+    private async _handleItemDoubleClick(item: AssetsBrowserItem): Promise<unknown> {
         if (item.state.isDirectory) {
             const extension = extname(item.props.absolutePath).toLowerCase();
             if (extension === ".scene") {
@@ -1123,6 +1124,14 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
             case ".material":
                 return openMaterialViewer(this.props.editor, item.props.absolutePath);
+
+            case ".ts":
+            case ".tsx":
+            case ".js":
+            case ".jsx":
+            case ".fx":
+            case ".json":
+                return execNodePty(`code ${item.props.absolutePath}`);
         }
     }
 
