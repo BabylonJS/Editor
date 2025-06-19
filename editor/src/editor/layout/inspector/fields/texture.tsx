@@ -198,6 +198,19 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
         return (
             <div className="flex flex-col gap-2 h-full">
                 <EditorInspectorSectionField title="Common">
+                    <div className="flex justify-between items-center px-2 py-2">
+                        <div className="w-1/2">
+                            Path
+                        </div>
+
+                        <div
+                            onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
+                            className="text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis underline-offset-2 cursor-pointer hover:underline"
+                        >
+                            {texture.name}
+                        </div>
+                    </div>
+
                     <EditorInspectorSwitchField label="Gamma Space" object={texture} property="gammaSpace" />
                     <EditorInspectorSwitchField label="Invert Z" object={texture} property="invertZ" />
                 </EditorInspectorSectionField>
