@@ -336,7 +336,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
             URL.revokeObjectURL(this.state.previewTemporaryUrl);
         }
 
-        this.setState({ previewTemporaryUrl: URL.createObjectURL(new Blob([buffer.buffer])) });
+        this.setState({ previewTemporaryUrl: URL.createObjectURL(new Blob([buffer])) });
     }
 
     private _handleDragOver(ev: DragEvent<HTMLDivElement>): void {
