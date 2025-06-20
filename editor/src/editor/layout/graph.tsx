@@ -119,7 +119,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
                     />
 
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
+                        <DropdownMenuTrigger asChild>
                             <Button minimal icon="settings" className="transition-all duration-300" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>

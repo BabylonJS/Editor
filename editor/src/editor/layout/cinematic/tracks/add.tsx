@@ -12,7 +12,7 @@ export interface ICinematicEditorTrackAddProps {
 export function CinematicEditorTrackAdd(props: ICinematicEditorTrackAddProps) {
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-8 h-8 p-1">
                     <AiOutlinePlus className="w-5 h-5" />
                 </Button>

@@ -101,7 +101,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
         let ref: HTMLDivElement | null = null;
 
         this.state.logs.push(
-            <ContextMenu>
+            <ContextMenu key={`log-${this.state.logs.length}`}>
                 <ContextMenuTrigger>
                     <div ref={(r) => ref = r}>
                         {log}

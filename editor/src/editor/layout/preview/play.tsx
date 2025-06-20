@@ -73,7 +73,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
             <TooltipProvider>
                 {this.state.playing && this.state.playingAddress && !this.state.preparingPlay &&
                     <Tooltip>
-                        <TooltipTrigger>
+                        <TooltipTrigger asChild>
                             <Button
                                 minimal
                                 onClick={() => this.props.onRestart()}
@@ -89,7 +89,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
                 }
 
                 <Tooltip>
-                    <TooltipTrigger>
+                    <TooltipTrigger asChild>
                         <Button
                             minimal
                             active={this.state.playing}
