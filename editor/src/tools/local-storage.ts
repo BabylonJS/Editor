@@ -31,7 +31,7 @@ export function tryAddProjectToLocalStorage(absolutePath: string): void {
 			updatedAt: new Date(),
 		}])));
 	} catch (e) {
-		alert("Failed to import project.");
+		console.error("Failed to import project.");
 	}
 }
 

@@ -1,4 +1,5 @@
-this.addEventListener("message", (ev) => {
+self.addEventListener("message", (ev) => {
+	// eslint-disable-next-line no-new-func
 	const callback = new Function(ev.data.callback)();
 	const aPixels = ev.data.aPixels;
 	const bPixels = ev.data.bPixels;
@@ -13,10 +14,10 @@ this.addEventListener("message", (ev) => {
 		result.push.apply(result, [color.r, color.g, color.b, color.a]);
 	}
 
-	this.postMessage({
+	self.postMessage({
 		id: ev.data.id,
 		result,
 	}, undefined!);
 });
 
-this.postMessage("initialized", undefined!);
+self.postMessage("initialized", undefined!);

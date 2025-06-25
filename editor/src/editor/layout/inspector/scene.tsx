@@ -173,21 +173,17 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 							undo: () => {
 								if (!pipeline) {
 									disposeDefaultRenderingPipeline();
-								} else {
-									if (serializedPipeline) {
-										parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
-									}
+								} else if (serializedPipeline) {
+									parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
 								}
 							},
 							redo: () => {
 								if (pipeline) {
 									disposeDefaultRenderingPipeline();
+								} else if (serializedPipeline) {
+									parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
 								} else {
-									if (serializedPipeline) {
-										parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
-									} else {
-										createDefaultRenderingPipeline(this.props.editor);
-									}
+									createDefaultRenderingPipeline(this.props.editor);
 								}
 							},
 						});

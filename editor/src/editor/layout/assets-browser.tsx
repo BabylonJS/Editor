@@ -267,7 +267,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 					} else {
 						const parent = allNodes.find((n) => n.id === split.slice(0, i).join("/"));
 						if (parent) {
-							parent.childNodes = parent.childNodes ?? [];
+							parent.childNodes ??= [];
 							parent.childNodes.push(node);
 						}
 					}

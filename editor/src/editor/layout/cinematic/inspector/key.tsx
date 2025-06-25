@@ -36,13 +36,13 @@ export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorP
 
 		const oldValue = props.cinematicKey.value.clone?.() ?? props.cinematicKey.value;
 
-		let newValue = getInspectorPropertyValue(node, this.state.track.propertyPath);
+		let newValue = getInspectorPropertyValue(node, props.track.propertyPath);
 		newValue = newValue.clone?.() ?? newValue;
 
 		registerUndoRedo({
 			executeRedo: false,
 			action: () => {
-				this.props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+				props.cinematicEditor.timelines.updateTracksAtCurrentTime();
 			},
 			undo: () => {
 				props.cinematicKey.value = oldValue;

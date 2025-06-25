@@ -157,9 +157,9 @@ export function registerKeysMovedUndoRedo(
 		return configuration.map((key) => {
 			if (isCinematicKeyCut(key.key)) {
 				return key.key.key1.frame;
-			} else {
-				return key.key.frame;
 			}
+
+			return key.key.frame;
 		});
 	});
 

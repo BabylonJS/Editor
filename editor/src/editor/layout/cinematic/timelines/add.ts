@@ -30,9 +30,9 @@ export function addAnimationKey(cinematicEditor: CinematicEditor, type: "key" | 
 	const existingKey = track.keyFrameAnimations!.find((k) => {
 		if (isCinematicKeyCut(k)) {
 			return k.key1.frame === frame;
-		} else {
-			return k.frame === frame;
 		}
+
+		return k.frame === frame;
 	});
 
 	if (existingKey) {

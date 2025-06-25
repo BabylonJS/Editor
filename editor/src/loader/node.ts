@@ -18,7 +18,7 @@ export function parseNodes(runtime: AssimpJSRuntime, nodes: IAssimpJSNodeData[],
 			runtime.container.transformNodes.push(node);
 
 			// Search for bone
-			loop: for (const skeleton of runtime.container.skeletons) {
+			for (const skeleton of runtime.container.skeletons) {
 				const bone = skeleton.bones.find((b) => b.name === n.name);
 				if (!bone) {
 					continue;
@@ -33,7 +33,7 @@ export function parseNodes(runtime: AssimpJSRuntime, nodes: IAssimpJSNodeData[],
 					}
 				}
 
-				break loop;
+				break;
 			}
 		}
 

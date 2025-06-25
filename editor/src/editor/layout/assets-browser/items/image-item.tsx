@@ -49,9 +49,9 @@ export class AssetBrowserImageItem extends AssetsBrowserItem {
 	protected getIcon(): ReactNode {
 		if (this._thumbnailPath) {
 			return <img alt="" src={this._thumbnailPath} className="w-[120px] aspect-square object-contain" />;
-		} else {
-			return <SpinnerUIComponent width="64px" />;
 		}
+
+		return <SpinnerUIComponent width="64px" />;
 	}
 
 	public async componentDidMount(): Promise<void> {

@@ -389,12 +389,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (ev.ctrlKey || ev.metaKey) {
 			this._forEachNode(this.state.nodes, (n) => n.id === node.id && (n.isSelected = !n.isSelected));
+		} else if (ev.shiftKey) {
+			this._handleShiftSelect(node);
 		} else {
-			if (ev.shiftKey) {
-				this._handleShiftSelect(node);
-			} else {
-				this._forEachNode(this.state.nodes, (n) => n.isSelected = n.id === node.id);
-			}
+			this._forEachNode(this.state.nodes, (n) => n.isSelected = n.id === node.id);
 		}
 
 		this.setState({ nodes: this.state.nodes });

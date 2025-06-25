@@ -410,9 +410,9 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 		if (this.state.isDirectory) {
 			if (this.state.previewImage) {
 				return <img src={this.state.previewImage} className="p-2 w-20 h-20 object-contain bg-secondary rounded-lg" />;
-			} else {
-				return <FolderIcon width="80px" />;
 			}
+
+			return <FolderIcon width="80px" />;
 		}
 
 		const extension = extname(this.props.absolutePath).toLowerCase();

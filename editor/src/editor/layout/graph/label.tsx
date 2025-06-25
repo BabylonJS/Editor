@@ -146,11 +146,11 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 							if (oldSoundNode) {
 								return n.nodeData.attachToMesh(oldSoundNode as TransformNode);
-							} else {
-								n.nodeData.detachFromMesh();
-								n.nodeData.spatialSound = false;
-								return n.nodeData["_connectedTransformNode"] = null;
 							}
+
+							n.nodeData.detachFromMesh();
+							n.nodeData.spatialSound = false;
+							return n.nodeData["_connectedTransformNode"] = null;
 						}
 
 						if (isParticleSystem(n.nodeData)) {
