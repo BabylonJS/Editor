@@ -1,4 +1,4 @@
-import { MeshBuilder, Node, Tools, TransformNode } from "babylonjs";
+import { MeshBuilder, Mesh, Node, Tools, TransformNode } from "babylonjs";
 
 import { UniqueNumber } from "../../tools/tools";
 
@@ -118,4 +118,34 @@ export function addSphereMesh(editor: Editor, parent?: Node) {
 	editor.layout.graph.refresh();
 	editor.layout.inspector.setEditedObject(sphere);
 	editor.layout.preview.gizmo.setAttachedNode(sphere);
+}
+
+export function addSkyboxMesh(editor: Editor, parent?: Node) {
+	const skybox = MeshBuilder.CreateBox("New SkyBox", {
+		width: 10_000,
+		height: 10_000,
+		depth: 10_000,
+		sideOrientation: Mesh.BACKSIDE,
+	}, editor.layout.preview.scene);
+
+	skybox.receiveShadows = false;
+	skybox.id = Tools.RandomId();
+	skybox.uniqueId = UniqueNumber.Get();
+	skybox.parent = parent ?? null;
+	skybox.infiniteDistance = true;
+	skybox.metadata = {
+		type: "Box",
+		width: 10_000,
+		depth: 10_000,
+		height: 10_000,
+	};
+
+	if (skybox.geometry) {
+		skybox.geometry.id = Tools.RandomId();
+		skybox.geometry.uniqueId = UniqueNumber.Get();
+	}
+
+	editor.layout.graph.refresh();
+	editor.layout.inspector.setEditedObject(skybox);
+	editor.layout.preview.gizmo.setAttachedNode(skybox);
 }

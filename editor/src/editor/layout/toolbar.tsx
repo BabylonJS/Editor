@@ -18,12 +18,12 @@ import { exportProject } from "../../project/export/export";
 
 import { addArcRotateCamera, addFreeCamera } from "../../project/add/camera";
 import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
-import { addTransformNode, addBoxMesh, addGroundMesh, addSphereMesh, addPlaneMesh } from "../../project/add/mesh";
+import { addTransformNode, addBoxMesh, addGroundMesh, addSphereMesh, addPlaneMesh, addSkyboxMesh } from "../../project/add/mesh";
 
 import { Editor } from "../main";
 
 export interface IEditorToolbarProps {
-    editor: Editor;
+	editor: Editor;
 }
 
 export class EditorToolbar extends Component<IEditorToolbarProps> {
@@ -38,6 +38,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		ipcRenderer.on("add:plane-mesh", () => addPlaneMesh(this.props.editor));
 		ipcRenderer.on("add:sphere-mesh", () => addSphereMesh(this.props.editor));
 		ipcRenderer.on("add:ground-mesh", () => addGroundMesh(this.props.editor));
+		ipcRenderer.on("add:skybox-mesh", () => addSkyboxMesh(this.props.editor));
 
 		ipcRenderer.on("add:point-light", () => addPointLight(this.props.editor));
 		ipcRenderer.on("add:directional-light", () => addDirectionalLight(this.props.editor));
@@ -52,11 +53,11 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		return (
 			<>
 				{isDarwin() &&
-                    <div className="absolute top-0 left-0 w-screen h-10 electron-draggable" />
+					<div className="absolute top-0 left-0 w-screen h-10 electron-draggable" />
 				}
 
 				{(!isDarwin() || process.env.DEBUG) &&
-                    this._getToolbar()
+					this._getToolbar()
 				}
 			</>
 		);
@@ -71,27 +72,27 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 					{/* File */}
 					<MenubarMenu>
 						<MenubarTrigger>
-                            File
+							File
 						</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => this._handleOpenProject()}>
-                                Open Project <MenubarShortcut>CTRL+O</MenubarShortcut>
+								Open Project <MenubarShortcut>CTRL+O</MenubarShortcut>
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem onClick={() => saveProject(this.props.editor)}>
-                                Save <MenubarShortcut>CTRL+S</MenubarShortcut>
+								Save <MenubarShortcut>CTRL+S</MenubarShortcut>
 							</MenubarItem>
 
 							<MenubarItem onClick={() => exportProject(this.props.editor, { optimize: true })}>
-                                Export <MenubarShortcut>CTRL+G</MenubarShortcut>
+								Export <MenubarShortcut>CTRL+G</MenubarShortcut>
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem disabled={!visualStudioCodeAvailable} onClick={() => this._handleOpenVisualStudioCode()}>
-                                Open in Visual Studio Code
+								Open in Visual Studio Code
 							</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
@@ -99,38 +100,38 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 					{/* Edit */}
 					<MenubarMenu>
 						<MenubarTrigger>
-                            Edit
+							Edit
 						</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem>
-                                Undo <MenubarShortcut>CTRL+Z</MenubarShortcut>
+								Undo <MenubarShortcut>CTRL+Z</MenubarShortcut>
 							</MenubarItem>
 							<MenubarItem>
-                                Redo <MenubarShortcut>CTRL+Y</MenubarShortcut>
+								Redo <MenubarShortcut>CTRL+Y</MenubarShortcut>
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem>
-                                Select All <MenubarShortcut>CTRL+A</MenubarShortcut>
+								Select All <MenubarShortcut>CTRL+A</MenubarShortcut>
 							</MenubarItem>
 							<MenubarItem>
-                                Copy <MenubarShortcut>CTRL+C</MenubarShortcut>
+								Copy <MenubarShortcut>CTRL+C</MenubarShortcut>
 							</MenubarItem>
 							<MenubarItem>
-                                Paste <MenubarShortcut>CTRL+V</MenubarShortcut>
+								Paste <MenubarShortcut>CTRL+V</MenubarShortcut>
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem onClick={() => this.props.editor.setState({ editProject: true })}>
-                                Project...
+								Project...
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem onClick={() => this.props.editor.setState({ editPreferences: true })}>
-                                Preferences...
+								Preferences...
 							</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
@@ -138,29 +139,29 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 					{/* Preview */}
 					<MenubarMenu>
 						<MenubarTrigger>
-                            Preview
+							Preview
 						</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => this.props.editor.layout.preview.setActiveGizmo("position")}>
-                                Position <MenubarShortcut>CTRL+T</MenubarShortcut>
+								Position <MenubarShortcut>CTRL+T</MenubarShortcut>
 							</MenubarItem>
 							<MenubarItem onClick={() => this.props.editor.layout.preview.setActiveGizmo("rotation")}>
-                                Rotation <MenubarShortcut>CTRL+R</MenubarShortcut>
+								Rotation <MenubarShortcut>CTRL+R</MenubarShortcut>
 							</MenubarItem>
 							<MenubarItem onClick={() => this.props.editor.layout.preview.setActiveGizmo("scaling")}>
-                                Scaling <MenubarShortcut>CTRL+W</MenubarShortcut>
+								Scaling <MenubarShortcut>CTRL+W</MenubarShortcut>
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem onClick={() => this.props.editor.layout.preview.focusObject()} className="w-60">
-                                Focus Selected Object <MenubarShortcut>CTRL+F</MenubarShortcut>
+								Focus Selected Object <MenubarShortcut>CTRL+F</MenubarShortcut>
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem onClick={() => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera)}>
-                                Edit Camera
+								Edit Camera
 							</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
@@ -168,50 +169,53 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 					{/* Add */}
 					<MenubarMenu>
 						<MenubarTrigger>
-                            Add
+							Add
 						</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => addTransformNode(this.props.editor)}>
-                                Transform Node
+								Transform Node
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem onClick={() => addBoxMesh(this.props.editor)}>
-                                Box Mesh
+								Box Mesh
 							</MenubarItem>
 							<MenubarItem onClick={() => addPlaneMesh(this.props.editor)}>
-                                Plane Mesh
+								Plane Mesh
 							</MenubarItem>
 							<MenubarItem onClick={() => addSphereMesh(this.props.editor)}>
-                                Sphere Mesh
+								Sphere Mesh
 							</MenubarItem>
 							<MenubarItem onClick={() => addGroundMesh(this.props.editor)}>
-                                Ground Mesh
+								Ground Mesh
+							</MenubarItem>
+							<MenubarItem onClick={() => addSkyboxMesh(this.props.editor)}>
+								SkyBox Mesh
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem onClick={() => addPointLight(this.props.editor)}>
-                                Point Light
+								Point Light
 							</MenubarItem>
 							<MenubarItem onClick={() => addDirectionalLight(this.props.editor)}>
-                                Directional Light
+								Directional Light
 							</MenubarItem>
 							<MenubarItem onClick={() => addSpotLight(this.props.editor)}>
-                                Spot Light
+								Spot Light
 							</MenubarItem>
 							<MenubarItem onClick={() => addHemisphericLight(this.props.editor)}>
-                                Hemispheric Light
+								Hemispheric Light
 							</MenubarItem>
 
 							<MenubarSeparator />
 
 							<MenubarItem onClick={() => addFreeCamera(this.props.editor)}>
-                                Free Camera
+								Free Camera
 							</MenubarItem>
 							<MenubarItem onClick={() => addArcRotateCamera(this.props.editor)}>
-                                Arc Rotate Camera
+								Arc Rotate Camera
 							</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
@@ -219,14 +223,14 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 					{/* Window */}
 					<MenubarMenu>
 						<MenubarTrigger>
-                            Window
+							Window
 						</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => ipcRenderer.send("window:minimize")}>
-                                Minimize <MenubarShortcut>CTRL+M</MenubarShortcut>
+								Minimize <MenubarShortcut>CTRL+M</MenubarShortcut>
 							</MenubarItem>
 							<MenubarItem onClick={() => this.props.editor.close()}>
-                                Close <MenubarShortcut>CTRL+W</MenubarShortcut>
+								Close <MenubarShortcut>CTRL+W</MenubarShortcut>
 							</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
