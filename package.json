@@ -38,17 +38,18 @@
         "clean:node_modules": "rm -rf ./node_modules ./editor/node_modules ./quixel/node_modules ./tools/node_modules ./template/node_modules ./website/node_modules",
         "test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
         "coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",
-        "lint-editor": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./editor/src/**",
-        "lint-tools": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./tools/src/**",
-        "lint-quixel": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./quixel/src/**",
-        "lint-template": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./template/src/**",
-        "lint-website": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./website/src/**",
+        "lint-editor": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./editor/src/**",
+        "lint-tools": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./tools/src/**",
+        "lint-quixel": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./quixel/src/**",
+        "lint-template": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./template/src/**",
+        "lint-website": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./website/src/**",
         "lint": "yarn lint-editor && yarn lint-tools && yarn lint-quixel && yarn lint-template  && yarn lint-website"
     },
     "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
     "license": "(Apache-2.0)",
     "devDependencies": {
         "@typescript-eslint/parser": "8.35.0",
+        "cross-env": "7.0.3",
         "dotenv": "16.4.5",
         "eslint": "9.29.0",
         "minimist": "1.2.8"
