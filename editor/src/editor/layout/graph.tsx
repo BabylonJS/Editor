@@ -3,10 +3,9 @@ import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
-import { FaCamera } from "react-icons/fa";
-import { FaLightbulb } from "react-icons/fa";
 import { BsSoundwave } from "react-icons/bs";
 import { HiSpeakerWave } from "react-icons/hi2";
+import { FaCamera, FaLightbulb } from "react-icons/fa";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";

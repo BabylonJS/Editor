@@ -1,6 +1,5 @@
-import { copy } from "fs-extra";
-import { pathExists } from "fs-extra";
 import { ipcRenderer } from "electron";
+import { copy, pathExists } from "fs-extra";
 import { join, basename, dirname } from "path/posix";
 
 import { ReactNode } from "react";

@@ -11,7 +11,7 @@ assimpjs.then((ajs) => {
 	);
 
 	const result = ajs.ConvertFileList(fileList, "assjson");
-	if (!result.IsSuccess() || result.FileCount() == 0) {
+	if (!result.IsSuccess() || result.FileCount() === 0) {
 		console.log(result.GetErrorCode());
 		return parentPort?.postMessage(null);
 	}

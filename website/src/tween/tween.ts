@@ -8,6 +8,7 @@ import { EasingFunction } from "@babylonjs/core/Animations/easing";
 import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
 import { Quaternion, Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 
+// eslint-disable-next-line no-duplicate-imports
 import "@babylonjs/core/Animations/animatable";
 
 import {

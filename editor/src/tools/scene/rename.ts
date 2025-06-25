@@ -1,6 +1,5 @@
-import { readdir } from "fs-extra";
 import { join, basename } from "path/posix";
-import { readJSON, writeJson } from "fs-extra";
+import { readJSON, writeJson, readdir } from "fs-extra";
 
 /**
  * Called on a scene has been renamed. This function will update all the references to the old scene

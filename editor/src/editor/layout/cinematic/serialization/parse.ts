@@ -112,6 +112,8 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
 					},
 				} as ICinematicKeyCut;
 			}
+
+			throw new Error(`Unknown key frame type: ${keyFrame.type}`);
 		}),
 	};
 }

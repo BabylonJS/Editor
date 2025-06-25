@@ -22,6 +22,8 @@ export type ProjectType = {
     updatedAt: Date;
 };
 
+export const temporaryDirectoryName = ".bjseditor";
+
 export const projectsKey: string = "babylonjs-editor-dashboard-projects";
 
 /**
@@ -38,5 +40,3 @@ export async function ensureTemporaryDirectoryExists(projectAbsolutePath: string
 
 	return temporaryDirectory;
 }
-
-export const temporaryDirectoryName = ".bjseditor";

@@ -14,11 +14,10 @@ import { Component, DragEvent, MouseEvent, ReactNode } from "react";
 import { SelectableGroup, createSelectable } from "react-selectable";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-import { IoRefresh } from "react-icons/io5";
-import { IoCheckmark } from "react-icons/io5";
 import { IoIosOptions } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
 import { FaMagnifyingGlass } from "react-icons/fa6";
+import { IoRefresh, IoCheckmark } from "react-icons/io5";
 import { FaFolder, FaFolderOpen, FaRegFolderOpen } from "react-icons/fa";
 
 import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";

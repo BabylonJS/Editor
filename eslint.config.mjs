@@ -2,20 +2,79 @@ import { defineConfig } from "eslint/config";
 import typeScriptParser from "@typescript-eslint/parser";
 
 export default defineConfig([
-    {
-        files: [
-            "**/src/**/*.{ts,tsx}",
-        ],
-        ignores: [
-            "./editor/src/ui/shadcn/**/*.{ts,tsx}",
-        ],
-        languageOptions: {
-            ecmaVersion: "latest",
-            parser: typeScriptParser,
-        },
-        rules: {
-            "semi": ["error", "always"],
-            "indent": ["error", "tab"],
-        },
-    }
+	{
+		files: [
+			"**/src/**/*.{ts,tsx}",
+		],
+		ignores: [
+			"./editor/src/ui/shadcn/**/*.{ts,tsx}",
+			"./template/src/scripts.ts",
+			"./website/src/scripts.ts",
+		],
+		languageOptions: {
+			ecmaVersion: "latest",
+			parser: typeScriptParser,
+		},
+		rules: {
+			"semi": ["error", "always"],
+			"indent": ["error", "tab"],
+			"eol-last": ["error", "always"],
+			"no-useless-constructor": "error",
+			"no-debugger": "error",
+			"eqeqeq": ["error", "always"],
+			"curly": ["error", "all"],
+			"no-constant-binary-expression": "warn",
+			"max-params": ["warn", 6],
+			"no-sparse-arrays": "error",
+			"array-callback-return": "error",
+			"constructor-super": "error",
+			"getter-return": "error",
+			"no-class-assign": "error",
+			"no-compare-neg-zero": "error",
+			"no-cond-assign": "error",
+			"no-constant-binary-expression": "error",
+			"no-constant-condition": "error",
+			"no-constructor-return": "error",
+			"no-control-regex": "error",
+			"no-dupe-args": "error",
+			"no-dupe-class-members": "error",
+			"no-dupe-else-if": "error",
+			"no-dupe-keys": "error",
+			"no-duplicate-case": "error",
+			"no-duplicate-imports": "error",
+			"no-empty-character-class": "error",
+			"no-empty-pattern": "error",
+			"no-func-assign": "error",
+			"no-import-assign": "error",
+			"no-inner-declarations": "error",
+			"no-invalid-regexp": "error",
+			"no-irregular-whitespace": "error",
+			"no-loss-of-precision": "error",
+			"no-misleading-character-class": "error",
+			"no-new-native-nonconstructor": "error",
+			"no-obj-calls": "error",
+			"no-self-compare": "error",
+			"no-setter-return": "error",
+			"no-template-curly-in-string": "error",
+			"no-this-before-super": "error",
+			"no-unassigned-vars": "error",
+			"no-unexpected-multiline": "error",
+			"no-unmodified-loop-condition": "error",
+			"no-unreachable": "error",
+			"no-unreachable-loop": "error",
+			"no-unsafe-finally": "error",
+			"no-unsafe-negation": "error",
+			"no-unsafe-optional-chaining": "error",
+			"no-unused-private-class-members": "error",
+			"no-use-before-define": ["error", {
+				functions: false,
+				classes: false,
+				variables: true,
+				allowNamedExports: false
+			}],
+			"no-useless-backreference": "error",
+			"use-isnan": "error",
+			"valid-typeof": "error",
+		},
+	}
 ]);

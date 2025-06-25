@@ -67,15 +67,6 @@ app.on("second-instance", async () => {
 	}
 });
 
-ipcMain.on("dashboard:open-project", (_, file) => {
-	openProject(file);
-	dashboardWindow?.minimize();
-});
-
-ipcMain.on("dashboard:update-projects", () => {
-	dashboardWindow?.webContents.send("dashboard:update-projects");
-});
-
 ipcMain.on("app:quit", () => {
 	for (const window of editorWindows.slice()) {
 		window.close();
@@ -106,6 +97,15 @@ async function openDashboard(): Promise<void> {
 	dashboardWindow.show();
 	dashboardWindow.focus();
 }
+
+ipcMain.on("dashboard:open-project", (_, file) => {
+	openProject(file);
+	dashboardWindow?.minimize();
+});
+
+ipcMain.on("dashboard:update-projects", () => {
+	dashboardWindow?.webContents.send("dashboard:update-projects");
+});
 
 const openedProjects: string[] = [];
 

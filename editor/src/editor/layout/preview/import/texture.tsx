@@ -101,6 +101,7 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 						onLost: () => texture.dispose(),
 					});
 
+					// eslint-disable-next-line no-use-before-define
 					dialog.close();
 					editor.layout.inspector.forceUpdate();
 				}}
