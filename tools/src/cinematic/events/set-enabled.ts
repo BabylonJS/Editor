@@ -6,5 +6,5 @@ export type SetEnabledEventType = {
 };
 
 export function handleSetEnabledEvent(config: SetEnabledEventType) {
-    config.node?.setEnabled(config.value);
+	config.node?.setEnabled(config.value);
 }

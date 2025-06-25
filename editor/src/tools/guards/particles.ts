@@ -5,7 +5,7 @@ import { ParticleSystem, GPUParticleSystem } from "babylonjs";
  * @param object defines the reference to the object to test its class name.
  */
 export function isParticleSystem(object: any): object is ParticleSystem {
-    return object.getClassName?.() === "ParticleSystem";
+	return object.getClassName?.() === "ParticleSystem";
 }
 
 /**
@@ -13,5 +13,5 @@ export function isParticleSystem(object: any): object is ParticleSystem {
  * @param object defines the reference to the object to test its class name.
  */
 export function isGPUParticleSystem(object: any): object is GPUParticleSystem {
-    return object.getClassName?.() === "GPUParticleSystem";
+	return object.getClassName?.() === "GPUParticleSystem";
 }

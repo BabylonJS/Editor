@@ -30,225 +30,225 @@ export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldP
 }
 
 export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldProps) {
-    const [shiftDown, setShiftDown] = useState(false);
-    const [pointerDown, setPointerDown] = useState(false);
+	const [shiftDown, setShiftDown] = useState(false);
+	const [pointerDown, setPointerDown] = useState(false);
 
-    const [pointerOver, setPointerOver] = useState(false);
+	const [pointerOver, setPointerOver] = useState(false);
 
-    const step = props.step ?? 0.01;
-    const digitCount = props.step?.toString().split(".")[1]?.length ?? 2;
+	const step = props.step ?? 0.01;
+	const digitCount = props.step?.toString().split(".")[1]?.length ?? 2;
 
-    let startValue = getInspectorPropertyValue(props.object, props.property) ?? 0;
-    if (props.asDegrees) {
-        startValue = Tools.ToDegrees(startValue);
-    }
+	let startValue = getInspectorPropertyValue(props.object, props.property) ?? 0;
+	if (props.asDegrees) {
+		startValue = Tools.ToDegrees(startValue);
+	}
 
-    // Determine if the value should be fixed at "step" digit counts or kept as-is.
-    // if (props.asDegrees) {
-    //     startValue = Tools.ToDegrees(startValue).toFixed(digitCount);
-    // } else {
-    //     startValue = startValue.toFixed(digitCount);
-    // }
+	// Determine if the value should be fixed at "step" digit counts or kept as-is.
+	// if (props.asDegrees) {
+	//     startValue = Tools.ToDegrees(startValue).toFixed(digitCount);
+	// } else {
+	//     startValue = startValue.toFixed(digitCount);
+	// }
 
-    const [value, setValue] = useState<string>(startValue);
-    const [oldValue, setOldValue] = useState<string>(startValue);
+	const [value, setValue] = useState<string>(startValue);
+	const [oldValue, setOldValue] = useState<string>(startValue);
 
-    const hasMinMax = props.min !== undefined && props.max !== undefined;
-    const ratio = hasMinMax ? (Scalar.InverseLerp(props.min!, props.max!, parseFloat(value)) * 100).toFixed(0) : 0;
+	const hasMinMax = props.min !== undefined && props.max !== undefined;
+	const ratio = hasMinMax ? (Scalar.InverseLerp(props.min!, props.max!, parseFloat(value)) * 100).toFixed(0) : 0;
 
-    useEventListener("keydown", (ev) => {
-        if (ev.key === "Shift") {
-            setShiftDown(true);
-        }
-    });
+	useEventListener("keydown", (ev) => {
+		if (ev.key === "Shift") {
+			setShiftDown(true);
+		}
+	});
 
-    useEventListener("keyup", (ev) => {
-        if (ev.key === "Shift") {
-            setShiftDown(false);
-        }
-    });
+	useEventListener("keyup", (ev) => {
+		if (ev.key === "Shift") {
+			setShiftDown(false);
+		}
+	});
 
-    return (
-        <div
-            className="flex gap-2 items-center px-2"
-            onMouseOver={() => setPointerOver(true)}
-            onMouseLeave={() => setPointerOver(false)}
-        >
-            {props.label &&
+	return (
+		<div
+			className="flex gap-2 items-center px-2"
+			onMouseOver={() => setPointerOver(true)}
+			onMouseLeave={() => setPointerOver(false)}
+		>
+			{props.label &&
                 <div className="flex items-center gap-2 w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
-                    <div
-                        className={`
+                	<div
+                		className={`
                             ${props.grayLabel && !pointerOver ? "text-muted" : ""}
                             transition-all duration-300 ease-in-out
                         `}
-                    >
-                        {props.label}
-                    </div>
+                	>
+                		{props.label}
+                	</div>
 
-                    {props.tooltip &&
+                	{props.tooltip &&
                         <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <MdOutlineInfo size={24} />
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
-                                    {props.tooltip}
-                                </TooltipContent>
-                            </Tooltip>
+                        	<Tooltip>
+                        		<TooltipTrigger>
+                        			<MdOutlineInfo size={24} />
+                        		</TooltipTrigger>
+                        		<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
+                        			{props.tooltip}
+                        		</TooltipContent>
+                        	</Tooltip>
                         </TooltipProvider>
-                    }
+                	}
                 </div>
-            }
+			}
 
-            <input
-                type="text"
-                value={value}
-                onChange={(ev) => {
-                    setValue(ev.currentTarget.value);
+			<input
+				type="text"
+				value={value}
+				onChange={(ev) => {
+					setValue(ev.currentTarget.value);
 
-                    let float = parseFloat(ev.currentTarget.value);
+					let float = parseFloat(ev.currentTarget.value);
 
-                    try {
-                        float = mexp.eval(ev.currentTarget.value);
-                    } catch (e) {
-                        console.warn("Error parsing value", ev.currentTarget.value, e);
-                    }
+					try {
+						float = mexp.eval(ev.currentTarget.value);
+					} catch (e) {
+						console.warn("Error parsing value", ev.currentTarget.value, e);
+					}
 
-                    if (!isNaN(float)) {
-                        if (props.min !== undefined && float < props.min) {
-                            float = props.min;
-                            setValue(float.toFixed(digitCount));
-                        }
+					if (!isNaN(float)) {
+						if (props.min !== undefined && float < props.min) {
+							float = props.min;
+							setValue(float.toFixed(digitCount));
+						}
 
-                        if (props.max !== undefined && float > props.max) {
-                            float = props.max;
-                            setValue(float.toFixed(digitCount));
-                        }
+						if (props.max !== undefined && float > props.max) {
+							float = props.max;
+							setValue(float.toFixed(digitCount));
+						}
 
-                        if (props.asDegrees) {
-                            float = Tools.ToRadians(float);
-                        }
+						if (props.asDegrees) {
+							float = Tools.ToRadians(float);
+						}
 
-                        setInspectorEffectivePropertyValue(props.object, props.property, float);
-                        props.onChange?.(float);
-                    }
-                }}
-                style={{
-                    cursor: pointerDown ? "ew-resize" : "auto",
-                    background: hasMinMax ? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)` : undefined,
-                }}
-                className="px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none w-full"
-                onKeyUp={(ev) => ev.key === "Enter" && ev.currentTarget.blur()}
-                onBlur={(ev) => {
-                    if (ev.currentTarget.value !== oldValue) {
-                        let oldValueFloat = parseFloat(oldValue);
-                        let newValueFloat = parseFloat(ev.currentTarget.value);
+						setInspectorEffectivePropertyValue(props.object, props.property, float);
+						props.onChange?.(float);
+					}
+				}}
+				style={{
+					cursor: pointerDown ? "ew-resize" : "auto",
+					background: hasMinMax ? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)` : undefined,
+				}}
+				className="px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none w-full"
+				onKeyUp={(ev) => ev.key === "Enter" && ev.currentTarget.blur()}
+				onBlur={(ev) => {
+					if (ev.currentTarget.value !== oldValue) {
+						let oldValueFloat = parseFloat(oldValue);
+						let newValueFloat = parseFloat(ev.currentTarget.value);
 
-                        if (!isNaN(oldValueFloat) && !isNaN(newValueFloat)) {
-                            if (props.asDegrees) {
-                                oldValueFloat = Tools.ToRadians(oldValueFloat);
-                                newValueFloat = Tools.ToRadians(newValueFloat);
-                            }
+						if (!isNaN(oldValueFloat) && !isNaN(newValueFloat)) {
+							if (props.asDegrees) {
+								oldValueFloat = Tools.ToRadians(oldValueFloat);
+								newValueFloat = Tools.ToRadians(newValueFloat);
+							}
 
-                            if (!props.noUndoRedo) {
-                                registerSimpleUndoRedo({
-                                    object: props.object,
-                                    property: props.property,
+							if (!props.noUndoRedo) {
+								registerSimpleUndoRedo({
+									object: props.object,
+									property: props.property,
 
-                                    oldValue: oldValueFloat,
-                                    newValue: newValueFloat,
-                                });
-                            }
+									oldValue: oldValueFloat,
+									newValue: newValueFloat,
+								});
+							}
 
-                            setOldValue(ev.currentTarget.value);
-                        }
+							setOldValue(ev.currentTarget.value);
+						}
 
-                        props.onFinishChange?.(newValueFloat, oldValueFloat);
-                    }
-                }}
-                onPointerDown={(ev) => {
-                    setPointerDown(true);
+						props.onFinishChange?.(newValueFloat, oldValueFloat);
+					}
+				}}
+				onPointerDown={(ev) => {
+					setPointerDown(true);
 
-                    document.body.style.cursor = "ew-resize";
+					document.body.style.cursor = "ew-resize";
 
-                    let v = parseFloat(value);
-                    if (isNaN(v)) {
-                        v = 0;
-                    }
+					let v = parseFloat(value);
+					if (isNaN(v)) {
+						v = 0;
+					}
 
-                    if (props.min !== undefined && v < props.min) {
-                        v = props.min;
-                    }
+					if (props.min !== undefined && v < props.min) {
+						v = props.min;
+					}
 
-                    if (props.max !== undefined && v > props.max) {
-                        v = props.max;
-                    }
+					if (props.max !== undefined && v > props.max) {
+						v = props.max;
+					}
 
-                    const oldV = v;
+					const oldV = v;
 
-                    let startX = ev.clientX;
+					let startX = ev.clientX;
 
-                    let mouseUpListener: () => void;
-                    let mouseMoveListener: (ev: MouseEvent) => void;
+					let mouseUpListener: () => void;
+					let mouseMoveListener: (ev: MouseEvent) => void;
 
-                    document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
-                        v += (ev.clientX - startX) * step * (shiftDown ? 10 : 1);
-                        startX = ev.clientX;
+					document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
+						v += (ev.clientX - startX) * step * (shiftDown ? 10 : 1);
+						startX = ev.clientX;
 
-                        if (props.min !== undefined && v < props.min) {
-                            v = props.min;
-                        }
+						if (props.min !== undefined && v < props.min) {
+							v = props.min;
+						}
 
-                        if (props.max !== undefined && v > props.max) {
-                            v = props.max;
-                        }
+						if (props.max !== undefined && v > props.max) {
+							v = props.max;
+						}
 
-                        setValue(v.toFixed(digitCount));
+						setValue(v.toFixed(digitCount));
 
-                        let finalValue = v;
-                        if (props.asDegrees) {
-                            finalValue = Tools.ToRadians(finalValue);
-                        }
+						let finalValue = v;
+						if (props.asDegrees) {
+							finalValue = Tools.ToRadians(finalValue);
+						}
 
-                        setInspectorEffectivePropertyValue(props.object, props.property, finalValue);
-                        props.onChange?.(finalValue);
-                    });
+						setInspectorEffectivePropertyValue(props.object, props.property, finalValue);
+						props.onChange?.(finalValue);
+					});
 
-                    document.body.addEventListener("mouseup", mouseUpListener = () => {
-                        setPointerDown(false);
+					document.body.addEventListener("mouseup", mouseUpListener = () => {
+						setPointerDown(false);
 
-                        if (v !== oldV && !props.noUndoRedo) {
-                            setValue(v.toFixed(digitCount));
+						if (v !== oldV && !props.noUndoRedo) {
+							setValue(v.toFixed(digitCount));
 
-                            let finalValue = v;
-                            if (props.asDegrees) {
-                                finalValue = Tools.ToRadians(finalValue);
-                            }
+							let finalValue = v;
+							if (props.asDegrees) {
+								finalValue = Tools.ToRadians(finalValue);
+							}
 
-                            if (!isNaN(v) && !isNaN(oldV)) {
-                                const oldValue = props.asDegrees ? Tools.ToRadians(oldV) : oldV;
+							if (!isNaN(v) && !isNaN(oldV)) {
+								const oldValue = props.asDegrees ? Tools.ToRadians(oldV) : oldV;
 
-                                registerSimpleUndoRedo({
-                                    object: props.object,
-                                    property: props.property,
+								registerSimpleUndoRedo({
+									object: props.object,
+									property: props.property,
 
-                                    newValue: finalValue,
-                                    oldValue,
-                                });
+									newValue: finalValue,
+									oldValue,
+								});
 
-                                setOldValue(v.toFixed(digitCount));
+								setOldValue(v.toFixed(digitCount));
 
-                                props.onFinishChange?.(finalValue, oldValue);
-                            }
-                        }
+								props.onFinishChange?.(finalValue, oldValue);
+							}
+						}
 
-                        document.body.style.cursor = "auto";
+						document.body.style.cursor = "auto";
 
-                        document.body.removeEventListener("mouseup", mouseUpListener);
-                        document.body.removeEventListener("mousemove", mouseMoveListener);
-                    });
-                }}
-            />
-        </div>
-    );
+						document.body.removeEventListener("mouseup", mouseUpListener);
+						document.body.removeEventListener("mousemove", mouseMoveListener);
+					});
+				}}
+			/>
+		</div>
+	);
 }

@@ -21,57 +21,57 @@ export interface IEditorMaterialInspectorUtilsComponentProps {
 }
 
 export class EditorMaterialInspectorUtilsComponent extends Component<IEditorMaterialInspectorUtilsComponentProps> {
-    public render(): ReactNode {
-        return (
-            <div className="flex gap-2 items-center w-full">
-                <Button variant="secondary" className="w-full" onClick={() => this._handleExport()}>
+	public render(): ReactNode {
+		return (
+			<div className="flex gap-2 items-center w-full">
+				<Button variant="secondary" className="w-full" onClick={() => this._handleExport()}>
                     Export...
-                </Button>
+				</Button>
 
-                {this.props.mesh &&
+				{this.props.mesh &&
                     <Button variant="destructive" className="w-full" onClick={() => this._handleRemove()}>
                         Remove
                     </Button>
-                }
-            </div>
-        );
-    }
+				}
+			</div>
+		);
+	}
 
-    private async _handleRemove(): Promise<void> {
-        const confirm = await showConfirm("Remove Material", "Are you sure you want to remove this material?");
-        if (!confirm) {
-            return;
-        }
+	private async _handleRemove(): Promise<void> {
+		const confirm = await showConfirm("Remove Material", "Are you sure you want to remove this material?");
+		if (!confirm) {
+			return;
+		}
 
-        const mesh = this.props.mesh!;
-        const material = this.props.material;
+		const mesh = this.props.mesh!;
+		const material = this.props.material;
 
-        registerUndoRedo({
-            executeRedo: true,
-            undo: () => mesh.material = material,
-            redo: () => mesh.material = null,
-        });
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => mesh.material = material,
+			redo: () => mesh.material = null,
+		});
 
-        onRedoObservable.notifyObservers();
-    }
+		onRedoObservable.notifyObservers();
+	}
 
-    private async _handleExport(): Promise<void> {
-        const data = this.props.material.serialize();
+	private async _handleExport(): Promise<void> {
+		const data = this.props.material.serialize();
 
-        const destination = saveSingleFileDialog({
-            title: "Export Material",
-            filters: [
-                { name: "Material File", extensions: ["material"] },
-            ],
-            defaultPath: join(dirname(projectConfiguration.path!), "assets"),
-        });
+		const destination = saveSingleFileDialog({
+			title: "Export Material",
+			filters: [
+				{ name: "Material File", extensions: ["material"] },
+			],
+			defaultPath: join(dirname(projectConfiguration.path!), "assets"),
+		});
 
-        if (!destination) {
-            return;
-        }
+		if (!destination) {
+			return;
+		}
 
-        await writeJSON(destination, data, { spaces: 4 });
+		await writeJSON(destination, data, { spaces: 4 });
 
-        toast.success("Material exported successfully!");
-    }
+		toast.success("Material exported successfully!");
+	}
 }

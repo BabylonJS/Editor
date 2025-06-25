@@ -13,53 +13,53 @@ export interface IEditorInspectorKeyFieldProps {
 }
 
 export function EditorInspectorKeyField(props: IEditorInspectorKeyFieldProps) {
-    const buttonRef = useRef<HTMLButtonElement>(null);
+	const buttonRef = useRef<HTMLButtonElement>(null);
 
-    const [setting, setSetting] = useState(false);
-    const [value, setValue] = useState(props.value);
+	const [setting, setSetting] = useState(false);
+	const [value, setValue] = useState(props.value);
 
-    useEffect(() => {
-        setValue(props.value);
-    }, [props.value]);
+	useEffect(() => {
+		setValue(props.value);
+	}, [props.value]);
 
-    useOnClickOutside(buttonRef, () => {
-        setSetting(false);
-    });
+	useOnClickOutside(buttonRef, () => {
+		setSetting(false);
+	});
 
-    useEventListener("keydown", (ev) => {
-        if (setting) {
-            const keyCode = ev.key.toUpperCase().charCodeAt(0);
+	useEventListener("keydown", (ev) => {
+		if (setting) {
+			const keyCode = ev.key.toUpperCase().charCodeAt(0);
 
-            props.onChange(keyCode);
+			props.onChange(keyCode);
 
-            setSetting(false);
-            setValue(keyCode.toString());
-        }
-    });
+			setSetting(false);
+			setValue(keyCode.toString());
+		}
+	});
 
-    return (
-        <div className="flex gap-2 items-center px-2">
-            {props.label &&
+	return (
+		<div className="flex gap-2 items-center px-2">
+			{props.label &&
                 <div className="w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
-                    {props.label}
+                	{props.label}
                 </div>
-            }
+			}
 
-            <Button ref={buttonRef} className="relative w-full bg-muted-foreground/20 hover:bg-muted-foreground/75 text-foreground" onClick={() => setSetting(true)}>
-                <div className="absolute left-1/2 -translate-x-1/2">
-                    {!setting &&
+			<Button ref={buttonRef} className="relative w-full bg-muted-foreground/20 hover:bg-muted-foreground/75 text-foreground" onClick={() => setSetting(true)}>
+				<div className="absolute left-1/2 -translate-x-1/2">
+					{!setting &&
                         <Fade delay={0}>
-                            {String.fromCharCode(parseInt(value))}
+                        	{String.fromCharCode(parseInt(value))}
                         </Fade>
-                    }
+					}
 
-                    {setting &&
+					{setting &&
                         <Fade delay={0}>
                             Press a key...
                         </Fade>
-                    }
-                </div>
-            </Button>
-        </div>
-    );
+					}
+				</div>
+			</Button>
+		</div>
+	);
 }

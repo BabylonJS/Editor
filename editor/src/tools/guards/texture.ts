@@ -6,7 +6,7 @@ import { AdvancedDynamicTexture } from "babylonjs-gui";
  * @param object defines the reference to the object to test its class name.
  */
 export function isTexture(object: any): object is Texture {
-    return object?.getClassName?.() === "Texture";
+	return object?.getClassName?.() === "Texture";
 }
 
 /**
@@ -14,7 +14,7 @@ export function isTexture(object: any): object is Texture {
  * @param object defines the reference to the object to test its class name.
  */
 export function isCubeTexture(object: any): object is CubeTexture {
-    return object?.getClassName?.() === "CubeTexture";
+	return object?.getClassName?.() === "CubeTexture";
 }
 
 /**
@@ -22,5 +22,5 @@ export function isCubeTexture(object: any): object is CubeTexture {
  * @param object defines the reference to the object to test its class name.
  */
 export function isAdvancedDynamicTexture(object: any): object is AdvancedDynamicTexture {
-    return object?.getClassName?.() === "AdvancedDynamicTexture";
+	return object?.getClassName?.() === "AdvancedDynamicTexture";
 }

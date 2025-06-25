@@ -10,7 +10,7 @@ let motionBlurPostProcess: MotionBlurPostProcess | null = null;
 export const motionBlurPostProcessCameraConfigurations = new Map<Camera, any>();
 
 export function getMotionBlurPostProcess(): MotionBlurPostProcess | null {
-    return motionBlurPostProcess;
+	return motionBlurPostProcess;
 }
 
 /**
@@ -18,46 +18,46 @@ export function getMotionBlurPostProcess(): MotionBlurPostProcess | null {
  * @access editor only.
  */
 export function setMotionBlurPostProcessRef(postProcess: MotionBlurPostProcess | null): void {
-    motionBlurPostProcess = postProcess;
+	motionBlurPostProcess = postProcess;
 }
 
 export function disposeMotionBlurPostProcess(): void {
-    if (motionBlurPostProcess) {
-        motionBlurPostProcess.dispose();
-        motionBlurPostProcess = null;
-    }
+	if (motionBlurPostProcess) {
+		motionBlurPostProcess.dispose();
+		motionBlurPostProcess = null;
+	}
 }
 
 export function createMotionBlurPostProcess(scene: Scene, camera: Camera): MotionBlurPostProcess {
-    motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", scene, 1.0, camera);
-    motionBlurPostProcess.motionStrength = 1.0;
-    motionBlurPostProcess.isObjectBased = true;
+	motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", scene, 1.0, camera);
+	motionBlurPostProcess.motionStrength = 1.0;
+	motionBlurPostProcess.isObjectBased = true;
 
-    return motionBlurPostProcess;
+	return motionBlurPostProcess;
 }
 
 export function serializeMotionBlurPostProcess(): any {
-    if (!motionBlurPostProcess) {
-        return null;
-    }
+	if (!motionBlurPostProcess) {
+		return null;
+	}
 
-    return {
-        isObjectBased: motionBlurPostProcess.isObjectBased,
-        motionStrength: motionBlurPostProcess.motionStrength,
-        motionBlurSamples: motionBlurPostProcess.motionBlurSamples,
-    };
+	return {
+		isObjectBased: motionBlurPostProcess.isObjectBased,
+		motionStrength: motionBlurPostProcess.motionStrength,
+		motionBlurSamples: motionBlurPostProcess.motionBlurSamples,
+	};
 }
 
 export function parseMotionBlurPostProcess(scene: Scene, camera: Camera, data: any): MotionBlurPostProcess {
-    if (motionBlurPostProcess) {
-        return motionBlurPostProcess;
-    }
+	if (motionBlurPostProcess) {
+		return motionBlurPostProcess;
+	}
 
-    const postProcess = createMotionBlurPostProcess(scene, camera);
+	const postProcess = createMotionBlurPostProcess(scene, camera);
 
-    postProcess.isObjectBased = data.isObjectBased;
-    postProcess.motionStrength = data.motionStrength;
-    postProcess.motionBlurSamples = data.motionBlurSamples;
+	postProcess.isObjectBased = data.isObjectBased;
+	postProcess.motionStrength = data.motionStrength;
+	postProcess.motionBlurSamples = data.motionBlurSamples;
 
-    return postProcess;
+	return postProcess;
 }

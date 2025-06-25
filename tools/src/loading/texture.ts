@@ -11,64 +11,64 @@ import { getPowerOfTwoUntil } from "../tools/scalar";
 const textureParser = SerializationHelper._TextureParser;
 
 SerializationHelper._TextureParser = (sourceProperty: any, scene: Scene, rootUrl: string): Nullable<BaseTexture> => {
-    if (scene.loadingQuality === "high" || !sourceProperty.metadata?.baseSize) {
-        return textureParser(sourceProperty, scene, rootUrl);
-    }
+	if (scene.loadingQuality === "high" || !sourceProperty.metadata?.baseSize) {
+		return textureParser(sourceProperty, scene, rootUrl);
+	}
 
-    const width = sourceProperty.metadata.baseSize.width;
-    const height = sourceProperty.metadata.baseSize.height;
+	const width = sourceProperty.metadata.baseSize.width;
+	const height = sourceProperty.metadata.baseSize.height;
 
-    const isPowerOfTwo = width === getPowerOfTwoUntil(width) || height === getPowerOfTwoUntil(height);
+	const isPowerOfTwo = width === getPowerOfTwoUntil(width) || height === getPowerOfTwoUntil(height);
 
-    let suffix = "";
+	let suffix = "";
 
-    switch (scene.loadingQuality) {
-        case "medium":
-            let midWidth = (width * 0.66) >> 0;
-            let midHeight = (height * 0.66) >> 0;
+	switch (scene.loadingQuality) {
+	case "medium":
+		let midWidth = (width * 0.66) >> 0;
+		let midHeight = (height * 0.66) >> 0;
 
-            if (isPowerOfTwo) {
-                midWidth = getPowerOfTwoUntil(midWidth);
-                midHeight = getPowerOfTwoUntil(midHeight);
-            }
+		if (isPowerOfTwo) {
+			midWidth = getPowerOfTwoUntil(midWidth);
+			midHeight = getPowerOfTwoUntil(midHeight);
+		}
 
-            suffix = `_${midWidth}_${midHeight}`;
-            break;
+		suffix = `_${midWidth}_${midHeight}`;
+		break;
 
-        case "low":
-            let lowWidth = (width * 0.33) >> 0;
-            let lowHeight = (height * 0.33) >> 0;
+	case "low":
+		let lowWidth = (width * 0.33) >> 0;
+		let lowHeight = (height * 0.33) >> 0;
 
-            if (isPowerOfTwo) {
-                lowWidth = getPowerOfTwoUntil(lowWidth);
-                lowHeight = getPowerOfTwoUntil(lowHeight);
-            }
+		if (isPowerOfTwo) {
+			lowWidth = getPowerOfTwoUntil(lowWidth);
+			lowHeight = getPowerOfTwoUntil(lowHeight);
+		}
 
-            suffix = `_${lowWidth}_${lowHeight}`;
-            break;
-    }
+		suffix = `_${lowWidth}_${lowHeight}`;
+		break;
+	}
 
-    const name = sourceProperty.name as string;
+	const name = sourceProperty.name as string;
 
-    if (!name || !suffix) {
-        return textureParser(sourceProperty, scene, rootUrl);
-    }
+	if (!name || !suffix) {
+		return textureParser(sourceProperty, scene, rootUrl);
+	}
 
-    const finalUrl = name.split("/");
+	const finalUrl = name.split("/");
 
-    const filename = finalUrl.pop();
-    if (!filename) {
-        return textureParser(sourceProperty, scene, rootUrl);
-    }
+	const filename = finalUrl.pop();
+	if (!filename) {
+		return textureParser(sourceProperty, scene, rootUrl);
+	}
 
-    const extension = filename.split(".").pop();
-    const baseFilename = filename.replace(`.${extension}`, "");
+	const extension = filename.split(".").pop();
+	const baseFilename = filename.replace(`.${extension}`, "");
 
-    const newFilename = `${baseFilename}${suffix}.${extension}`;
+	const newFilename = `${baseFilename}${suffix}.${extension}`;
 
-    finalUrl.push(newFilename);
+	finalUrl.push(newFilename);
 
-    sourceProperty.name = finalUrl.join("/");
+	sourceProperty.name = finalUrl.join("/");
 
-    return textureParser(sourceProperty, scene, rootUrl);
+	return textureParser(sourceProperty, scene, rootUrl);
 };

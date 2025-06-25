@@ -19,87 +19,87 @@ export interface INodeMaterialEditorWindowProps {
 }
 
 export default class NodeMaterialEditorWindow extends Component<INodeMaterialEditorWindowProps> {
-    private _divRef: HTMLDivElement | null = null;
+	private _divRef: HTMLDivElement | null = null;
 
-    private _nodeMaterial: NodeMaterial | null = null;
+	private _nodeMaterial: NodeMaterial | null = null;
 
-    public constructor(props: INodeMaterialEditorWindowProps) {
-        super(props);
-    }
+	public constructor(props: INodeMaterialEditorWindowProps) {
+		super(props);
+	}
 
-    public render(): ReactNode {
-        return (
-            <>
-                <div className="flex flex-col w-screen h-screen">
-                    <ToolbarComponent>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                            <div className="flex items-center gap-1 font-semibold text-lg select-none">
+	public render(): ReactNode {
+		return (
+			<>
+				<div className="flex flex-col w-screen h-screen">
+					<ToolbarComponent>
+						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+							<div className="flex items-center gap-1 font-semibold text-lg select-none">
                                 Node Material Editor
-                                <div className="text-sm font-thin">
+								<div className="text-sm font-thin">
                                     (...{this.props.filePath.substring(this.props.filePath.length - 30)})
-                                </div>
-                            </div>
-                        </div>
-                    </ToolbarComponent>
+								</div>
+							</div>
+						</div>
+					</ToolbarComponent>
 
-                    <div ref={(r) => this._divRef = r} className="w-full h-full overflow-hidden" />
-                </div>
+					<div ref={(r) => this._divRef = r} className="w-full h-full overflow-hidden" />
+				</div>
 
-                <Toaster />
-            </>
-        );
-    }
+				<Toaster />
+			</>
+		);
+	}
 
-    public async componentDidMount(): Promise<void> {
-        if (!this._divRef) {
-            return;
-        }
+	public async componentDidMount(): Promise<void> {
+		if (!this._divRef) {
+			return;
+		}
 
-        // Force dark theme here as Node Material Editor doesn't support light theme
-        if (!document.body.classList.contains("dark")) {
-            document.body.classList.add("dark");
-        }
+		// Force dark theme here as Node Material Editor doesn't support light theme
+		if (!document.body.classList.contains("dark")) {
+			document.body.classList.add("dark");
+		}
 
-        const data = await readJSON(this.props.filePath);
+		const data = await readJSON(this.props.filePath);
 
-        const engine = new NullEngine();
-        const scene = new Scene(engine);
+		const engine = new NullEngine();
+		const scene = new Scene(engine);
 
-        this._nodeMaterial = NodeMaterial.Parse(data, scene);
-        this._nodeMaterial.uniqueId = data.uniqueId;
+		this._nodeMaterial = NodeMaterial.Parse(data, scene);
+		this._nodeMaterial.uniqueId = data.uniqueId;
 
-        NodeEditor.Show({
-            hostElement: this._divRef,
-            nodeMaterial: this._nodeMaterial,
-            customSave: {
-                label: "Save",
-                action: () => this._save(),
-            },
-        });
+		NodeEditor.Show({
+			hostElement: this._divRef,
+			nodeMaterial: this._nodeMaterial,
+			customSave: {
+				label: "Save",
+				action: () => this._save(),
+			},
+		});
 
-        ipcRenderer.on("save", () => this._save());
+		ipcRenderer.on("save", () => this._save());
 
-        ipcRenderer.on("editor:close-window", () => this.close());
-    }
+		ipcRenderer.on("editor:close-window", () => this.close());
+	}
 
-    public close(): void {
-        ipcRenderer.send("window:close");
-    }
+	public close(): void {
+		ipcRenderer.send("window:close");
+	}
 
-    private async _save(): Promise<void> {
-        if (!this._nodeMaterial) {
-            return;
-        }
+	private async _save(): Promise<void> {
+		if (!this._nodeMaterial) {
+			return;
+		}
 
-        this._nodeMaterial.build(false);
+		this._nodeMaterial.build(false);
 
-        NodeEditor["_CurrentState"].stateManager.onRebuildRequiredObservable.notifyObservers();
+		NodeEditor["_CurrentState"].stateManager.onRebuildRequiredObservable.notifyObservers();
 
-        const data = this._nodeMaterial.serialize();
-        await writeJSON(this.props.filePath, data, { spaces: 4 });
+		const data = this._nodeMaterial.serialize();
+		await writeJSON(this.props.filePath, data, { spaces: 4 });
 
-        toast.success("Material saved");
+		toast.success("Material saved");
 
-        ipcRenderer.send("editor:asset-updated", "material", data);
-    }
+		ipcRenderer.send("editor:asset-updated", "material", data);
+	}
 }

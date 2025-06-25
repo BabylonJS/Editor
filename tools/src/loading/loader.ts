@@ -53,67 +53,67 @@ declare module "@babylonjs/core/scene" {
 }
 
 export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
-    scene.loadingQuality = options?.quality ?? "high";
+	scene.loadingQuality = options?.quality ?? "high";
 
-    await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
-        pluginExtension: ".babylon",
-        onProgress: (event) => {
-            const progress = Math.min((event.loaded / event.total) * 0.5);
-            options?.onProgress?.(progress);
-        },
-    });
+	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
+		pluginExtension: ".babylon",
+		onProgress: (event) => {
+			const progress = Math.min((event.loaded / event.total) * 0.5);
+			options?.onProgress?.(progress);
+		},
+	});
 
-    // Ensure all meshes perform their delay state check
-    if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
-        scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
-    }
+	// Ensure all meshes perform their delay state check
+	if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
+		scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
+	}
 
-    const waitingItemsCount = scene.getWaitingItemsCount();
+	const waitingItemsCount = scene.getWaitingItemsCount();
 
-    // Wait until scene is ready.
-    while (!scene.isReady() || scene.getWaitingItemsCount() > 0) {
-        await new Promise<void>((resolve) => setTimeout(resolve, 150));
+	// Wait until scene is ready.
+	while (!scene.isReady() || scene.getWaitingItemsCount() > 0) {
+		await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
-        const loadedItemsCount = waitingItemsCount - scene.getWaitingItemsCount();
+		const loadedItemsCount = waitingItemsCount - scene.getWaitingItemsCount();
 
-        options?.onProgress?.(
-            0.5 + (loadedItemsCount / waitingItemsCount) * 0.5,
-        );
-    }
+		options?.onProgress?.(
+			0.5 + (loadedItemsCount / waitingItemsCount) * 0.5,
+		);
+	}
 
-    options?.onProgress?.(1);
+	options?.onProgress?.(1);
 
-    configureShadowMapRenderListPredicate(scene);
-    configureShadowMapRefreshRate(scene);
+	configureShadowMapRenderListPredicate(scene);
+	configureShadowMapRefreshRate(scene);
 
-    if (scene.metadata?.rendering) {
-        applyRenderingConfigurations(scene, scene.metadata.rendering);
+	if (scene.metadata?.rendering) {
+		applyRenderingConfigurations(scene, scene.metadata.rendering);
 
-        if (scene.activeCamera) {
-            applyRenderingConfigurationForCamera(scene.activeCamera);
-        }
-    }
+		if (scene.activeCamera) {
+			applyRenderingConfigurationForCamera(scene.activeCamera);
+		}
+	}
 
-    if (scene.metadata?.physicsGravity) {
-        scene.getPhysicsEngine()?.setGravity(Vector3.FromArray(scene.metadata?.physicsGravity));
-    }
+	if (scene.metadata?.physicsGravity) {
+		scene.getPhysicsEngine()?.setGravity(Vector3.FromArray(scene.metadata?.physicsGravity));
+	}
 
-    applyScriptForObject(scene, scene, scriptsMap, rootUrl);
+	applyScriptForObject(scene, scene, scriptsMap, rootUrl);
 
-    scene.transformNodes.forEach((transformNode) => {
-        applyScriptForObject(scene, transformNode, scriptsMap, rootUrl);
-    });
+	scene.transformNodes.forEach((transformNode) => {
+		applyScriptForObject(scene, transformNode, scriptsMap, rootUrl);
+	});
 
-    scene.meshes.forEach((mesh) => {
-        configurePhysicsAggregate(mesh);
-        applyScriptForObject(scene, mesh, scriptsMap, rootUrl);
-    });
+	scene.meshes.forEach((mesh) => {
+		configurePhysicsAggregate(mesh);
+		applyScriptForObject(scene, mesh, scriptsMap, rootUrl);
+	});
 
-    scene.lights.forEach((light) => {
-        applyScriptForObject(scene, light, scriptsMap, rootUrl);
-    });
+	scene.lights.forEach((light) => {
+		applyScriptForObject(scene, light, scriptsMap, rootUrl);
+	});
 
-    scene.cameras.forEach((camera) => {
-        applyScriptForObject(scene, camera, scriptsMap, rootUrl);
-    });
+	scene.cameras.forEach((camera) => {
+		applyScriptForObject(scene, camera, scriptsMap, rootUrl);
+	});
 }

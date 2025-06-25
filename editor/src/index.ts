@@ -19,136 +19,136 @@ import "./electron/events/window";
 import "./electron/assimp/assimpjs";
 
 try {
-    if (!app.isPackaged) {
-        process.env.DEBUG ??= "true";
-    }
+	if (!app.isPackaged) {
+		process.env.DEBUG ??= "true";
+	}
 
-    if (process.env.DEBUG) {
-        require("electron-reloader")(module);
-    }
+	if (process.env.DEBUG) {
+		require("electron-reloader")(module);
+	}
 } catch (_) { /* Catch silently */ }
 
 // Enable remote debugging of both the Editor and the edited Project.
 app.commandLine.appendSwitch("remote-debugging-port", "8315");
 
 app.addListener("ready", async () => {
-    nativeTheme.themeSource = "system";
+	nativeTheme.themeSource = "system";
 
-    globalShortcut.register("CommandOrControl+ALT+I", () => {
-        BrowserWindow.getFocusedWindow()?.webContents.openDevTools({
-            mode: "right",
-        });
-    });
+	globalShortcut.register("CommandOrControl+ALT+I", () => {
+		BrowserWindow.getFocusedWindow()?.webContents.openDevTools({
+			mode: "right",
+		});
+	});
 
-    const filePath = getFilePathArgument(process.argv);
-    if (filePath) {
-        await openProject(filePath);
-    } else {
-        await openDashboard();
-    }
+	const filePath = getFilePathArgument(process.argv);
+	if (filePath) {
+		await openProject(filePath);
+	} else {
+		await openDashboard();
+	}
 });
 
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        app.quit();
-    }
+	if (process.platform !== "darwin") {
+		app.quit();
+	}
 });
 
 app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        openDashboard();
-    }
+	if (BrowserWindow.getAllWindows().length === 0) {
+		openDashboard();
+	}
 });
 
 app.on("second-instance", async () => {
-    if (platform() === "darwin") {
-        const window = await openDashboard();
-        console.log(window); // TODO: setup new window (aka new project).
-    }
+	if (platform() === "darwin") {
+		const window = await openDashboard();
+		console.log(window); // TODO: setup new window (aka new project).
+	}
 });
 
 ipcMain.on("dashboard:open-project", (_, file) => {
-    openProject(file);
-    dashboardWindow?.minimize();
+	openProject(file);
+	dashboardWindow?.minimize();
 });
 
 ipcMain.on("dashboard:update-projects", () => {
-    dashboardWindow?.webContents.send("dashboard:update-projects");
+	dashboardWindow?.webContents.send("dashboard:update-projects");
 });
 
 ipcMain.on("app:quit", () => {
-    for (const window of editorWindows.slice()) {
-        window.close();
+	for (const window of editorWindows.slice()) {
+		window.close();
 
-        if (editorWindows.includes(window)) {
-            return;
-        }
-    }
+		if (editorWindows.includes(window)) {
+			return;
+		}
+	}
 
-    if (!editorWindows.length) {
-        app.quit();
-    }
+	if (!editorWindows.length) {
+		app.quit();
+	}
 });
 
 let dashboardWindow: BrowserWindow | null = null;
 
 async function openDashboard(): Promise<void> {
-    if (!dashboardWindow) {
+	if (!dashboardWindow) {
 
-        setupDashboardMenu();
+		setupDashboardMenu();
 
-        dashboardWindow = await createDashboardWindow();
+		dashboardWindow = await createDashboardWindow();
 
-        dashboardWindow.on("focus", () => setupDashboardMenu());
-        dashboardWindow.on("closed", () => dashboardWindow = null);
-    }
+		dashboardWindow.on("focus", () => setupDashboardMenu());
+		dashboardWindow.on("closed", () => dashboardWindow = null);
+	}
 
-    dashboardWindow.show();
-    dashboardWindow.focus();
+	dashboardWindow.show();
+	dashboardWindow.focus();
 }
 
 const openedProjects: string[] = [];
 
 async function openProject(filePath: string): Promise<void> {
-    if (openedProjects.includes(filePath)) {
-        return;
-    }
+	if (openedProjects.includes(filePath)) {
+		return;
+	}
 
-    openedProjects.push(filePath);
+	openedProjects.push(filePath);
 
-    notifyWindows("dashboard:opened-projects", openedProjects);
+	notifyWindows("dashboard:opened-projects", openedProjects);
 
-    setupEditorMenu();
+	setupEditorMenu();
 
-    const window = await createEditorWindow();
+	const window = await createEditorWindow();
 
-    window.on("focus", () => setupEditorMenu());
-    window.once("closed", () => {
-        openedProjects.splice(openedProjects.indexOf(filePath), 1);
-        notifyWindows("dashboard:opened-projects", openedProjects);
+	window.on("focus", () => setupEditorMenu());
+	window.once("closed", () => {
+		openedProjects.splice(openedProjects.indexOf(filePath), 1);
+		notifyWindows("dashboard:opened-projects", openedProjects);
 
-        if (openedProjects.length === 0) {
-            dashboardWindow?.restore();
-        }
-    });
+		if (openedProjects.length === 0) {
+			dashboardWindow?.restore();
+		}
+	});
 
-    if (filePath) {
-        window.maximize();
-    }
+	if (filePath) {
+		window.maximize();
+	}
 
-    if (filePath) {
-        window.webContents.send("editor:open", filePath);
-        window.webContents.send("editor:path", join(app.getAppPath()));
+	if (filePath) {
+		window.webContents.send("editor:open", filePath);
+		window.webContents.send("editor:path", join(app.getAppPath()));
 
-        window.webContents.on("did-finish-load", () => {
-            window.webContents.send("editor:open", filePath);
-            window.webContents.send("editor:path", join(app.getAppPath()));
-        });
-    }
+		window.webContents.on("did-finish-load", () => {
+			window.webContents.send("editor:open", filePath);
+			window.webContents.send("editor:path", join(app.getAppPath()));
+		});
+	}
 }
 
 function notifyWindows(event: string, data: any) {
-    BrowserWindow.getAllWindows().forEach((window) => {
-        window.webContents.send(event, data);
-    });
+	BrowserWindow.getAllWindows().forEach((window) => {
+		window.webContents.send(event, data);
+	});
 }

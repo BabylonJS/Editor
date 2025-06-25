@@ -10,19 +10,19 @@ export interface ICinematicEditorAnimationGroupKeyProps {
 }
 
 export function CinematicEditorAnimationGroupKey(props: ICinematicEditorAnimationGroupKeyProps) {
-    function getAnimationGroupFramesCount() {
-        return props.cinematicKey.endFrame - props.cinematicKey.startFrame;
-    }
+	function getAnimationGroupFramesCount() {
+		return props.cinematicKey.endFrame - props.cinematicKey.startFrame;
+	}
 
-    return (
-        <div
-            style={{
-                width: `${getAnimationGroupFramesCount() * props.scale / props.cinematicKey.speed}px`,
-            }}
-            className={`
+	return (
+		<div
+			style={{
+				width: `${getAnimationGroupFramesCount() * props.scale / props.cinematicKey.speed}px`,
+			}}
+			className={`
                 h-4 rounded-md bg-muted ring-1 ring-accent dark:ring-black
                 ${props.move ? "" : "cursor-pointer"}
             `}
-        />
-    );
+		/>
+	);
 }

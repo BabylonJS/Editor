@@ -8,22 +8,22 @@ import { projectConfiguration } from "../../../../project/configuration";
 import { Editor } from "../../../main";
 
 export function listenSceneAssetsEvents(editor: Editor) {
-    ipcRenderer.on("editor:asset-updated", (_, type, data) => {
-        if (type !== "scene" || !projectConfiguration.path) {
-            return;
-        }
+	ipcRenderer.on("editor:asset-updated", (_, type, data) => {
+		if (type !== "scene" || !projectConfiguration.path) {
+			return;
+		}
 
-        const scene = editor.layout.preview.scene;
+		const scene = editor.layout.preview.scene;
 
-        scene.transformNodes.forEach(async (transformNode) => {
-            if (!isSceneLinkNode(transformNode)) {
-                return;
-            }
+		scene.transformNodes.forEach(async (transformNode) => {
+			if (!isSceneLinkNode(transformNode)) {
+				return;
+			}
 
-            const relativePath = data.replace(join(dirname(projectConfiguration.path!), "/"), "");
-            if (transformNode.relativePath === relativePath) {
-                await transformNode.reload();
-            }
-        });
-    });
+			const relativePath = data.replace(join(dirname(projectConfiguration.path!), "/"), "");
+			if (transformNode.relativePath === relativePath) {
+				await transformNode.reload();
+			}
+		});
+	});
 }

@@ -123,6 +123,9 @@ Thumbs.db
 # For node modules
 node_modules
 
+# ESLint
+.eslintcache
+
 # For chrome debugging
 .tempChromeProfileForDebug
 

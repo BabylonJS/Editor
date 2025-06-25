@@ -9,22 +9,22 @@ let isInitialized = false;
  * @param appPath defines the absolute path to the Editor application.
  */
 export async function initializeHavok(appPath: string) {
-    if (isInitialized) {
-        return;
-    }
+	if (isInitialized) {
+		return;
+	}
 
-    isInitialized = true;
+	isInitialized = true;
 
-    const havok = await HavokPhysics({
-        environment: "NODE",
-        locateFile: (url) => {
-            const nodeModules = process.env.DEBUG
-                ? "../node_modules"
-                : "node_modules";
+	const havok = await HavokPhysics({
+		environment: "NODE",
+		locateFile: (url) => {
+			const nodeModules = process.env.DEBUG
+				? "../node_modules"
+				: "node_modules";
 
-            return join(appPath, nodeModules, "@babylonjs/havok/lib/umd", url);
-        },
-    });
+			return join(appPath, nodeModules, "@babylonjs/havok/lib/umd", url);
+		},
+	});
 
-    globalThis.HK = havok;
+	globalThis.HK = havok;
 }

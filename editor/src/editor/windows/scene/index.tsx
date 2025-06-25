@@ -17,45 +17,45 @@ export interface ISceneEditorWindowProps {
 }
 
 export default class SceneEditorWindow extends Component<ISceneEditorWindowProps> {
-    private _editor: Editor | null = null;
+	private _editor: Editor | null = null;
 
-    public constructor(props: ISceneEditorWindowProps) {
-        super(props);
-    }
+	public constructor(props: ISceneEditorWindowProps) {
+		super(props);
+	}
 
-    public render(): ReactNode {
-        return (
-            <Editor
-                ref={(r) => this._editor = r}
-                projectPath={this.props.projectPath}
-                editedScenePath={this.props.scenePath}
-            />
-        );
-    }
+	public render(): ReactNode {
+		return (
+			<Editor
+				ref={(r) => this._editor = r}
+				projectPath={this.props.projectPath}
+				editedScenePath={this.props.scenePath}
+			/>
+		);
+	}
 
-    public async componentDidMount(): Promise<void> {
-        if (!this._editor) {
-            return;
-        }
+	public async componentDidMount(): Promise<void> {
+		if (!this._editor) {
+			return;
+		}
 
-        await waitUntil(() => this._editor!.layout?.preview?.scene);
+		await waitUntil(() => this._editor!.layout?.preview?.scene);
 
-        projectConfiguration.path = this.props.projectPath;
-        onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
+		projectConfiguration.path = this.props.projectPath;
+		onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
 
-        this._editor.setState({
-            lastOpenedScenePath: this.props.scenePath,
-        });
+		this._editor.setState({
+			lastOpenedScenePath: this.props.scenePath,
+		});
 
-        const directory = dirname(this.props.projectPath);
+		const directory = dirname(this.props.projectPath);
 
-        await loadScene(this._editor, directory, this.props.scenePath);
+		await loadScene(this._editor, directory, this.props.scenePath);
 
-        this._editor.layout.graph.refresh();
-        this._editor.layout.inspector.setEditedObject(this._editor.layout.preview.scene);
+		this._editor.layout.graph.refresh();
+		this._editor.layout.inspector.setEditedObject(this._editor.layout.preview.scene);
 
-        onProjectSavedObservable.add(() => {
-            ipcRenderer.send("editor:asset-updated", "scene", this.props.scenePath);
-        });
-    }
+		onProjectSavedObservable.add(() => {
+			ipcRenderer.send("editor:asset-updated", "scene", this.props.scenePath);
+		});
+	}
 }

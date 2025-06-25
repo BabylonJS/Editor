@@ -5,11 +5,11 @@ import { Scene } from "babylonjs";
  * @param scene defines the reference to the scene to take a screenshot.
  */
 export function getBase64SceneScreenshot(scene: Scene) {
-    return new Promise<string | undefined>((resolve) => {
-        scene.onAfterRenderObservable.addOnce(() => {
-            resolve(scene.getEngine().getRenderingCanvas()?.toDataURL("image/png"));
-        });
-    });
+	return new Promise<string | undefined>((resolve) => {
+		scene.onAfterRenderObservable.addOnce(() => {
+			resolve(scene.getEngine().getRenderingCanvas()?.toDataURL("image/png"));
+		});
+	});
 }
 
 /**
@@ -17,10 +17,10 @@ export function getBase64SceneScreenshot(scene: Scene) {
  * @param scene defines the reference to the scene to take a screenshot.
  */
 export async function getBufferSceneScreenshot(scene: Scene) {
-    const base64 = await getBase64SceneScreenshot(scene);
-    if (!base64) {
-        return null;
-    }
+	const base64 = await getBase64SceneScreenshot(scene);
+	if (!base64) {
+		return null;
+	}
 
-    return Buffer.from(base64?.split(",")[1], "base64");
+	return Buffer.from(base64?.split(",")[1], "base64");
 }

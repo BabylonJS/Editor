@@ -13,10 +13,10 @@ import { iblShadowsRenderingPipelineCameraConfigurations, serializeIblShadowsRen
  * @param camera defines the reference to the camera to save its rendering configurations.
  */
 export function saveRenderingConfigurationForCamera(camera: Camera) {
-    ssaoRenderingPipelineCameraConfigurations.set(camera, serializeSSAO2RenderingPipeline());
-    vlsPostProcessCameraConfigurations.set(camera, serializeVLSPostProcess());
-    ssrRenderingPipelineCameraConfigurations.set(camera, serializeSSRRenderingPipeline());
-    motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
-    defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
-    iblShadowsRenderingPipelineCameraConfigurations.set(camera, serializeIblShadowsRenderingPipeline());
+	ssaoRenderingPipelineCameraConfigurations.set(camera, serializeSSAO2RenderingPipeline());
+	vlsPostProcessCameraConfigurations.set(camera, serializeVLSPostProcess());
+	ssrRenderingPipelineCameraConfigurations.set(camera, serializeSSRRenderingPipeline());
+	motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
+	defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
+	iblShadowsRenderingPipelineCameraConfigurations.set(camera, serializeIblShadowsRenderingPipeline());
 }

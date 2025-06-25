@@ -37,12 +37,20 @@
         "clean": "rm -rf editor/build editor/declaration editor/electron-packages editor/coverage quixel/build quixel/declaration tools/build tools/declaration tools/coverage template/.next website/.next",
         "clean:node_modules": "rm -rf ./node_modules ./editor/node_modules ./quixel/node_modules ./tools/node_modules ./template/node_modules ./website/node_modules",
         "test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
-        "coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage"
+        "coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",
+        "lint-editor": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache ./editor/src/**",
+        "lint-tools": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache ./tools/src/**",
+        "lint-quixel": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache ./quixel/src/**",
+        "lint-template": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache ./template/src/**",
+        "lint-website": "NODE_OPTIONS='--max-old-space-size=8192' eslint --cache ./website/src/**",
+        "lint": "yarn lint-editor && yarn lint-tools && yarn lint-quixel && yarn lint-template  && yarn lint-website"
     },
     "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
     "license": "(Apache-2.0)",
     "devDependencies": {
+        "@typescript-eslint/parser": "8.35.0",
         "dotenv": "16.4.5",
+        "eslint": "9.29.0",
         "minimist": "1.2.8"
     },
     "dependencies": {},

@@ -23,39 +23,39 @@ import { configureImportedTexture } from "./import";
  * @param absolutePath defines the absolute path to the texture asset file (.png, .env, .jpg, etc.).
  */
 export function applyTextureAssetToObject(editor: Editor, object: any, absolutePath: string) {
-    if (!isScene(object) && !isAbstractMesh(object)) {
-        return;
-    }
+	if (!isScene(object) && !isAbstractMesh(object)) {
+		return;
+	}
 
-    if (isAbstractMesh(object) && !object.material) {
-        return;
-    }
+	if (isAbstractMesh(object) && !object.material) {
+		return;
+	}
 
-    const extension = extname(absolutePath).toLowerCase();
+	const extension = extname(absolutePath).toLowerCase();
 
-    switch (extension) {
-        case ".env":
-            const newCubeTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(
-                absolutePath,
-                isScene(object) ? object : object.getScene(),
-            ));
-            applyTextureToObject(editor, object, newCubeTexture);
-            break;
+	switch (extension) {
+	case ".env":
+		const newCubeTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(
+			absolutePath,
+			isScene(object) ? object : object.getScene(),
+		));
+		applyTextureToObject(editor, object, newCubeTexture);
+		break;
 
-        case ".jpg":
-        case ".png":
-        case ".bmp":
-        case ".jpeg":
-            const newTexture = configureImportedTexture(new Texture(
-                absolutePath,
-                isScene(object) ? object : object.getScene(),
-            ));
+	case ".jpg":
+	case ".png":
+	case ".bmp":
+	case ".jpeg":
+		const newTexture = configureImportedTexture(new Texture(
+			absolutePath,
+			isScene(object) ? object : object.getScene(),
+		));
 
-            applyTextureToObject(editor, object, newTexture);
+		applyTextureToObject(editor, object, newTexture);
 
-            onTextureAddedObservable.notifyObservers(newTexture);
-            break;
-    }
+		onTextureAddedObservable.notifyObservers(newTexture);
+		break;
+	}
 }
 
 /**
@@ -66,81 +66,81 @@ export function applyTextureAssetToObject(editor: Editor, object: any, absoluteP
  * @param texture defines the reference to the texture instance to apply on the object.
  */
 export function applyTextureToObject(editor: Editor, object: any, texture: Texture | CubeTexture) {
-    if (isCubeTexture(texture) && isScene(object)) {
-        return registerSimpleUndoRedo({
-            object,
-            newValue: texture,
-            executeRedo: true,
-            property: "environmentTexture",
-            oldValue: object.environmentTexture,
-            onLost: () => texture.dispose(),
-        });
-    }
+	if (isCubeTexture(texture) && isScene(object)) {
+		return registerSimpleUndoRedo({
+			object,
+			newValue: texture,
+			executeRedo: true,
+			property: "environmentTexture",
+			oldValue: object.environmentTexture,
+			onLost: () => texture.dispose(),
+		});
+	}
 
-    if (!isAbstractMesh(object)) {
-        return;
-    }
+	if (!isAbstractMesh(object)) {
+		return;
+	}
 
-    const material = object.material;
-    if (!material) {
-        return;
-    }
+	const material = object.material;
+	if (!material) {
+		return;
+	}
 
-    function TextureSlotComponent({ property }) {
-        return (
-            <Button
-                variant="ghost"
-                className="w-full"
-                onClick={() => {
-                    registerSimpleUndoRedo({
-                        property,
-                        object: material,
-                        newValue: texture,
-                        executeRedo: true,
-                        oldValue: material![property],
-                        onLost: () => texture.dispose(),
-                    });
+	function TextureSlotComponent({ property }) {
+		return (
+			<Button
+				variant="ghost"
+				className="w-full"
+				onClick={() => {
+					registerSimpleUndoRedo({
+						property,
+						object: material,
+						newValue: texture,
+						executeRedo: true,
+						oldValue: material![property],
+						onLost: () => texture.dispose(),
+					});
 
-                    dialog.close();
-                    editor.layout.inspector.forceUpdate();
-                }}
-            >
-                {property}
-            </Button>
-        );
-    }
+					dialog.close();
+					editor.layout.inspector.forceUpdate();
+				}}
+			>
+				{property}
+			</Button>
+		);
+	}
 
-    const title = (
-        <div>
+	const title = (
+		<div>
             Apply texture
-            <br />
-            <b className="text-muted-foreground font-semibold tracking-tighter">{material.name}</b>
-        </div>
-    );
+			<br />
+			<b className="text-muted-foreground font-semibold tracking-tighter">{material.name}</b>
+		</div>
+	);
 
-    const dialog = showDialog(title, (
-        <div className="flex flex-col gap-4 w-64 pt-4">
-            {isPBRMaterial(material) &&
+	const dialog = showDialog(title, (
+		<div className="flex flex-col gap-4 w-64 pt-4">
+			{isPBRMaterial(material) &&
                 <>
-                    <TextureSlotComponent property="albedoTexture" />
-                    <TextureSlotComponent property="bumpTexture" />
-                    <TextureSlotComponent property="reflectivityTexture" />
-                    <TextureSlotComponent property="ambientTexture" />
-                    <TextureSlotComponent property="metallicTexture" />
-                    <TextureSlotComponent property="reflectionTexture" />
+                	<TextureSlotComponent property="albedoTexture" />
+                	<TextureSlotComponent property="bumpTexture" />
+                	<TextureSlotComponent property="reflectivityTexture" />
+                	<TextureSlotComponent property="ambientTexture" />
+                	<TextureSlotComponent property="metallicTexture" />
+                	<TextureSlotComponent property="reflectionTexture" />
                 </>
-            }
+			}
 
-            {
-                isStandardMaterial(material) &&
+			{
+				isStandardMaterial(material) &&
                 <>
-                    <TextureSlotComponent property="diffuseTexture" />
-                    <TextureSlotComponent property="bumpTexture" />
-                    <TextureSlotComponent property="specularTexture" />
-                    <TextureSlotComponent property="ambientTexture" />
-                    <TextureSlotComponent property="reflectionTexture" />
+                	<TextureSlotComponent property="diffuseTexture" />
+                	<TextureSlotComponent property="bumpTexture" />
+                	<TextureSlotComponent property="specularTexture" />
+                	<TextureSlotComponent property="ambientTexture" />
+                	<TextureSlotComponent property="reflectionTexture" />
                 </>
-            }
-        </div>
-    ));
+			}
+		</div>
+	));
 }

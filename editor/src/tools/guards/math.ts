@@ -5,7 +5,7 @@ import { Quaternion, Vector3 } from "babylonjs";
  * @param object defines the reference to the object to test its class name.
  */
 export function isVector3(object: any): object is Vector3 {
-    return object.getClassName?.() === "Vector3";
+	return object.getClassName?.() === "Vector3";
 }
 
 /**
@@ -13,5 +13,5 @@ export function isVector3(object: any): object is Vector3 {
  * @param object defines the reference to the object to test its class name.
  */
 export function isQuaternion(object: any): object is Quaternion {
-    return object.getClassName?.() === "Quaternion";
+	return object.getClassName?.() === "Quaternion";
 }

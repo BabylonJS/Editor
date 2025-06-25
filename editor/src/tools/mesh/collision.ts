@@ -9,5 +9,5 @@ import { CollisionMesh } from "../../editor/nodes/collision";
  * mesh found. A collision mesh is unique per mesh.
  */
 export function getCollisionMeshFor(mesh: Mesh) {
-    return mesh.getDescendants(true, (p) => isCollisionMesh(p))[0] as CollisionMesh | null;
+	return mesh.getDescendants(true, (p) => isCollisionMesh(p))[0] as CollisionMesh | null;
 }

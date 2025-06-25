@@ -12,32 +12,32 @@ Effect.ShadersStore["landingLightsFragmentShader"] = fragmentShader1;
 Effect.ShadersStore["landingCircleFragmentShader"] = fragmentShader2;
 
 export class LandingPostProcess extends PostProcess {
-    public alpha: number = 1;
+	public alpha: number = 1;
 
-    public constructor(camera: Camera, type: "landingLights" | "landingCircle") {
-        super("landing", type, {
-            camera,
-            size: 0.5,
-            uniforms: ["time", "alpha", "resolution"],
-        });
+	public constructor(camera: Camera, type: "landingLights" | "landingCircle") {
+		super("landing", type, {
+			camera,
+			size: 0.5,
+			uniforms: ["time", "alpha", "resolution"],
+		});
 
-        let time = 0;
+		let time = 0;
 
-        const engine = this.getEngine();
-        const resolution = Vector2.Zero();
+		const engine = this.getEngine();
+		const resolution = Vector2.Zero();
 
-        this.onApplyObservable.add((effect) => {
-            if (type === "landingLights") {
-                time += engine.getDeltaTime() * 0.0004;
-            } else {
-                time += engine.getDeltaTime() * 0.0003;
-            }
+		this.onApplyObservable.add((effect) => {
+			if (type === "landingLights") {
+				time += engine.getDeltaTime() * 0.0004;
+			} else {
+				time += engine.getDeltaTime() * 0.0003;
+			}
 
-            resolution.set(engine.getRenderWidth(), engine.getRenderHeight());
+			resolution.set(engine.getRenderWidth(), engine.getRenderHeight());
 
-            effect.setFloat("time", time);
-            effect.setFloat("alpha", this.alpha);
-            effect.setVector2("resolution", resolution);
-        });
-    }
+			effect.setFloat("time", time);
+			effect.setFloat("alpha", this.alpha);
+			effect.setVector2("resolution", resolution);
+		});
+	}
 }

@@ -9,10 +9,10 @@ import { Tools } from "babylonjs";
  * @returns A promise that resolves with the response from the main process.
  */
 export function ipcSendAsync<T>(id: string, ...args: any[]): Promise<T> {
-    return new Promise((resolve) => {
-        ipcRenderer.once(id, (_, result) => resolve(result));
-        ipcRenderer.send(id, ...args);
-    });
+	return new Promise((resolve) => {
+		ipcRenderer.once(id, (_, result) => resolve(result));
+		ipcRenderer.send(id, ...args);
+	});
 }
 
 /**
@@ -22,10 +22,10 @@ export function ipcSendAsync<T>(id: string, ...args: any[]): Promise<T> {
  * @returns A promise that resolves with the response from the main process.
  */
 export function ipcSendAsyncWithMessageId<T>(id: string, ...args: any[]): Promise<T> {
-    return new Promise((resolve) => {
-        const messageId = Tools.RandomId();
+	return new Promise((resolve) => {
+		const messageId = Tools.RandomId();
 
-        ipcRenderer.once(messageId, (_, result) => resolve(result));
-        ipcRenderer.send(id, messageId, ...args);
-    });
+		ipcRenderer.once(messageId, (_, result) => resolve(result));
+		ipcRenderer.send(id, messageId, ...args);
+	});
 }

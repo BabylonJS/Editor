@@ -2,19 +2,19 @@ import { Animation } from "@babylonjs/core/Animations/animation";
 import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
 
 export function cloneKey(dataType: number, key: IAnimationKey): IAnimationKey {
-    let value: any;
-    switch (dataType) {
-        case Animation.ANIMATIONTYPE_FLOAT: value = key.value; break;
-        default: value = key.value.clone(); break;
-    }
+	let value: any;
+	switch (dataType) {
+	case Animation.ANIMATIONTYPE_FLOAT: value = key.value; break;
+	default: value = key.value.clone(); break;
+	}
 
-    return {
-        value,
-        frame: key.frame,
-        interpolation: key.interpolation,
-        inTangent: dataType === Animation.ANIMATIONTYPE_FLOAT ? key.inTangent : key.inTangent?.clone(),
-        outTangent: dataType === Animation.ANIMATIONTYPE_FLOAT ? key.outTangent : key.outTangent?.clone(),
-    };
+	return {
+		value,
+		frame: key.frame,
+		interpolation: key.interpolation,
+		inTangent: dataType === Animation.ANIMATIONTYPE_FLOAT ? key.inTangent : key.inTangent?.clone(),
+		outTangent: dataType === Animation.ANIMATIONTYPE_FLOAT ? key.outTangent : key.outTangent?.clone(),
+	};
 }
 
 /**
@@ -25,13 +25,13 @@ export function cloneKey(dataType: number, key: IAnimationKey): IAnimationKey {
  * @example getPropertyValue(scene, "ambientColor.r");
  */
 export function getPropertyValue(object: any, property: string) {
-    const parts = property.split('.');
+	const parts = property.split('.');
 
-    let value = object;
+	let value = object;
 
-    for (let i = 0; i < parts.length; ++i) {
-        value = value[parts[i]];
-    }
+	for (let i = 0; i < parts.length; ++i) {
+		value = value[parts[i]];
+	}
 
-    return value;
+	return value;
 }

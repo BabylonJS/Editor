@@ -5,16 +5,16 @@ import { ProjectType, projectsKey } from "./project";
  * Those projects are sorted by the last updated date.
  */
 export function tryGetProjectsFromLocalStorage(): ProjectType[] {
-    try {
-        const data = JSON.parse(localStorage.getItem(projectsKey)! ?? "[]") as ProjectType[];
-        data.sort((a, b) => {
-            return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-        });
+	try {
+		const data = JSON.parse(localStorage.getItem(projectsKey)! ?? "[]") as ProjectType[];
+		data.sort((a, b) => {
+			return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+		});
 
-        return data;
-    } catch (e) {
-        return [];
-    }
+		return data;
+	} catch (e) {
+		return [];
+	}
 }
 
 /**
@@ -22,28 +22,28 @@ export function tryGetProjectsFromLocalStorage(): ProjectType[] {
  * @param absolutePath defines the absolute path to the project file to add to the local storage.
  */
 export function tryAddProjectToLocalStorage(absolutePath: string): void {
-    try {
-        const projects = tryGetProjectsFromLocalStorage();
+	try {
+		const projects = tryGetProjectsFromLocalStorage();
 
-        localStorage.setItem(projectsKey, JSON.stringify(projects.concat([{
-            absolutePath,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        }])));
-    } catch (e) {
-        alert("Failed to import project.");
-    }
+		localStorage.setItem(projectsKey, JSON.stringify(projects.concat([{
+			absolutePath,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		}])));
+	} catch (e) {
+		alert("Failed to import project.");
+	}
 }
 
 /**
  * Returns wether or not experimental features are enabled in the editor.
  */
 export function tryGetExperimentalFeaturesEnabledFromLocalStorage(): boolean {
-    try {
-        return localStorage.getItem("editor-experimental-features") === "true";
-    } catch (e) {
-        return false;
-    }
+	try {
+		return localStorage.getItem("editor-experimental-features") === "true";
+	} catch (e) {
+		return false;
+	}
 }
 
 /**
@@ -51,9 +51,9 @@ export function tryGetExperimentalFeaturesEnabledFromLocalStorage(): boolean {
  * @param enabled defines wether or not experimental features are enabled.
  */
 export function trySetExperimentalFeaturesEnabledInLocalStorage(enabled: boolean): void {
-    try {
-        localStorage.setItem("editor-experimental-features", JSON.stringify(enabled));
-    } catch (e) {
-        // Catch silently.
-    }
+	try {
+		localStorage.setItem("editor-experimental-features", JSON.stringify(enabled));
+	} catch (e) {
+		// Catch silently.
+	}
 }

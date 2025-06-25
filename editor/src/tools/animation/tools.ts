@@ -10,9 +10,9 @@ export const tweensMap: Map<any, Tween[]> = new Map<any, Tween[]>();
  * @param target defines the reference to the target object to register.
  */
 export function registerTarget<T>(target: T): void {
-    if (!tweensMap.get(target)) {
-        tweensMap.set(target, []);
-    }
+	if (!tweensMap.get(target)) {
+		tweensMap.set(target, []);
+	}
 }
 
 /**
@@ -21,7 +21,7 @@ export function registerTarget<T>(target: T): void {
  * @param tween defines the reference to the tween to register that animates the given target object.
  */
 export function registerTween<T>(target: T, tween: Tween): void {
-    tweensMap.get(target)?.push(tween);
+	tweensMap.get(target)?.push(tween);
 }
 
 /**
@@ -29,10 +29,10 @@ export function registerTween<T>(target: T, tween: Tween): void {
  * @param target defines the reference to the target to check its attached tweens.
  */
 export function checkTargetTweens<T>(target: T): void {
-    const tweens = tweensMap.get(target);
-    if (tweens?.length === 0) {
-        tweensMap.delete(target);
-    }
+	const tweens = tweensMap.get(target);
+	if (tweens?.length === 0) {
+		tweensMap.delete(target);
+	}
 }
 
 /**
@@ -41,13 +41,13 @@ export function checkTargetTweens<T>(target: T): void {
  * @param tween defines the reference to the tween to check its "ended" event.
  */
 export function registerTweenEnded<T>(target: T, tween: Tween): void {
-    void tween.then(() => {
-        const tweens = tweensMap.get(target);
-        const index = tweens?.indexOf(tween) ?? -1;
-        if (index !== -1) {
-            tweens?.splice(index, 1);
-        }
+	void tween.then(() => {
+		const tweens = tweensMap.get(target);
+		const index = tweens?.indexOf(tween) ?? -1;
+		if (index !== -1) {
+			tweens?.splice(index, 1);
+		}
 
-        checkTargetTweens(target);
-    });
+		checkTargetTweens(target);
+	});
 }

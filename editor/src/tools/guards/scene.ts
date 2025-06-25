@@ -7,7 +7,7 @@ import { SceneLinkNode } from "../../editor/nodes/scene-link";
  * @param object defines the reference to the object to test its class name.
  */
 export function isScene(object: any): object is Scene {
-    return object.getClassName?.() === "Scene";
+	return object.getClassName?.() === "Scene";
 }
 
 /**
@@ -15,5 +15,5 @@ export function isScene(object: any): object is Scene {
  * @param object defines the reference to the object to test its class name.
  */
 export function isSceneLinkNode(object: any): object is SceneLinkNode {
-    return object.getClassName?.() === "SceneLinkNode";
+	return object.getClassName?.() === "SceneLinkNode";
 }
