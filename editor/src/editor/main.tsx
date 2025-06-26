@@ -39,19 +39,19 @@ import "./nodes/scene-link";
 export * from "../export";
 
 export function createEditor(): void {
-    const theme = localStorage.getItem("editor-theme") ?? "dark";
-    if (theme === "dark") {
-        document.body.classList.add("dark");
-    }
+	const theme = localStorage.getItem("editor-theme") ?? "dark";
+	if (theme === "dark") {
+		document.body.classList.add("dark");
+	}
 
-    const div = document.getElementById("babylonjs-editor-main-div")!;
+	const div = document.getElementById("babylonjs-editor-main-div")!;
 
-    const root = createRoot(div);
-    root.render(
-        <div className="w-screen h-screen">
-            <Editor projectPath={null} />
-        </div>
-    );
+	const root = createRoot(div);
+	root.render(
+		<div className="w-screen h-screen">
+			<Editor projectPath={null} />
+		</div>
+	);
 }
 
 export interface IEditorProps {
@@ -109,152 +109,152 @@ export interface IEditorState {
 }
 
 export class Editor extends Component<IEditorProps, IEditorState> {
-    /**
+	/**
      * The layout of the editor.
      */
-    public layout: EditorLayout;
-    /**
+	public layout: EditorLayout;
+	/**
      * The command palette of the editor.
      */
-    public commandPalette: CommandPalette;
+	public commandPalette: CommandPalette;
 
-    /**
+	/**
      * Defines the path to the editor application.
      * This comes from electron `app.getAppPath();`
      */
-    public path: string | null = null;
+	public path: string | null = null;
 
-    public constructor(props: IEditorProps) {
-        super(props);
+	public constructor(props: IEditorProps) {
+		super(props);
 
-        this.state = {
-            plugins: [],
-            lastOpenedScenePath: null,
-            projectPath: props.projectPath,
+		this.state = {
+			plugins: [],
+			lastOpenedScenePath: null,
+			projectPath: props.projectPath,
 
-            compressedTexturesEnabled: false,
-            compressedTexturesEnabledInPreview: false,
-            enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
+			compressedTexturesEnabled: false,
+			compressedTexturesEnabledInPreview: false,
+			enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
 
-            editProject: false,
-            editPreferences: false,
-        };
+			editProject: false,
+			editPreferences: false,
+		};
 
-        webFrame.setZoomFactor(0.8);
-    }
+		webFrame.setZoomFactor(0.8);
+	}
 
-    public render(): ReactNode {
-        return (
-            <>
-                <HotkeysTarget2 hotkeys={[
-                    {
-                        global: true,
-                        combo: platform() === "darwin"
-                            ? "cmd + p"
-                            : "ctrl + p",
-                        preventDefault: true,
-                        label: "Show Command Palette",
-                        onKeyDown: () => this.commandPalette.setOpen(true),
-                    },
-                ]}>
-                    <EditorLayout
-                        editor={this}
-                        ref={ref => this.layout = ref!}
-                    />
-                </HotkeysTarget2>
+	public render(): ReactNode {
+		return (
+			<>
+				<HotkeysTarget2 hotkeys={[
+					{
+						global: true,
+						combo: platform() === "darwin"
+							? "cmd + p"
+							: "ctrl + p",
+						preventDefault: true,
+						label: "Show Command Palette",
+						onKeyDown: () => this.commandPalette.setOpen(true),
+					},
+				]}>
+					<EditorLayout
+						editor={this}
+						ref={ref => this.layout = ref!}
+					/>
+				</HotkeysTarget2>
 
-                <EditorEditProjectComponent
-                    editor={this}
-                    open={this.state.editProject}
-                    onClose={() => this.setState({ editProject: false })}
-                />
+				<EditorEditProjectComponent
+					editor={this}
+					open={this.state.editProject}
+					onClose={() => this.setState({ editProject: false })}
+				/>
 
-                <EditorEditPreferencesComponent
-                    editor={this}
-                    open={this.state.editPreferences}
-                    onClose={() => this.setState({ editPreferences: false })}
-                />
+				<EditorEditPreferencesComponent
+					editor={this}
+					open={this.state.editPreferences}
+					onClose={() => this.setState({ editPreferences: false })}
+				/>
 
-                <CommandPalette ref={(r) => this.commandPalette = r!} editor={this} />
-                <Toaster />
-            </>
-        );
-    }
+				<CommandPalette ref={(r) => this.commandPalette = r!} editor={this} />
+				<Toaster />
+			</>
+		);
+	}
 
-    public async componentDidMount(): Promise<void> {
-        ipcRenderer.on("save", () => saveProject(this));
-        ipcRenderer.on("export", () => exportProject(this, { optimize: true }));
+	public async componentDidMount(): Promise<void> {
+		ipcRenderer.on("save", () => saveProject(this));
+		ipcRenderer.on("export", () => exportProject(this, { optimize: true }));
 
-        ipcRenderer.on("editor:edit-project", () => this.setState({ editProject: true }));
-        ipcRenderer.on("editor:edit-preferences", () => this.setState({ editPreferences: true }));
+		ipcRenderer.on("editor:edit-project", () => this.setState({ editProject: true }));
+		ipcRenderer.on("editor:edit-preferences", () => this.setState({ editPreferences: true }));
 
-        ipcRenderer.on("editor:open", (_, path) => this.openProject(join(path)));
+		ipcRenderer.on("editor:open", (_, path) => this.openProject(join(path)));
 
-        ipcRenderer.on("editor:quit-app", () => this.quitApp());
-        ipcRenderer.on("editor:close-window", () => this.close());
+		ipcRenderer.on("editor:quit-app", () => this.quitApp());
+		ipcRenderer.on("editor:close-window", () => this.close());
 
-        ipcRenderer.on("editor:path", (_, path) => this.path = path.replace(/\\/g, sep));
+		ipcRenderer.on("editor:path", (_, path) => this.path = path.replace(/\\/g, sep));
 
-        // Undo-redo
-        ipcRenderer.on("undo", () => undo());
-        ipcRenderer.on("redo", () => redo());
+		// Undo-redo
+		ipcRenderer.on("undo", () => undo());
+		ipcRenderer.on("redo", () => redo());
 
-        onUndoObservable.add(() => {
-            this.layout.graph.refresh();
-            this.layout.inspector.forceUpdate();
-            this.layout.animations.forceUpdate();
-        });
+		onUndoObservable.add(() => {
+			this.layout.graph.refresh();
+			this.layout.inspector.forceUpdate();
+			this.layout.animations.forceUpdate();
+		});
 
-        onRedoObservable.add(() => {
-            this.layout.graph.refresh();
-            this.layout.inspector.forceUpdate();
-            this.layout.animations.forceUpdate();
-        });
+		onRedoObservable.add(() => {
+			this.layout.graph.refresh();
+			this.layout.inspector.forceUpdate();
+			this.layout.animations.forceUpdate();
+		});
 
-        await Promise.all([
-            await checkNodeJSAvailable(),
-            await checkVisualStudioCodeAvailable(),
-        ]);
+		await Promise.all([
+			await checkNodeJSAvailable(),
+			await checkVisualStudioCodeAvailable(),
+		]);
 
-        // Ready
-        ipcRenderer.send("editor:ready");
-    }
+		// Ready
+		ipcRenderer.send("editor:ready");
+	}
 
-    /**
+	/**
      * Opens the project located at the given absolute path.
      * @param absolutePath defines the absolute path to the project to open.
      */
-    public async openProject(absolutePath: string): Promise<void> {
-        await waitUntil(() => this.layout.preview.scene);
+	public async openProject(absolutePath: string): Promise<void> {
+		await waitUntil(() => this.layout.preview.scene);
 
-        ipcRenderer.send("editor:maximize-window");
+		ipcRenderer.send("editor:maximize-window");
 
-        absolutePath = absolutePath.replace(/\\/g, sep);
+		absolutePath = absolutePath.replace(/\\/g, sep);
 
-        projectConfiguration.path = absolutePath;
+		projectConfiguration.path = absolutePath;
 
-        disposeVLSPostProcess(this);
-        disposeSSRRenderingPipeline();
-        disposeMotionBlurPostProcess();
-        disposeSSAO2RenderingPipeline();
-        disposeDefaultRenderingPipeline();
+		disposeVLSPostProcess(this);
+		disposeSSRRenderingPipeline();
+		disposeMotionBlurPostProcess();
+		disposeSSAO2RenderingPipeline();
+		disposeDefaultRenderingPipeline();
 
-        onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
+		onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
 
-        await loadProject(this, absolutePath);
-    }
+		await loadProject(this, absolutePath);
+	}
 
-    /**
+	/**
      * Closes the current editor window after asking for confirmation.
      */
-    public close(): void {
-        ipcRenderer.send("window:close");
-    }
+	public close(): void {
+		ipcRenderer.send("window:close");
+	}
 
-    /**
+	/**
      * Quits the app after asking for confirmation.
      */
-    public quitApp(): void {
-        ipcRenderer.send("app:quit");
-    }
+	public quitApp(): void {
+		ipcRenderer.send("app:quit");
+	}
 }

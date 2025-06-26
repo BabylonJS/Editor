@@ -8,10 +8,10 @@ import { ISceneDecoratorData } from "./apply";
  * @param soundName defines the name of the sound to retrieve in scene.
  */
 export function soundFromScene(soundName: string) {
-    return function (target: any, propertyKey: string | Symbol) {
-        const ctor = target.constructor as ISceneDecoratorData;
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
 
-        ctor._SoundsFromScene ??= [];
-        ctor._SoundsFromScene.push({ propertyKey, soundName });
-    };
+		ctor._SoundsFromScene ??= [];
+		ctor._SoundsFromScene.push({ propertyKey, soundName });
+	};
 }

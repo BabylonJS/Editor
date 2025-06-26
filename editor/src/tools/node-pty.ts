@@ -11,84 +11,84 @@ import { Observable } from "babylonjs";
  * @returns A promise that resolves with the node-pty instance.
  */
 export async function execNodePty(command: string, options: IPtyForkOptions | IWindowsPtyForkOptions = {}): Promise<NodePtyInstance> {
-    const id = randomUUID();
+	const id = randomUUID();
 
-    await new Promise<void>((resolve) => {
-        ipcRenderer.once(`editor:create-node-pty-${id}`, () => resolve());
-        ipcRenderer.send("editor:create-node-pty", command, id, options);
-    });
+	await new Promise<void>((resolve) => {
+		ipcRenderer.once(`editor:create-node-pty-${id}`, () => resolve());
+		ipcRenderer.send("editor:create-node-pty", command, id, options);
+	});
 
-    if (id === null) {
-        throw new Error("Failed to create node-pty instance.");
-    }
+	if (id === null) {
+		throw new Error("Failed to create node-pty instance.");
+	}
 
-    return new NodePtyInstance(id);
+	return new NodePtyInstance(id);
 }
 
 export class NodePtyInstance {
-    /**
+	/**
      * The id of the node-pty instance.
      */
-    public readonly id: string;
+	public readonly id: string;
 
-    /**
+	/**
      * An observable that is triggered when data is received from the pty.
      */
-    public onGetDataObservable: Observable<string> = new Observable<string>();
+	public onGetDataObservable: Observable<string> = new Observable<string>();
 
-    private _exited: boolean = false;
-    private _exitCode: number = -1;
+	private _exited: boolean = false;
+	private _exitCode: number = -1;
 
-    /**
+	/**
      * Constructor.
      * @param id The id of the node-pty instance.
      */
-    public constructor(id: string) {
-        this.id = id;
+	public constructor(id: string) {
+		this.id = id;
 
-        ipcRenderer.once(`editor:node-pty-exit:${this.id}`, (_, code) => {
-            this._exited = true;
-            this._exitCode = code;
-        });
+		ipcRenderer.once(`editor:node-pty-exit:${this.id}`, (_, code) => {
+			this._exited = true;
+			this._exitCode = code;
+		});
 
-        ipcRenderer.on(`editor:node-pty-data:${id}`, (_, data) => {
-            // console.log(data);
-            this.onGetDataObservable.notifyObservers(data);
-        });
-    }
+		ipcRenderer.on(`editor:node-pty-data:${id}`, (_, data) => {
+			// console.log(data);
+			this.onGetDataObservable.notifyObservers(data);
+		});
+	}
 
-    /**
+	/**
      * Writes data to the pty.
      * @param data The data to write.
      */
-    public write(data: string): void {
-        ipcRenderer.send("editor:node-pty-write", this.id, data);
-    }
+	public write(data: string): void {
+		ipcRenderer.send("editor:node-pty-write", this.id, data);
+	}
 
-    /**
+	/**
      * Kills the pty process.
      */
-    public kill(): void {
-        ipcRenderer.send("editor:kill-node-pty", this.id);
-    }
+	public kill(): void {
+		ipcRenderer.send("editor:kill-node-pty", this.id);
+	}
 
-    /**
+	/**
      * Waits until the 
      */
-    public wait(): Promise<number> {
-        if (this._exited) {
-            return Promise.resolve(this._exitCode);
-        }
+	public wait(): Promise<number> {
+		if (this._exited) {
+			return Promise.resolve(this._exitCode);
+		}
 
-        return new Promise<number>((resolve) => {
-            ipcRenderer.once(`editor:node-pty-exit:${this.id}`, () => resolve(this._exitCode));
-        });
-    }
+		return new Promise<number>((resolve) => {
+			ipcRenderer.once(`editor:node-pty-exit:${this.id}`, () => resolve(this._exitCode));
+		});
+	}
 
-    /**
+	/**
      * Resizes the node-pty process in case it is used using xterm.
      */
-    public resize(cols: number, rows: number): void {
-        ipcRenderer.send("editor:resize-node-pty", this.id, cols, rows);
-    }
+	public resize(cols: number, rows: number): void {
+		ipcRenderer.send("editor:resize-node-pty", this.id, cols, rows);
+	}
 }

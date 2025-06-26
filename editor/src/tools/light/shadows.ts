@@ -9,19 +9,19 @@ import { isPointLight, isSpotLight } from "../guards/nodes";
  * @param light defines the reference to the point light to configure.
  */
 export function updatePointLightShadowMapRenderListPredicate(light: Light): void {
-    if (!isPointLight(light) && !isSpotLight(light)) {
-        return;
-    }
+	if (!isPointLight(light) && !isSpotLight(light)) {
+		return;
+	}
 
-    const shadowMap = light.getShadowGenerator()?.getShadowMap();
-    if (!shadowMap) {
-        return;
-    }
+	const shadowMap = light.getShadowGenerator()?.getShadowMap();
+	if (!shadowMap) {
+		return;
+	}
 
-    shadowMap.renderListPredicate = (mesh) => {
-        const distance = Vector3.Distance(mesh.getAbsolutePosition(), light.getAbsolutePosition());
-        return distance <= light.range;
-    };
+	shadowMap.renderListPredicate = (mesh) => {
+		const distance = Vector3.Distance(mesh.getAbsolutePosition(), light.getAbsolutePosition());
+		return distance <= light.range;
+	};
 }
 
 /**
@@ -30,14 +30,14 @@ export function updatePointLightShadowMapRenderListPredicate(light: Light): void
  * @param light defines the reference to the light to configure.
  */
 export function updateLightShadowMapRefreshRate(light: Light): void {
-    const shadowMap = light.getShadowGenerator()?.getShadowMap();
-    if (!shadowMap) {
-        return;
-    }
+	const shadowMap = light.getShadowGenerator()?.getShadowMap();
+	if (!shadowMap) {
+		return;
+	}
 
-    if (shadowMap.refreshRate === RenderTargetTexture.REFRESHRATE_RENDER_ONCE) {
-        shadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-    }
+	if (shadowMap.refreshRate === RenderTargetTexture.REFRESHRATE_RENDER_ONCE) {
+		shadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+	}
 }
 
 /**
@@ -45,8 +45,8 @@ export function updateLightShadowMapRefreshRate(light: Light): void {
  * @param scene defines the reference to the scene that contains all lights to update.
  */
 export function updateAllLights(scene: Scene) {
-    scene.lights.forEach((light) => {
-        updateLightShadowMapRefreshRate(light);
-        updatePointLightShadowMapRenderListPredicate(light);
-    });
+	scene.lights.forEach((light) => {
+		updateLightShadowMapRefreshRate(light);
+		updatePointLightShadowMapRenderListPredicate(light);
+	});
 }

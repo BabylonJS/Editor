@@ -12,11 +12,11 @@ import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, p
  * @param camera defines the reference to the camera to save its rendering configurations.
  */
 export function saveRenderingConfigurationForCamera(camera: Camera) {
-    ssaoRenderingPipelineCameraConfigurations.set(camera, serializeSSAO2RenderingPipeline());
-    vlsPostProcessCameraConfigurations.set(camera, serializeVLSPostProcess());
-    ssrRenderingPipelineCameraConfigurations.set(camera, serializeSSRRenderingPipeline());
-    motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
-    defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
+	ssaoRenderingPipelineCameraConfigurations.set(camera, serializeSSAO2RenderingPipeline());
+	vlsPostProcessCameraConfigurations.set(camera, serializeVLSPostProcess());
+	ssrRenderingPipelineCameraConfigurations.set(camera, serializeSSRRenderingPipeline());
+	motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
+	defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
 }
 
 /**
@@ -26,34 +26,34 @@ export function saveRenderingConfigurationForCamera(camera: Camera) {
  * @param camera defines the reference to the camera to apply its rendering configurations.
  */
 export function applyRenderingConfigurationForCamera(camera: Camera) {
-    disposeSSAO2RenderingPipeline();
-    disposeVLSPostProcess(camera.getScene());
-    disposeSSRRenderingPipeline();
-    disposeMotionBlurPostProcess();
-    disposeDefaultRenderingPipeline();
+	disposeSSAO2RenderingPipeline();
+	disposeVLSPostProcess(camera.getScene());
+	disposeSSRRenderingPipeline();
+	disposeMotionBlurPostProcess();
+	disposeDefaultRenderingPipeline();
 
-    const ssao2RenderingPipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
-    if (ssao2RenderingPipeline) {
-        parseSSAO2RenderingPipeline(camera.getScene(), camera, ssao2RenderingPipeline);
-    }
+	const ssao2RenderingPipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
+	if (ssao2RenderingPipeline) {
+		parseSSAO2RenderingPipeline(camera.getScene(), camera, ssao2RenderingPipeline);
+	}
 
-    const vlsPostProcess = vlsPostProcessCameraConfigurations.get(camera);
-    if (vlsPostProcess) {
-        parseVLSPostProcess(camera.getScene(), vlsPostProcess);
-    }
+	const vlsPostProcess = vlsPostProcessCameraConfigurations.get(camera);
+	if (vlsPostProcess) {
+		parseVLSPostProcess(camera.getScene(), vlsPostProcess);
+	}
 
-    const ssrRenderingPipeline = ssrRenderingPipelineCameraConfigurations.get(camera);
-    if (ssrRenderingPipeline) {
-        parseSSRRenderingPipeline(camera.getScene(), camera, ssrRenderingPipeline);
-    }
+	const ssrRenderingPipeline = ssrRenderingPipelineCameraConfigurations.get(camera);
+	if (ssrRenderingPipeline) {
+		parseSSRRenderingPipeline(camera.getScene(), camera, ssrRenderingPipeline);
+	}
 
-    const motionBlurPostProcess = motionBlurPostProcessCameraConfigurations.get(camera);
-    if (motionBlurPostProcess) {
-        parseMotionBlurPostProcess(camera.getScene(), camera, motionBlurPostProcess);
-    }
+	const motionBlurPostProcess = motionBlurPostProcessCameraConfigurations.get(camera);
+	if (motionBlurPostProcess) {
+		parseMotionBlurPostProcess(camera.getScene(), camera, motionBlurPostProcess);
+	}
 
-    const defaultRenderingPipeline = defaultPipelineCameraConfigurations.get(camera);
-    if (defaultRenderingPipeline) {
-        parseDefaultRenderingPipeline(camera.getScene(), camera, defaultRenderingPipeline);
-    }
+	const defaultRenderingPipeline = defaultPipelineCameraConfigurations.get(camera);
+	if (defaultRenderingPipeline) {
+		parseDefaultRenderingPipeline(camera.getScene(), camera, defaultRenderingPipeline);
+	}
 }

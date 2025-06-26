@@ -12,26 +12,26 @@ export type SetEnabledEventType = {
 const zeroVector = Vector3.Zero();
 
 export function handleApplyImpulseEvent(scene: Scene, config: SetEnabledEventType) {
-    let meshes = config.mesh
-        ? [config.mesh]
-        : scene.meshes.filter((m) => m.physicsAggregate);
+	let meshes = config.mesh
+		? [config.mesh]
+		: scene.meshes.filter((m) => m.physicsAggregate);
 
-    if (config.radius) {
-        meshes = meshes.filter((mesh) => {
-            const centerWorld = mesh.getBoundingInfo().boundingBox.centerWorld;
-            return Vector3.Distance(centerWorld, config.contactPoint) <= config.radius;
-        });
-    }
+	if (config.radius) {
+		meshes = meshes.filter((mesh) => {
+			const centerWorld = mesh.getBoundingInfo().boundingBox.centerWorld;
+			return Vector3.Distance(centerWorld, config.contactPoint) <= config.radius;
+		});
+	}
 
-    meshes.forEach((mesh) => {
-        if (mesh.physicsAggregate?.body) {
-            const direction = config.contactPoint.subtract(mesh.getBoundingInfo().boundingBox.centerWorld);
-            direction.multiplyInPlace(config.force);
+	meshes.forEach((mesh) => {
+		if (mesh.physicsAggregate?.body) {
+			const direction = config.contactPoint.subtract(mesh.getBoundingInfo().boundingBox.centerWorld);
+			direction.multiplyInPlace(config.force);
 
-            mesh.physicsAggregate.body.setLinearVelocity(zeroVector);
-            mesh.physicsAggregate.body.setAngularVelocity(zeroVector);
+			mesh.physicsAggregate.body.setLinearVelocity(zeroVector);
+			mesh.physicsAggregate.body.setAngularVelocity(zeroVector);
 
-            mesh.physicsAggregate.body.applyImpulse(direction.negateInPlace(), config.contactPoint);
-        }
-    });
+			mesh.physicsAggregate.body.applyImpulse(direction.negateInPlace(), config.contactPoint);
+		}
+	});
 }

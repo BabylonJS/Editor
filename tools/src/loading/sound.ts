@@ -6,13 +6,13 @@ import { GetParser, AddParser } from "@babylonjs/core/Loading/Plugins/babylonFil
 const audioParser = GetParser(SceneComponentConstants.NAME_AUDIO);
 
 AddParser(SceneComponentConstants.NAME_AUDIO, (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-    audioParser?.(parsedData, scene, container, rootUrl);
+	audioParser?.(parsedData, scene, container, rootUrl);
 
-    parsedData.sounds?.forEach((sound) => {
-        const instance = container.sounds?.find((s) => s.name === sound.name);
-        if (instance) {
-            instance.id = sound.id;
-            instance.uniqueId = sound.uniqueId;
-        }
-    });
+	parsedData.sounds?.forEach((sound) => {
+		const instance = container.sounds?.find((s) => s.name === sound.name);
+		if (instance) {
+			instance.id = sound.id;
+			instance.uniqueId = sound.uniqueId;
+		}
+	});
 });

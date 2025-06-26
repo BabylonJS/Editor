@@ -10,10 +10,10 @@ export interface ICinematicEditorSetEnabledKeyInspectorProps {
 }
 
 export function CinematicEditorSetEnabledKeyInspector(props: ICinematicEditorSetEnabledKeyInspectorProps) {
-    return (
-        <>
-            <EditorInspectorSwitchField object={props.cinematicKey.data} property="value" label="Enabled" />
-            <EditorInspectorNodeField object={props.cinematicKey.data} property="node" scene={props.scene} label="Node" />
-        </>
-    );
+	return (
+		<>
+			<EditorInspectorSwitchField object={props.cinematicKey.data} property="value" label="Enabled" />
+			<EditorInspectorNodeField object={props.cinematicKey.data} property="node" scene={props.scene} label="Node" />
+		</>
+	);
 }

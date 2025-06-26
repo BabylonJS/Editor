@@ -10,48 +10,48 @@ let motionBlurPostProcess: MotionBlurPostProcess | null = null;
 export const motionBlurPostProcessCameraConfigurations = new Map<Camera, any>();
 
 export function getMotionBlurPostProcess(): MotionBlurPostProcess | null {
-    return motionBlurPostProcess;
+	return motionBlurPostProcess;
 }
 
 export function disposeMotionBlurPostProcess(): void {
-    if (motionBlurPostProcess) {
-        motionBlurPostProcess.dispose();
-        motionBlurPostProcess = null;
-    }
+	if (motionBlurPostProcess) {
+		motionBlurPostProcess.dispose();
+		motionBlurPostProcess = null;
+	}
 }
 
 export function createMotionBlurPostProcess(editor: Editor): MotionBlurPostProcess {
-    motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", editor.layout.preview.scene, 1.0, editor.layout.preview.scene.activeCamera);
-    motionBlurPostProcess.samples = 16;
-    motionBlurPostProcess.motionStrength = 1.0;
-    motionBlurPostProcess.isObjectBased = true;
+	motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", editor.layout.preview.scene, 1.0, editor.layout.preview.scene.activeCamera);
+	motionBlurPostProcess.samples = 16;
+	motionBlurPostProcess.motionStrength = 1.0;
+	motionBlurPostProcess.isObjectBased = true;
 
-    return motionBlurPostProcess;
+	return motionBlurPostProcess;
 }
 
 export function serializeMotionBlurPostProcess(): any {
-    if (!motionBlurPostProcess) {
-        return null;
-    }
+	if (!motionBlurPostProcess) {
+		return null;
+	}
 
-    return {
-        samples: motionBlurPostProcess.samples,
-        isObjectBased: motionBlurPostProcess.isObjectBased,
-        motionStrength: motionBlurPostProcess.motionStrength,
-        motionBlurSamples: motionBlurPostProcess.motionBlurSamples,
-    };
+	return {
+		samples: motionBlurPostProcess.samples,
+		isObjectBased: motionBlurPostProcess.isObjectBased,
+		motionStrength: motionBlurPostProcess.motionStrength,
+		motionBlurSamples: motionBlurPostProcess.motionBlurSamples,
+	};
 }
 
 export function parseMotionBlurPostProcess(editor: Editor, data: any): MotionBlurPostProcess {
-    const motionBlurPostProcess = getMotionBlurPostProcess() ?? createMotionBlurPostProcess(editor);
+	const motionBlurPostProcess = getMotionBlurPostProcess() ?? createMotionBlurPostProcess(editor);
 
-    motionBlurPostProcess.isObjectBased = data.isObjectBased;
-    motionBlurPostProcess.motionStrength = data.motionStrength;
-    motionBlurPostProcess.motionBlurSamples = data.motionBlurSamples;
+	motionBlurPostProcess.isObjectBased = data.isObjectBased;
+	motionBlurPostProcess.motionStrength = data.motionStrength;
+	motionBlurPostProcess.motionBlurSamples = data.motionBlurSamples;
 
-    if (data.samples) {
-        motionBlurPostProcess.samples = data.samples;
-    }
+	if (data.samples) {
+		motionBlurPostProcess.samples = data.samples;
+	}
 
-    return motionBlurPostProcess;
+	return motionBlurPostProcess;
 }

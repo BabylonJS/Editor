@@ -28,94 +28,94 @@ export type RenderCinematicOptionsType = RenderCinematicBaseOptionsType & {
 };
 
 export async function renderCinematic(cinematicEditor: CinematicEditor, options: RenderCinematicOptionsType) {
-    // Create temporary folder
-    const destinationFolder = join(dirname(options.destination), Tools.RandomId());
-    await ensureDir(destinationFolder);
+	// Create temporary folder
+	const destinationFolder = join(dirname(options.destination), Tools.RandomId());
+	await ensureDir(destinationFolder);
 
-    // Configure preview
-    const preview = cinematicEditor.editor.layout.preview;
-    const scene = preview.scene;
-    const engine = preview.engine;
+	// Configure preview
+	const preview = cinematicEditor.editor.layout.preview;
+	const scene = preview.scene;
+	const engine = preview.engine;
 
-    const { width, height } = getVideoDimensions(options.type);
+	const { width, height } = getVideoDimensions(options.type);
 
-    const scalingLevel = engine._hardwareScalingLevel;
-    const fixedDimensionsType = preview.state.fixedDimensions;
+	const scalingLevel = engine._hardwareScalingLevel;
+	const fixedDimensionsType = preview.state.fixedDimensions;
 
-    preview.setRenderScene(false);
-    engine.renderEvenInBackground = true;
-    scene.useConstantAnimationDeltaTime = true;
+	preview.setRenderScene(false);
+	engine.renderEvenInBackground = true;
+	scene.useConstantAnimationDeltaTime = true;
 
-    engine.setHardwareScalingLevel(scalingLevel * 0.25);
-    preview.setFixedDimensions(options.type);
-    preview.scene.render();
+	engine.setHardwareScalingLevel(scalingLevel * 0.25);
+	preview.setFixedDimensions(options.type);
+	preview.scene.render();
 
-    // Prepare
-    let encoder = createVideoEncoder(width, height);
+	// Prepare
+	let encoder = createVideoEncoder(width, height);
 
-    saveSceneState(scene);
+	saveSceneState(scene);
 
-    let videoIndex = 1;
-    options.animationGroup.play(false);
+	let videoIndex = 1;
+	options.animationGroup.play(false);
 
-    // Render each frame into video
-    const framesCount = options.animationGroup.to - options.animationGroup.from;
+	// Render each frame into video
+	const framesCount = options.animationGroup.to - options.animationGroup.from;
 
-    for (let i = 0; i < framesCount; ++i) {
-        preview.setRenderScene(true);
+	for (let i = 0; i < framesCount; ++i) {
+		preview.setRenderScene(true);
 
-        preview.scene.lights.forEach((light) => {
-            updateLightShadowMapRefreshRate(light);
-        });
+		preview.scene.lights.forEach((light) => {
+			updateLightShadowMapRefreshRate(light);
+		});
 
-        engine.beginFrame();
-        engine.activeRenderLoops.forEach((fn) => fn());
-        engine.endFrame();
-        preview.setRenderScene(false);
+		engine.beginFrame();
+		engine.activeRenderLoops.forEach((fn) => fn());
+		engine.endFrame();
+		preview.setRenderScene(false);
 
-        encodeVideoFrame(engine.getRenderingCanvas()!, encoder.videoEncoder, i);
+		encodeVideoFrame(engine.getRenderingCanvas()!, encoder.videoEncoder, i);
 
-        await waitNextAnimationFrame();
+		await waitNextAnimationFrame();
 
-        options.onProgress(((i / framesCount) * 100) >> 0);
+		options.onProgress(((i / framesCount) * 100) >> 0);
 
-        if (options.cancelled) {
-            break;
-        }
+		if (options.cancelled) {
+			break;
+		}
 
-        if (i > 0 && i % 60 === 0) {
-            encoder = await flushVideoEncoder({
-                ...encoder,
-                width,
-                height,
-                videoIndex,
-                destinationFolder,
-            });
+		if (i > 0 && i % 60 === 0) {
+			encoder = await flushVideoEncoder({
+				...encoder,
+				width,
+				height,
+				videoIndex,
+				destinationFolder,
+			});
 
-            ++videoIndex;
-        }
-    }
+			++videoIndex;
+		}
+	}
 
-    restoreSceneState();
+	restoreSceneState();
 
-    // Finalize video encoder and restore canvas
-    await flushVideoEncoder({
-        ...encoder,
-        width,
-        height,
-        videoIndex,
-        destinationFolder,
-    });
+	// Finalize video encoder and restore canvas
+	await flushVideoEncoder({
+		...encoder,
+		width,
+		height,
+		videoIndex,
+		destinationFolder,
+	});
 
-    preview.setRenderScene(true);
-    engine.renderEvenInBackground = false;
-    scene.useConstantAnimationDeltaTime = false;
+	preview.setRenderScene(true);
+	engine.renderEvenInBackground = false;
+	scene.useConstantAnimationDeltaTime = false;
 
-    engine.setHardwareScalingLevel(scalingLevel);
-    preview.setFixedDimensions(fixedDimensionsType);
+	engine.setHardwareScalingLevel(scalingLevel);
+	preview.setFixedDimensions(fixedDimensionsType);
 
-    return {
-        framesCount,
-        destinationFolder,
-    };
+	return {
+		framesCount,
+		destinationFolder,
+	};
 }

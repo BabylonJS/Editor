@@ -5,5 +5,5 @@ import { Sound } from "babylonjs";
  * @param object defines the reference to the object to test its class name.
  */
 export function isSound(object: any): object is Sound {
-    return object.getClassName?.() === "Sound";
+	return object.getClassName?.() === "Sound";
 }

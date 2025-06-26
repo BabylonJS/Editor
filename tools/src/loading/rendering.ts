@@ -7,32 +7,32 @@ import { motionBlurPostProcessCameraConfigurations } from "../rendering/motion-b
 import { defaultPipelineCameraConfigurations } from "../rendering/default-pipeline";
 
 export function applyRenderingConfigurations(scene: Scene, rendering: any): void {
-    const postProcessConfigurations = Array.isArray(rendering) ? rendering : [];
+	const postProcessConfigurations = Array.isArray(rendering) ? rendering : [];
 
-    postProcessConfigurations.forEach((configuration) => {
-        const camera = scene.getCameraById(configuration.cameraId);
-        if (!camera) {
-            return;
-        }
+	postProcessConfigurations.forEach((configuration) => {
+		const camera = scene.getCameraById(configuration.cameraId);
+		if (!camera) {
+			return;
+		}
 
-        if (configuration.ssao2RenderingPipeline) {
-            ssaoRenderingPipelineCameraConfigurations.set(camera, configuration.ssao2RenderingPipeline);
-        }
+		if (configuration.ssao2RenderingPipeline) {
+			ssaoRenderingPipelineCameraConfigurations.set(camera, configuration.ssao2RenderingPipeline);
+		}
 
-        if (configuration.vlsPostProcess) {
-            vlsPostProcessCameraConfigurations.set(camera, configuration.vlsPostProcess);
-        }
+		if (configuration.vlsPostProcess) {
+			vlsPostProcessCameraConfigurations.set(camera, configuration.vlsPostProcess);
+		}
 
-        if (configuration.ssrRenderingPipeline) {
-            ssrRenderingPipelineCameraConfigurations.set(camera, configuration.ssrRenderingPipeline);
-        }
+		if (configuration.ssrRenderingPipeline) {
+			ssrRenderingPipelineCameraConfigurations.set(camera, configuration.ssrRenderingPipeline);
+		}
 
-        if (configuration.motionBlurPostProcess) {
-            motionBlurPostProcessCameraConfigurations.set(camera, configuration.motionBlurPostProcess);
-        }
+		if (configuration.motionBlurPostProcess) {
+			motionBlurPostProcessCameraConfigurations.set(camera, configuration.motionBlurPostProcess);
+		}
 
-        if (configuration.defaultRenderingPipeline) {
-            defaultPipelineCameraConfigurations.set(camera, configuration.defaultRenderingPipeline);
-        }
-    });
+		if (configuration.defaultRenderingPipeline) {
+			defaultPipelineCameraConfigurations.set(camera, configuration.defaultRenderingPipeline);
+		}
+	});
 }

@@ -13,10 +13,10 @@ import { ISceneDecoratorData } from "./apply";
  *  private _ui!: AdvancedDynamicTexture;
  */
 export function guiFromAsset<T>(pathInAssets: string, onGuiCreated?: (instance: T, gui: AdvancedDynamicTexture) => unknown) {
-    return function (target: any, propertyKey: string | Symbol) {
-        const ctor = target.constructor as ISceneDecoratorData;
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
 
-        ctor._GuiFromAsset ??= [];
-        ctor._GuiFromAsset.push({ propertyKey, pathInAssets, onGuiCreated });
-    };
+		ctor._GuiFromAsset ??= [];
+		ctor._GuiFromAsset.push({ propertyKey, pathInAssets, onGuiCreated });
+	};
 }

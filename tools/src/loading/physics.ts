@@ -10,34 +10,34 @@ import { isInstancedMesh, isMesh } from "../tools/guards";
  * @param mesh defines the reference to the mesh object.
  */
 export function configurePhysicsAggregate(transformNode: AbstractMesh) {
-    const data = transformNode.metadata?.physicsAggregate;
-    if (!data) {
-        return;
-    }
+	const data = transformNode.metadata?.physicsAggregate;
+	if (!data) {
+		return;
+	}
 
-    let mesh: Mesh | undefined = undefined;
-    if (isMesh(transformNode)) {
-        mesh = transformNode;
-    } else if (isInstancedMesh(transformNode)) {
-        mesh = transformNode.sourceMesh;
-    }
+	let mesh: Mesh | undefined = undefined;
+	if (isMesh(transformNode)) {
+		mesh = transformNode;
+	} else if (isInstancedMesh(transformNode)) {
+		mesh = transformNode.sourceMesh;
+	}
 
-    const aggregate = new PhysicsAggregate(transformNode, data.shape.type, {
-        mesh,
-        mass: data.massProperties.mass,
-    });
+	const aggregate = new PhysicsAggregate(transformNode, data.shape.type, {
+		mesh,
+		mass: data.massProperties.mass,
+	});
 
-    aggregate.body.setMassProperties({
-        mass: data.massProperties.mass,
-        inertia: data.massProperties.inertia ? Vector3.FromArray(data.massProperties.inertia) : undefined,
-        centerOfMass: data.massProperties.centerOfMass ? Vector3.FromArray(data.massProperties.centerOfMass) : undefined,
-        inertiaOrientation: data.massProperties.inertiaOrientation ? Quaternion.FromArray(data.massProperties.inertiaOrientation) : undefined,
-    });
+	aggregate.body.setMassProperties({
+		mass: data.massProperties.mass,
+		inertia: data.massProperties.inertia ? Vector3.FromArray(data.massProperties.inertia) : undefined,
+		centerOfMass: data.massProperties.centerOfMass ? Vector3.FromArray(data.massProperties.centerOfMass) : undefined,
+		inertiaOrientation: data.massProperties.inertiaOrientation ? Quaternion.FromArray(data.massProperties.inertiaOrientation) : undefined,
+	});
 
-    aggregate.shape.density = data.shape.density;
-    aggregate.body.setMotionType(data.body.motionType);
-    aggregate.shape.material = data.material;
+	aggregate.shape.density = data.shape.density;
+	aggregate.body.setMotionType(data.body.motionType);
+	aggregate.shape.material = data.material;
 
-    transformNode.physicsAggregate = aggregate;
-    transformNode.metadata.physicsAggregate = undefined;
+	transformNode.physicsAggregate = aggregate;
+	transformNode.metadata.physicsAggregate = undefined;
 }

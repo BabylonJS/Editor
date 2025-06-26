@@ -8,9 +8,9 @@ export interface ICustomLink extends PropsWithChildren {
 }
 
 export function CustomLink(props: ICustomLink) {
-    return (
-        <Link href={props.href} target="_blank" className="underline underline-offset-4">
-            {props.children}
-        </Link>
-    )
+	return (
+		<Link href={props.href} target="_blank" className="underline underline-offset-4">
+			{props.children}
+		</Link>
+	);
 }

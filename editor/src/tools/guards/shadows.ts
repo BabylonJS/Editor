@@ -5,7 +5,7 @@ import { CascadedShadowGenerator, ShadowGenerator } from "babylonjs";
  * @param object defines the reference to the object to test its class name.
  */
 export function isShadowGenerator(object: any): object is ShadowGenerator {
-    return object.getClassName?.() === "ShadowGenerator";
+	return object.getClassName?.() === "ShadowGenerator";
 }
 
 /**
@@ -13,5 +13,5 @@ export function isShadowGenerator(object: any): object is ShadowGenerator {
  * @param object defines the reference to the object to test its class name.
  */
 export function isCascadedShadowGenerator(object: any): object is CascadedShadowGenerator {
-    return object.getClassName?.() === "CascadedShadowGenerator";
+	return object.getClassName?.() === "CascadedShadowGenerator";
 }

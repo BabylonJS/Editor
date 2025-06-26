@@ -20,15 +20,15 @@ import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
  * @param object defines the reference to the object to test its class name.
  */
 export function isAbstractMesh(object: any): object is Mesh {
-    switch (object.getClassName?.()) {
-        case "Mesh":
-        case "LineMesh":
-        case "GroundMesh":
-        case "InstancedMesh":
-            return true;
-    }
+	switch (object.getClassName?.()) {
+	case "Mesh":
+	case "LineMesh":
+	case "GroundMesh":
+	case "InstancedMesh":
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -36,13 +36,13 @@ export function isAbstractMesh(object: any): object is Mesh {
  * @param object defines the reference to the object to test its class name.
  */
 export function isMesh(object: any): object is Mesh {
-    switch (object.getClassName?.()) {
-        case "Mesh":
-        case "GroundMesh":
-            return true;
-    }
+	switch (object.getClassName?.()) {
+	case "Mesh":
+	case "GroundMesh":
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -50,7 +50,7 @@ export function isMesh(object: any): object is Mesh {
  * @param object defines the reference to the object to test its class name.
  */
 export function isInstancedMesh(object: any): object is InstancedMesh {
-    return object.getClassName?.() === "InstancedMesh";
+	return object.getClassName?.() === "InstancedMesh";
 }
 
 /**
@@ -58,7 +58,7 @@ export function isInstancedMesh(object: any): object is InstancedMesh {
  * @param object defines the reference to the object to test its class name.
  */
 export function isBone(object: any): object is Bone {
-    return object.getClassName?.() === "Bone";
+	return object.getClassName?.() === "Bone";
 }
 
 /**
@@ -66,7 +66,7 @@ export function isBone(object: any): object is Bone {
  * @param object defines the reference to the object to test its class name.
  */
 export function isGroundMesh(object: any): object is GroundMesh {
-    return object.getClassName?.() === "GroundMesh";
+	return object.getClassName?.() === "GroundMesh";
 }
 
 /**
@@ -74,7 +74,7 @@ export function isGroundMesh(object: any): object is GroundMesh {
  * @param object defines the reference to the object to test its class name.
  */
 export function isTransformNode(object: any): object is TransformNode {
-    return object.getClassName?.() === "TransformNode";
+	return object.getClassName?.() === "TransformNode";
 }
 
 /**
@@ -82,7 +82,7 @@ export function isTransformNode(object: any): object is TransformNode {
  * @param object defines the reference to the object to test its class name.
  */
 export function isTexture(object: any): object is Texture {
-    return object?.getClassName?.() === "Texture";
+	return object?.getClassName?.() === "Texture";
 }
 
 /**
@@ -90,17 +90,17 @@ export function isTexture(object: any): object is Texture {
  * @param object defines the reference to the object to test its class name.
  */
 export function isCamera(object: any): object is Camera {
-    switch (object.getClassName?.()) {
-        case "Camera":
-        case "FreeCamera":
-        case "TargetCamera":
-        case "EditorCamera":
-        case "ArcRotateCamera":
-        case "UniversalCamera":
-            return true;
-    }
+	switch (object.getClassName?.()) {
+	case "Camera":
+	case "FreeCamera":
+	case "TargetCamera":
+	case "EditorCamera":
+	case "ArcRotateCamera":
+	case "UniversalCamera":
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -108,13 +108,13 @@ export function isCamera(object: any): object is Camera {
  * @param object defines the reference to the object to test its class name.
  */
 export function isFreeCamera(object: any): object is FreeCamera {
-    switch (object.getClassName?.()) {
-        case "FreeCamera":
-        case "UniversalCamera":
-            return true;
-    }
+	switch (object.getClassName?.()) {
+	case "FreeCamera":
+	case "UniversalCamera":
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -122,7 +122,7 @@ export function isFreeCamera(object: any): object is FreeCamera {
  * @param object defines the reference to the object to test its class name.
  */
 export function isArcRotateCamera(object: any): object is ArcRotateCamera {
-    return object.getClassName?.() === "ArcRotateCamera";
+	return object.getClassName?.() === "ArcRotateCamera";
 }
 
 /**
@@ -130,7 +130,7 @@ export function isArcRotateCamera(object: any): object is ArcRotateCamera {
  * @param object defines the reference to the object to test its class name.
  */
 export function isPointLight(object: any): object is PointLight {
-    return object.getClassName?.() === "PointLight";
+	return object.getClassName?.() === "PointLight";
 }
 
 /**
@@ -138,7 +138,7 @@ export function isPointLight(object: any): object is PointLight {
  * @param object defines the reference to the object to test its class name.
  */
 export function isDirectionalLight(object: any): object is DirectionalLight {
-    return object.getClassName?.() === "DirectionalLight";
+	return object.getClassName?.() === "DirectionalLight";
 }
 
 /**
@@ -146,7 +146,7 @@ export function isDirectionalLight(object: any): object is DirectionalLight {
  * @param object defines the reference to the object to test its class name.
  */
 export function isSpotLight(object: any): object is SpotLight {
-    return object.getClassName?.() === "SpotLight";
+	return object.getClassName?.() === "SpotLight";
 }
 
 /**
@@ -154,5 +154,5 @@ export function isSpotLight(object: any): object is SpotLight {
  * @param object defines the reference to the object to test its class name.
  */
 export function isHemisphericLight(object: any): object is HemisphericLight {
-    return object.getClassName?.() === "HemisphericLight";
+	return object.getClassName?.() === "HemisphericLight";
 }

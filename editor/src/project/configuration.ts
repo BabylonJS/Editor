@@ -6,8 +6,8 @@ export interface IProjectConfiguration {
 }
 
 export const projectConfiguration: IProjectConfiguration = {
-    path: null,
-    compressedTexturesEnabled: false,
+	path: null,
+	compressedTexturesEnabled: false,
 };
 
 export const onProjectConfigurationChangedObservable = new Observable<IProjectConfiguration>();

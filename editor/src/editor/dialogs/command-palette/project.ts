@@ -5,7 +5,7 @@ import { saveProject } from "../../../project/save/save";
 import { ICommandPaletteType } from "./command-palette";
 
 export function getProjectCommands(editor: Editor): ICommandPaletteType[] {
-    return [
-        { text: "Save", label: "Saves the project.", action: () => saveProject(editor) },
-    ];
+	return [
+		{ text: "Save", label: "Saves the project.", action: () => saveProject(editor) },
+	];
 }

@@ -30,111 +30,111 @@ export interface IDashboardProjectItemProps {
 }
 
 export function DashboardProjectItem(props: IDashboardProjectItemProps) {
-    const [contextMenuOpen, setContextMenuOpen] = useState(false);
+	const [contextMenuOpen, setContextMenuOpen] = useState(false);
 
-    const [launching, setLaunching] = useState(false);
+	const [launching, setLaunching] = useState(false);
 
-    const [playingAddress, setPlayingAddress] = useState("");
-    const [nodePtyInstance, setNodePtyInstance] = useState<NodePtyInstance | null>(null);
+	const [playingAddress, setPlayingAddress] = useState("");
+	const [nodePtyInstance, setNodePtyInstance] = useState<NodePtyInstance | null>(null);
 
-    useEffect(() => {
-        return () => {
-            nodePtyInstance?.kill();
-        };
-    }, [nodePtyInstance]);
+	useEffect(() => {
+		return () => {
+			nodePtyInstance?.kill();
+		};
+	}, [nodePtyInstance]);
 
-    useEffect(() => {
-        if (playingAddress) {
-            shell.openExternal(playingAddress);
-        }
-    }, [playingAddress]);
+	useEffect(() => {
+		if (playingAddress) {
+			shell.openExternal(playingAddress);
+		}
+	}, [playingAddress]);
 
-    async function handleLaunchProject() {
-        setLaunching(true);
+	async function handleLaunchProject() {
+		setLaunching(true);
 
-        const projectName = basename(dirname(props.project.absolutePath));
+		const projectName = basename(dirname(props.project.absolutePath));
 
-        let progressRef: DashboardProgressComponent = null!;
-        const toastId = toast(<DashboardProgressComponent ref={(r) => progressRef = r!} name={projectName} />, {
-            duration: Infinity,
-            dismissible: false,
-        });
+		let progressRef: DashboardProgressComponent = null!;
+		const toastId = toast(<DashboardProgressComponent ref={(r) => progressRef = r!} name={projectName} />, {
+			duration: Infinity,
+			dismissible: false,
+		});
 
-        let installCommand = "";
-        let devCommand = "";
+		let installCommand = "";
+		let devCommand = "";
 
-        const project = await readJSON(props.project.absolutePath) as IEditorProject;
-        switch (project.packageManager) {
-            case "npm":
-                installCommand = "npm i";
-                devCommand = "npm run dev";
-                break;
-            case "pnpm":
-                installCommand = "pnpm i";
-                devCommand = "pnpm dev";
-                break;
-            case "bun":
-                installCommand = "bun i";
-                devCommand = "bun run dev";
-                break;
-            default:
-                installCommand = "yarn";
-                devCommand = "yarn dev";
-                break;
-        }
+		const project = await readJSON(props.project.absolutePath) as IEditorProject;
+		switch (project.packageManager) {
+		case "npm":
+			installCommand = "npm i";
+			devCommand = "npm run dev";
+			break;
+		case "pnpm":
+			installCommand = "pnpm i";
+			devCommand = "pnpm dev";
+			break;
+		case "bun":
+			installCommand = "bun i";
+			devCommand = "bun run dev";
+			break;
+		default:
+			installCommand = "yarn";
+			devCommand = "yarn dev";
+			break;
+		}
 
-        // Install dependencies
-        const installProcess = await execNodePty(installCommand, {
-            cwd: dirname(props.project.absolutePath),
-        });
+		// Install dependencies
+		const installProcess = await execNodePty(installCommand, {
+			cwd: dirname(props.project.absolutePath),
+		});
 
-        progressRef?.setProcess(installProcess);
-        progressRef?.setState({ message: `Installing dependencies...` });
+		progressRef?.setProcess(installProcess);
+		progressRef?.setState({ message: `Installing dependencies...` });
 
-        await installProcess.wait();
+		await installProcess.wait();
 
-        // Run process
-        const runProcess = await execNodePty(devCommand, {
-            cwd: dirname(props.project.absolutePath),
-        });
+		// Run process
+		const runProcess = await execNodePty(devCommand, {
+			cwd: dirname(props.project.absolutePath),
+		});
 
-        progressRef?.setProcess(runProcess);
-        progressRef?.setState({ message: `Running project...` });
+		progressRef?.setProcess(runProcess);
+		progressRef?.setState({ message: `Running project...` });
 
-        const observable = runProcess.onGetDataObservable.add((data) => {
-            const localhostRegex = /http:\/\/localhost:(\d+)/;
-            const match = data.match(localhostRegex);
-            if (match) {
-                runProcess.onGetDataObservable.remove(observable);
+		const observable = runProcess.onGetDataObservable.add((data) => {
+			const localhostRegex = /http:\/\/localhost:(\d+)/;
+			const match = data.match(localhostRegex);
+			if (match) {
+				runProcess.onGetDataObservable.remove(observable);
 
-                toast.dismiss(toastId);
+				toast.dismiss(toastId);
 
-                setLaunching(false);
-                setPlayingAddress(`http://localhost:${match[1]}`);
-            }
-        });
+				setLaunching(false);
+				setPlayingAddress(`http://localhost:${match[1]}`);
+			}
+		});
 
-        setNodePtyInstance(runProcess);
-    }
+		setNodePtyInstance(runProcess);
+	}
 
-    async function handleStopProject() {
-        nodePtyInstance?.kill();
-        setNodePtyInstance(null);
+	async function handleStopProject() {
+		nodePtyInstance?.kill();
+		setNodePtyInstance(null);
 
-        setLaunching(false);
-        setPlayingAddress("");
-    }
+		setLaunching(false);
+		setPlayingAddress("");
+	}
 
-    function handleOpenInVisualStudioCode() {
-        execNodePty(`code "${dirname(props.project.absolutePath)}"`);
-    }
+	function handleOpenInVisualStudioCode() {
+		execNodePty(`code "${dirname(props.project.absolutePath)}"`);
+	}
 
-    return (
-        <ContextMenu onOpenChange={(o) => setContextMenuOpen(o)}>
-            <ContextMenuTrigger>
-                <div
-                    onDoubleClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}
-                    className={`
+	return (
+		<ContextMenu onOpenChange={(o) => setContextMenuOpen(o)}>
+			<ContextMenuTrigger>
+				<div
+					onDoubleClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}
+					className={`
                         group
                         flex flex-col w-full rounded-lg cursor-pointer select-none
                         ${contextMenuOpen ? "ring-primary ring-2" : "ring-muted-foreground"}
@@ -142,66 +142,66 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
                         transition-all duration-300 ease-in-out
                         ${props.isOpened ? "opacity-15 pointer-events-none" : ""}
                     `}
-                >
-                    <div className="flex justify-center items-center w-full aspect-square bg-muted rounded-t-lg">
-                        {!props.project.preview &&
+				>
+					<div className="flex justify-center items-center w-full aspect-square bg-muted rounded-t-lg">
+						{!props.project.preview &&
                             <FaQuestion className="w-10 h-10" />
-                        }
-                        {props.project.preview &&
+						}
+						{props.project.preview &&
                             <img alt="" src={props.project.preview} className="w-full aspect-square object-cover rounded-t-lg" />
-                        }
-                    </div>
+						}
+					</div>
 
-                    <div className="flex flex-col gap-1 p-2 bg-secondary rounded-b-lg select-none">
-                        <div className="flex justify-between items-center gap-2">
-                            <div className="text-lg flex-1 font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
-                                {basename(dirname(props.project.absolutePath))}
-                            </div>
+					<div className="flex flex-col gap-1 p-2 bg-secondary rounded-b-lg select-none">
+						<div className="flex justify-between items-center gap-2">
+							<div className="text-lg flex-1 font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
+								{basename(dirname(props.project.absolutePath))}
+							</div>
 
-                            <Button
-                                variant="ghost"
-                                onClick={() => playingAddress ? handleStopProject() : handleLaunchProject()}
-                                className={`
+							<Button
+								variant="ghost"
+								onClick={() => playingAddress ? handleStopProject() : handleLaunchProject()}
+								className={`
                                     w-10 h-10 aspect-square p-0
                                     ${launching || playingAddress ? "" : "opacity-0 group-hover:opacity-100"}
                                     ${launching ? "bg-muted/50" : playingAddress ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
                                     transition-all duration-300 ease-in-out
                                 `}
-                            >
-                                {launching
-                                    ? <Grid width={24} height={24} color="#ffffff" />
-                                    : playingAddress
-                                        ? <IoStop className="w-6 h-6" strokeWidth={1} color="red" />
-                                        : <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
-                                }
-                            </Button>
-                        </div>
-                        <div className="text-muted-foreground text-xs">
+							>
+								{launching
+									? <Grid width={24} height={24} color="#ffffff" />
+									: playingAddress
+										? <IoStop className="w-6 h-6" strokeWidth={1} color="red" />
+										: <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
+								}
+							</Button>
+						</div>
+						<div className="text-muted-foreground text-xs">
                             Created {new Date(props.project.createdAt).toLocaleString("en-US", { day: "2-digit", month: "long", year: "numeric" })}
-                        </div>
-                        <div className="text-muted-foreground text-xs">
+						</div>
+						<div className="text-muted-foreground text-xs">
                             Updated {new Date(props.project.updatedAt).toLocaleString("en-US", { day: "2-digit", month: "long", year: "numeric" })}
-                        </div>
-                    </div>
-                </div>
-            </ContextMenuTrigger>
-            <ContextMenuContent>
-                <ContextMenuItem onClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}>
+						</div>
+					</div>
+				</div>
+			</ContextMenuTrigger>
+			<ContextMenuContent>
+				<ContextMenuItem onClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}>
                     Open
-                </ContextMenuItem>
-                <ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
-                    {`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem className="flex items-center gap-2" onClick={() => handleOpenInVisualStudioCode()}>
+				</ContextMenuItem>
+				<ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
+					{`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
+				</ContextMenuItem>
+				<ContextMenuSeparator />
+				<ContextMenuItem className="flex items-center gap-2" onClick={() => handleOpenInVisualStudioCode()}>
                     Open in Visual Studio Code
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => props.onRemove()}>
-                    <AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
-                </ContextMenuItem>
-            </ContextMenuContent>
-        </ContextMenu>
+				</ContextMenuItem>
+				<ContextMenuSeparator />
+				<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => props.onRemove()}>
+					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
+				</ContextMenuItem>
+			</ContextMenuContent>
+		</ContextMenu>
 
-    );
+	);
 }

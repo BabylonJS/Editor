@@ -6,8 +6,8 @@ import { AbstractMesh } from "babylonjs";
  * @param value defines the value to set to the metadata.
  */
 export function setMeshMetadataNotSerializable(mesh: AbstractMesh, value: boolean): void {
-    mesh.metadata ??= {};
-    mesh.metadata.doNotSerialize = value;
+	mesh.metadata ??= {};
+	mesh.metadata.doNotSerialize = value;
 }
 
 /**
@@ -16,8 +16,8 @@ export function setMeshMetadataNotSerializable(mesh: AbstractMesh, value: boolea
  * @param value defines the value to set to the metadata.
  */
 export function setMeshMetadataNotVisibleInGraph(mesh: AbstractMesh, value: boolean): void {
-    mesh.metadata ??= {};
-    mesh.metadata.notVisibleInGraph = value;
+	mesh.metadata ??= {};
+	mesh.metadata.notVisibleInGraph = value;
 }
 
 /**
@@ -25,5 +25,5 @@ export function setMeshMetadataNotVisibleInGraph(mesh: AbstractMesh, value: bool
  * @param mesh defines the reference to the mesh to get the metadata to.
  */
 export function isMeshMetadataNotVisibleInGraph(mesh: AbstractMesh): boolean {
-    return mesh.metadata?.notVisibleInGraph ?? false;
+	return mesh.metadata?.notVisibleInGraph ?? false;
 }

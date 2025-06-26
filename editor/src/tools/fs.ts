@@ -6,22 +6,22 @@ import { FSWatcher, mkdir, pathExists, watch } from "fs-extra";
  * @param absolutePath the absolute path of the directory to create.
  */
 export async function createDirectoryIfNotExist(absolutePath: string) {
-    if (!await pathExists(absolutePath)) {
-        await mkdir(absolutePath);
-    }
+	if (!await pathExists(absolutePath)) {
+		await mkdir(absolutePath);
+	}
 }
 
 /**
  * Normalizes the paths of the files returned by glob.
  */
 export async function normalizedGlob(...args: Parameters<typeof glob>): ReturnType<typeof glob> {
-    const result = await glob(...args);
+	const result = await glob(...args);
 
-    result.forEach((_: unknown, index: number) => {
-        result[index] = result[index].toString().replace(/\\/g, "/");
-    });
+	result.forEach((_: unknown, index: number) => {
+		result[index] = result[index].toString().replace(/\\/g, "/");
+	});
 
-    return result;
+	return result;
 }
 
 /**
@@ -31,22 +31,22 @@ export async function normalizedGlob(...args: Parameters<typeof glob>): ReturnTy
  * @param onChange defines the callback called when the file changed.
  */
 export function watchFile(absolutePath: string, onChange: () => void): FSWatcher {
-    const watcher = watch(absolutePath, {
-        persistent: true,
-    });
+	const watcher = watch(absolutePath, {
+		persistent: true,
+	});
 
-    let timeoutId: number | null = null;
+	let timeoutId: number | null = null;
 
-    watcher.on("change", () => {
-        if (timeoutId) {
-            window.clearTimeout(timeoutId);
-        }
+	watcher.on("change", () => {
+		if (timeoutId) {
+			window.clearTimeout(timeoutId);
+		}
 
-        timeoutId = window.setTimeout(() => {
-            timeoutId = null;
-            onChange();
-        }, 1000);
-    });
+		timeoutId = window.setTimeout(() => {
+			timeoutId = null;
+			onChange();
+		}, 1000);
+	});
 
-    return watcher;
+	return watcher;
 }

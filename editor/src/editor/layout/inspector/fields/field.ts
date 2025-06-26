@@ -18,7 +18,7 @@ export let inspectorSearch = "";
  * @param search defines the new search value to filter fields in inspector.
  */
 export function setInspectorSearch(search: string) {
-    inspectorSearch = search;
+	inspectorSearch = search;
 }
 
 // TODO: implement filter of fields in inspector.

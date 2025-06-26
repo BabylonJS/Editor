@@ -22,6 +22,8 @@ export type ProjectType = {
     updatedAt: Date;
 };
 
+export const temporaryDirectoryName = ".bjseditor";
+
 export const projectsKey: string = "babylonjs-editor-dashboard-projects";
 
 /**
@@ -31,12 +33,10 @@ export const projectsKey: string = "babylonjs-editor-dashboard-projects";
  * @param projectAbsolutePath defines the aboslute path to the project being edited in the editor.
  */
 export async function ensureTemporaryDirectoryExists(projectAbsolutePath: string) {
-    const directory = dirname(projectAbsolutePath);
-    const temporaryDirectory = join(directory, temporaryDirectoryName);
+	const directory = dirname(projectAbsolutePath);
+	const temporaryDirectory = join(directory, temporaryDirectoryName);
 
-    await ensureDir(temporaryDirectory);
+	await ensureDir(temporaryDirectory);
 
-    return temporaryDirectory;
+	return temporaryDirectory;
 }
-
-export const temporaryDirectoryName = ".bjseditor";

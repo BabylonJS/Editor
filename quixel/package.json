@@ -11,7 +11,8 @@
     "typings": "declaration/index.d.ts",
     "license": "(Apache-2.0)",
     "devDependencies": {
-        "typescript": "5.4.5"
+        "@types/node": "^22",
+        "typescript": "5.8.3"
     },
     "dependencies": {
         "babylonjs": "8.6.1",
