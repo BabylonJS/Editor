@@ -12,18 +12,18 @@ import { projectConfiguration } from "../../project/configuration";
  * @param scene defines the reference to the scene where to find the instantiated sound.
  */
 export function getSoundById(id: string, scene: Scene) {
-    if (!scene.soundTracks?.length) {
-        return null;
-    }
+	if (!scene.soundTracks?.length) {
+		return null;
+	}
 
-    for (let i = 0, len = scene.soundTracks?.length; i < len; i++) {
-        const sound = scene.soundTracks[i].soundCollection.find((s) => s.id === id);
-        if (sound) {
-            return sound;
-        }
-    }
+	for (let i = 0, len = scene.soundTracks?.length; i < len; i++) {
+		const sound = scene.soundTracks[i].soundCollection.find((s) => s.id === id);
+		if (sound) {
+			return sound;
+		}
+	}
 
-    return null;
+	return null;
 }
 
 /**
@@ -33,26 +33,26 @@ export function getSoundById(id: string, scene: Scene) {
  * @returns the new sound instance.
  */
 export function reloadSound(editor: Editor, sound: Sound) {
-    const url = sound["_url"];
-    if (!url || !projectConfiguration.path) {
-        return null;
-    }
+	const url = sound["_url"];
+	if (!url || !projectConfiguration.path) {
+		return null;
+	}
 
-    const serializationObject = sound.serialize();
+	const serializationObject = sound.serialize();
 
-    const newSound = Sound.Parse(
-        serializationObject,
-        editor.layout.preview.scene,
-        join(dirname(projectConfiguration.path), "/"),
-    );
+	const newSound = Sound.Parse(
+		serializationObject,
+		editor.layout.preview.scene,
+		join(dirname(projectConfiguration.path), "/"),
+	);
 
-    newSound["_url"] = serializationObject.url;
-    newSound.id = sound.id;
-    newSound.uniqueId = sound.uniqueId;
+	newSound["_url"] = serializationObject.url;
+	newSound.id = sound.id;
+	newSound.uniqueId = sound.uniqueId;
 
-    sound.dispose();
+	sound.dispose();
 
-    editor.layout.graph.refresh();
+	editor.layout.graph.refresh();
 
-    return newSound;
+	return newSound;
 }

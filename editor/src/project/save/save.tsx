@@ -21,67 +21,67 @@ import { saveScene } from "./scene";
 import { EditorSaveProjectProgressComponent } from "./progress";
 
 export async function saveProject(editor: Editor): Promise<void> {
-    if (!editor.state.projectPath) {
-        return;
-    }
+	if (!editor.state.projectPath) {
+		return;
+	}
 
-    const toastId = toast(<EditorSaveProjectProgressComponent />, {
-        duration: Infinity,
-        dismissible: false,
-    });
+	const toastId = toast(<EditorSaveProjectProgressComponent />, {
+		duration: Infinity,
+		dismissible: false,
+	});
 
-    const directory = dirname(editor.state.projectPath);
+	const directory = dirname(editor.state.projectPath);
 
-    const project: Partial<IEditorProject> = {
-        plugins: editor.state.plugins.map((plugin) => ({
-            nameOrPath: plugin,
-        })),
-        version: packageJson.version,
-        packageManager: editor.state.packageManager,
-        lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath), ""),
+	const project: Partial<IEditorProject> = {
+		plugins: editor.state.plugins.map((plugin) => ({
+			nameOrPath: plugin,
+		})),
+		version: packageJson.version,
+		packageManager: editor.state.packageManager,
+		lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath), ""),
 
-        compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
-        compressedTexturesEnabledInPreview: editor.state.compressedTexturesEnabledInPreview,
-    };
+		compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
+		compressedTexturesEnabledInPreview: editor.state.compressedTexturesEnabledInPreview,
+	};
 
-    if (!editor.props.editedScenePath) {
-        await writeJSON(editor.state.projectPath, project, {
-            spaces: 4,
-        });
-    }
+	if (!editor.props.editedScenePath) {
+		await writeJSON(editor.state.projectPath, project, {
+			spaces: 4,
+		});
+	}
 
-    if (editor.state.lastOpenedScenePath) {
-        editor.layout.console.log(`Saving project "${project.lastOpenedScene}"`);
-        await saveScene(editor, directory, editor.state.lastOpenedScenePath);
-        editor.layout.console.log(`Project "${project.lastOpenedScene}" saved.`);
-    }
+	if (editor.state.lastOpenedScenePath) {
+		editor.layout.console.log(`Saving project "${project.lastOpenedScene}"`);
+		await saveScene(editor, directory, editor.state.lastOpenedScenePath);
+		editor.layout.console.log(`Project "${project.lastOpenedScene}" saved.`);
+	}
 
-    toast.dismiss(toastId);
-    toast.success("Project saved");
+	toast.dismiss(toastId);
+	toast.success("Project saved");
 
-    if (!editor.props.editedScenePath) {
-        try {
-            const base64 = await getBase64SceneScreenshot(editor.layout.preview.scene);
+	if (!editor.props.editedScenePath) {
+		try {
+			const base64 = await getBase64SceneScreenshot(editor.layout.preview.scene);
 
-            const projects = tryGetProjectsFromLocalStorage();
-            const project = projects.find((project) => project.absolutePath === editor.state.projectPath);
-            if (project) {
-                project.preview = base64;
-                project.updatedAt = new Date();
+			const projects = tryGetProjectsFromLocalStorage();
+			const project = projects.find((project) => project.absolutePath === editor.state.projectPath);
+			if (project) {
+				project.preview = base64;
+				project.updatedAt = new Date();
 
-                localStorage.setItem(projectsKey, JSON.stringify(projects));
-                ipcRenderer.send("dashboard:update-projects");
-            }
-        } catch (e) {
-            // Catch silently.
-        }
-    }
+				localStorage.setItem(projectsKey, JSON.stringify(projects));
+				ipcRenderer.send("dashboard:update-projects");
+			}
+		} catch (e) {
+			// Catch silently.
+		}
+	}
 
-    try {
-        onProjectSavedObservable.notifyObservers();
-    } catch (e) {
-        // Catch silently.
-    }
+	try {
+		onProjectSavedObservable.notifyObservers();
+	} catch (e) {
+		// Catch silently.
+	}
 
-    await exportProject(editor, { optimize: false, noProgress: true });
+	await exportProject(editor, { optimize: false, noProgress: true });
 }

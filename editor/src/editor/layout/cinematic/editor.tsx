@@ -6,8 +6,8 @@ import { toast } from "sonner";
 
 import { Observer, AnimationGroup, Animation } from "babylonjs";
 import {
-    generateCinematicAnimationGroup, ICinematic, ICinematicTrack, setDefaultRenderingPipelineRef, setMotionBlurPostProcessRef,
-    setSSAO2RenderingPipelineRef, setSSRRenderingPipelineRef, setVLSPostProcessRef,
+	generateCinematicAnimationGroup, ICinematic, ICinematicTrack, setDefaultRenderingPipelineRef, setMotionBlurPostProcessRef,
+	setSSAO2RenderingPipelineRef, setSSRRenderingPipelineRef, setVLSPostProcessRef,
 } from "babylonjs-editor-tools";
 
 import { Editor } from "../../main";
@@ -53,328 +53,328 @@ export interface ICinematicEditorState {
 }
 
 export class CinematicEditor extends Component<ICinematicEditorProps, ICinematicEditorState> {
-    /**
+	/**
      * Defines the reference to the tracks panel used to display and edit the cinematic tracks.
      */
-    public tracks: CinematicEditorTracks;
-    /**
+	public tracks: CinematicEditorTracks;
+	/**
      * Defines the reference to the timelines panel used to display and edit the cinematic timelines.
      */
-    public timelines: CinematicEditorTimelines;
-    /**
+	public timelines: CinematicEditorTimelines;
+	/**
      * Defines the reference to the inspector used to display and edit the cinematic properties.
      */
-    public inspector: CinematicEditorInspector;
+	public inspector: CinematicEditorInspector;
 
-    /**
+	/**
      * Defines the reference to the editor instance that owns this cinematic editor.
      */
-    public readonly editor: Editor;
-    /**
+	public readonly editor: Editor;
+	/**
      * Defines the reference to the cinematic object being edited.
      */
-    public readonly cinematic: ICinematic;
+	public readonly cinematic: ICinematic;
 
-    private _renderer: CinematicEditorRenderer;
-    private _renderDialog: CinematicEditorRenderDialog;
+	private _renderer: CinematicEditorRenderer;
+	private _renderDialog: CinematicEditorRenderDialog;
 
-    private _undoObserver: Observer<void> | null = null;
-    private _redoObserver: Observer<void> | null = null;
-    private _keydownListener: ((event: KeyboardEvent) => void) | null = null;
+	private _undoObserver: Observer<void> | null = null;
+	private _redoObserver: Observer<void> | null = null;
+	private _keydownListener: ((event: KeyboardEvent) => void) | null = null;
 
-    private _temporaryAnimationGroup: AnimationGroup | null = null;
+	private _temporaryAnimationGroup: AnimationGroup | null = null;
 
-    private _playAnimation: Animation | null = null;
-    private _currentTimeBeforePlay: number | null = null;
-    private _animatedCurrentTime: number = 0;
-    private _playRenderLoop: (() => void) | null = null;
+	private _playAnimation: Animation | null = null;
+	private _currentTimeBeforePlay: number | null = null;
+	private _animatedCurrentTime: number = 0;
+	private _playRenderLoop: (() => void) | null = null;
 
-    private _focused: boolean = false;
+	private _focused: boolean = false;
 
-    public constructor(props: ICinematicEditorProps) {
-        super(props);
+	public constructor(props: ICinematicEditorProps) {
+		super(props);
 
-        this.editor = props.editor;
-        this.cinematic = props.cinematic;
+		this.editor = props.editor;
+		this.cinematic = props.cinematic;
 
-        this.state = {
-            playing: false,
-            hoverTrack: null,
+		this.state = {
+			playing: false,
+			hoverTrack: null,
 
-            renderType: "1080p",
-        };
-    }
+			renderType: "1080p",
+		};
+	}
 
-    public render(): ReactNode {
-        return (
-            <div
-                onMouseEnter={() => this._focused = true}
-                onMouseLeave={() => this._focused = false}
-                className="flex flex-col w-full h-full overflow-hidden"
-            >
-                <CinematicEditorToolbar
-                    cinematicEditor={this}
-                    playing={this.state.playing}
-                />
+	public render(): ReactNode {
+		return (
+			<div
+				onMouseEnter={() => this._focused = true}
+				onMouseLeave={() => this._focused = false}
+				className="flex flex-col w-full h-full overflow-hidden"
+			>
+				<CinematicEditorToolbar
+					cinematicEditor={this}
+					playing={this.state.playing}
+				/>
 
-                <div className="flex flex-1 overflow-hidden">
-                    <div className="flex flex-col flex-1 overflow-hidden">
-                        {/* Headers */}
-                        <div className="flex w-full h-10">
-                            <div className="flex justify-center items-center w-96 h-10 font-semibold bg-secondary border-r-2 border-r-muted">
+				<div className="flex flex-1 overflow-hidden">
+					<div className="flex flex-col flex-1 overflow-hidden">
+						{/* Headers */}
+						<div className="flex w-full h-10">
+							<div className="flex justify-center items-center w-96 h-10 font-semibold bg-secondary border-r-2 border-r-muted">
                                 Tracks
-                            </div>
+							</div>
 
-                            <div className="flex flex-1 justify-center items-center gap-2 w-full h-10 font-semibold bg-secondary">
-                                <div>
+							<div className="flex flex-1 justify-center items-center gap-2 w-full h-10 font-semibold bg-secondary">
+								<div>
                                     Timelines
-                                </div>
+								</div>
 
-                                <CinematicEditorTimelineOptions cinematicEditor={this} />
-                            </div>
-                        </div>
+								<CinematicEditorTimelineOptions cinematicEditor={this} />
+							</div>
+						</div>
 
-                        <div className="flex flex-1 overflow-y-auto">
-                            <TooltipProvider>
-                                <CinematicEditorTracks
-                                    cinematicEditor={this}
-                                    ref={ref => this.tracks = ref!}
-                                />
+						<div className="flex flex-1 overflow-y-auto">
+							<TooltipProvider>
+								<CinematicEditorTracks
+									cinematicEditor={this}
+									ref={ref => this.tracks = ref!}
+								/>
 
-                                <CinematicEditorTimelines
-                                    cinematicEditor={this}
-                                    ref={ref => this.timelines = ref!}
-                                />
-                            </TooltipProvider>
-                        </div>
-                    </div>
+								<CinematicEditorTimelines
+									cinematicEditor={this}
+									ref={ref => this.timelines = ref!}
+								/>
+							</TooltipProvider>
+						</div>
+					</div>
 
-                    <CinematicEditorInspector
-                        cinematicEditor={this}
-                        ref={(r) => this.inspector = r!}
-                    />
-                </div>
+					<CinematicEditorInspector
+						cinematicEditor={this}
+						ref={(r) => this.inspector = r!}
+					/>
+				</div>
 
-                <CinematicEditorRenderDialog
-                    ref={(r) => this._renderDialog = r!}
-                    cinematicEditor={this}
-                    onRender={(from, to) => this.renderCinematic(from, to)}
-                />
+				<CinematicEditorRenderDialog
+					ref={(r) => this._renderDialog = r!}
+					cinematicEditor={this}
+					onRender={(from, to) => this.renderCinematic(from, to)}
+				/>
 
-                <CinematicEditorRenderer
-                    ref={(r) => this._renderer = r!}
-                    cinematicEditor={this}
-                />
-            </div>
-        );
-    }
+				<CinematicEditorRenderer
+					ref={(r) => this._renderer = r!}
+					cinematicEditor={this}
+				/>
+			</div>
+		);
+	}
 
-    public componentDidMount(): void {
-        this._undoObserver = onUndoObservable.add(() => {
-            this.forceUpdate();
-        });
+	public componentDidMount(): void {
+		this._undoObserver = onUndoObservable.add(() => {
+			this.forceUpdate();
+		});
 
-        this._redoObserver = onRedoObservable.add(() => {
-            this.forceUpdate();
-        });
+		this._redoObserver = onRedoObservable.add(() => {
+			this.forceUpdate();
+		});
 
-        window.addEventListener("keydown", this._keydownListener = (event) => {
-            if (event.key === " ") {
-                event.preventDefault();
+		window.addEventListener("keydown", this._keydownListener = (event) => {
+			if (event.key === " ") {
+				event.preventDefault();
 
-                if (this.state.playing && this._focused) {
-                    this.stop();
-                } else {
-                    this.play();
-                }
-            }
-        });
-    }
+				if (this.state.playing && this._focused) {
+					this.stop();
+				} else {
+					this.play();
+				}
+			}
+		});
+	}
 
-    public componentWillUnmount(): void {
-        onUndoObservable.remove(this._undoObserver);
-        onRedoObservable.remove(this._redoObserver);
+	public componentWillUnmount(): void {
+		onUndoObservable.remove(this._undoObserver);
+		onRedoObservable.remove(this._redoObserver);
 
-        if (this._keydownListener) {
-            window.removeEventListener("keydown", this._keydownListener);
-        }
+		if (this._keydownListener) {
+			window.removeEventListener("keydown", this._keydownListener);
+		}
 
-        this.stop();
-    }
+		this.stop();
+	}
 
-    public forceUpdate(): void {
-        super.forceUpdate();
-        this.tracks.forceUpdate();
-        this.timelines.forceUpdate();
-    }
+	public forceUpdate(): void {
+		super.forceUpdate();
+		this.tracks.forceUpdate();
+		this.timelines.forceUpdate();
+	}
 
-    public prepareTemporaryAnimationGroup(): void {
-        setDefaultRenderingPipelineRef(getDefaultRenderingPipeline() as any);
-        setSSAO2RenderingPipelineRef(getSSAO2RenderingPipeline() as any);
-        setSSRRenderingPipelineRef(getSSRRenderingPipeline() as any);
-        setMotionBlurPostProcessRef(getMotionBlurPostProcess() as any);
-        setVLSPostProcessRef(getVLSPostProcess() as any);
-    }
+	public prepareTemporaryAnimationGroup(): void {
+		setDefaultRenderingPipelineRef(getDefaultRenderingPipeline() as any);
+		setSSAO2RenderingPipelineRef(getSSAO2RenderingPipeline() as any);
+		setSSRRenderingPipelineRef(getSSRRenderingPipeline() as any);
+		setMotionBlurPostProcessRef(getMotionBlurPostProcess() as any);
+		setVLSPostProcessRef(getVLSPostProcess() as any);
+	}
 
-    public createTemporaryAnimationGroup(): AnimationGroup {
-        this.prepareTemporaryAnimationGroup();
+	public createTemporaryAnimationGroup(): AnimationGroup {
+		this.prepareTemporaryAnimationGroup();
 
-        this._temporaryAnimationGroup ??= generateCinematicAnimationGroup(
-            this.cinematic,
+		this._temporaryAnimationGroup ??= generateCinematicAnimationGroup(
+			this.cinematic,
             this.props.editor.layout.preview.scene as any,
-        ) as any;
+		) as any;
 
-        return this._temporaryAnimationGroup!;
-    }
+		return this._temporaryAnimationGroup!;
+	}
 
-    public disposeTemporaryAnimationGroup(): void {
-        this._temporaryAnimationGroup?.dispose();
-        this._temporaryAnimationGroup = null;
-    }
+	public disposeTemporaryAnimationGroup(): void {
+		this._temporaryAnimationGroup?.dispose();
+		this._temporaryAnimationGroup = null;
+	}
 
-    public play(): void {
-        if (this.state.playing || !this.cinematic.tracks.length) {
-            return;
-        }
+	public play(): void {
+		if (this.state.playing || !this.cinematic.tracks.length) {
+			return;
+		}
 
-        const scene = this.props.editor.layout.preview.scene;
-        const engine = this.props.editor.layout.preview.engine;
+		const scene = this.props.editor.layout.preview.scene;
+		const engine = this.props.editor.layout.preview.engine;
 
-        saveSceneState(scene);
+		saveSceneState(scene);
 
-        this.setState({
-            playing: true
-        });
+		this.setState({
+			playing: true
+		});
 
 
-        this._currentTimeBeforePlay = this.timelines.state.currentTime;
+		this._currentTimeBeforePlay = this.timelines.state.currentTime;
 
-        const currentTime = this.timelines.state.currentTime;
-        const maxFrame = this.timelines.getMaxWidthForTimelines();
+		const currentTime = this.timelines.state.currentTime;
+		const maxFrame = this.timelines.getMaxWidthForTimelines();
 
-        this._playAnimation ??= new Animation("editor-currentTime", "_animatedCurrentTime", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
-        this._playAnimation.setKeys([
-            { frame: currentTime, value: currentTime },
-            { frame: maxFrame, value: maxFrame },
-        ]);
+		this._playAnimation ??= new Animation("editor-currentTime", "_animatedCurrentTime", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
+		this._playAnimation.setKeys([
+			{ frame: currentTime, value: currentTime },
+			{ frame: maxFrame, value: maxFrame },
+		]);
 
-        const frame = Math.min(currentTime, maxFrame);
+		const frame = Math.min(currentTime, maxFrame);
 
-        const group = this.createTemporaryAnimationGroup();
-        group.start(false, 1.0, frame);
+		const group = this.createTemporaryAnimationGroup();
+		group.start(false, 1.0, frame);
 
-        // Start all sounds that were created before the current frame
-        this.cinematic.tracks.forEach((track) => {
-            track.sounds?.forEach((sound) => {
-                const endFrame = sound.frame + (sound.endFrame - sound.startFrame);
-                if (sound.frame > frame || endFrame < frame) {
-                    return;
-                }
+		// Start all sounds that were created before the current frame
+		this.cinematic.tracks.forEach((track) => {
+			track.sounds?.forEach((sound) => {
+				const endFrame = sound.frame + (sound.endFrame - sound.startFrame);
+				if (sound.frame > frame || endFrame < frame) {
+					return;
+				}
 
-                const frameDiff = frame - sound.frame;
+				const frameDiff = frame - sound.frame;
 
-                if (frameDiff > 0) {
-                    const offset = frameDiff / this.cinematic.framesPerSecond;
-                    track.sound?.play(0, offset);
-                }
-            });
-        });
+				if (frameDiff > 0) {
+					const offset = frameDiff / this.cinematic.framesPerSecond;
+					track.sound?.play(0, offset);
+				}
+			});
+		});
 
-        scene.beginDirectAnimation(this, [this._playAnimation], currentTime, maxFrame, false, 1.0);
+		scene.beginDirectAnimation(this, [this._playAnimation], currentTime, maxFrame, false, 1.0);
 
-        if (this._playRenderLoop) {
-            engine.stopRenderLoop(this._playRenderLoop);
-        }
+		if (this._playRenderLoop) {
+			engine.stopRenderLoop(this._playRenderLoop);
+		}
 
-        engine.runRenderLoop(this._playRenderLoop = () => {
-            this.timelines.setState({
-                currentTime: this._animatedCurrentTime,
-            });
+		engine.runRenderLoop(this._playRenderLoop = () => {
+			this.timelines.setState({
+				currentTime: this._animatedCurrentTime,
+			});
 
-            scene.lights.forEach((light) => {
-                updateLightShadowMapRefreshRate(light);
-            });
-        });
-    }
+			scene.lights.forEach((light) => {
+				updateLightShadowMapRefreshRate(light);
+			});
+		});
+	}
 
-    public stop(): void {
-        if (!this.state.playing) {
-            return;
-        }
+	public stop(): void {
+		if (!this.state.playing) {
+			return;
+		}
 
-        this.setState({
-            playing: false
-        });
+		this.setState({
+			playing: false
+		});
 
-        const engine = this.props.editor.layout.preview.engine;
+		const engine = this.props.editor.layout.preview.engine;
 
-        if (this._playRenderLoop) {
-            engine.stopRenderLoop(this._playRenderLoop);
-            this._playRenderLoop = null;
-        }
+		if (this._playRenderLoop) {
+			engine.stopRenderLoop(this._playRenderLoop);
+			this._playRenderLoop = null;
+		}
 
-        // Stop all sounds
-        this.cinematic.tracks.forEach((track) => {
-            track.sound?.stop();
-        });
+		// Stop all sounds
+		this.cinematic.tracks.forEach((track) => {
+			track.sound?.stop();
+		});
 
-        restoreSceneState();
+		restoreSceneState();
 
-        if (this._currentTimeBeforePlay !== null) {
-            const time = this._currentTimeBeforePlay;
+		if (this._currentTimeBeforePlay !== null) {
+			const time = this._currentTimeBeforePlay;
 
-            this._currentTimeBeforePlay = null;
-            this.timelines.setCurrentTime(time);
-        }
+			this._currentTimeBeforePlay = null;
+			this.timelines.setCurrentTime(time);
+		}
 
-        this.disposeTemporaryAnimationGroup();
-    }
+		this.disposeTemporaryAnimationGroup();
+	}
 
-    public async save(): Promise<void> {
-        const data = serializeCinematic(this.cinematic);
+	public async save(): Promise<void> {
+		const data = serializeCinematic(this.cinematic);
 
-        await writeJSON(this.props.absolutePath, data, {
-            spaces: "\t",
-            encoding: "utf-8",
-        });
+		await writeJSON(this.props.absolutePath, data, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
 
-        toast.success("Cinematic file saved.");
-    }
+		toast.success("Cinematic file saved.");
+	}
 
-    public async saveAs(): Promise<void> {
-        const destination = saveSingleFileDialog({
-            title: "Save Cinematic File",
-            filters: [
-                { name: "Cinematic Files", extensions: ["cinematic"] },
-            ],
-        });
+	public async saveAs(): Promise<void> {
+		const destination = saveSingleFileDialog({
+			title: "Save Cinematic File",
+			filters: [
+				{ name: "Cinematic Files", extensions: ["cinematic"] },
+			],
+		});
 
-        if (!destination) {
-            return;
-        }
+		if (!destination) {
+			return;
+		}
 
-        const data = serializeCinematic(this.cinematic);
+		const data = serializeCinematic(this.cinematic);
 
-        await writeJSON(destination, data, {
-            spaces: "\t",
-            encoding: "utf-8",
-        });
+		await writeJSON(destination, data, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
 
-        toast.success("Cinematic file saved.");
-    }
+		toast.success("Cinematic file saved.");
+	}
 
-    public openRenderDialog(renderType: RenderType): void {
-        this._renderDialog.open();
-        this.setState({ renderType });
-    }
+	public openRenderDialog(renderType: RenderType): void {
+		this._renderDialog.open();
+		this.setState({ renderType });
+	}
 
-    public renderCinematic(from: number, to: number): void {
-        this._renderDialog.close();
+	public renderCinematic(from: number, to: number): void {
+		this._renderDialog.close();
 
-        this._renderer.renderCinematic({
-            from,
-            to,
-            type: this.state.renderType,
-        });
-    }
+		this._renderer.renderCinematic({
+			from,
+			to,
+			type: this.state.renderType,
+		});
+	}
 }

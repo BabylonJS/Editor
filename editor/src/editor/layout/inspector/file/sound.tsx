@@ -10,18 +10,18 @@ export interface IEditorInspectorSoundComponentProps {
 }
 
 export function EditorInspectorSoundComponent(props: IEditorInspectorSoundComponentProps) {
-    return (
-        <div className="flex flex-col gap-2">
-            <div className="flex gap-2 justify-center items-center text-xl font-bold">
-                <BiSolidSpeaker size="24px" />
-                {basename(props.object.absolutePath)}
-            </div>
+	return (
+		<div className="flex flex-col gap-2">
+			<div className="flex gap-2 justify-center items-center text-xl font-bold">
+				<BiSolidSpeaker size="24px" />
+				{basename(props.object.absolutePath)}
+			</div>
 
-            <Divider />
+			<Divider />
 
-            <audio controls className="w-full px-5">
-                <source src={props.object.absolutePath} />
-            </audio>
-        </div>
-    );
+			<audio controls className="w-full px-5">
+				<source src={props.object.absolutePath} />
+			</audio>
+		</div>
+	);
 }

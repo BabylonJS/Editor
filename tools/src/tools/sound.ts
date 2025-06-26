@@ -13,17 +13,17 @@ declare module "@babylonjs/core/Audio/sound" {
  * @param scene defines the reference to the scene where to find the instantiated sound.
  */
 export function getSoundById(id: string, scene: Scene) {
-    const soundTracks = scene.soundTracks ?? [];
-    if (!soundTracks.length) {
-        soundTracks.push(scene.mainSoundTrack);
-    }
+	const soundTracks = scene.soundTracks ?? [];
+	if (!soundTracks.length) {
+		soundTracks.push(scene.mainSoundTrack);
+	}
 
-    for (let i = 0, len = soundTracks.length; i < len; i++) {
-        const sound = soundTracks[i].soundCollection.find((s) => s.id === id);
-        if (sound) {
-            return sound;
-        }
-    }
+	for (let i = 0, len = soundTracks.length; i < len; i++) {
+		const sound = soundTracks[i].soundCollection.find((s) => s.id === id);
+		if (sound) {
+			return sound;
+		}
+	}
 
-    return null;
+	return null;
 }

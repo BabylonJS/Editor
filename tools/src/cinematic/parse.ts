@@ -18,99 +18,101 @@ import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
  * @param scene defines the reference to the scene used to retrieve cinematic's data.
  */
 export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
-    return {
-        name: data.name,
-        framesPerSecond: data.framesPerSecond,
-        outputFramesPerSecond: data.outputFramesPerSecond,
-        tracks: data.tracks.map((track) => {
-            let node: any = null;
-            let animationType: number | null = null;
+	return {
+		name: data.name,
+		framesPerSecond: data.framesPerSecond,
+		outputFramesPerSecond: data.outputFramesPerSecond,
+		tracks: data.tracks.map((track) => {
+			let node: any = null;
+			let animationType: number | null = null;
 
-            if (track.node) {
-                node = scene.getNodeById(track.node);
-            } else if (track.defaultRenderingPipeline) {
-                node = getDefaultRenderingPipeline();
-            }
+			if (track.node) {
+				node = scene.getNodeById(track.node);
+			} else if (track.defaultRenderingPipeline) {
+				node = getDefaultRenderingPipeline();
+			}
 
-            if (track.propertyPath) {
-                const value = getPropertyValue(node, track.propertyPath);
-                animationType = getAnimationTypeForObject(value);
-            }
+			if (track.propertyPath) {
+				const value = getPropertyValue(node, track.propertyPath);
+				animationType = getAnimationTypeForObject(value);
+			}
 
-            let sound: Sound | null = null;
-            if (track.sound) {
-                sound = getSoundById(track.sound, scene);
-            }
+			let sound: Sound | null = null;
+			if (track.sound) {
+				sound = getSoundById(track.sound, scene);
+			}
 
-            return {
-                node,
-                sound,
-                propertyPath: track.propertyPath,
-                defaultRenderingPipeline: track.defaultRenderingPipeline,
-                animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
-                animationGroups: track.animationGroups,
-                sounds: track.sounds,
+			return {
+				node,
+				sound,
+				propertyPath: track.propertyPath,
+				defaultRenderingPipeline: track.defaultRenderingPipeline,
+				animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
+				animationGroups: track.animationGroups,
+				sounds: track.sounds,
 
-                keyFrameEvents: track.keyFrameEvents?.map((event) => {
-                    const result = {
-                        ...event,
-                    };
+				keyFrameEvents: track.keyFrameEvents?.map((event) => {
+					const result = {
+						...event,
+					};
 
-                    switch (event.data?.type) {
-                        case "set-enabled":
-                            result.data = {
-                                type: "set-enabled",
-                                value: event.data.value,
-                                node: scene.getNodeById(event.data.node),
-                            };
-                            break;
-                        case "apply-impulse":
-                            result.data = {
-                                type: "apply-impulse",
-                                radius: event.data.radius,
-                                mesh: scene.getMeshById(event.data.mesh),
-                                force: Vector3.FromArray(event.data.force),
-                                contactPoint: Vector3.FromArray(event.data.contactPoint),
-                            };
-                            break;
-                    }
+					switch (event.data?.type) {
+					case "set-enabled":
+						result.data = {
+							type: "set-enabled",
+							value: event.data.value,
+							node: scene.getNodeById(event.data.node),
+						};
+						break;
+					case "apply-impulse":
+						result.data = {
+							type: "apply-impulse",
+							radius: event.data.radius,
+							mesh: scene.getMeshById(event.data.mesh),
+							force: Vector3.FromArray(event.data.force),
+							contactPoint: Vector3.FromArray(event.data.contactPoint),
+						};
+						break;
+					}
 
-                    return result;
-                }),
+					return result;
+				}),
 
-                keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
-                    const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
-                    if (animationKey) {
-                        return {
-                            ...animationKey,
-                            value: parseCinematicKeyValue(animationKey.value, animationType),
-                            inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
-                            outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
-                        } as ICinematicKey;
-                    }
+				keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
+					const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
+					if (animationKey) {
+						return {
+							...animationKey,
+							value: parseCinematicKeyValue(animationKey.value, animationType),
+							inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
+							outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
+						} as ICinematicKey;
+					}
 
-                    const animationKeyCut = keyFrame.type === "cut" ? keyFrame as ICinematicKeyCut : null;
-                    if (animationKeyCut) {
-                        return {
-                            ...animationKeyCut,
-                            key1: {
-                                ...animationKeyCut.key1,
-                                value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
-                                inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
-                                outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
-                            } as ICinematicKey,
-                            key2: {
-                                ...animationKeyCut.key2,
-                                value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
-                                inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
-                                outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
-                            },
-                        } as ICinematicKeyCut;
-                    }
-                }),
-            };
-        }),
-    } as ICinematic;
+					const animationKeyCut = keyFrame.type === "cut" ? keyFrame as ICinematicKeyCut : null;
+					if (animationKeyCut) {
+						return {
+							...animationKeyCut,
+							key1: {
+								...animationKeyCut.key1,
+								value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
+								inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
+								outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
+							} as ICinematicKey,
+							key2: {
+								...animationKeyCut.key2,
+								value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
+								inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
+								outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
+							},
+						} as ICinematicKeyCut;
+					}
+
+					throw new Error(`Unknown key frame type: ${keyFrame.type}`);
+				}),
+			};
+		}),
+	} as ICinematic;
 }
 
 /**
@@ -120,21 +122,21 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
  * @example [0, 0, 0] with type Animation.ANIMATIONTYPE_VECTOR3 will return a new Vector3(0, 0, 0) object.
  */
 export function parseCinematicKeyValue(value: any, type: number): any {
-    if (value === null) {
-        return null;
-    }
+	if (value === null) {
+		return null;
+	}
 
-    if (value === undefined) {
-        return undefined;
-    }
+	if (value === undefined) {
+		return undefined;
+	}
 
-    switch (type) {
-        case Animation.ANIMATIONTYPE_FLOAT: return value;
-        case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.FromArray(value);
-        case Animation.ANIMATIONTYPE_VECTOR3: return Vector3.FromArray(value);
-        case Animation.ANIMATIONTYPE_QUATERNION: return Quaternion.FromArray(value);
-        case Animation.ANIMATIONTYPE_COLOR3: return Color3.FromArray(value);
-        case Animation.ANIMATIONTYPE_COLOR4: return Color4.FromArray(value);
-        case Animation.ANIMATIONTYPE_MATRIX: return Matrix.FromArray(value);
-    }
+	switch (type) {
+	case Animation.ANIMATIONTYPE_FLOAT: return value;
+	case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.FromArray(value);
+	case Animation.ANIMATIONTYPE_VECTOR3: return Vector3.FromArray(value);
+	case Animation.ANIMATIONTYPE_QUATERNION: return Quaternion.FromArray(value);
+	case Animation.ANIMATIONTYPE_COLOR3: return Color3.FromArray(value);
+	case Animation.ANIMATIONTYPE_COLOR4: return Color4.FromArray(value);
+	case Animation.ANIMATIONTYPE_MATRIX: return Matrix.FromArray(value);
+	}
 }

@@ -27,253 +27,253 @@ export interface IEditorGraphLabelProps {
 }
 
 export function EditorGraphLabel(props: IEditorGraphLabelProps) {
-    const [over, setOver] = useState(false);
+	const [over, setOver] = useState(false);
 
-    const [name, setName] = useState("");
-    const [doubleClicked, setDoubleClicked] = useState(false);
+	const [name, setName] = useState("");
+	const [doubleClicked, setDoubleClicked] = useState(false);
 
-    const inputRef = useRef<HTMLInputElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        setName(props.name);
-    }, [props.name]);
+	useEffect(() => {
+		setName(props.name);
+	}, [props.name]);
 
-    useEffect(() => {
-        if (doubleClicked) {
-            setTimeout(() => {
-                inputRef.current?.select();
-                inputRef.current?.focus();
-            }, 0);
-        }
-    }, [doubleClicked]);
+	useEffect(() => {
+		if (doubleClicked) {
+			setTimeout(() => {
+				inputRef.current?.select();
+				inputRef.current?.focus();
+			}, 0);
+		}
+	}, [doubleClicked]);
 
-    useEventListener("keyup", (ev) => {
-        if (ev.key === "Escape" && doubleClicked) {
-            setName(props.name);
-            setDoubleClicked(false);
-        }
+	useEventListener("keyup", (ev) => {
+		if (ev.key === "Escape" && doubleClicked) {
+			setName(props.name);
+			setDoubleClicked(false);
+		}
 
-        if (ev.key === "Enter" && doubleClicked) {
-            handleInputNameBlurred();
-        }
-    });
+		if (ev.key === "Enter" && doubleClicked) {
+			handleInputNameBlurred();
+		}
+	});
 
-    function handleDragStart(ev: DragEvent<HTMLDivElement>) {
-        const selectedNodes = props.editor.layout.graph.getSelectedNodes();
-        const alreadySelected = selectedNodes.find((n) => n.nodeData === props.object);
+	function handleDragStart(ev: DragEvent<HTMLDivElement>) {
+		const selectedNodes = props.editor.layout.graph.getSelectedNodes();
+		const alreadySelected = selectedNodes.find((n) => n.nodeData === props.object);
 
-        if (!alreadySelected) {
-            selectedNodes.splice(0, selectedNodes.length, props.object);
-        }
+		if (!alreadySelected) {
+			selectedNodes.splice(0, selectedNodes.length, props.object);
+		}
 
-        if (!alreadySelected) {
-            if (ev.ctrlKey || ev.metaKey) {
-                props.editor.layout.graph.addToSelectedNodes(props.object);
-            } else {
-                props.editor.layout.graph.setSelectedNode(props.object);
-            }
-        }
+		if (!alreadySelected) {
+			if (ev.ctrlKey || ev.metaKey) {
+				props.editor.layout.graph.addToSelectedNodes(props.object);
+			} else {
+				props.editor.layout.graph.setSelectedNode(props.object);
+			}
+		}
 
-        ev.dataTransfer.setData("graph/node", JSON.stringify(selectedNodes.map((n) => n.id)));
-    }
+		ev.dataTransfer.setData("graph/node", JSON.stringify(selectedNodes.map((n) => n.id)));
+	}
 
-    function handleDragOver(ev: DragEvent<HTMLDivElement>) {
-        ev.preventDefault();
-        ev.stopPropagation();
+	function handleDragOver(ev: DragEvent<HTMLDivElement>) {
+		ev.preventDefault();
+		ev.stopPropagation();
 
-        setOver(true);
-    }
+		setOver(true);
+	}
 
-    function handleDragLeave(ev: DragEvent<HTMLDivElement>) {
-        ev.preventDefault();
-        setOver(false);
-    }
+	function handleDragLeave(ev: DragEvent<HTMLDivElement>) {
+		ev.preventDefault();
+		setOver(false);
+	}
 
-    function handleDrop(ev: DragEvent<HTMLDivElement>) {
-        ev.preventDefault();
-        ev.stopPropagation();
+	function handleDrop(ev: DragEvent<HTMLDivElement>) {
+		ev.preventDefault();
+		ev.stopPropagation();
 
-        setOver(false);
+		setOver(false);
 
-        if (!isNode(props.object) && !isScene(props.object)) {
-            return;
-        }
+		if (!isNode(props.object) && !isScene(props.object)) {
+			return;
+		}
 
-        const node = ev.dataTransfer.getData("graph/node");
-        if (node) {
-            return dropNodeFromGraph();
-        }
+		const node = ev.dataTransfer.getData("graph/node");
+		if (node) {
+			return dropNodeFromGraph();
+		}
 
-        const asset = ev.dataTransfer.getData("assets");
-        if (asset) {
-            return handleAssetsDropped();
-        }
-    }
+		const asset = ev.dataTransfer.getData("assets");
+		if (asset) {
+			return handleAssetsDropped();
+		}
+	}
 
-    function dropNodeFromGraph() {
-        const nodesToMove = props.editor.layout.graph.getSelectedNodes();
+	function dropNodeFromGraph() {
+		const nodesToMove = props.editor.layout.graph.getSelectedNodes();
 
-        const newParent = props.object;
-        const oldHierarchyMap = new Map<unknown, unknown>();
+		const newParent = props.object;
+		const oldHierarchyMap = new Map<unknown, unknown>();
 
-        nodesToMove.forEach((n) => {
-            if (n.nodeData) {
-                if (isNode(n.nodeData)) {
-                    return oldHierarchyMap.set(n.nodeData, n.nodeData.parent);
-                }
+		nodesToMove.forEach((n) => {
+			if (n.nodeData) {
+				if (isNode(n.nodeData)) {
+					return oldHierarchyMap.set(n.nodeData, n.nodeData.parent);
+				}
 
-                if (isSound(n.nodeData)) {
-                    return oldHierarchyMap.set(n.nodeData, n.nodeData["_connectedTransformNode"]);
-                }
+				if (isSound(n.nodeData)) {
+					return oldHierarchyMap.set(n.nodeData, n.nodeData["_connectedTransformNode"]);
+				}
 
-                if (isParticleSystem(n.nodeData)) {
-                    return oldHierarchyMap.set(n.nodeData, n.nodeData.emitter);
-                }
-            }
-        });
+				if (isParticleSystem(n.nodeData)) {
+					return oldHierarchyMap.set(n.nodeData, n.nodeData.emitter);
+				}
+			}
+		});
 
-        registerUndoRedo({
-            executeRedo: true,
-            undo: () => {
-                nodesToMove.forEach((n) => {
-                    if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
-                        if (isNode(n.nodeData)) {
-                            return n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node;
-                        }
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => {
+				nodesToMove.forEach((n) => {
+					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
+						if (isNode(n.nodeData)) {
+							return n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node;
+						}
 
-                        if (isSound(n.nodeData)) {
-                            const oldSoundNode = oldHierarchyMap.get(n.nodeData);
+						if (isSound(n.nodeData)) {
+							const oldSoundNode = oldHierarchyMap.get(n.nodeData);
 
-                            if (oldSoundNode) {
-                                return n.nodeData.attachToMesh(oldSoundNode as TransformNode);
-                            } else {
-                                n.nodeData.detachFromMesh();
-                                n.nodeData.spatialSound = false;
-                                return n.nodeData["_connectedTransformNode"] = null;
-                            }
-                        }
+							if (oldSoundNode) {
+								return n.nodeData.attachToMesh(oldSoundNode as TransformNode);
+							}
 
-                        if (isParticleSystem(n.nodeData)) {
-                            return n.nodeData.emitter = oldHierarchyMap.get(n.nodeData) as AbstractMesh;
-                        }
-                    }
-                });
-            },
-            redo: () => {
-                nodesToMove.forEach((n) => {
-                    if (n.nodeData === props.object) {
-                        return;
-                    }
+							n.nodeData.detachFromMesh();
+							n.nodeData.spatialSound = false;
+							return n.nodeData["_connectedTransformNode"] = null;
+						}
 
-                    if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
-                        if (isNode(n.nodeData)) {
-                            return n.nodeData.parent = isScene(props.object) ? null : newParent;
-                        }
+						if (isParticleSystem(n.nodeData)) {
+							return n.nodeData.emitter = oldHierarchyMap.get(n.nodeData) as AbstractMesh;
+						}
+					}
+				});
+			},
+			redo: () => {
+				nodesToMove.forEach((n) => {
+					if (n.nodeData === props.object) {
+						return;
+					}
 
-                        if (isSound(n.nodeData)) {
-                            if (isTransformNode(newParent) || isMesh(newParent) || isInstancedMesh(newParent)) {
-                                return n.nodeData.attachToMesh(newParent);
-                            }
+					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
+						if (isNode(n.nodeData)) {
+							return n.nodeData.parent = isScene(props.object) ? null : newParent;
+						}
 
-                            if (isScene(newParent)) {
-                                n.nodeData.detachFromMesh();
-                                n.nodeData.spatialSound = false;
-                                return n.nodeData["_connectedTransformNode"] = null;
-                            }
-                        }
+						if (isSound(n.nodeData)) {
+							if (isTransformNode(newParent) || isMesh(newParent) || isInstancedMesh(newParent)) {
+								return n.nodeData.attachToMesh(newParent);
+							}
 
-                        if (isParticleSystem(n.nodeData)) {
-                            if (isAbstractMesh(newParent)) {
-                                return n.nodeData.emitter = newParent;
-                            }
-                        }
-                    }
-                });
-            },
-        });
+							if (isScene(newParent)) {
+								n.nodeData.detachFromMesh();
+								n.nodeData.spatialSound = false;
+								return n.nodeData["_connectedTransformNode"] = null;
+							}
+						}
 
-        props.editor.layout.graph.refresh();
-    }
+						if (isParticleSystem(n.nodeData)) {
+							if (isAbstractMesh(newParent)) {
+								return n.nodeData.emitter = newParent;
+							}
+						}
+					}
+				});
+			},
+		});
 
-    function handleAssetsDropped() {
-        const absolutePaths = props.editor.layout.assets.state.selectedKeys;
+		props.editor.layout.graph.refresh();
+	}
 
-        absolutePaths.forEach(async (absolutePath) => {
-            const extension = extname(absolutePath).toLowerCase();
+	function handleAssetsDropped() {
+		const absolutePaths = props.editor.layout.assets.state.selectedKeys;
 
-            switch (extension) {
-                case ".material":
-                    applyMaterialAssetToObject(props.editor, props.object, absolutePath);
-                    break;
+		absolutePaths.forEach(async (absolutePath) => {
+			const extension = extname(absolutePath).toLowerCase();
 
-                case ".env":
-                case ".jpg":
-                case ".png":
-                case ".bmp":
-                case ".jpeg":
-                    applyTextureAssetToObject(props.editor, props.object, absolutePath);
-                    break;
+			switch (extension) {
+			case ".material":
+				applyMaterialAssetToObject(props.editor, props.object, absolutePath);
+				break;
 
-                case ".mp3":
-                case ".ogg":
-                case ".wav":
-                case ".wave":
-                    if (isScene(props.object) || isTransformNode(props.object) || isMesh(props.object) || isInstancedMesh(props.object)) {
-                        applySoundAsset(props.editor, props.object, absolutePath).then(() => {
-                            props.editor.layout.graph.refresh();
-                        });
-                    }
-                    break;
-            }
-        });
-    }
+			case ".env":
+			case ".jpg":
+			case ".png":
+			case ".bmp":
+			case ".jpeg":
+				applyTextureAssetToObject(props.editor, props.object, absolutePath);
+				break;
 
-    function handleDoubleClick() {
-        if (props.object.name) {
-            setDoubleClicked(!doubleClicked);
-        }
-    }
+			case ".mp3":
+			case ".ogg":
+			case ".wav":
+			case ".wave":
+				if (isScene(props.object) || isTransformNode(props.object) || isMesh(props.object) || isInstancedMesh(props.object)) {
+					applySoundAsset(props.editor, props.object, absolutePath).then(() => {
+						props.editor.layout.graph.refresh();
+					});
+				}
+				break;
+			}
+		});
+	}
 
-    function handleInputNameBlurred() {
-        registerUndoRedo({
-            executeRedo: true,
-            undo: () => props.object.name = props.name,
-            redo: () => props.object.name = name,
-        });
+	function handleDoubleClick() {
+		if (props.object.name) {
+			setDoubleClicked(!doubleClicked);
+		}
+	}
 
-        setDoubleClicked(false);
-        props.editor.layout.graph.refresh();
-    }
+	function handleInputNameBlurred() {
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => props.object.name = props.name,
+			redo: () => props.object.name = name,
+		});
 
-    return (
-        <div
-            draggable
-            className={`
+		setDoubleClicked(false);
+		props.editor.layout.graph.refresh();
+	}
+
+	return (
+		<div
+			draggable
+			className={`
                 ml-2 p-1 w-full
                 ${over ? "bg-muted" : ""}
                 ${props.object.metadata?.doNotSerialize ? "text-foreground/35 line-through" : ""}
                 transition-all duration-300 ease-in-out
             `}
-            onDragStart={(ev) => handleDragStart(ev)}
-            onDragOver={(ev) => handleDragOver(ev)}
-            onDragLeave={(ev) => handleDragLeave(ev)}
-            onDrop={(ev) => handleDrop(ev)}
-            onDoubleClick={() => handleDoubleClick()}
-            onBlur={() => handleInputNameBlurred()}
-        >
-            {doubleClicked
-                ? (
-                    <Input
-                        value={name}
-                        ref={inputRef}
-                        className="w-fit h-7"
-                        onCopy={(ev) => ev.stopPropagation()}
-                        onPaste={(ev) => ev.stopPropagation()}
-                        onChange={(ev) => setName(ev.currentTarget.value)}
-                    />
-                )
-                : props.name
-            }
-        </div>
-    );
+			onDragStart={(ev) => handleDragStart(ev)}
+			onDragOver={(ev) => handleDragOver(ev)}
+			onDragLeave={(ev) => handleDragLeave(ev)}
+			onDrop={(ev) => handleDrop(ev)}
+			onDoubleClick={() => handleDoubleClick()}
+			onBlur={() => handleInputNameBlurred()}
+		>
+			{doubleClicked
+				? (
+					<Input
+						value={name}
+						ref={inputRef}
+						className="w-fit h-7"
+						onCopy={(ev) => ev.stopPropagation()}
+						onPaste={(ev) => ev.stopPropagation()}
+						onChange={(ev) => setName(ev.currentTarget.value)}
+					/>
+				)
+				: props.name
+			}
+		</div>
+	);
 }

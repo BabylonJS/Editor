@@ -29,256 +29,256 @@ export type SoftShadowType =
     "none";
 
 export class EditorLightShadowsInspector extends Component<IEditorLightShadowsInspectorProps, IEditorLightShadowsInspectorState> {
-    protected _generatorSize: number = 1024;
-    protected _generatorType: string = "none";
+	protected _generatorSize: number = 1024;
+	protected _generatorType: string = "none";
 
-    protected _softShadowType: SoftShadowType = "none";
+	protected _softShadowType: SoftShadowType = "none";
 
-    protected _sizes: IEditorInspectorListFieldItem[] = getPowerOfTwoSizesUntil(4096, 256).map((s) => ({
-        value: s,
-        text: `${s}px`,
-    } as IEditorInspectorListFieldItem));
+	protected _sizes: IEditorInspectorListFieldItem[] = getPowerOfTwoSizesUntil(4096, 256).map((s) => ({
+		value: s,
+		text: `${s}px`,
+	} as IEditorInspectorListFieldItem));
 
-    public constructor(props: IEditorLightShadowsInspectorProps) {
-        super(props);
+	public constructor(props: IEditorLightShadowsInspectorProps) {
+		super(props);
 
-        this.state = {
-            generator: null,
-        };
-    }
+		this.state = {
+			generator: null,
+		};
+	}
 
-    public render(): ReactNode {
-        return (
-            <>
-                <EditorInspectorSectionField title="Shadows">
-                    {this._getEmptyShadowGeneratorComponent()}
-                    {this._getClassicShadowGeneratorComponent()}
-                    {this._getCascadedShadowGeneratorComponent()}
-                </EditorInspectorSectionField>
+	public render(): ReactNode {
+		return (
+			<>
+				<EditorInspectorSectionField title="Shadows">
+					{this._getEmptyShadowGeneratorComponent()}
+					{this._getClassicShadowGeneratorComponent()}
+					{this._getCascadedShadowGeneratorComponent()}
+				</EditorInspectorSectionField>
 
-                {this._getClassicSoftShadowComponent()}
-            </>
-        );
-    }
+				{this._getClassicSoftShadowComponent()}
+			</>
+		);
+	}
 
-    public componentDidMount(): void {
-        this._refreshShadowGenerator();
-    }
+	public componentDidMount(): void {
+		this._refreshShadowGenerator();
+	}
 
-    private _refreshShadowGenerator(): void {
-        const generator = this.props.light.getShadowGenerator();
+	private _refreshShadowGenerator(): void {
+		const generator = this.props.light.getShadowGenerator();
 
-        this._generatorType = !generator
-            ? "none"
-            : isCascadedShadowGenerator(generator)
-                ? "cascaded"
-                : "classic";
+		this._generatorType = !generator
+			? "none"
+			: isCascadedShadowGenerator(generator)
+				? "cascaded"
+				: "classic";
 
-        this._softShadowType = this._getSoftShadowType(generator);
-        this._generatorSize = generator?.getShadowMap()?.getSize().width ?? 1024;
+		this._softShadowType = this._getSoftShadowType(generator);
+		this._generatorSize = generator?.getShadowMap()?.getSize().width ?? 1024;
 
-        this.setState({ generator });
-    }
+		this.setState({ generator });
+	}
 
-    private _createShadowGenerator(type: "none" | "classic" | "cascaded"): void {
-        const mapSize = this.state.generator?.getShadowMap()?.getSize();
-        const renderList = this.state.generator?.getShadowMap()?.renderList?.slice(0);
+	private _createShadowGenerator(type: "none" | "classic" | "cascaded"): void {
+		const mapSize = this.state.generator?.getShadowMap()?.getSize();
+		const renderList = this.state.generator?.getShadowMap()?.renderList?.slice(0);
 
-        this.state.generator?.dispose();
+		this.state.generator?.dispose();
 
-        if (type === "none") {
-            return this._refreshShadowGenerator();
-        }
+		if (type === "none") {
+			return this._refreshShadowGenerator();
+		}
 
-        if (!isDirectionalLight(this.props.light)) {
-            type = "classic";
-        }
+		if (!isDirectionalLight(this.props.light)) {
+			type = "classic";
+		}
 
-        const generator = type === "classic"
-            ? new ShadowGenerator(mapSize?.width ?? 1024, this.props.light, true)
-            : new CascadedShadowGenerator(mapSize?.width ?? 1024, this.props.light as DirectionalLight, true);
+		const generator = type === "classic"
+			? new ShadowGenerator(mapSize?.width ?? 1024, this.props.light, true)
+			: new CascadedShadowGenerator(mapSize?.width ?? 1024, this.props.light as DirectionalLight, true);
 
-        if (isCascadedShadowGenerator(generator)) {
-            generator.lambda = 1;
-            generator.depthClamp = true;
-            generator.autoCalcDepthBounds = true;
-            generator.autoCalcDepthBoundsRefreshRate = 60;
-        }
+		if (isCascadedShadowGenerator(generator)) {
+			generator.lambda = 1;
+			generator.depthClamp = true;
+			generator.autoCalcDepthBounds = true;
+			generator.autoCalcDepthBoundsRefreshRate = 60;
+		}
 
-        if (renderList) {
-            generator.getShadowMap()?.renderList?.push(...renderList);
-        } else {
-            generator.getShadowMap()?.renderList?.push(...generator.getLight().getScene().meshes);
-        }
+		if (renderList) {
+			generator.getShadowMap()?.renderList?.push(...renderList);
+		} else {
+			generator.getShadowMap()?.renderList?.push(...generator.getLight().getScene().meshes);
+		}
 
-        this._refreshShadowGenerator();
-    }
+		this._refreshShadowGenerator();
+	}
 
-    private _reszeShadowGenerator(size: number): void {
-        const shadowMap = this.state.generator?.getShadowMap();
-        if (shadowMap) {
-            const refreshRate = shadowMap.refreshRate;
-            shadowMap.resize(size);
+	private _reszeShadowGenerator(size: number): void {
+		const shadowMap = this.state.generator?.getShadowMap();
+		if (shadowMap) {
+			const refreshRate = shadowMap.refreshRate;
+			shadowMap.resize(size);
 
-            waitNextAnimationFrame().then(() => {
-                updatePointLightShadowMapRenderListPredicate(this.props.light);
+			waitNextAnimationFrame().then(() => {
+				updatePointLightShadowMapRenderListPredicate(this.props.light);
 
-                const newShadowMap = this.state.generator?.getShadowMap();
-                if (newShadowMap) {
-                    newShadowMap.refreshRate = refreshRate;
-                }
-            });
-        }
-    }
+				const newShadowMap = this.state.generator?.getShadowMap();
+				if (newShadowMap) {
+					newShadowMap.refreshRate = refreshRate;
+				}
+			});
+		}
+	}
 
-    private _getEmptyShadowGeneratorComponent(): ReactNode {
-        if (this.state.generator) {
-            return (
-                <>
-                    <EditorInspectorListField object={this} property="_generatorType" label="Generator Type" onChange={(v) => this._createShadowGenerator(v)} items={[
-                        { text: "None", value: "none" },
-                        { text: "Classic", value: "classic" },
-                        { text: "Cascaded", value: "cascaded" },
-                    ]} />
-                    <EditorInspectorListField object={this} property="_generatorSize" label="Generator Size" onChange={(v) => this._reszeShadowGenerator(v)} items={this._sizes} />
-                    <Divider />
-                </>
-            );
-        }
+	private _getEmptyShadowGeneratorComponent(): ReactNode {
+		if (this.state.generator) {
+			return (
+				<>
+					<EditorInspectorListField object={this} property="_generatorType" label="Generator Type" onChange={(v) => this._createShadowGenerator(v)} items={[
+						{ text: "None", value: "none" },
+						{ text: "Classic", value: "classic" },
+						{ text: "Cascaded", value: "cascaded" },
+					]} />
+					<EditorInspectorListField object={this} property="_generatorSize" label="Generator Size" onChange={(v) => this._reszeShadowGenerator(v)} items={this._sizes} />
+					<Divider />
+				</>
+			);
+		}
 
-        return (
-            <EditorInspectorListField object={this} property="_generatorType" label="Generator Type" onChange={(v) => this._createShadowGenerator(v)} items={[
-                { text: "None", value: "none" },
-                { text: "Classic", value: "classic" },
-                { text: "Cascaded", value: "cascaded" },
-            ]} />
-        );
-    }
+		return (
+			<EditorInspectorListField object={this} property="_generatorType" label="Generator Type" onChange={(v) => this._createShadowGenerator(v)} items={[
+				{ text: "None", value: "none" },
+				{ text: "Classic", value: "classic" },
+				{ text: "Cascaded", value: "cascaded" },
+			]} />
+		);
+	}
 
-    private _getClassicShadowGeneratorComponent() {
-        const generator = this.state.generator as ShadowGenerator;
+	private _getClassicShadowGeneratorComponent() {
+		const generator = this.state.generator as ShadowGenerator;
 
-        if (!generator) {
-            return null;
-        }
+		if (!generator) {
+			return null;
+		}
 
-        const shadowMap = generator.getShadowMap();
+		const shadowMap = generator.getShadowMap();
 
-        return (
-            <>
-                {this.props.children}
-                <EditorInspectorNumberField object={generator} property="bias" step={0.000001} min={0} max={1} label="Bias" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
-                <EditorInspectorNumberField object={generator} property="normalBias" step={0.000001} min={0} max={1} label="Normal Bias" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
-                <EditorInspectorNumberField object={generator} property="darkness" step={0.01} min={0} max={1} label="Darkness" />
+		return (
+			<>
+				{this.props.children}
+				<EditorInspectorNumberField object={generator} property="bias" step={0.000001} min={0} max={1} label="Bias" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+				<EditorInspectorNumberField object={generator} property="normalBias" step={0.000001} min={0} max={1} label="Normal Bias" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+				<EditorInspectorNumberField object={generator} property="darkness" step={0.01} min={0} max={1} label="Darkness" />
 
-                {shadowMap &&
+				{shadowMap &&
                     <EditorInspectorListField object={shadowMap} property="refreshRate" label="Refresh Rate" items={[
-                        { text: "Once", value: RenderTargetTexture.REFRESHRATE_RENDER_ONCE },
-                        { text: "2 Frames", value: RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYTWOFRAMES },
-                        { text: "Every Frame", value: RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME },
+                    	{ text: "Once", value: RenderTargetTexture.REFRESHRATE_RENDER_ONCE },
+                    	{ text: "2 Frames", value: RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYTWOFRAMES },
+                    	{ text: "Every Frame", value: RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME },
                     ]} />
-                }
-            </>
-        );
-    }
+				}
+			</>
+		);
+	}
 
-    private _getClassicSoftShadowComponent() {
-        const generator = this.state.generator as ShadowGenerator | CascadedShadowGenerator;
+	private _getClassicSoftShadowComponent() {
+		const generator = this.state.generator as ShadowGenerator | CascadedShadowGenerator;
 
-        if (!generator) {
-            return null;
-        }
+		if (!generator) {
+			return null;
+		}
 
-        return (
-            <EditorInspectorSectionField title="Soft Shadows">
-                <EditorInspectorListField object={this} property="_softShadowType" label="Soft Shadows Type" onChange={(v) => {
-                    this._updateSoftShadowType(v);
-                    updateLightShadowMapRefreshRate(this.props.light);
-                }} items={[
-                    { text: "None", value: "none" },
-                    ...(isPointLight(this.props.light)
-                        ? [
-                            { text: "Poisson Sampling", value: "usePoissonSampling" },
-                        ]
-                        : [
-                            { text: "Percentage Closer Filtering", value: "usePercentageCloserFiltering" },
-                            { text: "Contact Hardening Shadow", value: "useContactHardeningShadow" },
-                        ]
-                    ),
-                ]} />
+		return (
+			<EditorInspectorSectionField title="Soft Shadows">
+				<EditorInspectorListField object={this} property="_softShadowType" label="Soft Shadows Type" onChange={(v) => {
+					this._updateSoftShadowType(v);
+					updateLightShadowMapRefreshRate(this.props.light);
+				}} items={[
+					{ text: "None", value: "none" },
+					...(isPointLight(this.props.light)
+						? [
+							{ text: "Poisson Sampling", value: "usePoissonSampling" },
+						]
+						: [
+							{ text: "Percentage Closer Filtering", value: "usePercentageCloserFiltering" },
+							{ text: "Contact Hardening Shadow", value: "useContactHardeningShadow" },
+						]
+					),
+				]} />
 
-                {generator.usePoissonSampling &&
+				{generator.usePoissonSampling &&
                     <EditorInspectorNumberField object={generator} property="blurScale" step={0.1} min={0} max={10} label="Blur Scale" />
-                }
+				}
 
-                {(generator.usePercentageCloserFiltering && !generator.useContactHardeningShadow) &&
+				{(generator.usePercentageCloserFiltering && !generator.useContactHardeningShadow) &&
                     <>
-                        <EditorInspectorListField object={generator} property="filteringQuality" label="Filtering Quality" items={[
-                            { text: "Low", value: ShadowGenerator.QUALITY_LOW },
-                            { text: "Medium", value: ShadowGenerator.QUALITY_MEDIUM },
-                            { text: "High", value: ShadowGenerator.QUALITY_HIGH },
-                        ]} onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+                    	<EditorInspectorListField object={generator} property="filteringQuality" label="Filtering Quality" items={[
+                    		{ text: "Low", value: ShadowGenerator.QUALITY_LOW },
+                    		{ text: "Medium", value: ShadowGenerator.QUALITY_MEDIUM },
+                    		{ text: "High", value: ShadowGenerator.QUALITY_HIGH },
+                    	]} onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
                     </>
-                }
+				}
 
-                {generator.useContactHardeningShadow &&
+				{generator.useContactHardeningShadow &&
                     <EditorInspectorNumberField object={generator.contactHardeningLightSizeUVRatio} property="blurScale" step={0.001} min={0} max={1} label="Light Size UV Ratio" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
-                }
-            </EditorInspectorSectionField>
-        );
-    }
+				}
+			</EditorInspectorSectionField>
+		);
+	}
 
-    private _getCascadedShadowGeneratorComponent() {
-        const generator = this.state.generator;
+	private _getCascadedShadowGeneratorComponent() {
+		const generator = this.state.generator;
 
-        if (!generator || !isCascadedShadowGenerator(generator)) {
-            return null;
-        }
+		if (!generator || !isCascadedShadowGenerator(generator)) {
+			return null;
+		}
 
-        return (
-            <>
-                {this.props.children}
-                <EditorInspectorSwitchField object={generator} property="stabilizeCascades" label="Stabilize Cascades" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
-                <EditorInspectorSwitchField object={generator} property="depthClamp" label="Depth Clamp" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
-                <EditorInspectorSwitchField object={generator} property="autoCalcDepthBounds" label="Auto Calc Depth Bounds" onChange={() => {
-                    this.forceUpdate();
-                    updateLightShadowMapRefreshRate(this.props.light);
-                }} />
-                {generator.autoCalcDepthBounds &&
+		return (
+			<>
+				{this.props.children}
+				<EditorInspectorSwitchField object={generator} property="stabilizeCascades" label="Stabilize Cascades" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+				<EditorInspectorSwitchField object={generator} property="depthClamp" label="Depth Clamp" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+				<EditorInspectorSwitchField object={generator} property="autoCalcDepthBounds" label="Auto Calc Depth Bounds" onChange={() => {
+					this.forceUpdate();
+					updateLightShadowMapRefreshRate(this.props.light);
+				}} />
+				{generator.autoCalcDepthBounds &&
                     <EditorInspectorNumberField object={generator} property="autoCalcDepthBoundsRefreshRate" step={1} min={0} max={60} label="Auto Calc Depth Bounds Refresh Rate" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
-                }
-                <EditorInspectorNumberField object={generator} property="lambda" min={0} max={1} label="Lambda" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
-                <EditorInspectorNumberField object={generator} property="cascadeBlendPercentage" min={0} max={1} label="Blend Percentage" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
-                <EditorInspectorNumberField object={generator} property="penumbraDarkness" min={0} max={1} label="Penumbra Darkness" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
-            </>
-        );
-    }
+				}
+				<EditorInspectorNumberField object={generator} property="lambda" min={0} max={1} label="Lambda" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+				<EditorInspectorNumberField object={generator} property="cascadeBlendPercentage" min={0} max={1} label="Blend Percentage" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+				<EditorInspectorNumberField object={generator} property="penumbraDarkness" min={0} max={1} label="Penumbra Darkness" onChange={() => updateLightShadowMapRefreshRate(this.props.light)} />
+			</>
+		);
+	}
 
-    private _getSoftShadowType(generator: IShadowGenerator | null): SoftShadowType {
-        if (generator && (isShadowGenerator(generator) || isCascadedShadowGenerator(generator))) {
-            if (generator.usePercentageCloserFiltering) {
-                return "usePercentageCloserFiltering";
-            } else if (generator.useContactHardeningShadow) {
-                return "useContactHardeningShadow";
-            }
-        }
+	private _getSoftShadowType(generator: IShadowGenerator | null): SoftShadowType {
+		if (generator && (isShadowGenerator(generator) || isCascadedShadowGenerator(generator))) {
+			if (generator.usePercentageCloserFiltering) {
+				return "usePercentageCloserFiltering";
+			} else if (generator.useContactHardeningShadow) {
+				return "useContactHardeningShadow";
+			}
+		}
 
-        return "none";
-    }
+		return "none";
+	}
 
-    private _updateSoftShadowType(type: SoftShadowType): void {
-        if (this.state.generator && (isShadowGenerator(this.state.generator) || isCascadedShadowGenerator(this.state.generator))) {
-            this.state.generator.usePoissonSampling = false;
-            this.state.generator.useExponentialShadowMap = false;
-            this.state.generator.useBlurExponentialShadowMap = false;
-            this.state.generator.useCloseExponentialShadowMap = false;
-            this.state.generator.useBlurCloseExponentialShadowMap = false;
-            this.state.generator.usePercentageCloserFiltering = false;
-            this.state.generator.useContactHardeningShadow = false;
+	private _updateSoftShadowType(type: SoftShadowType): void {
+		if (this.state.generator && (isShadowGenerator(this.state.generator) || isCascadedShadowGenerator(this.state.generator))) {
+			this.state.generator.usePoissonSampling = false;
+			this.state.generator.useExponentialShadowMap = false;
+			this.state.generator.useBlurExponentialShadowMap = false;
+			this.state.generator.useCloseExponentialShadowMap = false;
+			this.state.generator.useBlurCloseExponentialShadowMap = false;
+			this.state.generator.usePercentageCloserFiltering = false;
+			this.state.generator.useContactHardeningShadow = false;
 
-            this.state.generator[type] = true;
+			this.state.generator[type] = true;
 
-            this.forceUpdate();
-        }
-    }
+			this.forceUpdate();
+		}
+	}
 }

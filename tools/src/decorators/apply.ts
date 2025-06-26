@@ -56,85 +56,85 @@ export interface ISceneDecoratorData {
 }
 
 export function applyDecorators(scene: Scene, object: any, script: any, instance: any, rootUrl: string) {
-    const ctor = instance.constructor as ISceneDecoratorData;
-    if (!ctor) {
-        return;
-    }
+	const ctor = instance.constructor as ISceneDecoratorData;
+	if (!ctor) {
+		return;
+	}
 
-    // @nodeFromScene
-    ctor._NodesFromScene?.forEach((params) => {
-        instance[params.propertyKey.toString()] = scene.getNodeByName(params.nodeName);
-    });
+	// @nodeFromScene
+	ctor._NodesFromScene?.forEach((params) => {
+		instance[params.propertyKey.toString()] = scene.getNodeByName(params.nodeName);
+	});
 
-    // @nodeFromDescendants
-    ctor._NodesFromDescendants?.forEach((params) => {
-        const descendant = (object as Partial<Node>).getDescendants?.(params.directDescendantsOnly, (node) => node.name === params.nodeName)[0];
-        instance[params.propertyKey.toString()] = descendant ?? null;
-    });
+	// @nodeFromDescendants
+	ctor._NodesFromDescendants?.forEach((params) => {
+		const descendant = (object as Partial<Node>).getDescendants?.(params.directDescendantsOnly, (node) => node.name === params.nodeName)[0];
+		instance[params.propertyKey.toString()] = descendant ?? null;
+	});
 
-    // @fromAnimationGroups
-    ctor._AnimationGroups?.forEach((params) => {
-        instance[params.propertyKey.toString()] = scene.getAnimationGroupByName(params.animationGroupName);
-    });
+	// @fromAnimationGroups
+	ctor._AnimationGroups?.forEach((params) => {
+		instance[params.propertyKey.toString()] = scene.getAnimationGroupByName(params.animationGroupName);
+	});
 
-    // @soundFromScene
-    ctor._SoundsFromScene?.forEach((params) => {
-        const sound = scene.getSoundByName?.(params.soundName);
-        instance[params.propertyKey.toString()] = sound ?? null;
-    });
+	// @soundFromScene
+	ctor._SoundsFromScene?.forEach((params) => {
+		const sound = scene.getSoundByName?.(params.soundName);
+		instance[params.propertyKey.toString()] = sound ?? null;
+	});
 
-    // @guiFromAsset
-    ctor._GuiFromAsset?.forEach(async (params) => {
-        const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
+	// @guiFromAsset
+	ctor._GuiFromAsset?.forEach(async (params) => {
+		const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
 
-        try {
-            const response = await fetch(guiUrl);
-            const data = await response.json();
+		try {
+			const response = await fetch(guiUrl);
+			const data = await response.json();
 
-            const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
-            gui.parseSerializedObject(data.content, false);
+			const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
+			gui.parseSerializedObject(data.content, false);
 
-            instance[params.propertyKey.toString()] = gui;
-            params.onGuiCreated?.(instance, gui);
-        } catch (e) {
-            console.error(`Failed to load GUI from asset: ${guiUrl}`);
-            throw e;
-        }
-    });
+			instance[params.propertyKey.toString()] = gui;
+			params.onGuiCreated?.(instance, gui);
+		} catch (e) {
+			console.error(`Failed to load GUI from asset: ${guiUrl}`);
+			throw e;
+		}
+	});
 
-    // @fromParticleSystems
-    ctor._ParticleSystemsFromScene?.forEach((params) => {
-        const particleSystem = scene.particleSystems?.find((particleSystem) => {
-            return particleSystem.name === params.particleSystemName;
-        });
+	// @fromParticleSystems
+	ctor._ParticleSystemsFromScene?.forEach((params) => {
+		const particleSystem = scene.particleSystems?.find((particleSystem) => {
+			return particleSystem.name === params.particleSystemName;
+		});
 
-        instance[params.propertyKey.toString()] = particleSystem;
-    });
+		instance[params.propertyKey.toString()] = particleSystem;
+	});
 
-    // @visibleAsNumber, @visibleAsBoolean etc.
-    ctor._VisibleInInspector?.forEach((params) => {
-        const propertyKey = params.propertyKey.toString();
-        const attachedScripts = script.values;
+	// @visibleAsNumber, @visibleAsBoolean etc.
+	ctor._VisibleInInspector?.forEach((params) => {
+		const propertyKey = params.propertyKey.toString();
+		const attachedScripts = script.values;
 
-        if (
-            attachedScripts.hasOwnProperty(propertyKey) &&
+		if (
+			attachedScripts.hasOwnProperty(propertyKey) &&
             attachedScripts[propertyKey].hasOwnProperty("value")
-        ) {
-            const value = attachedScripts[propertyKey].value;
+		) {
+			const value = attachedScripts[propertyKey].value;
 
-            switch (params.configuration.type) {
-                case "number":
-                case "boolean":
-                    instance[propertyKey] = value;
-                    break;
+			switch (params.configuration.type) {
+			case "number":
+			case "boolean":
+				instance[propertyKey] = value;
+				break;
 
-                case "vector2":
-                    instance[propertyKey] = Vector2.FromArray(value);
-                    break;
-                case "vector3":
-                    instance[propertyKey] = Vector3.FromArray(value);
-                    break;
-            }
-        }
-    });
+			case "vector2":
+				instance[propertyKey] = Vector2.FromArray(value);
+				break;
+			case "vector3":
+				instance[propertyKey] = Vector3.FromArray(value);
+				break;
+			}
+		}
+	});
 }

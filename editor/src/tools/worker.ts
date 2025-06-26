@@ -6,13 +6,13 @@
  * @returns a promise that resolves with the data posted by the worker.
  */
 export async function executeSimpleWorker<T>(path: string, data: any) {
-    const worker = new Worker(path);
-    worker.postMessage(data);
+	const worker = new Worker(path);
+	worker.postMessage(data);
 
-    return new Promise<T>((resolve) => {
-        worker.addEventListener("message", (event) => {
-            worker.terminate();
-            resolve(event.data);
-        });
-    });
+	return new Promise<T>((resolve) => {
+		worker.addEventListener("message", (event) => {
+			worker.terminate();
+			resolve(event.data);
+		});
+	});
 }

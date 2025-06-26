@@ -10,60 +10,60 @@ export interface ICinematicEditorTrackAddProps {
 }
 
 export function CinematicEditorTrackAdd(props: ICinematicEditorTrackAddProps) {
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-8 h-8 p-1">
-                    <AiOutlinePlus className="w-5 h-5" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack()}>
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button variant="ghost" className="w-8 h-8 p-1">
+					<AiOutlinePlus className="w-5 h-5" />
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent>
+				<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack()}>
                     Property Track
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addAnimationGroupTrack()}>
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addAnimationGroupTrack()}>
                     Animation Group Track
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addSoundTrack()}>
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addSoundTrack()}>
                     Sound Track
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addEventTrack()}>
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addEventTrack()}>
                     Event Track
-                </DropdownMenuItem>
+				</DropdownMenuItem>
 
-                <DropdownMenuSeparator />
+				<DropdownMenuSeparator />
 
-                <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
+				<DropdownMenuSub>
+					<DropdownMenuSubTrigger>
                         Default Rendering Pipeline
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
-                        <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "imageProcessing.exposure" })}>
+					</DropdownMenuSubTrigger>
+					<DropdownMenuSubContent>
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "imageProcessing.exposure" })}>
                             Exposure
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "imageProcessing.contrast" })}>
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "imageProcessing.contrast" })}>
                             Contrast
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "depthOfField.focusDistance" })}>
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "depthOfField.focusDistance" })}>
                             Depth-of-field Focus Distance
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "depthOfField.fStop" })}>
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "depthOfField.fStop" })}>
                             Depth-of-field F-Stop
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "depthOfField.lensSize" })}>
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "depthOfField.lensSize" })}>
                             Depth-of-field Lens Size
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "depthOfField.focalLength" })}>
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true, propertyPath: "depthOfField.focalLength" })}>
                             Depth-of-field Focal Length
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true })}>
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true })}>
                             Custom
-                        </DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                </DropdownMenuSub>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
+						</DropdownMenuItem>
+					</DropdownMenuSubContent>
+				</DropdownMenuSub>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
 }

@@ -6,15 +6,15 @@ export type OpenFileDialogOptions = {
 };
 
 export function openSingleFileDialog(options?: OpenFileDialogOptions): string {
-    return ipcRenderer.sendSync("editor:open-single-file-dialog", options?.title, options?.filters);
+	return ipcRenderer.sendSync("editor:open-single-file-dialog", options?.title, options?.filters);
 }
 
 export function openMultipleFilesDialog(options?: OpenFileDialogOptions): string[] {
-    return ipcRenderer.sendSync("editor:open-multiple-files-dialog", options?.title, options?.filters);
+	return ipcRenderer.sendSync("editor:open-multiple-files-dialog", options?.title, options?.filters);
 }
 
 export function openSingleFolderDialog(title?: string): string {
-    return ipcRenderer.sendSync("editor:open-single-folder-dialog", title);
+	return ipcRenderer.sendSync("editor:open-single-folder-dialog", title);
 }
 
 export type SaveFileDialogOptions = {
@@ -24,5 +24,5 @@ export type SaveFileDialogOptions = {
 };
 
 export function saveSingleFileDialog(options?: SaveFileDialogOptions): string {
-    return ipcRenderer.sendSync("editor:save-single-file-dialog", options?.title, options?.filters, options?.defaultPath);
+	return ipcRenderer.sendSync("editor:save-single-file-dialog", options?.title, options?.filters, options?.defaultPath);
 }

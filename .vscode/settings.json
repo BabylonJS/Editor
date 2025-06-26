@@ -9,11 +9,15 @@
         "*.fx": "glsl"
     },
     "editor.tabSize": 4,
+    "editor.formatOnSave": true,
     "editor.insertSpaces": true,
-    "editor.detectIndentation": false,
+    "editor.detectIndentation": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "always",
+    },
     "files.insertFinalNewline": true,
     "javascript.format.semicolons": "insert",
     "typescript.format.semicolons": "insert",
     "typescript.preferences.quoteStyle": "double",
-    "javascript.preferences.quoteStyle": "double"
+    "javascript.preferences.quoteStyle": "double",
 }

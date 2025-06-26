@@ -26,45 +26,45 @@ export interface IEditorEditProjectComponentProps {
 }
 
 export class EditorEditProjectComponent extends Component<IEditorEditProjectComponentProps> {
-    public render(): ReactNode {
-        return (
-            <AlertDialog open={this.props.open}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="text-3xl font-[400]">
+	public render(): ReactNode {
+		return (
+			<AlertDialog open={this.props.open}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle className="text-3xl font-[400]">
                             Edit Project
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="py-5" asChild>
-                            <Tabs defaultValue="editor" className="w-full">
-                                <TabsList className="w-full">
-                                    <TabsTrigger className="w-full" value="editor">Editor</TabsTrigger>
-                                    <TabsTrigger className="w-full" value="plugins">Plugins</TabsTrigger>
-                                </TabsList>
+						</AlertDialogTitle>
+						<AlertDialogDescription className="py-5" asChild>
+							<Tabs defaultValue="editor" className="w-full">
+								<TabsList className="w-full">
+									<TabsTrigger className="w-full" value="editor">Editor</TabsTrigger>
+									<TabsTrigger className="w-full" value="plugins">Plugins</TabsTrigger>
+								</TabsList>
 
-                                <TabsContent value="editor">
-                                    <EditorEditProjectTextureComponent editor={this.props.editor} />
-                                </TabsContent>
-                                <TabsContent value="plugins">
-                                    <EditorEditProjectPluginComponent editor={this.props.editor} />
-                                </TabsContent>
-                            </Tabs>
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel className="w-20" onClick={() => this.props.onClose()}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction className="w-20" onClick={() => this._handleSave()}>Save</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        );
-    }
+								<TabsContent value="editor">
+									<EditorEditProjectTextureComponent editor={this.props.editor} />
+								</TabsContent>
+								<TabsContent value="plugins">
+									<EditorEditProjectPluginComponent editor={this.props.editor} />
+								</TabsContent>
+							</Tabs>
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel className="w-20" onClick={() => this.props.onClose()}>Cancel</AlertDialogCancel>
+						<AlertDialogAction className="w-20" onClick={() => this._handleSave()}>Save</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		);
+	}
 
-    private _handleSave(): void {
-        projectConfiguration.compressedTexturesEnabled = this.props.editor.state.compressedTexturesEnabled;
+	private _handleSave(): void {
+		projectConfiguration.compressedTexturesEnabled = this.props.editor.state.compressedTexturesEnabled;
 
-        saveProject(this.props.editor);
-        checkProjectCachedCompressedTextures(this.props.editor);
+		saveProject(this.props.editor);
+		checkProjectCachedCompressedTextures(this.props.editor);
 
-        this.props.onClose();
-    }
+		this.props.onClose();
+	}
 }

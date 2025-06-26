@@ -16,22 +16,22 @@ export type VisibleInInspectorDecoratorConfiguration = {
  * @param configuration defines the optional configuration for the field in the inspector (description, etc.).
  */
 export function visibleAsBoolean(
-    label?: string,
-    configuration?: Omit<VisibleInInspectorDecoratorNumberConfiguration, "type">,
+	label?: string,
+	configuration?: Omit<VisibleInInspectorDecoratorNumberConfiguration, "type">,
 ) {
-    return function (target: any, propertyKey: string | Symbol) {
-        const ctor = target.constructor as ISceneDecoratorData;
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
 
-        ctor._VisibleInInspector ??= [];
-        ctor._VisibleInInspector.push({
-            label,
-            propertyKey,
-            configuration: {
-                ...configuration,
-                type: "boolean",
-            },
-        });
-    };
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				type: "boolean",
+			},
+		});
+	};
 }
 
 /**
@@ -43,22 +43,22 @@ export function visibleAsBoolean(
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
 export function visibleAsNumber(
-    label?: string,
-    configuration?: Omit<VisibleInInspectorDecoratorNumberConfiguration, "type">,
+	label?: string,
+	configuration?: Omit<VisibleInInspectorDecoratorNumberConfiguration, "type">,
 ) {
-    return function (target: any, propertyKey: string | Symbol) {
-        const ctor = target.constructor as ISceneDecoratorData;
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
 
-        ctor._VisibleInInspector ??= [];
-        ctor._VisibleInInspector.push({
-            label,
-            propertyKey,
-            configuration: {
-                ...configuration,
-                type: "number",
-            },
-        });
-    };
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				type: "number",
+			},
+		});
+	};
 }
 
 export type VisibleInInspectorDecoratorNumberConfiguration = VisibleInInspectorDecoratorConfiguration & {
@@ -76,22 +76,22 @@ export type VisibleInInspectorDecoratorNumberConfiguration = VisibleInInspectorD
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
 export function visibleAsVector2(
-    label?: string,
-    configuration?: Omit<VisibleInInspectorDecoratorVector2Configuration, "type">,
+	label?: string,
+	configuration?: Omit<VisibleInInspectorDecoratorVector2Configuration, "type">,
 ) {
-    return function (target: any, propertyKey: string | Symbol) {
-        const ctor = target.constructor as ISceneDecoratorData;
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
 
-        ctor._VisibleInInspector ??= [];
-        ctor._VisibleInInspector.push({
-            label,
-            propertyKey,
-            configuration: {
-                ...configuration,
-                type: "vector2",
-            },
-        });
-    };
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				type: "vector2",
+			},
+		});
+	};
 }
 
 export type VisibleInInspectorDecoratorVector2Configuration = VisibleInInspectorDecoratorConfiguration & {
@@ -110,22 +110,22 @@ export type VisibleInInspectorDecoratorVector2Configuration = VisibleInInspector
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
 export function visibleAsVector3(
-    label?: string,
-    configuration?: Omit<VisibleInInspectorDecoratorVector3Configuration, "type">,
+	label?: string,
+	configuration?: Omit<VisibleInInspectorDecoratorVector3Configuration, "type">,
 ) {
-    return function (target: any, propertyKey: string | Symbol) {
-        const ctor = target.constructor as ISceneDecoratorData;
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
 
-        ctor._VisibleInInspector ??= [];
-        ctor._VisibleInInspector.push({
-            label,
-            propertyKey,
-            configuration: {
-                ...configuration,
-                type: "vector3",
-            },
-        });
-    };
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				type: "vector3",
+			},
+		});
+	};
 }
 
 export type VisibleInInspectorDecoratorVector3Configuration = VisibleInInspectorDecoratorConfiguration & {
@@ -144,22 +144,22 @@ export type VisibleInInspectorDecoratorVector3Configuration = VisibleInInspector
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
 export function visibleAsColor3(
-    label?: string,
-    configuration?: Omit<VisibleInInspectorDecoratorColor3Configuration, "type">,
+	label?: string,
+	configuration?: Omit<VisibleInInspectorDecoratorColor3Configuration, "type">,
 ) {
-    return function (target: any, propertyKey: string | Symbol) {
-        const ctor = target.constructor as ISceneDecoratorData;
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
 
-        ctor._VisibleInInspector ??= [];
-        ctor._VisibleInInspector.push({
-            label,
-            propertyKey,
-            configuration: {
-                ...configuration,
-                type: "color3",
-            },
-        });
-    };
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				type: "color3",
+			},
+		});
+	};
 }
 
 export type VisibleInInspectorDecoratorColor3Configuration = VisibleInInspectorDecoratorConfiguration & {
@@ -176,22 +176,22 @@ export type VisibleInInspectorDecoratorColor3Configuration = VisibleInInspectorD
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
 export function visibleAsColor4(
-    label?: string,
-    configuration?: Omit<VisibleInInspectorDecoratorColor4Configuration, "type">,
+	label?: string,
+	configuration?: Omit<VisibleInInspectorDecoratorColor4Configuration, "type">,
 ) {
-    return function (target: any, propertyKey: string | Symbol) {
-        const ctor = target.constructor as ISceneDecoratorData;
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
 
-        ctor._VisibleInInspector ??= [];
-        ctor._VisibleInInspector.push({
-            label,
-            propertyKey,
-            configuration: {
-                ...configuration,
-                type: "color4",
-            },
-        });
-    };
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				type: "color4",
+			},
+		});
+	};
 }
 
 export type VisibleInInspectorDecoratorColor4Configuration = VisibleInInspectorDecoratorConfiguration & {

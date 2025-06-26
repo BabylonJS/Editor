@@ -7,11 +7,11 @@ import { Engine } from "@babylonjs/core/Engines/engine";
  * @see `@babylonjs/core/Engines/Extensions/engine.textureSelector.d.ts` for more information.
  */
 export function configureEngineToUseCompressedTextures(engine: Engine) {
-    engine.setTextureFormatToUse([
-        "-dxt.ktx",
-        "-astc.ktx",
-        "-pvrtc.ktx",
-        "-etc1.ktx",
-        "-etc2.ktx",
-    ]);
+	engine.setTextureFormatToUse([
+		"-dxt.ktx",
+		"-astc.ktx",
+		"-pvrtc.ktx",
+		"-etc1.ktx",
+		"-etc2.ktx",
+	]);
 }

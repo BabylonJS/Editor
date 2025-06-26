@@ -25,189 +25,189 @@ export interface IEditorEditProjectPluginComponentProps {
 }
 
 export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPluginComponentProps) {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [version, setVersion] = useState("");
+	const [title, setTitle] = useState("");
+	const [description, setDescription] = useState("");
+	const [version, setVersion] = useState("");
 
-    const [onError, setOnError] = useState(false);
+	const [onError, setOnError] = useState(false);
 
-    const [isFromNpm, setIsFromNpm] = useState(false);
-    const [upgrading, setUpgrading] = useState(false);
+	const [isFromNpm, setIsFromNpm] = useState(false);
+	const [upgrading, setUpgrading] = useState(false);
 
-    useEffect(() => {
-        requireAndSetupPlugin();
-        pathExists(props.pathOrName).then((exists) => setIsFromNpm(!exists));
-    }, []);
+	useEffect(() => {
+		requireAndSetupPlugin();
+		pathExists(props.pathOrName).then((exists) => setIsFromNpm(!exists));
+	}, []);
 
-    async function requireAndSetupPlugin() {
-        const requireId = await getRequireId();
-        if (!requireId) {
-            return;
-        }
+	async function requireAndSetupPlugin() {
+		const requireId = await getRequireId();
+		if (!requireId) {
+			return;
+		}
 
-        try {
-            const result = require(requireId);
-            setTitle(result.title ?? "Unnamed Plugin");
-            setDescription(result.description ?? "No description provided.");
+		try {
+			const result = require(requireId);
+			setTitle(result.title ?? "Unnamed Plugin");
+			setDescription(result.description ?? "No description provided.");
 
-            const packageJson = require(join(requireId, "package.json"));
-            setVersion(`v${packageJson.version}`);
-        } catch (e) {
-            setOnError(true);
-        }
-    }
+			const packageJson = require(join(requireId, "package.json"));
+			setVersion(`v${packageJson.version}`);
+		} catch (e) {
+			setOnError(true);
+		}
+	}
 
-    async function handleRemove() {
-        const requireId = await getRequireId();
-        if (!requireId) {
-            return;
-        }
+	async function handleRemove() {
+		const requireId = await getRequireId();
+		if (!requireId) {
+			return;
+		}
 
-        const remove = await showConfirm("Remove plugin", "Are you sure you want to remove this plugin?");
-        if (!remove) {
-            return;
-        }
+		const remove = await showConfirm("Remove plugin", "Are you sure you want to remove this plugin?");
+		if (!remove) {
+			return;
+		}
 
-        try {
-            const result = require(requireId);
-            result.close?.();
-        } catch (e) {
-            console.error("Failed to remove plugin", e);
-            props.editor.layout.console.error(`Failed to remove plugin: ${e.message}`);
-        } finally {
-            props.onRemoved();
-        }
-    }
+		try {
+			const result = require(requireId);
+			result.close?.();
+		} catch (e) {
+			console.error("Failed to remove plugin", e);
+			props.editor.layout.console.error(`Failed to remove plugin: ${e.message}`);
+		} finally {
+			props.onRemoved();
+		}
+	}
 
-    async function handleUpdate() {
-        if (!projectConfiguration.path) {
-            return;
-        }
+	async function handleUpdate() {
+		if (!projectConfiguration.path) {
+			return;
+		}
 
-        const projectDir = dirname(projectConfiguration.path);
+		const projectDir = dirname(projectConfiguration.path);
 
-        setUpgrading(true);
+		setUpgrading(true);
 
-        const requireId = await getRequireId();
-        if (!requireId) {
-            return;
-        }
+		const requireId = await getRequireId();
+		if (!requireId) {
+			return;
+		}
 
-        try {
-            const result = require(requireId);
-            result.close?.();
-        } catch (e) {
-            props.editor.layout.console.error("Invalid plugin. Failed to close plugin before upgrading.");
-            if (e.message) {
-                props.editor.layout.console.error(e.message);
-            }
-        }
+		try {
+			const result = require(requireId);
+			result.close?.();
+		} catch (e) {
+			props.editor.layout.console.error("Invalid plugin. Failed to close plugin before upgrading.");
+			if (e.message) {
+				props.editor.layout.console.error(e.message);
+			}
+		}
 
-        try {
-            let command = "";
-            switch (props.editor.state.packageManager) {
-                case "npm": command = `npm update ${props.pathOrName}`; break;
-                case "pnpm": command = `pnpm up ${props.pathOrName}`; break;
-                case "bun": command = `bun update ${props.pathOrName}`; break;
-                default: command = `yarn upgrade ${props.pathOrName}`; break;
-            }
+		try {
+			let command = "";
+			switch (props.editor.state.packageManager) {
+			case "npm": command = `npm update ${props.pathOrName}`; break;
+			case "pnpm": command = `pnpm up ${props.pathOrName}`; break;
+			case "bun": command = `bun update ${props.pathOrName}`; break;
+			default: command = `yarn upgrade ${props.pathOrName}`; break;
+			}
 
-            const p = await execNodePty(command, {
-                cwd: projectDir,
-            });
+			const p = await execNodePty(command, {
+				cwd: projectDir,
+			});
 
-            await p.wait();
+			await p.wait();
 
-            const result = require(requireId);
-            result.main(props.editor);
-        } catch (e) {
-            props.editor.layout.console.error("Invalid plugin.");
-            if (e.message) {
-                props.editor.layout.console.error(e.message);
-            }
-        }
+			const result = require(requireId);
+			result.main(props.editor);
+		} catch (e) {
+			props.editor.layout.console.error("Invalid plugin.");
+			if (e.message) {
+				props.editor.layout.console.error(e.message);
+			}
+		}
 
-        setUpgrading(false);
-    }
+		setUpgrading(false);
+	}
 
-    async function getRequireId() {
-        if (!projectConfiguration.path) {
-            return null;
-        }
+	async function getRequireId() {
+		if (!projectConfiguration.path) {
+			return null;
+		}
 
-        const isLocalPlugin = await pathExists(props.pathOrName);
+		const isLocalPlugin = await pathExists(props.pathOrName);
 
-        let requireId = props.pathOrName;
-        if (!isLocalPlugin) {
-            const projectDir = dirname(projectConfiguration.path);
-            requireId = join(projectDir, "node_modules", props.pathOrName);
-        }
+		let requireId = props.pathOrName;
+		if (!isLocalPlugin) {
+			const projectDir = dirname(projectConfiguration.path);
+			requireId = join(projectDir, "node_modules", props.pathOrName);
+		}
 
-        return requireId;
-    }
+		return requireId;
+	}
 
-    return (
-        <>
-            <div className="flex justify-between items-center w-full p-5 bg-secondary rounded-lg">
-                {!onError &&
+	return (
+		<>
+			<div className="flex justify-between items-center w-full p-5 bg-secondary rounded-lg">
+				{!onError &&
                     <div className="flex flex-col">
-                        <div className="text-xl font-[400]">
-                            {title}
-                        </div>
-                        <div className="font-[400]">
-                            {description}
-                        </div>
-                        <div className="text-xs font-[400]">
-                            {props.pathOrName} {version}
-                        </div>
+                    	<div className="text-xl font-[400]">
+                    		{title}
+                    	</div>
+                    	<div className="font-[400]">
+                    		{description}
+                    	</div>
+                    	<div className="text-xs font-[400]">
+                    		{props.pathOrName} {version}
+                    	</div>
                     </div>
-                }
+				}
 
-                {onError &&
+				{onError &&
                     <div className="flex items-center gap-2">
-                        <div className="flex justify-center items-center w-10 h-10 rounded-full p-2 bg-destructive">
-                            <IoCloseOutline size={32} />
-                        </div>
+                    	<div className="flex justify-center items-center w-10 h-10 rounded-full p-2 bg-destructive">
+                    		<IoCloseOutline size={32} />
+                    	</div>
 
-                        <div className="flex flex-col">
-                            <div>
+                    	<div className="flex flex-col">
+                    		<div>
                                 Failed to load ...{basename(props.pathOrName)}
-                            </div>
-                            <div className="text-xs">
-                                {props.pathOrName}
-                            </div>
-                        </div>
+                    		</div>
+                    		<div className="text-xs">
+                    			{props.pathOrName}
+                    		</div>
+                    	</div>
                     </div>
-                }
+				}
 
-                <div className="flex flex-col">
-                    {isFromNpm &&
+				<div className="flex flex-col">
+					{isFromNpm &&
                         <Button variant="outline" className="w-10 h-10 rounded-full p-2" onClick={() => handleUpdate()}>
-                            <IoReload className="w-10 h-10" />
+                        	<IoReload className="w-10 h-10" />
                         </Button>
-                    }
+					}
 
-                    <Button variant="outline" className="w-10 h-10 rounded-full p-2" onClick={() => handleRemove()}>
-                        <RxCross1 className="w-10 h-10" />
-                    </Button>
-                </div>
-            </div>
+					<Button variant="outline" className="w-10 h-10 rounded-full p-2" onClick={() => handleRemove()}>
+						<RxCross1 className="w-10 h-10" />
+					</Button>
+				</div>
+			</div>
 
-            <AlertDialog open={upgrading}>
-                <AlertDialogContent className="w-fit h-fit">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Upgrading...</AlertDialogTitle>
-                        <AlertDialogDescription asChild>
-                            <div className="flex justify-center items-center w-full h-full">
-                                <Grid width={24} height={24} color="gray" />
-                            </div>
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
+			<AlertDialog open={upgrading}>
+				<AlertDialogContent className="w-fit h-fit">
+					<AlertDialogHeader>
+						<AlertDialogTitle>Upgrading...</AlertDialogTitle>
+						<AlertDialogDescription asChild>
+							<div className="flex justify-center items-center w-full h-full">
+								<Grid width={24} height={24} color="gray" />
+							</div>
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
 
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
-    );
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
+	);
 }

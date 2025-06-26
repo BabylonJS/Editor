@@ -3,7 +3,7 @@
  * @returns True if the current platform is macOS.
  */
 export function isDarwin() {
-    return process.platform === "darwin";
+	return process.platform === "darwin";
 }
 
 /**
@@ -11,5 +11,5 @@ export function isDarwin() {
  * @returns True if the current platform is Windows.
  */
 export function isWindows() {
-    return process.platform === "win32";
+	return process.platform === "win32";
 }

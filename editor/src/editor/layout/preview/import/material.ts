@@ -14,15 +14,15 @@ import { loadImportedMaterial } from "./import";
  * @param absolutePath defines the absolute path to the .material asset file.
  */
 export function applyMaterialAssetToObject(editor: Editor, object: any, absolutePath: string) {
-    if (!isAbstractMesh(object)) {
-        return;
-    }
+	if (!isAbstractMesh(object)) {
+		return;
+	}
 
-    loadImportedMaterial(object.getScene(), absolutePath).then((material) => {
-        if (material) {
-            applyMaterialToObject(editor, object, material);
-        }
-    });
+	loadImportedMaterial(object.getScene(), absolutePath).then((material) => {
+		if (material) {
+			applyMaterialToObject(editor, object, material);
+		}
+	});
 }
 
 /**
@@ -32,37 +32,37 @@ export function applyMaterialAssetToObject(editor: Editor, object: any, absolute
  * @param material defines the reference to the material instance to apply on the object.
  */
 export function applyMaterialToObject(editor: Editor, object: any, material: Material) {
-    if (!isAbstractMesh(object)) {
-        return;
-    }
+	if (!isAbstractMesh(object)) {
+		return;
+	}
 
-    const oldMaterial = object.material;
+	const oldMaterial = object.material;
 
-    registerUndoRedo({
-        executeRedo: true,
-        undo: () => {
-            object.material = oldMaterial;
-            object.getLODLevels().forEach((lod) => {
-                if (lod.mesh) {
-                    lod.mesh.material = oldMaterial;
-                }
-            });
-        },
-        redo: () => {
-            object.material = material;
-            object.getLODLevels().forEach((lod) => {
-                if (lod.mesh) {
-                    lod.mesh.material = material;
-                }
-            });
-        },
-        onLost: () => {
-            const bindedMeshes = material.getBindedMeshes();
-            if (!bindedMeshes.length) {
-                material.dispose();
-            }
-        },
-    });
+	registerUndoRedo({
+		executeRedo: true,
+		undo: () => {
+			object.material = oldMaterial;
+			object.getLODLevels().forEach((lod) => {
+				if (lod.mesh) {
+					lod.mesh.material = oldMaterial;
+				}
+			});
+		},
+		redo: () => {
+			object.material = material;
+			object.getLODLevels().forEach((lod) => {
+				if (lod.mesh) {
+					lod.mesh.material = material;
+				}
+			});
+		},
+		onLost: () => {
+			const bindedMeshes = material.getBindedMeshes();
+			if (!bindedMeshes.length) {
+				material.dispose();
+			}
+		},
+	});
 
-    editor.layout.inspector.forceUpdate();
+	editor.layout.inspector.forceUpdate();
 }

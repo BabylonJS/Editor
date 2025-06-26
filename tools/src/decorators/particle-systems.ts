@@ -8,10 +8,10 @@ import { ISceneDecoratorData } from "./apply";
  * @param particleSystemName defines the name of the sound to retrieve in scene.
  */
 export function particleSystemFromScene(particleSystemName: string) {
-    return function (target: any, propertyKey: string | Symbol) {
-        const ctor = target.constructor as ISceneDecoratorData;
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
 
-        ctor._ParticleSystemsFromScene ??= [];
-        ctor._ParticleSystemsFromScene.push({ propertyKey, particleSystemName });
-    };
+		ctor._ParticleSystemsFromScene ??= [];
+		ctor._ParticleSystemsFromScene.push({ propertyKey, particleSystemName });
+	};
 }
