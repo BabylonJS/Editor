@@ -31,7 +31,6 @@ export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldP
 
 export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldProps) {
 	const [shiftDown, setShiftDown] = useState(false);
-	const [pointerDown, setPointerDown] = useState(false);
 
 	const [pointerOver, setPointerOver] = useState(false);
 
@@ -134,7 +133,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					}
 				}}
 				style={{
-					cursor: pointerDown ? "ew-resize" : "auto",
+					cursor: "ew-resize",
 					background: hasMinMax ? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)` : undefined,
 				}}
 				className="px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none w-full"
@@ -167,8 +166,6 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					}
 				}}
 				onPointerDown={(ev) => {
-					setPointerDown(true);
-
 					document.body.style.cursor = "ew-resize";
 
 					let v = parseFloat(value);
@@ -186,14 +183,13 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 
 					const oldV = v;
 
-					let startX = ev.clientX;
+					ev.currentTarget.requestPointerLock();
 
 					let mouseUpListener: () => void;
 					let mouseMoveListener: (ev: MouseEvent) => void;
 
 					document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
-						v += (ev.clientX - startX) * step * (shiftDown ? 10 : 1);
-						startX = ev.clientX;
+						v += ev.movementX * step * (shiftDown ? 10 : 1);
 
 						if (props.min !== undefined && v < props.min) {
 							v = props.min;
@@ -215,7 +211,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					});
 
 					document.body.addEventListener("mouseup", mouseUpListener = () => {
-						setPointerDown(false);
+						document.exitPointerLock();
 
 						if (v !== oldV && !props.noUndoRedo) {
 							setValue(v.toFixed(digitCount));
