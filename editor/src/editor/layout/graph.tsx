@@ -10,6 +10,7 @@ import { MdOutlineQuestionMark } from "react-icons/md";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
+import { AiOutlinePlus } from "react-icons/ai";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem } from "babylonjs";
@@ -17,6 +18,7 @@ import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem
 import { Editor } from "../main";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
+import { ContextMenu, ContextMenuItem, ContextMenuContent, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from "../../ui/shadcn/ui/context-menu";
 
 import { isSound } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
@@ -31,6 +33,9 @@ import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, is
 import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
 
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
+import { addBoxMesh, addGroundMesh, addPlaneMesh, addSphereMesh, addTransformNode } from "../../project/add/mesh";
+import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
+import { addArcRotateCamera, addFreeCamera } from "../../project/add/camera";
 
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/graph";
@@ -155,7 +160,58 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					className="w-full h-full"
 					onDragOver={(ev) => ev.preventDefault()}
 					onDrop={(ev) => this._handleDropEmpty(ev)}
-				/>
+				>
+					<ContextMenu>
+						<ContextMenuTrigger className="w-full h-full">
+							<div className="w-full h-full"></div>
+						</ContextMenuTrigger>
+						<ContextMenuContent>
+							<ContextMenuSub>
+								<ContextMenuSubTrigger className="flex items-center gap-2">
+									<AiOutlinePlus className="w-5 h-5" /> Add
+								</ContextMenuSubTrigger>
+								<ContextMenuSubContent>
+									<ContextMenuItem onClick={() => addTransformNode(this.props.editor)}>
+                                    Transform Node
+									</ContextMenuItem>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => addBoxMesh(this.props.editor)}>
+                                    Box Mesh
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addPlaneMesh(this.props.editor)}>
+                                    Plane Mesh
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addSphereMesh(this.props.editor)}>
+                                    Sphere Mesh
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addGroundMesh(this.props.editor)}>
+                                    Ground Mesh
+									</ContextMenuItem>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => addPointLight(this.props.editor)}>
+                                    Point Light
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addDirectionalLight(this.props.editor)}>
+                                    Directional Light
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addSpotLight(this.props.editor)}>
+                                    Spot Light
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addHemisphericLight(this.props.editor)}>
+                                    Hemispheric Light
+									</ContextMenuItem>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => addFreeCamera(this.props.editor)}>
+                                    Free Camera
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addArcRotateCamera(this.props.editor)}>
+                                    Arc Rotate Camera
+									</ContextMenuItem>
+								</ContextMenuSubContent>
+							</ContextMenuSub>
+						</ContextMenuContent>
+					</ContextMenu>
+				</div>
 			</div>
 		);
 	}
