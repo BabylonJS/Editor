@@ -14,11 +14,11 @@ import { isSceneLinkNode } from "./scene";
  */
 export function isAbstractMesh(object: any): object is Mesh {
 	switch (object.getClassName?.()) {
-	case "Mesh":
-	case "LineMesh":
-	case "GroundMesh":
-	case "InstancedMesh":
-		return true;
+		case "Mesh":
+		case "LineMesh":
+		case "GroundMesh":
+		case "InstancedMesh":
+			return true;
 	}
 
 	return false;
@@ -30,9 +30,9 @@ export function isAbstractMesh(object: any): object is Mesh {
  */
 export function isMesh(object: any): object is Mesh {
 	switch (object.getClassName?.()) {
-	case "Mesh":
-	case "GroundMesh":
-		return true;
+		case "Mesh":
+		case "GroundMesh":
+			return true;
 	}
 
 	return false;
@@ -92,13 +92,13 @@ export function isTransformNode(object: any): object is TransformNode {
  */
 export function isCamera(object: any): object is Camera {
 	switch (object.getClassName?.()) {
-	case "Camera":
-	case "FreeCamera":
-	case "TargetCamera":
-	case "EditorCamera":
-	case "ArcRotateCamera":
-	case "UniversalCamera":
-		return true;
+		case "Camera":
+		case "FreeCamera":
+		case "TargetCamera":
+		case "EditorCamera":
+		case "ArcRotateCamera":
+		case "UniversalCamera":
+			return true;
 	}
 
 	return false;
@@ -118,9 +118,9 @@ export function isEditorCamera(object: any): object is EditorCamera {
  */
 export function isFreeCamera(object: any): object is FreeCamera {
 	switch (object.getClassName?.()) {
-	case "FreeCamera":
-	case "UniversalCamera":
-		return true;
+		case "FreeCamera":
+		case "UniversalCamera":
+			return true;
 	}
 
 	return false;
@@ -172,12 +172,12 @@ export function isHemisphericLight(object: any): object is HemisphericLight {
  */
 export function isLight(object: any): object is Light {
 	switch (object.getClassName?.()) {
-	case "Light":
-	case "PointLight":
-	case "SpotLight":
-	case "DirectionalLight":
-	case "HemisphericLight":
-		return true;
+		case "Light":
+		case "PointLight":
+		case "SpotLight":
+		case "DirectionalLight":
+		case "HemisphericLight":
+			return true;
 	}
 
 	return false;

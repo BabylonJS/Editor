@@ -92,10 +92,10 @@ export async function checkPackageManagerAvailable(packageManager: EditorProject
 	try {
 		let command = "";
 		switch (packageManager) {
-		case "npm": command = "npm -v"; break;
-		case "pnpm": command = "pnpm -v"; break;
-		case "bun": command = "bun -v"; break;
-		default: command = "yarn -v"; break;
+			case "npm": command = "npm -v"; break;
+			case "pnpm": command = "pnpm -v"; break;
+			case "bun": command = "bun -v"; break;
+			default: command = "yarn -v"; break;
 		}
 
 		const p = await execNodePty(command);

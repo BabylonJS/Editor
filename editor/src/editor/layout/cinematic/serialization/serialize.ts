@@ -38,23 +38,23 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
 					};
 
 					switch (event.data?.type) {
-					case "set-enabled":
-						result.data = {
-							type: "set-enabled",
-							value: event.data.value,
-							node: event.data.node?.id,
-						};
-						break;
+						case "set-enabled":
+							result.data = {
+								type: "set-enabled",
+								value: event.data.value,
+								node: event.data.node?.id,
+							};
+							break;
 
-					case "apply-impulse":
-						result.data = {
-							type: "apply-impulse",
-							radius: event.data.radius,
-							mesh: event.data.mesh?.id,
-							force: event.data.force.asArray(),
-							contactPoint: event.data.contactPoint.asArray(),
-						};
-						break;
+						case "apply-impulse":
+							result.data = {
+								type: "apply-impulse",
+								radius: event.data.radius,
+								mesh: event.data.mesh?.id,
+								force: event.data.force.asArray(),
+								contactPoint: event.data.contactPoint.asArray(),
+							};
+							break;
 					}
 
 					return result;
@@ -102,12 +102,12 @@ export function serializeCinematicKeyValue(value: any, type: number): any {
 	}
 
 	switch (type) {
-	case Animation.ANIMATIONTYPE_FLOAT: return value;
-	case Animation.ANIMATIONTYPE_VECTOR2: return (value as Vector2).asArray();
-	case Animation.ANIMATIONTYPE_VECTOR3: return (value as Vector3).asArray();
-	case Animation.ANIMATIONTYPE_QUATERNION: return (value as Quaternion).asArray();
-	case Animation.ANIMATIONTYPE_COLOR3: return (value as Color3).asArray();
-	case Animation.ANIMATIONTYPE_COLOR4: return (value as Color4).asArray();
-	case Animation.ANIMATIONTYPE_MATRIX: return (value as Matrix).asArray();
+		case Animation.ANIMATIONTYPE_FLOAT: return value;
+		case Animation.ANIMATIONTYPE_VECTOR2: return (value as Vector2).asArray();
+		case Animation.ANIMATIONTYPE_VECTOR3: return (value as Vector3).asArray();
+		case Animation.ANIMATIONTYPE_QUATERNION: return (value as Quaternion).asArray();
+		case Animation.ANIMATIONTYPE_COLOR3: return (value as Color3).asArray();
+		case Animation.ANIMATIONTYPE_COLOR4: return (value as Color4).asArray();
+		case Animation.ANIMATIONTYPE_MATRIX: return (value as Matrix).asArray();
 	}
 }

@@ -9,12 +9,12 @@ import { RenderType } from "./render";
 
 export function getVideoDimensions(type: RenderType): ISize {
 	switch (type) {
-	case "720p":
-		return { width: 1280, height: 720, };
-	case "1080p":
-		return { width: 1920, height: 1080, };
-	case "4k":
-		return { width: 3840, height: 2160, };
+		case "720p":
+			return { width: 1280, height: 720, };
+		case "1080p":
+			return { width: 1920, height: 1080, };
+		case "4k":
+			return { width: 3840, height: 2160, };
 	}
 }
 

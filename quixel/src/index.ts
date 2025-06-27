@@ -98,13 +98,13 @@ async function handleParsedAsset(editor: Editor, json: QuixelJsonType) {
 	const material = await importMaterial(editor, json, assetFolder);
 
 	switch (json.type) {
-	case "3d":
-		await handleParse3d(editor, json, assetFolder, material);
-		break;
+		case "3d":
+			await handleParse3d(editor, json, assetFolder, material);
+			break;
 
-	case "3dplant":
-		await handleImport3dPlant(editor, json, assetFolder, material);
-		break;
+		case "3dplant":
+			await handleImport3dPlant(editor, json, assetFolder, material);
+			break;
 	}
 
 	// Write preview for folder

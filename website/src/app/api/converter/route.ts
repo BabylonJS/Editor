@@ -29,20 +29,20 @@ export async function POST(request: NextRequest) {
 	let buffer: Buffer | null = null;
 
 	switch (extension) {
-	case ".fbx":
-		buffer = await convertFbx2GltfUsingBlender(filename);
-		break;
+		case ".fbx":
+			buffer = await convertFbx2GltfUsingBlender(filename);
+			break;
 
-	case ".blend":
-		buffer = await convertBlender2GltfUsingBlender(filename);
-		break;
+		case ".blend":
+			buffer = await convertBlender2GltfUsingBlender(filename);
+			break;
 
-	case ".x":
-	case ".stl":
-	case ".3ds":
-	case ".obj":
-		buffer = await convertToGlbUsingAssimp(filename);
-		break;
+		case ".x":
+		case ".stl":
+		case ".3ds":
+		case ".obj":
+			buffer = await convertToGlbUsingAssimp(filename);
+			break;
 	}
 
 	if (!buffer) {

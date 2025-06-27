@@ -295,16 +295,16 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 						let emitterType: IParticleEmitterType | null = null;
 
 						switch (value) {
-						case "BoxParticleEmitter": emitterType = new BoxParticleEmitter(); break;
-						case "ConeParticleEmitter": emitterType = new ConeParticleEmitter(); break;
-						case "ConeDirectedParticleEmitter": emitterType = new ConeDirectedParticleEmitter(); break;
-						case "CylinderParticleEmitter": emitterType = new CylinderParticleEmitter(); break;
-						case "CylinderDirectedParticleEmitter": emitterType = new CylinderDirectedParticleEmitter(); break;
-						case "SphereParticleEmitter": emitterType = new SphereParticleEmitter(); break;
-						case "SphereDirectedParticleEmitter": emitterType = new SphereDirectedParticleEmitter(); break;
-						case "PointParticleEmitter": emitterType = new PointParticleEmitter(); break;
-						case "HemisphericParticleEmitter": emitterType = new HemisphericParticleEmitter(); break;
-						case "MeshParticleEmitter": emitterType = new MeshParticleEmitter(); break;
+							case "BoxParticleEmitter": emitterType = new BoxParticleEmitter(); break;
+							case "ConeParticleEmitter": emitterType = new ConeParticleEmitter(); break;
+							case "ConeDirectedParticleEmitter": emitterType = new ConeDirectedParticleEmitter(); break;
+							case "CylinderParticleEmitter": emitterType = new CylinderParticleEmitter(); break;
+							case "CylinderDirectedParticleEmitter": emitterType = new CylinderDirectedParticleEmitter(); break;
+							case "SphereParticleEmitter": emitterType = new SphereParticleEmitter(); break;
+							case "SphereDirectedParticleEmitter": emitterType = new SphereDirectedParticleEmitter(); break;
+							case "PointParticleEmitter": emitterType = new PointParticleEmitter(); break;
+							case "HemisphericParticleEmitter": emitterType = new HemisphericParticleEmitter(); break;
+							case "MeshParticleEmitter": emitterType = new MeshParticleEmitter(); break;
 						}
 
 						if (emitterType) {

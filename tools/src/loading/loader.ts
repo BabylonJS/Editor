@@ -21,15 +21,15 @@ import "./texture";
  * `onUpdate` is a function that will be called every frame passing the reference to the object the script is attached to
  */
 export type ScriptMap = Record<
-    string,
-    {
-        default?: new (object: any) => {
-            onStart?(): void;
-            onUpdate?(): void;
-        };
-        onStart?: (object: any) => void;
-        onUpdate?: (object: any) => void;
-    }
+	string,
+	{
+		default?: new (object: any) => {
+			onStart?(): void;
+			onUpdate?(): void;
+		};
+		onStart?: (object: any) => void;
+		onUpdate?: (object: any) => void;
+	}
 >;
 
 /**
@@ -42,14 +42,14 @@ export type ScriptMap = Record<
 export type SceneLoaderQualitySelector = "low" | "medium" | "high";
 
 export type SceneLoaderOptions = {
-    quality?: SceneLoaderQualitySelector;
-    onProgress?: (value: number) => void;
+	quality?: SceneLoaderQualitySelector;
+	onProgress?: (value: number) => void;
 };
 
 declare module "@babylonjs/core/scene" {
-    interface Scene {
-        loadingQuality: SceneLoaderQualitySelector;
-    }
+	interface Scene {
+		loadingQuality: SceneLoaderQualitySelector;
+	}
 }
 
 export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
@@ -90,7 +90,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		applyRenderingConfigurations(scene, scene.metadata.rendering);
 
 		if (scene.activeCamera) {
-			applyRenderingConfigurationForCamera(scene.activeCamera);
+			applyRenderingConfigurationForCamera(scene.activeCamera, rootUrl);
 		}
 	}
 

@@ -60,23 +60,23 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
 			};
 
 			switch (event.data?.type) {
-			case "set-enabled":
-				result.data = {
-					type: "set-enabled",
-					value: event.data.value,
-					node: scene.getNodeById(event.data.node),
-				};
-				break;
+				case "set-enabled":
+					result.data = {
+						type: "set-enabled",
+						value: event.data.value,
+						node: scene.getNodeById(event.data.node),
+					};
+					break;
 
-			case "apply-impulse":
-				result.data = {
-					type: "apply-impulse",
-					radius: event.data.radius,
-					mesh: scene.getMeshById(event.data.mesh),
-					force: Vector3.FromArray(event.data.force),
-					contactPoint: Vector3.FromArray(event.data.contactPoint),
-				};
-				break;
+				case "apply-impulse":
+					result.data = {
+						type: "apply-impulse",
+						radius: event.data.radius,
+						mesh: scene.getMeshById(event.data.mesh),
+						force: Vector3.FromArray(event.data.force),
+						contactPoint: Vector3.FromArray(event.data.contactPoint),
+					};
+					break;
 
 			}
 

@@ -718,44 +718,44 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		};
 
 		switch (extension) {
-		case ".x":
-		case ".dae":
-		case ".dxf":
-		case ".b3d":
-		case ".stl":
-		case ".fbx":
-		case ".3ds":
-		case ".glb":
-		case ".obj":
-		case ".lwo":
-		case ".gltf":
-		case ".ms3d":
-		case ".blend":
-		case ".babylon":
-			return <MeshSelectable {...props} />;
+			case ".x":
+			case ".dae":
+			case ".dxf":
+			case ".b3d":
+			case ".stl":
+			case ".fbx":
+			case ".3ds":
+			case ".glb":
+			case ".obj":
+			case ".lwo":
+			case ".gltf":
+			case ".ms3d":
+			case ".blend":
+			case ".babylon":
+				return <MeshSelectable {...props} />;
 
-		case ".material":
-			return <MaterialSelectable {...props} />;
+			case ".material":
+				return <MaterialSelectable {...props} />;
 
-		case ".scene":
-			return <SceneSelectable {...props} />;
+			case ".scene":
+				return <SceneSelectable {...props} />;
 
-		case ".png":
-		case ".jpg":
-		case ".jpeg":
-			return <ImageSelectable {...props} />;
+			case ".png":
+			case ".jpg":
+			case ".jpeg":
+				return <ImageSelectable {...props} />;
 
-		case ".hdr":
-			return <HDRSelectable {...props} />;
+			case ".hdr":
+				return <HDRSelectable {...props} />;
 
-		case ".gui":
-			return <GuiSelectable {...props} />;
+			case ".gui":
+				return <GuiSelectable {...props} />;
 
-		case ".cinematic":
-			return <CinematicSelectable {...props} />;
+			case ".cinematic":
+				return <CinematicSelectable {...props} />;
 
-		default:
-			return <DefaultSelectable {...props} />;
+			default:
+				return <DefaultSelectable {...props} />;
 		}
 	}
 
@@ -879,22 +879,22 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		let material: Material | null = null;
 		switch (type) {
-		case "PBRMaterial":
-			material = new PBRMaterial("New PBR Material", this.props.editor.layout.preview.scene);
-			break;
-		case "StandardMaterial":
-			material = new StandardMaterial("New Standard Material", this.props.editor.layout.preview.scene);
-			break;
-		case "NodeMaterial":
-			const nodeMaterial = new NodeMaterial("New Node Material", this.props.editor.layout.preview.scene);
-			nodeMaterial.setToDefault();
+			case "PBRMaterial":
+				material = new PBRMaterial("New PBR Material", this.props.editor.layout.preview.scene);
+				break;
+			case "StandardMaterial":
+				material = new StandardMaterial("New Standard Material", this.props.editor.layout.preview.scene);
+				break;
+			case "NodeMaterial":
+				const nodeMaterial = new NodeMaterial("New Node Material", this.props.editor.layout.preview.scene);
+				nodeMaterial.setToDefault();
 
-			material = nodeMaterial;
-			break;
+				material = nodeMaterial;
+				break;
 
-		case "SkyMaterial":
-			material = new SkyMaterial("New Sky Material", this.props.editor.layout.preview.scene);
-			break;
+			case "SkyMaterial":
+				material = new SkyMaterial("New Sky Material", this.props.editor.layout.preview.scene);
+				break;
 		}
 
 		if (!material) {
@@ -1102,35 +1102,35 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		const extension = extname(item.props.absolutePath).toLowerCase();
 		switch (extension) {
-		case ".md":
-		case ".png":
-		case ".jpg":
-		case ".bmp":
-		case ".jpeg":
-		case ".mp3":
-		case ".wav":
-		case ".wave":
-			return this.props.editor.layout.inspector.setEditedObject(new FileInspectorObject(item.props.absolutePath));
+			case ".md":
+			case ".png":
+			case ".jpg":
+			case ".bmp":
+			case ".jpeg":
+			case ".mp3":
+			case ".wav":
+			case ".wave":
+				return this.props.editor.layout.inspector.setEditedObject(new FileInspectorObject(item.props.absolutePath));
 
-		case ".glb":
-		case ".gltf":
-		case ".babylon":
-		case ".fbx":
-			return openModelViewer(this.props.editor, item.props.absolutePath);
+			case ".glb":
+			case ".gltf":
+			case ".babylon":
+			case ".fbx":
+				return openModelViewer(this.props.editor, item.props.absolutePath);
 
-		case ".env":
-			return openEnvViewer(item.props.absolutePath);
+			case ".env":
+				return openEnvViewer(item.props.absolutePath);
 
-		case ".material":
-			return openMaterialViewer(this.props.editor, item.props.absolutePath);
+			case ".material":
+				return openMaterialViewer(this.props.editor, item.props.absolutePath);
 
-		case ".ts":
-		case ".tsx":
-		case ".js":
-		case ".jsx":
-		case ".fx":
-		case ".json":
-			return execNodePty(`code ${item.props.absolutePath}`);
+			case ".ts":
+			case ".tsx":
+			case ".js":
+			case ".jsx":
+			case ".fx":
+			case ".json":
+				return execNodePty(`code ${item.props.absolutePath}`);
 		}
 	}
 

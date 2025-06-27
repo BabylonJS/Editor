@@ -68,9 +68,9 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
 		const scene = new Scene(engine);
 
 		switch (data.guiType) {
-		case "fullscreen":
-			this._gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
-			break;
+			case "fullscreen":
+				this._gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
+				break;
 		}
 
 		if (!this._gui) {

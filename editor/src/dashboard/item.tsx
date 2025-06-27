@@ -65,22 +65,22 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 
 		const project = await readJSON(props.project.absolutePath) as IEditorProject;
 		switch (project.packageManager) {
-		case "npm":
-			installCommand = "npm i";
-			devCommand = "npm run dev";
-			break;
-		case "pnpm":
-			installCommand = "pnpm i";
-			devCommand = "pnpm dev";
-			break;
-		case "bun":
-			installCommand = "bun i";
-			devCommand = "bun run dev";
-			break;
-		default:
-			installCommand = "yarn";
-			devCommand = "yarn dev";
-			break;
+			case "npm":
+				installCommand = "npm i";
+				devCommand = "npm run dev";
+				break;
+			case "pnpm":
+				installCommand = "pnpm i";
+				devCommand = "pnpm dev";
+				break;
+			case "bun":
+				installCommand = "bun i";
+				devCommand = "bun run dev";
+				break;
+			default:
+				installCommand = "yarn";
+				devCommand = "yarn dev";
+				break;
 		}
 
 		// Install dependencies

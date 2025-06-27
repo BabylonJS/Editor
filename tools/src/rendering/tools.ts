@@ -24,8 +24,9 @@ export function saveRenderingConfigurationForCamera(camera: Camera) {
  * saved per-camera and can be applied on demand using this function.
  * Previous post-processes configurations are disposed before applying the new ones.
  * @param camera defines the reference to the camera to apply its rendering configurations.
+ * @param rootUrl defines the rootUrl that contains all resource files needed by the post-processes (color grading texture, etc.).
  */
-export function applyRenderingConfigurationForCamera(camera: Camera) {
+export function applyRenderingConfigurationForCamera(camera: Camera, rootUrl: string) {
 	disposeSSAO2RenderingPipeline();
 	disposeVLSPostProcess(camera.getScene());
 	disposeSSRRenderingPipeline();
@@ -54,6 +55,6 @@ export function applyRenderingConfigurationForCamera(camera: Camera) {
 
 	const defaultRenderingPipeline = defaultPipelineCameraConfigurations.get(camera);
 	if (defaultRenderingPipeline) {
-		parseDefaultRenderingPipeline(camera.getScene(), camera, defaultRenderingPipeline);
+		parseDefaultRenderingPipeline(camera.getScene(), camera, defaultRenderingPipeline, rootUrl);
 	}
 }

@@ -16,15 +16,15 @@ export async function executeBlender(pythonScript: string, inputFilename: string
 	let blenderExec = "blender";
 
 	switch (platform()) {
-	case "darwin":
-		blenderExec = "./Blender";
-		blenderDir = "/Applications/Blender.app/Contents/MacOS";
-		break;
+		case "darwin":
+			blenderExec = "./Blender";
+			blenderDir = "/Applications/Blender.app/Contents/MacOS";
+			break;
 
-	case "win32":
-		blenderExec = "blender.exe";
-		blenderDir = "C:/Program Files/Blender Foundation/Blender 4.1";
-		break;
+		case "win32":
+			blenderExec = "blender.exe";
+			blenderDir = "C:/Program Files/Blender Foundation/Blender 4.1";
+			break;
 	}
 
 	const script = join(process.cwd(), "scripts", pythonScript);

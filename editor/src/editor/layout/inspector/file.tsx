@@ -36,21 +36,21 @@ export class EditorFileInspector extends Component<IEditorInspectorImplementatio
 
 	public render(): ReactNode {
 		switch (this._extension) {
-		case ".png":
-		case ".jpg":
-		case ".bmp":
-		case ".jpeg":
-			return <EditorInspectorImageComponent object={this.props.object} />;
+			case ".png":
+			case ".jpg":
+			case ".bmp":
+			case ".jpeg":
+				return <EditorInspectorImageComponent object={this.props.object} />;
 
-		case ".md":
-			return <EditorInspectorMarkdownComponent object={this.props.object} />;
+			case ".md":
+				return <EditorInspectorMarkdownComponent object={this.props.object} />;
 
-		case ".mp3":
-		case ".wav":
-		case ".wave":
-			return <EditorInspectorSoundComponent object={this.props.object} />;
+			case ".mp3":
+			case ".wav":
+			case ".wave":
+				return <EditorInspectorSoundComponent object={this.props.object} />;
 
-		default: return null;
+			default: return null;
 		}
 	}
 }

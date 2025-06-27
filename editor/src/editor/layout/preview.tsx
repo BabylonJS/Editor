@@ -284,18 +284,18 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		});
 
 		switch (fixedDimensions) {
-		case "720p":
-			this.engine?.setSize(1280, 720);
-			break;
-		case "1080p":
-			this.engine?.setSize(1920, 1080);
-			break;
-		case "4k":
-			this.engine?.setSize(3840, 2160);
-			break;
-		default:
-			this.engine?.resize();
-			break;
+			case "720p":
+				this.engine?.setSize(1280, 720);
+				break;
+			case "1080p":
+				this.engine?.setSize(1920, 1080);
+				break;
+			case "4k":
+				this.engine?.setSize(3840, 2160);
+				break;
+			default:
+				this.engine?.resize();
+				break;
 		}
 	}
 
@@ -912,28 +912,28 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		if (useCloudConverter) {
 			const extension = extname(absolutePath).toLowerCase();
 			switch (extension) {
-			case ".fbx":
-			case ".blend":
-				let progressRef: EditorPreviewConvertProgress;
-				this.setState({
-					informationMessage: (
-						<EditorPreviewConvertProgress absolutePath={absolutePath} ref={(r) => progressRef = r!} />
-					),
-				});
-
-				const newAbsolutePath = await tryConvertSceneFile(absolutePath, (value) => progressRef?.setState({ value }));
-
-				if (newAbsolutePath) {
-					absolutePath = newAbsolutePath;
-				} else {
-					useCloudConverter = false;
-
-					toast.error("Failed to convert the file. Fallback on local Assimp loader.");
+				case ".fbx":
+				case ".blend":
+					let progressRef: EditorPreviewConvertProgress;
 					this.setState({
-						informationMessage: null,
+						informationMessage: (
+							<EditorPreviewConvertProgress absolutePath={absolutePath} ref={(r) => progressRef = r!} />
+						),
 					});
-				}
-				break;
+
+					const newAbsolutePath = await tryConvertSceneFile(absolutePath, (value) => progressRef?.setState({ value }));
+
+					if (newAbsolutePath) {
+						absolutePath = newAbsolutePath;
+					} else {
+						useCloudConverter = false;
+
+						toast.error("Failed to convert the file. Fallback on local Assimp loader.");
+						this.setState({
+							informationMessage: null,
+						});
+					}
+					break;
 			}
 		}
 
@@ -1006,66 +1006,66 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 			const extension = extname(absolutePath).toLowerCase();
 			switch (extension) {
-			case ".x":
-			case ".b3d":
-			case ".dae":
-			case ".glb":
-			case ".gltf":
-			case ".fbx":
-			case ".stl":
-			case ".lwo":
-			case ".dxf":
-			case ".obj":
-			case ".3ds":
-			case ".ms3d":
-			case ".blend":
-			case ".babylon":
-				this.importSceneFile(absolutePath, !ev.shiftKey).then((result) => {
-					if (pick.pickedPoint) {
-						result?.meshes.forEach((m) => !m.parent && m.position.addInPlace(pick.pickedPoint!));
-						result?.transformNodes.forEach((t) => !t.parent && t.position.addInPlace(pick.pickedPoint!));
-					}
-				});
-				break;
-
-			case ".env":
-			case ".jpg":
-			case ".png":
-			case ".bmp":
-			case ".jpeg":
-				applyTextureAssetToObject(this.props.editor, mesh ?? this.scene, absolutePath);
-				break;
-
-			case ".material":
-				applyMaterialAssetToObject(this.props.editor, mesh, absolutePath);
-				break;
-
-			case ".scene":
-				createSceneLink(this.props.editor, absolutePath).then((node) => {
-					if (pick.pickedPoint) {
-						node?.position.addInPlace(pick.pickedPoint);
-					}
-				});
-				break;
-
-			case ".gui":
-				if (this.props.editor.state.enableExperimentalFeatures) {
-					applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
-						this.props.editor.layout.graph.refresh();
+				case ".x":
+				case ".b3d":
+				case ".dae":
+				case ".glb":
+				case ".gltf":
+				case ".fbx":
+				case ".stl":
+				case ".lwo":
+				case ".dxf":
+				case ".obj":
+				case ".3ds":
+				case ".ms3d":
+				case ".blend":
+				case ".babylon":
+					this.importSceneFile(absolutePath, !ev.shiftKey).then((result) => {
+						if (pick.pickedPoint) {
+							result?.meshes.forEach((m) => !m.parent && m.position.addInPlace(pick.pickedPoint!));
+							result?.transformNodes.forEach((t) => !t.parent && t.position.addInPlace(pick.pickedPoint!));
+						}
 					});
-				}
-				break;
+					break;
 
-			case ".mp3":
-			case ".ogg":
-			case ".wav":
-			case ".wave":
-				if (this.props.editor.state.enableExperimentalFeatures) {
-					applySoundAsset(this.props.editor, mesh ?? this.scene, absolutePath).then(() => {
-						this.props.editor.layout.graph.refresh();
+				case ".env":
+				case ".jpg":
+				case ".png":
+				case ".bmp":
+				case ".jpeg":
+					applyTextureAssetToObject(this.props.editor, mesh ?? this.scene, absolutePath);
+					break;
+
+				case ".material":
+					applyMaterialAssetToObject(this.props.editor, mesh, absolutePath);
+					break;
+
+				case ".scene":
+					createSceneLink(this.props.editor, absolutePath).then((node) => {
+						if (pick.pickedPoint) {
+							node?.position.addInPlace(pick.pickedPoint);
+						}
 					});
-				}
-				break;
+					break;
+
+				case ".gui":
+					if (this.props.editor.state.enableExperimentalFeatures) {
+						applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
+							this.props.editor.layout.graph.refresh();
+						});
+					}
+					break;
+
+				case ".mp3":
+				case ".ogg":
+				case ".wav":
+				case ".wave":
+					if (this.props.editor.state.enableExperimentalFeatures) {
+						applySoundAsset(this.props.editor, mesh ?? this.scene, absolutePath).then(() => {
+							this.props.editor.layout.graph.refresh();
+						});
+					}
+					break;
 			}
 		});
 	}

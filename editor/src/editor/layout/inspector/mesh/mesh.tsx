@@ -226,28 +226,28 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 	private _getMaterialInspectorComponent(material: Material): ReactNode {
 		switch (material.getClassName()) {
-		case "MultiMaterial":
-			return <EditorMultiMaterialInspector
-				material={this.props.object.material as MultiMaterial}
-			/>;
+			case "MultiMaterial":
+				return <EditorMultiMaterialInspector
+					material={this.props.object.material as MultiMaterial}
+				/>;
 
-		case "PBRMaterial":
-			return <EditorPBRMaterialInspector
-				mesh={this.props.object}
-				material={this.props.object.material as PBRMaterial}
-			/>;
+			case "PBRMaterial":
+				return <EditorPBRMaterialInspector
+					mesh={this.props.object}
+					material={this.props.object.material as PBRMaterial}
+				/>;
 
-		case "StandardMaterial":
-			return <EditorStandardMaterialInspector
-				mesh={this.props.object}
-				material={this.props.object.material as StandardMaterial}
-			/>;
+			case "StandardMaterial":
+				return <EditorStandardMaterialInspector
+					mesh={this.props.object}
+					material={this.props.object.material as StandardMaterial}
+				/>;
 
-		case "SkyMaterial":
-			return <EditorSkyMaterialInspector
-				mesh={this.props.object}
-				material={this.props.object.material as SkyMaterial}
-			/>;
+			case "SkyMaterial":
+				return <EditorSkyMaterialInspector
+					mesh={this.props.object}
+					material={this.props.object.material as SkyMaterial}
+				/>;
 		}
 	}
 

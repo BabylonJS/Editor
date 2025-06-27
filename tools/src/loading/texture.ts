@@ -23,29 +23,29 @@ SerializationHelper._TextureParser = (sourceProperty: any, scene: Scene, rootUrl
 	let suffix = "";
 
 	switch (scene.loadingQuality) {
-	case "medium":
-		let midWidth = (width * 0.66) >> 0;
-		let midHeight = (height * 0.66) >> 0;
+		case "medium":
+			let midWidth = (width * 0.66) >> 0;
+			let midHeight = (height * 0.66) >> 0;
 
-		if (isPowerOfTwo) {
-			midWidth = getPowerOfTwoUntil(midWidth);
-			midHeight = getPowerOfTwoUntil(midHeight);
-		}
+			if (isPowerOfTwo) {
+				midWidth = getPowerOfTwoUntil(midWidth);
+				midHeight = getPowerOfTwoUntil(midHeight);
+			}
 
-		suffix = `_${midWidth}_${midHeight}`;
-		break;
+			suffix = `_${midWidth}_${midHeight}`;
+			break;
 
-	case "low":
-		let lowWidth = (width * 0.33) >> 0;
-		let lowHeight = (height * 0.33) >> 0;
+		case "low":
+			let lowWidth = (width * 0.33) >> 0;
+			let lowHeight = (height * 0.33) >> 0;
 
-		if (isPowerOfTwo) {
-			lowWidth = getPowerOfTwoUntil(lowWidth);
-			lowHeight = getPowerOfTwoUntil(lowHeight);
-		}
+			if (isPowerOfTwo) {
+				lowWidth = getPowerOfTwoUntil(lowWidth);
+				lowHeight = getPowerOfTwoUntil(lowHeight);
+			}
 
-		suffix = `_${lowWidth}_${lowHeight}`;
-		break;
+			suffix = `_${lowWidth}_${lowHeight}`;
+			break;
 	}
 
 	const name = sourceProperty.name as string;

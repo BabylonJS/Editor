@@ -43,7 +43,8 @@
         "lint-quixel": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./quixel/src/**",
         "lint-template": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./template/src/**",
         "lint-website": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./website/src/**",
-        "lint": "yarn lint-editor && yarn lint-tools && yarn lint-quixel && yarn lint-template  && yarn lint-website"
+        "lint": "yarn lint-editor && yarn lint-tools && yarn lint-quixel && yarn lint-template && yarn lint-website",
+        "lint-fix": "yarn lint-editor --fix && yarn lint-tools --fix && yarn lint-quixel --fix && yarn lint-template --fix && yarn lint-website --fix"
     },
     "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
     "license": "(Apache-2.0)",

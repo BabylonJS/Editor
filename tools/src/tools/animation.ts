@@ -10,13 +10,13 @@ export function getAnimationTypeForObject(effectiveProperty: any): number | null
 	}
 
 	switch (effectiveProperty?.getClassName?.()) {
-	case "Vector2": return Animation.ANIMATIONTYPE_VECTOR2;
-	case "Vector3": return Animation.ANIMATIONTYPE_VECTOR3;
-	case "Quaternion": return Animation.ANIMATIONTYPE_QUATERNION;
-	case "Color3": return Animation.ANIMATIONTYPE_COLOR3;
-	case "Color4": return Animation.ANIMATIONTYPE_COLOR4;
-	case "Size": return Animation.ANIMATIONTYPE_SIZE;
-	case "Matrix": return Animation.ANIMATIONTYPE_MATRIX;
+		case "Vector2": return Animation.ANIMATIONTYPE_VECTOR2;
+		case "Vector3": return Animation.ANIMATIONTYPE_VECTOR3;
+		case "Quaternion": return Animation.ANIMATIONTYPE_QUATERNION;
+		case "Color3": return Animation.ANIMATIONTYPE_COLOR3;
+		case "Color4": return Animation.ANIMATIONTYPE_COLOR4;
+		case "Size": return Animation.ANIMATIONTYPE_SIZE;
+		case "Matrix": return Animation.ANIMATIONTYPE_MATRIX;
 	}
 
 	return null;

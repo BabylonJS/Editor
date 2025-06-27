@@ -202,28 +202,28 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 			const extension = extname(absolutePath).toLowerCase();
 
 			switch (extension) {
-			case ".material":
-				applyMaterialAssetToObject(props.editor, props.object, absolutePath);
-				break;
+				case ".material":
+					applyMaterialAssetToObject(props.editor, props.object, absolutePath);
+					break;
 
-			case ".env":
-			case ".jpg":
-			case ".png":
-			case ".bmp":
-			case ".jpeg":
-				applyTextureAssetToObject(props.editor, props.object, absolutePath);
-				break;
+				case ".env":
+				case ".jpg":
+				case ".png":
+				case ".bmp":
+				case ".jpeg":
+					applyTextureAssetToObject(props.editor, props.object, absolutePath);
+					break;
 
-			case ".mp3":
-			case ".ogg":
-			case ".wav":
-			case ".wave":
-				if (isScene(props.object) || isTransformNode(props.object) || isMesh(props.object) || isInstancedMesh(props.object)) {
-					applySoundAsset(props.editor, props.object, absolutePath).then(() => {
-						props.editor.layout.graph.refresh();
-					});
-				}
-				break;
+				case ".mp3":
+				case ".ogg":
+				case ".wav":
+				case ".wave":
+					if (isScene(props.object) || isTransformNode(props.object) || isMesh(props.object) || isInstancedMesh(props.object)) {
+						applySoundAsset(props.editor, props.object, absolutePath).then(() => {
+							props.editor.layout.graph.refresh();
+						});
+					}
+					break;
 			}
 		});
 	}

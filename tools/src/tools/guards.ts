@@ -21,11 +21,11 @@ import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
  */
 export function isAbstractMesh(object: any): object is Mesh {
 	switch (object.getClassName?.()) {
-	case "Mesh":
-	case "LineMesh":
-	case "GroundMesh":
-	case "InstancedMesh":
-		return true;
+		case "Mesh":
+		case "LineMesh":
+		case "GroundMesh":
+		case "InstancedMesh":
+			return true;
 	}
 
 	return false;
@@ -37,9 +37,9 @@ export function isAbstractMesh(object: any): object is Mesh {
  */
 export function isMesh(object: any): object is Mesh {
 	switch (object.getClassName?.()) {
-	case "Mesh":
-	case "GroundMesh":
-		return true;
+		case "Mesh":
+		case "GroundMesh":
+			return true;
 	}
 
 	return false;
@@ -91,13 +91,13 @@ export function isTexture(object: any): object is Texture {
  */
 export function isCamera(object: any): object is Camera {
 	switch (object.getClassName?.()) {
-	case "Camera":
-	case "FreeCamera":
-	case "TargetCamera":
-	case "EditorCamera":
-	case "ArcRotateCamera":
-	case "UniversalCamera":
-		return true;
+		case "Camera":
+		case "FreeCamera":
+		case "TargetCamera":
+		case "EditorCamera":
+		case "ArcRotateCamera":
+		case "UniversalCamera":
+			return true;
 	}
 
 	return false;
@@ -109,9 +109,9 @@ export function isCamera(object: any): object is Camera {
  */
 export function isFreeCamera(object: any): object is FreeCamera {
 	switch (object.getClassName?.()) {
-	case "FreeCamera":
-	case "UniversalCamera":
-		return true;
+		case "FreeCamera":
+		case "UniversalCamera":
+			return true;
 	}
 
 	return false;

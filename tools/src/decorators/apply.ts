@@ -123,17 +123,17 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 			const value = attachedScripts[propertyKey].value;
 
 			switch (params.configuration.type) {
-			case "number":
-			case "boolean":
-				instance[propertyKey] = value;
-				break;
+				case "number":
+				case "boolean":
+					instance[propertyKey] = value;
+					break;
 
-			case "vector2":
-				instance[propertyKey] = Vector2.FromArray(value);
-				break;
-			case "vector3":
-				instance[propertyKey] = Vector3.FromArray(value);
-				break;
+				case "vector2":
+					instance[propertyKey] = Vector2.FromArray(value);
+					break;
+				case "vector3":
+					instance[propertyKey] = Vector3.FromArray(value);
+					break;
 			}
 		}
 	});

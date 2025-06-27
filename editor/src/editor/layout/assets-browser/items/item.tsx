@@ -417,47 +417,47 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 		const extension = extname(this.props.absolutePath).toLowerCase();
 		switch (extension) {
-		case ".png":
-		case ".jpg":
-		case ".jpeg":
-		case ".svg":
-		case ".ico":
-			return <img alt="" src={this.props.absolutePath} className="w-[120px] aspect-square object-contain" />;
+			case ".png":
+			case ".jpg":
+			case ".jpeg":
+			case ".svg":
+			case ".ico":
+				return <img alt="" src={this.props.absolutePath} className="w-[120px] aspect-square object-contain" />;
 
-		case ".env":
-			return <SiDotenv size="64px" />;
+			case ".env":
+				return <SiDotenv size="64px" />;
 
-		case ".mp3":
-			return <BsFiletypeMp3 size="64px" />;
+			case ".mp3":
+				return <BsFiletypeMp3 size="64px" />;
 
-		case ".wav":
-		case ".wave":
-			return <BsFiletypeWav size="64px" />;
+			case ".wav":
+			case ".wave":
+				return <BsFiletypeWav size="64px" />;
 
-		case ".json":
-			return <VscJson size="64px" />;
+			case ".json":
+				return <VscJson size="64px" />;
 
-		case ".js":
-		case ".jsx":
-			return <SiJavascript size="64px" />;
+			case ".js":
+			case ".jsx":
+				return <SiJavascript size="64px" />;
 
-		case ".ts":
-		case ".tsx":
-			return <SiTypescript size="64px" />;
+			case ".ts":
+			case ".tsx":
+				return <SiTypescript size="64px" />;
 
-		case ".css":
-			return <BiSolidFileCss size="64px" />;
+			case ".css":
+				return <BiSolidFileCss size="64px" />;
 
-		case ".md":
-			return <AiFillFileMarkdown size="80px" />;
+			case ".md":
+				return <AiFillFileMarkdown size="80px" />;
 
-		case ".bjseditor":
-			return <SiBabylondotjs size="64px" />;
+			case ".bjseditor":
+				return <SiBabylondotjs size="64px" />;
 
-		case ".ies":
-			return <GiCeilingLight size="64px" />;
+			case ".ies":
+				return <GiCeilingLight size="64px" />;
 
-		default: return null;
+			default: return null;
 		}
 	}
 }

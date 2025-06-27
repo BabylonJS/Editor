@@ -18,7 +18,9 @@ export default defineConfig([
         rules: {
             // Recommended
             "semi": ["error", "always"],
-            "indent": ["error", "tab"],
+            "indent": ["error", "tab", {
+                "SwitchCase": 1,
+            }],
             "eol-last": ["error", "always"],
             "no-useless-constructor": "error",
             "no-debugger": "error",

@@ -1,4 +1,10 @@
-import { DefaultRenderingPipeline, Color4, Vector2, Camera } from "babylonjs";
+import { dirname, join } from "path/posix";
+
+import { DefaultRenderingPipeline, Color4, Vector2, Camera, Texture, ColorGradingTexture } from "babylonjs";
+
+import { isTexture } from "../../tools/guards/texture";
+
+import { projectConfiguration } from "../../project/configuration";
 
 import { Editor } from "../main";
 
@@ -51,6 +57,10 @@ export function serializeDefaultRenderingPipeline(): any {
 		toneMappingType: defaultRenderingPipeline.imageProcessing?.toneMappingType,
 		ditheringEnabled: defaultRenderingPipeline.imageProcessing?.ditheringEnabled,
 		ditheringIntensity: defaultRenderingPipeline.imageProcessing?.ditheringIntensity,
+
+		colorGradingEnabled: defaultRenderingPipeline.imageProcessing.colorGradingEnabled,
+		colorGradingTexture: defaultRenderingPipeline.imageProcessing.colorGradingTexture?.serialize(),
+		colorGradingWithGreenDepth: defaultRenderingPipeline.imageProcessing.imageProcessingConfiguration.colorGradingWithGreenDepth,
 
 		bloomEnabled: defaultRenderingPipeline.bloomEnabled,
 		bloomThreshold: defaultRenderingPipeline.bloomThreshold,
@@ -110,6 +120,30 @@ export function parseDefaultRenderingPipeline(editor: Editor, data: any): Defaul
 		defaultRenderingPipeline.imageProcessing.vignetteEnabled = data.vignetteEnabled ?? false;
 		defaultRenderingPipeline.imageProcessing.vignetteColor = Color4.FromArray(data.vignetteColor ?? [0, 0, 0]);
 		defaultRenderingPipeline.imageProcessing.vignetteWeight = data.vignetteWeight ?? 0.3;
+
+		// Since v5.0.0-alpha.10
+		defaultRenderingPipeline.imageProcessing.colorGradingEnabled = data.colorGradingEnabled ?? false;
+		defaultRenderingPipeline.imageProcessing.imageProcessingConfiguration.colorGradingWithGreenDepth = data.colorGradingWithGreenDepth ?? true;
+
+		if (data.colorGradingTexture && projectConfiguration.path) {
+			const rootUrl = join(dirname(projectConfiguration.path!), "/");
+
+			let texture: ColorGradingTexture | Texture | null = null;
+
+			if (data.colorGradingTexture.customType === "BABYLON.ColorGradingTexture") {
+				const absoluteUrl = join(rootUrl, data.colorGradingTexture.name);
+
+				texture = new ColorGradingTexture(absoluteUrl, editor.layout.preview.scene);
+				texture.level = data.colorGradingTexture.level;
+			} else {
+				const parsedTexture = Texture.Parse(data.colorGradingTexture, editor.layout.preview.scene, rootUrl);
+				if (isTexture(parsedTexture)) {
+					texture = parsedTexture;
+				}
+			}
+
+			defaultRenderingPipeline.imageProcessing.colorGradingTexture = texture;
+		}
 	}
 
 	defaultRenderingPipeline.bloomEnabled = data.bloomEnabled;

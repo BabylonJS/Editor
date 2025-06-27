@@ -5,7 +5,10 @@ import { readFile, readJSON, writeFile } from "fs-extra";
 import axios from "axios";
 import { toast } from "sonner";
 
-import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools } from "babylonjs";
+import {
+	CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools,
+	ColorGradingTexture,
+} from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
 import { isMesh } from "../../../../tools/guards/nodes";
@@ -105,7 +108,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 		}
 
 		result.meshes.forEach((mesh) => {
-            shadowMap.renderList!.push(mesh);
+			shadowMap.renderList!.push(mesh);
 		});
 	});
 
@@ -165,7 +168,7 @@ export function configureImportedMaterial(material: Material): void {
 	material.uniqueId = UniqueNumber.Get();
 }
 
-export function configureImportedTexture(texture: Texture | CubeTexture): Texture | CubeTexture {
+export function configureImportedTexture(texture: Texture | CubeTexture | ColorGradingTexture): Texture | CubeTexture | ColorGradingTexture {
 	if (isAbsolute(texture.name)) {
 		texture.name = texture.name.replace(join(dirname(projectConfiguration.path!), "/"), "");
 		texture.url = texture.name;
@@ -185,11 +188,11 @@ export async function configureEmbeddedTexture(texture: Texture, absolutePath: s
 
 	let extension = "";
 	switch (texture.mimeType) {
-	case "image/png": extension = "png"; break;
-	case "image/gif": extension = "gif"; break;
-	case "image/jpeg": extension = "jpg"; break;
-	case "image/bmp": extension = "bmp"; break;
-	default: return;
+		case "image/png": extension = "png"; break;
+		case "image/gif": extension = "gif"; break;
+		case "image/jpeg": extension = "jpg"; break;
+		case "image/bmp": extension = "bmp"; break;
+		default: return;
 	}
 
 	let buffer: Buffer;

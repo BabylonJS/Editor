@@ -40,10 +40,10 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 
 	let command = "";
 	switch (packageManager) {
-	case "npm": command = "npm i"; break;
-	case "pnpm": command = "pnpm i"; break;
-	case "bun": command = "bun i"; break;
-	default: command = "yarn"; break;
+		case "npm": command = "npm i"; break;
+		case "pnpm": command = "pnpm i"; break;
+		case "bun": command = "bun i"; break;
+		default: command = "yarn"; break;
 	}
 
 	const p = await execNodePty(command, { cwd: directory });

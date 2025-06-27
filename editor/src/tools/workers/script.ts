@@ -80,12 +80,12 @@ function extract(outputAbsolutePath: string) {
 
 addEventListener("message", async (event) => {
 	switch (event.data.action) {
-	case "compile":
-		await compile(event.data.srcAbsolutePath, event.data.outputAbsolutePath);
-		break;
+		case "compile":
+			await compile(event.data.srcAbsolutePath, event.data.outputAbsolutePath);
+			break;
 
-	case "extract":
-		extract(event.data.outputAbsolutePath);
-		break;
+		case "extract":
+			extract(event.data.outputAbsolutePath);
+			break;
 	}
 });

@@ -74,34 +74,34 @@ export async function setupTextures(editor: Editor, json: QuixelJsonType, materi
 		}
 
 		switch (c.type) {
-		case "albedo": albedoTexture = texture; break;
-		case "opacity": opacityTexture = texture; break;
-		case "mask": maskTexture = texture; break;
+			case "albedo": albedoTexture = texture; break;
+			case "opacity": opacityTexture = texture; break;
+			case "mask": maskTexture = texture; break;
 
-		case "normal": bumpTexture = texture; break;
-		case "displacement": displacementTexture = texture; break;
+			case "normal": bumpTexture = texture; break;
+			case "displacement": displacementTexture = texture; break;
 
-		case "specular":
-			if (!metallicRoughnessComponent) {
-				reflectivityTexture = texture;
-			}
-			break;
+			case "specular":
+				if (!metallicRoughnessComponent) {
+					reflectivityTexture = texture;
+				}
+				break;
 
-		case "gloss":
-			if (!metallicRoughnessComponent) {
-				microSurfaceTexture = texture;
-			}
-			break;
+			case "gloss":
+				if (!metallicRoughnessComponent) {
+					microSurfaceTexture = texture;
+				}
+				break;
 
-		case "metalness": metallicTexture = texture; break;
-		case "roughness": roughnessTexture = texture; break;
-		case "ao": aoTexture = texture; break;
+			case "metalness": metallicTexture = texture; break;
+			case "roughness": roughnessTexture = texture; break;
+			case "ao": aoTexture = texture; break;
 
-		case "translucency":
-			material.subSurface.isTranslucencyEnabled = true;
-			material.subSurface.thicknessTexture = texture;
-			material.subSurface.useMaskFromThicknessTexture = true;
-			break;
+			case "translucency":
+				material.subSurface.isTranslucencyEnabled = true;
+				material.subSurface.thicknessTexture = texture;
+				material.subSurface.useMaskFromThicknessTexture = true;
+				break;
 		}
 	});
 

@@ -118,25 +118,25 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 
 	let command: string | null = null;
 	switch (options.format) {
-	case "-astc.ktx":
-		command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q astcveryfast -o "${options.destinationFolder}"`;
-		break;
+		case "-astc.ktx":
+			command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q astcveryfast -o "${options.destinationFolder}"`;
+			break;
 
-	case "-dxt.ktx":
-		command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${options.destinationFolder}"`;
-		break;
+		case "-dxt.ktx":
+			command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${options.destinationFolder}"`;
+			break;
 
-	case "-pvrtc.ktx":
-		command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q pvrtcfastest -o "${options.destinationFolder}"`;
-		break;
+		case "-pvrtc.ktx":
+			command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q pvrtcfastest -o "${options.destinationFolder}"`;
+			break;
 
-	case "-etc1.ktx":
-		command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q etcfast -o "${options.destinationFolder}"`;
-		break;
+		case "-etc1.ktx":
+			command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q etcfast -o "${options.destinationFolder}"`;
+			break;
 
-	case "-etc2.ktx":
-		command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q etcfast -o "${options.destinationFolder}"`;
-		break;
+		case "-etc2.ktx":
+			command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q etcfast -o "${options.destinationFolder}"`;
+			break;
 	}
 
 	if (!command) {

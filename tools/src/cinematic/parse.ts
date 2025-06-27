@@ -57,22 +57,22 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
 					};
 
 					switch (event.data?.type) {
-					case "set-enabled":
-						result.data = {
-							type: "set-enabled",
-							value: event.data.value,
-							node: scene.getNodeById(event.data.node),
-						};
-						break;
-					case "apply-impulse":
-						result.data = {
-							type: "apply-impulse",
-							radius: event.data.radius,
-							mesh: scene.getMeshById(event.data.mesh),
-							force: Vector3.FromArray(event.data.force),
-							contactPoint: Vector3.FromArray(event.data.contactPoint),
-						};
-						break;
+						case "set-enabled":
+							result.data = {
+								type: "set-enabled",
+								value: event.data.value,
+								node: scene.getNodeById(event.data.node),
+							};
+							break;
+						case "apply-impulse":
+							result.data = {
+								type: "apply-impulse",
+								radius: event.data.radius,
+								mesh: scene.getMeshById(event.data.mesh),
+								force: Vector3.FromArray(event.data.force),
+								contactPoint: Vector3.FromArray(event.data.contactPoint),
+							};
+							break;
 					}
 
 					return result;
@@ -131,12 +131,12 @@ export function parseCinematicKeyValue(value: any, type: number): any {
 	}
 
 	switch (type) {
-	case Animation.ANIMATIONTYPE_FLOAT: return value;
-	case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.FromArray(value);
-	case Animation.ANIMATIONTYPE_VECTOR3: return Vector3.FromArray(value);
-	case Animation.ANIMATIONTYPE_QUATERNION: return Quaternion.FromArray(value);
-	case Animation.ANIMATIONTYPE_COLOR3: return Color3.FromArray(value);
-	case Animation.ANIMATIONTYPE_COLOR4: return Color4.FromArray(value);
-	case Animation.ANIMATIONTYPE_MATRIX: return Matrix.FromArray(value);
+		case Animation.ANIMATIONTYPE_FLOAT: return value;
+		case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.FromArray(value);
+		case Animation.ANIMATIONTYPE_VECTOR3: return Vector3.FromArray(value);
+		case Animation.ANIMATIONTYPE_QUATERNION: return Quaternion.FromArray(value);
+		case Animation.ANIMATIONTYPE_COLOR3: return Color3.FromArray(value);
+		case Animation.ANIMATIONTYPE_COLOR4: return Color4.FromArray(value);
+		case Animation.ANIMATIONTYPE_MATRIX: return Matrix.FromArray(value);
 	}
 }

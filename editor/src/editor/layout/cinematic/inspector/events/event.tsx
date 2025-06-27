@@ -31,26 +31,26 @@ export function CinematicEditorEventKeyInspector(props: ICinematicEditorEventKey
 			undo: () => props.cinematicKey.data = oldData,
 			redo: () => {
 				switch (value) {
-				case "set-enabled":
-					props.cinematicKey.data = {
-						type: "set-enabled",
-						value: true,
-						node: null,
-					};
-					break;
-				case "apply-impulse":
-					props.cinematicKey.data = {
-						type: "apply-impulse",
-						radius: 0,
-						mesh: null,
-						force: Vector3.Zero(),
-						contactPoint: Vector3.Zero(),
-					};
-					break;
+					case "set-enabled":
+						props.cinematicKey.data = {
+							type: "set-enabled",
+							value: true,
+							node: null,
+						};
+						break;
+					case "apply-impulse":
+						props.cinematicKey.data = {
+							type: "apply-impulse",
+							radius: 0,
+							mesh: null,
+							force: Vector3.Zero(),
+							contactPoint: Vector3.Zero(),
+						};
+						break;
 
-				default:
-					props.cinematicKey.data = undefined;
-					break;
+					default:
+						props.cinematicKey.data = undefined;
+						break;
 				}
 			},
 		});

@@ -2,7 +2,11 @@ import { Scene } from "@babylonjs/core/scene";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { Color4 } from "@babylonjs/core/Maths/math.color";
 import { Vector2 } from "@babylonjs/core/Maths/math.vector";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { ColorGradingTexture } from "@babylonjs/core/Materials/Textures/colorGradingTexture";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
+
+import { isTexture } from "../tools/guards";
 
 let defaultRenderingPipeline: DefaultRenderingPipeline | null = null;
 
@@ -62,6 +66,10 @@ export function serializeDefaultRenderingPipeline(): any {
 		ditheringEnabled: defaultRenderingPipeline.imageProcessing?.ditheringEnabled,
 		ditheringIntensity: defaultRenderingPipeline.imageProcessing?.ditheringIntensity,
 
+		colorGradingEnabled: defaultRenderingPipeline.imageProcessing.colorGradingEnabled,
+		colorGradingTexture: defaultRenderingPipeline.imageProcessing.colorGradingTexture?.serialize(),
+		colorGradingWithGreenDepth: defaultRenderingPipeline.imageProcessing.imageProcessingConfiguration.colorGradingWithGreenDepth,
+
 		bloomEnabled: defaultRenderingPipeline.bloomEnabled,
 		bloomThreshold: defaultRenderingPipeline.bloomThreshold,
 		bloomWeight: defaultRenderingPipeline.bloomWeight,
@@ -100,7 +108,7 @@ export function serializeDefaultRenderingPipeline(): any {
 	};
 }
 
-export function parseDefaultRenderingPipeline(scene: Scene, camera: Camera, data: any): DefaultRenderingPipeline {
+export function parseDefaultRenderingPipeline(scene: Scene, camera: Camera, data: any, rootUrl: string): DefaultRenderingPipeline {
 	if (defaultRenderingPipeline) {
 		return defaultRenderingPipeline;
 	}
@@ -124,6 +132,28 @@ export function parseDefaultRenderingPipeline(scene: Scene, camera: Camera, data
 		pipeline.imageProcessing.vignetteEnabled = data.vignetteEnabled ?? false;
 		pipeline.imageProcessing.vignetteColor = Color4.FromArray(data.vignetteColor ?? [0, 0, 0]);
 		pipeline.imageProcessing.vignetteWeight = data.vignetteWeight ?? 0.3;
+
+		// Since v5.0.0-alpha.10
+		pipeline.imageProcessing.colorGradingEnabled = data.colorGradingEnabled ?? false;
+		pipeline.imageProcessing.imageProcessingConfiguration.colorGradingWithGreenDepth = data.colorGradingWithGreenDepth ?? true;
+
+		if (data.colorGradingTexture) {
+			let texture: ColorGradingTexture | Texture | null = null;
+
+			if (data.colorGradingTexture.customType === "BABYLON.ColorGradingTexture") {
+				const absoluteUrl = rootUrl + data.colorGradingTexture.name;
+
+				texture = new ColorGradingTexture(absoluteUrl, scene);
+				texture.level = data.colorGradingTexture.level;
+			} else {
+				const parsedTexture = Texture.Parse(data.colorGradingTexture, scene, rootUrl);
+				if (isTexture(parsedTexture)) {
+					texture = parsedTexture;
+				}
+			}
+
+			pipeline.imageProcessing.colorGradingTexture = texture;
+		}
 	}
 
 	pipeline.bloomEnabled = data.bloomEnabled;

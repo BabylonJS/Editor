@@ -51,19 +51,19 @@ export class EditorPreviewGizmo {
 		this._rotationGizmo = null;
 
 		switch (gizmo) {
-		case "position":
-			this._positionGizmo = new PositionGizmo(this._gizmosLayer);
-			this._positionGizmo.planarGizmoEnabled = true;
-			this._attachVector3UndoRedoEvents(this._positionGizmo, "position");
-			break;
-		case "rotation":
-			this._rotationGizmo = new RotationGizmo(this._gizmosLayer);
-			this._attachRotationUndoRedoEvents(this._rotationGizmo);
-			break;
-		case "scaling":
-			this._scalingGizmo = new ScaleGizmo(this._gizmosLayer);
-			this._attachVector3UndoRedoEvents(this._scalingGizmo, "scaling");
-			break;
+			case "position":
+				this._positionGizmo = new PositionGizmo(this._gizmosLayer);
+				this._positionGizmo.planarGizmoEnabled = true;
+				this._attachVector3UndoRedoEvents(this._positionGizmo, "position");
+				break;
+			case "rotation":
+				this._rotationGizmo = new RotationGizmo(this._gizmosLayer);
+				this._attachRotationUndoRedoEvents(this._rotationGizmo);
+				break;
+			case "scaling":
+				this._scalingGizmo = new ScaleGizmo(this._gizmosLayer);
+				this._attachVector3UndoRedoEvents(this._scalingGizmo, "scaling");
+				break;
 		}
 
 		if (this.currentGizmo) {
@@ -127,8 +127,8 @@ export class EditorPreviewGizmo {
 
 	public getCoordinatesModeString(): string {
 		switch (this._coordinatesMode) {
-		case GizmoCoordinatesMode.World: return "World";
-		case GizmoCoordinatesMode.Local: return "Local";
+			case GizmoCoordinatesMode.World: return "World";
+			case GizmoCoordinatesMode.Local: return "Local";
 		}
 	}
 

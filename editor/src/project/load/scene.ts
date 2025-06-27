@@ -47,20 +47,20 @@ import "./texture";
 const loadedScenes: string[] = [];
 
 export type SceneLoaderOptions = {
-    /**
-     * Defines wether or not the scene is being loaded as link.
-     */
-    asLink?: boolean;
+	/**
+	 * Defines wether or not the scene is being loaded as link.
+	 */
+	asLink?: boolean;
 };
 
 export type SceneLoadResult = {
-    lights: Light[];
-    cameras: Camera[];
-    meshes: AbstractMesh[];
-    sceneLinks: SceneLinkNode[];
-    transformNodes: TransformNode[];
-    animationGroups: AnimationGroup[];
-    particleSystems: IParticleSystem[];
+	lights: Light[];
+	cameras: Camera[];
+	meshes: AbstractMesh[];
+	sceneLinks: SceneLinkNode[];
+	transformNodes: TransformNode[];
+	animationGroups: AnimationGroup[];
+	particleSystems: IParticleSystem[];
 };
 
 export async function loadScene(editor: Editor, projectPath: string, scenePath: string, options?: SceneLoaderOptions): Promise<SceneLoadResult> {
@@ -124,18 +124,18 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 	const progress = await showLoadSceneProgressDialog(`Loading ${basename(scenePath)}...`);
 	const progressStep = 100 / (
 		nodesFiles.length +
-        meshesFiles.length +
-        lodsFiles.length +
-        lightsFiles.length +
-        cameraFiles.length +
-        skeletonFiles.length +
-        shadowGeneratorFiles.length +
-        sceneLinkFiles.length +
-        guiFiles.length +
-        soundFiles.length +
-        particleSystemFiles.length +
-        morphTargetManagers.length +
-        animationGroups.length
+		meshesFiles.length +
+		lodsFiles.length +
+		lightsFiles.length +
+		cameraFiles.length +
+		skeletonFiles.length +
+		shadowGeneratorFiles.length +
+		sceneLinkFiles.length +
+		guiFiles.length +
+		soundFiles.length +
+		particleSystemFiles.length +
+		morphTargetManagers.length +
+		animationGroups.length
 	);
 
 	SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
@@ -564,25 +564,25 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		let particleSystem: ParticleSystem | GPUParticleSystem;
 
 		switch (data.className) {
-		case "GPUParticleSystem":
+			case "GPUParticleSystem":
 			// TODO: Implement GPU particle system
-			break;
+				break;
 
-		default:
-			particleSystem = ParticleSystem.Parse(data, scene, join(projectPath, "/"));
-			if (!particleSystem.emitter) {
-				editor.layout.console.warn(`No emitter found for particle system "${particleSystem.name}". Skipping.`);
-				particleSystem.dispose(true, true, true);
-				return;
-			}
-			break;
+			default:
+				particleSystem = ParticleSystem.Parse(data, scene, join(projectPath, "/"));
+				if (!particleSystem.emitter) {
+					editor.layout.console.warn(`No emitter found for particle system "${particleSystem.name}". Skipping.`);
+					particleSystem.dispose(true, true, true);
+					return;
+				}
+				break;
 		}
 
-        particleSystem!.uniqueId = data.uniqueId;
+		particleSystem!.uniqueId = data.uniqueId;
 
-        progress.step(progressStep);
+		progress.step(progressStep);
 
-        loadResult.particleSystems.push(particleSystem!);
+		loadResult.particleSystems.push(particleSystem!);
 	}));
 
 	// Load animation groups

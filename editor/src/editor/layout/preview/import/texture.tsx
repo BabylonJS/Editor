@@ -1,6 +1,6 @@
 import { extname } from "path/posix";
 
-import { CubeTexture, Texture } from "babylonjs";
+import { CubeTexture, Texture, ColorGradingTexture } from "babylonjs";
 
 import { showDialog } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -34,27 +34,27 @@ export function applyTextureAssetToObject(editor: Editor, object: any, absoluteP
 	const extension = extname(absolutePath).toLowerCase();
 
 	switch (extension) {
-	case ".env":
-		const newCubeTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(
-			absolutePath,
-			isScene(object) ? object : object.getScene(),
-		));
-		applyTextureToObject(editor, object, newCubeTexture);
-		break;
+		case ".env":
+			const newCubeTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(
+				absolutePath,
+				isScene(object) ? object : object.getScene(),
+			));
+			applyTextureToObject(editor, object, newCubeTexture);
+			break;
 
-	case ".jpg":
-	case ".png":
-	case ".bmp":
-	case ".jpeg":
-		const newTexture = configureImportedTexture(new Texture(
-			absolutePath,
-			isScene(object) ? object : object.getScene(),
-		));
+		case ".jpg":
+		case ".png":
+		case ".bmp":
+		case ".jpeg":
+			const newTexture = configureImportedTexture(new Texture(
+				absolutePath,
+				isScene(object) ? object : object.getScene(),
+			));
 
-		applyTextureToObject(editor, object, newTexture);
+			applyTextureToObject(editor, object, newTexture);
 
-		onTextureAddedObservable.notifyObservers(newTexture);
-		break;
+			onTextureAddedObservable.notifyObservers(newTexture);
+			break;
 	}
 }
 
@@ -65,7 +65,7 @@ export function applyTextureAssetToObject(editor: Editor, object: any, absoluteP
  * @param object defines the reference to the object where to apply the texture. The type of the object is tested.
  * @param texture defines the reference to the texture instance to apply on the object.
  */
-export function applyTextureToObject(editor: Editor, object: any, texture: Texture | CubeTexture) {
+export function applyTextureToObject(editor: Editor, object: any, texture: Texture | CubeTexture | ColorGradingTexture) {
 	if (isCubeTexture(texture) && isScene(object)) {
 		return registerSimpleUndoRedo({
 			object,
@@ -113,7 +113,7 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 
 	const title = (
 		<div>
-            Apply texture
+			Apply texture
 			<br />
 			<b className="text-muted-foreground font-semibold tracking-tighter">{material.name}</b>
 		</div>
@@ -122,25 +122,25 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 	const dialog = showDialog(title, (
 		<div className="flex flex-col gap-4 w-64 pt-4">
 			{isPBRMaterial(material) &&
-                <>
-                	<TextureSlotComponent property="albedoTexture" />
-                	<TextureSlotComponent property="bumpTexture" />
-                	<TextureSlotComponent property="reflectivityTexture" />
-                	<TextureSlotComponent property="ambientTexture" />
-                	<TextureSlotComponent property="metallicTexture" />
-                	<TextureSlotComponent property="reflectionTexture" />
-                </>
+				<>
+					<TextureSlotComponent property="albedoTexture" />
+					<TextureSlotComponent property="bumpTexture" />
+					<TextureSlotComponent property="reflectivityTexture" />
+					<TextureSlotComponent property="ambientTexture" />
+					<TextureSlotComponent property="metallicTexture" />
+					<TextureSlotComponent property="reflectionTexture" />
+				</>
 			}
 
 			{
 				isStandardMaterial(material) &&
-                <>
-                	<TextureSlotComponent property="diffuseTexture" />
-                	<TextureSlotComponent property="bumpTexture" />
-                	<TextureSlotComponent property="specularTexture" />
-                	<TextureSlotComponent property="ambientTexture" />
-                	<TextureSlotComponent property="reflectionTexture" />
-                </>
+				<>
+					<TextureSlotComponent property="diffuseTexture" />
+					<TextureSlotComponent property="bumpTexture" />
+					<TextureSlotComponent property="specularTexture" />
+					<TextureSlotComponent property="ambientTexture" />
+					<TextureSlotComponent property="reflectionTexture" />
+				</>
 			}
 		</div>
 	));

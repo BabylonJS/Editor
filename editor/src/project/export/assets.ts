@@ -12,6 +12,7 @@ const supportedImagesExtensions: string[] = [
 	".jpg", ".jpeg",
 	".png",
 	".bmp",
+	".3dl",
 ];
 
 const supportedCubeTexturesExtensions: string[] = [
@@ -34,11 +35,11 @@ const supportedExtensions: string[] = [
 ];
 
 export type ProcessFileOptions = {
-    optimize: boolean;
-    scenePath: string;
-    projectDir: string;
-    exportedAssets: string[];
-    cache: Record<string, string>;
+	optimize: boolean;
+	scenePath: string;
+	projectDir: string;
+	exportedAssets: string[];
+	cache: Record<string, string>;
 };
 
 export async function processAssetFile(editor: Editor, file: string, options: ProcessFileOptions): Promise<void> {

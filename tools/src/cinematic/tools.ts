@@ -4,8 +4,8 @@ import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
 export function cloneKey(dataType: number, key: IAnimationKey): IAnimationKey {
 	let value: any;
 	switch (dataType) {
-	case Animation.ANIMATIONTYPE_FLOAT: value = key.value; break;
-	default: value = key.value.clone(); break;
+		case Animation.ANIMATIONTYPE_FLOAT: value = key.value; break;
+		default: value = key.value.clone(); break;
 	}
 
 	return {

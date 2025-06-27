@@ -161,13 +161,13 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 		});
 
 		switch (this.state.step) {
-		case "menu":
-			this._loadMainMenu();
-			break;
+			case "menu":
+				this._loadMainMenu();
+				break;
 
-		case "cinematic":
-			this._loadCinematic();
-			break;
+			case "cinematic":
+				this._loadCinematic();
+				break;
 		}
 	}
 

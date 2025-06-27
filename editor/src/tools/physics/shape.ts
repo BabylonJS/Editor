@@ -13,26 +13,26 @@ export function getPhysicsShapeForMesh(mesh: AbstractMesh): PhysicsShapeType {
 	mesh = isInstancedMesh(mesh) ? mesh.sourceMesh : mesh;
 
 	switch (mesh.metadata?.type) {
-	case "Box":
-	case "Ground":
-		return PhysicsShapeType.BOX;
+		case "Box":
+		case "Ground":
+			return PhysicsShapeType.BOX;
 
-	case "Sphere":
-		return PhysicsShapeType.SPHERE;
+		case "Sphere":
+			return PhysicsShapeType.SPHERE;
 	}
 
 	if (isMesh(mesh)) {
 		const collisionMesh = getCollisionMeshFor(mesh);
 
 		switch (collisionMesh?.type) {
-		case "cube":
-			return PhysicsShapeType.BOX;
-		case "capsule":
-			return PhysicsShapeType.CAPSULE;
-		case "sphere":
-			return PhysicsShapeType.SPHERE;
-		case "lod":
-			return PhysicsShapeType.MESH;
+			case "cube":
+				return PhysicsShapeType.BOX;
+			case "capsule":
+				return PhysicsShapeType.CAPSULE;
+			case "sphere":
+				return PhysicsShapeType.SPHERE;
+			case "lod":
+				return PhysicsShapeType.MESH;
 		}
 	}
 
