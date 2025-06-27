@@ -686,7 +686,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					<Separator orientation="vertical" className="mx-2 h-[24px]" />
 
 					<Tooltip>
-						<TooltipTrigger>
+						<TooltipTrigger asChild>
 							<Toggle pressed={this.state.activeGizmo === "position"} onPressedChange={() => this.setActiveGizmo("position")}>
 								<PositionIcon height={16} />
 							</Toggle>
@@ -696,7 +696,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						</TooltipContent>
 					</Tooltip>
 					<Tooltip>
-						<TooltipTrigger>
+						<TooltipTrigger asChild>
 							<Toggle pressed={this.state.activeGizmo === "rotation"} onPressedChange={() => this.setActiveGizmo("rotation")}>
 								<RotationIcon height={16} />
 							</Toggle>
@@ -706,7 +706,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						</TooltipContent>
 					</Tooltip>
 					<Tooltip>
-						<TooltipTrigger>
+						<TooltipTrigger asChild>
 							<Toggle pressed={this.state.activeGizmo === "scaling"} onPressedChange={() => this.setActiveGizmo("scaling")}>
 								<ScalingIcon height={16} />
 							</Toggle>
@@ -735,7 +735,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					<Separator orientation="vertical" className="mx-2 h-[24px]" />
 
 					<Tooltip>
-						<TooltipTrigger>
+						<TooltipTrigger asChild>
 							<Toggle
 								className="!px-2 !py-2"
 								pressed={this.scene?.forceWireframe}
@@ -755,7 +755,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					<Separator orientation="vertical" className="mx-2 h-[24px]" />
 
 					<DropdownMenu>
-						<DropdownMenuTrigger >
+						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="px-1 py-1 w-9 h-9">
 								<IoIosOptions className="w-6 h-6" strokeWidth={1} />
 							</Button>
@@ -801,7 +801,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					</DropdownMenu>
 
 					<DropdownMenu onOpenChange={(o) => this.setState({ showStatsValues: o })}>
-						<DropdownMenuTrigger>
+						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="px-1 py-1 w-9 h-9">
 								<IoIosStats className="w-6 h-6" strokeWidth={1} />
 							</Button>

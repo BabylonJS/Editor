@@ -36,7 +36,7 @@ export class AssetBrowserImageItem extends AssetsBrowserItem {
 					<ContextMenuItem disabled>Current: {this._size.width}x{this._size.height}</ContextMenuItem>
 					<ContextMenuSeparator />
 					{this._availableResizes.map((size) => (
-						<ContextMenuItem onClick={() => this._handleResize(size.width, size.height)}>{size.width}x{size.height}</ContextMenuItem>
+						<ContextMenuItem key={`${size.width}x${size.height}`} onClick={() => this._handleResize(size.width, size.height)}>{size.width}x{size.height}</ContextMenuItem>
 					))}
 				</ContextMenuSubContent>
 			</ContextMenuSub>

@@ -533,7 +533,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 						</div>
 
 						<DropdownMenu onOpenChange={(o) => o && this.forceUpdate()}>
-							<DropdownMenuTrigger>
+							<DropdownMenuTrigger asChild>
 								<Button minimal icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>

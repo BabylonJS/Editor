@@ -4,7 +4,7 @@ import { basename, extname, dirname, join } from "path/posix";
 
 import { ipcRenderer } from "electron";
 
-import { Component, DragEvent, MouseEvent, ReactNode } from "react";
+import { Component, DragEvent, MouseEvent, ReactNode, Fragment } from "react";
 
 import { Tooltip } from "@blueprintjs/core";
 
@@ -27,6 +27,7 @@ import { Input } from "../../../../ui/shadcn/ui/input";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "../../../../ui/shadcn/ui/context-menu";
 
 import { Editor } from "../../../main";
+
 
 export interface IAssetsBrowserItemProps {
     /**
@@ -128,7 +129,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 							onDoubleClick={() => this._handleDoubleClick()}
 							className={`
                                 flex flex-col gap-2 w-[120px] h-[120px] py-2 cursor-pointer rounded-lg
-                                ${this.state.isRenaming ? "px-1 scale-150" : "px-5 scale-100"}
+                                ${this.state.isRenaming ? "px-1 scale-150 relative z-[9999] backdrop-blur-sm" : "px-5 scale-100"}
                                 ${this.props.selected ? "bg-muted-foreground/35" : "hover:bg-secondary"}
                                 transition-all duration-300
                             `}
@@ -160,7 +161,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 							>
 								{this.state.isRenaming &&
                                     <Input
-                                    	className="h-5 py-0 text-center scale-75"
+                                    	className="h-5 py-0 text-center scale-75 bg-primary-foreground"
                                     	ref={(r) => {
                                     		setTimeout(() => {
                                     			r?.focus();
@@ -352,7 +353,11 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 				<ContextMenuSeparator />
 
-				{items}
+				{items.map((item, index) => (
+					<Fragment key={`context-menu-item-${index}`}>
+						{item}
+					</Fragment>
+				))}
 				{items.filter((item) => item).length > 0 &&
                     <ContextMenuSeparator />
 				}

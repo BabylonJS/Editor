@@ -55,7 +55,7 @@ export class EditorEditProjectPluginComponent extends Component<IEditorEditProje
 						<Label className="text-xl font-[400]">Plugins</Label>
 
 						<DropdownMenu>
-							<DropdownMenuTrigger>
+							<DropdownMenuTrigger asChild>
 								<Button variant="outline" className="w-10 h-10 rounded-full p-1">
 									<AiOutlinePlus className="w-10 h-10" />
 								</Button>
