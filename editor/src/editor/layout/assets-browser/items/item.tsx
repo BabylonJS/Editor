@@ -1,11 +1,10 @@
-import React from "react";
 import { platform } from "os";
 import { readdir, rename, stat } from "fs-extra";
 import { basename, extname, dirname, join } from "path/posix";
 
 import { ipcRenderer } from "electron";
 
-import { Component, DragEvent, MouseEvent, ReactNode } from "react";
+import { Component, DragEvent, MouseEvent, ReactNode, Fragment } from "react";
 
 import { Tooltip } from "@blueprintjs/core";
 
@@ -355,10 +354,10 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 				<ContextMenuSeparator />
 
 				{items.map((item, index) => (
-                    <React.Fragment key={`context-menu-item-${index}`}>
-                        {item}
-                    </React.Fragment>
-                ))}
+					<Fragment key={`context-menu-item-${index}`}>
+						{item}
+					</Fragment>
+				))}
 				{items.filter((item) => item).length > 0 &&
                     <ContextMenuSeparator />
 				}
