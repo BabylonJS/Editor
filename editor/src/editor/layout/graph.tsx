@@ -156,65 +156,65 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev)}
 				/>
 
-                <div
-                    className="w-full h-full"
-                    onDragOver={(ev) => ev.preventDefault()}
-                    onDrop={(ev) => this._handleDropEmpty(ev)}
-                >
-                    <ContextMenu>
-                    <ContextMenuTrigger className="w-full h-full">
-                        <div className="w-full h-full"></div>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                    <ContextMenuSub>
-                        <ContextMenuSubTrigger className="flex items-center gap-2">
-                            <AiOutlinePlus className="w-5 h-5" /> Add
-                        </ContextMenuSubTrigger>
-                            <ContextMenuSubContent>
-                                <ContextMenuItem onClick={() => addTransformNode(this.props.editor)}>
+				<div
+					className="w-full h-full"
+					onDragOver={(ev) => ev.preventDefault()}
+					onDrop={(ev) => this._handleDropEmpty(ev)}
+				>
+					<ContextMenu>
+						<ContextMenuTrigger className="w-full h-full">
+							<div className="w-full h-full"></div>
+						</ContextMenuTrigger>
+						<ContextMenuContent>
+							<ContextMenuSub>
+								<ContextMenuSubTrigger className="flex items-center gap-2">
+									<AiOutlinePlus className="w-5 h-5" /> Add
+								</ContextMenuSubTrigger>
+								<ContextMenuSubContent>
+									<ContextMenuItem onClick={() => addTransformNode(this.props.editor)}>
                                     Transform Node
-                                </ContextMenuItem>
-                                <ContextMenuSeparator />
-                                <ContextMenuItem onClick={() => addBoxMesh(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => addBoxMesh(this.props.editor)}>
                                     Box Mesh
-                                </ContextMenuItem>
-                                <ContextMenuItem onClick={() => addPlaneMesh(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addPlaneMesh(this.props.editor)}>
                                     Plane Mesh
-                                </ContextMenuItem>
-                                <ContextMenuItem onClick={() => addSphereMesh(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addSphereMesh(this.props.editor)}>
                                     Sphere Mesh
-                                </ContextMenuItem>
-                                <ContextMenuItem onClick={() => addGroundMesh(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addGroundMesh(this.props.editor)}>
                                     Ground Mesh
-                                </ContextMenuItem>
-                                <ContextMenuSeparator />
-                                <ContextMenuItem onClick={() => addPointLight(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => addPointLight(this.props.editor)}>
                                     Point Light
-                                </ContextMenuItem>
-                                <ContextMenuItem onClick={() => addDirectionalLight(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addDirectionalLight(this.props.editor)}>
                                     Directional Light
-                                </ContextMenuItem>
-                                <ContextMenuItem onClick={() => addSpotLight(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addSpotLight(this.props.editor)}>
                                     Spot Light
-                                </ContextMenuItem>
-                                <ContextMenuItem onClick={() => addHemisphericLight(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addHemisphericLight(this.props.editor)}>
                                     Hemispheric Light
-                                </ContextMenuItem>
-                                <ContextMenuSeparator />
-                                <ContextMenuItem onClick={() => addFreeCamera(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => addFreeCamera(this.props.editor)}>
                                     Free Camera
-                                </ContextMenuItem>
-                                <ContextMenuItem onClick={() => addArcRotateCamera(this.props.editor)}>
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addArcRotateCamera(this.props.editor)}>
                                     Arc Rotate Camera
-                                </ContextMenuItem>
-                            </ContextMenuSubContent>
-                        </ContextMenuSub>
-                    </ContextMenuContent>
-                </ContextMenu>
-                </div>
-            </div>
-        );
-    }
+									</ContextMenuItem>
+								</ContextMenuSubContent>
+							</ContextMenuSub>
+						</ContextMenuContent>
+					</ContextMenu>
+				</div>
+			</div>
+		);
+	}
 
 	public componentDidMount(): void {
 		onProjectConfigurationChangedObservable.add(() => {
