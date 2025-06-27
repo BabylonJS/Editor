@@ -179,7 +179,9 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 							<>
 								{isCubeTexture(this.props.object[this.props.property])
 									? this._getCubeTextureInspector()
-									: this._getTextureInspector()
+									: isColorGradingTexture(this.props.object[this.props.property])
+										? this._getColorGradingTextureInspector()
+										: this._getTextureInspector()
 								}
 							</>
 						</PopoverContent>
@@ -240,9 +242,35 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 		);
 	}
 
+	private _getColorGradingTextureInspector(): ReactNode {
+		const texture = this.props.object[this.props.property] as ColorGradingTexture;
+		if (!isColorGradingTexture(texture)) {
+			return;
+		}
+
+		return (
+			<div className="flex flex-col gap-2 h-full">
+				<EditorInspectorSectionField title="Common">
+					<div className="flex justify-between items-center px-2 py-2">
+						<div className="w-1/2">
+							Path
+						</div>
+
+						<div
+							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
+							className="text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis underline-offset-2 cursor-pointer hover:underline"
+						>
+							{texture.name}
+						</div>
+					</div>
+				</EditorInspectorSectionField>
+			</div>
+		);
+	}
+
 	private _getTextureInspector(): ReactNode {
-		const texture = this.props.object[this.props.property] as Texture | ColorGradingTexture;
-		if (!isTexture(texture) && !isColorGradingTexture(texture)) {
+		const texture = this.props.object[this.props.property] as Texture;
+		if (!isTexture(texture)) {
 			return;
 		}
 
@@ -278,19 +306,15 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 					<EditorInspectorSwitchField label="Get Alpha From RGB" object={texture} property="getAlphaFromRGB" />
 				</EditorInspectorSectionField>
 
-				{!isColorGradingTexture(texture) &&
-					<>
-						<EditorInspectorSectionField title="Scale">
-							<EditorInspectorNumberField label="U Scale" object={texture} property="uScale" onChange={() => this.forceUpdate()} />
-							<EditorInspectorNumberField label="V Scale" object={texture} property="vScale" onChange={() => this.forceUpdate()} />
-						</EditorInspectorSectionField>
+				<EditorInspectorSectionField title="Scale">
+					<EditorInspectorNumberField label="U Scale" object={texture} property="uScale" onChange={() => this.forceUpdate()} />
+					<EditorInspectorNumberField label="V Scale" object={texture} property="vScale" onChange={() => this.forceUpdate()} />
+				</EditorInspectorSectionField>
 
-						<EditorInspectorSectionField title="Offset">
-							<EditorInspectorNumberField label="U Offset" object={texture} property="uOffset" />
-							<EditorInspectorNumberField label="V Offset" object={texture} property="vOffset" />
-						</EditorInspectorSectionField>
-					</>
-				}
+				<EditorInspectorSectionField title="Offset">
+					<EditorInspectorNumberField label="U Offset" object={texture} property="uOffset" />
+					<EditorInspectorNumberField label="V Offset" object={texture} property="vOffset" />
+				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Coordinates">
 					<EditorInspectorNumberField label="Index" object={texture} property="coordinatesIndex" step={1} min={0} onChange={(v) => {
