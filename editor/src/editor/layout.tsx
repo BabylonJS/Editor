@@ -19,36 +19,36 @@ import { EditorAnimation } from "./layout/animation";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
 
 export interface IEditorLayoutProps {
-    /**
-     * The editor reference.
-     */
-    editor: Editor;
+	/**
+	 * The editor reference.
+	 */
+	editor: Editor;
 }
 
 export class EditorLayout extends Component<IEditorLayoutProps> {
 	/**
-     * The preview of the editor.
-     */
+	 * The preview of the editor.
+	 */
 	public preview: EditorPreview;
 	/**
-     * The console of the editor.
-     */
+	 * The console of the editor.
+	 */
 	public console: EditorConsole;
 	/**
-     * The inspector of the editor.
-     */
+	 * The inspector of the editor.
+	 */
 	public inspector: EditorInspector;
 	/**
-     * The graph of the editor.
-     */
+	 * The graph of the editor.
+	 */
 	public graph: EditorGraph;
 	/**
-     * The assets browser of the editor.
-     */
+	 * The assets browser of the editor.
+	 */
 	public assets: EditorAssetsBrowser;
 	/**
-     * The animation editor of the editor.
-     */
+	 * The animation editor of the editor.
+	 */
 	public animations: EditorAnimation;
 
 	private _layoutRef: Layout | null = null;
@@ -125,8 +125,8 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
 	private _saveLayout(model: Model): void {
 		const layoutData = model.toJson() as IJsonModel & {
-            version: string;
-        };
+			version: string;
+		};
 
 		layoutData.version = this._layoutVersion;
 
@@ -137,19 +137,19 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	}
 
 	/**
-     * Makes the tab identified by the given id active.
-     * If the tab is hidden, makes it visible and selected.
-     * @param tabId defines the id of the tab to make active.
-     */
-	public selectTab(tabId: string): void {
+	 * Makes the tab identified by the given id active.
+	 * If the tab is hidden, makes it visible and selected.
+	 * @param tabId defines the id of the tab to make active.
+	 */
+	public selectTab(tabId: "graph" | "preview" | "assets-browser" | "console" | "inspector" | string & {}): void {
 		this._layoutRef?.props.model.doAction(Actions.selectTab(tabId));
 	}
 
 	/**
-     * Adds a new tab to the layout.
-     * @param title defines the title of the tab.
-     * @param component defines the reference to the React component to draw in.
-     */
+	 * Adds a new tab to the layout.
+	 * @param title defines the title of the tab.
+	 * @param component defines the reference to the React component to draw in.
+	 */
 	public addLayoutTab(title: string, component: React.ReactNode): void {
 		const id = Tools.RandomId();
 

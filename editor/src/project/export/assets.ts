@@ -12,7 +12,6 @@ const supportedImagesExtensions: string[] = [
 	".jpg", ".jpeg",
 	".png",
 	".bmp",
-	".3dl",
 ];
 
 const supportedCubeTexturesExtensions: string[] = [
@@ -27,11 +26,16 @@ const supportedJsonExtensions: string[] = [
 	".gui", ".cinematic",
 ];
 
+const supportedMiscExtensions: string[] = [
+	".3dl",
+];
+
 const supportedExtensions: string[] = [
 	...supportedImagesExtensions,
 	...supportedCubeTexturesExtensions,
 	...supportedAudioExtensions,
 	...supportedJsonExtensions,
+	...supportedMiscExtensions,
 ];
 
 export type ProcessFileOptions = {

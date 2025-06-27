@@ -32,6 +32,7 @@ import { EditorInspectorColorField } from "./fields/color";
 import { EditorInspectorSwitchField } from "./fields/switch";
 import { EditorInspectorNumberField } from "./fields/number";
 import { EditorInspectorVectorField } from "./fields/vector";
+import { EditorInspectorSliderField } from "./fields/slider";
 import { EditorInspectorTextureField } from "./fields/texture";
 
 import { ScriptInspectorComponent } from "./script/script";
@@ -199,7 +200,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 				{defaultRenderingPipeline &&
 					<>
 						<EditorInspectorSectionField title="Image Processing">
-							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="imageProcessingEnabled" label="Image Processing Enabled" onChange={() => this.forceUpdate()} />
+							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="imageProcessingEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 							{defaultRenderingPipeline.imageProcessingEnabled &&
 								<>
 									<EditorInspectorNumberField object={defaultRenderingPipeline.imageProcessing} property="exposure" label="Exposure" />
@@ -225,26 +226,61 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						</EditorInspectorSectionField>
 
 						{defaultRenderingPipeline.imageProcessingEnabled &&
-							<EditorInspectorSectionField title="Color Grading">
-								<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="colorGradingEnabled" label="Glow Layer Enabled" onChange={() => this.forceUpdate()} />
+							<>
+								<EditorInspectorSectionField title="Color Grading">
+									<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="colorGradingEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 
-								{defaultRenderingPipeline.imageProcessing.colorGradingEnabled &&
-									<>
-										<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing.imageProcessingConfiguration} property="colorGradingWithGreenDepth" label="Use Green Depth" />
-										<EditorInspectorTextureField
-											accept3dlTexture
-											title="Texture"
-											property="colorGradingTexture"
-											scene={this.props.editor.layout.preview.scene}
-											object={defaultRenderingPipeline.imageProcessing}
-										/>
-									</>
-								}
-							</EditorInspectorSectionField>
+									{defaultRenderingPipeline.imageProcessing.colorGradingEnabled &&
+										<>
+											<EditorInspectorTextureField
+												accept3dlTexture
+												title="Texture"
+												property="colorGradingTexture"
+												scene={this.props.editor.layout.preview.scene}
+												object={defaultRenderingPipeline.imageProcessing}
+											>
+												<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing.imageProcessingConfiguration} property="colorGradingWithGreenDepth" label="Use Green Depth" />
+											</EditorInspectorTextureField>
+										</>
+									}
+								</EditorInspectorSectionField>
+
+								<EditorInspectorSectionField title="Color Curves">
+									<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="colorCurvesEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
+
+									{defaultRenderingPipeline.imageProcessing.colorCurvesEnabled &&
+										<>
+											<div className="text-xl font-semibold px-2 text-center">Global</div>
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="globalHue" min={0} max={360} defaultValue={30} label={<div className="w-16">Hue</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="globalExposure" min={-100} max={100} defaultValue={0} label={<div className="w-16">Exposure</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="globalDensity" min={-100} max={100} defaultValue={0} label={<div className="w-16">Density</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="globalSaturation" min={-100} max={100} defaultValue={0} label={<div className="w-16">Saturation</div>} />
+
+											<div className="text-xl font-semibold px-2 text-center">Highlights</div>
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="highlightsHue" min={0} max={360} defaultValue={30} label={<div className="w-16">Hue</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="highlightsExposure" min={-100} max={100} defaultValue={0} label={<div className="w-16">Exposure</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="highlightsDensity" min={-100} max={100} defaultValue={0} label={<div className="w-16">Density</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="highlightsSaturation" min={-100} max={100} defaultValue={0} label={<div className="w-16">Saturation</div>} />
+
+											<div className="text-xl font-semibold px-2 text-center">Midtones</div>
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="midtonesHue" min={0} max={360} defaultValue={30} label={<div className="w-16">Hue</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="midtonesExposure" min={-100} max={100} defaultValue={0} label={<div className="w-16">Exposure</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="midtonesDensity" min={-100} max={100} defaultValue={0} label={<div className="w-16">Density</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="midtonesSaturation" min={-100} max={100} defaultValue={0} label={<div className="w-16">Saturation</div>} />
+
+											<div className="text-xl font-semibold px-2 text-center">Shadows</div>
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="shadowsHue" min={0} max={360} defaultValue={30} label={<div className="w-16">Hue</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="shadowsExposure" min={-100} max={100} defaultValue={0} label={<div className="w-16">Exposure</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="shadowsDensity" min={-100} max={100} defaultValue={0} label={<div className="w-16">Density</div>} />
+											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="shadowsSaturation" min={-100} max={100} defaultValue={0} label={<div className="w-16">Saturation</div>} />
+										</>
+									}
+								</EditorInspectorSectionField>
+							</>
 						}
 
 						<EditorInspectorSectionField title="Bloom">
-							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="bloomEnabled" label="Bloom Enabled" onChange={() => this.forceUpdate()} />
+							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="bloomEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 							{defaultRenderingPipeline.bloomEnabled &&
 								<>
 									<EditorInspectorNumberField object={defaultRenderingPipeline} property="bloomThreshold" label="Threshold" />
@@ -256,7 +292,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						</EditorInspectorSectionField>
 
 						<EditorInspectorSectionField title="Sharpen">
-							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="sharpenEnabled" label="Sharpen Enabled" onChange={() => this.forceUpdate()} />
+							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="sharpenEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 							{defaultRenderingPipeline.sharpenEnabled &&
 								<>
 									<EditorInspectorNumberField object={defaultRenderingPipeline.sharpen} property="edgeAmount" label="Edge Amount" />
@@ -266,7 +302,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						</EditorInspectorSectionField>
 
 						<EditorInspectorSectionField title="Grain">
-							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="grainEnabled" label="Grain Enabled" onChange={() => this.forceUpdate()} />
+							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="grainEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 							{defaultRenderingPipeline.grainEnabled &&
 								<>
 									<EditorInspectorNumberField object={defaultRenderingPipeline.grain} property="intensity" label="Intensity" />
@@ -276,7 +312,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						</EditorInspectorSectionField>
 
 						<EditorInspectorSectionField title="Depth-of-field">
-							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="depthOfFieldEnabled" label="Depth-of-field Enabled" onChange={() => this.forceUpdate()} />
+							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="depthOfFieldEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 
 							{defaultRenderingPipeline.depthOfFieldEnabled &&
 								<>
@@ -303,7 +339,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 						{defaultRenderingPipeline.imageProcessingEnabled &&
 							<EditorInspectorSectionField title="Vignette">
-								<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="vignetteEnabled" label="Vignette Enabled" onChange={() => this.forceUpdate()} />
+								<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="vignetteEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 
 								{defaultRenderingPipeline.imageProcessing.vignetteEnabled &&
 									<>
@@ -315,7 +351,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						}
 
 						<EditorInspectorSectionField title="Chromatic Aberration">
-							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="chromaticAberrationEnabled" label="Chromatic Aberration Enabled" onChange={() => this.forceUpdate()} />
+							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="chromaticAberrationEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 
 							{defaultRenderingPipeline.chromaticAberrationEnabled &&
 								<>
@@ -329,7 +365,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						</EditorInspectorSectionField>
 
 						<EditorInspectorSectionField title="Glow Layer">
-							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="glowLayerEnabled" label="Glow Layer Enabled" onChange={() => this.forceUpdate()} />
+							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="glowLayerEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 
 							{defaultRenderingPipeline.glowLayerEnabled && defaultRenderingPipeline.glowLayer &&
 								<>

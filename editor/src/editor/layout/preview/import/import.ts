@@ -168,7 +168,7 @@ export function configureImportedMaterial(material: Material): void {
 	material.uniqueId = UniqueNumber.Get();
 }
 
-export function configureImportedTexture(texture: Texture | CubeTexture | ColorGradingTexture): Texture | CubeTexture | ColorGradingTexture {
+export function configureImportedTexture<T extends Texture | CubeTexture | ColorGradingTexture>(texture: T): T {
 	if (isAbsolute(texture.name)) {
 		texture.name = texture.name.replace(join(dirname(projectConfiguration.path!), "/"), "");
 		texture.url = texture.name;

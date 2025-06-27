@@ -66,10 +66,6 @@ export function serializeDefaultRenderingPipeline(): any {
 		ditheringEnabled: defaultRenderingPipeline.imageProcessing?.ditheringEnabled,
 		ditheringIntensity: defaultRenderingPipeline.imageProcessing?.ditheringIntensity,
 
-		colorGradingEnabled: defaultRenderingPipeline.imageProcessing.colorGradingEnabled,
-		colorGradingTexture: defaultRenderingPipeline.imageProcessing.colorGradingTexture?.serialize(),
-		colorGradingWithGreenDepth: defaultRenderingPipeline.imageProcessing.imageProcessingConfiguration.colorGradingWithGreenDepth,
-
 		bloomEnabled: defaultRenderingPipeline.bloomEnabled,
 		bloomThreshold: defaultRenderingPipeline.bloomThreshold,
 		bloomWeight: defaultRenderingPipeline.bloomWeight,
@@ -105,6 +101,32 @@ export function serializeDefaultRenderingPipeline(): any {
 		glowLayerEnabled: defaultRenderingPipeline.glowLayerEnabled,
 		glowLayerIntensity: defaultRenderingPipeline.glowLayer?.intensity,
 		glowLayerBlurKernelSize: defaultRenderingPipeline.glowLayer?.blurKernelSize,
+
+		// Since v5.0.0-alpha.10
+		colorGradingEnabled: defaultRenderingPipeline.imageProcessing.colorGradingEnabled,
+		colorGradingTexture: defaultRenderingPipeline.imageProcessing.colorGradingTexture?.serialize(),
+		colorGradingWithGreenDepth: defaultRenderingPipeline.imageProcessing.imageProcessingConfiguration.colorGradingWithGreenDepth,
+
+		colorCurvesEnabled: defaultRenderingPipeline.imageProcessing.colorCurvesEnabled,
+		globalHue: defaultRenderingPipeline.imageProcessing.colorCurves?.globalHue,
+		globalDensity: defaultRenderingPipeline.imageProcessing.colorCurves?.globalDensity,
+		globalExposure: defaultRenderingPipeline.imageProcessing.colorCurves?.globalExposure,
+		globalSaturation: defaultRenderingPipeline.imageProcessing.colorCurves?.globalSaturation,
+
+		highlightsHue: defaultRenderingPipeline.imageProcessing.colorCurves?.highlightsHue,
+		highlightsDensity: defaultRenderingPipeline.imageProcessing.colorCurves?.highlightsDensity,
+		highlightsExposure: defaultRenderingPipeline.imageProcessing.colorCurves?.highlightsExposure,
+		highlightsSaturation: defaultRenderingPipeline.imageProcessing.colorCurves?.highlightsSaturation,
+
+		midtonesHue: defaultRenderingPipeline.imageProcessing.colorCurves?.midtonesHue,
+		midtonesDensity: defaultRenderingPipeline.imageProcessing.colorCurves?.midtonesDensity,
+		midtonesExposure: defaultRenderingPipeline.imageProcessing.colorCurves?.midtonesExposure,
+		midtonesSaturation: defaultRenderingPipeline.imageProcessing.colorCurves?.midtonesSaturation,
+
+		shadowsHue: defaultRenderingPipeline.imageProcessing.colorCurves?.shadowsHue,
+		shadowsDensity: defaultRenderingPipeline.imageProcessing.colorCurves?.shadowsDensity,
+		shadowsExposure: defaultRenderingPipeline.imageProcessing.colorCurves?.shadowsExposure,
+		shadowsSaturation: defaultRenderingPipeline.imageProcessing.colorCurves?.shadowsSaturation,
 	};
 }
 
@@ -153,6 +175,29 @@ export function parseDefaultRenderingPipeline(scene: Scene, camera: Camera, data
 			}
 
 			pipeline.imageProcessing.colorGradingTexture = texture;
+		}
+
+		pipeline.imageProcessing.colorCurvesEnabled = data.colorCurvesEnabled ?? false;
+		if (pipeline.imageProcessing.colorCurves) {
+			pipeline.imageProcessing.colorCurves.globalHue = data.globalHue ?? 30;
+			pipeline.imageProcessing.colorCurves.globalDensity = data.globalDensity ?? 0;
+			pipeline.imageProcessing.colorCurves.globalExposure = data.globalExposure ?? 0;
+			pipeline.imageProcessing.colorCurves.globalSaturation = data.globalSaturation ?? 0;
+
+			pipeline.imageProcessing.colorCurves.highlightsHue = data.highlightsHue ?? 30;
+			pipeline.imageProcessing.colorCurves.highlightsDensity = data.highlightsDensity ?? 0;
+			pipeline.imageProcessing.colorCurves.highlightsExposure = data.highlightsExposure ?? 0;
+			pipeline.imageProcessing.colorCurves.highlightsSaturation = data.highlightsSaturation ?? 0;
+
+			pipeline.imageProcessing.colorCurves.midtonesHue = data.midtonesHue ?? 30;
+			pipeline.imageProcessing.colorCurves.midtonesDensity = data.midtonesDensity ?? 0;
+			pipeline.imageProcessing.colorCurves.midtonesExposure = data.midtonesExposure ?? 0;
+			pipeline.imageProcessing.colorCurves.midtonesSaturation = data.midtonesSaturation ?? 0;
+
+			pipeline.imageProcessing.colorCurves.shadowsHue = data.shadowsHue ?? 30;
+			pipeline.imageProcessing.colorCurves.shadowsDensity = data.shadowsDensity ?? 0;
+			pipeline.imageProcessing.colorCurves.shadowsExposure = data.shadowsExposure ?? 0;
+			pipeline.imageProcessing.colorCurves.shadowsSaturation = data.shadowsSaturation ?? 0;
 		}
 	}
 

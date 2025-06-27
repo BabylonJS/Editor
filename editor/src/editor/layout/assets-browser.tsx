@@ -80,32 +80,32 @@ const MaterialSelectable = createSelectable(AssetBrowserMaterialItem);
 const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
 
 export interface IEditorAssetsBrowserProps {
-    /**
-     * The editor reference.
-     */
-    editor: Editor;
+	/**
+	 * The editor reference.
+	 */
+	editor: Editor;
 }
 
 export interface IEditorAssetsBrowserState {
-    /**
-     * The sizes of the panels.
-     */
-    sizes: number[];
+	/**
+	 * The sizes of the panels.
+	 */
+	sizes: number[];
 
-    files: string[];
-    selectedKeys: string[];
-    selectionEnabled: boolean;
+	files: string[];
+	selectedKeys: string[];
+	selectionEnabled: boolean;
 
-    treeSearch: string;
-    gridSearch: string;
+	treeSearch: string;
+	gridSearch: string;
 
-    showGeneratedFiles: boolean;
+	showGeneratedFiles: boolean;
 
-    browsedPath?: string;
+	browsedPath?: string;
 
-    filesTreeNodes: TreeNodeInfo[];
+	filesTreeNodes: TreeNodeInfo[];
 
-    dragAndDroppingFiles: boolean;
+	dragAndDroppingFiles: boolean;
 }
 
 export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IEditorAssetsBrowserState> {
@@ -206,6 +206,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		onSelectedAssetChanged.add(async (path) => {
 			await this.setBrowsePath(dirname(path));
 			this.setSelectedFile(path);
+			this.props.editor.layout.selectTab("assets-browser");
 		});
 
 		listenGuiAssetsEvents(this.props.editor);
@@ -274,8 +275,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 					this._forEachNode(this.state.filesTreeNodes, (n) => {
 						if (n.id === node!.id) {
-                            node!.isSelected = n.isSelected;
-                            node!.isExpanded = n.isExpanded;
+							node!.isSelected = n.isSelected;
+							node!.isExpanded = n.isExpanded;
 						}
 					});
 
@@ -306,7 +307,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			filesTreeNodes: [{
 				label: (
 					<div className="ml-2 p-1">
-                        Project
+						Project
 					</div>
 				),
 				id: "/",
@@ -319,8 +320,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	/**
-     * Sets the new path being browsed by the assets browser.
-     */
+	 * Sets the new path being browsed by the assets browser.
+	 */
 	public async setBrowsePath(path: string): Promise<void> {
 		this.setState({
 			gridSearch: "",
@@ -331,8 +332,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	/**
-     * Refreshes the assets browser. This will refresh the files and the files tree nodes.
-     */
+	 * Refreshes the assets browser. This will refresh the files and the files tree nodes.
+	 */
 	public refresh(): void {
 		this.setBrowsePath(this.state.browsedPath!);
 
@@ -342,8 +343,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	/**
-     * Copies the selected files.
-     */
+	 * Copies the selected files.
+	 */
 	public copySelectedFiles(): void {
 		this._selectedFiles = this.state.selectedKeys;
 	}
@@ -368,8 +369,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	/**
-     *  Handles the file renamed event. This will update the file paths in the editor.
-     */
+	 *  Handles the file renamed event. This will update the file paths in the editor.
+	 */
 	public async handleFileRenamed(oldAbsolutePath: string, newAbsolutePath: string): Promise<void> {
 		if (!this.props.editor.state.projectPath) {
 			return;
@@ -436,8 +437,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	/**
-     * Adds the specified file to the selected files. This will add to the current selection the specified file.
-     */
+	 * Adds the specified file to the selected files. This will add to the current selection the specified file.
+	 */
 	public addToSelectedFiles(absolutePath: string): void {
 		if (!this.state.selectedKeys.includes(absolutePath)) {
 			this.setState({ selectedKeys: [absolutePath] });
@@ -445,8 +446,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	/**
-     * Sets the selected file. This will clear the current selection and select the specified file.
-     */
+	 * Sets the selected file. This will clear the current selection and select the specified file.
+	 */
 	public setSelectedFile(absolutePath: string): void {
 		if (this.state.selectedKeys.includes(absolutePath)) {
 			return;
@@ -473,8 +474,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	/**
-     * Handles the move selected files to event. This will move the selected files to the specified path.
-     */
+	 * Handles the move selected files to event. This will move the selected files to the specified path.
+	 */
 	public async handleMoveSelectedFilesTo(absolutePath: string): Promise<void> {
 		const files = this.state.selectedKeys;
 
@@ -545,9 +546,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								<DropdownMenuSeparator />
 								<DropdownMenuItem disabled={processingCompressedTextures} className="flex gap-2 items-center" onClick={() => checkProjectCachedCompressedTextures(this.props.editor)}>
 									{processingCompressedTextures &&
-                                        <Grid width={14} height={14} color="#ffffff" />
+										<Grid width={14} height={14} color="#ffffff" />
 									}
-                                    Check Compressed Textures
+									Check Compressed Textures
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
@@ -581,7 +582,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 							<Fade key={i} delay={0} duration={300}>
 								<BreadcrumbItem className="flex gap-[5px] items-center">
 									{(i === 0 || i < split.length - 1) &&
-                                        <FaRegFolderOpen className="text-foreground w-[20px] h-[20px]" />
+										<FaRegFolderOpen className="text-foreground w-[20px] h-[20px]" />
 									}
 
 									<BreadcrumbLink
@@ -593,7 +594,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								</BreadcrumbItem>
 
 								{i < split.length - 1 &&
-                                    <BreadcrumbSeparator />
+									<BreadcrumbSeparator />
 								}
 							</Fade>
 						))}
@@ -665,28 +666,28 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								<ContextMenuItem onClick={() => this._handleAddMaterial("SkyMaterial")}>Sky Material</ContextMenuItem>
 
 								{this.props.editor.state.enableExperimentalFeatures &&
-                                    <>
-                                    	<ContextMenuSeparator />
-                                    	<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
-                                    </>
+									<>
+										<ContextMenuSeparator />
+										<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
+									</>
 								}
 
 								<ContextMenuSeparator />
 								<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
 
 								{this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) &&
-                                    <>
-                                    	<ContextMenuSeparator />
-                                    	<ContextMenuSub>
-                                    		<ContextMenuSubTrigger className="flex items-center gap-2">
-                                                Script
-                                    		</ContextMenuSubTrigger>
-                                    		<ContextMenuSubContent>
-                                    			<ContextMenuItem onClick={() => this._handleAddScript("class")}>Class-based</ContextMenuItem>
-                                    			<ContextMenuItem onClick={() => this._handleAddScript("function")}>Function-based</ContextMenuItem>
-                                    		</ContextMenuSubContent>
-                                    	</ContextMenuSub>
-                                    </>
+									<>
+										<ContextMenuSeparator />
+										<ContextMenuSub>
+											<ContextMenuSubTrigger className="flex items-center gap-2">
+												Script
+											</ContextMenuSubTrigger>
+											<ContextMenuSubContent>
+												<ContextMenuItem onClick={() => this._handleAddScript("class")}>Class-based</ContextMenuItem>
+												<ContextMenuItem onClick={() => this._handleAddScript("function")}>Function-based</ContextMenuItem>
+											</ContextMenuSubContent>
+										</ContextMenuSub>
+									</>
 								}
 							</ContextMenuSubContent>
 						</ContextMenuSub>
@@ -1012,9 +1013,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	/**
-     * Returns whether the browsed path is the project root path.
-     * @returns Whether the browsed path is the project root path.
-     */
+	 * Returns whether the browsed path is the project root path.
+	 * @returns Whether the browsed path is the project root path.
+	 */
 	private _isBrowsingProjectRootPath(): boolean {
 		if (!this.state.browsedPath) {
 			return true;
