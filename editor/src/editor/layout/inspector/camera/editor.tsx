@@ -9,12 +9,14 @@ import { IEditorInspectorImplementationProps } from "../inspector";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
+import { FocalLengthInspector } from "./utils/focal";
+
 export class EditorCameraInspector extends Component<IEditorInspectorImplementationProps<EditorCamera>> {
 	/**
-     * Returns whether or not the given object is supported by this inspector.
-     * @param object defines the object to check.
-     * @returns true if the object is supported by this inspector.
-     */
+	 * Returns whether or not the given object is supported by this inspector.
+	 * @param object defines the object to check.
+	 * @returns true if the object is supported by this inspector.
+	 */
 	public static IsSupported(object: any): boolean {
 		return object?.getClassName?.() === "EditorCamera";
 	}
@@ -23,7 +25,7 @@ export class EditorCameraInspector extends Component<IEditorInspectorImplementat
 		return (
 			<>
 				<div className="text-center text-3xl">
-                    Editor Camera
+					Editor Camera
 				</div>
 
 				<EditorInspectorSectionField title="Common">
@@ -34,12 +36,12 @@ export class EditorCameraInspector extends Component<IEditorInspectorImplementat
 					<EditorInspectorNumberField object={this.props.object} property="minZ" label="Min Z" min={0.01} />
 					<EditorInspectorNumberField object={this.props.object} property="maxZ" label="Max Z" />
 
-					<EditorInspectorNumberField object={this.props.object} property="fov" label="Fov" min={0.01} max={Math.PI - 0.01} />
+					<FocalLengthInspector camera={this.props.object} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Keys">
 					<Button variant="secondary" onClick={() => this.props.editor.setState({ editPreferences: true })}>
-                        Configure in preferences...
+						Configure in preferences...
 					</Button>
 				</EditorInspectorSectionField>
 			</>

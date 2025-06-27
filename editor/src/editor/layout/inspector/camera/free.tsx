@@ -17,12 +17,14 @@ import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
 
+import { FocalLengthInspector } from "./utils/focal";
+
 export class EditorFreeCameraInspector extends Component<IEditorInspectorImplementationProps<FreeCamera>> {
 	/**
-     * Returns whether or not the given object is supported by this inspector.
-     * @param object defines the object to check.
-     * @returns true if the object is supported by this inspector.
-     */
+	 * Returns whether or not the given object is supported by this inspector.
+	 * @param object defines the object to check.
+	 * @returns true if the object is supported by this inspector.
+	 */
 	public static IsSupported(object: any): boolean {
 		return isFreeCamera(object);
 	}
@@ -31,7 +33,7 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
 		return (
 			<>
 				<div className="text-center text-3xl">
-                    Free Camera
+					Free Camera
 				</div>
 
 				<EditorInspectorSectionField title="Common">
@@ -47,8 +49,7 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
 				<EditorInspectorSectionField title="Fov">
 					<EditorInspectorNumberField object={this.props.object} property="minZ" label="Min Z" min={0.01} />
 					<EditorInspectorNumberField object={this.props.object} property="maxZ" label="Max Z" />
-
-					<EditorInspectorNumberField object={this.props.object} property="fov" label="Fov" min={0.01} max={Math.PI - 0.01} />
+					<FocalLengthInspector camera={this.props.object} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Camera">

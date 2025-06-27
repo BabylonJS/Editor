@@ -14,12 +14,14 @@ import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
 
+import { FocalLengthInspector } from "./utils/focal";
+
 export class EditorArcRotateCameraInspector extends Component<IEditorInspectorImplementationProps<ArcRotateCamera>> {
 	/**
-     * Returns whether or not the given object is supported by this inspector.
-     * @param object defines the object to check.
-     * @returns true if the object is supported by this inspector.
-     */
+	 * Returns whether or not the given object is supported by this inspector.
+	 * @param object defines the object to check.
+	 * @returns true if the object is supported by this inspector.
+	 */
 	public static IsSupported(object: any): boolean {
 		return isArcRotateCamera(object);
 	}
@@ -28,7 +30,7 @@ export class EditorArcRotateCameraInspector extends Component<IEditorInspectorIm
 		return (
 			<>
 				<div className="text-center text-3xl">
-                    Arc-Rotate Camera
+					Arc-Rotate Camera
 				</div>
 
 				<EditorInspectorSectionField title="Common">
@@ -46,7 +48,7 @@ export class EditorArcRotateCameraInspector extends Component<IEditorInspectorIm
 					<EditorInspectorNumberField object={this.props.object} property="minZ" label="Min Z" min={0.01} />
 					<EditorInspectorNumberField object={this.props.object} property="maxZ" label="Max Z" />
 
-					<EditorInspectorNumberField object={this.props.object} property="fov" label="Fov" min={0.01} max={Math.PI - 0.01} />
+					<FocalLengthInspector camera={this.props.object} />
 				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
