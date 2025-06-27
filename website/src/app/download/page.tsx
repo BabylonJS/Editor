@@ -15,7 +15,7 @@ export default function DownloadPage() {
 				</Link>
 
 				<Link href="/documentation" className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
-                    Documentation
+					Documentation
 				</Link>
 			</div>
 
@@ -23,12 +23,12 @@ export default function DownloadPage() {
 				<Fade cascade damping={0.1} triggerOnce className="w-full">
 					<Fade>
 						<div className="text-3xl md:text-5xl lg:text-6xl font-semibold font-sans tracking-tighter text-center">
-                            Download Babylon.JS Editor
+							Download Babylon.JS Editor
 						</div>
 					</Fade>
 
 					<DownloadVersionComponent
-						version="v5.0.0-alpha.8"
+						version="v5.0.0-alpha.10"
 						windowsx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe"
 						macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.dmg"
 						macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0.dmg"
