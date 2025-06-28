@@ -106,6 +106,7 @@ export class EditorPreviewGizmo {
 			this._cameraGizmo.attachedNode = node;
 		} else {
 			this._cameraGizmo?.dispose();
+			this._cameraGizmo = null; 
 		}
 
 		if (this.currentGizmo) {
