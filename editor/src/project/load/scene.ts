@@ -27,6 +27,7 @@ import { createDirectoryIfNotExist } from "../../tools/fs";
 
 import { isMultiMaterial } from "../../tools/guards/material";
 import { createSceneLink } from "../../tools/scene/scene-link";
+import { isGPUParticleSystem } from "../../tools/guards/particles";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { forceCompileAllSceneMaterials } from "../../tools/scene/materials";
@@ -565,17 +566,23 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 		switch (data.className) {
 			case "GPUParticleSystem":
-			// TODO: Implement GPU particle system
+				particleSystem = GPUParticleSystem.Parse(data, scene, join(projectPath, "/"));
 				break;
 
 			default:
 				particleSystem = ParticleSystem.Parse(data, scene, join(projectPath, "/"));
-				if (!particleSystem.emitter) {
-					editor.layout.console.warn(`No emitter found for particle system "${particleSystem.name}". Skipping.`);
-					particleSystem.dispose(true, true, true);
-					return;
-				}
 				break;
+		}
+
+		if (!particleSystem.emitter) {
+			editor.layout.console.warn(`No emitter found for particle system "${particleSystem.name}". Skipping.`);
+			if (isGPUParticleSystem(particleSystem)) {
+				particleSystem.dispose(true);
+			} else {
+				particleSystem.dispose(true, true, true);
+			}
+
+			return;
 		}
 
 		particleSystem!.uniqueId = data.uniqueId;

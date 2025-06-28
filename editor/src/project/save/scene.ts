@@ -153,7 +153,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						do {
 							geometryIndex = data.geometries!.vertexData!.findIndex((g) => g.id === mesh.geometryId);
 							if (geometryIndex !== -1) {
-                                data.geometries!.vertexData!.splice(geometryIndex, 1);
+								data.geometries!.vertexData!.splice(geometryIndex, 1);
 							}
 						} while (geometryIndex !== -1);
 					} catch (e) {

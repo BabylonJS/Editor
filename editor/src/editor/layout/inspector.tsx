@@ -35,17 +35,18 @@ import { EditorAdvancedDynamicTextureInspector } from "./inspector/gui/gui";
 import { EditorDecalsInspector } from "./inspector/decals/decals";
 
 import { EditorParticleSystemInspector } from "./inspector/particles/particle-system";
+import { EditorGPUParticleSystemInspector } from "./inspector/particles/gpu-particle-system";
 
 export interface IEditorInspectorProps {
-    /**
-     * The editor reference.
-     */
-    editor: Editor;
+	/**
+	 * The editor reference.
+	 */
+	editor: Editor;
 }
 
 export interface IEditorInspectorState {
-    search: string;
-    editedObject: unknown | null;
+	search: string;
+	editedObject: unknown | null;
 }
 
 export class EditorInspector extends Component<IEditorInspectorProps, IEditorInspectorState> {
@@ -70,6 +71,7 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 		EditorAdvancedDynamicTextureInspector,
 
 		EditorParticleSystemInspector,
+		EditorGPUParticleSystemInspector,
 	];
 
 	public constructor(props: IEditorInspectorProps) {
@@ -118,9 +120,9 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 	}
 
 	/**
-     * Sets the edited object.
-     * @param editedObject defines the edited object.
-     */
+	 * Sets the edited object.
+	 * @param editedObject defines the edited object.
+	 */
 	public setEditedObject(editedObject: unknown): void {
 		this.setState({ editedObject });
 	}
@@ -131,7 +133,7 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 				icon={<Icon icon="search" size={96} />}
 				title={
 					<div className="text-white">
-                        No object selected
+						No object selected
 					</div>
 				}
 			/>;

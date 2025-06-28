@@ -20,7 +20,7 @@ import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
 import { isAbstractMesh, isMesh, isNode } from "../../../tools/guards/nodes";
 
-import { addParticleSystem } from "../../../project/add/particles";
+import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/particles";
 import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../../project/add/light";
 import { addBoxMesh, addGroundMesh, addPlaneMesh, addSphereMesh, addTransformNode } from "../../../project/add/mesh";
 
@@ -29,10 +29,10 @@ import { Editor } from "../../main";
 import { removeNodes } from "./remove";
 
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
-    editor: Editor;
-    object: any | null;
+	editor: Editor;
+	object: any | null;
 
-    onOpenChange?(open: boolean): void;
+	onOpenChange?(open: boolean): void;
 }
 
 export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuProps> {
@@ -44,92 +44,93 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 				</ContextMenuTrigger>
 
 				{this.props.object &&
-                    <ContextMenuContent className="w-48">
-                    	<>
-                    		{isNode(this.props.object) &&
-                                <>
-                                	{this._getMeshItems()}
-                                	<ContextMenuSeparator />
-                                </>
-                    		}
+					<ContextMenuContent className="w-48">
+						<>
+							{isNode(this.props.object) &&
+								<>
+									{this._getMeshItems()}
+									<ContextMenuSeparator />
+								</>
+							}
 
-                    		{!isScene(this.props.object) && !isSound(this.props.object) &&
-                                <>
-                                	<ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
-                                        Copy  <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
-                                	</ContextMenuItem>
+							{!isScene(this.props.object) && !isSound(this.props.object) &&
+								<>
+									<ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
+										Copy  <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
+									</ContextMenuItem>
 
-                                	{isNode(this.props.object) &&
-                                        <ContextMenuItem onClick={() => this.props.editor.layout.graph.pasteSelectedNodes(this.props.object)}>
-                                            Paste <ContextMenuShortcut>{platform() === "darwin" ? "⌘+V" : "CTRL+V"}</ContextMenuShortcut>
-                                        </ContextMenuItem>
-                                	}
+									{isNode(this.props.object) &&
+										<ContextMenuItem onClick={() => this.props.editor.layout.graph.pasteSelectedNodes(this.props.object)}>
+											Paste <ContextMenuShortcut>{platform() === "darwin" ? "⌘+V" : "CTRL+V"}</ContextMenuShortcut>
+										</ContextMenuItem>
+									}
 
-                                	<ContextMenuSeparator />
-                                </>
-                    		}
+									<ContextMenuSeparator />
+								</>
+							}
 
-                    		{isSound(this.props.object) &&
-                                <ContextMenuItem onClick={() => this._reloadSound()}>
-                                    Reload
-                                </ContextMenuItem>
-                    		}
+							{isSound(this.props.object) &&
+								<ContextMenuItem onClick={() => this._reloadSound()}>
+									Reload
+								</ContextMenuItem>
+							}
 
-                    		{((isNode(this.props.object) || isScene(this.props.object)) && !isSceneLinkNode(this.props.object)) &&
-                                <ContextMenuSub>
-                                	<ContextMenuSubTrigger className="flex items-center gap-2">
-                                		<AiOutlinePlus className="w-5 h-5" /> Add
-                                	</ContextMenuSubTrigger>
-                                	<ContextMenuSubContent>
-                                		<ContextMenuItem onClick={() => addTransformNode(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Transform Node</ContextMenuItem>
-                                		<ContextMenuSeparator />
-                                		<ContextMenuItem onClick={() => addBoxMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Box</ContextMenuItem>
-                                		<ContextMenuItem onClick={() => addPlaneMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Plane</ContextMenuItem>
-                                		<ContextMenuItem onClick={() => addGroundMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Ground</ContextMenuItem>
-                                		<ContextMenuItem onClick={() => addSphereMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Sphere</ContextMenuItem>
-                                		<ContextMenuSeparator />
-                                		<ContextMenuItem onClick={() => addPointLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Point Light</ContextMenuItem>
-                                		<ContextMenuItem onClick={() => addDirectionalLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Directional Light</ContextMenuItem>
-                                		<ContextMenuItem onClick={() => addSpotLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Spot Light</ContextMenuItem>
-                                		<ContextMenuItem onClick={() => addHemisphericLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Hemispheric Light</ContextMenuItem>
+							{((isNode(this.props.object) || isScene(this.props.object)) && !isSceneLinkNode(this.props.object)) &&
+								<ContextMenuSub>
+									<ContextMenuSubTrigger className="flex items-center gap-2">
+										<AiOutlinePlus className="w-5 h-5" /> Add
+									</ContextMenuSubTrigger>
+									<ContextMenuSubContent>
+										<ContextMenuItem onClick={() => addTransformNode(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Transform Node</ContextMenuItem>
+										<ContextMenuSeparator />
+										<ContextMenuItem onClick={() => addBoxMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Box</ContextMenuItem>
+										<ContextMenuItem onClick={() => addPlaneMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Plane</ContextMenuItem>
+										<ContextMenuItem onClick={() => addGroundMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Ground</ContextMenuItem>
+										<ContextMenuItem onClick={() => addSphereMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Sphere</ContextMenuItem>
+										<ContextMenuSeparator />
+										<ContextMenuItem onClick={() => addPointLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Point Light</ContextMenuItem>
+										<ContextMenuItem onClick={() => addDirectionalLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Directional Light</ContextMenuItem>
+										<ContextMenuItem onClick={() => addSpotLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Spot Light</ContextMenuItem>
+										<ContextMenuItem onClick={() => addHemisphericLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Hemispheric Light</ContextMenuItem>
 
-                                		{isAbstractMesh(this.props.object) &&
-                                            <>
-                                            	<ContextMenuSeparator />
-                                            	<ContextMenuItem onClick={() => addParticleSystem(this.props.editor, this.props.object)}>Particle System</ContextMenuItem>
-                                            </>
-                                		}
-                                	</ContextMenuSubContent>
-                                </ContextMenuSub>
-                    		}
+										{isAbstractMesh(this.props.object) &&
+											<>
+												<ContextMenuSeparator />
+												<ContextMenuItem onClick={() => addParticleSystem(this.props.editor, this.props.object)}>Particle System</ContextMenuItem>
+												<ContextMenuItem onClick={() => addGPUParticleSystem(this.props.editor, this.props.object)}>GPU Particle System</ContextMenuItem>
+											</>
+										}
+									</ContextMenuSubContent>
+								</ContextMenuSub>
+							}
 
-                    		{!isScene(this.props.object) && !isSound(this.props.object) &&
-                                <>
-                                	<ContextMenuSeparator />
+							{!isScene(this.props.object) && !isSound(this.props.object) &&
+								<>
+									<ContextMenuSeparator />
 
-                                	<ContextMenuCheckboxItem checked={this.props.object.metadata?.doNotSerialize ?? false} onClick={() => {
-                                		this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
-                                			if (isNode(node.nodeData)) {
-                                				node.nodeData.metadata ??= {};
-                                				node.nodeData.metadata.doNotSerialize = node.nodeData.metadata.doNotSerialize ? false : true;
-                                			}
-                                		});
-                                		this.props.editor.layout.graph.refresh();
-                                	}}>
-                                        Do not serialize
-                                	</ContextMenuCheckboxItem>
-                                </>
-                    		}
+									<ContextMenuCheckboxItem checked={this.props.object.metadata?.doNotSerialize ?? false} onClick={() => {
+										this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
+											if (isNode(node.nodeData)) {
+												node.nodeData.metadata ??= {};
+												node.nodeData.metadata.doNotSerialize = node.nodeData.metadata.doNotSerialize ? false : true;
+											}
+										});
+										this.props.editor.layout.graph.refresh();
+									}}>
+										Do not serialize
+									</ContextMenuCheckboxItem>
+								</>
+							}
 
 
-                    		{!isScene(this.props.object) &&
-                                <>
-                                	<ContextMenuSeparator />
-                                	{this._getRemoveItems()}
-                                </>
-                    		}
-                    	</>
-                    </ContextMenuContent>
+							{!isScene(this.props.object) &&
+								<>
+									<ContextMenuSeparator />
+									{this._getRemoveItems()}
+								</>
+							}
+						</>
+					</ContextMenuContent>
 				}
 			</ContextMenu>
 		);
@@ -150,21 +151,21 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 		return (
 			<>
 				<ContextMenuItem onClick={() => this.props.editor.layout.preview.focusObject(this.props.object)}>
-                    Focus in Preview
+					Focus in Preview
 					<ContextMenuShortcut>{platform() === "darwin" ? "⌘+F" : "CTRL+F"}</ContextMenuShortcut>
 				</ContextMenuItem>
 
 				{isMesh(this.props.object) &&
-                    <>
-                    	<ContextMenuSeparator />
-                    	<ContextMenuItem onClick={() => this._createMeshInstance(this.props.object)}  >
-                            Create Instance
-                    	</ContextMenuItem>
+					<>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={() => this._createMeshInstance(this.props.object)}  >
+							Create Instance
+						</ContextMenuItem>
 
-                    	<ContextMenuItem onClick={() => this._updateMeshGeometry(this.props.object)}>
-                            Update Geometry...
-                    	</ContextMenuItem>
-                    </>
+						<ContextMenuItem onClick={() => this._updateMeshGeometry(this.props.object)}>
+							Update Geometry...
+						</ContextMenuItem>
+					</>
 				}
 			</>
 		);

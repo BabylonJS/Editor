@@ -3,14 +3,15 @@ import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
+import { GiSparkles } from "react-icons/gi";
 import { BsSoundwave } from "react-icons/bs";
+import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { FaCamera, FaLightbulb } from "react-icons/fa";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
-import { AiOutlinePlus } from "react-icons/ai";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem } from "babylonjs";
@@ -23,12 +24,12 @@ import { ContextMenu, ContextMenuItem, ContextMenuContent, ContextMenuTrigger, C
 import { isSound } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
-import { isParticleSystem } from "../../tools/guards/particles";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
+import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
 import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
 
@@ -830,6 +831,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isParticleSystem(object)) {
 			return <IoSparklesSharp className="w-4 h-4" />;
+		}
+
+		if (isGPUParticleSystem(object)) {
+			return <GiSparkles className="w-4 h-4" />;
 		}
 
 		return <MdOutlineQuestionMark className="w-4 h-4" />;
