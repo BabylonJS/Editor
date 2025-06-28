@@ -14,15 +14,16 @@ import { EditorInspectorSwitchField } from "../fields/switch";
 import { GradientField } from "./gradient";
 
 export interface IParticleSystemGradientInspectorProps extends PropsWithChildren {
-    title?: string;
-    label: string;
-    particleSystem: ParticleSystem;
+	title?: string;
+	label: string;
+	particleSystem: ParticleSystem;
 
-    getGradients: () => IValueGradient[] | null;
-    createGradient: () => void;
-    addGradient: (gradient: number, value1: any, value2?: any) => void;
+	getGradients: () => IValueGradient[] | null;
+	createGradient: () => void;
+	addGradient: (gradient: number, value1: any, value2?: any) => void;
+	removeGradient: (gradient: number) => void;
 
-    onUpdate: () => void;
+	onUpdate: () => void;
 }
 
 export function ParticleSystemGradientInspector(props: IParticleSystemGradientInspectorProps) {
@@ -38,7 +39,9 @@ export function ParticleSystemGradientInspector(props: IParticleSystemGradientIn
 			undo: () => {
 				if (value) {
 					const gradients = props.getGradients();
-					gradients?.splice(0, gradients.length);
+					gradients?.slice().forEach((g) => {
+						props.removeGradient(g.gradient);
+					});
 				} else {
 					oldGradients?.forEach((g) => {
 						if (g instanceof FactorGradient) {
@@ -60,7 +63,9 @@ export function ParticleSystemGradientInspector(props: IParticleSystemGradientIn
 					props.createGradient();
 				} else {
 					const gradients = props.getGradients();
-					gradients?.splice(0, gradients.length);
+					gradients?.slice().forEach((g) => {
+						props.removeGradient(g.gradient);
+					});
 				}
 			},
 		});
@@ -72,18 +77,16 @@ export function ParticleSystemGradientInspector(props: IParticleSystemGradientIn
 		registerUndoRedo({
 			executeRedo: true,
 			undo: () => {
-				const gradients = props.getGradients();
-				gradients?.push(gradient);
-				gradients?.sort((a, b) => a.gradient - b.gradient);
+				if (gradient instanceof FactorGradient) {
+					props.addGradient(1, gradient.factor1, gradient.factor2);
+				} else if (gradient instanceof ColorGradient) {
+					props.addGradient(1, gradient.color1.clone(), gradient.color2?.clone());
+				} else if (gradient instanceof Color3Gradient) {
+					props.addGradient(1, gradient.color);
+				}
 			},
 			redo: () => {
-				const gradients = props.getGradients();
-				if (gradients?.length) {
-					const index = gradients.indexOf(gradient);
-					if (index !== -1) {
-						gradients.splice(index, 1);
-					}
-				}
+				props.removeGradient(gradient.gradient);
 			},
 		});
 
@@ -97,12 +100,8 @@ export function ParticleSystemGradientInspector(props: IParticleSystemGradientIn
 		registerUndoRedo({
 			executeRedo: true,
 			undo: () => {
-				const gradients = props.getGradients();
-				if (createdGradient && gradients?.length) {
-					const index = gradients.indexOf(createdGradient);
-					if (index !== -1) {
-						gradients.splice(index, 1);
-					}
+				if (createdGradient) {
+					props.removeGradient(createdGradient?.gradient);
 				}
 			},
 			redo: () => {
@@ -124,9 +123,9 @@ export function ParticleSystemGradientInspector(props: IParticleSystemGradientIn
 	return (
 		<EditorInspectorBlockField>
 			{props.title &&
-                <div className="px-2">
-                	{props.title}
-                </div>
+				<div className="px-2">
+					{props.title}
+				</div>
 			}
 
 			<EditorInspectorSwitchField noUndoRedo object={o} property="value" label={props.label} onChange={(value) => handleUseChange(value)} />
@@ -134,15 +133,15 @@ export function ParticleSystemGradientInspector(props: IParticleSystemGradientIn
 			{!o.value && props.children}
 
 			{o.value &&
-                <div className="flex flex-col gap-2">
-                	{props.getGradients()?.map((gradient, index) => (
-                		<GradientField key={index} gradient={gradient} onRemove={() => handleRemoveGradient(gradient)} />
-                	))}
+				<div className="flex flex-col gap-2">
+					{props.getGradients()?.map((gradient, index) => (
+						<GradientField key={index} gradient={gradient} onRemove={() => handleRemoveGradient(gradient)} />
+					))}
 
-                	<Button variant="ghost" onClick={() => handleAddGradient()} className="w-full hover:bg-secondary transition-all duration-300 ease-in-out">
-                		<AiOutlinePlus />
-                	</Button>
-                </div>
+					<Button variant="ghost" onClick={() => handleAddGradient()} className="w-full hover:bg-secondary transition-all duration-300 ease-in-out">
+						<AiOutlinePlus />
+					</Button>
+				</div>
 			}
 		</EditorInspectorBlockField>
 	);

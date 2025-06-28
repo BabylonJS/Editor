@@ -32,49 +32,49 @@ import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
 import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
 
-import { onProjectConfigurationChangedObservable } from "../../project/configuration";
-import { addBoxMesh, addGroundMesh, addPlaneMesh, addSphereMesh, addTransformNode } from "../../project/add/mesh";
-import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
 import { addArcRotateCamera, addFreeCamera } from "../../project/add/camera";
+import { onProjectConfigurationChangedObservable } from "../../project/configuration";
+import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
+import { addBoxMesh, addGroundMesh, addPlaneMesh, addSkyboxMesh, addSphereMesh, addTransformNode } from "../../project/add/mesh";
 
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/graph";
 
 export interface IEditorGraphProps {
-    /**
-     * The editor reference.
-     */
-    editor: Editor;
+	/**
+	 * The editor reference.
+	 */
+	editor: Editor;
 }
 
 export interface IEditorGraphState {
-    /**
-     * Defines the current value of the search in the graph.
-     */
-    search: string;
-    /**
-     * The nodes of the graph.
-     */
-    nodes: TreeNodeInfo[];
+	/**
+	 * Defines the current value of the search in the graph.
+	 */
+	search: string;
+	/**
+	 * The nodes of the graph.
+	 */
+	nodes: TreeNodeInfo[];
 
-    /**
-     * Defines wether or not the preview is focused.
-     */
-    isFocused: boolean;
+	/**
+	 * Defines wether or not the preview is focused.
+	 */
+	isFocused: boolean;
 
-    /**
-     * Defines wether or not only lights should be shown in the graph.
-     */
-    showOnlyLights: boolean;
-    /**
-     * Defines wether or not only decals should be shown in the graph.
-     */
-    showOnlyDecals: boolean;
+	/**
+	 * Defines wether or not only lights should be shown in the graph.
+	 */
+	showOnlyLights: boolean;
+	/**
+	 * Defines wether or not only decals should be shown in the graph.
+	 */
+	showOnlyDecals: boolean;
 
-    /**
-     * Defines wether or not instanced meshes should be hidden from the graph.
-     */
-    hideInstancedMeshes: boolean;
+	/**
+	 * Defines wether or not instanced meshes should be hidden from the graph.
+	 */
+	hideInstancedMeshes: boolean;
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
@@ -172,40 +172,43 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 								</ContextMenuSubTrigger>
 								<ContextMenuSubContent>
 									<ContextMenuItem onClick={() => addTransformNode(this.props.editor)}>
-                                    Transform Node
+										Transform Node
 									</ContextMenuItem>
 									<ContextMenuSeparator />
 									<ContextMenuItem onClick={() => addBoxMesh(this.props.editor)}>
-                                    Box Mesh
+										Box Mesh
 									</ContextMenuItem>
 									<ContextMenuItem onClick={() => addPlaneMesh(this.props.editor)}>
-                                    Plane Mesh
+										Plane Mesh
 									</ContextMenuItem>
 									<ContextMenuItem onClick={() => addSphereMesh(this.props.editor)}>
-                                    Sphere Mesh
+										Sphere Mesh
 									</ContextMenuItem>
 									<ContextMenuItem onClick={() => addGroundMesh(this.props.editor)}>
-                                    Ground Mesh
+										Ground Mesh
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addSkyboxMesh(this.props.editor)}>
+										SkyBox Mesh
 									</ContextMenuItem>
 									<ContextMenuSeparator />
 									<ContextMenuItem onClick={() => addPointLight(this.props.editor)}>
-                                    Point Light
+										Point Light
 									</ContextMenuItem>
 									<ContextMenuItem onClick={() => addDirectionalLight(this.props.editor)}>
-                                    Directional Light
+										Directional Light
 									</ContextMenuItem>
 									<ContextMenuItem onClick={() => addSpotLight(this.props.editor)}>
-                                    Spot Light
+										Spot Light
 									</ContextMenuItem>
 									<ContextMenuItem onClick={() => addHemisphericLight(this.props.editor)}>
-                                    Hemispheric Light
+										Hemispheric Light
 									</ContextMenuItem>
 									<ContextMenuSeparator />
 									<ContextMenuItem onClick={() => addFreeCamera(this.props.editor)}>
-                                    Free Camera
+										Free Camera
 									</ContextMenuItem>
 									<ContextMenuItem onClick={() => addArcRotateCamera(this.props.editor)}>
-                                    Arc Rotate Camera
+										Arc Rotate Camera
 									</ContextMenuItem>
 								</ContextMenuSubContent>
 							</ContextMenuSub>
@@ -223,8 +226,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	/**
-     * Refreshes the graph.
-     */
+	 * Refreshes the graph.
+	 */
 	public refresh(): void {
 		const scene = this.props.editor.layout.preview.scene;
 
@@ -272,10 +275,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	/**
-     * Sets the given node selected in the graph. All other selected nodes
-     * become unselected to have only the given node selected. All parents are expanded.
-     * @param node defines the reference tot the node to select in the graph.
-     */
+	 * Sets the given node selected in the graph. All other selected nodes
+	 * become unselected to have only the given node selected. All parents are expanded.
+	 * @param node defines the reference tot the node to select in the graph.
+	 */
 	public setSelectedNode(node: Node | Sound | ParticleSystem): void {
 		let source = isSound(node) ? node["_connectedTransformNode"] : node;
 		if (!source) {
@@ -300,9 +303,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	/**
-     * Sets the given node selected in the graph. All other selected nodes remain selected.
-     * @param node defines the reference to the node to select in the graph.
-     */
+	 * Sets the given node selected in the graph. All other selected nodes remain selected.
+	 * @param node defines the reference to the node to select in the graph.
+	 */
 	public addToSelectedNodes(node: Node): void {
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.nodeData === node) {
@@ -314,8 +317,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	/**
-     * Returns the list of all selected nodes
-     */
+	 * Returns the list of all selected nodes
+	 */
 	public getSelectedNodes(): TreeNodeInfo<unknown>[] {
 		const result: any[] = [];
 		this._forEachNode(this.state.nodes, (n) => n.isSelected && result.push(n));
@@ -323,15 +326,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	/**
-     * Copies the selected nodes from the graph.
-     */
+	 * Copies the selected nodes from the graph.
+	 */
 	public copySelectedNodes(): void {
 		this._objectsToCopy = this.props.editor.layout.graph.getSelectedNodes();
 	}
 
 	/**
-     * Pastes the previously copied nodes.
-     */
+	 * Pastes the previously copied nodes.
+	 */
 	public pasteSelectedNodes(parent?: Node): void {
 		if (!this._objectsToCopy.length) {
 			return;
@@ -663,8 +666,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	private _parseSceneNode(node: Node, noChildren?: boolean): TreeNodeInfo | null {
 		if (
 			isMesh(node) && (node._masterMesh || isMeshMetadataNotVisibleInGraph(node)) ||
-            isCollisionMesh(node) ||
-            isCollisionInstancedMesh(node)
+			isCollisionMesh(node) ||
+			isCollisionInstancedMesh(node)
 		) {
 			return null;
 		}

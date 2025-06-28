@@ -8,6 +8,7 @@ import { IoSparklesSharp } from "react-icons/io5";
 import { HiMiniCommandLine } from "react-icons/hi2";
 
 import { normalizedGlob } from "../../../tools/fs";
+import { onSelectedAssetChanged } from "../../../tools/observables";
 
 import { Editor } from "../../main";
 
@@ -20,20 +21,20 @@ import { getProjectCommands } from "./project";
 import { getParticleSystemsCommands } from "./particle-systems";
 
 export interface ICommandPaletteProps {
-    editor: Editor;
+	editor: Editor;
 }
 
 export interface ICommandPaletteState {
-    open: boolean;
-    query: string;
+	open: boolean;
+	query: string;
 
-    files: ICommandPaletteType[];
+	files: ICommandPaletteType[];
 }
 
 export interface ICommandPaletteType {
-    text: string;
-    label: string;
-    action: () => unknown;
+	text: string;
+	label: string;
+	action: () => unknown;
 }
 
 export class CommandPalette extends Component<ICommandPaletteProps, ICommandPaletteState> {
@@ -129,10 +130,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 		const files = glob.map((file) => ({
 			text: basename(file),
 			label: file.path,
-			action: () => {
-				this.props.editor.layout.assets.setBrowsePath(dirname(file));
-				this.props.editor.layout.assets.setState({ selectedKeys: [file] });
-			},
+			action: () => onSelectedAssetChanged.notifyObservers(file),
 		}));
 
 		this.setState({ files });

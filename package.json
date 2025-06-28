@@ -43,13 +43,14 @@
         "lint-quixel": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./quixel/src/**",
         "lint-template": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./template/src/**",
         "lint-website": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./website/src/**",
-        "lint": "yarn lint-editor && yarn lint-tools && yarn lint-quixel && yarn lint-template && yarn lint-website",
-        "lint-fix": "yarn lint-editor --fix && yarn lint-tools --fix && yarn lint-quixel --fix && yarn lint-template --fix && yarn lint-website --fix"
+        "lint": "concurrently \"yarn lint-editor\" \"yarn lint-tools\" \"yarn lint-quixel\" \"yarn lint-template\" \"yarn lint-website\" --names editor,tools,quixel,template,website",
+        "lint-fix": "concurrently \"yarn lint-editor --fix\" \"yarn lint-tools --fix\" \"yarn lint-quixel --fix\" \"yarn lint-template --fix\" \"yarn lint-website --fix\" --names editor,tools,quixel,template,website"
     },
     "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
     "license": "(Apache-2.0)",
     "devDependencies": {
         "@typescript-eslint/parser": "8.35.0",
+        "concurrently": "9.2.0",
         "cross-env": "7.0.3",
         "dotenv": "16.4.5",
         "eslint": "9.29.0",
