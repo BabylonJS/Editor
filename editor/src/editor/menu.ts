@@ -170,6 +170,10 @@ export function setupEditorMenu(): void {
 					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:skybox-mesh"),
 				},
 				{
+					label: "Empty Mesh",
+					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:empty-mesh"),
+				},
+				{
 					type: "separator",
 				},
 				{

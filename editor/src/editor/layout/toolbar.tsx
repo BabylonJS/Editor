@@ -18,7 +18,7 @@ import { exportProject } from "../../project/export/export";
 
 import { addArcRotateCamera, addFreeCamera } from "../../project/add/camera";
 import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
-import { addTransformNode, addBoxMesh, addGroundMesh, addSphereMesh, addPlaneMesh, addSkyboxMesh } from "../../project/add/mesh";
+import { addTransformNode, addBoxMesh, addGroundMesh, addSphereMesh, addPlaneMesh, addSkyboxMesh, addEmptyMesh } from "../../project/add/mesh";
 
 import { Editor } from "../main";
 
@@ -39,6 +39,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		ipcRenderer.on("add:sphere-mesh", () => addSphereMesh(this.props.editor));
 		ipcRenderer.on("add:ground-mesh", () => addGroundMesh(this.props.editor));
 		ipcRenderer.on("add:skybox-mesh", () => addSkyboxMesh(this.props.editor));
+		ipcRenderer.on("add:empty-mesh", () => addEmptyMesh(this.props.editor));
 
 		ipcRenderer.on("add:point-light", () => addPointLight(this.props.editor));
 		ipcRenderer.on("add:directional-light", () => addDirectionalLight(this.props.editor));
@@ -192,6 +193,9 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							</MenubarItem>
 							<MenubarItem onClick={() => addSkyboxMesh(this.props.editor)}>
 								SkyBox Mesh
+							</MenubarItem>
+							<MenubarItem onClick={() => addEmptyMesh(this.props.editor)}>
+								Empty Mesh
 							</MenubarItem>
 
 							<MenubarSeparator />

@@ -36,7 +36,7 @@ import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAdded
 import { addArcRotateCamera, addFreeCamera } from "../../project/add/camera";
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
 import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
-import { addBoxMesh, addGroundMesh, addPlaneMesh, addSkyboxMesh, addSphereMesh, addTransformNode } from "../../project/add/mesh";
+import { addBoxMesh, addEmptyMesh, addGroundMesh, addPlaneMesh, addSkyboxMesh, addSphereMesh, addTransformNode } from "../../project/add/mesh";
 
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/graph";
@@ -190,6 +190,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 									</ContextMenuItem>
 									<ContextMenuItem onClick={() => addSkyboxMesh(this.props.editor)}>
 										SkyBox Mesh
+									</ContextMenuItem>
+									<ContextMenuItem onClick={() => addEmptyMesh(this.props.editor)}>
+										Empty Mesh
 									</ContextMenuItem>
 									<ContextMenuSeparator />
 									<ContextMenuItem onClick={() => addPointLight(this.props.editor)}>

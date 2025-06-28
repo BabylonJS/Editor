@@ -149,3 +149,14 @@ export function addSkyboxMesh(editor: Editor, parent?: Node) {
 	editor.layout.inspector.setEditedObject(skybox);
 	editor.layout.preview.gizmo.setAttachedNode(skybox);
 }
+
+export function addEmptyMesh(editor: Editor, parent?: Node) {
+	const emptyMesh = new Mesh("New Empty Mesh", editor.layout.preview.scene);
+	emptyMesh.id = Tools.RandomId();
+	emptyMesh.uniqueId = UniqueNumber.Get();
+	emptyMesh.parent = parent ?? null;
+
+	editor.layout.graph.refresh();
+	editor.layout.inspector.setEditedObject(emptyMesh);
+	editor.layout.preview.gizmo.setAttachedNode(emptyMesh);
+}
