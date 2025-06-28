@@ -67,70 +67,70 @@ import { EditorPreviewConvertProgress } from "./preview/import/progress";
 import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
 
 export interface IEditorPreviewProps {
-    /**
-     * The editor reference.
-     */
-    editor: Editor;
+	/**
+	 * The editor reference.
+	 */
+	editor: Editor;
 }
 
 export interface IEditorPreviewState {
-    /**
-     * Defines the information message drawn over the preview to tell the user what is happening.
-     */
-    informationMessage: ReactNode;
+	/**
+	 * Defines the information message drawn over the preview to tell the user what is happening.
+	 */
+	informationMessage: ReactNode;
 
-    pickingEnabled: boolean;
-    activeGizmo: "position" | "rotation" | "scaling" | "none";
+	pickingEnabled: boolean;
+	activeGizmo: "position" | "rotation" | "scaling" | "none";
 
-    isFocused: boolean;
+	isFocused: boolean;
 
-    /**
-     * Defines the reference to the object that was right-clicked.
-     */
-    rightClickedObject?: any;
+	/**
+	 * Defines the reference to the object that was right-clicked.
+	 */
+	rightClickedObject?: any;
 
-    /**
-     * Defines the fixed dimensions of the preview canvas.
-     * "fit" means the canvas will fit the entire panel container.
-     */
-    fixedDimensions: "720p" | "1080p" | "4k" | "fit";
+	/**
+	 * Defines the fixed dimensions of the preview canvas.
+	 * "fit" means the canvas will fit the entire panel container.
+	 */
+	fixedDimensions: "720p" | "1080p" | "4k" | "fit";
 
-    showStatsValues: boolean;
-    statsValues?: StatsValuesType;
+	showStatsValues: boolean;
+	statsValues?: StatsValuesType;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
 	/**
-     * The engine of the preview.
-     */
+	 * The engine of the preview.
+	 */
 	public engine: AbstractEngine;
 	/**
-     * The scene of the preview.
-     */
+	 * The scene of the preview.
+	 */
 	public scene: Scene;
 	/**
-     * The camera of the preview.
-     */
+	 * The camera of the preview.
+	 */
 	public camera: EditorCamera;
 
 	/**
-     * The gizmo manager of the preview
-     */
+	 * The gizmo manager of the preview
+	 */
 	public gizmo: EditorPreviewGizmo;
 	/**
-     * The icons manager of the preview.
-     */
+	 * The icons manager of the preview.
+	 */
 	public icons: EditorPreviewIcons;
 
 	/**
-     * The play component of the preview.
-     */
+	 * The play component of the preview.
+	 */
 	public play: EditorPreviewPlayComponent;
 
 	/**
-     * The current statistics of the preview.
-     * This is used to display the FPS and other values.
-     */
+	 * The current statistics of the preview.
+	 * This is used to display the FPS and other values.
+	 */
 	public statistics: Stats;
 
 	private _renderScene: boolean = true;
@@ -201,17 +201,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						/>
 
 						{this.play?.state.playing &&
-                            <>
-                            	{this.play.state.playingAddress &&
-                                    <iframe ref={(r) => this._playIframeRef = r} src={this.play.state.playingAddress} className="w-full h-full select-none outline-none" />
-                            	}
+							<>
+								{this.play.state.playingAddress &&
+									<iframe ref={(r) => this._playIframeRef = r} src={this.play.state.playingAddress} className="w-full h-full select-none outline-none" />
+								}
 
-                            	{!this.play.state.playingAddress &&
-                                    <div className="flex justify-center items-center w-full h-full">
-                                    	<Grid width={24} height={24} color="gray" />
-                                    </div>
-                            	}
-                            </>
+								{!this.play.state.playingAddress &&
+									<div className="flex justify-center items-center w-full h-full">
+										<Grid width={24} height={24} color="gray" />
+									</div>
+								}
+							</>
 						}
 					</EditorGraphContextMenu>
 				</div>
@@ -233,16 +233,16 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	/**
-     * Sets whether or not to render the scene.
-     * @param render defines whether or not to render the scene.
-     */
+	 * Sets whether or not to render the scene.
+	 * @param render defines whether or not to render the scene.
+	 */
 	public setRenderScene(render: boolean): void {
 		this._renderScene = render;
 	}
 
 	/**
-     * Resizes the engine.
-     */
+	 * Resizes the engine.
+	 */
 	public resize(): void {
 		if (this.state.fixedDimensions === "fit") {
 			this.engine?.resize();
@@ -250,8 +250,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	/**
-     * Resets the preview component by re-creating the engine and an empty scene.
-     */
+	 * Resets the preview component by re-creating the engine and an empty scene.
+	 */
 	public async reset(): Promise<void> {
 		const canvas = this.engine?.getRenderingCanvas();
 		if (!canvas) {
@@ -275,9 +275,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	/**
-     * Sets the fixed dimensions of the renderer. This is particularly useful to test the rendering
-     * performances and the aspect ratio of the scene in case it'll be renderer in fullscreen.
-     */
+	 * Sets the fixed dimensions of the renderer. This is particularly useful to test the rendering
+	 * performances and the aspect ratio of the scene in case it'll be renderer in fullscreen.
+	 */
 	public setFixedDimensions(fixedDimensions: "720p" | "1080p" | "4k" | "fit"): void {
 		this.setState({
 			fixedDimensions,
@@ -300,8 +300,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	/**
-     * Tries to focused the given object or the first one selected in the graph.
-     */
+	 * Tries to focused the given object or the first one selected in the graph.
+	 */
 	public focusObject(object?: any): void {
 		const selectedNode = object ?? this.props.editor.layout.graph.getSelectedNodes()[0]?.nodeData;
 		if (!selectedNode) {
@@ -318,12 +318,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	/**
-     * Sets the given camera active as a preview.
-     * This helps to visualize what the selected camera sees when being manipulated
-     * using gizmos for example.
-     * When "null", the preview is removed.
-     * @param camera the camera to activate the preview
-     */
+	 * Sets the given camera active as a preview.
+	 * This helps to visualize what the selected camera sees when being manipulated
+	 * using gizmos for example.
+	 * When "null", the preview is removed.
+	 * @param camera the camera to activate the preview
+	 */
 	public setCameraPreviewActive(camera: Camera | null): void {
 		if (!camera) {
 			this.scene.activeCameras?.forEach((camera) => {
@@ -692,7 +692,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							</Toggle>
 						</TooltipTrigger>
 						<TooltipContent>
-                            Toggle position gizmo
+							Toggle position gizmo
 						</TooltipContent>
 					</Tooltip>
 					<Tooltip>
@@ -702,7 +702,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							</Toggle>
 						</TooltipTrigger>
 						<TooltipContent>
-                            Toggle rotation gizmo
+							Toggle rotation gizmo
 						</TooltipContent>
 					</Tooltip>
 					<Tooltip>
@@ -712,7 +712,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							</Toggle>
 						</TooltipTrigger>
 						<TooltipContent>
-                            Toggle scaling gizmo
+							Toggle scaling gizmo
 						</TooltipContent>
 					</Tooltip>
 
@@ -748,7 +748,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							</Toggle>
 						</TooltipTrigger>
 						<TooltipContent>
-                            Toggle wireframe
+							Toggle wireframe
 						</TooltipContent>
 					</Tooltip>
 
@@ -781,6 +781,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 								this.scene.renderTargetsEnabled = this.scene.shadowsEnabled;
 							}}>
 								{this.scene?.shadowsEnabled && <FaCheck className="w-4 h-4" />} Shadows enabled
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.particlesEnabled = !this.scene.particlesEnabled}>
+								{this.scene?.particlesEnabled && <FaCheck className="w-4 h-4" />} Particles enabled
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuLabel>Renderer dimensions</DropdownMenuLabel>
@@ -896,9 +899,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	/**
-     * Sets the currently active gizmo. Set "none" to deactivate the gizmo.
-     * @param gizmo defines the type of gizmo to activate.
-     */
+	 * Sets the currently active gizmo. Set "none" to deactivate the gizmo.
+	 * @param gizmo defines the type of gizmo to activate.
+	 */
 	public setActiveGizmo(gizmo: "position" | "rotation" | "scaling" | "none"): void {
 		if (this.state.activeGizmo === gizmo) {
 			gizmo = "none";
