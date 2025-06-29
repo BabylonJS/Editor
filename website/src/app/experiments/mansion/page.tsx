@@ -22,6 +22,7 @@ import "@babylonjs/core/Cameras/universalCamera";
 import "@babylonjs/core/Meshes/groundMesh";
 import "@babylonjs/core/Meshes/instancedMesh";
 
+import "@babylonjs/core/Particles/webgl2ParticleSystem";
 import "@babylonjs/core/Particles/particleSystemComponent";
 
 import "@babylonjs/core/Audio/audioSceneComponent";
@@ -80,10 +81,10 @@ export default function MansionExperimentPage() {
 }
 
 interface IMansionExperimentComponentState {
-    loading: boolean;
-    loadingProgress: number;
+	loading: boolean;
+	loadingProgress: number;
 
-    step: ExperimentStep;
+	step: ExperimentStep;
 }
 
 class MansionExperimentComponent extends Component<unknown, IMansionExperimentComponentState> {
@@ -194,9 +195,9 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
 		this._configureSceneAndMaterials();
 
-		this._scene.animationGroups.forEach((animationGroup) => {
-			animationGroup.play(true);
-		});
+		const response = await fetch(`${rootUrl}assets/menu.cinematic`);
+		const data = await response.json();
+		const cinematic = parseCinematic(data, this._scene);
 
 		this._scene.executeWhenReady(async () => {
 			this.setState({
@@ -205,9 +206,8 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
 			await Tween.wait(1);
 
-			Tween.create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
-				"exposure": { from: 0, to: 1 },
-			});
+			const group = generateCinematicAnimationGroup(cinematic, this._scene);
+			group.play(true);
 
 			this._mainMenuComponents.show();
 

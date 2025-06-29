@@ -23,7 +23,7 @@ export async function executeBlender(pythonScript: string, inputFilename: string
 
 		case "win32":
 			blenderExec = "blender.exe";
-			blenderDir = "C:/Program Files/Blender Foundation/Blender 4.1";
+			blenderDir = "C:/Program Files/Blender Foundation/Blender 4.4";
 			break;
 	}
 
