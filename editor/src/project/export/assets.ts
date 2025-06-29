@@ -27,7 +27,7 @@ const supportedJsonExtensions: string[] = [
 ];
 
 const supportedMiscExtensions: string[] = [
-	".3dl",
+	".3dl", ".exr", ".hdr",
 ];
 
 const supportedExtensions: string[] = [
