@@ -7,7 +7,7 @@ import { updateAllLights } from "../../../tools/light/shadows";
 import { isParticleSystem } from "../../../tools/guards/particles";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { getLinkedAnimationGroupsFor } from "../../../tools/animation/group";
-import { isNode, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isTransformNode, isLight, isCamera } from "../../../tools/guards/nodes";
+import { isNode, isMesh, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isTransformNode, isLight, isCamera } from "../../../tools/guards/nodes";
 
 import { Editor } from "../../main";
 
@@ -34,7 +34,7 @@ export function removeNodes(editor: Editor) {
 		.map((node) => {
 			const attached = [node]
 				.concat(node.getDescendants(false, (n) => isNode(n)))
-				.map((descendant) => isAbstractMesh(descendant) ? [descendant, ...descendant.instances] : [descendant])
+				.map((descendant) => isMesh(descendant) ? [descendant, ...descendant.instances] : [descendant])
 				.flat()
 				.map((descendant) => {
 					return {
