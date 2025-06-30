@@ -14,12 +14,13 @@ export function openModelViewer(editor: Editor, absolutePath: string) {
 	showAlert(
 		basename(absolutePath),
 		<AssetBrowserModelViewer editor={editor} absolutePath={absolutePath} />,
+		true,
 	);
 }
 
 export interface IAssetBrowserModelViewerProps {
-    editor: Editor;
-    absolutePath: string;
+	editor: Editor;
+	absolutePath: string;
 }
 
 function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {

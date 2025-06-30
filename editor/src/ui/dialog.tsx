@@ -14,11 +14,11 @@ import {
 import { Input } from "./shadcn/ui/input";
 
 export type DialogReturnType = {
-    close: () => void;
-    wait: () => Promise<void>;
+	close: () => void;
+	wait: () => Promise<void>;
 };
 
-export function showDialog(title: ReactNode, children: ReactNode): DialogReturnType {
+export function showDialog(title: ReactNode, children: ReactNode, asChild?: boolean): DialogReturnType {
 	const div = document.createElement("div");
 	document.body.appendChild(div);
 
@@ -46,7 +46,7 @@ export function showDialog(title: ReactNode, children: ReactNode): DialogReturnT
 			<AlertDialogContent className="w-fit h-fit">
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>
-					<AlertDialogDescription>
+					<AlertDialogDescription asChild={asChild}>
 						{children}
 					</AlertDialogDescription>
 				</AlertDialogHeader>
@@ -64,9 +64,9 @@ export function showConfirm(
 	title: string,
 	children: ReactNode,
 	options?: {
-        cancelText?: string;
-        confirmText?: string;
-    },
+		cancelText?: string;
+		confirmText?: string;
+	},
 ): Promise<boolean> {
 	return new Promise<boolean>((resolve) => {
 		const div = document.createElement("div");
@@ -135,14 +135,14 @@ export function showPrompt(title: string, children: ReactNode, value?: string): 
 							root.unmount();
 							document.body.removeChild(div);
 						}}>
-                            Cancel
+							Cancel
 						</AlertDialogCancel>
 						<AlertDialogAction onClick={() => {
 							resolve(ref?.value ?? null);
 							root.unmount();
 							document.body.removeChild(div);
 						}}>
-                            Continue
+							Continue
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
@@ -151,7 +151,7 @@ export function showPrompt(title: string, children: ReactNode, value?: string): 
 	});
 }
 
-export function showAlert(title: ReactNode, children: ReactNode): DialogReturnType {
+export function showAlert(title: ReactNode, children: ReactNode, asChild?: boolean): DialogReturnType {
 	const div = document.createElement("div");
 	document.body.appendChild(div);
 
@@ -175,20 +175,17 @@ export function showAlert(title: ReactNode, children: ReactNode): DialogReturnTy
 	} as DialogReturnType;
 
 	root.render(
-		<AlertDialog open onOpenChange={(o) => !o && returnValue.close()}>
+		<AlertDialog open>
 			<AlertDialogContent className="w-fit h-fit max-w-[95vw] max-h-[95vh]">
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>
-					<AlertDialogDescription>
+					<AlertDialogDescription asChild={asChild}>
 						{children}
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogAction onClick={() => {
-						root.unmount();
-						document.body.removeChild(div);
-					}}>
-                        Continue
+					<AlertDialogAction onClick={() => returnValue.close()}>
+						Continue
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>

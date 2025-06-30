@@ -15,12 +15,13 @@ export function openMaterialViewer(editor: Editor, absolutePath: string) {
 	showAlert(
 		basename(absolutePath),
 		<AssetBrowserMaterialViewer editor={editor} absolutePath={absolutePath} />,
+		true,
 	);
 }
 
 export interface IAssetBrowserMaterialViewerProps {
-    editor: Editor;
-    absolutePath: string;
+	editor: Editor;
+	absolutePath: string;
 }
 
 function AssetBrowserMaterialViewer(props: IAssetBrowserMaterialViewerProps) {

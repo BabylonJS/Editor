@@ -10,11 +10,12 @@ export function openEnvViewer(absolutePath: string) {
 	showAlert(
 		basename(absolutePath),
 		<AssetBrowserEnvViewer absolutePath={absolutePath} />,
+		true,
 	);
 }
 
 interface IAssetBrowserEnvViewerProps {
-    absolutePath: string;
+	absolutePath: string;
 }
 
 function AssetBrowserEnvViewer(props: IAssetBrowserEnvViewerProps) {
