@@ -1,24 +1,48 @@
-import { DragEvent, useState } from "react";
+import { DragEvent, useEffect, useState } from "react";
 
+import { MdOutlineInfo } from "react-icons/md";
 import { HiOutlineTrash } from "react-icons/hi2";
 
-import { Scene, Node } from "babylonjs";
+import { Scene, Node, IParticleSystem, Sound } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
+import { getSoundById } from "../../../../tools/sound/tools";
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from "../../../../tools/property";
 
 import { IEditorInspectorFieldProps } from "./field";
 
-export interface IEditorInspectorNodeFieldProps extends IEditorInspectorFieldProps {
-    scene: Scene;
-    onChange?: (value: Node | null) => void;
+export interface IEditorInspectorNodeFieldProps<T = Node | IParticleSystem | Sound> extends IEditorInspectorFieldProps {
+	scene: Scene;
+	onChange?: (value: T | null) => void;
 }
 
-export function EditorInspectorNodeField(props: IEditorInspectorNodeFieldProps) {
+export function EditorInspectorNodeField<T extends Node | IParticleSystem | Sound>(props: IEditorInspectorNodeFieldProps<T>) {
 	const [dragOver, setDragOver] = useState(false);
-	const [value, setValue] = useState<Node | null>(getInspectorPropertyValue(props.object, props.property) ?? null);
+	const [value, setValue] = useState<T | null>(null);
+
+	useEffect(() => {
+		const nodeOrId = getInspectorPropertyValue(props.object, props.property) ?? null;
+		if (nodeOrId) {
+			if (typeof nodeOrId === "string") {
+				setValue(
+					getObjectById(nodeOrId),
+				);
+			} else {
+				setValue(nodeOrId as T);
+			}
+		} else {
+			setValue(null);
+		}
+	}, [props.object, props.property]);
+
+	function getObjectById(id: string): T | null {
+		return props.scene.getNodeById(id) as T
+			?? props.scene.particleSystems?.find((ps) => ps.id === id) as T
+			?? getSoundById(id, props.scene) as T;
+	}
 
 	function handleDragOver(ev: DragEvent<HTMLDivElement>) {
 		ev.preventDefault();
@@ -43,33 +67,50 @@ export function EditorInspectorNodeField(props: IEditorInspectorNodeFieldProps) 
 		setDragOver(false);
 
 		handleSetNode(
-			props.scene.getNodeById(data[0]),
+			getObjectById(data[0]),
 		);
 	}
 
-	function handleSetNode(node: Node | null) {
+	function handleSetNode(node: T | null) {
+		if (node === value) {
+			return;
+		}
+
 		setValue(node);
 		setInspectorEffectivePropertyValue(props.object, props.property, node);
 
-		if (node !== value) {
-			props.onChange?.(node);
+		props.onChange?.(node);
 
-			registerSimpleUndoRedo({
-				object: props.object,
-				property: props.property,
+		registerSimpleUndoRedo({
+			object: props.object,
+			property: props.property,
 
-				oldValue: value,
-				newValue: node,
-			});
-		}
+			oldValue: value,
+			newValue: node,
+		});
 	}
 
 	return (
 		<div className="flex gap-2 items-center px-2">
 			{props.label &&
-                <div className="w-32 text-ellipsis overflow-hidden whitespace-nowrap">
-                	{props.label}
-                </div>
+				<div className="flex items-center gap-2 w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
+					<div>
+						{props.label}
+					</div>
+
+					{props.tooltip &&
+						<TooltipProvider delayDuration={0}>
+							<Tooltip>
+								<TooltipTrigger>
+									<MdOutlineInfo size={24} />
+								</TooltipTrigger>
+								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
+									{props.tooltip}
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					}
+				</div>
 			}
 
 			<div
@@ -77,12 +118,12 @@ export function EditorInspectorNodeField(props: IEditorInspectorNodeFieldProps) 
 				onDragLeave={(ev) => handleDragLeave(ev)}
 				onDrop={(ev) => handleDrop(ev)}
 				className={`
-                    flex p-2 rounded-lg text-center
+                    flex items-center px-5 py-1.5 rounded-lg w-full
                     ${dragOver ? "bg-background" : " bg-secondary"}
                     transition-all duration-300 ease-in-out
                 `}
 			>
-				<div className="w-48 text-ellipsis overflow-hidden whitespace-nowrap">
+				<div className="flex-1 text-center text-ellipsis overflow-hidden whitespace-nowrap">
 					{value?.name ?? "None"}
 				</div>
 

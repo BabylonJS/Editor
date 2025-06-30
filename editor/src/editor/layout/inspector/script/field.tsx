@@ -7,6 +7,7 @@ import { SiTypescript } from "react-icons/si";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 
 import { Vector2, Vector3, Color3, Color4 } from "babylonjs";
+import { VisibleInInspectorDecoratorEntityConfiguration } from "babylonjs-editor-tools";
 
 import { Editor } from "../../../main";
 
@@ -18,6 +19,7 @@ import { ensureTemporaryDirectoryExists } from "../../../../tools/project";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
+import { EditorInspectorNodeField } from "../fields/node";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
@@ -26,16 +28,16 @@ import { EditorInspectorVectorField } from "../fields/vector";
 import { VisibleInInspectorDecoratorObject, computeDefaultValuesForObject, scriptValues } from "./tools";
 
 const cachedScripts: Record<string, {
-    time: number;
-    output: VisibleInInspectorDecoratorObject[] | null;
+	time: number;
+	output: VisibleInInspectorDecoratorObject[] | null;
 }> = {};
 
 export interface IInspectorScriptFieldProps {
-    object: any;
-    script: any;
-    editor: Editor;
+	object: any;
+	script: any;
+	editor: Editor;
 
-    onRemove: () => void;
+	onRemove: () => void;
 }
 
 export function InspectorScriptField(props: IInspectorScriptFieldProps) {
@@ -127,6 +129,43 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 		setOutput(cachedScripts[srcAbsolutePath]?.output);
 	}
 
+	function getEntityInspector(value: VisibleInInspectorDecoratorObject) {
+		const entityType = (value.configuration as VisibleInInspectorDecoratorEntityConfiguration).entityType;
+
+		switch (entityType) {
+			case "node":
+			case "particleSystem":
+			case "sound":
+				return (
+					<EditorInspectorNodeField
+						noUndoRedo
+						key={value.propertyKey}
+						object={props.script[scriptValues][value.propertyKey]}
+						property="value"
+						scene={props.editor.layout.preview.scene}
+						label={value.label ?? value.propertyKey}
+						tooltip={value.configuration.description}
+						onChange={(v) => {
+							const oldValue = props.script[scriptValues][value.propertyKey].value;
+
+							registerUndoRedo({
+								executeRedo: true,
+								undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
+								redo: () => props.script[scriptValues][value.propertyKey].value = v?.id,
+							});
+						}}
+					/>
+				);
+
+			case "animationGroup":
+				// TODO: Implement animation group inspector
+				return null;
+
+			default:
+				return null;
+		}
+	}
+
 	return (
 		<div className="flex flex-col gap-2 bg-muted-foreground/35 dark:bg-muted-foreground/5 rounded-lg px-5 pb-2.5">
 			<div className="flex gap-[10px]">
@@ -152,94 +191,101 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 			</div>
 
 			{output &&
-                <div className="flex flex-col gap-2">
-                	{output.map((value) => {
-                		switch (value.configuration.type) {
-                		case "boolean":
-                			return (
-                				<EditorInspectorSwitchField
-                					object={props.script[scriptValues][value.propertyKey]}
-                					property="value"
-                					label={value.label ?? value.propertyKey}
-                					tooltip={value.configuration.description}
-                				/>
-                			);
+				<div className="flex flex-col gap-2">
+					{output.map((value) => {
+						switch (value.configuration.type) {
+							case "boolean":
+								return (
+									<EditorInspectorSwitchField
+										key={value.propertyKey}
+										object={props.script[scriptValues][value.propertyKey]}
+										property="value"
+										label={value.label ?? value.propertyKey}
+										tooltip={value.configuration.description}
+									/>
+								);
 
-                		case "number":
-                			return (
-                				<EditorInspectorNumberField
-                					object={props.script[scriptValues][value.propertyKey]}
-                					property="value"
-                					label={value.label ?? value.propertyKey}
-                					min={value.configuration.min}
-                					max={value.configuration.max}
-                					step={value.configuration.step}
-                					tooltip={value.configuration.description}
-                				/>
-                			);
+							case "number":
+								return (
+									<EditorInspectorNumberField
+										key={value.propertyKey}
+										object={props.script[scriptValues][value.propertyKey]}
+										property="value"
+										label={value.label ?? value.propertyKey}
+										min={value.configuration.min}
+										max={value.configuration.max}
+										step={value.configuration.step}
+										tooltip={value.configuration.description}
+									/>
+								);
 
-                		case "vector2":
-                		case "vector3":
-                			const tempVector = {
-                				value: value.configuration.type === "vector2"
-                					? Vector2.FromArray(props.script[scriptValues][value.propertyKey].value)
-                					: Vector3.FromArray(props.script[scriptValues][value.propertyKey].value),
-                			};
+							case "vector2":
+							case "vector3":
+								const tempVector = {
+									value: value.configuration.type === "vector2"
+										? Vector2.FromArray(props.script[scriptValues][value.propertyKey].value)
+										: Vector3.FromArray(props.script[scriptValues][value.propertyKey].value),
+								};
 
-                			return (
-                				<EditorInspectorVectorField
-                					noUndoRedo
-                					object={tempVector}
-                					property="value"
-                					label={value.label ?? value.propertyKey}
-                					asDegrees={value.configuration.asDegrees}
-                					onFinishChange={() => {
-                						const oldValue = props.script[scriptValues][value.propertyKey].value.slice();
+								return (
+									<EditorInspectorVectorField
+										noUndoRedo
+										key={value.propertyKey}
+										object={tempVector}
+										property="value"
+										label={value.label ?? value.propertyKey}
+										asDegrees={value.configuration.asDegrees}
+										onFinishChange={() => {
+											const oldValue = props.script[scriptValues][value.propertyKey].value.slice();
 
-                						registerUndoRedo({
-                							executeRedo: true,
-                							undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
-                							redo: () => props.script[scriptValues][value.propertyKey].value = tempVector.value.asArray(),
-                						});
-                					}}
-                					tooltip={value.configuration.description}
-                				/>
-                			);
+											registerUndoRedo({
+												executeRedo: true,
+												undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
+												redo: () => props.script[scriptValues][value.propertyKey].value = tempVector.value.asArray(),
+											});
+										}}
+										tooltip={value.configuration.description}
+									/>
+								);
 
-                		case "color3":
-                		case "color4":
-                			const tempColor = {
-                				value: value.configuration.type === "color3"
-                					? Color3.FromArray(props.script[scriptValues][value.propertyKey].value)
-                					: Color4.FromArray(props.script[scriptValues][value.propertyKey].value),
-                			};
+							case "color3":
+							case "color4":
+								const tempColor = {
+									value: value.configuration.type === "color3"
+										? Color3.FromArray(props.script[scriptValues][value.propertyKey].value)
+										: Color4.FromArray(props.script[scriptValues][value.propertyKey].value),
+								};
 
-                			return (
-                				<EditorInspectorColorField
-                					noUndoRedo
-                					object={tempColor}
-                					property="value"
-                					label={value.label ?? value.propertyKey}
-                					noClamp={value.configuration.noClamp}
-                					noColorPicker={value.configuration.noColorPicker}
-                					onFinishChange={() => {
-                						const oldValue = props.script[scriptValues][value.propertyKey].value.slice();
+								return (
+									<EditorInspectorColorField
+										noUndoRedo
+										key={value.propertyKey}
+										object={tempColor}
+										property="value"
+										label={value.label ?? value.propertyKey}
+										noClamp={value.configuration.noClamp}
+										noColorPicker={value.configuration.noColorPicker}
+										onFinishChange={() => {
+											const oldValue = props.script[scriptValues][value.propertyKey].value.slice();
 
-                						registerUndoRedo({
-                							executeRedo: true,
-                							undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
-                							redo: () => props.script[scriptValues][value.propertyKey].value = tempColor.value.asArray(),
-                						});
-                					}}
-                					tooltip={value.configuration.description}
-                				/>
-                			);
+											registerUndoRedo({
+												executeRedo: true,
+												undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
+												redo: () => props.script[scriptValues][value.propertyKey].value = tempColor.value.asArray(),
+											});
+										}}
+										tooltip={value.configuration.description}
+									/>
+								);
 
-                		default:
-                			return null;
-                		}
-                	})}
-                </div>
+							case "entity":
+								return getEntityInspector(value);
+
+							default:
+								return null;
+						}
+					})}
+				</div>
 			}
 		</div>
 	);
