@@ -28,6 +28,9 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
 
 			if (track.node) {
 				node = scene.getNodeById(track.node);
+				if (!node) {
+					node = scene.particleSystems?.find((ps) => ps.id === track.node) ?? null;
+				}
 			} else if (track.defaultRenderingPipeline) {
 				node = getDefaultRenderingPipeline();
 			}

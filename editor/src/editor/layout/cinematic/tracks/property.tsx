@@ -1,11 +1,14 @@
+import { DragEvent, useState } from "react";
+
 import { IoMdCube } from "react-icons/io";
+import { GiSparkles } from "react-icons/gi";
 import { PiApertureFill } from "react-icons/pi";
+import { IoSparklesSharp } from "react-icons/io5";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { FaCamera, FaLightbulb } from "react-icons/fa6";
 import { HiOutlineCubeTransparent } from "react-icons/hi2";
 
-import { DragEvent, useState } from "react";
-
+import { Node, IParticleSystem } from "babylonjs";
 import { ICinematicTrack } from "babylonjs-editor-tools";
 
 import { showAlert } from "../../../../ui/dialog";
@@ -17,14 +20,15 @@ import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
+import { isParticleSystem, isGPUParticleSystem } from "../../../../tools/guards/particles";
 import { isAbstractMesh, isCamera, isLight, isTransformNode } from "../../../../tools/guards/nodes";
 
 import { CinematicEditor } from "../editor";
 import { CinematicEditorRemoveTrackButton } from "./remove";
 
 export interface ICinematicEditorPropertyTrackProps {
-    track: ICinematicTrack;
-    cinematicEditor: CinematicEditor;
+	track: ICinematicTrack;
+	cinematicEditor: CinematicEditor;
 }
 
 export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrackProps) {
@@ -46,6 +50,14 @@ export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrac
 
 			if (isCamera(object)) {
 				return <FaCamera className="w-4 h-4" />;
+			}
+
+			if (isParticleSystem(object)) {
+				return <IoSparklesSharp className="w-4 h-4" />;
+			}
+
+			if (isGPUParticleSystem(object)) {
+				return <GiSparkles className="w-4 h-4" />;
 			}
 
 			if (object === getDefaultRenderingPipeline()) {
@@ -79,8 +91,13 @@ export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrac
 
 		setDragOver(false);
 
+		const scene = props.cinematicEditor.editor.layout.preview.scene;
 		const data = JSON.parse(event.dataTransfer.getData("graph/node")) as string[];
-		const node = props.cinematicEditor.editor.layout.preview.scene.getNodeById(data[0]);
+
+		let node: Node | IParticleSystem | null = scene.getNodeById(data[0]);
+		if (!node) {
+			node = scene.particleSystems?.find((ps) => ps.id === data[0]) ?? null;
+		}
 
 		if (node && node !== props.track.node) {
 			const oldNode = props.track.node;
@@ -97,10 +114,12 @@ export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrac
 				redo: () => {
 					props.track.node = node;
 
-					const propertyValue = getInspectorPropertyValue(node, props.track.propertyPath!) ?? null;
-					if (propertyValue === null) {
-						props.track.propertyPath = undefined;
-						props.track.keyFrameAnimations = [];
+					if (props.track.propertyPath) {
+						const propertyValue = getInspectorPropertyValue(node, props.track.propertyPath) ?? null;
+						if (propertyValue === null) {
+							props.track.propertyPath = undefined;
+							props.track.keyFrameAnimations = [];
+						}
 					}
 				},
 			});

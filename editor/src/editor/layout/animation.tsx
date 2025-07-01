@@ -5,6 +5,7 @@ import { Animation, IAnimatable } from "babylonjs";
 import { isNode } from "../../tools/guards/nodes";
 import { isScene } from "../../tools/guards/scene";
 import { isDomElementFocusable } from "../../tools/dom";
+import { isAnyParticleSystem } from "../../tools/guards/particles";
 
 import { Editor } from "../main";
 
@@ -14,31 +15,31 @@ import { EditorAnimationInspector } from "./animation/inspector/inspector";
 import { EditorAnimationTimelinePanel } from "./animation/timeline/timeline";
 
 export interface IEditorAnimationProps {
-    /**
-     * Defines the reference to the editor.
-     */
-    editor: Editor;
+	/**
+	 * Defines the reference to the editor.
+	 */
+	editor: Editor;
 }
 
 export interface IEditorAnimationState {
-    playing: boolean;
-    focused: boolean;
-    animatable: IAnimatable | null;
-    selectedAnimation: Animation | null;
+	playing: boolean;
+	focused: boolean;
+	animatable: IAnimatable | null;
+	selectedAnimation: Animation | null;
 }
 
 export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAnimationState> {
 	/**
-     * Defines the reference to the inspector used to edit animations properties.
-     */
+	 * Defines the reference to the inspector used to edit animations properties.
+	 */
 	public inspector!: EditorAnimationInspector;
 	/**
-     * Defines the reference to the tracks panel component used to display the animations tracks.
-     */
+	 * Defines the reference to the tracks panel component used to display the animations tracks.
+	 */
 	public tracks!: EditorAnimationTracksPanel;
 	/**
-     * Defines the reference to the timelines panel component used to display the animations timeline.
-     */
+	 * Defines the reference to the timelines panel component used to display the animations timeline.
+	 */
 	public timelines!: EditorAnimationTimelinePanel;
 
 	private _playing: boolean = false;
@@ -61,7 +62,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 		if (!this.props.editor.state.enableExperimentalFeatures) {
 			return (
 				<div className="flex justify-center items-center w-full h-full font-semibold text-3xl">
-                    Coming Soon
+					Coming Soon
 				</div>
 			);
 		}
@@ -76,13 +77,13 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 
 				<div className="flex w-full h-10">
 					<div className="flex justify-center items-center font-semibold w-96 h-full bg-secondary">
-                        Tracks
+						Tracks
 					</div>
 
 					<div className="w-1 h-full bg-primary-foreground" />
 
 					<div className="flex justify-center items-center font-semibold w-full h-full bg-secondary">
-                        Timeline
+						Timeline
 					</div>
 				</div>
 
@@ -136,11 +137,11 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 	}
 
 	/**
-     * Sets the reference to the edited object, selected somewhere in the graph or the preview, to edit its animations.
-     * @param object defines the reference to the object that has been selected somewhere in the graph or the preview.
-     */
+	 * Sets the reference to the edited object, selected somewhere in the graph or the preview, to edit its animations.
+	 * @param object defines the reference to the object that has been selected somewhere in the graph or the preview.
+	 */
 	public setEditedObject(object: unknown): void {
-		if (isNode(object) || isScene(object)) {
+		if (isNode(object) || isScene(object) || isAnyParticleSystem(object)) {
 			if (!object.animations) {
 				object.animations = [];
 			}
@@ -150,8 +151,8 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 	}
 
 	/**
-     * Plays the current timeline starting from the current tracker position.
-     */
+	 * Plays the current timeline starting from the current tracker position.
+	 */
 	public play(): void {
 		if (this._playing) {
 			return;
@@ -166,9 +167,9 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 	}
 
 	/**
-     * Stops the current timeline being played and returns to the previous tracker position
-     * saved before the timeline was played.
-     */
+	 * Stops the current timeline being played and returns to the previous tracker position
+	 * saved before the timeline was played.
+	 */
 	public stop(): void {
 		if (!this._playing) {
 			return;
