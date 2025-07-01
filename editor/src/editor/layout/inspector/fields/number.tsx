@@ -17,16 +17,16 @@ import { IEditorInspectorFieldProps } from "./field";
 const mexp = new Mexp();
 
 export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldProps {
-    min?: number;
-    max?: number;
+	min?: number;
+	max?: number;
 
-    step?: number;
-    asDegrees?: boolean;
+	step?: number;
+	asDegrees?: boolean;
 
-    grayLabel?: boolean;
+	grayLabel?: boolean;
 
-    onChange?: (value: number) => void;
-    onFinishChange?: (value: number, oldValue: number) => void;
+	onChange?: (value: number) => void;
+	onFinishChange?: (value: number, oldValue: number) => void;
 }
 
 export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldProps) {
@@ -74,29 +74,29 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 			onMouseLeave={() => setPointerOver(false)}
 		>
 			{props.label &&
-                <div className="flex items-center gap-2 w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
-                	<div
-                		className={`
+				<div className="flex items-center gap-2 w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
+					<div
+						className={`
                             ${props.grayLabel && !pointerOver ? "text-muted" : ""}
                             transition-all duration-300 ease-in-out
                         `}
-                	>
-                		{props.label}
-                	</div>
+					>
+						{props.label}
+					</div>
 
-                	{props.tooltip &&
-                        <TooltipProvider delayDuration={0}>
-                        	<Tooltip>
-                        		<TooltipTrigger>
-                        			<MdOutlineInfo size={24} />
-                        		</TooltipTrigger>
-                        		<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
-                        			{props.tooltip}
-                        		</TooltipContent>
-                        	</Tooltip>
-                        </TooltipProvider>
-                	}
-                </div>
+					{props.tooltip &&
+						<TooltipProvider delayDuration={0}>
+							<Tooltip>
+								<TooltipTrigger>
+									<MdOutlineInfo size={24} />
+								</TooltipTrigger>
+								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
+									{props.tooltip}
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					}
+				</div>
 			}
 
 			<input
@@ -136,7 +136,10 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					cursor: "ew-resize",
 					background: hasMinMax ? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)` : undefined,
 				}}
-				className="px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none w-full"
+				className={`
+					px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none
+					${props.label ? "w-2/3" : "w-full"}
+				`}
 				onKeyUp={(ev) => ev.key === "Enter" && ev.currentTarget.blur()}
 				onBlur={(ev) => {
 					if (ev.currentTarget.value !== oldValue) {

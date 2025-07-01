@@ -93,7 +93,7 @@ export function EditorInspectorNodeField<T extends Node | IParticleSystem | Soun
 	return (
 		<div className="flex gap-2 items-center px-2">
 			{props.label &&
-				<div className="flex items-center gap-2 w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
+				<div className="flex items-center gap-2 w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
 					<div>
 						{props.label}
 					</div>
@@ -118,7 +118,8 @@ export function EditorInspectorNodeField<T extends Node | IParticleSystem | Soun
 				onDragLeave={(ev) => handleDragLeave(ev)}
 				onDrop={(ev) => handleDrop(ev)}
 				className={`
-                    flex items-center px-5 py-1.5 rounded-lg w-full
+                    flex items-center px-5 py-1.5 rounded-lg
+					${props.label ? "w-2/3" : "w-full"}
                     ${dragOver ? "bg-background" : " bg-secondary"}
                     transition-all duration-300 ease-in-out
                 `}

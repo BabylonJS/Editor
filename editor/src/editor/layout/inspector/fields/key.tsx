@@ -6,10 +6,10 @@ import { useOnClickOutside, useEventListener } from "usehooks-ts";
 import { Button } from "../../../../ui/shadcn/ui/button";
 
 export interface IEditorInspectorKeyFieldProps {
-    value: string;
-    onChange: (value: number) => void;
+	value: string;
+	onChange: (value: number) => void;
 
-    label?: ReactNode;
+	label?: ReactNode;
 }
 
 export function EditorInspectorKeyField(props: IEditorInspectorKeyFieldProps) {
@@ -40,23 +40,30 @@ export function EditorInspectorKeyField(props: IEditorInspectorKeyFieldProps) {
 	return (
 		<div className="flex gap-2 items-center px-2">
 			{props.label &&
-                <div className="w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
-                	{props.label}
-                </div>
+				<div className="w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
+					{props.label}
+				</div>
 			}
 
-			<Button ref={buttonRef} className="relative w-full bg-muted-foreground/20 hover:bg-muted-foreground/75 text-foreground" onClick={() => setSetting(true)}>
+			<Button
+				ref={buttonRef}
+				onClick={() => setSetting(true)}
+				className={`
+					relative bg-muted-foreground/20 hover:bg-muted-foreground/75 text-foreground
+					${props.label ? "w-2/3" : "w-full"}
+				`}
+			>
 				<div className="absolute left-1/2 -translate-x-1/2">
 					{!setting &&
-                        <Fade delay={0}>
-                        	{String.fromCharCode(parseInt(value))}
-                        </Fade>
+						<Fade delay={0}>
+							{String.fromCharCode(parseInt(value))}
+						</Fade>
 					}
 
 					{setting &&
-                        <Fade delay={0}>
-                            Press a key...
-                        </Fade>
+						<Fade delay={0}>
+							Press a key...
+						</Fade>
 					}
 				</div>
 			</Button>

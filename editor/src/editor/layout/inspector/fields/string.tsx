@@ -6,7 +6,7 @@ import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from ".
 import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorStringFieldProps extends IEditorInspectorFieldProps {
-    onChange?: (value: string) => void;
+	onChange?: (value: string) => void;
 }
 
 export function EditorInspectorStringField(props: IEditorInspectorStringFieldProps) {
@@ -15,7 +15,7 @@ export function EditorInspectorStringField(props: IEditorInspectorStringFieldPro
 
 	return (
 		<div className="flex gap-2 items-center px-2">
-			<div className="w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
+			<div className="w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
 				{props.label}
 			</div>
 
@@ -42,7 +42,7 @@ export function EditorInspectorStringField(props: IEditorInspectorStringFieldPro
 						setOldValue(ev.currentTarget.value);
 					}
 				}}
-				className="px-5 py-2 rounded-lg bg-black/50 text-white/75 outline-none w-full"
+				className="px-5 py-2 rounded-lg bg-black/50 text-white/75 outline-none w-2/3"
 			/>
 		</div>
 	);

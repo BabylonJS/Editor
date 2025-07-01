@@ -8,16 +8,16 @@ import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from ".
 import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorListFieldItem {
-    text: string;
-    value: any;
+	text: string;
+	value: any;
 
-    label?: string;
+	label?: string;
 }
 
 export interface IEditorInspectorListFieldProps extends IEditorInspectorFieldProps {
-    items: IEditorInspectorListFieldItem[];
+	items: IEditorInspectorListFieldItem[];
 
-    onChange?: (value: any, oldValue: any) => void;
+	onChange?: (value: any, oldValue: any) => void;
 }
 
 export function EditorInspectorListField(props: IEditorInspectorListFieldProps) {
@@ -59,16 +59,16 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
 	return (
 		<div className="flex gap-2 items-center px-2">
 			{props.label &&
-                <div className="w-1/2 text-ellipsis overflow-hidden whitespace-nowrap">
-                	{props.label}
-                </div>
+				<div className="w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
+					{props.label}
+				</div>
 			}
 
 			<Select
 				value={selectedItem?.value}
 				onValueChange={(v) => handleSetValue(v)}
 			>
-				<SelectTrigger className="w-full">
+				<SelectTrigger className={`${props.label ? "w-2/3" : "w-full"}`}>
 					<SelectValue placeholder="Select Value..." />
 				</SelectTrigger>
 				<SelectContent>
