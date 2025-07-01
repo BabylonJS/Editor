@@ -99,9 +99,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 			const temporaryDirectory = await ensureTemporaryDirectoryExists(projectConfiguration.path);
 			const outputAbsolutePath = join(temporaryDirectory, "scripts", `${props.script.key.replace(/\//g, "_")}.js`);
 
-			const workerPath = join(__dirname.replace(/\\/g, "/"), "../../../../tools/workers/script.js");
-
-			const compilationSuccess = await executeSimpleWorker<{ success: boolean; error?: string; }>(workerPath, {
+			const compilationSuccess = await executeSimpleWorker<{ success: boolean; error?: string; }>("workers/script.js", {
 				action: "compile",
 				srcAbsolutePath,
 				outputAbsolutePath,
@@ -111,7 +109,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 				return props.editor.layout.console.error(`An unexpected error occurred while compiling the script:\n ${compilationSuccess.error}`);
 			}
 
-			const extractOutput = await executeSimpleWorker<VisibleInInspectorDecoratorObject[] | null>(workerPath, {
+			const extractOutput = await executeSimpleWorker<VisibleInInspectorDecoratorObject[] | null>("workers/script.js", {
 				action: "extract",
 				outputAbsolutePath,
 			});
