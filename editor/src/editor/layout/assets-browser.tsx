@@ -2,6 +2,8 @@ import { webUtils } from "electron";
 import { dirname, join, extname, basename } from "path/posix";
 import { copyFile, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON } from "fs-extra";
 
+import filenamify from "filenamify";
+
 import { SkyMaterial } from "babylonjs-materials";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { Camera, Material, NodeMaterial, PBRMaterial, StandardMaterial, Tools } from "babylonjs";
@@ -40,7 +42,7 @@ import { loadScene } from "../../project/load/scene";
 import { saveProject } from "../../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
-import { showConfirm } from "../../ui/dialog";
+import { showConfirm, showPrompt } from "../../ui/dialog";
 
 import { Input } from "../../ui/shadcn/ui/input";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../../ui/shadcn/ui/breadcrumb";
@@ -661,8 +663,11 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								<ContextMenuSeparator />
 								<ContextMenuItem onClick={() => this._handleAddMaterial("PBRMaterial")}>PBR Material</ContextMenuItem>
 								<ContextMenuItem onClick={() => this._handleAddMaterial("StandardMaterial")}>Standard Material</ContextMenuItem>
-								<ContextMenuItem onClick={() => this._handleAddMaterial("NodeMaterial")}>Node Material</ContextMenuItem>
 								<ContextMenuItem onClick={() => this._handleAddMaterial("SkyMaterial")}>Sky Material</ContextMenuItem>
+
+								<ContextMenuSeparator />
+								<ContextMenuItem onClick={() => this._handleAddMaterial("NodeMaterial")}>Node Material</ContextMenuItem>
+								<ContextMenuItem onClick={() => this._handleAddNodeMaterialFromSnippet()}>Node Material From Snippet...</ContextMenuItem>
 
 								{this.props.editor.state.enableExperimentalFeatures &&
 									<>
@@ -911,6 +916,39 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		}
 
 		const name = `${material.name}${index !== undefined ? ` ${index}` : ""}.material`;
+		await writeJSON(join(this.state.browsedPath, name), material.serialize(), {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		material.dispose();
+
+		return this._refreshItems(this.state.browsedPath);
+	}
+
+	private async _handleAddNodeMaterialFromSnippet(): Promise<void> {
+		if (!this.state.browsedPath) {
+			return;
+		}
+
+		const id = await showPrompt("Snippet Id", "Enter the Node Material Snippet Id you want to import");
+		if (!id) {
+			return;
+		}
+
+		const material = await NodeMaterial.ParseFromSnippetAsync(id, this.props.editor.layout.preview.scene);
+		material.id = Tools.RandomId();
+		material.uniqueId = UniqueNumber.Get();
+
+		const filename = filenamify(material.name);
+
+		let index: number | undefined = undefined;
+		while (await pathExists(join(this.state.browsedPath, `${filename}${index !== undefined ? ` ${index}` : ""}.material`))) {
+			index ??= 0;
+			++index;
+		}
+
+		const name = `${filename}${index !== undefined ? ` ${index}` : ""}.material`;
 		await writeJSON(join(this.state.browsedPath, name), material.serialize(), {
 			spaces: "\t",
 			encoding: "utf-8",
