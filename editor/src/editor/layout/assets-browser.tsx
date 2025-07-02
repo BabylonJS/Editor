@@ -64,7 +64,6 @@ import { listenMaterialAssetsEvents } from "./assets-browser/events/material";
 
 import { openEnvViewer } from "./assets-browser/viewers/env-viewer";
 import { openModelViewer } from "./assets-browser/viewers/model-viewer";
-import { openMaterialViewer } from "./assets-browser/viewers/material-viewer";
 
 import "babylonjs-loaders";
 
@@ -1121,9 +1120,6 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 			case ".env":
 				return openEnvViewer(item.props.absolutePath);
-
-			case ".material":
-				return openMaterialViewer(this.props.editor, item.props.absolutePath);
 
 			case ".ts":
 			case ".tsx":

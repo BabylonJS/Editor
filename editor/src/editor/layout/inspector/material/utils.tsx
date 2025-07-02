@@ -16,8 +16,8 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 import { projectConfiguration } from "../../../../project/configuration";
 
 export interface IEditorMaterialInspectorUtilsComponentProps {
-    mesh?: AbstractMesh;
-    material: Material;
+	mesh?: AbstractMesh;
+	material: Material;
 }
 
 export class EditorMaterialInspectorUtilsComponent extends Component<IEditorMaterialInspectorUtilsComponentProps> {
@@ -25,13 +25,13 @@ export class EditorMaterialInspectorUtilsComponent extends Component<IEditorMate
 		return (
 			<div className="flex gap-2 items-center w-full">
 				<Button variant="secondary" className="w-full" onClick={() => this._handleExport()}>
-                    Export...
+					Export...
 				</Button>
 
 				{this.props.mesh &&
-                    <Button variant="destructive" className="w-full" onClick={() => this._handleRemove()}>
-                        Remove
-                    </Button>
+					<Button variant="secondary" className="w-full hover:bg-destructive" onClick={() => this._handleRemove()}>
+						Remove
+					</Button>
 				}
 			</div>
 		);

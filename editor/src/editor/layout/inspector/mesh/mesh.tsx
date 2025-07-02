@@ -6,7 +6,8 @@ import { IoAddSharp, IoCloseOutline } from "react-icons/io5";
 
 import { SkyMaterial } from "babylonjs-materials";
 import {
-	AbstractMesh, InstancedMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial,
+	AbstractMesh, InstancedMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial,
+	StandardMaterial, NodeMaterial,
 } from "babylonjs";
 
 import { CollisionMesh } from "../../../nodes/collision";
@@ -36,6 +37,7 @@ import { IEditorInspectorImplementationProps } from "../inspector";
 
 import { EditorPBRMaterialInspector } from "../material/pbr";
 import { EditorSkyMaterialInspector } from "../material/sky";
+import { EditorNodeMaterialInspector } from "../material/node";
 import { EditorMultiMaterialInspector } from "../material/multi";
 import { EditorStandardMaterialInspector } from "../material/standard";
 
@@ -46,10 +48,10 @@ import { EditorMeshCollisionInspector } from "./collision";
 
 export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
 	/**
-     * Returns whether or not the given object is supported by this inspector.
-     * @param object defines the object to check.
-     * @returns true if the object is supported by this inspector.
-     */
+	 * Returns whether or not the given object is supported by this inspector.
+	 * @param object defines the object to check.
+	 * @returns true if the object is supported by this inspector.
+	 */
 	public static IsSupported(object: unknown): boolean {
 		return isAbstractMesh(object);
 	}
@@ -72,7 +74,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				<EditorInspectorSectionField title="Common">
 					<div className="flex justify-between items-center px-2 py-2">
 						<div className="w-1/2">
-                            Type
+							Type
 						</div>
 
 						<div className="flex justify-between items-center w-full">
@@ -81,14 +83,14 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 							</div>
 
 							{isInstancedMesh(this.props.object) &&
-                                <Button variant="ghost" onClick={() => {
-                                	const instance = this.props.object as InstancedMesh;
-                                	this.props.editor.layout.preview.gizmo.setAttachedNode(instance.sourceMesh);
-                                	this.props.editor.layout.graph.setSelectedNode(instance.sourceMesh);
-                                	this.props.editor.layout.inspector.setEditedObject(instance.sourceMesh);
-                                }}>
-                                	<FaLink className="w-4 h-4" />
-                                </Button>
+								<Button variant="ghost" onClick={() => {
+									const instance = this.props.object as InstancedMesh;
+									this.props.editor.layout.preview.gizmo.setAttachedNode(instance.sourceMesh);
+									this.props.editor.layout.graph.setSelectedNode(instance.sourceMesh);
+									this.props.editor.layout.inspector.setEditedObject(instance.sourceMesh);
+								}}>
+									<FaLink className="w-4 h-4" />
+								</Button>
 							}
 						</div>
 					</div>
@@ -106,20 +108,20 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				<EditorMeshCollisionInspector {...this.props} />
 
 				{this.props.editor.layout.preview.scene.lights.length > 0 &&
-                    <EditorInspectorSectionField title="Shadows">
-                    	<EditorInspectorSwitchField label="Cast Shadows" object={this} property="_castShadows" noUndoRedo onChange={() => this._handleCastShadowsChanged(this._castShadows)} />
-                    	<EditorInspectorSwitchField label="Receive Shadows" object={this.props.object} property="receiveShadows" />
-                    </EditorInspectorSectionField>
+					<EditorInspectorSectionField title="Shadows">
+						<EditorInspectorSwitchField label="Cast Shadows" object={this} property="_castShadows" noUndoRedo onChange={() => this._handleCastShadowsChanged(this._castShadows)} />
+						<EditorInspectorSwitchField label="Receive Shadows" object={this.props.object} property="receiveShadows" />
+					</EditorInspectorSectionField>
 				}
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
 				{isMesh(this.props.object) &&
-                    <>
-                    	<MeshGeometryInspector object={this.props.object} />
-                    	<MeshDecalInspector object={this.props.object} />
-                    	{this._getLODsComponent()}
-                    </>
+					<>
+						<MeshGeometryInspector object={this.props.object} />
+						<MeshDecalInspector object={this.props.object} />
+						{this._getLODsComponent()}
+					</>
 				}
 
 				<EditorMeshPhysicsInspector mesh={this.props.object} />
@@ -200,7 +202,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 			return (
 				<EditorInspectorSectionField title="Material">
 					<div className="text-center text-xl">
-                        No material
+						No material
 					</div>
 				</EditorInspectorSectionField>
 			);
@@ -211,7 +213,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 			return (
 				<EditorInspectorSectionField title="Material">
 					<div className="text-center text-yellow-500">
-                        Unsupported material type: {this.props.object.material.getClassName()}
+						Unsupported material type: {this.props.object.material.getClassName()}
 					</div>
 				</EditorInspectorSectionField>
 			);
@@ -226,11 +228,6 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 	private _getMaterialInspectorComponent(material: Material): ReactNode {
 		switch (material.getClassName()) {
-			case "MultiMaterial":
-				return <EditorMultiMaterialInspector
-					material={this.props.object.material as MultiMaterial}
-				/>;
-
 			case "PBRMaterial":
 				return <EditorPBRMaterialInspector
 					mesh={this.props.object}
@@ -241,6 +238,17 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				return <EditorStandardMaterialInspector
 					mesh={this.props.object}
 					material={this.props.object.material as StandardMaterial}
+				/>;
+
+			case "NodeMaterial":
+				return <EditorNodeMaterialInspector
+					mesh={this.props.object}
+					material={this.props.object.material as NodeMaterial}
+				/>;
+
+			case "MultiMaterial":
+				return <EditorMultiMaterialInspector
+					material={this.props.object.material as MultiMaterial}
 				/>;
 
 			case "SkyMaterial":
@@ -263,7 +271,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				<Separator />
 
 				<div className="px-[10px] text-lg text-center">
-                    Animation Ranges
+					Animation Ranges
 				</div>
 
 				{this.props.object.skeleton.getAnimationRanges().filter((range) => range).map((range, index) => (
@@ -274,8 +282,8 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 							onDoubleClick={async () => {
 								const name = await showPrompt("Rename Animation Range", "Enter the new name for the animation range", range!.name);
 								if (name) {
-                                    range!.name = name;
-                                    this.forceUpdate();
+									range!.name = name;
+									this.forceUpdate();
 								}
 							}}
 							onClick={() => {

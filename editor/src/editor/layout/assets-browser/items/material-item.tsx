@@ -14,32 +14,36 @@ import { UniqueNumber } from "../../../../tools/tools";
 import { showAlert, showPrompt } from "../../../../ui/dialog";
 import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
+import { openMaterialViewer } from "../viewers/material-viewer";
+
 import { AssetsBrowserItem } from "./item";
 
 export class AssetBrowserMaterialItem extends AssetsBrowserItem {
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected getIcon(): ReactNode {
 		return <GiMaterialsScience size="64px" />;
 	}
 
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected async onDoubleClick(): Promise<void> {
 		const data = await readJSON(this.props.absolutePath);
 		if (data.customType === "BABYLON.NodeMaterial") {
 			ipcRenderer.send("window:open", "build/src/editor/windows/nme", {
 				filePath: this.props.absolutePath,
 			});
+		} else {
+			openMaterialViewer(this.props.editor, this.props.absolutePath);
 		}
 	}
 
 	/**
-     * Returns the context menu content for the current item.
-     * To be overriden by the specialized items implementations.
-     */
+	 * Returns the context menu content for the current item.
+	 * To be overriden by the specialized items implementations.
+	 */
 	protected getContextMenuContent(): ReactNode {
 		return (
 			<>
