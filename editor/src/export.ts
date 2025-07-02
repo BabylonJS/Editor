@@ -58,3 +58,5 @@ export * from "./editor/rendering/vls";
 export * from "./editor/rendering/ssao";
 export * from "./editor/rendering/motion-blur";
 export * from "./editor/rendering/default-pipeline";
+
+export { createEditor } from "./editor/main";

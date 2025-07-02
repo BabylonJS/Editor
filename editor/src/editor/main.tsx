@@ -36,8 +36,6 @@ import { EditorLayout } from "./layout";
 import "./nodes/camera";
 import "./nodes/scene-link";
 
-export * from "../export";
-
 export function createEditor(): void {
 	const theme = localStorage.getItem("editor-theme") ?? "dark";
 	if (theme === "dark") {
@@ -55,73 +53,73 @@ export function createEditor(): void {
 }
 
 export interface IEditorProps {
-    /**
-     * The path of the project.
-     */
-    projectPath: string | null;
+	/**
+	 * The path of the project.
+	 */
+	projectPath: string | null;
 
-    /**
-     * Defines the path to the currently edited scene path.
-     */
-    editedScenePath?: string | null;
+	/**
+	 * Defines the path to the currently edited scene path.
+	 */
+	editedScenePath?: string | null;
 }
 
 export interface IEditorState {
-    /**
-     * The path of the project.
-     */
-    projectPath: string | null;
-    /**
-     * The path of the last opened scene.
-     */
-    lastOpenedScenePath: string | null;
-    /**
-     * Defines the list of all plugins to load.
-     */
-    plugins: string[];
-    /**
-     * Defines the current package manager being used by the editor.
-     */
-    packageManager?: EditorProjectPackageManager;
+	/**
+	 * The path of the project.
+	 */
+	projectPath: string | null;
+	/**
+	 * The path of the last opened scene.
+	 */
+	lastOpenedScenePath: string | null;
+	/**
+	 * Defines the list of all plugins to load.
+	 */
+	plugins: string[];
+	/**
+	 * Defines the current package manager being used by the editor.
+	 */
+	packageManager?: EditorProjectPackageManager;
 
-    /**
-     * Defines wether or not compressed textures are enabled.
-     */
-    compressedTexturesEnabled: boolean;
-    /**
-     * Defines wether or not compressed textures are enabled in the preview.
-     */
-    compressedTexturesEnabledInPreview: boolean;
+	/**
+	 * Defines wether or not compressed textures are enabled.
+	 */
+	compressedTexturesEnabled: boolean;
+	/**
+	 * Defines wether or not compressed textures are enabled in the preview.
+	 */
+	compressedTexturesEnabledInPreview: boolean;
 
-    /**
-     * Defines wether or not experimental features are enabled.
-     */
-    enableExperimentalFeatures: boolean;
+	/**
+	 * Defines wether or not experimental features are enabled.
+	 */
+	enableExperimentalFeatures: boolean;
 
-    /**
-     * Defines if the project is being edited.
-     */
-    editProject: boolean;
-    /**
-     * Defines if the preferences are being edited.
-     */
-    editPreferences: boolean;
+	/**
+	 * Defines if the project is being edited.
+	 */
+	editProject: boolean;
+	/**
+	 * Defines if the preferences are being edited.
+	 */
+	editPreferences: boolean;
 }
 
 export class Editor extends Component<IEditorProps, IEditorState> {
 	/**
-     * The layout of the editor.
-     */
+	 * The layout of the editor.
+	 */
 	public layout: EditorLayout;
 	/**
-     * The command palette of the editor.
-     */
+	 * The command palette of the editor.
+	 */
 	public commandPalette: CommandPalette;
 
 	/**
-     * Defines the path to the editor application.
-     * This comes from electron `app.getAppPath();`
-     */
+	 * Defines the path to the editor application.
+	 * This comes from electron `app.getAppPath();`
+	 */
 	public path: string | null = null;
 
 	public constructor(props: IEditorProps) {
@@ -221,9 +219,9 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	}
 
 	/**
-     * Opens the project located at the given absolute path.
-     * @param absolutePath defines the absolute path to the project to open.
-     */
+	 * Opens the project located at the given absolute path.
+	 * @param absolutePath defines the absolute path to the project to open.
+	 */
 	public async openProject(absolutePath: string): Promise<void> {
 		await waitUntil(() => this.layout.preview.scene);
 
@@ -245,15 +243,15 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	}
 
 	/**
-     * Closes the current editor window after asking for confirmation.
-     */
+	 * Closes the current editor window after asking for confirmation.
+	 */
 	public close(): void {
 		ipcRenderer.send("window:close");
 	}
 
 	/**
-     * Quits the app after asking for confirmation.
-     */
+	 * Quits the app after asking for confirmation.
+	 */
 	public quitApp(): void {
 		ipcRenderer.send("app:quit");
 	}
