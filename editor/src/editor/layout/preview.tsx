@@ -311,7 +311,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const position = selectedNode.getAbsolutePosition?.();
 		const camera = this.scene.activeCamera;
 		if (position && camera) {
-			Tween.Create(camera, 0.5, {
+			Tween.create(camera, 0.5, {
 				"target": position,
 			});
 		}
@@ -566,7 +566,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _highlightCurrentMeshUnderPointer(pickedMesh: AbstractMesh): void {
-		Tween.KillTweensOf(pickedMesh);
+		Tween.killTweensOf(pickedMesh);
 
 		const effectiveMesh = isInstancedMesh(pickedMesh)
 			? pickedMesh.sourceMesh
@@ -583,7 +583,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		meshes.forEach((mesh) => {
-			Tween.Create(mesh, 0.1, {
+			Tween.create(mesh, 0.1, {
 				"overlayAlpha": 0.5,
 				"overlayColor": Color3.Black(),
 				onStart: () => mesh!.renderOverlay = true,
@@ -610,12 +610,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			}
 
 			meshes.forEach((mesh) => {
-				Tween.KillTweensOf(mesh);
+				Tween.killTweensOf(mesh);
 
 				mesh.overlayAlpha ??= 0;
 				mesh.overlayColor ??= Color3.Black();
 
-				Tween.Create(mesh, 0.1, {
+				Tween.create(mesh, 0.1, {
 					"overlayAlpha": 0,
 					"overlayColor": Color3.Black(),
 					onStart: () => mesh.renderOverlay = true,

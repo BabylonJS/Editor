@@ -47,6 +47,7 @@ export type SceneLoaderOptions = {
 };
 
 declare module "@babylonjs/core/scene" {
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	interface Scene {
 		loadingQuality: SceneLoaderQualitySelector;
 	}

@@ -1,10 +1,11 @@
 import { Scene } from "@babylonjs/core/scene";
 
 declare module "@babylonjs/core/Audio/sound" {
-    export interface Sound {
-        id: string;
-        uniqueId: number;
-    }
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	export interface Sound {
+		id: string;
+		uniqueId: number;
+	}
 }
 
 /**

@@ -35,16 +35,16 @@ export async function waitUntil(predicate: () => any): Promise<void> {
  * @example myNode.uniqueId = UniqueNumber.Get();
  */
 export class UniqueNumber {
-	private static _Previous = 0;
+	private static _previous = 0;
 
 	public static Get(): number {
 		let date = Date.now();
 
 		// If created at same millisecond as previous
-		if (date <= UniqueNumber._Previous) {
-			date = ++UniqueNumber._Previous;
+		if (date <= UniqueNumber._previous) {
+			date = ++UniqueNumber._previous;
 		} else {
-			UniqueNumber._Previous = date;
+			UniqueNumber._previous = date;
 		}
 
 		return date;

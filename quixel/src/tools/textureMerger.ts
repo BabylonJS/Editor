@@ -6,32 +6,32 @@ import { Tools as BabylonTools, Texture, ISize } from "babylonjs";
 import { WorkerTools } from "./workers";
 
 export interface IMergedColor {
-    /**
-     * Defines the value of the red channel for the pixel.
-     */
-    r: number;
-    /**
-     * Defines the value of the green channel for the pixel.
-     */
-    g: number;
-    /**
-     * Defines the value of the blue channel for the pixel.
-     */
-    b: number;
-    /**
-     * Defines the value of the alpha channel for the pixel.
-     */
-    a: number;
+	/**
+	 * Defines the value of the red channel for the pixel.
+	 */
+	r: number;
+	/**
+	 * Defines the value of the green channel for the pixel.
+	 */
+	g: number;
+	/**
+	 * Defines the value of the blue channel for the pixel.
+	 */
+	b: number;
+	/**
+	 * Defines the value of the alpha channel for the pixel.
+	 */
+	a: number;
 }
 
 export class TextureUtils {
 	/**
-     * Merges the two given textures to the desized format.
-     * @param a defines the reference to the first texture.
-     * @param b defines the reference to the second texture.
-     * @param rootFolder defines the root folder where to write the texture.
-     * @param callback defines the callback called for each pixel that returns the final merged color.
-     */
+	 * Merges the two given textures to the desized format.
+	 * @param a defines the reference to the first texture.
+	 * @param b defines the reference to the second texture.
+	 * @param rootFolder defines the root folder where to write the texture.
+	 * @param callback defines the callback called for each pixel that returns the final merged color.
+	 */
 	public static async MergeTextures(a: Texture, b: Texture, rootFolder: string, callback: (color1: IMergedColor, color2: IMergedColor) => IMergedColor): Promise<string | null> {
 		const aSize = a.getSize();
 		const bSize = b.getSize();
@@ -59,7 +59,7 @@ export class TextureUtils {
 
 		worker.terminate();
 
-		const blob = await this._ConvertPixelsToBlobImage(aSize, new Uint8ClampedArray(result));
+		const blob = await this._convertPixelsToBlobImage(aSize, new Uint8ClampedArray(result));
 		if (!blob) {
 			return null;
 		}
@@ -73,9 +73,9 @@ export class TextureUtils {
 	}
 
 	/**
-     * Converts the given pixels to a readable blob image.
-     */
-	private static async _ConvertPixelsToBlobImage(size: ISize, pixels: Uint8ClampedArray): Promise<Blob | null> {
+	 * Converts the given pixels to a readable blob image.
+	 */
+	private static async _convertPixelsToBlobImage(size: ISize, pixels: Uint8ClampedArray): Promise<Blob | null> {
 		// Base canvas
 		const canvas = document.createElement("canvas");
 		canvas.width = size.width;
@@ -97,7 +97,7 @@ export class TextureUtils {
 		finalContext.transform(1, 0, 0, -1, 0, canvas.height);
 		finalContext.drawImage(canvas, 0, 0);
 
-		const blob = await this._CanvasToBlob(finalCanvas);
+		const blob = await this._canvasToBlob(finalCanvas);
 
 		context.restore();
 		finalContext.restore();
@@ -108,9 +108,9 @@ export class TextureUtils {
 	}
 
 	/**
-     * Converts the given canvas data to blob.
-     */
-	private static async _CanvasToBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
+	 * Converts the given canvas data to blob.
+	 */
+	private static async _canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
 		return new Promise<Blob | null>((resolve) => {
 			BabylonTools.ToBlob(canvas, b => resolve(b));
 		});

@@ -50,7 +50,7 @@ export interface IEditorInspectorState {
 }
 
 export class EditorInspector extends Component<IEditorInspectorProps, IEditorInspectorState> {
-	private static _Inspectors: ((new (props: IEditorInspectorImplementationProps<any>) => Component<IEditorInspectorImplementationProps<any>>) & { IsSupported(object: any): boolean; })[] = [
+	private static _inspectors: ((new (props: IEditorInspectorImplementationProps<any>) => Component<IEditorInspectorImplementationProps<any>>) & { IsSupported(object: any): boolean; })[] = [
 		EditorTransformNodeInspector,
 		EditorMeshInspector,
 
@@ -139,7 +139,7 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 			/>;
 		}
 
-		const inspectors = EditorInspector._Inspectors
+		const inspectors = EditorInspector._inspectors
 			.filter((i) => i.IsSupported(this.state.editedObject))
 			.map((i) => ({ inspector: i }));
 

@@ -49,7 +49,8 @@
     "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
     "license": "(Apache-2.0)",
     "devDependencies": {
-        "@typescript-eslint/parser": "8.35.0",
+        "@typescript-eslint/eslint-plugin": "8.35.1",
+        "@typescript-eslint/parser": "8.35.1",
         "concurrently": "9.2.0",
         "cross-env": "7.0.3",
         "dotenv": "16.4.5",

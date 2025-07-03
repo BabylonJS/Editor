@@ -10,40 +10,40 @@ import {
 } from "./tools";
 
 export interface ITweenEasingConfiguration {
-    mode: number;
-    type: EasingFunction;
+	mode: number;
+	type: EasingFunction;
 }
 
 export interface ITweenPropertyConfiguration {
-    from: any;
-    to: any;
+	from: any;
+	to: any;
 
-    duration?: number;
-    delay?: number;
+	duration?: number;
+	delay?: number;
 
-    easing?: ITweenEasingConfiguration;
+	easing?: ITweenEasingConfiguration;
 
-    value: any;
+	value: any;
 }
 
 export interface ITweenConfiguration {
-    scene?: Scene;
-    delay?: number;
-    easing?: ITweenEasingConfiguration;
+	scene?: Scene;
+	delay?: number;
+	easing?: ITweenEasingConfiguration;
 
-    loop?: boolean;
+	loop?: boolean;
 
-    properties?: {
-        [propertyPath: string]: ITweenPropertyConfiguration | any;
-    };
+	properties?: {
+		[propertyPath: string]: ITweenPropertyConfiguration | any;
+	};
 
-    onStart?: () => void;
-    onUpdate?: () => void;
-    onComplete?: () => void;
+	onStart?: () => void;
+	onUpdate?: () => void;
+	onComplete?: () => void;
 
-    [propertyPath: string]: ITweenPropertyConfiguration | any;
+	[propertyPath: string]: ITweenPropertyConfiguration | any;
 
-    killAllTweensOfTarget?: boolean;
+	killAllTweensOfTarget?: boolean;
 }
 
 const reservedProperties = [
@@ -64,14 +64,14 @@ const reservedProperties = [
 
 export class Tween {
 	/**
-     * Defines the reference to the promise resolved on the tween ended.
-     */
+	 * Defines the reference to the promise resolved on the tween ended.
+	 */
 	public promise: Promise<void[]>;
 
 	/**
-     * Constructor.
-     * @param animatable defines the reference to the animatable that is being played.
-     */
+	 * Constructor.
+	 * @param animatable defines the reference to the animatable that is being played.
+	 */
 	public constructor(public animatables: Animatable[]) {
 		this.promise = Promise.all(
 			animatables.map((a) => {
@@ -83,32 +83,32 @@ export class Tween {
 	}
 
 	/**
-     * Pauses the tween animation.
-     */
+	 * Pauses the tween animation.
+	 */
 	public pause(): void {
 		this.animatables.forEach((a) => a.pause());
 	}
 
 	/**
-     * Restarts the animation.
-     */
+	 * Restarts the animation.
+	 */
 	public reset(): void {
 		this.animatables.forEach((a) => a.reset());
 	}
 
 	/**
-     * Stops the tween animation. Resolves the promise.
-     */
+	 * Stops the tween animation. Resolves the promise.
+	 */
 	public stop(): void {
 		this.animatables.forEach((a) => a.stop());
 	}
 
 	/**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
+	 * Attaches callbacks for the resolution and/or rejection of the Promise.
+	 * @param onfulfilled The callback to execute when the Promise is resolved.
+	 * @param onrejected The callback to execute when the Promise is rejected.
+	 * @returns A Promise for the completion of which ever callback is executed.
+	 */
 	public then<T1 = void, T2 = never>(
 		onfulfilled?: ((value: any) => T1 | PromiseLike<T1>) | undefined | null,
 		onrejected?: ((reason: any) => T2 | PromiseLike<T2>) | undefined | null
@@ -117,21 +117,21 @@ export class Tween {
 	}
 
 	/**
-     * Defines the reference to the scene where to play the tweens.
-     */
+	 * Defines the reference to the scene where to play the tweens.
+	 */
 	public static Scene: Nullable<Scene> = null;
 
 	/**
-     * Defines the default easing function used when playing tweens.
-     */
+	 * Defines the default easing function used when playing tweens.
+	 */
 	public static DefaultEasing: Nullable<ITweenEasingConfiguration> = null;
 
 	/**
-     * Kills (stops) all the tweens that animate to given target.
-     * @param target defines the reference to the target to kill all its attached tweens.
-     * @returns true if at least one tween has been killed.
-     */
-	public static KillTweensOf<T>(target: T | T[]): boolean {
+	 * Kills (stops) all the tweens that animate to given target.
+	 * @param target defines the reference to the target to kill all its attached tweens.
+	 * @returns true if at least one tween has been killed.
+	 */
+	public static killTweensOf<T>(target: T | T[]): boolean {
 		target = Array.isArray(target) ? target : [target];
 
 		const result = target.map((t) => {
@@ -149,7 +149,7 @@ export class Tween {
 		return result.includes(true);
 	}
 
-	public static KillAllTweens(): void {
+	public static killAllTweens(): void {
 		tweensMap.forEach((v) => {
 			v.forEach((t) => t.stop());
 		});
@@ -158,18 +158,18 @@ export class Tween {
 	}
 
 	/**
-     * Creates a new tween reference to anmate CSS properties of the given HTML element for the given duration.
-     * @param target defines the target HTML object to animate its properties.
-     * @param duration defines the duration of the animation(s) expressed in seconds.
-     * @param properties defines the dictionary of all animated properties.
-     * @returns a reference to a tween.
-     */
-	public static CreateForCSS(
+	 * Creates a new tween reference to anmate CSS properties of the given HTML element for the given duration.
+	 * @param target defines the target HTML object to animate its properties.
+	 * @param duration defines the duration of the animation(s) expressed in seconds.
+	 * @param properties defines the dictionary of all animated properties.
+	 * @returns a reference to a tween.
+	 */
+	public static createForCSS(
 		target: HTMLElement,
 		duration: number,
 		options: ITweenConfiguration
 	): Tween {
-		this._ConfigureOptions(options);
+		this._configureOptions(options);
 
 		const keys = Object.keys(options.properties!);
 		const values: { [propertyPath: string]: number; } = {};
@@ -178,7 +178,7 @@ export class Tween {
 			values[k] = options.properties![k].from ?? (parseFloat(target.style[k]) || 0);
 		});
 
-		return this.Create<any>(values, duration, {
+		return this.create<any>(values, duration, {
 			...options,
 			onUpdate: () => {
 				keys.forEach((k: any) => {
@@ -188,7 +188,7 @@ export class Tween {
 		});
 	}
 
-	private static _ConfigureOptions(options: ITweenConfiguration): void {
+	private static _configureOptions(options: ITweenConfiguration): void {
 		options.properties ??= {};
 
 		Object.keys(options).forEach((k) => {
@@ -196,18 +196,18 @@ export class Tween {
 				return;
 			}
 
-            options.properties![k] = options[k];
+			options.properties![k] = options[k];
 		});
 	}
 
 	/**
-     * Creates a new tween reference to animate properties of the given target for the given duration.
-     * @param target defines the target object to animate its properties.
-     * @param duration defines the duration of the animation(s) expressed in seconds.
-     * @param options defines the options the tween (easing, delay, etc.).
-     * @returns a reference to a tween.
-     */
-	public static Create<T>(
+	 * Creates a new tween reference to animate properties of the given target for the given duration.
+	 * @param target defines the target object to animate its properties.
+	 * @param duration defines the duration of the animation(s) expressed in seconds.
+	 * @param options defines the options the tween (easing, delay, etc.).
+	 * @returns a reference to a tween.
+	 */
+	public static create<T>(
 		target: Nullable<T> | Nullable<T>[],
 		duration: number,
 		options: ITweenConfiguration
@@ -217,10 +217,10 @@ export class Tween {
 		}
 
 		if (options.killAllTweensOfTarget) {
-			this.KillTweensOf(target);
+			this.killTweensOf(target);
 		}
 
-		this._ConfigureOptions(options);
+		this._configureOptions(options);
 
 		target = Array.isArray(target) ? target : [target];
 
@@ -247,7 +247,7 @@ export class Tween {
 				}
 
 				const targetProperty = k.split(".").pop()!;
-				const effectiveTarget = this._GetEffectiveTarget(t, k);
+				const effectiveTarget = this._getEffectiveTarget(t, k);
 				const animatedProperty = effectiveTarget?.[targetProperty];
 
 				if ((animatedProperty ?? null) === null) {
@@ -296,8 +296,8 @@ export class Tween {
 					k,
 					k,
 					60,
-                    getAnimationTypeForObject(animatedProperty)!,
-                    Animation.ANIMATIONLOOPMODE_RELATIVE
+					getAnimationTypeForObject(animatedProperty)!,
+					Animation.ANIMATIONLOOPMODE_RELATIVE
 				);
 				a.setKeys(keys);
 
@@ -356,9 +356,9 @@ export class Tween {
 	}
 
 	/**
-     * Given a path to a property, return the effective property by deconstructing the path.
-     */
-	private static _GetEffectiveTarget(target: any, propertyPath: string): any {
+	 * Given a path to a property, return the effective property by deconstructing the path.
+	 */
+	private static _getEffectiveTarget(target: any, propertyPath: string): any {
 		const properties = propertyPath.split(".");
 
 		for (let index = 0; index < properties.length - 1; index++) {

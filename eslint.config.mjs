@@ -1,5 +1,6 @@
 import { defineConfig } from "eslint/config";
 import typeScriptParser from "@typescript-eslint/parser";
+import typeScriptPlugin from "@typescript-eslint/eslint-plugin";
 
 export default defineConfig([
     {
@@ -14,6 +15,9 @@ export default defineConfig([
         languageOptions: {
             ecmaVersion: "latest",
             parser: typeScriptParser,
+        },
+        plugins: {
+            "@typescript-eslint": typeScriptPlugin,
         },
         rules: {
             // Recommended
@@ -78,6 +82,30 @@ export default defineConfig([
             "no-useless-backreference": "error",
             "use-isnan": "error",
             "valid-typeof": "error",
+
+            "@typescript-eslint/naming-convention": ["error",
+                {
+                    "selector": "enumMember",
+                    "format": ["PascalCase"],
+                },
+                {
+                    "selector": "function",
+                    "format": ["camelCase", "PascalCase"],
+                    "leadingUnderscore": "allow"
+                },
+                {
+                    "selector": "interface",
+                    "format": ["PascalCase"],
+                    "prefix": ["I"],
+                    "leadingUnderscore": "allow",
+                },
+                {
+                    "selector": "memberLike",
+                    "modifiers": ["private"],
+                    "format": ["camelCase"],
+                    "leadingUnderscore": "require"
+                }
+            ],
 
             // Suggestions
             "block-scoped-var": "error",
