@@ -20,7 +20,28 @@ import { tryGetProjectsFromLocalStorage } from "../../tools/local-storage";
 import { saveScene } from "./scene";
 import { EditorSaveProjectProgressComponent } from "./progress";
 
+let saving = false;
+
 export async function saveProject(editor: Editor): Promise<void> {
+	if (saving) {
+		return;
+	}
+
+	saving = true;
+
+	try {
+		await _saveProject(editor);
+	} catch (e) {
+		if (e instanceof Error) {
+			editor.layout.console.error(`Error saving project:\n ${e.message}`);
+			toast.error("Error saving project");
+		}
+	} finally {
+		saving = false;
+	}
+}
+
+async function _saveProject(editor: Editor): Promise<void> {
 	if (!editor.state.projectPath) {
 		return;
 	}

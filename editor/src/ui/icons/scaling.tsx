@@ -3,8 +3,8 @@ import { IIconProps } from "./props";
 export function ScalingIcon(props: IIconProps) {
 	return (
 		<svg
-			width={props.width}
-			height={props.height}
+			width={props.size ?? props.width}
+			height={props.size ?? props.height}
 			viewBox="0 0 256 512"
 			className="fill-foreground"
 			xmlns="http://www.w3.org/2000/svg"

@@ -1,21 +1,21 @@
 export type VisibleInInspectorDecoratorObject = {
-    label?: string;
-    propertyKey: string;
-    configuration: VisibleInInspectorDecoratorConfiguration;
+	label?: string;
+	propertyKey: string;
+	configuration: VisibleInInspectorDecoratorConfiguration;
 };
 
 export type VisibleInInspectorDecoratorConfiguration = {
-    type: string;
-    description?: string;
+	type: string;
+	description?: string;
 
-    min?: number;
-    max?: number;
-    step?: number;
+	min?: number;
+	max?: number;
+	step?: number;
 
-    asDegrees?: boolean;
+	asDegrees?: boolean;
 
-    noClamp?: boolean;
-    noColorPicker?: boolean;
+	noClamp?: boolean;
+	noColorPicker?: boolean;
 };
 
 export const scriptValues = "values";
@@ -97,6 +97,14 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 						attachedScripts[value.propertyKey]?.value[2] ?? 1,
 						attachedScripts[value.propertyKey]?.value[3] ?? 1,
 					],
+				};
+				break;
+
+			case "entity":
+				attachedScripts[value.propertyKey] = {
+					type: value.configuration.type,
+					description: value.configuration.description,
+					value: attachedScripts[value.propertyKey]?.value ?? null,
 				};
 				break;
 		}

@@ -1,4 +1,4 @@
-export { Editor } from "./editor/main";
+export { Editor, createEditor } from "./editor/main";
 export { EditorLayout } from "./editor/layout";
 
 export { EditorGraph } from "./editor/layout/graph";

@@ -47,10 +47,46 @@ jest.mock("@babylonjs/core/Maths/math.vector", () => ({
     },
 }));
 
+jest.mock("@babylonjs/core/Maths/math.color", () => ({
+    Color3: class {
+        r: number;
+        g: number;
+        b: number;
+
+        constructor(r?: number, g?: number, b?: number) {
+            this.r = r ?? 0;
+            this.g = g ?? 0;
+            this.b = b ?? 0;
+        }
+
+        static FromArray(array: number[]) {
+            return new this(array[0]!, array[1]!, array[2]!);
+        }
+    },
+    Color4: class {
+        r: number;
+        g: number;
+        b: number;
+        a: number;
+
+        constructor(r?: number, g?: number, b?: number, a?: number) {
+            this.r = r ?? 0;
+            this.g = g ?? 0;
+            this.b = b ?? 0;
+            this.a = a ?? 1;
+        }
+
+        static FromArray(array: number[]) {
+            return new this(array[0]!, array[1]!, array[2]!, array[3]!);
+        }
+    },
+}));
+
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Sound } from "@babylonjs/core/Audio/sound";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
@@ -59,7 +95,7 @@ import { soundFromScene } from "../../src/decorators/sound";
 import { applyDecorators } from "../../src/decorators/apply";
 import { particleSystemFromScene } from "../../src/decorators/particle-systems";
 import { animationGroupFromScene, nodeFromDescendants, nodeFromScene } from "../../src/decorators/scene";
-import { visibleAsBoolean, visibleAsNumber, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
+import { visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsEntity, visibleAsNumber, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
 
 describe("decorators/apply", () => {
     class EmptyTarget { }
@@ -89,6 +125,20 @@ describe("decorators/apply", () => {
         @visibleAsVector3("test")
         public vector3Property: Vector3 = Vector3.Zero();
 
+        @visibleAsColor3("test")
+        public color3Property: Color3 = new Color3();
+        @visibleAsColor4("test")
+        public color4Property: Color4 = new Color4();
+
+        @visibleAsEntity("node", "test")
+        public nodeEntityProperty: Node = null!;
+        @visibleAsEntity("sound", "test")
+        public soundEntityProperty: Sound = null!;
+        @visibleAsEntity("animationGroup", "test")
+        public animationGroupEntityProperty: any = null!;
+        @visibleAsEntity("particleSystem", "test")
+        public particleSystemEntityProperty: any = null!;
+
         @guiFromAsset("path/file.gui")
         public gui: AdvancedDynamicTexture = null!;
     }
@@ -99,6 +149,12 @@ describe("decorators/apply", () => {
     const animationGroupObject = {};
     const particleSystemObject = {
         name: "test",
+        id: "particleSystemId",
+    };
+
+    const nodeEntityObject = {};
+    const soundEntityObject = {
+        id: "soundId",
     };
 
     const scene = {
@@ -106,6 +162,11 @@ describe("decorators/apply", () => {
         getNodeByName: jest.fn().mockImplementation(() => nodeObject),
         getAnimationGroupByName: jest.fn().mockImplementation(() => animationGroupObject),
         particleSystems: [particleSystemObject],
+        getNodeById: jest.fn().mockImplementation(() => nodeEntityObject),
+        soundTracks: [],
+        mainSoundTrack: {
+            soundCollection: [soundEntityObject],
+        },
     } as unknown as Scene;
 
     const object = {
@@ -127,6 +188,24 @@ describe("decorators/apply", () => {
                         },
                         "vector3Property": {
                             value: [10, 20, 30],
+                        },
+                        "color3Property": {
+                            value: [0.1, 0.2, 0.3],
+                        },
+                        "color4Property": {
+                            value: [0.1, 0.2, 0.3, 0.4],
+                        },
+                        "nodeEntityProperty": {
+                            value: "nodeId",
+                        },
+                        "soundEntityProperty": {
+                            value: "soundId",
+                        },
+                        "animationGroupEntityProperty": {
+                            value: "animationGroupName",
+                        },
+                        "particleSystemEntityProperty": {
+                            value: "particleSystemId",
                         },
                     }
                 }
@@ -180,6 +259,20 @@ describe("decorators/apply", () => {
             expect(target.vector3Property.x).toBe(10);
             expect(target.vector3Property.y).toBe(20);
             expect(target.vector3Property.z).toBe(30);
+
+            expect(target.color3Property.r).toBe(0.1);
+            expect(target.color3Property.g).toBe(0.2);
+            expect(target.color3Property.b).toBe(0.3);
+
+            expect(target.color4Property.r).toBe(0.1);
+            expect(target.color4Property.g).toBe(0.2);
+            expect(target.color4Property.b).toBe(0.3);
+            expect(target.color4Property.a).toBe(0.4);
+
+            expect(target.nodeEntityProperty).toBe(nodeEntityObject);
+            expect(target.soundEntityProperty).toBe(soundEntityObject);
+            expect(target.animationGroupEntityProperty).toBe(animationGroupObject);
+            expect(target.particleSystemEntityProperty).toBe(particleSystemObject);
 
             setTimeout(() => {
                 expect(target.gui.name).toBe(mockedGuiResult.name);

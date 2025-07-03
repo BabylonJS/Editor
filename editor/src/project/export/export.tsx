@@ -28,11 +28,30 @@ import { configureMeshesPhysics } from "./physics";
 import { EditorExportProjectProgressComponent } from "./progress";
 
 export type IExportProjectOptions = {
-    optimize: boolean;
-    noProgress?: boolean;
+	optimize: boolean;
+	noProgress?: boolean;
 };
 
+let exporting = false;
+
 export async function exportProject(editor: Editor, options: IExportProjectOptions): Promise<void> {
+	if (exporting) {
+		return;
+	}
+
+	exporting = true;
+
+	try {
+		await _exportProject(editor, options);
+	} catch (e) {
+		editor.layout.console.error(`Error exporting project:\n ${e.message}`);
+		toast.error("Error exporting project");
+	} finally {
+		exporting = false;
+	}
+}
+
+async function _exportProject(editor: Editor, options: IExportProjectOptions): Promise<void> {
 	if (!editor.state.projectPath || !editor.state.lastOpenedScenePath) {
 		return;
 	}
@@ -175,7 +194,7 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
 				do {
 					geometryIndex = data.geometries!.vertexData!.findIndex((g) => g.id === mesh.geometryId);
 					if (geometryIndex !== -1) {
-                        data.geometries!.vertexData!.splice(geometryIndex, 1);
+						data.geometries!.vertexData!.splice(geometryIndex, 1);
 					}
 				} while (geometryIndex !== -1);
 

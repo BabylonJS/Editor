@@ -21,6 +21,7 @@ import { projectConfiguration } from "../../../../project/configuration";
 
 import { configureImportedTexture } from "../../preview/import/import";
 
+import { EXRIcon } from "../../../../ui/icons/exr";
 import { SpinnerUIComponent } from "../../../../ui/spinner";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../../ui/shadcn/ui/popover";
 
@@ -169,9 +170,11 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 									? <SiDotenv className="w-24 h-24" />
 									: isColorGradingTexture(this.props.object[this.props.property])
 										? <IoIosColorPalette className="w-24 h-24" />
-										: this.state.previewTemporaryUrl
-											? <img className="w-24 h-24 object-contain" src={this.state.previewTemporaryUrl} />
-											: <SpinnerUIComponent width="64px" />
+										: extname(textureUrl).toLowerCase() === ".exr"
+											? <EXRIcon size="96px" />
+											: this.state.previewTemporaryUrl
+												? <img className="w-24 h-24 object-contain" src={this.state.previewTemporaryUrl} />
+												: <SpinnerUIComponent width="64px" />
 								}
 							</>
 						</PopoverTrigger>
@@ -374,7 +377,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 	private async _computeTemporaryPreview(): Promise<void> {
 		const texture = this.props.object[this.props.property] as Texture;
-		if (!isTexture(texture) || !texture.url) {
+		if (!isTexture(texture) || !texture.url || extname(texture.url).toLowerCase() === ".exr") {
 			return;
 		}
 
@@ -411,6 +414,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			case ".jpg":
 			case ".jpeg":
 			case ".bmp":
+			case ".exr":
 				const oldTexture = this.props.object[this.props.property];
 				const newTexture = configureImportedTexture(
 					new Texture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),

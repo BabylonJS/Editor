@@ -1,10 +1,10 @@
 import { ISceneDecoratorData } from "./apply";
 
-export type VisibleInInspectorDecoratorType = "number" | "boolean" | "vector2" | "vector3" | "color3" | "color4";
+export type VisibleInInspectorDecoratorType = "number" | "boolean" | "vector2" | "vector3" | "color3" | "color4" | "entity";
 
 export type VisibleInInspectorDecoratorConfiguration = {
-    type: VisibleInInspectorDecoratorType;
-    description?: string;
+	type: VisibleInInspectorDecoratorType;
+	description?: string;
 };
 
 /**
@@ -62,9 +62,9 @@ export function visibleAsNumber(
 }
 
 export type VisibleInInspectorDecoratorNumberConfiguration = VisibleInInspectorDecoratorConfiguration & {
-    min?: number;
-    max?: number;
-    step?: number;
+	min?: number;
+	max?: number;
+	step?: number;
 };
 
 /**
@@ -95,10 +95,10 @@ export function visibleAsVector2(
 }
 
 export type VisibleInInspectorDecoratorVector2Configuration = VisibleInInspectorDecoratorConfiguration & {
-    min?: number;
-    max?: number;
-    step?: number;
-    asDegrees?: boolean;
+	min?: number;
+	max?: number;
+	step?: number;
+	asDegrees?: boolean;
 };
 
 /**
@@ -129,10 +129,10 @@ export function visibleAsVector3(
 }
 
 export type VisibleInInspectorDecoratorVector3Configuration = VisibleInInspectorDecoratorConfiguration & {
-    min?: number;
-    max?: number;
-    step?: number;
-    asDegrees?: boolean;
+	min?: number;
+	max?: number;
+	step?: number;
+	asDegrees?: boolean;
 };
 
 /**
@@ -163,8 +163,8 @@ export function visibleAsColor3(
 }
 
 export type VisibleInInspectorDecoratorColor3Configuration = VisibleInInspectorDecoratorConfiguration & {
-    noClamp?: boolean;
-    noColorPicker?: boolean;
+	noClamp?: boolean;
+	noColorPicker?: boolean;
 };
 
 /**
@@ -195,6 +195,42 @@ export function visibleAsColor4(
 }
 
 export type VisibleInInspectorDecoratorColor4Configuration = VisibleInInspectorDecoratorConfiguration & {
-    noClamp?: boolean;
-    noColorPicker?: boolean;
+	noClamp?: boolean;
+	noColorPicker?: boolean;
+};
+
+/**
+ * Makes the decorated property visible in the editor inspector as an entity.
+ * The property can be customized per object in the editor and the custom value is applied
+ * once the script is invoked at runtime in the game/application.
+ * This can be used only by scripts using Classes.
+ * @param entityType defines the type of entity to be displayed in the inspector (node, sound, animationGroup or particleSystem).
+ * @param label defines the optional label displayed in the inspector in the editor.
+ * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
+ */
+export function visibleAsEntity(
+	entityType: VisibleAsEntityType,
+	label?: string,
+	configuration?: Omit<VisibleInInspectorDecoratorEntityConfiguration, "type">,
+) {
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
+
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				entityType,
+				type: "entity",
+			} as VisibleInInspectorDecoratorEntityConfiguration,
+		});
+	};
+}
+
+export type VisibleAsEntityType = "node" | "sound" | "animationGroup" | "particleSystem";
+
+export type VisibleInInspectorDecoratorEntityConfiguration = VisibleInInspectorDecoratorConfiguration & {
+	entityType?: VisibleAsEntityType;
 };

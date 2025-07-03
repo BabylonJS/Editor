@@ -1,3 +1,5 @@
+import { join } from "path/posix";
+
 /**
  * Creates a new worker and returns the result computed by the worker.
  * Posts the given message data to the worker and waits until the worker posts a message back.
@@ -6,6 +8,12 @@
  * @returns a promise that resolves with the data posted by the worker.
  */
 export async function executeSimpleWorker<T>(path: string, data: any) {
+	if (process.env.DEBUG) {
+		path = join(__dirname.replace(/\\/g, "/"), path);
+	} else {
+		path = join(__dirname.replace(/\\/g, "/"), "src/tools", path);
+	}
+
 	const worker = new Worker(path);
 	worker.postMessage(data);
 

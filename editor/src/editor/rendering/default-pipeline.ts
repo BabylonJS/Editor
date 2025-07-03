@@ -6,7 +6,9 @@ import { isTexture } from "../../tools/guards/texture";
 
 import { projectConfiguration } from "../../project/configuration";
 
-import { configureImportedTexture, Editor } from "../main";
+import { configureImportedTexture } from "../layout/preview/import/import";
+
+import { Editor } from "../main";
 
 let defaultRenderingPipeline: DefaultRenderingPipeline | null = null;
 

@@ -23,6 +23,7 @@ import { SiBabylondotjs, SiDotenv, SiJavascript, SiTypescript } from "react-icon
 
 import { FolderIcon } from "@heroicons/react/20/solid";
 
+import { EXRIcon } from "../../../../ui/icons/exr";
 import { Input } from "../../../../ui/shadcn/ui/input";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "../../../../ui/shadcn/ui/context-menu";
 
@@ -30,65 +31,65 @@ import { Editor } from "../../../main";
 
 
 export interface IAssetsBrowserItemProps {
-    /**
-     * The editor reference.
-     */
-    editor: Editor;
-    /**
-     * The absolute path of the item.
-     */
-    absolutePath: string;
+	/**
+	 * The editor reference.
+	 */
+	editor: Editor;
+	/**
+	 * The absolute path of the item.
+	 */
+	absolutePath: string;
 
-    /**
-     * Defines wether or not the item is selected.
-     */
-    selected: boolean;
-    /**
-     * Defines the key used to identify the item in the selectable context.
-     */
-    selectableKey: string;
+	/**
+	 * Defines wether or not the item is selected.
+	 */
+	selected: boolean;
+	/**
+	 * Defines the key used to identify the item in the selectable context.
+	 */
+	selectableKey: string;
 
-    /**
-     * Called on click.
-     * @param event defines the mouse event.
-     * @param item the item that has been clicked.
-     * @param contextMenu defines whether or not the context menu has been triggered.
-     */
-    onClick: (event: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: AssetsBrowserItem, contextMenu: boolean) => void;
-    /**
-     * Called on double click.
-     * @param item the item that has been double clicked.
-     */
-    onDoubleClick: (item: AssetsBrowserItem) => void;
+	/**
+	 * Called on click.
+	 * @param event defines the mouse event.
+	 * @param item the item that has been clicked.
+	 * @param contextMenu defines whether or not the context menu has been triggered.
+	 */
+	onClick: (event: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: AssetsBrowserItem, contextMenu: boolean) => void;
+	/**
+	 * Called on double click.
+	 * @param item the item that has been double clicked.
+	 */
+	onDoubleClick: (item: AssetsBrowserItem) => void;
 
-    /**
-     * Called on the item asks for a refresh.
-     */
-    onRefresh: () => void;
-    /**
-     * Called on the item wants to control the state of the selectable context.
-     */
-    setSelectionEnabled: (enabled: boolean) => void;
+	/**
+	 * Called on the item asks for a refresh.
+	 */
+	onRefresh: () => void;
+	/**
+	 * Called on the item wants to control the state of the selectable context.
+	 */
+	setSelectionEnabled: (enabled: boolean) => void;
 }
 
 export interface IAssetsBrowserItemState {
-    /**
-     * Defines whether or not the item is loading.
-     */
-    isLoading: boolean;
-    /**
-     * Defines whether or not the item is a directory.
-     */
-    isDirectory: boolean;
-    /**
-     * Defines whether or not the item is being renamed.
-     */
-    isRenaming: boolean;
+	/**
+	 * Defines whether or not the item is loading.
+	 */
+	isLoading: boolean;
+	/**
+	 * Defines whether or not the item is a directory.
+	 */
+	isDirectory: boolean;
+	/**
+	 * Defines whether or not the item is being renamed.
+	 */
+	isRenaming: boolean;
 
-    /**
-     * Defines the optional preview image.
-     */
-    previewImage: string | null;
+	/**
+	 * Defines the optional preview image.
+	 */
+	previewImage: string | null;
 }
 
 export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAssetsBrowserItemState> {
@@ -160,21 +161,21 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 								className={`select-none text-center w-full ${this.state.isRenaming ? "" : "text-ellipsis overflow-hidden whitespace-nowrap"}`}
 							>
 								{this.state.isRenaming &&
-                                    <Input
-                                    	className="h-5 py-0 text-center scale-75 bg-primary-foreground"
-                                    	ref={(r) => {
-                                    		setTimeout(() => {
-                                    			r?.focus();
-                                    			r?.select();
-                                    		}, 0);
-                                    	}}
-                                    	onClick={(ev) => ev.stopPropagation()}
-                                    	onChange={(ev) => this._renameValue = ev.currentTarget.value}
-                                    	defaultValue={basename(this.props.absolutePath)}
-                                    	onFocus={(ev) => this._renameValue = ev.currentTarget.value}
-                                    	onBlur={(ev) => this._handleRenameFileOrFolder(ev.currentTarget.value)}
-                                    	onKeyDown={(ev) => ev.key === "Enter" && this._handleRenameFileOrFolder(ev.currentTarget.value)}
-                                    />
+									<Input
+										className="h-5 py-0 text-center scale-75 bg-primary-foreground"
+										ref={(r) => {
+											setTimeout(() => {
+												r?.focus();
+												r?.select();
+											}, 0);
+										}}
+										onClick={(ev) => ev.stopPropagation()}
+										onChange={(ev) => this._renameValue = ev.currentTarget.value}
+										defaultValue={basename(this.props.absolutePath)}
+										onFocus={(ev) => this._renameValue = ev.currentTarget.value}
+										onBlur={(ev) => this._handleRenameFileOrFolder(ev.currentTarget.value)}
+										onKeyDown={(ev) => ev.key === "Enter" && this._handleRenameFileOrFolder(ev.currentTarget.value)}
+									/>
 								}
 
 								{!this.state.isRenaming && basename(this.props.absolutePath)}
@@ -215,8 +216,8 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	}
 
 	/**
-     * Called on the item is double-clicked. To be overriden by the specialized items implementations.
-     */
+	 * Called on the item is double-clicked. To be overriden by the specialized items implementations.
+	 */
 	protected onDoubleClick(): void | Promise<void> {
 		// Nothing to do by default.
 	}
@@ -334,9 +335,9 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	}
 
 	/**
-     * Returns the context menu content for the current item.
-     * To be overriden by the specialized items implementations.
-     */
+	 * Returns the context menu content for the current item.
+	 * To be overriden by the specialized items implementations.
+	 */
 	protected getContextMenuContent(): ReactNode {
 		return null;
 	}
@@ -359,7 +360,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 					</Fragment>
 				))}
 				{items.filter((item) => item).length > 0 &&
-                    <ContextMenuSeparator />
+					<ContextMenuSeparator />
 				}
 
 				<ContextMenuItem onClick={() => this.props.editor.layout.assets.copySelectedFiles()}>Copy</ContextMenuItem>
@@ -370,7 +371,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 					this.setState({ isRenaming: true });
 					this.props.setSelectionEnabled(false);
 				}}>
-                    Rename...
+					Rename...
 				</ContextMenuItem>
 				<ContextMenuSeparator />
 
@@ -461,6 +462,9 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 			case ".ies":
 				return <GiCeilingLight size="64px" />;
+
+			case ".exr":
+				return <EXRIcon size="64px" />;
 
 			default: return null;
 		}

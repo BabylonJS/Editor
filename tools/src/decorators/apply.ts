@@ -1,58 +1,63 @@
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
+import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
 import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
 
-import { VisibleInInspectorDecoratorConfiguration } from "./inspector";
+import { getSoundById } from "../tools/sound";
+
+import {
+	VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration,
+} from "./inspector";
 
 export interface ISceneDecoratorData {
-    // @nodeFromScene
-    _NodesFromScene: {
-        nodeName: string;
-        propertyKey: string | Symbol;
-    }[];
+	// @nodeFromScene
+	_NodesFromScene: {
+		nodeName: string;
+		propertyKey: string | Symbol;
+	}[];
 
-    // @nodeFromDescendants
-    _NodesFromDescendants: {
-        nodeName: string;
-        propertyKey: string | Symbol;
-        directDescendantsOnly: boolean;
-    }[];
+	// @nodeFromDescendants
+	_NodesFromDescendants: {
+		nodeName: string;
+		propertyKey: string | Symbol;
+		directDescendantsOnly: boolean;
+	}[];
 
-    // @fromAnimationGroups
-    _AnimationGroups: {
-        animationGroupName: string;
-        propertyKey: string | Symbol;
-    }[];
+	// @fromAnimationGroups
+	_AnimationGroups: {
+		animationGroupName: string;
+		propertyKey: string | Symbol;
+	}[];
 
-    // @soundFromScene
-    _SoundsFromScene: {
-        soundName: string;
-        propertyKey: string | Symbol;
-    }[];
+	// @soundFromScene
+	_SoundsFromScene: {
+		soundName: string;
+		propertyKey: string | Symbol;
+	}[];
 
-    // @guiFromAsset
-    _GuiFromAsset: {
-        pathInAssets: string;
-        onGuiCreated?: (instance: unknown, gui: AdvancedDynamicTexture) => unknown;
-        propertyKey: string | Symbol;
-    }[];
+	// @guiFromAsset
+	_GuiFromAsset: {
+		pathInAssets: string;
+		onGuiCreated?: (instance: unknown, gui: AdvancedDynamicTexture) => unknown;
+		propertyKey: string | Symbol;
+	}[];
 
-    // @fromParticleSystems
-    _ParticleSystemsFromScene: {
-        particleSystemName: string;
-        propertyKey: string | Symbol;
-    }[];
+	// @fromParticleSystems
+	_ParticleSystemsFromScene: {
+		particleSystemName: string;
+		propertyKey: string | Symbol;
+	}[];
 
-    // @visibleAsNumber, @visibleAsBoolean etc.
-    _VisibleInInspector: {
-        label?: string;
-        propertyKey: string | Symbol;
-        configuration: VisibleInInspectorDecoratorConfiguration;
-    }[];
+	// @visibleAsNumber, @visibleAsBoolean etc.
+	_VisibleInInspector: {
+		label?: string;
+		propertyKey: string | Symbol;
+		configuration: VisibleInInspectorDecoratorConfiguration;
+	}[];
 }
 
 export function applyDecorators(scene: Scene, object: any, script: any, instance: any, rootUrl: string) {
@@ -118,7 +123,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 		if (
 			attachedScripts.hasOwnProperty(propertyKey) &&
-            attachedScripts[propertyKey].hasOwnProperty("value")
+			attachedScripts[propertyKey].hasOwnProperty("value")
 		) {
 			const value = attachedScripts[propertyKey].value;
 
@@ -133,6 +138,31 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 					break;
 				case "vector3":
 					instance[propertyKey] = Vector3.FromArray(value);
+					break;
+
+				case "color3":
+					instance[propertyKey] = Color3.FromArray(value);
+					break;
+				case "color4":
+					instance[propertyKey] = Color4.FromArray(value);
+					break;
+
+				case "entity":
+					const entityType = (params.configuration as VisibleInInspectorDecoratorEntityConfiguration).entityType;
+					switch (entityType) {
+						case "node":
+							instance[propertyKey] = scene.getNodeById(value) ?? null;
+							break;
+						case "animationGroup":
+							instance[propertyKey] = scene.getAnimationGroupByName(value) ?? null;
+							break;
+						case "sound":
+							instance[propertyKey] = getSoundById(value, scene);
+							break;
+						case "particleSystem":
+							instance[propertyKey] = scene.particleSystems?.find((ps) => ps.id === value) ?? null;
+							break;
+					}
 					break;
 			}
 		}

@@ -74,6 +74,22 @@ To watch the Editor and its dependencies, use the following command:
 yarn watch-editor-all
 ```
 
+Using Visual Studio Code, you can also use a specific task to watch the Editor and other packages.
+Just type `Ctrl+Shift+B` (or `Cmd+Shift+B` on macOS) and select the task `watch-all-editor`.
+
+Before contributing, please ensure that all code is formatted correctly and respects the project's coding rules.
+You can lint files using the following command:
+
+```bash
+yarn lint
+```
+
+And you can fix all fixable issues using:
+
+```bash
+yarn lint-fix
+```
+
 ## Packaging
 
 Due to the native dependencies, builds on macOS must be performed on a macOS machine and builds on Windows must be performed on a Windows machine with all the requirements installed (XCode, C++ compilers etc.).
