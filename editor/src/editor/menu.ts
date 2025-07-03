@@ -1,5 +1,8 @@
 import { platform } from "os";
 import { BrowserWindow, Menu } from "electron";
+import { getMeshCommands } from "./dialogs/command-palette/mesh";
+import { getLightCommands } from "./dialogs/command-palette/light";
+import { getCameraCommands } from "./dialogs/command-palette/camera";
 
 export function setupEditorMenu(): void {
 	Menu.setApplicationMenu(Menu.buildFromTemplate([
@@ -145,64 +148,24 @@ export function setupEditorMenu(): void {
 		{
 			label: "Add",
 			submenu: [
-				{
-					label: "Transform Node",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:transform-node"),
-				},
-				{
-					label: "Box Mesh",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:box-mesh"),
-				},
-				{
-					label: "Plane Mesh",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:plane-mesh"),
-				},
-				{
-					label: "Sphere Mesh",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:sphere-mesh"),
-				},
-				{
-					label: "Ground Mesh",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:ground-mesh"),
-				},
-				{
-					label: "SkyBox Mesh",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:skybox-mesh"),
-				},
-				{
-					label: "Empty Mesh",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:empty-mesh"),
-				},
+				...getMeshCommands().map((command) => ({
+					label: command.text,
+					click: () => BrowserWindow.getFocusedWindow()?.webContents.send(`add:${command.ipcRendererChannelKey}`),
+				})),
 				{
 					type: "separator",
 				},
-				{
-					label: "Point Light",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:point-light"),
-				},
-				{
-					label: "Directional Light",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:directional-light"),
-				},
-				{
-					label: "Spot Light",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:spot-light"),
-				},
-				{
-					label: "Hemispheric Light",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:hemispheric-light"),
-				},
+				...getLightCommands().map((command) => ({
+					label: command.text,
+					click: () => BrowserWindow.getFocusedWindow()?.webContents.send(`add:${command.ipcRendererChannelKey}`),
+				})),
 				{
 					type: "separator",
 				},
-				{
-					label: "Free Camera",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:free-camera"),
-				},
-				{
-					label: "Arc Rotate Camera",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("add:arc-rotate-camera"),
-				},
+				...getCameraCommands().map((command) => ({
+					label: command.text,
+					click: () => BrowserWindow.getFocusedWindow()?.webContents.send(`add:${command.ipcRendererChannelKey}`),
+				})),
 			],
 		},
 		{

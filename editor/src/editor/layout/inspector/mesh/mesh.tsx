@@ -3,6 +3,7 @@ import { Component, ReactNode } from "react";
 
 import { FaCopy, FaLink } from "react-icons/fa6";
 import { IoAddSharp, IoCloseOutline } from "react-icons/io5";
+import { AiOutlinePlus } from "react-icons/ai";
 
 import { SkyMaterial } from "babylonjs-materials";
 import {
@@ -14,6 +15,7 @@ import { CollisionMesh } from "../../../nodes/collision";
 import { showPrompt } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Separator } from "../../../../ui/shadcn/ui/separator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
@@ -43,6 +45,9 @@ import { MeshDecalInspector } from "./decal";
 import { MeshGeometryInspector } from "./geometry";
 import { EditorMeshPhysicsInspector } from "./physics";
 import { EditorMeshCollisionInspector } from "./collision";
+
+import { getMaterialCommands } from "../../../dialogs/command-palette/material";
+import { ICommandPaletteType } from "../../../dialogs/command-palette/command-palette";
 
 export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
 	/**
@@ -161,6 +166,18 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		}
 	}
 
+	private _handleAddMaterial(command: ICommandPaletteType): void {
+		if(this.props.object.material) {return;}
+		const material: Material | null = command.action() as Material;
+		
+		if (!material) {
+			return;
+		}
+
+		this.props.object.material = material;
+		this.forceUpdate();
+	}
+
 	private _getLODsComponent(): ReactNode {
 		const mesh = this.props.object as Mesh;
 
@@ -199,9 +216,26 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		if (!this.props.object.material) {
 			return (
 				<EditorInspectorSectionField title="Material">
-					<div className="text-center text-xl">
+					<div className="flex justify-center items-center gap-2">
+						<div className="text-center text-xl">
                         No material
+						</div>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost">
+									<AiOutlinePlus className="w-4 h-4" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent>
+								{getMaterialCommands().map((command) => (
+									<DropdownMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
+										{command.text}
+									</DropdownMenuItem>
+								))}
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
+					
 				</EditorInspectorSectionField>
 			);
 		}
